@@ -12,6 +12,7 @@ import com.nttdocomo.android.sdaiflib.Define;
 import com.nttdocomo.android.sdaiflib.DeviceInfo;
 import com.nttdocomo.android.sdaiflib.ErrorCode;
 import com.nttdocomo.android.sdaiflib.GetDeviceInformation;
+import com.nttdocomo.android.sdaiflib.NotifyConnect;
 import com.nttdocomo.android.sdaiflib.NotifyNotification;
 import com.nttdocomo.android.sdaiflib.NotifyRange;
 import com.nttdocomo.android.sdaiflib.SendNotification;
@@ -33,12 +34,14 @@ public class LinkingDeviceManager {
     private NotifyRange mNotifyRange;
     private NotifySensorData mNotifySensor;
     private NotifyNotification mNotifyNotification;
+    private NotifyConnect mNotifyConnect;
 
+    private final List<ConnectListener> mConnectListeners = new CopyOnWriteArrayList<>();
     private final List<KeyEventListener> mKeyEventListeners = new CopyOnWriteArrayList<>();
     private final List<SensorListener> mSensorListeners = new CopyOnWriteArrayList<>();
     private final List<RangeListener> mRangeListeners = new CopyOnWriteArrayList<>();
 
-    private List<LinkingDevice> mSensorDevices = new ArrayList<>();
+    private List<LinkingDevice> mSensorDeviceHolders = new ArrayList<>();
 
     public LinkingDeviceManager(final Context context) {
         mContext = context;
@@ -48,6 +51,12 @@ public class LinkingDeviceManager {
         stopAllSensor();
         stopKeyEvent();
         stopRange();
+        stopNotifyConnect();
+
+        mConnectListeners.clear();
+        mKeyEventListeners.clear();
+        mSensorListeners.clear();
+        mRangeListeners.clear();
     }
 
     public List<LinkingDevice> getDevices() {
@@ -73,6 +82,69 @@ public class LinkingDeviceManager {
         return list;
     }
 
+    public LinkingDevice findDeviceByDeviceId(final int deviceId, final int uniqueId) {
+        for (LinkingDevice device : getDevices()) {
+            if (device.getModelId() == deviceId && device.getUniqueId() == uniqueId) {
+                return device;
+            }
+        }
+        return null;
+    }
+
+    public LinkingDevice findDeviceByBdAddress(final String address) {
+        if (address == null) {
+            return null;
+        }
+
+        for (LinkingDevice device : getDevices()) {
+            if (device.getBdAddress().equals(address)) {
+                return device;
+            }
+        }
+        return null;
+    }
+
+    public synchronized void startNotifyConnect() {
+        if (mNotifyConnect != null) {
+            if (BuildConfig.DEBUG) {
+                Log.w(TAG, "mNotifyConnect is already running.");
+            }
+            return;
+        }
+
+        mNotifyConnect = new NotifyConnect(mContext, new NotifyConnect.ConnectInterface() {
+            @Override
+            public void onConnect() {
+                SharedPreferences preference = mContext.getSharedPreferences(Define.ConnectInfo, Context.MODE_PRIVATE);
+                int deviceId = preference.getInt(LinkingUtil.DEVICE_ID, -1);
+                int uniqueId = preference.getInt(LinkingUtil.DEVICE_UID, -1);
+                LinkingDevice device = findDeviceByDeviceId(deviceId, uniqueId);
+                if (device != null) {
+                    notifyConnect(device);
+                }
+            }
+
+            @Override
+            public void onDisconnect() {
+                SharedPreferences preference = mContext.getSharedPreferences(Define.DisconnectInfo, Context.MODE_PRIVATE);
+                int deviceId = preference.getInt(LinkingUtil.DEVICE_ID, -1);
+                int uniqueId = preference.getInt(LinkingUtil.DEVICE_UID, -1);
+                LinkingDevice device = findDeviceByDeviceId(deviceId, uniqueId);
+                if (device != null) {
+                    device.setIsConnected(false);
+                    notifyDisconnect(device);
+                }
+            }
+        });
+    }
+
+    public synchronized void stopNotifyConnect() {
+        if (mNotifyConnect != null) {
+            mNotifyConnect.release();
+            mNotifyConnect = null;
+        }
+    }
+
     public synchronized void startKeyEvent() {
         if (isStartKeyEvent()) {
             if (BuildConfig.DEBUG) {
@@ -85,9 +157,9 @@ public class LinkingDeviceManager {
             @Override
             public void onNotify() {
                 SharedPreferences preference = mContext.getSharedPreferences(Define.NotificationInfo, Context.MODE_PRIVATE);
-                int deviceId = preference.getInt("DEVICE_ID", -1);
-                int uniqueId = preference.getInt("DEVICE_UID", -1);
-                int keyCode = preference.getInt("DEVICE_BUTTON_ID", -1);
+                int deviceId = preference.getInt(LinkingUtil.DEVICE_ID, -1);
+                int uniqueId = preference.getInt(LinkingUtil.DEVICE_UID, -1);
+                int keyCode = preference.getInt(LinkingUtil.DEVICE_BUTTON_ID, -1);
 
                 if (BuildConfig.DEBUG) {
                     Log.i(TAG, "NotifyNotification.NotificationInterface#onNotify");
@@ -127,9 +199,9 @@ public class LinkingDeviceManager {
             @Override
             public void onRangeChange() {
                 SharedPreferences preference = mContext.getSharedPreferences(Define.RangeInfo, Context.MODE_PRIVATE);
-                String bdAddress = preference.getString("BD_ADDRESS", "");
-                int range = preference.getInt("RANGE", -1);
-                int rangeSetting = preference.getInt("RANGE_SETTING", -1);
+                String bdAddress = preference.getString(LinkingUtil.BD_ADDRESS, "");
+                int range = preference.getInt(LinkingUtil.RANGE, -1);
+                int rangeSetting = preference.getInt(LinkingUtil.RANGE_SETTING, -1);
                 LinkingDevice device = findDeviceByBdAddress(bdAddress);
                 if (device != null) {
                     notifyOnChangeRange(device, Range.valueOf(rangeSetting, range));
@@ -167,7 +239,7 @@ public class LinkingDeviceManager {
 
         startAllSensor(device.getBdAddress(), interval);
 
-        mSensorDevices.add(device);
+        mSensorDeviceHolders.add(device);
 
         if (mNotifySensor != null) {
             if (BuildConfig.DEBUG) {
@@ -215,24 +287,24 @@ public class LinkingDeviceManager {
     public synchronized void stopSensor(final LinkingDevice device) {
         stopSensors(device.getBdAddress());
 
-        mSensorDevices.remove(device);
+        mSensorDeviceHolders.remove(device);
 
-        if (mSensorDevices.isEmpty() && mNotifySensor != null) {
+        if (mSensorDeviceHolders.isEmpty() && mNotifySensor != null) {
             mNotifySensor.release();
             mNotifySensor = null;
         }
     }
 
     public boolean isStartSensor(final LinkingDevice device) {
-        return mSensorDevices.contains(device);
+        return mSensorDeviceHolders.contains(device);
     }
 
     public void stopAllSensor() {
-        for (LinkingDevice device : mSensorDevices) {
+        for (LinkingDevice device : mSensorDeviceHolders) {
             stopSensors(device.getBdAddress());
         }
 
-        mSensorDevices.clear();
+        mSensorDeviceHolders.clear();
 
         if (mNotifySensor != null) {
             mNotifySensor.release();
@@ -311,6 +383,14 @@ public class LinkingDeviceManager {
         mRangeListeners.remove(listener);
     }
 
+    public void addConnectListener(final ConnectListener listener) {
+        mConnectListeners.add(listener);
+    }
+
+    public void removeConnectListener(final ConnectListener listener) {
+        mConnectListeners.remove(listener);
+    }
+
     private void startAllSensor(final String address, final int interval) {
         startSensor(address, 0, interval);
     }
@@ -318,13 +398,13 @@ public class LinkingDeviceManager {
     private void startSensor(final String address, final int type, final int interval) {
         Intent intent = new Intent(mContext, ConfirmActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        intent.putExtra("com.nttdocomo.android.smartdeviceagent.extra.BD_ADDRESS", address);
-        intent.putExtra("com.nttdocomo.android.smartdeviceagent.extra.SENSOR_TYPE", type);
-        intent.putExtra("com.nttdocomo.android.smartdeviceagent.extra.SENSOR_INTERVAL", interval);
-        intent.putExtra("com.nttdocomo.android.smartdeviceagent.extra.SENSOR_DURATION", -1);
-        intent.putExtra("com.nttdocomo.android.smartdeviceagent.extra.X_THRESHOLD", 0.0F);
-        intent.putExtra("com.nttdocomo.android.smartdeviceagent.extra.Y_THRESHOLD", 0.0F);
-        intent.putExtra("com.nttdocomo.android.smartdeviceagent.extra.Z_THRESHOLD", 0.0F);
+        intent.putExtra(LinkingUtil.EXTRA_BD_ADDRESS, address);
+        intent.putExtra(LinkingUtil.EXTRA_SENSOR_TYPE, type);
+        intent.putExtra(LinkingUtil.EXTRA_SENSOR_INTERVAL, interval);
+        intent.putExtra(LinkingUtil.EXTRA_SENSOR_DURATION, -1);
+        intent.putExtra(LinkingUtil.EXTRA_X_THRESHOLD, 0.0F);
+        intent.putExtra(LinkingUtil.EXTRA_Y_THRESHOLD, 0.0F);
+        intent.putExtra(LinkingUtil.EXTRA_Z_THRESHOLD, 0.0F);
         try {
             mContext.startActivity(intent);
         } catch (ActivityNotFoundException e) {
@@ -340,10 +420,8 @@ public class LinkingDeviceManager {
         }
 
         Intent intent = new Intent(mContext.getPackageName() + ".sda.action.STOP_SENSOR");
-        intent.setComponent(new ComponentName("com.nttdocomo.android.smartdeviceagent",
-                "com.nttdocomo.android.smartdeviceagent.RequestReceiver"));
+        intent.setComponent(new ComponentName(LinkingUtil.PACKAGE_NAME, LinkingUtil.RECEIVER_NAME));
         intent.putExtra(mContext.getPackageName() + ".sda.extra.BD_ADDRESS", address);
-
         try {
             mContext.sendBroadcast(intent);
         } catch (ActivityNotFoundException e) {
@@ -351,28 +429,6 @@ public class LinkingDeviceManager {
                 e.printStackTrace();
             }
         }
-    }
-
-    public LinkingDevice findDeviceByDeviceId(final int deviceId, final int uniqueId) {
-        for (LinkingDevice device : getDevices()) {
-            if (device.getModelId() == deviceId && device.getUniqueId() == uniqueId) {
-                return device;
-            }
-        }
-        return null;
-    }
-
-    public LinkingDevice findDeviceByBdAddress(final String address) {
-        if (address == null) {
-            return null;
-        }
-
-        for (LinkingDevice device : getDevices()) {
-            if (device.getBdAddress().equals(address)) {
-                return device;
-            }
-        }
-        return null;
     }
 
     private void setVibration(final SendNotification notify, final LinkingDevice device) {
@@ -427,15 +483,11 @@ public class LinkingDeviceManager {
 
     private boolean hasSensor(final DeviceInfo deviceInfo) {
         int feature = deviceInfo.getFeature();
-        final int LED = 1;
-        final int GYRO = LED << 1;
-        final int ACCE = LED << 2;
-        final int CONP = LED << 3;
-        if ((feature & GYRO) == GYRO) {
+        if ((feature & LinkingDevice.GYRO) == LinkingDevice.GYRO) {
             return true;
-        } else if ((feature & ACCE) == ACCE) {
+        } else if ((feature & LinkingDevice.ACCELERATION) == LinkingDevice.ACCELERATION) {
             return true;
-        } else if ((feature & CONP) == CONP) {
+        } else if ((feature & LinkingDevice.COMPASS) == LinkingDevice.COMPASS) {
             return true;
         }
         return false;
@@ -445,6 +497,18 @@ public class LinkingDeviceManager {
         int feature = deviceInfo.getFeature();
         final int LED = 1;
         return (feature & LED) == LED;
+    }
+
+    private void notifyConnect(final LinkingDevice device) {
+        for (ConnectListener listener : mConnectListeners) {
+            listener.onConnect(device);
+        }
+    }
+
+    private void notifyDisconnect(final LinkingDevice device) {
+        for (ConnectListener listener : mConnectListeners) {
+            listener.onDisconnect(device);
+        }
     }
 
     private void notifyOnChangeSensor(final LinkingDevice device, final LinkingSensorData data) {
@@ -476,8 +540,7 @@ public class LinkingDeviceManager {
             return mValue;
         }
 
-        public static Range valueOf(int setting, int range) {
-            LinkingDeviceManager.Range r = LinkingDeviceManager.Range.UNKNOWN;
+        public static Range valueOf(final int setting, final int range) {
             switch (setting) {
                 case 1:
                     if (range == 0) {
@@ -501,6 +564,11 @@ public class LinkingDeviceManager {
                     return Range.UNKNOWN;
             }
         }
+    }
+
+    public interface ConnectListener {
+        void onConnect(LinkingDevice device);
+        void onDisconnect(LinkingDevice device);
     }
 
     public interface RangeListener {

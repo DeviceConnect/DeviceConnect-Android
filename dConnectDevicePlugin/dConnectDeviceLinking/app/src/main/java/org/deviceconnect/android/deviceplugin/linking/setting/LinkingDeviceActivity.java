@@ -9,6 +9,7 @@ package org.deviceconnect.android.deviceplugin.linking.setting;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.app.DialogFragment;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -26,11 +27,12 @@ import org.deviceconnect.android.deviceplugin.linking.linking.LinkingDeviceManag
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingSensorData;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingUtil;
 import org.deviceconnect.android.deviceplugin.linking.linking.VibrationData;
+import org.deviceconnect.android.deviceplugin.linking.setting.fragment.dialog.ConfirmationDialogFragment;
 import org.deviceconnect.android.deviceplugin.linking.util.PreferenceUtil;
 
 import java.util.Map;
 
-public class LinkingDeviceActivity extends AppCompatActivity {
+public class LinkingDeviceActivity extends AppCompatActivity implements ConfirmationDialogFragment.OnDialogEventListener {
     private static final String TAG = "LinkingPlugIn";
     public static final String EXTRA_ADDRESS = "bdAddress";
 
@@ -69,15 +71,19 @@ public class LinkingDeviceActivity extends AppCompatActivity {
         getLinkingDeviceManager().addSensorListener(mSensorListener);
         getLinkingDeviceManager().addKeyEventListener(mKeyEventListener);
         getLinkingDeviceManager().addRangeListener(mRangeListener);
+        getLinkingDeviceManager().addConnectListener(mConnectListener);
+        getLinkingDeviceManager().startNotifyConnect();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
 
+        getLinkingDeviceManager().stopNotifyConnect();
         getLinkingDeviceManager().removeSensorListener(mSensorListener);
         getLinkingDeviceManager().removeKeyEventListener(mKeyEventListener);
         getLinkingDeviceManager().removeRangeListener(mRangeListener);
+        getLinkingDeviceManager().removeConnectListener(mConnectListener);
     }
 
     @Override
@@ -88,6 +94,16 @@ public class LinkingDeviceActivity extends AppCompatActivity {
                 return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onPositiveClick(DialogFragment fragment) {
+        finish();
+    }
+
+    @Override
+    public void onNegativeClick(DialogFragment fragment) {
+
     }
 
     private LinkingDeviceManager getLinkingDeviceManager() {
@@ -234,6 +250,15 @@ public class LinkingDeviceActivity extends AppCompatActivity {
                 }
             });
         }
+    }
+
+    private void showDisconnectDevice() {
+        String title = getString(R.string.fragment_device_error_title);
+        String message = getString(R.string.fragment_device_error_disconnect, mDevice.getDisplayName());
+        String positive = getString(R.string.fragment_device_error_negative);
+        ConfirmationDialogFragment dialog = ConfirmationDialogFragment.newInstance(title, message, positive, null);
+        dialog.setCancelable(false);
+        dialog.show(getSupportFragmentManager(), "error");
     }
 
     private void showLEDPattern() {
@@ -538,6 +563,19 @@ public class LinkingDeviceActivity extends AppCompatActivity {
         @Override
         public void onChangeRange(final LinkingDevice device, final LinkingDeviceManager.Range range) {
             updateRange(range);
+        }
+    };
+
+    private LinkingDeviceManager.ConnectListener mConnectListener = new LinkingDeviceManager.ConnectListener() {
+        @Override
+        public void onConnect(final LinkingDevice device) {
+        }
+
+        @Override
+        public void onDisconnect(final LinkingDevice device) {
+            if (device.equals(mDevice)) {
+                showDisconnectDevice();
+            }
         }
     };
 }

@@ -26,6 +26,12 @@ public class ConfirmActivity extends Activity {
 
     private static final int REQUEST_CODE = 4;
 
+    /**
+     * 0：ジャイロセンサー
+     * 1：加速度センサー
+     * 2：方位センサー
+     * 3～255：拡張センサー
+     */
     private int mCurrentRequestType = 0;
 
     private ScheduledExecutorService mExecutorService = Executors.newSingleThreadScheduledExecutor();
@@ -92,11 +98,10 @@ public class ConfirmActivity extends Activity {
             Log.i(TAG, "ConfirmActivity:startSensor type:" + type);
         }
 
-        Intent intent = new Intent("com.nttdocomo.android.smartdeviceagent.action.START_SENSOR");
-        intent.setComponent(new ComponentName("com.nttdocomo.android.smartdeviceagent",
-                "com.nttdocomo.android.smartdeviceagent.RequestStartActivity"));
+        Intent intent = new Intent(LinkingUtil.ACTION_START_SENSOR);
+        intent.setComponent(new ComponentName(LinkingUtil.PACKAGE_NAME, LinkingUtil.ACTIVITY_NAME));
         intent.putExtras(getIntent().getExtras());
-        intent.putExtra("com.nttdocomo.android.smartdeviceagent.extra.SENSOR_TYPE", type);
+        intent.putExtra(LinkingUtil.EXTRA_SENSOR_TYPE, type);
         try {
             startActivityForResult(intent, REQUEST_CODE);
         } catch (Exception e) {

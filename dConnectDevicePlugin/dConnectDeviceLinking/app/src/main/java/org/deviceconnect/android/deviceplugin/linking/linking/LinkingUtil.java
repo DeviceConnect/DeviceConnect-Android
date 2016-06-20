@@ -14,9 +14,32 @@ import android.net.Uri;
 import org.deviceconnect.android.deviceplugin.linking.BuildConfig;
 
 public final class LinkingUtil {
-    private static final String PACKAGE_NAME = "com.nttdocomo.android.smartdeviceagent";
 
-    private static final int LED = 0x01;
+    public static final String ACTION_SENSOR_DATA = "com.nttdocomo.android.smartdeviceagent.action.SENSOR_DATA";
+    public static final String ACTION_SENSOR_STOP = "com.nttdocomo.android.smartdeviceagent.action.STOP_SENSOR";
+    public static final String ACTION_START_SENSOR = "com.nttdocomo.android.smartdeviceagent.action.START_SENSOR";
+
+    public static final String PACKAGE_NAME = "com.nttdocomo.android.smartdeviceagent";
+
+    public static final String ACTIVITY_NAME = "com.nttdocomo.android.smartdeviceagent.RequestStartActivity";
+
+    public static final String RECEIVER_NAME = "com.nttdocomo.android.smartdeviceagent.RequestReceiver";
+
+    public static final String EXTRA_SENSOR_TYPE = "com.nttdocomo.android.smartdeviceagent.extra.SENSOR_TYPE";
+    public static final String EXTRA_BD_ADDRESS = "com.nttdocomo.android.smartdeviceagent.extra.BD_ADDRESS";
+    public static final String EXTRA_SENSOR_INTERVAL = "com.nttdocomo.android.smartdeviceagent.extra.SENSOR_INTERVAL";
+    public static final String EXTRA_SENSOR_DURATION = "com.nttdocomo.android.smartdeviceagent.extra.SENSOR_DURATION";
+    public static final String EXTRA_X_THRESHOLD = "com.nttdocomo.android.smartdeviceagent.extra.X_THRESHOLD";
+    public static final String EXTRA_Y_THRESHOLD = "com.nttdocomo.android.smartdeviceagent.extra.Y_THRESHOLD";
+    public static final String EXTRA_Z_THRESHOLD = "com.nttdocomo.android.smartdeviceagent.extra.Z_THRESHOLD";
+
+    public static final String DEVICE_ID = "DEVICE_ID";
+    public static final String DEVICE_UID = "DEVICE_UID";
+    public static final String DEVICE_BUTTON_ID = "DEVICE_BUTTON_ID";
+
+    public static final String BD_ADDRESS = "BD_ADDRESS";
+    public static final String RANGE = "RANGE";
+    public static final String RANGE_SETTING = "RANGE_SETTING";
 
     public static final int RESULT_OK = -1;
     public static final int RESULT_CANCEL = 1;

@@ -87,7 +87,25 @@ public class LinkingDeviceListFragment extends Fragment implements ConfirmationD
     @Override
     public void onResume() {
         super.onResume();
+
         discoverDevices(getView());
+
+        LinkingDeviceManager mgr = getLinkingDeviceManager();
+        if (mgr != null) {
+            mgr.addConnectListener(mConnectListener);
+            mgr.startNotifyConnect();
+        }
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+
+        LinkingDeviceManager mgr = getLinkingDeviceManager();
+        if (mgr != null) {
+            mgr.stopNotifyConnect();
+            mgr.removeConnectListener(mConnectListener);
+        }
     }
 
     @Override
@@ -98,6 +116,11 @@ public class LinkingDeviceListFragment extends Fragment implements ConfirmationD
     @Override
     public void onNegativeClick(final DialogFragment fragment) {
         // do nothing
+    }
+
+    private LinkingDeviceManager getLinkingDeviceManager() {
+        LinkingApplication app = (LinkingApplication) getActivity().getApplication();
+        return app.getLinkingDeviceManager();
     }
 
     private void transitionDeviceControl(final DeviceItem item) {
@@ -137,9 +160,25 @@ public class LinkingDeviceListFragment extends Fragment implements ConfirmationD
         }
     }
 
+    private void refreshDeviceList() {
+        if (getActivity() == null) {
+            return;
+        }
+        getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                discoverDevices(getView());
+            }
+        });
+    }
+
     private void discoverDevices(final View root) {
 
         if (mDiscoveryDeviceDialogFragment != null) {
+            return;
+        }
+
+        if (root == null) {
             return;
         }
 
@@ -220,4 +259,16 @@ public class LinkingDeviceListFragment extends Fragment implements ConfirmationD
         LinkingDevice mDevice;
         boolean isConnected = false;
     }
+
+    private LinkingDeviceManager.ConnectListener mConnectListener = new LinkingDeviceManager.ConnectListener() {
+        @Override
+        public void onConnect(final LinkingDevice device) {
+            refreshDeviceList();
+        }
+
+        @Override
+        public void onDisconnect(final LinkingDevice device) {
+            refreshDeviceList();
+        }
+    };
 }

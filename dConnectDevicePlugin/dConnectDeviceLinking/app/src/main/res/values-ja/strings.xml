@@ -30,6 +30,7 @@
     <string name="fragment_device_status_offline">Status: Offline</string>
     <string name="fragment_device_error_title">エラー</string>
     <string name="fragment_device_error_message">%1$sが接続されていません。\nLinkingアプリのペアリング設定を確認してください。</string>
+    <string name="fragment_device_error_disconnect">%1$sの接続が切れました。</string>
     <string name="fragment_device_error_positive">Linkingアプリ誘導</string>
     <string name="fragment_device_error_negative">閉じる</string>
 

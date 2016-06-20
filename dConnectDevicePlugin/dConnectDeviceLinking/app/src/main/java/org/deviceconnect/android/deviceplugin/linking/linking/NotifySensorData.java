@@ -25,8 +25,8 @@ public class NotifySensorData {
     public NotifySensorData(final Context context, final ControlSensorData.SensorDataInterface observer) {
         mContext = context;
         IntentFilter filter = new IntentFilter();
-        filter.addAction("com.nttdocomo.android.smartdeviceagent.action.SENSOR_DATA");
-        filter.addAction("com.nttdocomo.android.smartdeviceagent.action.STOP_SENSOR");
+        filter.addAction(LinkingUtil.ACTION_SENSOR_DATA);
+        filter.addAction(LinkingUtil.ACTION_SENSOR_STOP);
         mReceiver = new ReceiveSensorData(observer);
         mContext.registerReceiver(mReceiver, filter);
     }

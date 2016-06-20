@@ -27,8 +27,12 @@ public class ConfirmationDialogFragment extends DialogFragment {
         Bundle args = new Bundle();
         args.putString(EXTRA_TITLE, title);
         args.putString(EXTRA_MESSAGE, message);
-        args.putString(EXTRA_POSITIVE, positive);
-        args.putString(EXTRA_NEGATIVE, negative);
+        if (positive != null) {
+            args.putString(EXTRA_POSITIVE, positive);
+        }
+        if (negative != null) {
+            args.putString(EXTRA_NEGATIVE, negative);
+        }
 
         ConfirmationDialogFragment f = new ConfirmationDialogFragment();
         f.setArguments(args);
@@ -53,25 +57,29 @@ public class ConfirmationDialogFragment extends DialogFragment {
 
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         builder.setTitle(title);
-        builder.setMessage(message)
-                .setPositiveButton(positive, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int id) {
-                        OnDialogEventListener l = getOnDialogEventListener();
-                        if (l != null) {
-                            l.onPositiveClick(ConfirmationDialogFragment.this);
-                        }
+        builder.setMessage(message);
+        if (positive != null) {
+            builder.setPositiveButton(positive, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int id) {
+                    OnDialogEventListener l = getOnDialogEventListener();
+                    if (l != null) {
+                        l.onPositiveClick(ConfirmationDialogFragment.this);
                     }
-                })
-                .setNegativeButton(negative, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int id) {
-                        OnDialogEventListener l = getOnDialogEventListener();
-                        if (l != null) {
-                            l.onNegativeClick(ConfirmationDialogFragment.this);
-                        }
+                }
+            });
+        }
+        if (negative != null) {
+            builder.setNegativeButton(negative, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int id) {
+                    OnDialogEventListener l = getOnDialogEventListener();
+                    if (l != null) {
+                        l.onNegativeClick(ConfirmationDialogFragment.this);
                     }
-                });
+                }
+            });
+        }
         return builder.create();
     }
 

@@ -31,13 +31,13 @@ public class LinkingSensorData implements Parcelable {
         }
     }
 
-    private String bdAddress;
-    private SensorType type = SensorType.GYRO;
-    private float x;
-    private float y;
-    private float z;
-    private byte[] originalData;
-    private long time;
+    private String mBdAddress;
+    private SensorType mType = SensorType.GYRO;
+    private float mX;
+    private float mY;
+    private float mZ;
+    private byte[] mOriginalData;
+    private long mTime;
 
     public static final Parcelable.Creator<LinkingSensorData> CREATOR = new Parcelable.Creator<LinkingSensorData>() {
         @Override
@@ -56,25 +56,25 @@ public class LinkingSensorData implements Parcelable {
     }
 
     public LinkingSensorData(Parcel in) {
-        bdAddress = in.readString();
-        type = SensorType.values()[in.readInt()];
-        x = in.readFloat();
-        y = in.readFloat();
-        z = in.readFloat();
-        in.writeByteArray(originalData);
-        originalData = in.createByteArray();
-        in.writeLong(time);
+        mBdAddress = in.readString();
+        mType = SensorType.values()[in.readInt()];
+        mX = in.readFloat();
+        mY = in.readFloat();
+        mZ = in.readFloat();
+        in.writeByteArray(mOriginalData);
+        mOriginalData = in.createByteArray();
+        in.writeLong(mTime);
     }
 
     @Override
     public void writeToParcel(Parcel parcel, int i) {
-        parcel.writeString(bdAddress);
-        parcel.writeInt(type.ordinal());
-        parcel.writeFloat(x);
-        parcel.writeFloat(y);
-        parcel.writeFloat(z);
-        parcel.writeByteArray(originalData);
-        parcel.writeLong(time);
+        parcel.writeString(mBdAddress);
+        parcel.writeInt(mType.ordinal());
+        parcel.writeFloat(mX);
+        parcel.writeFloat(mY);
+        parcel.writeFloat(mZ);
+        parcel.writeByteArray(mOriginalData);
+        parcel.writeLong(mTime);
     }
 
     @Override
@@ -83,58 +83,58 @@ public class LinkingSensorData implements Parcelable {
     }
 
     public String getBdAddress() {
-        return bdAddress;
+        return mBdAddress;
     }
 
     public void setBdAddress(String bdAddress) {
-        this.bdAddress = bdAddress;
+        mBdAddress = bdAddress;
     }
 
     public SensorType getType() {
-        return type;
+        return mType;
     }
 
     public void setType(SensorType type) {
-        this.type = type;
+        mType = type;
     }
 
     public float getX() {
-        return x;
+        return mX;
     }
 
     public void setX(float x) {
-        this.x = x;
+        mX = x;
     }
 
     public float getY() {
-        return y;
+        return mY;
     }
 
     public void setY(float y) {
-        this.y = y;
+        mY = y;
     }
 
     public float getZ() {
-        return z;
+        return mZ;
     }
 
     public void setZ(float z) {
-        this.z = z;
+        mZ = z;
     }
 
     public byte[] getOriginalData() {
-        return originalData;
+        return mOriginalData;
     }
 
     public void setOriginalData(byte[] originalData) {
-        this.originalData = originalData;
+        mOriginalData = originalData;
     }
 
     public long getTime() {
-        return time;
+        return mTime;
     }
 
     public void setTime(long time) {
-        this.time = time;
+        mTime = time;
     }
 }

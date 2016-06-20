@@ -137,7 +137,7 @@ public class LinkingDeviceOrientationProfile extends DeviceOrientationProfile {
         EventError error = EventManager.INSTANCE.addEvent(request);
         if (error == EventError.NONE) {
             if (!getLinkingDeviceManager().isStartSensor(device)) {
-                getLinkingDeviceManager().startSensor(device, getInterval(request));
+                getLinkingDeviceManager().startSensor(device);
                 mSensorHolderMap.put(device.getBdAddress(), createSensorHolder(device, getInterval(request)));
             }
             addEventDispatcher(request);

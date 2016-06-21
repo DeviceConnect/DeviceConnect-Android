@@ -65,8 +65,8 @@ public class HitoeConstants {
 	public static final int CONNECT_DISCONNECT_RETRY_COUNT= 3;
 	public static final int CONNECT_NOPACKET_RETRY_TIME = 5000;
 
-	public static final int ADD_RECEIVER_PARAM_ECG_SAMPLING_INTERVAL = 40;
-	public static final int ADD_RECEIVER_PARAM_ACC_SAMPLING_INTERVAL = 40;
+	public static final int ADD_RECEIVER_PARAM_ECG_SAMPLING_INTERVAL = 500;//40;
+	public static final int ADD_RECEIVER_PARAM_ACC_SAMPLING_INTERVAL = 500;//40;
 	public static final int ADD_RECEIVER_PARAM_RRI_SAMPLING_INTERVAL = 1000;
 	public static final int ADD_RECEIVER_PARAM_HR_SAMPLING_INTERVAL = 1000;
 	public static final int ADD_RECEIVER_PARAM_BAT_SAMPLING_INTERVAL = 10000;

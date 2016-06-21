@@ -7,7 +7,9 @@
 package org.deviceconnect.android.deviceplugin.hitoe.data;
 
 import android.content.Context;
+import android.os.Handler;
 import android.util.Log;
+import android.widget.Toast;
 
 import org.deviceconnect.android.deviceplugin.hitoe.BuildConfig;
 import org.deviceconnect.android.deviceplugin.hitoe.util.RawDataParseUtils;
@@ -17,6 +19,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
 import jp.ne.docomo.smt.dev.hitoetransmitter.HitoeSdkAPI;
@@ -29,8 +35,37 @@ import jp.ne.docomo.smt.dev.hitoetransmitter.sdk.HitoeSdkAPIImpl;
 public class HitoeManager {
     
     private static final String TAG = "HitoeManager";
-    
-    
+
+    /**
+     * Instance of ScheduledExecutorService.
+     */
+    private ScheduledExecutorService mExecutor = Executors.newSingleThreadScheduledExecutor();
+
+    /**
+     * ScheduledFuture of scan timer.
+     */
+    private ScheduledFuture<?> mScanTimerFuture;
+
+    /**
+     * Defines a delay 1 second at first execution.
+     */
+    private static final long SCAN_FIRST_WAIT_PERIOD = 30 * 1000;
+
+    /**
+     * Defines a period 10 seconds between successive executions.
+     */
+    private static final long SCAN_WAIT_PERIOD = 20 * 1000;
+
+    /**
+     * Stops scanning after 1 second.
+     */
+    private static final long SCAN_PERIOD = 2000;
+    private boolean mScanning;
+    private boolean mIsCallbackRunning;
+
+    private final Map<HitoeDevice, Long> mNowTimestamps;
+    private Handler mHandler = new Handler();
+
     /**
      * Application context.
      */
@@ -109,11 +144,11 @@ public class HitoeManager {
 
                 final StringBuilder messageTextBuilder = new StringBuilder();
 
-                if (BuildConfig.DEBUG) {
-                    Log.d(TAG, "CbCallback:apiId=" + String.valueOf(apiId) + ",responseId="
-                            + String.valueOf(responseId) + ",resonseObject="
-                            + responseString.replace(HitoeConstants.BR, HitoeConstants.VB));
-                }
+//                if (BuildConfig.DEBUG) {
+//                    Log.d(TAG, "CbCallback:apiId=" + String.valueOf(apiId) + ",responseId="
+//                            + String.valueOf(responseId) + ",resonseObject="
+//                            + responseString.replace(HitoeConstants.BR, HitoeConstants.VB));
+//                }
                 switch (apiId) {
                     case HitoeConstants.API_ID_GET_AVAILABLE_SENSOR:
                         notifyDiscoveryHitoeDevice(responseId, responseString);
@@ -158,11 +193,7 @@ public class HitoeManager {
         @Override
         public void onDataReceive(final String connectionId, final int responseId, final String dataKey, final String rawData) {
 
-            if (BuildConfig.DEBUG) {
-                Log.d(TAG, "DataCallback:connectId=" + connectionId
-                        + ",dataKey=" + dataKey + ",response_id="
-                        + responseId + ",rawData=" + rawData.replace("\n", ","));
-            }
+
             int pos = getPosForConnectionId(connectionId);
             if (pos == -1) {
                 if (BuildConfig.DEBUG) {
@@ -181,7 +212,7 @@ public class HitoeManager {
                 analyzeAccelerationData(rawData, receiveDevice);
 
                 AccelerationData currentAccel = RawDataParseUtils.parseAccelerationData(rawData);
-                currentAccel.setTimeStamp((System.currentTimeMillis() - mInterval));
+                currentAccel.setTimeStamp(HitoeConstants.ADD_RECEIVER_PARAM_ACC_SAMPLING_INTERVAL);
                 mAccelData.put(receiveDevice, currentAccel);
             } else if (dataKey.equals("raw.rri")) {
                 extractHealth(HeartData.HeartRateType.RRI, rawData, receiveDevice);
@@ -243,11 +274,6 @@ public class HitoeManager {
             }
 
             notifyListeners(receiveDevice);
-            if (BuildConfig.DEBUG) {
-                Log.d(TAG, "DataCallback:end========================>");
-            }
-            mInterval = System.currentTimeMillis();
-
         }
     };
 
@@ -281,11 +307,12 @@ public class HitoeManager {
         mLockForLRBalance = new ReentrantLock();
         mListForEx = new ArrayList<TempExData>();
         mLockForEx = new ReentrantLock();
-
+        mNowTimestamps = new ConcurrentHashMap<>();
         mHitoeSdkAPI = HitoeSdkAPIImpl.getInstance(context);
         mHitoeSdkAPI.setAPICallback(mAPICallback);
         List<HitoeDevice> list = mDBHelper.getHitoeDevices(null);
-        for (HitoeDevice device : list) {
+        for (int i = 0; i < list.size(); i++) {
+            HitoeDevice device = list.get(i);
             if (device.isRegisterFlag()) {
                 mRegisterDevices.add(device);
             }
@@ -437,7 +464,8 @@ public class HitoeManager {
     public void start() {
         // TODO want to connected
         synchronized (mRegisterDevices) {
-            for (HitoeDevice device : mRegisterDevices) {
+            for (int i = 0; i < mRegisterDevices.size(); i++) {
+                HitoeDevice device = mRegisterDevices.get(i);
                 if (device.isRegisterFlag()) {
                     connectHitoeDevice(device);
                 }
@@ -465,6 +493,14 @@ public class HitoeManager {
             paramStringBuilder.append("search_time=" + String.valueOf(HitoeConstants.GET_AVAILABLE_SENSOR_PARAM_SEARCH_TIME));
         }
         mHitoeSdkAPI.getAvailableSensor(HitoeConstants.GET_AVAILABLE_SENSOR_DEVICE_TYPE, paramStringBuilder.toString());
+
+        if (mRegisterDevices.size() > 0) {
+            for (OnHitoeConnectionListener l: mConnectionListeners) {
+                if (l != null) {
+                    l.onDiscovery(mRegisterDevices);
+                }
+            }
+        }
     }
 
 
@@ -728,6 +764,7 @@ public class HitoeManager {
 
         paramString = paramStringBuilder.toString();
         mHitoeSdkAPI.addReceiver(mRegisterDevices.get(pos).getSessionId(), keys, mDataReceiverCallback, paramString, null);
+        scanHitoeDevice(true);
     }
 
     /**
@@ -1097,7 +1134,7 @@ public class HitoeManager {
 
         paramString = paramStringBuilder.toString();
         dataString = dataStringBuilder.toString();
-
+        mHitoeSdkAPI.removeReceiver(null);
         responseId = mHitoeSdkAPI.addReceiver(null, keys, mDataReceiverCallback, paramString, dataString);
         if (responseId != HitoeConstants.RES_ID_SUCCESS) {
             try{
@@ -1142,6 +1179,7 @@ public class HitoeManager {
         mRegisterDevices.get(pos).setRegisterFlag(false);
         mDBHelper.updateHitoeDevice(mRegisterDevices.get(pos));
         mHitoeSdkAPI.disconnect(device.getSessionId());
+        scanHitoeDevice(false);
 //        mRegisterDevices.remove(pos);
     }
 
@@ -1183,7 +1221,8 @@ public class HitoeManager {
                 }
             }
             if (mRegisterDevices.get(i).getExConnectionList().size() > 0) {
-                for (String exConnectionId: mRegisterDevices.get(i).getExConnectionList()) {
+                for (int j = 0; j < mRegisterDevices.get(i).getExConnectionList().size(); j++) {
+                    String exConnectionId = mRegisterDevices.get(i).getExConnectionList().get(j);
                     if (exConnectionId == null) {
                         continue;
                     }
@@ -1420,6 +1459,81 @@ public class HitoeManager {
                     lrBalanceInputList.clear();
                 }
             }
+        }
+    }
+
+    /**
+     * Scan Hitoe device.
+     * @param enable scan flag
+     */
+    private synchronized void scanHitoeDevice(final boolean enable) {
+
+
+        if (enable) {
+            if (mScanning || mScanTimerFuture != null) {
+                // scan have already started.
+                return;
+            }
+            mScanning = true;
+            mIsCallbackRunning = true;
+            mNowTimestamps.clear();
+            for (HitoeDevice heart: mRegisterDevices) {
+                mNowTimestamps.put(heart, new Long(System.currentTimeMillis()));
+            }
+            mScanTimerFuture = mExecutor.scheduleAtFixedRate(new Runnable() {
+                @Override
+                public void run() {
+
+                    for (HitoeDevice heart: mHRData.keySet()) {
+                        HeartRateData data = mHRData.get(heart);
+                        long timestamp = data.getHeartRate().getTimeStamp();
+                        long history = mNowTimestamps.get(heart).longValue();
+                        if (BuildConfig.DEBUG) {
+                            Log.d(TAG, "================>");
+                            Log.d(TAG, "timestamp:" + timestamp);
+                            Log.d(TAG, "history:" + history);
+                            Log.d(TAG, "<================");
+                        }
+                        if (mIsCallbackRunning && history == timestamp) {
+                            final String name = heart.getName();
+
+                            mHandler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Toast.makeText(mContext, "Disconnect to " + name,
+                                            Toast.LENGTH_SHORT).show();
+                                }
+                            });
+
+                            mIsCallbackRunning = false;
+                        } else if (!mIsCallbackRunning && history < timestamp) {
+                            final String name = heart.getName();
+                            mHandler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Toast.makeText(mContext, "Connect to " + name,
+                                            Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                            mIsCallbackRunning = true;
+                        }
+                        mNowTimestamps.put(heart, new Long(timestamp));
+                    }
+                }
+            }, SCAN_FIRST_WAIT_PERIOD, SCAN_WAIT_PERIOD, TimeUnit.MILLISECONDS);
+        } else {
+            mScanning = false;
+            cancelScanTimer();
+        }
+    }
+
+    /**
+     * Stopped the scan timer.
+     */
+    private synchronized void cancelScanTimer() {
+        if (mScanTimerFuture != null) {
+            mScanTimerFuture.cancel(true);
+            mScanTimerFuture = null;
         }
     }
     // ------------------------------------

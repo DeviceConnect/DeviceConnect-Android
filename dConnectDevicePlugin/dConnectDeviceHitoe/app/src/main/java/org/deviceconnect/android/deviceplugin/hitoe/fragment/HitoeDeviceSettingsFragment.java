@@ -29,14 +29,19 @@ import android.widget.TextView;
 import org.deviceconnect.android.deviceplugin.hitoe.HitoeApplication;
 import org.deviceconnect.android.deviceplugin.hitoe.R;
 import org.deviceconnect.android.deviceplugin.hitoe.activity.HitoeDeviceSettingsActivity;
-import org.deviceconnect.android.deviceplugin.hitoe.util.BleUtils;
-import org.deviceconnect.android.deviceplugin.hitoe.data.HitoeManager;
 import org.deviceconnect.android.deviceplugin.hitoe.data.HitoeDevice;
+import org.deviceconnect.android.deviceplugin.hitoe.data.HitoeManager;
 import org.deviceconnect.android.deviceplugin.hitoe.fragment.dialog.ErrorDialogFragment;
 import org.deviceconnect.android.deviceplugin.hitoe.fragment.dialog.PinCodeDialogFragment;
 import org.deviceconnect.android.deviceplugin.hitoe.fragment.dialog.ProgressDialogFragment;
+import org.deviceconnect.android.deviceplugin.hitoe.util.BleUtils;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 
 /**
@@ -45,6 +50,32 @@ import java.util.List;
  * @author NTT DOCOMO, INC.
  */
 public class HitoeDeviceSettingsFragment extends Fragment implements HitoeManager.OnHitoeConnectionListener {
+    /**
+     * Instance of ScheduledExecutorService.
+     */
+    private ScheduledExecutorService mExecutor = Executors.newSingleThreadScheduledExecutor();
+
+    /**
+     * ScheduledFuture of scan timer.
+     */
+    private ScheduledFuture<?> mScanTimerFuture;
+
+    /**
+     * Defines a delay 1 second at first execution.
+     */
+    private static final long SCAN_FIRST_WAIT_PERIOD = 1000;
+
+    /**
+     * Defines a period 10 seconds between successive executions.
+     */
+    private static final long SCAN_WAIT_PERIOD = 10 * 1000;
+
+    /**
+     * Stops scanning after 1 second.
+     */
+    private static final long SCAN_PERIOD = 2000;
+    private boolean mScanning;
+
     /**
      * Adapter.
      */
@@ -90,8 +121,7 @@ public class HitoeDeviceSettingsFragment extends Fragment implements HitoeManage
                 int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, -1);
                 if (state == BluetoothAdapter.STATE_ON ){
                     addFooterView();
-                    mDeviceAdapter.clear();
-                    mDeviceAdapter.notifyDataSetChanged();
+                    updateExistDevice();
                     getManager().addHitoeConnectionListener(HitoeDeviceSettingsFragment.this);
                     getManager().discoveryHitoeDevices();
                 } else if (state == BluetoothAdapter.STATE_OFF) {
@@ -102,6 +132,7 @@ public class HitoeDeviceSettingsFragment extends Fragment implements HitoeManage
             }
         }
     };
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
@@ -116,8 +147,7 @@ public class HitoeDeviceSettingsFragment extends Fragment implements HitoeManage
             @Override
             public void onClick(View view) {
                 addFooterView();
-                mDeviceAdapter.clear();
-                mDeviceAdapter.notifyDataSetChanged();
+                updateExistDevice();
 
                 getManager().addHitoeConnectionListener(HitoeDeviceSettingsFragment.this);
                 getManager().discoveryHitoeDevices();
@@ -138,11 +168,13 @@ public class HitoeDeviceSettingsFragment extends Fragment implements HitoeManage
         getManager().addHitoeConnectionListener(this);
 
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-            getManager().discoveryHitoeDevices();
+//            getManager().discoveryHitoeDevices();
+            scanHitoeDevice(true);
         } else {
             if (BleUtils.isBLEPermission(getActivity())) {
-                getManager().discoveryHitoeDevices();
-                addFooterView();
+//                getManager().discoveryHitoeDevices();
+//                addFooterView();
+                scanHitoeDevice(true);
             }
         }
     }
@@ -152,6 +184,7 @@ public class HitoeDeviceSettingsFragment extends Fragment implements HitoeManage
         super.onPause();
         getManager().addHitoeConnectionListener(null);
 //        getManager().stopScanBle();
+        scanHitoeDevice(false);
         dismissProgressDialog();
         dismissErrorDialog();
         unregisterBluetoothFilter();
@@ -240,6 +273,26 @@ public class HitoeDeviceSettingsFragment extends Fragment implements HitoeManage
                     container.setRegisterFlag(false);
                     mDeviceAdapter.notifyDataSetChanged();
                 }
+            }
+        });
+    }
+
+    /**
+     * Update Exist Devie.
+     */
+    private void updateExistDevice() {
+        getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+
+                mDeviceAdapter.clear();
+                for (HitoeDevice existDevice : getManager().getRegisterDevices()) {
+                    if (existDevice.isRegisterFlag()
+                            && !containAddressForAdapter(existDevice.getId())) {
+                        mDeviceAdapter.add(existDevice);
+                    }
+                }
+                mDeviceAdapter.notifyDataSetChanged();
             }
         });
     }
@@ -348,7 +401,7 @@ public class HitoeDeviceSettingsFragment extends Fragment implements HitoeManage
      * @return list of device
      */
     private List<HitoeDevice> createDeviceContainers() {
-        return getManager().getRegisterDevices();
+        return new ArrayList<HitoeDevice>(getManager().getRegisterDevices());
     }
 
 
@@ -380,13 +433,54 @@ public class HitoeDeviceSettingsFragment extends Fragment implements HitoeManage
         int size = mDeviceAdapter.getCount();
         for (int i = 0; i < size; i++) {
             HitoeDevice container = mDeviceAdapter.getItem(i);
-            if (container.getId().equalsIgnoreCase(address)) {
+            if (container.getId().equals(address)) {
                 return true;
             }
         }
         return false;
     }
 
+    /**
+     * Scan Hitoe device.
+     * @param enable scan flag
+     */
+    private synchronized void scanHitoeDevice(final boolean enable) {
+
+
+        if (enable) {
+            if (mScanning || mScanTimerFuture != null) {
+                // scan have already started.
+                return;
+            }
+            mScanning = true;
+            mScanTimerFuture = mExecutor.scheduleAtFixedRate(new Runnable() {
+                @Override
+                public void run() {
+                    if (BleUtils.isEnabled(getActivity())) {
+                        addFooterView();
+                        updateExistDevice();
+                        getManager().addHitoeConnectionListener(HitoeDeviceSettingsFragment.this);
+                        getManager().discoveryHitoeDevices();
+                    } else {
+                        cancelScanTimer();
+                    }
+                }
+            }, SCAN_FIRST_WAIT_PERIOD, SCAN_WAIT_PERIOD, TimeUnit.MILLISECONDS);
+        } else {
+            mScanning = false;
+            cancelScanTimer();
+        }
+    }
+
+    /**
+     * Stopped the scan timer.
+     */
+    private synchronized void cancelScanTimer() {
+        if (mScanTimerFuture != null) {
+            mScanTimerFuture.cancel(true);
+            mScanTimerFuture = null;
+        }
+    }
     @Override
     public void onConnected(final HitoeDevice device) {
         if (getActivity() == null) {
@@ -440,13 +534,6 @@ public class HitoeDeviceSettingsFragment extends Fragment implements HitoeManage
         getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                mDeviceAdapter.clear();
-//                mDeviceAdapter.addAll(getManager().getRegisterDevices());
-                for (HitoeDevice existDevice: getManager().getRegisterDevices()) {
-                    if (existDevice.isRegisterFlag()) {
-                        mDeviceAdapter.add(existDevice);
-                    }
-                }
                 for (HitoeDevice device : devices) {
                     if (!containAddressForAdapter(device.getId())) {
                         mDeviceAdapter.add(device);
@@ -482,9 +569,9 @@ public class HitoeDeviceSettingsFragment extends Fragment implements HitoeManage
             String name = device.getName();
             if (device.isRegisterFlag()) {
                 if (getManager().containConnectedHitoeDevice(device.getId())) {
-                    name += " " + getResources().getString(R.string.hitoe_setting_online);
+                    name += "\n" + getResources().getString(R.string.hitoe_setting_online);
                 } else {
-                    name += " " + getResources().getString(R.string.hitoe_setting_offline);
+                    name += "\n" + getResources().getString(R.string.hitoe_setting_offline);
                 }
             }
 

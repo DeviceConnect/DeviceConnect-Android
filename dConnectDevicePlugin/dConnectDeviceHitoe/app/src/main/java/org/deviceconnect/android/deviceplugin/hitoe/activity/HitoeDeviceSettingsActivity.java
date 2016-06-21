@@ -13,6 +13,7 @@ import org.deviceconnect.android.deviceplugin.hitoe.HitoeApplication;
 import org.deviceconnect.android.deviceplugin.hitoe.fragment.BluetoothSettingsFragment;
 import org.deviceconnect.android.deviceplugin.hitoe.fragment.HitoeDeviceSettingsFragment;
 import org.deviceconnect.android.deviceplugin.hitoe.fragment.HitoeInstructionsFragment;
+import org.deviceconnect.android.deviceplugin.hitoe.util.BleUtils;
 import org.deviceconnect.android.ui.activity.DConnectSettingPageFragmentActivity;
 
 /**
@@ -31,14 +32,18 @@ public class HitoeDeviceSettingsActivity extends DConnectSettingPageFragmentActi
 
     @Override
     public int getPageCount() {
-        return 3;
+        if (BleUtils.isEnabled(this) && BleUtils.isBLEPermission(this)) {
+            return 2;
+        } else {
+            return 3;
+        }
     }
 
     @Override
     public Fragment createPage(int position) {
         if (position == 0) {
             return new HitoeInstructionsFragment();
-        } else if (position == 1) {
+        } else if (position == 1 && ((!BleUtils.isEnabled(this) || !BleUtils.isBLEPermission(this)))) {
             return new BluetoothSettingsFragment();
         } else {
             return new HitoeDeviceSettingsFragment();

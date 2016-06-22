@@ -16,9 +16,12 @@ import org.deviceconnect.android.deviceplugin.alljoyn.AllJoynDeviceApplication;
 import org.deviceconnect.android.deviceplugin.alljoyn.AllJoynServiceEntity;
 import org.deviceconnect.android.deviceplugin.alljoyn.BuildConfig;
 import org.deviceconnect.android.deviceplugin.alljoyn.OneShotSessionHandler;
+import org.deviceconnect.android.deviceplugin.alljoyn.service.AllJoynService;
 import org.deviceconnect.android.deviceplugin.alljoyn.util.ColorUtil;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.LightProfile;
+import org.deviceconnect.android.profile.api.DConnectApi;
+import org.deviceconnect.android.profile.spec.DConnectApiSpec;
 import org.deviceconnect.message.DConnectMessage;
 
 import java.math.BigDecimal;
@@ -54,41 +57,44 @@ public class AllJoynLightProfile extends LightProfile {
 
     private Map<String, FlashingExecutor> mFlashingMap = new HashMap<String, FlashingExecutor>();
 
+    public AllJoynLightProfile() {
+        addApi(mGetLightApi);
+        addApi(mPostLightApi);
+        addApi(mPutLightApi);
+        addApi(mDeleteLightApi);
+    }
+
     AllJoynDeviceApplication getApplication() {
         return (AllJoynDeviceApplication) getContext().getApplicationContext();
     }
 
-    @Override
-    protected boolean onGetLight(Intent request, final Intent response, final String serviceId) {
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-            return true;
+    private final DConnectApi mGetLightApi = new DConnectApi() {
+        @Override
+        public DConnectApiSpec.Method getMethod() {
+            return DConnectApiSpec.Method.GET;
         }
 
-        final AllJoynDeviceApplication app = getApplication();
-        final AllJoynServiceEntity service = app.getDiscoveredAlljoynServices().get(serviceId);
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            final AllJoynServiceEntity service = ((AllJoynService) getService()).getEntity();
 
-        if (service == null) {
-            MessageUtils.setNotFoundServiceError(response);
-            return true;
-        }
-
-        switch (getLampServiceType(service)) {
-            case TYPE_SINGLE_LAMP: {
-                onGetLightForSingleLamp(request, response, service);
-                return false;
-            }
-            case TYPE_LAMP_CONTROLLER: {
-                onGetLightForLampController(request, response, service);
-                return false;
-            }
-            case TYPE_UNKNOWN:
-            default: {
-                setUnsupportedError(response);
-                return true;
+            switch (getLampServiceType(service)) {
+                case TYPE_SINGLE_LAMP: {
+                    onGetLightForSingleLamp(request, response, service);
+                    return false;
+                }
+                case TYPE_LAMP_CONTROLLER: {
+                    onGetLightForLampController(request, response, service);
+                    return false;
+                }
+                case TYPE_UNKNOWN:
+                default: {
+                    setUnsupportedError(response);
+                    return true;
+                }
             }
         }
-    }
+    };
 
     private void onGetLightForSingleLamp(@NonNull Intent request, @NonNull final Intent response
             , @NonNull final AllJoynServiceEntity service) {
@@ -212,48 +218,48 @@ public class AllJoynLightProfile extends LightProfile {
         OneShotSessionHandler.run(getContext(), service.busName, service.port, callback);
     }
 
-    @Override
-    protected boolean onPostLight(final Intent request, final Intent response, final String serviceId,
-                                  final String lightId, final Integer color, final Double brightness,
-                                  final long[] flashing) {
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-            return true;
+    private final DConnectApi mPostLightApi = new DConnectApi() {
+        @Override
+        public DConnectApiSpec.Method getMethod() {
+            return DConnectApiSpec.Method.POST;
         }
 
-        final AllJoynDeviceApplication app = getApplication();
-        final AllJoynServiceEntity service = app.getDiscoveredAlljoynServices().get(serviceId);
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            final String serviceId = getServiceID(request);
+            final String lightId = getLightId(request);
+            final Double brightness = getBrightness(request);
+            final long[] flashing = getFlashing(request);
 
-        if (service == null) {
-            MessageUtils.setNotFoundServiceError(response);
-            return true;
-        }
+            final AllJoynServiceEntity service = ((AllJoynService) getService()).getEntity();
 
-        int[] colors = new int[3];
-        String colorParam = getColorString(request);
-        if (colorParam != null) {
-            if (!parseColorParam(colorParam, colors)) {
-                MessageUtils.setInvalidRequestParameterError(response,
+
+            int[] colors = new int[3];
+            String colorParam = getColorString(request);
+            if (colorParam != null) {
+                if (!parseColorParam(colorParam, colors)) {
+                    MessageUtils.setInvalidRequestParameterError(response,
                         "Parameter 'color' is invalid.");
-                return true;
+                    return true;
+                }
+            }
+            switch (getLampServiceType(service)) {
+                case TYPE_SINGLE_LAMP: {
+                    onPostLightForSingleLamp(request, response, service, serviceId, lightId, brightness, colors, flashing);
+                    return false;
+                }
+                case TYPE_LAMP_CONTROLLER: {
+                    onPostLightForLampController(request, response, service, serviceId, lightId, brightness, colors, flashing);
+                    return false;
+                }
+                case TYPE_UNKNOWN:
+                default: {
+                    setUnsupportedError(response);
+                    return true;
+                }
             }
         }
-        switch (getLampServiceType(service)) {
-            case TYPE_SINGLE_LAMP: {
-                onPostLightForSingleLamp(request, response, service, serviceId, lightId, brightness, colors, flashing);
-                return false;
-            }
-            case TYPE_LAMP_CONTROLLER: {
-                onPostLightForLampController(request, response, service, serviceId, lightId, brightness, colors, flashing);
-                return false;
-            }
-            case TYPE_UNKNOWN:
-            default: {
-                setUnsupportedError(response);
-                return true;
-            }
-        }
-    }
+    };
 
     private void onPostLightForSingleLamp(final Intent request, final Intent response, final AllJoynServiceEntity service,
                                           final String serviceId, final String lightId, final Double brightness, final int[] color, final long[] flashing) {
@@ -457,43 +463,40 @@ public class AllJoynLightProfile extends LightProfile {
         OneShotSessionHandler.run(getContext(), service.busName, service.port, callback);
     }
 
-    @Override
-    protected boolean onDeleteLight(Intent request, Intent response, String serviceId, String lightId) {
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-            return true;
+    private final DConnectApi mDeleteLightApi = new DConnectApi() {
+        @Override
+        public DConnectApiSpec.Method getMethod() {
+            return DConnectApiSpec.Method.DELETE;
         }
 
-        final AllJoynDeviceApplication app = getApplication();
-        final AllJoynServiceEntity service = app.getDiscoveredAlljoynServices().get(serviceId);
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            final String lightId = getLightId(request);
+            final AllJoynServiceEntity service = ((AllJoynService) getService()).getEntity();
 
-        if (service == null) {
-            MessageUtils.setNotFoundServiceError(response);
-            return true;
-        }
-
-        if (lightId == null) {
-            MessageUtils.setInvalidRequestParameterError(response,
+            if (lightId == null) {
+                MessageUtils.setInvalidRequestParameterError(response,
                     "Parameter 'lightId' must be specified.");
-            return true;
-        }
-
-        switch (getLampServiceType(service)) {
-            case TYPE_SINGLE_LAMP: {
-                onDeleteLightForSingleLamp(request, response, service, lightId);
-                return false;
-            }
-            case TYPE_LAMP_CONTROLLER: {
-                onDeleteLightForLampController(request, response, service, lightId);
-                return false;
-            }
-            case TYPE_UNKNOWN:
-            default: {
-                setUnsupportedError(response);
                 return true;
             }
+
+            switch (getLampServiceType(service)) {
+                case TYPE_SINGLE_LAMP: {
+                    onDeleteLightForSingleLamp(request, response, service, lightId);
+                    return false;
+                }
+                case TYPE_LAMP_CONTROLLER: {
+                    onDeleteLightForLampController(request, response, service, lightId);
+                    return false;
+                }
+                case TYPE_UNKNOWN:
+                default: {
+                    setUnsupportedError(response);
+                    return true;
+                }
+            }
         }
-    }
+    };
 
     private void onDeleteLightForSingleLamp(@NonNull Intent request, @NonNull final Intent response
             , @NonNull final AllJoynServiceEntity service, @NonNull String lightId) {
@@ -606,55 +609,59 @@ public class AllJoynLightProfile extends LightProfile {
         OneShotSessionHandler.run(getContext(), service.busName, service.port, callback);
     }
 
-    @Override
-    protected boolean onPutLight(final Intent request, final Intent response, final String serviceId,
-                                 final String lightId, final String name, final Integer color,
-                                 final Double brightness, final long[] flashing) {
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-            return true;
+    public final DConnectApi mPutLightApi = new DConnectApi() {
+        @Override
+        public DConnectApiSpec.Method getMethod() {
+            return DConnectApiSpec.Method.PUT;
         }
 
-        final AllJoynDeviceApplication app = getApplication();
-        final AllJoynServiceEntity service = app.getDiscoveredAlljoynServices().get(serviceId);
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            final String serviceId = getServiceID(request);
+            final String name = getName(request);
+            final String lightId = getLightId(request);
+            final Double brightness = getBrightness(request);
+            final long[] flashing = getFlashing(request);
 
-        if (service == null) {
-            MessageUtils.setNotFoundServiceError(response);
-            return true;
-        }
+            final AllJoynServiceEntity service = ((AllJoynService) getService()).getEntity();
 
-        if (lightId == null) {
-            MessageUtils.setInvalidRequestParameterError(response,
-                    "Parameter 'lightId' must be specified.");
-            return true;
-        }
+            if (service == null) {
+                MessageUtils.setNotFoundServiceError(response);
+                return true;
+            }
 
-        int[] colors = new int[3];
-        String colorParam = getColorString(request);
-        if (colorParam != null) {
-            if (!parseColorParam(colorParam, colors)) {
+            if (lightId == null) {
                 MessageUtils.setInvalidRequestParameterError(response,
-                        "Parameter 'color' is invalid.");
+                    "Parameter 'lightId' must be specified.");
                 return true;
             }
-        }
-        switch (getLampServiceType(service)) {
-            case TYPE_SINGLE_LAMP: {
-                onPutLightForSingleLamp(request, response, service, serviceId, lightId, name, brightness, colors, flashing);
-                return false;
-            }
-            case TYPE_LAMP_CONTROLLER: {
-                onPutLightForLampController(request, response, service, serviceId, lightId, name, brightness, colors, flashing);
-                return false;
-            }
-            case TYPE_UNKNOWN:
-            default: {
-                setUnsupportedError(response);
-                return true;
-            }
-        }
 
-    }
+            int[] colors = new int[3];
+            String colorParam = getColorString(request);
+            if (colorParam != null) {
+                if (!parseColorParam(colorParam, colors)) {
+                    MessageUtils.setInvalidRequestParameterError(response,
+                        "Parameter 'color' is invalid.");
+                    return true;
+                }
+            }
+            switch (getLampServiceType(service)) {
+                case TYPE_SINGLE_LAMP: {
+                    onPutLightForSingleLamp(request, response, service, serviceId, lightId, name, brightness, colors, flashing);
+                    return false;
+                }
+                case TYPE_LAMP_CONTROLLER: {
+                    onPutLightForLampController(request, response, service, serviceId, lightId, name, brightness, colors, flashing);
+                    return false;
+                }
+                case TYPE_UNKNOWN:
+                default: {
+                    setUnsupportedError(response);
+                    return true;
+                }
+            }
+        }
+    };
 
     // TODO: Implement name change functionality using AllJoyn Config service.
     private void onPutLightForSingleLamp(@NonNull Intent request, @NonNull final Intent response

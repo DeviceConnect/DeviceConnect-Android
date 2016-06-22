@@ -13,40 +13,35 @@ import org.deviceconnect.android.deviceplugin.hitoe.HitoeApplication;
 import org.deviceconnect.android.deviceplugin.hitoe.fragment.BluetoothSettingsFragment;
 import org.deviceconnect.android.deviceplugin.hitoe.fragment.HitoeDeviceSettingsFragment;
 import org.deviceconnect.android.deviceplugin.hitoe.fragment.HitoeInstructionsFragment;
-import org.deviceconnect.android.deviceplugin.hitoe.util.BleUtils;
-import org.deviceconnect.android.ui.activity.DConnectSettingPageFragmentActivity;
 
 /**
  * This activity is settings screen.
  * @author NTT DOCOMO, INC.
  */
 public class HitoeDeviceSettingsActivity extends DConnectSettingPageFragmentActivity {
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         HitoeApplication app = (HitoeApplication) getApplication();
         app.initialize();
+
     }
 
     @Override
     public int getPageCount() {
-        if (BleUtils.isEnabled(this) && BleUtils.isBLEPermission(this)) {
-            return 2;
-        } else {
-            return 3;
-        }
+       return 3;
     }
 
     @Override
     public Fragment createPage(int position) {
         if (position == 0) {
             return new HitoeInstructionsFragment();
-        } else if (position == 1 && ((!BleUtils.isEnabled(this) || !BleUtils.isBLEPermission(this)))) {
+        } else if (position == 1) {
             return new BluetoothSettingsFragment();
         } else {
             return new HitoeDeviceSettingsFragment();
         }
     }
+
 }

@@ -10,6 +10,8 @@ import android.content.Intent;
 import android.os.Bundle;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.deviceconnect.android.deviceplugin.slackmessagehook.setting.fragment.Utils;
 import org.deviceconnect.android.profile.DConnectProfileProvider;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
@@ -44,7 +46,8 @@ public class SlackMessageHookServiceDiscoveryProfile extends ServiceDiscoveryPro
         setId(service, SERVICE_ID);
         setName(service, DEVICE_NAME);
         setType(service, NetworkType.WIFI);
-        setOnline(service, true);
+        setScopes(service, getProfileProvider());
+        setOnline(service, Utils.getOnlineStatus(getContext()));
         services.add(service);
         setServices(response, services.toArray(new Bundle[services.size()]));
         setResult(response, IntentDConnectMessage.RESULT_OK);

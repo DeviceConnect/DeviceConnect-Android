@@ -13,6 +13,7 @@ import org.deviceconnect.android.deviceplugin.hitoe.HitoeApplication;
 import org.deviceconnect.android.deviceplugin.hitoe.fragment.BluetoothSettingsFragment;
 import org.deviceconnect.android.deviceplugin.hitoe.fragment.HitoeDeviceSettingsFragment;
 import org.deviceconnect.android.deviceplugin.hitoe.fragment.HitoeInstructionsFragment;
+import org.deviceconnect.android.ui.activity.DConnectSettingPageFragmentActivity;
 
 /**
  * This activity is settings screen.

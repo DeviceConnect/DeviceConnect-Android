@@ -22,7 +22,6 @@ import org.deviceconnect.android.profile.AuthorizationProfile;
 import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.android.profile.DConnectProfileProvider;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
-import org.deviceconnect.android.profile.ServiceInformationProfile;
 import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.android.profile.spec.DConnectApiSpecList;
 import org.deviceconnect.android.service.DConnectService;
@@ -33,6 +32,7 @@ import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 import org.deviceconnect.profile.SystemProfileConstants;
+import org.json.JSONException;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -49,8 +49,7 @@ import java.util.logging.Logger;
  * {@link DConnectMessageServiceProvider}から呼び出されるサービスとし、UIレイヤーから明示的な呼び出しは行わない。
  * @author NTT DOCOMO, INC.
  */
-public abstract class DConnectMessageService extends Service implements DConnectProfileProvider,
-    DConnectServiceProvider {
+public abstract class DConnectMessageService extends Service implements DConnectProfileProvider {
     
     /** 
      * LocalOAuthで無視するプロファイル群.
@@ -89,7 +88,7 @@ public abstract class DConnectMessageService extends Service implements DConnect
      */
     private boolean mUseLocalOAuth = true;
 
-
+    private DConnectServiceManager mServiceManager;
 
     /**
      * SystemProfileを取得する.
@@ -100,30 +99,17 @@ public abstract class DConnectMessageService extends Service implements DConnect
      */
     protected abstract SystemProfile getSystemProfile();
 
-    /**
-     * ServiceInformationProfileを取得する.
-     * ServiceInformationProfileは必須実装となるため、本メソッドでServiceInformationProfileのインスタンスを渡すこと。
-     * このメソッドで返却したServiceInformationProfileは自動で登録される。
-     * 
-     * @return SystemProfileのインスタンス
-     */
-    protected abstract ServiceInformationProfile getServiceInformationProfile();
-
-    /**
-     * ServiceDiscoveryProfileを取得する.
-     * ServiceDiscoveryProfileは必須実装となるため
-     * 本メソッドでServiceDiscoveryProfileのインスタンスを渡すこと。
-     * このメソッドで返却したServiceDiscoveryProfileは自動で登録される。
-     * 
-     * @return ServiceDiscoveryProfileのインスタンス
-     */
-    protected abstract ServiceDiscoveryProfile getServiceDiscoveryProfile();
+    protected final DConnectServiceProvider getServiceProvider() {
+        return mServiceManager;
+    }
 
     @Override
     public void onCreate() {
         super.onCreate();
-        DConnectServiceManager.INSTANCE.setApiSpecDictionary(loadApiSpecList());
-        DConnectServiceManager.INSTANCE.setContext(getContext());
+
+        mServiceManager = new DConnectServiceManager();
+        mServiceManager.setApiSpecDictionary(loadApiSpecList());
+        mServiceManager.setContext(getContext());
 
         // LocalOAuthの初期化
         LocalOAuth2Main.initialize(this);
@@ -131,8 +117,8 @@ public abstract class DConnectMessageService extends Service implements DConnect
         // 認証プロファイルの追加
         addProfile(new AuthorizationProfile(this));
         // 必須プロファイルの追加
+        addProfile(new ServiceDiscoveryProfile(mServiceManager));
         addProfile(getSystemProfile());
-        addProfile(getServiceDiscoveryProfile());
     }
 
     private DConnectApiSpecList loadApiSpecList() {
@@ -144,12 +130,16 @@ public abstract class DConnectMessageService extends Service implements DConnect
             };
             final DConnectApiSpecList specList = new DConnectApiSpecList();
             for (int id : json) {
-                specList.load(getResources().openRawResource(id));
+                specList.addApiSpecList(getResources().openRawResource(id));
             }
             return specList;
         } catch (IOException e) {
             e.printStackTrace();
             mLogger.warning("Failed to load Device Connect API Specs.");
+            return null;
+        } catch (JSONException e) {
+            e.printStackTrace();
+            mLogger.warning("Device Connect API Specs is invalid.");
             return null;
         }
     }
@@ -186,16 +176,6 @@ public abstract class DConnectMessageService extends Service implements DConnect
         }
 
         return START_STICKY;
-    }
-
-
-    @Override
-    public DConnectService getService(final String serviceId) {
-        return DConnectServiceManager.INSTANCE.getService(serviceId);
-    }
-
-    private DConnectService getService(final Intent request) {
-        return getService(DConnectProfile.getServiceID(request));
     }
 
     /**
@@ -256,7 +236,7 @@ public abstract class DConnectMessageService extends Service implements DConnect
         DConnectProfile profile = getProfile(profileName);
         boolean send = true;
         if (profile == null) {
-            DConnectService service = getService(request);
+            DConnectService service = mServiceManager.getService(DConnectProfile.getServiceID(request));
             if (service != null) {
                 send = service.onRequest(request, response);
             } else {

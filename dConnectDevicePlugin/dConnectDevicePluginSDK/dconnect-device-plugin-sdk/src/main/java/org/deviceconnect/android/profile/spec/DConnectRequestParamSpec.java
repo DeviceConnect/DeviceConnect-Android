@@ -1,36 +1,54 @@
 package org.deviceconnect.android.profile.spec;
 
 
+import android.os.Bundle;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
 public abstract class DConnectRequestParamSpec {
 
+    protected static final String NAME = "name";
+    protected static final String MANDATORY = "mandatory";
+    protected static final String TYPE = "type";
+
+    final Type mType;
     String mName;
+    boolean mIsMandatory;
 
-    Type mType;
-
-    boolean mIsRequired;
-
-    protected DConnectRequestParamSpec(final String name, final Type type, final boolean isRequired) {
-        mName = name;
+    protected DConnectRequestParamSpec(final Type type) {
         mType = type;
-        mIsRequired = isRequired;
-    }
-
-    public String getName() {
-        return mName;
     }
 
     public Type getType() {
         return mType;
     }
 
-    public boolean isRequired() {
-        return mIsRequired;
+    void setName(final String name) {
+        mName = name;
     }
 
-    void loadJson(final JSONObject json) {
+    public String getName() {
+        return mName;
+    }
+
+    void setMandatory(final boolean isMandatory) {
+        mIsMandatory = isMandatory;
+    }
+
+    public boolean isMandatory() {
+        return mIsMandatory;
+    }
+
+    public boolean validate(final Object param) {
+        if (param == null) {
+            return !isMandatory();
+        }
+        return param instanceof Boolean;
+    }
+
+    public Bundle toBundle() {
+        return null; //TODO
     }
 
     public enum Type {
@@ -54,32 +72,53 @@ public abstract class DConnectRequestParamSpec {
         }
     }
 
-    static DConnectRequestParamSpec fromJson(final JSONObject json) throws JSONException {
-        String type = json.getString("type");
+    public static DConnectRequestParamSpec fromJson(final JSONObject json) throws JSONException {
+        String type = json.getString(TYPE);
         DConnectRequestParamSpec.Type paramType = DConnectRequestParamSpec.Type.fromName(type);
         if (paramType == null) {
             return null;
         }
-        String name = json.getString("name");
-        boolean required = json.getBoolean("required");
         DConnectRequestParamSpec spec;
         switch (paramType) {
             case BOOLEAN:
-                spec = new BooleanRequestParamSpec(name, required);
+                spec = BooleanRequestParamSpec.fromJson(json);
                 break;
             case STRING:
-                spec = new StringRequestParamSpec(name, required);
+                spec = StringRequestParamSpec.fromJson(json);
                 break;
             case INTEGER:
-                spec = new IntegerRequestParamSpec(name, required);
+                spec = IntegerRequestParamSpec.fromJson(json);
                 break;
             case NUMBER:
-                spec = new NumberRequestParamSpec(name, required);
+                spec = NumberRequestParamSpec.fromJson(json);
                 break;
             default:
                 throw new IllegalArgumentException();
         }
-        spec.loadJson(json);
         return spec;
     }
+
+    public static class Enum<T> {
+
+        private String mName;
+
+        private T mValue;
+
+        public void setName(final String name) {
+            mName = name;
+        }
+
+        public String getName() {
+            return mName;
+        }
+
+        public void setValue(final T value) {
+            mValue = value;
+        }
+
+        public T getValue() {
+            return mValue;
+        }
+    }
+
 }

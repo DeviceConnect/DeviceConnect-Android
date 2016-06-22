@@ -2,6 +2,7 @@ package org.deviceconnect.android.service;
 
 
 import android.content.Context;
+import android.util.Log;
 
 import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.android.profile.api.DConnectApi;
@@ -9,13 +10,13 @@ import org.deviceconnect.android.profile.spec.DConnectApiSpec;
 import org.deviceconnect.android.profile.spec.DConnectApiSpecList;
 import org.deviceconnect.message.DConnectMessage;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-public enum DConnectServiceManager implements DConnectServiceProvider {
-
-    INSTANCE;
+public class DConnectServiceManager implements DConnectServiceProvider {
 
     private DConnectApiSpecList mApiSpecs;
 
@@ -37,8 +38,10 @@ public enum DConnectServiceManager implements DConnectServiceProvider {
         = Collections.synchronizedMap(new HashMap<String, DConnectService>());
 
 
-
+    @Override
     public void addService(final DConnectService service) {
+        Log.d("AAA", "addService: id = " + service.getId());
+
         if (mApiSpecs != null) {
             for (DConnectProfile profile : service.getProfileList()) {
                 for (DConnectApi api : profile.getApiList()) {
@@ -54,6 +57,8 @@ public enum DConnectServiceManager implements DConnectServiceProvider {
             profile.setContext(mContext);
         }
         mDConnectServices.put(service.getId(), service);
+
+        Log.d("AAA", "mDConnectServices.size = " + mDConnectServices.size());
     }
 
     private String createPath(final String profileName, final DConnectApi api) {
@@ -84,7 +89,17 @@ public enum DConnectServiceManager implements DConnectServiceProvider {
         return mDConnectServices.get(serviceId);
     }
 
-    public boolean existsService(final String serviceId) {
+    @Override
+    public List<DConnectService> getServiceList() {
+        Log.d("AAA", "getServiceList: " + mDConnectServices.size());
+
+        List<DConnectService> list = new ArrayList<DConnectService>();
+        list.addAll(mDConnectServices.values());
+        return list;
+    }
+
+
+    public boolean hasService(final String serviceId) {
         return getService(serviceId) != null;
     }
 }

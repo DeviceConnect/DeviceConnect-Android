@@ -6,6 +6,8 @@ import android.content.Intent;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.android.profile.DConnectProfileProvider;
+import org.deviceconnect.android.profile.ServiceInformationProfile;
+import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -13,7 +15,7 @@ import java.util.List;
 import java.util.Map;
 
 
-public class DConnectService implements DConnectProfileProvider {
+public class DConnectService implements DConnectProfileProvider, ServiceDiscoveryProfileConstants {
 
     /**
      * サービスID.
@@ -25,12 +27,21 @@ public class DConnectService implements DConnectProfileProvider {
      */
     private final Map<String, DConnectProfile> mProfiles = new HashMap<String, DConnectProfile>();
 
+    private String mName;
+
+    private String mType;
+
+    private boolean mIsOnline;
+
+    private String mConfig;
+
     /**
      * コンストラクタ.
      * @param id サービスID
      */
     public DConnectService(final String id) {
         mId = id;
+        addProfile(new ServiceInformationProfile());
     }
 
     /**
@@ -39,6 +50,42 @@ public class DConnectService implements DConnectProfileProvider {
      */
     public String getId() {
         return mId;
+    }
+
+    public void setName(final String name) {
+        mName = name;
+    }
+
+    public String getName() {
+        return mName;
+    }
+
+    public void setNetworkType(final NetworkType type) {
+        mType = type.getValue();
+    }
+
+    public void setNetworkType(final String type) {
+        mType = type;
+    }
+
+    public String getNetworkType() {
+        return mType;
+    }
+
+    public void setOnline(final boolean isOnline) {
+        mIsOnline = isOnline;
+    }
+
+    public boolean isOnline() {
+        return mIsOnline;
+    }
+
+    public String getConfig() {
+        return mConfig;
+    }
+
+    public void setConfig(final String config) {
+        mConfig = config;
     }
 
     @Override
@@ -63,6 +110,7 @@ public class DConnectService implements DConnectProfileProvider {
         if (profile == null) {
             return;
         }
+        profile.setService(this);
         mProfiles.put(profile.getProfileName().toLowerCase(), profile);
     }
 
@@ -80,6 +128,6 @@ public class DConnectService implements DConnectProfileProvider {
             MessageUtils.setNotSupportProfileError(response);
             return true;
         }
-        return profile.onRequest(request, response, this);
+        return profile.onRequest(request, response);
     }
 }

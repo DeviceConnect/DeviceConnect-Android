@@ -31,6 +31,11 @@ public interface ServiceInformationProfileConstants extends DConnectProfileConst
     /**
      * パラメータ: {@value} .
      */
+    String PARAM_SUPPORT_APIS = "supportApis";
+
+    /**
+     * パラメータ: {@value} .
+     */
     String PARAM_CONNECT = "connect";
 
     /**

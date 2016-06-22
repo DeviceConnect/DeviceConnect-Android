@@ -3,9 +3,7 @@ package org.deviceconnect.android.profile.api;
 
 import android.content.Intent;
 
-import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.spec.DConnectApiSpec;
-import org.deviceconnect.android.service.DConnectService;
 
 public abstract class DConnectApi {
 
@@ -29,10 +27,6 @@ public abstract class DConnectApi {
         mApiSpec = apiSpec;
     }
 
-    public boolean onRequest(final Intent request, final Intent response,
-                             final DConnectService service) {
-        MessageUtils.setNotSupportAttributeError(response);
-        return false;
-    }
+    public abstract boolean onRequest(final Intent request, final Intent response);
 
 }

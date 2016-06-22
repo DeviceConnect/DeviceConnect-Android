@@ -19,7 +19,6 @@ import org.deviceconnect.android.profile.api.DConnectApi;
 import org.deviceconnect.android.profile.spec.DConnectApiSpec;
 import org.deviceconnect.android.service.DConnectService;
 import org.deviceconnect.message.DConnectMessage;
-import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 import org.deviceconnect.profile.DConnectProfileConstants;
 
 import java.io.ByteArrayOutputStream;
@@ -44,6 +43,11 @@ public abstract class DConnectProfile implements DConnectProfileConstants {
      * コンテキスト.
      */
     private Context mContext;
+
+    /**
+     * DeviceConnectサービス.
+     */
+    private DConnectService mService;
 
     /**
      * ロガー.
@@ -119,111 +123,16 @@ public abstract class DConnectProfile implements DConnectProfileConstants {
      *
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param service サービス
      * @return レスポンスパラメータを送信するか否か
-     */
-    public boolean onRequest(final Intent request, final Intent response, final DConnectService service) {
-        DConnectApi api = findApi(request);
-        if (api != null) {
-            return api.onRequest(request, response, service);
-        } else {
-            return onRequest(request, response);
-        }
-    }
-
-    /**
-     * RESPONSEメソッドハンドラー.<br>
-     * リクエストパラメータに応じてデバイスのサービスを提供し、その結果をレスポンスパラメータに格納する。
-     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
-     * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
-     * 
-     * @param request リクエストパラメータ
-     * @param response レスポンスパラメータ
-     * @return レスポンスパラメータを送信するか否か
-     * @deprecated
      */
     public boolean onRequest(final Intent request, final Intent response) {
-        String action = request.getAction();
-        boolean send = true;
-        try {
-            if (IntentDConnectMessage.ACTION_GET.equals(action)) {
-                send = onGetRequest(request, response);
-            } else if (IntentDConnectMessage.ACTION_POST.equals(action)) {
-                send = onPostRequest(request, response);
-            } else if (IntentDConnectMessage.ACTION_PUT.equals(action)) {
-                send = onPutRequest(request, response);
-            } else if (IntentDConnectMessage.ACTION_DELETE.equals(action)) {
-                send = onDeleteRequest(request, response);
-            } else {
-                mLogger.warning("Unknown action. action=" + action);
-                MessageUtils.setNotSupportActionError(response);
-            }
-        } catch (Exception e) {
-            mLogger.severe("Exception occurred in the profile. " + e.getMessage());
-            MessageUtils.setUnknownError(response, e.getMessage());
+        DConnectApi api = findApi(request);
+        if (api != null) {
+            return api.onRequest(request, response);
+        } else {
+            MessageUtils.setUnknownAttributeError(response);
+            return true;
         }
-        return send;
-    }
-
-    /**
-     * GETメソッドハンドラー.<br>
-     * リクエストパラメータに応じてデバイスのサービスを提供し、その結果をレスポンスパラメータに格納する。
-     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
-     * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
-     * 
-     * @param request リクエストパラメータ
-     * @param response レスポンスパラメータ
-     * @return レスポンスパラメータを送信するか否か
-     * @deprecated
-     */
-    protected boolean onGetRequest(final Intent request, final Intent response) {
-        MessageUtils.setNotSupportActionError(response);
-        return true;
-    }
-
-    /**
-     * POSTメソッドハンドラー.
-     * 
-     * @param request リクエストパラメータ
-     * @param response レスポンスパラメータ
-     * @return レスポンスパラメータを送信するか否か
-     * @deprecated
-     */
-    protected boolean onPostRequest(final Intent request, final Intent response) {
-        MessageUtils.setNotSupportActionError(response);
-        return true;
-    }
-
-    /**
-     * PUTメソッドハンドラー.<br>
-     * リクエストパラメータに応じてデバイスのサービスを提供し、その結果をレスポンスパラメータに格納する。
-     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
-     * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
-     * 
-     * @param request リクエストパラメータ
-     * @param response レスポンスパラメータ
-     * @return レスポンスパラメータを送信するか否か
-     * @deprecated
-     */
-    protected boolean onPutRequest(final Intent request, final Intent response) {
-        MessageUtils.setNotSupportActionError(response);
-        return true;
-    }
-
-    /**
-     * DELETEメソッドハンドラー.<br>
-     * リクエストパラメータに応じてデバイスのサービスを提供し、その結果をレスポンスパラメータに格納する。
-     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
-     * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
-     * 
-     * @param request リクエストパラメータ
-     * @param response レスポンスパラメータ
-     * @return レスポンスパラメータを送信するか否か
-     * @deprecated
-     */
-    protected boolean onDeleteRequest(final Intent request, final Intent response) {
-        MessageUtils.setNotSupportActionError(response);
-        return true;
     }
 
     /**
@@ -242,6 +151,14 @@ public abstract class DConnectProfile implements DConnectProfileConstants {
      */
     public Context getContext() {
         return mContext;
+    }
+
+    public void setService(final DConnectService service) {
+        mService = service;
+    }
+
+    public DConnectService getService() {
+        return mService;
     }
 
     /**

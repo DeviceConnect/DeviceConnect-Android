@@ -44,17 +44,12 @@ import java.util.List;
  * 
  * @author NTT DOCOMO, INC.
  */
-public abstract class ServiceInformationProfile extends DConnectProfile implements ServiceInformationProfileConstants {
+public class ServiceInformationProfile extends DConnectProfile implements ServiceInformationProfileConstants {
 
     /**
      * 設定画面起動用IntentのパラメータオブジェクトのExtraキー.
      */
     public static final String SETTING_PAGE_PARAMS = "org.deviceconnect.profile.system.setting_params";
-
-    /**
-     * プロファイルプロバイダー.
-     */
-    private final DConnectProfileProvider mProvider;
 
     /**
      * Service Information API.
@@ -67,9 +62,8 @@ public abstract class ServiceInformationProfile extends DConnectProfile implemen
         }
 
         @Override
-        public boolean onRequest(final Intent request, final Intent response,
-                                 final DConnectService service) {
-            String serviceId = service.getId();
+        public boolean onRequest(final Intent request, final Intent response) {
+            String serviceId = getService().getId();
 
             // connect
             Bundle connect = new Bundle();
@@ -83,8 +77,12 @@ public abstract class ServiceInformationProfile extends DConnectProfile implemen
             setVersion(response, getCurrentVersionName());
 
             // supports
+            List<DConnectProfile> profileList = getService().getProfileList();
             List<DConnectApiSpec> supports = new ArrayList<DConnectApiSpec>();
-            for (DConnectProfile profile : service.getProfileList()) {
+            String[] profileNames = new String[profileList.size()];
+            int i = 0;
+            for (DConnectProfile profile : profileList) {
+                profileNames[i++] = profile.getProfileName();
                 for (DConnectApi api : profile.getApiList()) {
                     DConnectApiSpec spec = api.getApiSpec();
                     if (spec != null) {
@@ -92,6 +90,7 @@ public abstract class ServiceInformationProfile extends DConnectProfile implemen
                     }
                 }
             }
+            setSupports(response, profileNames);
             setSupportApis(response, supports);
 
             setResult(response, DConnectMessage.RESULT_OK);
@@ -103,18 +102,7 @@ public abstract class ServiceInformationProfile extends DConnectProfile implemen
      * ServiceInformationプロファイルを生成する.
      */
     public ServiceInformationProfile() {
-        mProvider = null;
         addApi(mServiceInformationApi);
-    }
-
-    /**
-     * 指定されたプロファイルプロバイダーをもつServiceInformationプロファイルを生成する.
-     *
-     * @param provider プロファイルプロバイダー
-     * @deprecated
-     */
-    public ServiceInformationProfile(final DConnectProfileProvider provider) {
-        mProvider = provider;
     }
 
     @Override
@@ -182,66 +170,6 @@ public abstract class ServiceInformationProfile extends DConnectProfile implemen
         return ConnectState.NONE;
     }
 
-    protected DConnectService getEndPoint(final String serviceId) {
-        return null;
-    }
-
-    @Override
-    protected boolean onGetRequest(final Intent request, final Intent response) {
-        String attribute = getAttribute(request);
-        boolean result = true;
-        String serviceId = getServiceID(request);
-
-        if (attribute == null) {
-            result = onGetInformation(request, response, serviceId);
-        } else {
-            MessageUtils.setUnknownAttributeError(response);
-        }
-
-        return result;
-    }
-
-    // ------------------------------------
-    // GET
-    // ------------------------------------
-
-    /**
-     * 周辺機器のサービス情報取得リクエストハンドラー.<br>
-     * 周辺機器のサービス情報取得を提供し、その結果をレスポンスパラメータに格納する。
-     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
-     * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
-     * このメソッドでは自動的にサービス情報を返信する。返信処理に変更を加えたい場合はオーバーライドし、処理を上書きすること。
-     * 
-     * @param request リクエストパラメータ
-     * @param response レスポンスパラメータ
-     * @param serviceId サービスID
-     * @return レスポンスパラメータを送信するか否か
-     */
-    protected boolean onGetInformation(final Intent request, final Intent response, final String serviceId) {
-        // connect
-        Bundle connect = new Bundle();
-        setWifiState(connect, getWifiState(serviceId));
-        setBluetoothState(connect, getBluetoothState(serviceId));
-        setNFCState(connect, getNFCState(serviceId));
-        setBLEState(connect, getBLEState(serviceId));
-        setConnect(response, connect);
-
-        // version
-        setVersion(response, getCurrentVersionName());
-
-        // supports
-        List<DConnectProfile> profiles = mProvider.getProfileList();
-        String[] profileNames = new String[profiles.size()];
-        for (int i = 0; i < profileNames.length; i++) {
-            profileNames[i] = profiles.get(i).getProfileName();
-        }
-        setSupports(response, profileNames);
-
-        setResult(response, DConnectMessage.RESULT_OK);
-
-        return true;
-    }
-
     // ------------------------------------
     // レスポンスセッターメソッド群
     // ------------------------------------
@@ -261,7 +189,6 @@ public abstract class ServiceInformationProfile extends DConnectProfile implemen
      * 
      * @param response レスポンスパラメータ
      * @param supports サポートしているI/F一覧
-     * @deprecated
      * @see #setSupportApis(Intent, List)
      */
     public static void setSupports(final Intent response, final String[] supports) {
@@ -287,7 +214,7 @@ public abstract class ServiceInformationProfile extends DConnectProfile implemen
             setSupportApi(support, spec);
             supports.add(support);
         }
-        response.putExtra(PARAM_SUPPORTS, supports.toArray(new Bundle[supports.size()]));
+        response.putExtra(PARAM_SUPPORT_APIS, supports.toArray(new Bundle[supports.size()]));
     }
 
     public static void setSupportApi(final Bundle api, final DConnectApiSpec spec) {
@@ -309,7 +236,7 @@ public abstract class ServiceInformationProfile extends DConnectProfile implemen
         api.putString(PARAM_PATH, path);
     }
 
-    public static void setSupportApiParams(final Bundle api, final List<DConnectRequestParamSpec> paramSpecs) {
+    public static void setSupportApiParams(final Bundle api, final DConnectRequestParamSpec[] paramSpecs) {
         ArrayList<Bundle> params = new ArrayList<Bundle>();
         for (DConnectRequestParamSpec paramSpec : paramSpecs) {
             Bundle param = new Bundle();
@@ -322,7 +249,7 @@ public abstract class ServiceInformationProfile extends DConnectProfile implemen
     public static void setRequestParam(final Bundle param, final DConnectRequestParamSpec paramSpec) {
         param.putString(PARAM_NAME, paramSpec.getName());
         param.putString(PARAM_TYPE, paramSpec.getType().getName());
-        param.putBoolean(PARAM_REQUIRED, paramSpec.isRequired());
+        param.putBoolean(PARAM_REQUIRED, paramSpec.isMandatory());
         // TODO 型ごとのパラメータ定義をすべて設定
     }
 

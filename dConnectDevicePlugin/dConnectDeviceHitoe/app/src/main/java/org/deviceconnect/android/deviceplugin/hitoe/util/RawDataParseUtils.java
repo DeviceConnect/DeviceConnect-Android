@@ -182,6 +182,7 @@ public final class RawDataParseUtils {
         pose.setTimeStampString(nowTimeStampString(timestamp));
 
         String type = poseList[1];
+
         int backForward = Integer.parseInt(poseList[2]);
         int leftRight = Integer.parseInt(poseList[3]);
 

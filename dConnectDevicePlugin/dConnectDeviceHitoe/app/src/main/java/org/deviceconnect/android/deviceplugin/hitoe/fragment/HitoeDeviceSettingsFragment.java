@@ -123,11 +123,11 @@ public class HitoeDeviceSettingsFragment extends Fragment implements HitoeManage
                     addFooterView();
                     updateExistDevice();
                     getManager().addHitoeConnectionListener(HitoeDeviceSettingsFragment.this);
-                    getManager().discoveryHitoeDevices();
+                    scanHitoeDevice(true);
                 } else if (state == BluetoothAdapter.STATE_OFF) {
                     addFooterView();
                     getManager().addHitoeConnectionListener(null);
-//                    getManager().stopScanBle();
+                    scanHitoeDevice(false);
                 }
             }
         }
@@ -168,12 +168,9 @@ public class HitoeDeviceSettingsFragment extends Fragment implements HitoeManage
         getManager().addHitoeConnectionListener(this);
 
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-//            getManager().discoveryHitoeDevices();
             scanHitoeDevice(true);
         } else {
             if (BleUtils.isBLEPermission(getActivity())) {
-//                getManager().discoveryHitoeDevices();
-//                addFooterView();
                 scanHitoeDevice(true);
             }
         }
@@ -540,7 +537,6 @@ public class HitoeDeviceSettingsFragment extends Fragment implements HitoeManage
                     }
                 }
                 mDeviceAdapter.notifyDataSetChanged();
-                dismissProgressDialog();
             }
         });
     }

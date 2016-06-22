@@ -144,11 +144,11 @@ public class HitoeManager {
 
                 final StringBuilder messageTextBuilder = new StringBuilder();
 
-//                if (BuildConfig.DEBUG) {
-//                    Log.d(TAG, "CbCallback:apiId=" + String.valueOf(apiId) + ",responseId="
-//                            + String.valueOf(responseId) + ",resonseObject="
-//                            + responseString.replace(HitoeConstants.BR, HitoeConstants.VB));
-//                }
+                if (BuildConfig.DEBUG) {
+                    Log.d(TAG, "CbCallback:apiId=" + String.valueOf(apiId) + ",responseId="
+                            + String.valueOf(responseId) + ",resonseObject="
+                            + responseString.replace(HitoeConstants.BR, HitoeConstants.VB));
+                }
                 switch (apiId) {
                     case HitoeConstants.API_ID_GET_AVAILABLE_SENSOR:
                         notifyDiscoveryHitoeDevice(responseId, responseString);
@@ -313,7 +313,8 @@ public class HitoeManager {
         List<HitoeDevice> list = mDBHelper.getHitoeDevices(null);
         for (int i = 0; i < list.size(); i++) {
             HitoeDevice device = list.get(i);
-            if (device.isRegisterFlag()) {
+            if (device.isRegisterFlag()
+                    && !mRegisterDevices.contains(device)) {
                 mRegisterDevices.add(device);
             }
         }
@@ -561,6 +562,7 @@ public class HitoeManager {
         device.setRegisterFlag(false);
         device.setSessionId(null);
         mDBHelper.updateHitoeDevice(device);
+        scanHitoeDevice(false);
         for (OnHitoeConnectionListener l: mConnectionListeners) {
             if (l != null) {
                 l.onDisconnected(device);
@@ -576,7 +578,7 @@ public class HitoeManager {
     public boolean containConnectedHitoeDevice(final String id) {
         synchronized (mRegisterDevices) {
             for (HitoeDevice d : mRegisterDevices) {
-                if (d.getId().equalsIgnoreCase(id) && d.getSessionId() != null) {
+                if (d.getId().equals(id) && d.getSessionId() != null) {
                     return true;
                 }
             }
@@ -601,9 +603,7 @@ public class HitoeManager {
         }
 
         String[] sensorList = responseString.split(HitoeConstants.BR, -1);
-        List<HitoeDevice> devices = new ArrayList<HitoeDevice>();
         List<HitoeDevice> pins = mDBHelper.getHitoeDevices(null);
-//        mRegisterDevices.clear();
         for (int i = 0; i < sensorList.length; i++) {
             String sensorStr = sensorList[i].trim();
             if (sensorStr.length() == 0) {
@@ -611,16 +611,19 @@ public class HitoeManager {
             }
             if (sensorStr.indexOf("memory_setting") < 0 && sensorStr.indexOf("memory_get") < 0) {
                 HitoeDevice device = new HitoeDevice(sensorStr);
-                if (!devices.contains(device)) {
-                    devices.add(device);
-                }
-                if (!mRegisterDevices.contains(device)) {
+                if (mRegisterDevices.size() == 0) {
                     mRegisterDevices.add(device);
                 }
+                for (int j = 0; j < mRegisterDevices.size(); j++) {
+                    if (!mRegisterDevices.get(j).getId().equals(device.getId())) {
+                        mRegisterDevices.add(device);
+                    }
+                }
+
             }
         }
         for (HitoeDevice pin : pins) {
-            for (HitoeDevice register: devices) {
+            for (HitoeDevice register: mRegisterDevices) {
                 if (register.getId().equals(pin.getId())) {
                     register.setPinCode(pin.getPinCode());
                 }
@@ -628,7 +631,7 @@ public class HitoeManager {
         }
         for (OnHitoeConnectionListener l: mConnectionListeners) {
             if (l != null) {
-                l.onDiscovery(devices);
+                l.onDiscovery(mRegisterDevices);
             }
         }
     }

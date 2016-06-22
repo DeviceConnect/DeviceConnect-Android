@@ -102,6 +102,9 @@ public class DConnectService extends DConnectMessageService {
                             mLogger.warning("JSONException in sendEvent: " + e.toString());
                         } catch (IOException e) {
                             mLogger.warning("IOException in sendEvent: " + e.toString());
+                            if (mWebServerListener != null) {
+                                mWebServerListener.onWebSocketDisconnected(key);
+                            }
                         }
                     }
                 });

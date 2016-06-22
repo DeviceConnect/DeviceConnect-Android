@@ -303,6 +303,25 @@ public class HostDeviceService extends DConnectMessageService {
         mLogger.info("Plug-in : onManagerUninstalled");
     }
 
+    @Override
+    public void onManagerTerminated() {
+        // TODO: Manager正常終了通知受信時の処理要追加。
+        mLogger.info("Plug-in : onManagerTerminated");
+    }
+
+    @Override
+    public void onManagerEventTransmitDisconnected() {
+        // TODO: ManagerのEvent送信経路切断通知受信時の処理要追加。
+        mLogger.info("Plug-in : onManagerEventTransmitDisconnected");
+        EventManager.INSTANCE.removeAll();
+    }
+
+    @Override
+    public void onDevicePluginReset() {
+        // TODO: Device Plug-inへのReset要求受信時の処理要追加。
+        mLogger.info("Plug-in : onDevicePluginReset");
+    }
+
     /** HostDeviceRecorderManager. */
     private final HostDeviceRecorderManager mRecorderMgr = new HostDeviceRecorderManager() {
 

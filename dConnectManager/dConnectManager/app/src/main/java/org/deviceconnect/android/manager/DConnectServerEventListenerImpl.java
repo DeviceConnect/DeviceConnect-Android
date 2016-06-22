@@ -89,12 +89,16 @@ public class DConnectServerEventListenerImpl implements
     /** ロックオブジェクト. */
     private final Object mLockObj = new Object();
 
+    /** アプリケーションクラスインスタンス. */
+    private DConnectApplication mApp;
+
     /**
      * コンストラクタ.
      * @param context このクラスが属するコンテキスト
      */
     public DConnectServerEventListenerImpl(final Context context) {
         mContext = context;
+        mApp = (DConnectApplication) DConnectApplication.getInstance().getApplicationContext();
     }
 
     /**
@@ -130,6 +134,46 @@ public class DConnectServerEventListenerImpl implements
     @Override
     public void onServerLaunched() {
         mLogger.info("HttpServer was started.");
+    }
+
+    /**
+     * WebSocketのセッションが切断された時に呼び出されます.
+     *
+     * @param sessionKey 切断されたセッションのsessionKey
+     */
+    @Override
+    public void onWebSocketDisconnected(final String sessionKey) {
+        DevicePluginManager mgr = new DevicePluginManager(mContext, null);
+        mgr.createDevicePluginList();
+        mLogger.info("sessionKey :" + sessionKey);
+        String matchServiceId = mApp.getDevicePluginIdentifyKey(sessionKey);
+        if (matchServiceId == null) {
+            mLogger.info(" Didn't find the corresponding device plug-in to the sessionKey.");
+            return;
+        }
+
+        List<DevicePlugin> plugins = mgr.getDevicePlugins();
+        for (DevicePlugin plugin : plugins) {
+            String serviceId = plugin.getServiceId();
+            if (serviceId != null && serviceId.equals(matchServiceId)) {
+                Intent request = new Intent();
+                request.setComponent(plugin.getComponentName());
+                request.setAction(IntentDConnectMessage.ACTION_EVENT_TRANSMIT_DISCONNECT);
+                request.putExtra("pluginId", serviceId);
+                mContext.sendBroadcast(request);
+            }
+        }
+        mApp.removeDevicePluginIdentifyKey(sessionKey);
+    }
+
+    /**
+     * WebSocketのsessionKeyがリセットされた時に呼び出されます.
+     *
+     * @param sessionKey リセットされたsessionKey
+     */
+    @Override
+    public void onResetEventSessionKey(String sessionKey) {
+        mApp.removeDevicePluginIdentifyKey(sessionKey);
     }
 
     @Override

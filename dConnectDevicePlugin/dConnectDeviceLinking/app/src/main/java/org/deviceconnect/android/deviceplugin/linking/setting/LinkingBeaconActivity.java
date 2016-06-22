@@ -42,6 +42,12 @@ public class LinkingBeaconActivity extends AppCompatActivity implements LinkingB
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_linking_beacon);
 
+        ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.setDisplayHomeAsUpEnabled(true);
+            actionBar.setTitle(getString(R.string.activity_beacon_title));
+        }
+
         Intent intent = getIntent();
         if (intent != null) {
             Bundle args = intent.getExtras();
@@ -66,14 +72,6 @@ public class LinkingBeaconActivity extends AppCompatActivity implements LinkingB
                     clearTextView();
                 }
             });
-        }
-
-        ActionBar actionBar = getSupportActionBar();
-        if (actionBar != null) {
-            actionBar.setDisplayHomeAsUpEnabled(true);
-            if (mLinkingBeacon != null) {
-                actionBar.setTitle(mLinkingBeacon.getDisplayName());
-            }
         }
 
         setBeaconData();

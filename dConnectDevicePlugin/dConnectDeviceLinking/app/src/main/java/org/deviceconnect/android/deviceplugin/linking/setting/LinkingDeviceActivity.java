@@ -43,11 +43,6 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_linking_device);
 
-        ActionBar actionBar = getSupportActionBar();
-        if (actionBar != null) {
-            actionBar.setDisplayHomeAsUpEnabled(true);
-        }
-
         Intent intent = getIntent();
         if (intent != null) {
             Bundle args = intent.getExtras();
@@ -56,6 +51,14 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
                 if (mDevice != null) {
                     setupUI();
                 }
+            }
+        }
+
+        ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.setDisplayHomeAsUpEnabled(true);
+            if (mDevice != null) {
+                actionBar.setTitle(mDevice.getDisplayName());
             }
         }
 
@@ -117,10 +120,6 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
     }
 
     public void setupUI() {
-        TextView tv = (TextView) findViewById(R.id.device_name);
-        if (tv != null) {
-            tv.setText(mDevice.getDisplayName());
-        }
         setupLightOffSetting();
         setupVibrationOffSetting();
         setLightButton();

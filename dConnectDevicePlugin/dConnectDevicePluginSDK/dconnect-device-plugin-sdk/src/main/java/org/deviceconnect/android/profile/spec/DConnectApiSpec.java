@@ -1,6 +1,9 @@
 package org.deviceconnect.android.profile.spec;
 
 
+import android.content.Intent;
+import android.os.Bundle;
+
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -10,6 +13,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DConnectApiSpec {
+
+    private static final String NAME = "name";
+    private static final String PATH = "path";
+    private static final String METHOD = "method";
+    private static final String TYPE = "type";
+    private static final String REQUEST_PARAMS = "requestParams";
 
     private String mName;
     private Type mType;
@@ -59,11 +68,16 @@ public class DConnectApiSpec {
         return mRequestParamList;
     }
 
-    private static final String NAME = "name";
-    private static final String PATH = "path";
-    private static final String METHOD = "method";
-    private static final String TYPE = "type";
-    private static final String REQUEST_PARAMS = "requestParams";
+    public boolean validate(final Intent request) {
+        Bundle extras = request.getExtras();
+        for (DConnectRequestParamSpec paramSpec : getRequestParamList()) {
+            Object paramValue = extras.get(paramSpec.getName());
+            if (!paramSpec.validate(paramValue)) {
+                return false;
+            }
+        }
+        return true;
+    }
 
     public static DConnectApiSpec fromJson(final JSONObject apiObj) throws JSONException {
         String name = apiObj.getString(NAME);

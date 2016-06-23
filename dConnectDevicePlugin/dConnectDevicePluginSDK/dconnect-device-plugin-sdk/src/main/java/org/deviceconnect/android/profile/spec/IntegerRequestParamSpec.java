@@ -75,15 +75,18 @@ public class IntegerRequestParamSpec extends DConnectRequestParamSpec {
     }
 
     @Override
-    public boolean validate(final Object param) {
-        if (!super.validate(param)) {
+    public boolean validate(final Object obj) {
+        if (!super.validate(obj)) {
             return false;
+        }
+        if (obj == null) {
+            return true;
         }
         switch (mFormat) {
             case INT32:
-                return validateInt32(param);
+                return validateInt32(obj);
             case INT64:
-                return validateInt64(param);
+                return validateInt64(obj);
             default:
                 throw new IllegalStateException();
         }

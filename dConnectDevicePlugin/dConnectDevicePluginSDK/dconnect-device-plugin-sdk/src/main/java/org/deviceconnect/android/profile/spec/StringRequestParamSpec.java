@@ -59,7 +59,9 @@ public class StringRequestParamSpec extends DConnectRequestParamSpec {
         if (!super.validate(obj)) {
             return false;
         }
-
+        if (obj == null) {
+            return true;
+        }
         if (!(obj instanceof String)) {
             return false;
         }

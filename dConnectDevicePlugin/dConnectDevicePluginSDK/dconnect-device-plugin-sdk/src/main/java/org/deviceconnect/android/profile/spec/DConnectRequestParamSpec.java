@@ -44,7 +44,7 @@ public abstract class DConnectRequestParamSpec {
         if (param == null) {
             return !isMandatory();
         }
-        return param instanceof Boolean;
+        return true;
     }
 
     public Bundle toBundle() {

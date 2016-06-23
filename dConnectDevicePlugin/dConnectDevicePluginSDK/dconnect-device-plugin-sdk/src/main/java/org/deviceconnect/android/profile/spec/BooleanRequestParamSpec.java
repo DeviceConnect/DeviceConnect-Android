@@ -6,6 +6,9 @@ import org.json.JSONObject;
 
 public class BooleanRequestParamSpec extends DConnectRequestParamSpec {
 
+    private final String TRUE = "true";
+    private final String FALSE = "false";
+
     private BooleanRequestParamSpec() {
         super(Type.BOOLEAN);
     }
@@ -18,11 +21,20 @@ public class BooleanRequestParamSpec extends DConnectRequestParamSpec {
     }
 
     @Override
-    public boolean validate(final Object param) {
-        if (!super.validate(param)) {
+    public boolean validate(final Object obj) {
+        if (!super.validate(obj)) {
             return false;
         }
-        return param instanceof Boolean;
+        if (obj == null) {
+            return true;
+        }
+        if (obj instanceof String) {
+            String strParam = (String) obj;
+            return TRUE.equalsIgnoreCase(strParam) || FALSE.equalsIgnoreCase(strParam);
+        } else if (obj instanceof Boolean) {
+            return true;
+        }
+        return false;
     }
 
     public static class Builder {

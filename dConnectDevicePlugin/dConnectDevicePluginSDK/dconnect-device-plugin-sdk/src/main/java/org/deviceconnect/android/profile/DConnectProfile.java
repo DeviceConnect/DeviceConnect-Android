@@ -128,6 +128,11 @@ public abstract class DConnectProfile implements DConnectProfileConstants {
     public boolean onRequest(final Intent request, final Intent response) {
         DConnectApi api = findApi(request);
         if (api != null) {
+            DConnectApiSpec spec = api.getApiSpec();
+            if (spec != null && !spec.validate(request)) {
+                MessageUtils.setInvalidRequestParameterError(request);
+                return true;
+            }
             return api.onRequest(request, response);
         } else {
             MessageUtils.setUnknownAttributeError(response);

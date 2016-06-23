@@ -60,15 +60,18 @@ public class NumberRequestParamSpec extends DConnectRequestParamSpec {
     }
 
     @Override
-    public boolean validate(final Object param) {
-        if (!super.validate(param)) {
+    public boolean validate(final Object obj) {
+        if (!super.validate(obj)) {
             return false;
+        }
+        if (obj == null) {
+            return true;
         }
         switch (mFormat) {
             case FLOAT:
-                return validateFloat(param);
+                return validateFloat(obj);
             case DOUBLE:
-                return validateDouble(param);
+                return validateDouble(obj);
             default:
                 throw new IllegalStateException();
         }

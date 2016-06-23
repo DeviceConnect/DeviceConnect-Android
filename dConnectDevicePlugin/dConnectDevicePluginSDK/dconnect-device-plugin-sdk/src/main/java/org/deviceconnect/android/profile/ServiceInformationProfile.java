@@ -12,11 +12,12 @@ import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.Bundle;
 
-import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.api.DConnectApi;
 import org.deviceconnect.android.profile.spec.DConnectApiSpec;
 import org.deviceconnect.android.profile.spec.DConnectRequestParamSpec;
-import org.deviceconnect.android.service.DConnectService;
+import org.deviceconnect.android.profile.spec.IntegerRequestParamSpec;
+import org.deviceconnect.android.profile.spec.NumberRequestParamSpec;
+import org.deviceconnect.android.profile.spec.StringRequestParamSpec;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.profile.ServiceInformationProfileConstants;
 
@@ -249,8 +250,65 @@ public class ServiceInformationProfile extends DConnectProfile implements Servic
     public static void setRequestParam(final Bundle param, final DConnectRequestParamSpec paramSpec) {
         param.putString(PARAM_NAME, paramSpec.getName());
         param.putString(PARAM_TYPE, paramSpec.getType().getName());
-        param.putBoolean(PARAM_REQUIRED, paramSpec.isMandatory());
-        // TODO 型ごとのパラメータ定義をすべて設定
+        param.putBoolean(PARAM_MANDATORY, paramSpec.isMandatory());
+
+        if (paramSpec instanceof IntegerRequestParamSpec) {
+            IntegerRequestParamSpec intParamSpec = (IntegerRequestParamSpec) paramSpec;
+            if (intParamSpec.getEnumList() != null) {
+                ArrayList<Bundle> enums = new ArrayList<Bundle>();
+                for (DConnectRequestParamSpec.Enum<Long> e : intParamSpec.getEnumList()) {
+                    Bundle b = new Bundle();
+                    b.putString(PARAM_NAME, e.getName());
+                    b.putLong(PARAM_VALUE, e.getValue());
+                    enums.add(b);
+                }
+                param.putParcelableArrayList(PARAM_ENUM, enums);
+            }
+            if (intParamSpec.getMaxValue() != null) {
+                param.putLong(PARAM_MAX_VALUE, intParamSpec.getMaxValue());
+            }
+            if (intParamSpec.getMinValue() != null) {
+                param.putLong(PARAM_MIN_VALUE, intParamSpec.getMinValue());
+            }
+            if (intParamSpec.getExclusiveMaxValue() != null) {
+                param.putLong(PARAM_EXCLUSIVE_MAX_VALUE, intParamSpec.getExclusiveMaxValue());
+            }
+            if (intParamSpec.getExclusiveMinValue() != null) {
+                param.putLong(PARAM_EXCLUSIVE_MIN_VALUE, intParamSpec.getExclusiveMinValue());
+            }
+        } else if (paramSpec instanceof NumberRequestParamSpec) {
+            NumberRequestParamSpec numParamSpec = (NumberRequestParamSpec) paramSpec;
+            if (numParamSpec.getMaxValue() != null) {
+                param.putDouble(PARAM_MAX_VALUE, numParamSpec.getMaxValue());
+            }
+            if (numParamSpec.getMinValue() != null) {
+                param.putDouble(PARAM_MIN_VALUE, numParamSpec.getMinValue());
+            }
+            if (numParamSpec.getExclusiveMaxValue() != null) {
+                param.putDouble(PARAM_EXCLUSIVE_MAX_VALUE, numParamSpec.getExclusiveMaxValue());
+            }
+            if (numParamSpec.getExclusiveMinValue() != null) {
+                param.putDouble(PARAM_EXCLUSIVE_MIN_VALUE, numParamSpec.getExclusiveMinValue());
+            }
+        } else if (paramSpec instanceof StringRequestParamSpec) {
+            StringRequestParamSpec strParamSpec = (StringRequestParamSpec) paramSpec;
+            if (strParamSpec.getEnumList() != null) {
+                ArrayList<Bundle> enums = new ArrayList<Bundle>();
+                for (DConnectRequestParamSpec.Enum<String> e : strParamSpec.getEnumList()) {
+                    Bundle b = new Bundle();
+                    b.putString(PARAM_NAME, e.getName());
+                    b.putString(PARAM_VALUE, e.getValue());
+                    enums.add(b);
+                }
+                param.putParcelableArrayList(PARAM_ENUM, enums);
+            }
+            if (strParamSpec.getMaxLength() != null) {
+                param.putLong(PARAM_MAX_LENGTH, strParamSpec.getMaxLength());
+            }
+            if (strParamSpec.getMinLength() != null) {
+                param.putLong(PARAM_MIN_LENGTH, strParamSpec.getMinLength());
+            }
+        }
     }
 
     /**

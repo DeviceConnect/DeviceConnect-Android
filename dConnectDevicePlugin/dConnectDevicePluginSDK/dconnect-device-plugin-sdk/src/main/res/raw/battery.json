@@ -8,7 +8,7 @@
             {
                 "name": "serviceId",
                 "type": "string",
-                "required": true
+                "mandatory": true
             }
         ]
     },
@@ -21,7 +21,7 @@
             {
                 "name": "serviceId",
                 "type": "string",
-                "required": true
+                "mandatory": true
             }
         ]
     },
@@ -34,7 +34,7 @@
             {
                 "name": "serviceId",
                 "type": "string",
-                "required": true
+                "mandatory": true
             }
         ]
     },
@@ -47,7 +47,7 @@
             {
                 "name": "serviceId",
                 "type": "string",
-                "required": true
+                "mandatory": true
             }
         ]
     },
@@ -60,7 +60,7 @@
             {
                 "name": "serviceId",
                 "type": "string",
-                "required": true
+                "mandatory": true
             }
         ]
     },
@@ -73,7 +73,7 @@
             {
                 "name": "serviceId",
                 "type": "string",
-                "required": true
+                "mandatory": true
             }
         ]
     },
@@ -86,7 +86,7 @@
             {
                 "name": "serviceId",
                 "type": "string",
-                "required": true
+                "mandatory": true
             }
         ]
     },
@@ -99,7 +99,7 @@
             {
                 "name": "serviceId",
                 "type": "string",
-                "required": true
+                "mandatory": true
             }
         ]
     },
@@ -112,7 +112,7 @@
             {
                 "name": "serviceId",
                 "type": "string",
-                "required": true
+                "mandatory": true
             }
         ]
     }

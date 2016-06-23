@@ -123,9 +123,11 @@ public abstract class DConnectMessageService extends Service implements DConnect
 
     private DConnectApiSpecList loadApiSpecList() {
         try {
+            // TODO: プラグインの実装するプロファイルのAPI定義だけを読み込むように修正
             final int[] json = {
                 R.raw.battery,
                 R.raw.health,
+                R.raw.light,
                 R.raw.vibration
             };
             final DConnectApiSpecList specList = new DConnectApiSpecList();

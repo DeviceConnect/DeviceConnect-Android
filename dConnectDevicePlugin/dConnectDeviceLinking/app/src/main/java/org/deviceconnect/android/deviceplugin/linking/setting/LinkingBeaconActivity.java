@@ -75,6 +75,10 @@ public class LinkingBeaconActivity extends AppCompatActivity implements LinkingB
         }
 
         setBeaconData();
+
+        if (mLinkingBeacon == null) {
+            finish();
+        }
     }
 
     @Override
@@ -97,10 +101,9 @@ public class LinkingBeaconActivity extends AppCompatActivity implements LinkingB
 
     @Override
     public boolean onOptionsItemSelected(final MenuItem item) {
-        switch(item.getItemId()) {
-            case android.R.id.home:
-                finish();
-                return true;
+        if (item.getItemId() == android.R.id.home) {
+            finish();
+            return true;
         }
         return super.onOptionsItemSelected(item);
     }

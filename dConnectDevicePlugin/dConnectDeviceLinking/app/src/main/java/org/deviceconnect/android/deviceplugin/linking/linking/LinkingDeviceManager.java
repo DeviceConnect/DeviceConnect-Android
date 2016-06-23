@@ -40,8 +40,7 @@ public class LinkingDeviceManager {
     private final List<KeyEventListener> mKeyEventListeners = new CopyOnWriteArrayList<>();
     private final List<SensorListener> mSensorListeners = new CopyOnWriteArrayList<>();
     private final List<RangeListener> mRangeListeners = new CopyOnWriteArrayList<>();
-
-    private List<LinkingDevice> mSensorDeviceHolders = new ArrayList<>();
+    private final List<LinkingDevice> mSensorDeviceHolders = new CopyOnWriteArrayList<>();
 
     public LinkingDeviceManager(final Context context) {
         mContext = context;
@@ -57,6 +56,7 @@ public class LinkingDeviceManager {
         mKeyEventListeners.clear();
         mSensorListeners.clear();
         mRangeListeners.clear();
+        mSensorDeviceHolders.clear();
     }
 
     public List<LinkingDevice> getDevices() {
@@ -299,6 +299,10 @@ public class LinkingDeviceManager {
         return mSensorDeviceHolders.contains(device);
     }
 
+    public List<LinkingDevice> getStartSensorDevice() {
+        return mSensorDeviceHolders;
+    }
+
     public synchronized void stopAllSensor() {
         for (LinkingDevice device : mSensorDeviceHolders) {
             stopSensors(device.getBdAddress());
@@ -438,6 +442,9 @@ public class LinkingDeviceManager {
 
         Integer patternId = getVibrationOffSetting(device);
         if (patternId == null) {
+            if (BuildConfig.DEBUG) {
+                Log.e(TAG, "Not exist pattern of Vibration. name=" + device.getDisplayName());
+            }
             return;
         }
         byte pattern = (byte) (patternId & 0xFF);
@@ -462,6 +469,9 @@ public class LinkingDeviceManager {
 
         Integer patternId = getLightOffSetting(device);
         if (patternId == null) {
+            if (BuildConfig.DEBUG) {
+                Log.e(TAG, "Not exist pattern of LED. name=" + device.getDisplayName());
+            }
             return;
         }
         byte pattern = (byte) (patternId & 0xFF);
@@ -491,12 +501,6 @@ public class LinkingDeviceManager {
             return true;
         }
         return false;
-    }
-
-    private boolean hasLED(final DeviceInfo deviceInfo) {
-        int feature = deviceInfo.getFeature();
-        final int LED = 1;
-        return (feature & LED) == LED;
     }
 
     private void notifyConnect(final LinkingDevice device) {

@@ -46,11 +46,11 @@ public class LinkingServiceDiscoveryProfile extends ServiceDiscoveryProfile {
         LinkingBeaconManager mgr = app.getLinkingBeaconManager();
         mgr.addOnBeaconConnectListener(new LinkingBeaconManager.OnBeaconConnectListener() {
             @Override
-            public void onConnected(LinkingBeacon beacon) {
+            public void onConnected(final LinkingBeacon beacon) {
                 notifyConnectEvent(beacon);
             }
             @Override
-            public void onDisconnected(LinkingBeacon beacon) {
+            public void onDisconnected(final LinkingBeacon beacon) {
                 notifyDisconnectEvent(beacon);
             }
         });
@@ -71,7 +71,8 @@ public class LinkingServiceDiscoveryProfile extends ServiceDiscoveryProfile {
     }
 
     @Override
-    protected boolean onPutOnServiceChange(Intent request, Intent response, String serviceId, String sessionKey) {
+    protected boolean onPutOnServiceChange(final Intent request, final Intent response,
+                                           final String serviceId, final String sessionKey) {
         if (BuildConfig.DEBUG) {
             Log.i(TAG, "ServiceDiscovery:onPutOnServiceChange");
         }
@@ -87,7 +88,8 @@ public class LinkingServiceDiscoveryProfile extends ServiceDiscoveryProfile {
     }
 
     @Override
-    protected boolean onDeleteOnServiceChange(Intent request, Intent response, String serviceId, String sessionKey) {
+    protected boolean onDeleteOnServiceChange(final Intent request, final Intent response,
+                                              final String serviceId, final String sessionKey) {
         if (BuildConfig.DEBUG) {
             Log.i(TAG, "ServiceDiscovery:onDeleteOnServiceChange");
         }
@@ -102,7 +104,7 @@ public class LinkingServiceDiscoveryProfile extends ServiceDiscoveryProfile {
         return true;
     }
 
-    private void getServiceFromLinkingDevice(List<Bundle> services) {
+    private void getServiceFromLinkingDevice(final List<Bundle> services) {
         LinkingDeviceManager mgr = getLinkingDeviceManager();
         List<LinkingDevice> list = mgr.getDevices();
         for (LinkingDevice device : list) {
@@ -110,7 +112,7 @@ public class LinkingServiceDiscoveryProfile extends ServiceDiscoveryProfile {
         }
     }
 
-    private Bundle createServiceFromLinkingDevice(LinkingDevice device) {
+    private Bundle createServiceFromLinkingDevice(final LinkingDevice device) {
         Bundle service = new Bundle();
         setId(service, device.getBdAddress());
         setName(service, device.getDisplayName());
@@ -120,7 +122,7 @@ public class LinkingServiceDiscoveryProfile extends ServiceDiscoveryProfile {
         return service;
     }
 
-    private void getServiceFromLinkingBeacon(List<Bundle> services) {
+    private void getServiceFromLinkingBeacon(final List<Bundle> services) {
         List<LinkingBeacon> beacons = getLinkingBeaconManager().getLinkingBeacons();
         synchronized (beacons) {
             for (LinkingBeacon beacon : beacons) {
@@ -129,7 +131,7 @@ public class LinkingServiceDiscoveryProfile extends ServiceDiscoveryProfile {
         }
     }
 
-    private Bundle createServiceFromLinkingBeacon(LinkingBeacon beacon) {
+    private Bundle createServiceFromLinkingBeacon(final LinkingBeacon beacon) {
         Bundle service = new Bundle();
         setId(service, LinkingBeaconUtil.createServiceIdFromLinkingBeacon(beacon));
         setName(service, beacon.getDisplayName());
@@ -139,7 +141,7 @@ public class LinkingServiceDiscoveryProfile extends ServiceDiscoveryProfile {
         return service;
     }
 
-    private void getServiceFromLinkingApp(List<Bundle> services) {
+    private void getServiceFromLinkingApp(final List<Bundle> services) {
         if (LinkingUtil.isApplicationInstalled(getContext())) {
             Bundle service = new Bundle();
             setId(service, Util.LINKING_APP_ID);
@@ -150,7 +152,7 @@ public class LinkingServiceDiscoveryProfile extends ServiceDiscoveryProfile {
         }
     }
 
-    private void notifyConnectEvent(LinkingBeacon beacon) {
+    private void notifyConnectEvent(final LinkingBeacon beacon) {
         List<Event> events = EventManager.INSTANCE.getEventList(null,
                 PROFILE_NAME, null, ATTRIBUTE_ON_SERVICE_CHANGE);
         if (events != null && events.size() > 0) {
@@ -164,7 +166,7 @@ public class LinkingServiceDiscoveryProfile extends ServiceDiscoveryProfile {
         }
     }
 
-    private void notifyDisconnectEvent(LinkingBeacon beacon) {
+    private void notifyDisconnectEvent(final LinkingBeacon beacon) {
         List<Event> events = EventManager.INSTANCE.getEventList(null,
                 PROFILE_NAME, null, ATTRIBUTE_ON_SERVICE_CHANGE);
         if (events != null && events.size() > 0) {

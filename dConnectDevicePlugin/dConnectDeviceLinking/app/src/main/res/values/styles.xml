@@ -11,6 +11,17 @@
         <item name="android:windowIsTranslucent">true</item>
     </style>
 
+    <style name="LinkingTheme" parent="Theme.AppCompat">
+        <!-- Customize your theme here. -->
+        <item name="android:actionBarStyle">@style/CustomActionBarTheme</item>
+        <item name="actionBarStyle">@style/CustomActionBarTheme</item>
+    </style>
+
+    <style name="CustomActionBarTheme" parent="@style/Widget.AppCompat.ActionBar">
+        <item name="android:background">@color/setting_tab_background</item>
+        <item name="background">@color/setting_tab_background</item>
+    </style>
+
     <style name="MyCustomTabLayout" parent="Widget.Design.TabLayout">
         <item name="tabIndicatorColor">#FF4081</item>
     </style>

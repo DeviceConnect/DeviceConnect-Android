@@ -60,16 +60,11 @@ public class SettingActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(final MenuItem item) {
-
-        switch (item.getItemId()) {
-            case R.id.menu_setting:
-                transitionLinkingApp();
-                break;
-            case R.id.menu_information:
-                transitionAppInform();
-                break;
+        if (item.getItemId() == R.id.menu_setting) {
+            transitionLinkingApp();
+        } else if (item.getItemId() == R.id.menu_information) {
+            transitionAppInform();
         }
-
         return super.onOptionsItemSelected(item);
     }
 

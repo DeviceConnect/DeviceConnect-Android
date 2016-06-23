@@ -99,6 +99,14 @@ final public class PreferenceUtil {
         return mPreferences.getBoolean("beaconScanStatus", false);
     }
 
+    public void setBeaconScanMode(int mode) {
+        putValue("beaconScanMode", mode);
+    }
+
+    public int getBeaconScanMode() {
+        return mPreferences.getInt("beaconScanMode", 0);
+    }
+
     public void putValue(String key, Object value) {
         if (value == null) {
             throw new IllegalArgumentException();

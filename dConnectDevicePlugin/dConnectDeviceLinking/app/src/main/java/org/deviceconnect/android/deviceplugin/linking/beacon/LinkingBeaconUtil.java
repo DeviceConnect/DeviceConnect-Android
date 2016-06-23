@@ -9,6 +9,14 @@ package org.deviceconnect.android.deviceplugin.linking.beacon;
 import org.deviceconnect.android.deviceplugin.linking.beacon.data.LinkingBeacon;
 
 public final class LinkingBeaconUtil {
+    public static final String LINKING_PACKAGE_NAME = "com.nttdocomo.android.smartdeviceagent";
+
+    public static final String BEACON_SERVICE_NAME = "com.nttdocomo.android.smartdeviceagent.beacon.BeaconService";
+    public static final String ACTION_START_BEACON_SCAN = ".sda.action.START_BEACON_SCAN";
+    public static final String ACTION_STOP_BEACON_SCAN = ".sda.action.STOP_BEACON_SCAN";
+    public static final String EXTRA_SERVICE_ID = ".sda.extra.SERVICE_ID";
+    public static final String EXTRA_SCAN_MODE = ".sda.extra.SCAN_MODE";
+
     public static final String ACTION_BEACON_SCAN_RESULT = "com.nttdocomo.android.smartdeviceagent.action.BEACON_SCAN_RESULT";
     public static final String ACTION_BEACON_SCAN_STATE = "com.nttdocomo.android.smartdeviceagent.action.BEACON_SCAN_STATE";
 

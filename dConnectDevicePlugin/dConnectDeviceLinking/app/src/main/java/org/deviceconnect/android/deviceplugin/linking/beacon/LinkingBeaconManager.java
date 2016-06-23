@@ -23,6 +23,7 @@ import org.deviceconnect.android.deviceplugin.linking.util.PreferenceUtil;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -31,7 +32,7 @@ import java.util.concurrent.TimeUnit;
 public class LinkingBeaconManager {
     private static final String TAG = "LinkingPlugIn";
 
-    private static final int INTERVAL = 30 * 1000;
+    private static final int INTERVAL = 20 * 1000;
 
     private Context mContext;
     private int mScanState;
@@ -43,15 +44,15 @@ public class LinkingBeaconManager {
 
     private final List<LinkingBeacon> mLinkingBeacons = Collections.synchronizedList(new ArrayList<LinkingBeacon>());
 
-    private List<OnBeaconConnectListener> mOnBeaconConnectListeners = new ArrayList<>();
-    private List<OnBeaconEventListener> mOnBeaconEventListeners = new ArrayList<>();
-    private List<OnBeaconButtonEventListener> mOnBeaconButtonEventListeners = new ArrayList<>();
-    private List<OnBeaconProximityEventListener> mOnBeaconProximityEventListeners = new ArrayList<>();
-    private List<OnBeaconBatteryEventListener> mOnBeaconBatteryEventListeners = new ArrayList<>();
-    private List<OnBeaconAtmosphericPressureEventListener> mOnBeaconAtmosphericPressureEventListeners = new ArrayList<>();
-    private List<OnBeaconHumidityEventListener> mOnBeaconHumidityEventListeners = new ArrayList<>();
-    private List<OnBeaconTemperatureEventListener> mOnBeaconTemperatureEventListeners = new ArrayList<>();
-    private List<OnBeaconRawDataEventListener> mOnBeaconRawDataEventListeners = new ArrayList<>();
+    private List<OnBeaconConnectListener> mOnBeaconConnectListeners = new CopyOnWriteArrayList<>();
+    private List<OnBeaconEventListener> mOnBeaconEventListeners = new CopyOnWriteArrayList<>();
+    private List<OnBeaconButtonEventListener> mOnBeaconButtonEventListeners = new CopyOnWriteArrayList<>();
+    private List<OnBeaconProximityEventListener> mOnBeaconProximityEventListeners = new CopyOnWriteArrayList<>();
+    private List<OnBeaconBatteryEventListener> mOnBeaconBatteryEventListeners = new CopyOnWriteArrayList<>();
+    private List<OnBeaconAtmosphericPressureEventListener> mOnBeaconAtmosphericPressureEventListeners = new CopyOnWriteArrayList<>();
+    private List<OnBeaconHumidityEventListener> mOnBeaconHumidityEventListeners = new CopyOnWriteArrayList<>();
+    private List<OnBeaconTemperatureEventListener> mOnBeaconTemperatureEventListeners = new CopyOnWriteArrayList<>();
+    private List<OnBeaconRawDataEventListener> mOnBeaconRawDataEventListeners = new CopyOnWriteArrayList<>();
 
     private LinkingDBAdapter mDBAdapter;
 
@@ -59,6 +60,13 @@ public class LinkingBeaconManager {
         mContext = context;
         mDBAdapter = new LinkingDBAdapter(context);
         mLinkingBeacons.addAll(mDBAdapter.queryBeacons());
+        mScanMode = LinkingBeaconUtil.ScanMode.valueOf(PreferenceUtil.getInstance(mContext).getBeaconScanMode());
+
+        boolean scan = isStartBeaconScan();
+        if (scan) {
+            startBeaconScan(mScanMode);
+        }
+
         startCheckConnectionOfBeacon();
     }
 
@@ -138,38 +146,39 @@ public class LinkingBeaconManager {
         startBeaconScan(null);
     }
 
-    public void startBeaconScan(final LinkingBeaconUtil.ScanMode scanMode) {
+    public synchronized void startBeaconScan(final LinkingBeaconUtil.ScanMode scanMode) {
         if (BuildConfig.DEBUG) {
             Log.i(TAG, "LinkingBeaconManager#startBeaconScan");
         }
         mScanMode = scanMode;
 
         Intent intent = new Intent();
-        intent.setClassName("com.nttdocomo.android.smartdeviceagent", "com.nttdocomo.android.smartdeviceagent.beacon.BeaconService");
-        intent.setAction(mContext.getPackageName() + ".sda.action.START_BEACON_SCAN");
-        intent.putExtra(mContext.getPackageName() + ".sda.extra.SERVICE_ID", new int[] {0, 1, 2, 3, 4, 5, 15});
+        intent.setClassName(LinkingBeaconUtil.LINKING_PACKAGE_NAME, LinkingBeaconUtil.BEACON_SERVICE_NAME);
+        intent.setAction(mContext.getPackageName() + LinkingBeaconUtil.ACTION_START_BEACON_SCAN);
+        intent.putExtra(mContext.getPackageName() + LinkingBeaconUtil.EXTRA_SERVICE_ID, new int[] {0, 1, 2, 3, 4, 5, 15});
         if (scanMode != null) {
-           intent.putExtra(mContext.getPackageName() + ".sda.extra.SCAN_MODE", scanMode.getValue());
+           intent.putExtra(mContext.getPackageName() + LinkingBeaconUtil.EXTRA_SCAN_MODE, scanMode.getValue());
         }
         mContext.startService(intent);
 
         PreferenceUtil.getInstance(mContext).setBeaconScanStatus(true);
+        PreferenceUtil.getInstance(mContext).setBeaconScanMode(mScanMode.getValue());
     }
 
-    public void stopBeaconScan() {
+    public synchronized void stopBeaconScan() {
         if (BuildConfig.DEBUG) {
             Log.i(TAG, "LinkingBeaconManager#stopBeaconScan");
         }
 
         Intent intent = new Intent();
-        intent.setClassName("com.nttdocomo.android.smartdeviceagent", "com.nttdocomo.android.smartdeviceagent.beacon.BeaconService");
-        intent.setAction(mContext.getPackageName() + ".sda.action.STOP_BEACON_SCAN");
+        intent.setClassName(LinkingBeaconUtil.LINKING_PACKAGE_NAME, LinkingBeaconUtil.BEACON_SERVICE_NAME);
+        intent.setAction(mContext.getPackageName() + LinkingBeaconUtil.ACTION_STOP_BEACON_SCAN);
         mContext.startService(intent);
 
         PreferenceUtil.getInstance(mContext).setBeaconScanStatus(false);
     }
 
-    public boolean isStartBeaconScan() {
+    public synchronized boolean isStartBeaconScan() {
         return PreferenceUtil.getInstance(mContext).getBeaconScanStatus();
     }
 

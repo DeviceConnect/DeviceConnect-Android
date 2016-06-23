@@ -299,7 +299,7 @@ public class LinkingDeviceManager {
         return mSensorDeviceHolders.contains(device);
     }
 
-    public void stopAllSensor() {
+    public synchronized void stopAllSensor() {
         for (LinkingDevice device : mSensorDeviceHolders) {
             stopSensors(device.getBdAddress());
         }

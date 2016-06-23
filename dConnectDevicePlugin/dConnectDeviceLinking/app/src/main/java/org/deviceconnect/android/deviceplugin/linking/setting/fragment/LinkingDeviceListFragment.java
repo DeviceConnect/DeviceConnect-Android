@@ -93,7 +93,6 @@ public class LinkingDeviceListFragment extends Fragment implements ConfirmationD
         LinkingDeviceManager mgr = getLinkingDeviceManager();
         if (mgr != null) {
             mgr.addConnectListener(mConnectListener);
-            mgr.startNotifyConnect();
         }
     }
 
@@ -103,7 +102,6 @@ public class LinkingDeviceListFragment extends Fragment implements ConfirmationD
 
         LinkingDeviceManager mgr = getLinkingDeviceManager();
         if (mgr != null) {
-            mgr.stopNotifyConnect();
             mgr.removeConnectListener(mConnectListener);
         }
     }

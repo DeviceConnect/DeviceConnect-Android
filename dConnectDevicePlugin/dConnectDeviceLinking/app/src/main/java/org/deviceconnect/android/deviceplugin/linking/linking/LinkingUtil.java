@@ -15,6 +15,11 @@ import org.deviceconnect.android.deviceplugin.linking.BuildConfig;
 
 public final class LinkingUtil {
 
+    public static final String EXTRA_APP_NAME = ".sda.extra.APP_NAME";
+    public static final String EXTRA_DEVICE_ID = ".sda.extra.DEVICE_ID";
+    public static final String EXTRA_DEVICE_UID = ".sda.extra.DEVICE_UID";
+    public static final String EXTRA_INFORMATION = ".sda.extra.INFORMATION";
+
     public static final String ACTION_SENSOR_DATA = "com.nttdocomo.android.smartdeviceagent.action.SENSOR_DATA";
     public static final String ACTION_SENSOR_STOP = "com.nttdocomo.android.smartdeviceagent.action.STOP_SENSOR";
     public static final String ACTION_START_SENSOR = "com.nttdocomo.android.smartdeviceagent.action.START_SENSOR";

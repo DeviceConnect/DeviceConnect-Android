@@ -42,8 +42,11 @@ public class LinkingDeviceManager {
     private final List<RangeListener> mRangeListeners = new CopyOnWriteArrayList<>();
     private final List<LinkingDevice> mSensorDeviceHolders = new CopyOnWriteArrayList<>();
 
+    private List<LinkingDevice> mLinkingDevices;
+
     public LinkingDeviceManager(final Context context) {
         mContext = context;
+        startNotifyConnect();
     }
 
     public void destroy() {
@@ -59,10 +62,10 @@ public class LinkingDeviceManager {
         mSensorDeviceHolders.clear();
     }
 
-    public List<LinkingDevice> getDevices() {
+    private List<LinkingDevice> refresh() {
         List<DeviceInfo> deviceInfoList = new GetDeviceInformation(mContext).getInformation();
 
-        List<LinkingDevice> list = new ArrayList<>();
+        mLinkingDevices = new ArrayList<>();
         for (DeviceInfo info : deviceInfoList) {
             LinkingDevice device = new LinkingDevice();
             device.setBdAddress(info.getBdaddress());
@@ -77,9 +80,16 @@ public class LinkingDeviceManager {
             }
             device.setDisplayName("Linking:" + info.getName() + " (" + info.getBdaddress() + ")");
             device.setFeature(info.getFeature());
-            list.add(device);
+            mLinkingDevices.add(device);
         }
-        return list;
+        return mLinkingDevices;
+    }
+
+    public List<LinkingDevice> getDevices() {
+        if (mLinkingDevices == null) {
+            return refresh();
+        }
+        return mLinkingDevices;
     }
 
     public LinkingDevice findDeviceByDeviceId(final int deviceId, final int uniqueId) {
@@ -104,7 +114,7 @@ public class LinkingDeviceManager {
         return null;
     }
 
-    public synchronized void startNotifyConnect() {
+    private synchronized void startNotifyConnect() {
         if (mNotifyConnect != null) {
             if (BuildConfig.DEBUG) {
                 Log.w(TAG, "mNotifyConnect is already running.");
@@ -122,6 +132,7 @@ public class LinkingDeviceManager {
                 if (device != null) {
                     notifyConnect(device);
                 }
+                refresh();
             }
 
             @Override
@@ -134,11 +145,12 @@ public class LinkingDeviceManager {
                     device.setIsConnected(false);
                     notifyDisconnect(device);
                 }
+                refresh();
             }
         });
     }
 
-    public synchronized void stopNotifyConnect() {
+    private synchronized void stopNotifyConnect() {
         if (mNotifyConnect != null) {
             mNotifyConnect.release();
             mNotifyConnect = null;
@@ -248,10 +260,11 @@ public class LinkingDeviceManager {
             return;
         }
         mNotifySensor = new NotifySensorData(mContext, new ControlSensorData.SensorDataInterface() {
+            private final LinkingSensorData mSensorData = new LinkingSensorData();
             @Override
-            public void onSensorData(final String bd, final int type,
-                                     final float x, final float y, final float z,
-                                     final byte[] originalData, final long time) {
+            public synchronized void onSensorData(final String bd, final int type,
+                                                  final float x, final float y, final float z,
+                                                  final byte[] originalData, final long time) {
                 if (BuildConfig.DEBUG) {
                     Log.i(TAG, "onSensorData bd:" + bd + " type:" + type + " time:" + time);
                     Log.i(TAG, "x: " + x + " y: " + y + " z: " + z);
@@ -263,15 +276,14 @@ public class LinkingDeviceManager {
                         Log.w(TAG, "Not Found the device that address is " + bd);
                     }
                 } else {
-                    LinkingSensorData data = new LinkingSensorData();
-                    data.setBdAddress(bd);
-                    data.setX(x);
-                    data.setY(y);
-                    data.setZ(z);
-                    data.setOriginalData(originalData);
-                    data.setType(LinkingSensorData.SensorType.valueOf(type));
-                    data.setTime(time);
-                    notifyOnChangeSensor(device, data);
+                    mSensorData.setBdAddress(bd);
+                    mSensorData.setX(x);
+                    mSensorData.setY(y);
+                    mSensorData.setZ(z);
+                    mSensorData.setOriginalData(originalData);
+                    mSensorData.setType(LinkingSensorData.SensorType.valueOf(type));
+                    mSensorData.setTime(time);
+                    notifyOnChangeSensor(device, mSensorData);
                 }
             }
 

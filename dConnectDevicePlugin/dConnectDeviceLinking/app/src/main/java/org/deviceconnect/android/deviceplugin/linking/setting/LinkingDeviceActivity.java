@@ -73,14 +73,12 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
         getLinkingDeviceManager().addKeyEventListener(mKeyEventListener);
         getLinkingDeviceManager().addRangeListener(mRangeListener);
         getLinkingDeviceManager().addConnectListener(mConnectListener);
-        getLinkingDeviceManager().startNotifyConnect();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
 
-        getLinkingDeviceManager().stopNotifyConnect();
         getLinkingDeviceManager().removeSensorListener(mSensorListener);
         getLinkingDeviceManager().removeKeyEventListener(mKeyEventListener);
         getLinkingDeviceManager().removeRangeListener(mRangeListener);

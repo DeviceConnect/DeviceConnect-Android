@@ -162,7 +162,9 @@ public class LinkingBeaconManager {
         mContext.startService(intent);
 
         PreferenceUtil.getInstance(mContext).setBeaconScanStatus(true);
-        PreferenceUtil.getInstance(mContext).setBeaconScanMode(mScanMode.getValue());
+        if (scanMode != null) {
+            PreferenceUtil.getInstance(mContext).setBeaconScanMode(mScanMode.getValue());
+        }
     }
 
     public synchronized void stopBeaconScan() {

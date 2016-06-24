@@ -160,6 +160,7 @@ public class DConnectServerEventListenerImpl implements
                 request.setComponent(plugin.getComponentName());
                 request.setAction(IntentDConnectMessage.ACTION_EVENT_TRANSMIT_DISCONNECT);
                 request.putExtra("pluginId", serviceId);
+                request.putExtra(IntentDConnectMessage.EXTRA_SESSION_KEY, sessionKey);
                 mContext.sendBroadcast(request);
             }
         }

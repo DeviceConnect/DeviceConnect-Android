@@ -310,10 +310,14 @@ public class HostDeviceService extends DConnectMessageService {
     }
 
     @Override
-    public void onManagerEventTransmitDisconnected() {
+    public void onManagerEventTransmitDisconnected(String sessionKey) {
         // TODO: ManagerのEvent送信経路切断通知受信時の処理要追加。
         mLogger.info("Plug-in : onManagerEventTransmitDisconnected");
-        EventManager.INSTANCE.removeAll();
+        if (sessionKey != null) {
+            EventManager.INSTANCE.removeEvents(sessionKey);
+        } else {
+            EventManager.INSTANCE.removeAll();
+        }
     }
 
     @Override

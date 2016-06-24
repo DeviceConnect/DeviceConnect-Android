@@ -165,7 +165,7 @@ public abstract class DConnectMessageService extends Service implements DConnect
         }
 
         if (checkManagerEventTransmitDisconnect(action)) {
-            onManagerEventTransmitDisconnected();
+            onManagerEventTransmitDisconnected(intent.getStringExtra(IntentDConnectMessage.EXTRA_SESSION_KEY));
         }
 
         if (checkDevicePluginReset(action)) {
@@ -452,8 +452,9 @@ public abstract class DConnectMessageService extends Service implements DConnect
 
     /**
      * Device Connect ManagerのEvent送信経路切断通知を受信した時に呼ばれる処理部.
+     * @param sessionKey セッションキー
      */
-    public void onManagerEventTransmitDisconnected() {
+    public void onManagerEventTransmitDisconnected(String sessionKey) {
         mLogger.info("SDK : onManagerEventTransmitDisconnected");
     }
 

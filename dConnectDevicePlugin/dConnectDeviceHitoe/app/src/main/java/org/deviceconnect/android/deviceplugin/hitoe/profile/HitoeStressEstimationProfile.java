@@ -15,8 +15,12 @@ import org.deviceconnect.android.deviceplugin.hitoe.data.HeartRateData;
 import org.deviceconnect.android.deviceplugin.hitoe.data.HitoeDevice;
 import org.deviceconnect.android.deviceplugin.hitoe.data.StressEstimationData;
 import org.deviceconnect.android.event.Event;
+import org.deviceconnect.android.event.EventDispatcher;
+import org.deviceconnect.android.event.EventDispatcherFactory;
+import org.deviceconnect.android.event.EventDispatcherManager;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
+import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.StressEstimationProfile;
 import org.deviceconnect.message.DConnectMessage;
@@ -39,6 +43,10 @@ public class HitoeStressEstimationProfile extends StressEstimationProfile {
                     notifyStressEstimationData(device, data);
                 }
             };
+    /**
+     * Event Dispatcher object.
+     */
+    private EventDispatcherManager mDispatcherManager;
 
     /**
      * Constructor.
@@ -46,6 +54,7 @@ public class HitoeStressEstimationProfile extends StressEstimationProfile {
      */
     public HitoeStressEstimationProfile(final HitoeManager mgr) {
         mgr.setHitoeStressEstimationEventListener(mStressEstimationEventListener);
+        mDispatcherManager = new EventDispatcherManager();
     }
     @Override
     public boolean onGetStressEstimation(final Intent request, final Intent response, final String serviceId) {
@@ -77,6 +86,7 @@ public class HitoeStressEstimationProfile extends StressEstimationProfile {
             } else {
                 EventError error = EventManager.INSTANCE.addEvent(request);
                 if (error == EventError.NONE) {
+                    addEventDispatcher(request);
                     setResult(response, DConnectMessage.RESULT_OK);
                 } else {
                     MessageUtils.setUnknownError(response);
@@ -94,6 +104,7 @@ public class HitoeStressEstimationProfile extends StressEstimationProfile {
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response, "There is no sessionKey.");
         } else {
+            removeEventDispatcher(request);
             EventError error = EventManager.INSTANCE.removeEvent(request);
             if (error == EventError.NONE) {
                 setResult(response, DConnectMessage.RESULT_OK);
@@ -116,7 +127,6 @@ public class HitoeStressEstimationProfile extends StressEstimationProfile {
      * @param data Data of Stress Estimation
      */
     private void notifyStressEstimationData(final HitoeDevice device, final StressEstimationData data) {
-        HitoeDeviceService service = (HitoeDeviceService) getContext();
         List<Event> events = EventManager.INSTANCE.getEventList(device.getId(),
                 getProfileName(), null, ATTRIBUTE_ON_STRESS_ESTIMATION);
         synchronized (events) {
@@ -127,11 +137,30 @@ public class HitoeStressEstimationProfile extends StressEstimationProfile {
                 Intent intent = EventManager.createEventMessage(event);
 
                 setStress(intent, data.toBundle());
-                service.sendEvent(intent, event.getAccessToken());
+                mDispatcherManager.sendEvent(event, intent);
             }
         }
     }
 
+    /**
+     * Add Event Dispatcher.
+     * @param request request parameter
+     */
+    private void addEventDispatcher(final Intent request) {
+        Event event = EventManager.INSTANCE.getEvent(request);
+        EventDispatcher dispatcher = EventDispatcherFactory.createEventDispatcher(
+                (DConnectMessageService)getContext(), request);
+        mDispatcherManager.addEventDispatcher(event, dispatcher);
+    }
+
+    /**
+     * Remove Event Dispatcher.
+     * @param request request parameter
+     */
+    private void removeEventDispatcher(final Intent request) {
+        Event event = EventManager.INSTANCE.getEvent(request);
+        mDispatcherManager.removeEventDispatcher(event);
+    }
 
 
     /**

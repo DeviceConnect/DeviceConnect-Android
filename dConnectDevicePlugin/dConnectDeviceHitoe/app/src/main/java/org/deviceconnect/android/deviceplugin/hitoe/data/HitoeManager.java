@@ -210,9 +210,11 @@ public class HitoeManager {
                 extractHealth(HeartData.HeartRateType.ECG, rawData, receiveDevice);
             } else if (dataKey.equals("raw.acc")) {
                 analyzeAccelerationData(rawData, receiveDevice);
-
-                AccelerationData currentAccel = RawDataParseUtils.parseAccelerationData(rawData);
-                currentAccel.setTimeStamp(HitoeConstants.ADD_RECEIVER_PARAM_ACC_SAMPLING_INTERVAL);
+                AccelerationData currentAccel = mAccelData.get(receiveDevice);
+                if (currentAccel == null) {
+                    currentAccel = new AccelerationData();
+                }
+                currentAccel = RawDataParseUtils.parseAccelerationData(currentAccel, rawData);
                 mAccelData.put(receiveDevice, currentAccel);
             } else if (dataKey.equals("raw.rri")) {
                 extractHealth(HeartData.HeartRateType.RRI, rawData, receiveDevice);

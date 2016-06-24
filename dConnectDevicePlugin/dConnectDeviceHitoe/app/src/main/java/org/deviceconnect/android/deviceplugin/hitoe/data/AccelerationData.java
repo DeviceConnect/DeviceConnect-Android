@@ -206,9 +206,6 @@ public class AccelerationData {
     public Bundle toBundle() {
         Bundle orientation = new Bundle();
         Bundle a = new Bundle();
-//        DeviceOrientationProfile.setX(a, mAccelX - mGravityX);
-//        DeviceOrientationProfile.setY(a, mAccelY - mGravityY);
-//        DeviceOrientationProfile.setZ(a, mAccelZ - mGravityZ);
 
         Bundle ag = new Bundle();
         DeviceOrientationProfile.setX(ag, mAccelX);
@@ -216,13 +213,8 @@ public class AccelerationData {
         DeviceOrientationProfile.setZ(ag, mAccelZ);
 
         Bundle r = new Bundle();
-//        DeviceOrientationProfile.setAlpha(r, mGyroAlpha);
-//        DeviceOrientationProfile.setBeta(r, mGyroBeta);
-//        DeviceOrientationProfile.setGamma(r, mGyroGamma);
 
         DeviceOrientationProfile.setAcceleration(orientation, ag);
-//        DeviceOrientationProfile.setAccelerationIncludingGravity(orientation, ag);
-//        DeviceOrientationProfile.setRotationRate(orientation, r);
         DeviceOrientationProfile.setInterval(orientation, mTimeStamp);
         return orientation;
     }

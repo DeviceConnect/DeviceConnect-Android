@@ -10,14 +10,18 @@ import android.content.Intent;
 
 import org.deviceconnect.android.deviceplugin.hitoe.HitoeApplication;
 import org.deviceconnect.android.deviceplugin.hitoe.HitoeDeviceService;
-import org.deviceconnect.android.deviceplugin.hitoe.data.HitoeManager;
 import org.deviceconnect.android.deviceplugin.hitoe.data.HeartRateData;
 import org.deviceconnect.android.deviceplugin.hitoe.data.HitoeDevice;
+import org.deviceconnect.android.deviceplugin.hitoe.data.HitoeManager;
 import org.deviceconnect.android.event.Event;
+import org.deviceconnect.android.event.EventDispatcherFactory;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
+import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.ECGProfile;
+import org.deviceconnect.android.event.EventDispatcher;
+import org.deviceconnect.android.event.EventDispatcherManager;
 import org.deviceconnect.message.DConnectMessage;
 
 import java.util.List;
@@ -38,6 +42,10 @@ public class HitoeECGProfile extends ECGProfile {
                     notifyECGData(device, data);
                 }
             };
+    /**
+     * Event Dispatcher object.
+     */
+    private EventDispatcherManager mDispatcherManager;
 
     /**
      * Constructor.
@@ -45,6 +53,7 @@ public class HitoeECGProfile extends ECGProfile {
      */
     public HitoeECGProfile(final HitoeManager mgr) {
         mgr.setHitoeECGEventListener(mECGEventListener);
+        mDispatcherManager = new EventDispatcherManager();
     }
     @Override
     public boolean onGetECG(final Intent request, final Intent response, final String serviceId) {
@@ -76,6 +85,7 @@ public class HitoeECGProfile extends ECGProfile {
             } else {
                 EventError error = EventManager.INSTANCE.addEvent(request);
                 if (error == EventError.NONE) {
+                    addEventDispatcher(request);
                     setResult(response, DConnectMessage.RESULT_OK);
                 } else {
                     MessageUtils.setUnknownError(response);
@@ -93,6 +103,7 @@ public class HitoeECGProfile extends ECGProfile {
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response, "There is no sessionKey.");
         } else {
+            removeEventDispatcher(request);
             EventError error = EventManager.INSTANCE.removeEvent(request);
             if (error == EventError.NONE) {
                 setResult(response, DConnectMessage.RESULT_OK);
@@ -115,7 +126,6 @@ public class HitoeECGProfile extends ECGProfile {
      * @param data Data of ecg
      */
     private void notifyECGData(final HitoeDevice device, final HeartRateData data) {
-        HitoeDeviceService service = (HitoeDeviceService) getContext();
         List<Event> events = EventManager.INSTANCE.getEventList(device.getId(),
                 getProfileName(), null, ATTRIBUTE_ON_ECG);
         synchronized (events) {
@@ -127,12 +137,30 @@ public class HitoeECGProfile extends ECGProfile {
                 Intent intent = EventManager.createEventMessage(event);
 
                 setECG(intent, data.getECG().toBundle());
-                service.sendEvent(intent, event.getAccessToken());
+                mDispatcherManager.sendEvent(event, intent);
             }
         }
     }
 
+    /**
+     * Add Event Dispatcher.
+     * @param request request parameter
+     */
+    private void addEventDispatcher(final Intent request) {
+        Event event = EventManager.INSTANCE.getEvent(request);
+        EventDispatcher dispatcher = EventDispatcherFactory.createEventDispatcher(
+                (DConnectMessageService)getContext(), request);
+        mDispatcherManager.addEventDispatcher(event, dispatcher);
+    }
 
+    /**
+     * Remove Event Dispatcher.
+     * @param request request parameter
+     */
+    private void removeEventDispatcher(final Intent request) {
+        Event event = EventManager.INSTANCE.getEvent(request);
+        mDispatcherManager.removeEventDispatcher(event);
+    }
 
     /**
      * Gets a instance of HitoeManager.

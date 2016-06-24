@@ -86,8 +86,8 @@ public final class RawDataParseUtils {
      * @param raw raw data
      * @return Acceleration object
      */
-    public static AccelerationData parseAccelerationData(final String raw) {
-        AccelerationData accel = new AccelerationData();
+    public static AccelerationData parseAccelerationData(final AccelerationData data, final String raw) {
+        AccelerationData accel = data;
 
         if(raw == null) {
             return accel;
@@ -95,12 +95,11 @@ public final class RawDataParseUtils {
         String[] lineList=raw.split(HitoeConstants.BR);
         String[] list = lineList[0].split(HitoeConstants.COMMA, -1);
         String[] accList = list[1].split(HitoeConstants.COLON, -1);
-        long timestamp = Long.parseLong(list[0]);
+//        long timestamp = Long.parseLong(list[0]);
         double[] accelList = new double[3];
         for(int i = 0; i < accList.length; i++) {
             accelList[i] = Double.valueOf(accList[i]);
         }
-        accel.setTimeStamp(timestamp);
         accel.setAccelX(accelList[0]);
         accel.setAccelY(accelList[1]);
         accel.setAccelZ(accelList[2]);

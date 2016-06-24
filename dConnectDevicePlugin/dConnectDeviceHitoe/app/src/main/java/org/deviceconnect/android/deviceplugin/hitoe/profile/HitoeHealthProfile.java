@@ -12,12 +12,16 @@ import android.support.annotation.NonNull;
 
 import org.deviceconnect.android.deviceplugin.hitoe.HitoeApplication;
 import org.deviceconnect.android.deviceplugin.hitoe.HitoeDeviceService;
-import org.deviceconnect.android.deviceplugin.hitoe.data.HitoeManager;
 import org.deviceconnect.android.deviceplugin.hitoe.data.HeartRateData;
 import org.deviceconnect.android.deviceplugin.hitoe.data.HitoeDevice;
+import org.deviceconnect.android.deviceplugin.hitoe.data.HitoeManager;
 import org.deviceconnect.android.event.Event;
+import org.deviceconnect.android.event.EventDispatcher;
+import org.deviceconnect.android.event.EventDispatcherFactory;
+import org.deviceconnect.android.event.EventDispatcherManager;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
+import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.HealthProfile;
 import org.deviceconnect.message.DConnectMessage;
@@ -42,11 +46,17 @@ public class HitoeHealthProfile extends HealthProfile {
             };
 
     /**
+     * Event Dispatcher object.
+     */
+    private EventDispatcherManager mDispatcherManager;
+
+    /**
      * Constructor.
      * @param mgr instance of {@link HitoeManager}
      */
     public HitoeHealthProfile(final HitoeManager mgr) {
         mgr.setHitoeHeartRateEventListener(mHeartRateEventListener);
+        mDispatcherManager = new EventDispatcherManager();
     }
     @Override
     public boolean onGetHeart(final Intent request, final Intent response, final String serviceId) {
@@ -78,6 +88,7 @@ public class HitoeHealthProfile extends HealthProfile {
             } else {
                 EventError error = EventManager.INSTANCE.addEvent(request);
                 if (error == EventError.NONE) {
+                    addEventDispatcher(request);
                     setResult(response, DConnectMessage.RESULT_OK);
                 } else {
                     MessageUtils.setUnknownError(response);
@@ -95,6 +106,7 @@ public class HitoeHealthProfile extends HealthProfile {
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response, "There is no sessionKey.");
         } else {
+            removeEventDispatcher(request);
             EventError error = EventManager.INSTANCE.removeEvent(request);
             if (error == EventError.NONE) {
                 setResult(response, DConnectMessage.RESULT_OK);
@@ -117,7 +129,6 @@ public class HitoeHealthProfile extends HealthProfile {
      * @param data Data of heart rate
      */
     private void notifyHeartRateData(final HitoeDevice device, final HeartRateData data) {
-        HitoeDeviceService service = (HitoeDeviceService) getContext();
         List<Event> events = EventManager.INSTANCE.getEventList(device.getId(),
                 getProfileName(), null, ATTRIBUTE_HEART);
         synchronized (events) {
@@ -129,7 +140,7 @@ public class HitoeHealthProfile extends HealthProfile {
                 Intent intent = EventManager.createEventMessage(event);
 
                 setHeart(intent, getHeartRateBundle(data));
-                service.sendEvent(intent, event.getAccessToken());
+                mDispatcherManager.sendEvent(event, intent);
             }
         }
     }
@@ -150,6 +161,25 @@ public class HitoeHealthProfile extends HealthProfile {
         return heart;
     }
 
+    /**
+     * Add Event Dispatcher.
+     * @param request request parameter
+     */
+    private void addEventDispatcher(final Intent request) {
+        Event event = EventManager.INSTANCE.getEvent(request);
+        EventDispatcher dispatcher = EventDispatcherFactory.createEventDispatcher(
+                (DConnectMessageService)getContext(), request);
+        mDispatcherManager.addEventDispatcher(event, dispatcher);
+    }
+
+    /**
+     * Remove Event Dispatcher.
+     * @param request request parameter
+     */
+    private void removeEventDispatcher(final Intent request) {
+        Event event = EventManager.INSTANCE.getEvent(request);
+        mDispatcherManager.removeEventDispatcher(event);
+    }
     /**
      * Gets a instance of HitoeManager.
      *

@@ -10,12 +10,17 @@ import android.content.Intent;
 
 import org.deviceconnect.android.deviceplugin.hitoe.HitoeApplication;
 import org.deviceconnect.android.deviceplugin.hitoe.HitoeDeviceService;
+import org.deviceconnect.android.deviceplugin.hitoe.data.HitoeConstants;
 import org.deviceconnect.android.deviceplugin.hitoe.data.HitoeManager;
 import org.deviceconnect.android.deviceplugin.hitoe.data.AccelerationData;
 import org.deviceconnect.android.deviceplugin.hitoe.data.HitoeDevice;
 import org.deviceconnect.android.event.Event;
+import org.deviceconnect.android.event.EventDispatcher;
+import org.deviceconnect.android.event.EventDispatcherFactory;
+import org.deviceconnect.android.event.EventDispatcherManager;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
+import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.DeviceOrientationProfile;
 import org.deviceconnect.message.DConnectMessage;
@@ -40,11 +45,17 @@ public class HitoeDeviceOrientationProfile extends DeviceOrientationProfile {
             };
 
     /**
+     * Event Dispatcher object.
+     */
+    private EventDispatcherManager mDispatcherManager;
+
+    /**
      * Constructor.
      * @param mgr instance of {@link HitoeManager}
      */
     public HitoeDeviceOrientationProfile(final HitoeManager mgr) {
         mgr.setHitoeDeviceOrientationEventListener(mDeviceOrientationEventListener);
+        mDispatcherManager = new EventDispatcherManager();
     }
     @Override
     public boolean onGetOnDeviceOrientation(final Intent request, final Intent response, final String serviceId) {
@@ -77,6 +88,14 @@ public class HitoeDeviceOrientationProfile extends DeviceOrientationProfile {
             } else {
                 EventError error = EventManager.INSTANCE.addEvent(request);
                 if (error == EventError.NONE) {
+                    String intervalString = request.getStringExtra("interval");
+                    long interval = HitoeConstants.ADD_RECEIVER_PARAM_ACC_SAMPLING_INTERVAL;
+                    try {
+                        interval = Long.parseLong(intervalString);
+                    } catch (NumberFormatException e) {
+                    }
+                    getManager().getAccelerationData(serviceId).setTimeStamp(interval);
+                    addEventDispatcher(request);
                     setResult(response, DConnectMessage.RESULT_OK);
                 } else {
                     MessageUtils.setUnknownError(response);
@@ -94,6 +113,7 @@ public class HitoeDeviceOrientationProfile extends DeviceOrientationProfile {
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response, "There is no sessionKey.");
         } else {
+            removeEventDispatcher(request);
             EventError error = EventManager.INSTANCE.removeEvent(request);
             if (error == EventError.NONE) {
                 setResult(response, DConnectMessage.RESULT_OK);
@@ -116,7 +136,6 @@ public class HitoeDeviceOrientationProfile extends DeviceOrientationProfile {
      * @param data Data of device orientation
      */
     private void notifyAccelerationData(final HitoeDevice device, final AccelerationData data) {
-        HitoeDeviceService service = (HitoeDeviceService) getContext();
         List<Event> events = EventManager.INSTANCE.getEventList(device.getId(),
                 getProfileName(), null, ATTRIBUTE_ON_DEVICE_ORIENTATION);
         synchronized (events) {
@@ -128,12 +147,30 @@ public class HitoeDeviceOrientationProfile extends DeviceOrientationProfile {
                 Intent intent = EventManager.createEventMessage(event);
 
                 DeviceOrientationProfile.setOrientation(intent, data.toBundle());
-                service.sendEvent(intent, event.getAccessToken());
+                mDispatcherManager.sendEvent(event, intent);
             }
         }
     }
 
+    /**
+     * Add Event Dispatcher.
+     * @param request request parameter
+     */
+    private void addEventDispatcher(final Intent request) {
+        Event event = EventManager.INSTANCE.getEvent(request);
+        EventDispatcher dispatcher = EventDispatcherFactory.createEventDispatcher(
+                (DConnectMessageService)getContext(), request);
+        mDispatcherManager.addEventDispatcher(event, dispatcher);
+    }
 
+    /**
+     * Remove Event Dispatcher.
+     * @param request request parameter
+     */
+    private void removeEventDispatcher(final Intent request) {
+        Event event = EventManager.INSTANCE.getEvent(request);
+        mDispatcherManager.removeEventDispatcher(event);
+    }
 
     /**
      * Gets a instance of HitoeManager.

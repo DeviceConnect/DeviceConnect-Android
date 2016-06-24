@@ -43,7 +43,7 @@ public class LinkingKeyEventProfile extends KeyEventProfile {
         });
 
         LinkingDeviceManager deviceManager = app.getLinkingDeviceManager();
-        deviceManager.addKeyEventListener(new LinkingDeviceManager.KeyEventListener() {
+        deviceManager.addKeyEventListener(new LinkingDeviceManager.OnKeyEventListener() {
             @Override
             public void onKeyEvent(LinkingDevice device, int keyCode) {
                 notifyKeyEvent(device, keyCode);
@@ -89,7 +89,7 @@ public class LinkingKeyEventProfile extends KeyEventProfile {
 
         EventError error = EventManager.INSTANCE.addEvent(request);
         if (error == EventError.NONE) {
-            getLinkingDeviceManager().startKeyEvent();
+            getLinkingDeviceManager().startKeyEvent(device);
             setResult(response, DConnectMessage.RESULT_OK);
         } else if (error == EventError.INVALID_PARAMETER) {
             MessageUtils.setInvalidRequestParameterError(response);
@@ -125,7 +125,7 @@ public class LinkingKeyEventProfile extends KeyEventProfile {
         EventError error = EventManager.INSTANCE.removeEvent(request);
         if (error == EventError.NONE) {
             if (isEmptyEventList()) {
-                getLinkingDeviceManager().stopKeyEvent();
+                getLinkingDeviceManager().stopKeyEvent(device);
             }
             setResult(response, DConnectMessage.RESULT_OK);
         } else if (error == EventError.INVALID_PARAMETER) {
@@ -244,11 +244,11 @@ public class LinkingKeyEventProfile extends KeyEventProfile {
     }
 
 
-    private abstract class KeyEventListenerImpl implements Runnable, LinkingDeviceManager.KeyEventListener {
+    private abstract class OnKeyEventListenerImpl implements Runnable, LinkingDeviceManager.OnKeyEventListener {
         protected LinkingDevice mDevice;
         protected ScheduledExecutorService mExecutorService = Executors.newSingleThreadScheduledExecutor();
         protected ScheduledFuture<?> mScheduledFuture;
-        KeyEventListenerImpl(final LinkingDevice device) {
+        OnKeyEventListenerImpl(final LinkingDevice device) {
             mDevice = device;
             mScheduledFuture = mExecutorService.schedule(this, 30, TimeUnit.SECONDS);
         }

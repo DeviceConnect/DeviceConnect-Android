@@ -50,7 +50,7 @@ public class LinkingDeviceOrientationProfile extends DeviceOrientationProfile {
     public LinkingDeviceOrientationProfile(final DConnectMessageService service) {
         LinkingApplication app = (LinkingApplication) service.getApplication();
         LinkingDeviceManager deviceManager = app.getLinkingDeviceManager();
-        deviceManager.addSensorListener(new LinkingDeviceManager.SensorListener() {
+        deviceManager.addSensorListener(new LinkingDeviceManager.OnSensorListener() {
             @Override
             public void onChangeSensor(final LinkingDevice device, final LinkingSensorData sensor) {
                 notifyOrientation(device, sensor);
@@ -68,7 +68,7 @@ public class LinkingDeviceOrientationProfile extends DeviceOrientationProfile {
         }
 
         final LinkingDeviceManager deviceManager = getLinkingDeviceManager();
-        deviceManager.addSensorListener(new SensorListenerImpl(device) {
+        deviceManager.addSensorListener(new OnSensorListenerImpl(device) {
 
             private boolean mDestroyFlag;
 
@@ -317,12 +317,12 @@ public class LinkingDeviceOrientationProfile extends DeviceOrientationProfile {
         }
     }
 
-    private abstract class SensorListenerImpl implements Runnable, LinkingDeviceManager.SensorListener {
+    private abstract class OnSensorListenerImpl implements Runnable, LinkingDeviceManager.OnSensorListener {
         protected LinkingDevice mDevice;
         protected SensorHolder mSensorHolder;
         protected ScheduledExecutorService mExecutorService = Executors.newSingleThreadScheduledExecutor();
         protected ScheduledFuture<?> mScheduledFuture;
-        SensorListenerImpl(final LinkingDevice device) {
+        OnSensorListenerImpl(final LinkingDevice device) {
             mDevice = device;
             mSensorHolder = createSensorHolder(device, 0);
             mScheduledFuture = mExecutorService.schedule(this, TIMEOUT, TimeUnit.SECONDS);

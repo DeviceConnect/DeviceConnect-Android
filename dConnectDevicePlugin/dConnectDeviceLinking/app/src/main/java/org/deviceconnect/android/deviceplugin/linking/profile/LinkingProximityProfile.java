@@ -45,7 +45,7 @@ public class LinkingProximityProfile extends ProximityProfile {
         });
 
         LinkingDeviceManager deviceManager = app.getLinkingDeviceManager();
-        deviceManager.addRangeListener(new LinkingDeviceManager.RangeListener() {
+        deviceManager.addRangeListener(new LinkingDeviceManager.OnRangeListener() {
             @Override
             public void onChangeRange(final LinkingDevice device, final LinkingDeviceManager.Range range) {
                 notifyProximityEvent(device, range);
@@ -113,7 +113,7 @@ public class LinkingProximityProfile extends ProximityProfile {
         }
 
         final LinkingDeviceManager deviceManager = getLinkingDeviceManager();
-        deviceManager.addRangeListener(new RangeListenerImpl(device) {
+        deviceManager.addRangeListener(new OnRangeListenerImpl(device) {
 
             private boolean mDestroy;
 
@@ -124,7 +124,7 @@ public class LinkingProximityProfile extends ProximityProfile {
                 mDestroy = true;
 
                 if (isEmptyEventList()) {
-                    deviceManager.stopRange();
+                    deviceManager.stopRange(mDevice);
                 }
                 deviceManager.removeRangeListener(this);
             }
@@ -155,7 +155,7 @@ public class LinkingProximityProfile extends ProximityProfile {
                 destroy();
             }
         });
-        deviceManager.startRange();
+        deviceManager.startRange(device);
         return false;
     }
 
@@ -187,7 +187,7 @@ public class LinkingProximityProfile extends ProximityProfile {
 
         EventError error = EventManager.INSTANCE.addEvent(request);
         if (error == EventError.NONE) {
-            getLinkingDeviceManager().startRange();
+            getLinkingDeviceManager().startRange(device);
             setResult(response, DConnectMessage.RESULT_OK);
         } else if (error == EventError.INVALID_PARAMETER) {
             MessageUtils.setInvalidRequestParameterError(response);
@@ -224,7 +224,7 @@ public class LinkingProximityProfile extends ProximityProfile {
         EventError error = EventManager.INSTANCE.removeEvent(request);
         if (error == EventError.NONE) {
             if (isEmptyEventList()) {
-                getLinkingDeviceManager().stopRange();
+                getLinkingDeviceManager().stopRange(device);
             }
             setResult(response, DConnectMessage.RESULT_OK);
         } else if (error == EventError.INVALID_PARAMETER) {
@@ -358,11 +358,11 @@ public class LinkingProximityProfile extends ProximityProfile {
         return (LinkingApplication) service.getApplication();
     }
 
-    private abstract class RangeListenerImpl implements Runnable, LinkingDeviceManager.RangeListener {
+    private abstract class OnRangeListenerImpl implements Runnable, LinkingDeviceManager.OnRangeListener {
         protected LinkingDevice mDevice;
         protected ScheduledExecutorService mExecutorService = Executors.newSingleThreadScheduledExecutor();
         protected ScheduledFuture<?> mScheduledFuture;
-        RangeListenerImpl(final LinkingDevice device) {
+        OnRangeListenerImpl(final LinkingDevice device) {
             mDevice = device;
             mScheduledFuture = mExecutorService.schedule(this, 30, TimeUnit.SECONDS);
         }

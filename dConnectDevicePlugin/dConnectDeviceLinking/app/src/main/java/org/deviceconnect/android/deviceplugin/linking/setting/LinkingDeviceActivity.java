@@ -69,20 +69,20 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
     protected void onResume() {
         super.onResume();
 
-        getLinkingDeviceManager().addSensorListener(mSensorListener);
-        getLinkingDeviceManager().addKeyEventListener(mKeyEventListener);
-        getLinkingDeviceManager().addRangeListener(mRangeListener);
-        getLinkingDeviceManager().addConnectListener(mConnectListener);
+        getLinkingDeviceManager().addSensorListener(mOnSensorListener);
+        getLinkingDeviceManager().addKeyEventListener(mOnKeyEventListener);
+        getLinkingDeviceManager().addRangeListener(mOnRangeListener);
+        getLinkingDeviceManager().addConnectListener(mOnConnectListener);
     }
 
     @Override
     protected void onPause() {
         super.onPause();
 
-        getLinkingDeviceManager().removeSensorListener(mSensorListener);
-        getLinkingDeviceManager().removeKeyEventListener(mKeyEventListener);
-        getLinkingDeviceManager().removeRangeListener(mRangeListener);
-        getLinkingDeviceManager().removeConnectListener(mConnectListener);
+        getLinkingDeviceManager().removeSensorListener(mOnSensorListener);
+        getLinkingDeviceManager().removeKeyEventListener(mOnKeyEventListener);
+        getLinkingDeviceManager().removeRangeListener(mOnRangeListener);
+        getLinkingDeviceManager().removeConnectListener(mOnConnectListener);
     }
 
     @Override
@@ -528,43 +528,49 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
     private void onClickButtonId(final boolean isOn) {
         LinkingDeviceManager mgr = getLinkingDeviceManager();
         if (isOn) {
-            mgr.startKeyEvent();
+            mgr.startKeyEvent(mDevice);
         } else {
-            mgr.stopKeyEvent();
+            mgr.stopKeyEvent(mDevice);
         }
     }
 
     private void onClickProximity(final boolean isOn) {
         LinkingDeviceManager mgr = getLinkingDeviceManager();
         if (isOn) {
-            mgr.startRange();
+            mgr.startRange(mDevice);
         } else {
-            mgr.stopRange();
+            mgr.stopRange(mDevice);
         }
     }
 
-    private LinkingDeviceManager.SensorListener mSensorListener = new LinkingDeviceManager.SensorListener() {
+    private LinkingDeviceManager.OnSensorListener mOnSensorListener = new LinkingDeviceManager.OnSensorListener() {
         @Override
         public void onChangeSensor(final LinkingDevice device, final LinkingSensorData sensor) {
-            updateDataText(sensor.getType(), sensor.getX(), sensor.getY(), sensor.getZ(), sensor.getTime());
+            if (device.equals(mDevice)) {
+                updateDataText(sensor.getType(), sensor.getX(), sensor.getY(), sensor.getZ(), sensor.getTime());
+            }
         }
     };
 
-    private LinkingDeviceManager.KeyEventListener mKeyEventListener = new LinkingDeviceManager.KeyEventListener() {
+    private LinkingDeviceManager.OnKeyEventListener mOnKeyEventListener = new LinkingDeviceManager.OnKeyEventListener() {
         @Override
         public void onKeyEvent(final LinkingDevice device, final int keyCode) {
-            updateKeyEvent(device.getModelId(), device.getUniqueId(), keyCode);
+            if (device.equals(mDevice)) {
+                updateKeyEvent(device.getModelId(), device.getUniqueId(), keyCode);
+            }
         }
     };
 
-    private LinkingDeviceManager.RangeListener mRangeListener = new LinkingDeviceManager.RangeListener() {
+    private LinkingDeviceManager.OnRangeListener mOnRangeListener = new LinkingDeviceManager.OnRangeListener() {
         @Override
         public void onChangeRange(final LinkingDevice device, final LinkingDeviceManager.Range range) {
-            updateRange(range);
+            if (device.equals(mDevice)) {
+                updateRange(range);
+            }
         }
     };
 
-    private LinkingDeviceManager.ConnectListener mConnectListener = new LinkingDeviceManager.ConnectListener() {
+    private LinkingDeviceManager.OnConnectListener mOnConnectListener = new LinkingDeviceManager.OnConnectListener() {
         @Override
         public void onConnect(final LinkingDevice device) {
         }

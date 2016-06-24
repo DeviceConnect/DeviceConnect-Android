@@ -55,7 +55,7 @@ public class LinkingSystemProfile extends SystemProfile {
         List<Event> events = EventManager.INSTANCE.getEventList(
                 DeviceOrientationProfile.PROFILE_NAME, null,
                 DeviceOrientationProfile.ATTRIBUTE_ON_DEVICE_ORIENTATION);
-        List<LinkingDevice> devices = getLinkingDeviceManager().getStartSensorDevice();
+        List<LinkingDevice> devices = getLinkingDeviceManager().getStartedSensorDevices();
         for (LinkingDevice device : devices) {
             boolean stopFlag = true;
             for (Event event : events) {
@@ -77,16 +77,42 @@ public class LinkingSystemProfile extends SystemProfile {
         List<Event> events = EventManager.INSTANCE.getEventList(
                 ProximityProfile.PROFILE_NAME, null,
                 ProximityProfile.ATTRIBUTE_ON_DEVICE_PROXIMITY);
-        if (events.isEmpty()) {
-            getLinkingDeviceManager().stopRange();
+        List<LinkingDevice> devices = getLinkingDeviceManager().getStartedRangeDevices();
+        for (LinkingDevice device : devices) {
+            boolean stopFlag = true;
+            for (Event event : events) {
+                if (device.getBdAddress().equals(event.getServiceId())) {
+                    stopFlag = false;
+                    break;
+                }
+            }
+            if (stopFlag) {
+                if (BuildConfig.DEBUG) {
+                    Log.e(TAG, "Stop a proximity. name=" + device.getDisplayName());
+                }
+                getLinkingDeviceManager().stopRange(device);
+            }
         }
     }
 
     private void stopKeyEvent() {
         List<Event> events = EventManager.INSTANCE.getEventList(
                 KeyEventProfile.PROFILE_NAME, null, KeyEventProfile.ATTRIBUTE_ON_DOWN);
-        if (events.isEmpty()) {
-            getLinkingDeviceManager().stopKeyEvent();
+        List<LinkingDevice> devices = getLinkingDeviceManager().getStartedKeyEventDevices();
+        for (LinkingDevice device : devices) {
+            boolean stopFlag = true;
+            for (Event event : events) {
+                if (device.getBdAddress().equals(event.getServiceId())) {
+                    stopFlag = false;
+                    break;
+                }
+            }
+            if (stopFlag) {
+                if (BuildConfig.DEBUG) {
+                    Log.e(TAG, "Stop a key event. name=" + device.getDisplayName());
+                }
+                getLinkingDeviceManager().stopKeyEvent(device);
+            }
         }
     }
 

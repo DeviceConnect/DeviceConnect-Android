@@ -43,8 +43,8 @@ public class LinkingServiceDiscoveryProfile extends ServiceDiscoveryProfile {
         super(service);
 
         LinkingApplication app = (LinkingApplication) service.getApplication();
-        LinkingBeaconManager mgr = app.getLinkingBeaconManager();
-        mgr.addOnBeaconConnectListener(new LinkingBeaconManager.OnBeaconConnectListener() {
+        LinkingBeaconManager beaconManager = app.getLinkingBeaconManager();
+        beaconManager.addOnBeaconConnectListener(new LinkingBeaconManager.OnBeaconConnectListener() {
             @Override
             public void onConnected(final LinkingBeacon beacon) {
                 notifyConnectEvent(beacon);
@@ -52,6 +52,18 @@ public class LinkingServiceDiscoveryProfile extends ServiceDiscoveryProfile {
             @Override
             public void onDisconnected(final LinkingBeacon beacon) {
                 notifyDisconnectEvent(beacon);
+            }
+        });
+
+        LinkingDeviceManager deviceManager = app.getLinkingDeviceManager();
+        deviceManager.addConnectListener(new LinkingDeviceManager.OnConnectListener() {
+            @Override
+            public void onConnect(final LinkingDevice device) {
+                notifyConnectEvent(device);
+            }
+            @Override
+            public void onDisconnect(final LinkingDevice device) {
+                notifyDisconnectEvent(device);
             }
         });
     }
@@ -149,6 +161,35 @@ public class LinkingServiceDiscoveryProfile extends ServiceDiscoveryProfile {
             setOnline(service, true);
             service.putStringArray(PARAM_SCOPES, Util.createLinkingAppScopes());
             services.add(service);
+        }
+    }
+
+    private void notifyConnectEvent(final LinkingDevice device) {
+        List<Event> events = EventManager.INSTANCE.getEventList(null,
+                PROFILE_NAME, null, ATTRIBUTE_ON_SERVICE_CHANGE);
+        if (events != null && events.size() > 0) {
+            synchronized (events) {
+                for (Event event : events) {
+                    Intent intent = EventManager.createEventMessage(event);
+                    setNetworkService(intent, createServiceFromLinkingDevice(device));
+                    sendEvent(intent, event.getAccessToken());
+                }
+            }
+        }
+    }
+
+
+    private void notifyDisconnectEvent(final LinkingDevice device) {
+        List<Event> events = EventManager.INSTANCE.getEventList(null,
+                PROFILE_NAME, null, ATTRIBUTE_ON_SERVICE_CHANGE);
+        if (events != null && events.size() > 0) {
+            synchronized (events) {
+                for (Event event : events) {
+                    Intent intent = EventManager.createEventMessage(event);
+                    setNetworkService(intent, createServiceFromLinkingDevice(device));
+                    sendEvent(intent, event.getAccessToken());
+                }
+            }
         }
     }
 

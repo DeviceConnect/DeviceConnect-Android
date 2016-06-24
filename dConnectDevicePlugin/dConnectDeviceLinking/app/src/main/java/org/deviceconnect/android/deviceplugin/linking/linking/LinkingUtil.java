@@ -24,6 +24,8 @@ public final class LinkingUtil {
     public static final String ACTION_SENSOR_STOP = "com.nttdocomo.android.smartdeviceagent.action.STOP_SENSOR";
     public static final String ACTION_START_SENSOR = "com.nttdocomo.android.smartdeviceagent.action.START_SENSOR";
 
+    public static final Uri URI_DEVICES = Uri.parse("content://com.nttdocomo.android.smartdeviceagent/devices");
+
     public static final String PACKAGE_NAME = "com.nttdocomo.android.smartdeviceagent";
 
     public static final String ACTIVITY_NAME = "com.nttdocomo.android.smartdeviceagent.RequestStartActivity";

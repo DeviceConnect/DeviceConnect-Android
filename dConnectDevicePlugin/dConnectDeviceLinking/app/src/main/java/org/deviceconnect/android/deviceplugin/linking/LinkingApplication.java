@@ -54,6 +54,20 @@ public class LinkingApplication extends Application {
         super.onTerminate();
     }
 
+    public void resetManager() {
+        if (mBeaconManager != null) {
+            mBeaconManager.destroy();
+            mBeaconManager = null;
+        }
+
+        if (mDeviceManager != null) {
+            mDeviceManager.destroy();
+            mDeviceManager = null;
+        }
+        mBeaconManager = new LinkingBeaconManager(this);
+        mDeviceManager = new LinkingDeviceManager(this);
+    }
+
     public LinkingBeaconManager getLinkingBeaconManager() {
         return mBeaconManager;
     }

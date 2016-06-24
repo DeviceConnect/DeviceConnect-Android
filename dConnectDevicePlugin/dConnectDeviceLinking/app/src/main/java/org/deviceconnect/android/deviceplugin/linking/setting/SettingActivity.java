@@ -6,70 +6,98 @@
  */
 package org.deviceconnect.android.deviceplugin.linking.setting;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.view.ViewPager;
+import android.support.v7.app.AppCompatActivity;
+import android.view.Menu;
+import android.view.MenuItem;
 
-import org.deviceconnect.android.deviceplugin.linking.BuildConfig;
-import org.deviceconnect.android.deviceplugin.linking.linking.LinkingDevice;
-import org.deviceconnect.android.deviceplugin.linking.setting.fragment.LinkingControllerFragment;
+import org.deviceconnect.android.deviceplugin.linking.R;
+import org.deviceconnect.android.deviceplugin.linking.setting.fragment.LinkingBeaconListFragment;
 import org.deviceconnect.android.deviceplugin.linking.setting.fragment.LinkingDeviceListFragment;
-import org.deviceconnect.android.deviceplugin.linking.setting.fragment.LinkingImageFragment;
-import org.deviceconnect.android.ui.activity.DConnectSettingPageFragmentActivity;
 
 /**
  * Activity for setting.
  *
  * @author NTT DOCOMO, INC.
  */
-public class SettingActivity extends DConnectSettingPageFragmentActivity {
-
-    private LinkingControllerFragment mControllFragment;
-
-    @SuppressWarnings("rawtypes")
-    private static final Class[] PAGES = {
-            LinkingImageFragment.class,
-            LinkingDeviceListFragment.class,
-            LinkingControllerFragment.class
-    };
+public class SettingActivity extends AppCompatActivity {
+    private Fragment[] mFragments = new Fragment[2];
+    private String[] pageTitle = new String[2];
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_linking_setting);
+
+        pageTitle[0] = getString(R.string.activity_setting_tab_paring);
+        pageTitle[1] = getString(R.string.activity_setting_tab_beacon);
+
+        mFragments[0] = LinkingDeviceListFragment.newInstance();
+        mFragments[1] = LinkingBeaconListFragment.newInstance();
+
+        TabLayout tabLayout = (TabLayout) findViewById(R.id.activity_setting_tabs);
+        ViewPager viewPager = (ViewPager) findViewById(R.id.activity_setting_view_pager);
+
+        if (viewPager != null) {
+            viewPager.setAdapter(new MyFragmentPagerAdapter(getSupportFragmentManager()));
+            if (tabLayout != null) {
+                tabLayout.setupWithViewPager(viewPager);
+            }
+        }
     }
 
     @Override
-    public int getPageCount() {
-        return PAGES.length;
+    public boolean onCreateOptionsMenu(final Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_linking_main, menu);
+        return true;
     }
 
     @Override
-    public Fragment createPage(final int position) {
-        Fragment page;
-        try {
-            page = (Fragment) PAGES[position].newInstance();
-            if (page instanceof LinkingControllerFragment) {
-                mControllFragment = (LinkingControllerFragment) page;
-            }
-        } catch (InstantiationException e) {
-            if (BuildConfig.DEBUG) {
-                e.printStackTrace();
-            }
-            page = null;
-        } catch (IllegalAccessException e) {
-            if (BuildConfig.DEBUG) {
-                e.printStackTrace();
-            }
-            page = null;
+    public boolean onOptionsItemSelected(final MenuItem item) {
+        if (item.getItemId() == R.id.menu_setting) {
+            transitionLinkingApp();
+        } else if (item.getItemId() == R.id.menu_information) {
+            transitionAppInform();
         }
-        return page;
+        return super.onOptionsItemSelected(item);
     }
 
-    public void showControllerPage(LinkingDevice device) {
-        if (mControllFragment == null) {
-            return;
-        }
-        mControllFragment.setTargetDevice(device);
-        getViewPager().setCurrentItem(3, true);
+    private void transitionLinkingApp() {
+        Intent intent = new Intent();
+        intent.setClass(this, LinkingInductionActivity.class);
+        startActivity(intent);
     }
 
+    private void transitionAppInform() {
+        Intent intent = new Intent();
+        intent.setClass(this, AppInformationActivity.class);
+        startActivity(intent);
+    }
+
+    private class MyFragmentPagerAdapter extends FragmentPagerAdapter {
+        public MyFragmentPagerAdapter(final FragmentManager fragmentManager) {
+            super(fragmentManager);
+        }
+
+        @Override
+        public Fragment getItem(final int position) {
+            return mFragments[position];
+        }
+
+        @Override
+        public int getCount() {
+            return mFragments.length;
+        }
+
+        @Override
+        public CharSequence getPageTitle(final int position) {
+            return pageTitle[position];
+        }
+    }
 }

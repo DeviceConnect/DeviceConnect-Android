@@ -73,4 +73,26 @@ public interface ProximityProfileConstants extends DConnectProfileConstants {
      * パラメータ: {@value}.
      */
     String PARAM_NEAR = "near";
+
+    /**
+     * パラメータ: {@value}.
+     */
+    String PARAM_RANGE = "range";
+
+    enum Range {
+        IMMEDIATE("IMMEDIATE"),
+        NEAR("NEAR"),
+        FAR("FAR"),
+        UNKNOWN("UNKNOWN");
+
+        private String mValue;
+
+        Range(String value) {
+            mValue = value;
+        }
+
+        public String getValue() {
+            return mValue;
+        }
+    }
 }

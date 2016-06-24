@@ -7,117 +7,248 @@
 package org.deviceconnect.android.deviceplugin.linking.setting.fragment;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Color;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 
+import org.deviceconnect.android.deviceplugin.linking.LinkingApplication;
 import org.deviceconnect.android.deviceplugin.linking.R;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingDevice;
-import org.deviceconnect.android.deviceplugin.linking.linking.LinkingManager;
-import org.deviceconnect.android.deviceplugin.linking.linking.LinkingManagerFactory;
-import org.deviceconnect.android.deviceplugin.linking.setting.SettingActivity;
+import org.deviceconnect.android.deviceplugin.linking.linking.LinkingDeviceManager;
+import org.deviceconnect.android.deviceplugin.linking.setting.LinkingDeviceActivity;
+import org.deviceconnect.android.deviceplugin.linking.setting.LinkingInductionActivity;
+import org.deviceconnect.android.deviceplugin.linking.setting.fragment.dialog.ConfirmationDialogFragment;
+import org.deviceconnect.android.deviceplugin.linking.setting.fragment.dialog.DiscoveryDeviceDialogFragment;
 
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * Fragment for show Linking Devices.
  *
  * @author NTT DOCOMO, INC.
  */
-public class LinkingDeviceListFragment extends Fragment {
+public class LinkingDeviceListFragment extends Fragment implements ConfirmationDialogFragment.OnDialogEventListener {
 
+    private DiscoveryDeviceDialogFragment mDiscoveryDeviceDialogFragment;
     private ListAdapter mAdapter;
+
+    public static LinkingDeviceListFragment newInstance() {
+        return new LinkingDeviceListFragment();
+    }
 
     @Override
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
         mAdapter = new ListAdapter(getActivity(), -1);
 
-        final View root = inflater.inflate(R.layout.device_list, container, false);
+        final View root = inflater.inflate(R.layout.fragment_linking_device_list, container, false);
 
-        root.findViewById(R.id.search).setOnClickListener(new View.OnClickListener() {
+        ListView listView = (ListView) root.findViewById(R.id.fragment_device_list_view);
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                DeviceItem item = (DeviceItem) view.getTag();
+                if (item != null) {
+                    transitionDeviceControl(item);
+                }
+            }
+        });
+        listView.setAdapter(mAdapter);
+
+        Button searchBtn = (Button) root.findViewById(R.id.fragment_device_search);
+        searchBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 discoverDevices(root);
             }
         });
 
-        setupClickListener((ListView) root.findViewById(R.id.devicelist));
+        Button linkingBtn = (Button) root.findViewById(R.id.fragment_device_guidance_btn);
+        linkingBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                transitionLinkingApp();
+            }
+        });
+
         return root;
     }
 
-    private void setupClickListener(ListView listview) {
-        listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        discoverDevices(getView());
+
+        LinkingDeviceManager mgr = getLinkingDeviceManager();
+        if (mgr != null) {
+            mgr.addConnectListener(mConnectListener);
+            mgr.startNotifyConnect();
+        }
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+
+        LinkingDeviceManager mgr = getLinkingDeviceManager();
+        if (mgr != null) {
+            mgr.stopNotifyConnect();
+            mgr.removeConnectListener(mConnectListener);
+        }
+    }
+
+    @Override
+    public void onPositiveClick(final DialogFragment fragment) {
+        transitionLinkingApp();
+    }
+
+    @Override
+    public void onNegativeClick(final DialogFragment fragment) {
+        // do nothing
+    }
+
+    private LinkingDeviceManager getLinkingDeviceManager() {
+        LinkingApplication app = (LinkingApplication) getActivity().getApplication();
+        return app.getLinkingDeviceManager();
+    }
+
+    private void transitionDeviceControl(final DeviceItem item) {
+        if (item.isConnected) {
+            Intent intent = new Intent();
+            intent.putExtra(LinkingDeviceActivity.EXTRA_ADDRESS, item.mDevice.getBdAddress());
+            intent.setClass(getContext(), LinkingDeviceActivity.class);
+            getActivity().startActivity(intent);
+        } else {
+            String title = getString(R.string.fragment_device_error_title);
+            String message = getString(R.string.fragment_device_error_message, item.mDevice.getDisplayName());
+            String positive = getString(R.string.fragment_device_error_positive);
+            String negative = getString(R.string.fragment_device_error_negative);
+            ConfirmationDialogFragment dialog = ConfirmationDialogFragment.newInstance(title, message, positive, negative, this);
+            dialog.show(getFragmentManager(), "error");
+        }
+    }
+
+    private void transitionLinkingApp() {
+        Intent intent = new Intent();
+        intent.setClass(getContext(), LinkingInductionActivity.class);
+        getActivity().startActivity(intent);
+    }
+
+    private void showGuidance() {
+        if (getView() == null) {
+            return;
+        }
+
+        View view = getView().findViewById(R.id.fragment_device_guidance);
+        if (view != null) {
+            if (mAdapter.getCount() == 0) {
+                view.setVisibility(View.VISIBLE);
+            } else {
+                view.setVisibility(View.GONE);
+            }
+        }
+    }
+
+    private void refreshDeviceList() {
+        if (getActivity() == null) {
+            return;
+        }
+        getActivity().runOnUiThread(new Runnable() {
             @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                final DeviceItem device = (DeviceItem) parent.getItemAtPosition(position);
-                if (device.isConnected) {
-                    ((SettingActivity) getActivity()).showControllerPage(device.mDevice);
-                } else {
-                    Toast.makeText(getActivity(), getString(R.string.device_not_connected), Toast.LENGTH_LONG).show();
-                }
+            public void run() {
+                discoverDevices(getView());
             }
         });
     }
 
     private void discoverDevices(final View root) {
-        mAdapter.clear();
-        mAdapter.notifyDataSetChanged();
-        ExecutorService s = Executors.newSingleThreadExecutor();
-        s.submit(new Runnable() {
+
+        if (mDiscoveryDeviceDialogFragment != null) {
+            return;
+        }
+
+        if (root == null) {
+            return;
+        }
+
+        AsyncTask<Void, Void, List<LinkingDevice>> task = new AsyncTask<Void, Void, List<LinkingDevice>>() {
             @Override
-            public void run() {
-                LinkingManager manager = LinkingManagerFactory.createManager(getActivity());
-                final List<LinkingDevice> devices = manager.getDevices();
-                getActivity().runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (devices == null || devices.size() == 0) {
-                            Toast.makeText(getActivity(), getString(R.string.device_not_found), Toast.LENGTH_SHORT).show();
-                        } else {
-                            ListView listview = (ListView) root.findViewById(R.id.devicelist);
-                            for (LinkingDevice device : devices) {
-                                DeviceItem item = new DeviceItem();
-                                item.mDevice = device;
-                                item.isConnected = device.isConnected();
-                                mAdapter.add(item);
-                            }
-                            listview.setAdapter(mAdapter);
-                        }
-                    }
-                });
+            protected void onPreExecute() {
+                mDiscoveryDeviceDialogFragment = DiscoveryDeviceDialogFragment.newInstance(getString(R.string.fragment_device_discovery));
+                mDiscoveryDeviceDialogFragment.show(getFragmentManager(), "progress");
+                mAdapter.clear();
+                mAdapter.notifyDataSetChanged();
             }
-        });
+
+            @Override
+            protected List<LinkingDevice> doInBackground(final Void... params) {
+                try {
+                    LinkingApplication app = (LinkingApplication) getActivity().getApplicationContext();
+                    LinkingDeviceManager manager = app.getLinkingDeviceManager();
+                    return manager.getDevices();
+                } catch (Exception e) {
+                    return null;
+                }
+            }
+
+            @Override
+            protected void onPostExecute(final List<LinkingDevice> devices) {
+                mDiscoveryDeviceDialogFragment.dismiss();
+                mDiscoveryDeviceDialogFragment = null;
+
+                if (devices != null) {
+                    ListView listView = (ListView) root.findViewById(R.id.fragment_device_list_view);
+                    for (LinkingDevice device : devices) {
+                        DeviceItem item = new DeviceItem();
+                        item.mDevice = device;
+                        item.isConnected = device.isConnected();
+                        mAdapter.add(item);
+                    }
+                    listView.setAdapter(mAdapter);
+                }
+                showGuidance();
+            }
+        };
+        task.execute();
     }
 
     private class ListAdapter extends ArrayAdapter<DeviceItem> {
 
-        public ListAdapter(Context context, int textViewId) {
+        public ListAdapter(final Context context, final int textViewId) {
             super(context, textViewId);
         }
 
-        public View getView(final int position, View convertView, ViewGroup parent) {
+        @Override
+        public View getView(final int position, View convertView, final ViewGroup parent) {
             if (convertView == null) {
                 LayoutInflater inflater = (LayoutInflater) getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-                convertView = inflater.inflate(R.layout.text, null);
+                convertView = inflater.inflate(R.layout.item_linking_device, null);
             }
+
             DeviceItem item = getItem(position);
-            String text = item.mDevice.getDisplayName();
-            TextView textView = (TextView) convertView.findViewById(R.id.text);
-            textView.setText(text);
+            String deviceName = item.mDevice.getDisplayName();
+            TextView textView = (TextView) convertView.findViewById(R.id.item_device_name);
+            textView.setText(deviceName);
+            TextView statusView = (TextView) convertView.findViewById(R.id.item_device_status);
             if (item.isConnected) {
-                textView.setTextColor(Color.BLUE);
+                textView.setTextColor(Color.BLACK);
+                statusView.setText(getString(R.string.fragment_device_status_online));
+                statusView.setTextColor(Color.BLACK);
             } else {
-                textView.setTextColor(Color.RED);
+                textView.setTextColor(Color.GRAY);
+                statusView.setText(getString(R.string.fragment_device_status_offline));
+                statusView.setTextColor(Color.GRAY);
             }
             convertView.setTag(item);
             return convertView;
@@ -129,4 +260,15 @@ public class LinkingDeviceListFragment extends Fragment {
         boolean isConnected = false;
     }
 
+    private LinkingDeviceManager.ConnectListener mConnectListener = new LinkingDeviceManager.ConnectListener() {
+        @Override
+        public void onConnect(final LinkingDevice device) {
+            refreshDeviceList();
+        }
+
+        @Override
+        public void onDisconnect(final LinkingDevice device) {
+            refreshDeviceList();
+        }
+    };
 }

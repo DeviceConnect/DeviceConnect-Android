@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit;
  *
  * @author NTT DOCOMO, INC.
  */
-public class FlashingExecutor {
+final class FlashingExecutor {
 
     public interface LightControllable {
         void changeLight(boolean isOn, CompleteListener listener);

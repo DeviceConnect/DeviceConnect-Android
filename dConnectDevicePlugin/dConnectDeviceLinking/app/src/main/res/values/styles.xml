@@ -5,4 +5,13 @@
         <!-- Customize your theme here. -->
     </style>
 
+    <style name="TransparentBackground" parent="android:Theme.Holo.Light.DarkActionBar">
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:colorBackgroundCacheHint">@null</item>
+        <item name="android:windowIsTranslucent">true</item>
+    </style>
+
+    <style name="MyCustomTabLayout" parent="Widget.Design.TabLayout">
+        <item name="tabIndicatorColor">#FF4081</item>
+    </style>
 </resources>

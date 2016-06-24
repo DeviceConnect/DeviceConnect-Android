@@ -18,5 +18,11 @@
     <profile name="notification"></profile>
     <profile name="proximity"></profile>
     <profile name="vibration"></profile>
+    <profile name="keyevent"></profile>
+    <profile name="battery"></profile>
+    <profile name="temperature"></profile>
+    <profile name="atmosphericPressure"></profile>
+    <profile name="humidity"></profile>
+    <profile name="linking"></profile>
 
 </deviceplugin-provider>

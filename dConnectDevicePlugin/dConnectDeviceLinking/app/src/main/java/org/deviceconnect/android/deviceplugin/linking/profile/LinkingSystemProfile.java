@@ -11,7 +11,9 @@ import android.content.Intent;
 import android.os.Bundle;
 
 import org.deviceconnect.android.deviceplugin.linking.setting.SettingActivity;
+import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.profile.SystemProfile;
+import org.deviceconnect.message.DConnectMessage;
 
 /**
  * System Profile.
@@ -25,4 +27,11 @@ public class LinkingSystemProfile extends SystemProfile {
         return SettingActivity.class;
     }
 
+    @Override
+    protected boolean onDeleteEvents(Intent request, Intent response, String sessionKey) {
+        // TODO
+        EventManager.INSTANCE.removeEvents(sessionKey);
+        setResult(response, DConnectMessage.RESULT_OK);
+        return true;
+    }
 }

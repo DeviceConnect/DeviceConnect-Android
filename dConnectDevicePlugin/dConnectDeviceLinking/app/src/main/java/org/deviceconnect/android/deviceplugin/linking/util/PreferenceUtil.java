@@ -39,6 +39,32 @@ final public class PreferenceUtil {
         return mInstance;
     }
 
+    public void setVibrationOffSetting(Map<String, Integer> map) {
+        JSONObject obj = new JSONObject(map);
+        putValue("pref_vibrationOffSetting", obj.toString());
+    }
+
+    public Map<String, Integer> getVibrationOffSetting() {
+        String jsonString = mPreferences.getString("pref_vibrationOffSetting", "");
+        if (jsonString.equals("")) {
+            return new HashMap<>();
+        }
+        try {
+            JSONObject obj = new JSONObject(jsonString);
+            Map<String, Integer> newMap = new HashMap<>();
+            for (Map.Entry<String, Object> entry : JsonUtil.toMap(obj).entrySet()) {
+                try {
+                    newMap.put(entry.getKey(), (Integer) entry.getValue());
+                } catch (ClassCastException cce) {
+                    return null;
+                }
+            }
+            return newMap;
+        } catch (JSONException e) {
+            return null;
+        }
+    }
+
     public void setLightOffSetting(Map<String, Integer> map) {
         JSONObject obj = new JSONObject(map);
         putValue("pref_lightOffSetting", obj.toString());
@@ -63,6 +89,22 @@ final public class PreferenceUtil {
         } catch (JSONException e) {
             return null;
         }
+    }
+
+    public void setBeaconScanStatus(boolean status) {
+        putValue("beaconScanStatus", status);
+    }
+
+    public boolean getBeaconScanStatus() {
+        return mPreferences.getBoolean("beaconScanStatus", false);
+    }
+
+    public void setBeaconScanMode(int mode) {
+        putValue("beaconScanMode", mode);
+    }
+
+    public int getBeaconScanMode() {
+        return mPreferences.getInt("beaconScanMode", 0);
     }
 
     public void putValue(String key, Object value) {

@@ -203,7 +203,9 @@ public class SlackManager {
                         connect(new FinishCallback<Void>() {
                             @Override
                             public void onFinish(Void aVoid, Exception error) {
-                                callback.onFinish(null, error);
+                                if (callback != null) {
+                                    callback.onFinish(null, error);
+                                }
                             }
                         });
                     }

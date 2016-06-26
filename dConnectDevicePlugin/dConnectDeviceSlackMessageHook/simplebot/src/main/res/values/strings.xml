@@ -1,0 +1,36 @@
+<resources>
+    <string name="app_name">SimpleBot</string>
+    <string name="empty_command">コマンドが登録されていません。\nコマンドを登録してください。</string>
+    <string name="status">Status</string>
+    <string name="menu_add_command">コマンド追加</string>
+    <string name="menu_import">インポート</string>
+    <string name="menu_setting">設定</string>
+    <string name="add">追加</string>
+    <string name="delete">削除</string>
+    <string name="update">更新</string>
+    <string name="keyword">キーワード</string>
+    <string name="command">コマンド</string>
+    <string name="service_id">サービスID</string>
+    <string name="path">パス</string>
+    <string name="data">データ</string>
+    <string name="res_success">成功レスポンス</string>
+    <string name="res_error">失敗レスポンス</string>
+    <string name="unset">未設定</string>
+    <string name="err">エラー</string>
+    <string name="err_occurred">エラーが発生しました</string>
+    <string name="err_server_res">サーバーからエラーが返されました</string>
+    <string name="select_service">サービスID選択</string>
+    <string name="service_not_found">利用できるサービスがありません</string>
+    <string name="service_not_selected">サービスが選択されていません</string>
+    <string name="not_input_all">未入力項目があります</string>
+    <string name="service_not_found_and_install">連携サービスが見つかりません。\n連携できるプラグインをインストールしてください。</string>
+    <string name="err_add_data">データ追加でエラーが発生しました</string>
+    <string name="err_del_data">データ削除でエラーが発生しました</string>
+    <string name="del_command">コマンド削除</string>
+    <string name="confirm_del_command">コマンドを削除してよろしいですか？</string>
+    <string name="connection_target">接続先</string>
+    <string name="ssl">SSL</string>
+    <string name="host">Host</string>
+    <string name="port">Port</string>
+    <string name="selected_service">連携サービス</string>
+</resources>

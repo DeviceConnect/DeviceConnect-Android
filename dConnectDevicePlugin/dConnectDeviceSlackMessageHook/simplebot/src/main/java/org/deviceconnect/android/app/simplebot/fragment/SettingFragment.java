@@ -1,0 +1,200 @@
+/*
+ SettingFragment.java
+ Copyright (c) 2016 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
+package org.deviceconnect.android.app.simplebot.fragment;
+
+import android.app.AlertDialog;
+import android.app.Fragment;
+import android.app.ProgressDialog;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.EditText;
+import android.widget.Switch;
+
+import org.deviceconnect.android.app.simplebot.R;
+import org.deviceconnect.android.app.simplebot.SimpleBotService;
+import org.deviceconnect.android.app.simplebot.data.SettingData;
+import org.deviceconnect.android.app.simplebot.utils.DConnectHelper;
+import org.deviceconnect.android.app.simplebot.utils.Utils;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * 設定画面
+ */
+public class SettingFragment extends Fragment {
+
+    /** 選択 */
+    private DConnectHelper.ServiceInfo selectedInfo = null;
+
+    private Switch switchStatus;
+    private EditText editTextHost;
+    private EditText editTextPort;
+    private CheckBox checkBoxSSL;
+    private Button buttonService;
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        final View view = inflater.inflate(R.layout.fragment_setting, container, false);
+
+        switchStatus = (Switch)view.findViewById(R.id.switchStatus);
+        editTextHost = (EditText)view.findViewById(R.id.editTextHost);
+        editTextPort = (EditText)view.findViewById(R.id.editTextPort);
+        checkBoxSSL = (CheckBox)view.findViewById(R.id.checkBoxSSL);
+        buttonService = (Button)view.findViewById(R.id.buttonService);
+
+        // 設定読み込み
+        loadSettings();
+
+        // サービス選択ボタンイベント
+        buttonService.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // 設定保存
+                saveSettings();
+                // サービス取得
+                fetchServices(v.getContext());
+            }
+        });
+
+        // ステータススイッチイベント
+        switchStatus.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (selectedInfo != null) {
+                    // 保存
+                    saveSettings();
+                    // サービス開始
+                    Intent serviceIntent = new Intent(getActivity(), SimpleBotService.class);
+                    getActivity().startService(serviceIntent);
+                } else {
+                    if (switchStatus.isChecked()) {
+                        // エラーメッセージ
+                        Utils.showAlertDialog(view.getContext(), getString(R.string.service_not_selected));
+                        // チェックを外す
+                        switchStatus.setChecked(false);
+                    }
+                }
+            }
+        });
+
+        return view;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+    }
+
+    /**
+     * 設定読み込み
+     */
+    private void loadSettings() {
+        SettingData setting = SettingData.getInstance(getActivity());
+        editTextHost.setText(setting.host);
+        editTextPort.setText(String.valueOf(setting.port));
+        checkBoxSSL.setChecked(setting.ssl);
+        switchStatus.setChecked(setting.active);
+        if (setting.serviceId != null) {
+            selectedInfo = new DConnectHelper.ServiceInfo(setting.serviceId, setting.serviceName, null);
+            buttonService.setText(selectedInfo.name);
+        }
+    }
+
+    /**
+     * 設定保存
+     */
+    private void saveSettings() {
+        SettingData setting = SettingData.getInstance(getActivity());
+        setting.host = editTextHost.getText().toString();
+        String port = editTextPort.getText().toString();
+        if (port.length() > 0) {
+            setting.port = Integer.parseInt(port);
+        }
+        setting.ssl = checkBoxSSL.isChecked();
+        setting.active = switchStatus.isChecked();
+        if (selectedInfo != null) {
+            setting.serviceId = selectedInfo.id;
+            setting.serviceName = selectedInfo.name;
+        }
+        setting.save();
+    }
+
+    /**
+     * サービス一覧を取得
+     * @param context context
+     */
+    private void fetchServices(final Context context) {
+        // プログレスダイアログを表示
+        final ProgressDialog dialog = Utils.showProgressDialog(context);
+        // サービス取得
+        Utils.fetchServices(context, new DConnectHelper.FinishCallback<List<DConnectHelper.ServiceInfo>>() {
+            @Override
+            public void onFinish(List<DConnectHelper.ServiceInfo> serviceInfos, Exception error) {
+                // プログレスダイアログを閉じる
+                dialog.dismiss();
+                if (error == null) {
+                    // messageHookに対応しているサービスを選別
+                    final List<DConnectHelper.ServiceInfo> services = new ArrayList<>();
+                    for (DConnectHelper.ServiceInfo service : serviceInfos) {
+                        if (service.scopes != null) {
+                            for (String scope : service.scopes) {
+                                if ("messageHook".equals(scope)) {
+                                    services.add(service);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    if (services.size() > 0) {
+                        // 選択ダイアログ表示
+                        String items[] = new String[services.size()];
+                        for (int i = 0; i < services.size(); i++) {
+                            items[i] = services.get(i).name;
+                        }
+                        new AlertDialog.Builder(context)
+                                .setTitle(getString(R.string.select_service))
+                                .setItems(items, new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        // 情報取得
+                                        selectedInfo = services.get(which);
+                                        buttonService.setText(selectedInfo.name);
+                                    }
+                                })
+                                .show();
+                    } else {
+                        selectedInfo = null;
+                        buttonService.setText(getString(R.string.unset));
+                        Utils.showAlertDialog(context, getString(R.string.service_not_found_and_install));
+                    }
+                } else {
+                    // TODO: エラー処理
+                    Utils.showErrorDialog(context, error);
+                }
+            }
+        });
+    }
+
+}

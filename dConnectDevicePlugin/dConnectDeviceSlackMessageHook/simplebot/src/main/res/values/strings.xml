@@ -3,6 +3,7 @@
     <string name="empty_command">コマンドが登録されていません。\nコマンドを登録してください。</string>
     <string name="status">Status</string>
     <string name="menu_add_command">コマンド追加</string>
+    <string name="menu_list_command">コマンド一覧</string>
     <string name="menu_import">インポート</string>
     <string name="menu_setting">設定</string>
     <string name="add">追加</string>

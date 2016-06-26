@@ -44,6 +44,13 @@ public class MainActivity extends Activity {
     }
 
     @Override
+    public boolean onMenuOpened(int featureId, Menu menu) {
+        hideMenu(menu, CommandListFragment.class.getName(), 0);
+        hideMenu(menu, CommandDetailsFragment.class.getName(), 1);
+        return super.onMenuOpened(featureId, menu);
+    }
+
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.menu_setting:
@@ -54,6 +61,10 @@ public class MainActivity extends Activity {
                 Bundle bundle = new Bundle();
                 bundle.putString("mode", "add");
                 fragment.setArguments(bundle);
+                Utils.transition(fragment, getFragmentManager(), true);
+                break;
+            case R.id.menu_list_command:
+                fragment = new CommandListFragment();
                 Utils.transition(fragment, getFragmentManager(), true);
                 break;
         }
@@ -81,6 +92,22 @@ public class MainActivity extends Activity {
             }
         }
         return super.dispatchKeyEvent(event);
+    }
+
+    /**
+     * Fragment毎にメニューの表示、非表示を切り替える
+     * @param menu メニュー
+     * @param className Fragmentのクラス名
+     * @param index メニューインデックス
+     */
+    private void hideMenu(Menu menu, String className, int index) {
+        Fragment fragment = getFragmentManager().findFragmentByTag(className);
+        if (fragment != null && fragment.isVisible()) {
+            menu.getItem(index).setVisible(false);
+        } else {
+            menu.getItem(index).setVisible(true);
+        }
+
     }
 
 }

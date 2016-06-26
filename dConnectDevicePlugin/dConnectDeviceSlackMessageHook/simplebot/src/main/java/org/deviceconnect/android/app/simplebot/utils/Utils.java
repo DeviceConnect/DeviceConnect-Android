@@ -14,6 +14,7 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.util.Log;
+import android.view.WindowManager;
 import android.widget.EditText;
 
 import org.deviceconnect.android.app.simplebot.R;
@@ -46,9 +47,10 @@ public class Utils {
      */
     public static void transition(Fragment fragment, FragmentManager manager, boolean backStack) {
         FragmentTransaction transaction = manager.beginTransaction();
-        transaction.replace(R.id.container, fragment);
+        String name = fragment.getClass().getName();
+        transaction.replace(R.id.container, fragment, name);
         if (backStack){
-            transaction.addToBackStack(null);
+            transaction.addToBackStack(name);
         }
         transaction.commit();
     }
@@ -174,7 +176,7 @@ public class Utils {
         final EditText editView = new EditText(context);
         editView.setInputType(inputType);
         editView.setText(text);
-        new AlertDialog.Builder(context)
+        AlertDialog dialog = new AlertDialog.Builder(context)
                 .setTitle(title)
                 .setView(editView)
                 .setPositiveButton("OK", new DialogInterface.OnClickListener() {
@@ -186,7 +188,9 @@ public class Utils {
                     }
                 })
                 .setNegativeButton("Cancel", null)
-                .show();
+                .create();
+        dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
+        dialog.show();
     }
 
     /**

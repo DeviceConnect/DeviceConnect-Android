@@ -128,6 +128,9 @@ public class DataManager {
             sb.append(");");
             if (DEBUG) Log.d(TAG,"onCreate:" + sb.toString());
             db.execSQL(sb.toString());
+            if (DEBUG) {
+                addSampleData(db);
+            }
         }
 
         @Override
@@ -147,12 +150,12 @@ public class DataManager {
 
     /**
      * データを登録
+     * @param db DB
      * @param data データ
      * @return trueで成功
      */
-    public boolean upsert(Data data) {
+    public boolean upsert(SQLiteDatabase db, Data data) {
         if (DEBUG) Log.d(TAG,"upsert:" + data.toString());
-        SQLiteDatabase db = sql.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(COLUMN_KEYWORD, data.keyword);
         values.put(COLUMN_SERVICE_ID, data.serviceId);
@@ -170,6 +173,16 @@ public class DataManager {
             ret = db.update(TABLE_NAME, values, COLUMN_ID + "=?", new String[]{String.valueOf(data.id)});
         }
         return ret > 0;
+    }
+
+    /**
+     * データを登録
+     * @param data データ
+     * @return trueで成功
+     */
+    public boolean upsert(Data data) {
+        SQLiteDatabase db = sql.getWritableDatabase();
+        return upsert(db, data);
     }
 
     /**
@@ -230,5 +243,49 @@ public class DataManager {
         data.success = cursor.getString(cursor.getColumnIndex(COLUMN_SUCCESS));
         data.error = cursor.getString(cursor.getColumnIndex(COLUMN_ERROR));
         return data;
+    }
+
+
+    /**
+     * サンプルデータを追加
+     */
+    private void addSampleData(SQLiteDatabase db) {
+        // 音楽リスト
+        Data data = new Data();
+        data.keyword = "音楽[リスト|一覧]";
+        data.path = "/gotapi/media_player/media_list";
+        data.method = "GET";
+        data.body = "{}";
+        data.success = "{%loop in $media as $m}[{$m.mediaId}:{$m.title}]{% endloop %}";
+        data.error = "エラーです。 {$errorMessage}";
+        upsert(db, data);
+        // 音楽設定
+        data.keyword = "(\\d+)を設定";
+        data.path = "/gotapi/media_player/media";
+        data.method = "PUT";
+        data.body = "{\"mediaId\":\"$1\"}";
+        data.success = "設定しました。";
+        upsert(db, data);
+        // 再生
+        data.keyword = "再生";
+        data.path = "/gotapi/media_player/play";
+        data.method = "PUT";
+        data.body = "{}";
+        data.success = "再生しました。";
+        upsert(db, data);
+        // 停止
+        data.keyword = "停止";
+        data.path = "/gotapi/media_player/stop";
+        data.method = "PUT";
+        data.body = "{}";
+        data.success = "停止しました。";
+        upsert(db, data);
+        // バッテリー残量
+        data.keyword = "[バッテリー|電池]";
+        data.path = "/gotapi/battery/level";
+        data.method = "GET";
+        data.body = "{}";
+        data.success = "残り{% $level|calc(*100) %}%です。";
+        upsert(db, data);
     }
 }

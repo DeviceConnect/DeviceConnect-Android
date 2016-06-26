@@ -166,6 +166,9 @@ public class SimpleBotService extends Service {
      * @return 処理した場合はtrue
      */
     private boolean handleData(final DataManager.Data data, final String channel, String text) {
+        if (data.serviceId == null) {
+            return false;
+        }
         Context context = getApplicationContext();
         // 正規表現で検索
         Pattern pattern = Pattern.compile(data.keyword);
@@ -184,7 +187,7 @@ public class SimpleBotService extends Service {
                 // groupをパラメータに渡す
                 for (int i=0; i<matcher.groupCount()+1; i++) {
                     val = val.replace("$"+i, matcher.group(i));
-                    Log.d(TAG, matcher.group(i));
+                    if (DEBUG) Log.d(TAG, matcher.group(i));
                 }
                 params.put(key, val);
             }

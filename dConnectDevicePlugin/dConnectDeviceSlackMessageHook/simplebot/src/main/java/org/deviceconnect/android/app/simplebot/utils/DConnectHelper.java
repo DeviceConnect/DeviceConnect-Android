@@ -373,7 +373,7 @@ public class DConnectHelper {
                 // エラーチェック
                 int result = message.getInt(DConnectMessage.EXTRA_RESULT);
                 if (result == DConnectMessage.RESULT_ERROR) {
-                    callback.onFinish(null, new DConnectInvalidResultException());
+                    callback.onFinish(message, new DConnectInvalidResultException());
                     return;
                 }
                 callback.onFinish(message, null);

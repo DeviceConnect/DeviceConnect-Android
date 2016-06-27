@@ -13,12 +13,14 @@ import android.support.v4.app.DialogFragment;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.deviceconnect.android.deviceplugin.linking.BuildConfig;
 import org.deviceconnect.android.deviceplugin.linking.LinkingApplication;
 import org.deviceconnect.android.deviceplugin.linking.R;
 import org.deviceconnect.android.deviceplugin.linking.linking.IlluminationData;
@@ -146,10 +148,16 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
             return;
         }
 
-        IlluminationData data = new IlluminationData(illumination);
-        for (IlluminationData.Setting setting : data.getPattern().getChildren()) {
-            if ((setting.getId() & 0xFF) == patternId) {
-                btn.setText(setting.getName(0).getName());
+        try {
+            IlluminationData data = new IlluminationData(illumination);
+            for (IlluminationData.Setting setting : data.getPattern().getChildren()) {
+                if ((setting.getId() & 0xFF) == patternId) {
+                    btn.setText(setting.getName(0).getName());
+                }
+            }
+        } catch (Exception e) {
+            if (BuildConfig.DEBUG) {
+                Log.w(TAG, "", e);
             }
         }
     }
@@ -191,10 +199,16 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
             return;
         }
 
-        VibrationData data = new VibrationData(vibration);
-        for (VibrationData.Setting setting : data.getPattern().getChildren()) {
-            if ((setting.getId() & 0xFF) == patternId) {
-                btn.setText(setting.getName(0).getName());
+        try {
+            VibrationData data = new VibrationData(vibration);
+            for (VibrationData.Setting setting : data.getPattern().getChildren()) {
+                if ((setting.getId() & 0xFF) == patternId) {
+                    btn.setText(setting.getName(0).getName());
+                }
+            }
+        } catch (Exception e) {
+            if (BuildConfig.DEBUG) {
+                Log.w(TAG, "", e);
             }
         }
     }
@@ -266,25 +280,29 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
             return;
         }
 
-        final IlluminationData data = new IlluminationData(illumination);
+        try {
+            final IlluminationData data = new IlluminationData(illumination);
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(LinkingDeviceActivity.this);
-        final String[] items = new String[data.getPattern().getChildren().length];
-        for (int i = 0; i < data.getPattern().getChildren().length; i++) {
-            items[i] = data.getPattern().getChild(i).getName(0).getName();
-        }
-        builder.setTitle(getString(R.string.activity_device_pattern_list)).setItems(items, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(final DialogInterface dialog, final int which) {
-                IlluminationData.Setting selectedPattern = data.getPattern().getChild(which);
-                Button btn = ((Button) findViewById(R.id.select_light_off));
-                if (btn != null) {
-                    btn.setText(selectedPattern.getName(0).getName());
-                }
-                updateLightOffSetting(selectedPattern.getId() & 0xFF);
+            AlertDialog.Builder builder = new AlertDialog.Builder(LinkingDeviceActivity.this);
+            final String[] items = new String[data.getPattern().getChildren().length];
+            for (int i = 0; i < data.getPattern().getChildren().length; i++) {
+                items[i] = data.getPattern().getChild(i).getName(0).getName();
             }
-        });
-        builder.create().show();
+            builder.setTitle(getString(R.string.activity_device_pattern_list)).setItems(items, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(final DialogInterface dialog, final int which) {
+                    IlluminationData.Setting selectedPattern = data.getPattern().getChild(which);
+                    Button btn = ((Button) findViewById(R.id.select_light_off));
+                    if (btn != null) {
+                        btn.setText(selectedPattern.getName(0).getName());
+                    }
+                    updateLightOffSetting(selectedPattern.getId() & 0xFF);
+                }
+            });
+            builder.create().show();
+        } catch (Exception e) {
+            Toast.makeText(getApplicationContext(), getString(R.string.activity_device_not_support_led), Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void setVibrationButton() {
@@ -326,25 +344,29 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
             return;
         }
 
-        final VibrationData data = new VibrationData(vibration);
+        try {
+            final VibrationData data = new VibrationData(vibration);
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(LinkingDeviceActivity.this);
-        final String[] items = new String[data.getPattern().getChildren().length];
-        for (int i = 0; i < data.getPattern().getChildren().length; i++) {
-            items[i] = data.getPattern().getChild(i).getName(0).getName();
-        }
-        builder.setTitle(getString(R.string.activity_device_pattern_list)).setItems(items, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                VibrationData.Setting selectedPattern = data.getPattern().getChild(which);
-                Button btn = (Button) findViewById(R.id.select_vibration_off);
-                if (btn != null) {
-                    btn.setText(selectedPattern.getName(0).getName());
-                }
-                updateVibrationOffSetting(selectedPattern.getId() & 0xFF);
+            AlertDialog.Builder builder = new AlertDialog.Builder(LinkingDeviceActivity.this);
+            final String[] items = new String[data.getPattern().getChildren().length];
+            for (int i = 0; i < data.getPattern().getChildren().length; i++) {
+                items[i] = data.getPattern().getChild(i).getName(0).getName();
             }
-        });
-        builder.create().show();
+            builder.setTitle(getString(R.string.activity_device_pattern_list)).setItems(items, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    VibrationData.Setting selectedPattern = data.getPattern().getChild(which);
+                    Button btn = (Button) findViewById(R.id.select_vibration_off);
+                    if (btn != null) {
+                        btn.setText(selectedPattern.getName(0).getName());
+                    }
+                    updateVibrationOffSetting(selectedPattern.getId() & 0xFF);
+                }
+            });
+            builder.create().show();
+        } catch (Exception e) {
+            Toast.makeText(getApplicationContext(), getString(R.string.activity_device_not_support_vibration), Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void setSensorButton() {

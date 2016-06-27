@@ -10,8 +10,12 @@ import org.deviceconnect.android.deviceplugin.linking.util.ByteUtil;
 
 public class IlluminationData {
 
+    private static final byte[] HEADER = {
+            (byte) 0xB1, (byte) 0x04, (byte) 0x00, (byte) 0x00
+    };
+
     private byte[] mSource;
-    private byte[] mHeader = new byte[4];//ヘッダ。固定値(0xB4,0x04,0x00,0x00)
+    private byte[] mHeader = new byte[4];//ヘッダ。固定値(0xB1,0x04,0x00,0x00)
 
     private byte mLedId;//LED項目ID。固定値(0x10)
     private int mLedChildCount;//LED子項目数。固定値(0x02)
@@ -113,13 +117,28 @@ public class IlluminationData {
 
     public IlluminationData(final byte[] illuminance) {
         mSource = illuminance;
+
         int index = 0;
         mHeader[0] = illuminance[index++];
         mHeader[1] = illuminance[index++];
         mHeader[2] = illuminance[index++];
         mHeader[3] = illuminance[index++];
+        for (int i = 0; i < HEADER.length; i++) {
+            if (mHeader[i] != HEADER[i]) {
+                throw new IllegalArgumentException("Header is invalid.");
+            }
+        }
+
         mLedId = illuminance[index++];
+        if (mLedId != 0x10) {
+            throw new IllegalArgumentException("LED項目ID is invalid.");
+        }
+
         mLedChildCount = illuminance[index++];
+        if (mLedChildCount != 0x02) {
+            throw new IllegalArgumentException("LED子項目数 is invalid.");
+        }
+
         mLedDefaultSettingId = illuminance[index++];
         mLedNameLangCount = illuminance[index++] & 0xFF;
 

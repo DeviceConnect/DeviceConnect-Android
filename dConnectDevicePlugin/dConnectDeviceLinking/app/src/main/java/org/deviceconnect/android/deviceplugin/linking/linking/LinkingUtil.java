@@ -10,10 +10,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.linking.BuildConfig;
 
 public final class LinkingUtil {
+
+    private static final String TAG = "LinkingPlugin";
 
     public static final String EXTRA_APP_NAME = ".sda.extra.APP_NAME";
     public static final String EXTRA_DEVICE_ID = ".sda.extra.DEVICE_ID";
@@ -48,14 +51,33 @@ public final class LinkingUtil {
     public static final String RANGE = "RANGE";
     public static final String RANGE_SETTING = "RANGE_SETTING";
 
-    public static final int RESULT_OK = -1;
-    public static final int RESULT_CANCEL = 1;
-    public static final int RESULT_DEVICE_OFF = 4;
-    public static final int RESULT_CONNECT_FAILURE = 5;
-    public static final int RESULT_CONFLICT = 6;
-    public static final int RESULT_PARAM_ERROR = 7;
-    public static final int RESULT_SENSOR_UNSUPPORTED = 8;
-    public static final int RESULT_OTHER_ERROR = 0;
+    public enum Result {
+        RESULT_OK(-1),
+        RESULT_CANCEL(1),
+        RESULT_DEVICE_OFF(4),
+        RESULT_CONNECT_FAILURE(5),
+        RESULT_CONFLICT(6),
+        RESULT_PARAM_ERROR(7),
+        RESULT_SENSOR_UNSUPPORTED(8),
+        RESULT_OTHER_ERROR (0);
+
+        private int mValue;
+        Result(int value) {
+            mValue = value;
+        }
+        public int getValue() {
+            return mValue;
+        }
+
+        public static Result valueOf(int value) {
+            for (Result type : values()) {
+                if (type.getValue() == value) {
+                    return type;
+                }
+            }
+            return null;
+        }
+    }
 
     private LinkingUtil() {
     }
@@ -78,13 +100,20 @@ public final class LinkingUtil {
             return null;
         }
 
-        IlluminationData data = new IlluminationData(illumination);
-        for (IlluminationData.Setting setting : data.getPattern().getChildren()) {
-            if (setting.getName(0).getName().toLowerCase().contains("off")) {
-                return setting;
+        try {
+            IlluminationData data = new IlluminationData(illumination);
+            for (IlluminationData.Setting setting : data.getPattern().getChildren()) {
+                if (setting.getName(0).getName().toLowerCase().contains("off")) {
+                    return setting;
+                }
             }
+            return null;
+        } catch (Exception e) {
+            if (BuildConfig.DEBUG) {
+                Log.w(TAG, "", e);
+            }
+            return null;
         }
-        return null;
     }
 
     public static Integer getDefaultOffSettingOfLightId(final LinkingDevice device) {
@@ -101,13 +130,20 @@ public final class LinkingUtil {
             return null;
         }
 
-        VibrationData data = new VibrationData(vibration);
-        for (VibrationData.Setting setting : data.getPattern().getChildren()) {
-            if (setting.getName(0).getName().toLowerCase().contains("off")) {
-                return setting;
+        try {
+            VibrationData data = new VibrationData(vibration);
+            for (VibrationData.Setting setting : data.getPattern().getChildren()) {
+                if (setting.getName(0).getName().toLowerCase().contains("off")) {
+                    return setting;
+                }
             }
+            return null;
+        } catch (Exception e) {
+            if (BuildConfig.DEBUG) {
+                Log.w(TAG, "", e);
+            }
+            return null;
         }
-        return null;
     }
 
     public static Integer getDefaultOffSettingOfVibrationId(final LinkingDevice device) {

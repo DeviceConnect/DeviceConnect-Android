@@ -30,7 +30,10 @@ public class ConfirmActivity extends Activity {
      * 0：ジャイロセンサー
      * 1：加速度センサー
      * 2：方位センサー
-     * 3～255：拡張センサー
+     * 3: 電池残量
+     * 4: 温度センサー
+     * 5: 湿度センサー
+     * 6～255：拡張センサー
      */
     private int mCurrentRequestType = 0;
 
@@ -62,10 +65,13 @@ public class ConfirmActivity extends Activity {
     protected void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
+        LinkingUtil.Result result = LinkingUtil.Result.valueOf(resultCode);
+
         if (BuildConfig.DEBUG) {
             Log.i(TAG, "ConfirmActivity:onActivityResult");
             Log.i(TAG, "requestCode:" + requestCode);
             Log.i(TAG, "resultCode:" + resultCode);
+            Log.i(TAG, "result:" + result);
             Log.i(TAG, "mCurrentRequestType:" + mCurrentRequestType);
         }
 
@@ -73,8 +79,8 @@ public class ConfirmActivity extends Activity {
             finishConfirmActivity();
             return;
         }
-        if (resultCode != LinkingUtil.RESULT_OK &&
-                resultCode != LinkingUtil.RESULT_SENSOR_UNSUPPORTED) {
+        if (result != LinkingUtil.Result.RESULT_OK &&
+                result != LinkingUtil.Result.RESULT_SENSOR_UNSUPPORTED) {
             finishConfirmActivity();
             return;
         }

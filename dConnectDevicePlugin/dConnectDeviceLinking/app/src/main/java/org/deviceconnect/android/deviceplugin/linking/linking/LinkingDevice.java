@@ -23,6 +23,9 @@ public class LinkingDevice {
     public static final int GYRO = LED << 1;
     public static final int ACCELERATION = LED << 2;
     public static final int COMPASS = LED << 3;
+    public static final int BATTERY = LED << 4;
+    public static final int TEMPERATURE = LED << 5;
+    public static final int HUMIDITY = LED << 6;
 
     public String getDisplayName() {
         return mDisplayName;
@@ -118,6 +121,18 @@ public class LinkingDevice {
 
     public boolean isCompass() {
         return (mFeature & COMPASS) == COMPASS;
+    }
+
+    public boolean isBattery() {
+        return (mFeature & BATTERY) == BATTERY;
+    }
+
+    public boolean isTemperature() {
+        return (mFeature & TEMPERATURE) == TEMPERATURE;
+    }
+
+    public boolean isHumidity() {
+        return (mFeature & HUMIDITY) == HUMIDITY;
     }
 
     @Override

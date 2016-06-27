@@ -11,7 +11,13 @@ import android.os.Parcelable;
 
 public class LinkingSensorData implements Parcelable {
     public enum SensorType {
-        GYRO(0), ACCELERATION(1), COMPASS(2), EXTENDS(3);
+        GYRO(0),
+        ACCELERATION(1),
+        COMPASS(2),
+        BATTERY(3),
+        TEMPERATURE(4),
+        HUMIDITY(5),
+        EXTENDS(6);
 
         private int mValue;
         SensorType(int value) {

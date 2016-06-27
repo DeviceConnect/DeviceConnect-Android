@@ -10,6 +10,10 @@ import org.deviceconnect.android.deviceplugin.linking.util.ByteUtil;
 
 public class VibrationData {
 
+    private static final byte[] HEADER = {
+            (byte) 0xB1, (byte) 0x03, (byte) 0x00, (byte) 0x00
+    };
+
     private byte[] mSource;
     private byte[] mHeader = new byte[4];//ヘッダ。固定値(0xB1,0x03,0x00,0x00)
 
@@ -114,7 +118,18 @@ public class VibrationData {
         mHeader[1] = vibration[index++];
         mHeader[2] = vibration[index++];
         mHeader[3] = vibration[index++];
+
+        for (int i = 0; i < HEADER.length; i++) {
+            if (mHeader[i] != HEADER[i]) {
+                throw new IllegalArgumentException("Header is invalid.");
+            }
+        }
+
         mVibrationId = vibration[index++];
+        if (mVibrationId != 0x10) {
+            throw new IllegalArgumentException("バイブレーション項目ID is invalid.");
+        }
+
         mVibrationChildCount = vibration[index++];
         mVibrationDefaultSettingId = vibration[index++];
         mVibrationNameLangCount = vibration[index++] & 0xFF;
@@ -133,7 +148,7 @@ public class VibrationData {
             }
         }
 
-        this.mPattern = pattern;
+        mPattern = pattern;
     }
 
     private int makeSetting(Setting setting, byte[] source, int offset, boolean isChild) {

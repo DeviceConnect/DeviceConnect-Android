@@ -21,7 +21,6 @@ import org.deviceconnect.android.deviceplugin.alljoyn.util.ColorUtil;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.LightProfile;
 import org.deviceconnect.android.profile.api.DConnectApi;
-import org.deviceconnect.android.profile.spec.DConnectApiSpec;
 import org.deviceconnect.message.DConnectMessage;
 
 import java.math.BigDecimal;
@@ -70,8 +69,8 @@ public class AllJoynLightProfile extends LightProfile {
 
     private final DConnectApi mGetLightApi = new DConnectApi() {
         @Override
-        public DConnectApiSpec.Method getMethod() {
-            return DConnectApiSpec.Method.GET;
+        public Method getMethod() {
+            return Method.GET;
         }
 
         @Override
@@ -220,8 +219,8 @@ public class AllJoynLightProfile extends LightProfile {
 
     private final DConnectApi mPostLightApi = new DConnectApi() {
         @Override
-        public DConnectApiSpec.Method getMethod() {
-            return DConnectApiSpec.Method.POST;
+        public Method getMethod() {
+            return Method.POST;
         }
 
         @Override
@@ -465,8 +464,8 @@ public class AllJoynLightProfile extends LightProfile {
 
     private final DConnectApi mDeleteLightApi = new DConnectApi() {
         @Override
-        public DConnectApiSpec.Method getMethod() {
-            return DConnectApiSpec.Method.DELETE;
+        public Method getMethod() {
+            return Method.DELETE;
         }
 
         @Override
@@ -611,8 +610,8 @@ public class AllJoynLightProfile extends LightProfile {
 
     public final DConnectApi mPutLightApi = new DConnectApi() {
         @Override
-        public DConnectApiSpec.Method getMethod() {
-            return DConnectApiSpec.Method.PUT;
+        public Method getMethod() {
+            return Method.PUT;
         }
 
         @Override

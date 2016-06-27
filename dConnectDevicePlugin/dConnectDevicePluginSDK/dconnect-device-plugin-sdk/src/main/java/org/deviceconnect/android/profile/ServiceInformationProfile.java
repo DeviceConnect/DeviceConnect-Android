@@ -58,8 +58,8 @@ public class ServiceInformationProfile extends DConnectProfile implements Servic
     private final DConnectApi mServiceInformationApi = new DConnectApi() {
 
         @Override
-        public DConnectApiSpec.Method getMethod() {
-            return DConnectApiSpec.Method.GET;
+        public Method getMethod() {
+            return Method.GET;
         }
 
         @Override

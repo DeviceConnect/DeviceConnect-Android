@@ -79,8 +79,8 @@ public class ServiceDiscoveryProfile extends DConnectProfile implements
     private final DConnectApi mServiceDiscoveryApi = new DConnectApi() {
 
         @Override
-        public DConnectApiSpec.Method getMethod() {
-            return DConnectApiSpec.Method.GET;
+        public Method getMethod() {
+            return Method.GET;
         }
 
         @Override

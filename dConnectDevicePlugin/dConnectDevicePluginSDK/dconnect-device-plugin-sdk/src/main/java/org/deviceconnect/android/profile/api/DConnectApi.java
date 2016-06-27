@@ -4,8 +4,9 @@ package org.deviceconnect.android.profile.api;
 import android.content.Intent;
 
 import org.deviceconnect.android.profile.spec.DConnectApiSpec;
+import org.deviceconnect.android.profile.spec.DConnectApiSpecConstants;
 
-public abstract class DConnectApi {
+public abstract class DConnectApi implements DConnectApiSpecConstants {
 
     private DConnectApiSpec mApiSpec;
 
@@ -17,7 +18,7 @@ public abstract class DConnectApi {
         return null;
     }
 
-    public abstract DConnectApiSpec.Method getMethod();
+    public abstract Method getMethod();
 
     public DConnectApiSpec getApiSpec() {
         return mApiSpec;

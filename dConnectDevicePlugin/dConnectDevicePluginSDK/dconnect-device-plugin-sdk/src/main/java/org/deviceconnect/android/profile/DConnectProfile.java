@@ -60,12 +60,23 @@ public abstract class DConnectProfile implements DConnectProfileConstants {
     protected final Map<ApiIdentifier, DConnectApi> mApis
         = new HashMap<ApiIdentifier, DConnectApi>();
 
+    /**
+     * プロファイルに設定されているDevice Connect API実装のリストを返す.
+     *
+     * @return API実装のリスト
+     */
     public List<DConnectApi> getApiList() {
         List<DConnectApi> list = new ArrayList<DConnectApi>();
         list.addAll(mApis.values());
         return list;
     }
 
+    /**
+     * 指定されたリクエストに対応するDevice Connect API実装を返す.
+     *
+     * @param request リクエスト
+     * @return 指定されたリクエストに対応するAPI実装を返す. 存在しない場合は<code>null</code>
+     */
     public DConnectApi findApi(final Intent request) {
         String action = request.getAction();
         DConnectApiSpec.Method method = DConnectApiSpec.Method.fromAction(action);
@@ -76,22 +87,49 @@ public abstract class DConnectProfile implements DConnectProfileConstants {
         return findApi(path, method);
     }
 
+    /**
+     * 指定されたリクエストに対応するDevice Connect API実装を返す.
+     *
+     * @param path リクエストされたAPIのパス
+     * @param method リクエストされたAPIのメソッド
+     * @return 指定されたリクエストに対応するAPI実装を返す. 存在しない場合は<code>null</code>
+     */
     public DConnectApi findApi(final String path, final DConnectApiSpec.Method method) {
         return mApis.get(new ApiIdentifier(path, method));
     }
 
+    /**
+     * Device Connect API実装を追加する.
+     * @param api API 追加するAPI実装
+     */
     public void addApi(final DConnectApi api) {
         mApis.put(new ApiIdentifier(getApiPath(api), api.getMethod()), api);
     }
 
+    /**
+     * Device Connect API実装を削除する.
+     * @param api 削除するAPI実装
+     */
     public void removeApi(final DConnectApi api) {
         mApis.remove(new ApiIdentifier(getApiPath(api), api.getMethod()));
     }
 
+    /**
+     * 指定されたDevice Connect APIへのパスを返す.
+     * @param api API実装
+     * @return パス
+     */
     private String getApiPath(final DConnectApi api) {
         return getApiPath(getProfileName(), api.getInterface(), api.getAttribute());
     }
 
+    /**
+     * プロファイル名、インターフェース名、アトリビュート名からパスを作成する.
+     * @param profileName プロファイル名
+     * @param interfaceName インターフェース名
+     * @param attributeName アトリビュート名
+     * @return パス
+     */
     private String getApiPath(final String profileName, final String interfaceName,
                               final String attributeName) {
         StringBuilder path = new StringBuilder();
@@ -158,10 +196,20 @@ public abstract class DConnectProfile implements DConnectProfileConstants {
         return mContext;
     }
 
+    /**
+     * 本プロファイル実装を提供するサービスを設定する.
+     *
+     * @param service サービス
+     */
     public void setService(final DConnectService service) {
         mService = service;
     }
 
+    /**
+     * 本プロファイル実装を提供するサービスを取得する.
+     *
+     * @return サービス
+     */
     public DConnectService getService() {
         return mService;
     }

@@ -27,7 +27,7 @@ import java.util.List;
 
 public class LinkingBatteryProfile extends BatteryProfile {
 
-    public LinkingBatteryProfile(DConnectMessageService service) {
+    public LinkingBatteryProfile(final DConnectMessageService service) {
         LinkingApplication app = (LinkingApplication) service.getApplication();
         LinkingBeaconManager mgr = app.getLinkingBeaconManager();
         mgr.addOnBeaconBatteryEventListener(new LinkingBeaconManager.OnBeaconBatteryEventListener() {
@@ -39,7 +39,7 @@ public class LinkingBatteryProfile extends BatteryProfile {
     }
 
     @Override
-    protected boolean onGetAll(Intent request, Intent response, String serviceId) {
+    protected boolean onGetAll(final Intent request, final Intent response, final String serviceId) {
         LinkingBeacon beacon = getLinkingBeacon(response, serviceId);
         if (beacon == null) {
             return true;
@@ -52,13 +52,13 @@ public class LinkingBatteryProfile extends BatteryProfile {
         }
 
         setResult(response, DConnectMessage.RESULT_OK);
-        setLevel(response, batteryData.getLevel());
+        setLevel(response, batteryData.getLevel() / 100.0f);
 
         return true;
     }
 
     @Override
-    protected boolean onGetLevel(Intent request, Intent response, String serviceId) {
+    protected boolean onGetLevel(final Intent request, final Intent response, final String serviceId) {
         LinkingBeacon beacon = getLinkingBeacon(response, serviceId);
         if (beacon == null) {
             return true;
@@ -71,13 +71,14 @@ public class LinkingBatteryProfile extends BatteryProfile {
         }
 
         setResult(response, DConnectMessage.RESULT_OK);
-        setLevel(response, batteryData.getLevel());
+        setLevel(response, batteryData.getLevel() / 100.0f);
 
         return true;
     }
 
     @Override
-    protected boolean onPutOnBatteryChange(Intent request, Intent response, String serviceId, String sessionKey) {
+    protected boolean onPutOnBatteryChange(final Intent request, final Intent response,
+                                           final String serviceId, final String sessionKey) {
         if (getLinkingBeacon(response, serviceId) == null) {
             return true;
         }
@@ -94,7 +95,8 @@ public class LinkingBatteryProfile extends BatteryProfile {
     }
 
     @Override
-    protected boolean onDeleteOnBatteryChange(Intent request, Intent response, String serviceId, String sessionKey) {
+    protected boolean onDeleteOnBatteryChange(final Intent request, final Intent response,
+                                              final String serviceId, final String sessionKey) {
         EventError error = EventManager.INSTANCE.removeEvent(request);
         if (error == EventError.NONE) {
             setResult(response, DConnectMessage.RESULT_OK);
@@ -106,10 +108,10 @@ public class LinkingBatteryProfile extends BatteryProfile {
         return true;
     }
 
-    private void notifyBatteryEvent(LinkingBeacon beacon, BatteryData batteryData) {
+    private void notifyBatteryEvent(final LinkingBeacon beacon, final BatteryData batteryData) {
         String serviceId = LinkingBeaconUtil.createServiceIdFromLinkingBeacon(beacon);
         List<Event> events = EventManager.INSTANCE.getEventList(serviceId,
-                PROFILE_NAME, null, ATTRIBUTE_LEVEL);
+                PROFILE_NAME, null, ATTRIBUTE_ON_BATTERY_CHANGE);
         if (events != null && events.size() > 0) {
             synchronized (events) {
                 for (Event event : events) {
@@ -121,13 +123,13 @@ public class LinkingBatteryProfile extends BatteryProfile {
         }
     }
 
-    private Bundle createBattery(BatteryData batteryData) {
+    private Bundle createBattery(final BatteryData batteryData) {
         Bundle battery = new Bundle();
-        setLevel(battery, batteryData.getLevel());
+        setLevel(battery, batteryData.getLevel() / 100.0f);
         return battery;
     }
 
-    private LinkingBeacon getLinkingBeacon(Intent response, String serviceId) {
+    private LinkingBeacon getLinkingBeacon(final Intent response, final String serviceId) {
         LinkingBeaconManager mgr = getLinkingBeaconManager();
         LinkingBeacon beacon = LinkingBeaconUtil.findLinkingBeacon(mgr, serviceId);
         if (beacon == null) {

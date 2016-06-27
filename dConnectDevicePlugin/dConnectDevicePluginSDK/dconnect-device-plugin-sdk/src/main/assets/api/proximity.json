@@ -1,0 +1,54 @@
+[
+    {
+        "name": "Proximity Device Event API",
+        "type": "event",
+        "method": "PUT",
+        "path": "/gotapi/proximity/onDeviceProximity",
+        "requestParams": [
+            {
+                "name": "serviceId",
+                "type": "string",
+                "mandatory": true
+            }
+        ]
+    },
+    {
+        "name": "Proximity Device Event API",
+        "type": "event",
+        "method": "DELETE",
+        "path": "/gotapi/proximity/onDeviceProximity",
+        "requestParams": [
+            {
+                "name": "serviceId",
+                "type": "string",
+                "mandatory": true
+            }
+        ]
+    },
+    {
+        "name": "Proximity User Event API",
+        "type": "event",
+        "method": "PUT",
+        "path": "/gotapi/proximity/onUserProximity",
+        "requestParams": [
+            {
+                "name": "serviceId",
+                "type": "string",
+                "mandatory": true
+            }
+        ]
+    },
+    {
+        "name": "Proximity User Event API",
+        "type": "event",
+        "method": "DELETE",
+        "path": "/gotapi/proximity/onUserProximity",
+        "requestParams": [
+            {
+                "name": "serviceId",
+                "type": "string",
+                "mandatory": true
+            }
+        ]
+    }
+]

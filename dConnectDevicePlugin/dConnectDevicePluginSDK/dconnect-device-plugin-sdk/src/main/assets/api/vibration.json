@@ -6,6 +6,11 @@
         "path": "/gotapi/vibration/vibrate",
         "requestParams": [
             {
+                "name": "serviceId",
+                "type": "string",
+                "mandatory": true
+            },
+            {
                 "name": "pattern",
                 "type": "string",
                 "mandatory": false
@@ -17,6 +22,12 @@
         "type": "one-shot",
         "method": "DELETE",
         "path": "/gotapi/vibration/vibrate",
-        "requestParams": []
+        "requestParams": [
+            {
+                "name": "serviceId",
+                "type": "string",
+                "mandatory": true
+            }
+        ]
     }
 ]

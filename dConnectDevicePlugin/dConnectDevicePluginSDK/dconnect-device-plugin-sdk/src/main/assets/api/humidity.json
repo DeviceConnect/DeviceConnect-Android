@@ -1,0 +1,15 @@
+[
+    {
+        "name": "Humidity API",
+        "type": "one-shot",
+        "method": "GET",
+        "path": "/gotapi/humidity",
+        "requestParams": [
+            {
+                "name": "serviceId",
+                "type": "string",
+                "mandatory": true
+            }
+        ]
+    }
+]

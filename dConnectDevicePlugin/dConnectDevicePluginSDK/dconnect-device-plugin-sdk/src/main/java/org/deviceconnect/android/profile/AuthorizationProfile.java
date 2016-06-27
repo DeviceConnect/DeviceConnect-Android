@@ -23,7 +23,6 @@ import org.deviceconnect.android.localoauth.exception.AuthorizationException;
 import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.api.DConnectApi;
-import org.deviceconnect.android.profile.spec.DConnectApiSpec;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.restlet.ext.oauth.PackageInfoOAuth;
@@ -37,7 +36,6 @@ import java.util.List;
  * 
  * <p>
  * Local OAuthの認可機能を提供するAPI.<br>
- * Local OAuthの認可機能を提供するデバイスプラグインは当クラスを継承し、対応APIを実装すること。
  * </p>
  * @author NTT DOCOMO, INC.
  */
@@ -93,6 +91,9 @@ public class AuthorizationProfile extends DConnectProfile implements Authorizati
         return super.onRequest(request, response);
     }
 
+    /**
+     * Authorization Grant API.
+     */
     private final DConnectApi mGrantApi = new DConnectApi() {
 
         @Override
@@ -101,8 +102,8 @@ public class AuthorizationProfile extends DConnectProfile implements Authorizati
         }
 
         @Override
-        public DConnectApiSpec.Method getMethod() {
-            return DConnectApiSpec.Method.GET;
+        public Method getMethod() {
+            return Method.GET;
         }
 
         @Override
@@ -122,6 +123,9 @@ public class AuthorizationProfile extends DConnectProfile implements Authorizati
         }
     };
 
+    /**
+     * Authorization Create Access Token API.
+     */
     private final DConnectApi mCreateAccessTokenApi = new DConnectApi() {
 
         @Override
@@ -130,8 +134,8 @@ public class AuthorizationProfile extends DConnectProfile implements Authorizati
         }
 
         @Override
-        public DConnectApiSpec.Method getMethod() {
-            return DConnectApiSpec.Method.GET;
+        public Method getMethod() {
+            return Method.GET;
         }
 
         @Override

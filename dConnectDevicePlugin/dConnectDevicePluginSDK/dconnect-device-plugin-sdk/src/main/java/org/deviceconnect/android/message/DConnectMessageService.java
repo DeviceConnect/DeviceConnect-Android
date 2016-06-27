@@ -13,15 +13,17 @@ import android.os.Bundle;
 import android.os.IBinder;
 
 import org.deviceconnect.android.BuildConfig;
-import org.deviceconnect.android.R;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.localoauth.CheckAccessTokenResult;
+import org.deviceconnect.android.localoauth.DevicePluginXmlProfile;
+import org.deviceconnect.android.localoauth.DevicePluginXmlUtil;
 import org.deviceconnect.android.localoauth.LocalOAuth2Main;
 import org.deviceconnect.android.profile.AuthorizationProfile;
 import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.android.profile.DConnectProfileProvider;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
+import org.deviceconnect.android.profile.ServiceInformationProfile;
 import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.android.profile.spec.DConnectApiSpecList;
 import org.deviceconnect.android.service.DConnectService;
@@ -123,16 +125,17 @@ public abstract class DConnectMessageService extends Service implements DConnect
 
     private DConnectApiSpecList loadApiSpecList() {
         try {
-            // TODO: プラグインの実装するプロファイルのAPI定義だけを読み込むように修正
-            final int[] json = {
-                R.raw.battery,
-                R.raw.health,
-                R.raw.light,
-                R.raw.vibration
-            };
+            Map<String, DevicePluginXmlProfile> profiles
+                = DevicePluginXmlUtil.getSupportProfiles(getContext(), getContext().getPackageName());
             final DConnectApiSpecList specList = new DConnectApiSpecList();
-            for (int id : json) {
-                specList.addApiSpecList(getResources().openRawResource(id));
+            for (String profileName : profiles.keySet()) {
+                if (AuthorizationProfile.PROFILE_NAME.equalsIgnoreCase(profileName)
+                    || ServiceDiscoveryProfile.PROFILE_NAME.equalsIgnoreCase(profileName)
+                    || ServiceInformationProfile.PROFILE_NAME.equalsIgnoreCase(profileName)
+                    || SystemProfile.PROFILE_NAME.equalsIgnoreCase(profileName)) {
+                    continue;
+                }
+                specList.addApiSpecList(getAssets().open("api/" + profileName + ".json"));
             }
             return specList;
         } catch (IOException e) {

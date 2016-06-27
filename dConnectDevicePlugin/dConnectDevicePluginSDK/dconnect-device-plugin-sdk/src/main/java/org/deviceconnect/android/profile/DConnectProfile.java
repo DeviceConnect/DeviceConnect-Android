@@ -155,9 +155,9 @@ public abstract class DConnectProfile implements DConnectProfileConstants {
 
     /**
      * RESPONSEメソッドハンドラー.<br>
-     * リクエストパラメータに応じてデバイスのサービスを提供し、その結果をレスポンスパラメータに格納する。
-     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
-     * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
+     * リクエストされたAPIが実装されていて、かつ、パラメータが正常な場合は
+     * {@link DConnectApi#onRequest(Intent, Intent)}を実行する.
+     * そうでない場合は、即座にエラーレスポンスを送信する.
      *
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ

@@ -95,7 +95,10 @@
     <string name="activity_device_sensor_value">x:%1$f\ny:%2$f\nz:%3$f\ntime:%4$d</string>
 
     <string name="activity_beacon_title">Linkingビーコン確認</string>
+    <string name="activity_beacon_vendor_id">VendorID</string>
     <string name="activity_beacon_extra_id">ExtraID</string>
+    <string name="activity_beacon_version">Version</string>
+    <string name="activity_beacon_status">Status</string>
     <string name="activity_beacon_time_stamp">タイムスタンプ</string>
     <string name="activity_beacon_battery_low">ロウバッテリー</string>
     <string name="activity_beacon_battery_level">バッテリーレベル</string>
@@ -103,6 +106,7 @@
     <string name="activity_beacon_temperature">気温</string>
     <string name="activity_beacon_humidity">湿度</string>
     <string name="activity_beacon_distance">距離</string>
+    <string name="activity_beacon_raw_data">RawData</string>
     <string name="activity_beacon_button">ボタン</string>
     <string name="activity_beacon_menu">削除</string>
     <string name="activity_beacon_clear_button">クリア</string>
@@ -117,6 +121,8 @@
     <string name="activity_beacon_delete_dialog_message">%1$sを削除しても良いでしょうか？</string>
     <string name="activity_beacon_delete_dialog_positive">はい</string>
     <string name="activity_beacon_delete_dialog_negative">いいえ</string>
+
+    <string name="linking_beacon_display_name">Linking:ビーコン(%1$d)</string>
 
     <string name="activity_app_info_name">アプリケーション名</string>
     <string name="activity_app_info_version">バージョン</string>

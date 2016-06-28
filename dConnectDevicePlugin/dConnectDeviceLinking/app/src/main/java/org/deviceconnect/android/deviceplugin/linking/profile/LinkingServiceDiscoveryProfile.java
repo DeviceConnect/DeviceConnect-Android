@@ -73,6 +73,9 @@ public class LinkingServiceDiscoveryProfile extends ServiceDiscoveryProfile {
         if (BuildConfig.DEBUG) {
             Log.i(TAG, "ServiceDiscovery:onGetServices");
         }
+
+        getLinkingBeaconManager().startBeaconScan(2);
+
         List<Bundle> services = new ArrayList<>();
         getServiceFromLinkingDevice(services);
         getServiceFromLinkingBeacon(services);

@@ -38,7 +38,7 @@ public class BatteryData {
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("LowBattery: ").append(isLowBatteryFlag()).append("\n")
-        .append("BatteryLevel: ").append(getLevel()).append("\n");
+        .append("BatteryLevel: ").append(getLevel());
         return sb.toString();
     }
 }

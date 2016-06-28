@@ -52,7 +52,7 @@ public class LinkingKeyEventProfile extends KeyEventProfile {
     }
 
     @Override
-    protected boolean onPutOnDown(Intent request, Intent response, String serviceId, final String sessionKey) {
+    protected boolean onPutOnDown(final Intent request, final Intent response, final String serviceId, final String sessionKey) {
         switch (Util.getServiceType(serviceId)) {
             case Util.LINKING_DEVICE:
                 return onPutOnDownLinkingDevice(request, response, serviceId, sessionKey);
@@ -67,7 +67,7 @@ public class LinkingKeyEventProfile extends KeyEventProfile {
     }
 
     @Override
-    protected boolean onDeleteOnDown(Intent request, Intent response, String serviceId, String sessionKey) {
+    protected boolean onDeleteOnDown(final Intent request, final Intent response, final String serviceId, final String sessionKey) {
         switch (Util.getServiceType(serviceId)) {
             case Util.LINKING_DEVICE:
                 return onDeleteOnDownLinkingDevice(request, response, serviceId, sessionKey);
@@ -81,7 +81,7 @@ public class LinkingKeyEventProfile extends KeyEventProfile {
         return true;
     }
 
-    private boolean onPutOnDownLinkingDevice(Intent request, Intent response, String serviceId, final String sessionKey) {
+    private boolean onPutOnDownLinkingDevice(final Intent request, final Intent response, final String serviceId, final String sessionKey) {
         LinkingDevice device = getDevice(serviceId, response);
         if (device == null) {
             return true;
@@ -99,7 +99,7 @@ public class LinkingKeyEventProfile extends KeyEventProfile {
         return true;
     }
 
-    private boolean onPutOnDownLinkingBeacon(Intent request, Intent response, String serviceId, final String sessionKey) {
+    private boolean onPutOnDownLinkingBeacon(final Intent request, final Intent response, final String serviceId, final String sessionKey) {
         LinkingBeacon beacon = getLinkingBeacon(response, serviceId);
         if (beacon == null) {
             return true;
@@ -116,7 +116,7 @@ public class LinkingKeyEventProfile extends KeyEventProfile {
         return true;
     }
 
-    private boolean onDeleteOnDownLinkingDevice(Intent request, Intent response, String serviceId, String sessionKey) {
+    private boolean onDeleteOnDownLinkingDevice(final Intent request, final Intent response, final String serviceId, final String sessionKey) {
         LinkingDevice device = getDevice(serviceId, response);
         if (device == null) {
             return true;
@@ -136,7 +136,7 @@ public class LinkingKeyEventProfile extends KeyEventProfile {
         return true;
     }
 
-    private boolean onDeleteOnDownLinkingBeacon(Intent request, Intent response, String serviceId, String sessionKey) {
+    private boolean onDeleteOnDownLinkingBeacon(final Intent request, final Intent response, final String serviceId, final String sessionKey) {
         EventError error = EventManager.INSTANCE.removeEvent(request);
         if (error == EventError.NONE) {
             setResult(response, DConnectMessage.RESULT_OK);
@@ -154,7 +154,7 @@ public class LinkingKeyEventProfile extends KeyEventProfile {
         return events.isEmpty();
     }
 
-    private LinkingDevice getDevice(String serviceId, Intent response) {
+    private LinkingDevice getDevice(final String serviceId, final Intent response) {
         if (serviceId == null || serviceId.length() == 0) {
             MessageUtils.setEmptyServiceIdError(response);
             return null;
@@ -167,23 +167,23 @@ public class LinkingKeyEventProfile extends KeyEventProfile {
         return device;
     }
 
-    private Bundle createKeyEvent(int keyCode) {
+    private Bundle createKeyEvent(final int keyCode) {
         Bundle keyEvent = new Bundle();
         keyEvent.putString(PARAM_ID, String.valueOf(KeyEventProfile.KEYTYPE_STD_KEY + keyCode));
         return keyEvent;
     }
 
-    private Bundle createKeyEvent(int keyCode, long timeStamp) {
+    private Bundle createKeyEvent(final int keyCode, final long timeStamp) {
         Bundle keyEvent = createKeyEvent(keyCode);
         keyEvent.putString(PARAM_CONFIG, "" + timeStamp);
         return keyEvent;
     }
 
-    private void setKeyEvent(Intent intent, Bundle keyEvent) {
+    private void setKeyEvent(final Intent intent, final Bundle keyEvent) {
         intent.putExtra(PARAM_KEYEVENT, keyEvent);
     }
 
-    private void notifyKeyEvent(LinkingBeacon beacon, int keyCode, long timeStamp) {
+    private void notifyKeyEvent(final LinkingBeacon beacon, final int keyCode, final long timeStamp) {
         String serviceId = LinkingBeaconUtil.createServiceIdFromLinkingBeacon(beacon);
         List<Event> events = EventManager.INSTANCE.getEventList(serviceId,
                 PROFILE_NAME, null, ATTRIBUTE_ON_DOWN);
@@ -198,7 +198,7 @@ public class LinkingKeyEventProfile extends KeyEventProfile {
         }
     }
 
-    private void notifyKeyEvent(LinkingDevice device, int keyCode) {
+    private void notifyKeyEvent(final LinkingDevice device, final int keyCode) {
         String serviceId = device.getBdAddress();
         List<Event> events = EventManager.INSTANCE.getEventList(serviceId,
                 PROFILE_NAME, null, ATTRIBUTE_ON_DOWN);
@@ -213,7 +213,7 @@ public class LinkingKeyEventProfile extends KeyEventProfile {
         }
     }
 
-    private LinkingBeacon getLinkingBeacon(Intent response, String serviceId) {
+    private LinkingBeacon getLinkingBeacon(final Intent response, final String serviceId) {
         LinkingBeaconManager mgr = getLinkingBeaconManager();
         LinkingBeacon beacon = LinkingBeaconUtil.findLinkingBeacon(mgr, serviceId);
         if (beacon == null) {

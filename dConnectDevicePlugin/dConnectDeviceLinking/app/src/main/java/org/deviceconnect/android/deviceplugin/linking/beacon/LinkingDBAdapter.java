@@ -17,6 +17,7 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.linking.BuildConfig;
+import org.deviceconnect.android.deviceplugin.linking.R;
 import org.deviceconnect.android.deviceplugin.linking.beacon.data.AtmosphericPressureData;
 import org.deviceconnect.android.deviceplugin.linking.beacon.data.BatteryData;
 import org.deviceconnect.android.deviceplugin.linking.beacon.data.GattData;
@@ -44,8 +45,10 @@ public class LinkingDBAdapter {
     private static final String TABLE_RAW_DATA = "table_raw_data";
 
     private LinkingDatabaseHelper mHelper;
+    private Context mContext;
 
     public LinkingDBAdapter(final Context context) {
+        mContext = context;
         mHelper = new LinkingDatabaseHelper(context);
     }
 
@@ -111,6 +114,7 @@ public class LinkingDBAdapter {
                         beacon.setHumidityData(queryHumidity(beacon));
                         beacon.setBatteryData(queryBattery(beacon));
                         beacon.setRawData(queryRawData(beacon.getVendorId(), beacon.getExtraId()));
+                        beacon.setDisplayName(mContext.getString(R.string.linking_beacon_display_name, beacon.getExtraId()));
                         list.add(beacon);
                     } while (cursor.moveToNext());
                 }

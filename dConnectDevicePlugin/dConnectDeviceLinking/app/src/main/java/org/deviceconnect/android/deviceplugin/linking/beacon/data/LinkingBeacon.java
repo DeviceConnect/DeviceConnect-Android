@@ -10,6 +10,8 @@ public class LinkingBeacon {
 
     private boolean mOnline;
 
+    private String mDisplayName;
+
     private int mExtraId;
     private int mVendorId;
     private int mVersion;
@@ -21,9 +23,12 @@ public class LinkingBeacon {
     private AtmosphericPressureData mAtmosphericPressureData;
     private RawData mRawData;
 
-
     public String getDisplayName() {
-        return "Linking:ビーコン(" + getExtraId() + ")";
+        return mDisplayName;
+    }
+
+    public void setDisplayName(final String displayName) {
+        mDisplayName = displayName;
     }
 
     public long getTimeStamp() {
@@ -126,10 +131,15 @@ public class LinkingBeacon {
                 .append(getVersion())
                 .append("\n")
                 .append(getGattData())
+                .append("\n")
                 .append(getBatteryData())
+                .append("\n")
                 .append(getHumidityData())
+                .append("\n")
                 .append(getTemperatureData())
+                .append("\n")
                 .append(getAtmosphericPressureData())
+                .append("\n")
                 .append(getRawData());
         return sb.toString();
     }

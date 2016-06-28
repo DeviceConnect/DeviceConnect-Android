@@ -138,8 +138,11 @@ public class LinkingBeaconActivity extends AppCompatActivity implements LinkingB
             return;
         }
 
+        setVendorId(String.valueOf(mLinkingBeacon.getVendorId()));
         setExtraId(String.valueOf(mLinkingBeacon.getExtraId()));
+        setVersion(String.valueOf(mLinkingBeacon.getVersion()));
         setTimeStamp(mLinkingBeacon.getTimeStamp());
+        setStatus(mLinkingBeacon.isOnline() ? "Online" : "Offline");
 
         if (mLinkingBeacon.getBatteryData() != null) {
             setLowBattery(String.valueOf(mLinkingBeacon.getBatteryData().isLowBatteryFlag()));
@@ -172,6 +175,12 @@ public class LinkingBeaconActivity extends AppCompatActivity implements LinkingB
         } else {
             setDistance("-");
         }
+
+        if (mLinkingBeacon.getRawData() != null) {
+            setRawData(String.valueOf(mLinkingBeacon.getRawData().getValue()));
+        } else {
+            setRawData("-");
+        }
     }
 
     private void clearTextView() {
@@ -181,10 +190,31 @@ public class LinkingBeaconActivity extends AppCompatActivity implements LinkingB
         }
     }
 
+    private void setVendorId(final String vendorId) {
+        TextView view = (TextView) findViewById(R.id.activity_beacon_vendor_id);
+        if (view != null) {
+            view.setText(vendorId);
+        }
+    }
+
     private void setExtraId(final String extraId) {
         TextView view = (TextView) findViewById(R.id.activity_beacon_extra_id);
         if (view != null) {
             view.setText(extraId);
+        }
+    }
+
+    private void setVersion(final String version) {
+        TextView view = (TextView) findViewById(R.id.activity_beacon_version);
+        if (view != null) {
+            view.setText(version);
+        }
+    }
+
+    private void setStatus(final String status) {
+        TextView view = (TextView) findViewById(R.id.activity_beacon_status);
+        if (view != null) {
+            view.setText(status);
         }
     }
 
@@ -234,6 +264,13 @@ public class LinkingBeaconActivity extends AppCompatActivity implements LinkingB
         TextView view = (TextView) findViewById(R.id.activity_beacon_distance);
         if (view != null) {
             view.setText(distance);
+        }
+    }
+
+    private void setRawData(final String rawData) {
+        TextView view = (TextView) findViewById(R.id.activity_beacon_raw_data);
+        if (view != null) {
+            view.setText(rawData);
         }
     }
 

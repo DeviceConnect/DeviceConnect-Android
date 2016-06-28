@@ -9,8 +9,6 @@ import java.util.Map;
 class PathConversionTable {
 
     private static final Path[][] PATH_PAIRS = {
-        {new Path("battery", "chargingTime"), new Path("battery", "chargingtime")},
-        {new Path("battery", "dischargingTime"), new Path("battery", "dischargingtime")},
         {new Path("drive_controller"), new Path("driveController")},
         {new Path("file_descriptor"), new Path("fileDescriptor")},
         {new Path("media_player", "media_list"), new Path("mediaPlayer", "mediaList")},
@@ -20,6 +18,14 @@ class PathConversionTable {
         {new Path("omnidirectional_image"), new Path("omnidirectionalImage")},
         {new Path("remote_controller"), new Path("remoteController")}
     };
+
+    public static final PathConversion BATTERY_CHARGING_TIME
+        = new PathConversion(
+                new Path("battery", "chargingtime"), new Path("battery", "chargingTime"));
+
+    public static final PathConversion BATTERY_DISCHARGING_TIME
+        = new PathConversion(new Path("battery", "dischargingtime"),
+                new Path("battery", "dischargingTime"));
 
     private static final Map<Path, Path> FORWARD = new LinkedHashMap<Path, Path>();
     private static final Map<Path, Path> BACKWARD = new LinkedHashMap<Path, Path>();

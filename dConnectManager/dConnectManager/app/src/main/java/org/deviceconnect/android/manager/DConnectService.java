@@ -13,10 +13,9 @@ import android.content.IntentFilter;
 import android.net.ConnectivityManager;
 import android.os.IBinder;
 import android.os.RemoteException;
-import android.util.Log;
 
 import org.deviceconnect.android.compat.MessageConverter;
-import org.deviceconnect.android.manager.compat.RequestConverter;
+import org.deviceconnect.android.manager.compat.DeliveryRequestConverter;
 import org.deviceconnect.android.manager.compat.ServiceDiscoveryConverter;
 import org.deviceconnect.android.manager.compat.ServiceInformationConverter;
 import org.deviceconnect.android.manager.util.DConnectUtil;
@@ -292,9 +291,7 @@ public class DConnectService extends DConnectMessageService {
 
     @Override
     public void onDeviceFound(final DevicePlugin plugin) {
-        Log.d("AAA", "onDeviceFound: " + plugin.getPluginSdkVersionName());
-
-        plugin.setRequestConverter(RequestConverter.create(plugin));
+        plugin.setRequestConverter(DeliveryRequestConverter.create(plugin));
         super.onDeviceFound(plugin);
     }
 
@@ -325,7 +322,7 @@ public class DConnectService extends DConnectMessageService {
             return;
         }
         DevicePlugin plugin = plugins.get(0);
-        RequestConverter converter = plugin.getRequestConverter();
+        DeliveryRequestConverter converter = plugin.getRequestConverter();
         if (converter != null) {
             converter.convert(request);
 

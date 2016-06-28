@@ -8,7 +8,7 @@ package org.deviceconnect.android.manager;
 
 import android.content.ComponentName;
 
-import org.deviceconnect.android.manager.compat.RequestConverter;
+import org.deviceconnect.android.manager.compat.DeliveryRequestConverter;
 import org.deviceconnect.android.manager.util.VersionName;
 
 import java.util.ArrayList;
@@ -38,7 +38,7 @@ public class DevicePlugin {
      */
     private List<String> mSupports = new ArrayList<String>();
 
-    private RequestConverter mRequestConverter;
+    private DeliveryRequestConverter mRequestConverter;
 
     /**
      * デバイスプラグインのパッケージ名を取得する.
@@ -165,11 +165,11 @@ public class DevicePlugin {
         return mPluginSdkVersionName;
     }
 
-    public void setRequestConverter(final RequestConverter converter) {
+    public void setRequestConverter(final DeliveryRequestConverter converter) {
         mRequestConverter = converter;
     }
 
-    public RequestConverter getRequestConverter() {
+    public DeliveryRequestConverter getRequestConverter() {
         return mRequestConverter;
     }
     

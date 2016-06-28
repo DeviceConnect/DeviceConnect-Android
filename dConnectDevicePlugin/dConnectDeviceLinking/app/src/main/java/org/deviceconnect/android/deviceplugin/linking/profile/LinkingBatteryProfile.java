@@ -8,7 +8,9 @@ package org.deviceconnect.android.deviceplugin.linking.profile;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 
+import org.deviceconnect.android.deviceplugin.linking.BuildConfig;
 import org.deviceconnect.android.deviceplugin.linking.LinkingApplication;
 import org.deviceconnect.android.deviceplugin.linking.LinkingDeviceService;
 import org.deviceconnect.android.deviceplugin.linking.beacon.LinkingBeaconManager;
@@ -24,8 +26,15 @@ import org.deviceconnect.android.profile.BatteryProfile;
 import org.deviceconnect.message.DConnectMessage;
 
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 public class LinkingBatteryProfile extends BatteryProfile {
+
+    private static final String TAG = "LinkingPlugin";
+    private static final int TIMEOUT = 30;
 
     public LinkingBatteryProfile(final DConnectMessageService service) {
         LinkingApplication app = (LinkingApplication) service.getApplication();
@@ -40,21 +49,60 @@ public class LinkingBatteryProfile extends BatteryProfile {
 
     @Override
     protected boolean onGetAll(final Intent request, final Intent response, final String serviceId) {
-        LinkingBeacon beacon = getLinkingBeacon(response, serviceId);
+        final LinkingBeaconManager mgr = getLinkingBeaconManager();
+        LinkingBeacon beacon = LinkingBeaconUtil.findLinkingBeacon(mgr, serviceId);
         if (beacon == null) {
-            return true;
-        }
-
-        BatteryData batteryData = beacon.getBatteryData();
-        if (batteryData == null) {
             MessageUtils.setNotSupportProfileError(response);
             return true;
         }
 
-        setResult(response, DConnectMessage.RESULT_OK);
-        setLevel(response, batteryData.getLevel() / 100.0f);
+        mgr.addOnBeaconBatteryEventListener(new OnBeaconBatteryEventListenerImpl(beacon) {
+            public void cleanup() {
+                if (mCleanupFlag) {
+                    return;
+                }
+                mCleanupFlag = true;
 
-        return true;
+                mgr.removeOnBeaconBatteryEventListener(this);
+
+                mScheduledFuture.cancel(false);
+                mExecutorService.shutdown();
+            }
+
+            @Override
+            public void onTimeout() {
+                if (mCleanupFlag) {
+                    return;
+                }
+
+                if (BuildConfig.DEBUG) {
+                    Log.i(TAG, "onBattery: timeout");
+                }
+
+                MessageUtils.setTimeoutError(response);
+                sendResponse(response);
+                cleanup();
+            }
+
+            @Override
+            public void onBattery(final LinkingBeacon beacon, final BatteryData battery) {
+                if (mCleanupFlag && !beacon.equals(mBeacon)) {
+                    return;
+                }
+
+                if (BuildConfig.DEBUG) {
+                    Log.i(TAG, "onBattery: beacon=" + beacon.getDisplayName() + " battery=" + battery);
+                }
+
+                setResult(response, DConnectMessage.RESULT_OK);
+                setLevel(response, battery.getLevel() / 100.0f);
+                sendResponse(response);
+                cleanup();
+            }
+        });
+        mgr.startBeaconScan(TIMEOUT);
+
+        return false;
     }
 
     @Override
@@ -152,5 +200,23 @@ public class LinkingBatteryProfile extends BatteryProfile {
     private LinkingApplication getLinkingApplication() {
         LinkingDeviceService service = (LinkingDeviceService) getContext();
         return (LinkingApplication) service.getApplication();
+    }
+
+
+    private abstract class OnBeaconBatteryEventListenerImpl implements LinkingBeaconManager.OnBeaconBatteryEventListener, Runnable {
+        protected LinkingBeacon mBeacon;
+        protected ScheduledExecutorService mExecutorService = Executors.newSingleThreadScheduledExecutor();
+        protected ScheduledFuture<?> mScheduledFuture;
+        protected boolean mCleanupFlag;
+        OnBeaconBatteryEventListenerImpl(final LinkingBeacon beacon) {
+            mBeacon = beacon;
+            mScheduledFuture = mExecutorService.schedule(this, TIMEOUT, TimeUnit.SECONDS);
+        }
+
+        @Override
+        public void run() {
+            onTimeout();
+        }
+        public abstract void onTimeout();
     }
 }

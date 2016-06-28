@@ -61,7 +61,8 @@ public class LinkingBeaconActivity extends AppCompatActivity implements LinkingB
         }
 
         if (BuildConfig.DEBUG) {
-            Log.i(TAG, "Linking Beacon: " + mLinkingBeacon);
+            Log.i(TAG, "LinkingBeaconActivity#onCreate");
+            Log.i(TAG, "Beacon: " + mLinkingBeacon);
         }
 
         Button clearBtn = (Button) findViewById(R.id.activity_beacon_clear_btn);

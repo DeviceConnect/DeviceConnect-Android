@@ -241,6 +241,10 @@ public class LinkingBeaconManager {
         mOnBeaconBatteryEventListeners.add(listener);
     }
 
+    public void removeOnBeaconBatteryEventListener(final OnBeaconBatteryEventListener listener) {
+        mOnBeaconBatteryEventListeners.remove(listener);
+    }
+
     public void addOnBeaconAtmosphericPressureEventListener(final OnBeaconAtmosphericPressureEventListener listener) {
         mOnBeaconAtmosphericPressureEventListeners.add(listener);
     }

@@ -1,0 +1,190 @@
+[
+    {
+        "name": "Volume Settings API GET",
+        "type": "one-shot",
+        "method": "GET",
+        "path": "/gotapi/settings/sound/volume",
+        "requestParams": [
+            {
+                "name": "serviceId",
+                "type": "string",
+                "mandatory": true
+            },
+            {
+                "name": "kind",
+                "type": "integer",
+                "mandatory": true,
+                "enum": [
+                    {
+                        "name": "Alarm",
+                        "value": 1
+                    },
+                    {
+                        "name": "Voice Volume",
+                        "value": 2
+                    },
+                    {
+                        "name": "Ring Alert",
+                        "value": 3
+                    },
+                    {
+                        "name": "Incoming Mail Alert",
+                        "value": 4
+                    },
+                    {
+                        "name": "Media Player",
+                        "value": 5
+                    },
+                    {
+                        "name": "Other",
+                        "value": 6
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "name": "Volume Settings API PUT",
+        "type": "one-shot",
+        "method": "PUT",
+        "path": "/gotapi/settings/sound/volume",
+        "requestParams": [
+            {
+                "name": "serviceId",
+                "type": "string",
+                "mandatory": true
+            },
+            {
+                "name": "kind",
+                "type": "integer",
+                "mandatory": true,
+                "enum": [
+                    {
+                        "name": "Alarm",
+                        "value": 1
+                    },
+                    {
+                        "name": "Voice Volume",
+                        "value": 2
+                    },
+                    {
+                        "name": "Ring Alert",
+                        "value": 3
+                    },
+                    {
+                        "name": "Incoming Mail Alert",
+                        "value": 4
+                    },
+                    {
+                        "name": "Media Player",
+                        "value": 5
+                    },
+                    {
+                        "name": "Other",
+                        "value": 6
+                    }
+                ]
+            },
+            {
+                "name": "level",
+                "type": "number",
+                "minValue": 0.0,
+                "maxValue": 1.0
+            }
+        ]
+    },
+    {
+        "name": "Date Settings API GET",
+        "type": "one-shot",
+        "method": "GET",
+        "path": "/gotapi/settings/date",
+        "requestParams": [
+            {
+                "name": "serviceId",
+                "type": "string",
+                "mandatory": true
+            }
+        ]
+    },
+    {
+        "name": "Date Settings API PUT",
+        "type": "one-shot",
+        "method": "PUT",
+        "path": "/gotapi/settings/date",
+        "requestParams": [
+            {
+                "name": "serviceId",
+                "type": "string",
+                "mandatory": true
+            },
+            {
+                "name": "date",
+                "type": "string",
+                "format": "date-time"
+            }
+        ]
+    },
+    {
+        "name": "Display Light Settings API GET",
+        "type": "one-shot",
+        "method": "GET",
+        "path": "/gotapi/settings/display/light",
+        "requestParams": [
+            {
+                "name": "serviceId",
+                "type": "string",
+                "mandatory": true
+            }
+        ]
+    },
+    {
+        "name": "Display Light Settings API PUT",
+        "type": "one-shot",
+        "method": "PUT",
+        "path": "/gotapi/settings/display/light",
+        "requestParams": [
+            {
+                "name": "serviceId",
+                "type": "string",
+                "mandatory": true
+            },
+            {
+                "name": "level",
+                "type": "number",
+                "minValue": 0.0,
+                "maxValue": 1.0
+            }
+        ]
+    },
+    {
+        "name": "Display Sleep Settings API GET",
+        "type": "one-shot",
+        "method": "GET",
+        "path": "/gotapi/settings/display/sleep",
+        "requestParams": [
+            {
+                "name": "serviceId",
+                "type": "string",
+                "mandatory": true
+            }
+        ]
+    },
+    {
+        "name": "Display Sleep Settings API PUT",
+        "type": "one-shot",
+        "method": "PUT",
+        "path": "/gotapi/settings/display/sleep",
+        "requestParams": [
+            {
+                "name": "serviceId",
+                "type": "string",
+                "mandatory": true
+            },
+            {
+                "name": "time",
+                "type": "integer",
+                "format": "int64"
+            }
+        ]
+    }
+]

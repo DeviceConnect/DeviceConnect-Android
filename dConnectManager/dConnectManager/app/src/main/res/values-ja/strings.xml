@@ -55,8 +55,8 @@
     <string name="activity_settings_restart_device_plugin">全デバイスプラグインを再起動</string>
     <string name="activity_settings_restart_device_plugin_title">デバイスプラグインを再起動しています</string>
     <string name="activity_settings_restart_device_plugin_message">処理中</string>
-    <string name="activity_settings_warning_require_origin_disabled">下記の機能がアプリのOriginを参照するため、下記もOFFに切り替わります。\n\n%1\nよろしいですか？</string>
-    <string name="activity_settings_warning_require_origin_enabled">本機能はアプリのOriginを参照するため、下記もONに切り替わります。\n\n%1\nよろしいですか？</string>
+    <string name="activity_settings_warning_require_origin_disabled">下記の機能がアプリのOriginを参照するため、下記もOFFに切り替わります。\n\n%1$s\nよろしいですか？</string>
+    <string name="activity_settings_warning_require_origin_enabled">本機能はアプリのOriginを参照するため、下記もONに切り替わります。\n\n%1$s\nよろしいですか？</string>
     <string name="activity_settings_warning">警告</string>
     <string name="activity_settings_yes">はい</string>
     <string name="activity_settings_no">いいえ</string>
@@ -67,6 +67,10 @@
     <string name="activity_settings_web_server_default_host">localhost</string>
     <string name="activity_settings_web_server_default_port">8080</string>
     <string name="activity_settings_web_server_document_root">ドキュメントルートパス</string>
+    <string name="activity_settings_web_server_warning_title">警告</string>
+    <string name="activity_settings_web_server_warning_message">Webサーバを起動します。\n\nこの機能を有効にすると外部からSDカードにあるファイルへアクセスが行えるようになります。\n\n有効にしてよろしいでしょうか？</string>
+    <string name="activity_settings_web_server_warning_positive">はい</string>
+    <string name="activity_settings_web_server_warning_negative">いいえ</string>
 
     <!-- ================= SharedPreferences ================= -->
 

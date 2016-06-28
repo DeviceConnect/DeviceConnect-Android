@@ -7,8 +7,7 @@
 
 package org.deviceconnect.android.deviceplugin.host.profile;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import android.content.Intent;
 
 import org.deviceconnect.android.deviceplugin.host.HostDeviceService;
 import org.deviceconnect.android.deviceplugin.host.manager.HostBatteryManager;
@@ -16,10 +15,14 @@ import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.BatteryProfile;
+import org.deviceconnect.android.profile.api.DConnectApi;
+import org.deviceconnect.android.profile.spec.DConnectApiSpec;
+import org.deviceconnect.android.service.DConnectService;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
-import android.content.Intent;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Battery Profile.
@@ -30,14 +33,21 @@ public class HostBatteryProfile extends BatteryProfile {
     /** エラーコード. */
     private static final int ERROR_CODE = 100;
 
-    @Override
-    protected boolean onGetLevel(final Intent request, final Intent response, final String serviceId) {
+    private final DConnectApi mBatteryLevelApi = new DConnectApi() {
 
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_LEVEL;
+        }
+
+        @Override
+        public DConnectApiSpec.Method getMethod() {
+            return DConnectApiSpec.Method.GET;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response,
+                                 final DConnectService service) {
             int mLevel = ((HostDeviceService) getContext()).getBatteryLevel();
             int mScale = ((HostDeviceService) getContext()).getBatteryScale();
             if (mScale <= 0) {
@@ -48,8 +58,12 @@ public class HostBatteryProfile extends BatteryProfile {
                 setResult(response, IntentDConnectMessage.RESULT_OK);
                 setLevel(response, mLevel / (float) mScale);
             }
+            return true;
         }
-        return true;
+    };
+
+    public HostBatteryProfile() {
+        addApi(mBatteryLevelApi);
     }
 
     @Override

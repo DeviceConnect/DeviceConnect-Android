@@ -16,6 +16,8 @@ import org.deviceconnect.android.BuildConfig;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.localoauth.CheckAccessTokenResult;
+import org.deviceconnect.android.localoauth.DevicePluginXmlProfile;
+import org.deviceconnect.android.localoauth.DevicePluginXmlUtil;
 import org.deviceconnect.android.localoauth.LocalOAuth2Main;
 import org.deviceconnect.android.profile.AuthorizationProfile;
 import org.deviceconnect.android.profile.DConnectProfile;
@@ -23,12 +25,18 @@ import org.deviceconnect.android.profile.DConnectProfileProvider;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.android.profile.ServiceInformationProfile;
 import org.deviceconnect.android.profile.SystemProfile;
+import org.deviceconnect.android.profile.spec.DConnectApiSpecList;
+import org.deviceconnect.android.service.DConnectService;
+import org.deviceconnect.android.service.DConnectServiceManager;
+import org.deviceconnect.android.service.DConnectServiceProvider;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 import org.deviceconnect.profile.SystemProfileConstants;
+import org.json.JSONException;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -82,6 +90,8 @@ public abstract class DConnectMessageService extends Service implements DConnect
      */
     private boolean mUseLocalOAuth = true;
 
+    private DConnectServiceManager mServiceManager;
+
     /**
      * SystemProfileを取得する.
      * SystemProfileは必須実装となるため、本メソッドでSystemProfileのインスタンスを渡すこと。
@@ -91,28 +101,17 @@ public abstract class DConnectMessageService extends Service implements DConnect
      */
     protected abstract SystemProfile getSystemProfile();
 
-    /**
-     * ServiceInformationProfileを取得する.
-     * ServiceInformationProfileは必須実装となるため、本メソッドでServiceInformationProfileのインスタンスを渡すこと。
-     * このメソッドで返却したServiceInformationProfileは自動で登録される。
-     * 
-     * @return SystemProfileのインスタンス
-     */
-    protected abstract ServiceInformationProfile getServiceInformationProfile();
-
-    /**
-     * ServiceDiscoveryProfileを取得する.
-     * ServiceDiscoveryProfileは必須実装となるため
-     * 本メソッドでServiceDiscoveryProfileのインスタンスを渡すこと。
-     * このメソッドで返却したServiceDiscoveryProfileは自動で登録される。
-     * 
-     * @return ServiceDiscoveryProfileのインスタンス
-     */
-    protected abstract ServiceDiscoveryProfile getServiceDiscoveryProfile();
+    protected final DConnectServiceProvider getServiceProvider() {
+        return mServiceManager;
+    }
 
     @Override
     public void onCreate() {
         super.onCreate();
+
+        mServiceManager = new DConnectServiceManager();
+        mServiceManager.setApiSpecDictionary(loadApiSpecList());
+        mServiceManager.setContext(getContext());
 
         // LocalOAuthの初期化
         LocalOAuth2Main.initialize(this);
@@ -120,9 +119,34 @@ public abstract class DConnectMessageService extends Service implements DConnect
         // 認証プロファイルの追加
         addProfile(new AuthorizationProfile(this));
         // 必須プロファイルの追加
+        addProfile(new ServiceDiscoveryProfile(mServiceManager));
         addProfile(getSystemProfile());
-        addProfile(getServiceInformationProfile());
-        addProfile(getServiceDiscoveryProfile());
+    }
+
+    private DConnectApiSpecList loadApiSpecList() {
+        try {
+            Map<String, DevicePluginXmlProfile> profiles
+                = DevicePluginXmlUtil.getSupportProfiles(getContext(), getContext().getPackageName());
+            final DConnectApiSpecList specList = new DConnectApiSpecList();
+            for (String profileName : profiles.keySet()) {
+                if (AuthorizationProfile.PROFILE_NAME.equalsIgnoreCase(profileName)
+                    || ServiceDiscoveryProfile.PROFILE_NAME.equalsIgnoreCase(profileName)
+                    || ServiceInformationProfile.PROFILE_NAME.equalsIgnoreCase(profileName)
+                    || SystemProfile.PROFILE_NAME.equalsIgnoreCase(profileName)) {
+                    continue;
+                }
+                specList.addApiSpecList(getAssets().open("api/" + profileName + ".json"));
+            }
+            return specList;
+        } catch (IOException e) {
+            e.printStackTrace();
+            mLogger.warning("Failed to load Device Connect API Specs.");
+            return null;
+        } catch (JSONException e) {
+            e.printStackTrace();
+            mLogger.warning("Device Connect API Specs is invalid.");
+            return null;
+        }
     }
 
     @Override
@@ -213,17 +237,20 @@ public abstract class DConnectMessageService extends Service implements DConnect
             }
         }
 
-        // プロファイルを取得する
+        // 指定されたサービスの各プロファイルでリクエストを処理する
         DConnectProfile profile = getProfile(profileName);
+        boolean send = true;
         if (profile == null) {
-            MessageUtils.setNotSupportProfileError(response);
-            sendResponse(response);
-            return;
+            DConnectService service = mServiceManager.getService(DConnectProfile.getServiceID(request));
+            if (service != null) {
+                send = service.onRequest(request, response);
+            } else {
+                MessageUtils.setNotFoundServiceError(response);
+            }
         }
 
-        // 各プロファイルでリクエストを処理する
-        boolean send = true;
-        if (isUseLocalOAuth()) {
+        // プラグイン本体の各プロファイルでリクエストを処理する
+        else if (isUseLocalOAuth()) {
             // アクセストークン
             String accessToken = request.getStringExtra(AuthorizationProfile.PARAM_ACCESS_TOKEN);
             // LocalOAuth処理
@@ -268,7 +295,10 @@ public abstract class DConnectMessageService extends Service implements DConnect
      */
     @Override
     public DConnectProfile getProfile(final String name) {
-        return mProfileMap.get(name);
+        if (name == null) {
+            return null;
+        }
+        return mProfileMap.get(name.toLowerCase());
     }
 
     /**
@@ -276,8 +306,11 @@ public abstract class DConnectMessageService extends Service implements DConnect
      */
     @Override
     public void addProfile(final DConnectProfile profile) {
+        if (profile == null) {
+            return;
+        }
         profile.setContext(this);
-        mProfileMap.put(profile.getProfileName(), profile);
+        mProfileMap.put(profile.getProfileName().toLowerCase(), profile);
     }
 
     /**
@@ -285,7 +318,10 @@ public abstract class DConnectMessageService extends Service implements DConnect
      */
     @Override
     public void removeProfile(final DConnectProfile profile) {
-        mProfileMap.remove(profile.getProfileName());
+        if (profile == null) {
+            return;
+        }
+        mProfileMap.remove(profile.getProfileName().toLowerCase());
     }
 
     /**

@@ -7,9 +7,9 @@ http://opensource.org/licenses/mit-license.php
 package org.deviceconnect.profile;
 
 /**
- * Light Profile API 定数群.<br/>
+ * Light Profile API 定数群.<br>
  * Light Profile API のパラメータ名、インタフェース名、属性名、プロファイル名を定義する。
- * 
+ *
  * @author NTT DOCOMO, INC.
  */
 public interface LightProfileConstants extends DConnectProfileConstants {

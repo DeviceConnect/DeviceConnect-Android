@@ -35,9 +35,9 @@ import java.util.LinkedList;
 import java.util.List;
 
 import jp.co.omron.hvcw.OkaoResult;
-import jp.co.omron.hvcw.ResultAeg;
+import jp.co.omron.hvcw.ResultAge;
 import jp.co.omron.hvcw.ResultBlink;
-import jp.co.omron.hvcw.ResultBodys;
+import jp.co.omron.hvcw.ResultBodies;
 import jp.co.omron.hvcw.ResultDetection;
 import jp.co.omron.hvcw.ResultDirection;
 import jp.co.omron.hvcw.ResultExpression;
@@ -337,9 +337,9 @@ public class HVCC2WDeviceService extends DConnectMessageService
     private void makeBodyDetectResultResponse(final Intent response, final OkaoResult result) {
 
         List<Bundle> bodyDetects = new LinkedList<Bundle>();
-        ResultBodys r = result.getResultBodys();
+        ResultBodies r = result.getResultBodies();
         ResultDetection[] bodies = r.getResultDetection();
-        int count = result.getResultBodys().getCount();
+        int count = result.getResultBodies().getCount();
         for (int i = 0; i < count; i++) {
             ResultDetection detection = bodies[i];
             Bundle bodyDetect = new Bundle();
@@ -427,7 +427,7 @@ public class HVCC2WDeviceService extends DConnectMessageService
                 // Unsuppoted Face Direction's Confidence
                 HumanDetectProfile.setParamFaceDirectionResults(faceDetect, faceDirectionResult);
             }
-            ResultAeg age = f[i].getAge();
+            ResultAge age = f[i].getAge();
             if (age != null && existOption(HVCManager.PARAM_OPTIONS_AGE, options)) {
                 // age.
                 Bundle ageResult = new Bundle();

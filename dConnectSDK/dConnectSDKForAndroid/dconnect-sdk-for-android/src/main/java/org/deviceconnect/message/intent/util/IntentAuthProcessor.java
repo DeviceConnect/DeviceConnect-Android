@@ -33,29 +33,29 @@ import android.content.Context;
 
 /**
  * LocalOAuthの手続きユーティリティクラス. Intent通信による手続きを行う。
- * 
+ *
  * <h3>サンプルコード</h3>
  * <h4>非同期での認証処理</h4>
  * <pre>
  * {@code
- * IntentAuthProcessor.asyncAuthorize(this, 
- *              ComponentName.unflattenFromString("org.deviceconnect.manager/.DConnectBroadcastReceiver"), 
- *              getPackageName(), 
- *              "Auth Example App", 
- *              new String[] {"battery", "system", "servicediscovery"}, 
+ * IntentAuthProcessor.asyncAuthorize(this,
+ *              ComponentName.unflattenFromString("org.deviceconnect.manager/.DConnectBroadcastReceiver"),
+ *              getPackageName(),
+ *              "Auth Example App",
+ *              new String[] {"battery", "system", "servicediscovery"},
  *              new AuthorizationHandler() {
- *          
+ *
  *          public void onAuthorized(String clientId, String accessToken) {
  *              // 認証完了時の処理
  *          }
- *          
+ *
  *          public void onAuthFailed(ErrorCode error) {
  *              // 認証失敗時の処理
  *          }
  *      });
  * }
  * </pre>
- * 
+ *
  * @author NTT DOCOMO, INC.
  */
 public final class IntentAuthProcessor {
@@ -68,12 +68,12 @@ public final class IntentAuthProcessor {
 
     /**
      * 認証手続きを行う. Device Connect Managerに対しクライアントの作成依頼、及びアクセストークンの発行依頼を実行する。
-     * Device Connect ManagerとはIntentによる通信を行う。<br/>
-     * 通信処理は非同期で行われる。<br/>
+     * Device Connect ManagerとはIntentによる通信を行う。<br>
+     * 通信処理は非同期で行われる。<br>
      * 当メソッドを利用するには AndroidManifest.xmlへの
      * {@link org.deviceconnect.message.intent.impl.io.IntentResponseReceiver}
      * の登録が必要となる。
-     * 
+     *
      * @param context コンテキストオブジェクト
      * @param dConnectComponent Device Connect Managerのコンポーネントネーム
      * @param packageName Authorization Create Client APIのpackageパラメータの値
@@ -85,24 +85,24 @@ public final class IntentAuthProcessor {
     public static void asyncAuthorize(final Context context, final ComponentName dConnectComponent,
             final String packageName, final String appName, final String[] scopes,
             final AuthorizationHandler callback) {
-        
+
         new Thread(new Runnable() {
             @Override
             public void run() {
                 authorize(context, dConnectComponent, packageName, appName, scopes, callback);
             }
         }).start();
-        
+
     }
-    
+
     /**
      * 認証手続きを行う. Device Connect Managerに対しクライアントの作成依頼、及びアクセストークンの発行依頼を実行する。
-     * Device Connect ManagerとはIntentによる通信を行う。<br/>
-     * 通信処理は同期で行われる。Intent通信を妨げてしまうため、UIスレッドで呼び出しては<strong>いけない</strong>。<br/>
+     * Device Connect ManagerとはIntentによる通信を行う。<br>
+     * 通信処理は同期で行われる。Intent通信を妨げてしまうため、UIスレッドで呼び出しては<strong>いけない</strong>。<br>
      * 当メソッドを利用するには AndroidManifest.xmlへの
      * {@link org.deviceconnect.message.intent.impl.io.IntentResponseReceiver}
      * の登録が必要となる。
-     * 
+     *
      * @param context コンテキストオブジェクト
      * @param componentName Device Connect Managerのコンポーネントネーム
      * @param packageName Authorization Create Client APIのpackageパラメータの値
@@ -114,7 +114,7 @@ public final class IntentAuthProcessor {
     public static void authorize(final Context context, final ComponentName componentName,
             final String packageName, final String appName, final String[] scopes,
             final AuthorizationHandler callback) {
-        
+
         if (callback == null) {
             throw new IllegalArgumentException("Callback is null.");
         } else if (scopes == null || scopes.length == 0) {
@@ -130,7 +130,7 @@ public final class IntentAuthProcessor {
         if (Thread.currentThread().equals(context.getMainLooper().getThread())) {
             throw new IllegalStateException("DON'T CALL this method in UI thread.");
         }
-        
+
         URIBuilder builder = new URIBuilder();
         // 送り先はComponentNameで設定するため、以下のデータはエラーにならないようにするためのダミーデータを入れておく。
         builder.setHost("localhost");
@@ -209,7 +209,7 @@ public final class IntentAuthProcessor {
 
     /**
      * リクエストを実行し、レスポンスのJSONを返す.
-     * 
+     *
      * @param client リクエスト実行クライアント
      * @param request リクエスト
      * @return レスポンスデータ。エラーの場合はnullを返す。
@@ -234,7 +234,7 @@ public final class IntentAuthProcessor {
 
     /**
      * JSONをチェックし、エラーがあればエラーコードを返す.
-     * 
+     *
      * @param json レスポンスデータのJSON
      * @return エラーがあればErrorCodeのインスタンスを返す。無い場合はnullを返す。
      * @throws JSONException json操作でエラーがあった場合スローされる。
@@ -257,7 +257,7 @@ public final class IntentAuthProcessor {
 
     /**
      * スコープを一つの文字列に連結する.
-     * 
+     *
      * @param scopes スコープ一覧
      * @return 連結された文字列
      */

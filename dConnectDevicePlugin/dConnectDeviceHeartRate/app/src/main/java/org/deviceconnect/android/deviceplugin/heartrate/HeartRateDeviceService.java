@@ -7,6 +7,7 @@
 package org.deviceconnect.android.deviceplugin.heartrate;
 
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -21,10 +22,14 @@ import org.deviceconnect.android.deviceplugin.heartrate.profile.HeartRateSystemP
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.event.cache.MemoryCacheController;
 import org.deviceconnect.android.message.DConnectMessageService;
+import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.android.profile.ServiceInformationProfile;
 import org.deviceconnect.android.profile.SystemProfile;
+import org.deviceconnect.android.service.DConnectService;
+import org.deviceconnect.android.service.DConnectServiceManager;
 
+import java.util.List;
 import java.util.logging.Logger;
 
 /**
@@ -34,6 +39,8 @@ import java.util.logging.Logger;
 public class HeartRateDeviceService extends DConnectMessageService {
     /** Logger. */
     private final Logger mLogger = Logger.getLogger("heartrate.dplugin");
+
+    private DConnectProfile mHeartRateProfile;
 
     /**
      * Received a event that Bluetooth has been changed.
@@ -46,12 +53,40 @@ public class HeartRateDeviceService extends DConnectMessageService {
                 int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, -1);
                 if (state == BluetoothAdapter.STATE_ON) {
                     getManager().start();
+                    getManager().addOnHeartRateDiscoveryListener(mOnDiscoveryListener);
                 } else if (state == BluetoothAdapter.STATE_OFF) {
                     getManager().stop();
                 }
             }
         }
     };
+
+    private final HeartRateManager.OnHeartRateDiscoveryListener mOnDiscoveryListener
+        = new HeartRateManager.OnHeartRateDiscoveryListener() {
+            @Override
+            public void onDiscovery(final List<BluetoothDevice> devices) {
+                // NOP.
+            }
+
+            @Override
+            public void onConnected(final BluetoothDevice device) {
+                String serviceId = device.getAddress();
+                if (!DConnectServiceManager.INSTANCE.existsService(serviceId)) {
+                    DConnectService service = new DConnectService(serviceId);
+                    service.addProfile(mHeartRateProfile);
+                }
+            }
+
+            @Override
+            public void onConnectFailed(final BluetoothDevice device) {
+                // NOP.
+            }
+
+            @Override
+            public void onDisconnected(final BluetoothDevice device) {
+                DConnectServiceManager.INSTANCE.removeService(device.getAddress());
+            }
+        };
 
     /**
      * Instance of handler.
@@ -74,7 +109,9 @@ public class HeartRateDeviceService extends DConnectMessageService {
         HeartRateApplication app = (HeartRateApplication) getApplication();
         app.initialize();
 
-        addProfile(new HeartRateHealthProfile(app.getHeartRateManager()));
+        getManager().addOnHeartRateDiscoveryListener(mOnDiscoveryListener);
+
+        mHeartRateProfile = new HeartRateHealthProfile(app.getHeartRateManager());
 
         registerBluetoothFilter();
     }
@@ -83,6 +120,7 @@ public class HeartRateDeviceService extends DConnectMessageService {
     public void onDestroy() {
         super.onDestroy();
         unregisterBluetoothFilter();
+        getManager().removeOnHeartRateDiscoveryListener(mOnDiscoveryListener);
         getManager().stop();
         mLogger.fine("HeartRateDeviceService end.");
     }

@@ -6,13 +6,16 @@
  */
 package org.deviceconnect.android.manager;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.net.ConnectivityManager;
 import android.os.IBinder;
 import android.os.RemoteException;
 
 import org.deviceconnect.android.manager.util.DConnectUtil;
 import org.deviceconnect.message.DConnectMessage;
-
 import org.deviceconnect.server.DConnectServer;
 import org.deviceconnect.server.DConnectServerConfig;
 import org.deviceconnect.server.nanohttpd.DConnectServerNanoHttpd;
@@ -21,6 +24,8 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * dConnect Manager本体.
@@ -42,6 +47,9 @@ public class DConnectService extends DConnectMessageService {
 
     /** RESTfulサーバからのイベントを受領するリスナー. */
     private DConnectServerEventListenerImpl mWebServerListener;
+
+    /** イベント送信スレッド. */
+    private ExecutorService mEventSender = Executors.newSingleThreadExecutor();
 
     @Override
     public IBinder onBind(final Intent intent) {
@@ -77,20 +85,26 @@ public class DConnectService extends DConnectMessageService {
     @Override
     public void sendEvent(final String receiver, final Intent event) {
         if (receiver == null || receiver.length() <= 0) {
-            String key = event.getStringExtra(DConnectMessage.EXTRA_SESSION_KEY);
-            try {
-                if (key != null && mRESTfulServer != null && mRESTfulServer.isRunning()) {
-                    if (BuildConfig.DEBUG) {
-                        mLogger.info(String.format("sendEvent: %s extra: %s", key, event.getExtras()));
+            final String key = event.getStringExtra(DConnectMessage.EXTRA_SESSION_KEY);
+            if (key != null && mRESTfulServer != null && mRESTfulServer.isRunning()) {
+                mEventSender.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            if (BuildConfig.DEBUG) {
+                                mLogger.info(String.format("sendEvent: %s extra: %s", key, event.getExtras()));
+                            }
+                            JSONObject root = new JSONObject();
+                            DConnectUtil.convertBundleToJSON(root, event.getExtras());
+
+                            mRESTfulServer.sendEvent(key, root.toString());
+                        } catch (JSONException e) {
+                            mLogger.warning("JSONException in sendEvent: " + e.toString());
+                        } catch (IOException e) {
+                            mLogger.warning("IOException in sendEvent: " + e.toString());
+                        }
                     }
-                    JSONObject root = new JSONObject();
-                    DConnectUtil.convertBundleToJSON(root, event.getExtras());
-                    mRESTfulServer.sendEvent(key, root.toString());
-                }
-            } catch (JSONException e) {
-                mLogger.warning("JSONException in sendEvent: " + e.toString());
-            } catch (IOException e) {
-                mLogger.warning("IOException in sendEvent: " + e.toString());
+                });
             }
         } else {
             super.sendEvent(receiver, event);
@@ -129,6 +143,10 @@ public class DConnectService extends DConnectMessageService {
             mRESTfulServer = new DConnectServerNanoHttpd(builder.build(), this);
             mRESTfulServer.setServerEventListener(mWebServerListener);
             mRESTfulServer.start();
+
+            IntentFilter filter = new IntentFilter();
+            filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
+            registerReceiver(mWiFiReceiver, filter);
         }
     }
 
@@ -137,6 +155,7 @@ public class DConnectService extends DConnectMessageService {
      */
     private void stopRESTfulServer() {
         if (mRESTfulServer != null) {
+            unregisterReceiver(mWiFiReceiver);
             mRESTfulServer.shutdown();
             mRESTfulServer = null;
         }
@@ -189,6 +208,16 @@ public class DConnectService extends DConnectMessageService {
         @Override
         public void stop() throws RemoteException {
             stopInternal();
+        }
+    };
+
+    /**
+     * ネットワークiの接続状態の変化を受け取るレシーバー.
+     */
+    private final BroadcastReceiver mWiFiReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(final Context context, final Intent intent) {
+            showNotification();
         }
     };
 }

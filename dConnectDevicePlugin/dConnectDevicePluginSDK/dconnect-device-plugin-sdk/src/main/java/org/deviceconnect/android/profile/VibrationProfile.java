@@ -17,15 +17,15 @@ import android.content.Intent;
  * Vibration プロファイル.
  * 
  * <p>
- * スマートデバイスのバイブレーション操作機能を提供するAPI.<br/>
- * スマートデバイスのバイブレーション操作機能を提供するデバイスプラグインは当クラスを継承し、対応APIを実装すること。 <br/>
+ * スマートデバイスのバイブレーション操作機能を提供するAPI.<br>
+ * スマートデバイスのバイブレーション操作機能を提供するデバイスプラグインは当クラスを継承し、対応APIを実装すること。 <br>
  * AndridManifest.xmlにてVIBRATEパーミッションの指定が必要。
  * </p>
  * 
  * <h1>各API提供メソッド</h1>
  * <p>
- * Vibration Profile の各APIへのリクエストに対し、以下のコールバックメソッド群が自動的に呼び出される。<br/>
- * サブクラスは以下のメソッド群からデバイスプラグインが提供するAPI用のメソッドをオーバーライドし、機能を実装すること。<br/>
+ * Vibration Profile の各APIへのリクエストに対し、以下のコールバックメソッド群が自動的に呼び出される。<br>
+ * サブクラスは以下のメソッド群からデバイスプラグインが提供するAPI用のメソッドをオーバーライドし、機能を実装すること。<br>
  * オーバーライドされていない機能は自動的に非対応APIとしてレスポンスを返す。
  * </p>
  * <ul>
@@ -55,80 +55,6 @@ public abstract class VibrationProfile extends DConnectProfile implements Vibrat
         return PROFILE_NAME;
     }
 
-    @Override
-    protected boolean onPutRequest(final Intent request, final Intent response) {
-        String attribute = getAttribute(request);
-        boolean result = true;
-
-        if (ATTRIBUTE_VIBRATE.equals(attribute)) {
-            long[] pattern = parsePattern(getPattern(request));
-            if (pattern == null) {
-                MessageUtils.setInvalidRequestParameterError(response,
-                        "pattern is invalid.");
-            } else {
-                result = onPutVibrate(request, response, getServiceID(request), pattern);
-            }
-        } else {
-            MessageUtils.setUnknownAttributeError(response);
-        }
-
-        return result;
-    }
-
-    @Override
-    protected boolean onDeleteRequest(final Intent request, final Intent response) {
-        String attribute = getAttribute(request);
-        boolean result = true;
-
-        if (ATTRIBUTE_VIBRATE.equals(attribute)) {
-            result = onDeleteVibrate(request, response, getServiceID(request));
-        } else {
-            MessageUtils.setUnknownAttributeError(response);
-        }
-
-        return result;
-    }
-
-    // ------------------------------------
-    // PUT
-    // ------------------------------------
-
-    /**
-     * バイブ鳴動開始リクエストハンドラー.<br/>
-     * デバイスを鳴動させ、その結果をレスポンスパラメータに格納する。 レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
-     * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
-     * 
-     * @param request リクエストパラメータ
-     * @param response レスポンスパラメータ
-     * @param serviceId サービスID
-     * @param pattern バイブレーションの鳴動パターン配列。省略された場合は最大値を、不正なフォーマットでリクエストを受けた場合はnullが渡される。
-     * @return レスポンスパラメータを送信するか否か
-     */
-    protected boolean onPutVibrate(final Intent request, final Intent response, final String serviceId, 
-            final long[] pattern) {
-        setUnsupportedError(response);
-        return true;
-    }
-
-    // ------------------------------------
-    // DELETE
-    // ------------------------------------
-
-    /**
-     * バイブ鳴動停止リクエストハンドラー.<br/>
-     * デバイスの鳴動を終了させ、その結果をレスポンスパラメータに格納する。 レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
-     * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
-     * 
-     * @param request リクエストパラメータ
-     * @param response レスポンスパラメータ
-     * @param serviceId サービスID
-     * @return レスポンスパラメータを送信するか否か
-     */
-    protected boolean onDeleteVibrate(final Intent request, final Intent response, final String serviceId) {
-        setUnsupportedError(response);
-        return true;
-    }
-
     // ------------------------------------
     // リクエストゲッターメソッド群
     // ------------------------------------
@@ -149,7 +75,7 @@ public abstract class VibrationProfile extends DConnectProfile implements Vibrat
     // ------------------------------------
 
     /**
-     * 鳴動パターンを文字列から解析し、数値の配列に変換する.<br/>
+     * 鳴動パターンを文字列から解析し、数値の配列に変換する.<br>
      * 数値の前後の半角のスペースは無視される。その他の半角、全角のスペースは不正なフォーマットとして扱われる。
      * 
      * @param pattern 鳴動パターン文字列。空文字、nullの場合、最大値を返す。
@@ -212,7 +138,7 @@ public abstract class VibrationProfile extends DConnectProfile implements Vibrat
     }
 
     /**
-     * バイブレーションの最大鳴動時間を取得する.<br/>
+     * バイブレーションの最大鳴動時間を取得する.<br>
      * 実装クラス毎にオーバーライドし、適切な数値を返すこと。
      * 
      * @return 最大バイブレーション鳴動時間。単位はミリ秒。

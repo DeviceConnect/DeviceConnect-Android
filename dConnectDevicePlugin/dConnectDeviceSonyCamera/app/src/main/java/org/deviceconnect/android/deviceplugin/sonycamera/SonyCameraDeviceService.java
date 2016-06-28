@@ -1004,10 +1004,16 @@ public class SonyCameraDeviceService extends DConnectMessageService {
      * 
      * @param request リクエスト
      * @param response レスポンス
+     * @param target レコーダーID
      * 
      * @return プレビューの開始ができた場合はtrue、それ以外はfalse
      */
-    public synchronized boolean onPutPreview(final Intent request, final Intent response) {
+    public synchronized boolean onPutPreview(final Intent request, final Intent response,
+                                             final String target) {
+        if (target != null && !target.equals(TARGET_ID)) {
+            MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
+            return true;
+        }
         if (mRemoteApi == null) {
             MessageUtils.setIllegalDeviceStateError(response, "The sony camera is not connected.");
             return true;
@@ -1153,9 +1159,15 @@ public class SonyCameraDeviceService extends DConnectMessageService {
      * プレビューを停止する.
      * @param request リクエスト
      * @param response レスポンス
+     * @param target レコーダーID
      * @return result
      */
-    public synchronized boolean onDeletePreview(final Intent request, final Intent response) {
+    public synchronized boolean onDeletePreview(final Intent request, final Intent response,
+                                                final String target) {
+        if (target != null && !target.equals(TARGET_ID)) {
+            MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
+            return true;
+        }
         if (mRemoteApi == null) {
             MessageUtils.setIllegalDeviceStateError(response, "The sony camera is not connected.");
             return true;

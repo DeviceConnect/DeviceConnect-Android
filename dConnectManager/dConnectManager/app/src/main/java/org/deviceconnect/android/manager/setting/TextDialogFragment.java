@@ -1,12 +1,5 @@
 package org.deviceconnect.android.manager.setting;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.logging.Logger;
-
-import org.deviceconnect.android.manager.R;
-
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
@@ -15,6 +8,13 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.TextView;
+
+import org.deviceconnect.android.manager.R;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.logging.Logger;
 
 /**
  * プライバシーポリシーフラグメント.
@@ -48,7 +48,7 @@ public class TextDialogFragment extends DialogFragment {
                 }
                 os.write(buf, 0, len);
             }
-            text.setText(new String(os.toByteArray(), "UTF_8"));
+            text.setText(new String(os.toByteArray(), "UTF-8"));
         } catch (IOException e) {
             mLogger.warning(e.toString());
         } finally {

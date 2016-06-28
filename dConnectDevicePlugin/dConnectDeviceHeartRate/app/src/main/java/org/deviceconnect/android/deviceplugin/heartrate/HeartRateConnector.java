@@ -404,7 +404,7 @@ public class HeartRateConnector {
         byte[] buf = characteristic.getValue();
         if (buf.length > 1) {
             // Heart Rate Value Format bit
-            if ((buf[0] & 0x80) != 0) {
+            if ((buf[0] & 0x01) != 0) {
                 Integer v = characteristic.getIntValue(FORMAT_UINT16, offset);
                 if (v != null) {
                     heartRate = v;
@@ -419,12 +419,12 @@ public class HeartRateConnector {
             }
 
             // Sensor Contact Status bits
-            if ((buf[0] & 0x60) != 0) {
+            if ((buf[0] & 0x06) != 0) {
                 // MEMO: not implements yet
             }
 
             // Energy Expended Status bit
-            if ((buf[0] & 0x10) != 0) {
+            if ((buf[0] & 0x08) != 0) {
                 Integer v = characteristic.getIntValue(FORMAT_UINT16, offset);
                 if (v != null) {
                     energyExpended = v;
@@ -433,7 +433,7 @@ public class HeartRateConnector {
             }
 
             // RR-Interval bit
-            if ((buf[0] & 0x08) != 0) {
+            if ((buf[0] & 0x10) != 0) {
                 Integer v = characteristic.getIntValue(FORMAT_UINT16, offset);
                 if (v != null) {
                     rrInterval = ((double) v / 1024.0) * 1000.0;

@@ -16,6 +16,8 @@ import org.apache.james.mime4j.stream.BodyDescriptor;
 import org.apache.james.mime4j.stream.MimeConfig;
 import org.deviceconnect.android.deviceplugin.webrtc.BuildConfig;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -82,7 +84,7 @@ public class MixedReplaceMediaClient {
     /**
      * Stop flag.
      */
-    private boolean mStopFlag;
+    private volatile boolean mStopFlag;
 
     /**
      * Http.
@@ -147,6 +149,11 @@ public class MixedReplaceMediaClient {
                         if (BuildConfig.DEBUG) {
                             Log.e(TAG, "content type: " + contentType);
                         }
+
+                        if (mOnMixedReplaceMediaListener != null) {
+                            mOnMixedReplaceMediaListener.onConnected();
+                        }
+
                         if (contentType == null || contentType.startsWith(CONTENT_TYPE_IMAGE)) {
                             readImage(mConnection.getInputStream(), mConnection.getContentLength());
                         } else if (contentType.startsWith(CONTENT_TYPE_MULTIPART)) {
@@ -218,18 +225,49 @@ public class MixedReplaceMediaClient {
      * @param length data length
      * @throws IOException occurs if failed to get a data
      */
-    private synchronized void readImage(final InputStream in, final long length) throws IOException {
+    private void readImage(final InputStream in, final long length) throws IOException {
         if (mStopFlag) {
             throw new IllegalStateException("");
         }
 
         try {
-            notifyData(in);
+            final byte[] buf = readBuffer(in);
+
+            int fps = 5000;
+            while (!mStopFlag) {
+                long oldTime = System.currentTimeMillis();
+                notifyData(new ByteArrayInputStream(buf));
+                long newTime = System.currentTimeMillis();
+                long sleepTime = fps - (newTime - oldTime);
+                if (sleepTime > 0) {
+                    try {
+                        Thread.sleep(sleepTime);
+                    } catch (InterruptedException e) {
+                        return;
+                    }
+                }
+            }
         } catch (OutOfMemoryError e) {
             notifyError(MixedReplaceMediaError.OUT_OF_MEMORY_ERROR);
         } catch (Throwable e) {
             notifyError(MixedReplaceMediaError.UNKNOWN);
         }
+    }
+
+    /**
+     * Read the buffer from InputStream.
+     * @param in InputStream
+     * @return buffer of image
+     * @throws IOException IO error occurred
+     */
+    private byte[] readBuffer(InputStream in) throws IOException {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        int len;
+        byte[] buf = new byte[4096];
+        while ((len = in.read(buf)) != -1) {
+            out.write(buf, 0, len);
+        }
+        return out.toByteArray();
     }
 
     /**
@@ -245,7 +283,13 @@ public class MixedReplaceMediaClient {
             public void body(final BodyDescriptor bd, final InputStream is) throws MimeException, IOException {
                 super.body(bd, is);
                 if (bd.getContentLength() > 0) {
-                    readImage(is, bd.getContentLength());
+                    try {
+                        notifyData(is);
+                    } catch (OutOfMemoryError e) {
+                        notifyError(MixedReplaceMediaError.OUT_OF_MEMORY_ERROR);
+                    } catch (Throwable e) {
+                        notifyError(MixedReplaceMediaError.UNKNOWN);
+                    }
                 }
             }
         };
@@ -367,6 +411,7 @@ public class MixedReplaceMediaClient {
      * @author NTT DOCOMO, INC.
      */
     public interface OnMixedReplaceMediaListener {
+        void onConnected();
         /**
          * Notifies the received data.
          * @param in received data

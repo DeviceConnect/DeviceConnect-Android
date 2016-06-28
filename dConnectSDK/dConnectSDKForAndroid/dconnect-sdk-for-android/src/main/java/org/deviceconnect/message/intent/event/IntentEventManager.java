@@ -30,14 +30,14 @@ import android.content.Intent;
 
 /**
  * イベント管理クラス.
- * 
+ *
  * <p>
- * Intentによるイベントの登録、解除、受信のユーティリティ機能を提供する。<br/>
+ * Intentによるイベントの登録、解除、受信のユーティリティ機能を提供する。<br>
  * 当クラスを利用するには AndroidManifest.xmlへの{@link org.deviceconnect.message.intent.impl.io.IntentResponseReceiver}
  * の登録が必要となる。
  * </p>
- * 
- * 
+ *
+ *
  * @author NTT DOCOMO, INC.
  */
 public final class IntentEventManager extends AbstractEventManager {
@@ -71,14 +71,14 @@ public final class IntentEventManager extends AbstractEventManager {
     /**
      * 接続情報を設定する.
      * <p>
-     * {@link #registerEvent(org.deviceconnect.utils.URIBuilder, 
-     * org.deviceconnect.message.event.EventHandler)}、 
+     * {@link #registerEvent(org.deviceconnect.utils.URIBuilder,
+     * org.deviceconnect.message.event.EventHandler)}、
      * {@link #unregisterEvent(org.deviceconnect.utils.URIBuilder)}
      * メソッドを呼び出した場合、 このメソッドの引数を元に通信する。
      * 引数で指定されたコンテキストオブジェクトで、引数で指定されたコンポーネントネームをもつDevice Connectに対してIntentを送信する。
      * {@link #disconnect()}メソッドを呼び出すことで接続情報をクリアする。
      * </p>
-     * 
+     *
      * @param context コンテキストオブジェクト
      * @param componentName Device Connect Managerのコンポーネントネーム
      */
@@ -117,7 +117,7 @@ public final class IntentEventManager extends AbstractEventManager {
 
     /**
      * 受信したイベントを通知する.
-     * 
+     *
      * @param event イベントデータ
      */
     public void sendEvent(final Intent event) {

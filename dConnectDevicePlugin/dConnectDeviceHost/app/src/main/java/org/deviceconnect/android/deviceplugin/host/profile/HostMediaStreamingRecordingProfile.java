@@ -7,22 +7,21 @@
 
 package org.deviceconnect.android.deviceplugin.host.profile;
 
-import android.app.Activity;
-import android.app.ActivityManager;
-import android.app.Service;
+import android.Manifest;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Looper;
-import android.os.ResultReceiver;
 import android.support.annotation.NonNull;
 
+import org.deviceconnect.android.activity.PermissionUtility;
+import org.deviceconnect.android.deviceplugin.host.camera.HostDevicePhotoRecorder;
+import org.deviceconnect.android.deviceplugin.host.HostDevicePreviewServer;
+import org.deviceconnect.android.deviceplugin.host.HostDeviceRecorder;
+import org.deviceconnect.android.deviceplugin.host.HostDeviceRecorderManager;
 import org.deviceconnect.android.deviceplugin.host.HostDeviceService;
-import org.deviceconnect.android.deviceplugin.host.audio.AudioConst;
-import org.deviceconnect.android.deviceplugin.host.audio.AudioRecorder;
+import org.deviceconnect.android.deviceplugin.host.HostDeviceStreamRecorder;
 import org.deviceconnect.android.deviceplugin.host.camera.CameraOverlay.OnTakePhotoListener;
-import org.deviceconnect.android.deviceplugin.host.video.VideoConst;
-import org.deviceconnect.android.deviceplugin.host.video.VideoRecorder;
+import org.deviceconnect.android.deviceplugin.host.camera.HostDeviceCameraRecorder;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
@@ -31,109 +30,332 @@ import org.deviceconnect.android.profile.MediaStreamRecordingProfile;
 import org.deviceconnect.android.provider.FileManager;
 import org.deviceconnect.message.DConnectMessage;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Locale;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
+import static org.deviceconnect.android.deviceplugin.host.profile.RequestParam.Range;
+import static org.deviceconnect.android.deviceplugin.host.profile.RequestParam.Type;
 
 /**
  * MediaStream Recording Profile.
  *
  * @author NTT DOCOMO, INC.
  */
+@SuppressWarnings("deprecation")
 public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProfile {
-    /**
-     * 写真用のカメラターゲットID.
-     */
-    private static final String PHOTO_TARGET_ID = "photo";
 
-    /**
-     * 写真用のカメラターゲット名.
-     */
-    private static final String PHOTO_TARGET_NAME = "AndroidHost Recorder";
+    private final HostDeviceRecorderManager mRecorderMgr;
 
-    /**
-     * VideoのカメラターゲットID.
-     */
-    private static final String VIDEO_TARGET_ID = "video";
+    private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
 
-    /**
-     * Videoのカメラターゲット名.
-     */
-    private static final String VIDEO_TARGET_NAME = "AndroidHost Video Recorder";
+    private final Handler mHandler;
 
-    /**
-     * AudioのカメラターゲットID.
-     */
-    private static final String AUDIO_TARGET_ID = "audio";
+    private final RequestParam[] mOptionApiPutParams = {
+        new RequestParam(PARAM_IMAGE_WIDTH, Type.INT, new Range() {
+            @Override
+            boolean checkInt(final int imageWidth) {
+                return imageWidth > 0;
+            }
+        }),
+        new RequestParam(PARAM_IMAGE_HEIGHT, Type.INT, new Range() {
+            @Override
+            boolean checkInt(final int imageHeight) {
+                return imageHeight > 0;
+            }
+        }),
+        new RequestParam(PARAM_PREVIEW_WIDTH, Type.INT, new Range() {
+            @Override
+            boolean checkInt(final int previewWidth) {
+                return previewWidth > 0;
+            }
+        }),
+        new RequestParam(PARAM_IMAGE_HEIGHT, Type.INT, new Range() {
+            @Override
+            boolean checkInt(final int previewHeight) {
+                return previewHeight > 0;
+            }
+        }),
+        new RequestParam(PARAM_PREVIEW_MAX_FRAME_RATE, Type.DOUBLE, new Range() {
+            @Override
+            boolean checkDouble(final double maxFrameRate) {
+                return maxFrameRate > 0.0;
+            }
+        })
+    };
 
-    /**
-     * Audioのカメラターゲット名.
-     */
-    private static final String AUDIO_TARGET_NAME = "AndroidHost Audio Recorder";
-
-    /** 日付のフォーマット. */
-    private SimpleDateFormat mSimpleDateFormat = new SimpleDateFormat("yyyyMMdd_kkmmss", Locale.JAPAN);
+    public HostMediaStreamingRecordingProfile(final HostDeviceRecorderManager mgr) {
+        mRecorderMgr = mgr;
+        mHandler = new Handler();
+    }
 
     @Override
-    protected boolean onGetMediaRecorder(final Intent request, final Intent response, final String serviceId) {
+    protected boolean onGetMediaRecorder(final Intent request, final Intent response,
+                                         final String serviceId) {
         if (serviceId == null) {
             createEmptyServiceId(response);
-        } else if (!checkserviceId(serviceId)) {
+            return true;
+        }
+        if (!checkServiceId(serviceId)) {
             createNotFoundService(response);
-        } else {
-            HostDeviceService c = ((HostDeviceService) getContext());
-            String className = getClassnameOfTopActivity();
-            List<Bundle> recorders = new LinkedList<Bundle>();
+            return true;
+        }
 
-            Bundle cameraRecorder = new Bundle();
-            setRecorderId(cameraRecorder, PHOTO_TARGET_ID);
-            setRecorderName(cameraRecorder, PHOTO_TARGET_NAME);
-            setRecorderImageWidth(cameraRecorder, VideoConst.VIDEO_WIDTH);
-            setRecorderImageHeight(cameraRecorder, VideoConst.VIDEO_HEIGHT);
-            setRecorderMIMEType(cameraRecorder, "image/png");
-            if (c.isShowCamera()) {
-                setRecorderState(cameraRecorder, RecorderState.RECORDING);
-            } else {
-                setRecorderState(cameraRecorder, RecorderState.INACTIVE);
+        mExecutor.execute(new Runnable() {
+            @Override
+            public void run() {
+                if (!initRecorders(response)) {
+                    sendResponse(response);
+                    return;
+                }
+
+                List<Bundle> recorders = new LinkedList<Bundle>();
+                for (HostDeviceRecorder recorder : mRecorderMgr.getRecorders()) {
+                    Bundle info = new Bundle();
+                    setRecorderId(info, recorder.getId());
+                    setRecorderName(info, recorder.getName());
+                    setRecorderMIMEType(info, recorder.getMimeType());
+                    switch (recorder.getState()) {
+                        case RECORDING:
+                            setRecorderState(info, RecorderState.RECORDING);
+                            break;
+                        default:
+                            setRecorderState(info, RecorderState.INACTIVE);
+                            break;
+                    }
+                    if (recorder instanceof HostDeviceCameraRecorder) {
+                        HostDeviceRecorder.PictureSize size = ((HostDeviceCameraRecorder) recorder).getPictureSize();
+                        setRecorderImageWidth(info, size.getWidth());
+                        setRecorderImageHeight(info, size.getHeight());
+                    }
+                    if (recorder instanceof HostDevicePreviewServer) {
+                        HostDevicePreviewServer server = (HostDevicePreviewServer) recorder;
+                        HostDeviceRecorder.PictureSize size = server.getPreviewSize();
+                        setRecorderPreviewWidth(info, size.getWidth());
+                        setRecorderPreviewHeight(info, size.getHeight());
+                        setRecorderPreviewMaxFrameRate(info, server.getPreviewMaxFrameRate());
+                    }
+                    setRecorderConfig(info, "");
+                    recorders.add(info);
+                }
+                setRecorders(response, recorders.toArray(new Bundle[recorders.size()]));
+                setResult(response, DConnectMessage.RESULT_OK);
+                sendResponse(response);
             }
-            setRecorderConfig(cameraRecorder, "");
-            recorders.add(cameraRecorder);
+        });
+        return false;
+    }
 
-            Bundle videoRecorder = new Bundle();
-            setRecorderId(videoRecorder, VIDEO_TARGET_ID);
-            setRecorderName(videoRecorder, VIDEO_TARGET_NAME);
-            setRecorderImageWidth(videoRecorder, VideoConst.VIDEO_WIDTH);
-            setRecorderImageHeight(videoRecorder, VideoConst.VIDEO_HEIGHT);
-            setRecorderMIMEType(videoRecorder, "video/3gp");
-            if (VideoRecorder.class.getName().equals(className)) {
-                setRecorderState(cameraRecorder, RecorderState.RECORDING);
-            } else {
-                setRecorderState(cameraRecorder, RecorderState.INACTIVE);
+    private boolean initRecorders(final Intent response) {
+        try {
+            if (!requestPermission()) {
+                MessageUtils.setUnknownError(response, "Permission for camera is not granted.");
+                return false;
             }
-            setRecorderConfig(videoRecorder, "");
-            recorders.add(videoRecorder);
+        } catch (InterruptedException e) {
+            MessageUtils.setUnknownError(response, "Permission for camera is not granted.");
+            return false;
+        }
 
-            Bundle audioRecorder = new Bundle();
-            setRecorderId(audioRecorder, AUDIO_TARGET_ID);
-            setRecorderName(audioRecorder, AUDIO_TARGET_NAME);
-            setRecorderMIMEType(videoRecorder, "audio/3gp");
-            if (AudioRecorder.class.getName().equals(className)) {
-                setRecorderState(cameraRecorder, RecorderState.RECORDING);
-            } else {
-                setRecorderState(cameraRecorder, RecorderState.INACTIVE);
-            }
-            setRecorderConfig(audioRecorder, "");
-            recorders.add(audioRecorder);
-
-            setRecorders(response, recorders.toArray(new Bundle[recorders.size()]));
-
-            setResult(response, DConnectMessage.RESULT_OK);
+        for (HostDeviceRecorder recorder : mRecorderMgr.getRecorders()) {
+            recorder.initialize();
         }
         return true;
+    }
+
+    private boolean requestPermission() throws InterruptedException {
+        final Boolean[] isPermitted = new Boolean[1];
+        final CountDownLatch lockObj = new CountDownLatch(1);
+        PermissionUtility.requestPermissions(getContext(), mHandler, new String[]{Manifest.permission.CAMERA},
+            new PermissionUtility.PermissionRequestCallback() {
+                @Override
+                public void onSuccess() {
+                    isPermitted[0] = true;
+                    lockObj.countDown();
+                }
+
+                @Override
+                public void onFail(@NonNull String deniedPermission) {
+                    isPermitted[0] = false;
+                    lockObj.countDown();
+                }
+            });
+        while (isPermitted[0] == null) {
+            lockObj.await(100, TimeUnit.MILLISECONDS);
+        }
+        return isPermitted[0];
+    }
+
+    @Override
+    protected boolean onGetOptions(final Intent request, final Intent response,
+                                   final String serviceId, final String target) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+            return true;
+        }
+        if (!checkServiceId(serviceId)) {
+            createNotFoundService(response);
+            return true;
+        }
+
+        HostDeviceRecorder recorder = mRecorderMgr.getRecorder(target);
+        if (recorder == null) {
+            MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
+            return true;
+        }
+
+        setMIMEType(response, recorder.getSupportedMimeTypes());
+        if (recorder instanceof HostDeviceCameraRecorder) {
+            HostDeviceCameraRecorder camera = (HostDeviceCameraRecorder) recorder;
+            setSupportedImageSizes(response, camera.getSupportedPictureSizes());
+        }
+        if (recorder instanceof HostDevicePreviewServer) {
+            HostDevicePreviewServer server = (HostDevicePreviewServer) recorder;
+            setSupportedPreviewSizes(response, server.getSupportedPreviewSizes());
+        }
+        setResult(response, DConnectMessage.RESULT_OK);
+        return true;
+    }
+
+    private static void setSupportedImageSizes(final Intent response,
+                                               final List<HostDeviceRecorder.PictureSize> sizes) {
+        Bundle[] array = new Bundle[sizes.size()];
+        int i = 0;
+        for (HostDeviceRecorder.PictureSize size : sizes) {
+            Bundle info = new Bundle();
+            setWidth(info, size.getWidth());
+            setHeight(info, size.getHeight());
+            array[i++] = info;
+        }
+        setImageSizes(response, array);
+    }
+
+    private static void setSupportedPreviewSizes(final Intent response,
+                                                 final List<HostDeviceRecorder.PictureSize> sizes) {
+        Bundle[] array = new Bundle[sizes.size()];
+        int i = 0;
+        for (HostDeviceRecorder.PictureSize size : sizes) {
+            Bundle info = new Bundle();
+            setWidth(info, size.getWidth());
+            setHeight(info, size.getHeight());
+            array[i++] = info;
+        }
+        setPreviewSizes(response, array);
+    }
+
+    @Override
+    protected boolean onPutOptions(final Intent request, final Intent response,
+                                   final String serviceId, final String target,
+                                   final Integer imageWidth, final Integer imageHeight,
+                                   final Integer previewWidth, final Integer previewHeight,
+                                   final Double previewMaxFrameRate, final String mimeType) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+            return true;
+        }
+        if (!checkServiceId(serviceId)) {
+            createNotFoundService(response);
+            return true;
+        }
+        if (mimeType == null) {
+            MessageUtils.setInvalidRequestParameterError(response, "mimeType is null.");
+            return true;
+        }
+
+        HostDeviceRecorder recorder = mRecorderMgr.getRecorder(target);
+        if (recorder == null) {
+            MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
+            return true;
+        }
+
+        if (!supportsMimeType(recorder, mimeType)) {
+            MessageUtils.setInvalidRequestParameterError(response,
+                "MIME-Type " + mimeType + " is unsupported.");
+            return true;
+        }
+        if (!checkOptionsParam(request, response)) {
+            return true;
+        }
+        if (recorder.getState() != HostDeviceRecorder.RecorderState.INACTTIVE) {
+            MessageUtils.setInvalidRequestParameterError(response, "settings of active target cannot be changed.");
+            return true;
+        }
+
+        if (imageWidth != null && imageHeight != null) {
+            if (!recorder.supportsPictureSize(imageWidth, imageHeight)) {
+                MessageUtils.setInvalidRequestParameterError(response, "Unsupported image size: imageWidth = "
+                    + imageWidth + ", imageHeight = " + imageHeight);
+                return true;
+            }
+            HostDeviceRecorder.PictureSize newSize = new HostDeviceRecorder.PictureSize(imageWidth, imageHeight);
+            recorder.setPictureSize(newSize);
+        }
+        if (previewWidth != null && previewHeight != null) {
+            if (!(recorder instanceof HostDevicePreviewServer)) {
+                MessageUtils.setInvalidRequestParameterError(response, "preview is unsupported.");
+                return true;
+            }
+            HostDevicePreviewServer server = (HostDevicePreviewServer) recorder;
+            if (!server.supportsPreviewSize(previewWidth, previewHeight)) {
+                MessageUtils.setInvalidRequestParameterError(response, "Unsupported preview size: previewWidth = "
+                    + previewWidth + ", previewHeight = " + previewHeight);
+                return true;
+            }
+            HostDeviceRecorder.PictureSize newSize = new HostDeviceRecorder.PictureSize(previewWidth, previewHeight);
+            server.setPreviewSize(newSize);
+        }
+        if (previewMaxFrameRate != null) {
+            if (!(recorder instanceof HostDevicePreviewServer)) {
+                MessageUtils.setInvalidRequestParameterError(response, "preview is unsupported.");
+                return true;
+            }
+            HostDevicePreviewServer server = (HostDevicePreviewServer) recorder;
+            server.setPreviewFrameRate(previewMaxFrameRate);
+        }
+
+        setResult(response, DConnectMessage.RESULT_OK);
+        return true;
+    }
+
+    private boolean checkOptionsParam(final Intent request, final Intent response) {
+        for (RequestParam param : mOptionApiPutParams) {
+            if (!param.check(request, response)) {
+                return false;
+            }
+        }
+        Integer imageWidth = getImageWidth(request);
+        Integer imageHeight = getImageHeight(request);
+        if (imageWidth != null && imageHeight == null) {
+            MessageUtils.setInvalidRequestParameterError(response, "imageHeight is null.");
+            return false;
+        }
+        if (imageWidth == null && imageHeight != null) {
+            MessageUtils.setInvalidRequestParameterError(response, "imageWidth is null.");
+            return false;
+        }
+        Integer previewWidth = getPreviewWidth(request);
+        Integer previewHeight = getPreviewHeight(request);
+        if (previewWidth != null && previewHeight == null) {
+            MessageUtils.setInvalidRequestParameterError(response, "previewHeight is null.");
+            return false;
+        }
+        if (previewWidth == null && previewHeight != null) {
+            MessageUtils.setInvalidRequestParameterError(response, "previewWidth is null.");
+            return false;
+        }
+        return true;
+    }
+
+    private boolean supportsMimeType(final HostDeviceRecorder recorder, final String mimeType) {
+        for (String supportedMimeType : recorder.getSupportedMimeTypes()) {
+            if (supportedMimeType.equals(mimeType)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
@@ -174,89 +396,103 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         if (serviceId == null) {
             createEmptyServiceId(response);
             return true;
-        } else if (!checkServiceId(serviceId)) {
+        }
+        if (!checkServiceId(serviceId)) {
             createNotFoundService(response);
             return true;
-        } else {
-            if (target != null && !PHOTO_TARGET_ID.equals(target)) {
-                MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
-                return true;
+        }
+        HostDevicePhotoRecorder recorder = mRecorderMgr.getPhotoRecorder(target);
+        if (recorder == null) {
+            MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
+            return true;
+        }
+
+        recorder.takePhoto(new OnTakePhotoListener() {
+            @Override
+            public void onTakenPhoto(final String uri, final String filePath) {
+                setResult(response, DConnectMessage.RESULT_OK);
+                setUri(response, uri);
+                sendResponse(response);
+
+                List<Event> evts = EventManager.INSTANCE.getEventList(serviceId,
+                    MediaStreamRecordingProfile.PROFILE_NAME, null,
+                    MediaStreamRecordingProfile.ATTRIBUTE_ON_PHOTO);
+
+                Bundle photo = new Bundle();
+                photo.putString(MediaStreamRecordingProfile.PARAM_URI, uri);
+                photo.putString(MediaStreamRecordingProfile.PARAM_PATH, filePath);
+                photo.putString(MediaStreamRecordingProfile.PARAM_MIME_TYPE, "image/png");
+
+                for (Event evt : evts) {
+                    Intent intent = EventManager.createEventMessage(evt);
+                    intent.putExtra(MediaStreamRecordingProfile.PARAM_PHOTO, photo);
+                    sendEvent(intent, evt.getAccessToken());
+                }
             }
 
-            HostDeviceService c = ((HostDeviceService) getContext());
-            c.takePicture(new OnTakePhotoListener() {
-                @Override
-                public void onTakenPhoto(final String uri, final String filePath) {
-                    setResult(response, DConnectMessage.RESULT_OK);
-                    setUri(response, uri);
-                    sendResponse(response);
-
-                    List<Event> evts = EventManager.INSTANCE.getEventList(serviceId,
-                            MediaStreamRecordingProfile.PROFILE_NAME, null,
-                            MediaStreamRecordingProfile.ATTRIBUTE_ON_PHOTO);
-
-                    Bundle photo = new Bundle();
-                    photo.putString(MediaStreamRecordingProfile.PARAM_URI, uri);
-                    photo.putString(MediaStreamRecordingProfile.PARAM_PATH, filePath);
-                    photo.putString(MediaStreamRecordingProfile.PARAM_MIME_TYPE, "image/png");
-
-                    for (Event evt : evts) {
-                        Intent intent = EventManager.createEventMessage(evt);
-                        intent.putExtra(MediaStreamRecordingProfile.PARAM_PHOTO, photo);
-                        sendEvent(intent, evt.getAccessToken());
-                    }
-                }
-
-                @Override
-                public void onFailedTakePhoto() {
-                    MessageUtils.setUnknownError(response, "Failed to take a photo");
-                    sendResponse(response);
-                }
-            });
-            return false;
-        }
+            @Override
+            public void onFailedTakePhoto() {
+                MessageUtils.setUnknownError(response, "Failed to take a photo");
+                sendResponse(response);
+            }
+        });
+        return false;
     }
 
     @Override
-    protected boolean onPutPreview(final Intent request, final Intent response, final String serviceId) {
+    protected boolean onPutPreview(final Intent request, final Intent response, final String serviceId,
+                                   final String target) {
         if (serviceId == null) {
             createEmptyServiceId(response);
             return true;
-        } else if (!checkServiceId(serviceId)) {
+        }
+        if (!checkServiceId(serviceId)) {
             createNotFoundService(response);
             return true;
-        } else {
-            ((HostDeviceService) getContext()).startWebServer(new HostDeviceService.OnWebServerStartCallback() {
-                @Override
-                public void onStart(@NonNull String uri) {
-                    setResult(response, DConnectMessage.RESULT_OK);
-                    setUri(response, uri);
-                    sendResponse(response);
-                }
-
-                @Override
-                public void onFail() {
-                    MessageUtils.setIllegalServerStateError(response, "Failed to start web server.");
-                    sendResponse(response);
-                }
-            });
-            return false;
         }
+        HostDevicePreviewServer server = mRecorderMgr.getPreviewServer(target);
+        if (server == null) {
+            MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
+            return true;
+        }
+
+        server.startWebServer(new HostDevicePhotoRecorder.OnWebServerStartCallback() {
+            @Override
+            public void onStart(@NonNull String uri) {
+                setResult(response, DConnectMessage.RESULT_OK);
+                setUri(response, uri);
+                sendResponse(response);
+            }
+
+            @Override
+            public void onFail() {
+                MessageUtils.setIllegalServerStateError(response, "Failed to start web server.");
+                sendResponse(response);
+            }
+        });
+        return false;
     }
 
     @Override
-    protected boolean onDeletePreview(final Intent request, final Intent response, final String serviceId) {
+    protected boolean onDeletePreview(final Intent request, final Intent response, final String serviceId,
+                                      final String target) {
         if (serviceId == null) {
             createEmptyServiceId(response);
             return true;
-        } else if (!checkServiceId(serviceId)) {
+        }
+        if (!checkServiceId(serviceId)) {
             createNotFoundService(response);
             return true;
-        } else {
-            ((HostDeviceService) getContext()).stopWebServer();
-            setResult(response, DConnectMessage.RESULT_OK);
+        }
+        HostDevicePreviewServer server = mRecorderMgr.getPreviewServer(target);
+        if (server == null) {
+            MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
             return true;
         }
+
+        server.stopWebServer();
+        setResult(response, DConnectMessage.RESULT_OK);
+        return true;
     }
 
     @Override
@@ -266,79 +502,49 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         if (serviceId == null) {
             createEmptyServiceId(response);
             return true;
-        } else if (!checkServiceId(serviceId)) {
+        }
+        if (!checkServiceId(serviceId)) {
             createNotFoundService(response);
             return true;
-        } else {
-
-            if (timeslice != null && timeslice <= 0) {
-                MessageUtils.setInvalidRequestParameterError(response, "timeslice is invalid.");
-                return true;
-            }
-
-            final FileManager mgr = ((HostDeviceService) getContext()).getFileManager();
-            String className = getClassnameOfTopActivity();
-
-            if (target == null || target.equals(VIDEO_TARGET_ID)) {
-                if (VideoRecorder.class.getName().equals(className)) {
-                    MessageUtils.setIllegalDeviceStateError(response, "Video recorder is already running.");
-                    return true;
-                }
-                final String filename = generateVideoFileName();
-                Intent intent = new Intent();
-                intent.setClass(getContext(), VideoRecorder.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                intent.putExtra(VideoConst.EXTRA_FILE_NAME, filename);
-                intent.putExtra(VideoConst.EXTRA_CALLBACK, new ResultReceiver(new Handler(Looper.getMainLooper())) {
-                    @Override
-                    protected void onReceiveResult(int resultCode, Bundle resultData) {
-                        if (resultCode == Activity.RESULT_OK) {
-                            setResult(response, DConnectMessage.RESULT_OK);
-                            setPath(response, "/" + filename);
-                            setUri(response, mgr.getContentUri() + "/" + filename);
-                        } else {
-                            String msg =
-                                    resultData.getString(VideoConst.EXTRA_CALLBACK_ERROR_MESSAGE, "Unknown error.");
-                            MessageUtils.setIllegalServerStateError(response, msg);
-                        }
-                        sendResponse(response);
-                    }
-                });
-                getContext().startActivity(intent);
-                return false;
-            } else if (target.equals(AUDIO_TARGET_ID)) {
-                if (AudioRecorder.class.getName().equals(className)) {
-                    MessageUtils.setIllegalDeviceStateError(response, "Audio recorder is already running.");
-                    return true;
-                }
-                final String filename = generateAudioFileName();
-                Intent intent = new Intent();
-                intent.setClass(getContext(), AudioRecorder.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                intent.putExtra(AudioConst.EXTRA_FINE_NAME, filename);
-                intent.putExtra(AudioConst.EXTRA_CALLBACK, new ResultReceiver(new Handler(Looper.getMainLooper())) {
-                    @Override
-                    protected void onReceiveResult(int resultCode, Bundle resultData) {
-                        if (resultCode == Activity.RESULT_OK) {
-                            setResult(response, DConnectMessage.RESULT_OK);
-                            setPath(response, "/" + filename);
-                            setUri(response, mgr.getContentUri() + "/" + filename);
-                        } else {
-                            String msg =
-                            resultData.getString(AudioConst.EXTRA_CALLBACK_ERROR_MESSAGE, "Unknown error.");
-                            MessageUtils.setIllegalServerStateError(response, msg);
-                        }
-                        sendResponse(response);
-                    }
-                });
-                getContext().startActivity(intent);
-                return false;
-            } else {
-                MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
-            }
-
+        }
+        if (timeslice != null && timeslice <= 0) {
+            MessageUtils.setInvalidRequestParameterError(response, "timeslice is invalid.");
             return true;
         }
+
+        if (mRecorderMgr.getRecorder(target) == null) {
+            MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
+            return true;
+        }
+        HostDeviceStreamRecorder recorder = mRecorderMgr.getStreamRecorder(target);
+        if (recorder == null) {
+            MessageUtils.setNotSupportAttributeError(response,
+                "target does not support stream recording.");
+            return true;
+        }
+
+        if (recorder.getState() != HostDeviceRecorder.RecorderState.INACTTIVE) {
+            MessageUtils.setIllegalDeviceStateError(response, recorder.getName()
+                + " is already running.");
+            return true;
+        }
+        recorder.start(new HostDeviceStreamRecorder.RecordingListener() {
+            @Override
+            public void onRecorded(final HostDeviceRecorder recorder, final String fileName) {
+                FileManager mgr = ((HostDeviceService) getContext()).getFileManager();
+                setResult(response, DConnectMessage.RESULT_OK);
+                setPath(response, "/" + fileName);
+                setUri(response, mgr.getContentUri() + "/" + fileName);
+                sendResponse(response);
+            }
+
+            @Override
+            public void onFailed(final HostDeviceRecorder recorder, final String errorMesage) {
+                MessageUtils.setIllegalServerStateError(response, errorMesage);
+                sendResponse(response);
+            }
+        });
+        return false;
     }
 
     @Override
@@ -347,125 +553,108 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         if (serviceId == null) {
             createEmptyServiceId(response);
             return true;
-        } else if (!checkServiceId(serviceId)) {
+        }
+        if (!checkServiceId(serviceId)) {
             createNotFoundService(response);
             return true;
-        } else {
-            // 今起動しているActivityを判定する
-            String className = getClassnameOfTopActivity();
-            if (VideoRecorder.class.getName().equals(className)) {
-                Intent intent = new Intent(VideoConst.SEND_HOSTDP_TO_VIDEO);
-                intent.putExtra(VideoConst.EXTRA_NAME, VideoConst.EXTRA_VALUE_VIDEO_RECORD_STOP);
-                getContext().sendBroadcast(intent);
-                setResult(response, DConnectMessage.RESULT_OK);
-            } else if (AudioRecorder.class.getName().equals(className)) {
-                Intent intent = new Intent(AudioConst.SEND_HOSTDP_TO_AUDIO);
-                intent.putExtra(AudioConst.EXTRA_NAME, AudioConst.EXTRA_NAME_AUDIO_RECORD_STOP);
-                getContext().sendBroadcast(intent);
-                setResult(response, DConnectMessage.RESULT_OK);
-            } else {
-                MessageUtils.setIllegalDeviceStateError(response);
-            }
+        }
 
+        if (mRecorderMgr.getRecorder(target) == null) {
+            MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
             return true;
         }
+        HostDeviceStreamRecorder recorder = mRecorderMgr.getStreamRecorder(target);
+        if (recorder == null) {
+            MessageUtils.setNotSupportAttributeError(response,
+                "target does not support stream recording.");
+            return true;
+        }
+        if (recorder.getState() == HostDeviceRecorder.RecorderState.INACTTIVE) {
+            MessageUtils.setIllegalDeviceStateError(response, "recorder is stopped already.");
+            return true;
+        }
+
+        recorder.stop();
+        setResult(response, DConnectMessage.RESULT_OK);
+        return true;
     }
 
     @Override
     protected boolean onPutPause(final Intent request, final Intent response, final String serviceId,
             final String target) {
-
         if (serviceId == null) {
             createEmptyServiceId(response);
             return true;
-        } else if (!checkServiceId(serviceId)) {
+        }
+        if (!checkServiceId(serviceId)) {
             createNotFoundService(response);
             return true;
-        } else {
+        }
 
-            String className = getClassnameOfTopActivity();
-            if (VideoRecorder.class.getName().equals(className)) {
-                MessageUtils.setNotSupportAttributeError(response);
-            } else if (AudioRecorder.class.getName().equals(className)) {
-                Intent intent = new Intent(AudioConst.SEND_HOSTDP_TO_AUDIO);
-                intent.putExtra(AudioConst.EXTRA_NAME, AudioConst.EXTRA_NAME_AUDIO_RECORD_PAUSE);
-                getContext().sendBroadcast(intent);
-                setResult(response, DConnectMessage.RESULT_OK);
-            } else {
-                MessageUtils.setIllegalDeviceStateError(response);
-            }
-
+        if (mRecorderMgr.getRecorder(target) == null) {
+            MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
             return true;
         }
+        HostDeviceStreamRecorder recorder = mRecorderMgr.getStreamRecorder(target);
+        if (recorder == null) {
+            MessageUtils.setNotSupportAttributeError(response,
+                "target does not support stream recording.");
+            return true;
+        }
+
+        if (!recorder.canPause()) {
+            MessageUtils.setNotSupportAttributeError(response);
+            return true;
+        }
+        if (recorder.getState() != HostDeviceRecorder.RecorderState.RECORDING) {
+            MessageUtils.setIllegalDeviceStateError(response);
+            return true;
+        }
+        recorder.pause();
+        setResult(response, DConnectMessage.RESULT_OK);
+        return true;
     }
 
     @Override
     protected boolean onPutResume(final Intent request, final Intent response, final String serviceId,
             final String target) {
-
         if (serviceId == null) {
             createEmptyServiceId(response);
             return true;
-        } else if (!checkServiceId(serviceId)) {
+        }
+        if (!checkServiceId(serviceId)) {
             createNotFoundService(response);
             return true;
-        } else {
-            String className = getClassnameOfTopActivity();
-            if (VideoRecorder.class.getName().equals(className)) {
-                MessageUtils.setNotSupportAttributeError(response);
-            } else if (AudioRecorder.class.getName().equals(className)) {
-                Intent intent = new Intent(AudioConst.SEND_HOSTDP_TO_AUDIO);
-                intent.putExtra(AudioConst.EXTRA_NAME, AudioConst.EXTRA_NAME_AUDIO_RECORD_RESUME);
-                getContext().sendBroadcast(intent);
-                setResult(response, DConnectMessage.RESULT_OK);
-            } else {
-                MessageUtils.setIllegalDeviceStateError(response);
-            }
         }
 
+        if (mRecorderMgr.getRecorder(target) == null) {
+            MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
+            return true;
+        }
+        HostDeviceStreamRecorder recorder = mRecorderMgr.getStreamRecorder(target);
+        if (recorder == null) {
+            MessageUtils.setNotSupportAttributeError(response,
+                "target does not support stream recording.");
+            return true;
+        }
+
+        if (!recorder.canPause()) {
+            MessageUtils.setNotSupportAttributeError(response);
+            return true;
+        }
+        recorder.resume();
+        setResult(response, DConnectMessage.RESULT_OK);
         return true;
-    }
-
-    /**
-     * Generate a file name for video.
-     *
-     * @return file name
-     */
-    private String generateVideoFileName() {
-        return "video" + mSimpleDateFormat.format(new Date()) + VideoConst.FORMAT_TYPE;
-    }
-
-    /**
-     * Generate a file name for audio.
-     *
-     * @return file name
-     */
-    private String generateAudioFileName() {
-        return "audio" + mSimpleDateFormat.format(new Date()) + AudioConst.FORMAT_TYPE;
     }
 
     /**
      * サービスIDをチェックする.
      *
      * @param serviceId サービスID
-     * @return <code>serviceId</code>がテスト用サービスIDに等しい場合はtrue、そうでない場合はfalse
+     * @return <code>serviceId</code>がHostデバイスのIDに等しい場合はtrue、そうでない場合はfalse
      */
     private boolean checkServiceId(final String serviceId) {
-        String regex = HostServiceDiscoveryProfile.SERVICE_ID;
-        Pattern p = Pattern.compile(regex);
-        Matcher m = p.matcher(serviceId);
-        return m.find();
-    }
-
-    /**
-     * 画面の一番上にでているActivityのクラス名を取得.
-     *
-     * @return クラス名
-     */
-    private String getClassnameOfTopActivity() {
-        ActivityManager activitMgr = (ActivityManager) getContext().getSystemService(Service.ACTIVITY_SERVICE);
-        String className = activitMgr.getRunningTasks(1).get(0).topActivity.getClassName();
-        return className;
+        return HostServiceDiscoveryProfile.SERVICE_ID.equals(serviceId);
     }
 
     /**
@@ -475,16 +664,6 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
      */
     private void createNotFoundService(final Intent response) {
         MessageUtils.setNotFoundServiceError(response, "Service is not found.");
-    }
-
-    /**
-     * サービスIDをチェックする.
-     *
-     * @param serviceId サービスID
-     * @return <code>serviceId</code>がテスト用サービスIDに等しい場合はtrue、そうでない場合はfalse
-     */
-    private boolean checkserviceId(final String serviceId) {
-        return HostServiceDiscoveryProfile.SERVICE_ID.equals(serviceId);
     }
 
     /**

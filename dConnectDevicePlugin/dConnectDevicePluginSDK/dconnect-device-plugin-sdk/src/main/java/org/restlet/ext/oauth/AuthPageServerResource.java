@@ -134,16 +134,16 @@ import org.restlet.ext.oauth.internal.Token;
  *    <h4>The following private info is requested</h4>
  * 
  *     <#list requestingScopes as r> <input type="checkbox" name="scope" value="${r}" checked />
- *       <b>${r}</b><br/>
+ *       <b>${r}</b><br>
  *     </#list> 
  *     <#if grantedScopes?has_content>
  *       <hr />
  *       <h4>Previously approved scopes</h4>
  *       <#list grantedScopes as g> <input type="checkbox" name="scope" value="${g}" checked />
- *         <b>${g}</b><br/>
+ *         <b>${g}</b><br>
  *       </#list>
  *     </#if>
- *     <br/>
+ *     <br>
  *     <input type="submit" name="action" value="Reject"/>
  *     <input type="submit" name="action" value="Accept" />
  *     </form>

@@ -7,7 +7,6 @@
 package org.deviceconnect.android.deviceplugin.webrtc.core;
 
 import android.content.Context;
-import android.opengl.EGLContext;
 import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.webrtc.BuildConfig;
@@ -15,10 +14,11 @@ import org.deviceconnect.android.profile.VideoChatProfileConstants;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.webrtc.EglBase;
 import org.webrtc.IceCandidate;
 import org.webrtc.PeerConnectionFactory;
 import org.webrtc.SessionDescription;
-import org.webrtc.VideoRendererGui;
+import org.webrtc.voiceengine.WebRtcAudioManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,6 +35,11 @@ public class Peer {
      * Tag for debugging.
      */
     private static final String TAG = "WebRTC";
+
+    /**
+     * Define the parameter of WebRTC.
+     */
+    private static final String FIELD_TRIAL_AUTOMATIC_RESIZE = "WebRTC-MediaCodecVideoEncoder-AutomaticResize/Enabled/";
 
     /**
      * Config of a Peer.
@@ -159,6 +164,10 @@ public class Peer {
      */
     public boolean hasOffer(final String addressId) {
         return mOfferMap.containsKey(addressId);
+    }
+
+    public void setVideoHwAccelerationOptions(EglBase.Context renderEGLContext) {
+        mFactory.setVideoHwAccelerationOptions(renderEGLContext, renderEGLContext);
     }
 
     /**
@@ -449,10 +458,15 @@ public class Peer {
                 enableHWCodec = PeerUtil.validateHWCodec();
             }
 
-            EGLContext rendererEGLContext = VideoRendererGui.getEGLContext();
-            PeerConnectionFactory.initializeFieldTrials("WebRTC-SupportVP9/Enabled/");
+            if (BuildConfig.DEBUG) {
+                Log.i(TAG, "initPeerConnectionFactory(enableAudio=" + enableAudio + " enableVideo="
+                        + enableVideo + " enableHWCodec=" + enableHWCodec + ")");
+            }
+
+            PeerConnectionFactory.initializeFieldTrials(FIELD_TRIAL_AUTOMATIC_RESIZE);
+            WebRtcAudioManager.setBlacklistDeviceForOpenSLESUsage(true);
             boolean result = PeerConnectionFactory.initializeAndroidGlobals(mContext,
-                    enableAudio, enableVideo, enableHWCodec, rendererEGLContext);
+                    enableAudio, enableVideo, enableHWCodec);
             if (!result) {
                 throw new RuntimeException("PeerConnectionFactory global initialize is failed.");
             }

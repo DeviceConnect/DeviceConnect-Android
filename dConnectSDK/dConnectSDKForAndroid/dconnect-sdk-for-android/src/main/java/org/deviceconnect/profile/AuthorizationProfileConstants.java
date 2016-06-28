@@ -8,7 +8,7 @@ package org.deviceconnect.profile;
 
 
 /**
- * Authorization Profile API 定数群.<br/>
+ * Authorization Profile API 定数群.<br>
  * Authorization Profile API のパラメータ名、インタフェース名、属性名、プロファイル名を定義する。
  *
  * @author NTT DOCOMO, INC.
@@ -20,12 +20,12 @@ public interface AuthorizationProfileConstants extends DConnectProfileConstants 
      */
     String PROFILE_NAME = "authorization";
 
-    /** 
+    /**
      * 属性: {@value}.
      */
     String ATTRIBUTE_GRANT = "grant";
 
-    /** 
+    /**
      * 属性: {@value}.
      */
     String ATTRIBUTE_ACCESS_TOKEN = "accesstoken";

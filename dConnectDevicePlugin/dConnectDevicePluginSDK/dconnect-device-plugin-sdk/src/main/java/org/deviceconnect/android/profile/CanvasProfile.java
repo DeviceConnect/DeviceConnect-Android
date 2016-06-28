@@ -21,14 +21,14 @@ import java.net.URL;
  * Canvas プロファイル.
  *
  * <p>
- * スマートデバイスに対してのキャンバス操作機能を提供するAPI.<br/>
- * スマートデバイスに対してのキャンバス操作機能を提供するデバイスプラグインは当クラスを継承し、対応APIを実装すること。 <br/>
+ * スマートデバイスに対してのキャンバス操作機能を提供するAPI.<br>
+ * スマートデバイスに対してのキャンバス操作機能を提供するデバイスプラグインは当クラスを継承し、対応APIを実装すること。 <br>
  * </p>
  *
  * <h1>各API提供メソッド</h1>
  * <p>
- * Canvas Profile の各APIへのリクエストに対し、以下のコールバックメソッド群が自動的に呼び出される。<br/>
- * サブクラスは以下のメソッド群からデバイスプラグインが提供するAPI用のメソッドをオーバーライドし、機能を実装すること。<br/>
+ * Canvas Profile の各APIへのリクエストに対し、以下のコールバックメソッド群が自動的に呼び出される。<br>
+ * サブクラスは以下のメソッド群からデバイスプラグインが提供するAPI用のメソッドをオーバーライドし、機能を実装すること。<br>
  * オーバーライドされていない機能は自動的に非対応APIとしてレスポンスを返す。
  * </p>
  * <ul>
@@ -53,105 +53,50 @@ public abstract class CanvasProfile extends DConnectProfile implements CanvasPro
         return PROFILE_NAME;
     }
 
-    @Override
-    protected boolean onPostRequest(final Intent request, final Intent response) {
-        String attribute = getAttribute(request);
-        boolean result = true;
-
-        if (ATTRIBUTE_DRAW_IMAGE.equals(attribute)) {
-            String serviceId = getServiceID(request);
-            String mimeType = getMIMEType(request);
-            String uri = request.getStringExtra(PARAM_URI);
-            byte[] data = null;
-            if (uri != null) {
-                if (uri.startsWith("content://")) {
-                    data = getContentData(uri);
-                    uri = null;
-                }
-            }
-
-            if (data == null && uri == null) {
-                MessageUtils.setInvalidRequestParameterError(response, "not found data.");
-                return result;
-            }
-            if (mimeType != null && !checkMimeTypeFormat(mimeType)) {
-                MessageUtils.setInvalidRequestParameterError(response, "mimeType format is incorrect.");
-                return result;
-            }
-            if (!checkXFormat(request)) {
-                MessageUtils.setInvalidRequestParameterError(response, "x is different type.");
-                return result;
-            }
-            if (!checkYFormat(request)) {
-                MessageUtils.setInvalidRequestParameterError(response, "y is different type.");
-                return result;
-            }
-
-            double x = getX(request);
-            double y = getY(request);
-            String mode = getMode(request);
-            result = onPostDrawImage(request, response, serviceId, mimeType, data, uri, x, y, mode);
-        } else {
-            MessageUtils.setUnknownAttributeError(response);
-        }
-
-        return result;
-    }
-
-    @Override
-    protected boolean onDeleteRequest(final Intent request, final Intent response) {
-        String attribute = getAttribute(request);
-        boolean result = true;
-
-        if (ATTRIBUTE_DRAW_IMAGE.equals(attribute)) {
-            String serviceId = getServiceID(request);
-            result = onDeleteDrawImage(request, response, serviceId);
-        } else {
-            MessageUtils.setUnknownAttributeError(response);
-        }
-
-        return result;
-    }
-
-    /**
-     * 画面描画リクエストハンドラー.<br/>
-     * スマートフォンまたは周辺機器から他方のスマートデバイスに対して、画像描画を依頼し、
-     * その結果をレスポンスパラメータに格納する。 レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
-     * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
-     *
-     * @param request   リクエストパラメータ
-     * @param response  レスポンスパラメータ
-     * @param serviceId サービスID
-     * @param mimeType  dataのマイムタイプ。省略された場合はnullが渡される。
-     * @param data      画像ファイルのバイナリ。
-     * @param uri       画像ファイルのURI。
-     * @param x         X座標
-     * @param y         Y座標
-     * @param mode      画像描画モード
-     * @return レスポンスパラメータを送信するか否か
-     */
-    protected boolean onPostDrawImage(final Intent request, final Intent response, final String serviceId,
-                                      final String mimeType, final byte[] data, String uri, final double x, final double y, final String mode) {
-        setUnsupportedError(response);
-        return true;
-    }
-
-    /**
-     * 画面描画削除リクエストハンドラー.<br/>
-     * スマートフォンまたは周辺機器から他方のスマートデバイスに対して、画像描画の削除を依頼し、
-     * その結果をレスポンスパラメータに格納する。 レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
-     * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
-     *
-     * @param request   リクエストパラメータ
-     * @param response  レスポンスパラメータ
-     * @param serviceId サービスID
-     * @return レスポンスパラメータを送信するか否か
-     */
-    protected boolean onDeleteDrawImage(final Intent request, final Intent response,
-                                        final String serviceId) {
-        setUnsupportedError(response);
-        return true;
-    }
+//    @Override
+//    protected boolean onPostRequest(final Intent request, final Intent response) {
+//        String attribute = getAttribute(request);
+//        boolean result = true;
+//
+//        if (ATTRIBUTE_DRAW_IMAGE.equals(attribute)) {
+//            String serviceId = getServiceID(request);
+//            String mimeType = getMIMEType(request);
+//            String uri = request.getStringExtra(PARAM_URI);
+//            byte[] data = null;
+//            if (uri != null) {
+//                if (uri.startsWith("content://")) {
+//                    data = getContentData(uri);
+//                    uri = null;
+//                }
+//            }
+//
+//            if (data == null && uri == null) {
+//                MessageUtils.setInvalidRequestParameterError(response, "not found data.");
+//                return result;
+//            }
+//            if (mimeType != null && !checkMimeTypeFormat(mimeType)) {
+//                MessageUtils.setInvalidRequestParameterError(response, "mimeType format is incorrect.");
+//                return result;
+//            }
+//            if (!checkXFormat(request)) {
+//                MessageUtils.setInvalidRequestParameterError(response, "x is different type.");
+//                return result;
+//            }
+//            if (!checkYFormat(request)) {
+//                MessageUtils.setInvalidRequestParameterError(response, "y is different type.");
+//                return result;
+//            }
+//
+//            double x = getX(request);
+//            double y = getY(request);
+//            String mode = getMode(request);
+//            result = onPostDrawImage(request, response, serviceId, mimeType, data, uri, x, y, mode);
+//        } else {
+//            MessageUtils.setUnknownAttributeError(response);
+//        }
+//
+//        return result;
+//    }
 
     // ------------------------------------
     // セッターメソッド群

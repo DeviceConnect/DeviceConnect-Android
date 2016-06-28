@@ -17,7 +17,7 @@ public class LowerCaseConverter implements MessageConverter {
         if (isAccessTokenRequest(profileName, attributeName)) {
             String scope = request.getStringExtra(AuthorizationProfile.PARAM_SCOPE);
             if (scope != null) {
-                request.putExtra(AuthorizationProfile.PARAM_SCOPE, scope);
+                request.putExtra(AuthorizationProfile.PARAM_SCOPE, scope.toLowerCase());
             }
         }
 

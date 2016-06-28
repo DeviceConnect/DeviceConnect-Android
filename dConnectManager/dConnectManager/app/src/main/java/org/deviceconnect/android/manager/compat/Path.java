@@ -68,6 +68,19 @@ class Path {
         return mExpression.equals(((Path) o).mExpression);
     }
 
+    public boolean matches(final Path path) {
+        if (!mProfileName.equalsIgnoreCase(path.mProfileName)) {
+            return false;
+        }
+        if (mInterfaceName != null && !mInterfaceName.equalsIgnoreCase(path.mInterfaceName)) {
+            return false;
+        }
+        if (mAttributeName != null && !mAttributeName.equalsIgnoreCase(path.mAttributeName)) {
+            return false;
+        }
+        return true;
+    }
+
     @Override
     public String toString() {
         return mExpression;

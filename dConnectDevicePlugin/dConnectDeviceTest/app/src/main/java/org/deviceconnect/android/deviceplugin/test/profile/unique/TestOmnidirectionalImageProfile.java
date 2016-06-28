@@ -93,7 +93,7 @@ public class TestOmnidirectionalImageProfile extends DConnectProfile {
             return true;
         }
         setResult(response, DConnectMessage.RESULT_OK);
-        return false;
+        return true;
     }
 
     protected boolean onDeleteView(final Intent request, final Intent response, final String serviceId,

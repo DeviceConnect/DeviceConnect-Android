@@ -13,8 +13,9 @@ import android.content.IntentFilter;
 import android.net.ConnectivityManager;
 import android.os.IBinder;
 import android.os.RemoteException;
+import android.util.Log;
 
-import org.deviceconnect.android.manager.compat.MessageConverter;
+import org.deviceconnect.android.compat.MessageConverter;
 import org.deviceconnect.android.manager.compat.RequestConverter;
 import org.deviceconnect.android.manager.compat.ServiceDiscoveryConverter;
 import org.deviceconnect.android.manager.compat.ServiceInformationConverter;
@@ -236,6 +237,24 @@ public class DConnectService extends DConnectMessageService {
     };
 
     @Override
+    public void onRequestReceive(final Intent request) {
+        String profileName = DConnectProfile.getProfile(request);
+        String interfaceName = DConnectProfile.getInterface(request);
+        String attributeName = DConnectProfile.getAttribute(request);
+        if (profileName != null) {
+            DConnectProfile.setProfile(request, profileName.toLowerCase());
+        }
+        if (interfaceName != null) {
+            DConnectProfile.setInterface(request, interfaceName.toLowerCase());
+        }
+        if (attributeName != null) {
+            DConnectProfile.setAttribute(request, attributeName.toLowerCase());
+        }
+
+        super.onRequestReceive(request);
+    }
+
+    @Override
     protected String parseProfileName(final Intent request) {
         String profileName = super.parseProfileName(request);
         if (profileName != null) {
@@ -273,6 +292,8 @@ public class DConnectService extends DConnectMessageService {
 
     @Override
     public void onDeviceFound(final DevicePlugin plugin) {
+        Log.d("AAA", "onDeviceFound: " + plugin.getPluginSdkVersionName());
+
         plugin.setRequestConverter(RequestConverter.create(plugin));
         super.onDeviceFound(plugin);
     }

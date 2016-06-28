@@ -13,6 +13,10 @@ import android.os.Bundle;
 import android.os.IBinder;
 
 import org.deviceconnect.android.BuildConfig;
+import org.deviceconnect.android.compat.AuthorizationRequestConverter;
+import org.deviceconnect.android.compat.LowerCaseConverter;
+import org.deviceconnect.android.compat.MessageConverter;
+import org.deviceconnect.android.compat.ServiceDiscoveryRequestConverter;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.localoauth.CheckAccessTokenResult;
@@ -54,18 +58,6 @@ public abstract class DConnectMessageService extends Service implements DConnect
         ServiceDiscoveryProfileConstants.PROFILE_NAME
     };
 
-    /** プラグイン側のService Discoveryのプロファイル名: {@value}. */
-    private static final String PROFILE_NETWORK_SERVICE_DISCOVERY = "networkServiceDiscovery";
-
-    /** プラグイン側のService Discoveryのアトリビュート名: {@value}. */
-    private static final String ATTRIBUTE_GET_NETWORK_SERVICES = "getNetworkServices";
-
-    /** プラグイン側のAuthorizationのアトリビュート名: {@value}. */
-    private static final String ATTRIBUTE_CREATE_CLIENT = "createClient";
-
-    /** プラグイン側のAuthorizationのアトリビュート名: {@value}. */
-    private static final String ATTRIBUTE_REQUEST_ACCESS_TOKEN = "requestAccessToken";
-
     /**
      * ロガー.
      */
@@ -81,6 +73,12 @@ public abstract class DConnectMessageService extends Service implements DConnect
      * デフォルトではtrueにしておくこと。
      */
     private boolean mUseLocalOAuth = true;
+
+    private final MessageConverter[] mRequestConverters = {
+        new ServiceDiscoveryRequestConverter(),
+        new AuthorizationRequestConverter(),
+        new LowerCaseConverter()
+    };
 
     /**
      * SystemProfileを取得する.
@@ -153,6 +151,7 @@ public abstract class DConnectMessageService extends Service implements DConnect
         }
 
         if (checkRequestAction(action)) {
+            convertRequest(intent);
             onRequest(intent, MessageUtils.createResponseIntent(intent));
         }
 
@@ -169,6 +168,12 @@ public abstract class DConnectMessageService extends Service implements DConnect
                 || IntentDConnectMessage.ACTION_POST.equals(action)
                 || IntentDConnectMessage.ACTION_PUT.equals(action)
                 || IntentDConnectMessage.ACTION_DELETE.equals(action);
+    }
+
+    private void convertRequest(final Intent request) {
+        for (MessageConverter converter : mRequestConverters) {
+            converter.convert(request);
+        }
     }
 
     /**
@@ -192,27 +197,6 @@ public abstract class DConnectMessageService extends Service implements DConnect
             return;
         }
 
-        // Service Discovery APIのパスを変換
-        if (PROFILE_NETWORK_SERVICE_DISCOVERY.equals(profileName)) {
-            profileName = ServiceDiscoveryProfileConstants.PROFILE_NAME;
-            String attributeName = request.getStringExtra(DConnectMessage.EXTRA_ATTRIBUTE);
-            if (ATTRIBUTE_GET_NETWORK_SERVICES.equals(attributeName)) {
-                request.putExtra(DConnectMessage.EXTRA_PROFILE, profileName);
-                request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, (String) null);
-            }
-        }
-        // Authorization APIのパスを変換
-        if (AuthorizationProfileConstants.PROFILE_NAME.equals(profileName)) {
-            String attributeName = request.getStringExtra(DConnectMessage.EXTRA_ATTRIBUTE);
-            if (ATTRIBUTE_CREATE_CLIENT.equals(attributeName)) {
-                request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE,
-                        AuthorizationProfileConstants.ATTRIBUTE_GRANT);
-            } else if (ATTRIBUTE_REQUEST_ACCESS_TOKEN.equals(attributeName)) {
-                request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE,
-                        AuthorizationProfileConstants.ATTRIBUTE_ACCESS_TOKEN);
-            }
-        }
-
         // プロファイルを取得する
         DConnectProfile profile = getProfile(profileName);
         if (profile == null) {
@@ -228,7 +212,7 @@ public abstract class DConnectMessageService extends Service implements DConnect
             String accessToken = request.getStringExtra(AuthorizationProfile.PARAM_ACCESS_TOKEN);
             // LocalOAuth処理
             CheckAccessTokenResult result = LocalOAuth2Main.checkAccessToken(accessToken, profileName,
-                    IGNORE_PROFILES);
+                IGNORE_PROFILES);
             if (result.checkResult()) {
                 send = profile.onRequest(request, response);
             } else {

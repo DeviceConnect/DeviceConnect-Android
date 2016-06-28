@@ -3,6 +3,7 @@ package org.deviceconnect.android.manager.compat;
 import android.content.Intent;
 import android.os.Bundle;
 
+import org.deviceconnect.android.compat.MessageConverter;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 import org.deviceconnect.profile.ServiceInformationProfileConstants;

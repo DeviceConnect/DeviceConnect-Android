@@ -2,13 +2,15 @@ package org.deviceconnect.android.manager.compat;
 
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 class PathConversionTable {
 
     private static final Path[][] PATH_PAIRS = {
+        {new Path("battery", "chargingTime"), new Path("battery", "chargingtime")},
+        {new Path("battery", "dischargingTime"), new Path("battery", "dischargingtime")},
         {new Path("drive_controller"), new Path("driveController")},
         {new Path("file_descriptor"), new Path("fileDescriptor")},
         {new Path("media_player", "media_list"), new Path("mediaPlayer", "mediaList")},
@@ -19,8 +21,8 @@ class PathConversionTable {
         {new Path("remote_controller"), new Path("remoteController")}
     };
 
-    private static final Map<Path, Path> FORWARD = new HashMap<Path, Path>();
-    private static final Map<Path, Path> BACKWARD = new HashMap<Path, Path>();
+    private static final Map<Path, Path> FORWARD = new LinkedHashMap<Path, Path>();
+    private static final Map<Path, Path> BACKWARD = new LinkedHashMap<Path, Path>();
 
     static {
         for (Path[] pair : PATH_PAIRS) {

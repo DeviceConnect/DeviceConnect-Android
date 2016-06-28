@@ -25,13 +25,17 @@ class PathConversion {
         String profileName = request.getStringExtra(DConnectMessage.EXTRA_PROFILE);
         String interfaceName = request.getStringExtra(DConnectMessage.EXTRA_INTERFACE);
         String attributeName = request.getStringExtra(DConnectMessage.EXTRA_ATTRIBUTE);
-        return mFrom.equals(new Path(profileName, interfaceName, attributeName));
+        return mFrom.matches(new Path(profileName, interfaceName, attributeName));
     }
 
     void convert(final Intent request) {
         request.putExtra(DConnectMessage.EXTRA_PROFILE, mTo.mProfileName);
-        request.putExtra(DConnectMessage.EXTRA_INTERFACE, mTo.mInterfaceName);
-        request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, mTo.mAttributeName);
+        if (mTo.mInterfaceName != null) {
+            request.putExtra(DConnectMessage.EXTRA_INTERFACE, mTo.mInterfaceName);
+        }
+        if (mTo.mAttributeName != null) {
+            request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, mTo.mAttributeName);
+        }
     }
 
 }

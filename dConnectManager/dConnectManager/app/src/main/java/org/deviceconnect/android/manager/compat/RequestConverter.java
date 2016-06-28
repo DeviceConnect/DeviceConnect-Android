@@ -3,6 +3,7 @@ package org.deviceconnect.android.manager.compat;
 
 import android.content.Intent;
 
+import org.deviceconnect.android.compat.MessageConverter;
 import org.deviceconnect.android.manager.DevicePlugin;
 
 import java.util.ArrayList;
@@ -12,10 +13,13 @@ public class RequestConverter implements MessageConverter {
 
     final List<PathConversion> mPathConversions;
 
-    private RequestConverter(final List<PathConversion> conversions) {
+    final DevicePlugin mPlugin;
+
+    private RequestConverter(final DevicePlugin plugin, final List<PathConversion> conversions) {
         if (conversions == null) {
             throw new IllegalArgumentException("conversions is null.");
         }
+        mPlugin = plugin;
         mPathConversions = conversions;
     }
 
@@ -39,7 +43,7 @@ public class RequestConverter implements MessageConverter {
         if (allConversions.size() == 0) {
             return null;
         }
-        return new RequestConverter(allConversions);
+        return new RequestConverter(plugin, allConversions);
     }
 
 }

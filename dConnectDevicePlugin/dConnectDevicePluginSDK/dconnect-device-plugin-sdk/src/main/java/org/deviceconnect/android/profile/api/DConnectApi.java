@@ -7,7 +7,7 @@ import org.deviceconnect.android.profile.spec.DConnectApiSpec;
 import org.deviceconnect.android.profile.spec.DConnectApiSpecConstants;
 
 /**
- * DConnect APIクラス.
+ * Device Connect APIクラス.
  * @author NTT DOCOMO, INC.
  */
 public abstract class DConnectApi implements DConnectApiSpecConstants {

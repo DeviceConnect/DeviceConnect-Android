@@ -12,7 +12,7 @@ import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.linking.BuildConfig;
 import org.deviceconnect.android.deviceplugin.linking.LinkingApplication;
-import org.deviceconnect.android.deviceplugin.linking.LinkingDeviceService;
+import org.deviceconnect.android.deviceplugin.linking.LinkingDevicePluginService;
 import org.deviceconnect.android.deviceplugin.linking.beacon.LinkingBeaconManager;
 import org.deviceconnect.android.deviceplugin.linking.beacon.LinkingBeaconUtil;
 import org.deviceconnect.android.deviceplugin.linking.beacon.data.BatteryData;
@@ -198,7 +198,7 @@ public class LinkingBatteryProfile extends BatteryProfile {
     }
 
     private LinkingApplication getLinkingApplication() {
-        LinkingDeviceService service = (LinkingDeviceService) getContext();
+        LinkingDevicePluginService service = (LinkingDevicePluginService) getContext();
         return (LinkingApplication) service.getApplication();
     }
 

@@ -9,7 +9,7 @@ package org.deviceconnect.android.deviceplugin.linking.profile;
 import android.content.Intent;
 
 import org.deviceconnect.android.deviceplugin.linking.LinkingApplication;
-import org.deviceconnect.android.deviceplugin.linking.LinkingDeviceService;
+import org.deviceconnect.android.deviceplugin.linking.LinkingDevicePluginService;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingDevice;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingDeviceManager;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingNotification;
@@ -77,7 +77,7 @@ public class LinkingNotificationProfile extends NotificationProfile {
     }
 
     private LinkingApplication getLinkingApplication() {
-        LinkingDeviceService service = (LinkingDeviceService) getContext();
+        LinkingDevicePluginService service = (LinkingDevicePluginService) getContext();
         return (LinkingApplication) service.getApplication();
     }
 }

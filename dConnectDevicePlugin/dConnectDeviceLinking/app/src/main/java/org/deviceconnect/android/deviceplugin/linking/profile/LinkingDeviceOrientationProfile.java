@@ -12,7 +12,7 @@ import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.linking.BuildConfig;
 import org.deviceconnect.android.deviceplugin.linking.LinkingApplication;
-import org.deviceconnect.android.deviceplugin.linking.LinkingDeviceService;
+import org.deviceconnect.android.deviceplugin.linking.LinkingDevicePluginService;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingDevice;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingDeviceManager;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingSensorData;
@@ -294,7 +294,7 @@ public class LinkingDeviceOrientationProfile extends DeviceOrientationProfile {
     }
 
     private LinkingApplication getLinkingApplication() {
-        LinkingDeviceService service = (LinkingDeviceService) getContext();
+        LinkingDevicePluginService service = (LinkingDevicePluginService) getContext();
         return (LinkingApplication) service.getApplication();
     }
 

@@ -9,7 +9,7 @@ package org.deviceconnect.android.deviceplugin.linking.profile;
 import android.content.Intent;
 
 import org.deviceconnect.android.deviceplugin.linking.LinkingApplication;
-import org.deviceconnect.android.deviceplugin.linking.LinkingDeviceService;
+import org.deviceconnect.android.deviceplugin.linking.LinkingDevicePluginService;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingDevice;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingDeviceManager;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingUtil;
@@ -96,7 +96,7 @@ public class LinkingVibrationProfile extends VibrationProfile {
     }
 
     private LinkingDeviceManager getLinkingDeviceManager() {
-        LinkingDeviceService service = (LinkingDeviceService) getContext();
+        LinkingDevicePluginService service = (LinkingDevicePluginService) getContext();
         LinkingApplication app = (LinkingApplication) service.getApplication();
         return app.getLinkingDeviceManager();
     }

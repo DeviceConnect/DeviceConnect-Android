@@ -2,17 +2,16 @@ package org.deviceconnect.android.deviceplugin.linking.linking;
 
 import android.content.ActivityNotFoundException;
 import android.content.ComponentName;
-import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.database.Cursor;
 import android.util.Log;
 
 import com.nttdocomo.android.sdaiflib.ControlSensorData;
 import com.nttdocomo.android.sdaiflib.Define;
 import com.nttdocomo.android.sdaiflib.DeviceInfo;
 import com.nttdocomo.android.sdaiflib.ErrorCode;
+import com.nttdocomo.android.sdaiflib.GetDeviceInformation;
 import com.nttdocomo.android.sdaiflib.NotifyConnect;
 import com.nttdocomo.android.sdaiflib.NotifyNotification;
 import com.nttdocomo.android.sdaiflib.NotifyRange;
@@ -68,7 +67,7 @@ public class LinkingDeviceManager {
     }
 
     public List<LinkingDevice> getDevices() {
-        List<DeviceInfo> deviceInfoList = getInformation();
+        List<DeviceInfo> deviceInfoList = new GetDeviceInformation(mContext).getInformation();
 
         List<LinkingDevice> devices = new ArrayList<>();
         for (DeviceInfo info : deviceInfoList) {
@@ -415,79 +414,6 @@ public class LinkingDeviceManager {
         mOnConnectListeners.remove(listener);
     }
 
-    private List<DeviceInfo> getInformation() {
-        List<DeviceInfo> mDeviceInfo = new ArrayList<>();
-        ContentResolver resolver = mContext.getContentResolver();
-        Cursor cursor = null;
-        try {
-            cursor = resolver.query(LinkingUtil.URI_DEVICES, null, null, null, null);
-            if (cursor != null) {
-                DeviceInfo entity;
-                for (; cursor.moveToNext(); mDeviceInfo.add(entity)) {
-                    entity = new DeviceInfo();
-                    int colId = cursor.getColumnIndex("name");
-                    if (!cursor.isNull(colId)) {
-                        entity.setName(cursor.getString(colId));
-                    }
-
-                    colId = cursor.getColumnIndex("device_id");
-                    if (!cursor.isNull(colId)) {
-                        entity.setModelId(cursor.getInt(colId));
-                    }
-
-                    colId = cursor.getColumnIndex("device_uid");
-                    if (!cursor.isNull(colId)) {
-                        entity.setUniqueId(cursor.getInt(colId));
-                    }
-
-                    colId = cursor.getColumnIndex("bd_address");
-                    if (!cursor.isNull(colId)) {
-                        entity.setBdaddress(cursor.getString(colId));
-                    }
-
-                    colId = cursor.getColumnIndex("state");
-                    if (!cursor.isNull(colId)) {
-                        entity.setState(cursor.getInt(colId));
-                    }
-
-                    colId = cursor.getColumnIndex("capability");
-                    if (!cursor.isNull(colId)) {
-                        entity.setFeature(cursor.getInt(colId));
-                    }
-
-                    colId = cursor.getColumnIndex("ex_sensor_type");
-                    if (!cursor.isNull(colId)) {
-                        entity.setExSensorType(cursor.getInt(colId));
-                    }
-
-                    colId = cursor.getColumnIndex("illumination");
-                    if (!cursor.isNull(colId)) {
-                        entity.setIllumination(cursor.getBlob(colId));
-                    }
-
-                    colId = cursor.getColumnIndex("vibration");
-                    if (!cursor.isNull(colId)) {
-                        entity.setVibration(cursor.getBlob(colId));
-                    }
-
-                    colId = cursor.getColumnIndex("duration");
-                    if (!cursor.isNull(colId)) {
-                        entity.setDuration(cursor.getBlob(colId));
-                    }
-                }
-            }
-        } catch (Exception e) {
-            if (BuildConfig.DEBUG) {
-                Log.w(TAG, "", e);
-            }
-        } finally {
-            if (cursor != null) {
-                cursor.close();
-            }
-        }
-        return mDeviceInfo;
-    }
-
     private LinkingDevice findDeviceFromSensorHolders(final String address) {
         for (LinkingDevice device : mSensorDeviceHolders) {
             if (device.getBdAddress().equals(address)) {
@@ -529,6 +455,16 @@ public class LinkingDeviceManager {
                 SharedPreferences preference = mContext.getSharedPreferences(Define.ConnectInfo, Context.MODE_PRIVATE);
                 int deviceId = preference.getInt(LinkingUtil.DEVICE_ID, -1);
                 int uniqueId = preference.getInt(LinkingUtil.DEVICE_UID, -1);
+
+                if (BuildConfig.DEBUG) {
+                    Log.d(TAG, "@@ NotifyConnect#onConnect");
+                    Log.d(TAG, LinkingUtil.BD_ADDRESS + "=" + preference.getString(LinkingUtil.BD_ADDRESS, ""));
+                    Log.d(TAG, LinkingUtil.DEVICE_NAME + "=" + preference.getString(LinkingUtil.DEVICE_NAME, ""));
+                    Log.d(TAG, LinkingUtil.RECEIVE_TIME + "=" + preference.getLong(LinkingUtil.RECEIVE_TIME, -1));
+                    Log.d(TAG, LinkingUtil.CAPABILITY + "=" + preference.getInt(LinkingUtil.CAPABILITY, -1));
+                    Log.d(TAG, LinkingUtil.EX_SENSOR_TYPE + "=" + preference.getInt(LinkingUtil.EX_SENSOR_TYPE, -1));
+                }
+
                 LinkingDevice device = findDeviceByDeviceId(deviceId, uniqueId);
                 if (device != null) {
                     notifyConnect(device);
@@ -540,6 +476,13 @@ public class LinkingDeviceManager {
                 SharedPreferences preference = mContext.getSharedPreferences(Define.DisconnectInfo, Context.MODE_PRIVATE);
                 int deviceId = preference.getInt(LinkingUtil.DEVICE_ID, -1);
                 int uniqueId = preference.getInt(LinkingUtil.DEVICE_UID, -1);
+
+                if (BuildConfig.DEBUG) {
+                    Log.d(TAG, "@@ NotifyConnect#onDisconnect");
+                    Log.d(TAG, LinkingUtil.DEVICE_NAME + "=" + preference.getString(LinkingUtil.DEVICE_NAME, ""));
+                    Log.d(TAG, LinkingUtil.RECEIVE_TIME + "=" + preference.getLong(LinkingUtil.RECEIVE_TIME, -1));
+                }
+
                 LinkingDevice device = findDeviceByDeviceId(deviceId, uniqueId);
                 if (device != null) {
                     device.setIsConnected(false);

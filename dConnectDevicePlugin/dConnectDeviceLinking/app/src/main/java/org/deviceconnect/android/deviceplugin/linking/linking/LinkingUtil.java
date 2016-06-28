@@ -47,7 +47,11 @@ public final class LinkingUtil {
     public static final String DEVICE_UID = "DEVICE_UID";
     public static final String DEVICE_BUTTON_ID = "DEVICE_BUTTON_ID";
 
+    public static final String DEVICE_NAME = "DEVICE_NAME";
+    public static final String RECEIVE_TIME = "RECEIVE_TIME";
     public static final String BD_ADDRESS = "BD_ADDRESS";
+    public static final String CAPABILITY = "CAPABILITY";
+    public static final String EX_SENSOR_TYPE = "EX_SENSOR_TYPE";
     public static final String RANGE = "RANGE";
     public static final String RANGE_SETTING = "RANGE_SETTING";
 

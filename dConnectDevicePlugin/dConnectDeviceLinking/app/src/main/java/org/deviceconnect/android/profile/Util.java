@@ -17,7 +17,7 @@ final class Util {
     private Util() {
     }
 
-    public static String timeStampToText(long timeStamp) {
+    public static String timeStampToText(final long timeStamp) {
         return SIMPLE_DATE_FORMAT.format(new Date(timeStamp));
     }
 }

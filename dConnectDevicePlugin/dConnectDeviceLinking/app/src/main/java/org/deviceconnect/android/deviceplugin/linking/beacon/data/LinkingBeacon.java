@@ -6,6 +6,8 @@
  */
 package org.deviceconnect.android.deviceplugin.linking.beacon.data;
 
+import org.deviceconnect.android.deviceplugin.linking.beacon.LinkingBeaconUtil;
+
 public class LinkingBeacon {
 
     private boolean mOnline;
@@ -22,6 +24,10 @@ public class LinkingBeacon {
     private BatteryData mBatteryData;
     private AtmosphericPressureData mAtmosphericPressureData;
     private RawData mRawData;
+
+    public String getServiceId() {
+        return LinkingBeaconUtil.createServiceIdFromLinkingBeacon(this);
+    }
 
     public String getDisplayName() {
         return mDisplayName;

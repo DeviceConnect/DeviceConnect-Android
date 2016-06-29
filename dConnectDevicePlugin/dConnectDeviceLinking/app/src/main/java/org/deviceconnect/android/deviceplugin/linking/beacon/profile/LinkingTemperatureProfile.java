@@ -1,0 +1,103 @@
+/*
+ LinkingTemperatureProfile.java
+ Copyright (c) 2016 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
+package org.deviceconnect.android.deviceplugin.linking.beacon.profile;
+
+import android.content.Intent;
+import android.util.Log;
+
+import org.deviceconnect.android.deviceplugin.linking.BuildConfig;
+import org.deviceconnect.android.deviceplugin.linking.LinkingApplication;
+import org.deviceconnect.android.deviceplugin.linking.LinkingDevicePluginService;
+import org.deviceconnect.android.deviceplugin.linking.beacon.LinkingBeaconManager;
+import org.deviceconnect.android.deviceplugin.linking.beacon.data.LinkingBeacon;
+import org.deviceconnect.android.deviceplugin.linking.beacon.data.TemperatureData;
+import org.deviceconnect.android.deviceplugin.linking.beacon.service.LinkingBeaconService;
+import org.deviceconnect.android.message.MessageUtils;
+import org.deviceconnect.android.profile.TemperatureProfile;
+import org.deviceconnect.android.profile.api.DConnectApi;
+import org.deviceconnect.android.profile.api.GetApi;
+import org.deviceconnect.message.DConnectMessage;
+
+public class LinkingTemperatureProfile extends TemperatureProfile {
+
+    private static final String TAG = "LinkingPlugin";
+    private static final int TIMEOUT = 30;
+
+    public LinkingTemperatureProfile() {
+        addApi(mGetTemperature);
+    }
+
+    private final DConnectApi mGetTemperature = new GetApi() {
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            final LinkingBeaconManager mgr = getLinkingBeaconManager();
+            LinkingBeacon beacon = ((LinkingBeaconService) getService()).getLinkingBeacon();
+            if (beacon == null) {
+                MessageUtils.setNotSupportProfileError(response);
+                return true;
+            }
+
+            mgr.addOnBeaconTemperatureEventListener(new OnBeaconTemperatureEventListenerImpl(beacon) {
+                @Override
+                public void onCleanup() {
+                    mgr.removeOnBeaconTemperatureEventListener(this);
+                }
+
+                @Override
+                public synchronized void onTimeout() {
+                    if (mCleanupFlag) {
+                        return;
+                    }
+
+                    if (BuildConfig.DEBUG) {
+                        Log.i(TAG, "onTemperature: timeout");
+                    }
+
+                    MessageUtils.setTimeoutError(response);
+                    sendResponse(response);
+                }
+
+                @Override
+                public synchronized void onTemperature(final LinkingBeacon beacon, final TemperatureData temperature) {
+                    if (mCleanupFlag && !beacon.equals(mBeacon)) {
+                        return;
+                    }
+
+                    if (BuildConfig.DEBUG) {
+                        Log.i(TAG, "onTemperature: beacon=" + beacon.getDisplayName() + " temperature=" + temperature.getValue());
+                    }
+
+                    setResult(response, DConnectMessage.RESULT_OK);
+                    setTemperature(response, temperature.getValue());
+                    setTemperatureType(response, TemperatureType.TYPE_CELSIUS);
+                    setTimeStamp(response, temperature.getTimeStamp());
+                    sendResponse(response);
+                    cleanup();
+                }
+            });
+            getLinkingBeaconManager().startBeaconScan(TIMEOUT);
+            return false;
+        }
+    };
+
+    private LinkingBeaconManager getLinkingBeaconManager() {
+        LinkingApplication app = getLinkingApplication();
+        return app.getLinkingBeaconManager();
+    }
+
+    private LinkingApplication getLinkingApplication() {
+        LinkingDevicePluginService service = (LinkingDevicePluginService) getContext();
+        return (LinkingApplication) service.getApplication();
+    }
+
+    private abstract class OnBeaconTemperatureEventListenerImpl extends TimeoutSchedule implements
+            LinkingBeaconManager.OnBeaconTemperatureEventListener {
+        OnBeaconTemperatureEventListenerImpl(final LinkingBeacon beacon) {
+            super(beacon);
+        }
+    }
+}

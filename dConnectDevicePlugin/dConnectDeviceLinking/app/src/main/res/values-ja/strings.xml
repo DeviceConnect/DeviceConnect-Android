@@ -122,8 +122,15 @@
     <string name="activity_beacon_delete_dialog_positive">はい</string>
     <string name="activity_beacon_delete_dialog_negative">いいえ</string>
 
-    <string name="linking_beacon_display_name">Linking:ビーコン(%1$d)</string>
-
     <string name="activity_app_info_name">アプリケーション名</string>
     <string name="activity_app_info_version">バージョン</string>
+
+    <string name="linking_beacon_display_name">Linking:ビーコン(%1$d)</string>
+
+    <string name="linking_notification_profile_type_default">通知</string>
+    <string name="linking_notification_profile_type_phone">着信通知</string>
+    <string name="linking_notification_profile_type_mail">メール通知</string>
+    <string name="linking_notification_profile_type_sms">SMS通知</string>
+    <string name="linking_notification_profile_type_event">イベント通知</string>
+    <string name="linking_notification_profile_body">通知が来ています。</string>
 </resources>

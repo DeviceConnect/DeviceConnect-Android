@@ -68,7 +68,6 @@ public class LinkingDeviceManager {
 
     public List<LinkingDevice> getDevices() {
         List<DeviceInfo> deviceInfoList = new GetDeviceInformation(mContext).getInformation();
-
         List<LinkingDevice> devices = new ArrayList<>();
         for (DeviceInfo info : deviceInfoList) {
             LinkingDevice device = new LinkingDevice();

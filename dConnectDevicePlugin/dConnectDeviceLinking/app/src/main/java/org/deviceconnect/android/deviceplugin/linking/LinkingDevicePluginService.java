@@ -10,18 +10,13 @@ import android.content.Intent;
 
 import org.deviceconnect.android.deviceplugin.linking.beacon.LinkingBeaconManager;
 import org.deviceconnect.android.deviceplugin.linking.beacon.LinkingBeaconUtil;
-import org.deviceconnect.android.deviceplugin.linking.profile.LinkingAtmosphericPressureProfile;
-import org.deviceconnect.android.deviceplugin.linking.profile.LinkingBatteryProfile;
-import org.deviceconnect.android.deviceplugin.linking.profile.LinkingDeviceOrientationProfile;
-import org.deviceconnect.android.deviceplugin.linking.profile.LinkingHumidityProfile;
-import org.deviceconnect.android.deviceplugin.linking.profile.LinkingKeyEventProfile;
-import org.deviceconnect.android.deviceplugin.linking.profile.LinkingLightProfile;
-import org.deviceconnect.android.deviceplugin.linking.profile.LinkingNotificationProfile;
-import org.deviceconnect.android.deviceplugin.linking.profile.LinkingProfile;
-import org.deviceconnect.android.deviceplugin.linking.profile.LinkingProximityProfile;
+import org.deviceconnect.android.deviceplugin.linking.beacon.data.LinkingBeacon;
+import org.deviceconnect.android.deviceplugin.linking.beacon.service.LinkingBeaconService;
+import org.deviceconnect.android.deviceplugin.linking.linking.LinkingDevice;
+import org.deviceconnect.android.deviceplugin.linking.linking.LinkingDeviceManager;
+import org.deviceconnect.android.deviceplugin.linking.linking.service.LinkingDeviceService;
+import org.deviceconnect.android.deviceplugin.linking.profile.LinkingServiceDiscoveryProfile;
 import org.deviceconnect.android.deviceplugin.linking.profile.LinkingSystemProfile;
-import org.deviceconnect.android.deviceplugin.linking.profile.LinkingTemperatureProfile;
-import org.deviceconnect.android.deviceplugin.linking.profile.LinkingVibrationProfile;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.event.cache.MemoryCacheController;
 import org.deviceconnect.android.message.DConnectMessageService;
@@ -38,17 +33,11 @@ public class LinkingDevicePluginService extends DConnectMessageService {
     public void onCreate() {
         super.onCreate();
         EventManager.INSTANCE.setController(new MemoryCacheController());
-        addProfile(new LinkingLightProfile());
-        addProfile(new LinkingDeviceOrientationProfile(this));
-        addProfile(new LinkingVibrationProfile());
-        addProfile(new LinkingNotificationProfile());
-        addProfile(new LinkingProximityProfile(this));
-        addProfile(new LinkingKeyEventProfile(this));
-        addProfile(new LinkingBatteryProfile(this));
-        addProfile(new LinkingAtmosphericPressureProfile());
-        addProfile(new LinkingHumidityProfile());
-        addProfile(new LinkingTemperatureProfile());
-        addProfile(new LinkingProfile());
+
+        addLinkingDevice();
+        addLinkingBeacon();
+
+        addProfile(new LinkingServiceDiscoveryProfile(getServiceProvider()));
     }
 
     @Override
@@ -71,4 +60,17 @@ public class LinkingDevicePluginService extends DConnectMessageService {
         return new LinkingSystemProfile();
     }
 
+    private void addLinkingDevice() {
+        LinkingDeviceManager mgr = ((LinkingApplication) getApplication()).getLinkingDeviceManager();
+        for (LinkingDevice device : mgr.getDevices()) {
+            getServiceProvider().addService(new LinkingDeviceService(this, device));
+        }
+    }
+
+    private void addLinkingBeacon() {
+        LinkingBeaconManager mgr = ((LinkingApplication) getApplication()).getLinkingBeaconManager();
+        for (LinkingBeacon beacon : mgr.getLinkingBeacons()) {
+            getServiceProvider().addService(new LinkingBeaconService(this, beacon));
+        }
+    }
 }

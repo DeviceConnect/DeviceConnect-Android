@@ -59,7 +59,6 @@ public class LinkingApplication extends Application {
             mBeaconManager.destroy();
             mBeaconManager = null;
         }
-
         if (mDeviceManager != null) {
             mDeviceManager.destroy();
             mDeviceManager = null;

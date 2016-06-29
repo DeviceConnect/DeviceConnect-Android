@@ -18,6 +18,9 @@ import org.deviceconnect.android.deviceplugin.linking.linking.service.LinkingDev
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.LightProfile;
 import org.deviceconnect.android.profile.api.DConnectApi;
+import org.deviceconnect.android.profile.api.DeleteApi;
+import org.deviceconnect.android.profile.api.GetApi;
+import org.deviceconnect.android.profile.api.PostApi;
 import org.deviceconnect.message.DConnectMessage;
 
 import java.util.ArrayList;
@@ -40,15 +43,10 @@ public class LinkingLightProfile extends LightProfile {
         addApi(mDeleteLightApi);
     }
 
-    private final DConnectApi mGetLightApi = new DConnectApi() {
-        @Override
-        public Method getMethod() {
-            return Method.GET;
-        }
-
+    private final DConnectApi mGetLightApi = new GetApi() {
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            LinkingDevice device = getDevice(getServiceID(request), response);
+            LinkingDevice device = getDevice(response);
             if (device == null) {
                 return true;
             }
@@ -66,15 +64,10 @@ public class LinkingLightProfile extends LightProfile {
         }
     };
 
-    private final DConnectApi mPostLightApi = new DConnectApi() {
-        @Override
-        public Method getMethod() {
-            return Method.POST;
-        }
-
+    private final DConnectApi mPostLightApi = new PostApi() {
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            LinkingDevice device = getDevice(getServiceID(request), response);
+            LinkingDevice device = getDevice(response);
             if (device == null) {
                 return true;
             }
@@ -100,15 +93,10 @@ public class LinkingLightProfile extends LightProfile {
         }
     };
 
-    private final DConnectApi mDeleteLightApi = new DConnectApi() {
-        @Override
-        public Method getMethod() {
-            return Method.DELETE;
-        }
-
+    private final DConnectApi mDeleteLightApi = new DeleteApi() {
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            LinkingDevice device = getDevice(getServiceID(request), response);
+            LinkingDevice device = getDevice(response);
             if (device == null) {
                 return true;
             }
@@ -137,7 +125,7 @@ public class LinkingLightProfile extends LightProfile {
         }
         exe.setLightControllable(new FlashingExecutor.LightControllable() {
             @Override
-            public void changeLight(boolean isOn, final FlashingExecutor.CompleteListener listener) {
+            public void changeLight(final boolean isOn, final FlashingExecutor.CompleteListener listener) {
                 manager.sendLEDCommand(device, isOn);
                 listener.onComplete();
             }
@@ -145,7 +133,7 @@ public class LinkingLightProfile extends LightProfile {
         exe.start(flashing);
     }
 
-    private LinkingDevice getDevice(final String serviceId, final Intent response) {
+    private LinkingDevice getDevice(final Intent response) {
         LinkingDevice device = ((LinkingDeviceService) getService()).getLinkingDevice();
 
         if (!device.isConnected()) {

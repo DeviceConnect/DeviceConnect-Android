@@ -8,10 +8,9 @@ package org.deviceconnect.android.profile;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 
 import org.deviceconnect.android.profile.api.DConnectApi;
-import org.deviceconnect.android.profile.spec.DConnectApiSpec;
+import org.deviceconnect.android.profile.api.GetApi;
 import org.deviceconnect.android.service.DConnectService;
 import org.deviceconnect.android.service.DConnectServiceProvider;
 import org.deviceconnect.message.DConnectMessage;
@@ -24,24 +23,8 @@ import java.util.List;
  * Service Discovery プロファイル.
  * 
  * <p>
- * スマートデバイス検索機能を提供するAPI.<br>
- * スマートデバイス検索機能を提供するデバイスプラグインは当クラスを継承し、対応APIを実装すること。 <br>
- * 本クラスでは Found Event と Lost Event は処理しない。デバイスプラグインの任意のタイミングでデバイスの検出、消失の
- * イベントメッセージをDevice Connectに送信する必要がある。
+ * Device Connectサービス検索機能を提供するAPI.<br>
  * </p>
- * 
- * <h1>各API提供メソッド</h1>
- * <p>
- * Service Discovery Profile の各APIへのリクエストに対し、以下のコールバックメソッド群が自動的に呼び出される。<br>
- * サブクラスは以下のメソッド群からデバイスプラグインが提供するAPI用のメソッドをオーバーライドし、機能を実装すること。<br>
- * オーバーライドされていない機能は自動的に非対応APIとしてレスポンスを返す。
- * </p>
- * <ul>
- * <li>Service Discovery API [GET] :
- * {@link ServiceDiscoveryProfile#onGetServices(Intent, Intent)}
- * </li>
- * </ul>
- * 
  * @author NTT DOCOMO, INC.
  */
 public class ServiceDiscoveryProfile extends DConnectProfile implements
@@ -63,11 +46,11 @@ public class ServiceDiscoveryProfile extends DConnectProfile implements
     }
 
     /**
-     * プロファイルプロバイダーを取得する.
+     * サービスプロバイダーを取得する.
      * 
-     * @return プロファイルプロバイダー
+     * @return サービスプロバイダー
      */
-    protected DConnectServiceProvider getProfileProvider() {
+    protected DConnectServiceProvider getServiceProvider() {
         return mProvider;
     }
 
@@ -76,25 +59,17 @@ public class ServiceDiscoveryProfile extends DConnectProfile implements
         return PROFILE_NAME;
     }
 
-    private final DConnectApi mServiceDiscoveryApi = new DConnectApi() {
-
-        @Override
-        public Method getMethod() {
-            return Method.GET;
-        }
-
+    private final DConnectApi mServiceDiscoveryApi = new GetApi() {
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            Log.d("AAA", "mServiceDiscoveryApi.onRequest");
-
             List<Bundle> serviceBundles = new ArrayList<Bundle>();
             for (DConnectService service : mProvider.getServiceList()) {
                 Bundle serviceBundle = new Bundle();
                 setId(serviceBundle, service.getId());
                 setName(serviceBundle, service.getName());
+                setType(serviceBundle, service.getNetworkType());
                 setOnline(serviceBundle, service.isOnline());
-                // TODO 他のパラメータ設定
-
+                setConfig(serviceBundle, service.getConfig());
                 serviceBundles.add(serviceBundle);
             }
             setServices(response, serviceBundles);
@@ -103,6 +78,7 @@ public class ServiceDiscoveryProfile extends DConnectProfile implements
         }
     };
 
+    // TODO Status Change Event APIの実装.
 
     // ------------------------------------
     // レスポンスセッターメソッド群

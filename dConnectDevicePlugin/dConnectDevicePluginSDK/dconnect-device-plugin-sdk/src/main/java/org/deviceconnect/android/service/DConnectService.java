@@ -40,6 +40,9 @@ public class DConnectService implements DConnectProfileProvider, ServiceDiscover
      * @param id サービスID
      */
     public DConnectService(final String id) {
+        if (id == null) {
+            throw new NullPointerException("id is null.");
+        }
         mId = id;
         addProfile(new ServiceInformationProfile());
     }

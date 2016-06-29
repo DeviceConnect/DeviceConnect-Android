@@ -80,6 +80,7 @@ public class DConnectServiceManager implements DConnectServiceProvider {
         return path.toString();
     }
 
+    @Override
     public void removeService(final String serviceId) {
         mDConnectServices.remove(serviceId);
     }

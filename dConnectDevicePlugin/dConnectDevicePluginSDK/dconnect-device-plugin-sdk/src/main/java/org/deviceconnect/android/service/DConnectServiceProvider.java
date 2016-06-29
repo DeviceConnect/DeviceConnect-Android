@@ -10,4 +10,6 @@ public interface DConnectServiceProvider {
     List<DConnectService> getServiceList();
 
     void addService(DConnectService service);
+
+    void removeService(String serviceId);
 }

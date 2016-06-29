@@ -55,8 +55,9 @@ public class SettingFragment extends Fragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, final ViewGroup container, Bundle savedInstanceState) {
         final View view = inflater.inflate(R.layout.fragment_setting, container, false);
+        final Context context = view.getContext();
 
         switchStatus = (Switch)view.findViewById(R.id.switchStatus);
         editTextHost = (EditText)view.findViewById(R.id.editTextHost);
@@ -74,7 +75,7 @@ public class SettingFragment extends Fragment {
                 // 設定保存
                 saveSettings();
                 // サービス取得
-                fetchServices(v.getContext());
+                fetchServices(context);
             }
         });
 
@@ -85,13 +86,18 @@ public class SettingFragment extends Fragment {
                 if (selectedInfo != null) {
                     // 保存
                     saveSettings();
-                    // サービス開始
-                    Intent serviceIntent = new Intent(getActivity(), SimpleBotService.class);
-                    getActivity().startService(serviceIntent);
+                    Intent serviceIntent = new Intent(context, SimpleBotService.class);
+                    if (switchStatus.isChecked()) {
+                        // サービス開始
+                        context.startService(serviceIntent);
+                    } else {
+                        // サービス停止
+                        context.stopService(serviceIntent);
+                    }
                 } else {
                     if (switchStatus.isChecked()) {
                         // エラーメッセージ
-                        Utils.showAlertDialog(view.getContext(), getString(R.string.service_not_selected));
+                        Utils.showAlertDialog(context, getString(R.string.service_not_selected));
                         // チェックを外す
                         switchStatus.setChecked(false);
                     }

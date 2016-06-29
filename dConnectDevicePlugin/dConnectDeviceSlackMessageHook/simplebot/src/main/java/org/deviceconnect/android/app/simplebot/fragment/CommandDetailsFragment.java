@@ -337,8 +337,13 @@ public class CommandDetailsFragment extends Fragment implements View.OnClickList
                         // データ保存
                         final DataManager dm = new DataManager(context);
                         if (dm.upsert(commandData)) {
-                            // 画面を戻す。画面が表示されていないのでonResumeで戻す。
-                            popBackFlg = true;
+                            // 画面を戻す
+                            if (isResumed()) {
+                                getFragmentManager().popBackStack();
+                            } else {
+                                // 画面が表示されていないのでonResumeで戻す。
+                                popBackFlg = true;
+                            }
                         } else {
                             Utils.showAlertDialog(context, getString(R.string.err_add_data));
                         }

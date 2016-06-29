@@ -53,7 +53,9 @@ public class DConnectHelper {
     private static final boolean DEBUG = true;
 
     /** DConnectHelperの基底Exception */
-    public abstract class DConnectHelperException extends Exception {}
+    public abstract class DConnectHelperException extends Exception {
+        public int errorCode = 0;
+    }
     /** Resultが不正 */
     public class DConnectInvalidResultException extends DConnectHelperException {}
     /** 認証失敗 */
@@ -167,7 +169,9 @@ public class DConnectHelper {
         );
         // パラメータ
         Map<String, String> params = new HashMap<>();
-        params.put(DConnectMessage.EXTRA_ACCESS_TOKEN, accessToken);
+        if (accessToken != null) {
+            params.put(DConnectMessage.EXTRA_ACCESS_TOKEN, accessToken);
+        }
         // 接続
         new HttpTask().execute(new TaskParam(connectionParam, params) {
             @Override
@@ -234,12 +238,14 @@ public class DConnectHelper {
                 }
             }
             @Override
-            public void onAuthFailed(DConnectMessage.ErrorCode error) {
+            public void onAuthFailed(final DConnectMessage.ErrorCode error) {
                 if (callback != null) {
                     handler.post(new Runnable() {
                         @Override
                         public void run() {
-                            callback.onFinish(null, new DConnectAuthFailedException());
+                            DConnectHelperException e = new DConnectAuthFailedException();
+                            e.errorCode = error.getCode();
+                            callback.onFinish(null, e);
                         }
                     });
                 }
@@ -262,19 +268,25 @@ public class DConnectHelper {
      * @param clientId ClientID
      * @param callback Callback
      */
-    public void registerEvent(String profile, String attribute, String serviceId, String accessToken, String clientId, final FinishCallback<Void> callback) {
+    public void registerEvent(String profile, String attribute, String serviceId, String accessToken, String clientId, boolean unregist, final FinishCallback<Void> callback) {
         if (DEBUG) Log.d(TAG, "registerEvent:" + profile + ":" + attribute);
         // 接続情報
+        String method = "PUT";
+        if (unregist) {
+            method = "DELETE";
+        }
         ConnectionParam connectionParam = new ConnectionParam(
                 targetHost,
-                "PUT",
+                method,
                 profile,
                 attribute,
                 origin
         );
         // パラメータ
         Map<String, String> params = new HashMap<>();
-        params.put(DConnectMessage.EXTRA_ACCESS_TOKEN, accessToken);
+        if (accessToken != null) {
+            params.put(DConnectMessage.EXTRA_ACCESS_TOKEN, accessToken);
+        }
         params.put(DConnectMessage.EXTRA_SERVICE_ID, serviceId);
         params.put(DConnectMessage.EXTRA_SESSION_KEY, clientId);
         // 接続
@@ -315,7 +327,9 @@ public class DConnectHelper {
         );
         // パラメータ
         Map<String, String> params = new HashMap<>();
-        params.put(DConnectMessage.EXTRA_ACCESS_TOKEN, accessToken);
+        if (accessToken != null) {
+            params.put(DConnectMessage.EXTRA_ACCESS_TOKEN, accessToken);
+        }
         params.put(DConnectMessage.EXTRA_SERVICE_ID, serviceId);
         params.put("text", text);
         params.put("channelId", channelId);
@@ -360,7 +374,9 @@ public class DConnectHelper {
         if (params == null) {
             params = new HashMap<>();
         }
-        params.put(DConnectMessage.EXTRA_ACCESS_TOKEN, accessToken);
+        if (accessToken != null) {
+            params.put(DConnectMessage.EXTRA_ACCESS_TOKEN, accessToken);
+        }
         params.put(DConnectMessage.EXTRA_SERVICE_ID, serviceId);
         // 接続
         new HttpTask().execute(new TaskParam(connectionParam, params) {
@@ -391,9 +407,6 @@ public class DConnectHelper {
         String host = targetHost.getHostName();
         int port = targetHost.getPort();
 
-        if (sessionKey == null) {
-            sessionKey = "dummy_key";
-        }
         return HttpEventManager.INSTANCE.connect(host, port, isSSL, sessionKey, new CloseHandler() {
             @Override
             public void onClosed() {

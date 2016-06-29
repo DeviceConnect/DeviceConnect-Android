@@ -10,6 +10,7 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.util.Log;
@@ -38,6 +39,9 @@ public class SimpleBotService extends Service {
     /** デバッグフラグ */
     private static final boolean DEBUG = true;
 
+    /** Handler */
+    private Handler handler;
+
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
@@ -50,6 +54,7 @@ public class SimpleBotService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+        handler = new Handler();
         connect();
     }
 
@@ -59,6 +64,7 @@ public class SimpleBotService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
+        disconnect();
         Log.d(TAG, "service destroyed...");
     }
 
@@ -102,7 +108,7 @@ public class SimpleBotService extends Service {
         });
 
         // イベント登録
-        Utils.registEvent(context, new DConnectHelper.FinishCallback<Void>() {
+        Utils.registEvent(context, false, new DConnectHelper.FinishCallback<Void>() {
             @Override
             public void onFinish(Void aVoid, Exception error) {
                 if (error != null) {
@@ -112,6 +118,25 @@ public class SimpleBotService extends Service {
                     setting.save();
                     // サービス終了
                     stopSelf();
+                }
+            }
+        });
+    }
+
+    /**
+     * 切断
+     */
+    private void disconnect() {
+        // イベントハンドラー登録
+        DConnectHelper.INSTANCE.setEventHandler(null);
+
+        // イベント解除
+        final Context context = getApplicationContext();
+        Utils.registEvent(context, true, new DConnectHelper.FinishCallback<Void>() {
+            @Override
+            public void onFinish(Void aVoid, Exception error) {
+                if (error != null) {
+                    Log.e(TAG, "Error on unregistEvent", error);
                 }
             }
         });
@@ -174,7 +199,7 @@ public class SimpleBotService extends Service {
         if (data.serviceId == null) {
             return false;
         }
-        Context context = getApplicationContext();
+        final Context context = getApplicationContext();
         // 正規表現で検索
         Pattern pattern = Pattern.compile(data.keyword);
         Matcher matcher = pattern.matcher(text);
@@ -185,7 +210,7 @@ public class SimpleBotService extends Service {
         // 一致
         if (DEBUG) Log.d(TAG, "match:" +  data.keyword);
         // パラメータ作成
-        Map<String, String> params = Utils.jsonToMap(data.body);
+        final Map<String, String> params = Utils.jsonToMap(data.body);
         if (params != null) {
             for (String key: params.keySet()) {
                 String val = params.get(key);
@@ -198,17 +223,24 @@ public class SimpleBotService extends Service {
             }
         }
         if (DEBUG) Log.d(TAG, params.toString());
-        // リクエスト送信
-        Utils.sendRequest(context, data.method, data.path, data.serviceId, params, new DConnectHelper.FinishCallback<Map<String, Object>>() {
+
+        // このタイミングでToken確認画面が出たことがあったのでMainスレッドで処理。
+        handler.post(new Runnable() {
             @Override
-            public void onFinish(Map<String, Object> stringObjectMap, Exception error) {
-                if (error == null) {
-                    if (DEBUG) Log.d(TAG, stringObjectMap.toString());
-                    sendResponse(channel, data.success, stringObjectMap);
-                } else {
-                    if (DEBUG) Log.e(TAG, "Error on sendRequest", error);
-                    sendResponse(channel, data.error, stringObjectMap);
-                }
+            public void run() {
+                // リクエスト送信
+                Utils.sendRequest(context, data.method, data.path, data.serviceId, params, new DConnectHelper.FinishCallback<Map<String, Object>>() {
+                    @Override
+                    public void onFinish(Map<String, Object> stringObjectMap, Exception error) {
+                        if (error == null) {
+                            if (DEBUG) Log.d(TAG, stringObjectMap.toString());
+                            sendResponse(channel, data.success, stringObjectMap);
+                        } else {
+                            if (DEBUG) Log.e(TAG, "Error on sendRequest", error);
+                            sendResponse(channel, data.error, stringObjectMap);
+                        }
+                    }
+                });
             }
         });
 

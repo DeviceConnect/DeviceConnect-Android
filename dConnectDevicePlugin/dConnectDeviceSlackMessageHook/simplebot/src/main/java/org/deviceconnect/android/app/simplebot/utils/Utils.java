@@ -238,7 +238,7 @@ public class Utils {
             setting.scopes.add("messageHook");
             setting.save();
         }
-        String scopes[] = setting.scopes.toArray(new String[0]);
+        String scopes[] = setting.scopes.toArray(new String[setting.scopes.size()]);
 
         // 接続先設定
         DConnectHelper.INSTANCE.setHostInfo(
@@ -254,17 +254,27 @@ public class Utils {
             DConnectHelper.INSTANCE.auth(appName, setting.clientId, scopes, new DConnectHelper.FinishCallback<DConnectHelper.AuthInfo>() {
                 @Override
                 public void onFinish(DConnectHelper.AuthInfo authInfo, Exception error) {
+                    Exception outError = error;
+                    DConnectHelper.AuthInfo outAuthInfo = authInfo;
                     if (authInfo != null) {
                         // 設定に保存
                         setting.accessToken = authInfo.accessToken;
                         setting.clientId = authInfo.clientId;
                     } else {
+                        if (error != null) {
+                            // ErrorCode=2の場合はLocalOAuth非対応サーバーなので、正常終了とする。
+                            DConnectHelper.DConnectHelperException e = (DConnectHelper.DConnectHelperException)error;
+                            if (e.errorCode == 2) {
+                                outError = null;
+                                outAuthInfo = new DConnectHelper.AuthInfo("dummy_id", null);
+                            }
+                        }
                         // 失敗したらクリア
                         setting.accessToken = null;
                         setting.clientId = null;
                     }
                     setting.save();
-                    callback.onFinish(authInfo, error);
+                    callback.onFinish(outAuthInfo, outError);
                 }
             });
         } else {
@@ -288,20 +298,11 @@ public class Utils {
                     DConnectHelper.INSTANCE.serviceDiscovery(authInfo.accessToken, new DConnectHelper.FinishCallback<List<DConnectHelper.ServiceInfo>>() {
                         @Override
                         public void onFinish(List<DConnectHelper.ServiceInfo> serviceInfos, Exception error) {
-                            // TODO: エラーの種類によっては再接続
                             callback.onFinish(serviceInfos, error);
                         }
                     });
                 } else {
-                    // TODO: エラー処理 ループするので、エラー内容によって接続しなおすかメッセージ表示かを切り替える
-                    Log.e("a", "err", error);
                     callback.onFinish(null, error);
-                    // 設定をクリア
-//                    setting.accessToken = null;
-//                    setting.clientId = null;
-//                    setting.save();
-//                    // 再接続
-//                    Utils.connect(context, this);
                 }
             }
         };
@@ -313,37 +314,27 @@ public class Utils {
      * @param context context
      * @param callback 終了コールバック
      */
-    public static void registEvent(final Context context, final DConnectHelper.FinishCallback<Void> callback) {
+    public static void registEvent(final Context context, final boolean unregist, final DConnectHelper.FinishCallback<Void> callback) {
         DConnectHelper.FinishCallback<DConnectHelper.AuthInfo> finishCallback = new DConnectHelper.FinishCallback<DConnectHelper.AuthInfo>() {
             @Override
-            public void onFinish(DConnectHelper.AuthInfo authInfo, Exception error) {
+            public void onFinish(final DConnectHelper.AuthInfo authInfo, Exception error) {
                 if (error == null) {
                     // 登録
                     SettingData setting = SettingData.getInstance(context);
-                    DConnectHelper.INSTANCE.registerEvent("messageHook", "message", setting.serviceId, setting.accessToken, setting.clientId, new DConnectHelper.FinishCallback<Void>() {
+                    DConnectHelper.INSTANCE.registerEvent("messageHook", "message", setting.serviceId, setting.accessToken, authInfo.clientId, unregist, new DConnectHelper.FinishCallback<Void>() {
                         @Override
                         public void onFinish(Void aVoid, Exception error) {
                             if (error == null) {
                                 // WebSocket接続
-                                SettingData setting = SettingData.getInstance(context);
-                                DConnectHelper.INSTANCE.openWebsocket(setting.clientId);
+                                DConnectHelper.INSTANCE.openWebsocket(authInfo.clientId);
                                 callback.onFinish(null, null);
                             } else {
-                                // TODO: エラーの種類によっては再接続
                                 callback.onFinish(null, error);
                             }
                         }
                     });
                 } else {
-                    // TODO: エラー処理 ループするので、エラー内容によって接続しなおすかメッセージ表示かを切り替える
-                    Log.e("a", "err", error);
                     callback.onFinish(null, error);
-                    // 設定をクリア
-//                    setting.accessToken = null;
-//                    setting.clientId = null;
-//                    setting.save();
-//                    // 再接続
-//                    Utils.connect(context, this);
                 }
             }
         };
@@ -365,20 +356,11 @@ public class Utils {
                     DConnectHelper.INSTANCE.sendMessage(setting.serviceId, setting.accessToken, channel, text, new DConnectHelper.FinishCallback<Void>() {
                         @Override
                         public void onFinish(Void aVoid, Exception error) {
-                            // TODO:
                             callback.onFinish(null, error);
                         }
                     });
                 } else {
-                    // TODO: エラー処理 ループするので、エラー内容によって接続しなおすかメッセージ表示かを切り替える
-                    Log.e("a", "err", error);
                     callback.onFinish(null, error);
-                    // 設定をクリア
-//                    setting.accessToken = null;
-//                    setting.clientId = null;
-//                    setting.save();
-//                    // 再接続
-//                    Utils.connect(context, this);
                 }
             }
         };
@@ -399,23 +381,14 @@ public class Utils {
             public void onFinish(DConnectHelper.AuthInfo authInfo, Exception error) {
                 if (error == null) {
                     // リクエスト送信
-                    SettingData setting = SettingData.getInstance(context);
-                    DConnectHelper.INSTANCE.sendRequest(method, path, serviceId, setting.accessToken, params, new DConnectHelper.FinishCallback<Map<String, Object>>() {
+                    DConnectHelper.INSTANCE.sendRequest(method, path, serviceId, authInfo.accessToken, params, new DConnectHelper.FinishCallback<Map<String, Object>>() {
                         @Override
                         public void onFinish(Map<String, Object> stringObjectMap, Exception error) {
                             callback.onFinish(stringObjectMap, error);
                         }
                     });
                 } else {
-                    // TODO: エラー処理 ループするので、エラー内容によって接続しなおすかメッセージ表示かを切り替える
-                    Log.e("a", "err", error);
                     callback.onFinish(null, error);
-                    // 設定をクリア
-//                    setting.accessToken = null;
-//                    setting.clientId = null;
-//                    setting.save();
-//                    // 再接続
-//                    Utils.connect(context, this);
                 }
             }
         };

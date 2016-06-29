@@ -349,14 +349,15 @@ public class DevicePluginManager {
     public void appendPluginIdToSessionKey(final Intent request, final DevicePlugin plugin) {
         String sessionKey = request.getStringExtra(DConnectMessage.EXTRA_SESSION_KEY);
         if (plugin != null && sessionKey != null) {
-            if (!plugin.getServiceId().equals(sessionKey)) {
-                mApp.setDevicePluginIdentifyKey(sessionKey, plugin.getServiceId());
-            }
+            String beforeSessionKey = sessionKey;
             sessionKey = sessionKey + DConnectMessageService.SEPARATOR + plugin.getServiceId();
             ComponentName receiver = (ComponentName) request.getExtras().get(DConnectMessage.EXTRA_RECEIVER);
             if (receiver != null) {
                 sessionKey = sessionKey + DConnectMessageService.SEPARATOR_SESSION 
                         + receiver.flattenToString();
+            }
+            if (!plugin.getServiceId().equals(beforeSessionKey)) {
+                mApp.setDevicePluginIdentifyKey(sessionKey, plugin.getServiceId());
             }
             request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, sessionKey);
         }

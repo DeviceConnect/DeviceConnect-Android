@@ -40,7 +40,7 @@ public class DConnectApplication extends Application {
 
     /**
      * セッションキーとデバイスプラグインの紐付けを行う.
-     * @param identifyKey セッションキー
+     * @param identifyKey appendPluginIdToSessionKey()加工後のセッションキー
      * @param serviceId プラグインID
      */
     public void setDevicePluginIdentifyKey(final String identifyKey, final String serviceId) {
@@ -72,5 +72,22 @@ public class DConnectApplication extends Application {
         } else {
             return false;
         }
+    }
+
+    /**
+     * Map登録されているKey取得.
+     * @param sessionKey セッションキー
+     * @return Map登録されているKey, 存在しない場合はnull.
+     */
+    public String getIdentifySessionKey(final String sessionKey) {
+        String matchKey = null;
+        for (Map.Entry<String, String> entry : mEventKeys.entrySet()) {
+            String key = entry.getKey();
+            if (key.startsWith(sessionKey)) {
+                matchKey = key;
+                break;
+            }
+        }
+        return matchKey;
     }
 }

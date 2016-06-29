@@ -143,15 +143,26 @@ public class DConnectServerEventListenerImpl implements
      */
     @Override
     public void onWebSocketDisconnected(final String sessionKey) {
-        DevicePluginManager mgr = new DevicePluginManager(mContext, null);
-        mgr.createDevicePluginList();
-        mLogger.info("sessionKey :" + sessionKey);
-        String matchServiceId = mApp.getDevicePluginIdentifyKey(sessionKey);
+        if (BuildConfig.DEBUG) {
+            mLogger.info("sessionKey :" + sessionKey);
+        }
+        String matchSessionKey = mApp.getIdentifySessionKey(sessionKey);
+        if (matchSessionKey == null) {
+            if (BuildConfig.DEBUG) {
+                mLogger.info(" Didn't find the corresponding device plug-in to the sessionKey.");
+            }
+            return;
+        }
+        String matchServiceId = mApp.getDevicePluginIdentifyKey(matchSessionKey);
         if (matchServiceId == null) {
-            mLogger.info(" Didn't find the corresponding device plug-in to the sessionKey.");
+            if (BuildConfig.DEBUG) {
+                mLogger.info(" Didn't find the corresponding device plug-in to the sessionKey.");
+            }
             return;
         }
 
+        DevicePluginManager mgr = new DevicePluginManager(mContext, null);
+        mgr.createDevicePluginList();
         List<DevicePlugin> plugins = mgr.getDevicePlugins();
         for (DevicePlugin plugin : plugins) {
             String serviceId = plugin.getServiceId();
@@ -160,11 +171,11 @@ public class DConnectServerEventListenerImpl implements
                 request.setComponent(plugin.getComponentName());
                 request.setAction(IntentDConnectMessage.ACTION_EVENT_TRANSMIT_DISCONNECT);
                 request.putExtra("pluginId", serviceId);
-                request.putExtra(IntentDConnectMessage.EXTRA_SESSION_KEY, sessionKey);
+                request.putExtra(IntentDConnectMessage.EXTRA_SESSION_KEY, matchSessionKey);
                 mContext.sendBroadcast(request);
             }
         }
-        mApp.removeDevicePluginIdentifyKey(sessionKey);
+        mApp.removeDevicePluginIdentifyKey(matchSessionKey);
     }
 
     /**
@@ -174,7 +185,14 @@ public class DConnectServerEventListenerImpl implements
      */
     @Override
     public void onResetEventSessionKey(String sessionKey) {
-        mApp.removeDevicePluginIdentifyKey(sessionKey);
+        String matchSessionKey = mApp.getIdentifySessionKey(sessionKey);
+        if (matchSessionKey != null) {
+            mApp.removeDevicePluginIdentifyKey(matchSessionKey);
+        } else {
+            if (BuildConfig.DEBUG) {
+                mLogger.info(" Didn't find the corresponding device plug-in to the sessionKey.");
+            }
+        }
     }
 
     @Override

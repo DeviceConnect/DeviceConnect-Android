@@ -54,6 +54,7 @@ public class LinkingBeaconManager {
     private List<OnBeaconHumidityEventListener> mOnBeaconHumidityEventListeners = new CopyOnWriteArrayList<>();
     private List<OnBeaconTemperatureEventListener> mOnBeaconTemperatureEventListeners = new CopyOnWriteArrayList<>();
     private List<OnBeaconRawDataEventListener> mOnBeaconRawDataEventListeners = new CopyOnWriteArrayList<>();
+    private List<OnBeaconScanStateListener> mOnBeaconScanStateListeners = new CopyOnWriteArrayList<>();
 
     private LinkingDBAdapter mDBAdapter;
 
@@ -88,6 +89,10 @@ public class LinkingBeaconManager {
         mOnBeaconHumidityEventListeners.clear();
         mOnBeaconTemperatureEventListeners.clear();
         mOnBeaconRawDataEventListeners.clear();
+    }
+
+    public Context getContext() {
+        return mContext;
     }
 
     public List<LinkingBeacon> getLinkingBeacons() {
@@ -277,6 +282,14 @@ public class LinkingBeaconManager {
         mOnBeaconRawDataEventListeners.remove(listener);
     }
 
+    public void addOnBeaconScanStateListener(final OnBeaconScanStateListener listener) {
+        mOnBeaconScanStateListeners.add(listener);
+    }
+
+    public void removeOnBeaconScanStateListener(final OnBeaconScanStateListener listener) {
+        mOnBeaconScanStateListeners.remove(listener);
+    }
+
     private void parseBeaconScanState(final Intent intent) {
         mScanState = LinkingBeaconUtil.ScanState.valueOf(intent.getIntExtra(LinkingBeaconUtil.SCAN_STATE, 0));
         mScanDetail = LinkingBeaconUtil.ScanDetail.valueOf(intent.getIntExtra(LinkingBeaconUtil.DETAIL, 0));
@@ -305,6 +318,10 @@ public class LinkingBeaconManager {
         if (BuildConfig.DEBUG) {
             Log.d(TAG, "mScanState: " + mScanState);
             Log.d(TAG, "mScanDetail: " + mScanDetail);
+        }
+
+        for (OnBeaconScanStateListener listener : mOnBeaconScanStateListeners) {
+            listener.onScanState(mScanState, mScanDetail);
         }
     }
 
@@ -536,7 +553,7 @@ public class LinkingBeaconManager {
         private boolean mDestroyFlag;
 
         TimeoutRunnable(final int timeout) {
-            mScheduledFuture = mExecutorService.schedule(this, timeout, TimeUnit.SECONDS);
+            mScheduledFuture = mExecutorService.schedule(this, timeout, TimeUnit.MILLISECONDS);
         }
 
         @Override
@@ -600,5 +617,9 @@ public class LinkingBeaconManager {
 
     public interface OnBeaconRawDataEventListener {
         void onRawData(LinkingBeacon beacon, RawData rawData);
+    }
+
+    public interface OnBeaconScanStateListener {
+        void onScanState(LinkingBeaconUtil.ScanState state, LinkingBeaconUtil.ScanDetail detail);
     }
 }

@@ -7,12 +7,12 @@
 package org.deviceconnect.android.deviceplugin.linking.linking.profile;
 
 import android.content.Intent;
-import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.linking.LinkingApplication;
 import org.deviceconnect.android.deviceplugin.linking.LinkingDevicePluginService;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingDevice;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingDeviceManager;
+import org.deviceconnect.android.deviceplugin.linking.linking.LinkingUtil;
 import org.deviceconnect.android.deviceplugin.linking.linking.service.LinkingDeviceService;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.VibrationProfile;
@@ -21,16 +21,18 @@ import org.deviceconnect.android.profile.api.DeleteApi;
 import org.deviceconnect.android.profile.api.PutApi;
 import org.deviceconnect.message.DConnectMessage;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public class LinkingVibrationProfile extends VibrationProfile {
 
-    private Map<String, VibrationExecutor> mVibrationMap = new HashMap<>();
+    private VibrationExecutor mVibrationExecutor;
 
     public LinkingVibrationProfile() {
         addApi(mPutVibrate);
         addApi(mDeleteVibrate);
+    }
+
+    @Override
+    protected long getMaxVibrationTime() {
+        return 3 * 60 * 1000;
     }
 
     private DConnectApi mPutVibrate = new PutApi() {
@@ -77,22 +79,19 @@ public class LinkingVibrationProfile extends VibrationProfile {
         }
     };
 
-    private void patternVibrate(final LinkingDeviceManager manager,
-                                final LinkingDevice device, final long[] pattern) {
-        VibrationExecutor exe = mVibrationMap.get("test");
-        if (exe == null) {
-            exe = new VibrationExecutor();
-            mVibrationMap.put("test", exe);
+    private synchronized void patternVibrate(final LinkingDeviceManager manager,
+                                             final LinkingDevice device, final long[] pattern) {
+        if (mVibrationExecutor == null) {
+            mVibrationExecutor = new VibrationExecutor();
         }
-
-        exe.setVibrationControllable(new VibrationExecutor.VibrationControllable() {
+        mVibrationExecutor.setVibrationControllable(new VibrationExecutor.VibrationControllable() {
             @Override
             public void changeVibration(final boolean isOn, final VibrationExecutor.CompleteListener listener) {
                 manager.sendVibrationCommand(device, isOn);
                 listener.onComplete();
             }
         });
-        exe.start(pattern);
+        mVibrationExecutor.start(pattern);
     }
 
     private LinkingDevice getDevice(final Intent response) {
@@ -103,12 +102,12 @@ public class LinkingVibrationProfile extends VibrationProfile {
             return null;
         }
 
-        return device;
-    }
+        if (!LinkingUtil.hasVibration(device)) {
+            MessageUtils.setNotSupportProfileError(response, "device has not vibration");
+            return null;
+        }
 
-    @Override
-    protected long getMaxVibrationTime() {
-        return 3 * 60 * 1000;
+        return device;
     }
 
     private LinkingDeviceManager getLinkingDeviceManager() {

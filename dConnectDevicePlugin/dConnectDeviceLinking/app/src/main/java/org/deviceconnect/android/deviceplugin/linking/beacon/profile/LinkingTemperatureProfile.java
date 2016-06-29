@@ -25,7 +25,7 @@ import org.deviceconnect.message.DConnectMessage;
 public class LinkingTemperatureProfile extends TemperatureProfile {
 
     private static final String TAG = "LinkingPlugin";
-    private static final int TIMEOUT = 30;
+    private static final int TIMEOUT = 30 * 1000;
 
     public LinkingTemperatureProfile() {
         addApi(mGetTemperature);
@@ -42,15 +42,29 @@ public class LinkingTemperatureProfile extends TemperatureProfile {
                 return true;
             }
 
-            final LinkingBeaconManager mgr = getLinkingBeaconManager();
-            mgr.addOnBeaconTemperatureEventListener(new OnBeaconTemperatureEventListenerImpl(beacon) {
+            LinkingBeaconManager mgr = getLinkingBeaconManager();
+            mgr.addOnBeaconTemperatureEventListener(new OnBeaconTemperatureEventListenerImpl(mgr, beacon) {
                 @Override
                 public void onCleanup() {
-                    mgr.removeOnBeaconTemperatureEventListener(this);
+                    mBeaconManager.removeOnBeaconTemperatureEventListener(this);
                 }
 
                 @Override
-                public synchronized void onTimeout() {
+                public void onDisableScan(final String message) {
+                    if (mCleanupFlag) {
+                        return;
+                    }
+
+                    if (BuildConfig.DEBUG) {
+                        Log.i(TAG, "onTemperature: disable scan.");
+                    }
+
+                    MessageUtils.setIllegalDeviceStateError(response, message);
+                    sendResponse(response);
+                }
+
+                @Override
+                public void onTimeout() {
                     if (mCleanupFlag) {
                         return;
                     }
@@ -102,8 +116,8 @@ public class LinkingTemperatureProfile extends TemperatureProfile {
 
     private abstract class OnBeaconTemperatureEventListenerImpl extends TimeoutSchedule implements
             LinkingBeaconManager.OnBeaconTemperatureEventListener {
-        OnBeaconTemperatureEventListenerImpl(final LinkingBeacon beacon) {
-            super(beacon);
+        OnBeaconTemperatureEventListenerImpl(final LinkingBeaconManager mgr, final LinkingBeacon beacon) {
+            super(mgr, beacon);
         }
     }
 }

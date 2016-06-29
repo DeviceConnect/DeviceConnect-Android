@@ -33,6 +33,7 @@ import java.util.List;
 public class LinkingServiceDiscoveryProfile extends ServiceDiscoveryProfile {
 
     private static final String TAG = "LinkingPlugin";
+    private static final int TIMEOUT = 20 * 1000;
 
     public LinkingServiceDiscoveryProfile(final DConnectServiceProvider provider) {
         super(provider);
@@ -44,6 +45,7 @@ public class LinkingServiceDiscoveryProfile extends ServiceDiscoveryProfile {
         public boolean onRequest(final Intent request, final Intent response) {
             createLinkingDeviceList();
             createLinkingBeaconList();
+            cleanupDConnectService();
 
             List<Bundle> serviceBundles = new ArrayList<>();
             for (DConnectService service : getProfileProvider().getServiceList()) {
@@ -74,20 +76,11 @@ public class LinkingServiceDiscoveryProfile extends ServiceDiscoveryProfile {
                 ((LinkingDeviceService) service).setLinkingDevice(device);
             }
         }
-
-        for (DConnectService service : getProfileProvider().getServiceList()) {
-            if (!containsLinkingDevices(service.getId())) {
-                if (BuildConfig.DEBUG) {
-                    Log.i(TAG, "Remove Service: " + service.getName());
-                }
-                getProfileProvider().removeService(service);
-            }
-        }
     }
 
     private void createLinkingBeaconList() {
         LinkingBeaconManager mgr = getLinkingBeaconManager();
-        mgr.startBeaconScan(10);
+        mgr.startBeaconScan(TIMEOUT);
 
         for (LinkingBeacon beacon : mgr.getLinkingBeacons()) {
             DConnectService service = findDConnectService(beacon.getServiceId());
@@ -100,9 +93,11 @@ public class LinkingServiceDiscoveryProfile extends ServiceDiscoveryProfile {
                 ((LinkingBeaconService) service).setLinkingBeacon(beacon);
             }
         }
+    }
 
+    private void cleanupDConnectService() {
         for (DConnectService service : getProfileProvider().getServiceList()) {
-            if (!containsLinkingBeacons(service.getId())) {
+            if (!containsLinkingDevices(service.getId()) && !containsLinkingBeacons(service.getId())) {
                 if (BuildConfig.DEBUG) {
                     Log.i(TAG, "Remove Service: " + service.getName());
                 }

@@ -149,4 +149,30 @@ public class LinkingBeacon {
                 .append(getRawData());
         return sb.toString();
     }
+
+    @Override
+    public boolean equals(final Object obj) {
+        if (obj == null) {
+            return false;
+        }
+
+        if (obj == this) {
+            return true;
+        }
+
+        if (!(obj instanceof LinkingBeacon)) {
+            return false;
+        }
+
+        LinkingBeacon beacon = (LinkingBeacon) obj;
+        return (beacon.mExtraId == mExtraId && beacon.mVendorId == mVendorId);
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + mExtraId + mVendorId;
+        return result;
+    }
 }

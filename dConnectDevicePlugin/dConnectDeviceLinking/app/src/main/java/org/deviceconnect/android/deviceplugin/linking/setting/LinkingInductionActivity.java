@@ -25,6 +25,7 @@ public class LinkingInductionActivity extends AppCompatActivity {
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
+            actionBar.setElevation(0);
         }
 
         Button linkingBtn = (Button) findViewById(R.id.fragment_linking_app);

@@ -24,9 +24,7 @@ import org.deviceconnect.android.profile.api.PostApi;
 import org.deviceconnect.message.DConnectMessage;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Light Profile.
@@ -35,7 +33,7 @@ import java.util.Map;
  */
 public class LinkingLightProfile extends LightProfile {
 
-    private final Map<String, FlashingExecutor> mFlashingMap = new HashMap<>();
+    private FlashingExecutor mFlashingExecutor;
 
     public LinkingLightProfile() {
         addApi(mGetLightApi);
@@ -76,14 +74,14 @@ public class LinkingLightProfile extends LightProfile {
             String lightId = getLightId(request);
             long[] flashing = getFlashing(request);
 
-            if (!device.getBdAddress().equals(lightId)) {
+            if (lightId != null && !device.getBdAddress().equals(lightId)) {
                 MessageUtils.setInvalidRequestParameterError(response, "lightId is invalid.");
                 return true;
             }
 
             LinkingDeviceManager manager = getLinkingDeviceManager();
             if (flashing != null) {
-                flashing(serviceId, manager, device, flashing);
+                flashing(manager, device, flashing);
             } else {
                 manager.sendLEDCommand(device, true);
             }
@@ -116,21 +114,19 @@ public class LinkingLightProfile extends LightProfile {
         }
     };
 
-    private void flashing(final String serviceId, final LinkingDeviceManager manager,
-                          final LinkingDevice device, final long[] flashing) {
-        FlashingExecutor exe = mFlashingMap.get(serviceId);
-        if (exe == null) {
-            exe = new FlashingExecutor();
-            mFlashingMap.put(serviceId, exe);
+    private synchronized void flashing(final LinkingDeviceManager manager,
+                                       final LinkingDevice device, final long[] flashing) {
+        if (mFlashingExecutor == null) {
+            mFlashingExecutor = new FlashingExecutor();
         }
-        exe.setLightControllable(new FlashingExecutor.LightControllable() {
+        mFlashingExecutor.setLightControllable(new FlashingExecutor.LightControllable() {
             @Override
             public void changeLight(final boolean isOn, final FlashingExecutor.CompleteListener listener) {
                 manager.sendLEDCommand(device, isOn);
                 listener.onComplete();
             }
         });
-        exe.start(flashing);
+        mFlashingExecutor.start(flashing);
     }
 
     private LinkingDevice getDevice(final Intent response) {

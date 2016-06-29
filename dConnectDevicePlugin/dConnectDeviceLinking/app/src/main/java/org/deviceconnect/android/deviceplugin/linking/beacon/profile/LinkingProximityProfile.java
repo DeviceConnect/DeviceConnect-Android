@@ -35,7 +35,7 @@ import java.util.List;
 public class LinkingProximityProfile extends ProximityProfile {
 
     private static final String TAG = "LinkingPlugIn";
-    private static final int TIMEOUT = 30;
+    private static final int TIMEOUT = 30 * 1000;
 
     public LinkingProximityProfile(final DConnectMessageService service) {
         LinkingApplication app = (LinkingApplication) service.getApplication();
@@ -69,15 +69,29 @@ public class LinkingProximityProfile extends ProximityProfile {
                 return true;
             }
 
-            final LinkingBeaconManager mgr = getLinkingBeaconManager();
-            mgr.addOnBeaconProximityEventListener(new OnBeaconProximityEventListenerImpl(beacon) {
+            LinkingBeaconManager mgr = getLinkingBeaconManager();
+            mgr.addOnBeaconProximityEventListener(new OnBeaconProximityEventListenerImpl(mgr, beacon) {
                 @Override
                 public void onCleanup() {
-                    mgr.removeOnBeaconProximityEventListener(this);
+                    mBeaconManager.removeOnBeaconProximityEventListener(this);
                 }
 
                 @Override
-                public synchronized void onTimeout() {
+                public void onDisableScan(final String message) {
+                    if (mCleanupFlag) {
+                        return;
+                    }
+
+                    if (BuildConfig.DEBUG) {
+                        Log.i(TAG, "onTemperature: disable scan.");
+                    }
+
+                    MessageUtils.setIllegalDeviceStateError(response, message);
+                    sendResponse(response);
+                }
+
+                @Override
+                public void onTimeout() {
                     if (mCleanupFlag) {
                         return;
                     }
@@ -91,7 +105,7 @@ public class LinkingProximityProfile extends ProximityProfile {
                 }
 
                 @Override
-                public void onProximity(LinkingBeacon beacon, GattData gatt) {
+                public synchronized void onProximity(LinkingBeacon beacon, GattData gatt) {
                     if (mCleanupFlag || !beacon.equals(mBeacon)) {
                         return;
                     }
@@ -213,8 +227,8 @@ public class LinkingProximityProfile extends ProximityProfile {
 
     private abstract class OnBeaconProximityEventListenerImpl extends TimeoutSchedule implements
             LinkingBeaconManager.OnBeaconProximityEventListener, Runnable {
-        OnBeaconProximityEventListenerImpl(final LinkingBeacon beacon) {
-            super(beacon);
+        OnBeaconProximityEventListenerImpl(final LinkingBeaconManager mgr, final LinkingBeacon beacon) {
+            super(mgr, beacon);
         }
     }
 }

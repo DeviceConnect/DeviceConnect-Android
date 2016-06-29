@@ -34,7 +34,7 @@ import java.util.List;
 public class LinkingBatteryProfile extends BatteryProfile {
 
     private static final String TAG = "LinkingPlugIn";
-    private static final int TIMEOUT = 30;
+    private static final int TIMEOUT = 30 * 1000;
 
     public LinkingBatteryProfile(final DConnectMessageService service) {
         LinkingApplication app = (LinkingApplication) service.getApplication();
@@ -63,11 +63,25 @@ public class LinkingBatteryProfile extends BatteryProfile {
                 return true;
             }
 
-            final LinkingBeaconManager mgr = getLinkingBeaconManager();
-            mgr.addOnBeaconBatteryEventListener(new OnBeaconBatteryEventListenerImpl(beacon) {
+            LinkingBeaconManager mgr = getLinkingBeaconManager();
+            mgr.addOnBeaconBatteryEventListener(new OnBeaconBatteryEventListenerImpl(mgr, beacon) {
                 @Override
                 public void onCleanup() {
-                    mgr.removeOnBeaconBatteryEventListener(this);
+                    mBeaconManager.removeOnBeaconBatteryEventListener(this);
+                }
+
+                @Override
+                public void onDisableScan(final String message) {
+                    if (mCleanupFlag) {
+                        return;
+                    }
+
+                    if (BuildConfig.DEBUG) {
+                        Log.i(TAG, "onBattery: disable scan.");
+                    }
+
+                    MessageUtils.setIllegalDeviceStateError(response, message);
+                    sendResponse(response);
                 }
 
                 @Override
@@ -85,7 +99,7 @@ public class LinkingBatteryProfile extends BatteryProfile {
                 }
 
                 @Override
-                public void onBattery(final LinkingBeacon beacon, final BatteryData battery) {
+                public synchronized void onBattery(final LinkingBeacon beacon, final BatteryData battery) {
                     if (mCleanupFlag || !beacon.equals(mBeacon)) {
                         return;
                     }
@@ -121,11 +135,25 @@ public class LinkingBatteryProfile extends BatteryProfile {
                 return true;
             }
 
-            final LinkingBeaconManager mgr = getLinkingBeaconManager();
-            mgr.addOnBeaconBatteryEventListener(new OnBeaconBatteryEventListenerImpl(beacon) {
+            LinkingBeaconManager mgr = getLinkingBeaconManager();
+            mgr.addOnBeaconBatteryEventListener(new OnBeaconBatteryEventListenerImpl(mgr, beacon) {
                 @Override
                 public void onCleanup() {
-                    mgr.removeOnBeaconBatteryEventListener(this);
+                    mBeaconManager.removeOnBeaconBatteryEventListener(this);
+                }
+
+                @Override
+                public void onDisableScan(final String message) {
+                    if (mCleanupFlag) {
+                        return;
+                    }
+
+                    if (BuildConfig.DEBUG) {
+                        Log.i(TAG, "onBattery: disable scan.");
+                    }
+
+                    MessageUtils.setIllegalDeviceStateError(response, message);
+                    sendResponse(response);
                 }
 
                 @Override
@@ -143,7 +171,7 @@ public class LinkingBatteryProfile extends BatteryProfile {
                 }
 
                 @Override
-                public void onBattery(final LinkingBeacon beacon, final BatteryData battery) {
+                public synchronized void onBattery(final LinkingBeacon beacon, final BatteryData battery) {
                     if (mCleanupFlag || !beacon.equals(mBeacon)) {
                         return;
                     }
@@ -246,8 +274,8 @@ public class LinkingBatteryProfile extends BatteryProfile {
 
     private abstract class OnBeaconBatteryEventListenerImpl extends TimeoutSchedule implements
             LinkingBeaconManager.OnBeaconBatteryEventListener, Runnable {
-        OnBeaconBatteryEventListenerImpl(final LinkingBeacon beacon) {
-            super(beacon);
+        OnBeaconBatteryEventListenerImpl(final LinkingBeaconManager mgr, final LinkingBeacon beacon) {
+            super(mgr, beacon);
         }
     }
 }

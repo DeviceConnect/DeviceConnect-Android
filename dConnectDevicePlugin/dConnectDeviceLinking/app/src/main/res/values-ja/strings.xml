@@ -133,4 +133,10 @@
     <string name="linking_notification_profile_type_sms">SMS通知</string>
     <string name="linking_notification_profile_type_event">イベント通知</string>
     <string name="linking_notification_profile_body">通知が来ています。</string>
+
+    <string name="linking_beacon_scan_detail_timeout">ビーコンスキャン要求のタイムアウト</string>
+    <string name="linking_beacon_scan_detail_meta_data_none">呼び出し元アプリにて、機器通知対応の宣言が定義されていない</string>
+    <string name="linking_beacon_scan_detail_bt_disabled">端末のBluetooth設定がOFF</string>
+    <string name="linking_beacon_scan_detail_sda_disabled">Linkingアプリのビーコン設定がOFF</string>
+    <string name="linking_beacon_scan_detail_permission_denied">Linkingアプリにてビーコンスキャンに必要なPermissionが未許諾</string>
 </resources>

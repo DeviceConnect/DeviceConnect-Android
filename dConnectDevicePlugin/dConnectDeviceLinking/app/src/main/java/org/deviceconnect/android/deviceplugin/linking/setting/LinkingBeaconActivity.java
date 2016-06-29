@@ -46,6 +46,7 @@ public class LinkingBeaconActivity extends AppCompatActivity implements LinkingB
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
             actionBar.setTitle(getString(R.string.activity_beacon_title));
+            actionBar.setElevation(0);
         }
 
         Intent intent = getIntent();

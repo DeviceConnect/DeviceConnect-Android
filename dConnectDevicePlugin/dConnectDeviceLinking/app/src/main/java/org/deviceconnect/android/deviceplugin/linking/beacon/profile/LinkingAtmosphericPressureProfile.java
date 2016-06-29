@@ -25,7 +25,7 @@ import org.deviceconnect.message.DConnectMessage;
 public class LinkingAtmosphericPressureProfile extends AtmosphericPressureProfile {
 
     private static final String TAG = "LinkingPlugin";
-    private static final int TIMEOUT = 30;
+    private static final int TIMEOUT = 30 * 1000;
 
     public LinkingAtmosphericPressureProfile() {
         addApi(mGetAtmosphericPressure);
@@ -42,15 +42,29 @@ public class LinkingAtmosphericPressureProfile extends AtmosphericPressureProfil
                 return true;
             }
 
-            final LinkingBeaconManager mgr = getLinkingBeaconManager();
-            mgr.addOnBeaconAtmosphericPressureEventListener(new OnBeaconAtmosphericPressureEventListenerImpl(beacon) {
+            LinkingBeaconManager mgr = getLinkingBeaconManager();
+            mgr.addOnBeaconAtmosphericPressureEventListener(new OnBeaconAtmosphericPressureEventListenerImpl(mgr, beacon) {
                 @Override
                 public void onCleanup() {
-                    mgr.removeOnBeaconAtmosphericPressureEventListener(this);
+                    mBeaconManager.removeOnBeaconAtmosphericPressureEventListener(this);
                 }
 
                 @Override
-                public synchronized void onTimeout() {
+                public void onDisableScan(final String message) {
+                    if (mCleanupFlag) {
+                        return;
+                    }
+
+                    if (BuildConfig.DEBUG) {
+                        Log.i(TAG, "onAtmosphericPressure: disable scan.");
+                    }
+
+                    MessageUtils.setIllegalDeviceStateError(response, message);
+                    sendResponse(response);
+                }
+
+                @Override
+                public void onTimeout() {
                     if (mCleanupFlag) {
                         return;
                     }
@@ -103,8 +117,8 @@ public class LinkingAtmosphericPressureProfile extends AtmosphericPressureProfil
 
     private abstract class OnBeaconAtmosphericPressureEventListenerImpl extends TimeoutSchedule implements
             LinkingBeaconManager.OnBeaconAtmosphericPressureEventListener {
-        OnBeaconAtmosphericPressureEventListenerImpl(final LinkingBeacon beacon) {
-            super(beacon);
+        OnBeaconAtmosphericPressureEventListenerImpl(final LinkingBeaconManager mgr, final LinkingBeacon beacon) {
+            super(mgr, beacon);
         }
     }
 }

@@ -24,7 +24,7 @@ import org.deviceconnect.message.DConnectMessage;
 
 public class LinkingHumidityProfile extends HumidityProfile {
     private static final String TAG = "LinkingPlugIn";
-    private static final int TIMEOUT = 30;
+    private static final int TIMEOUT = 30 * 1000;
 
     public LinkingHumidityProfile() {
         addApi(mGetHumidity);
@@ -41,15 +41,29 @@ public class LinkingHumidityProfile extends HumidityProfile {
                 return true;
             }
 
-            final LinkingBeaconManager mgr = getLinkingBeaconManager();
-            mgr.addOnBeaconHumidityEventListener(new OnBeaconHumidityEventListenerImpl(beacon) {
+            LinkingBeaconManager mgr = getLinkingBeaconManager();
+            mgr.addOnBeaconHumidityEventListener(new OnBeaconHumidityEventListenerImpl(mgr, beacon) {
                 @Override
                 public void onCleanup() {
-                    mgr.removeOnBeaconHumidityEventListener(this);
+                    mBeaconManager.removeOnBeaconHumidityEventListener(this);
                 }
 
                 @Override
-                public synchronized void onTimeout() {
+                public void onDisableScan(String message) {
+                    if (mCleanupFlag) {
+                        return;
+                    }
+
+                    if (BuildConfig.DEBUG) {
+                        Log.i(TAG, "onHumidity: disable scan.");
+                    }
+
+                    MessageUtils.setIllegalDeviceStateError(response, message);
+                    sendResponse(response);
+                }
+
+                @Override
+                public void onTimeout() {
                     if (mCleanupFlag) {
                         return;
                     }
@@ -100,8 +114,8 @@ public class LinkingHumidityProfile extends HumidityProfile {
 
     private abstract class OnBeaconHumidityEventListenerImpl extends TimeoutSchedule implements
             LinkingBeaconManager.OnBeaconHumidityEventListener, Runnable {
-        OnBeaconHumidityEventListenerImpl(final LinkingBeacon beacon) {
-            super(beacon);
+        OnBeaconHumidityEventListenerImpl(final LinkingBeaconManager mgr, final LinkingBeacon beacon) {
+            super(mgr, beacon);
         }
     }
 }

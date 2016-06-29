@@ -11,5 +11,5 @@ public interface DConnectServiceProvider {
 
     void addService(DConnectService service);
 
-    void removeService(String serviceId);
+    void removeService(DConnectService service);
 }

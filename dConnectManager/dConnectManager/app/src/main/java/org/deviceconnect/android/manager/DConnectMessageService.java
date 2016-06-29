@@ -344,7 +344,7 @@ public abstract class DConnectMessageService extends Service
     public void onResponseReceive(final Intent response) {
         // リクエストコードが定義されていない場合にはエラー
         int requestCode = response.getIntExtra(
-                IntentDConnectMessage.EXTRA_REQUEST_CODE, ERROR_CODE);
+            IntentDConnectMessage.EXTRA_REQUEST_CODE, ERROR_CODE);
         if (requestCode == ERROR_CODE) {
             mLogger.warning("Illegal requestCode in onResponseReceive. requestCode=" + requestCode);
             return;
@@ -367,7 +367,7 @@ public abstract class DConnectMessageService extends Service
 
         if (BuildConfig.DEBUG) {
             mLogger.info(String.format("onEventReceive: [sessionKey: %s serviceId: %s profile: %s inter: %s attribute: %s]",
-                    sessionKey, serviceId, profile, inter, attribute));
+                sessionKey, serviceId, profile, inter, attribute));
         }
 
         if (sessionKey != null) {
@@ -627,7 +627,7 @@ public abstract class DConnectMessageService extends Service
         String serviceId = event
                 .getStringExtra(IntentDConnectMessage.EXTRA_SERVICE_ID);
         event.putExtra(IntentDConnectMessage.EXTRA_SERVICE_ID,
-                mPluginMgr.appendServiceId(plugin, serviceId));
+            mPluginMgr.appendServiceId(plugin, serviceId));
     }
 
     /**

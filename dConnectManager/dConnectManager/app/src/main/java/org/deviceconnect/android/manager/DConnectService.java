@@ -14,11 +14,15 @@ import android.net.ConnectivityManager;
 import android.os.IBinder;
 import android.os.RemoteException;
 
+import org.deviceconnect.android.compat.LowerCaseConverter;
 import org.deviceconnect.android.compat.MessageConverter;
-import org.deviceconnect.android.manager.compat.DeliveryRequestConverter;
+import org.deviceconnect.android.manager.compat.NewPathConverter;
+import org.deviceconnect.android.manager.compat.NewScopeConverter;
+import org.deviceconnect.android.manager.compat.OldPathConverter;
 import org.deviceconnect.android.manager.compat.ServiceDiscoveryConverter;
 import org.deviceconnect.android.manager.compat.ServiceInformationConverter;
 import org.deviceconnect.android.manager.util.DConnectUtil;
+import org.deviceconnect.android.manager.util.VersionName;
 import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.android.profile.ServiceInformationProfile;
@@ -50,6 +54,8 @@ public class DConnectService extends DConnectMessageService {
     /** 通信相手がWebアプリケーションであることを示す定数. */
     public static final String INNER_APP_TYPE_WEB = "web";
 
+    private static final VersionName OLD_SDK = VersionName.parse("1.0.0");
+
     /** RESTfulサーバ. */
     private DConnectServer mRESTfulServer;
 
@@ -58,6 +64,14 @@ public class DConnectService extends DConnectMessageService {
 
     /** イベント送信スレッド. */
     private ExecutorService mEventSender = Executors.newSingleThreadExecutor();
+
+    private final MessageConverter[] mNewRequestConverters = {
+        new NewPathConverter(),
+        new NewScopeConverter(),
+        new LowerCaseConverter()
+    };
+
+    private final MessageConverter mOldPathConverter = new OldPathConverter();
 
     /** サービス一覧に含まれるAPIへのパスを新仕様に統一する. */
     private final MessageConverter mServiceDiscoveryConverter = new ServiceDiscoveryConverter();
@@ -237,19 +251,9 @@ public class DConnectService extends DConnectMessageService {
 
     @Override
     public void onRequestReceive(final Intent request) {
-        String profileName = DConnectProfile.getProfile(request);
-        String interfaceName = DConnectProfile.getInterface(request);
-        String attributeName = DConnectProfile.getAttribute(request);
-        if (profileName != null) {
-            DConnectProfile.setProfile(request, profileName.toLowerCase());
+        for (MessageConverter converter : mNewRequestConverters) {
+            converter.convert(request);
         }
-        if (interfaceName != null) {
-            DConnectProfile.setInterface(request, interfaceName.toLowerCase());
-        }
-        if (attributeName != null) {
-            DConnectProfile.setAttribute(request, attributeName.toLowerCase());
-        }
-
         super.onRequestReceive(request);
     }
 
@@ -290,15 +294,16 @@ public class DConnectService extends DConnectMessageService {
     }
 
     @Override
-    public void onDeviceFound(final DevicePlugin plugin) {
-        plugin.setRequestConverter(DeliveryRequestConverter.create(plugin));
-        super.onDeviceFound(plugin);
-    }
-
-    @Override
     protected void sendDeliveryProfile(final Intent request, final Intent response) {
         //XXXX パスの互換性を担保
-        convertToCompatibleRequest(request);
+        List<DevicePlugin> plugins = mPluginMgr.getDevicePlugins(DConnectProfile.getServiceID(request));
+        if (plugins != null && plugins.size() > 0) {
+            DevicePlugin plugin = plugins.get(0);
+            if (OLD_SDK.equals(plugin.getPluginSdkVersionName())) {
+                mOldPathConverter.convert(request);
+            }
+        }
+
         super.sendDeliveryProfile(request, response);
     }
 
@@ -316,22 +321,4 @@ public class DConnectService extends DConnectMessageService {
         return result;
     }
 
-    private void convertToCompatibleRequest(final Intent request) {
-        List<DevicePlugin> plugins = mPluginMgr.getDevicePlugins(DConnectProfile.getServiceID(request));
-        if (plugins.size() == 0) {
-            return;
-        }
-        DevicePlugin plugin = plugins.get(0);
-        DeliveryRequestConverter converter = plugin.getRequestConverter();
-        if (converter != null) {
-            converter.convert(request);
-
-            if (BuildConfig.DEBUG) {
-                String profileName = DConnectProfile.getProfile(request);
-                String interfaceName = DConnectProfile.getInterface(request);
-                String attributeName = DConnectProfile.getAttribute(request);
-                mLogger.info("Converted Path: " + profileName + ", " + interfaceName + ", " + attributeName);
-            }
-        }
-    }
 }

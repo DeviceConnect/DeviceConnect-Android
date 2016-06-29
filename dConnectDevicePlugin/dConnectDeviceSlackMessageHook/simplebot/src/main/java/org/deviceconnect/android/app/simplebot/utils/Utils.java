@@ -323,11 +323,15 @@ public class Utils {
                     DConnectHelper.INSTANCE.registerEvent("messageHook", "message", setting.serviceId, setting.accessToken, setting.clientId, new DConnectHelper.FinishCallback<Void>() {
                         @Override
                         public void onFinish(Void aVoid, Exception error) {
-                            // WebSocket接続
-                            SettingData setting = SettingData.getInstance(context);
-                            DConnectHelper.INSTANCE.openWebsocket(setting.clientId);
-                            // TODO: エラーの種類によっては再接続
-                            callback.onFinish(null, error);
+                            if (error == null) {
+                                // WebSocket接続
+                                SettingData setting = SettingData.getInstance(context);
+                                DConnectHelper.INSTANCE.openWebsocket(setting.clientId);
+                                callback.onFinish(null, null);
+                            } else {
+                                // TODO: エラーの種類によっては再接続
+                                callback.onFinish(null, error);
+                            }
                         }
                     });
                 } else {

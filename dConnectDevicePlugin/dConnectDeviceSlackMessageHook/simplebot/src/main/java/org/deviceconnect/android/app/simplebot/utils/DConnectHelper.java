@@ -397,6 +397,7 @@ public class DConnectHelper {
         return HttpEventManager.INSTANCE.connect(host, port, isSSL, sessionKey, new CloseHandler() {
             @Override
             public void onClosed() {
+                Log.d(TAG, "ws closed");
                 // TODO: 再接続処理
             }
         });
@@ -584,6 +585,7 @@ public class DConnectHelper {
 
         @Override
         protected void onPostExecute(DConnectMessage message) {
+            if (DEBUG) Log.d(TAG, message.toString());
             param.callBack(message);
         }
     }

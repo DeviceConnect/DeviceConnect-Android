@@ -86,7 +86,7 @@ public class SimpleBotService extends Service {
 
         // アクティブじゃない場合は終了
         final Context context = getApplicationContext();
-        SettingData setting = SettingData.getInstance(context);
+        final SettingData setting = SettingData.getInstance(context);
         if (!setting.active) {
             // サービス終了
             stopSelf();
@@ -107,6 +107,11 @@ public class SimpleBotService extends Service {
             public void onFinish(Void aVoid, Exception error) {
                 if (error != null) {
                     Log.e(TAG, "Error on registEvent", error);
+                    // 設定をOFFにする
+                    setting.active = false;
+                    setting.save();
+                    // サービス終了
+                    stopSelf();
                 }
             }
         });

@@ -312,16 +312,10 @@ public class HitoeManager {
         mNowTimestamps = new ConcurrentHashMap<>();
         mHitoeSdkAPI = HitoeSdkAPIImpl.getInstance(context);
         mHitoeSdkAPI.setAPICallback(mAPICallback);
-        List<HitoeDevice> list = mDBHelper.getHitoeDevices(null);
-        for (int i = 0; i < list.size(); i++) {
-            HitoeDevice device = list.get(i);
-            if (device.isRegisterFlag()
-                    && !mRegisterDevices.contains(device)) {
-                mRegisterDevices.add(device);
-            }
-        }
+        readHitoeDeviceForDB();
 
     }
+
     // ------------------------------------
     // Public Method
     // ------------------------------------
@@ -389,7 +383,41 @@ public class HitoeManager {
     public List<HitoeDevice> getRegisterDevices() {
         return mRegisterDevices;
     }
+    public void readHitoeDeviceForDB() {
+        List<HitoeDevice> list = mDBHelper.getHitoeDevices(null);
+        for (int i = 0; i < list.size(); i++) {
+            HitoeDevice device = list.get(i);
+            if (device.isRegisterFlag()) {
+                discoveryHitoeDevices();
+                connectHitoeDevice(device);
+            }
+            if (mRegisterDevices.size() > 0) {
+                for (int j = 0; j < mRegisterDevices.size(); j++) {
+                    if (!mRegisterDevices.get(j).getId().equals(device.getId())) {
+                        mRegisterDevices.add(device);
+                    }
+                }
+            } else {
+                mRegisterDevices.add(device);
+            }
+        }
+    }
 
+    /**
+     * Get mRegisterDevice for service id.
+     * @param serviceId service Id
+     * @return Hitoe Device object
+     */
+    public HitoeDevice getHitoeDeviceForServiceId(final String serviceId) {
+        for (int i = 0; i < mRegisterDevices.size(); i++) {
+            if (mRegisterDevices.get(i).getId() != null) {
+                if (mRegisterDevices.get(i).getId().equals(serviceId)) {
+                    return mRegisterDevices.get(i);
+                }
+            }
+        }
+        return null;
+    }
     /**
      * Get HeartRateData.
      * @param serviceId index id
@@ -544,7 +572,7 @@ public class HitoeManager {
         String param = paramBuilder.toString();
         mHitoeSdkAPI.connect(device.getType(), device.getId(), device.getConnectMode(), param);
         device.setResponseId(HitoeConstants.RES_ID_SENSOR_CONNECT);
-
+        mDBHelper.addHitoeDevice(device);
         for (int i = 0; i < mRegisterDevices.size(); i++) {
             if (mRegisterDevices.get(i).getId().equals(device.getId())) {
                 mRegisterDevices.set(i, device);
@@ -557,9 +585,6 @@ public class HitoeManager {
      * @param device hitoe device
      */
     public void disconnectHitoeDevice(final HitoeDevice device) {
-        if(device.getSessionId() == null) {
-            return;
-        }
         mHitoeSdkAPI.disconnect(device.getSessionId());
         device.setRegisterFlag(false);
         device.setSessionId(null);
@@ -571,6 +596,20 @@ public class HitoeManager {
             }
         }
 
+    }
+
+    /**
+     * Delete hitoe device info for db.
+     * @param device hitoe device
+     */
+    public void deleteHitoeDevice(final HitoeDevice device) {
+
+        mDBHelper.removeHitoeDevice(device);
+        for (int i = 0; i < mRegisterDevices.size(); i++) {
+            if (mRegisterDevices.get(i).getId().equals(device.getId())) {
+                mRegisterDevices.remove(i);
+            }
+        }
     }
     /**
      * Tests whether this mConnectedDevices contains the address.
@@ -628,6 +667,7 @@ public class HitoeManager {
             for (HitoeDevice register: mRegisterDevices) {
                 if (register.getId().equals(pin.getId())) {
                     register.setPinCode(pin.getPinCode());
+                    register.setRegisterFlag(pin.isRegisterFlag());
                 }
             }
         }
@@ -680,7 +720,7 @@ public class HitoeManager {
         }
         mRegisterDevices.get(pos).setSessionId(responseString);
         mRegisterDevices.get(pos).setRegisterFlag(true);
-        mDBHelper.addHitoeDevice(mRegisterDevices.get(pos));
+        mDBHelper.updateHitoeDevice(mRegisterDevices.get(pos));
         mHitoeSdkAPI.getAvailableData(mRegisterDevices.get(pos).getSessionId());
         mRegisterDevices.get(pos).setResponseId(HitoeConstants.RES_ID_SUCCESS);
         for (OnHitoeConnectionListener l: mConnectionListeners) {

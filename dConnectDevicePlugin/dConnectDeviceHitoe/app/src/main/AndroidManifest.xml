@@ -18,11 +18,26 @@
         <!-- Settings Activity -->
         <!-- ============================================================== -->
         <activity
-            android:name=".activity.HitoeDeviceSettingsActivity"
+            android:name=".activity.HitoeDeviceListActivity"
+            android:label="@string/app_name"
+
+            >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".activity.HitoeAddDeviceActivity"
             android:label="@string/app_name"
             android:exported="false">
         </activity>
-
+        <activity
+            android:name=".activity.HitoeDeviceControlActivity"
+            android:label="@string/app_name"
+            android:exported="false"
+            >
+        </activity>
         <!-- ============================================================== -->
         <!-- Service -->
         <!-- ============================================================== -->

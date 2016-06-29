@@ -36,4 +36,5 @@ public class HitoeApplication extends Application {
     public HitoeManager getHitoeManager() {
         return mMgr;
     }
+
 }

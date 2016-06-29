@@ -33,12 +33,12 @@ public class HitoeBatteryProfile extends BatteryProfile {
                 MessageUtils.setNotFoundServiceError(response);
                 return true;
             }
-            double level = (double) data.getDevice().getBatteryLevel();
+            double level = (double) (data.getDevice().getBatteryLevel() + 1);
             if (level < 0) {
                 MessageUtils.setUnknownError(response, "Battery level is unknown.");
             } else {
                 setResult(response, DConnectMessage.RESULT_OK);
-                setLevel(response,  ( level / 3.0f ));
+                setLevel(response,  ( level / 4.0f ));
             }
         }
         return true;
@@ -55,12 +55,12 @@ public class HitoeBatteryProfile extends BatteryProfile {
                 MessageUtils.setNotFoundServiceError(response);
                 return true;
             }
-            double level = (double) data.getDevice().getBatteryLevel();
+            double level = (double) (data.getDevice().getBatteryLevel() + 1);
             if (level < 0) {
                 MessageUtils.setUnknownError(response, "Battery level is unknown.");
             } else {
                 setResult(response, DConnectMessage.RESULT_OK);
-                setLevel(response,  ( level / 3.0f ));
+                setLevel(response,  ( level / 4.0f ));
             }
         }
         return true;

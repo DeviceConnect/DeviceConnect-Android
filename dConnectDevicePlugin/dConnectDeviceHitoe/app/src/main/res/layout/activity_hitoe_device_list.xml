@@ -1,4 +1,4 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
               xmlns:tools="http://schemas.android.com/tools"
               android:layout_width="match_parent"
               android:layout_height="match_parent"
@@ -12,11 +12,12 @@
         android:orientation="vertical">
 
         <TextView
+            android:id="@+id/view_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@color/title_background"
             android:gravity="center"
-            android:text="@string/hitoe_setting_title"
+            android:text="@string/device_list_view"
             android:textColor="@color/title_text"
             android:textSize="@dimen/text_size_title"/>
 
@@ -25,4 +26,13 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"/>
     </LinearLayout>
-</LinearLayout>
+    <Button
+        android:id="@+id/btn_add_open"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:background="@drawable/button_blue"
+        android:text="@string/add_device_button"
+        android:textColor="#FFFFFF"/>
+
+</FrameLayout>

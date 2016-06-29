@@ -10,7 +10,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 
-import org.deviceconnect.android.deviceplugin.hitoe.activity.HitoeDeviceSettingsActivity;
+import org.deviceconnect.android.deviceplugin.hitoe.activity.HitoeDeviceListActivity;
 import org.deviceconnect.android.profile.SystemProfile;
 
 /**
@@ -20,6 +20,6 @@ import org.deviceconnect.android.profile.SystemProfile;
 public class HitoeSystemProfile extends SystemProfile {
     @Override
     protected Class<? extends Activity> getSettingPageActivity(final Intent request, final Bundle param) {
-        return HitoeDeviceSettingsActivity.class;
+        return HitoeDeviceListActivity.class;
     }
 }

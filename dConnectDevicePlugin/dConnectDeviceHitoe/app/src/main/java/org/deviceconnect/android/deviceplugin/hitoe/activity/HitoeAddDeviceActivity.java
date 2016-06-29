@@ -1,0 +1,303 @@
+/*
+ HitoeAddDeviceActivity
+ Copyright (c) 2016 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
+package org.deviceconnect.android.deviceplugin.hitoe.activity;
+
+import android.bluetooth.BluetoothAdapter;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.res.Resources;
+import android.os.Build;
+import android.os.Bundle;
+import android.os.Handler;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.Button;
+import android.widget.TextView;
+
+import org.deviceconnect.android.deviceplugin.hitoe.R;
+import org.deviceconnect.android.deviceplugin.hitoe.data.HitoeDevice;
+import org.deviceconnect.android.deviceplugin.hitoe.data.HitoeManager;
+import org.deviceconnect.android.deviceplugin.hitoe.fragment.dialog.PinCodeDialogFragment;
+import org.deviceconnect.android.deviceplugin.hitoe.util.BleUtils;
+
+import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+
+/**
+ * This activity is Add Device screen.
+ * @author NTT DOCOMO, INC.
+ */
+public class HitoeAddDeviceActivity extends HitoeListActivity  implements HitoeManager.OnHitoeConnectionListener,
+                                                                            AdapterView.OnItemClickListener {
+
+    /**
+     * Instance of ScheduledExecutorService.
+     */
+    private ScheduledExecutorService mExecutor = Executors.newSingleThreadScheduledExecutor();
+
+    /**
+     * ScheduledFuture of scan timer.
+     */
+    private ScheduledFuture<?> mScanTimerFuture;
+
+    /**
+     * Defines a delay 1 second at first execution.
+     */
+    private static final long SCAN_FIRST_WAIT_PERIOD = 1000;
+
+    /**
+     * Defines a period 10 seconds between successive executions.
+     */
+    private static final long SCAN_WAIT_PERIOD = 10 * 1000;
+
+    /**
+     * Stops scanning after 1 second.
+     */
+    private static final long SCAN_PERIOD = 2000;
+    private boolean mScanning;
+
+
+    /**
+     * Received a event that Bluetooth has been changed.
+     */
+    private final BroadcastReceiver mSensorReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            if (BluetoothAdapter.ACTION_STATE_CHANGED.equals(action)) {
+                int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, -1);
+                if (state == BluetoothAdapter.STATE_ON ){
+                    addFooterView();
+                    getManager().addHitoeConnectionListener(HitoeAddDeviceActivity.this);
+                    scanHitoeDevice(true);
+                } else if (state == BluetoothAdapter.STATE_OFF) {
+                    addFooterView();
+                    getManager().addHitoeConnectionListener(null);
+                    scanHitoeDevice(false);
+                }
+            }
+        }
+    };
+
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        mDeviceAdapter.clear();
+        mDeviceAdapter.notifyDataSetChanged();
+        mListView.setOnItemClickListener(this);
+        mEnableConnectedBtn = false;
+    }
+
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        registerBluetoothFilter();
+
+        getManager().addHitoeConnectionListener(this);
+
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            scanHitoeDevice(true);
+        } else {
+            if (BleUtils.isBLEPermission(this)) {
+                scanHitoeDevice(true);
+            }
+        }
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        getManager().addHitoeConnectionListener(null);
+        scanHitoeDevice(false);
+        dismissProgressDialog();
+        dismissErrorDialog();
+        unregisterBluetoothFilter();
+    }
+
+    @Override
+    protected void setUI() {
+        TextView title = (TextView) findViewById(R.id.view_title);
+        title.setText(R.string.add_device_view);
+        Button btn = (Button) findViewById(R.id.btn_add_open);
+        btn.setText(R.string.action_search);
+        btn.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View view) {
+                getManager().addHitoeConnectionListener(HitoeAddDeviceActivity.this);
+                getManager().discoveryHitoeDevices();
+            }
+        });
+    }
+
+    /**
+     * Scan Hitoe device.
+     * @param enable scan flag
+     */
+    private synchronized void scanHitoeDevice(final boolean enable) {
+
+
+        if (enable) {
+            if (mScanning || mScanTimerFuture != null) {
+                // scan have already started.
+                return;
+            }
+            mScanning = true;
+            mScanTimerFuture = mExecutor.scheduleAtFixedRate(new Runnable() {
+                @Override
+                public void run() {
+                    if (BleUtils.isEnabled(HitoeAddDeviceActivity.this)) {
+                        addFooterView();
+                        getManager().addHitoeConnectionListener(HitoeAddDeviceActivity.this);
+                        getManager().discoveryHitoeDevices();
+                    } else {
+                        cancelScanTimer();
+                    }
+                }
+            }, SCAN_FIRST_WAIT_PERIOD, SCAN_WAIT_PERIOD, TimeUnit.MILLISECONDS);
+        } else {
+            mScanning = false;
+            cancelScanTimer();
+        }
+    }
+
+    /**
+     * Stopped the scan timer.
+     */
+    private synchronized void cancelScanTimer() {
+        if (mScanTimerFuture != null) {
+            mScanTimerFuture.cancel(true);
+            mScanTimerFuture = null;
+        }
+    }
+
+    /**
+     * Register a BroadcastReceiver of Bluetooth event.
+     */
+    private void registerBluetoothFilter() {
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
+        registerReceiver(mSensorReceiver, filter, null, mHandler);
+    }
+
+    /**
+     * Unregister a previously registered BroadcastReceiver.
+     */
+    private void unregisterBluetoothFilter() {
+        unregisterReceiver(mSensorReceiver);
+    }
+
+
+
+    @Override
+    public void onConnected(final HitoeDevice device) {
+
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                dismissProgressDialog();
+                mDeviceAdapter.remove(device);
+                mDeviceAdapter.notifyDataSetChanged();
+            }
+        });
+    }
+
+    @Override
+    public void onConnectFailed(final HitoeDevice device) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                dismissProgressDialog();
+                if (device == null) {
+                    HitoeDevice container = findDeviceContainerByAddress(mConnectingDevice.getId());
+                    if (container != null) {
+                        container.setPinCode(null);
+                        mDeviceAdapter.notifyDataSetChanged();
+                    }
+                    Resources res = getResources();
+                    showErrorDialog(res.getString(R.string.hitoe_setting_dialog_error_message03));
+                } else {
+                    showErrorDialogNotConnect(device.getName());
+                }
+            }
+        });
+    }
+
+    @Override
+    public void onDiscovery(final List<HitoeDevice> devices) {
+        if (mDeviceAdapter == null) {
+            return;
+        }
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                for (HitoeDevice device : devices) {
+                    if (!containAddressForAdapter(device.getId())
+                            && !device.isRegisterFlag()) {
+                        mDeviceAdapter.add(device);
+                    }
+                }
+                mDeviceAdapter.notifyDataSetChanged();
+            }
+        });
+    }
+
+    @Override
+    public void onDisconnected(final HitoeDevice device) {
+    }
+
+    @Override
+    public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+        final HitoeDevice hitoe = (HitoeDevice) adapterView.getItemAtPosition(i);
+        if (hitoe == null) {
+            return;
+        }
+        if (hitoe.getPinCode() == null) {
+            final Resources res = getResources();
+            String title = res.getString(R.string.hitoe_setting_dialog_pin_title);
+            PinCodeDialogFragment pinDialog = PinCodeDialogFragment.newInstance(title);
+            pinDialog.show(getSupportFragmentManager(), "pin_dialog");
+            pinDialog.setOnPinCodeListener(new PinCodeDialogFragment.OnPinCodeListener() {
+                @Override
+                public void onPinCode(String pin) {
+                    if (pin.isEmpty()) {
+                        showErrorDialog(res.getString(R.string.hitoe_setting_dialog_error_message02));
+                        return;
+                    }
+                    hitoe.setPinCode(pin);
+                    connectDevice(hitoe);
+                }
+            });
+        } else {
+            connectDevice(hitoe);
+        }
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if (mCheckDialog) {
+                    hitoe.setPinCode(null);
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            dismissProgressDialog();
+                            Resources res = getResources();
+                            showErrorDialog(res.getString(R.string.hitoe_setting_dialog_error_message04));
+                        }
+                    });
+                }
+            }
+        },  10000);
+
+    }
+}

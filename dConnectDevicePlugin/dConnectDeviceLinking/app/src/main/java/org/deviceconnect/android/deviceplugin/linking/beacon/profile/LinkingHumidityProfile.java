@@ -33,13 +33,15 @@ public class LinkingHumidityProfile extends HumidityProfile {
     private final DConnectApi mGetHumidity = new GetApi() {
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            final LinkingBeaconManager mgr = getLinkingBeaconManager();
             LinkingBeacon beacon = ((LinkingBeaconService) getService()).getLinkingBeacon();
-            if (beacon == null) {
-                MessageUtils.setNotSupportProfileError(response);
+
+            HumidityData humidity = beacon.getHumidityData();
+            if (humidity != null && System.currentTimeMillis() - humidity.getTimeStamp() < TIMEOUT) {
+                setHumidityToResponse(response, humidity);
                 return true;
             }
 
+            final LinkingBeaconManager mgr = getLinkingBeaconManager();
             mgr.addOnBeaconHumidityEventListener(new OnBeaconHumidityEventListenerImpl(beacon) {
                 @Override
                 public void onCleanup() {
@@ -62,7 +64,7 @@ public class LinkingHumidityProfile extends HumidityProfile {
 
                 @Override
                 public synchronized void onHumidity(final LinkingBeacon beacon, final HumidityData humidity) {
-                    if (mCleanupFlag && !beacon.equals(mBeacon)) {
+                    if (mCleanupFlag || !beacon.equals(mBeacon)) {
                         return;
                     }
 
@@ -70,9 +72,7 @@ public class LinkingHumidityProfile extends HumidityProfile {
                         Log.i(TAG, "onHumidity: beacon=" + beacon.getDisplayName() + " humidity=" + humidity.getValue());
                     }
 
-                    setResult(response, DConnectMessage.RESULT_OK);
-                    setHumidity(response, humidity.getValue() / 100.0f);
-                    setTimeStamp(response, humidity.getTimeStamp());
+                    setHumidityToResponse(response, humidity);
                     sendResponse(response);
                     cleanup();
                 }
@@ -81,6 +81,12 @@ public class LinkingHumidityProfile extends HumidityProfile {
             return false;
         }
     };
+
+    private void setHumidityToResponse(final Intent response, final HumidityData humidityData) {
+        setResult(response, DConnectMessage.RESULT_OK);
+        setHumidity(response, humidityData.getValue() / 100.0f);
+        setTimeStamp(response, humidityData.getTimeStamp());
+    }
 
     private LinkingBeaconManager getLinkingBeaconManager() {
         LinkingApplication app = getLinkingApplication();

@@ -87,7 +87,7 @@ public class LinkingServiceDiscoveryProfile extends ServiceDiscoveryProfile {
 
     private void createLinkingBeaconList() {
         LinkingBeaconManager mgr = getLinkingBeaconManager();
-        mgr.startBeaconScan(2);
+        mgr.startBeaconScan(10);
 
         for (LinkingBeacon beacon : mgr.getLinkingBeacons()) {
             DConnectService service = findDConnectService(beacon.getServiceId());

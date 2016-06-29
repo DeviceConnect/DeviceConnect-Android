@@ -34,13 +34,15 @@ public class LinkingAtmosphericPressureProfile extends AtmosphericPressureProfil
     private final DConnectApi mGetAtmosphericPressure = new GetApi() {
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            final LinkingBeaconManager mgr = getLinkingBeaconManager();
             LinkingBeacon beacon = ((LinkingBeaconService) getService()).getLinkingBeacon();
-            if (beacon == null) {
-                MessageUtils.setNotSupportProfileError(response);
+
+            AtmosphericPressureData apd = beacon.getAtmosphericPressureData();
+            if (apd != null && System.currentTimeMillis() - apd.getTimeStamp() < TIMEOUT) {
+                setAtmosphericPressureToResponse(response, apd);
                 return true;
             }
 
+            final LinkingBeaconManager mgr = getLinkingBeaconManager();
             mgr.addOnBeaconAtmosphericPressureEventListener(new OnBeaconAtmosphericPressureEventListenerImpl(beacon) {
                 @Override
                 public void onCleanup() {
@@ -64,7 +66,7 @@ public class LinkingAtmosphericPressureProfile extends AtmosphericPressureProfil
                 @Override
                 public synchronized void onAtmosphericPressure(final LinkingBeacon beacon,
                                                                final AtmosphericPressureData atmosphericPressure) {
-                    if (mCleanupFlag && !beacon.equals(mBeacon)) {
+                    if (mCleanupFlag || !beacon.equals(mBeacon)) {
                         return;
                     }
 
@@ -73,9 +75,7 @@ public class LinkingAtmosphericPressureProfile extends AtmosphericPressureProfil
                                 + " atmosphericPressure=" + atmosphericPressure.getValue());
                     }
 
-                    setResult(response, DConnectMessage.RESULT_OK);
-                    setAtmosphericPressure(response, atmosphericPressure.getValue());
-                    setTimeStamp(response, atmosphericPressure.getTimeStamp());
+                    setAtmosphericPressureToResponse(response, atmosphericPressure);
                     sendResponse(response);
                     cleanup();
                 }
@@ -85,6 +85,11 @@ public class LinkingAtmosphericPressureProfile extends AtmosphericPressureProfil
         }
     };
 
+    private void setAtmosphericPressureToResponse(final Intent response, final AtmosphericPressureData atmosphericPressureData) {
+        setResult(response, DConnectMessage.RESULT_OK);
+        setAtmosphericPressure(response, atmosphericPressureData.getValue());
+        setTimeStamp(response, atmosphericPressureData.getTimeStamp());
+    }
 
     private LinkingBeaconManager getLinkingBeaconManager() {
         LinkingApplication app = getLinkingApplication();

@@ -13,7 +13,6 @@ import org.deviceconnect.android.deviceplugin.linking.LinkingApplication;
 import org.deviceconnect.android.deviceplugin.linking.LinkingDevicePluginService;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingDevice;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingDeviceManager;
-import org.deviceconnect.android.deviceplugin.linking.linking.LinkingUtil;
 import org.deviceconnect.android.deviceplugin.linking.linking.service.LinkingDeviceService;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventError;
@@ -112,10 +111,6 @@ public class LinkingKeyEventProfile extends KeyEventProfile {
             return null;
         }
 
-        if (!LinkingUtil.hasLED(device)) {
-            MessageUtils.setIllegalDeviceStateError(response, "device has not LED");
-            return null;
-        }
         return device;
     }
     private Bundle createKeyEvent(final int keyCode) {

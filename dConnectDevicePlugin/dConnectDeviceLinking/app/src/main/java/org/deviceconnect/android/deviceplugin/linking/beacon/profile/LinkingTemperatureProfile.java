@@ -34,13 +34,15 @@ public class LinkingTemperatureProfile extends TemperatureProfile {
     private final DConnectApi mGetTemperature = new GetApi() {
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            final LinkingBeaconManager mgr = getLinkingBeaconManager();
             LinkingBeacon beacon = ((LinkingBeaconService) getService()).getLinkingBeacon();
-            if (beacon == null) {
-                MessageUtils.setNotSupportProfileError(response);
+
+            TemperatureData temperature = beacon.getTemperatureData();
+            if (temperature != null && System.currentTimeMillis() - temperature.getTimeStamp() < TIMEOUT) {
+                setTemperatureToResponse(response, temperature);
                 return true;
             }
 
+            final LinkingBeaconManager mgr = getLinkingBeaconManager();
             mgr.addOnBeaconTemperatureEventListener(new OnBeaconTemperatureEventListenerImpl(beacon) {
                 @Override
                 public void onCleanup() {
@@ -63,7 +65,7 @@ public class LinkingTemperatureProfile extends TemperatureProfile {
 
                 @Override
                 public synchronized void onTemperature(final LinkingBeacon beacon, final TemperatureData temperature) {
-                    if (mCleanupFlag && !beacon.equals(mBeacon)) {
+                    if (mCleanupFlag || !beacon.equals(mBeacon)) {
                         return;
                     }
 
@@ -71,10 +73,7 @@ public class LinkingTemperatureProfile extends TemperatureProfile {
                         Log.i(TAG, "onTemperature: beacon=" + beacon.getDisplayName() + " temperature=" + temperature.getValue());
                     }
 
-                    setResult(response, DConnectMessage.RESULT_OK);
-                    setTemperature(response, temperature.getValue());
-                    setTemperatureType(response, TemperatureType.TYPE_CELSIUS);
-                    setTimeStamp(response, temperature.getTimeStamp());
+                    setTemperatureToResponse(response, temperature);
                     sendResponse(response);
                     cleanup();
                 }
@@ -83,6 +82,13 @@ public class LinkingTemperatureProfile extends TemperatureProfile {
             return false;
         }
     };
+
+    private void setTemperatureToResponse(final Intent response, final TemperatureData temperatureData) {
+        setResult(response, DConnectMessage.RESULT_OK);
+        setTemperature(response, temperatureData.getValue());
+        setTemperatureType(response, TemperatureType.TYPE_CELSIUS);
+        setTimeStamp(response, temperatureData.getTimeStamp());
+    }
 
     private LinkingBeaconManager getLinkingBeaconManager() {
         LinkingApplication app = getLinkingApplication();

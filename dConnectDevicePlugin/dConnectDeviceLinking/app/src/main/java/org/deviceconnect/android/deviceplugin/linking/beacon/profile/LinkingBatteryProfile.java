@@ -55,13 +55,15 @@ public class LinkingBatteryProfile extends BatteryProfile {
     private final DConnectApi mGetAll = new GetApi() {
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            final LinkingBeaconManager mgr = getLinkingBeaconManager();
             LinkingBeacon beacon = ((LinkingBeaconService) getService()).getLinkingBeacon();
-            if (beacon == null) {
-                MessageUtils.setNotSupportProfileError(response);
+
+            BatteryData battery = beacon.getBatteryData();
+            if (battery != null && System.currentTimeMillis() - battery.getTimeStamp() < TIMEOUT) {
+                setBatteryToResponse(response, battery);
                 return true;
             }
 
+            final LinkingBeaconManager mgr = getLinkingBeaconManager();
             mgr.addOnBeaconBatteryEventListener(new OnBeaconBatteryEventListenerImpl(beacon) {
                 @Override
                 public void onCleanup() {
@@ -84,7 +86,7 @@ public class LinkingBatteryProfile extends BatteryProfile {
 
                 @Override
                 public void onBattery(final LinkingBeacon beacon, final BatteryData battery) {
-                    if (mCleanupFlag && !beacon.equals(mBeacon)) {
+                    if (mCleanupFlag || !beacon.equals(mBeacon)) {
                         return;
                     }
 
@@ -92,8 +94,7 @@ public class LinkingBatteryProfile extends BatteryProfile {
                         Log.i(TAG, "onBattery: beacon=" + beacon.getDisplayName() + " battery=" + battery);
                     }
 
-                    setResult(response, DConnectMessage.RESULT_OK);
-                    setLevel(response, battery.getLevel() / 100.0f);
+                    setBatteryToResponse(response, battery);
                     sendResponse(response);
                     cleanup();
                 }
@@ -112,13 +113,15 @@ public class LinkingBatteryProfile extends BatteryProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            final LinkingBeaconManager mgr = getLinkingBeaconManager();
             LinkingBeacon beacon = ((LinkingBeaconService) getService()).getLinkingBeacon();
-            if (beacon == null) {
-                MessageUtils.setNotSupportProfileError(response);
+
+            BatteryData battery = beacon.getBatteryData();
+            if (battery != null && System.currentTimeMillis() - battery.getTimeStamp() < TIMEOUT) {
+                setBatteryToResponse(response, battery);
                 return true;
             }
 
+            final LinkingBeaconManager mgr = getLinkingBeaconManager();
             mgr.addOnBeaconBatteryEventListener(new OnBeaconBatteryEventListenerImpl(beacon) {
                 @Override
                 public void onCleanup() {
@@ -141,7 +144,7 @@ public class LinkingBatteryProfile extends BatteryProfile {
 
                 @Override
                 public void onBattery(final LinkingBeacon beacon, final BatteryData battery) {
-                    if (mCleanupFlag && !beacon.equals(mBeacon)) {
+                    if (mCleanupFlag || !beacon.equals(mBeacon)) {
                         return;
                     }
 
@@ -149,8 +152,7 @@ public class LinkingBatteryProfile extends BatteryProfile {
                         Log.i(TAG, "onBattery: beacon=" + beacon.getDisplayName() + " battery=" + battery);
                     }
 
-                    setResult(response, DConnectMessage.RESULT_OK);
-                    setLevel(response, battery.getLevel() / 100.0f);
+                    setBatteryToResponse(response, battery);
                     sendResponse(response);
                     cleanup();
                 }
@@ -224,6 +226,11 @@ public class LinkingBatteryProfile extends BatteryProfile {
         Bundle battery = new Bundle();
         setLevel(battery, batteryData.getLevel() / 100.0f);
         return battery;
+    }
+
+    private void setBatteryToResponse(final Intent response, final BatteryData batteryData) {
+        setResult(response, DConnectMessage.RESULT_OK);
+        setLevel(response, batteryData.getLevel() / 100.0f);
     }
 
     private LinkingBeaconManager getLinkingBeaconManager() {

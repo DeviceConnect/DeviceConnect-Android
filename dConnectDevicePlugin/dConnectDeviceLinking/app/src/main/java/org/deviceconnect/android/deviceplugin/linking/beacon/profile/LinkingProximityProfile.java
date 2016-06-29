@@ -35,6 +35,7 @@ import java.util.List;
 public class LinkingProximityProfile extends ProximityProfile {
 
     private static final String TAG = "LinkingPlugIn";
+    private static final int TIMEOUT = 30;
 
     public LinkingProximityProfile(final DConnectMessageService service) {
         LinkingApplication app = (LinkingApplication) service.getApplication();
@@ -60,17 +61,53 @@ public class LinkingProximityProfile extends ProximityProfile {
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
             LinkingBeacon beacon = ((LinkingBeaconService) getService()).getLinkingBeacon();
-            GattData gattData = beacon.getGattData();
-            if (gattData == null) {
-                MessageUtils.setNotSupportProfileError(response);
+
+            GattData gatt = beacon.getGattData();
+            if (gatt != null && System.currentTimeMillis() - gatt.getTimeStamp() < TIMEOUT) {
+                setResult(response, DConnectMessage.RESULT_OK);
+                setProximity(response, createProximity(gatt));
                 return true;
             }
 
-            setResult(response, DConnectMessage.RESULT_OK);
-            setProximity(response, createProximity(gattData));
-            sendResponse(response);
+            final LinkingBeaconManager mgr = getLinkingBeaconManager();
+            mgr.addOnBeaconProximityEventListener(new OnBeaconProximityEventListenerImpl(beacon) {
+                @Override
+                public void onCleanup() {
+                    mgr.removeOnBeaconProximityEventListener(this);
+                }
 
-            return true;
+                @Override
+                public synchronized void onTimeout() {
+                    if (mCleanupFlag) {
+                        return;
+                    }
+
+                    if (BuildConfig.DEBUG) {
+                        Log.i(TAG, "onTemperature: timeout");
+                    }
+
+                    MessageUtils.setTimeoutError(response);
+                    sendResponse(response);
+                }
+
+                @Override
+                public void onProximity(LinkingBeacon beacon, GattData gatt) {
+                    if (mCleanupFlag || !beacon.equals(mBeacon)) {
+                        return;
+                    }
+
+                    if (BuildConfig.DEBUG) {
+                        Log.i(TAG, "onTemperature: beacon=" + beacon.getDisplayName() + " gatt=" + gatt);
+                    }
+
+                    setResult(response, DConnectMessage.RESULT_OK);
+                    setProximity(response, createProximity(gatt));
+                    sendResponse(response);
+                    cleanup();
+                }
+            });
+            getLinkingBeaconManager().startBeaconScan(TIMEOUT);
+            return false;
         }
     };
 
@@ -172,5 +209,12 @@ public class LinkingProximityProfile extends ProximityProfile {
     private LinkingApplication getLinkingApplication() {
         LinkingDevicePluginService service = (LinkingDevicePluginService) getContext();
         return (LinkingApplication) service.getApplication();
+    }
+
+    private abstract class OnBeaconProximityEventListenerImpl extends TimeoutSchedule implements
+            LinkingBeaconManager.OnBeaconProximityEventListener, Runnable {
+        OnBeaconProximityEventListenerImpl(final LinkingBeacon beacon) {
+            super(beacon);
+        }
     }
 }

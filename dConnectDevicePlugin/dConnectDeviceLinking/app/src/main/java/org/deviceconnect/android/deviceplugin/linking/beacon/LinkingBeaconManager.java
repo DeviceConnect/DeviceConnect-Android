@@ -36,8 +36,8 @@ public class LinkingBeaconManager {
     private static final int INTERVAL = 20 * 1000;
 
     private Context mContext;
-    private int mScanState;
-    private int mScanDetail;
+    private LinkingBeaconUtil.ScanState mScanState;
+    private LinkingBeaconUtil.ScanDetail mScanDetail;
     private LinkingBeaconUtil.ScanMode mScanMode;
 
     private ScheduledExecutorService mScheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
@@ -113,7 +113,7 @@ public class LinkingBeaconManager {
                 }
             }
         };
-        startBeaconScanInternal(LinkingBeaconUtil.ScanMode.HIGHT);
+        startBeaconScanInternal(LinkingBeaconUtil.ScanMode.HIGH);
     }
 
     public void startBeaconScan() {
@@ -278,23 +278,27 @@ public class LinkingBeaconManager {
     }
 
     private void parseBeaconScanState(final Intent intent) {
-        mScanState = intent.getIntExtra(LinkingBeaconUtil.SCAN_STATE, 0);
-        mScanDetail = intent.getIntExtra(LinkingBeaconUtil.DETAIL, 0);
+        mScanState = LinkingBeaconUtil.ScanState.valueOf(intent.getIntExtra(LinkingBeaconUtil.SCAN_STATE, 0));
+        mScanDetail = LinkingBeaconUtil.ScanDetail.valueOf(intent.getIntExtra(LinkingBeaconUtil.DETAIL, 0));
 
-        if (mScanState == LinkingBeaconUtil.RESULT_NG) {
-            if (mScanDetail == LinkingBeaconUtil.DETAIL_TIMEOUT) {
-                if (BuildConfig.DEBUG) {
-                    Log.d(TAG, "@@ Restart the beacon scan.");
-                }
-                startBeaconScan(mScanMode);
-            } else if (mScanDetail == LinkingBeaconUtil.DETAIL_META_DATA_NONE) {
-                if (BuildConfig.DEBUG) {
-                    Log.w(TAG, "@@ meta data is not defined.");
-                }
-            } else {
-                if (BuildConfig.DEBUG) {
-                    Log.e(TAG, "Unknown detail. detail=" + mScanDetail);
-                }
+        if (mScanState == LinkingBeaconUtil.ScanState.RESULT_NG) {
+            switch (mScanDetail) {
+                case DETAIL_TIMEOUT:
+                    if (BuildConfig.DEBUG) {
+                        Log.d(TAG, "@@ Restart the beacon scan.");
+                    }
+                    startBeaconScan(mScanMode);
+                    break;
+                case DETAIL_META_DATA_NONE:
+                    if (BuildConfig.DEBUG) {
+                        Log.w(TAG, "@@ meta data is not defined.");
+                    }
+                    break;
+                default:
+                    if (BuildConfig.DEBUG) {
+                        Log.e(TAG, "Unknown detail. detail=" + mScanDetail);
+                    }
+                    break;
             }
         }
 

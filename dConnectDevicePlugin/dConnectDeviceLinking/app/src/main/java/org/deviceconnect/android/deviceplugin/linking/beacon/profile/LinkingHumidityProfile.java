@@ -33,15 +33,16 @@ public class LinkingHumidityProfile extends HumidityProfile {
     private final DConnectApi mGetHumidity = new GetApi() {
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
+            LinkingBeaconManager mgr = getLinkingBeaconManager();
             LinkingBeacon beacon = ((LinkingBeaconService) getService()).getLinkingBeacon();
 
             HumidityData humidity = beacon.getHumidityData();
             if (humidity != null && System.currentTimeMillis() - humidity.getTimeStamp() < TIMEOUT) {
                 setHumidityToResponse(response, humidity);
+                mgr.startBeaconScan(TIMEOUT);
                 return true;
             }
 
-            LinkingBeaconManager mgr = getLinkingBeaconManager();
             mgr.addOnBeaconHumidityEventListener(new OnBeaconHumidityEventListenerImpl(mgr, beacon) {
                 @Override
                 public void onCleanup() {

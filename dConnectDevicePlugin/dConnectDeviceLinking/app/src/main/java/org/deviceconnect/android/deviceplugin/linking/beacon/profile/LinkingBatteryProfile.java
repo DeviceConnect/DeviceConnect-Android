@@ -55,15 +55,16 @@ public class LinkingBatteryProfile extends BatteryProfile {
     private final DConnectApi mGetAll = new GetApi() {
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
+            LinkingBeaconManager mgr = getLinkingBeaconManager();
             LinkingBeacon beacon = ((LinkingBeaconService) getService()).getLinkingBeacon();
 
             BatteryData battery = beacon.getBatteryData();
             if (battery != null && System.currentTimeMillis() - battery.getTimeStamp() < TIMEOUT) {
                 setBatteryToResponse(response, battery);
+                mgr.startBeaconScan(TIMEOUT);
                 return true;
             }
 
-            LinkingBeaconManager mgr = getLinkingBeaconManager();
             mgr.addOnBeaconBatteryEventListener(new OnBeaconBatteryEventListenerImpl(mgr, beacon) {
                 @Override
                 public void onCleanup() {
@@ -114,7 +115,6 @@ public class LinkingBatteryProfile extends BatteryProfile {
                 }
             });
             mgr.startBeaconScan(TIMEOUT);
-
             return false;
         }
     };
@@ -127,15 +127,16 @@ public class LinkingBatteryProfile extends BatteryProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
+            LinkingBeaconManager mgr = getLinkingBeaconManager();
             LinkingBeacon beacon = ((LinkingBeaconService) getService()).getLinkingBeacon();
 
             BatteryData battery = beacon.getBatteryData();
             if (battery != null && System.currentTimeMillis() - battery.getTimeStamp() < TIMEOUT) {
                 setBatteryToResponse(response, battery);
+                mgr.startBeaconScan(TIMEOUT);
                 return true;
             }
 
-            LinkingBeaconManager mgr = getLinkingBeaconManager();
             mgr.addOnBeaconBatteryEventListener(new OnBeaconBatteryEventListenerImpl(mgr, beacon) {
                 @Override
                 public void onCleanup() {

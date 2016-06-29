@@ -60,16 +60,17 @@ public class LinkingProximityProfile extends ProximityProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
+            LinkingBeaconManager mgr = getLinkingBeaconManager();
             LinkingBeacon beacon = ((LinkingBeaconService) getService()).getLinkingBeacon();
 
             GattData gatt = beacon.getGattData();
             if (gatt != null && System.currentTimeMillis() - gatt.getTimeStamp() < TIMEOUT) {
                 setResult(response, DConnectMessage.RESULT_OK);
                 setProximity(response, createProximity(gatt));
+                mgr.startBeaconScan(TIMEOUT);
                 return true;
             }
 
-            LinkingBeaconManager mgr = getLinkingBeaconManager();
             mgr.addOnBeaconProximityEventListener(new OnBeaconProximityEventListenerImpl(mgr, beacon) {
                 @Override
                 public void onCleanup() {
@@ -120,7 +121,7 @@ public class LinkingProximityProfile extends ProximityProfile {
                     cleanup();
                 }
             });
-            getLinkingBeaconManager().startBeaconScan(TIMEOUT);
+            mgr.startBeaconScan(TIMEOUT);
             return false;
         }
     };

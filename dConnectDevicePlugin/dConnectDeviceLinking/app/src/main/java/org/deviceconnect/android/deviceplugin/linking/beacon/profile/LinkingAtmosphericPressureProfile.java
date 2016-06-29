@@ -34,15 +34,16 @@ public class LinkingAtmosphericPressureProfile extends AtmosphericPressureProfil
     private final DConnectApi mGetAtmosphericPressure = new GetApi() {
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
+            LinkingBeaconManager mgr = getLinkingBeaconManager();
             LinkingBeacon beacon = ((LinkingBeaconService) getService()).getLinkingBeacon();
 
             AtmosphericPressureData apd = beacon.getAtmosphericPressureData();
             if (apd != null && System.currentTimeMillis() - apd.getTimeStamp() < TIMEOUT) {
                 setAtmosphericPressureToResponse(response, apd);
+                mgr.startBeaconScan(TIMEOUT);
                 return true;
             }
 
-            LinkingBeaconManager mgr = getLinkingBeaconManager();
             mgr.addOnBeaconAtmosphericPressureEventListener(new OnBeaconAtmosphericPressureEventListenerImpl(mgr, beacon) {
                 @Override
                 public void onCleanup() {

@@ -34,15 +34,16 @@ public class LinkingTemperatureProfile extends TemperatureProfile {
     private final DConnectApi mGetTemperature = new GetApi() {
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
+            LinkingBeaconManager mgr = getLinkingBeaconManager();
             LinkingBeacon beacon = ((LinkingBeaconService) getService()).getLinkingBeacon();
 
             TemperatureData temperature = beacon.getTemperatureData();
             if (temperature != null && System.currentTimeMillis() - temperature.getTimeStamp() < TIMEOUT) {
                 setTemperatureToResponse(response, temperature);
+                mgr.startBeaconScan(TIMEOUT);
                 return true;
             }
 
-            LinkingBeaconManager mgr = getLinkingBeaconManager();
             mgr.addOnBeaconTemperatureEventListener(new OnBeaconTemperatureEventListenerImpl(mgr, beacon) {
                 @Override
                 public void onCleanup() {
@@ -92,7 +93,7 @@ public class LinkingTemperatureProfile extends TemperatureProfile {
                     cleanup();
                 }
             });
-            getLinkingBeaconManager().startBeaconScan(TIMEOUT);
+            mgr.startBeaconScan(TIMEOUT);
             return false;
         }
     };

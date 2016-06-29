@@ -111,7 +111,7 @@ public class LinkingBeaconManager {
 
         mTimeoutRunnable = new TimeoutRunnable(timeout) {
             @Override
-            public void onDestroy() {
+            public void onTimeout() {
                 mTimeoutRunnable = null;
                 if (!isStartBeaconScan()) {
                     stopBeaconScan();
@@ -563,7 +563,7 @@ public class LinkingBeaconManager {
             }
             mDestroyFlag = true;
 
-            onDestroy();
+            onTimeout();
 
             mScheduledFuture.cancel(false);
             mExecutorService.shutdown();
@@ -579,7 +579,7 @@ public class LinkingBeaconManager {
             mExecutorService.shutdown();
         }
 
-        public abstract void onDestroy();
+        public abstract void onTimeout();
     }
 
     public interface OnBeaconConnectListener {

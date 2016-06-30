@@ -6,13 +6,14 @@
  */
 package org.deviceconnect.android.manager.profile;
 
+import android.content.Intent;
+
 import org.deviceconnect.android.manager.DConnectService;
-import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.DConnectProfile;
+import org.deviceconnect.android.profile.api.DConnectApi;
+import org.deviceconnect.android.profile.api.GetApi;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.profile.AvailabilityProfileConstants;
-
-import android.content.Intent;
 
 /**
  * Availability Profile.
@@ -21,37 +22,21 @@ import android.content.Intent;
  */
 public class DConnectAvailabilityProfile extends DConnectProfile implements AvailabilityProfileConstants {
 
+    public DConnectAvailabilityProfile() {
+        addApi(mGetRequest);
+    }
+
     @Override
     public String getProfileName() {
         return PROFILE_NAME;
     }
 
-    @Override
-    protected boolean onGetRequest(final Intent request, final Intent response) {
-        setResult(response, DConnectMessage.RESULT_OK);
-        ((DConnectService) getContext()).sendResponse(request, response);
-        return true;
-    }
-
-    @Override
-    protected boolean onPostRequest(final Intent request, final Intent response) {
-        MessageUtils.setNotSupportActionError(response);
-        ((DConnectService) getContext()).sendResponse(request, response);
-        return true;
-    }
-
-    @Override
-    protected boolean onPutRequest(final Intent request, final Intent response) {
-        MessageUtils.setNotSupportActionError(response);
-        ((DConnectService) getContext()).sendResponse(request, response);
-        return true;
-    }
-
-    @Override
-    protected boolean onDeleteRequest(final Intent request, final Intent response) {
-        MessageUtils.setNotSupportActionError(response);
-        ((DConnectService) getContext()).sendResponse(request, response);
-        return true;
-    }
-
+    private final DConnectApi mGetRequest = new GetApi() {
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            setResult(response, DConnectMessage.RESULT_OK);
+            ((DConnectService) getContext()).sendResponse(request, response);
+            return true;
+        }
+    };
 }

@@ -6,25 +6,25 @@
  */
 package org.deviceconnect.android.manager.profile;
 
+import android.content.Context;
+import android.content.Intent;
+import android.content.res.AssetManager;
+
+import org.deviceconnect.android.manager.DConnectMessageService;
+import org.deviceconnect.android.manager.request.DConnectRequest;
+import org.deviceconnect.android.message.MessageUtils;
+import org.deviceconnect.android.profile.DConnectProfile;
+import org.deviceconnect.android.profile.api.DConnectApi;
+import org.deviceconnect.android.profile.api.GetApi;
+import org.deviceconnect.message.DConnectMessage;
+import org.deviceconnect.profile.DConnectProfileConstants;
+
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
-
-import org.deviceconnect.android.manager.DConnectMessageService;
-import org.deviceconnect.android.manager.DConnectService;
-import org.deviceconnect.android.manager.request.DConnectRequest;
-import org.deviceconnect.android.message.MessageUtils;
-import org.deviceconnect.android.profile.DConnectProfile;
-import org.deviceconnect.message.DConnectMessage;
-import org.deviceconnect.profile.DConnectProfileConstants;
-
-import android.content.Context;
-import android.content.Intent;
-import android.content.res.AssetManager;
 
 /**
  * ファイルにアクセスするためのプロファイル.
@@ -44,7 +44,7 @@ public class DConnectFilesProfile extends DConnectProfile {
     public static final String PARAM_DATA = "data";
 
     /** 拡張子とMimetypeを持つマップ. */
-    private final Map<String, String> mExtMap = new HashMap<String, String>();
+    private final Map<String, String> mExtMap = new HashMap<>();
 
     /**
      * コンストラクタ.
@@ -52,6 +52,7 @@ public class DConnectFilesProfile extends DConnectProfile {
      */
     public DConnectFilesProfile(final Context context) {
         loadMimeType(context);
+        addApi(mGetRequest);
     }
 
     @Override
@@ -59,73 +60,52 @@ public class DConnectFilesProfile extends DConnectProfile {
         return PROFILE_NAME;
     }
 
-    @Override
-    protected boolean onGetRequest(final Intent request, final Intent response) {
-        DConnectRequest req = new DConnectRequest() {
-            @Override
-            public boolean hasRequestCode(final int requestCode) {
-                return false;
-            }
-            @Override
-            public void run() {
-                String uri = request.getStringExtra(DConnectProfileConstants.PARAM_URI);
-                byte[] buf = getContentData(uri);
-                if (buf == null) {
-                    MessageUtils.setInvalidRequestParameterError(response);
-                } else {
-                    setResult(response, DConnectMessage.RESULT_OK);
-                    response.putExtra(PARAM_DATA, buf);
-                    response.putExtra(PARAM_MIME_TYPE, getExtension(uri));
+    private final DConnectApi mGetRequest = new GetApi() {
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            DConnectRequest req = new DConnectRequest() {
+                @Override
+                public boolean hasRequestCode(final int requestCode) {
+                    return false;
                 }
-                sendResponse(response);
-            }
-        };
-        req.setContext(getContext());
-        req.setRequest(request);
-        ((DConnectMessageService) getContext()).addRequest(req);
+                @Override
+                public void run() {
+                    String uri = request.getStringExtra(DConnectProfileConstants.PARAM_URI);
+                    byte[] buf = getContentData(uri);
+                    if (buf == null) {
+                        MessageUtils.setInvalidRequestParameterError(response);
+                    } else {
+                        setResult(response, DConnectMessage.RESULT_OK);
+                        response.putExtra(PARAM_DATA, buf);
+                        response.putExtra(PARAM_MIME_TYPE, getExtension(uri));
+                    }
+                    sendResponse(response);
+                }
+            };
+            req.setContext(getContext());
+            req.setRequest(request);
+            ((DConnectMessageService) getContext()).addRequest(req);
 
-        // 各デバイスプラグインに送信する場合にはfalseを返却、
-        // dConnectManagerで止める場合にはtrueを返却する
-        // ここでは、各デバイスには渡さないのでtrueを返却する。
-        return true;
-    }
-
-    @Override
-    protected boolean onPostRequest(final Intent request, final Intent response) {
-        MessageUtils.setNotSupportActionError(response);
-        ((DConnectService) getContext()).sendResponse(request, response);
-        return true;
-    }
-
-    @Override
-    protected boolean onPutRequest(final Intent request, final Intent response) {
-        MessageUtils.setNotSupportActionError(response);
-        ((DConnectService) getContext()).sendResponse(request, response);
-        return true;
-    }
-
-    @Override
-    protected boolean onDeleteRequest(final Intent request, final Intent response) {
-        MessageUtils.setNotSupportActionError(response);
-        ((DConnectService) getContext()).sendResponse(request, response);
-        return true;
-    }
+            // 各デバイスプラグインに送信する場合にはfalseを返却、
+            // dConnectManagerで止める場合にはtrueを返却する
+            // ここでは、各デバイスには渡さないのでtrueを返却する。
+            return true;
+        }
+    };
 
     /**
      * mimetype一覧を読み込む.
      * @param context コンテキスト
      */
     private void loadMimeType(final Context context) {
-        InputStream fin = null;
         BufferedReader br = null;
         try {
             AssetManager assetManager = context.getResources().getAssets();
-            fin = assetManager.open("mimetype.csv");
-            br = new BufferedReader(new InputStreamReader(fin));
-            String line = null;
+            br = new BufferedReader(new InputStreamReader(assetManager.open("mimetype.csv")));
+            String line;
             while ((line = br.readLine()) != null) {
                 String[] tmp = line.split(",");
-                if (tmp != null && tmp.length == 2) {
+                if (tmp.length == 2) {
                     mExtMap.put(tmp[0].trim(), tmp[1].trim());
                 }
             }
@@ -148,7 +128,7 @@ public class DConnectFilesProfile extends DConnectProfile {
      * @return MimeType
      */
     private String getExtension(final String path) {
-        String mimetype = "application/octet-stream";
+        String mimeType = "application/octet-stream";
         int idx = path.lastIndexOf(".");
         if (idx > 0) {
             String ext = path.substring(idx + 1);
@@ -156,6 +136,6 @@ public class DConnectFilesProfile extends DConnectProfile {
                 return mExtMap.get(ext);
             }
         }
-        return mimetype;
+        return mimeType;
     }
 }

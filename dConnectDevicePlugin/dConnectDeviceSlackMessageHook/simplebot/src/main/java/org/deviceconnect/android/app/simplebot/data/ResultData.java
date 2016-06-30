@@ -46,7 +46,7 @@ public class ResultData {
         public String channel;
         public String from;
         public String response;
-        Date date = new Date();
+        public Date date = new Date();
     }
 
     /**
@@ -83,15 +83,11 @@ public class ResultData {
     /**
      * 結果アダプター
      */
-    class ResultAdapter extends BaseAdapter {
+    public class ResultAdapter extends BaseAdapter {
 
         List<Result> list = null;
         LayoutInflater inflater;
         static final int resource = R.layout.result_list_item;
-        TextView textCmd;
-        TextView textRes;
-        TextView textFrom;
-        TextView textDate;
 
         @Override
         public int getCount() {
@@ -118,11 +114,11 @@ public class ResultData {
             View v = convertView;
             if (v == null) {
                 v = inflater.inflate(resource, parent, false);
-                textCmd = (TextView) v.findViewById(R.id.textResultCommand);
-                textRes = (TextView) v.findViewById(R.id.textResultResponse);
-                textFrom = (TextView) v.findViewById(R.id.textResultFrom);
-                textDate = (TextView) v.findViewById(R.id.textResultDate);
             }
+            TextView textCmd = (TextView) v.findViewById(R.id.textResultCommand);
+            TextView textRes = (TextView) v.findViewById(R.id.textResultResponse);
+            TextView textFrom = (TextView) v.findViewById(R.id.textResultFrom);
+            TextView textDate = (TextView) v.findViewById(R.id.textResultDate);
             Result result = this.getItem(position);
             textCmd.setText(result.text);
             textRes.setText(result.response);

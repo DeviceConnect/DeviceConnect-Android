@@ -16,8 +16,11 @@
     <string name="service_id">サービスID</string>
     <string name="path">パス</string>
     <string name="data">データ</string>
+    <string name="event">イベント</string>
     <string name="result">結果</string>
     <string name="from">From</string>
+    <string name="channel">Channel</string>
+    <string name="text">Text</string>
     <string name="date">Date</string>
     <string name="res_success">成功レスポンス</string>
     <string name="res_error">失敗レスポンス</string>

@@ -6,6 +6,7 @@
  */
 package org.deviceconnect.android.app.simplebot.fragment;
 
+import android.app.Fragment;
 import android.app.ListFragment;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -16,6 +17,7 @@ import android.widget.ListView;
 
 import org.deviceconnect.android.app.simplebot.R;
 import org.deviceconnect.android.app.simplebot.data.ResultData;
+import org.deviceconnect.android.app.simplebot.utils.Utils;
 
 /**
  * 処理結果一覧画面
@@ -47,5 +49,10 @@ public class ResultListFragment extends ListFragment {
 
     @Override
     public void onListItemClick(ListView l, View v, int position, long id) {
+        Fragment fragment = new ResultDetailsFragment();
+        Bundle bundle = new Bundle();
+        bundle.putLong("id", id);
+        fragment.setArguments(bundle);
+        Utils.transition(fragment, getFragmentManager(), true);
     }
 }

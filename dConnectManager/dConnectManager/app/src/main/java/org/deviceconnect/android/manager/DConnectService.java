@@ -121,10 +121,8 @@ public class DConnectService extends DConnectMessageService {
         mEventSender.execute(new Runnable() {
             @Override
             public void run() {
-//                mSettings.load(this);
                 mSettings.load(getApplicationContext());
 
-//                mWebServerListener = new DConnectServerEventListenerImpl(this);
                 mWebServerListener = new DConnectServerEventListenerImpl(getApplicationContext());
                 mWebServerListener.setFileManager(mFileMgr);
 
@@ -148,7 +146,6 @@ public class DConnectService extends DConnectMessageService {
                 }
 
                 if (mRESTfulServer == null) {
-//                    mRESTfulServer = new DConnectServerNanoHttpd(builder.build(), this);
                     mRESTfulServer = new DConnectServerNanoHttpd(builder.build(), getApplicationContext());
                     mRESTfulServer.setServerEventListener(mWebServerListener);
                     mRESTfulServer.start();

@@ -439,14 +439,14 @@ public abstract class DConnectMessageService extends Service implements DConnect
     /**
      * Device Connect Managerがアンインストールされた時に呼ばれる処理部.
      */
-    public void onManagerUninstalled() {
+    protected void onManagerUninstalled() {
         mLogger.info("SDK : onManagerUninstalled");
     }
 
     /**
      * Device Connect Managerの正常終了通知を受信した時に呼ばれる処理部.
      */
-    public void onManagerTerminated() {
+    protected void onManagerTerminated() {
         mLogger.info("SDK : on ManagerTerminated");
     }
 
@@ -454,14 +454,14 @@ public abstract class DConnectMessageService extends Service implements DConnect
      * Device Connect ManagerのEvent送信経路切断通知を受信した時に呼ばれる処理部.
      * @param sessionKey セッションキー
      */
-    public void onManagerEventTransmitDisconnected(String sessionKey) {
+    protected void onManagerEventTransmitDisconnected(String sessionKey) {
         mLogger.info("SDK : onManagerEventTransmitDisconnected");
     }
 
     /**
      * Device Plug-inへのReset要求を受信した時に呼ばれる処理部.
      */
-    public void onDevicePluginReset() {
+    protected void onDevicePluginReset() {
         mLogger.info("SDK : onDevicePluginReset");
     }
 }

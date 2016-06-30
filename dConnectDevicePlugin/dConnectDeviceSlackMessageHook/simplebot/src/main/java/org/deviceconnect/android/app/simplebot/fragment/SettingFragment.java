@@ -65,9 +65,6 @@ public class SettingFragment extends Fragment {
         checkBoxSSL = (CheckBox)view.findViewById(R.id.checkBoxSSL);
         buttonService = (Button)view.findViewById(R.id.buttonService);
 
-        // 設定読み込み
-        loadSettings();
-
         // サービス選択ボタンイベント
         buttonService.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -105,12 +102,16 @@ public class SettingFragment extends Fragment {
             }
         });
 
+        // 設定読み込み
+        loadSettings();
+
         return view;
     }
 
     @Override
     public void onResume() {
         super.onResume();
+        getActivity().setTitle(getString(R.string.app_name) + " [設定]");
     }
 
     /**
@@ -126,6 +127,8 @@ public class SettingFragment extends Fragment {
             selectedInfo = new DConnectHelper.ServiceInfo(setting.serviceId, setting.serviceName, null);
             buttonService.setText(selectedInfo.name);
         }
+        // UI更新
+        changeEnabled(setting);
     }
 
     /**
@@ -145,6 +148,18 @@ public class SettingFragment extends Fragment {
             setting.serviceName = selectedInfo.name;
         }
         setting.save();
+        // UI更新
+        changeEnabled(setting);
+    }
+
+    /**
+     * UI使用可能を切り替える
+     */
+    private void changeEnabled(SettingData setting) {
+        editTextHost.setEnabled(!setting.active);
+        editTextPort.setEnabled(!setting.active);
+        checkBoxSSL.setEnabled(!setting.active);
+        buttonService.setEnabled(!setting.active);
     }
 
     /**

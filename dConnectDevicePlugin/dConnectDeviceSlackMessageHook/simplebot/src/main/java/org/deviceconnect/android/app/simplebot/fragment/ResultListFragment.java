@@ -37,6 +37,7 @@ public class ResultListFragment extends ListFragment {
     @Override
     public void onResume() {
         super.onResume();
+        getActivity().setTitle(getString(R.string.app_name) + " [処理結果一覧]");
     }
 
     @Override

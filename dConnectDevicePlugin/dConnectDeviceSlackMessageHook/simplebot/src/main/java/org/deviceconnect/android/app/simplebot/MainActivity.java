@@ -41,7 +41,11 @@ public class MainActivity extends Activity {
         }
 
         // 画面遷移
-        Utils.transition(new CommandListFragment(), getFragmentManager(), false);
+        if (SettingData.getInstance(this).serviceId == null) {
+            Utils.transition(new SettingFragment(), getFragmentManager(), false);
+        } else {
+            Utils.transition(new CommandListFragment(), getFragmentManager(), false);
+        }
     }
 
     @Override

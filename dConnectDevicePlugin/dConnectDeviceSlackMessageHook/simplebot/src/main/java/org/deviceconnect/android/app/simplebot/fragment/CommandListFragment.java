@@ -49,6 +49,7 @@ public class CommandListFragment extends ListFragment {
     @Override
     public void onResume() {
         super.onResume();
+        getActivity().setTitle(getString(R.string.app_name) + " [コマンド一覧]");
         adapter.getCursor().close();
         DataManager dm = new DataManager(getActivity());
         Cursor cursor = dm.getAll();

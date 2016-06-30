@@ -141,6 +141,8 @@ public class CommandDetailsFragment extends Fragment implements View.OnClickList
         // 画面を戻す
         if (popBackFlg) {
             getFragmentManager().popBackStack();
+        } else {
+            getActivity().setTitle(getString(R.string.app_name) + " [コマンド詳細]");
         }
     }
 

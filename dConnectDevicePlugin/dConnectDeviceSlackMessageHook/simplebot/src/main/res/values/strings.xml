@@ -1,11 +1,13 @@
 <resources>
     <string name="app_name">SimpleBot</string>
     <string name="empty_command">コマンドが登録されていません。\nコマンドを登録してください。</string>
+    <string name="empty_result">処理結果がありません。</string>
     <string name="status">Status</string>
     <string name="menu_add_command">コマンド追加</string>
     <string name="menu_list_command">コマンド一覧</string>
     <string name="menu_import">インポート</string>
     <string name="menu_setting">設定</string>
+    <string name="menu_list_result">結果一覧</string>
     <string name="add">追加</string>
     <string name="delete">削除</string>
     <string name="update">更新</string>
@@ -14,6 +16,9 @@
     <string name="service_id">サービスID</string>
     <string name="path">パス</string>
     <string name="data">データ</string>
+    <string name="result">結果</string>
+    <string name="from">From</string>
+    <string name="date">Date</string>
     <string name="res_success">成功レスポンス</string>
     <string name="res_error">失敗レスポンス</string>
     <string name="unset">未設定</string>

@@ -17,6 +17,7 @@ import android.view.MenuItem;
 import org.deviceconnect.android.app.simplebot.data.SettingData;
 import org.deviceconnect.android.app.simplebot.fragment.CommandDetailsFragment;
 import org.deviceconnect.android.app.simplebot.fragment.CommandListFragment;
+import org.deviceconnect.android.app.simplebot.fragment.ResultListFragment;
 import org.deviceconnect.android.app.simplebot.fragment.SettingFragment;
 import org.deviceconnect.android.app.simplebot.utils.Utils;
 
@@ -47,6 +48,7 @@ public class MainActivity extends Activity {
     public boolean onMenuOpened(int featureId, Menu menu) {
         hideMenu(menu, CommandListFragment.class.getName(), 0);
         hideMenu(menu, CommandDetailsFragment.class.getName(), 1);
+        hideMenu(menu, ResultListFragment.class.getName(), 4);
         return super.onMenuOpened(featureId, menu);
     }
 
@@ -65,6 +67,10 @@ public class MainActivity extends Activity {
                 break;
             case R.id.menu_list_command:
                 fragment = new CommandListFragment();
+                Utils.transition(fragment, getFragmentManager(), true);
+                break;
+            case R.id.menu_list_result:
+                fragment = new ResultListFragment();
                 Utils.transition(fragment, getFragmentManager(), true);
                 break;
         }

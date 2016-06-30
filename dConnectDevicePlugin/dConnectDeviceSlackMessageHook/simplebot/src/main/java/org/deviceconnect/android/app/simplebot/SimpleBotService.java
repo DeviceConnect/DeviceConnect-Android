@@ -18,13 +18,13 @@ import android.util.Log;
 import com.x5.template.Chunk;
 
 import org.deviceconnect.android.app.simplebot.data.DataManager;
+import org.deviceconnect.android.app.simplebot.data.ResultData;
 import org.deviceconnect.android.app.simplebot.data.SettingData;
 import org.deviceconnect.android.app.simplebot.utils.DConnectHelper;
 import org.deviceconnect.android.app.simplebot.utils.Utils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -151,8 +151,7 @@ public class SimpleBotService extends Service {
         if (!event.has("message")) {
             return;
         }
-        String text;
-        String channel;
+        ResultData.Result result = new ResultData.Result();
         try {
             JSONObject message = event.getJSONObject("message");
             // Direct or Mentionのみ処理する
@@ -163,8 +162,9 @@ public class SimpleBotService extends Service {
             }
             // textとchannelIdを取得
             if (message.has("text")) {
-                text = message.getString("text");
-                channel = message.getString("channelId");
+                result.text = message.getString("text");
+                result.channel = message.getString("channelId");
+                result.from = message.getString("from");
             } else {
                 return;
             }
@@ -180,7 +180,8 @@ public class SimpleBotService extends Service {
             do {
                 // 各コマンドを判定
                 DataManager.Data data = dm.convertData(cursor);
-                if (handleData(data, channel, text)) {
+                result.data = data;
+                if (handleData(result)) {
                     break;
                 }
             } while (cursor.moveToNext());
@@ -190,19 +191,18 @@ public class SimpleBotService extends Service {
 
     /**
      * 各コマンドを処理
-     * @param data コマンドデータ
-     * @param channel ChannelID
-     * @param text Text
+     * @param result 結果
      * @return 処理した場合はtrue
      */
-    private boolean handleData(final DataManager.Data data, final String channel, String text) {
+    private boolean handleData(final ResultData.Result result) {
+        DataManager.Data data = result.data;
         if (data.serviceId == null) {
             return false;
         }
         final Context context = getApplicationContext();
         // 正規表現で検索
         Pattern pattern = Pattern.compile(data.keyword);
-        Matcher matcher = pattern.matcher(text);
+        Matcher matcher = pattern.matcher(result.text);
         if (!matcher.find()) {
             // 一致せず
             return false;
@@ -221,23 +221,23 @@ public class SimpleBotService extends Service {
                 }
                 params.put(key, val);
             }
+            if (DEBUG) Log.d(TAG, params.toString());
         }
-        if (DEBUG) Log.d(TAG, params.toString());
 
         // このタイミングでToken確認画面が出たことがあったのでMainスレッドで処理。
         handler.post(new Runnable() {
             @Override
             public void run() {
                 // リクエスト送信
-                Utils.sendRequest(context, data.method, data.path, data.serviceId, params, new DConnectHelper.FinishCallback<Map<String, Object>>() {
+                Utils.sendRequest(context, result.data.method, result.data.path, result.data.serviceId, params, new DConnectHelper.FinishCallback<Map<String, Object>>() {
                     @Override
                     public void onFinish(Map<String, Object> stringObjectMap, Exception error) {
                         if (error == null) {
                             if (DEBUG) Log.d(TAG, stringObjectMap.toString());
-                            sendResponse(channel, data.success, stringObjectMap);
+                            sendResponse(result, result.data.success, stringObjectMap);
                         } else {
                             if (DEBUG) Log.e(TAG, "Error on sendRequest", error);
-                            sendResponse(channel, data.error, stringObjectMap);
+                            sendResponse(result, result.data.error, stringObjectMap);
                         }
                     }
                 });
@@ -249,27 +249,29 @@ public class SimpleBotService extends Service {
 
     /**
      * 処理結果を送信
-     * @param channel ChannelID
+     * @param result 結果
      * @param text Text
      * @param response Response
      */
-    private void sendResponse(String channel, String text, Map<String, Object> response) {
+    private void sendResponse(ResultData.Result result, String text, Map<String, Object> response) {
         // ChunkでTemplate処理
-        String resText;
         try {
             Chunk chunk = new Chunk();
             chunk.append(text);
             chunk.putAll(response);
-            resText = chunk.toString();
+            result.response = chunk.toString();
         } catch (Exception e) {
             Log.e(TAG, "Error on Chunk command", e);
             return;
         }
 
-        if (DEBUG) Log.d(TAG, resText);
+        if (DEBUG) Log.d(TAG, result.response);
+
+        // 履歴に保存
+        ResultData.INSTANCE.add(result);
 
         // メッセージ送信
-        Utils.sendMessage(this, channel, resText, new DConnectHelper.FinishCallback<Void>() {
+        Utils.sendMessage(this, result.channel, result.response, new DConnectHelper.FinishCallback<Void>() {
             @Override
             public void onFinish(Void aVoid, Exception error) {
                 if (error != null) {

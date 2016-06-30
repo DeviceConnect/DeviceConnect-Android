@@ -26,6 +26,11 @@
                 android:orderInCategory="1"
                 android:title="@string/menu_setting"
                 android:showAsAction="never" />
+            <item
+                android:id="@+id/menu_list_result"
+                android:orderInCategory="1"
+                android:title="@string/menu_list_result"
+                android:showAsAction="never" />
         </menu>
     </item>
 </menu>

@@ -205,7 +205,8 @@ public class DConnectSystemProfile extends SystemProfile {
 
     public static boolean isWakeUpRequest(final Intent request) {
         String profile = getProfile(request);
+        String inter = getInterface(request);
         String attribute = getAttribute(request);
-        return PROFILE_NAME.equals(profile) && ATTRIBUTE_WAKEUP.equals(attribute);
+        return PROFILE_NAME.equals(profile) && INTERFACE_DEVICE.equals(inter) && ATTRIBUTE_WAKEUP.equals(attribute);
     }
 }

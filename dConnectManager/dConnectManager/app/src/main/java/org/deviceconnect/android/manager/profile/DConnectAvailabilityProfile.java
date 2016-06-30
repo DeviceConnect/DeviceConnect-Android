@@ -8,7 +8,6 @@ package org.deviceconnect.android.manager.profile;
 
 import android.content.Intent;
 
-import org.deviceconnect.android.manager.DConnectService;
 import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.android.profile.api.DConnectApi;
 import org.deviceconnect.android.profile.api.GetApi;
@@ -35,7 +34,6 @@ public class DConnectAvailabilityProfile extends DConnectProfile implements Avai
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
             setResult(response, DConnectMessage.RESULT_OK);
-            ((DConnectService) getContext()).sendResponse(request, response);
             return true;
         }
     };

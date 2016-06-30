@@ -11,7 +11,6 @@ import android.content.Intent;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.manager.DConnectMessageService;
-import org.deviceconnect.android.manager.DConnectService;
 import org.deviceconnect.android.manager.DevicePluginManager;
 import org.deviceconnect.android.manager.request.ServiceDiscoveryRequest;
 import org.deviceconnect.android.message.MessageUtils;
@@ -60,11 +59,7 @@ public class DConnectServiceDiscoveryProfile extends ServiceDiscoveryProfile {
             req.setTimeout(TIMEOUT);
             req.setDevicePluginManager(mDevicePluginManager);
             ((DConnectMessageService) getContext()).addRequest(req);
-
-            // 各デバイスプラグインに送信する場合にはfalseを返却、
-            // dConnectManagerで止める場合にはtrueを返却する
-            // ここでは、各デバイスには渡さないのでtrueを返却する。
-            return true;
+            return false;
         }
     };
 
@@ -82,11 +77,6 @@ public class DConnectServiceDiscoveryProfile extends ServiceDiscoveryProfile {
             } else {
                 MessageUtils.setInvalidRequestParameterError(response);
             }
-            ((DConnectService) getContext()).sendResponse(request, response);
-
-            // 各デバイスプラグインに送信する場合にはfalseを返却、
-            // dConnectManagerで止める場合にはtrueを返却する
-            // ここでは、各デバイスには渡さないのでtrueを返却する。
             return true;
         }
     };
@@ -105,11 +95,6 @@ public class DConnectServiceDiscoveryProfile extends ServiceDiscoveryProfile {
             } else {
                 MessageUtils.setInvalidRequestParameterError(response);
             }
-            ((DConnectService) getContext()).sendResponse(request, response);
-
-            // 各デバイスプラグインに送信する場合にはfalseを返却、
-            // dConnectManagerで止める場合にはtrueを返却する
-            // ここでは、各デバイスには渡さないのでtrueを返却する。
             return true;
         }
     };

@@ -393,14 +393,23 @@ public abstract class DConnectMessageService extends Service
         request.putExtra(DConnectMessage.EXTRA_PRODUCT, getString(R.string.app_name));
         request.putExtra(DConnectMessage.EXTRA_VERSION, DConnectUtil.getVersionName(this));
 
-        boolean send = false;
         DConnectProfile profile = getProfile(request);
-        if (profile != null) {
-            send = profile.onRequest(request, response);
-        }
-        if (!send) {
+        if (profile != null && !isDeliveryRequest(request)) {
+            if (profile.onRequest(request, response)) {
+                sendResponse(request, response);
+            }
+        } else {
             sendDeliveryProfile(request, response);
         }
+    }
+
+    /**
+     * 指定されたリクエストがデバイスプラグインに配送するリクエストか確認する.
+     * @param request リクエスト
+     * @return プラグインに配送する場合にはtrue、それ以外はfalse
+     */
+    private boolean isDeliveryRequest(final Intent request) {
+        return DConnectSystemProfile.isWakeUpRequest(request);
     }
 
     /**

@@ -112,6 +112,8 @@ public class ServiceDiscoveryRequest extends DConnectRequest {
         request.putExtra(DConnectMessage.EXTRA_PROFILE, PROFILE_NETWORK_SERVICE_DISCOVERY);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, ATTRIBUTE_GET_NETWORK_SERVICES);
 
+        mCountDownLatch = new CountDownLatch(plugins.size());
+
         for (int i = 0; i < plugins.size(); i++) {
             DevicePlugin plugin = plugins.get(i);
 
@@ -122,8 +124,6 @@ public class ServiceDiscoveryRequest extends DConnectRequest {
             request.putExtra(IntentDConnectMessage.EXTRA_REQUEST_CODE, requestCode);
             mContext.sendBroadcast(request);
         }
-
-        mCountDownLatch = new CountDownLatch(plugins.size());
 
         try {
             mCountDownLatch.await(mTimeout, TimeUnit.MILLISECONDS);

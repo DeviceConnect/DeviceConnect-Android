@@ -43,7 +43,7 @@ public class DConnectFilesProfile extends DConnectProfile {
     /** 属性: {@value}. */
     public static final String PARAM_DATA = "data";
 
-    /** 拡張子とMimetypeを持つマップ. */
+    /** 拡張子とMimeTypeを持つマップ. */
     private final Map<String, String> mExtMap = new HashMap<>();
 
     /**
@@ -85,11 +85,7 @@ public class DConnectFilesProfile extends DConnectProfile {
             req.setContext(getContext());
             req.setRequest(request);
             ((DConnectMessageService) getContext()).addRequest(req);
-
-            // 各デバイスプラグインに送信する場合にはfalseを返却、
-            // dConnectManagerで止める場合にはtrueを返却する
-            // ここでは、各デバイスには渡さないのでtrueを返却する。
-            return true;
+            return false;
         }
     };
 

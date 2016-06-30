@@ -59,6 +59,13 @@ public class DConnectSystemProfile extends SystemProfile {
         mPluginMgr = pluginMgr;
 
         addApi(mGetRequest);
+        addApi(mPutKeywordRequest);
+        addApi(mDeleteEvents);
+    }
+
+    @Override
+    protected Class<? extends Activity> getSettingPageActivity(final Intent request, final Bundle param) {
+        return SettingActivity.class;
     }
 
     private final DConnectApi mGetRequest = new GetApi() {
@@ -90,13 +97,6 @@ public class DConnectSystemProfile extends SystemProfile {
                 plugins.add(b);
             }
             response.putExtra(PARAM_PLUGINS, plugins.toArray(new Bundle[plugins.size()]));
-
-            // レスポンスを返却
-            ((DConnectService) getContext()).sendResponse(request, response);
-
-            // 各デバイスプラグインに送信する場合にはfalseを返却、
-            // dConnectManagerで止める場合にはtrueを返却する
-            // ここでは、各デバイスには渡さないのでtrueを返却する。
             return true;
         }
     };
@@ -173,11 +173,7 @@ public class DConnectSystemProfile extends SystemProfile {
             req.setContext(getContext());
             req.setRequest(request);
             ((DConnectMessageService) getContext()).addRequest(req);
-
-            // 各デバイスプラグインに送信する場合にはfalseを返却、
-            // dConnectManagerで止める場合にはtrueを返却する
-            // ここでは、各デバイスには渡さないのでtrueを返却する。
-            return true;
+            return false;
         }
     };
 
@@ -188,32 +184,28 @@ public class DConnectSystemProfile extends SystemProfile {
         }
 
         @Override
-        public boolean onRequest(Intent request, Intent response) {
+        public boolean onRequest(final Intent request, final Intent response) {
             // dConnectManagerに登録されているイベントを削除
             String sessionKey = request.getStringExtra(DConnectMessage.EXTRA_SESSION_KEY);
             if (sessionKey == null) {
                 MessageUtils.setInvalidRequestParameterError(response, "sessionKey is null.");
-                ((DConnectService) getContext()).sendResponse(request, response);
+                return true;
             } else {
                 EventManager.INSTANCE.removeEvents(sessionKey);
-
                 // 各デバイスプラグインにイベントを削除依頼を送る
                 RemoveEventsRequest req = new RemoveEventsRequest();
                 req.setContext(getContext());
                 req.setRequest(request);
                 req.setDevicePluginManager(mPluginMgr);
                 ((DConnectMessageService) getContext()).addRequest(req);
+                return false;
             }
-
-            // 各デバイスプラグインに送信する場合にはfalseを返却、
-            // dConnectManagerで止める場合にはtrueを返却する
-            // ここでは、各デバイスには渡さないのでtrueを返却する。
-            return true;
         }
     };
 
-    @Override
-    protected Class<? extends Activity> getSettingPageActivity(final Intent request, final Bundle param) {
-        return SettingActivity.class;
+    public static boolean isWakeUpRequest(final Intent request) {
+        String profile = getProfile(request);
+        String attribute = getAttribute(request);
+        return PROFILE_NAME.equals(profile) && ATTRIBUTE_WAKEUP.equals(attribute);
     }
 }

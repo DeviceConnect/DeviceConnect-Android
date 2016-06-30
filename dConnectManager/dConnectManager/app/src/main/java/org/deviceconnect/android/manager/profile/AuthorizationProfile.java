@@ -63,11 +63,7 @@ public class AuthorizationProfile extends DConnectProfile implements Authorizati
             req.setRequest(request);
             req.setResponse(response);
             ((DConnectMessageService) getContext()).addRequest(req);
-
-            // 各デバイスプラグインに送信する場合にはfalseを返却、
-            // dConnectManagerで止める場合にはtrueを返却する
-            // ここでは、各デバイスには渡さないのでtrueを返却する。
-            return true;
+            return false;
         }
     };
 
@@ -94,11 +90,7 @@ public class AuthorizationProfile extends DConnectProfile implements Authorizati
             req.setRequest(request);
             req.setResponse(response);
             ((DConnectMessageService) getContext()).addRequest(req);
-
-            // 各デバイスプラグインに送信する場合にはfalseを返却、
-            // dConnectManagerで止める場合にはtrueを返却する
-            // ここでは、各デバイスには渡さないのでtrueを返却する。
-            return true;
+            return false;
         }
     };
 

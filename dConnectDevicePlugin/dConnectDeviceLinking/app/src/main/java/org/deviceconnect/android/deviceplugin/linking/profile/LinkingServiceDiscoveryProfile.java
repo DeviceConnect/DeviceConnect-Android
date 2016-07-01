@@ -48,7 +48,7 @@ public class LinkingServiceDiscoveryProfile extends ServiceDiscoveryProfile {
             cleanupDConnectService();
 
             List<Bundle> serviceBundles = new ArrayList<>();
-            for (DConnectService service : getProfileProvider().getServiceList()) {
+            for (DConnectService service : getServiceProvider().getServiceList()) {
                 Bundle serviceBundle = new Bundle();
                 setId(serviceBundle, service.getId());
                 setName(serviceBundle, service.getName());
@@ -71,7 +71,7 @@ public class LinkingServiceDiscoveryProfile extends ServiceDiscoveryProfile {
                 if (BuildConfig.DEBUG) {
                     Log.i(TAG, "Added Device: " + device.getDisplayName());
                 }
-                getProfileProvider().addService(new LinkingDeviceService((DConnectMessageService) getContext(), device));
+                getServiceProvider().addService(new LinkingDeviceService((DConnectMessageService) getContext(), device));
             } else {
                 ((LinkingDeviceService) service).setLinkingDevice(device);
             }
@@ -88,7 +88,7 @@ public class LinkingServiceDiscoveryProfile extends ServiceDiscoveryProfile {
                 if (BuildConfig.DEBUG) {
                     Log.i(TAG, "Added Beacon: " + beacon.getDisplayName());
                 }
-                getProfileProvider().addService(new LinkingBeaconService((DConnectMessageService) getContext(), beacon));
+                getServiceProvider().addService(new LinkingBeaconService((DConnectMessageService) getContext(), beacon));
             } else {
                 ((LinkingBeaconService) service).setLinkingBeacon(beacon);
             }
@@ -96,12 +96,12 @@ public class LinkingServiceDiscoveryProfile extends ServiceDiscoveryProfile {
     }
 
     private void cleanupDConnectService() {
-        for (DConnectService service : getProfileProvider().getServiceList()) {
+        for (DConnectService service : getServiceProvider().getServiceList()) {
             if (!containsLinkingDevices(service.getId()) && !containsLinkingBeacons(service.getId())) {
                 if (BuildConfig.DEBUG) {
                     Log.i(TAG, "Remove Service: " + service.getName());
                 }
-                getProfileProvider().removeService(service);
+                getServiceProvider().removeService(service);
             }
         }
     }
@@ -125,7 +125,7 @@ public class LinkingServiceDiscoveryProfile extends ServiceDiscoveryProfile {
     }
 
     private DConnectService findDConnectService(final String id) {
-        for (DConnectService service : getProfileProvider().getServiceList()) {
+        for (DConnectService service : getServiceProvider().getServiceList()) {
             if (service.getId().equals(id)) {
                 return service;
             }

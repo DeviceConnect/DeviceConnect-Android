@@ -84,7 +84,7 @@ public class ConfirmActivity extends Activity {
             finishConfirmActivity();
             return;
         }
-        if (mCurrentRequestType == 2) {
+        if (mCurrentRequestType >= 2) {
             finishConfirmActivity();
             return;
         }

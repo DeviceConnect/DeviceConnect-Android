@@ -42,6 +42,7 @@ public final class LinkingUtil {
     public static final String EXTRA_X_THRESHOLD = "com.nttdocomo.android.smartdeviceagent.extra.X_THRESHOLD";
     public static final String EXTRA_Y_THRESHOLD = "com.nttdocomo.android.smartdeviceagent.extra.Y_THRESHOLD";
     public static final String EXTRA_Z_THRESHOLD = "com.nttdocomo.android.smartdeviceagent.extra.Z_THRESHOLD";
+    public static final String EXTRA_CONTENT_SENSOR_DATA = "com.nttdocomo.android.smartdeviceagent.extra.CONTENT_SENSOR_DATA";
 
     public static final String DEVICE_ID = "DEVICE_ID";
     public static final String DEVICE_UID = "DEVICE_UID";

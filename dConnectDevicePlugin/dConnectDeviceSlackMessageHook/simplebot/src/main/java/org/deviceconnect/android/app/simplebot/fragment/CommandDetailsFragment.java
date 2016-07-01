@@ -343,50 +343,33 @@ public class CommandDetailsFragment extends Fragment implements View.OnClickList
             return;
         }
         // scopeチェック
-        final SettingData settings = SettingData.getInstance(context);
-        if (selectedService == null || selectedService.scopes == null ||
-                settings.scopes.containsAll(selectedService.scopes)) {
-            // データ保存
-            final DataManager dm = new DataManager(context);
-            if (dm.upsert(commandData)) {
-                // 画面を戻す
-                getFragmentManager().popBackStack();
-            } else {
-                Utils.showAlertDialog(context, getString(R.string.err_add_data));
-            }
-        } else {
-            // 認証されていないscopeがあった
-            final Set<String> currentScopes = new HashSet<>(settings.scopes);
-            settings.scopes.addAll(selectedService.scopes);
-            // scopeを追加して再認証
-            settings.accessToken = null;
-            Utils.connect(context, new DConnectHelper.FinishCallback<DConnectHelper.AuthInfo>() {
-                @Override
-                public void onFinish(DConnectHelper.AuthInfo authInfo, Exception error) {
-                    if (error == null) {
-                        // データ保存
-                        final DataManager dm = new DataManager(context);
-                        if (dm.upsert(commandData)) {
-                            // 画面を戻す
-                            if (isResumed()) {
-                                getFragmentManager().popBackStack();
-                            } else {
-                                // 画面が表示されていないのでonResumeで戻す。
-                                popBackFlg = true;
-                            }
+        List<String> scopes = null;
+        if (selectedService != null) {
+            scopes = selectedService.scopes;
+        }
+        Utils.checkScopes(context, scopes, new DConnectHelper.FinishCallback<Boolean>() {
+            @Override
+            public void onFinish(Boolean aBoolean, Exception error) {
+                if (error == null) {
+                    // データ保存
+                    final DataManager dm = new DataManager(context);
+                    if (dm.upsert(commandData)) {
+                        // 画面を戻す
+                        if (isResumed()) {
+                            getFragmentManager().popBackStack();
                         } else {
-                            Utils.showAlertDialog(context, getString(R.string.err_add_data));
+                            // 画面が表示されていないのでonResumeで戻す。
+                            popBackFlg = true;
                         }
                     } else {
-                        // scopeを戻す
-                        settings.scopes = currentScopes;
-                        settings.save();
-                        // 認証に失敗したらエラー
                         Utils.showAlertDialog(context, getString(R.string.err_add_data));
                     }
+                } else {
+                    // 認証に失敗したらエラー
+                    Utils.showAlertDialog(context, getString(R.string.err_add_data));
                 }
-            });
-        }
+            }
+        });
     }
 
     /**

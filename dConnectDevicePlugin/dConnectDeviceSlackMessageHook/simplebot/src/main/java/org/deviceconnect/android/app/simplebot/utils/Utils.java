@@ -13,7 +13,6 @@ import android.app.FragmentTransaction;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.util.Log;
 import android.view.WindowManager;
 import android.widget.EditText;
 
@@ -31,6 +30,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * ユーティリティクラス
@@ -92,7 +92,45 @@ public class Utils {
         }
     }
 
+    /**
+     * Scopeのチェック
+     * @param context Context
+     * @param scopes Scope
+     * @param callback コールバック
+     */
+    public static void checkScopes(Context context, List<String> scopes, final DConnectHelper.FinishCallback<Boolean> callback) {
+        // scopeチェック
+        final SettingData settings = SettingData.getInstance(context);
+        if (scopes == null || settings.scopes.containsAll(scopes)) {
+            if (callback != null) {
+                callback.onFinish(true, null);
+            }
+        } else {
+            // 認証されていないscopeがあった
+            final Set<String> currentScopes = new HashSet<>(settings.scopes);
+            settings.scopes.addAll(scopes);
+            // scopeを追加して再認証
+            settings.accessToken = null;
+            Utils.connect(context, new DConnectHelper.FinishCallback<DConnectHelper.AuthInfo>() {
+                @Override
+                public void onFinish(DConnectHelper.AuthInfo authInfo, Exception error) {
+                    if (error == null) {
+                        if (callback != null) {
+                            callback.onFinish(false, null);
+                        }
+                    } else {
+                        // scopeを戻す
+                        settings.scopes = currentScopes;
+                        settings.save();
+                        if (callback != null) {
+                            callback.onFinish(false, error);
+                        }
+                    }
+                }
+            });
+        }
 
+    }
 
     //endregion
     //---------------------------------------------------------------------------------------
@@ -236,6 +274,11 @@ public class Utils {
             setting.scopes.add(ServiceDiscoveryProfileConstants.PROFILE_NAME);
             setting.scopes.add(ServiceInformationProfileConstants.PROFILE_NAME);
             setting.scopes.add("messageHook");
+            // TODO: debug用
+            setting.scopes.add("battery");
+            setting.scopes.add("media_player");
+            setting.scopes.add("mediastream_recording");
+
             setting.save();
         }
         String scopes[] = setting.scopes.toArray(new String[setting.scopes.size()]);

@@ -266,12 +266,14 @@ public class DataManager {
     private void addSampleData(SQLiteDatabase db) {
         // 音楽リスト
         Data data = new Data();
-        data.keyword = "音楽[リスト|一覧]";
+        data.keyword = "音楽(リスト|一覧)";
         data.path = "/gotapi/media_player/media_list";
         data.method = "GET";
         data.body = "{}";
         data.success = "{%loop in $media as $m}[{$m.mediaId}:{$m.title}]{% endloop %}";
         data.error = "エラーです。 {$errorMessage}";
+        data.serviceId = "Host.e87e3213b730843a437ff6c676899df0.localhost.deviceconnect.org";
+        data.serviceName = "Host";
         upsert(db, data);
         // 音楽設定
         data.keyword = "(\\d+)を設定";
@@ -295,7 +297,7 @@ public class DataManager {
         data.success = "停止しました。";
         upsert(db, data);
         // バッテリー残量
-        data.keyword = "[バッテリー|電池]";
+        data.keyword = "バッテリー|電池";
         data.path = "/gotapi/battery/level";
         data.method = "GET";
         data.body = "{}";

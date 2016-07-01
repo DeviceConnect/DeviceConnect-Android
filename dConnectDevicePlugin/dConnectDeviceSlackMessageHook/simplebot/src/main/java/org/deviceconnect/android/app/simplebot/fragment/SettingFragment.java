@@ -9,9 +9,11 @@ package org.deviceconnect.android.app.simplebot.fragment;
 import android.app.AlertDialog;
 import android.app.Fragment;
 import android.app.ProgressDialog;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -44,6 +46,8 @@ public class SettingFragment extends Fragment {
     private CheckBox checkBoxSSL;
     private Button buttonService;
 
+    BroadcastReceiver receiver;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -64,6 +68,26 @@ public class SettingFragment extends Fragment {
         editTextPort = (EditText)view.findViewById(R.id.editTextPort);
         checkBoxSSL = (CheckBox)view.findViewById(R.id.checkBoxSSL);
         buttonService = (Button)view.findViewById(R.id.buttonService);
+
+        // サービス停止のレシーバー登録
+        receiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                // チェックを入れていたのにサービスが止まった時はエラーメッセージ表示
+                if (switchStatus.isChecked()) {
+                    // エラーメッセージ
+                    Utils.showAlertDialog(context, getString(R.string.err_occurred));
+                    // チェックを外す
+                    switchStatus.setChecked(false);
+                    // UI更新
+                    SettingData setting = SettingData.getInstance(getActivity());
+                    changeEnabled(setting);
+                }
+            }
+        };
+        final IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(SimpleBotService.SERVICE_STOP_ACTION);
+        getActivity().registerReceiver(receiver, intentFilter);
 
         // サービス選択ボタンイベント
         buttonService.setOnClickListener(new View.OnClickListener() {
@@ -106,6 +130,13 @@ public class SettingFragment extends Fragment {
         loadSettings();
 
         return view;
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        // レシーバー解除
+        getActivity().unregisterReceiver(receiver);
     }
 
     @Override

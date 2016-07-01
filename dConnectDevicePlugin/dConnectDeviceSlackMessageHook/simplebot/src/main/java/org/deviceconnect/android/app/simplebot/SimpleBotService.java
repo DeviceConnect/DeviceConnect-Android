@@ -34,6 +34,9 @@ import java.util.regex.Pattern;
  */
 public class SimpleBotService extends Service {
 
+    /** サービス停止アクション */
+    public static final String SERVICE_STOP_ACTION = "org.deviceconnect.android.app.simplebot.service_stop";
+
     /** デバッグタグ */
     private static final String TAG = "SimpleBotService";
     /** デバッグフラグ */
@@ -65,7 +68,11 @@ public class SimpleBotService extends Service {
     public void onDestroy() {
         super.onDestroy();
         disconnect();
-        Log.d(TAG, "service destroyed...");
+        if (DEBUG) Log.d(TAG, "service destroyed...");
+        // サービス停止を通知
+        Intent broadcastIntent = new Intent();
+        broadcastIntent.setAction(SERVICE_STOP_ACTION);
+        getBaseContext().sendBroadcast(broadcastIntent);
     }
 
     /**

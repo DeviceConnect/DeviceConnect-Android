@@ -11,4 +11,11 @@
     <string name="token_get">アクセストークンを取得</string>
     <string name="menu_change_token">Bot切り替え</string>
     <string name="menu_open_slack">Slackを開く</string>
+    <string name="help_title">アクセストークンの取得方法</string>
+    <string name="help01">「アクセストークンを取得」をタップしてブラウザでSlackのページを開きます。</string>
+    <string name="help02">Botの管理ページが開きますので「Configure」をタップして新しくBotを作成します。この時Slackにログインしていない場合はログインしてください。</string>
+    <string name="help03">Botの名前を入力して「Add integration」をタップします。</string>
+    <string name="help04">Botが作成され、API Tokenが表示されていますのでコピーしておきます。</string>
+    <string name="help05">プラグインの設定画面に戻り、先ほどコピーしたAPITokenを入力し「次へ」をタップします。</string>
+    <string name="help06">接続に成功するとステータス設定画面に遷移します。</string>
 </resources>

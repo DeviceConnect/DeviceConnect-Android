@@ -9,6 +9,7 @@ package org.deviceconnect.android.deviceplugin.slackmessagehook.setting.fragment
 import android.app.AlertDialog;
 import android.app.Fragment;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -19,6 +20,7 @@ import android.widget.Button;
 import android.widget.EditText;
 
 import org.deviceconnect.android.deviceplugin.slackmessagehook.R;
+import org.deviceconnect.android.deviceplugin.slackmessagehook.setting.HelpActivity;
 import org.deviceconnect.android.deviceplugin.slackmessagehook.slack.SlackManager;
 
 /**
@@ -33,16 +35,20 @@ public class SettingTokenFragment extends Fragment {
 
         // Root view.
         final View root = inflater.inflate(R.layout.token, container, false);
+        final Context context = root.getContext();
+
+        // アクセストークン
+        final EditText text = (EditText)root.findViewById(R.id.textToken);
+        text.setText(Utils.getAccessToken(context));
 
         // 次へボタン
         Button nextButton = (Button)root.findViewById(R.id.buttonNext);
         nextButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                final EditText text = (EditText)root.findViewById(R.id.textToken);
                 final String token = text.getText().toString();
                 // プログレスダイアログを表示
-                final ProgressDialog dialog = Utils.showProgressDialog(getActivity());
+                final ProgressDialog dialog = Utils.showProgressDialog(context);
 
                 // Token設定
                 SlackManager.INSTANCE.setApiToken(token, true, new SlackManager.FinishCallback<Void>() {
@@ -52,13 +58,13 @@ public class SettingTokenFragment extends Fragment {
                         dialog.dismiss();
                         if (error == null) {
                             // Tokenを保存
-                            Utils.saveAccessToken(getActivity(), token);
+                            Utils.saveAccessToken(context, token);
                             // 画面遷移
                             Utils.transition(new SettingFragment(), getFragmentManager(), true);
                         } else {
                             // エラーダイアログ表示
                             // TODO: 詳細なエラー表示
-                            new AlertDialog.Builder(getActivity())
+                            new AlertDialog.Builder(context)
                                     .setTitle("エラー")
                                     .setMessage("エラーです")
                                     .setPositiveButton("OK", null)
@@ -80,6 +86,15 @@ public class SettingTokenFragment extends Fragment {
             }
         });
 
+        // ヘルプボタン
+        Button helpButton = (Button)root.findViewById(R.id.buttonHelp);
+        helpButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(context, HelpActivity.class);
+                startActivity(intent);
+            }
+        });
 
         return root;
     }

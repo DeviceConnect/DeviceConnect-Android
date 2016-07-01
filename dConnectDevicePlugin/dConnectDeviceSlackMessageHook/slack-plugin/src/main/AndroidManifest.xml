@@ -51,6 +51,10 @@
             </intent-filter>
 
         </activity>
+
+        <activity android:name=".setting.HelpActivity"
+            android:label="@string/app_name"
+            android:launchMode="singleInstance" />
     </application>
 
 </manifest>

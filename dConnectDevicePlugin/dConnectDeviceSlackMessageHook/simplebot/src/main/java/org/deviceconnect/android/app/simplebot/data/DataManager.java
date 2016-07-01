@@ -24,7 +24,7 @@ public class DataManager {
     private static final boolean DEBUG = true;
 
     /** DBのバージョン */
-    private static final int DB_VERSION = 1;
+    private static final int DB_VERSION = 2;
     /** DBファイル名 */
     public static final String DB_NAME = "simplebot.db";
     /** テーブル名 */
@@ -46,8 +46,12 @@ public class DataManager {
     public static final String COLUMN_BODY = "body";
     /** successのカラム名 */
     public static final String COLUMN_SUCCESS = "success";
+    /** successのカラム名 */
+    public static final String COLUMN_SUCCESS_URI = "success_uri";
     /** errorのカラム名 */
     public static final String COLUMN_ERROR = "error";
+    /** errorのカラム名 */
+    public static final String COLUMN_ERROR_URI = "error_uri";
 
     /** 全カラム */
     public static final String[] COLUMNS = {
@@ -59,7 +63,9 @@ public class DataManager {
             COLUMN_PATH, // パス
             COLUMN_BODY, // ボディ
             COLUMN_SUCCESS, // 成功レスポンス
-            COLUMN_ERROR // 失敗レスポンス
+            COLUMN_SUCCESS_URI, // 成功レスポンスリソースURI
+            COLUMN_ERROR, // 失敗レスポンス
+            COLUMN_ERROR_URI // 失敗レスポンスリソースURI
     };
 
     /** SQLiteHelper */
@@ -77,7 +83,9 @@ public class DataManager {
         public String path;
         public String body;
         public String success;
+        public String successUri;
         public String error;
+        public String errorUri;
 
         @Override
         public String toString() {
@@ -90,7 +98,9 @@ public class DataManager {
                     ", path='" + path + '\'' +
                     ", body='" + body + '\'' +
                     ", success='" + success + '\'' +
+                    ", successUri='" + successUri + '\'' +
                     ", error='" + error + '\'' +
+                    ", errorUri='" + errorUri + '\'' +
                     '}';
         }
     }
@@ -135,8 +145,8 @@ public class DataManager {
 
         @Override
         public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-            if (DEBUG) Log.d(TAG,"onUpgrade");
-            throw new RuntimeException("Database Version is Invalid");
+            db.execSQL("DROP TABLE IF EXISTS " + TABLE_NAME);
+            onCreate(db);
         }
     }
 
@@ -164,7 +174,9 @@ public class DataManager {
         values.put(COLUMN_PATH, data.path);
         values.put(COLUMN_BODY, data.body);
         values.put(COLUMN_SUCCESS, data.success);
+        values.put(COLUMN_SUCCESS_URI, data.successUri);
         values.put(COLUMN_ERROR, data.error);
+        values.put(COLUMN_ERROR_URI, data.errorUri);
 
         long ret;
         if (data.id < 0) {
@@ -241,7 +253,9 @@ public class DataManager {
         data.path = cursor.getString(cursor.getColumnIndex(COLUMN_PATH));
         data.body = cursor.getString(cursor.getColumnIndex(COLUMN_BODY));
         data.success = cursor.getString(cursor.getColumnIndex(COLUMN_SUCCESS));
+        data.successUri = cursor.getString(cursor.getColumnIndex(COLUMN_SUCCESS_URI));
         data.error = cursor.getString(cursor.getColumnIndex(COLUMN_ERROR));
+        data.errorUri = cursor.getString(cursor.getColumnIndex(COLUMN_ERROR_URI));
         return data;
     }
 
@@ -285,7 +299,15 @@ public class DataManager {
         data.path = "/gotapi/battery/level";
         data.method = "GET";
         data.body = "{}";
-        data.success = "残り{% $level|calc(*100) %}%です。";
+        data.success = "残り{$level|calc(*100)}%です。";
+        upsert(db, data);
+        // 写真
+        data.keyword = "写真";
+        data.path = "/gotapi/mediastream_recording/takephoto";
+        data.method = "POST";
+        data.body = "{}";
+        data.success = "撮影しました。";
+        data.successUri = "{$uri}";
         upsert(db, data);
     }
 }

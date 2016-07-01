@@ -45,8 +45,12 @@ public class CommandDetailsFragment extends Fragment implements View.OnClickList
     private Button buttonBody;
     /** 成功レスポンスボタン */
     private Button buttonSuccess;
+    /** 成功レスポンスURIボタン */
+    private Button buttonSuccessUri;
     /** 失敗レスポンスボタン */
     private Button buttonError;
+    /** 失敗レスポンスURIボタン */
+    private Button buttonErrorUri;
 
     // TODO: 仮実装
     private Button buttonMethod;
@@ -79,7 +83,9 @@ public class CommandDetailsFragment extends Fragment implements View.OnClickList
         buttonPath = (Button)view.findViewById(R.id.buttonPath);
         buttonBody = (Button)view.findViewById(R.id.buttonBody);
         buttonSuccess = (Button)view.findViewById(R.id.buttonSuccess);
+        buttonSuccessUri = (Button)view.findViewById(R.id.buttonSuccessUri);
         buttonError = (Button)view.findViewById(R.id.buttonError);
+        buttonErrorUri = (Button)view.findViewById(R.id.buttonErrorUri);
         // TODO: 仮実装
         buttonMethod = (Button)view.findViewById(R.id.buttonMethod);
         // ボタン表示切り替え
@@ -112,7 +118,9 @@ public class CommandDetailsFragment extends Fragment implements View.OnClickList
         buttonPath.setOnClickListener(this);
         buttonBody.setOnClickListener(this);
         buttonSuccess.setOnClickListener(this);
+        buttonSuccessUri.setOnClickListener(this);
         buttonError.setOnClickListener(this);
+        buttonErrorUri.setOnClickListener(this);
         // TODO: 仮実装
         buttonMethod.setOnClickListener(this);
 
@@ -154,7 +162,9 @@ public class CommandDetailsFragment extends Fragment implements View.OnClickList
         buttonPath.setText(checkUnset(commandData.path));
         buttonBody.setText(checkUnset(commandData.body));
         buttonSuccess.setText(checkUnset(commandData.success));
+        buttonSuccessUri.setText(checkUnset(commandData.successUri));
         buttonError.setText(checkUnset(commandData.error));
+        buttonErrorUri.setText(checkUnset(commandData.errorUri));
         // TODO: 仮実装
         buttonMethod.setText(checkUnset(commandData.method));
     }
@@ -200,8 +210,14 @@ public class CommandDetailsFragment extends Fragment implements View.OnClickList
             case R.id.buttonSuccess:
                 onClickTextButton("成功レスポンス入力", id);
                 break;
+            case R.id.buttonSuccessUri:
+                onClickTextButton("成功レスポンスリソースURI入力", id);
+                break;
             case R.id.buttonError:
                 onClickTextButton("失敗レスポンス入力", id);
+                break;
+            case R.id.buttonErrorUri:
+                onClickTextButton("失敗レスポンスリソースURI入力", id);
                 break;
             // TODO: 仮実装
             case R.id.buttonMethod:
@@ -270,8 +286,14 @@ public class CommandDetailsFragment extends Fragment implements View.OnClickList
             case R.id.buttonSuccess:
                 text = commandData.success;
                 break;
+            case R.id.buttonSuccessUri:
+                text = commandData.successUri;
+                break;
             case R.id.buttonError:
                 text = commandData.error;
+                break;
+            case R.id.buttonErrorUri:
+                text = commandData.errorUri;
                 break;
         }
         Utils.showInputDialog(getActivity(), title, text, inputType, new DConnectHelper.FinishCallback<String>() {
@@ -288,8 +310,14 @@ public class CommandDetailsFragment extends Fragment implements View.OnClickList
                     case R.id.buttonSuccess:
                         commandData.success = s;
                         break;
+                    case R.id.buttonSuccessUri:
+                        commandData.successUri = s;
+                        break;
                     case R.id.buttonError:
                         commandData.error = s;
+                        break;
+                    case R.id.buttonErrorUri:
+                        commandData.errorUri = s;
                         break;
                 }
                 // View更新

@@ -234,10 +234,10 @@ public class SimpleBotService extends Service {
                     public void onFinish(Map<String, Object> stringObjectMap, Exception error) {
                         if (error == null) {
                             if (DEBUG) Log.d(TAG, stringObjectMap.toString());
-                            sendResponse(result, result.data.success, stringObjectMap);
+                            sendResponse(result, result.data.success, result.data.successUri, stringObjectMap);
                         } else {
                             if (DEBUG) Log.e(TAG, "Error on sendRequest", error);
-                            sendResponse(result, result.data.error, stringObjectMap);
+                            sendResponse(result, result.data.error, result.data.errorUri, stringObjectMap);
                         }
                     }
                 });
@@ -251,27 +251,33 @@ public class SimpleBotService extends Service {
      * 処理結果を送信
      * @param result 結果
      * @param text Text
+     * @param uri リソースURI
      * @param response Response
      */
-    private void sendResponse(ResultData.Result result, String text, Map<String, Object> response) {
+    private void sendResponse(ResultData.Result result, String text, String uri, Map<String, Object> response) {
         // ChunkでTemplate処理
         try {
             Chunk chunk = new Chunk();
             chunk.append(text);
             chunk.putAll(response);
             result.response = chunk.toString();
+            chunk = new Chunk();
+            chunk.append(uri);
+            chunk.putAll(response);
+            result.responseUri = chunk.toString();
         } catch (Exception e) {
             Log.e(TAG, "Error on Chunk command", e);
             return;
         }
 
         if (DEBUG) Log.d(TAG, result.response);
+        if (DEBUG) Log.d(TAG, result.responseUri);
 
         // 履歴に保存
         ResultData.INSTANCE.add(result);
 
         // メッセージ送信
-        Utils.sendMessage(this, result.channel, result.response, new DConnectHelper.FinishCallback<Void>() {
+        Utils.sendMessage(this, result.channel, result.response, result.responseUri, new DConnectHelper.FinishCallback<Void>() {
             @Override
             public void onFinish(Void aVoid, Exception error) {
                 if (error != null) {

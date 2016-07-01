@@ -12,25 +12,26 @@ import android.util.Log;
 
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpDelete;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpPut;
-import org.apache.http.client.methods.HttpUriRequest;
 import org.deviceconnect.message.DConnectMessage;
+import org.deviceconnect.message.basic.message.BasicDConnectMessage;
 import org.deviceconnect.message.basic.message.DConnectResponseMessage;
 import org.deviceconnect.message.http.event.CloseHandler;
 import org.deviceconnect.message.http.event.HttpEventManager;
-import org.deviceconnect.message.http.impl.client.HttpDConnectClient;
 import org.deviceconnect.message.http.impl.factory.HttpMessageFactory;
 import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 import org.deviceconnect.utils.AuthProcesser;
 import org.deviceconnect.utils.URIBuilder;
 import org.json.JSONObject;
 
+import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
+import java.io.DataOutputStream;
 import java.io.IOException;
-import java.net.URISyntaxException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -173,7 +174,7 @@ public class DConnectHelper {
             params.put(DConnectMessage.EXTRA_ACCESS_TOKEN, accessToken);
         }
         // 接続
-        new HttpTask().execute(new TaskParam(connectionParam, params) {
+        new HttpTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, new TaskParam(connectionParam, params) {
             @Override
             public void callBack(DConnectMessage message) {
                 // コールバックがないので処理する意味がない
@@ -290,7 +291,7 @@ public class DConnectHelper {
         params.put(DConnectMessage.EXTRA_SERVICE_ID, serviceId);
         params.put(DConnectMessage.EXTRA_SESSION_KEY, clientId);
         // 接続
-        new EventTask().execute(new TaskParam(connectionParam, params) {
+        new EventTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, new TaskParam(connectionParam, params) {
             @Override
             public void callBack(DConnectMessage message) {
                 // コールバックがないので処理する意味がない
@@ -315,7 +316,7 @@ public class DConnectHelper {
      * @param channelId ChannelID
      * @param text Text
      */
-    public void sendMessage(String serviceId, String accessToken, String channelId, String text, final FinishCallback<Void> callback) {
+    public void sendMessage(String serviceId, String accessToken, String channelId, String text, String resource, final FinishCallback<Void> callback) {
         if (DEBUG) Log.d(TAG, "sendMessage:" + channelId + ":" + text);
         // 接続情報
         ConnectionParam connectionParam = new ConnectionParam(
@@ -333,8 +334,12 @@ public class DConnectHelper {
         params.put(DConnectMessage.EXTRA_SERVICE_ID, serviceId);
         params.put("text", text);
         params.put("channelId", channelId);
+        if (resource != null && resource.length() > 0) {
+            params.put("resource", resource);
+            params.put("mimeType", "image");
+        }
         // 接続
-        new HttpTask().execute(new TaskParam(connectionParam, params) {
+        new HttpTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, new TaskParam(connectionParam, params) {
             @Override
             public void callBack(DConnectMessage message) {
                 // コールバックがないので処理する意味がない
@@ -379,7 +384,7 @@ public class DConnectHelper {
         }
         params.put(DConnectMessage.EXTRA_SERVICE_ID, serviceId);
         // 接続
-        new HttpTask().execute(new TaskParam(connectionParam, params) {
+        new HttpTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, new TaskParam(connectionParam, params) {
             @Override
             public void callBack(DConnectMessage message) {
                 // コールバックがないので処理する意味がない
@@ -488,47 +493,97 @@ public class DConnectHelper {
 
             param = params[0];
             DConnectMessage message = new DConnectResponseMessage(DConnectMessage.RESULT_ERROR);
+
+            HttpURLConnection con = null;
+            InputStream stream = null;
+
             try {
-                // パラメータ
+                // URI作成
                 URIBuilder builder = new URIBuilder();
                 ConnectionParam connectionParam = param.connection;
+                builder.setScheme(connectionParam.host.getSchemeName());
+                builder.setHost(connectionParam.host.getHostName());
+                builder.setPort(connectionParam.host.getPort());
                 if (connectionParam.path == null) {
                     builder.setProfile(connectionParam.profileName);
                     builder.setAttribute(connectionParam.attributeName);
                 } else {
                     builder.setPath(connectionParam.path);
                 }
-                for (String key: param.params.keySet()) {
-                    builder.addParameter(key, param.params.get(key));
-                }
-                // 接続
-                HttpUriRequest request;
-                switch (connectionParam.method) {
-                    case "POST":
-                        request = new HttpPost(builder.build());
-                        break;
-                    case "PUT":
-                        request = new HttpPut(builder.build());
-                        break;
-                    case "DELETE":
-                        request = new HttpDelete(builder.build());
-                        break;
-                    default:
-                        request = new HttpGet(builder.build());
-                }
-                if (DEBUG) Log.d(TAG, request.getURI().toString());
-                if (connectionParam.origin != null) {
-                    request.addHeader(DConnectMessage.HEADER_GOTAPI_ORIGIN, connectionParam.origin);
-                }
-                HttpClient client = new HttpDConnectClient();
-                HttpResponse response = client.execute(connectionParam.host, request);
-                if (response.getStatusLine().getStatusCode() == 200) {
-                    message = (new HttpMessageFactory()).newDConnectMessage(response);
+                // Query作成
+                StringBuilder query = new StringBuilder();
+                boolean isQuery = connectionParam.method.equals("GET") ||
+                        connectionParam.method.equals("DELETE");
+                if (isQuery) {
+                    // GET/DELETEはQueryをURIに付加
+                    for (String key: param.params.keySet()) {
+                        builder.addParameter(key, param.params.get(key));
+                    }
                 } else {
-                    Log.e(TAG, response.getStatusLine().toString());
+                    // 他はQueryをBodyに
+                    for (String key: param.params.keySet()) {
+                        if (query.length() > 0) {
+                            query.append("&");
+                        }
+                        query.append(key);
+                        query.append("=");
+                        query.append(URLEncoder.encode(param.params.get(key), "UTF-8"));
+                    }
                 }
-            } catch (URISyntaxException | IOException e) {
-                Log.e(TAG, "error", e);
+                URL url = builder.build().toURL();
+                if (DEBUG) Log.d(TAG, url.toString());
+
+                // 接続
+                con = (HttpURLConnection)url.openConnection();
+                con.setRequestMethod(connectionParam.method);
+                con.setInstanceFollowRedirects(false);
+
+                // Origin
+                if (connectionParam.origin != null) {
+                    con.setRequestProperty(DConnectMessage.HEADER_GOTAPI_ORIGIN, connectionParam.origin);
+                }
+
+                if (!isQuery) {
+                    // POSTなどはQueryをBodyに
+                    con.setRequestProperty("Content-Type",
+                            "application/x-www-form-urlencoded");
+                    con.setDoOutput(true);
+                    BufferedOutputStream bo = new BufferedOutputStream(con.getOutputStream());
+                    DataOutputStream wr = new DataOutputStream(bo);
+                    wr.writeBytes (query.toString());
+                    wr.flush ();
+                    wr.close ();
+                    if (DEBUG) Log.d(TAG, query.toString());
+                }
+
+                // 接続
+                con.connect();
+
+                // レスポンス取得
+                stream = con.getInputStream();
+                BufferedReader streamReader = new BufferedReader(new InputStreamReader(stream, "UTF-8"));
+                StringBuilder responseStrBuilder = new StringBuilder();
+                String inputStr;
+                while ((inputStr = streamReader.readLine()) != null)
+                    responseStrBuilder.append(inputStr);
+                if (con.getResponseCode() == 200) {
+                    message = new BasicDConnectMessage(responseStrBuilder.toString());
+                } else {
+                    Log.e(TAG, "Invalid response code:" + con.getResponseCode());
+                }
+            } catch (Exception e) {
+                Log.e(TAG, "Error on HttpConnection", e);
+            } finally {
+                if (stream != null) {
+                    try {
+                        stream.close();
+                    } catch (IOException e) {
+                        Log.e(TAG, "stream close error", e);
+                    }
+                }
+                if (con != null) {
+                    con.disconnect();
+                }
             }
             if (DEBUG) Log.d(TAG, message.toString());
             return message;
@@ -539,6 +594,7 @@ public class DConnectHelper {
             param.callBack(message);
         }
     }
+
 
     /**
      * EventTask

@@ -23,7 +23,9 @@
     <string name="text">Text</string>
     <string name="date">Date</string>
     <string name="res_success">成功レスポンス</string>
+    <string name="res_success_uri">成功レスポンスリソースURI</string>
     <string name="res_error">失敗レスポンス</string>
+    <string name="res_error_uri">失敗レスポンスリソースURI</string>
     <string name="unset">未設定</string>
     <string name="err">エラー</string>
     <string name="err_occurred">エラーが発生しました</string>

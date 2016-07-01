@@ -346,14 +346,14 @@ public class Utils {
      * @param context context
      * @param callback 終了コールバック
      */
-    public static void sendMessage(final Context context, final String channel, final String text, final DConnectHelper.FinishCallback<Void> callback) {
+    public static void sendMessage(final Context context, final String channel, final String text, final String resource, final DConnectHelper.FinishCallback<Void> callback) {
         DConnectHelper.FinishCallback<DConnectHelper.AuthInfo> finishCallback = new DConnectHelper.FinishCallback<DConnectHelper.AuthInfo>() {
             @Override
             public void onFinish(DConnectHelper.AuthInfo authInfo, Exception error) {
                 if (error == null) {
                     // メッセージ送信
                     SettingData setting = SettingData.getInstance(context);
-                    DConnectHelper.INSTANCE.sendMessage(setting.serviceId, setting.accessToken, channel, text, new DConnectHelper.FinishCallback<Void>() {
+                    DConnectHelper.INSTANCE.sendMessage(setting.serviceId, setting.accessToken, channel, text, resource, new DConnectHelper.FinishCallback<Void>() {
                         @Override
                         public void onFinish(Void aVoid, Exception error) {
                             callback.onFinish(null, error);

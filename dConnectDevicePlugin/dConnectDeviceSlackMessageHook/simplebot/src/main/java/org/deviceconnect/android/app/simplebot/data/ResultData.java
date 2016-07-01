@@ -46,6 +46,7 @@ public class ResultData {
         public String channel;
         public String from;
         public String response;
+        public String responseUri;
         public Date date = new Date();
     }
 

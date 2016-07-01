@@ -65,10 +65,12 @@
     <string name="dialog_message_lunch_hitoe">デバイスの電源は入っていますか？\nHitoeの電源を２秒押して電源を入れてください。</string>
 
     <string name="dialog_title_pin_input">PINコードの入力</string>
-    <string name="dialog_message_pin_input">赤枠の数字を入力してください。</string>
+    <string name="dialog_message_pin_input">枠の中の数字を入力してください。</string>
 
     <string name="dialog_title_equip_hitoe">Hitoeの装着</string>
     <string name="dialog_message_equip_hitoe">Hitoeをシャツに装着してください。</string>
 
     <string name="title_control">操作画面</string>
+    <string name="button_register">登録</string>
+    <string name="button_unregister">解除</string>
 </resources>

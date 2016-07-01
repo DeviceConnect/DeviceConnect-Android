@@ -1,5 +1,5 @@
 /*
- HitoeDeviceSettingsFragment
+ HitoeProfileListFragment
  Copyright (c) 2016 NTT DOCOMO,INC.
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
@@ -26,7 +26,7 @@ import org.deviceconnect.android.deviceplugin.hitoe.data.HitoeManager;
 
 
 /**
- * This fragment do setting of the connection to the ble device.
+ * This fragment do setting of the control hitoe device.
  *
  * @author NTT DOCOMO, INC.
  */
@@ -54,6 +54,7 @@ public class HitoeProfileListFragment extends Fragment implements AdapterView.On
         String[] profiles = getResources().getStringArray(R.array.support_profiles);
         ArrayAdapter<String> mAdapter = new ArrayAdapter<String>(getActivity(), android.R.layout.simple_list_item_1, profiles);
         mProfileListView.setAdapter(mAdapter);
+        mProfileListView.setOnItemClickListener(this);
 
         Bundle args = getArguments();
         if (args != null) {
@@ -81,6 +82,7 @@ public class HitoeProfileListFragment extends Fragment implements AdapterView.On
 
     @Override
     public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-
+        HitoeDeviceControlActivity control = (HitoeDeviceControlActivity) getActivity();
+        control.movePage(i + 1);
     }
 }

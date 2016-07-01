@@ -23,49 +23,25 @@ import android.widget.TextView;
 import org.deviceconnect.android.deviceplugin.hitoe.R;
 import org.deviceconnect.android.deviceplugin.hitoe.data.HitoeDevice;
 import org.deviceconnect.android.deviceplugin.hitoe.data.HitoeManager;
+import org.deviceconnect.android.deviceplugin.hitoe.fragment.dialog.DefaultDialogFragment;
 import org.deviceconnect.android.deviceplugin.hitoe.fragment.dialog.PinCodeDialogFragment;
 import org.deviceconnect.android.deviceplugin.hitoe.util.BleUtils;
+import org.deviceconnect.android.deviceplugin.hitoe.util.HitoeScheduler;
 
 import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
 
 /**
  * This activity is Add Device screen.
  * @author NTT DOCOMO, INC.
  */
 public class HitoeAddDeviceActivity extends HitoeListActivity  implements HitoeManager.OnHitoeConnectionListener,
-                                                                            AdapterView.OnItemClickListener {
+                                                                            AdapterView.OnItemClickListener,
+                                                                            HitoeScheduler.OnRegularNotify {
 
     /**
-     * Instance of ScheduledExecutorService.
+     * Periodic processing object.
      */
-    private ScheduledExecutorService mExecutor = Executors.newSingleThreadScheduledExecutor();
-
-    /**
-     * ScheduledFuture of scan timer.
-     */
-    private ScheduledFuture<?> mScanTimerFuture;
-
-    /**
-     * Defines a delay 1 second at first execution.
-     */
-    private static final long SCAN_FIRST_WAIT_PERIOD = 1000;
-
-    /**
-     * Defines a period 10 seconds between successive executions.
-     */
-    private static final long SCAN_WAIT_PERIOD = 10 * 1000;
-
-    /**
-     * Stops scanning after 1 second.
-     */
-    private static final long SCAN_PERIOD = 2000;
-    private boolean mScanning;
-
-
+    private HitoeScheduler mScheduler;
     /**
      * Received a event that Bluetooth has been changed.
      */
@@ -78,11 +54,11 @@ public class HitoeAddDeviceActivity extends HitoeListActivity  implements HitoeM
                 if (state == BluetoothAdapter.STATE_ON ){
                     addFooterView();
                     getManager().addHitoeConnectionListener(HitoeAddDeviceActivity.this);
-                    scanHitoeDevice(true);
+                    mScheduler.scanHitoeDevice(true);
                 } else if (state == BluetoothAdapter.STATE_OFF) {
                     addFooterView();
                     getManager().addHitoeConnectionListener(null);
-                    scanHitoeDevice(false);
+                    mScheduler.scanHitoeDevice(false);
                 }
             }
         }
@@ -96,21 +72,22 @@ public class HitoeAddDeviceActivity extends HitoeListActivity  implements HitoeM
         mDeviceAdapter.notifyDataSetChanged();
         mListView.setOnItemClickListener(this);
         mEnableConnectedBtn = false;
+        mScheduler = new HitoeScheduler(this, this, -1);
     }
 
 
     @Override
     public void onResume() {
         super.onResume();
+        DefaultDialogFragment.showHitoeONStateDialog(this);
         registerBluetoothFilter();
-
         getManager().addHitoeConnectionListener(this);
 
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-            scanHitoeDevice(true);
+            mScheduler.scanHitoeDevice(true);
         } else {
             if (BleUtils.isBLEPermission(this)) {
-                scanHitoeDevice(true);
+                mScheduler.scanHitoeDevice(true);
             }
         }
     }
@@ -119,7 +96,7 @@ public class HitoeAddDeviceActivity extends HitoeListActivity  implements HitoeM
     public void onPause() {
         super.onPause();
         getManager().addHitoeConnectionListener(null);
-        scanHitoeDevice(false);
+        mScheduler.scanHitoeDevice(false);
         dismissProgressDialog();
         dismissErrorDialog();
         unregisterBluetoothFilter();
@@ -141,46 +118,6 @@ public class HitoeAddDeviceActivity extends HitoeListActivity  implements HitoeM
         });
     }
 
-    /**
-     * Scan Hitoe device.
-     * @param enable scan flag
-     */
-    private synchronized void scanHitoeDevice(final boolean enable) {
-
-
-        if (enable) {
-            if (mScanning || mScanTimerFuture != null) {
-                // scan have already started.
-                return;
-            }
-            mScanning = true;
-            mScanTimerFuture = mExecutor.scheduleAtFixedRate(new Runnable() {
-                @Override
-                public void run() {
-                    if (BleUtils.isEnabled(HitoeAddDeviceActivity.this)) {
-                        addFooterView();
-                        getManager().addHitoeConnectionListener(HitoeAddDeviceActivity.this);
-                        getManager().discoveryHitoeDevices();
-                    } else {
-                        cancelScanTimer();
-                    }
-                }
-            }, SCAN_FIRST_WAIT_PERIOD, SCAN_WAIT_PERIOD, TimeUnit.MILLISECONDS);
-        } else {
-            mScanning = false;
-            cancelScanTimer();
-        }
-    }
-
-    /**
-     * Stopped the scan timer.
-     */
-    private synchronized void cancelScanTimer() {
-        if (mScanTimerFuture != null) {
-            mScanTimerFuture.cancel(true);
-            mScanTimerFuture = null;
-        }
-    }
 
     /**
      * Register a BroadcastReceiver of Bluetooth event.
@@ -206,6 +143,9 @@ public class HitoeAddDeviceActivity extends HitoeListActivity  implements HitoeM
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
+                if (mCheckDialog) {
+                    DefaultDialogFragment.showHitoeSetShirtDialog(HitoeAddDeviceActivity.this);
+                }
                 dismissProgressDialog();
                 mDeviceAdapter.remove(device);
                 mDeviceAdapter.notifyDataSetChanged();
@@ -265,8 +205,7 @@ public class HitoeAddDeviceActivity extends HitoeListActivity  implements HitoeM
         }
         if (hitoe.getPinCode() == null) {
             final Resources res = getResources();
-            String title = res.getString(R.string.hitoe_setting_dialog_pin_title);
-            PinCodeDialogFragment pinDialog = PinCodeDialogFragment.newInstance(title);
+            PinCodeDialogFragment pinDialog = PinCodeDialogFragment.newInstance();
             pinDialog.show(getSupportFragmentManager(), "pin_dialog");
             pinDialog.setOnPinCodeListener(new PinCodeDialogFragment.OnPinCodeListener() {
                 @Override
@@ -286,7 +225,9 @@ public class HitoeAddDeviceActivity extends HitoeListActivity  implements HitoeM
             @Override
             public void run() {
                 if (mCheckDialog) {
-                    hitoe.setPinCode(null);
+                    HitoeDevice containar = findDeviceContainerByAddress(hitoe.getId());
+                    containar.setPinCode(null);
+
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
@@ -299,5 +240,16 @@ public class HitoeAddDeviceActivity extends HitoeListActivity  implements HitoeM
             }
         },  10000);
 
+    }
+
+    @Override
+    public void onRegularNotify() {
+        if (BleUtils.isEnabled(this)) {
+            addFooterView();
+            getManager().addHitoeConnectionListener(this);
+            getManager().discoveryHitoeDevices();
+        } else {
+            mScheduler.scanHitoeDevice(false);
+        }
     }
 }

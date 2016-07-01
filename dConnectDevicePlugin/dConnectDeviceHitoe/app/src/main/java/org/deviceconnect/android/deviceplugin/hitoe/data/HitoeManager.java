@@ -493,7 +493,6 @@ public class HitoeManager {
 
 
     public void start() {
-        // TODO want to connected
         synchronized (mRegisterDevices) {
             for (int i = 0; i < mRegisterDevices.size(); i++) {
                 HitoeDevice device = mRegisterDevices.get(i);

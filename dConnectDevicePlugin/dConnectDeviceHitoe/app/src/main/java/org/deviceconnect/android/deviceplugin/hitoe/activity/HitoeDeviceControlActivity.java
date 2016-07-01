@@ -12,6 +12,7 @@ import android.widget.ListView;
 
 import org.deviceconnect.android.deviceplugin.hitoe.HitoeApplication;
 import org.deviceconnect.android.deviceplugin.hitoe.data.HitoeManager;
+import org.deviceconnect.android.deviceplugin.hitoe.fragment.HitoeProfileHealthFragment;
 import org.deviceconnect.android.deviceplugin.hitoe.fragment.HitoeProfileListFragment;
 
 /**
@@ -70,21 +71,23 @@ public class HitoeDeviceControlActivity extends FragmentActivity {
     }
 
     public void movePage(final int page) {
+        Bundle args = new Bundle();
+        Intent device = getIntent();
+        if (device == null) {
+            return;
+        }
+        String serviceId = device.getStringExtra(FEATURE_SERVICE_ID);
+        args.putString(FEATURE_SERVICE_ID, serviceId);
         switch (page) {
             case CONTROL_PAGE_MAIN:
                 HitoeProfileListFragment profile = new HitoeProfileListFragment();
-
                 moveFragment(true, profile);
-                Bundle args = new Bundle();
-                Intent device = getIntent();
-                if (device == null) {
-                    return;
-                }
-                String serviceId = device.getStringExtra(FEATURE_SERVICE_ID);
-                args.putString(FEATURE_SERVICE_ID, serviceId);
                 profile.setArguments(args);
                 break;
             case CONTROL_PAGE_HEARTRATE:
+                HitoeProfileHealthFragment heartRateProfile = new HitoeProfileHealthFragment();
+                moveFragment(false, heartRateProfile);
+                heartRateProfile.setArguments(args);
                 break;
 
         }

@@ -8,9 +8,12 @@ package org.deviceconnect.android.deviceplugin.hitoe.fragment.dialog;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
+import android.view.LayoutInflater;
+import android.view.View;
 import android.widget.EditText;
 
 import org.deviceconnect.android.deviceplugin.hitoe.R;
@@ -31,13 +34,9 @@ public class PinCodeDialogFragment extends DialogFragment {
     }
 
 
-    public static PinCodeDialogFragment newInstance(final String title) {
+    public static PinCodeDialogFragment newInstance() {
         PinCodeDialogFragment instance = new PinCodeDialogFragment();
 
-        Bundle arguments = new Bundle();
-        arguments.putString(PARAM_TITLE, title);
-
-        instance.setArguments(arguments);
 
         return instance;
     }
@@ -48,14 +47,14 @@ public class PinCodeDialogFragment extends DialogFragment {
             return mDialog;
         }
 
-        String title = getArguments().getString(PARAM_TITLE);
-        String message = getArguments().getString(PARAM_MESSAGE);
+        LayoutInflater inflater = (LayoutInflater) getActivity().getSystemService(
+                Context.LAYOUT_INFLATER_SERVICE);
+        final View layout = inflater.inflate(R.layout.dialog_hitoe_pin, null);
 
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-        builder.setTitle(title);
-        builder.setMessage(message);
-        final EditText pinEdit = new EditText(getActivity());
-        builder.setView(pinEdit);
+        builder.setTitle(getString(R.string.dialog_title_pin_input));
+        final EditText pinEdit = (EditText) layout.findViewById(R.id.input_pin);
+        builder.setView(layout);
         builder.setPositiveButton(R.string.hitoe_setting_dialog_positive,
                 new DialogInterface.OnClickListener() {
                     @Override

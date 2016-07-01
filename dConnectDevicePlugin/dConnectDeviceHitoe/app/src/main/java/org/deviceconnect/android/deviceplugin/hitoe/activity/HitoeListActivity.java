@@ -101,8 +101,13 @@ public abstract class HitoeListActivity extends FragmentActivity {
 
     protected abstract void setUI();
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        addFooterView();
+    }
 
-
+    @Override
     protected void onPause() {
         super.onPause();
         mHandler.removeCallbacksAndMessages(null);
@@ -467,8 +472,7 @@ public abstract class HitoeListActivity extends FragmentActivity {
                         } else {
                             if (device.getPinCode() == null) {
                                 final Resources res = getResources();
-                                String title = res.getString(R.string.hitoe_setting_dialog_pin_title);
-                                PinCodeDialogFragment pinDialog = PinCodeDialogFragment.newInstance(title);
+                                PinCodeDialogFragment pinDialog = PinCodeDialogFragment.newInstance();
                                 pinDialog.show(getSupportFragmentManager(), "pin_dialog");
                                 pinDialog.setOnPinCodeListener(new PinCodeDialogFragment.OnPinCodeListener() {
                                     @Override

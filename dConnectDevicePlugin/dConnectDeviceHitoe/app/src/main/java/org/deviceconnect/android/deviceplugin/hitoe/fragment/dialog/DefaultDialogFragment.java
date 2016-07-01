@@ -11,10 +11,15 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.CheckBox;
 
 import org.deviceconnect.android.deviceplugin.hitoe.R;
+import org.deviceconnect.android.deviceplugin.hitoe.util.UserSettings;
 
 /**
  * Alert show fragment.
@@ -94,7 +99,56 @@ public class DefaultDialogFragment extends DialogFragment {
                 .show();
     }
 
+    /**
+     * Show Hitoe On state dialog.
+     * @param activity activity
+     */
+    public static void showHitoeONStateDialog(final Activity activity) {
+        if (activity == null) {
+            return;
+        }
+        final UserSettings userSettings = new UserSettings(activity);
+        if (userSettings.isNextState()) {
+            return;
+        }
+        LayoutInflater inflater = (LayoutInflater) activity.getSystemService(
+                Context.LAYOUT_INFLATER_SERVICE);
+        final View layout = inflater.inflate(R.layout.dialog_hitoe_on, null);
+        new AlertDialog.Builder(activity)
+                .setView(layout)
+                .setTitle(activity.getString(R.string.dialog_title_lunch_hitoe))
+                .setNeutralButton(R.string.ok, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        CheckBox nextState = (CheckBox) layout.findViewById(R.id.chceck_next);
+                        userSettings.setNextState(nextState.isChecked());
+                    }
+                })
+                .show();
+    }
 
+    /**
+     * Show Hitoe set shirt dialog.
+     * @param activity activity
+     */
+    public static void showHitoeSetShirtDialog(final Activity activity) {
+        if (activity == null) {
+            return;
+        }
+        LayoutInflater inflater = (LayoutInflater) activity.getSystemService(
+                Context.LAYOUT_INFLATER_SERVICE);
+        final View layout = inflater.inflate(R.layout.dialog_hitoe_set, null);
+        new AlertDialog.Builder(activity)
+                .setView(layout)
+                .setTitle(activity.getString(R.string.dialog_title_equip_hitoe))
+                .setNeutralButton(R.string.ok, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+
+                    }
+                })
+                .show();
+    }
 
     public static void showSelectCommandDialog(final Activity activity,
                                                final String[] commands,

@@ -46,13 +46,6 @@ public class HitoeDeviceListActivity extends HitoeListActivity implements
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
-        addFooterView();
-    }
-
-
-    @Override
     protected void setUI() {
         TextView title = (TextView) findViewById(R.id.view_title);
         title.setText(R.string.device_list_view);
@@ -115,7 +108,9 @@ public class HitoeDeviceListActivity extends HitoeListActivity implements
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                mCheckDialog = false;
+                if (!mCheckDialog) {
+                    return;
+                }
                 HitoeDevice container = findDeviceContainerByAddress(device.getId());
                 if (container != null) {
                     container.setRegisterFlag(true);
@@ -132,7 +127,9 @@ public class HitoeDeviceListActivity extends HitoeListActivity implements
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                dismissProgressDialog();
+                if (!mCheckDialog) {
+                    return;
+                }
                 if (device == null && mConnectingDevice != null) {
                     HitoeDevice container = findDeviceContainerByAddress(mConnectingDevice.getId());
                     if (container != null) {
@@ -144,6 +141,7 @@ public class HitoeDeviceListActivity extends HitoeListActivity implements
                 } else if (device != null) {
                     showErrorDialogNotConnect(device.getName());
                 }
+                dismissProgressDialog();
             }
         });
     }

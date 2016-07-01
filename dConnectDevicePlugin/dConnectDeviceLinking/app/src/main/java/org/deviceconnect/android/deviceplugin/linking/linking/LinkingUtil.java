@@ -180,4 +180,77 @@ public final class LinkingUtil {
         return false;
     }
 
+    public static float IEEE754(int value, int fraction, int exponent, boolean sign) {
+        if (value == 0) {
+            return 0.0f;
+        }
+
+        int mantissa = value & mask(fraction);
+        int bais = (value >> fraction) & mask(exponent);
+        bais -= Math.pow(2, exponent - 1) - 1;
+
+        int integer = 0;
+        float decimal = 0;
+
+        if (bais >= 0) {
+            {
+                int t = 1;
+                int bit = 1 << (fraction - bais);
+                for (int p = fraction - bais; p < fraction; p++) {
+                    if ((mantissa & bit) != 0) {
+                        integer += t;
+                    }
+                    t <<= 1;
+                    bit <<= 1;
+                }
+                integer += t;
+            }
+            {
+                int t = 1;
+                int bit = 1 << (fraction - bais - 1);
+                for (int p = fraction - bais - 1; p > 0; p--) {
+                    if ((mantissa & bit) != 0) {
+                        decimal += pow(t);
+                    }
+                    t++;
+                    bit >>= 1;
+                }
+            }
+        } else {
+            int t = Math.abs(bais);
+            int bit = 1 << (fraction - 1);
+            decimal += pow(t);
+            for (int p = fraction; p >= 0; p--) {
+                t++;
+                if ((mantissa & bit) != 0) {
+                    decimal += pow(t);
+                }
+                bit >>= 1;
+            }
+        }
+
+        if (sign) {
+            int bit = 1 << (fraction + exponent);
+            if ((value & bit) != 0) {
+                return -(integer + decimal);
+            }
+        }
+        return integer + decimal;
+    }
+
+    private static double pow(int count) {
+        double t = 1;
+        for (int i = 0; i < count; i++) {
+            t = t / 2.0;
+        }
+        return t;
+    }
+
+    private static int mask(int value) {
+        int t = 1;
+        for (int i = 0; i < value - 1; i++) {
+            t = t | (t << 1);
+        }
+        return t;
+    }
 }

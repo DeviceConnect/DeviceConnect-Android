@@ -23,6 +23,9 @@ public class DConnectApiSpec implements DConnectApiSpecConstants {
     private Type mType;
     private Method mMethod;
     private String mPath;
+    private String mProfileName;
+    private String mInterfaceName;
+    private String mAttributeName;
     private DConnectRequestParamSpec[] mRequestParamList;
 
     private DConnectApiSpec() {}
@@ -53,6 +56,27 @@ public class DConnectApiSpec implements DConnectApiSpecConstants {
 
     void setPath(final String path) {
         mPath = path;
+
+        String[] array = path.split("/");
+        mProfileName = array[2];
+        if (array.length == 4) {
+            mAttributeName = array[3];
+        } else if (array.length == 5) {
+            mInterfaceName = array[3];
+            mAttributeName = array[4];
+        }
+    }
+
+    public String getProfileName() {
+        return mProfileName;
+    }
+
+    public String getInterfaceName() {
+        return mInterfaceName;
+    }
+
+    public String getAttributeName() {
+        return mAttributeName;
     }
 
     public String getPath() {
@@ -84,6 +108,10 @@ public class DConnectApiSpec implements DConnectApiSpecConstants {
         String methodStr = apiObj.getString(METHOD);
         String typeStr = apiObj.getString(TYPE);
 
+        String[] array = path.split("/");
+        if (!(3 <= array.length && array.length <= 5)) {
+            throw new JSONException("path is invalid: " + path);
+        }
         Method method = Method.parse(methodStr);
         if (method == null) {
             throw new JSONException("method is invalid: " + methodStr);

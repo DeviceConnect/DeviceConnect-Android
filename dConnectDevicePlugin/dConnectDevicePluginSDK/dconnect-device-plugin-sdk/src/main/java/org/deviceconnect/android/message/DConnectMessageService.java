@@ -23,8 +23,9 @@ import org.deviceconnect.android.profile.AuthorizationProfile;
 import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.android.profile.DConnectProfileProvider;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
-import org.deviceconnect.android.profile.ServiceInformationProfile;
 import org.deviceconnect.android.profile.SystemProfile;
+import org.deviceconnect.android.profile.spec.DConnectApiSpec;
+import org.deviceconnect.android.profile.spec.DConnectApiSpecFilter;
 import org.deviceconnect.android.profile.spec.DConnectApiSpecList;
 import org.deviceconnect.android.service.DConnectService;
 import org.deviceconnect.android.service.DConnectServiceManager;
@@ -41,6 +42,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
 
 /**
@@ -125,27 +127,34 @@ public abstract class DConnectMessageService extends Service implements DConnect
 
     private DConnectApiSpecList loadApiSpecList() {
         try {
-            Map<String, DevicePluginXmlProfile> profiles
-                = DevicePluginXmlUtil.getSupportProfiles(getContext(), getContext().getPackageName());
+            final Map<String, DevicePluginXmlProfile> supportedProfiles = DevicePluginXmlUtil.getSupportProfiles(this, getPackageName());
+            final Set<String> profileNames = supportedProfiles.keySet();
+
+            String[] fileNames = getAssets().list("api");
             final DConnectApiSpecList specList = new DConnectApiSpecList();
-            for (String profileName : profiles.keySet()) {
-                if (AuthorizationProfile.PROFILE_NAME.equalsIgnoreCase(profileName)
-                    || ServiceDiscoveryProfile.PROFILE_NAME.equalsIgnoreCase(profileName)
-                    || ServiceInformationProfile.PROFILE_NAME.equalsIgnoreCase(profileName)
-                    || SystemProfile.PROFILE_NAME.equalsIgnoreCase(profileName)) {
-                    continue;
+            final DConnectApiSpecFilter filter = new DConnectApiSpecFilter() {
+                @Override
+                public boolean filter(final DConnectApiSpec apiSpec) {
+                    for (String profileName : profileNames) {
+                        if (profileName.equalsIgnoreCase(apiSpec.getProfileName())) {
+                            return true;
+                        }
+                    }
+                    return false;
                 }
-                specList.addApiSpecList(getAssets().open("api/" + profileName + ".json"));
+            };
+            for (String fileName : fileNames) {
+                mLogger.info("Loading API Spec file...: " + fileName);
+                specList.addApiSpecList(getAssets().open("api/" + fileName), filter);
+                mLogger.info("Loaded API Spec file: " + fileName);
             }
             return specList;
         } catch (IOException e) {
-            e.printStackTrace();
             mLogger.warning("Failed to load Device Connect API Specs.");
-            return null;
+            throw new RuntimeException(e);
         } catch (JSONException e) {
-            e.printStackTrace();
             mLogger.warning("Device Connect API Specs is invalid.");
-            return null;
+            throw new RuntimeException(e);
         }
     }
 

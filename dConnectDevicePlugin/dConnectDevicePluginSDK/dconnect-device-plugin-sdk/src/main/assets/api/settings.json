@@ -89,7 +89,8 @@
                 "name": "level",
                 "type": "number",
                 "minValue": 0.0,
-                "maxValue": 1.0
+                "maxValue": 1.0,
+                "mandatory": true
             }
         ]
     },
@@ -120,7 +121,8 @@
             {
                 "name": "date",
                 "type": "string",
-                "format": "date-time"
+                "format": "date-time",
+                "mandatory": true
             }
         ]
     },
@@ -151,6 +153,7 @@
             {
                 "name": "level",
                 "type": "number",
+                "mandatory": true,
                 "minValue": 0.0,
                 "maxValue": 1.0
             }
@@ -183,7 +186,8 @@
             {
                 "name": "time",
                 "type": "integer",
-                "format": "int64"
+                "format": "int64",
+                "mandatory": true
             }
         ]
     }

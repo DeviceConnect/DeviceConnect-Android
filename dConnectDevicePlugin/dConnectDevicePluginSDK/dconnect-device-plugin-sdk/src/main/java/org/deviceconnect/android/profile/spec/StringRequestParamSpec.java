@@ -180,7 +180,8 @@ public class StringRequestParamSpec extends DConnectRequestParamSpec {
         TEXT("text"),
         BYTE("byte"),
         BINARY("binary"),
-        DATE("date");
+        DATE("date"),
+        DATE_TIME("date-time");
 
         private final String mName;
 

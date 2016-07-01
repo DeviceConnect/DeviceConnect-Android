@@ -26,7 +26,7 @@ import java.util.logging.Logger;
  * LocalOAuthを行うためのリクエスト.
  * @author NTT DOCOMO, INC.
  */
-public class LocalOAuthRequest extends DConnectRequest {
+public abstract class LocalOAuthRequest extends DConnectRequest {
     /** プラグイン側のAuthorizationのアトリビュート名: {@value}. */
     private static final String ATTRIBUTE_CREATE_CLIENT = "createClient";
 
@@ -267,8 +267,7 @@ public class LocalOAuthRequest extends DConnectRequest {
      * 実際の命令を行う.
      * @param accessToken アクセストークン
      */
-    protected void executeRequest(final String accessToken) {
-    }
+    protected abstract void executeRequest(final String accessToken);
 
     /**
      * resultの値をレスポンスのIntentから取得する.
@@ -276,7 +275,7 @@ public class LocalOAuthRequest extends DConnectRequest {
      * @return resultの値
      */
     protected int getResult(final Intent response) {
-        int result = mResponse.getIntExtra(DConnectMessage.EXTRA_RESULT,
+        int result = response.getIntExtra(DConnectMessage.EXTRA_RESULT,
                 DConnectMessage.RESULT_ERROR);
         return result;
     }
@@ -287,7 +286,7 @@ public class LocalOAuthRequest extends DConnectRequest {
      * @return errorCodeの値
      */
     protected int getErrorCode(final Intent response) {
-        int errorCode = mResponse.getIntExtra(DConnectMessage.EXTRA_ERROR_CODE,
+        int errorCode = response.getIntExtra(DConnectMessage.EXTRA_ERROR_CODE,
                 DConnectMessage.ErrorCode.UNKNOWN.getCode());
         return errorCode;
     }

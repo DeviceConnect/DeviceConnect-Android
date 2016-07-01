@@ -26,16 +26,20 @@ public class DConnectApiSpecList {
         return null;
     }
 
-    public void addApiSpecList(final InputStream json) throws IOException, JSONException {
+    public void addApiSpecList(final InputStream json, final DConnectApiSpecFilter filter) throws IOException, JSONException {
         String file = loadFile(json);
         JSONArray array = new JSONArray(file);
         for (int i = 0; i < array.length(); i++) {
             JSONObject apiObj = array.getJSONObject(i);
             DConnectApiSpec apiSpec = DConnectApiSpec.fromJson(apiObj);
-            if (apiSpec != null) {
+            if (apiSpec != null && filter != null && filter.filter(apiSpec)) {
                 addApiSpec(apiSpec);
             }
         }
+    }
+
+    public void addApiSpecList(final InputStream json) throws IOException, JSONException {
+        addApiSpecList(json, null);
     }
 
     private String loadFile(final InputStream in) throws IOException {

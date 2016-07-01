@@ -211,7 +211,8 @@ public class SlackMessageHookProfile extends MessageHookProfile {
             try {
                 // ファイルアップロード
                 URL url = new URL(resource);
-                SlackManager.INSTANCE.uploadFile(text, channel, url, new SlackManager.FinishCallback<JSONObject>() {
+                String origin = getContext().getPackageName();
+                SlackManager.INSTANCE.uploadFile(text, channel, url, origin, new SlackManager.FinishCallback<JSONObject>() {
                     @Override
                     public void onFinish(JSONObject jsonObject, Exception error) {
                         if (error == null) {

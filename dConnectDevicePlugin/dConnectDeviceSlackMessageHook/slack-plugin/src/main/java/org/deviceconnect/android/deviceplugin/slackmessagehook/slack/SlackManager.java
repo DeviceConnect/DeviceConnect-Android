@@ -12,6 +12,7 @@ import android.util.Log;
 
 import com.codebutler.android_websockets.WebSocketClient;
 
+import org.deviceconnect.message.DConnectMessage;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -185,14 +186,23 @@ public class SlackManager {
             return;
         }
         // 不正文字列を入力できないようにencodeしておく
+        String newToken = null;
         try {
-            token = URLEncoder.encode(apiToken,"utf-8");
+            newToken = URLEncoder.encode(apiToken,"utf-8");
         } catch (UnsupportedEncodingException e) {
             if (callback != null) {
                 callback.onFinish(null, new SlackAPITokenValueException());
             }
             return;
         }
+        // トークンが変わらない場合は何もしない
+        if (newToken.equals(token)) {
+            if (callback != null) {
+                callback.onFinish(null, null);
+            }
+            return;
+        }
+        token = newToken;
         // 接続
         if (needsConnect) {
             if (connectState > CONNECT_STATE_DISCONNECTING) {
@@ -214,7 +224,9 @@ public class SlackManager {
                 connect(callback);
             }
         } else {
-            callback.onFinish(null, null);
+            if (callback != null) {
+                callback.onFinish(null, null);
+            }
         }
     }
 
@@ -255,7 +267,7 @@ public class SlackManager {
         connectState = CONNECT_STATE_CONNECTING;
         this.connectionFinishCallback = callback;
         // 接続処理
-        new GetTask().execute(new TaskParam("rtm.start", "&simple_latest=True&no_unreads=True") {
+        new GetTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, new TaskParam("rtm.start", "&simple_latest=True&no_unreads=True") {
             @Override
             public void callBack(JSONObject json) {
                 // rtm.startに失敗
@@ -326,7 +338,7 @@ public class SlackManager {
      * @param callback 完了コールバック
      */
     public void sendMessage(String msg, String channel, final FinishCallback<String> callback) {
-        if (Debug) Log.d(TAG, "*sendMessage");
+        if (Debug) Log.d(TAG, "*sendMessage:" + msg);
         if (connectState != CONNECT_STATE_CONNECTED) {
             callSendMsgFinishCallback(null, new SlackConnectionException(), null);
             return;
@@ -368,14 +380,14 @@ public class SlackManager {
      * @param url リソースURL
      * @param callback 終了コールバック
      */
-    public void uploadFile(String msg, String channel, URL url, final FinishCallback<JSONObject> callback) {
+    public void uploadFile(String msg, String channel, URL url, String orign, final FinishCallback<JSONObject> callback) {
         if (url == null || channel == null) {
             if (callback != null) {
                 callback.onFinish(null, new InvalidParameterException());
             }
             return;
         }
-        new UploadFileTask().execute(new TaskParam(channel, msg, url) {
+        new UploadFileTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, new TaskParam(channel, msg, url, orign) {
             @Override
             public void callBack(JSONObject json) {
                 if (callback != null) {
@@ -407,8 +419,8 @@ public class SlackManager {
      * @param channel チャンネル
      * @param url リソースURL
      */
-    public void uploadFile(String msg, String channel, URL url) {
-        uploadFile(msg, channel, url, null);
+    public void uploadFile(String msg, String channel, URL url, String orign) {
+        uploadFile(msg, channel, url, orign, null);
     }
 
 
@@ -435,7 +447,7 @@ public class SlackManager {
             }
             return;
         }
-        new GetTask().execute(new TaskParam(target, params) {
+        new GetTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, new TaskParam(target, params) {
             @Override
             public void callBack(JSONObject json) {
                 if (Debug) Log.d(TAG, json.toString());
@@ -671,15 +683,17 @@ public class SlackManager {
         protected String target;
         protected String params;
         protected URL resource;
+        protected String origin;
         public void callBack(JSONObject json) {}
         public TaskParam(String target, String params) {
             this.target = target;
             this.params = params;
         }
-        public TaskParam(String target, String params, URL resource) {
+        public TaskParam(String target, String params, URL resource, String origin) {
             this.target = target;
             this.params = params;
             this.resource = resource;
+            this.origin = origin;
         }
     }
 
@@ -713,7 +727,7 @@ public class SlackManager {
                 con.setInstanceFollowRedirects(false);
                 con.connect();
                 stream = con.getInputStream();
-                if (Debug) Log.d(TAG, "token:"+token);
+                if (Debug) Log.d(TAG, "url:"+url.toString());
 
                 // レスポンス取得
                 BufferedReader streamReader = new BufferedReader(new InputStreamReader(stream, "UTF-8"));
@@ -778,6 +792,8 @@ public class SlackManager {
                 URL url = param.resource;
                 con1 = (HttpURLConnection)url.openConnection();
                 con1.setInstanceFollowRedirects(true);
+                con1.setRequestProperty(DConnectMessage.HEADER_GOTAPI_ORIGIN, param.origin);
+
                 con1.connect();
                 stream1 = new BufferedInputStream(con1.getInputStream());
 
@@ -787,6 +803,7 @@ public class SlackManager {
                 con2.setRequestMethod("POST");
                 con2.setInstanceFollowRedirects(false);
                 con2.setDoOutput(true);
+                con2.setRequestProperty("Accept-Charset", "UTF-8");
                 con2.setRequestProperty("Content-Type", "multipart/form-data; boundary=" + BOUNDARY);
                 BufferedOutputStream bo = new BufferedOutputStream(con2.getOutputStream());
                 stream2 = new DataOutputStream(bo);
@@ -801,7 +818,6 @@ public class SlackManager {
 
                 // 接続
                 con2.connect();
-                if (Debug) Log.d(TAG, "token:"+token);
 
                 // レスポンス取得
                 streamReader = new BufferedReader(new InputStreamReader(con2.getInputStream(), "UTF-8"));
@@ -865,13 +881,14 @@ public class SlackManager {
          * @throws IOException 例外
          */
         private void addDisposition(DataOutputStream os, String name, String value) throws IOException {
-            name = URLEncoder.encode(name, "utf-8");
-            // value = URLEncoder.encode(value, "utf-8");
-            value = escape(value);
-
+            name = escape(name);
             os.writeBytes("--" + BOUNDARY + "\r\n");
             os.writeBytes("Content-Disposition: form-data; name=\"" + name + "\"\r\n\r\n");
-            os.writeBytes(value + "\r\n");
+            byte[] bytes = value.getBytes();
+            for (int i=0;i<bytes.length;i++){
+                os.writeByte(bytes[i]);
+            }
+            os.writeBytes("\r\n");
         }
 
         /**

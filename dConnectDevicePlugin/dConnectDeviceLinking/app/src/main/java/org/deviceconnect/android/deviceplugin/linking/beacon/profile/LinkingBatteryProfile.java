@@ -61,7 +61,7 @@ public class LinkingBatteryProfile extends BatteryProfile {
             BatteryData battery = beacon.getBatteryData();
             if (battery != null && System.currentTimeMillis() - battery.getTimeStamp() < TIMEOUT) {
                 setBatteryToResponse(response, battery);
-                mgr.startBeaconScan(TIMEOUT);
+                mgr.startBeaconScanWithTimeout(TIMEOUT);
                 return true;
             }
 
@@ -114,7 +114,7 @@ public class LinkingBatteryProfile extends BatteryProfile {
                     cleanup();
                 }
             });
-            mgr.startBeaconScan(TIMEOUT);
+            mgr.startBeaconScanWithTimeout(TIMEOUT);
             return false;
         }
     };
@@ -133,7 +133,7 @@ public class LinkingBatteryProfile extends BatteryProfile {
             BatteryData battery = beacon.getBatteryData();
             if (battery != null && System.currentTimeMillis() - battery.getTimeStamp() < TIMEOUT) {
                 setBatteryToResponse(response, battery);
-                mgr.startBeaconScan(TIMEOUT);
+                mgr.startBeaconScanWithTimeout(TIMEOUT);
                 return true;
             }
 
@@ -186,7 +186,7 @@ public class LinkingBatteryProfile extends BatteryProfile {
                     cleanup();
                 }
             });
-            mgr.startBeaconScan(TIMEOUT);
+            mgr.startBeaconScanWithTimeout(TIMEOUT);
             return false;
         }
     };

@@ -40,7 +40,7 @@ public class LinkingTemperatureProfile extends TemperatureProfile {
             TemperatureData temperature = beacon.getTemperatureData();
             if (temperature != null && System.currentTimeMillis() - temperature.getTimeStamp() < TIMEOUT) {
                 setTemperatureToResponse(response, temperature);
-                mgr.startBeaconScan(TIMEOUT);
+                mgr.startBeaconScanWithTimeout(TIMEOUT);
                 return true;
             }
 
@@ -93,7 +93,7 @@ public class LinkingTemperatureProfile extends TemperatureProfile {
                     cleanup();
                 }
             });
-            mgr.startBeaconScan(TIMEOUT);
+            mgr.startBeaconScanWithTimeout(TIMEOUT);
             return false;
         }
     };

@@ -17,8 +17,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.ListView;
+import android.widget.Switch;
 import android.widget.TextView;
 
 import org.deviceconnect.android.deviceplugin.linking.LinkingApplication;
@@ -69,21 +70,20 @@ public class LinkingBeaconListFragment extends Fragment implements ConfirmationD
         });
         listView.setAdapter(mAdapter);
 
-        Button startScanBtn = (Button) root.findViewById(R.id.fragment_beacon_scan_start);
-        startScanBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startScan();
-            }
-        });
-
-        Button stopScanBtn = (Button) root.findViewById(R.id.fragment_beacon_scan_stop);
-        stopScanBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                stopScan();
-            }
-        });
+        Switch switchBtn = (Switch) root.findViewById(R.id.fragment_beacon_scan_switch);
+        if (switchBtn != null) {
+            switchBtn.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(final CompoundButton buttonView, final boolean isChecked) {
+                    if (isChecked) {
+                        getLinkingBeaconManager().startForceBeaconScan();
+                    } else {
+                        getLinkingBeaconManager().stopForceBeaconScan();
+                    }
+                }
+            });
+            switchBtn.setChecked(getLinkingBeaconManager().isStartForceBeaconScan());
+        }
 
         return root;
     }
@@ -236,14 +236,9 @@ public class LinkingBeaconListFragment extends Fragment implements ConfirmationD
         dialog.show(getFragmentManager(), TAG_ERROR_BEACON);
     }
 
-    private void startScan() {
+    private LinkingBeaconManager getLinkingBeaconManager() {
         LinkingApplication app = (LinkingApplication) getActivity().getApplication();
-        app.getLinkingBeaconManager().startBeaconScan();
-    }
-
-    private void stopScan() {
-        LinkingApplication app = (LinkingApplication) getActivity().getApplication();
-        app.getLinkingBeaconManager().stopBeaconScan();
+        return app.getLinkingBeaconManager();
     }
 
     private class ListAdapter extends ArrayAdapter<DeviceItem> {

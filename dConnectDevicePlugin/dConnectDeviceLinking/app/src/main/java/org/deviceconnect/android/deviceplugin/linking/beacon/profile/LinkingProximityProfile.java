@@ -67,7 +67,7 @@ public class LinkingProximityProfile extends ProximityProfile {
             if (gatt != null && System.currentTimeMillis() - gatt.getTimeStamp() < TIMEOUT) {
                 setResult(response, DConnectMessage.RESULT_OK);
                 setProximity(response, createProximity(gatt));
-                mgr.startBeaconScan(TIMEOUT);
+                mgr.startBeaconScanWithTimeout(TIMEOUT);
                 return true;
             }
 
@@ -121,7 +121,7 @@ public class LinkingProximityProfile extends ProximityProfile {
                     cleanup();
                 }
             });
-            mgr.startBeaconScan(TIMEOUT);
+            mgr.startBeaconScanWithTimeout(TIMEOUT);
             return false;
         }
     };

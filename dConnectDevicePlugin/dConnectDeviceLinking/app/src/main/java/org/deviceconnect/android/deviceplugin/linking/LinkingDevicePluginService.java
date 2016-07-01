@@ -7,6 +7,7 @@
 package org.deviceconnect.android.deviceplugin.linking;
 
 import android.content.Intent;
+import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.linking.beacon.LinkingBeaconManager;
 import org.deviceconnect.android.deviceplugin.linking.beacon.LinkingBeaconUtil;
@@ -29,6 +30,8 @@ import org.deviceconnect.android.profile.SystemProfile;
  */
 public class LinkingDevicePluginService extends DConnectMessageService {
 
+    private static final String TAG = "LinkingPlugIn";
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -48,7 +51,13 @@ public class LinkingDevicePluginService extends DConnectMessageService {
                     LinkingBeaconUtil.ACTION_BEACON_SCAN_STATE.equals(action)) {
                 LinkingApplication app = (LinkingApplication)  getApplication();
                 LinkingBeaconManager mgr = app.getLinkingBeaconManager();
-                mgr.onReceivedBeacon(intent);
+                try {
+                    mgr.onReceivedBeacon(intent);
+                } catch (Exception e) {
+                    if (BuildConfig.DEBUG) {
+                        Log.w(TAG, "", e);
+                    }
+                }
                 return START_STICKY;
             }
         }

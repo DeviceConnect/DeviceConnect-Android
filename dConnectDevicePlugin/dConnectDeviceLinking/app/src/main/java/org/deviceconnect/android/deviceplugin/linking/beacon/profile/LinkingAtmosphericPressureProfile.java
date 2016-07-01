@@ -40,7 +40,7 @@ public class LinkingAtmosphericPressureProfile extends AtmosphericPressureProfil
             AtmosphericPressureData apd = beacon.getAtmosphericPressureData();
             if (apd != null && System.currentTimeMillis() - apd.getTimeStamp() < TIMEOUT) {
                 setAtmosphericPressureToResponse(response, apd);
-                mgr.startBeaconScan(TIMEOUT);
+                mgr.startBeaconScanWithTimeout(TIMEOUT);
                 return true;
             }
 
@@ -95,7 +95,7 @@ public class LinkingAtmosphericPressureProfile extends AtmosphericPressureProfil
                     cleanup();
                 }
             });
-            mgr.startBeaconScan(TIMEOUT);
+            mgr.startBeaconScanWithTimeout(TIMEOUT);
             return false;
         }
     };

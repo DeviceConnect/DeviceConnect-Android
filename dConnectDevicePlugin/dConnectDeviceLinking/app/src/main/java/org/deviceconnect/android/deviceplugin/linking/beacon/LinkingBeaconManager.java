@@ -60,13 +60,15 @@ public class LinkingBeaconManager {
 
     private TimeoutRunnable mTimeoutRunnable;
 
+    private boolean mScanFlag;
+
     public LinkingBeaconManager(final Context context) {
         mContext = context;
         mDBAdapter = new LinkingDBAdapter(context);
         mLinkingBeacons.addAll(mDBAdapter.queryBeacons());
         mScanMode = LinkingBeaconUtil.ScanMode.valueOf(PreferenceUtil.getInstance(mContext).getBeaconScanMode());
 
-        boolean scan = isStartBeaconScan();
+        boolean scan = isStartForceBeaconScan();
         if (scan) {
             startBeaconScan(mScanMode);
         }
@@ -99,7 +101,23 @@ public class LinkingBeaconManager {
         return mLinkingBeacons;
     }
 
-    public synchronized void startBeaconScan(final int timeout) {
+    public void startForceBeaconScan() {
+        startBeaconScanInternal(null);
+        PreferenceUtil.getInstance(mContext).setForceBeaconScanStatus(true);
+    }
+
+    public void stopForceBeaconScan() {
+        PreferenceUtil.getInstance(mContext).setForceBeaconScanStatus(false);
+        if (!isStartBeaconScan()) {
+            stopBeaconScanInternal();
+        }
+    }
+
+    public boolean isStartForceBeaconScan() {
+        return PreferenceUtil.getInstance(mContext).getForceBeaconScanStatus();
+    }
+
+    public synchronized void startBeaconScanWithTimeout(final int timeout) {
 
         if (isStartBeaconScan()) {
             return;
@@ -112,12 +130,16 @@ public class LinkingBeaconManager {
         mTimeoutRunnable = new TimeoutRunnable(timeout) {
             @Override
             public void onTimeout() {
+                if (BuildConfig.DEBUG) {
+                    Log.d(TAG, "startBeaconScanWithTimeout");
+                }
                 mTimeoutRunnable = null;
                 if (!isStartBeaconScan()) {
                     stopBeaconScan();
                 }
             }
         };
+
         startBeaconScanInternal(LinkingBeaconUtil.ScanMode.HIGH);
     }
 
@@ -130,42 +152,21 @@ public class LinkingBeaconManager {
 
         startBeaconScanInternal(scanMode);
 
-        PreferenceUtil.getInstance(mContext).setBeaconScanStatus(true);
+        mScanFlag = true;
         if (scanMode != null) {
             PreferenceUtil.getInstance(mContext).setBeaconScanMode(mScanMode.getValue());
         }
     }
 
-    private void startBeaconScanInternal(final LinkingBeaconUtil.ScanMode scanMode) {
-        if (BuildConfig.DEBUG) {
-            Log.i(TAG, "LinkingBeaconManager#startBeaconScan");
+    public void stopBeaconScan() {
+        mScanFlag = false;
+        if (!isStartForceBeaconScan()) {
+            stopBeaconScanInternal();
         }
-
-        Intent intent = new Intent();
-        intent.setClassName(LinkingBeaconUtil.LINKING_PACKAGE_NAME, LinkingBeaconUtil.BEACON_SERVICE_NAME);
-        intent.setAction(mContext.getPackageName() + LinkingBeaconUtil.ACTION_START_BEACON_SCAN);
-        intent.putExtra(mContext.getPackageName() + LinkingBeaconUtil.EXTRA_SERVICE_ID, new int[] {0, 1, 2, 3, 4, 5, 15});
-        if (scanMode != null) {
-            intent.putExtra(mContext.getPackageName() + LinkingBeaconUtil.EXTRA_SCAN_MODE, scanMode.getValue());
-        }
-        mContext.startService(intent);
-    }
-
-    public synchronized void stopBeaconScan() {
-        if (BuildConfig.DEBUG) {
-            Log.i(TAG, "LinkingBeaconManager#stopBeaconScan");
-        }
-
-        Intent intent = new Intent();
-        intent.setClassName(LinkingBeaconUtil.LINKING_PACKAGE_NAME, LinkingBeaconUtil.BEACON_SERVICE_NAME);
-        intent.setAction(mContext.getPackageName() + LinkingBeaconUtil.ACTION_STOP_BEACON_SCAN);
-        mContext.startService(intent);
-
-        PreferenceUtil.getInstance(mContext).setBeaconScanStatus(false);
     }
 
     public synchronized boolean isStartBeaconScan() {
-        return PreferenceUtil.getInstance(mContext).getBeaconScanStatus();
+        return mScanFlag;
     }
 
     public LinkingBeacon findBeacon(final int extraId, final int vendorId) {
@@ -290,6 +291,32 @@ public class LinkingBeaconManager {
         mOnBeaconScanStateListeners.remove(listener);
     }
 
+    private void startBeaconScanInternal(final LinkingBeaconUtil.ScanMode scanMode) {
+        if (BuildConfig.DEBUG) {
+            Log.i(TAG, "LinkingBeaconManager#startBeaconScan");
+        }
+
+        Intent intent = new Intent();
+        intent.setClassName(LinkingBeaconUtil.LINKING_PACKAGE_NAME, LinkingBeaconUtil.BEACON_SERVICE_NAME);
+        intent.setAction(mContext.getPackageName() + LinkingBeaconUtil.ACTION_START_BEACON_SCAN);
+        intent.putExtra(mContext.getPackageName() + LinkingBeaconUtil.EXTRA_SERVICE_ID, new int[] {0, 1, 2, 3, 4, 5, 15});
+        if (scanMode != null) {
+            intent.putExtra(mContext.getPackageName() + LinkingBeaconUtil.EXTRA_SCAN_MODE, scanMode.getValue());
+        }
+        mContext.startService(intent);
+    }
+
+    private synchronized void stopBeaconScanInternal() {
+        if (BuildConfig.DEBUG) {
+            Log.i(TAG, "LinkingBeaconManager#stopBeaconScan");
+        }
+
+        Intent intent = new Intent();
+        intent.setClassName(LinkingBeaconUtil.LINKING_PACKAGE_NAME, LinkingBeaconUtil.BEACON_SERVICE_NAME);
+        intent.setAction(mContext.getPackageName() + LinkingBeaconUtil.ACTION_STOP_BEACON_SCAN);
+        mContext.startService(intent);
+    }
+
     private void parseBeaconScanState(final Intent intent) {
         mScanState = LinkingBeaconUtil.ScanState.valueOf(intent.getIntExtra(LinkingBeaconUtil.SCAN_STATE, 0));
         mScanDetail = LinkingBeaconUtil.ScanDetail.valueOf(intent.getIntExtra(LinkingBeaconUtil.DETAIL, 0));
@@ -326,6 +353,22 @@ public class LinkingBeaconManager {
     }
 
     private void parseBeaconResult(final Intent intent) {
+        if (intent.getExtras() == null) {
+            if (BuildConfig.DEBUG) {
+                Log.w(TAG, "extras is null.");
+            }
+            return;
+        }
+
+        if (!intent.getExtras().containsKey(LinkingBeaconUtil.EXTRA_ID) ||
+                !intent.getExtras().containsKey(LinkingBeaconUtil.VENDOR_ID) ||
+                !intent.getExtras().containsKey(LinkingBeaconUtil.VERSION)) {
+            if (BuildConfig.DEBUG) {
+                Log.w(TAG, "extraId, vendorId, version is null.");
+            }
+            return;
+        }
+
         int extraId = intent.getIntExtra(LinkingBeaconUtil.EXTRA_ID, -1);
         int vendorId = intent.getIntExtra(LinkingBeaconUtil.VENDOR_ID, -1);
         int version = intent.getIntExtra(LinkingBeaconUtil.VERSION, -1);

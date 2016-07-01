@@ -91,6 +91,14 @@ public final class PreferenceUtil {
         }
     }
 
+    public void setForceBeaconScanStatus(final boolean status) {
+        putValue("forceBeaconScanStatus", status);
+    }
+
+    public boolean getForceBeaconScanStatus() {
+        return mPreferences.getBoolean("forceBeaconScanStatus", false);
+    }
+
     public void setBeaconScanStatus(final boolean status) {
         putValue("beaconScanStatus", status);
     }

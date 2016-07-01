@@ -80,7 +80,7 @@ public class LinkingServiceDiscoveryProfile extends ServiceDiscoveryProfile {
 
     private void createLinkingBeaconList() {
         LinkingBeaconManager mgr = getLinkingBeaconManager();
-        mgr.startBeaconScan(TIMEOUT);
+        mgr.startBeaconScanWithTimeout(TIMEOUT);
 
         for (LinkingBeacon beacon : mgr.getLinkingBeacons()) {
             DConnectService service = findDConnectService(beacon.getServiceId());

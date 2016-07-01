@@ -39,7 +39,7 @@ public class LinkingHumidityProfile extends HumidityProfile {
             HumidityData humidity = beacon.getHumidityData();
             if (humidity != null && System.currentTimeMillis() - humidity.getTimeStamp() < TIMEOUT) {
                 setHumidityToResponse(response, humidity);
-                mgr.startBeaconScan(TIMEOUT);
+                mgr.startBeaconScanWithTimeout(TIMEOUT);
                 return true;
             }
 
@@ -92,7 +92,7 @@ public class LinkingHumidityProfile extends HumidityProfile {
                     cleanup();
                 }
             });
-            mgr.startBeaconScan(TIMEOUT);
+            mgr.startBeaconScanWithTimeout(TIMEOUT);
             return false;
         }
     };

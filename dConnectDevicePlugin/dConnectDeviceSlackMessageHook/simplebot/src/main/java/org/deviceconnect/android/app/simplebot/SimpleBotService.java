@@ -202,7 +202,7 @@ public class SimpleBotService extends Service {
      * @return 処理した場合はtrue
      */
     private boolean handleData(final ResultData.Result result) {
-        DataManager.Data data = result.data;
+        final DataManager.Data data = result.data;
         if (data.serviceId == null) {
             return false;
         }
@@ -235,6 +235,18 @@ public class SimpleBotService extends Service {
         handler.post(new Runnable() {
             @Override
             public void run() {
+                // 受付メッセージ送信
+                if (data.accept != null || data.acceptUri != null) {
+                    Utils.sendMessage(context, result.channel, data.accept, data.acceptUri, new DConnectHelper.FinishCallback<Void>() {
+                        @Override
+                        public void onFinish(Void aVoid, Exception error) {
+                            if (error != null) {
+                                Log.e(TAG, "Error on sendMessage", error);
+                            }
+                        }
+                    });
+                }
+
                 // リクエスト送信
                 Utils.sendRequest(context, result.data.method, result.data.path, result.data.serviceId, params, new DConnectHelper.FinishCallback<Map<String, Object>>() {
                     @Override

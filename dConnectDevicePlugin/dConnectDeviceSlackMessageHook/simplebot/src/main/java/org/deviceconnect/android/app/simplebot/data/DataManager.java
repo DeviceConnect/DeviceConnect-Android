@@ -24,7 +24,7 @@ public class DataManager {
     private static final boolean DEBUG = true;
 
     /** DBのバージョン */
-    private static final int DB_VERSION = 2;
+    private static final int DB_VERSION = 3;
     /** DBファイル名 */
     public static final String DB_NAME = "simplebot.db";
     /** テーブル名 */
@@ -44,13 +44,17 @@ public class DataManager {
     public static final String COLUMN_PATH = "path";
     /** bodyのカラム名 */
     public static final String COLUMN_BODY = "body";
+    /** acceptのカラム名 */
+    public static final String COLUMN_ACCEPT = "accept";
+    /** accept_uriのカラム名 */
+    public static final String COLUMN_ACCEPT_URI = "accept_uri";
     /** successのカラム名 */
     public static final String COLUMN_SUCCESS = "success";
-    /** successのカラム名 */
+    /** success_uriのカラム名 */
     public static final String COLUMN_SUCCESS_URI = "success_uri";
     /** errorのカラム名 */
     public static final String COLUMN_ERROR = "error";
-    /** errorのカラム名 */
+    /** error_uriのカラム名 */
     public static final String COLUMN_ERROR_URI = "error_uri";
 
     /** 全カラム */
@@ -62,6 +66,8 @@ public class DataManager {
             COLUMN_METHOD, // メソッド
             COLUMN_PATH, // パス
             COLUMN_BODY, // ボディ
+            COLUMN_ACCEPT, // 受付レスポンス
+            COLUMN_ACCEPT_URI, // 受付レスポンスリソースURI
             COLUMN_SUCCESS, // 成功レスポンス
             COLUMN_SUCCESS_URI, // 成功レスポンスリソースURI
             COLUMN_ERROR, // 失敗レスポンス
@@ -82,6 +88,8 @@ public class DataManager {
         public String method;
         public String path;
         public String body;
+        public String accept;
+        public String acceptUri;
         public String success;
         public String successUri;
         public String error;
@@ -97,6 +105,8 @@ public class DataManager {
                     ", method='" + method + '\'' +
                     ", path='" + path + '\'' +
                     ", body='" + body + '\'' +
+                    ", accept='" + accept + '\'' +
+                    ", acceptUri='" + acceptUri + '\'' +
                     ", success='" + success + '\'' +
                     ", successUri='" + successUri + '\'' +
                     ", error='" + error + '\'' +
@@ -173,6 +183,8 @@ public class DataManager {
         values.put(COLUMN_METHOD, data.method);
         values.put(COLUMN_PATH, data.path);
         values.put(COLUMN_BODY, data.body);
+        values.put(COLUMN_ACCEPT, data.accept);
+        values.put(COLUMN_ACCEPT_URI, data.acceptUri);
         values.put(COLUMN_SUCCESS, data.success);
         values.put(COLUMN_SUCCESS_URI, data.successUri);
         values.put(COLUMN_ERROR, data.error);
@@ -252,6 +264,8 @@ public class DataManager {
         data.method = cursor.getString(cursor.getColumnIndex(COLUMN_METHOD));
         data.path = cursor.getString(cursor.getColumnIndex(COLUMN_PATH));
         data.body = cursor.getString(cursor.getColumnIndex(COLUMN_BODY));
+        data.accept = cursor.getString(cursor.getColumnIndex(COLUMN_ACCEPT));
+        data.acceptUri = cursor.getString(cursor.getColumnIndex(COLUMN_ACCEPT_URI));
         data.success = cursor.getString(cursor.getColumnIndex(COLUMN_SUCCESS));
         data.successUri = cursor.getString(cursor.getColumnIndex(COLUMN_SUCCESS_URI));
         data.error = cursor.getString(cursor.getColumnIndex(COLUMN_ERROR));
@@ -308,6 +322,8 @@ public class DataManager {
         data.path = "/gotapi/mediastream_recording/takephoto";
         data.method = "POST";
         data.body = "{}";
+        data.accept = "撮影します、しばらくお待ちください。";
+        data.acceptUri = "https://sdl-stickershop.line.naver.jp/products/0/0/1/1027426/android/stickers/1173138.png";
         data.success = "撮影しました。";
         data.successUri = "{$uri}";
         upsert(db, data);

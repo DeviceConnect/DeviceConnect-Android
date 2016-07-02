@@ -811,7 +811,9 @@ public class SlackManager {
                 // パラメータ設定
                 addDisposition(stream2, "token", token);
                 addDisposition(stream2, "channels", param.target);
-                addDisposition(stream2, "initial_comment", param.params);
+                if (param.params != null) {
+                    addDisposition(stream2, "initial_comment", param.params);
+                }
                 addData(stream2, stream1, "file", param.resource.getFile());
                 addEnd(stream2);
                 stream2.flush();

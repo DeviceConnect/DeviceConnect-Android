@@ -332,7 +332,9 @@ public class DConnectHelper {
             params.put(DConnectMessage.EXTRA_ACCESS_TOKEN, accessToken);
         }
         params.put(DConnectMessage.EXTRA_SERVICE_ID, serviceId);
-        params.put("text", text);
+        if (text != null) {
+            params.put("text", text);
+        }
         params.put("channelId", channelId);
         if (resource != null && resource.length() > 0) {
             params.put("resource", resource);

@@ -43,6 +43,10 @@ public class CommandDetailsFragment extends Fragment implements View.OnClickList
     private Button buttonPath;
     /** データボタン */
     private Button buttonBody;
+    /** 受付レスポンスボタン */
+    private Button buttonAccept;
+    /** 受付レスポンスURIボタン */
+    private Button buttonAcceptUri;
     /** 成功レスポンスボタン */
     private Button buttonSuccess;
     /** 成功レスポンスURIボタン */
@@ -82,6 +86,8 @@ public class CommandDetailsFragment extends Fragment implements View.OnClickList
         buttonServiceId = (Button)view.findViewById(R.id.buttonServiceId);
         buttonPath = (Button)view.findViewById(R.id.buttonPath);
         buttonBody = (Button)view.findViewById(R.id.buttonBody);
+        buttonAccept = (Button)view.findViewById(R.id.buttonAccept);
+        buttonAcceptUri = (Button)view.findViewById(R.id.buttonAcceptUri);
         buttonSuccess = (Button)view.findViewById(R.id.buttonSuccess);
         buttonSuccessUri = (Button)view.findViewById(R.id.buttonSuccessUri);
         buttonError = (Button)view.findViewById(R.id.buttonError);
@@ -117,6 +123,8 @@ public class CommandDetailsFragment extends Fragment implements View.OnClickList
         buttonServiceId.setOnClickListener(this);
         buttonPath.setOnClickListener(this);
         buttonBody.setOnClickListener(this);
+        buttonAccept.setOnClickListener(this);
+        buttonAcceptUri.setOnClickListener(this);
         buttonSuccess.setOnClickListener(this);
         buttonSuccessUri.setOnClickListener(this);
         buttonError.setOnClickListener(this);
@@ -161,6 +169,8 @@ public class CommandDetailsFragment extends Fragment implements View.OnClickList
         buttonServiceId.setText(checkUnset(commandData.serviceName));
         buttonPath.setText(checkUnset(commandData.path));
         buttonBody.setText(checkUnset(commandData.body));
+        buttonAccept.setText(checkUnset(commandData.accept));
+        buttonAcceptUri.setText(checkUnset(commandData.acceptUri));
         buttonSuccess.setText(checkUnset(commandData.success));
         buttonSuccessUri.setText(checkUnset(commandData.successUri));
         buttonError.setText(checkUnset(commandData.error));
@@ -206,6 +216,12 @@ public class CommandDetailsFragment extends Fragment implements View.OnClickList
             case R.id.buttonBody:
                 // TODO: 選択ダイアログにする
                 onClickTextButton("データ入力", id);
+                break;
+            case R.id.buttonAccept:
+                onClickTextButton("受付レスポンス入力", id);
+                break;
+            case R.id.buttonAcceptUri:
+                onClickTextButton("受付レスポンスリソースURI入力", id);
                 break;
             case R.id.buttonSuccess:
                 onClickTextButton("成功レスポンス入力", id);
@@ -283,6 +299,12 @@ public class CommandDetailsFragment extends Fragment implements View.OnClickList
             case R.id.buttonBody:
                 text = commandData.body;
                 break;
+            case R.id.buttonAccept:
+                text = commandData.accept;
+                break;
+            case R.id.buttonAcceptUri:
+                text = commandData.acceptUri;
+                break;
             case R.id.buttonSuccess:
                 text = commandData.success;
                 break;
@@ -306,6 +328,12 @@ public class CommandDetailsFragment extends Fragment implements View.OnClickList
                         break;
                     case R.id.buttonBody:
                         commandData.body = s;
+                        break;
+                    case R.id.buttonAccept:
+                        commandData.accept = s;
+                        break;
+                    case R.id.buttonAcceptUri:
+                        commandData.acceptUri = s;
                         break;
                     case R.id.buttonSuccess:
                         commandData.success = s;

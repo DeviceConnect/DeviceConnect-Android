@@ -140,6 +140,47 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textColor="@android:color/tertiary_text_dark"
+            android:text="@string/res_accept" />
+
+        <Button
+            android:id="@+id/buttonAccept"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@android:color/primary_text_light"
+            android:gravity="start|center_vertical"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            style="@android:style/Widget.Holo.Button.Borderless"
+            android:text="@string/unset" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@android:color/tertiary_text_dark"
+            android:text="@string/res_accept_uri" />
+
+        <Button
+            android:id="@+id/buttonAcceptUri"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@android:color/primary_text_light"
+            android:gravity="start|center_vertical"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            style="@android:style/Widget.Holo.Button.Borderless"
+            android:text="@string/unset" />
+
+        <View
+            android:layout_width="wrap_content"
+            android:background="#000"
+            android:layout_marginTop="5dp"
+            android:layout_marginBottom="5dp"
+            android:layout_height="1px" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@android:color/tertiary_text_dark"
             android:text="@string/res_success" />
 
         <Button

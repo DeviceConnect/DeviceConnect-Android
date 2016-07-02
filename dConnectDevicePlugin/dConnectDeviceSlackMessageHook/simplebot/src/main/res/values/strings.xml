@@ -22,6 +22,8 @@
     <string name="channel">Channel</string>
     <string name="text">Text</string>
     <string name="date">Date</string>
+    <string name="res_accept">受付レスポンス</string>
+    <string name="res_accept_uri">受付レスポンスリソースURI</string>
     <string name="res_success">成功レスポンス</string>
     <string name="res_success_uri">成功レスポンスリソースURI</string>
     <string name="res_error">失敗レスポンス</string>

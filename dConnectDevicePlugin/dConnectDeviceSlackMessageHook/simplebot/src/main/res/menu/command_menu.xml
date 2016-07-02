@@ -7,14 +7,14 @@
         android:showAsAction="always">
         <menu>
             <item
-                android:id="@+id/menu_list_command"
+                android:id="@+id/menu_add_command"
                 android:orderInCategory="1"
-                android:title="@string/menu_list_command"
+                android:title="@string/menu_add_command"
                 android:showAsAction="never" />
             <item
-                android:id="@+id/menu_list_result"
+                android:id="@+id/menu_import"
                 android:orderInCategory="1"
-                android:title="@string/menu_list_result"
+                android:title="@string/menu_import"
                 android:showAsAction="never" />
         </menu>
     </item>

@@ -16,6 +16,9 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -35,18 +38,20 @@ import java.util.List;
 /**
  * 設定画面
  */
-public class SettingFragment extends Fragment {
+public class SettingFragment extends Fragment implements ShowMenuFragment {
 
-    /** 選択 */
+    /** 選択サービス */
     private DConnectHelper.ServiceInfo selectedInfo = null;
+    /** サービス停止のレシーバー */
+    private BroadcastReceiver receiver;
+    /** メニュー */
+    private Menu mainMenu;
 
     private Switch switchStatus;
     private EditText editTextHost;
     private EditText editTextPort;
     private CheckBox checkBoxSSL;
     private Button buttonService;
-
-    BroadcastReceiver receiver;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -60,6 +65,8 @@ public class SettingFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, final ViewGroup container, Bundle savedInstanceState) {
+        setHasOptionsMenu(true);
+
         final View view = inflater.inflate(R.layout.fragment_setting, container, false);
         final Context context = view.getContext();
 
@@ -249,4 +256,32 @@ public class SettingFragment extends Fragment {
         });
     }
 
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.menu_list_command:
+                Fragment fragment = new CommandListFragment();
+                Utils.transition(fragment, getFragmentManager(), true);
+                break;
+            case R.id.menu_list_result:
+                fragment = new ResultListFragment();
+                Utils.transition(fragment, getFragmentManager(), true);
+                break;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+        inflater.inflate(R.menu.main_menu, menu);
+        mainMenu = menu;
+    }
+
+    /**
+     * メニューを表示
+     */
+    public void showMenu() {
+        mainMenu.performIdentifierAction(R.id.overflow_options, 0);
+    }
 }

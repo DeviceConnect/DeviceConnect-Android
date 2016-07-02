@@ -25,6 +25,7 @@ import org.deviceconnect.android.profile.SystemProfile;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -35,6 +36,10 @@ import java.util.regex.Pattern;
  */
 public class SlackMessageHookDeviceService extends DConnectMessageService implements SlackManager.SlackEventListener {
 
+    /** メッセージ履歴保持時間（秒） */
+    private static final int MESSAGE_HOLD_LIMIT = 60;
+    /** メッセージ履歴 */
+    private List<Bundle> eventHistory = new ArrayList<>();
     /** ユーザーリスト */
     private HashMap<String, SlackManager.ListInfo> userMap = new HashMap<>();
 
@@ -95,6 +100,7 @@ public class SlackMessageHookDeviceService extends DConnectMessageService implem
         sendMessageEvent(comment, channel, user, ts, url, mimeType);
     }
 
+
     /**
      * 受信メッセージをEventとして送信
      * @param text テキスト
@@ -110,8 +116,6 @@ public class SlackMessageHookDeviceService extends DConnectMessageService implem
         String attribute = SlackMessageHookProfile.ATTRIBUTE_MESSAGE;
         List<Event> events = EventManager.INSTANCE.getEventList(serviceId, profile, null, attribute);
 
-        if (events.size() == 0) return;
-
         synchronized (events) {
             synchronized (userMap) {
                 // 情報セット
@@ -120,8 +124,8 @@ public class SlackMessageHookDeviceService extends DConnectMessageService implem
                 message.putString("channelId", channel);
 
                 // TimeStampは少数以下切り捨て
-                float time = Float.parseFloat(ts);
-                message.putInt("timeStamp", (int)time);
+                double time = Double.parseDouble(ts);
+                message.putLong("timeStamp", (long)time);
 
                 // 送信者情報を変換
                 SlackManager.ListInfo info = userMap.get(user);
@@ -177,6 +181,11 @@ public class SlackMessageHookDeviceService extends DConnectMessageService implem
                     message.putString("mimeType", mimeType);
                 }
 
+                // GetMessageのために一定時間イベントを保持する
+                eventHistory.add(message);
+                // 一定時間経過したメッセージを削除する
+                truncateHistory();
+
                 // Eventに値をおくる.
                 for (Event event : events) {
                     Intent intent = EventManager.createEventMessage(event);
@@ -187,7 +196,9 @@ public class SlackMessageHookDeviceService extends DConnectMessageService implem
         }
     }
 
-    // ユーザーリスト取得
+    /**
+     * ユーザーリスト取得
+     */
     private void fetchUserList() {
         SlackManager.INSTANCE.getUserList(new SlackManager.FinishCallback<ArrayList<SlackManager.ListInfo>>() {
             @Override
@@ -205,6 +216,32 @@ public class SlackMessageHookDeviceService extends DConnectMessageService implem
                 }
             }
         });
+    }
 
+    /**
+     * メッセージ履歴を取得する
+     * @return 履歴
+     */
+    public List<Bundle> getHistory() {
+        // 一定時間経過したメッセージを削除してから返す
+        truncateHistory();
+        return eventHistory;
+    }
+
+    /**
+     * 一定時間経過したメッセージを削除する
+     */
+    private void truncateHistory() {
+        Iterator itr = eventHistory.iterator();
+        long limit = System.currentTimeMillis() / 1000L - MESSAGE_HOLD_LIMIT;
+        while(itr.hasNext()){
+            Bundle bundle = (Bundle)itr.next();
+            long timeStamp = bundle.getLong("timeStamp");
+            if (timeStamp < limit) {
+                itr.remove();
+            } else {
+                break;
+            }
+        }
     }
 }

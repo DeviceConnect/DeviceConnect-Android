@@ -51,6 +51,37 @@ public class SlackMessageHookProfile extends MessageHookProfile {
     }
 
     @Override
+    protected boolean onGetMessage(Intent request, final Intent response, String serviceId) {
+
+        // ServiceIDチェック
+        if (checkServiceId(serviceId, response)) {
+            return true;
+        }
+
+        // 接続チェック
+        if (!SlackManager.INSTANCE.isConnected()) {
+            MessageUtils.setUnknownError(response, "Not connected to the Slack server");
+            return true;
+        }
+
+        new Thread() {
+            @Override
+            public void run() {
+                // 履歴を返す
+                SlackMessageHookDeviceService service = (SlackMessageHookDeviceService) getContext();
+                List<Bundle> history = service.getHistory();
+                Bundle[] bundles = new Bundle[history.size()];
+                history.toArray(bundles);
+                response.putExtra(PARAM_MESSAGES, bundles);
+                setResult(response, DConnectMessage.RESULT_OK);
+                service.sendResponse(response);
+            }
+        }.start();
+
+        return false;
+    }
+
+    @Override
     protected boolean onGetChannel(Intent request, final Intent response, String serviceId) {
 
         // ServiceIDチェック

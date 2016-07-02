@@ -66,4 +66,10 @@ public interface MessageHookProfileConstants extends DConnectProfileConstants {
      * Parameter: {@value} .
      */
     String PARAM_MIME_TYPE = "mimeType";
+
+    /**
+     * Parameter: {@value} .
+     */
+    String PARAM_MESSAGES = "messages";
+
 }

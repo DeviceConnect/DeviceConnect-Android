@@ -35,14 +35,18 @@ public class AuthorizationProfile extends DConnectProfile implements Authorizati
     }
 
     @Override
-    protected boolean onGetRequest(final Intent request, final Intent response) {
+    public boolean onRequest(final Intent request, final Intent response) {
         // Local OAuthを使用しない場合にはNot Supportを返却する
         DConnectSettings settings = DConnectSettings.getInstance();
         if (!settings.isUseALocalOAuth()) {
-            MessageUtils.setNotSupportProfileError(response);
+            sendNotSupportProfileError(request, response);
             return true;
         }
+        return super.onRequest(request, response);
+    }
 
+    @Override
+    protected boolean onGetRequest(final Intent request, final Intent response) {
         String attribute = getAttribute(request);
         if (ATTRIBUTE_GRANT.equalsIgnoreCase(attribute)) {
             onGetCreateClient(request, response);
@@ -153,6 +157,16 @@ public class AuthorizationProfile extends DConnectProfile implements Authorizati
      */
     private void sendUnknownAttributeError(final Intent request, final Intent response) {
         MessageUtils.setUnknownAttributeError(response);
+        ((DConnectService) getContext()).sendResponse(request, response);
+    }
+
+    /**
+     * Authorizationでサポートされていないattributeが指定されていたときのエラーを返却する.
+     * @param request リクエスト
+     * @param response レスポンス
+     */
+    private void sendNotSupportProfileError(final Intent request, final Intent response) {
+        MessageUtils.setNotSupportProfileError(response);
         ((DConnectService) getContext()).sendResponse(request, response);
     }
 }

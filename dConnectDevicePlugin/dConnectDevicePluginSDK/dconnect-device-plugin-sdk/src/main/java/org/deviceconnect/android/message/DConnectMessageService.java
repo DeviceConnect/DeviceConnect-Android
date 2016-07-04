@@ -155,6 +155,21 @@ public abstract class DConnectMessageService extends Service implements DConnect
             onRequest(intent, MessageUtils.createResponseIntent(intent));
         }
 
+        if (checkManagerUninstall(intent)) {
+            onManagerUninstalled();
+        }
+
+        if (checkManagerTerminate(action)) {
+            onManagerTerminated();
+        }
+
+        if (checkManagerEventTransmitDisconnect(action)) {
+            onManagerEventTransmitDisconnected(intent.getStringExtra(IntentDConnectMessage.EXTRA_SESSION_KEY));
+        }
+
+        if (checkDevicePluginReset(action)) {
+            onDevicePluginReset();
+        }
         return START_STICKY;
     }
 
@@ -174,6 +189,44 @@ public abstract class DConnectMessageService extends Service implements DConnect
         for (MessageConverter converter : mRequestConverters) {
             converter.convert(request);
         }
+    }
+
+    /**
+     * Device Connect Managerがアンインストールされたかをチェックします.
+     * @param intent intentパラメータ
+     * @return アンインストール時はtrue、それ以外はfalse
+     */
+    private boolean checkManagerUninstall(final Intent intent) {
+        return Intent.ACTION_PACKAGE_FULLY_REMOVED.equals(intent.getAction()) &&
+                intent.getExtras().getBoolean(Intent.EXTRA_DATA_REMOVED) &&
+                intent.getDataString().contains("package:org.deviceconnect.android.manager");
+    }
+
+    /**
+     * Device Connect Manager 正常終了通知を受信したかをチェックします.
+     * @param action チェックするアクション
+     * @return Manager 正常終了検知でtrue、それ以外はfalse
+     */
+    private boolean checkManagerTerminate(String action) {
+        return IntentDConnectMessage.ACTION_MANAGER_TERMINATED.equals(action);
+    }
+
+    /**
+     * Device Connect Manager のEvent 送信経路切断通知を受信したかチェックします.
+     * @param action チェックするアクション
+     * @return 検知受信でtrue、それ以外はfalse
+     */
+    private boolean checkManagerEventTransmitDisconnect(String action) {
+        return IntentDConnectMessage.ACTION_EVENT_TRANSMIT_DISCONNECT.equals(action);
+    }
+
+    /**
+     * Device Plug-inへのReset要求を受信したかチェックします.
+     * @param action チェックするアクション
+     * @return Reset要求受信でtrue、それ以外はfalse
+     */
+    private boolean checkDevicePluginReset(String action) {
+        return IntentDConnectMessage.ACTION_DEVICEPLUGIN_RESET.equals(action);
     }
 
     /**
@@ -368,5 +421,34 @@ public abstract class DConnectMessageService extends Service implements DConnect
      */
     public boolean isUseLocalOAuth() {
         return mUseLocalOAuth;
+    }
+
+    /**
+     * Device Connect Managerがアンインストールされた時に呼ばれる処理部.
+     */
+    protected void onManagerUninstalled() {
+        mLogger.info("SDK : onManagerUninstalled");
+    }
+
+    /**
+     * Device Connect Managerの正常終了通知を受信した時に呼ばれる処理部.
+     */
+    protected void onManagerTerminated() {
+        mLogger.info("SDK : on ManagerTerminated");
+    }
+
+    /**
+     * Device Connect ManagerのEvent送信経路切断通知を受信した時に呼ばれる処理部.
+     * @param sessionKey セッションキー
+     */
+    protected void onManagerEventTransmitDisconnected(String sessionKey) {
+        mLogger.info("SDK : onManagerEventTransmitDisconnected");
+    }
+
+    /**
+     * Device Plug-inへのReset要求を受信した時に呼ばれる処理部.
+     */
+    protected void onDevicePluginReset() {
+        mLogger.info("SDK : onDevicePluginReset");
     }
 }

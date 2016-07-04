@@ -87,18 +87,6 @@ public final class LinkingUtil {
     private LinkingUtil() {
     }
 
-    public static boolean hasSensor(final LinkingDevice device) {
-        return device.getSensor() != null;
-    }
-
-    public static boolean hasLED(final LinkingDevice device) {
-        return device.isLED() && device.getIllumination() != null;
-    }
-
-    public static boolean hasVibration(LinkingDevice device) {
-        return device.getVibration() != null;
-    }
-
     public static IlluminationData.Setting getDefaultOffSettingOfLight(final LinkingDevice device) {
         byte[] illumination = device.getIllumination();
         if (illumination == null) {
@@ -181,7 +169,77 @@ public final class LinkingUtil {
         return false;
     }
 
-    public static float IEEE754(int value, int fraction, int exponent, boolean sign) {
+    public static int floatToIntIEEE754(float value, int fraction, int exponent, boolean sign) {
+        float tmpValue = Math.abs(value);
+
+        int mask = mask(fraction);
+        int bias = (int) Math.pow(2, exponent - 1) - 1;
+        int integer = (int) Math.floor(tmpValue);
+        float decimal = tmpValue - (float) integer;
+
+        int d = getDecimal(decimal, fraction);
+        int v = (integer << fraction);
+
+        v |= d;
+
+        int count = 0;
+        if (integer > 0) {
+            count = getCount(integer, exponent);
+            v = (v >> count) & mask;
+        } else {
+            int bit = (1 << (fraction - 1));
+            for (int i = 0; i < fraction; i++) {
+                v = ((v << 1) & mask);
+                count--;
+                if ((v & bit) != 0) {
+                    break;
+                }
+            }
+            v = ((v << 1) & mask);
+            count--;
+        }
+
+        bias += count;
+
+        v = (bias << fraction) | v;
+        if (sign && value < 0) {
+            v = (v | (1 << (exponent + fraction)));
+        }
+
+        return v;
+    }
+
+    private static int getCount(int v, int exponent) {
+        int result = 0;
+        int bit = 1;
+        for (int i = 0; i < exponent; i++) {
+            if ((v & bit) != 0) {
+                result = i;
+            }
+            bit <<= 1;
+        }
+        return result;
+    }
+
+    private static int getDecimal(float value, int fraction) {
+        int v = 0;
+        while (fraction > 0) {
+            fraction--;
+            float tmp = value * 2;
+            if (tmp < 1.0f) {
+                value = tmp;
+            } else if (tmp > 1) {
+                v |= (1 << fraction);
+                value = tmp - 1.0f;
+            } else {
+                v |= (1 << fraction);
+                break;
+            }
+        }
+        return v;
+    }
+
+    public static float intToFloatIEEE754(int value, int fraction, int exponent, boolean sign) {
         if (value == 0) {
             return 0.0f;
         }

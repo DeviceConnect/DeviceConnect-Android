@@ -84,6 +84,17 @@ public class LinkingDeviceManager {
             device.setDisplayName("Linking:" + info.getName() + " (" + info.getBdaddress() + ")");
             device.setFeature(info.getFeature());
             devices.add(device);
+
+            if (BuildConfig.DEBUG) {
+                Log.d(TAG, "####" + device);
+                Log.d(TAG, "####LED: " + device.isLED());
+                Log.d(TAG, "####Gyro: " + device.isGyro());
+                Log.d(TAG, "####Accel: " + device.isAcceleration());
+                Log.d(TAG, "####Compass: " + device.isCompass());
+                Log.d(TAG, "####Battery: " + device.isBattery());
+                Log.d(TAG, "####Humidity: " + device.isHumidity());
+                Log.d(TAG, "####Temperature: " + device.isTemperature());
+            }
         }
         return devices;
     }
@@ -232,7 +243,7 @@ public class LinkingDeviceManager {
     }
 
     public List<LinkingDevice> getStartedRangeDevices() {
-        return mSensorDeviceHolders;
+        return mRangeDeviceHolders;
     }
 
     public boolean isStartRange(final LinkingDevice device) {

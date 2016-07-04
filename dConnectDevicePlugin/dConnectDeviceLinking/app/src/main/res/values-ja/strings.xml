@@ -92,6 +92,7 @@
     <string name="activity_device_pattern_list">パターンリスト</string>
     <string name="activity_device_not_support_led">このデバイスはLEDをサポートしていません。</string>
     <string name="activity_device_not_support_vibration">このデバイスはバイブレーションをサポートしていません。</string>
+    <string name="activity_device_not_support_sensor">このデバイスはセンサーをサポートしていません。</string>
     <string name="activity_device_sensor_value">x:%1$f\ny:%2$f\nz:%3$f\ntime:%4$d</string>
 
     <string name="activity_beacon_title">Linkingビーコン確認</string>

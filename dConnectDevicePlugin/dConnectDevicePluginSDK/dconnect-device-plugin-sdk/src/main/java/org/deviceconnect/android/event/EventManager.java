@@ -109,7 +109,11 @@ public enum EventManager {
         Event event = createEvent(request);
         return mController.removeEvent(event);
     }
-    
+
+    public EventError removeEvent(final Event event) {
+        return mController.removeEvent(event);
+    }
+
     /**
      * 指定されたセッションキーに紐づくイベント情報を解除する.
      * 
@@ -120,7 +124,7 @@ public enum EventManager {
         checkState();
         return mController.removeEvents(sessionKey);
     }
-    
+
     /**
      * イベントを全て削除する.
      * 
@@ -205,7 +209,19 @@ public enum EventManager {
         checkState();
         return getEventList(profile, null, attribute);
     }
-    
+
+    /**
+     * 指定されたAPIに紐づくイベント情報の一覧を取得する.
+     *
+     * @param profile プロファイル名
+     * @param attribute アトリビュート名
+     * @return イベントの一覧
+     */
+    public List<Event> getEventList(final String sessionKey) {
+        checkState();
+        return mController.getEvents(sessionKey);
+    }
+
     /**
      * イベントデータからイベントメッセージ用のIntentを生成する.
      * 取得したIntentに適宜イベントオブジェクトを設定し送信すること。

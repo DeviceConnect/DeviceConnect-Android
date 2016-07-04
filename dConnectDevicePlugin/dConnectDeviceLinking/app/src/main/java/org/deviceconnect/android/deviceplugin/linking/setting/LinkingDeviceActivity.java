@@ -520,7 +520,7 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
     }
 
     private void onClickLED(boolean isOn) {
-        if (mDevice.getIllumination() == null) {
+        if (!mDevice.isLED()) {
             Toast.makeText(this, getString(R.string.activity_device_not_support_led), Toast.LENGTH_SHORT).show();
             return;
         }
@@ -530,7 +530,7 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
     }
 
     private void onClickVibration(final boolean isOn) {
-        if (mDevice.getVibration() == null) {
+        if (!mDevice.isVibration()) {
             Toast.makeText(this, getString(R.string.activity_device_not_support_vibration), Toast.LENGTH_SHORT).show();
             return;
         }
@@ -540,6 +540,11 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
     }
 
     private void onClickSensor(final boolean isOn) {
+        if (!mDevice.isGyro() && !mDevice.isAcceleration() && !mDevice.isCompass()) {
+            Toast.makeText(this, getString(R.string.activity_device_not_support_sensor), Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         LinkingDeviceManager mgr = getLinkingDeviceManager();
         if (isOn) {
             mgr.startSensor(mDevice);

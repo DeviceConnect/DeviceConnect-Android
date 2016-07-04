@@ -108,7 +108,11 @@ public class LinkingDevice {
     }
 
     public boolean isLED() {
-        return (mFeature & LED) == LED;
+        return mIllumination != null;
+    }
+
+    public boolean isVibration() {
+        return mVibration != null;
     }
 
     public boolean isGyro() {
@@ -165,6 +169,6 @@ public class LinkingDevice {
 
     @Override
     public String toString() {
-        return "Address: " + getBdAddress() + "\n ModelId: " + getModelId() + "\nUniqueId: " + getUniqueId();
+        return "Address: " + getBdAddress() + "\n ModelId: " + getModelId() + "\nUniqueId: " + getUniqueId() + "\nFeature: " + getFeature();
     }
 }

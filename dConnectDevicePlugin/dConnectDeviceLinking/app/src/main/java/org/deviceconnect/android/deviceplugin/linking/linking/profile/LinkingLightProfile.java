@@ -13,7 +13,6 @@ import org.deviceconnect.android.deviceplugin.linking.LinkingApplication;
 import org.deviceconnect.android.deviceplugin.linking.LinkingDevicePluginService;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingDevice;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingDeviceManager;
-import org.deviceconnect.android.deviceplugin.linking.linking.LinkingUtil;
 import org.deviceconnect.android.deviceplugin.linking.linking.service.LinkingDeviceService;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.LightProfile;
@@ -137,7 +136,7 @@ public class LinkingLightProfile extends LightProfile {
             return null;
         }
 
-        if (!LinkingUtil.hasLED(device)) {
+        if (!device.isLED()) {
             MessageUtils.setIllegalDeviceStateError(response, "device has not LED");
             return null;
         }

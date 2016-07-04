@@ -12,7 +12,6 @@ import org.deviceconnect.android.deviceplugin.linking.LinkingApplication;
 import org.deviceconnect.android.deviceplugin.linking.LinkingDevicePluginService;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingDevice;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingDeviceManager;
-import org.deviceconnect.android.deviceplugin.linking.linking.LinkingUtil;
 import org.deviceconnect.android.deviceplugin.linking.linking.service.LinkingDeviceService;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.VibrationProfile;
@@ -102,7 +101,7 @@ public class LinkingVibrationProfile extends VibrationProfile {
             return null;
         }
 
-        if (!LinkingUtil.hasVibration(device)) {
+        if (!device.isVibration()) {
             MessageUtils.setNotSupportProfileError(response, "device has not vibration");
             return null;
         }

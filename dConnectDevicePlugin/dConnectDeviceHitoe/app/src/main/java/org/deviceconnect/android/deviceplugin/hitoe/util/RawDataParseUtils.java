@@ -176,7 +176,12 @@ public final class RawDataParseUtils {
         }
         String[] lineList=raw.split(HitoeConstants.BR);
         String[] poseList = lineList[0].split(HitoeConstants.COMMA, -1);
-        long timestamp  = Long.parseLong(poseList[0]);
+        long timestamp  = 0;
+        try {
+            timestamp = Long.parseLong(poseList[0]);
+        } catch (NumberFormatException e) {
+            return pose;
+        }
         pose.setTimeStamp(timestamp);
         pose.setTimeStampString(nowTimeStampString(timestamp));
 
@@ -219,7 +224,12 @@ public final class RawDataParseUtils {
     public static WalkStateData parseWalkState(final WalkStateData data, final String raw) {
         String[] lineList=raw.split(HitoeConstants.BR);
         String[] walkList = lineList[0].split(HitoeConstants.COMMA, -1);
-        long timestamp  = Long.parseLong(walkList[0]);
+        long timestamp  = 0;
+        try {
+            timestamp = Long.parseLong(walkList[0]);
+        } catch (NumberFormatException e) {
+            return data;
+        }
         data.setTimeStamp(timestamp);
         data.setTimeStampString(nowTimeStampString(timestamp));
         data.setStep(Integer.parseInt(walkList[1]));
@@ -244,6 +254,9 @@ public final class RawDataParseUtils {
     public static WalkStateData parseWalkStateForBalance(final WalkStateData data, final String raw) {
         String[] lineList=raw.split(HitoeConstants.BR);
         String[] walkList = lineList[0].split(HitoeConstants.COMMA, -1);
+        if (walkList.length <= 1) {
+            return data;
+        }
         data.setBalance(Double.parseDouble(walkList[1]));
         return data;
     }

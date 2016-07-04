@@ -25,22 +25,13 @@
             android:orientation="vertical">
 
             <ImageView
-                android:id="@+id/image_battery"
-                android:src="@drawable/mark_battery01"
-                android:layout_gravity="center"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:padding="10dp"/>
-
-            <TextView
-                android:id="@+id/battery_value"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:text="--"
+                android:id="@+id/pose_image"
+                android:src="@drawable/pose_default"
                 android:padding="10dp"
-                android:textColor="#000000"
-                android:textSize="80sp"/>
+                android:layout_gravity="center"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+
 
         </LinearLayout>
 
@@ -48,21 +39,31 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_gravity="center_vertical">
+            android:orientation="horizontal">
             <Button
                 android:id="@+id/button_register"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:background="@drawable/button_blue"
-                android:text="@string/bluetooth_settings_ble_permission_off"
-                android:layout_marginLeft="50dp"
-                android:layout_marginRight="50dp"
+                android:text="@string/button_register"
+                android:layout_marginLeft="20dp"
+                android:layout_marginRight="20dp"
                 android:textColor="#FFFFFF"
                 android:textSize="30sp"/>
 
 
+            <Button
+                android:id="@+id/button_unregister"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@drawable/button_blue"
+                android:text="@string/button_unregister"
+                android:layout_marginLeft="20dp"
+                android:layout_marginRight="20dp"
+                android:textColor="#FFFFFF"
+                android:textSize="30sp"/>
         </LinearLayout>
     </LinearLayout>
 

@@ -1,8 +1,13 @@
 package org.deviceconnect.android.deviceplugin.hitoe.activity;
 
 import android.app.ActionBar;
+import android.bluetooth.BluetoothAdapter;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTransaction;
@@ -12,8 +17,14 @@ import android.widget.ListView;
 
 import org.deviceconnect.android.deviceplugin.hitoe.HitoeApplication;
 import org.deviceconnect.android.deviceplugin.hitoe.data.HitoeManager;
+import org.deviceconnect.android.deviceplugin.hitoe.fragment.HitoeProfileBatteryFragment;
+import org.deviceconnect.android.deviceplugin.hitoe.fragment.HitoeProfileDeviceOrientationFragment;
+import org.deviceconnect.android.deviceplugin.hitoe.fragment.HitoeProfileECGFragment;
 import org.deviceconnect.android.deviceplugin.hitoe.fragment.HitoeProfileHealthFragment;
 import org.deviceconnect.android.deviceplugin.hitoe.fragment.HitoeProfileListFragment;
+import org.deviceconnect.android.deviceplugin.hitoe.fragment.HitoeProfilePoseEstimationFragment;
+import org.deviceconnect.android.deviceplugin.hitoe.fragment.HitoeProfileStressEstimationFragment;
+import org.deviceconnect.android.deviceplugin.hitoe.fragment.HitoeProfileWalkStateFragment;
 
 /**
  * This activity is hitoe debug screen.
@@ -44,6 +55,24 @@ public class HitoeDeviceControlActivity extends FragmentActivity {
     private ListView mProfileListView;
     private ArrayAdapter<String> mAdapter;
     private HitoeManager mManager;
+    protected final Handler mHandler = new Handler();
+
+    /**
+     * Received a event that Bluetooth has been changed.
+     */
+    private final BroadcastReceiver mSensorReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            if (BluetoothAdapter.ACTION_STATE_CHANGED.equals(action)) {
+                int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, -1);
+                if (state == BluetoothAdapter.STATE_OFF) {
+                    finish();
+                }
+            }
+        }
+    };
+
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -59,6 +88,19 @@ public class HitoeDeviceControlActivity extends FragmentActivity {
         }
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
+        registerReceiver(mSensorReceiver, filter, null, mHandler);
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        unregisterReceiver(mSensorReceiver);
+    }
     @Override
     public boolean onOptionsItemSelected(final MenuItem item) {
 
@@ -89,6 +131,36 @@ public class HitoeDeviceControlActivity extends FragmentActivity {
                 moveFragment(false, heartRateProfile);
                 heartRateProfile.setArguments(args);
                 break;
+            case CONTROL_PAGE_BATTERY:
+                HitoeProfileBatteryFragment batteryProfile = new HitoeProfileBatteryFragment();
+                moveFragment(false, batteryProfile);
+                batteryProfile.setArguments(args);
+                break;
+            case CONTROL_PAGE_DEVICEORIENTATION:
+                HitoeProfileDeviceOrientationFragment deviceOrientationProfile = new HitoeProfileDeviceOrientationFragment();
+                moveFragment(false, deviceOrientationProfile);
+                deviceOrientationProfile.setArguments(args);
+                break;
+            case CONTROL_PAGE_ECG:
+                HitoeProfileECGFragment ecgProfile = new HitoeProfileECGFragment();
+                moveFragment(false, ecgProfile);
+                ecgProfile.setArguments(args);
+                break;
+            case CONTROL_PAGE_STRESS:
+                HitoeProfileStressEstimationFragment stressProfile = new HitoeProfileStressEstimationFragment();
+                moveFragment(false, stressProfile);
+                stressProfile.setArguments(args);
+                break;
+            case CONTROL_PAGE_POSE:
+                HitoeProfilePoseEstimationFragment poseProfile = new HitoeProfilePoseEstimationFragment();
+                moveFragment(false, poseProfile);
+                poseProfile.setArguments(args);
+                break;
+            case CONTROL_PAGE_WALK:
+                HitoeProfileWalkStateFragment walkProfile = new HitoeProfileWalkStateFragment();
+                moveFragment(false, walkProfile);
+                walkProfile.setArguments(args);
+                break;
 
         }
 
@@ -112,7 +184,6 @@ public class HitoeDeviceControlActivity extends FragmentActivity {
             t.addToBackStack(null);
         }
         t.commit();
-
     }
 
 }

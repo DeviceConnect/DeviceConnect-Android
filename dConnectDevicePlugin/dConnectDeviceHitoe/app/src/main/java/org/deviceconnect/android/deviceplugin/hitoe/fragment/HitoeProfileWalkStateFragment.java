@@ -17,11 +17,10 @@ import android.widget.TextView;
 import org.deviceconnect.android.deviceplugin.hitoe.HitoeApplication;
 import org.deviceconnect.android.deviceplugin.hitoe.R;
 import org.deviceconnect.android.deviceplugin.hitoe.activity.HitoeDeviceControlActivity;
-import org.deviceconnect.android.deviceplugin.hitoe.data.HeartData;
-import org.deviceconnect.android.deviceplugin.hitoe.data.HeartRateData;
 import org.deviceconnect.android.deviceplugin.hitoe.data.HitoeConstants;
 import org.deviceconnect.android.deviceplugin.hitoe.data.HitoeDevice;
 import org.deviceconnect.android.deviceplugin.hitoe.data.HitoeManager;
+import org.deviceconnect.android.deviceplugin.hitoe.data.WalkStateData;
 import org.deviceconnect.android.deviceplugin.hitoe.util.HitoeScheduler;
 
 
@@ -30,7 +29,7 @@ import org.deviceconnect.android.deviceplugin.hitoe.util.HitoeScheduler;
  *
  * @author NTT DOCOMO, INC.
  */
-public class HitoeProfileHealthFragment extends Fragment  implements HitoeScheduler.OnRegularNotify {
+public class HitoeProfileWalkStateFragment extends Fragment  implements HitoeScheduler.OnRegularNotify {
 
     /**
      * Current Hitoe Device object.
@@ -38,16 +37,34 @@ public class HitoeProfileHealthFragment extends Fragment  implements HitoeSchedu
     private HitoeDevice mCurrentDevice;
 
     /**
-     * HeartRate TextView.
+     * Step TextView.
      */
-    private TextView mHeartRate;
+    private TextView mStep;
+    /**
+     * State TextView.
+     */
+    private TextView mState;
+
+    /**
+     * Speed TextView.
+     */
+    private TextView mSpeed;
+    /**
+     * Distance TextView.
+     */
+    private TextView mDistance;
+    /**
+     * Balance TextView.
+     */
+    private TextView mBalance;
+
 
     private HitoeScheduler mScheduler;
 
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.fragment_heartrate_instructions, null);
+        View rootView = inflater.inflate(R.layout.fragment_walk_instructions, null);
         mScheduler = new HitoeScheduler(getActivity(), this, HitoeConstants.HR_TEXT_UPDATE_CYCLE_TIME,
                                                 HitoeConstants.HR_TEXT_UPDATE_CYCLE_TIME);
         rootView.findViewById(R.id.button_register).setOnClickListener(new View.OnClickListener() {
@@ -65,7 +82,12 @@ public class HitoeProfileHealthFragment extends Fragment  implements HitoeSchedu
             }
         });
         TextView title = (TextView) rootView.findViewById(R.id.view_title);
-        mHeartRate = (TextView) rootView.findViewById(R.id.heartrate_value);
+        mStep = (TextView) rootView.findViewById(R.id.walk_step);
+        mState = (TextView) rootView.findViewById(R.id.walk_state);
+        mSpeed = (TextView) rootView.findViewById(R.id.walk_speed);
+        mDistance = (TextView) rootView.findViewById(R.id.walk_distance);
+        mBalance = (TextView) rootView.findViewById(R.id.walk_balance);
+
         Bundle args = getArguments();
         if (args != null) {
 
@@ -76,7 +98,7 @@ public class HitoeProfileHealthFragment extends Fragment  implements HitoeSchedu
             mCurrentDevice = manager.getHitoeDeviceForServiceId(serviceId);
             if (mCurrentDevice != null) {
                 String[] profiles = getResources().getStringArray(R.array.support_profiles);
-                title.setText(profiles[2] + getString(R.string.title_control));
+                title.setText(profiles[6] + getString(R.string.title_control));
             }
         }
 
@@ -102,12 +124,13 @@ public class HitoeProfileHealthFragment extends Fragment  implements HitoeSchedu
                 HitoeApplication app = (HitoeApplication) getActivity().getApplication();
                 HitoeManager manager = app.getHitoeManager();
 
-                HeartRateData heart = manager.getHeartRateData(mCurrentDevice.getId());
-                if (heart != null) {
-                    HeartData rate = heart.getHeartRate();
-                    if (rate != null) {
-                        mHeartRate.setText("" + rate.getValue());
-                    }
+                WalkStateData walk = manager.getWalkStateData(mCurrentDevice.getId());
+                if (walk != null) {
+                    mStep.setText("" + walk.getStep() + "歩");
+                    mState.setText(walk.getState().getState());
+                    mSpeed.setText("" + walk.getSpeed() + "km/s");
+                    mDistance.setText("" + walk.getDistance() + "km");
+                    mBalance.setText("" + walk.getBalance());
                 }
 
             }

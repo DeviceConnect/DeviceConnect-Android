@@ -328,6 +328,9 @@ public class HitoeManager {
         mConnectionListeners.add(l);
     }
 
+    public void removeHitoeConnectionListener() {
+        mConnectionListeners.remove(0);
+    }
     /**
      * Set Hitoe HeartRate Listener
      * @param l listener
@@ -383,19 +386,14 @@ public class HitoeManager {
     public List<HitoeDevice> getRegisterDevices() {
         return mRegisterDevices;
     }
+
     public void readHitoeDeviceForDB() {
         List<HitoeDevice> list = mDBHelper.getHitoeDevices(null);
         for (int i = 0; i < list.size(); i++) {
             HitoeDevice device = list.get(i);
-            if (device.isRegisterFlag()) {
-                discoveryHitoeDevices();
-                connectHitoeDevice(device);
-            }
             if (mRegisterDevices.size() > 0) {
-                for (int j = 0; j < mRegisterDevices.size(); j++) {
-                    if (!mRegisterDevices.get(j).getId().equals(device.getId())) {
-                        mRegisterDevices.add(device);
-                    }
+                if (!containsDevice(device.getId())) {
+                    mRegisterDevices.add(device);
                 }
             } else {
                 mRegisterDevices.add(device);
@@ -575,6 +573,8 @@ public class HitoeManager {
         for (int i = 0; i < mRegisterDevices.size(); i++) {
             if (mRegisterDevices.get(i).getId().equals(device.getId())) {
                 mRegisterDevices.set(i, device);
+            } else {
+                mRegisterDevices.get(i).setResponseId(HitoeConstants.RES_ID_SENSOR_DISCONECT_NOTICE);
             }
         }
     }
@@ -584,14 +584,16 @@ public class HitoeManager {
      * @param device hitoe device
      */
     public void disconnectHitoeDevice(final HitoeDevice device) {
-        mHitoeSdkAPI.disconnect(device.getSessionId());
-        device.setRegisterFlag(false);
-        device.setSessionId(null);
-        mDBHelper.updateHitoeDevice(device);
+        HitoeDevice current = getHitoeDeviceForServiceId(device.getId());
+        int res = mHitoeSdkAPI.disconnect(current.getSessionId());
+        current.setRegisterFlag(false);
+        current.setSessionId(null);
+        mDBHelper.updateHitoeDevice(current);
+        // TODO 継続するかは、現在接続中のデバイスによる
         scanHitoeDevice(false);
         for (OnHitoeConnectionListener l: mConnectionListeners) {
             if (l != null) {
-                l.onDisconnected(device);
+                l.onDisconnected(res, device);
             }
         }
 
@@ -638,7 +640,6 @@ public class HitoeManager {
      */
     private void notifyDiscoveryHitoeDevice(final int responseId, final String responseString) {
         if (responseId != HitoeConstants.RES_ID_SUCCESS || responseString == null) {
-            //利用可能なセンサが見つからない
             return;
         }
 
@@ -654,12 +655,9 @@ public class HitoeManager {
                 if (mRegisterDevices.size() == 0) {
                     mRegisterDevices.add(device);
                 }
-                for (int j = 0; j < mRegisterDevices.size(); j++) {
-                    if (!mRegisterDevices.get(j).getId().equals(device.getId())) {
-                        mRegisterDevices.add(device);
-                    }
+                if (!containsDevice(device.getId())) {
+                    mRegisterDevices.add(device);
                 }
-
             }
         }
         for (HitoeDevice pin : pins) {
@@ -743,7 +741,6 @@ public class HitoeManager {
             return;
         }
         mRegisterDevices.get(pos).setAvailableData(responseString);
-        // データ種別文字列作成
         List<String> keyList = mRegisterDevices.get(pos).getAvailableRawDataList();
 
         StringBuilder paramStringBuilder = new StringBuilder();
@@ -1223,7 +1220,9 @@ public class HitoeManager {
         mRegisterDevices.get(pos).setRegisterFlag(false);
         mDBHelper.updateHitoeDevice(mRegisterDevices.get(pos));
         mHitoeSdkAPI.disconnect(device.getSessionId());
-        scanHitoeDevice(false);
+        if (mRegisterDevices.size() == 0) {
+            scanHitoeDevice(false);
+        }
 //        mRegisterDevices.remove(pos);
     }
 
@@ -1241,6 +1240,21 @@ public class HitoeManager {
             }
         }
         return pos;
+    }
+
+    /**
+     * Is exist register device.
+     * @param id service id
+     * @return true:exist false: non exist
+     */
+    private boolean containsDevice(final String id) {
+        boolean isRegister = false;
+        for (int i = 0; i < mRegisterDevices.size(); i++) {
+            if (mRegisterDevices.get(i).getId().equals(id)) {
+                isRegister = true;
+            }
+        }
+        return isRegister;
     }
 
     /**
@@ -1610,7 +1624,7 @@ public class HitoeManager {
          * Disconnected Listener.
          * @param device disconnect device
          */
-        void onDisconnected(final HitoeDevice device);
+        void onDisconnected(final int res, final HitoeDevice device);
     }
 
     /**

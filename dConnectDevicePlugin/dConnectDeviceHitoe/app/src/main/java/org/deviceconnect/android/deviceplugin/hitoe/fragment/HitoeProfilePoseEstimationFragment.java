@@ -12,17 +12,18 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import org.deviceconnect.android.deviceplugin.hitoe.HitoeApplication;
 import org.deviceconnect.android.deviceplugin.hitoe.R;
 import org.deviceconnect.android.deviceplugin.hitoe.activity.HitoeDeviceControlActivity;
-import org.deviceconnect.android.deviceplugin.hitoe.data.HeartData;
-import org.deviceconnect.android.deviceplugin.hitoe.data.HeartRateData;
 import org.deviceconnect.android.deviceplugin.hitoe.data.HitoeConstants;
 import org.deviceconnect.android.deviceplugin.hitoe.data.HitoeDevice;
 import org.deviceconnect.android.deviceplugin.hitoe.data.HitoeManager;
+import org.deviceconnect.android.deviceplugin.hitoe.data.PoseEstimationData;
 import org.deviceconnect.android.deviceplugin.hitoe.util.HitoeScheduler;
+import org.deviceconnect.profile.PoseEstimationProfileConstants;
 
 
 /**
@@ -30,7 +31,7 @@ import org.deviceconnect.android.deviceplugin.hitoe.util.HitoeScheduler;
  *
  * @author NTT DOCOMO, INC.
  */
-public class HitoeProfileHealthFragment extends Fragment  implements HitoeScheduler.OnRegularNotify {
+public class HitoeProfilePoseEstimationFragment extends Fragment  implements HitoeScheduler.OnRegularNotify {
 
     /**
      * Current Hitoe Device object.
@@ -38,16 +39,16 @@ public class HitoeProfileHealthFragment extends Fragment  implements HitoeSchedu
     private HitoeDevice mCurrentDevice;
 
     /**
-     * HeartRate TextView.
+     * Pose ImageView.
      */
-    private TextView mHeartRate;
+    private ImageView mPoseView;
 
     private HitoeScheduler mScheduler;
 
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.fragment_heartrate_instructions, null);
+        View rootView = inflater.inflate(R.layout.fragment_pose_instructions, null);
         mScheduler = new HitoeScheduler(getActivity(), this, HitoeConstants.HR_TEXT_UPDATE_CYCLE_TIME,
                                                 HitoeConstants.HR_TEXT_UPDATE_CYCLE_TIME);
         rootView.findViewById(R.id.button_register).setOnClickListener(new View.OnClickListener() {
@@ -65,7 +66,7 @@ public class HitoeProfileHealthFragment extends Fragment  implements HitoeSchedu
             }
         });
         TextView title = (TextView) rootView.findViewById(R.id.view_title);
-        mHeartRate = (TextView) rootView.findViewById(R.id.heartrate_value);
+        mPoseView = (ImageView) rootView.findViewById(R.id.pose_image);
         Bundle args = getArguments();
         if (args != null) {
 
@@ -76,13 +77,12 @@ public class HitoeProfileHealthFragment extends Fragment  implements HitoeSchedu
             mCurrentDevice = manager.getHitoeDeviceForServiceId(serviceId);
             if (mCurrentDevice != null) {
                 String[] profiles = getResources().getStringArray(R.array.support_profiles);
-                title.setText(profiles[2] + getString(R.string.title_control));
+                title.setText(profiles[5] + getString(R.string.title_control));
             }
         }
 
         return rootView;
     }
-
 
 
     @Override
@@ -102,12 +102,29 @@ public class HitoeProfileHealthFragment extends Fragment  implements HitoeSchedu
                 HitoeApplication app = (HitoeApplication) getActivity().getApplication();
                 HitoeManager manager = app.getHitoeManager();
 
-                HeartRateData heart = manager.getHeartRateData(mCurrentDevice.getId());
-                if (heart != null) {
-                    HeartData rate = heart.getHeartRate();
-                    if (rate != null) {
-                        mHeartRate.setText("" + rate.getValue());
+                PoseEstimationData pose = manager.getPoseEstimationData(mCurrentDevice.getId());
+                if (pose != null) {
+                    int poseResource = R.drawable.pose_default;
+                    if (pose.getPoseState() == PoseEstimationProfileConstants.PoseState.Backward) {
+                        poseResource = R.drawable.pose_backward;
+                    } else if (pose.getPoseState() == PoseEstimationProfileConstants.PoseState.FaceDown) {
+                        poseResource = R.drawable.pose_facedown;
+                    } else if (pose.getPoseState() == PoseEstimationProfileConstants.PoseState.FaceLeft) {
+                        poseResource = R.drawable.pose_faceleft;
+                    } else if (pose.getPoseState() == PoseEstimationProfileConstants.PoseState.FaceRight) {
+                        poseResource = R.drawable.pose_faceright;
+                    } else if (pose.getPoseState() == PoseEstimationProfileConstants.PoseState.FaceUp) {
+                        poseResource = R.drawable.pose_faceup;
+                    } else if (pose.getPoseState() == PoseEstimationProfileConstants.PoseState.Forward) {
+                        poseResource = R.drawable.pose_forward;
+                    } else if (pose.getPoseState() == PoseEstimationProfileConstants.PoseState.Leftside) {
+                        poseResource = R.drawable.pose_leftside;
+                    } else if (pose.getPoseState() == PoseEstimationProfileConstants.PoseState.Rightside) {
+                        poseResource = R.drawable.pose_rightside;
+                    } else if (pose.getPoseState() == PoseEstimationProfileConstants.PoseState.Standing) {
+                        poseResource = R.drawable.pose_standing;
                     }
+                    mPoseView.setImageResource(poseResource);
                 }
 
             }

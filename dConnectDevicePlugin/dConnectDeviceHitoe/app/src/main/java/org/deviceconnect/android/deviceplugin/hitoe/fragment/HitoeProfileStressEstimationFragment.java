@@ -6,6 +6,8 @@
  */
 package org.deviceconnect.android.deviceplugin.hitoe.fragment;
 
+import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -17,11 +19,10 @@ import android.widget.TextView;
 import org.deviceconnect.android.deviceplugin.hitoe.HitoeApplication;
 import org.deviceconnect.android.deviceplugin.hitoe.R;
 import org.deviceconnect.android.deviceplugin.hitoe.activity.HitoeDeviceControlActivity;
-import org.deviceconnect.android.deviceplugin.hitoe.data.HeartData;
-import org.deviceconnect.android.deviceplugin.hitoe.data.HeartRateData;
 import org.deviceconnect.android.deviceplugin.hitoe.data.HitoeConstants;
 import org.deviceconnect.android.deviceplugin.hitoe.data.HitoeDevice;
 import org.deviceconnect.android.deviceplugin.hitoe.data.HitoeManager;
+import org.deviceconnect.android.deviceplugin.hitoe.data.StressEstimationData;
 import org.deviceconnect.android.deviceplugin.hitoe.util.HitoeScheduler;
 
 
@@ -30,7 +31,7 @@ import org.deviceconnect.android.deviceplugin.hitoe.util.HitoeScheduler;
  *
  * @author NTT DOCOMO, INC.
  */
-public class HitoeProfileHealthFragment extends Fragment  implements HitoeScheduler.OnRegularNotify {
+public class HitoeProfileStressEstimationFragment extends Fragment  implements HitoeScheduler.OnRegularNotify {
 
     /**
      * Current Hitoe Device object.
@@ -40,16 +41,18 @@ public class HitoeProfileHealthFragment extends Fragment  implements HitoeSchedu
     /**
      * HeartRate TextView.
      */
-    private TextView mHeartRate;
+    private TextView mLFHF;
 
     private HitoeScheduler mScheduler;
+    private GradientDrawable mLFHFGradientDrawable;
 
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.fragment_heartrate_instructions, null);
-        mScheduler = new HitoeScheduler(getActivity(), this, HitoeConstants.HR_TEXT_UPDATE_CYCLE_TIME,
-                                                HitoeConstants.HR_TEXT_UPDATE_CYCLE_TIME);
+
+        View rootView = inflater.inflate(R.layout.fragment_stress_instructions, null);
+        mScheduler = new HitoeScheduler(getActivity(), this, HitoeConstants.LFHF_TEXT_UPDATE_CYCLE_TIME,
+                                                HitoeConstants.LFHF_TEXT_UPDATE_CYCLE_TIME);
         rootView.findViewById(R.id.button_register).setOnClickListener(new View.OnClickListener() {
 
             @Override
@@ -65,7 +68,7 @@ public class HitoeProfileHealthFragment extends Fragment  implements HitoeSchedu
             }
         });
         TextView title = (TextView) rootView.findViewById(R.id.view_title);
-        mHeartRate = (TextView) rootView.findViewById(R.id.heartrate_value);
+        mLFHF = (TextView) rootView.findViewById(R.id.lfhf_value);
         Bundle args = getArguments();
         if (args != null) {
 
@@ -76,13 +79,12 @@ public class HitoeProfileHealthFragment extends Fragment  implements HitoeSchedu
             mCurrentDevice = manager.getHitoeDeviceForServiceId(serviceId);
             if (mCurrentDevice != null) {
                 String[] profiles = getResources().getStringArray(R.array.support_profiles);
-                title.setText(profiles[2] + getString(R.string.title_control));
+                title.setText(profiles[4] + getString(R.string.title_control));
             }
         }
-
+        mLFHFGradientDrawable = (GradientDrawable) mLFHF.getBackground();
         return rootView;
     }
-
 
 
     @Override
@@ -102,15 +104,41 @@ public class HitoeProfileHealthFragment extends Fragment  implements HitoeSchedu
                 HitoeApplication app = (HitoeApplication) getActivity().getApplication();
                 HitoeManager manager = app.getHitoeManager();
 
-                HeartRateData heart = manager.getHeartRateData(mCurrentDevice.getId());
-                if (heart != null) {
-                    HeartData rate = heart.getHeartRate();
-                    if (rate != null) {
-                        mHeartRate.setText("" + rate.getValue());
-                    }
+                StressEstimationData stress = manager.getStressEstimationData(mCurrentDevice.getId());
+                if (stress != null) {
+                    updateView(stress.getTimeStamp(), stress.getLFHFValue());
                 }
 
             }
         });
+    }
+
+    public void updateView(final long timestamp, final double lfhf) {
+
+        final int score_RGB;
+        final int score_R;
+        final int score_G;
+        final int score_B;
+
+        if (timestamp == -1) {
+
+            return;
+        }
+        score_RGB = (int) (150 * (lfhf / 5));
+        if(105 + score_RGB < 255) {
+            score_R = 105 + score_RGB;
+        } else {
+            score_R = 255;
+        }
+        if(255 - score_RGB > 0) {
+            score_G = 255 - score_RGB;
+            score_B = 255 - score_RGB;
+        } else {
+            score_G = 0;
+            score_B = 0;
+        }
+
+        mLFHF.setText("LF/HF:" + String.valueOf(lfhf));
+        mLFHFGradientDrawable.setColors(new int[]{0xFFCDFFFF, Color.rgb(score_R, score_G, score_B)});
     }
 }

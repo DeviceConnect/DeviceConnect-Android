@@ -22,6 +22,7 @@ import android.widget.TextView;
 import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.hitoe.HitoeApplication;
 import org.deviceconnect.android.deviceplugin.hitoe.R;
+import org.deviceconnect.android.deviceplugin.hitoe.data.HitoeConstants;
 import org.deviceconnect.android.deviceplugin.hitoe.data.HitoeDevice;
 import org.deviceconnect.android.deviceplugin.hitoe.data.HitoeManager;
 import org.deviceconnect.android.deviceplugin.hitoe.fragment.dialog.ErrorDialogFragment;
@@ -156,6 +157,7 @@ public abstract class HitoeListActivity extends FragmentActivity {
                     TextView textView = (TextView) mFooterView.findViewById(R.id.error_message);
                     textView.setText(getString(R.string.hitoe_setting_dialog_error_permission));
                     Button permission = (Button) mFooterView.findViewById(R.id.button_permission);
+                    permission.setVisibility(View.VISIBLE);
                     permission.setText(R.string.bluetooth_settings_ble_permission_off);
                     permission.setOnClickListener(new View.OnClickListener() {
 
@@ -187,6 +189,7 @@ public abstract class HitoeListActivity extends FragmentActivity {
                     TextView textView = (TextView) mFooterView.findViewById(R.id.error_message);
                     textView.setText(getString(R.string.hitoe_setting_dialog_disable_bluetooth));
                     Button bluetooth = (Button) mFooterView.findViewById(R.id.button_permission);
+                    bluetooth.setVisibility(View.VISIBLE);
                     bluetooth.setText(R.string.bluetooth_settings_button);
                     bluetooth.setOnClickListener(new View.OnClickListener() {
 
@@ -257,10 +260,10 @@ public abstract class HitoeListActivity extends FragmentActivity {
      * @param device BLE device that have heart rate service.
      */
     protected void disconnectDevice(final HitoeDevice device) {
-        getManager().disconnectHitoeDevice(device);
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
+                getManager().disconnectHitoeDevice(device);
                 HitoeDevice container = findDeviceContainerByAddress(device.getId());
                 if (container != null) {
                     container.setRegisterFlag(false);
@@ -417,7 +420,23 @@ public abstract class HitoeListActivity extends FragmentActivity {
         return false;
     }
 
-
+    /**
+     * Returns true if this address contains the mDeviceAdapter.
+     *
+     * @param address address of device
+     * @return true if address is an element of mDeviceAdapter, false otherwise
+     */
+    protected boolean containAddressForList(final String address) {
+        List<HitoeDevice> devices = createDeviceContainers();
+        int size = devices.size();
+        for (int i = 0; i < size; i++) {
+            HitoeDevice container = devices.get(i);
+            if (container.getId().equals(address)) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     protected class DeviceAdapter extends ArrayAdapter<HitoeDevice> {
         private LayoutInflater mInflater;
@@ -435,7 +454,6 @@ public abstract class HitoeListActivity extends FragmentActivity {
             }
 
             final HitoeDevice device = getItem(position);
-
             String name = device.getName();
             if (device.isRegisterFlag()) {
                 if (getManager().containConnectedHitoeDevice(device.getId())) {
@@ -504,7 +522,7 @@ public abstract class HitoeListActivity extends FragmentActivity {
                                         });
                                     }
                                 }
-                            },  10000);
+                            },  HitoeConstants.DISCOVERY_CYCLE_TIME);
 
                         }
                     }

@@ -42,9 +42,14 @@ public class HitoeScheduler {
 
     private long mWaitPeriod = SCAN_WAIT_PERIOD;
 
-    public HitoeScheduler(final Context context, final OnRegularNotify notify, final long period) {
+    private long mFirstWaitPeriod = SCAN_FIRST_WAIT_PERIOD;
+
+    public HitoeScheduler(final Context context, final OnRegularNotify notify, final long first, final long period) {
         mContext = context;
         mNotify = notify;
+        if (first > 0) {
+            mFirstWaitPeriod = first;
+        }
         if (period > 0) {
             mWaitPeriod = period;
         }
@@ -67,7 +72,7 @@ public class HitoeScheduler {
                         mNotify.onRegularNotify();
                     }
                 }
-            }, SCAN_FIRST_WAIT_PERIOD, mWaitPeriod, TimeUnit.MILLISECONDS);
+            }, mFirstWaitPeriod, mWaitPeriod, TimeUnit.MILLISECONDS);
         } else {
             mScanning = false;
             cancelScanTimer();

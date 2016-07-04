@@ -6,8 +6,12 @@
  */
 package org.deviceconnect.android.deviceplugin.hitoe.activity;
 
+import android.bluetooth.BluetoothAdapter;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.res.Resources;
 import android.os.Bundle;
 import android.view.View;
@@ -32,18 +36,49 @@ public class HitoeDeviceListActivity extends HitoeListActivity implements
                                                  AdapterView.OnItemClickListener,
                                                  AdapterView.OnItemLongClickListener {
 
+    /**
+     * Received a event that Bluetooth has been changed.
+     */
+    private final BroadcastReceiver mSensorReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            if (BluetoothAdapter.ACTION_STATE_CHANGED.equals(action)) {
+                addFooterView();
+            }
+        }
+    };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mEnableConnectedBtn = true;
+
+    }
+
+
+    @Override
+    public void onResume() {
+        super.onResume();
         mDeviceAdapter.clear();
         mDeviceAdapter.addAll(createDeviceContainers());
         mDeviceAdapter.notifyDataSetChanged();
         mListView.setOnItemClickListener(this);
         mListView.setOnItemLongClickListener(this);
         getManager().addHitoeConnectionListener(this);
-
+        mEnableConnectedBtn = true;
+        addFooterView();
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
+        registerReceiver(mSensorReceiver, filter, null, mHandler);
     }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        getManager().removeHitoeConnectionListener();
+        unregisterReceiver(mSensorReceiver);
+    }
+
 
     @Override
     protected void setUI() {
@@ -114,6 +149,7 @@ public class HitoeDeviceListActivity extends HitoeListActivity implements
                 HitoeDevice container = findDeviceContainerByAddress(device.getId());
                 if (container != null) {
                     container.setRegisterFlag(true);
+                    container.setSessionId(device.getSessionId());
                     mDeviceAdapter.notifyDataSetChanged();
                 }
 
@@ -138,6 +174,7 @@ public class HitoeDeviceListActivity extends HitoeListActivity implements
                     }
                     Resources res = getResources();
                     showErrorDialog(res.getString(R.string.hitoe_setting_dialog_error_message03));
+
                 } else if (device != null) {
                     showErrorDialogNotConnect(device.getName());
                 }
@@ -166,7 +203,14 @@ public class HitoeDeviceListActivity extends HitoeListActivity implements
     }
 
     @Override
-    public void onDisconnected(HitoeDevice device) {
+    public void onDisconnected(final int res, final HitoeDevice device) {
+        HitoeDevice container = findDeviceContainerByAddress(device.getId());
+        if (container != null) {
+            if (res != 0) {
+                container.setRegisterFlag(true);
+            }
+            mDeviceAdapter.notifyDataSetChanged();
+        }
 
     }
 }

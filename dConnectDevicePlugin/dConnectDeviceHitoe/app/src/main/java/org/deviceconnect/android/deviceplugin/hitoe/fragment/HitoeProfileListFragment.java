@@ -74,13 +74,6 @@ public class HitoeProfileListFragment extends Fragment implements AdapterView.On
 
 
     @Override
-    public void onResume() {
-        super.onResume();
-        // TODO BLEやパーミッションのときは、Activityを終了する。
-    }
-
-
-    @Override
     public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
         HitoeDeviceControlActivity control = (HitoeDeviceControlActivity) getActivity();
         control.movePage(i + 1);

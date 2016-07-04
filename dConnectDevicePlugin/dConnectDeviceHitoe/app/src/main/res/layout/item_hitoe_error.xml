@@ -17,7 +17,7 @@
         android:id="@+id/button_permission"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:visibility="gone"
+        android:visibility="visible"
         android:background="@drawable/button_blue"
         android:text="@string/bluetooth_settings_button"
         android:textColor="#FFFFFF"/>

@@ -16,7 +16,9 @@
             android:background="@color/title_background"
             android:gravity="center"
             android:textColor="@color/title_text"
-            android:textSize="@dimen/text_size_title"/>
+            android:textSize="@dimen/text_size_title"
+            android:layout_marginBottom="200dp"
+            />
 
         <LinearLayout
             android:layout_width="wrap_content"
@@ -24,23 +26,20 @@
             android:layout_gravity="center"
             android:orientation="vertical">
 
-            <ImageView
-                android:id="@+id/image_battery"
-                android:src="@drawable/mark_battery01"
-                android:layout_gravity="center"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:padding="10dp"/>
-
             <TextView
-                android:id="@+id/battery_value"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:text="--"
-                android:padding="10dp"
-                android:textColor="#000000"
-                android:textSize="80sp"/>
+                android:id="@+id/lfhf_value"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:text="LF/HF:―"
+                android:textSize="50dp"
+                android:background="@drawable/bg_stress"
+                android:gravity="center_vertical|center_horizontal"
+                android:padding="50dp"
+                android:layout_margin="5dp"
+                android:layout_marginBottom="5dp"
+                android:layout_marginRight="5dp"/>
+
 
         </LinearLayout>
 
@@ -49,20 +48,31 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_gravity="center_vertical">
+            android:paddingTop="100dp">
             <Button
                 android:id="@+id/button_register"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:background="@drawable/button_blue"
-                android:text="@string/bluetooth_settings_ble_permission_off"
-                android:layout_marginLeft="50dp"
-                android:layout_marginRight="50dp"
+                android:text="@string/button_register"
+                android:layout_marginLeft="20dp"
+                android:layout_marginRight="20dp"
                 android:textColor="#FFFFFF"
                 android:textSize="30sp"/>
 
 
+            <Button
+                android:id="@+id/button_unregister"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@drawable/button_blue"
+                android:text="@string/button_unregister"
+                android:layout_marginLeft="20dp"
+                android:layout_marginRight="20dp"
+                android:textColor="#FFFFFF"
+                android:textSize="30sp"/>
         </LinearLayout>
     </LinearLayout>
 

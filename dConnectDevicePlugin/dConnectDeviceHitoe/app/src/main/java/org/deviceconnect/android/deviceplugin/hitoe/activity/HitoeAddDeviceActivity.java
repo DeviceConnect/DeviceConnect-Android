@@ -21,6 +21,7 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import org.deviceconnect.android.deviceplugin.hitoe.R;
+import org.deviceconnect.android.deviceplugin.hitoe.data.HitoeConstants;
 import org.deviceconnect.android.deviceplugin.hitoe.data.HitoeDevice;
 import org.deviceconnect.android.deviceplugin.hitoe.data.HitoeManager;
 import org.deviceconnect.android.deviceplugin.hitoe.fragment.dialog.DefaultDialogFragment;
@@ -68,17 +69,17 @@ public class HitoeAddDeviceActivity extends HitoeListActivity  implements HitoeM
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mDeviceAdapter.clear();
-        mDeviceAdapter.notifyDataSetChanged();
-        mListView.setOnItemClickListener(this);
-        mEnableConnectedBtn = false;
-        mScheduler = new HitoeScheduler(this, this, -1);
     }
 
 
     @Override
     public void onResume() {
         super.onResume();
+        mDeviceAdapter.clear();
+        mDeviceAdapter.notifyDataSetChanged();
+        mListView.setOnItemClickListener(this);
+        mScheduler = new HitoeScheduler(this, this, -1, -1);
+        mEnableConnectedBtn = false;
         DefaultDialogFragment.showHitoeONStateDialog(this);
         registerBluetoothFilter();
         getManager().addHitoeConnectionListener(this);
@@ -95,7 +96,7 @@ public class HitoeAddDeviceActivity extends HitoeListActivity  implements HitoeM
     @Override
     public void onPause() {
         super.onPause();
-        getManager().addHitoeConnectionListener(null);
+        getManager().removeHitoeConnectionListener();
         mScheduler.scanHitoeDevice(false);
         dismissProgressDialog();
         dismissErrorDialog();
@@ -182,9 +183,9 @@ public class HitoeAddDeviceActivity extends HitoeListActivity  implements HitoeM
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
+                mDeviceAdapter.clear();
                 for (HitoeDevice device : devices) {
-                    if (!containAddressForAdapter(device.getId())
-                            && !device.isRegisterFlag()) {
+                    if (!device.isRegisterFlag()) {
                         mDeviceAdapter.add(device);
                     }
                 }
@@ -194,7 +195,7 @@ public class HitoeAddDeviceActivity extends HitoeListActivity  implements HitoeM
     }
 
     @Override
-    public void onDisconnected(final HitoeDevice device) {
+    public void onDisconnected(final int res, final HitoeDevice device) {
     }
 
     @Override
@@ -203,6 +204,7 @@ public class HitoeAddDeviceActivity extends HitoeListActivity  implements HitoeM
         if (hitoe == null) {
             return;
         }
+        mConnectingDevice = hitoe;
         if (hitoe.getPinCode() == null) {
             final Resources res = getResources();
             PinCodeDialogFragment pinDialog = PinCodeDialogFragment.newInstance();
@@ -238,7 +240,7 @@ public class HitoeAddDeviceActivity extends HitoeListActivity  implements HitoeM
                     });
                 }
             }
-        },  10000);
+        }, HitoeConstants.DISCOVERY_CYCLE_TIME);
 
     }
 

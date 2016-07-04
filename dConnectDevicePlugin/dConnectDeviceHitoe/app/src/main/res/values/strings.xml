@@ -73,4 +73,10 @@
     <string name="title_control">操作画面</string>
     <string name="button_register">登録</string>
     <string name="button_unregister">解除</string>
+
+    <string name="step">歩数</string>
+    <string name="state">歩行状態</string>
+    <string name="speed">歩行速度</string>
+    <string name="distance">歩行距離</string>
+    <string name="balance">左右バランス</string>
 </resources>

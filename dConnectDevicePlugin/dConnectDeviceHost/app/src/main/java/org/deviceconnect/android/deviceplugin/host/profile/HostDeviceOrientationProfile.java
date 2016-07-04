@@ -21,12 +21,14 @@ import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.android.profile.DeviceOrientationProfile;
+import org.deviceconnect.android.profile.api.DConnectApi;
+import org.deviceconnect.android.profile.api.DeleteApi;
+import org.deviceconnect.android.profile.api.GetApi;
+import org.deviceconnect.android.profile.api.PutApi;
 import org.deviceconnect.message.DConnectMessage;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * DeviceOrientation Profile.
@@ -84,29 +86,30 @@ public class HostDeviceOrientationProfile extends DeviceOrientationProfile imple
      */
     private static final long DEVICE_ORIENTATION_CACHE_TIME = 100;
 
-    @Override
-    protected boolean onGetOnDeviceOrientation(final Intent request, final Intent response, final String serviceId) {
-        boolean result = true;
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else {
-            result = getDeviceOrientationEvent(response);
-        }
-        return result;
-    }
+    private final DConnectApi mGetOnDeviceOrientationApi = new GetApi() {
 
-    @Override
-    protected boolean onPutOnDeviceOrientation(final Intent request, final Intent response, final String serviceId,
-            final String sessionKey) {
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else if (sessionKey == null) {
-            createEmptySessionKey(response);
-        } else {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_DEVICE_ORIENTATION;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            return getDeviceOrientationEvent(response);
+        }
+    };
+
+    private final DConnectApi mPutOnDeviceOrientationApi = new PutApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_DEVICE_ORIENTATION;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String sessionKey = getSessionKey(request);
+            String serviceId = getServiceID(request);
             // イベントの登録
             EventError error = EventManager.INSTANCE.addEvent(request);
             if (error == EventError.NONE) {
@@ -114,20 +117,19 @@ public class HostDeviceOrientationProfile extends DeviceOrientationProfile imple
             } else {
                 MessageUtils.setUnknownError(response, "Can not register event.");
             }
+            return true;
         }
-        return true;
-    }
+    };
 
-    @Override
-    protected boolean onDeleteOnDeviceOrientation(final Intent request, final Intent response, final String serviceId,
-            final String sessionKey) {
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else if (sessionKey == null) {
-            createEmptySessionKey(response);
-        } else {
+    private final DConnectApi mDeleteOnDeviceOrientationApi = new DeleteApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_DEVICE_ORIENTATION;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
             // イベントの解除
             EventError error = EventManager.INSTANCE.removeEvent(request);
             if (error == EventError.NONE) {
@@ -135,48 +137,14 @@ public class HostDeviceOrientationProfile extends DeviceOrientationProfile imple
             } else {
                 MessageUtils.setUnknownError(response, "Can not unregister event.");
             }
+            return true;
         }
-        return true;
-    }
+    };
 
-    /**
-     * サービスIDをチェックする.
-     * 
-     * @param serviceId サービスID
-     * @return <code>serviceId</code>がテスト用サービスIDに等しい場合はtrue、そうでない場合はfalse
-     */
-    private boolean checkServiceId(final String serviceId) {
-        String regex = HostServiceDiscoveryProfile.SERVICE_ID;
-        Pattern mPattern = Pattern.compile(regex);
-        Matcher match = mPattern.matcher(serviceId);
-        return match.find();
-    }
-
-    /**
-     * サービスIDが空の場合のエラーを作成する.
-     * 
-     * @param response レスポンスを格納するIntent
-     */
-    private void createEmptyServiceId(final Intent response) {
-        MessageUtils.setEmptyServiceIdError(response);
-    }
-
-    /**
-     * セッションキーが空の場合のエラーを作成する.
-     * 
-     * @param response レスポンスを格納するIntent
-     */
-    private void createEmptySessionKey(final Intent response) {
-        MessageUtils.setInvalidRequestParameterError(response, "sessionKey is invalid.");
-    }
-
-    /**
-     * デバイスが発見できなかった場合のエラーを作成する.
-     * 
-     * @param response レスポンスを格納するIntent
-     */
-    private void createNotFoundService(final Intent response) {
-        MessageUtils.setNotFoundServiceError(response);
+    public HostDeviceOrientationProfile() {
+        addApi(mGetOnDeviceOrientationApi);
+        addApi(mPutOnDeviceOrientationApi);
+        addApi(mDeleteOnDeviceOrientationApi);
     }
 
     /**

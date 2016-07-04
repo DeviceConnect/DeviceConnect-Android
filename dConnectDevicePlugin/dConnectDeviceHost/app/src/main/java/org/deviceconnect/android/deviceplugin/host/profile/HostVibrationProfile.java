@@ -14,8 +14,8 @@ import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.VibrationProfile;
 import org.deviceconnect.android.profile.api.DConnectApi;
-import org.deviceconnect.android.profile.spec.DConnectApiSpec;
-import org.deviceconnect.android.service.DConnectService;
+import org.deviceconnect.android.profile.api.DeleteApi;
+import org.deviceconnect.android.profile.api.PutApi;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
 import java.util.concurrent.Executors;
@@ -32,7 +32,7 @@ public class HostVibrationProfile extends VibrationProfile {
      */
     private boolean mIsCancelled = false;
 
-    private final DConnectApi mVibrationStartApi = new DConnectApi() {
+    private final DConnectApi mVibrationStartApi = new PutApi() {
 
         @Override
         public String getAttribute() {
@@ -40,13 +40,7 @@ public class HostVibrationProfile extends VibrationProfile {
         }
 
         @Override
-        public DConnectApiSpec.Method getMethod() {
-            return DConnectApiSpec.Method.PUT;
-        }
-
-        @Override
-        public boolean onRequest(final Intent request, final Intent response,
-                                 final DConnectService service) {
+        public boolean onRequest(final Intent request, final Intent response) {
             final long[] pattern = parsePattern(getPattern(request));
 
             if (pattern == null) {
@@ -108,7 +102,7 @@ public class HostVibrationProfile extends VibrationProfile {
         }
     };
 
-    private final DConnectApi mVibrationStopApi = new DConnectApi() {
+    private final DConnectApi mVibrationStopApi = new DeleteApi() {
 
         @Override
         public String getAttribute() {
@@ -116,13 +110,7 @@ public class HostVibrationProfile extends VibrationProfile {
         }
 
         @Override
-        public DConnectApiSpec.Method getMethod() {
-            return DConnectApiSpec.Method.DELETE;
-        }
-
-        @Override
-        public boolean onRequest(final Intent request, final Intent response,
-                                 final DConnectService service) {
+        public boolean onRequest(final Intent request, final Intent response) {
             Vibrator vibrator = (Vibrator) getContext().getSystemService(Context.VIBRATOR_SERVICE);
 
             if (vibrator == null || !vibrator.hasVibrator()) {

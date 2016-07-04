@@ -57,8 +57,6 @@ public class DConnectServiceManager implements DConnectServiceProvider {
             profile.setContext(mContext);
         }
         mDConnectServices.put(service.getId(), service);
-
-        Log.d("AAA", "mDConnectServices.size = " + mDConnectServices.size());
     }
 
     private String createPath(final String profileName, final DConnectApi api) {

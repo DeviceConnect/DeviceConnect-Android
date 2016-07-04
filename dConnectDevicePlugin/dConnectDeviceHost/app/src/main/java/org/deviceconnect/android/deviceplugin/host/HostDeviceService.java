@@ -45,7 +45,6 @@ import org.deviceconnect.android.deviceplugin.host.profile.HostMediaStreamingRec
 import org.deviceconnect.android.deviceplugin.host.profile.HostNotificationProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostPhoneProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostProximityProfile;
-import org.deviceconnect.android.deviceplugin.host.profile.HostServiceDiscoveryProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostSettingsProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostSystemProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostTouchProfile;
@@ -60,12 +59,9 @@ import org.deviceconnect.android.event.cache.MemoryCacheController;
 import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.MediaPlayerProfile;
-import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
-import org.deviceconnect.android.profile.ServiceInformationProfile;
 import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.android.provider.FileManager;
 import org.deviceconnect.android.service.DConnectService;
-import org.deviceconnect.android.service.DConnectServiceManager;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.profile.PhoneProfileConstants.CallState;
 
@@ -86,6 +82,12 @@ import java.util.logging.Logger;
  */
 @SuppressWarnings("deprecation")
 public class HostDeviceService extends DConnectMessageService {
+
+    /* サービスID. */
+    public static final String SERVICE_ID = "Host";
+
+    /* サービス名. */
+    public static final String SERVICE_NAME = "Host";
 
     /** ロガー. */
     private final Logger mLogger = Logger.getLogger("host.dplugin");
@@ -149,26 +151,25 @@ public class HostDeviceService extends DConnectMessageService {
 
         createRecorders(mFileMgr);
 
-        DConnectService hostService = new DConnectService("Host");
-        hostService.addProfile(new ServiceInformationProfile() {});
+        DConnectService hostService = new DConnectService(SERVICE_ID);
+        hostService.setName(SERVICE_NAME);
+        hostService.setOnline(true);
         hostService.addProfile(new HostBatteryProfile());
+        hostService.addProfile(new HostCanvasProfile());
+        hostService.addProfile(new HostConnectProfile(BluetoothAdapter.getDefaultAdapter()));
+        hostService.addProfile(new HostDeviceOrientationProfile());
+        hostService.addProfile(new HostFileDescriptorProfile(mFileDataManager));
+        hostService.addProfile(new HostFileProfile(mFileMgr));
+        hostService.addProfile(new HostKeyEventProfile());
+        hostService.addProfile(new HostMediaPlayerProfile());
+        hostService.addProfile(new HostMediaStreamingRecordingProfile(mRecorderMgr));
+        hostService.addProfile(new HostNotificationProfile());
+        hostService.addProfile(new HostPhoneProfile());
+        hostService.addProfile(new HostProximityProfile());
+        hostService.addProfile(new HostSettingsProfile());
+        hostService.addProfile(new HostTouchProfile());
         hostService.addProfile(new HostVibrationProfile());
-        DConnectServiceManager.INSTANCE.addService(hostService);
-
-        // add supported profiles
-        addProfile(new HostConnectProfile(BluetoothAdapter.getDefaultAdapter()));
-        addProfile(new HostNotificationProfile());
-        addProfile(new HostDeviceOrientationProfile());
-        addProfile(new HostMediaStreamingRecordingProfile(mRecorderMgr));
-        addProfile(new HostPhoneProfile());
-        addProfile(new HostSettingsProfile());
-        addProfile(new HostMediaPlayerProfile());
-        addProfile(new HostFileProfile(mFileMgr));
-        addProfile(new HostFileDescriptorProfile(mFileDataManager));
-        addProfile(new HostProximityProfile());
-        addProfile(new HostCanvasProfile());
-        addProfile(new HostTouchProfile());
-        addProfile(new HostKeyEventProfile());
+        getServiceProvider().addService(hostService);
 
         // バッテリー関連の処理と値の保持
         mHostBatteryManager = new HostBatteryManager();
@@ -504,16 +505,6 @@ public class HostDeviceService extends DConnectMessageService {
     @Override
     protected SystemProfile getSystemProfile() {
         return new HostSystemProfile();
-    }
-
-    @Override
-    protected ServiceInformationProfile getServiceInformationProfile() {
-        return new ServiceInformationProfile(this) {};
-    }
-
-    @Override
-    protected ServiceDiscoveryProfile getServiceDiscoveryProfile() {
-        return new HostServiceDiscoveryProfile(this);
     }
 
     /**

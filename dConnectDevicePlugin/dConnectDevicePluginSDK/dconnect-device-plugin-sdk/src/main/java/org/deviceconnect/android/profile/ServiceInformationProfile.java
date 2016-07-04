@@ -13,6 +13,7 @@ import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.Bundle;
 
 import org.deviceconnect.android.profile.api.DConnectApi;
+import org.deviceconnect.android.profile.api.GetApi;
 import org.deviceconnect.android.profile.spec.DConnectApiSpec;
 import org.deviceconnect.android.profile.spec.DConnectRequestParamSpec;
 import org.deviceconnect.android.profile.spec.IntegerRequestParamSpec;
@@ -28,20 +29,8 @@ import java.util.List;
  * Service Information プロファイル.
  * 
  * <p>
- * サービス情報を提供するAPI.<br>
- * サービス情報を提供するデバイスプラグインは当クラスを継承し、対応APIを実装すること。 <br>
+ * サービス情報を提供するAPI.
  * </p>
- * 
- * <h1>各API提供メソッド</h1>
- * <p>
- * System Profile の各APIへのリクエストに対し、以下のコールバックメソッド群が自動的に呼び出される。<br>
- * サブクラスは以下のメソッド群からデバイスプラグインが提供するAPI用のメソッドをオーバーライドし、機能を実装すること。<br>
- * オーバーライドされていない機能は自動的に非対応APIとしてレスポンスを返す。
- * </p>
- * <ul>
- * <li>System API [GET] :
- * {@link ServiceInformationProfile#onGetInformation(Intent, Intent, String)}</li>
- * </ul>
  * 
  * @author NTT DOCOMO, INC.
  */
@@ -55,12 +44,7 @@ public class ServiceInformationProfile extends DConnectProfile implements Servic
     /**
      * Service Information API.
      */
-    private final DConnectApi mServiceInformationApi = new DConnectApi() {
-
-        @Override
-        public Method getMethod() {
-            return Method.GET;
-        }
+    private final DConnectApi mServiceInformationApi = new GetApi() {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
@@ -77,22 +61,15 @@ public class ServiceInformationProfile extends DConnectProfile implements Servic
             // version
             setVersion(response, getCurrentVersionName());
 
-            // supports
+            // supports, supportApis
             List<DConnectProfile> profileList = getService().getProfileList();
-            List<DConnectApiSpec> supports = new ArrayList<DConnectApiSpec>();
             String[] profileNames = new String[profileList.size()];
             int i = 0;
             for (DConnectProfile profile : profileList) {
                 profileNames[i++] = profile.getProfileName();
-                for (DConnectApi api : profile.getApiList()) {
-                    DConnectApiSpec spec = api.getApiSpec();
-                    if (spec != null) {
-                        supports.add(spec);
-                    }
-                }
             }
             setSupports(response, profileNames);
-            setSupportApis(response, supports);
+            setSupportApis(response, profileList);
 
             setResult(response, DConnectMessage.RESULT_OK);
             return true;
@@ -208,14 +185,27 @@ public class ServiceInformationProfile extends DConnectProfile implements Servic
         setSupports(response, supports.toArray(new String[supports.size()]));
     }
 
-    public static void setSupportApis(final Intent response, final List<DConnectApiSpec> apiSpecs) {
+    public static void setSupportApis(final Intent response, final List<DConnectProfile> profileList) {
+        Bundle supportApisBundle = new Bundle();
+        for (DConnectProfile profile : profileList) {
+            String key = profile.getProfileName();
+            Bundle[] supportApis = createSupportApis(profile);
+            supportApisBundle.putParcelableArray(key, supportApis);
+        }
+        response.putExtra(PARAM_SUPPORT_APIS, supportApisBundle);
+    }
+
+    public static Bundle[] createSupportApis(final DConnectProfile profile) {
         List<Bundle> supports = new ArrayList<Bundle>();
-        for (DConnectApiSpec spec : apiSpecs) {
+        for (DConnectApi api : profile.getApiList()) {
             Bundle support = new Bundle();
-            setSupportApi(support, spec);
+            DConnectApiSpec spec = api.getApiSpec();
+            if (spec != null) {
+                setSupportApi(support, spec);
+            }
             supports.add(support);
         }
-        response.putExtra(PARAM_SUPPORT_APIS, supports.toArray(new Bundle[supports.size()]));
+        return supports.toArray(new Bundle[supports.size()]);
     }
 
     public static void setSupportApi(final Bundle api, final DConnectApiSpec spec) {

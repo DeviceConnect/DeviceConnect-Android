@@ -68,7 +68,7 @@
         "name": "Battery Status Charging Event API",
         "type": "event",
         "method": "PUT",
-        "path": "/gotapi/battery/onchargingchange",
+        "path": "/gotapi/battery/onChargingChange",
         "requestParams": [
             {
                 "name": "serviceId",
@@ -81,7 +81,7 @@
         "name": "Battery Status Charging Event API",
         "type": "event",
         "method": "DELETE",
-        "path": "/gotapi/battery/onchargingchange",
+        "path": "/gotapi/battery/onChargingChange",
         "requestParams": [
             {
                 "name": "serviceId",
@@ -94,7 +94,7 @@
         "name": "Battery Status Change Event API",
         "type": "event",
         "method": "PUT",
-        "path": "/gotapi/battery/onbatterychange",
+        "path": "/gotapi/battery/onBatteryChange",
         "requestParams": [
             {
                 "name": "serviceId",
@@ -107,7 +107,7 @@
         "name": "Battery Status Change Event API",
         "type": "event",
         "method": "DELETE",
-        "path": "/gotapi/battery/onbatterychange",
+        "path": "/gotapi/battery/onBatteryChange",
         "requestParams": [
             {
                 "name": "serviceId",

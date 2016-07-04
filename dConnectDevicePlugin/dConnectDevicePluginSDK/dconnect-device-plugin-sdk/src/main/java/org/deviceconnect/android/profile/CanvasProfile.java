@@ -8,7 +8,6 @@ package org.deviceconnect.android.profile;
 
 import android.content.Intent;
 
-import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.profile.CanvasProfileConstants;
 
 import java.io.ByteArrayOutputStream;
@@ -21,82 +20,30 @@ import java.net.URL;
  * Canvas プロファイル.
  *
  * <p>
- * スマートデバイスに対してのキャンバス操作機能を提供するAPI.<br>
- * スマートデバイスに対してのキャンバス操作機能を提供するデバイスプラグインは当クラスを継承し、対応APIを実装すること。 <br>
+ * スマートデバイスに対してのキャンバス操作機能を提供するAPI.
  * </p>
- *
- * <h1>各API提供メソッド</h1>
- * <p>
- * Canvas Profile の各APIへのリクエストに対し、以下のコールバックメソッド群が自動的に呼び出される。<br>
- * サブクラスは以下のメソッド群からデバイスプラグインが提供するAPI用のメソッドをオーバーライドし、機能を実装すること。<br>
- * オーバーライドされていない機能は自動的に非対応APIとしてレスポンスを返す。
- * </p>
- * <ul>
- * <li>Canvas DrawImage API [POST] :
- * {@link CanvasProfile#onPostDrawImage(Intent, Intent, String, String, byte[], double, double, String)}</li>
- * <li>Canvas DrawImage API [DELETE] :
- * {@link CanvasProfile#onDeleteDrawImage(Intent, Intent, String))}</li>
- * </ul>
  *
  * @author NTT DOCOMO, INC.
  */
 public abstract class CanvasProfile extends DConnectProfile implements CanvasProfileConstants {
-
-    /**
-     * コンストラクタ.
-     */
-    public CanvasProfile() {
-    }
 
     @Override
     public final String getProfileName() {
         return PROFILE_NAME;
     }
 
-//    @Override
-//    protected boolean onPostRequest(final Intent request, final Intent response) {
-//        String attribute = getAttribute(request);
-//        boolean result = true;
-//
-//        if (ATTRIBUTE_DRAW_IMAGE.equals(attribute)) {
-//            String serviceId = getServiceID(request);
-//            String mimeType = getMIMEType(request);
-//            String uri = request.getStringExtra(PARAM_URI);
-//            byte[] data = null;
-//            if (uri != null) {
-//                if (uri.startsWith("content://")) {
-//                    data = getContentData(uri);
-//                    uri = null;
-//                }
-//            }
-//
-//            if (data == null && uri == null) {
-//                MessageUtils.setInvalidRequestParameterError(response, "not found data.");
-//                return result;
-//            }
-//            if (mimeType != null && !checkMimeTypeFormat(mimeType)) {
-//                MessageUtils.setInvalidRequestParameterError(response, "mimeType format is incorrect.");
-//                return result;
-//            }
-//            if (!checkXFormat(request)) {
-//                MessageUtils.setInvalidRequestParameterError(response, "x is different type.");
-//                return result;
-//            }
-//            if (!checkYFormat(request)) {
-//                MessageUtils.setInvalidRequestParameterError(response, "y is different type.");
-//                return result;
-//            }
-//
-//            double x = getX(request);
-//            double y = getY(request);
-//            String mode = getMode(request);
-//            result = onPostDrawImage(request, response, serviceId, mimeType, data, uri, x, y, mode);
-//        } else {
-//            MessageUtils.setUnknownAttributeError(response);
-//        }
-//
-//        return result;
-//    }
+    @Override
+    public boolean onRequest(final Intent request, final Intent response) {
+        String uri = request.getStringExtra(PARAM_URI);
+        if (uri != null) {
+            if (uri.startsWith("content://")) {
+                byte[] data = getContentData(uri);
+                request.putExtra(PARAM_DATA, data);
+                request.removeExtra(PARAM_URI);
+            }
+        }
+        return super.onRequest(request, response);
+    }
 
     // ------------------------------------
     // セッターメソッド群
@@ -164,6 +111,16 @@ public abstract class CanvasProfile extends DConnectProfile implements CanvasPro
      */
     public static String getMIMEType(final Intent request) {
         return request.getStringExtra(PARAM_MIME_TYPE);
+    }
+
+    /**
+     * リクエストから画像ファイルのURIを取得する.
+     *
+     * @param request リクエストパラメータ
+     * @return 画像ファイルのURI。無い場合はnullを返す。
+     */
+    public static String getURI(final Intent request) {
+        return request.getStringExtra(PARAM_URI);
     }
 
     /**

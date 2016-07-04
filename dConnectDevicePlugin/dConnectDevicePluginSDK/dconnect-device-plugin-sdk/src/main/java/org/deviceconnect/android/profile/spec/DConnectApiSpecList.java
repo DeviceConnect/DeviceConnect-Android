@@ -19,7 +19,8 @@ public class DConnectApiSpecList {
 
     public DConnectApiSpec findApiSpec(final String method, final String path) {
         for (DConnectApiSpec spec : mApiSpecList) {
-            if (spec.getMethod().getName().equals(method) && spec.getPath().equals(path)) {
+            if (spec.getMethod().getName().equalsIgnoreCase(method)
+                && spec.getPath().equalsIgnoreCase(path)) {
                 return spec;
             }
         }

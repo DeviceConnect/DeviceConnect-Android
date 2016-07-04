@@ -55,6 +55,7 @@ public class HitoeDeviceControlActivity extends FragmentActivity {
     private ListView mProfileListView;
     private ArrayAdapter<String> mAdapter;
     private HitoeManager mManager;
+    private int mPage = CONTROL_PAGE_MAIN;
     protected final Handler mHandler = new Handler();
 
     /**
@@ -105,7 +106,11 @@ public class HitoeDeviceControlActivity extends FragmentActivity {
     public boolean onOptionsItemSelected(final MenuItem item) {
 
         if (item.getItemId() == android.R.id.home) {
-            finish();
+            if (mPage == CONTROL_PAGE_MAIN) {
+                finish();
+            } else {
+                movePage(CONTROL_PAGE_MAIN);
+            }
             return true;
         }
 
@@ -118,6 +123,7 @@ public class HitoeDeviceControlActivity extends FragmentActivity {
         if (device == null) {
             return;
         }
+        mPage = page;
         String serviceId = device.getStringExtra(FEATURE_SERVICE_ID);
         args.putString(FEATURE_SERVICE_ID, serviceId);
         switch (page) {

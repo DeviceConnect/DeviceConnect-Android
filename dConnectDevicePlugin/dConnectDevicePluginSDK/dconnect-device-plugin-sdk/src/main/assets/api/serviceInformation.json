@@ -3,7 +3,7 @@
         "name": "Service Information API",
         "type": "one-shot",
         "method": "GET",
-        "path": "/gotapi/serviceinformation",
+        "path": "/gotapi/serviceInformation",
         "requestParams": [
             {
                 "name": "serviceId",

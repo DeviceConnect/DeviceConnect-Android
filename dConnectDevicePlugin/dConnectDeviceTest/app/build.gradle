@@ -5,6 +5,17 @@ dependencies {
     compile project(':dconnect-device-plugin-sdk')
 }
 
+def createVersionName = { ->
+    def version
+    if (System.getProperty('os.name').toLowerCase().contains('windows')) {
+        version = ["cmd", "/c", "git describe --tags"].execute().in.text.trim()
+    } else {
+        version = ["sh", "-c", "git describe --tags"].execute().in.text.trim()
+    }
+    version = version.empty ? "2.0.0" : version
+    return "${version}"
+}
+
 android {
 
     compileSdkVersion 19
@@ -13,6 +24,8 @@ android {
     defaultConfig {
         minSdkVersion 14
         targetSdkVersion 19
+        versionCode 1
+        versionName createVersionName()
     }
 
     signingConfigs {
@@ -40,5 +53,3 @@ android {
     }
 
 }
-
-

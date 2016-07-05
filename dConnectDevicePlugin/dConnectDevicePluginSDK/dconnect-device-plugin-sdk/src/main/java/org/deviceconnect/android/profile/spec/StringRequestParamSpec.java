@@ -7,6 +7,7 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 public class StringRequestParamSpec extends DConnectRequestParamSpec {
 
@@ -15,6 +16,8 @@ public class StringRequestParamSpec extends DConnectRequestParamSpec {
     private static final String MIN_LENGTH = "minLength";
     private static final String ENUM = "enum";
     private static final String VALUE = "value";
+
+    private static final Pattern RGB_PATTERN = Pattern.compile("[0-9a-zA-Z]{6}");
 
     private final Format mFormat;
     private Integer mMaxLength;
@@ -74,6 +77,8 @@ public class StringRequestParamSpec extends DConnectRequestParamSpec {
                 return true; // TODO バイナリのサイズ確認(現状、プラグインにはURL形式で通知される)
             case DATE:
                 return true; // TODO RFC3339形式であることの確認
+            case RGB:
+                return RGB_PATTERN.matcher(param).matches();
             default:
                 throw new IllegalStateException();
         }
@@ -181,7 +186,8 @@ public class StringRequestParamSpec extends DConnectRequestParamSpec {
         BYTE("byte"),
         BINARY("binary"),
         DATE("date"),
-        DATE_TIME("date-time");
+        DATE_TIME("date-time"),
+        RGB("rgb");
 
         private final String mName;
 

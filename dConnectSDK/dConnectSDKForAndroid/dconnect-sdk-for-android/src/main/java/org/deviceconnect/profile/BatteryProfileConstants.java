@@ -22,12 +22,12 @@ public interface BatteryProfileConstants extends DConnectProfileConstants {
     /**
      * 属性: {@value}.
      */
-    String ATTRIBUTE_ON_CHARGING_CHANGE = "onchargingchange";
+    String ATTRIBUTE_ON_CHARGING_CHANGE = "onChargingChange";
 
     /**
      * 属性: {@value}.
      */
-    String ATTRIBUTE_ON_BATTERY_CHANGE = "onbatterychange";
+    String ATTRIBUTE_ON_BATTERY_CHANGE = "onBatteryChange";
 
     /**
      * 属性: {@value}.

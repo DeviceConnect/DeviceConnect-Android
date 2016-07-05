@@ -19,11 +19,12 @@
     <string name="display_scope_battery">バッテリー</string>
     <string name="display_scope_connect">接続</string>
     <string name="display_scope_deviceorientation">加速度</string>
-    <string name="display_scope_file_descriptor">ファイルディスクリプタ</string>
+    <string name="display_scope_filedescriptor">ファイルディスクリプタ</string>
     <string name="display_scope_file">ファイル</string>
-    <string name="display_scope_mediastreams_play">メディア再生</string>
-    <string name="display_scope_mediastream_recording">写真動画撮影／音声録音</string>
-    <string name="display_scope_servicediscovery">デバイス検索</string>
+    <string name="display_scope_mediaplayer">メディア再生</string>
+    <string name="display_scope_mediastreamrecording">写真動画撮影／音声録音</string>
+    <string name="display_scope_servicediscovery">サービス検索</string>
+    <string name="display_scope_serviceinformation">サービス情報</string>
     <string name="display_scope_notification">通知</string>
     <string name="display_scope_phone">電話</string>
     <string name="display_scope_proximity">近接</string>

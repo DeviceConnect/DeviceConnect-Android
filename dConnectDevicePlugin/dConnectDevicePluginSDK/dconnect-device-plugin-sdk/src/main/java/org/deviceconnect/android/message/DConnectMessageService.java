@@ -13,6 +13,10 @@ import android.os.Bundle;
 import android.os.IBinder;
 
 import org.deviceconnect.android.BuildConfig;
+import org.deviceconnect.android.compat.AuthorizationRequestConverter;
+import org.deviceconnect.android.compat.LowerCaseConverter;
+import org.deviceconnect.android.compat.MessageConverter;
+import org.deviceconnect.android.compat.ServiceDiscoveryRequestConverter;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.localoauth.CheckAccessTokenResult;
@@ -59,22 +63,10 @@ public abstract class DConnectMessageService extends Service implements DConnect
      * LocalOAuthで無視するプロファイル群.
      */
     private static final String[] IGNORE_PROFILES = {
-        AuthorizationProfileConstants.PROFILE_NAME,
-        SystemProfileConstants.PROFILE_NAME,
-        ServiceDiscoveryProfileConstants.PROFILE_NAME
+        AuthorizationProfileConstants.PROFILE_NAME.toLowerCase(),
+        SystemProfileConstants.PROFILE_NAME.toLowerCase(),
+        ServiceDiscoveryProfileConstants.PROFILE_NAME.toLowerCase()
     };
-
-    /** プラグイン側のService Discoveryのプロファイル名: {@value}. */
-    private static final String PROFILE_NETWORK_SERVICE_DISCOVERY = "networkServiceDiscovery";
-
-    /** プラグイン側のService Discoveryのアトリビュート名: {@value}. */
-    private static final String ATTRIBUTE_GET_NETWORK_SERVICES = "getNetworkServices";
-
-    /** プラグイン側のAuthorizationのアトリビュート名: {@value}. */
-    private static final String ATTRIBUTE_CREATE_CLIENT = "createClient";
-
-    /** プラグイン側のAuthorizationのアトリビュート名: {@value}. */
-    private static final String ATTRIBUTE_REQUEST_ACCESS_TOKEN = "requestAccessToken";
 
     /**
      * ロガー.
@@ -93,6 +85,12 @@ public abstract class DConnectMessageService extends Service implements DConnect
     private boolean mUseLocalOAuth = true;
 
     private DConnectServiceManager mServiceManager;
+
+    private final MessageConverter[] mRequestConverters = {
+        new ServiceDiscoveryRequestConverter(),
+        new AuthorizationRequestConverter(),
+        new LowerCaseConverter()
+    };
 
     /**
      * SystemProfileを取得する.
@@ -186,9 +184,25 @@ public abstract class DConnectMessageService extends Service implements DConnect
         }
 
         if (checkRequestAction(action)) {
+            convertRequest(intent);
             onRequest(intent, MessageUtils.createResponseIntent(intent));
         }
 
+        if (checkManagerUninstall(intent)) {
+            onManagerUninstalled();
+        }
+
+        if (checkManagerTerminate(action)) {
+            onManagerTerminated();
+        }
+
+        if (checkManagerEventTransmitDisconnect(action)) {
+            onManagerEventTransmitDisconnected(intent.getStringExtra(IntentDConnectMessage.EXTRA_SESSION_KEY));
+        }
+
+        if (checkDevicePluginReset(action)) {
+            onDevicePluginReset();
+        }
         return START_STICKY;
     }
 
@@ -202,6 +216,50 @@ public abstract class DConnectMessageService extends Service implements DConnect
                 || IntentDConnectMessage.ACTION_POST.equals(action)
                 || IntentDConnectMessage.ACTION_PUT.equals(action)
                 || IntentDConnectMessage.ACTION_DELETE.equals(action);
+    }
+
+    private void convertRequest(final Intent request) {
+        for (MessageConverter converter : mRequestConverters) {
+            converter.convert(request);
+        }
+    }
+
+    /**
+     * Device Connect Managerがアンインストールされたかをチェックします.
+     * @param intent intentパラメータ
+     * @return アンインストール時はtrue、それ以外はfalse
+     */
+    private boolean checkManagerUninstall(final Intent intent) {
+        return Intent.ACTION_PACKAGE_FULLY_REMOVED.equals(intent.getAction()) &&
+                intent.getExtras().getBoolean(Intent.EXTRA_DATA_REMOVED) &&
+                intent.getDataString().contains("package:org.deviceconnect.android.manager");
+    }
+
+    /**
+     * Device Connect Manager 正常終了通知を受信したかをチェックします.
+     * @param action チェックするアクション
+     * @return Manager 正常終了検知でtrue、それ以外はfalse
+     */
+    private boolean checkManagerTerminate(String action) {
+        return IntentDConnectMessage.ACTION_MANAGER_TERMINATED.equals(action);
+    }
+
+    /**
+     * Device Connect Manager のEvent 送信経路切断通知を受信したかチェックします.
+     * @param action チェックするアクション
+     * @return 検知受信でtrue、それ以外はfalse
+     */
+    private boolean checkManagerEventTransmitDisconnect(String action) {
+        return IntentDConnectMessage.ACTION_EVENT_TRANSMIT_DISCONNECT.equals(action);
+    }
+
+    /**
+     * Device Plug-inへのReset要求を受信したかチェックします.
+     * @param action チェックするアクション
+     * @return Reset要求受信でtrue、それ以外はfalse
+     */
+    private boolean checkDevicePluginReset(String action) {
+        return IntentDConnectMessage.ACTION_DEVICEPLUGIN_RESET.equals(action);
     }
 
     /**
@@ -225,27 +283,6 @@ public abstract class DConnectMessageService extends Service implements DConnect
             return;
         }
 
-        // Service Discovery APIのパスを変換
-        if (PROFILE_NETWORK_SERVICE_DISCOVERY.equals(profileName)) {
-            profileName = ServiceDiscoveryProfileConstants.PROFILE_NAME;
-            String attributeName = request.getStringExtra(DConnectMessage.EXTRA_ATTRIBUTE);
-            if (ATTRIBUTE_GET_NETWORK_SERVICES.equals(attributeName)) {
-                request.putExtra(DConnectMessage.EXTRA_PROFILE, profileName);
-                request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, (String) null);
-            }
-        }
-        // Authorization APIのパスを変換
-        if (AuthorizationProfileConstants.PROFILE_NAME.equals(profileName)) {
-            String attributeName = request.getStringExtra(DConnectMessage.EXTRA_ATTRIBUTE);
-            if (ATTRIBUTE_CREATE_CLIENT.equals(attributeName)) {
-                request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE,
-                        AuthorizationProfileConstants.ATTRIBUTE_GRANT);
-            } else if (ATTRIBUTE_REQUEST_ACCESS_TOKEN.equals(attributeName)) {
-                request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE,
-                        AuthorizationProfileConstants.ATTRIBUTE_ACCESS_TOKEN);
-            }
-        }
-
         // 指定されたサービスの各プロファイルでリクエストを処理する
         DConnectProfile profile = getProfile(profileName);
         boolean send = true;
@@ -264,7 +301,7 @@ public abstract class DConnectMessageService extends Service implements DConnect
             String accessToken = request.getStringExtra(AuthorizationProfile.PARAM_ACCESS_TOKEN);
             // LocalOAuth処理
             CheckAccessTokenResult result = LocalOAuth2Main.checkAccessToken(accessToken, profileName,
-                    IGNORE_PROFILES);
+                IGNORE_PROFILES);
             if (result.checkResult()) {
                 send = profile.onRequest(request, response);
             } else {
@@ -307,6 +344,7 @@ public abstract class DConnectMessageService extends Service implements DConnect
         if (name == null) {
             return null;
         }
+        //XXXX パスの大文字小文字の無視
         return mProfileMap.get(name.toLowerCase());
     }
 
@@ -319,6 +357,7 @@ public abstract class DConnectMessageService extends Service implements DConnect
             return;
         }
         profile.setContext(this);
+        //XXXX パスの大文字小文字の無視
         mProfileMap.put(profile.getProfileName().toLowerCase(), profile);
     }
 
@@ -330,6 +369,7 @@ public abstract class DConnectMessageService extends Service implements DConnect
         if (profile == null) {
             return;
         }
+        //XXXX パスの大文字小文字の無視
         mProfileMap.remove(profile.getProfileName().toLowerCase());
     }
 
@@ -426,5 +466,34 @@ public abstract class DConnectMessageService extends Service implements DConnect
      */
     public boolean isUseLocalOAuth() {
         return mUseLocalOAuth;
+    }
+
+    /**
+     * Device Connect Managerがアンインストールされた時に呼ばれる処理部.
+     */
+    protected void onManagerUninstalled() {
+        mLogger.info("SDK : onManagerUninstalled");
+    }
+
+    /**
+     * Device Connect Managerの正常終了通知を受信した時に呼ばれる処理部.
+     */
+    protected void onManagerTerminated() {
+        mLogger.info("SDK : on ManagerTerminated");
+    }
+
+    /**
+     * Device Connect ManagerのEvent送信経路切断通知を受信した時に呼ばれる処理部.
+     * @param sessionKey セッションキー
+     */
+    protected void onManagerEventTransmitDisconnected(String sessionKey) {
+        mLogger.info("SDK : onManagerEventTransmitDisconnected");
+    }
+
+    /**
+     * Device Plug-inへのReset要求を受信した時に呼ばれる処理部.
+     */
+    protected void onDevicePluginReset() {
+        mLogger.info("SDK : onDevicePluginReset");
     }
 }

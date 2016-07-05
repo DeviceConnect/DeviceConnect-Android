@@ -24,7 +24,7 @@ public interface CanvasProfileConstants extends DConnectProfileConstants {
     /**
      * 属性: {@value} .
      */
-    String ATTRIBUTE_DRAW_IMAGE = "drawimage";
+    String ATTRIBUTE_DRAW_IMAGE = "drawImage";
 
     /**
      * パス: {@value}.

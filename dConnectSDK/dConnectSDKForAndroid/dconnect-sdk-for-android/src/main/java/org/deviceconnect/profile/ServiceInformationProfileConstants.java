@@ -16,7 +16,7 @@ public interface ServiceInformationProfileConstants extends DConnectProfileConst
     /**
      * プロファイル名: {@value} .
      */
-    String PROFILE_NAME = "serviceinformation";
+    String PROFILE_NAME = "serviceInformation";
 
     /**
      * パス: {@value}.

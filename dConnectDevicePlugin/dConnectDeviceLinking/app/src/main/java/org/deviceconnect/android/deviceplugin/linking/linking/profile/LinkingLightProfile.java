@@ -69,7 +69,6 @@ public class LinkingLightProfile extends LightProfile {
                 return true;
             }
 
-            String serviceId = getServiceID(request);
             String lightId = getLightId(request);
             long[] flashing = getFlashing(request);
 

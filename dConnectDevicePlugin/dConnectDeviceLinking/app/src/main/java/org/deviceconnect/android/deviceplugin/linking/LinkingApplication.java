@@ -11,6 +11,7 @@ import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.linking.beacon.LinkingBeaconManager;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingDeviceManager;
+import org.deviceconnect.android.event.EventManager;
 
 /**
  * Implementation of Application.
@@ -65,6 +66,8 @@ public class LinkingApplication extends Application {
         }
         mBeaconManager = new LinkingBeaconManager(this);
         mDeviceManager = new LinkingDeviceManager(this);
+
+        EventManager.INSTANCE.removeAll();
     }
 
     public LinkingBeaconManager getLinkingBeaconManager() {

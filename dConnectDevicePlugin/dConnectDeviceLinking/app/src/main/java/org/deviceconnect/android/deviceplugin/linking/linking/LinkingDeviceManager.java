@@ -83,10 +83,12 @@ public class LinkingDeviceManager {
             }
             device.setDisplayName("Linking:" + info.getName() + " (" + info.getBdaddress() + ")");
             device.setFeature(info.getFeature());
+            device.setExSensorType(info.getExSensorType());
             devices.add(device);
 
             if (BuildConfig.DEBUG) {
                 Log.d(TAG, "####" + device);
+                Log.d(TAG, "####Version: " + device.getVersion());
                 Log.d(TAG, "####LED: " + device.isLED());
                 Log.d(TAG, "####Gyro: " + device.isGyro());
                 Log.d(TAG, "####Accel: " + device.isAcceleration());
@@ -94,6 +96,7 @@ public class LinkingDeviceManager {
                 Log.d(TAG, "####Battery: " + device.isBattery());
                 Log.d(TAG, "####Humidity: " + device.isHumidity());
                 Log.d(TAG, "####Temperature: " + device.isTemperature());
+                Log.d(TAG, "####Button: " + device.isButton());
             }
         }
         return devices;

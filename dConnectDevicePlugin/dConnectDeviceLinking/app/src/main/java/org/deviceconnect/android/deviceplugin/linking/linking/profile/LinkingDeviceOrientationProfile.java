@@ -277,6 +277,11 @@ public class LinkingDeviceOrientationProfile extends DeviceOrientationProfile {
             return null;
         }
 
+        if (!device.isGyro() && !device.isAcceleration() && !device.isCompass()) {
+            MessageUtils.setIllegalDeviceStateError(response, "device has not Sensor");
+            return null;
+        }
+
         return device;
     }
 

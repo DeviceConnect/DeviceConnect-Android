@@ -28,12 +28,20 @@ public class LinkingDeviceService extends DConnectService {
 
         mDevice = device;
 
-        addProfile(new LinkingDeviceOrientationProfile(service));
-        addProfile(new LinkingKeyEventProfile(service));
-        addProfile(new LinkingLightProfile());
+        if (mDevice.isGyro() || mDevice.isAcceleration() || mDevice.isCompass()) {
+            addProfile(new LinkingDeviceOrientationProfile(service));
+        }
+        if (mDevice.isButton()) {
+            addProfile(new LinkingKeyEventProfile(service));
+        }
+        if (mDevice.isLED()) {
+            addProfile(new LinkingLightProfile());
+        }
         addProfile(new LinkingNotificationProfile());
         addProfile(new LinkingProximityProfile(service));
-        addProfile(new LinkingVibrationProfile());
+        if (mDevice.isVibration()) {
+            addProfile(new LinkingVibrationProfile());
+        }
     }
 
     @Override

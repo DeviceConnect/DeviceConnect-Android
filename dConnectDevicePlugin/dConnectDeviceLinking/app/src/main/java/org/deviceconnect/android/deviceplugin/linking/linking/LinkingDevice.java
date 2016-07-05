@@ -18,6 +18,7 @@ public class LinkingDevice {
     private Object mSensor;
     private boolean mIsConnected;
     private int mFeature;
+    private int mExSensorType;
 
     public static final int LED = 1;
     public static final int GYRO = LED << 1;
@@ -26,6 +27,8 @@ public class LinkingDevice {
     public static final int BATTERY = LED << 4;
     public static final int TEMPERATURE = LED << 5;
     public static final int HUMIDITY = LED << 6;
+
+    public static final int BUTTON = 1 << 3;
 
     public String getDisplayName() {
         return mDisplayName;
@@ -107,6 +110,14 @@ public class LinkingDevice {
         mFeature = feature;
     }
 
+    public int getExSensorType() {
+        return mExSensorType;
+    }
+
+    public void setExSensorType(int exSensorType) {
+        mExSensorType = exSensorType;
+    }
+
     public boolean isLED() {
         return mIllumination != null;
     }
@@ -116,27 +127,35 @@ public class LinkingDevice {
     }
 
     public boolean isGyro() {
-        return (mFeature & GYRO) == GYRO;
+        return (mFeature & GYRO) != 0;
     }
 
     public boolean isAcceleration() {
-        return (mFeature & ACCELERATION) == ACCELERATION;
+        return (mFeature & ACCELERATION) != 0;
     }
 
     public boolean isCompass() {
-        return (mFeature & COMPASS) == COMPASS;
+        return (mFeature & COMPASS) != 0;
     }
 
     public boolean isBattery() {
-        return (mFeature & BATTERY) == BATTERY;
+        return (mFeature & BATTERY) != 0;
     }
 
     public boolean isTemperature() {
-        return (mFeature & TEMPERATURE) == TEMPERATURE;
+        return (mFeature & TEMPERATURE) != 0;
     }
 
     public boolean isHumidity() {
-        return (mFeature & HUMIDITY) == HUMIDITY;
+        return (mFeature & HUMIDITY) != 0;
+    }
+
+    public boolean isButton() {
+        return (mExSensorType & BUTTON) != 0;
+    }
+
+    public String getVersion() {
+        return String.valueOf(mExSensorType & 1) + "." + String.valueOf(mExSensorType & 2);
     }
 
     @Override
@@ -169,6 +188,8 @@ public class LinkingDevice {
 
     @Override
     public String toString() {
-        return "Address: " + getBdAddress() + "\n ModelId: " + getModelId() + "\nUniqueId: " + getUniqueId() + "\nFeature: " + getFeature();
+        return "Address: " + getBdAddress() + "\n ModelId: " + getModelId()
+                + "\nUniqueId: " + getUniqueId() + "\nFeature: " + getFeature()
+                + "\nExSensorType: " + getExSensorType();
     }
 }

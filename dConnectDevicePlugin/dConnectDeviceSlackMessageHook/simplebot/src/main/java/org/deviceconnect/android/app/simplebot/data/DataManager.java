@@ -273,6 +273,31 @@ public class DataManager {
         return data;
     }
 
+    /**
+     * CSVのデータから情報を取得
+     * @param csv 文字列
+     * @return データ
+     */
+    public Data convertData(String[] csv) {
+        if (csv == null || csv.length < 12) {
+            return null;
+        }
+        Data data = new Data();
+        int index = 0;
+        data.keyword = csv[index++];
+        data.serviceId = csv[index++];
+        data.serviceName = csv[index++];
+        data.method = csv[index++];
+        data.path = csv[index++];
+        data.body = csv[index++];
+        data.accept = csv[index++];
+        data.acceptUri = csv[index++];
+        data.success = csv[index++];
+        data.successUri = csv[index++];
+        data.error = csv[index++];
+        data.errorUri = csv[index++];
+        return data;
+    }
 
     /**
      * サンプルデータを追加

@@ -25,12 +25,23 @@ import org.deviceconnect.profile.SystemProfileConstants;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import au.com.bytecode.opencsv.CSVReader;
 
 /**
  * ユーティリティクラス
@@ -129,8 +140,57 @@ public class Utils {
                 }
             });
         }
-
     }
+
+    /**
+     * 文字コードがUTF8かを判別する
+     * @param file File
+     * @return UTF8でtrue
+     * @throws IOException エラー
+     */
+    public static boolean checkUTF8(File file) throws IOException {
+        InputStream input = new FileInputStream(file);
+        BufferedInputStream bstream = new BufferedInputStream(input);
+        byte[] buff = new byte[255];
+        bstream.read(buff);
+        try {
+            // UTF8で文字列にしてからByte配列に変換したものと元データを比較
+            byte[] tmp = new String(buff, "UTF8").getBytes("UTF8");
+            return Arrays.equals(tmp, buff);
+        }
+        catch(UnsupportedEncodingException e) {
+            return false;
+        }
+    }
+
+    /**
+     * CSVファイルを読み込む
+     * @param filepath ファイルパス
+     * @return Stringのリスト
+     */
+    public static List<String[]> readCSV(String filepath) {
+        File csvfile = new File(filepath);
+        if (csvfile.exists()){
+            try {
+                // 文字コード判別
+                String encode = "UTF8";
+                if (!Utils.checkUTF8(csvfile)) {
+                    encode = "ms932";
+                }
+                // CSV読み込み
+                InputStream stream = new FileInputStream(csvfile);
+                InputStreamReader reader = new InputStreamReader(stream, encode);
+                BufferedReader buffer = new BufferedReader(reader);
+                CSVReader csvReader = new CSVReader(buffer, ',', '"', 0);
+                // 各行読み込み
+                return csvReader.readAll();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return null;
+    }
+
 
     //endregion
     //---------------------------------------------------------------------------------------

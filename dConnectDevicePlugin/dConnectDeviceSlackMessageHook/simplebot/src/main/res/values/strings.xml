@@ -37,6 +37,7 @@
     <string name="service_not_selected">サービスが選択されていません</string>
     <string name="not_input_all">未入力項目があります</string>
     <string name="service_not_found_and_install">連携サービスが見つかりません。\n連携できるプラグインをインストールしてください。</string>
+    <string name="success_add_data">データを追加しました</string>
     <string name="err_add_data">データ追加でエラーが発生しました</string>
     <string name="err_del_data">データ削除でエラーが発生しました</string>
     <string name="del_command">コマンド削除</string>

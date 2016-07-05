@@ -12,4 +12,6 @@ public interface DConnectServiceProvider {
     void addService(DConnectService service);
 
     void removeService(DConnectService service);
+
+    void removeAllServices();
 }

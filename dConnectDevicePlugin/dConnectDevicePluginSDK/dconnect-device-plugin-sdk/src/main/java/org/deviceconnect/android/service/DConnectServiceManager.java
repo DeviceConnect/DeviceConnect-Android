@@ -97,6 +97,10 @@ public class DConnectServiceManager implements DConnectServiceProvider {
         return list;
     }
 
+    @Override
+    public void removeAllServices() {
+        mDConnectServices.clear();
+    }
 
     public boolean hasService(final String serviceId) {
         return getService(serviceId) != null;

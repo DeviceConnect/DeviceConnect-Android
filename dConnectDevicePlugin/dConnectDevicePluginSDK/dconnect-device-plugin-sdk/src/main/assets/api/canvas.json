@@ -25,13 +25,13 @@
                 "name": "x",
                 "type": "integer",
                 "mandatory": false,
-                "exclusiveMinValue": 0
+                "minValue": 0
             },
             {
                 "name": "y",
                 "type": "integer",
                 "mandatory": false,
-                "exclusiveMinValue": 0
+                "minValue": 0
             },
             {
                 "name": "mode",

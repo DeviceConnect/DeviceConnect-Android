@@ -213,8 +213,7 @@ public enum EventManager {
     /**
      * 指定されたAPIに紐づくイベント情報の一覧を取得する.
      *
-     * @param profile プロファイル名
-     * @param attribute アトリビュート名
+     * @param sessionKey セッションキー
      * @return イベントの一覧
      */
     public List<Event> getEventList(final String sessionKey) {

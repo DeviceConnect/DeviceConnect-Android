@@ -61,9 +61,9 @@ public class DConnectSystemProfile extends SystemProfile {
         String attri = getAttribute(request);
         if (inter == null && attri == null) {
             return onGetSystemRequest(request, response);
-        } else if (SystemProfileConstants.ATTRIBUTE_KEYWORD.equals(attri)) {
+        } else if (SystemProfileConstants.ATTRIBUTE_KEYWORD.equalsIgnoreCase(attri)) {
             return sendNotSupportActionError(request, response);
-        } else if (SystemProfileConstants.ATTRIBUTE_EVENTS.equals(attri)) {
+        } else if (SystemProfileConstants.ATTRIBUTE_EVENTS.equalsIgnoreCase(attri)) {
             return sendNotSupportActionError(request, response);
         }
         // 各デバイスプラグインに渡すのでfalse
@@ -76,9 +76,9 @@ public class DConnectSystemProfile extends SystemProfile {
         String attri = getAttribute(request);
         if (inter == null && attri == null) {
             return sendNotSupportActionError(request, response);
-        } else if (SystemProfileConstants.ATTRIBUTE_KEYWORD.equals(attri)) {
+        } else if (SystemProfileConstants.ATTRIBUTE_KEYWORD.equalsIgnoreCase(attri)) {
             return onPutKeywordRequest(request, response);
-        } else if (SystemProfileConstants.ATTRIBUTE_EVENTS.equals(attri)) {
+        } else if (SystemProfileConstants.ATTRIBUTE_EVENTS.equalsIgnoreCase(attri)) {
             return sendNotSupportActionError(request, response);
         }
         // 各デバイスプラグインに渡すのでfalse
@@ -91,9 +91,9 @@ public class DConnectSystemProfile extends SystemProfile {
         String attri = getAttribute(request);
         if (inter == null && attri == null) {
             return sendNotSupportActionError(request, response);
-        } else if (SystemProfileConstants.ATTRIBUTE_KEYWORD.equals(attri)) {
+        } else if (SystemProfileConstants.ATTRIBUTE_KEYWORD.equalsIgnoreCase(attri)) {
             return sendNotSupportActionError(request, response);
-        } else if (SystemProfileConstants.ATTRIBUTE_EVENTS.equals(attri)) {
+        } else if (SystemProfileConstants.ATTRIBUTE_EVENTS.equalsIgnoreCase(attri)) {
             return onDeleteEvents(request, response);
         }
         // 各デバイスプラグインに渡すのでfalse
@@ -106,9 +106,9 @@ public class DConnectSystemProfile extends SystemProfile {
         String attri = getAttribute(request);
         if (inter == null && attri == null) {
             return sendNotSupportActionError(request, response);
-        } else if (SystemProfileConstants.ATTRIBUTE_KEYWORD.equals(attri)) {
+        } else if (SystemProfileConstants.ATTRIBUTE_KEYWORD.equalsIgnoreCase(attri)) {
             return sendNotSupportActionError(request, response);
-        } else if (SystemProfileConstants.ATTRIBUTE_EVENTS.equals(attri)) {
+        } else if (SystemProfileConstants.ATTRIBUTE_EVENTS.equalsIgnoreCase(attri)) {
             return sendNotSupportActionError(request, response);
         }
         // 各デバイスプラグインに渡すのでfalse

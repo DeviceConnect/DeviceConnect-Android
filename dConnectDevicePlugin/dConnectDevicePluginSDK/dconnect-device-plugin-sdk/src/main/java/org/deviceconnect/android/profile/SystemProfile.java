@@ -6,15 +6,15 @@
  */
 package org.deviceconnect.android.profile;
 
-import java.util.List;
+import android.app.Activity;
+import android.content.Intent;
+import android.os.Bundle;
 
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.profile.SystemProfileConstants;
 
-import android.app.Activity;
-import android.content.Intent;
-import android.os.Bundle;
+import java.util.List;
 
 /**
  * System プロファイル.
@@ -85,9 +85,11 @@ public abstract class SystemProfile extends DConnectProfile implements SystemPro
         String inter = getInterface(request);
         String attribute = getAttribute(request);
         boolean result = true;
-        if (INTERFACE_DEVICE.equals(inter) && ATTRIBUTE_WAKEUP.equals(attribute)) {
+        if (INTERFACE_DEVICE.equalsIgnoreCase(inter)
+            && ATTRIBUTE_WAKEUP.equalsIgnoreCase(attribute)) {
             result = onPutWakeup(request, response, getPluginID(request));
-        } else if (inter == null && ATTRIBUTE_KEYWORD.equals(attribute)) {
+        } else if (inter == null
+            && ATTRIBUTE_KEYWORD.equalsIgnoreCase(attribute)) {
             result = onPutKeyword(request, response);
         } else {
             MessageUtils.setUnknownAttributeError(response);
@@ -102,9 +104,10 @@ public abstract class SystemProfile extends DConnectProfile implements SystemPro
         String attribute = getAttribute(request);
         boolean result = true;
 
-        if (INTERFACE_DEVICE.equals(inter) && ATTRIBUTE_WAKEUP.equals(attribute)) {
+        if (INTERFACE_DEVICE.equalsIgnoreCase(inter)
+            && ATTRIBUTE_WAKEUP.equalsIgnoreCase(attribute)) {
             result = onDeleteWakeup(request, response, getPluginID(request));
-        } else if (inter == null && ATTRIBUTE_EVENTS.equals(attribute)) {
+        } else if (inter == null && ATTRIBUTE_EVENTS.equalsIgnoreCase(attribute)) {
             result = onDeleteEvents(request, response, getSessionKey(request));
         } else {
             MessageUtils.setUnknownAttributeError(response);

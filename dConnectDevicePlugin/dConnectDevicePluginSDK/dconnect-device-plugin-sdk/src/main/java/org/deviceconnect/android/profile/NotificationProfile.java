@@ -6,12 +6,10 @@
  */
 package org.deviceconnect.android.profile;
 
+import android.content.Intent;
+
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.profile.NotificationProfileConstants;
-import org.deviceconnect.profile.NotificationProfileConstants.Direction;
-import org.deviceconnect.profile.NotificationProfileConstants.NotificationType;
-
-import android.content.Intent;
 
 /**
  * Notification プロファイル.
@@ -66,7 +64,7 @@ public class NotificationProfile extends DConnectProfile implements Notification
         String attribute = getAttribute(request);
         boolean result = true;
 
-        if (ATTRIBUTE_NOTIFY.equals(attribute)) {
+        if (ATTRIBUTE_NOTIFY.equalsIgnoreCase(attribute)) {
             String uri = getUri(request);
             byte[] iconData = getContentData(uri);
             NotificationType type = getType(request);
@@ -95,13 +93,13 @@ public class NotificationProfile extends DConnectProfile implements Notification
             String serviceId = getServiceID(request);
             String sessionKey = getSessionKey(request);
             
-            if (attribute.equals(ATTRIBUTE_ON_CLICK)) {
+            if (attribute.equalsIgnoreCase(ATTRIBUTE_ON_CLICK)) {
                 result = onPutOnClick(request, response, serviceId, sessionKey);
-            } else if (attribute.equals(ATTRIBUTE_ON_SHOW)) {
+            } else if (attribute.equalsIgnoreCase(ATTRIBUTE_ON_SHOW)) {
                 result = onPutOnShow(request, response, serviceId, sessionKey);
-            } else if (attribute.equals(ATTRIBUTE_ON_CLOSE)) {
+            } else if (attribute.equalsIgnoreCase(ATTRIBUTE_ON_CLOSE)) {
                 result = onPutOnClose(request, response, serviceId, sessionKey);
-            } else if (attribute.equals(ATTRIBUTE_ON_ERROR)) {
+            } else if (attribute.equalsIgnoreCase(ATTRIBUTE_ON_ERROR)) {
                 result = onPutOnError(request, response, serviceId, sessionKey);
             } else {
                 MessageUtils.setUnknownAttributeError(response);
@@ -123,15 +121,15 @@ public class NotificationProfile extends DConnectProfile implements Notification
             String serviceId = getServiceID(request);
             String sessionKey = getSessionKey(request);
             
-            if (attribute.equals(ATTRIBUTE_ON_CLICK)) {
+            if (attribute.equalsIgnoreCase(ATTRIBUTE_ON_CLICK)) {
                 result = onDeleteOnClick(request, response, serviceId, sessionKey);
-            } else if (attribute.equals(ATTRIBUTE_ON_SHOW)) {
+            } else if (attribute.equalsIgnoreCase(ATTRIBUTE_ON_SHOW)) {
                 result = onDeleteOnShow(request, response, serviceId, sessionKey);
-            } else if (attribute.equals(ATTRIBUTE_ON_CLOSE)) {
+            } else if (attribute.equalsIgnoreCase(ATTRIBUTE_ON_CLOSE)) {
                 result = onDeleteOnClose(request, response, serviceId, sessionKey);
-            } else if (attribute.equals(ATTRIBUTE_ON_ERROR)) {
+            } else if (attribute.equalsIgnoreCase(ATTRIBUTE_ON_ERROR)) {
                 result = onDeleteOnError(request, response, serviceId, sessionKey);
-            } else if (attribute.equals(ATTRIBUTE_NOTIFY)) {
+            } else if (attribute.equalsIgnoreCase(ATTRIBUTE_NOTIFY)) {
                 result = onDeleteNotify(request, response, getServiceID(request), getNotificationId(request));
             } else {
                 MessageUtils.setUnknownAttributeError(response);

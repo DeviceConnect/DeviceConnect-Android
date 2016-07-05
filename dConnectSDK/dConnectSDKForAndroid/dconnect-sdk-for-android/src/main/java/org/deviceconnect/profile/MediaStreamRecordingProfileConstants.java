@@ -17,17 +17,17 @@ public interface MediaStreamRecordingProfileConstants extends DConnectProfileCon
     /**
      * プロファイル名: {@value} .
      */
-    String PROFILE_NAME = "mediastream_recording";
+    String PROFILE_NAME = "mediaStreamRecording";
 
     /**
      * 属性: {@value} .
      */
-    String ATTRIBUTE_MEDIARECORDER = "mediarecorder";
+    String ATTRIBUTE_MEDIARECORDER = "mediaRecorder";
 
     /**
      * 属性: {@value} .
      */
-    String ATTRIBUTE_TAKE_PHOTO = "takephoto";
+    String ATTRIBUTE_TAKE_PHOTO = "takePhoto";
     /**
      * 属性: {@value} .
      */
@@ -47,11 +47,11 @@ public interface MediaStreamRecordingProfileConstants extends DConnectProfileCon
     /**
      * 属性: {@value} .
      */
-    String ATTRIBUTE_MUTETRACK = "mutetrack";
+    String ATTRIBUTE_MUTETRACK = "muteTrack";
     /**
      * 属性: {@value} .
      */
-    String ATTRIBUTE_UNMUTETRACK = "unmutetrack";
+    String ATTRIBUTE_UNMUTETRACK = "unmuteTrack";
     /**
      * 属性: {@value} .
      */
@@ -60,13 +60,13 @@ public interface MediaStreamRecordingProfileConstants extends DConnectProfileCon
     /**
      * 属性: {@value} .
      */
-    String ATTRIBUTE_ON_PHOTO = "onphoto";
+    String ATTRIBUTE_ON_PHOTO = "onPhoto";
 
     /**
      * 属性: {@value} .
      * @deprecated This parameter is deprecated.
      */
-    String ATTRIBUTE_ON_DATA_AVAILABLE = "ondataavailable";
+    String ATTRIBUTE_ON_DATA_AVAILABLE = "onDataAvailable";
 
     /**
      * 属性: {@value}.
@@ -76,7 +76,7 @@ public interface MediaStreamRecordingProfileConstants extends DConnectProfileCon
     /**
      * 属性: {@value} .
      */
-    String ATTRIBUTE_ON_RECORDING_CHANGE = "onrecordingchange";
+    String ATTRIBUTE_ON_RECORDING_CHANGE = "onRecordingChange";
 
     /**
      * パス: {@value}.

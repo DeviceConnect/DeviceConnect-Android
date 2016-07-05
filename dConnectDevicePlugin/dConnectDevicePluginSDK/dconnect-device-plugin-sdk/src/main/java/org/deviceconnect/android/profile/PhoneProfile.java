@@ -6,11 +6,11 @@
  */
 package org.deviceconnect.android.profile;
 
-import org.deviceconnect.android.message.MessageUtils;
-import org.deviceconnect.profile.PhoneProfileConstants;
-
 import android.content.Intent;
 import android.os.Bundle;
+
+import org.deviceconnect.android.message.MessageUtils;
+import org.deviceconnect.profile.PhoneProfileConstants;
 
 /**
  * Phone プロファイル.
@@ -49,7 +49,7 @@ public abstract class PhoneProfile extends DConnectProfile implements PhoneProfi
         String attribute = getAttribute(request);
         boolean result = true;
 
-        if (ATTRIBUTE_CALL.equals(attribute)) {
+        if (ATTRIBUTE_CALL.equalsIgnoreCase(attribute)) {
             result = onPostCall(request, response, getServiceID(request), getPhoneNumber(request));
         } else {
             MessageUtils.setUnknownAttributeError(response);
@@ -67,9 +67,9 @@ public abstract class PhoneProfile extends DConnectProfile implements PhoneProfi
             MessageUtils.setUnknownAttributeError(response);
         } else {
             String serviceId = getServiceID(request);
-            if (attribute.equals(ATTRIBUTE_SET)) {
+            if (attribute.equalsIgnoreCase(ATTRIBUTE_SET)) {
                 result = onPutSet(request, response, serviceId, getMode(request));
-            } else if (attribute.equals(ATTRIBUTE_ON_CONNECT)) {
+            } else if (attribute.equalsIgnoreCase(ATTRIBUTE_ON_CONNECT)) {
                 result = onPutOnConnect(request, response, serviceId, getSessionKey(request));
             } else {
                 MessageUtils.setUnknownAttributeError(response);
@@ -87,7 +87,7 @@ public abstract class PhoneProfile extends DConnectProfile implements PhoneProfi
         if (attribute == null) {
             MessageUtils.setUnknownAttributeError(response);
         } else {
-            if (attribute.equals(ATTRIBUTE_ON_CONNECT)) {
+            if (attribute.equalsIgnoreCase(ATTRIBUTE_ON_CONNECT)) {
                 result = onDeleteOnConnect(request, response, getServiceID(request), getSessionKey(request));
             } else {
                 MessageUtils.setUnknownAttributeError(response);

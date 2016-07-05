@@ -18,22 +18,22 @@ public interface KeyEventProfileConstants extends DConnectProfileConstants {
     /**
      * Profile name: {@value} .
      */
-    String PROFILE_NAME = "keyevent";
+    String PROFILE_NAME = "keyEvent";
 
     /**
      * Attribute: {@value} .
      */
-    String ATTRIBUTE_KEYEVENT = "keyevent";
+    String ATTRIBUTE_KEYEVENT = "keyEvent";
 
     /**
      * Attribute: {@value} .
      */
-    String ATTRIBUTE_ON_DOWN = "ondown";
+    String ATTRIBUTE_ON_DOWN = "onDown";
 
     /**
      * Attribute: {@value} .
      */
-    String ATTRIBUTE_ON_UP = "onup";
+    String ATTRIBUTE_ON_UP = "onUp";
 
     /**
      * Path: {@value} .

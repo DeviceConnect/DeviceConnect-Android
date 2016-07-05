@@ -46,10 +46,10 @@ public class MediaPlayerProfile extends DConnectProfile implements MediaPlayerPr
             MessageUtils.setUnknownAttributeError(response);
         } else {
             String serviceId = getServiceID(request);
-            if (attribute.equals(ATTRIBUTE_MEDIA)) {
+            if (attribute.equalsIgnoreCase(ATTRIBUTE_MEDIA)) {
                 String mediaId = getMediaId(request);
                 result = onGetMedia(request, response, serviceId, mediaId);
-            } else if (attribute.equals(ATTRIBUTE_MEDIA_LIST)) {
+            } else if (attribute.equalsIgnoreCase(ATTRIBUTE_MEDIA_LIST)) {
                 String query = getQuery(request);
                 String mimeType = getMIMEType(request);
                 String[] orders = getOrder(request);
@@ -57,13 +57,13 @@ public class MediaPlayerProfile extends DConnectProfile implements MediaPlayerPr
                 Integer limit = getLimit(request);
                 result = onGetMediaList(request, response, serviceId, query, 
                         mimeType, orders, offset, limit);
-            } else if (attribute.equals(ATTRIBUTE_PLAY_STATUS)) {
+            } else if (attribute.equalsIgnoreCase(ATTRIBUTE_PLAY_STATUS)) {
                 result = onGetPlayStatus(request, response, serviceId);
-            } else if (attribute.equals(ATTRIBUTE_SEEK)) {
+            } else if (attribute.equalsIgnoreCase(ATTRIBUTE_SEEK)) {
                 result = onGetSeek(request, response, serviceId);
-            } else if (attribute.equals(ATTRIBUTE_VOLUME)) {
+            } else if (attribute.equalsIgnoreCase(ATTRIBUTE_VOLUME)) {
                 result = onGetVolume(request, response, serviceId);
-            } else if (attribute.equals(ATTRIBUTE_MUTE)) {
+            } else if (attribute.equalsIgnoreCase(ATTRIBUTE_MUTE)) {
                 result = onGetMute(request, response, serviceId);
             } else {
                 MessageUtils.setUnknownAttributeError(response);
@@ -82,26 +82,26 @@ public class MediaPlayerProfile extends DConnectProfile implements MediaPlayerPr
             MessageUtils.setUnknownAttributeError(response);
         } else {
             String serviceId = getServiceID(request);
-            if (attribute.equals(ATTRIBUTE_MEDIA)) {
+            if (attribute.equalsIgnoreCase(ATTRIBUTE_MEDIA)) {
                 String mediaId = getMediaId(request);
                 result = onPutMedia(request, response, serviceId, mediaId);
-            } else if (attribute.equals(ATTRIBUTE_PLAY)) {
+            } else if (attribute.equalsIgnoreCase(ATTRIBUTE_PLAY)) {
                 result = onPutPlay(request, response, serviceId);
-            } else if (attribute.equals(ATTRIBUTE_STOP)) {
+            } else if (attribute.equalsIgnoreCase(ATTRIBUTE_STOP)) {
                 result = onPutStop(request, response, serviceId);
-            } else if (attribute.equals(ATTRIBUTE_PAUSE)) {
+            } else if (attribute.equalsIgnoreCase(ATTRIBUTE_PAUSE)) {
                 result = onPutPause(request, response, serviceId);
-            } else if (attribute.equals(ATTRIBUTE_RESUME)) {
+            } else if (attribute.equalsIgnoreCase(ATTRIBUTE_RESUME)) {
                 result = onPutResume(request, response, serviceId);
-            } else if (attribute.equals(ATTRIBUTE_SEEK)) {
+            } else if (attribute.equalsIgnoreCase(ATTRIBUTE_SEEK)) {
                 Integer pos = getPos(request);
                 result = onPutSeek(request, response, serviceId, pos);
-            } else if (attribute.equals(ATTRIBUTE_VOLUME)) {
+            } else if (attribute.equalsIgnoreCase(ATTRIBUTE_VOLUME)) {
                 Double volume = getVolume(request);
                 result = onPutVolume(request, response, serviceId, volume);
-            } else if (attribute.equals(ATTRIBUTE_MUTE)) {
+            } else if (attribute.equalsIgnoreCase(ATTRIBUTE_MUTE)) {
                 result = onPutMute(request, response, serviceId);
-            } else if (attribute.equals(ATTRIBUTE_ON_STATUS_CHANGE)) {
+            } else if (attribute.equalsIgnoreCase(ATTRIBUTE_ON_STATUS_CHANGE)) {
                 String sessionKey = getSessionKey(request);
                 result = onPutOnStatusChange(request, response, serviceId, sessionKey);
             } else {
@@ -120,9 +120,9 @@ public class MediaPlayerProfile extends DConnectProfile implements MediaPlayerPr
             MessageUtils.setUnknownAttributeError(response);
         } else {
             String serviceId = getServiceID(request);
-            if (attribute.equals(ATTRIBUTE_MUTE)) {
+            if (attribute.equalsIgnoreCase(ATTRIBUTE_MUTE)) {
                 result = onDeleteMute(request, response, serviceId);
-            } else if (attribute.equals(ATTRIBUTE_ON_STATUS_CHANGE)) {
+            } else if (attribute.equalsIgnoreCase(ATTRIBUTE_ON_STATUS_CHANGE)) {
                 String sessionKey = getSessionKey(request);
                 result = onDeleteOnStatusChange(request, response, serviceId, sessionKey);
             } else {

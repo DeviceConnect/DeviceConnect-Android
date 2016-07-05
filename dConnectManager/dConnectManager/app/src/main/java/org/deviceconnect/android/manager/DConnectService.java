@@ -14,7 +14,18 @@ import android.net.ConnectivityManager;
 import android.os.IBinder;
 import android.os.RemoteException;
 
+import org.deviceconnect.android.compat.LowerCaseConverter;
+import org.deviceconnect.android.compat.MessageConverter;
+import org.deviceconnect.android.manager.compat.NewPathConverter;
+import org.deviceconnect.android.manager.compat.NewScopeConverter;
+import org.deviceconnect.android.manager.compat.OldPathConverter;
+import org.deviceconnect.android.manager.compat.ServiceDiscoveryConverter;
+import org.deviceconnect.android.manager.compat.ServiceInformationConverter;
 import org.deviceconnect.android.manager.util.DConnectUtil;
+import org.deviceconnect.android.manager.util.VersionName;
+import org.deviceconnect.android.profile.DConnectProfile;
+import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
+import org.deviceconnect.android.profile.ServiceInformationProfile;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.server.DConnectServer;
 import org.deviceconnect.server.DConnectServerConfig;
@@ -24,6 +35,7 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -42,6 +54,8 @@ public class DConnectService extends DConnectMessageService {
     /** 通信相手がWebアプリケーションであることを示す定数. */
     public static final String INNER_APP_TYPE_WEB = "web";
 
+    private static final VersionName OLD_SDK = VersionName.parse("1.0.0");
+
     /** RESTfulサーバ. */
     private DConnectServer mRESTfulServer;
 
@@ -50,6 +64,20 @@ public class DConnectService extends DConnectMessageService {
 
     /** イベント送信スレッド. */
     private ExecutorService mEventSender = Executors.newSingleThreadExecutor();
+
+    private final MessageConverter[] mNewRequestConverters = {
+        new NewPathConverter(),
+        new NewScopeConverter(),
+        new LowerCaseConverter()
+    };
+
+    private final MessageConverter mOldPathConverter = new OldPathConverter();
+
+    /** サービス一覧に含まれるAPIへのパスを新仕様に統一する. */
+    private final MessageConverter mServiceDiscoveryConverter = new ServiceDiscoveryConverter();
+
+    /** Service Informationに含まれるAPIへのパスを新仕様に統一する. */
+    private final MessageConverter mServiceInformationConverter = new ServiceInformationConverter();
 
     @Override
     public IBinder onBind(final Intent intent) {
@@ -226,7 +254,7 @@ public class DConnectService extends DConnectMessageService {
     };
 
     /**
-     * ネットワークiの接続状態の変化を受け取るレシーバー.
+     * ネットワークの接続状態の変化を受け取るレシーバー.
      */
     private final BroadcastReceiver mWiFiReceiver = new BroadcastReceiver() {
         @Override
@@ -234,4 +262,77 @@ public class DConnectService extends DConnectMessageService {
             showNotification();
         }
     };
+
+    @Override
+    public void onRequestReceive(final Intent request) {
+        for (MessageConverter converter : mNewRequestConverters) {
+            converter.convert(request);
+        }
+        super.onRequestReceive(request);
+    }
+
+    @Override
+    protected String parseProfileName(final Intent request) {
+        String profileName = super.parseProfileName(request);
+        if (profileName != null) {
+            //XXXX パスの大文字小文字を無視
+            profileName = profileName.toLowerCase();
+        }
+        return profileName;
+    }
+
+    @Override
+    public void addProfile(final DConnectProfile profile) {
+        if (profile != null) {
+            profile.setContext(this);
+            //XXXX パスの大文字小文字を無視
+            mProfileMap.put(profile.getProfileName().toLowerCase(), profile);
+        }
+    }
+
+    @Override
+    public void removeProfile(final DConnectProfile profile) {
+        if (profile != null) {
+            //XXXX パスの大文字小文字を無視
+            mProfileMap.remove(profile.getProfileName().toLowerCase());
+        }
+    }
+
+    @Override
+    public DConnectProfile getProfile(final String name) {
+        if (name == null) {
+            return null;
+        }
+        //XXXX パスの大文字小文字を無視
+        return mProfileMap.get(name.toLowerCase());
+    }
+
+    @Override
+    protected void sendDeliveryProfile(final Intent request, final Intent response) {
+        //XXXX パスの互換性を担保
+        List<DevicePlugin> plugins = mPluginMgr.getDevicePlugins(DConnectProfile.getServiceID(request));
+        if (plugins != null && plugins.size() > 0) {
+            DevicePlugin plugin = plugins.get(0);
+            if (OLD_SDK.equals(plugin.getPluginSdkVersionName())) {
+                mOldPathConverter.convert(request);
+            }
+        }
+
+        super.sendDeliveryProfile(request, response);
+    }
+
+    @Override
+    protected Intent createResponseIntent(final Intent request, final Intent response) {
+        Intent result = super.createResponseIntent(request, response);
+
+        //XXXX パスの互換性の担保
+        String profileName = parseProfileName(request);
+        if (ServiceDiscoveryProfile.PROFILE_NAME.equalsIgnoreCase(profileName)) {
+            mServiceDiscoveryConverter.convert(result);
+        } else if (ServiceInformationProfile.PROFILE_NAME.equalsIgnoreCase(profileName)) {
+            mServiceInformationConverter.convert(result);
+        }
+        return result;
+    }
+
 }

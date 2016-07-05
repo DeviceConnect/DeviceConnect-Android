@@ -102,9 +102,9 @@ public class MediaStreamRecordingProfile extends DConnectProfile implements Medi
             setUnsupportedError(response);
         } else {
             String serviceId = getServiceID(request);
-            if (attribute.equals(ATTRIBUTE_MEDIARECORDER)) {
+            if (attribute.equalsIgnoreCase(ATTRIBUTE_MEDIARECORDER)) {
                 result = onGetMediaRecorder(request, response, serviceId);
-            } else if (attribute.equals(ATTRIBUTE_OPTIONS)) {
+            } else if (attribute.equalsIgnoreCase(ATTRIBUTE_OPTIONS)) {
                 String target = getTarget(request);
                 result = onGetOptions(request, response, serviceId, target);
             } else {
@@ -126,9 +126,9 @@ public class MediaStreamRecordingProfile extends DConnectProfile implements Medi
             String target = getTarget(request);
             String serviceId = getServiceID(request);
 
-            if (attribute.equals(ATTRIBUTE_TAKE_PHOTO)) {
+            if (attribute.equalsIgnoreCase(ATTRIBUTE_TAKE_PHOTO)) {
                 result = onPostTakePhoto(request, response, serviceId, target);
-            } else if (attribute.equals(ATTRIBUTE_RECORD)) {
+            } else if (attribute.equalsIgnoreCase(ATTRIBUTE_RECORD)) {
                 try {
                     Long timeslice = getTimeSlice(request);
                     result = onPostRecord(request, response, serviceId, target, timeslice);
@@ -156,17 +156,17 @@ public class MediaStreamRecordingProfile extends DConnectProfile implements Medi
             String target = getTarget(request);
             String sessionKey = getSessionKey(request);
 
-            if (attribute.equals(ATTRIBUTE_PAUSE)) {
+            if (attribute.equalsIgnoreCase(ATTRIBUTE_PAUSE)) {
                 result = onPutPause(request, response, serviceId, target);
-            } else if (attribute.equals(ATTRIBUTE_RESUME)) {
+            } else if (attribute.equalsIgnoreCase(ATTRIBUTE_RESUME)) {
                 result = onPutResume(request, response, serviceId, target);
-            } else if (attribute.equals(ATTRIBUTE_STOP)) {
+            } else if (attribute.equalsIgnoreCase(ATTRIBUTE_STOP)) {
                 result = onPutStop(request, response, serviceId, target);
-            } else if (attribute.equals(ATTRIBUTE_MUTETRACK)) {
+            } else if (attribute.equalsIgnoreCase(ATTRIBUTE_MUTETRACK)) {
                 result = onPutMuteTrack(request, response, serviceId, target);
-            } else if (attribute.equals(ATTRIBUTE_UNMUTETRACK)) {
+            } else if (attribute.equalsIgnoreCase(ATTRIBUTE_UNMUTETRACK)) {
                 result = onPutUnmuteTrack(request, response, serviceId, target);
-            } else if (attribute.equals(ATTRIBUTE_OPTIONS)) {
+            } else if (attribute.equalsIgnoreCase(ATTRIBUTE_OPTIONS)) {
                 Integer imageWidth = getImageWidth(request);
                 Integer imageHeight = getImageHeight(request);
                 Integer previewWidth = getPreviewWidth(request);
@@ -175,13 +175,13 @@ public class MediaStreamRecordingProfile extends DConnectProfile implements Medi
                 String mimeType = getMIMEType(request);
                 result = onPutOptions(request, response, serviceId, target, imageWidth, imageHeight,
                     previewWidth, previewHeight, previewMaxFrameRate, mimeType);
-            } else if (attribute.equals(ATTRIBUTE_ON_PHOTO)) {
+            } else if (attribute.equalsIgnoreCase(ATTRIBUTE_ON_PHOTO)) {
                 result = onPutOnPhoto(request, response, serviceId, sessionKey);
-            } else if (attribute.equals(ATTRIBUTE_ON_RECORDING_CHANGE)) {
+            } else if (attribute.equalsIgnoreCase(ATTRIBUTE_ON_RECORDING_CHANGE)) {
                 result = onPutOnRecordingChange(request, response, serviceId, sessionKey);
-            } else if (attribute.equals(ATTRIBUTE_ON_DATA_AVAILABLE)) {
+            } else if (attribute.equalsIgnoreCase(ATTRIBUTE_ON_DATA_AVAILABLE)) {
                 result = onPutOnDataAvailable(request, response, serviceId, sessionKey);
-            } else if (attribute.equals(ATTRIBUTE_PREVIEW)) {
+            } else if (attribute.equalsIgnoreCase(ATTRIBUTE_PREVIEW)) {
                 result = onPutPreview(request, response, serviceId, target);
             } else {
                 MessageUtils.setUnknownAttributeError(response);
@@ -205,13 +205,13 @@ public class MediaStreamRecordingProfile extends DConnectProfile implements Medi
             String target = getTarget(request);
             String sessionKey = getSessionKey(request);
 
-            if (attribute.equals(ATTRIBUTE_ON_PHOTO)) {
+            if (attribute.equalsIgnoreCase(ATTRIBUTE_ON_PHOTO)) {
                 result = onDeleteOnPhoto(request, response, serviceId, sessionKey);
-            } else if (attribute.equals(ATTRIBUTE_ON_RECORDING_CHANGE)) {
+            } else if (attribute.equalsIgnoreCase(ATTRIBUTE_ON_RECORDING_CHANGE)) {
                 result = onDeleteOnRecordingChange(request, response, serviceId, sessionKey);
-            } else if (attribute.equals(ATTRIBUTE_ON_DATA_AVAILABLE)) {
+            } else if (attribute.equalsIgnoreCase(ATTRIBUTE_ON_DATA_AVAILABLE)) {
                 result = onDeleteOnDataAvailable(request, response, serviceId, sessionKey);
-            } else if (attribute.equals(ATTRIBUTE_PREVIEW)) {
+            } else if (attribute.equalsIgnoreCase(ATTRIBUTE_PREVIEW)) {
                 result = onDeletePreview(request, response, serviceId, target);
             } else {
                 MessageUtils.setUnknownAttributeError(response);

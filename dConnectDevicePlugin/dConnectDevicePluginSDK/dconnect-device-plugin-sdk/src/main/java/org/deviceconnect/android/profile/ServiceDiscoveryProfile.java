@@ -6,14 +6,14 @@
  */
 package org.deviceconnect.android.profile;
 
-import java.util.ArrayList;
-import java.util.List;
+import android.content.Intent;
+import android.os.Bundle;
 
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 
-import android.content.Intent;
-import android.os.Bundle;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Service Discovery プロファイル.
@@ -91,7 +91,7 @@ public abstract class ServiceDiscoveryProfile extends DConnectProfile implements
         String attribute = getAttribute(request);
         boolean result = true;
 
-        if (ATTRIBUTE_ON_SERVICE_CHANGE.equals(attribute)) {
+        if (ATTRIBUTE_ON_SERVICE_CHANGE.equalsIgnoreCase(attribute)) {
             String serviceId = getServiceID(request);
             String sessionKey = getSessionKey(request);
             result = onPutOnServiceChange(request, response, serviceId, sessionKey);
@@ -108,7 +108,7 @@ public abstract class ServiceDiscoveryProfile extends DConnectProfile implements
         String attribute = getAttribute(request);
         boolean result = true;
 
-        if (ATTRIBUTE_ON_SERVICE_CHANGE.equals(attribute)) {
+        if (ATTRIBUTE_ON_SERVICE_CHANGE.equalsIgnoreCase(attribute)) {
             String serviceId = getServiceID(request);
             String sessionKey = getSessionKey(request);
             result = onDeleteOnServiceChange(request, response, serviceId, sessionKey);

@@ -54,15 +54,18 @@ public abstract class HumanDetectProfile extends DConnectProfile implements Huma
         String interfac = getInterface(request);
         String attribute = getAttribute(request);
         boolean result = true;
-        if (INTERFACE_DETECTION.equals(interfac) && ATTRIBUTE_BODY_DETECTION.equals(attribute)) {
+        if (INTERFACE_DETECTION.equalsIgnoreCase(interfac)
+            && ATTRIBUTE_BODY_DETECTION.equalsIgnoreCase(attribute)) {
             String serviceId = getServiceID(request);
             List<String> options = getOptions(request);
             result = onGetBodyDetection(request, response, serviceId, options);
-        } else if (INTERFACE_DETECTION.equals(interfac) && ATTRIBUTE_HAND_DETECTION.equals(attribute)) {
+        } else if (INTERFACE_DETECTION.equalsIgnoreCase(interfac)
+            && ATTRIBUTE_HAND_DETECTION.equalsIgnoreCase(attribute)) {
             String serviceId = getServiceID(request);
             List<String> options = getOptions(request);
             result = onGetHandDetection(request, response, serviceId, options);
-        } else if (INTERFACE_DETECTION.equals(interfac) && ATTRIBUTE_FACE_DETECTION.equals(attribute)) {
+        } else if (INTERFACE_DETECTION.equalsIgnoreCase(interfac)
+            && ATTRIBUTE_FACE_DETECTION.equalsIgnoreCase(attribute)) {
             String serviceId = getServiceID(request);
             List<String> options = getOptions(request);
             result = onGetFaceDetection(request, response, serviceId, options);
@@ -78,15 +81,18 @@ public abstract class HumanDetectProfile extends DConnectProfile implements Huma
         String interfac = getInterface(request);
         String attribute = getAttribute(request);
         boolean result = true;
-        if (INTERFACE_DETECTION.equals(interfac) && ATTRIBUTE_BODY_DETECTION.equals(attribute)) {
+        if (INTERFACE_DETECTION.equalsIgnoreCase(interfac)
+            && ATTRIBUTE_BODY_DETECTION.equalsIgnoreCase(attribute)) {
             String serviceId = getServiceID(request);
             List<String> options = getOptions(request);
             result = onPostBodyDetection(request, response, serviceId, options);
-        } else if (INTERFACE_DETECTION.equals(interfac) && ATTRIBUTE_HAND_DETECTION.equals(attribute)) {
+        } else if (INTERFACE_DETECTION.equalsIgnoreCase(interfac)
+            && ATTRIBUTE_HAND_DETECTION.equalsIgnoreCase(attribute)) {
             String serviceId = getServiceID(request);
             List<String> options = getOptions(request);
             result = onPostHandDetection(request, response, serviceId, options);
-        } else if (INTERFACE_DETECTION.equals(interfac) && ATTRIBUTE_FACE_DETECTION.equals(attribute)) {
+        } else if (INTERFACE_DETECTION.equalsIgnoreCase(interfac)
+            && ATTRIBUTE_FACE_DETECTION.equalsIgnoreCase(attribute)) {
             String serviceId = getServiceID(request);
             List<String> options = getOptions(request);
             result = onPostFaceDetection(request, response, serviceId, options);
@@ -102,11 +108,11 @@ public abstract class HumanDetectProfile extends DConnectProfile implements Huma
         boolean result = true;
         String attribute = getAttribute(request);
 
-        if (ATTRIBUTE_ON_BODY_DETECTION.equals(attribute)) {
+        if (ATTRIBUTE_ON_BODY_DETECTION.equalsIgnoreCase(attribute)) {
             result = onPutOnBodyDetection(request, response, getServiceID(request), getSessionKey(request));
-        } else if (ATTRIBUTE_ON_HAND_DETECTION.equals(attribute)) {
+        } else if (ATTRIBUTE_ON_HAND_DETECTION.equalsIgnoreCase(attribute)) {
             result = onPutOnHandDetection(request, response, getServiceID(request), getSessionKey(request));
-        } else if (ATTRIBUTE_ON_FACE_DETECTION.equals(attribute)) {
+        } else if (ATTRIBUTE_ON_FACE_DETECTION.equalsIgnoreCase(attribute)) {
             result = onPutOnFaceDetection(request, response, getServiceID(request), getSessionKey(request));
         } else {
             MessageUtils.setUnknownAttributeError(response);
@@ -119,11 +125,11 @@ public abstract class HumanDetectProfile extends DConnectProfile implements Huma
     protected boolean onDeleteRequest(final Intent request, final Intent response) {
         boolean result = true;
         String attribute = getAttribute(request);
-        if (ATTRIBUTE_ON_BODY_DETECTION.equals(attribute)) {
+        if (ATTRIBUTE_ON_BODY_DETECTION.equalsIgnoreCase(attribute)) {
             result = onDeleteOnBodyDetection(request, response, getServiceID(request), getSessionKey(request));
-        } else if (ATTRIBUTE_ON_HAND_DETECTION.equals(attribute)) {
+        } else if (ATTRIBUTE_ON_HAND_DETECTION.equalsIgnoreCase(attribute)) {
             result = onDeleteOnHandDetection(request, response, getServiceID(request), getSessionKey(request));
-        } else if (ATTRIBUTE_ON_FACE_DETECTION.equals(attribute)) {
+        } else if (ATTRIBUTE_ON_FACE_DETECTION.equalsIgnoreCase(attribute)) {
             result = onDeleteOnFaceDetection(request, response, getServiceID(request), getSessionKey(request));
         } else {
             MessageUtils.setUnknownAttributeError(response);

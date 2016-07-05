@@ -94,7 +94,7 @@ public abstract class DConnectMessageService extends Service
     private String mDConnectDomain = LOCALHOST_DCONNECT;
 
     /** プロファイルインスタンスマップ. */
-    private Map<String, DConnectProfile> mProfileMap = new HashMap<String, DConnectProfile>();
+    protected Map<String, DConnectProfile> mProfileMap = new HashMap<String, DConnectProfile>();
 
     /** 最後に処理されるプロファイル. */
     private DConnectProfile mDeliveryProfile;
@@ -248,7 +248,7 @@ public abstract class DConnectMessageService extends Service
         response.putExtra(DConnectMessage.EXTRA_REQUEST_CODE, requestCode);
 
         // オリジンの正当性チェック
-        String profileName = request.getStringExtra(DConnectMessage.EXTRA_PROFILE);
+        String profileName = parseProfileName(request);
         OriginError error = checkOrigin(request);
         switch (error) {
         case NOT_SPECIFIED:
@@ -307,6 +307,10 @@ public abstract class DConnectMessageService extends Service
         }
     }
 
+    protected String parseProfileName(final Intent request) {
+        return request.getStringExtra(DConnectMessage.EXTRA_PROFILE);
+    }
+
     /**
      * オリジンの正当性をチェックする.
      * <p>
@@ -340,7 +344,7 @@ public abstract class DConnectMessageService extends Service
     public void onResponseReceive(final Intent response) {
         // リクエストコードが定義されていない場合にはエラー
         int requestCode = response.getIntExtra(
-                IntentDConnectMessage.EXTRA_REQUEST_CODE, ERROR_CODE);
+            IntentDConnectMessage.EXTRA_REQUEST_CODE, ERROR_CODE);
         if (requestCode == ERROR_CODE) {
             mLogger.warning("Illegal requestCode in onResponseReceive. requestCode=" + requestCode);
             return;
@@ -363,7 +367,7 @@ public abstract class DConnectMessageService extends Service
 
         if (BuildConfig.DEBUG) {
             mLogger.info(String.format("onEventReceive: [sessionKey: %s serviceId: %s profile: %s inter: %s attribute: %s]",
-                    sessionKey, serviceId, profile, inter, attribute));
+                sessionKey, serviceId, profile, inter, attribute));
         }
 
         if (sessionKey != null) {
@@ -605,7 +609,7 @@ public abstract class DConnectMessageService extends Service
      * @param request リクエスト
      * @param response レスポンス
      */
-    private void sendDeliveryProfile(final Intent request, final Intent response) {
+    protected void sendDeliveryProfile(final Intent request, final Intent response) {
         mDeliveryProfile.onRequest(request, response);
     }
 
@@ -623,7 +627,7 @@ public abstract class DConnectMessageService extends Service
         String serviceId = event
                 .getStringExtra(IntentDConnectMessage.EXTRA_SERVICE_ID);
         event.putExtra(IntentDConnectMessage.EXTRA_SERVICE_ID,
-                mPluginMgr.appendServiceId(plugin, serviceId));
+            mPluginMgr.appendServiceId(plugin, serviceId));
     }
 
     /**

@@ -105,10 +105,10 @@ public class AuthorizationProfile extends DConnectProfile implements Authorizati
      */
     public void onInvalidOrigin(final Intent request, final Intent response) {
         String attribute = getAttribute(request);
-        if (ATTRIBUTE_GRANT.equals(attribute)) {
+        if (ATTRIBUTE_GRANT.equalsIgnoreCase(attribute)) {
             // GotAPI対応: エラーの場合は、空文字のクライアントIDを返す
             response.putExtra(AuthorizationProfile.PARAM_CLIENT_ID, "");
-        } else if (ATTRIBUTE_ACCESS_TOKEN.equals(attribute)) {
+        } else if (ATTRIBUTE_ACCESS_TOKEN.equalsIgnoreCase(attribute)) {
             // GotAPI対応: エラーの場合は、空文字のアクセストークンIDを返す
             response.putExtra(AuthorizationProfile.PARAM_ACCESS_TOKEN, "");
         }

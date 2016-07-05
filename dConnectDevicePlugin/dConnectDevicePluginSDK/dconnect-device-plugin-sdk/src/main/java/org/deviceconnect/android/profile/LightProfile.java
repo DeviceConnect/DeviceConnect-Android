@@ -299,7 +299,7 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
      */
     private boolean isLightGroupAttribute(final Intent request) {
         String attribute = getAttribute(request);
-        return isNullInterface(request) && ATTRIBUTE_GROUP.equals(attribute);
+        return isNullInterface(request) && ATTRIBUTE_GROUP.equalsIgnoreCase(attribute);
     }
 
     /**
@@ -311,7 +311,8 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
     private boolean isLightGroupCreateAttribute(final Intent request) {
         String myInterface = getInterface(request);
         String attribute = getAttribute(request);
-        return INTERFACE_GROUP.equals(myInterface) && ATTRIBUTE_CREATE.equals(attribute);
+        return INTERFACE_GROUP.equalsIgnoreCase(myInterface)
+            && ATTRIBUTE_CREATE.equalsIgnoreCase(attribute);
     }
 
     /**
@@ -323,7 +324,8 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
     private boolean isLightGroupClearAttribute(final Intent request) {
         String myInterface = getInterface(request);
         String attribute = getAttribute(request);
-        return INTERFACE_GROUP.equals(myInterface) && ATTRIBUTE_CLEAR.equals(attribute);
+        return INTERFACE_GROUP.equalsIgnoreCase(myInterface)
+            && ATTRIBUTE_CLEAR.equalsIgnoreCase(attribute);
     }
 
     /**

@@ -381,6 +381,11 @@ public class HostDeviceOrientationProfile extends DeviceOrientationProfile imple
             Bundle orientation = createOrientation();
             mAccelLastTime = System.currentTimeMillis();
 
+            if (isEmptyEventList()) {
+                mSensorManager.unregisterListener(this);
+                return;
+            }
+
             List<Event> events = EventManager.INSTANCE.getEventList(mServiceId,
                     DeviceOrientationProfile.PROFILE_NAME, null,
                     DeviceOrientationProfile.ATTRIBUTE_ON_DEVICE_ORIENTATION);

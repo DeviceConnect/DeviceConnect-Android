@@ -86,7 +86,7 @@ public abstract class DConnectMessageService extends Service
     protected final Logger mLogger = Logger.getLogger("dconnect.manager");
 
     /** プロファイルインスタンスマップ. */
-    private Map<String, DConnectProfile> mProfileMap = new HashMap<>();
+    protected Map<String, DConnectProfile> mProfileMap = new HashMap<String, DConnectProfile>();
 
     /** 最後に処理されるプロファイル. */
     private DConnectProfile mDeliveryProfile;
@@ -219,7 +219,7 @@ public abstract class DConnectMessageService extends Service
      * リクエスト用Intentを受領したときの処理を行う.
      * @param request リクエスト用Intent
      */
-    private void onRequestReceive(final Intent request) {
+    public void onRequestReceive(final Intent request) {
         // リクエストコードが定義されていない場合には無視
         int requestCode = getRequestCode(request);
         if (requestCode == ERROR_CODE) {
@@ -298,6 +298,10 @@ public abstract class DConnectMessageService extends Service
         }
     }
 
+    protected String parseProfileName(final Intent request) {
+        return request.getStringExtra(DConnectMessage.EXTRA_PROFILE);
+    }
+
     /**
      * レスポンス受信ハンドラー.
      * @param response レスポンス用Intent
@@ -327,7 +331,7 @@ public abstract class DConnectMessageService extends Service
 
         if (BuildConfig.DEBUG) {
             mLogger.info(String.format("onEventReceive: [sessionKey: %s serviceId: %s profile: %s inter: %s attribute: %s]",
-                    sessionKey, serviceId, profile, inter, attribute));
+                sessionKey, serviceId, profile, inter, attribute));
         }
 
         if (sessionKey != null) {
@@ -570,7 +574,7 @@ public abstract class DConnectMessageService extends Service
      * @param request リクエスト
      * @param response レスポンス
      */
-    private void sendDeliveryProfile(final Intent request, final Intent response) {
+    protected void sendDeliveryProfile(final Intent request, final Intent response) {
         mDeliveryProfile.onRequest(request, response);
     }
 
@@ -587,7 +591,7 @@ public abstract class DConnectMessageService extends Service
     private void replaceServiceId(final Intent event, final DevicePlugin plugin) {
         String serviceId = event.getStringExtra(IntentDConnectMessage.EXTRA_SERVICE_ID);
         event.putExtra(IntentDConnectMessage.EXTRA_SERVICE_ID,
-                mPluginMgr.appendServiceId(plugin, serviceId));
+            mPluginMgr.appendServiceId(plugin, serviceId));
     }
 
     /**

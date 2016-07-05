@@ -31,17 +31,17 @@ public interface NotificationProfileConstants extends DConnectProfileConstants {
     /**
      * 属性:{@value} .
      */
-    String ATTRIBUTE_ON_CLOSE = "onclose";
+    String ATTRIBUTE_ON_CLOSE = "onClose";
 
     /**
      * 属性:{@value} .
      */
-    String ATTRIBUTE_ON_ERROR = "onerror";
+    String ATTRIBUTE_ON_ERROR = "onError";
 
     /**
      * 属性:{@value} .
      */
-    String ATTRIBUTE_ON_SHOW = "onshow";
+    String ATTRIBUTE_ON_SHOW = "onShow";
 
     /**
      * パス: {@value}.

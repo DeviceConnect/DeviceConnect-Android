@@ -722,6 +722,9 @@ public class DConnectServerNanoHttpd extends DConnectServer {
                 mLogger.warning("Exception in the NanoWebSocket#sendEvent() method. " + e.toString());
                 if (mListener != null) {
                     mListener.onError(DConnectServerError.SEND_EVENT_FAILED);
+                    if (mSessionKey != null) {
+                        mListener.onWebSocketDisconnected(mSessionKey);
+                    }
                 }
             }
         }
@@ -832,6 +835,9 @@ public class DConnectServerNanoHttpd extends DConnectServer {
                 } catch (IOException e) {
                     // 例外が発生したらタスクを終了し、タイムアウトに任せる
                     cancel();
+                    if (mSessionKey != null) {
+                        mListener.onWebSocketDisconnected(mSessionKey);
+                    }
                 }
             }
         }

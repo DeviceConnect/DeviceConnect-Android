@@ -27,7 +27,7 @@ public interface ConnectProfileConstants extends DConnectProfileConstants {
     /**
      * 属性: {@value} .
      */
-    String ATTRIBUTE_ON_WIFI_CHANGE = "onwifichange";
+    String ATTRIBUTE_ON_WIFI_CHANGE = "onWifiChange";
 
     /**
      * 属性: {@value} .
@@ -42,7 +42,7 @@ public interface ConnectProfileConstants extends DConnectProfileConstants {
     /**
      * 属性: {@value} .
      */
-    String ATTRIBUTE_ON_BLUETOOTH_CHANGE = "onbluetoothchange";
+    String ATTRIBUTE_ON_BLUETOOTH_CHANGE = "onBluetoothChange";
 
     /**
      * 属性: {@value} .
@@ -57,7 +57,7 @@ public interface ConnectProfileConstants extends DConnectProfileConstants {
     /**
      * 属性: {@value} .
      */
-    String ATTRIBUTE_ON_BLE_CHANGE = "onblechange";
+    String ATTRIBUTE_ON_BLE_CHANGE = "onBleChange";
 
     /**
      * 属性: {@value} .
@@ -67,7 +67,7 @@ public interface ConnectProfileConstants extends DConnectProfileConstants {
     /**
      * 属性: {@value} .
      */
-    String ATTRIBUTE_ON_NFC_CHANGE = "onnfcchange";
+    String ATTRIBUTE_ON_NFC_CHANGE = "onNfcChange";
 
     /**
      * パス: {@value}.

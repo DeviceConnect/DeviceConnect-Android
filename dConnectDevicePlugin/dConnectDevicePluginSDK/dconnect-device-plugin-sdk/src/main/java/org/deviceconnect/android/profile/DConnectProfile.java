@@ -781,7 +781,9 @@ public abstract class DConnectProfile implements DConnectProfileConstants {
 
         @Override
         public int hashCode() {
-            return (mPath + mMethod.getName()).hashCode();
+            int result = mPath.toLowerCase().hashCode();
+            result = 31 * result + mMethod.hashCode();
+            return result;
         }
 
         @Override
@@ -793,7 +795,7 @@ public abstract class DConnectProfile implements DConnectProfileConstants {
                 return false;
             }
             ApiIdentifier that = ((ApiIdentifier) o);
-            return mPath.equals(that.mPath) && mMethod == that.mMethod;
+            return mPath.equalsIgnoreCase(that.mPath) && mMethod == that.mMethod;
         }
     }
 }

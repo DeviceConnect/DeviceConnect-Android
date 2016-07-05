@@ -63,9 +63,9 @@ public abstract class DConnectMessageService extends Service implements DConnect
      * LocalOAuthで無視するプロファイル群.
      */
     private static final String[] IGNORE_PROFILES = {
-        AuthorizationProfileConstants.PROFILE_NAME,
-        SystemProfileConstants.PROFILE_NAME,
-        ServiceDiscoveryProfileConstants.PROFILE_NAME
+        AuthorizationProfileConstants.PROFILE_NAME.toLowerCase(),
+        SystemProfileConstants.PROFILE_NAME.toLowerCase(),
+        ServiceDiscoveryProfileConstants.PROFILE_NAME.toLowerCase()
     };
 
     /**

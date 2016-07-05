@@ -244,6 +244,7 @@ public class ServiceInformationProfile extends DConnectProfile implements Servic
 
         if (paramSpec instanceof IntegerRequestParamSpec) {
             IntegerRequestParamSpec intParamSpec = (IntegerRequestParamSpec) paramSpec;
+            param.putString(PARAM_FORMAT, intParamSpec.getFormat().getName());
             if (intParamSpec.getEnumList() != null) {
                 ArrayList<Bundle> enums = new ArrayList<Bundle>();
                 for (DConnectRequestParamSpec.Enum<Long> e : intParamSpec.getEnumList()) {
@@ -268,6 +269,7 @@ public class ServiceInformationProfile extends DConnectProfile implements Servic
             }
         } else if (paramSpec instanceof NumberRequestParamSpec) {
             NumberRequestParamSpec numParamSpec = (NumberRequestParamSpec) paramSpec;
+            param.putString(PARAM_FORMAT, numParamSpec.getFormat().getName());
             if (numParamSpec.getMaxValue() != null) {
                 param.putDouble(PARAM_MAX_VALUE, numParamSpec.getMaxValue());
             }
@@ -282,6 +284,7 @@ public class ServiceInformationProfile extends DConnectProfile implements Servic
             }
         } else if (paramSpec instanceof StringRequestParamSpec) {
             StringRequestParamSpec strParamSpec = (StringRequestParamSpec) paramSpec;
+            param.putString(PARAM_FORMAT, strParamSpec.getFormat().getName());
             if (strParamSpec.getEnumList() != null) {
                 ArrayList<Bundle> enums = new ArrayList<Bundle>();
                 for (DConnectRequestParamSpec.Enum<String> e : strParamSpec.getEnumList()) {

@@ -168,7 +168,7 @@ public abstract class DConnectProfile implements DConnectProfileConstants {
         if (api != null) {
             DConnectApiSpec spec = api.getApiSpec();
             if (spec != null && !spec.validate(request)) {
-                MessageUtils.setInvalidRequestParameterError(request);
+                MessageUtils.setInvalidRequestParameterError(response);
                 return true;
             }
             return api.onRequest(request, response);

@@ -182,7 +182,10 @@ public enum EventManager {
     public List<Event> getEventList(final String serviceId, final String profile, 
             final String inter, final String attribute) {
         checkState();
-        return mController.getEvents(serviceId, profile, inter, attribute);
+        return mController.getEvents(serviceId,
+                profile != null ? profile.toLowerCase() : null,
+                inter != null ? inter.toLowerCase() : null,
+                attribute != null ? attribute.toLowerCase() : null);
     }
 
     /**
@@ -194,7 +197,6 @@ public enum EventManager {
      * @return イベントの一覧
      */
     public List<Event> getEventList(final String profile, final String inter, final String attribute) {
-        checkState();
         return getEventList(null, profile, inter, attribute);
     }
     
@@ -206,7 +208,6 @@ public enum EventManager {
      * @return イベントの一覧
      */
     public List<Event> getEventList(final String profile, final String attribute) {
-        checkState();
         return getEventList(profile, null, attribute);
     }
 

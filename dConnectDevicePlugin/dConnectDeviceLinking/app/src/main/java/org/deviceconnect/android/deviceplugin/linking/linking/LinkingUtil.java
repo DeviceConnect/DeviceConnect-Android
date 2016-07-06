@@ -169,7 +169,15 @@ public final class LinkingUtil {
         return false;
     }
 
-    public static int floatToIntIEEE754(float value, int fraction, int exponent, boolean sign) {
+    public static short byteToShort(final byte[] buf) {
+        return (short) ((buf[1] << 8) | buf[0]);
+    }
+
+    public static int byteToInt(final byte[] buf) {
+        return (buf[3] << 24) | (buf[2] << 16) | (buf[1] << 8) | buf[0];
+    }
+
+    public static int floatToIntIEEE754(final float value, final int fraction, final int exponent, final boolean sign) {
         float tmpValue = Math.abs(value);
 
         int mask = mask(fraction);
@@ -209,7 +217,7 @@ public final class LinkingUtil {
         return v;
     }
 
-    private static int getCount(int v, int exponent) {
+    private static int getCount(final int v, final int exponent) {
         int result = 0;
         int bit = 1;
         for (int i = 0; i < exponent; i++) {
@@ -239,7 +247,7 @@ public final class LinkingUtil {
         return v;
     }
 
-    public static float intToFloatIEEE754(int value, int fraction, int exponent, boolean sign) {
+    public static float intToFloatIEEE754(final int value, final int fraction, final int exponent, final boolean sign) {
         if (value == 0) {
             return 0.0f;
         }
@@ -297,7 +305,7 @@ public final class LinkingUtil {
         return integer + decimal;
     }
 
-    private static double pow(int count) {
+    private static double pow(final int count) {
         double t = 1;
         for (int i = 0; i < count; i++) {
             t = t / 2.0;
@@ -305,7 +313,7 @@ public final class LinkingUtil {
         return t;
     }
 
-    private static int mask(int value) {
+    private static int mask(final int value) {
         int t = 1;
         for (int i = 0; i < value - 1; i++) {
             t = t | (t << 1);

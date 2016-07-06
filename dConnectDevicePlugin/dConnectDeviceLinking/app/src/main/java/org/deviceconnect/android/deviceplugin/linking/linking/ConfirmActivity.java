@@ -15,16 +15,13 @@ import android.util.Log;
 import org.deviceconnect.android.deviceplugin.linking.BuildConfig;
 import org.deviceconnect.android.deviceplugin.linking.R;
 
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
-
 public class ConfirmActivity extends Activity {
 
     private static final String TAG = "ConfirmActivity";
 
     private static final int REQUEST_CODE = 4;
+
+    public static final String EXTRA_REQUEST_SENSOR_TYPE = "extra_request_sensor_type";
 
     /**
      * 0：ジャイロセンサー
@@ -35,30 +32,39 @@ public class ConfirmActivity extends Activity {
      * 5: 湿度センサー
      * 6～255：拡張センサー
      */
-    private int mCurrentRequestType = 0;
+    private int[] mRequestType;
 
-    private ScheduledExecutorService mExecutorService = Executors.newSingleThreadScheduledExecutor();
-    private ScheduledFuture<?> mScheduledFuture;
+    private int mIndex;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_linking_confirm);
+
         if (BuildConfig.DEBUG) {
             Log.i(TAG, "ConfirmActivity:onCreate");
         }
-        setContentView(R.layout.activity_linking_confirm);
 
-        mScheduledFuture = mExecutorService.schedule(new Runnable() {
-            @Override
-            public void run() {
-                if (BuildConfig.DEBUG) {
-                    Log.w(TAG, "ConfirmActivity timeout.");
+        Intent intent = getIntent();
+        if (intent != null) {
+            mRequestType = intent.getIntArrayExtra(EXTRA_REQUEST_SENSOR_TYPE);
+            if (BuildConfig.DEBUG) {
+                if (mRequestType != null) {
+                    for (int type : mRequestType) {
+                        Log.d(TAG, "RequestType: " + type);
+                    }
                 }
-                finish();
             }
-        }, 30, TimeUnit.SECONDS);
+        }
 
-        startSensor(mCurrentRequestType);
+        if (mRequestType == null || mRequestType.length == 0) {
+            if (BuildConfig.DEBUG) {
+                Log.e(TAG, "RequestType is null.");
+            }
+            finishConfirmActivity();
+        } else {
+            startSensor();
+        }
     }
 
     @Override
@@ -69,10 +75,9 @@ public class ConfirmActivity extends Activity {
 
         if (BuildConfig.DEBUG) {
             Log.i(TAG, "ConfirmActivity:onActivityResult");
-            Log.i(TAG, "requestCode:" + requestCode);
-            Log.i(TAG, "resultCode:" + resultCode);
-            Log.i(TAG, "result:" + result);
-            Log.i(TAG, "mCurrentRequestType:" + mCurrentRequestType);
+            Log.i(TAG, "requestCode: " + requestCode);
+            Log.i(TAG, "resultCode: " + result);
+            Log.i(TAG, "mIndex: " + mIndex);
         }
 
         if (requestCode != REQUEST_CODE) {
@@ -84,30 +89,27 @@ public class ConfirmActivity extends Activity {
             finishConfirmActivity();
             return;
         }
-        if (mCurrentRequestType >= 2) {
+        if (mRequestType.length <= mIndex) {
             finishConfirmActivity();
             return;
         }
-        mCurrentRequestType += 1;
-        startSensor(mCurrentRequestType);
+        startSensor();
     }
 
     private void finishConfirmActivity() {
-        if (mScheduledFuture != null) {
-            mScheduledFuture.cancel(true);
-        }
         finish();
     }
 
-    private void startSensor(final int type) {
+    private void startSensor() {
         if (BuildConfig.DEBUG) {
-            Log.i(TAG, "ConfirmActivity:startSensor type:" + type);
+            Log.i(TAG, "ConfirmActivity:startSensor mIndex:" + mIndex);
         }
 
         Intent intent = new Intent(LinkingUtil.ACTION_START_SENSOR);
         intent.setComponent(new ComponentName(LinkingUtil.PACKAGE_NAME, LinkingUtil.ACTIVITY_NAME));
         intent.putExtras(getIntent().getExtras());
-        intent.putExtra(LinkingUtil.EXTRA_SENSOR_TYPE, type);
+        intent.putExtra(LinkingUtil.EXTRA_SENSOR_TYPE, mRequestType[mIndex]);
+        mIndex++;
         try {
             startActivityForResult(intent, REQUEST_CODE);
         } catch (Exception e) {

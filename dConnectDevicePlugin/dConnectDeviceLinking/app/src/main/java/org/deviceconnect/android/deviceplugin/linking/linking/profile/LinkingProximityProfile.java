@@ -8,7 +8,9 @@ package org.deviceconnect.android.deviceplugin.linking.linking.profile;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 
+import org.deviceconnect.android.deviceplugin.linking.BuildConfig;
 import org.deviceconnect.android.deviceplugin.linking.LinkingApplication;
 import org.deviceconnect.android.deviceplugin.linking.LinkingDevicePluginService;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingDevice;
@@ -30,20 +32,24 @@ import java.util.List;
 
 public class LinkingProximityProfile extends ProximityProfile {
 
+    private static final String TAG = "LinkingPlugIn";
+
     public LinkingProximityProfile(final DConnectMessageService service) {
         LinkingApplication app = (LinkingApplication) service.getApplication();
         LinkingDeviceManager deviceManager = app.getLinkingDeviceManager();
-        deviceManager.addRangeListener(new LinkingDeviceManager.OnRangeListener() {
-            @Override
-            public void onChangeRange(final LinkingDevice device, final LinkingDeviceManager.Range range) {
-                notifyProximityEvent(device, range);
-            }
-        });
+        deviceManager.addRangeListener(mListener);
 
         addApi(mGetOnDeviceProximity);
         addApi(mPutOnDeviceProximity);
         addApi(mDeleteOnDeviceProximity);
     }
+
+    private final LinkingDeviceManager.OnRangeListener mListener = new LinkingDeviceManager.OnRangeListener() {
+        @Override
+        public void onChangeRange(final LinkingDevice device, final LinkingDeviceManager.Range range) {
+            notifyProximityEvent(device, range);
+        }
+    };
 
     private final DConnectApi mGetOnDeviceProximity = new GetApi() {
         @Override
@@ -146,6 +152,13 @@ public class LinkingProximityProfile extends ProximityProfile {
             return true;
         }
     };
+
+    public void destroy() {
+        if (BuildConfig.DEBUG) {
+            Log.i(TAG, "LinkingProximityProfile#destroy: " + getService().getId());
+        }
+        getLinkingDeviceManager().removeRangeListener(mListener);
+    }
 
     private LinkingDevice getDevice(final Intent response) {
         LinkingDevice device = ((LinkingDeviceService) getService()).getLinkingDevice();

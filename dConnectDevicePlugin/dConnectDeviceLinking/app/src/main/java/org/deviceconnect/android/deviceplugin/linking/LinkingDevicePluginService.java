@@ -45,10 +45,10 @@ public class LinkingDevicePluginService extends DConnectMessageService {
         super.onCreate();
         EventManager.INSTANCE.setController(new MemoryCacheController());
 
-        addLinkingDevice();
-        addLinkingBeacon();
+        createLinkingDeviceList();
+        createLinkingBeaconList();
 
-        addProfile(new LinkingServiceDiscoveryProfile(getServiceProvider()));
+        addProfile(new LinkingServiceDiscoveryProfile(this, getServiceProvider()));
     }
 
     @Override
@@ -77,6 +77,7 @@ public class LinkingDevicePluginService extends DConnectMessageService {
         return new LinkingSystemProfile();
     }
 
+    @Override
     public void onManagerTerminated() {
         if (BuildConfig.DEBUG) {
             Log.d(TAG, "onManagerTerminated");
@@ -85,6 +86,7 @@ public class LinkingDevicePluginService extends DConnectMessageService {
         removeAllServices();
     }
 
+    @Override
     public void onManagerEventTransmitDisconnected(final String sessionKey) {
         if (BuildConfig.DEBUG) {
             Log.d(TAG, "onManagerEventTransmitDisconnected: " + sessionKey);
@@ -92,6 +94,7 @@ public class LinkingDevicePluginService extends DConnectMessageService {
         cleanupSession(sessionKey);
     }
 
+    @Override
     public void onDevicePluginReset() {
         if (BuildConfig.DEBUG) {
             Log.d(TAG, "onDevicePluginReset");
@@ -100,6 +103,7 @@ public class LinkingDevicePluginService extends DConnectMessageService {
         resetService();
     }
 
+    @Override
     public void onManagerUninstalled() {
         if (BuildConfig.DEBUG) {
             Log.d(TAG, "onManagerUninstalled");
@@ -126,29 +130,99 @@ public class LinkingDevicePluginService extends DConnectMessageService {
         stopBeacon();
     }
 
+    public void refreshDevices() {
+        createLinkingDeviceList();
+        createLinkingBeaconList();
+        cleanupDConnectService();
+    }
+
+    private void createLinkingDeviceList() {
+        for (LinkingDevice device : getLinkingDeviceManager().getDevices()) {
+            DConnectService service = findDConnectService(device.getBdAddress());
+            if (service == null) {
+                if (BuildConfig.DEBUG) {
+                    Log.i(TAG, "Added Device: " + device.getDisplayName());
+                }
+                getServiceProvider().addService(new LinkingDeviceService(this, device));
+            } else {
+                ((LinkingDeviceService) service).setLinkingDevice(device);
+            }
+        }
+    }
+
+    private void createLinkingBeaconList() {
+        for (LinkingBeacon beacon : getLinkingBeaconManager().getLinkingBeacons()) {
+            DConnectService service = findDConnectService(beacon.getServiceId());
+            if (service == null) {
+                if (BuildConfig.DEBUG) {
+                    Log.i(TAG, "Added Beacon: " + beacon.getDisplayName());
+                }
+                getServiceProvider().addService(new LinkingBeaconService(this, beacon));
+            } else {
+                ((LinkingBeaconService) service).setLinkingBeacon(beacon);
+            }
+        }
+    }
+
+    private void cleanupDConnectService() {
+        for (DConnectService service : getServiceProvider().getServiceList()) {
+            if (!containsLinkingDevices(service.getId()) && !containsLinkingBeacons(service.getId())) {
+                removeService(service);
+            }
+        }
+    }
+
     private void removeAllServices() {
         List<DConnectService> services = getServiceProvider().getServiceList();
         for (DConnectService service : services) {
-            getServiceProvider().removeService(service);
+            removeService(service);
         }
+    }
+
+    private void removeService(final DConnectService service) {
+        if (BuildConfig.DEBUG) {
+            Log.i(TAG, "Remove Service: " + service.getName());
+        }
+
+        if (service instanceof LinkingDeviceService) {
+            ((LinkingDeviceService) service).destroy();
+        } else if (service instanceof LinkingBeaconService) {
+            ((LinkingBeaconService) service).destroy();
+        }
+        getServiceProvider().removeService(service);
+    }
+
+    private boolean containsLinkingDevices(final String id) {
+        for (LinkingDevice device : getLinkingDeviceManager().getDevices()) {
+            if (id.equals(device.getBdAddress())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean containsLinkingBeacons(final String id) {
+        for (LinkingBeacon beacon : getLinkingBeaconManager().getLinkingBeacons()) {
+            if (id.equals(beacon.getServiceId())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private DConnectService findDConnectService(final String id) {
+        for (DConnectService service : getServiceProvider().getServiceList()) {
+            if (service.getId().equals(id)) {
+                return service;
+            }
+        }
+        return null;
     }
 
     private void resetService() {
         removeAllServices();
-        addLinkingDevice();
-        addLinkingBeacon();
-    }
-
-    private void addLinkingDevice() {
-        for (LinkingDevice device : getLinkingDeviceManager().getDevices()) {
-            getServiceProvider().addService(new LinkingDeviceService(this, device));
-        }
-    }
-
-    private void addLinkingBeacon() {
-        for (LinkingBeacon beacon : getLinkingBeaconManager().getLinkingBeacons()) {
-            getServiceProvider().addService(new LinkingBeaconService(this, beacon));
-        }
+        createLinkingDeviceList();
+        createLinkingBeaconList();
     }
 
     private void stopDeviceOrientation(final Event event) {
@@ -161,21 +235,13 @@ public class LinkingDevicePluginService extends DConnectMessageService {
             Log.i(TAG, "stopDeviceOrientation");
         }
 
+        LinkingDeviceManager mgr = getLinkingDeviceManager();
         String serviceId = event.getServiceId();
-
         List<Event> events = EventManager.INSTANCE.getEventList(
                 serviceId, DeviceOrientationProfile.PROFILE_NAME, null,
                 DeviceOrientationProfile.ATTRIBUTE_ON_DEVICE_ORIENTATION);
         if (events.isEmpty()) {
-            List<LinkingDevice> devices = getLinkingDeviceManager().getStartedSensorDevices();
-            for (LinkingDevice device : devices) {
-                if (device.getBdAddress().equals(serviceId)) {
-                    if (BuildConfig.DEBUG) {
-                        Log.d(TAG, "Stop a sensor. name=" + device.getDisplayName());
-                    }
-                    getLinkingDeviceManager().stopSensor(device);
-                }
-            }
+            mgr.stopSensor(mgr.findDeviceByBdAddress(serviceId));
         } else {
             if (BuildConfig.DEBUG) {
                 Log.d(TAG, "events=" + events.size());
@@ -193,21 +259,13 @@ public class LinkingDevicePluginService extends DConnectMessageService {
             Log.i(TAG, "stopProximity");
         }
 
+        LinkingDeviceManager mgr = getLinkingDeviceManager();
         String serviceId = event.getServiceId();
-
         List<Event> events = EventManager.INSTANCE.getEventList(
                 serviceId, ProximityProfile.PROFILE_NAME, null,
                 ProximityProfile.ATTRIBUTE_ON_DEVICE_PROXIMITY);
         if (events.isEmpty()) {
-            List<LinkingDevice> devices = getLinkingDeviceManager().getStartedRangeDevices();
-            for (LinkingDevice device : devices) {
-                if (device.getBdAddress().equals(serviceId)) {
-                    if (BuildConfig.DEBUG) {
-                        Log.d(TAG, "Stop a proximity. name=" + device.getDisplayName());
-                    }
-                    getLinkingDeviceManager().stopRange(device);
-                }
-            }
+            mgr.stopRange(mgr.findDeviceByBdAddress(serviceId));
         } else {
             if (BuildConfig.DEBUG) {
                 Log.d(TAG, "events=" + events.size());
@@ -225,20 +283,13 @@ public class LinkingDevicePluginService extends DConnectMessageService {
             Log.i(TAG, "stopKeyEvent");
         }
 
+        LinkingDeviceManager mgr = getLinkingDeviceManager();
         String serviceId = event.getServiceId();
 
         List<Event> events = EventManager.INSTANCE.getEventList(
                 serviceId, KeyEventProfile.PROFILE_NAME, null, KeyEventProfile.ATTRIBUTE_ON_DOWN);
         if (events.isEmpty()) {
-            List<LinkingDevice> devices = getLinkingDeviceManager().getStartedKeyEventDevices();
-            for (LinkingDevice device : devices) {
-                if (device.getBdAddress().equals(serviceId)) {
-                    if (BuildConfig.DEBUG) {
-                        Log.d(TAG, "Stop a key event. name=" + device.getDisplayName());
-                    }
-                    getLinkingDeviceManager().stopKeyEvent(device);
-                }
-            }
+            mgr.stopKeyEvent(mgr.findDeviceByBdAddress(serviceId));
         } else {
             if (BuildConfig.DEBUG) {
                 Log.d(TAG, "events=" + events.size());

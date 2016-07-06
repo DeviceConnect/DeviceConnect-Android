@@ -35,16 +35,18 @@ public class LinkingKeyEventProfile extends KeyEventProfile {
     public LinkingKeyEventProfile(final DConnectMessageService service) {
         LinkingApplication app = (LinkingApplication) service.getApplication();
         LinkingBeaconManager mgr = app.getLinkingBeaconManager();
-        mgr.addOnBeaconButtonEventListener(new LinkingBeaconManager.OnBeaconButtonEventListener() {
-            @Override
-            public void onClickButton(final LinkingBeacon beacon, final int keyCode, final long timeStamp) {
-                notifyKeyEvent(beacon, keyCode, timeStamp);
-            }
-        });
+        mgr.addOnBeaconButtonEventListener(mListener);
 
         addApi(mPutOnDown);
         addApi(mDeleteOnDown);
     }
+
+    private final LinkingBeaconManager.OnBeaconButtonEventListener mListener = new LinkingBeaconManager.OnBeaconButtonEventListener() {
+        @Override
+        public void onClickButton(final LinkingBeacon beacon, final int keyCode, final long timeStamp) {
+            notifyKeyEvent(beacon, keyCode, timeStamp);
+        }
+    };
 
     private final DConnectApi mPutOnDown = new PutApi() {
         @Override
@@ -93,6 +95,12 @@ public class LinkingKeyEventProfile extends KeyEventProfile {
         }
     };
 
+    public void destroy() {
+        if (BuildConfig.DEBUG) {
+            Log.i(TAG, "LinkingKeyEventProfile#destroy: " + getService().getId());
+        }
+        getLinkingBeaconManager().removeOnBeaconButtonEventListener(mListener);
+    }
 
     private Bundle createKeyEvent(final int keyCode) {
         Bundle keyEvent = new Bundle();

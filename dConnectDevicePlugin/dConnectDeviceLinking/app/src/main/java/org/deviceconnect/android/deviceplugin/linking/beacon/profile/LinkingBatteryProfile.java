@@ -39,12 +39,7 @@ public class LinkingBatteryProfile extends BatteryProfile {
     public LinkingBatteryProfile(final DConnectMessageService service) {
         LinkingApplication app = (LinkingApplication) service.getApplication();
         LinkingBeaconManager mgr = app.getLinkingBeaconManager();
-        mgr.addOnBeaconBatteryEventListener(new LinkingBeaconManager.OnBeaconBatteryEventListener() {
-            @Override
-            public void onBattery(final LinkingBeacon beacon, final BatteryData battery) {
-                notifyBatteryEvent(beacon, battery);
-            }
-        });
+        mgr.addOnBeaconBatteryEventListener(mListener);
 
         addApi(mGetAll);
         addApi(mGetLevel);
@@ -52,70 +47,17 @@ public class LinkingBatteryProfile extends BatteryProfile {
         addApi(mDeleteOnBatteryChange);
     }
 
+    private final LinkingBeaconManager.OnBeaconBatteryEventListener mListener = new LinkingBeaconManager.OnBeaconBatteryEventListener() {
+        @Override
+        public void onBattery(final LinkingBeacon beacon, final BatteryData battery) {
+            notifyBatteryEvent(beacon, battery);
+        }
+    };
+
     private final DConnectApi mGetAll = new GetApi() {
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            LinkingBeaconManager mgr = getLinkingBeaconManager();
-            LinkingBeacon beacon = ((LinkingBeaconService) getService()).getLinkingBeacon();
-
-            BatteryData battery = beacon.getBatteryData();
-            if (battery != null && System.currentTimeMillis() - battery.getTimeStamp() < TIMEOUT) {
-                setBatteryToResponse(response, battery);
-                mgr.startBeaconScanWithTimeout(TIMEOUT);
-                return true;
-            }
-
-            mgr.addOnBeaconBatteryEventListener(new OnBeaconBatteryEventListenerImpl(mgr, beacon) {
-                @Override
-                public void onCleanup() {
-                    mBeaconManager.removeOnBeaconBatteryEventListener(this);
-                }
-
-                @Override
-                public void onDisableScan(final String message) {
-                    if (mCleanupFlag) {
-                        return;
-                    }
-
-                    if (BuildConfig.DEBUG) {
-                        Log.i(TAG, "onBattery: disable scan.");
-                    }
-
-                    MessageUtils.setIllegalDeviceStateError(response, message);
-                    sendResponse(response);
-                }
-
-                @Override
-                public void onTimeout() {
-                    if (mCleanupFlag) {
-                        return;
-                    }
-
-                    if (BuildConfig.DEBUG) {
-                        Log.i(TAG, "onBattery: timeout");
-                    }
-
-                    MessageUtils.setTimeoutError(response);
-                    sendResponse(response);
-                }
-
-                @Override
-                public synchronized void onBattery(final LinkingBeacon beacon, final BatteryData battery) {
-                    if (mCleanupFlag || !beacon.equals(mBeacon)) {
-                        return;
-                    }
-
-                    if (BuildConfig.DEBUG) {
-                        Log.i(TAG, "onBattery: beacon=" + beacon.getDisplayName() + " battery=" + battery);
-                    }
-
-                    setBatteryToResponse(response, battery);
-                    sendResponse(response);
-                    cleanup();
-                }
-            });
-            mgr.startBeaconScanWithTimeout(TIMEOUT);
-            return false;
+            return getBattery(request, response);
         }
     };
 
@@ -127,67 +69,7 @@ public class LinkingBatteryProfile extends BatteryProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            LinkingBeaconManager mgr = getLinkingBeaconManager();
-            LinkingBeacon beacon = ((LinkingBeaconService) getService()).getLinkingBeacon();
-
-            BatteryData battery = beacon.getBatteryData();
-            if (battery != null && System.currentTimeMillis() - battery.getTimeStamp() < TIMEOUT) {
-                setBatteryToResponse(response, battery);
-                mgr.startBeaconScanWithTimeout(TIMEOUT);
-                return true;
-            }
-
-            mgr.addOnBeaconBatteryEventListener(new OnBeaconBatteryEventListenerImpl(mgr, beacon) {
-                @Override
-                public void onCleanup() {
-                    mBeaconManager.removeOnBeaconBatteryEventListener(this);
-                }
-
-                @Override
-                public void onDisableScan(final String message) {
-                    if (mCleanupFlag) {
-                        return;
-                    }
-
-                    if (BuildConfig.DEBUG) {
-                        Log.i(TAG, "onBattery: disable scan.");
-                    }
-
-                    MessageUtils.setIllegalDeviceStateError(response, message);
-                    sendResponse(response);
-                }
-
-                @Override
-                public void onTimeout() {
-                    if (mCleanupFlag) {
-                        return;
-                    }
-
-                    if (BuildConfig.DEBUG) {
-                        Log.i(TAG, "onBattery: timeout");
-                    }
-
-                    MessageUtils.setTimeoutError(response);
-                    sendResponse(response);
-                }
-
-                @Override
-                public synchronized void onBattery(final LinkingBeacon beacon, final BatteryData battery) {
-                    if (mCleanupFlag || !beacon.equals(mBeacon)) {
-                        return;
-                    }
-
-                    if (BuildConfig.DEBUG) {
-                        Log.i(TAG, "onBattery: beacon=" + beacon.getDisplayName() + " battery=" + battery);
-                    }
-
-                    setBatteryToResponse(response, battery);
-                    sendResponse(response);
-                    cleanup();
-                }
-            });
-            mgr.startBeaconScanWithTimeout(TIMEOUT);
-            return false;
+            return getBattery(request, response);
         }
     };
 
@@ -237,6 +119,77 @@ public class LinkingBatteryProfile extends BatteryProfile {
             return true;
         }
     };
+
+    public void destroy() {
+        if (BuildConfig.DEBUG) {
+            Log.i(TAG, "LinkingBatteryProfile#destroy: " + getService().getId());
+        }
+        getLinkingBeaconManager().removeOnBeaconBatteryEventListener(mListener);
+    }
+
+    private boolean getBattery(final Intent request, final Intent response) {
+        LinkingBeaconManager mgr = getLinkingBeaconManager();
+        LinkingBeacon beacon = ((LinkingBeaconService) getService()).getLinkingBeacon();
+
+        BatteryData battery = beacon.getBatteryData();
+        if (battery != null && System.currentTimeMillis() - battery.getTimeStamp() < TIMEOUT) {
+            setBatteryToResponse(response, battery);
+            mgr.startBeaconScanWithTimeout(TIMEOUT);
+            return true;
+        }
+
+        mgr.addOnBeaconBatteryEventListener(new OnBeaconBatteryEventListenerImpl(mgr, beacon) {
+            @Override
+            public void onCleanup() {
+                mBeaconManager.removeOnBeaconBatteryEventListener(this);
+            }
+
+            @Override
+            public void onDisableScan(final String message) {
+                if (mCleanupFlag) {
+                    return;
+                }
+
+                if (BuildConfig.DEBUG) {
+                    Log.i(TAG, "onBattery: disable scan.");
+                }
+
+                MessageUtils.setIllegalDeviceStateError(response, message);
+                sendResponse(response);
+            }
+
+            @Override
+            public void onTimeout() {
+                if (mCleanupFlag) {
+                    return;
+                }
+
+                if (BuildConfig.DEBUG) {
+                    Log.i(TAG, "onBattery: timeout");
+                }
+
+                MessageUtils.setTimeoutError(response);
+                sendResponse(response);
+            }
+
+            @Override
+            public synchronized void onBattery(final LinkingBeacon beacon, final BatteryData battery) {
+                if (mCleanupFlag || !beacon.equals(mBeacon)) {
+                    return;
+                }
+
+                if (BuildConfig.DEBUG) {
+                    Log.i(TAG, "onBattery: beacon=" + beacon.getDisplayName() + " battery=" + battery);
+                }
+
+                setBatteryToResponse(response, battery);
+                sendResponse(response);
+                cleanup();
+            }
+        });
+        mgr.startBeaconScanWithTimeout(TIMEOUT);
+        return false;
+    }
 
     private void notifyBatteryEvent(final LinkingBeacon beacon, final BatteryData batteryData) {
         String serviceId = beacon.getServiceId();

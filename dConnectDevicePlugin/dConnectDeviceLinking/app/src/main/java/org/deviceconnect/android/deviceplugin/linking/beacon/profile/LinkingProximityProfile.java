@@ -40,17 +40,19 @@ public class LinkingProximityProfile extends ProximityProfile {
     public LinkingProximityProfile(final DConnectMessageService service) {
         LinkingApplication app = (LinkingApplication) service.getApplication();
         LinkingBeaconManager mgr = app.getLinkingBeaconManager();
-        mgr.addOnBeaconProximityEventListener(new LinkingBeaconManager.OnBeaconProximityEventListener() {
-            @Override
-            public void onProximity(final LinkingBeacon beacon, final GattData gatt) {
-                notifyProximityEvent(beacon, gatt);
-            }
-        });
+        mgr.addOnBeaconProximityEventListener(mListener);
 
         addApi(mGetOnDeviceProximity);
         addApi(mPutOnDeviceProximity);
         addApi(mDeleteOnDeviceProximity);
     }
+
+    private final LinkingBeaconManager.OnBeaconProximityEventListener mListener = new LinkingBeaconManager.OnBeaconProximityEventListener() {
+        @Override
+        public void onProximity(final LinkingBeacon beacon, final GattData gatt) {
+            notifyProximityEvent(beacon, gatt);
+        }
+    };
 
     private final DConnectApi mGetOnDeviceProximity = new GetApi() {
         @Override
@@ -172,6 +174,13 @@ public class LinkingProximityProfile extends ProximityProfile {
             return true;
         }
     };
+
+    public void destroy() {
+        if (BuildConfig.DEBUG) {
+            Log.i(TAG, "LinkingProximityProfile#destroy: " + getService().getId());
+        }
+        getLinkingBeaconManager().removeOnBeaconProximityEventListener(mListener);
+    }
 
     private Bundle createProximity(final LinkingDeviceManager.Range range) {
         Bundle proximity = new Bundle();

@@ -15,7 +15,6 @@ public class LinkingDevice {
     private Integer mUniqueId;
     private byte[] mIllumination;
     private byte[] mVibration;
-    private Object mSensor;
     private boolean mIsConnected;
     private int mFeature;
     private int mExSensorType;
@@ -28,6 +27,8 @@ public class LinkingDevice {
     public static final int TEMPERATURE = LED << 5;
     public static final int HUMIDITY = LED << 6;
 
+    public static final int VERSION_1 = 1;
+    public static final int VERSION_2 = 1 << 1;
     public static final int BUTTON = 1 << 3;
 
     public String getDisplayName() {
@@ -84,14 +85,6 @@ public class LinkingDevice {
 
     public void setVibration(byte[] vibration) {
         mVibration = vibration;
-    }
-
-    public Object getSensor() {
-        return mSensor;
-    }
-
-    public void setSensor(final Object sensor) {
-        this.mSensor = sensor;
     }
 
     public boolean isConnected() {
@@ -155,7 +148,7 @@ public class LinkingDevice {
     }
 
     public String getVersion() {
-        return String.valueOf(mExSensorType & 1) + "." + String.valueOf(mExSensorType & 2);
+        return String.valueOf(mExSensorType & VERSION_1) + "." + String.valueOf(mExSensorType & VERSION_2);
     }
 
     @Override
@@ -188,8 +181,12 @@ public class LinkingDevice {
 
     @Override
     public String toString() {
-        return "Address: " + getBdAddress() + "\n ModelId: " + getModelId()
-                + "\nUniqueId: " + getUniqueId() + "\nFeature: " + getFeature()
-                + "\nExSensorType: " + getExSensorType();
+        return "Name: " + getDisplayName() + "\n  Address: " + getBdAddress()
+                + "\n  ModelId: " + getModelId() + "\n  UniqueId: " + getUniqueId()
+                + "\n  Feature: " + getFeature() + "\n  ExSensorType: " + getExSensorType()
+                + "\n  Version: " + getVersion() + "\n  LED: " + isLED() + "\n  Gyro: " + isGyro()
+                + "\n  Accel: " + isAcceleration() + "\n  Compass: " + isCompass()
+                + "\n  Battery: " + isBattery() + "\n  Humidity: " + isHumidity()
+                + "\n  Temperature: " + isTemperature() + "\n  Button: " + isButton();
     }
 }

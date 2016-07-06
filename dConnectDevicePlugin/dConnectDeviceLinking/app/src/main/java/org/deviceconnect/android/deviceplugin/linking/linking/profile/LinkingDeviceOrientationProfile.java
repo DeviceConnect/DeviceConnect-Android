@@ -47,12 +47,7 @@ public class LinkingDeviceOrientationProfile extends DeviceOrientationProfile {
     public LinkingDeviceOrientationProfile(final DConnectMessageService service) {
         LinkingApplication app = (LinkingApplication) service.getApplication();
         LinkingDeviceManager deviceManager = app.getLinkingDeviceManager();
-        deviceManager.addSensorListener(new LinkingDeviceManager.OnSensorListener() {
-            @Override
-            public void onChangeSensor(final LinkingDevice device, final LinkingSensorData sensor) {
-                notifyOrientation(device, sensor);
-            }
-        });
+        deviceManager.addSensorListener(mListener);
 
         mDispatcherManager = new EventDispatcherManager();
 
@@ -60,6 +55,13 @@ public class LinkingDeviceOrientationProfile extends DeviceOrientationProfile {
         addApi(mPutOnDeviceOrientation);
         addApi(mDeleteOnDeviceOrientation);
     }
+
+    private final LinkingDeviceManager.OnSensorListener mListener = new LinkingDeviceManager.OnSensorListener() {
+        @Override
+        public void onChangeSensor(final LinkingDevice device, final LinkingSensorData sensor) {
+            notifyOrientation(device, sensor);
+        }
+    };
 
     private final DConnectApi mGetOnDeviceOrientation = new GetApi() {
         @Override
@@ -133,7 +135,7 @@ public class LinkingDeviceOrientationProfile extends DeviceOrientationProfile {
 
             EventError error = EventManager.INSTANCE.addEvent(request);
             if (error == EventError.NONE) {
-                if (!getLinkingDeviceManager().isStartSensor(device)) {
+                if (!getLinkingDeviceManager().isStartedSensor(device)) {
                     getLinkingDeviceManager().startSensor(device);
                     mSensorHolderMap.put(device.getBdAddress(), createSensorHolder(device, getInterval(request)));
                 }
@@ -178,6 +180,14 @@ public class LinkingDeviceOrientationProfile extends DeviceOrientationProfile {
             return true;
         }
     };
+
+    public void destroy() {
+        if (BuildConfig.DEBUG) {
+            Log.i(TAG, "LinkingDeviceOrientationProfile#destroy: " + getService().getId());
+        }
+        getLinkingDeviceManager().removeSensorListener(mListener);
+        mDispatcherManager.removeAllEventDispatcher();
+    }
 
     private boolean isEmptyEventList(final String serviceId) {
         List<Event> events = EventManager.INSTANCE.getEventList(serviceId,
@@ -255,7 +265,6 @@ public class LinkingDeviceOrientationProfile extends DeviceOrientationProfile {
             holder.clearFlag();
 
             setInterval(holder.getOrientation(), holder.getInterval());
-
             String serviceId = device.getBdAddress();
             List<Event> events = EventManager.INSTANCE.getEventList(serviceId,
                     PROFILE_NAME, null, ATTRIBUTE_ON_DEVICE_ORIENTATION);

@@ -70,6 +70,7 @@ public class ServiceDiscoveryProfile extends DConnectProfile implements
                 setType(serviceBundle, service.getNetworkType());
                 setOnline(serviceBundle, service.isOnline());
                 setConfig(serviceBundle, service.getConfig());
+                setScopes(serviceBundle, service);
                 serviceBundles.add(serviceBundle);
             }
             setServices(response, serviceBundles);
@@ -195,12 +196,13 @@ public class ServiceDiscoveryProfile extends DConnectProfile implements
      * 
      * @param service デバイスパラメータ
      */
-    public static void setScopes(final Bundle service, final DConnectProfileProvider provider) {
+    public static void setScopes(final Bundle serviceBundle, final DConnectService service) {
         ArrayList<String> scopes = new ArrayList<String>();
-        for (DConnectProfile profile : provider.getProfileList()) {
+        List<DConnectProfile> profileList = service.getProfileList();
+        for (DConnectProfile profile : profileList) {
             scopes.add(profile.getProfileName());
         }
-        service.putStringArray(PARAM_SCOPES, scopes.toArray(new String[scopes.size()]));
+        serviceBundle.putStringArray(PARAM_SCOPES, scopes.toArray(new String[scopes.size()]));
     }
 
 }

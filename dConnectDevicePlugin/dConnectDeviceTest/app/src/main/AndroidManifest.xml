@@ -1,7 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="org.deviceconnect.android.deviceplugin.test"
-    android:versionCode="1"
-    android:versionName="2.0.0" >
+    package="org.deviceconnect.android.deviceplugin.test">
 
     <uses-sdk
         android:minSdkVersion="14"
@@ -17,7 +15,7 @@
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
 
-        <!-- d-Connect Test Device Plugin Provider. -->
+        <!-- Device Connect Test Device Plugin Provider. -->
         <receiver
             android:name="org.deviceconnect.android.deviceplugin.test.DeviceTestServiceProvider"
             android:enabled="true"

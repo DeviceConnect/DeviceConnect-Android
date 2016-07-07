@@ -1,0 +1,199 @@
+[
+    {
+        "name": "Notification API POST",
+        "type": "one-shot",
+        "method": "POST",
+        "path": "/gotapi/notification/notify",
+        "requestParams": [
+            {
+                "name": "serviceId",
+                "type": "string",
+                "mandatory": true
+            },
+            {
+                "name": "type",
+                "type": "integer",
+                "mandatory": true,
+                "enum": [
+                    {
+                        "name": "Ring Alert",
+                        "value": 0
+                    },
+                    {
+                        "name": "Incoming Mail Alert",
+                        "value": 1
+                    },
+                    {
+                        "name": "Incoming SMS Alert",
+                        "value": 2
+                    },
+                    {
+                        "name": "Event",
+                        "value": 3
+                    }
+                ]
+            },
+            {
+                "name": "dir",
+                "type": "string",
+                "mandatory": false,
+                "enum": [
+                    {
+                        "name": "Auto",
+                        "value": "auto"
+                    },
+                    {
+                        "name": "From right to left",
+                        "value": "rtl"
+                    },
+                    {
+                        "name": "From left to right",
+                        "value": "ltr"
+                    }
+                ]
+            },
+            {
+                "name": "lang",
+                "type": "string",
+                "mandatory": false
+            },
+            {
+                "name": "body",
+                "type": "string",
+                "mandatory": false
+            },
+            {
+                "name": "tag",
+                "type": "string",
+                "mandatory": false
+            },
+            {
+                "name": "uri",
+                "type": "string",
+                "mandatory": false
+            }
+        ]
+    },
+    {
+        "name": "Notification API DELETE",
+        "type": "one-shot",
+        "method": "DELETE",
+        "path": "/gotapi/notification/notify",
+        "requestParams": [
+            {
+                "name": "serviceId",
+                "type": "string",
+                "mandatory": true
+            },
+            {
+                "name": "notificationId",
+                "type": "string",
+                "mandatory": true
+            }
+        ]
+    },
+    {
+        "name": "Notification Click Event API",
+        "type": "event",
+        "method": "PUT",
+        "path": "/gotapi/notification/onClick",
+        "requestParams": [
+            {
+                "name": "serviceId",
+                "type": "string",
+                "mandatory": true
+            }
+        ]
+    },
+    {
+        "name": "Notification Click Event API",
+        "type": "event",
+        "method": "DELETE",
+        "path": "/gotapi/notification/onClick",
+        "requestParams": [
+            {
+                "name": "serviceId",
+                "type": "string",
+                "mandatory": true
+            }
+        ]
+    },
+    {
+        "name": "Notification Show Event API",
+        "type": "event",
+        "method": "PUT",
+        "path": "/gotapi/notification/onShow",
+        "requestParams": [
+            {
+                "name": "serviceId",
+                "type": "string",
+                "mandatory": true
+            }
+        ]
+    },
+    {
+        "name": "Notification Show Event API",
+        "type": "event",
+        "method": "DELETE",
+        "path": "/gotapi/notification/onShow",
+        "requestParams": [
+            {
+                "name": "serviceId",
+                "type": "string",
+                "mandatory": true
+            }
+        ]
+    },
+    {
+        "name": "Notification Close Event API",
+        "type": "event",
+        "method": "PUT",
+        "path": "/gotapi/notification/onClose",
+        "requestParams": [
+            {
+                "name": "serviceId",
+                "type": "string",
+                "mandatory": true
+            }
+        ]
+    },
+    {
+        "name": "Notification Close Event API",
+        "type": "event",
+        "method": "DELETE",
+        "path": "/gotapi/notification/onClose",
+        "requestParams": [
+            {
+                "name": "serviceId",
+                "type": "string",
+                "mandatory": true
+            }
+        ]
+    },
+    {
+        "name": "Notification Error Event API",
+        "type": "event",
+        "method": "PUT",
+        "path": "/gotapi/notification/onError",
+        "requestParams": [
+            {
+                "name": "serviceId",
+                "type": "string",
+                "mandatory": true
+            }
+        ]
+    },
+    {
+        "name": "Notification Error Event API",
+        "type": "event",
+        "method": "DELETE",
+        "path": "/gotapi/notification/onError",
+        "requestParams": [
+            {
+                "name": "serviceId",
+                "type": "string",
+                "mandatory": true
+            }
+        ]
+    }
+]

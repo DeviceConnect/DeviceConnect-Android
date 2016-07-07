@@ -16,14 +16,15 @@ import android.os.Handler;
 import org.deviceconnect.android.deviceplugin.heartrate.ble.BleUtils;
 import org.deviceconnect.android.deviceplugin.heartrate.profile.HeartRateHealthProfile;
 import org.deviceconnect.android.deviceplugin.heartrate.profile.HeartRateServiceDiscoveryProfile;
-import org.deviceconnect.android.deviceplugin.heartrate.profile.HeartRateServiceInformationProfile;
 import org.deviceconnect.android.deviceplugin.heartrate.profile.HeartRateSystemProfile;
+import org.deviceconnect.android.deviceplugin.heartrate.service.HeartRateService;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.event.cache.MemoryCacheController;
 import org.deviceconnect.android.message.DConnectMessageService;
-import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
-import org.deviceconnect.android.profile.ServiceInformationProfile;
+import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.android.profile.SystemProfile;
+import org.deviceconnect.android.service.DConnectService;
+import org.deviceconnect.android.service.DConnectServiceProvider;
 
 import java.util.logging.Logger;
 
@@ -34,6 +35,8 @@ import java.util.logging.Logger;
 public class HeartRateDeviceService extends DConnectMessageService {
     /** Logger. */
     private final Logger mLogger = Logger.getLogger("heartrate.dplugin");
+
+    private DConnectProfile mHeartRateProfile;
 
     /**
      * Received a event that Bluetooth has been changed.
@@ -52,6 +55,42 @@ public class HeartRateDeviceService extends DConnectMessageService {
             }
         }
     };
+
+    private final HeartRateManager.OnHeartRateDiscoveryListener mOnDiscoveryListener
+        = new HeartRateManager.OnHeartRateDiscoveryListener() {
+            @Override
+            public void onDiscovery(final List<BluetoothDevice> devices) {
+                DConnectServiceProvider provider = getServiceProvider();
+                for (BluetoothDevice device : devices) {
+                    if (provider.getService(device.getAddress()) == null) {
+                        DConnectService service = new HeartRateService(device);
+                        service.addProfile(mHeartRateProfile);
+                        provider.addService(service);
+                    }
+                }
+            }
+
+            @Override
+            public void onConnected(final BluetoothDevice device) {
+                DConnectService service = getServiceProvider().getService(device.getAddress());
+                if (service != null) {
+                    service.setOnline(true);
+                }
+            }
+
+            @Override
+            public void onConnectFailed(final BluetoothDevice device) {
+                // NOP.
+            }
+
+            @Override
+            public void onDisconnected(final BluetoothDevice device) {
+                DConnectService service = getServiceProvider().getService(device.getAddress());
+                if (service != null) {
+                    service.setOnline(false);
+                }
+            }
+        };
 
     /**
      * Instance of handler.
@@ -74,7 +113,10 @@ public class HeartRateDeviceService extends DConnectMessageService {
         HeartRateApplication app = (HeartRateApplication) getApplication();
         app.initialize();
 
-        addProfile(new HeartRateHealthProfile(app.getHeartRateManager()));
+        getManager().addOnHeartRateDiscoveryListener(mOnDiscoveryListener);
+
+        addProfile(new HeartRateServiceDiscoveryProfile(getServiceProvider()));
+        mHeartRateProfile = new HeartRateHealthProfile(app.getHeartRateManager());
 
         registerBluetoothFilter();
     }
@@ -90,16 +132,6 @@ public class HeartRateDeviceService extends DConnectMessageService {
     @Override
     protected SystemProfile getSystemProfile() {
         return new HeartRateSystemProfile();
-    }
-
-    @Override
-    protected ServiceDiscoveryProfile getServiceDiscoveryProfile() {
-        return new HeartRateServiceDiscoveryProfile(this);
-    }
-
-    @Override
-    protected ServiceInformationProfile getServiceInformationProfile() {
-        return new HeartRateServiceInformationProfile(this);
     }
 
     /**

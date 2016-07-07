@@ -6,12 +6,9 @@
  */
 package org.deviceconnect.android.deviceplugin.linking;
 
-import android.content.Intent;
-
-import org.deviceconnect.android.deviceplugin.linking.beacon.LinkingBeaconManager;
-import org.deviceconnect.android.deviceplugin.linking.beacon.LinkingBeaconUtil;
-import org.deviceconnect.android.deviceplugin.linking.profile.LinkingAtmosphericPressureProfile;
-import org.deviceconnect.android.deviceplugin.linking.profile.LinkingBatteryProfile;
+import org.deviceconnect.android.service.DConnectService;
+import org.deviceconnect.android.deviceplugin.linking.linking.LinkingDevice;
+import org.deviceconnect.android.deviceplugin.linking.linking.LinkingUtil;
 import org.deviceconnect.android.deviceplugin.linking.profile.LinkingDeviceOrientationProfile;
 import org.deviceconnect.android.deviceplugin.linking.profile.LinkingHumidityProfile;
 import org.deviceconnect.android.deviceplugin.linking.profile.LinkingKeyEventProfile;
@@ -90,4 +87,51 @@ public class LinkingDeviceService extends DConnectMessageService {
         super.onDestroy();
     }
 
+    @Override
+    public DConnectService getService(final String serviceId) {
+        LinkingDevice device = LinkingUtil.getLinkingDevice(getContext(), serviceId);
+        if (device == null) {
+            return null;
+        }
+
+        DConnectService.Builder service = createServiceBuilder()
+            .addApi(DConnectMessage.METHOD_GET,
+                ServiceDiscoveryProfileConstants.PATH_PROFILE)
+            .addApi(DConnectMessage.METHOD_GET,
+                ServiceInformationProfileConstants.PATH_PROFILE)
+            .addApi(DConnectMessage.METHOD_PUT,
+                SystemProfileConstants.PATH_WAKEUP)
+            .addApi(DConnectMessage.METHOD_POST,
+                NotificationProfileConstants.PATH_NOTIFY)
+            .addApi(DConnectMessage.METHOD_GET,
+                ProximityProfileConstants.PATH_ON_DEVICE_PROXIMITY)
+            .addApi(DConnectMessage.METHOD_PUT,
+                ProximityProfileConstants.PATH_ON_DEVICE_PROXIMITY)
+            .addApi(DConnectMessage.METHOD_DELETE,
+                ProximityProfileConstants.PATH_ON_DEVICE_PROXIMITY);
+
+        if (LinkingUtil.hasSensor(device)) {
+            service
+                .addApi(DConnectMessage.METHOD_GET,
+                    DeviceOrientationProfileConstants.PATH_ON_DEVICE_ORIENTATION)
+                .addApi(DConnectMessage.METHOD_PUT,
+                    DeviceOrientationProfileConstants.PATH_ON_DEVICE_ORIENTATION)
+                .addApi(DConnectMessage.METHOD_DELETE,
+                    DeviceOrientationProfileConstants.PATH_ON_DEVICE_ORIENTATION);
+        }
+        if (LinkingUtil.hasLED(device)) {
+            service
+                .addApi(DConnectMessage.METHOD_GET, "/gotapi/light")
+                .addApi(DConnectMessage.METHOD_POST, "/gotapi/light")
+                .addApi(DConnectMessage.METHOD_DELETE, "/gotapi/light");
+        }
+        if (LinkingUtil.hasVibration(device)) {
+            service
+                .addApi(DConnectMessage.METHOD_PUT,
+                    VibrationProfileConstants.PATH_VIBRATE)
+                .addApi(DConnectMessage.METHOD_PUT,
+                    VibrationProfileConstants.PATH_VIBRATE);
+        }
+        return service.build();
+    }
 }

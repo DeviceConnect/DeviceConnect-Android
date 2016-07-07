@@ -1,0 +1,28 @@
+[
+    {
+        "name": "DeviceOrientation Event API",
+        "type": "event",
+        "method": "PUT",
+        "path": "/gotapi/deviceOrientation/onDeviceOrientation",
+        "requestParams": [
+            {
+                "name": "serviceId",
+                "type": "string",
+                "mandatory": true
+            }
+        ]
+    },
+    {
+        "name": "DeviceOrientation Event API",
+        "type": "event",
+        "method": "DELETE",
+        "path": "/gotapi/deviceOrientation/onDeviceOrientation",
+        "requestParams": [
+            {
+                "name": "serviceId",
+                "type": "string",
+                "mandatory": true
+            }
+        ]
+    }
+]

@@ -6,15 +6,14 @@
  */
 package org.deviceconnect.android.profile;
 
-import java.io.IOException;
-import java.util.List;
+import android.content.Intent;
+import android.os.Bundle;
 
-import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.provider.FileManager;
 import org.deviceconnect.profile.FileProfileConstants;
 
-import android.content.Intent;
-import android.os.Bundle;
+import java.io.IOException;
+import java.util.List;
 
 /**
  * File プロファイル.
@@ -65,193 +64,6 @@ public abstract class FileProfile extends DConnectProfile implements FileProfile
     @Override
     public final String getProfileName() {
         return PROFILE_NAME;
-    }
-
-    @Override
-    protected boolean onGetRequest(final Intent request, final Intent response) {
-        String attribute = getAttribute(request);
-        boolean result = true;
-
-        String serviceId = getServiceID(request);
-        if (ATTRIBUTE_RECEIVE.equals(attribute)) {
-            String path = getPath(request);
-            result = onGetReceive(request, response, serviceId, path);
-        } else if (ATTRIBUTE_LIST.equals(attribute)) {
-            
-            String path = getPath(request);
-            String mimeType = getMIMEType(request);
-            String order = getOrder(request);
-            Integer offset = getOffset(request);
-            Integer limit = getLimit(request);
-            result = onGetList(request, response, serviceId, path, mimeType, order, offset, limit);
-        } else {
-            MessageUtils.setUnknownAttributeError(response);
-        }
-
-        return result;
-    }
-
-    @Override
-    protected boolean onPostRequest(final Intent request, final Intent response) {
-        String attribute = getAttribute(request);
-        boolean result = true;
-
-        if (ATTRIBUTE_SEND.equals(attribute)) {
-            String uri = request.getStringExtra(FileProfile.PARAM_URI);
-            byte[] data = getContentData(uri);
-            if (data == null) {
-                MessageUtils.setInvalidRequestParameterError(response);
-            } else {
-                String serviceId = getServiceID(request);
-                String path = getPath(request);
-                String mimeType = getMIMEType(request);
-                result = onPostSend(request, response, serviceId, path, mimeType, data);
-            }
-        } else if (ATTRIBUTE_MKDIR.equals(attribute)) {
-            String path = getPath(request);
-            String serviceId = getServiceID(request);
-            result = onPostMkdir(request, response, serviceId, path);
-        } else {
-            MessageUtils.setUnknownAttributeError(response);
-        }
-
-        return result;
-    }
-    
-    @Override
-    protected boolean onDeleteRequest(final Intent request, final Intent response) {
-        String attribute = getAttribute(request);
-        boolean result = true;
-
-        if (ATTRIBUTE_REMOVE.equals(attribute)) {
-            String serviceId = getServiceID(request);
-            String path = getPath(request);
-            result = onDeleteRemove(request, response, serviceId, path);
-        } else if (ATTRIBUTE_RMDIR.equals(attribute)) {
-            String path = getPath(request);
-            String serviceId = getServiceID(request);
-            boolean force = getForce(request);
-            result = onDeleteRmdir(request, response, serviceId, path, force);
-        } else {
-            MessageUtils.setUnknownAttributeError(response);
-        }
-
-        return result;
-    }
-
-    /**
-     * receive属性取得リクエストハンドラー.<br>
-     * スマートフォンまたは周辺機器上のテキストや画像、音声、動画（リソースも含む）のデータを提供し、その結果をレスポンスパラメータに格納する。
-     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
-     * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
-     * 
-     * @param request リクエストパラメータ
-     * @param response レスポンスパラメータ
-     * @param serviceId サービスID
-     * @param path パス
-     * @return レスポンスパラメータを送信するか否か
-     */
-    protected boolean onGetReceive(final Intent request, final Intent response, final String serviceId, 
-            final String path) {
-        setUnsupportedError(response);
-        return true;
-    }
-
-    /**
-     * list属性取得リクエストハンドラー.<br>
-     * スマートフォンまたは周辺機器上のテキストや画像、音声、動画（リソースも含む）のファイル名を検索し、その結果をレスポンスパラメータに格納する。
-     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
-     * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
-     * 
-     * @param request リクエストパラメータ
-     * @param response レスポンスパラメータ
-     * @param serviceId サービスID
-     * @param path ファイルのパス。省略された場合null。
-     * @param mimeType ファイルのMIMEタイプ。省略された場合null。
-     * @param order 並び順。省略された場合null。
-     * @param offset 取得開始位置。省略された場合はnull。
-     * @param limit 最大取得数。省略された場合はnull。
-     * @return レスポンスパラメータを送信するか否か
-     */
-    protected boolean onGetList(final Intent request, final Intent response, final String serviceId, final String path,
-            final String mimeType, final String order, final Integer offset, final Integer limit) {
-        setUnsupportedError(response);
-        return true;
-    }
-
-    /**
-     * mkdir属性リクエストハンドラー.<br>
-     * 指定されたパスにディレクトリを作成しその結果をレスポンスパラメータに格納する。 
-     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
-     * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
-     * 
-     * @param request リクエストパラメータ
-     * @param response レスポンスパラメータ
-     * @param serviceId サービスID
-     * @param path ファイルパス。ファイル名を保存する。
-     * @return レスポンスパラメータを送信するか否か
-     */
-    protected boolean onPostMkdir(final Intent request, final Intent response, final String serviceId, 
-            final String path) {
-        setUnsupportedError(response);
-        return true;
-    }
-    
-    /**
-     * send属性リクエストハンドラー.<br>
-     * スマートフォンまたは周辺機器から他方のスマートデバイスに対して、テキストや画像、音声、動画（リソースも含む）を送信し、
-     * その結果をレスポンスパラメータに格納する。 レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
-     * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
-     * 
-     * @param request リクエストパラメータ
-     * @param response レスポンスパラメータ
-     * @param serviceId サービスID
-     * @param path ファイルパス。ファイル名を保存する。
-     * @param mimeType ファイルのマイムタイプ。省略された場合はnullが渡される。
-     * @param data uriパラメータから取得できるファイルのデータ。uriパラメータが省略された場合はnullが渡される。
-     * @return レスポンスパラメータを送信するか否か
-     */
-    protected boolean onPostSend(final Intent request, final Intent response, final String serviceId, 
-            final String path, final String mimeType, final byte[] data) {
-        setUnsupportedError(response);
-        return true;
-    }
-
-    /**
-     * remove属性リクエストハンドラー.<br>
-     * スマートフォンまたは周辺機器から他方のスマートデバイスに対して、テキストや画像、音声、動画（リソースも含む）を送信し、
-     * その結果をレスポンスパラメータに格納する。 レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
-     * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
-     * 
-     * @param request リクエストパラメータ
-     * @param response レスポンスパラメータ
-     * @param serviceId サービスID
-     * @param path ファイルパス
-     * @return レスポンスパラメータを送信するか否か
-     */
-    protected boolean onDeleteRemove(final Intent request, final Intent response, final String serviceId, 
-            final String path) {
-        setUnsupportedError(response);
-        return true;
-    }
-    
-    /**
-     * rmdir属性リクエストハンドラー.<br>
-     * 指定されたパスのディレクトリを削除しその結果をレスポンスパラメータに格納する。 
-     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
-     * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
-     * 
-     * @param request リクエストパラメータ
-     * @param response レスポンスパラメータ
-     * @param serviceId サービスID
-     * @param path ファイルパス
-     * @param force 強制削除フラグ
-     * @return レスポンスパラメータを送信するか否か
-     */
-    protected boolean onDeleteRmdir(final Intent request, final Intent response, final String serviceId, 
-            final String path, final boolean force) {
-        setUnsupportedError(response);
-        return true;
     }
 
     // ------------------------------------

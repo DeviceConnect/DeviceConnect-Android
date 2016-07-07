@@ -34,8 +34,8 @@ public class LowerCaseConverter implements MessageConverter {
     }
 
     private boolean isAccessTokenRequest(final String profileName, final String attributeName) {
-        return AuthorizationProfile.PROFILE_NAME.equals(profileName)
-               && AuthorizationProfile.ATTRIBUTE_ACCESS_TOKEN.equals(attributeName);
+        return AuthorizationProfile.PROFILE_NAME.equalsIgnoreCase(profileName)
+               && AuthorizationProfile.ATTRIBUTE_ACCESS_TOKEN.equalsIgnoreCase(attributeName);
     }
 
 }

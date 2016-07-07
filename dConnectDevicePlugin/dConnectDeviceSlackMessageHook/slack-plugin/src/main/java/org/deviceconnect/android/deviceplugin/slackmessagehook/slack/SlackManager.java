@@ -41,6 +41,9 @@ import java.util.concurrent.CountDownLatch;
  */
 public class SlackManager {
 
+    //---------------------------------------------------------------------------------------
+    //region Declaration
+
     /** シングルトンなManagerのインスタンス */
     public static final SlackManager INSTANCE = new SlackManager();
 
@@ -147,7 +150,9 @@ public class SlackManager {
     private BotInfo botInfo = new BotInfo();
 
 
-
+    //endregion
+    //---------------------------------------------------------------------------------------
+    //region Init
 
     /**
      * 初期化。シングルトンのためにprivate.
@@ -233,6 +238,11 @@ public class SlackManager {
         }
     }
 
+
+    //endregion
+    //---------------------------------------------------------------------------------------
+    //region Connection
+
     /**
      * 接続中かを返します.
      * @return 接続中ならtrue
@@ -306,7 +316,6 @@ public class SlackManager {
                 }
             }
         });
-
     }
 
     /**
@@ -334,6 +343,11 @@ public class SlackManager {
         webSocket.disconnect();
     }
 
+
+    //endregion
+    //---------------------------------------------------------------------------------------
+    //region SendMessage
+
     /**
      * Slackにメッセージ送信.
      * @param msg メッセージ
@@ -358,6 +372,20 @@ public class SlackManager {
     }
 
     /**
+     * Slackにメッセージ送信.
+     * @param msg メッセージ
+     * @param channel チャンネル
+     */
+    public void sendMessage(String msg, String channel) {
+        sendMessage(msg, channel, null);
+    }
+
+
+    //endregion
+    //---------------------------------------------------------------------------------------
+    //region etc.
+
+    /**
      * 文字列をエスケープ処理する
      * @param str 文字列
      * @return 処理後の文字列
@@ -368,264 +396,50 @@ public class SlackManager {
     }
 
     /**
-     * Slackにメッセージ送信.
-     * @param msg メッセージ
-     * @param channel チャンネル
+     * 接続完了コールバックを呼ぶ
+     * @param e 例外
      */
-    public void sendMessage(String msg, String channel) {
-        sendMessage(msg, channel, null);
-    }
-
-    /**
-     * Slackにファイルをアップロード.
-     * @param msg コメント
-     * @param channel チャンネル
-     * @param url リソースURL
-     * @param callback 終了コールバック
-     */
-    public void uploadFile(String msg, String channel, URL url, String orign, final FinishCallback<JSONObject> callback) {
-        if (url == null || channel == null) {
-            if (callback != null) {
-                callback.onFinish(null, new InvalidParameterException());
-            }
-            return;
-        }
-        new UploadFileTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, new TaskParam(channel, msg, url, orign) {
-            @Override
-            public void callBack(JSONObject json) {
-                if (callback != null) {
-                    SlackManagerException exception = null;
-                    if (json == null) {
-                        exception = new SlackConnectionException();
-                    } else {
-                        try {
-                            if (!json.getBoolean("ok")) {
-                                // TODO: エラー内容を精査
-                                exception = new SlackConnectionException();
-                            }
-                        } catch (JSONException e) {
-                            // TODO: エラー内容を精査
-                            exception = new SlackConnectionException();
-                        }
-                    }
-                    if (callback != null) {
-                        callback.onFinish(json, exception);
-                    }
-                }
-            }
-        });
-    }
-
-    /**
-     * Slackにファイルをアップロード.
-     * @param msg コメント
-     * @param channel チャンネル
-     * @param url リソースURL
-     */
-    public void uploadFile(String msg, String channel, URL url, String orign) {
-        uploadFile(msg, channel, url, orign, null);
-    }
-
-
-    /**
-     * 受け渡し情報
-     */
-    public class ListInfo {
-        public String id;
-        public String name;
-        public String icon;
-    }
-
-    /**
-     * 一覧取得ベース
-     * @param target ターゲットAPI
-     * @param params パラメータ
-     * @param listname リスト名
-     * @param callback 取得コールバック
-     */
-    private void getList(String target, String params, final String listname, final FinishCallback<ArrayList<ListInfo>> callback) {
-        if (connectState != CONNECT_STATE_CONNECTED) {
-            if (callback != null) {
-                callback.onFinish(null, new SlackConnectionException());
-            }
-            return;
-        }
-        new GetTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, new TaskParam(target, params) {
-            @Override
-            public void callBack(JSONObject json) {
-                if (Debug) Log.d(TAG, json.toString());
-
-                try {
-                    JSONArray jsonArray = json.getJSONArray(listname);
-                    int length = jsonArray.length();
-                    ArrayList<ListInfo> array = new ArrayList<>(length);
-                    for (int i = 0; i < length; i++) {
-                        JSONObject obj = (JSONObject) jsonArray.get(i);
-                        ListInfo info = new ListInfo();
-                        if (obj.has("id")) {
-                            info.id = obj.getString("id");
-                        }
-                        if (obj.has("name")) {
-                            info.name = obj.getString("name");
-                        }
-                        if (obj.has("user")) {
-                            info.name = obj.getString("user");
-                        }
-                        /* RealNameいる？
-                        if (obj.has("real_name")) {
-                            String realName = obj.getString("real_name");
-                            if (!realName.isEmpty()) {
-                                info.name = realName;
-                            }
-                        }
-                        */
-                        if (obj.has("profile")) {
-                            JSONObject prof = obj.getJSONObject("profile");
-                            info.icon = prof.getString("image_192");
-                        }
-                        array.add(info);
-                    }
-                    if (callback != null) {
-                        callback.onFinish(array, null);
-                    }
-                } catch (JSONException e) {
-                    Log.e(TAG, "error", e);
-                    if (callback != null) {
+    private void callConnectionFinishCallback(final Exception e, Handler handler) {
+        if (connectionFinishCallback != null) {
+            final FinishCallback callback = connectionFinishCallback;
+            connectionFinishCallback = null;
+            if (handler == null) {
+                callback.onFinish(null, e);
+            } else {
+                handler.post(new Runnable() {
+                    public void run() {
                         callback.onFinish(null, e);
                     }
-                }
+                });
             }
-        });
+        }
     }
 
     /**
-     * Channel一覧を取得
-     * @param callback 取得コールバック
+     * 送信完了コールバックを呼ぶ
+     * @param text 送信text
+     * @param e 例外
      */
-    public void getChannelList(final FinishCallback<ArrayList<ListInfo>> callback) {
-        if (Debug) Log.d(TAG, "*getChannelList");
-        getList("channels.list", "&exclude_archived=1", "channels", callback);
-    }
-
-    /**
-     * IM一覧を取得
-     * @param callback 取得コールバック
-     */
-    public void getIMList(final FinishCallback<ArrayList<ListInfo>> callback) {
-        if (Debug) Log.d(TAG, "*getIMList");
-        getList("im.list", "", "ims",callback);
-    }
-
-    /**
-     * ユーザー一覧を取得
-     * @param callback 取得コールバック
-     */
-    public void getUserList(final FinishCallback<ArrayList<ListInfo>> callback) {
-        if (Debug) Log.d(TAG, "*getUserList");
-        getList("users.list", "", "members", callback);
-    }
-
-    /**
-     * Channel一覧とDM一覧を合成したものを取得
-     * @param callback 取得コールバック
-     */
-    public void getAllChannelList(final FinishCallback<List<ListInfo>> callback) {
-        final Handler handler = new Handler();
-        new Thread() {
-            @Override
-            public void run() {
-                final CountDownLatch latch = new CountDownLatch(3);
-                final HashMap<String, ArrayList<ListInfo>> resMap = new HashMap<>();
-
-                // Channelリスト取得
-                getChannelList(new FinishCallback<ArrayList<ListInfo>>() {
-                    @Override
-                    public void onFinish(ArrayList<ListInfo> listInfos, Exception error) {
-                        if (error == null) {
-                            resMap.put("channel", listInfos);
-                        } else {
-                            Log.e("slack", "err", error);
-                        }
-                        latch.countDown();
+    private void callSendMsgFinishCallback(String text, final Exception e, Handler handler) {
+        if (sendMsgFinishCallback != null) {
+            final FinishCallback callback = sendMsgFinishCallback;
+            sendMsgFinishCallback = null;
+            if (handler == null) {
+                callback.onFinish(null, e);
+            } else {
+                handler.post(new Runnable() {
+                    public void run() {
+                        callback.onFinish(null, e);
                     }
                 });
-
-                // IMリスト取得
-                getIMList(new FinishCallback<ArrayList<ListInfo>>() {
-                    @Override
-                    public void onFinish(ArrayList<ListInfo> listInfos, Exception error) {
-                        if (error == null) {
-                            resMap.put("im", listInfos);
-                        } else {
-                            Log.e("slack", "err", error);
-                        }
-                        latch.countDown();
-                    }
-                });
-
-                // ユーザーリスト取得
-                getUserList(new FinishCallback<ArrayList<ListInfo>>() {
-                    @Override
-                    public void onFinish(ArrayList<ListInfo> listInfos, Exception error) {
-                        if (error == null) {
-                            resMap.put("user", listInfos);
-                        } else {
-                            Log.e("slack", "err", error);
-                        }
-                        latch.countDown();
-                    }
-                });
-
-                // 処理終了を待つ
-                try {
-                    latch.await();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-
-                // 各情報を詰め替え
-                ArrayList<ListInfo> channels = resMap.get("channel");
-                ArrayList<ListInfo> ims = resMap.get("im");
-                ArrayList<ListInfo> users = resMap.get("user");
-                if (channels != null && ims != null && users != null) {
-                    final List<ListInfo> resList = new ArrayList<>();
-                    // Channel
-                    resList.addAll(channels);
-                    // UserをHashMapへ
-                    HashMap<String, ListInfo> userMap = new HashMap<>();
-                    for (ListInfo info : users) {
-                        userMap.put(info.id, info);
-                    }
-                    // IM
-                    for (ListInfo info : ims) {
-                        // UserIDからUserNameを取得
-                        ListInfo user = userMap.get(info.name);
-                        if (user != null) {
-                            info.name = user.name;
-                            info.icon = user.icon;
-                        }
-                        resList.add(info);
-                    }
-
-                    if (callback != null) {
-                        handler.post(new Runnable() {
-                            public void run() {
-                                callback.onFinish(resList, null);
-                            }
-                        });
-                    }
-                } else {
-                    if (callback != null) {
-                        handler.post(new Runnable() {
-                            public void run() {
-                                callback.onFinish(null, new SlackUnknownException());
-                            }
-                        });
-                    }
-                }
             }
-        }.start();
+        }
     }
+
+
+    //endregion
+    //---------------------------------------------------------------------------------------
+    //region WebSocket
 
     /**
      * WebSocket接続
@@ -740,46 +554,215 @@ public class SlackManager {
         webSocket.connect();
     }
 
+
+    //endregion
+    //---------------------------------------------------------------------------------------
+    //region Channel/User/IM List
+
     /**
-     * 接続完了コールバックを呼ぶ
-     * @param e 例外
+     * 受け渡し情報
      */
-    private void callConnectionFinishCallback(final Exception e, Handler handler) {
-        if (connectionFinishCallback != null) {
-            final FinishCallback callback = connectionFinishCallback;
-            connectionFinishCallback = null;
-            if (handler == null) {
-                callback.onFinish(null, e);
-            } else {
-                handler.post(new Runnable() {
-                    public void run() {
-                        callback.onFinish(null, e);
-                    }
-                });
-            }
-        }
+    public class ListInfo {
+        public String id;
+        public String name;
+        public String icon;
     }
 
     /**
-     * 送信完了コールバックを呼ぶ
-     * @param text 送信text
-     * @param e 例外
+     * Channel一覧とDM一覧を合成したものを取得
+     * @param callback 取得コールバック
      */
-    private void callSendMsgFinishCallback(String text, final Exception e, Handler handler) {
-        if (sendMsgFinishCallback != null) {
-            final FinishCallback callback = sendMsgFinishCallback;
-            sendMsgFinishCallback = null;
-            if (handler == null) {
-                callback.onFinish(null, e);
-            } else {
-                handler.post(new Runnable() {
-                    public void run() {
-                        callback.onFinish(null, e);
+    public void getAllChannelList(final FinishCallback<List<ListInfo>> callback) {
+        final Handler handler = new Handler();
+        new Thread() {
+            @Override
+            public void run() {
+                final CountDownLatch latch = new CountDownLatch(3);
+                final HashMap<String, ArrayList<ListInfo>> resMap = new HashMap<>();
+
+                // Channelリスト取得
+                getChannelList(new FinishCallback<ArrayList<ListInfo>>() {
+                    @Override
+                    public void onFinish(ArrayList<ListInfo> listInfos, Exception error) {
+                        if (error == null) {
+                            resMap.put("channel", listInfos);
+                        } else {
+                            Log.e("slack", "err", error);
+                        }
+                        latch.countDown();
                     }
                 });
+
+                // IMリスト取得
+                getIMList(new FinishCallback<ArrayList<ListInfo>>() {
+                    @Override
+                    public void onFinish(ArrayList<ListInfo> listInfos, Exception error) {
+                        if (error == null) {
+                            resMap.put("im", listInfos);
+                        } else {
+                            Log.e("slack", "err", error);
+                        }
+                        latch.countDown();
+                    }
+                });
+
+                // ユーザーリスト取得
+                getUserList(new FinishCallback<ArrayList<ListInfo>>() {
+                    @Override
+                    public void onFinish(ArrayList<ListInfo> listInfos, Exception error) {
+                        if (error == null) {
+                            resMap.put("user", listInfos);
+                        } else {
+                            Log.e("slack", "err", error);
+                        }
+                        latch.countDown();
+                    }
+                });
+
+                // 処理終了を待つ
+                try {
+                    latch.await();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
+                // 各情報を詰め替え
+                ArrayList<ListInfo> channels = resMap.get("channel");
+                ArrayList<ListInfo> ims = resMap.get("im");
+                ArrayList<ListInfo> users = resMap.get("user");
+                if (channels != null && ims != null && users != null) {
+                    final List<ListInfo> resList = new ArrayList<>();
+                    // Channel
+                    resList.addAll(channels);
+                    // UserをHashMapへ
+                    HashMap<String, ListInfo> userMap = new HashMap<>();
+                    for (ListInfo info : users) {
+                        userMap.put(info.id, info);
+                    }
+                    // IM
+                    for (ListInfo info : ims) {
+                        // UserIDからUserNameを取得
+                        ListInfo user = userMap.get(info.name);
+                        if (user != null) {
+                            info.name = user.name;
+                            info.icon = user.icon;
+                        }
+                        resList.add(info);
+                    }
+
+                    if (callback != null) {
+                        handler.post(new Runnable() {
+                            public void run() {
+                                callback.onFinish(resList, null);
+                            }
+                        });
+                    }
+                } else {
+                    if (callback != null) {
+                        handler.post(new Runnable() {
+                            public void run() {
+                                callback.onFinish(null, new SlackUnknownException());
+                            }
+                        });
+                    }
+                }
             }
-        }
+        }.start();
     }
+
+    /**
+     * Channel一覧を取得
+     * @param callback 取得コールバック
+     */
+    public void getChannelList(final FinishCallback<ArrayList<ListInfo>> callback) {
+        if (Debug) Log.d(TAG, "*getChannelList");
+        getList("channels.list", "&exclude_archived=1", "channels", callback);
+    }
+
+    /**
+     * IM一覧を取得
+     * @param callback 取得コールバック
+     */
+    public void getIMList(final FinishCallback<ArrayList<ListInfo>> callback) {
+        if (Debug) Log.d(TAG, "*getIMList");
+        getList("im.list", "", "ims",callback);
+    }
+
+    /**
+     * ユーザー一覧を取得
+     * @param callback 取得コールバック
+     */
+    public void getUserList(final FinishCallback<ArrayList<ListInfo>> callback) {
+        if (Debug) Log.d(TAG, "*getUserList");
+        getList("users.list", "", "members", callback);
+    }
+
+    /**
+     * 一覧取得ベース
+     * @param target ターゲットAPI
+     * @param params パラメータ
+     * @param listname リスト名
+     * @param callback 取得コールバック
+     */
+    private void getList(String target, String params, final String listname, final FinishCallback<ArrayList<ListInfo>> callback) {
+        if (connectState != CONNECT_STATE_CONNECTED) {
+            if (callback != null) {
+                callback.onFinish(null, new SlackConnectionException());
+            }
+            return;
+        }
+        new GetTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, new TaskParam(target, params) {
+            @Override
+            public void callBack(JSONObject json) {
+                if (Debug) Log.d(TAG, json.toString());
+
+                try {
+                    JSONArray jsonArray = json.getJSONArray(listname);
+                    int length = jsonArray.length();
+                    ArrayList<ListInfo> array = new ArrayList<>(length);
+                    for (int i = 0; i < length; i++) {
+                        JSONObject obj = (JSONObject) jsonArray.get(i);
+                        ListInfo info = new ListInfo();
+                        if (obj.has("id")) {
+                            info.id = obj.getString("id");
+                        }
+                        if (obj.has("name")) {
+                            info.name = obj.getString("name");
+                        }
+                        if (obj.has("user")) {
+                            info.name = obj.getString("user");
+                        }
+                        /* RealNameいる？
+                        if (obj.has("real_name")) {
+                            String realName = obj.getString("real_name");
+                            if (!realName.isEmpty()) {
+                                info.name = realName;
+                            }
+                        }
+                        */
+                        if (obj.has("profile")) {
+                            JSONObject prof = obj.getJSONObject("profile");
+                            info.icon = prof.getString("image_192");
+                        }
+                        array.add(info);
+                    }
+                    if (callback != null) {
+                        callback.onFinish(array, null);
+                    }
+                } catch (JSONException e) {
+                    Log.e(TAG, "error", e);
+                    if (callback != null) {
+                        callback.onFinish(null, e);
+                    }
+                }
+            }
+        });
+    }
+
+
+    //endregion
+    //---------------------------------------------------------------------------------------
+    //region GetTask
 
     /**
      * Get用Task用パラメータ
@@ -867,6 +850,60 @@ public class SlackManager {
         }
     }
 
+
+    //endregion
+    //---------------------------------------------------------------------------------------
+    //region FileUpload
+
+    /**
+     * Slackにファイルをアップロード.
+     * @param msg コメント
+     * @param channel チャンネル
+     * @param url リソースURL
+     * @param callback 終了コールバック
+     */
+    public void uploadFile(String msg, String channel, URL url, String orign, final FinishCallback<JSONObject> callback) {
+        if (url == null || channel == null) {
+            if (callback != null) {
+                callback.onFinish(null, new InvalidParameterException());
+            }
+            return;
+        }
+        new UploadFileTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, new TaskParam(channel, msg, url, orign) {
+            @Override
+            public void callBack(JSONObject json) {
+                if (callback != null) {
+                    SlackManagerException exception = null;
+                    if (json == null) {
+                        exception = new SlackConnectionException();
+                    } else {
+                        try {
+                            if (!json.getBoolean("ok")) {
+                                // TODO: エラー内容を精査
+                                exception = new SlackConnectionException();
+                            }
+                        } catch (JSONException e) {
+                            // TODO: エラー内容を精査
+                            exception = new SlackConnectionException();
+                        }
+                    }
+                    if (callback != null) {
+                        callback.onFinish(json, exception);
+                    }
+                }
+            }
+        });
+    }
+
+    /**
+     * Slackにファイルをアップロード.
+     * @param msg コメント
+     * @param channel チャンネル
+     * @param url リソースURL
+     */
+    public void uploadFile(String msg, String channel, URL url, String orign) {
+        uploadFile(msg, channel, url, orign, null);
+    }
 
     /**
      * ファイルアップロード用Task
@@ -1028,4 +1065,6 @@ public class SlackManager {
             os.writeBytes("--" + BOUNDARY + "--\r\n");
         }
     }
+    //endregion
+    //---------------------------------------------------------------------------------------
 }

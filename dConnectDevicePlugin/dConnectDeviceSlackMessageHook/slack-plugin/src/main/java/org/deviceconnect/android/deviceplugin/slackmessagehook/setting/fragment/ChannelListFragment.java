@@ -1,6 +1,13 @@
+/*
+ ChannelListFragment.java
+ Copyright (c) 2016 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.deviceplugin.slackmessagehook.setting.fragment;
 
 import android.app.AlertDialog;
+import android.app.Fragment;
 import android.app.ListFragment;
 import android.content.Context;
 import android.os.Bundle;
@@ -11,6 +18,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
@@ -20,6 +28,9 @@ import org.deviceconnect.android.deviceplugin.slackmessagehook.slack.SlackManage
 
 import java.util.List;
 
+/**
+ * Channel一覧画面のFragment
+ */
 public class ChannelListFragment extends ListFragment implements ShowMenuFragment {
 
     /** メニュー */
@@ -57,6 +68,15 @@ public class ChannelListFragment extends ListFragment implements ShowMenuFragmen
         mainMenu = menu;
     }
 
+    @Override
+    public void onListItemClick(ListView l, View v, int position, long id) {
+        Fragment fragment = new MessageListFragment();
+        Bundle bundle = new Bundle();
+        bundle.putLong("id", id);
+        fragment.setArguments(bundle);
+        Utils.transition(fragment, getFragmentManager(), true);
+    }
+
     /**
      * メニューを表示
      */
@@ -71,7 +91,7 @@ public class ChannelListFragment extends ListFragment implements ShowMenuFragmen
 
         List<SlackManager.ListInfo> list = null;
         LayoutInflater inflater;
-        static final int resource = R.layout.channel_list_item;
+        static final int resource = R.layout.list_item_channel;
 
         @Override
         public int getCount() {

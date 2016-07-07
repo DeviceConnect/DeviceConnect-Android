@@ -1,17 +1,18 @@
 /*
  HitoeWalkStateProfile
- Copyright (c) 2015 NTT DOCOMO,INC.
+ Copyright (c) 2016 NTT DOCOMO,INC.
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
  */
 package org.deviceconnect.android.deviceplugin.hitoe.profile;
 
 import android.content.Intent;
+import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.hitoe.HitoeApplication;
 import org.deviceconnect.android.deviceplugin.hitoe.HitoeDeviceService;
-import org.deviceconnect.android.deviceplugin.hitoe.data.HitoeManager;
 import org.deviceconnect.android.deviceplugin.hitoe.data.HitoeDevice;
+import org.deviceconnect.android.deviceplugin.hitoe.data.HitoeManager;
 import org.deviceconnect.android.deviceplugin.hitoe.data.WalkStateData;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventDispatcher;
@@ -22,6 +23,10 @@ import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.WalkStateProfile;
+import org.deviceconnect.android.profile.api.DConnectApi;
+import org.deviceconnect.android.profile.api.DeleteApi;
+import org.deviceconnect.android.profile.api.GetApi;
+import org.deviceconnect.android.profile.api.PutApi;
 import org.deviceconnect.message.DConnectMessage;
 
 import java.util.List;
@@ -55,72 +60,103 @@ public class HitoeWalkStateProfile extends WalkStateProfile {
     public HitoeWalkStateProfile(final HitoeManager mgr) {
         mgr.setHitoeWalkStateEventListener(mWalkStateEventListener);
         mDispatcherManager = new EventDispatcherManager();
+        addApi(mGetOnWalk);
+        addApi(mPutOnWalk);
+        addApi(mDeleteOnWalk);
 
     }
-    @Override
-    public boolean onGetWalkState(final Intent request, final Intent response, final String serviceId) {
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-        } else {
-            WalkStateData data = getManager().getWalkStateData(serviceId);
-            if (data == null) {
-                MessageUtils.setNotFoundServiceError(response);
-            } else {
-                setResult(response, DConnectMessage.RESULT_OK);
-                setWalk(response, data.toBundle());
-            }
+    private final DConnectApi mGetOnWalk = new GetApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_WALK_STATE;
         }
-        return true;
-    }
 
-    @Override
-    public boolean onPutWalkState(final Intent request, final Intent response,
-                                  final String serviceId, final String sessionKey) {
-        if (serviceId == null) {
-            MessageUtils.setNotFoundServiceError(response, "Not found serviceID:" + serviceId);
-        } else if (sessionKey == null) {
-            MessageUtils.setInvalidRequestParameterError(response, "Not found sessionKey:" + sessionKey);
-        } else {
-            WalkStateData data = getManager().getWalkStateData(serviceId);
-            if (data == null) {
-                MessageUtils.setNotFoundServiceError(response);
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String serviceId = getServiceID(request);
+            if (serviceId == null) {
+                MessageUtils.setEmptyServiceIdError(response);
             } else {
-                EventError error = EventManager.INSTANCE.addEvent(request);
-                if (error == EventError.NONE) {
-                    addEventDispatcher(request);
+                WalkStateData data = getManager().getWalkStateData(serviceId);
+                if (data == null) {
+                    MessageUtils.setNotFoundServiceError(response);
+                } else {
                     setResult(response, DConnectMessage.RESULT_OK);
+                    setWalk(response, data.toBundle());
+                }
+            }
+            return true;
+        }
+    };
+
+    private final DConnectApi mPutOnWalk = new PutApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_WALK_STATE;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String serviceId = getServiceID(request);
+            String sessionKey = getSessionKey(request);
+            if (serviceId == null) {
+                MessageUtils.setNotFoundServiceError(response, "Not found serviceID:" + serviceId);
+            } else if (sessionKey == null) {
+                MessageUtils.setInvalidRequestParameterError(response, "Not found sessionKey:" + sessionKey);
+            } else {
+                WalkStateData data = getManager().getWalkStateData(serviceId);
+                if (data == null) {
+                    MessageUtils.setNotFoundServiceError(response);
+                } else {
+                    EventError error = EventManager.INSTANCE.addEvent(request);
+                    if (error == EventError.NONE) {
+                        HitoeManager mgr = getManager();
+                        if (mgr != null) {
+                            mgr.setHitoeWalkStateEventListener(mWalkStateEventListener);
+                        }
+                        addEventDispatcher(request);
+                        setResult(response, DConnectMessage.RESULT_OK);
+                    } else {
+                        MessageUtils.setUnknownError(response);
+                    }
+                }
+            }
+            return true;
+        }
+    };
+
+    private final DConnectApi mDeleteOnWalk = new DeleteApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_WALK_STATE;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String serviceId = getServiceID(request);
+            String sessionKey = getSessionKey(request);
+            if (serviceId == null) {
+                MessageUtils.setEmptyServiceIdError(response);
+            } else if (sessionKey == null) {
+                MessageUtils.setInvalidRequestParameterError(response, "There is no sessionKey.");
+            } else {
+                removeEventDispatcher(request);
+                EventError error = EventManager.INSTANCE.removeEvent(request);
+                if (error == EventError.NONE) {
+                    setResult(response, DConnectMessage.RESULT_OK);
+                } else if (error == EventError.INVALID_PARAMETER) {
+                    MessageUtils.setInvalidRequestParameterError(response);
+                } else if (error == EventError.FAILED) {
+                    MessageUtils.setUnknownError(response, "Failed to delete event.");
+                } else if (error == EventError.NOT_FOUND) {
+                    MessageUtils.setUnknownError(response, "Not found event.");
                 } else {
                     MessageUtils.setUnknownError(response);
                 }
             }
+            return true;
         }
-        return true;
-    }
-
-    @Override
-    public boolean onDeleteWalkState(final Intent request, final Intent response,
-                                     final String serviceId, final String sessionKey) {
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-        } else if (sessionKey == null) {
-            MessageUtils.setInvalidRequestParameterError(response, "There is no sessionKey.");
-        } else {
-            removeEventDispatcher(request);
-            EventError error = EventManager.INSTANCE.removeEvent(request);
-            if (error == EventError.NONE) {
-                setResult(response, DConnectMessage.RESULT_OK);
-            } else if (error == EventError.INVALID_PARAMETER) {
-                MessageUtils.setInvalidRequestParameterError(response);
-            } else if (error == EventError.FAILED) {
-                MessageUtils.setUnknownError(response, "Failed to delete event.");
-            } else if (error == EventError.NOT_FOUND) {
-                MessageUtils.setUnknownError(response, "Not found event.");
-            } else {
-                MessageUtils.setUnknownError(response);
-            }
-        }
-        return true;
-    }
+    };
 
     /**
      * Notify the stress estimation event to DeviceConnectManager.
@@ -137,7 +173,7 @@ public class HitoeWalkStateProfile extends WalkStateProfile {
                 }
 
                 Intent intent = EventManager.createEventMessage(event);
-
+Log.d("TEST", "send");
                 setWalk(intent, data.toBundle());
                 mDispatcherManager.sendEvent(event, intent);
             }

@@ -13,23 +13,17 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Handler;
 
+import org.deviceconnect.android.deviceplugin.hitoe.data.HitoeDevice;
 import org.deviceconnect.android.deviceplugin.hitoe.data.HitoeManager;
-import org.deviceconnect.android.deviceplugin.hitoe.profile.HitoeBatteryProfile;
-import org.deviceconnect.android.deviceplugin.hitoe.profile.HitoeDeviceOrientationProfile;
-import org.deviceconnect.android.deviceplugin.hitoe.profile.HitoeECGProfile;
-import org.deviceconnect.android.deviceplugin.hitoe.profile.HitoeHealthProfile;
-import org.deviceconnect.android.deviceplugin.hitoe.profile.HitoePoseEstimationProfile;
 import org.deviceconnect.android.deviceplugin.hitoe.profile.HitoeServiceDiscoveryProfile;
-import org.deviceconnect.android.deviceplugin.hitoe.profile.HitoeServiceInformationProfile;
-import org.deviceconnect.android.deviceplugin.hitoe.profile.HitoeStressEstimationProfile;
 import org.deviceconnect.android.deviceplugin.hitoe.profile.HitoeSystemProfile;
-import org.deviceconnect.android.deviceplugin.hitoe.profile.HitoeWalkStateProfile;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.event.cache.MemoryCacheController;
 import org.deviceconnect.android.message.DConnectMessageService;
-import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
-import org.deviceconnect.android.profile.ServiceInformationProfile;
 import org.deviceconnect.android.profile.SystemProfile;
+import org.deviceconnect.android.service.DConnectService;
+
+import java.util.List;
 
 /**
  * This service provide Hitoe Profile.
@@ -58,56 +52,43 @@ public class HitoeDeviceService extends DConnectMessageService {
             }
         }
     };
+    private final HitoeManager.OnHitoeConnectionListener mOnHitoeConnectionListener = new HitoeManager.OnHitoeConnectionListener() {
+        @Override
+        public void onConnected(HitoeDevice device) {
+            DConnectService service = new HitoeService(getManager(), device);
+            getServiceProvider().addService(service);
+        }
 
-//    private final HitoeManager.OnHitoeConnectionListener mOnHitoeConnectionListener = new HitoeManager.OnHitoeConnectionListener() {
-//        @Override
-//        public void onConnected(HitoeDevice device) {
-//            if (!EndPointManager.INSTANCE.hasEndPoint(device.getId())) {
-//                EndPoint endPoint = new EndPoint.Builder()
-//                        .addApi(DConnectMessage.METHOD_GET,
-//                                HealthProfileConstants.PATH_HEART)
-//                        .addApi(DConnectMessage.METHOD_PUT,
-//                                HealthProfileConstants.PATH_HEART)
-//                        .addApi(DConnectMessage.METHOD_DELETE,
-//                                HealthProfileConstants.PATH_HEART)
-//                        .build();
-//                EndPointManager.INSTANCE.addEndPoint(endPoint);
-//            }
-//
-//        }
-//
-//        @Override
-//        public void onConnectFailed(HitoeDevice device) {
-//            EndPointManager.INSTANCE.removeEndPoint(device.getId());
-//        }
-//
-//        @Override
-//        public void onDiscovery(List<HitoeDevice> devices) {
-//            // NOP
-//        }
-//
-//        @Override
-//        public void onDisconnected(HitoeDevice device) {
-//            EndPointManager.INSTANCE.removeEndPoint(device.getId());
-//        }
-//    };
+        @Override
+        public void onConnectFailed(HitoeDevice device) {
+        }
 
+        @Override
+        public void onDiscovery(List<HitoeDevice> devices) {
+        }
+
+        @Override
+        public void onDisconnected(int res, HitoeDevice device) {
+        }
+
+    };
 
     @Override
     public void onCreate() {
         super.onCreate();
-        EventManager.INSTANCE.setController(new MemoryCacheController());
-//        getManager().addHitoeConnectionListener(mOnHitoeConnectionListener);
         HitoeApplication app = (HitoeApplication) getApplication();
         app.initialize();
-
-        addProfile(new HitoeHealthProfile(getManager()));
-        addProfile(new HitoeDeviceOrientationProfile(getManager()));
-        addProfile(new HitoeBatteryProfile());
-        addProfile(new HitoeECGProfile(getManager()));
-        addProfile(new HitoeStressEstimationProfile(getManager()));
-        addProfile(new HitoePoseEstimationProfile(getManager()));
-        addProfile(new HitoeWalkStateProfile(getManager()));
+        EventManager.INSTANCE.setController(new MemoryCacheController());
+        getManager().addHitoeConnectionListener(mOnHitoeConnectionListener);
+        registerBluetoothFilter();
+        HitoeManager mgr =  getManager();
+        if (mgr != null) {
+            List<HitoeDevice> devices = mgr.getRegisterDevices();
+            for (HitoeDevice device : devices) {
+                getServiceProvider().addService(new HitoeService(mgr, device));
+            }
+        }
+        addProfile(new HitoeServiceDiscoveryProfile(getServiceProvider()));
 
     }
 
@@ -124,15 +105,7 @@ public class HitoeDeviceService extends DConnectMessageService {
         return new HitoeSystemProfile();
     }
 
-    @Override
-    protected ServiceDiscoveryProfile getServiceDiscoveryProfile() {
-        return new HitoeServiceDiscoveryProfile(this);
-    }
 
-    @Override
-    protected ServiceInformationProfile getServiceInformationProfile() {
-        return new HitoeServiceInformationProfile(this);
-    }
     /**
      * Register a BroadcastReceiver of Bluetooth event.
      */

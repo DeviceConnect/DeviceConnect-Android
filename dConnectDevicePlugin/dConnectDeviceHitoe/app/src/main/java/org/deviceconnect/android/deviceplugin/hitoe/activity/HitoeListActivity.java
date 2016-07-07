@@ -238,7 +238,15 @@ public abstract class HitoeListActivity extends FragmentActivity {
      */
     protected List<HitoeDevice> createDeviceContainers() {
         getManager().readHitoeDeviceForDB();
-        return new ArrayList<HitoeDevice>(getManager().getRegisterDevices());
+        List<HitoeDevice> resDevice = new ArrayList<HitoeDevice>();
+        for (HitoeDevice device:getManager().getRegisterDevices()) {
+            if (device.getPinCode() != null && mEnableConnectedBtn) {
+                resDevice.add(device);
+            } else if (device.getPinCode() == null && !mEnableConnectedBtn) {
+                resDevice.add(device);
+            }
+        }
+        return resDevice;
     }
 
     /**

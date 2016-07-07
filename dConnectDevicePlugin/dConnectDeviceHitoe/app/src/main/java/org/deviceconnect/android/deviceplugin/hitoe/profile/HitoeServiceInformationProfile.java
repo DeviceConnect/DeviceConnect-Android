@@ -18,7 +18,7 @@ public class HitoeServiceInformationProfile extends ServiceInformationProfile {
      * Constructor.
      * @param provider profile provider
      */
-    public HitoeServiceInformationProfile(final DConnectProfileProvider provider) {
-        super(provider);
+    public HitoeServiceInformationProfile() {
+        super();
     }
 }

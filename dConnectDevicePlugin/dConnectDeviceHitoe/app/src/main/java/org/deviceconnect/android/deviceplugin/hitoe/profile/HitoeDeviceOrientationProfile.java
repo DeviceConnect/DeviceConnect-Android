@@ -23,6 +23,10 @@ import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.DeviceOrientationProfile;
+import org.deviceconnect.android.profile.api.DConnectApi;
+import org.deviceconnect.android.profile.api.DeleteApi;
+import org.deviceconnect.android.profile.api.GetApi;
+import org.deviceconnect.android.profile.api.PutApi;
 import org.deviceconnect.message.DConnectMessage;
 
 import java.util.List;
@@ -56,79 +60,110 @@ public class HitoeDeviceOrientationProfile extends DeviceOrientationProfile {
     public HitoeDeviceOrientationProfile(final HitoeManager mgr) {
         mgr.setHitoeDeviceOrientationEventListener(mDeviceOrientationEventListener);
         mDispatcherManager = new EventDispatcherManager();
+        addApi(mGetOnDeviceOrientation);
+        addApi(mPutOnDeviceOrientation);
+        addApi(mDeleteOnDeviceOrientation);
     }
-    @Override
-    public boolean onGetOnDeviceOrientation(final Intent request, final Intent response, final String serviceId) {
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-        } else {
-            AccelerationData data = getManager().getAccelerationData(serviceId);
-            if (data == null) {
-                MessageUtils.setNotFoundServiceError(response);
-            } else {
-                setResult(response, DConnectMessage.RESULT_OK);
-                DeviceOrientationProfile.setOrientation(response, data.toBundle());
-
-            }
+    private final DConnectApi mGetOnDeviceOrientation = new GetApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_DEVICE_ORIENTATION;
         }
-        return true;
-    }
 
-    @Override
-    public boolean onPutOnDeviceOrientation(final Intent request, final Intent response,
-                                  final String serviceId, final String sessionKey) {
-        if (serviceId == null) {
-            MessageUtils.setNotFoundServiceError(response, "Not found serviceID:" + serviceId);
-        } else if (sessionKey == null) {
-            MessageUtils.setInvalidRequestParameterError(response, "Not found sessionKey:" + sessionKey);
-        } else {
-            AccelerationData data = getManager().getAccelerationData(serviceId);
-            if (data == null) {
-                MessageUtils.setNotFoundServiceError(response);
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String serviceId = getServiceID(request);
+            if (serviceId == null) {
+                MessageUtils.setEmptyServiceIdError(response);
             } else {
-                EventError error = EventManager.INSTANCE.addEvent(request);
-                if (error == EventError.NONE) {
-                    String intervalString = request.getStringExtra("interval");
-                    long interval = HitoeConstants.ADD_RECEIVER_PARAM_ACC_SAMPLING_INTERVAL;
-                    try {
-                        interval = Long.parseLong(intervalString);
-                    } catch (NumberFormatException e) {
-                    }
-                    getManager().getAccelerationData(serviceId).setTimeStamp(interval);
-                    addEventDispatcher(request);
+                AccelerationData data = getManager().getAccelerationData(serviceId);
+                if (data == null) {
+                    MessageUtils.setNotFoundServiceError(response);
+                } else {
                     setResult(response, DConnectMessage.RESULT_OK);
+                    DeviceOrientationProfile.setOrientation(response, data.toBundle());
+
+                }
+            }
+            return true;
+        }
+    };
+
+    private final DConnectApi mPutOnDeviceOrientation = new PutApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_DEVICE_ORIENTATION;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String serviceId = getServiceID(request);
+            String sessionKey = getSessionKey(request);
+            if (serviceId == null) {
+                MessageUtils.setNotFoundServiceError(response, "Not found serviceID:" + serviceId);
+            } else if (sessionKey == null) {
+                MessageUtils.setInvalidRequestParameterError(response, "Not found sessionKey:" + sessionKey);
+            } else {
+                AccelerationData data = getManager().getAccelerationData(serviceId);
+                if (data == null) {
+                    MessageUtils.setNotFoundServiceError(response);
+                } else {
+                    EventError error = EventManager.INSTANCE.addEvent(request);
+                    if (error == EventError.NONE) {
+                        HitoeManager mgr = getManager();
+                        if (mgr != null) {
+                            mgr.setHitoeDeviceOrientationEventListener(mDeviceOrientationEventListener);
+                        }
+                        String intervalString = request.getStringExtra("interval");
+                        long interval = HitoeConstants.ADD_RECEIVER_PARAM_ACC_SAMPLING_INTERVAL;
+                        try {
+                            interval = Long.parseLong(intervalString);
+                        } catch (NumberFormatException e) {
+                        }
+                        getManager().getAccelerationData(serviceId).setTimeStamp(interval);
+                        addEventDispatcher(request);
+                        setResult(response, DConnectMessage.RESULT_OK);
+                    } else {
+                        MessageUtils.setUnknownError(response);
+                    }
+                }
+            }
+            return true;
+        }
+    };
+
+    private final DConnectApi mDeleteOnDeviceOrientation = new DeleteApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_DEVICE_ORIENTATION;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String serviceId = getServiceID(request);
+            String sessionKey = getSessionKey(request);
+            if (serviceId == null) {
+                MessageUtils.setEmptyServiceIdError(response);
+            } else if (sessionKey == null) {
+                MessageUtils.setInvalidRequestParameterError(response, "There is no sessionKey.");
+            } else {
+                removeEventDispatcher(request);
+                EventError error = EventManager.INSTANCE.removeEvent(request);
+                if (error == EventError.NONE) {
+                    setResult(response, DConnectMessage.RESULT_OK);
+                } else if (error == EventError.INVALID_PARAMETER) {
+                    MessageUtils.setInvalidRequestParameterError(response);
+                } else if (error == EventError.FAILED) {
+                    MessageUtils.setUnknownError(response, "Failed to delete event.");
+                } else if (error == EventError.NOT_FOUND) {
+                    MessageUtils.setUnknownError(response, "Not found event.");
                 } else {
                     MessageUtils.setUnknownError(response);
                 }
             }
+            return true;
         }
-        return true;
-    }
-
-    @Override
-    public boolean onDeleteOnDeviceOrientation(final Intent request, final Intent response,
-                                     final String serviceId, final String sessionKey) {
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-        } else if (sessionKey == null) {
-            MessageUtils.setInvalidRequestParameterError(response, "There is no sessionKey.");
-        } else {
-            removeEventDispatcher(request);
-            EventError error = EventManager.INSTANCE.removeEvent(request);
-            if (error == EventError.NONE) {
-                setResult(response, DConnectMessage.RESULT_OK);
-            } else if (error == EventError.INVALID_PARAMETER) {
-                MessageUtils.setInvalidRequestParameterError(response);
-            } else if (error == EventError.FAILED) {
-                MessageUtils.setUnknownError(response, "Failed to delete event.");
-            } else if (error == EventError.NOT_FOUND) {
-                MessageUtils.setUnknownError(response, "Not found event.");
-            } else {
-                MessageUtils.setUnknownError(response);
-            }
-        }
-        return true;
-    }
+    };
 
     /**
      * Notify the device orientation event to DeviceConnectManager.

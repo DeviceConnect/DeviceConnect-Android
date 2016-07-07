@@ -14,6 +14,8 @@ import org.deviceconnect.android.deviceplugin.hitoe.data.HitoeManager;
 import org.deviceconnect.android.deviceplugin.hitoe.data.HeartRateData;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.BatteryProfile;
+import org.deviceconnect.android.profile.api.DConnectApi;
+import org.deviceconnect.android.profile.api.GetApi;
 import org.deviceconnect.message.DConnectMessage;
 
 /**
@@ -23,30 +25,33 @@ import org.deviceconnect.message.DConnectMessage;
 public class HitoeBatteryProfile extends BatteryProfile {
 
 
-    @Override
-    public boolean onGetLevel(final Intent request, final Intent response, final String serviceId) {
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-        } else {
-            HeartRateData data = getManager().getHeartRateData(serviceId);
-            if (data == null) {
-                MessageUtils.setNotFoundServiceError(response);
-                return true;
-            }
-            double level = (double) (data.getDevice().getBatteryLevel() + 1);
-            if (level < 0) {
-                MessageUtils.setUnknownError(response, "Battery level is unknown.");
-            } else {
-                setResult(response, DConnectMessage.RESULT_OK);
-                setLevel(response,  ( level / 4.0f ));
-            }
-        }
-        return true;
+    public HitoeBatteryProfile() {
+        addApi(mGetAll);
+        addApi(mGetLevel);
     }
 
-    @Override
-    protected boolean onGetAll(final Intent request, final Intent response, final String serviceId) {
+    private final DConnectApi mGetAll = new GetApi() {
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            return getBattery(request, response);
+        }
+    };
 
+    private final DConnectApi mGetLevel = new GetApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_LEVEL;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            return getBattery(request, response);
+        }
+    };
+
+
+    private boolean getBattery(final Intent request, final Intent response) {
+        String serviceId = getServiceID(request);
         if (serviceId == null) {
             MessageUtils.setEmptyServiceIdError(response);
         } else {

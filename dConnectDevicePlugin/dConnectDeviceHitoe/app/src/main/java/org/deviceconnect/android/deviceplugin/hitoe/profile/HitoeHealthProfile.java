@@ -24,6 +24,10 @@ import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.HealthProfile;
+import org.deviceconnect.android.profile.api.DConnectApi;
+import org.deviceconnect.android.profile.api.DeleteApi;
+import org.deviceconnect.android.profile.api.GetApi;
+import org.deviceconnect.android.profile.api.PutApi;
 import org.deviceconnect.message.DConnectMessage;
 
 import java.util.List;
@@ -57,71 +61,103 @@ public class HitoeHealthProfile extends HealthProfile {
     public HitoeHealthProfile(final HitoeManager mgr) {
         mgr.setHitoeHeartRateEventListener(mHeartRateEventListener);
         mDispatcherManager = new EventDispatcherManager();
-    }
-    @Override
-    public boolean onGetHeart(final Intent request, final Intent response, final String serviceId) {
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-        } else {
-            HeartRateData data = getManager().getHeartRateData(serviceId);
-            if (data == null) {
-                MessageUtils.setNotFoundServiceError(response);
-            } else {
-                setResult(response, DConnectMessage.RESULT_OK);
-                setHeart(response, getHeartRateBundle(data));
-            }
-        }
-        return true;
+        addApi(mGetHeart);
+        addApi(mPutHeart);
+        addApi(mDeleteHeart);
     }
 
-    @Override
-    public boolean onPutHeart(final Intent request, final Intent response,
-                                  final String serviceId, final String sessionKey) {
-        if (serviceId == null) {
-            MessageUtils.setNotFoundServiceError(response, "Not found serviceID:" + serviceId);
-        } else if (sessionKey == null) {
-            MessageUtils.setInvalidRequestParameterError(response, "Not found sessionKey:" + sessionKey);
-        } else {
-            HeartRateData data = getManager().getHeartRateData(serviceId);
-            if (data == null) {
-                MessageUtils.setNotFoundServiceError(response);
+    private final DConnectApi mGetHeart = new GetApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_HEART;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String serviceId = getServiceID(request);
+            if (serviceId == null) {
+                MessageUtils.setEmptyServiceIdError(response);
             } else {
-                EventError error = EventManager.INSTANCE.addEvent(request);
-                if (error == EventError.NONE) {
-                    addEventDispatcher(request);
+                HeartRateData data = getManager().getHeartRateData(serviceId);
+                if (data == null) {
+                    MessageUtils.setNotFoundServiceError(response);
+                } else {
                     setResult(response, DConnectMessage.RESULT_OK);
+                    setHeart(response, getHeartRateBundle(data));
+                }
+            }
+            return true;
+        }
+    };
+
+    private final DConnectApi mPutHeart = new PutApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_HEART;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String serviceId = getServiceID(request);
+            String sessionKey = getSessionKey(request);
+            if (serviceId == null) {
+                MessageUtils.setNotFoundServiceError(response, "Not found serviceID:" + serviceId);
+            } else if (sessionKey == null) {
+                MessageUtils.setInvalidRequestParameterError(response, "Not found sessionKey:" + sessionKey);
+            } else {
+                HeartRateData data = getManager().getHeartRateData(serviceId);
+                if (data == null) {
+                    MessageUtils.setNotFoundServiceError(response);
+                } else {
+                    EventError error = EventManager.INSTANCE.addEvent(request);
+                    if (error == EventError.NONE) {
+                        HitoeManager mgr = getManager();
+                        if (mgr != null) {
+                            mgr.setHitoeHeartRateEventListener(mHeartRateEventListener);
+                        }
+                        addEventDispatcher(request);
+                        setResult(response, DConnectMessage.RESULT_OK);
+                    } else {
+                        MessageUtils.setUnknownError(response);
+                    }
+                }
+            }
+            return true;
+        }
+    };
+
+    private final DConnectApi mDeleteHeart = new DeleteApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_HEART;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String serviceId = getServiceID(request);
+            String sessionKey = getSessionKey(request);
+            if (serviceId == null) {
+                MessageUtils.setEmptyServiceIdError(response);
+            } else if (sessionKey == null) {
+                MessageUtils.setInvalidRequestParameterError(response, "There is no sessionKey.");
+            } else {
+                removeEventDispatcher(request);
+                EventError error = EventManager.INSTANCE.removeEvent(request);
+                if (error == EventError.NONE) {
+                    setResult(response, DConnectMessage.RESULT_OK);
+                } else if (error == EventError.INVALID_PARAMETER) {
+                    MessageUtils.setInvalidRequestParameterError(response);
+                } else if (error == EventError.FAILED) {
+                    MessageUtils.setUnknownError(response, "Failed to delete event.");
+                } else if (error == EventError.NOT_FOUND) {
+                    MessageUtils.setUnknownError(response, "Not found event.");
                 } else {
                     MessageUtils.setUnknownError(response);
                 }
             }
+            return true;
         }
-        return true;
-    }
-
-    @Override
-    public boolean onDeleteHeart(final Intent request, final Intent response,
-                                     final String serviceId, final String sessionKey) {
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-        } else if (sessionKey == null) {
-            MessageUtils.setInvalidRequestParameterError(response, "There is no sessionKey.");
-        } else {
-            removeEventDispatcher(request);
-            EventError error = EventManager.INSTANCE.removeEvent(request);
-            if (error == EventError.NONE) {
-                setResult(response, DConnectMessage.RESULT_OK);
-            } else if (error == EventError.INVALID_PARAMETER) {
-                MessageUtils.setInvalidRequestParameterError(response);
-            } else if (error == EventError.FAILED) {
-                MessageUtils.setUnknownError(response, "Failed to delete event.");
-            } else if (error == EventError.NOT_FOUND) {
-                MessageUtils.setUnknownError(response, "Not found event.");
-            } else {
-                MessageUtils.setUnknownError(response);
-            }
-        }
-        return true;
-    }
+    };
 
     /**
      * Notify the heart rate event to DeviceConnectManager.

@@ -60,12 +60,12 @@ public class HitoeDeviceListActivity extends HitoeListActivity implements
     public void onResume() {
         super.onResume();
         mDeviceAdapter.clear();
+        mEnableConnectedBtn = true;
         mDeviceAdapter.addAll(createDeviceContainers());
         mDeviceAdapter.notifyDataSetChanged();
         mListView.setOnItemClickListener(this);
         mListView.setOnItemLongClickListener(this);
         getManager().addHitoeConnectionListener(this);
-        mEnableConnectedBtn = true;
         addFooterView();
         IntentFilter filter = new IntentFilter();
         filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);

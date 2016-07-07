@@ -22,6 +22,10 @@ import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.PoseEstimationProfile;
+import org.deviceconnect.android.profile.api.DConnectApi;
+import org.deviceconnect.android.profile.api.DeleteApi;
+import org.deviceconnect.android.profile.api.GetApi;
+import org.deviceconnect.android.profile.api.PutApi;
 import org.deviceconnect.message.DConnectMessage;
 
 import java.util.List;
@@ -54,71 +58,102 @@ public class HitoePoseEstimationProfile extends PoseEstimationProfile {
     public HitoePoseEstimationProfile(final HitoeManager mgr) {
         mgr.setHitoePoseEstimationEventListener(mPoseEstimationEventListener);
         mDispatcherManager = new EventDispatcherManager();
+        addApi(mGetOnPose);
+        addApi(mPutOnPose);
+        addApi(mDeleteOnPose);
     }
-    @Override
-    public boolean onGetPoseEstimation(final Intent request, final Intent response, final String serviceId) {
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-        } else {
-            PoseEstimationData data = getManager().getPoseEstimationData(serviceId);
-            if (data == null) {
-                MessageUtils.setNotFoundServiceError(response);
-            } else {
-                setResult(response, DConnectMessage.RESULT_OK);
-                setPose(response, data.toBundle());
-            }
+    private final DConnectApi mGetOnPose = new GetApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_POSE_ESTIMATION;
         }
-        return true;
-    }
 
-    @Override
-    public boolean onPutPoseEstimation(final Intent request, final Intent response,
-                                  final String serviceId, final String sessionKey) {
-        if (serviceId == null) {
-            MessageUtils.setNotFoundServiceError(response, "Not found serviceID:" + serviceId);
-        } else if (sessionKey == null) {
-            MessageUtils.setInvalidRequestParameterError(response, "Not found sessionKey:" + sessionKey);
-        } else {
-            PoseEstimationData data = getManager().getPoseEstimationData(serviceId);
-            if (data == null) {
-                MessageUtils.setNotFoundServiceError(response);
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String serviceId = getServiceID(request);
+            if (serviceId == null) {
+                MessageUtils.setEmptyServiceIdError(response);
             } else {
-                EventError error = EventManager.INSTANCE.addEvent(request);
-                if (error == EventError.NONE) {
-                    addEventDispatcher(request);
+                PoseEstimationData data = getManager().getPoseEstimationData(serviceId);
+                if (data == null) {
+                    MessageUtils.setNotFoundServiceError(response);
+                } else {
                     setResult(response, DConnectMessage.RESULT_OK);
+                    setPose(response, data.toBundle());
+                }
+            }
+            return true;
+        }
+    };
+
+    private final DConnectApi mPutOnPose = new PutApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_POSE_ESTIMATION;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String serviceId = getServiceID(request);
+            String sessionKey = getSessionKey(request);
+            if (serviceId == null) {
+                MessageUtils.setNotFoundServiceError(response, "Not found serviceID:" + serviceId);
+            } else if (sessionKey == null) {
+                MessageUtils.setInvalidRequestParameterError(response, "Not found sessionKey:" + sessionKey);
+            } else {
+                PoseEstimationData data = getManager().getPoseEstimationData(serviceId);
+                if (data == null) {
+                    MessageUtils.setNotFoundServiceError(response);
+                } else {
+                    EventError error = EventManager.INSTANCE.addEvent(request);
+                    if (error == EventError.NONE) {
+                        HitoeManager mgr = getManager();
+                        if (mgr != null) {
+                            mgr.setHitoePoseEstimationEventListener(mPoseEstimationEventListener);
+                        }
+                        addEventDispatcher(request);
+                        setResult(response, DConnectMessage.RESULT_OK);
+                    } else {
+                        MessageUtils.setUnknownError(response);
+                    }
+                }
+            }
+            return true;
+        }
+    };
+
+    private final DConnectApi mDeleteOnPose = new DeleteApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_POSE_ESTIMATION;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String serviceId = getServiceID(request);
+            String sessionKey = getSessionKey(request);
+            if (serviceId == null) {
+                MessageUtils.setEmptyServiceIdError(response);
+            } else if (sessionKey == null) {
+                MessageUtils.setInvalidRequestParameterError(response, "There is no sessionKey.");
+            } else {
+                removeEventDispatcher(request);
+                EventError error = EventManager.INSTANCE.removeEvent(request);
+                if (error == EventError.NONE) {
+                    setResult(response, DConnectMessage.RESULT_OK);
+                } else if (error == EventError.INVALID_PARAMETER) {
+                    MessageUtils.setInvalidRequestParameterError(response);
+                } else if (error == EventError.FAILED) {
+                    MessageUtils.setUnknownError(response, "Failed to delete event.");
+                } else if (error == EventError.NOT_FOUND) {
+                    MessageUtils.setUnknownError(response, "Not found event.");
                 } else {
                     MessageUtils.setUnknownError(response);
                 }
             }
+            return true;
         }
-        return true;
-    }
-
-    @Override
-    public boolean onDeletePoseEstimation(final Intent request, final Intent response,
-                                     final String serviceId, final String sessionKey) {
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-        } else if (sessionKey == null) {
-            MessageUtils.setInvalidRequestParameterError(response, "There is no sessionKey.");
-        } else {
-            removeEventDispatcher(request);
-            EventError error = EventManager.INSTANCE.removeEvent(request);
-            if (error == EventError.NONE) {
-                setResult(response, DConnectMessage.RESULT_OK);
-            } else if (error == EventError.INVALID_PARAMETER) {
-                MessageUtils.setInvalidRequestParameterError(response);
-            } else if (error == EventError.FAILED) {
-                MessageUtils.setUnknownError(response, "Failed to delete event.");
-            } else if (error == EventError.NOT_FOUND) {
-                MessageUtils.setUnknownError(response, "Not found event.");
-            } else {
-                MessageUtils.setUnknownError(response);
-            }
-        }
-        return true;
-    }
+    };
 
     /**
      * Notify the stress estimation event to DeviceConnectManager.

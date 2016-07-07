@@ -75,11 +75,11 @@ public class HitoeAddDeviceActivity extends HitoeListActivity  implements HitoeM
     @Override
     public void onResume() {
         super.onResume();
+        mEnableConnectedBtn = false;
         mDeviceAdapter.clear();
         mDeviceAdapter.notifyDataSetChanged();
         mListView.setOnItemClickListener(this);
         mScheduler = new HitoeScheduler(this, this, -1, -1);
-        mEnableConnectedBtn = false;
         DefaultDialogFragment.showHitoeONStateDialog(this);
         registerBluetoothFilter();
         getManager().addHitoeConnectionListener(this);
@@ -185,7 +185,7 @@ public class HitoeAddDeviceActivity extends HitoeListActivity  implements HitoeM
             public void run() {
                 mDeviceAdapter.clear();
                 for (HitoeDevice device : devices) {
-                    if (!device.isRegisterFlag()) {
+                    if (device.getPinCode() == null) {
                         mDeviceAdapter.add(device);
                     }
                 }

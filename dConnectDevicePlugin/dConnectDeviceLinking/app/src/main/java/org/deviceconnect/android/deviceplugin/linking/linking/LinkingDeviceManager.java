@@ -90,19 +90,19 @@ public class LinkingDeviceManager {
     }
 
     public void startKeyEvent(final LinkingDevice device) {
-        mNotifyKey.add(device);
+        mNotifyKey.start(device);
     }
 
     public void stopKeyEvent(final LinkingDevice device) {
-        mNotifyKey.remove(device);
+        mNotifyKey.stop(device);
     }
 
     public void startRange(final LinkingDevice device) {
-        mNotifyRange.add(device);
+        mNotifyRange.start(device);
     }
 
     public void stopRange(final LinkingDevice device) {
-        mNotifyRange.remove(device);
+        mNotifyRange.stop(device);
     }
 
     public void startSensor(final LinkingDevice device) {

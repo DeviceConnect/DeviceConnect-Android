@@ -32,7 +32,7 @@ class LinkingNotifyRange {
         mContext = context;
     }
 
-    public synchronized void add(final LinkingDevice device) {
+    public synchronized void start(final LinkingDevice device) {
         if (mRangeDeviceHolders.contains(device)) {
             return;
         }
@@ -40,7 +40,7 @@ class LinkingNotifyRange {
         startNotifyRange();
     }
 
-    public synchronized void remove(final LinkingDevice device) {
+    public synchronized void stop(final LinkingDevice device) {
         mRangeDeviceHolders.remove(device);
 
         if (mRangeDeviceHolders.isEmpty()) {

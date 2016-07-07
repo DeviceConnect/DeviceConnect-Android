@@ -32,7 +32,7 @@ class LinkingNotifyKey {
         mContext = context;
     }
 
-    public synchronized void add(final LinkingDevice device) {
+    public synchronized void start(final LinkingDevice device) {
         if (mKeyEventDeviceHolders.contains(device)) {
             return;
         }
@@ -40,7 +40,7 @@ class LinkingNotifyKey {
         startNotifyNotification();
     }
 
-    public synchronized void remove(final LinkingDevice device) {
+    public synchronized void stop(final LinkingDevice device) {
         mKeyEventDeviceHolders.remove(device);
 
         if (mKeyEventDeviceHolders.isEmpty()) {

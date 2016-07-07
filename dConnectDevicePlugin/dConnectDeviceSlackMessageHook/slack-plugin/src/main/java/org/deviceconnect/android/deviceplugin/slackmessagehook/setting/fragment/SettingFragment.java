@@ -11,6 +11,8 @@ import android.app.Fragment;
 import android.app.ProgressDialog;
 import android.os.Bundle;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CompoundButton;
@@ -25,15 +27,18 @@ import org.deviceconnect.android.deviceplugin.slackmessagehook.slack.SlackManage
  *
  * @author NTT DOCOMO, INC.
  */
-public class SettingFragment extends Fragment implements SlackManager.SlackEventListener {
+public class SettingFragment extends Fragment implements SlackManager.SlackEventListener, ShowMenuFragment {
 
+    /** メニュー */
+    private Menu mainMenu;
     /** Switchの設定変更イベントリスナー */
     private CompoundButton.OnCheckedChangeListener checkedChangeListener;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
-        View root = inflater.inflate(R.layout.setting, container, false);
+        setHasOptionsMenu(true);
+        View root = inflater.inflate(R.layout.fragment_setting, container, false);
 
         // Switchの設定
         Switch sw = (Switch)root.findViewById(R.id.statusSwitch);
@@ -98,6 +103,20 @@ public class SettingFragment extends Fragment implements SlackManager.SlackEvent
     @Override
     public void onStop() {
         super.onStop();
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+        inflater.inflate(R.menu.setting_menu, menu);
+        mainMenu = menu;
+    }
+
+    /**
+     * メニューを表示
+     */
+    public void showMenu() {
+        mainMenu.performIdentifierAction(R.id.overflow_options, 0);
     }
 
     /**

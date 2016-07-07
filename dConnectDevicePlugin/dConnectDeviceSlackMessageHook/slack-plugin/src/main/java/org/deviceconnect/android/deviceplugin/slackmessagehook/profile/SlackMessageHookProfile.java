@@ -95,88 +95,16 @@ public class SlackMessageHookProfile extends MessageHookProfile {
             return true;
         }
 
-        new Thread() {
+        // Channelリストを取得
+        SlackManager.INSTANCE.getAllChannelList(new SlackManager.FinishCallback<List<SlackManager.ListInfo>>() {
             @Override
-            public void run() {
-                final CountDownLatch latch = new CountDownLatch(3);
-                final HashMap<String, ArrayList<SlackManager.ListInfo>> resMap = new HashMap<>();
-
-                // Channelリスト取得
-                SlackManager.INSTANCE.getChannelList(new SlackManager.FinishCallback<ArrayList<SlackManager.ListInfo>>() {
-                    @Override
-                    public void onFinish(ArrayList<SlackManager.ListInfo> listInfos, Exception error) {
-                        if (error == null) {
-                            resMap.put("channel", listInfos);
-                        } else {
-                            Log.e("slack", "err", error);
-                        }
-                        latch.countDown();
-                    }
-                });
-
-                // IMリスト取得
-                SlackManager.INSTANCE.getIMList(new SlackManager.FinishCallback<ArrayList<SlackManager.ListInfo>>() {
-                    @Override
-                    public void onFinish(ArrayList<SlackManager.ListInfo> listInfos, Exception error) {
-                        if (error == null) {
-                            resMap.put("im", listInfos);
-                        } else {
-                            Log.e("slack", "err", error);
-                        }
-                        latch.countDown();
-                    }
-                });
-
-                // ユーザーリスト取得
-                SlackManager.INSTANCE.getUserList(new SlackManager.FinishCallback<ArrayList<SlackManager.ListInfo>>() {
-                    @Override
-                    public void onFinish(ArrayList<SlackManager.ListInfo> listInfos, Exception error) {
-                        if (error == null) {
-                            resMap.put("user", listInfos);
-                        } else {
-                            Log.e("slack", "err", error);
-                        }
-                        latch.countDown();
-                    }
-                });
-
-                // 処理終了を待つ
-                try {
-                    latch.await();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-
-                // 各情報を詰め替え
-                ArrayList<SlackManager.ListInfo> channels = resMap.get("channel");
-                ArrayList<SlackManager.ListInfo> ims = resMap.get("im");
-                ArrayList<SlackManager.ListInfo> users = resMap.get("user");
-                if (channels != null && ims != null && users != null) {
+            public void onFinish(List<SlackManager.ListInfo> listInfos, Exception error) {
+                if (error == null) {
                     List<Bundle> bundleList = new ArrayList<>();
-                    // Channel
-                    for (SlackManager.ListInfo info : channels) {
+                    for (SlackManager.ListInfo info : listInfos) {
                         Bundle bundle = new Bundle();
                         bundle.putString(PARAM_ID, info.id);
                         bundle.putString(PARAM_NAME, info.name);
-                        bundle.putString(PARAM_TYPE, "slack");
-                        bundleList.add(bundle);
-                    }
-                    // UserをHashMapへ
-                    HashMap<String, SlackManager.ListInfo> userMap = new HashMap<>();
-                    for (SlackManager.ListInfo info : users) {
-                        userMap.put(info.id, info);
-                    }
-                    // IM
-                    for (SlackManager.ListInfo info : ims) {
-                        Bundle bundle = new Bundle();
-                        bundle.putString(PARAM_ID, info.id);
-                        // UserIDからUserNameを取得
-                        SlackManager.ListInfo user = userMap.get(info.name);
-                        if (user == null) {
-                            bundle.putString(PARAM_NAME, info.name);
-                        } else {
-                            bundle.putString(PARAM_NAME, user.name);
-                        }
                         bundle.putString(PARAM_TYPE, "slack");
                         bundleList.add(bundle);
                     }
@@ -190,9 +118,8 @@ public class SlackMessageHookProfile extends MessageHookProfile {
                 }
                 SlackMessageHookDeviceService service = (SlackMessageHookDeviceService) getContext();
                 service.sendResponse(response);
-
             }
-        }.start();
+        });
 
         return false;
     }

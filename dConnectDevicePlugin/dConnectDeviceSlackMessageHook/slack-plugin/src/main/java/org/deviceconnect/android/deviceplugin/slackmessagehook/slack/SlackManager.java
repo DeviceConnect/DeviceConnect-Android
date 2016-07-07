@@ -31,6 +31,9 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
 
 
 /**
@@ -520,6 +523,108 @@ public class SlackManager {
     public void getUserList(final FinishCallback<ArrayList<ListInfo>> callback) {
         if (Debug) Log.d(TAG, "*getUserList");
         getList("users.list", "", "members", callback);
+    }
+
+    /**
+     * Channel一覧とDM一覧を合成したものを取得
+     * @param callback 取得コールバック
+     */
+    public void getAllChannelList(final FinishCallback<List<ListInfo>> callback) {
+        final Handler handler = new Handler();
+        new Thread() {
+            @Override
+            public void run() {
+                final CountDownLatch latch = new CountDownLatch(3);
+                final HashMap<String, ArrayList<ListInfo>> resMap = new HashMap<>();
+
+                // Channelリスト取得
+                getChannelList(new FinishCallback<ArrayList<ListInfo>>() {
+                    @Override
+                    public void onFinish(ArrayList<ListInfo> listInfos, Exception error) {
+                        if (error == null) {
+                            resMap.put("channel", listInfos);
+                        } else {
+                            Log.e("slack", "err", error);
+                        }
+                        latch.countDown();
+                    }
+                });
+
+                // IMリスト取得
+                getIMList(new FinishCallback<ArrayList<ListInfo>>() {
+                    @Override
+                    public void onFinish(ArrayList<ListInfo> listInfos, Exception error) {
+                        if (error == null) {
+                            resMap.put("im", listInfos);
+                        } else {
+                            Log.e("slack", "err", error);
+                        }
+                        latch.countDown();
+                    }
+                });
+
+                // ユーザーリスト取得
+                getUserList(new FinishCallback<ArrayList<ListInfo>>() {
+                    @Override
+                    public void onFinish(ArrayList<ListInfo> listInfos, Exception error) {
+                        if (error == null) {
+                            resMap.put("user", listInfos);
+                        } else {
+                            Log.e("slack", "err", error);
+                        }
+                        latch.countDown();
+                    }
+                });
+
+                // 処理終了を待つ
+                try {
+                    latch.await();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
+                // 各情報を詰め替え
+                ArrayList<ListInfo> channels = resMap.get("channel");
+                ArrayList<ListInfo> ims = resMap.get("im");
+                ArrayList<ListInfo> users = resMap.get("user");
+                if (channels != null && ims != null && users != null) {
+                    final List<ListInfo> resList = new ArrayList<>();
+                    // Channel
+                    resList.addAll(channels);
+                    // UserをHashMapへ
+                    HashMap<String, ListInfo> userMap = new HashMap<>();
+                    for (ListInfo info : users) {
+                        userMap.put(info.id, info);
+                    }
+                    // IM
+                    for (ListInfo info : ims) {
+                        // UserIDからUserNameを取得
+                        ListInfo user = userMap.get(info.name);
+                        if (user != null) {
+                            info.name = user.name;
+                            info.icon = user.icon;
+                        }
+                        resList.add(info);
+                    }
+
+                    if (callback != null) {
+                        handler.post(new Runnable() {
+                            public void run() {
+                                callback.onFinish(resList, null);
+                            }
+                        });
+                    }
+                } else {
+                    if (callback != null) {
+                        handler.post(new Runnable() {
+                            public void run() {
+                                callback.onFinish(null, new SlackUnknownException());
+                            }
+                        });
+                    }
+                }
+            }
+        }.start();
     }
 
     /**

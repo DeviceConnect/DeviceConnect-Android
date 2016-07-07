@@ -15,12 +15,13 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.view.KeyEvent;
-import android.view.Menu;
 import android.view.MenuItem;
 
 import org.deviceconnect.android.deviceplugin.slackmessagehook.R;
+import org.deviceconnect.android.deviceplugin.slackmessagehook.setting.fragment.ChannelListFragment;
 import org.deviceconnect.android.deviceplugin.slackmessagehook.setting.fragment.SettingFragment;
 import org.deviceconnect.android.deviceplugin.slackmessagehook.setting.fragment.SettingTokenFragment;
+import org.deviceconnect.android.deviceplugin.slackmessagehook.setting.fragment.ShowMenuFragment;
 import org.deviceconnect.android.deviceplugin.slackmessagehook.setting.fragment.Utils;
 import org.deviceconnect.android.deviceplugin.slackmessagehook.slack.SlackManager;
 import org.deviceconnect.android.ui.activity.DConnectSettingPageActivity;
@@ -32,13 +33,11 @@ import org.deviceconnect.android.ui.activity.DConnectSettingPageActivity;
  */
 public class SlackMessageHookSettingActivity extends Activity {
 
-    private Menu mainMenu;
-
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
-        setTheme(R.style.AppTheme);
+        setTheme(android.R.style.Theme_Holo_Light_DarkActionBar);
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.main);
+        setContentView(R.layout.activity_main);
 
         // CLOSEボタン作成
         if (getActionBar() != null) {
@@ -61,9 +60,16 @@ public class SlackMessageHookSettingActivity extends Activity {
                 if (finalDialog != null) finalDialog.dismiss();
                 Fragment fragment;
                 if (token == null) {
+                    // Token未設定の場合はToken設定画面へ
                     fragment = new SettingTokenFragment();
                 } else {
-                    fragment = new SettingFragment();
+                    if (Intent.ACTION_MAIN.equals(getIntent().getAction())) {
+                        // ラウンチャーから起動の場合はChannelリスト画面へ
+                        fragment = new ChannelListFragment();
+                    } else {
+                        // Managerからの起動の場合は設定画面へ
+                        fragment = new SettingFragment();
+                    }
                 }
                 // 画面遷移
                 Utils.transition(fragment, getFragmentManager(), false);
@@ -71,16 +77,29 @@ public class SlackMessageHookSettingActivity extends Activity {
         });
     }
 
+    /** メニューを表示するクラス */
+    private static final Class[] MenuFragments = {
+            ChannelListFragment.class,
+            SettingFragment.class
+    };
+
     @Override
-    public boolean onMenuOpened(int featureId, Menu menu) {
-        // Token設定画面の時はToken設定メニューを隠す
-        Fragment fragment = getFragmentManager().findFragmentByTag(SettingTokenFragment.class.getName());
-        if (fragment != null && fragment.isVisible()) {
-            menu.getItem(0).setVisible(false);
-        } else {
-            menu.getItem(0).setVisible(true);
+    public boolean dispatchKeyEvent(KeyEvent event) {
+        final int action = event.getAction();
+        final int keyCode = event.getKeyCode();
+        if (action == KeyEvent.ACTION_UP) {
+            // メニュー表示
+            if (keyCode == KeyEvent.KEYCODE_MENU) {
+                for (Class cls: MenuFragments) {
+                    ShowMenuFragment fragment = (ShowMenuFragment) getFragmentManager().findFragmentByTag(cls.getName());
+                    if (fragment != null && fragment.isVisible()) {
+                        fragment.showMenu();
+                    }
+                }
+                return true;
+            }
         }
-        return super.onMenuOpened(featureId, menu);
+        return super.dispatchKeyEvent(event);
     }
 
     @Override
@@ -94,6 +113,11 @@ public class SlackMessageHookSettingActivity extends Activity {
                 // 画面遷移
                 Utils.transition(new SettingTokenFragment(), getFragmentManager(), true);
                 return true;
+            case R.id.menu_setting:
+                // 画面遷移
+                Fragment fragment = new SettingFragment();
+                Utils.transition(fragment, getFragmentManager(), true);
+                break;
             case R.id.menu_open_slack:
                 // Slackを開く
                 Uri uri = Uri.parse("https://slack.com/messages");
@@ -102,28 +126,5 @@ public class SlackMessageHookSettingActivity extends Activity {
                 return true;
         }
         return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu, menu);
-        mainMenu = menu;
-        return true;
-    }
-
-    @Override
-    public boolean dispatchKeyEvent(KeyEvent event) {
-        final int action = event.getAction();
-        final int keyCode = event.getKeyCode();
-        if (action == KeyEvent.ACTION_UP) {
-            // メニュー表示
-            if (keyCode == KeyEvent.KEYCODE_MENU) {
-                if (mainMenu != null) {
-                    mainMenu.performIdentifierAction(R.id.overflow_options, 0);
-                }
-                return true;
-            }
-        }
-        return super.dispatchKeyEvent(event);
     }
 }

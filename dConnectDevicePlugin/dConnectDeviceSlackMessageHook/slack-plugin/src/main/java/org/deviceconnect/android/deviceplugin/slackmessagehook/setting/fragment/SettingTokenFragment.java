@@ -34,7 +34,7 @@ public class SettingTokenFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, final Bundle savedInstanceState) {
 
         // Root view.
-        final View root = inflater.inflate(R.layout.token, container, false);
+        final View root = inflater.inflate(R.layout.fragment_token, container, false);
         final Context context = root.getContext();
 
         // アクセストークン

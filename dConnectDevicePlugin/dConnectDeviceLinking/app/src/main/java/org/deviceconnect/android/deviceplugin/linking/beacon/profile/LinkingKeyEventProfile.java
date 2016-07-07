@@ -15,6 +15,7 @@ import org.deviceconnect.android.deviceplugin.linking.LinkingApplication;
 import org.deviceconnect.android.deviceplugin.linking.LinkingDevicePluginService;
 import org.deviceconnect.android.deviceplugin.linking.beacon.LinkingBeaconManager;
 import org.deviceconnect.android.deviceplugin.linking.beacon.data.LinkingBeacon;
+import org.deviceconnect.android.deviceplugin.linking.LinkingDestroy;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
@@ -28,7 +29,7 @@ import org.deviceconnect.message.DConnectMessage;
 
 import java.util.List;
 
-public class LinkingKeyEventProfile extends KeyEventProfile {
+public class LinkingKeyEventProfile extends KeyEventProfile implements LinkingDestroy {
 
     private static final String TAG = "LinkingPlugIn";
 
@@ -95,7 +96,8 @@ public class LinkingKeyEventProfile extends KeyEventProfile {
         }
     };
 
-    public void destroy() {
+    @Override
+    public void onDestroy() {
         if (BuildConfig.DEBUG) {
             Log.i(TAG, "LinkingKeyEventProfile#destroy: " + getService().getId());
         }

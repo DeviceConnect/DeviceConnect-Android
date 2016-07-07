@@ -16,6 +16,7 @@ import org.deviceconnect.android.deviceplugin.linking.LinkingDevicePluginService
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingDevice;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingDeviceManager;
 import org.deviceconnect.android.deviceplugin.linking.linking.service.LinkingDeviceService;
+import org.deviceconnect.android.deviceplugin.linking.LinkingDestroy;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
@@ -30,7 +31,7 @@ import org.deviceconnect.message.DConnectMessage;
 
 import java.util.List;
 
-public class LinkingBatteryProfile extends BatteryProfile {
+public class LinkingBatteryProfile extends BatteryProfile implements LinkingDestroy {
 
     private static final String TAG = "LinkingPlugIn";
 
@@ -123,7 +124,8 @@ public class LinkingBatteryProfile extends BatteryProfile {
         }
     };
 
-    public void destroy() {
+    @Override
+    public void onDestroy() {
         if (BuildConfig.DEBUG) {
             Log.i(TAG, "LinkingBatteryProfile#destroy: " + getService().getId());
         }

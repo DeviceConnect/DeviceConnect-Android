@@ -184,10 +184,8 @@ public class LinkingDevicePluginService extends DConnectMessageService {
             Log.i(TAG, "Remove Service: " + service.getName());
         }
 
-        if (service instanceof LinkingDeviceService) {
-            ((LinkingDeviceService) service).destroy();
-        } else if (service instanceof LinkingBeaconService) {
-            ((LinkingBeaconService) service).destroy();
+        if (service instanceof LinkingDestroy) {
+            ((LinkingDestroy) service).onDestroy();
         }
         getServiceProvider().removeService(service);
     }

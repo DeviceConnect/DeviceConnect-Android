@@ -18,6 +18,7 @@ import org.deviceconnect.android.deviceplugin.linking.beacon.data.GattData;
 import org.deviceconnect.android.deviceplugin.linking.beacon.data.LinkingBeacon;
 import org.deviceconnect.android.deviceplugin.linking.beacon.service.LinkingBeaconService;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingDeviceManager;
+import org.deviceconnect.android.deviceplugin.linking.LinkingDestroy;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
@@ -32,7 +33,7 @@ import org.deviceconnect.message.DConnectMessage;
 
 import java.util.List;
 
-public class LinkingProximityProfile extends ProximityProfile {
+public class LinkingProximityProfile extends ProximityProfile implements LinkingDestroy {
 
     private static final String TAG = "LinkingPlugIn";
     private static final int TIMEOUT = 30 * 1000;
@@ -175,7 +176,8 @@ public class LinkingProximityProfile extends ProximityProfile {
         }
     };
 
-    public void destroy() {
+    @Override
+    public void onDestroy() {
         if (BuildConfig.DEBUG) {
             Log.i(TAG, "LinkingProximityProfile#destroy: " + getService().getId());
         }

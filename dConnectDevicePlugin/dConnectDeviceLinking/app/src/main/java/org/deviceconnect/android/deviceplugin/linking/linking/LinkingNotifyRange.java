@@ -36,7 +36,7 @@ class LinkingNotifyRange {
             return;
         }
         mRangeDeviceHolders.add(device);
-        start();
+        startNotifyRange();
     }
 
     public synchronized void remove(final LinkingDevice device) {
@@ -77,7 +77,7 @@ class LinkingNotifyRange {
         return null;
     }
 
-    private void start() {
+    private void startNotifyRange() {
         if (mNotifyRange != null) {
             if (BuildConfig.DEBUG) {
                 Log.w(TAG, "mNotifyRange is already running.");
@@ -88,6 +88,9 @@ class LinkingNotifyRange {
             @Override
             public void onRangeChange() {
                 if (mRangeDeviceHolders.isEmpty()) {
+                    if (BuildConfig.DEBUG) {
+                        Log.w(TAG, "mRangeDeviceHolders is empty.");
+                    }
                     return;
                 }
 

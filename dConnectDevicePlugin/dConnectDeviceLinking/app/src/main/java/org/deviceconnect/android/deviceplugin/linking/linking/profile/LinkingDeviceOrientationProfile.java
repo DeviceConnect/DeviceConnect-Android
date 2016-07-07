@@ -17,6 +17,7 @@ import org.deviceconnect.android.deviceplugin.linking.linking.LinkingDevice;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingDeviceManager;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingSensorData;
 import org.deviceconnect.android.deviceplugin.linking.linking.service.LinkingDeviceService;
+import org.deviceconnect.android.deviceplugin.linking.LinkingDestroy;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventDispatcher;
 import org.deviceconnect.android.event.EventDispatcherFactory;
@@ -35,7 +36,7 @@ import org.deviceconnect.message.DConnectMessage;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class LinkingDeviceOrientationProfile extends DeviceOrientationProfile {
+public class LinkingDeviceOrientationProfile extends DeviceOrientationProfile implements LinkingDestroy {
 
     private static final String TAG = "LinkingPlugIn";
 
@@ -181,7 +182,8 @@ public class LinkingDeviceOrientationProfile extends DeviceOrientationProfile {
         }
     };
 
-    public void destroy() {
+    @Override
+    public void onDestroy() {
         if (BuildConfig.DEBUG) {
             Log.i(TAG, "LinkingDeviceOrientationProfile#destroy: " + getService().getId());
         }

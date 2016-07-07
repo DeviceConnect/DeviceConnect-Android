@@ -17,6 +17,7 @@ import org.deviceconnect.android.deviceplugin.linking.beacon.LinkingBeaconManage
 import org.deviceconnect.android.deviceplugin.linking.beacon.data.BatteryData;
 import org.deviceconnect.android.deviceplugin.linking.beacon.data.LinkingBeacon;
 import org.deviceconnect.android.deviceplugin.linking.beacon.service.LinkingBeaconService;
+import org.deviceconnect.android.deviceplugin.linking.LinkingDestroy;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
@@ -31,7 +32,7 @@ import org.deviceconnect.message.DConnectMessage;
 
 import java.util.List;
 
-public class LinkingBatteryProfile extends BatteryProfile {
+public class LinkingBatteryProfile extends BatteryProfile implements LinkingDestroy {
 
     private static final String TAG = "LinkingPlugIn";
     private static final int TIMEOUT = 30 * 1000;
@@ -120,7 +121,8 @@ public class LinkingBatteryProfile extends BatteryProfile {
         }
     };
 
-    public void destroy() {
+    @Override
+    public void onDestroy() {
         if (BuildConfig.DEBUG) {
             Log.i(TAG, "LinkingBatteryProfile#destroy: " + getService().getId());
         }

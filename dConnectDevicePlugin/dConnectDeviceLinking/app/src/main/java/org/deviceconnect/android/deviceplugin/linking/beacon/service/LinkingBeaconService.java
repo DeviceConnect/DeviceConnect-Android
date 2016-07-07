@@ -13,11 +13,12 @@ import org.deviceconnect.android.deviceplugin.linking.beacon.profile.LinkingHumi
 import org.deviceconnect.android.deviceplugin.linking.beacon.profile.LinkingKeyEventProfile;
 import org.deviceconnect.android.deviceplugin.linking.beacon.profile.LinkingProximityProfile;
 import org.deviceconnect.android.deviceplugin.linking.beacon.profile.LinkingTemperatureProfile;
+import org.deviceconnect.android.deviceplugin.linking.LinkingDestroy;
 import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.android.service.DConnectService;
 
-public class LinkingBeaconService extends DConnectService {
+public class LinkingBeaconService extends DConnectService implements LinkingDestroy {
 
     private LinkingBeacon mBeacon;
 
@@ -50,14 +51,11 @@ public class LinkingBeaconService extends DConnectService {
         return mBeacon;
     }
 
-    public void destroy() {
+    @Override
+    public void onDestroy() {
         for (DConnectProfile profile : getProfileList()) {
             if (profile instanceof LinkingBatteryProfile) {
-                ((LinkingBatteryProfile) profile).destroy();
-            } else if (profile instanceof LinkingKeyEventProfile) {
-                ((LinkingKeyEventProfile) profile).destroy();
-            } else if (profile instanceof LinkingProximityProfile) {
-                ((LinkingProximityProfile) profile).destroy();
+                ((LinkingDestroy) profile).onDestroy();
             }
         }
     }

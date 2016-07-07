@@ -141,13 +141,6 @@ public class LinkingDeviceManager {
         mNotifySensor.stopTemperature(device);
     }
 
-    public void stopAllSensor(final LinkingDevice device) {
-        mNotifySensor.stopOrientation(device);
-        mNotifySensor.stopBattery(device);
-        mNotifySensor.stopHumidity(device);
-        mNotifySensor.stopTemperature(device);
-    }
-
     public boolean sendLEDCommand(final LinkingDevice device, final boolean on) {
         SendNotification notify = new SendNotification(mContext);
         notify.setDispNameEn("Linking Device Plug-in");

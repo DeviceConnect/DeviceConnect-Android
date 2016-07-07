@@ -91,7 +91,7 @@ public class LinkingKeyEventProfile extends KeyEventProfile implements LinkingDe
 
             EventError error = EventManager.INSTANCE.removeEvent(request);
             if (error == EventError.NONE) {
-                if (isEmptyEventList()) {
+                if (isEmptyEventList(device)) {
                     getLinkingDeviceManager().stopKeyEvent(device);
                 }
                 setResult(response, DConnectMessage.RESULT_OK);
@@ -112,9 +112,9 @@ public class LinkingKeyEventProfile extends KeyEventProfile implements LinkingDe
         getLinkingDeviceManager().removeKeyEventListener(mListener);
     }
 
-    private boolean isEmptyEventList() {
+    private boolean isEmptyEventList(final LinkingDevice device) {
         List<Event> events = EventManager.INSTANCE.getEventList(
-                PROFILE_NAME, null, ATTRIBUTE_ON_DOWN);
+                device.getBdAddress(), PROFILE_NAME, null, ATTRIBUTE_ON_DOWN);
         return events.isEmpty();
     }
 
@@ -139,6 +139,9 @@ public class LinkingKeyEventProfile extends KeyEventProfile implements LinkingDe
     }
 
     private void notifyKeyEvent(final LinkingDevice device, final int keyCode) {
+        if (BuildConfig.DEBUG) {
+            Log.d(TAG, "notifyKeyEvent: " + device.getDisplayName() + "[" + keyCode + "]");
+        }
         String serviceId = device.getBdAddress();
         List<Event> events = EventManager.INSTANCE.getEventList(serviceId,
                 PROFILE_NAME, null, ATTRIBUTE_ON_DOWN);

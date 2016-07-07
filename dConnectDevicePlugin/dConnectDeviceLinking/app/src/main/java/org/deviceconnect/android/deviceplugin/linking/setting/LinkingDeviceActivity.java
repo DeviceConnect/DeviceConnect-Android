@@ -76,6 +76,9 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
         getLinkingDeviceManager().addKeyEventListener(mOnKeyEventListener);
         getLinkingDeviceManager().addRangeListener(mOnRangeListener);
         getLinkingDeviceManager().addConnectListener(mOnConnectListener);
+        getLinkingDeviceManager().addBatteryListener(mOnBatteryListener);
+        getLinkingDeviceManager().addTemperatureListener(mOnTemperatureListener);
+        getLinkingDeviceManager().addHumidityListener(mOnHumidityListener);
     }
 
     @Override
@@ -86,6 +89,9 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
         getLinkingDeviceManager().removeKeyEventListener(mOnKeyEventListener);
         getLinkingDeviceManager().removeRangeListener(mOnRangeListener);
         getLinkingDeviceManager().removeConnectListener(mOnConnectListener);
+        getLinkingDeviceManager().removeBatteryListener(mOnBatteryListener);
+        getLinkingDeviceManager().removeTemperatureListener(mOnTemperatureListener);
+        getLinkingDeviceManager().removeHumidityListener(mOnHumidityListener);
     }
 
     @Override
@@ -129,6 +135,9 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
         setSensorButton();
         setButtonIdButton();
         setProximityButton();
+        setBatteryButton();
+        setTemperatureButton();
+        setHumidityButton();
     }
 
     private void setupLightOffSetting() {
@@ -437,6 +446,70 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
         }
     }
 
+    private void setBatteryButton() {
+        Button onBtn = (Button) findViewById(R.id.battery_sensor_on);
+        if (onBtn != null) {
+            onBtn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    onClickBatterySensor(true);
+                }
+            });
+        }
+        Button offBtn = (Button) findViewById(R.id.battery_sensor_off);
+        if (offBtn != null) {
+            offBtn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    onClickBatterySensor(false);
+                }
+            });
+        }
+    }
+
+    private void setTemperatureButton() {
+        Button onBtn = (Button) findViewById(R.id.battery_temperature_on);
+        if (onBtn != null) {
+            onBtn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    onClickTemperatureSensor(true);
+                }
+            });
+        }
+        Button offBtn = (Button) findViewById(R.id.battery_temperature_off);
+        if (offBtn != null) {
+            offBtn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    onClickTemperatureSensor(false);
+                }
+            });
+        }
+    }
+
+
+    private void setHumidityButton() {
+        Button onBtn = (Button) findViewById(R.id.battery_humidity_on);
+        if (onBtn != null) {
+            onBtn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    onClickHumiditySensor(true);
+                }
+            });
+        }
+        Button offBtn = (Button) findViewById(R.id.battery_humidity_off);
+        if (offBtn != null) {
+            offBtn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    onClickHumiditySensor(false);
+                }
+            });
+        }
+    }
+
     private void updateLightOffSetting(final Integer id) {
         PreferenceUtil util = PreferenceUtil.getInstance(getApplicationContext());
         Map<String, Integer> map = util.getLightOffSetting();
@@ -515,6 +588,27 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
         }
     }
 
+    private void updateBattery(final boolean lowBatteryFlag, final float batteryLevel) {
+        TextView tv = (TextView) findViewById(R.id.battery_text);
+        if (tv != null) {
+            tv.setText(String.valueOf(batteryLevel));
+        }
+    }
+
+    private void updateTemperature(final float temperature) {
+        TextView tv = (TextView) findViewById(R.id.temperature_text);
+        if (tv != null) {
+            tv.setText(String.valueOf(temperature));
+        }
+    }
+
+    private void updateHumidity(final float humidity) {
+        TextView tv = (TextView) findViewById(R.id.temperature_text);
+        if (tv != null) {
+            tv.setText(String.valueOf(humidity));
+        }
+    }
+
     private String makeParamText(final float x, final float y, final float z, final long time) {
         return getString(R.string.activity_device_sensor_value, x, y, z, time);
     }
@@ -550,6 +644,49 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
             mgr.startSensor(mDevice);
         } else {
             mgr.stopSensor(mDevice);
+        }
+    }
+
+    private void onClickBatterySensor(final boolean isOn) {
+        if (!mDevice.isBattery()) {
+            Toast.makeText(this, getString(R.string.activity_device_not_support_battery), Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        LinkingDeviceManager mgr = getLinkingDeviceManager();
+        if (isOn) {
+            mgr.startBattery(mDevice);
+        } else {
+            mgr.stopBattery(mDevice);
+        }
+    }
+
+    private void onClickTemperatureSensor(final boolean isOn) {
+        if (!mDevice.isTemperature()) {
+            Toast.makeText(this, getString(R.string.activity_device_not_support_temperature), Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        LinkingDeviceManager mgr = getLinkingDeviceManager();
+        if (isOn) {
+            mgr.startTemperature(mDevice);
+        } else {
+            mgr.stopTemperature(mDevice);
+        }
+    }
+
+
+    private void onClickHumiditySensor(final boolean isOn) {
+        if (!mDevice.isHumidity()) {
+            Toast.makeText(this, getString(R.string.activity_device_not_support_humidity), Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        LinkingDeviceManager mgr = getLinkingDeviceManager();
+        if (isOn) {
+            mgr.startHumidity(mDevice);
+        } else {
+            mgr.stopHumidity(mDevice);
         }
     }
 
@@ -594,6 +731,33 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
         public void onChangeRange(final LinkingDevice device, final LinkingDeviceManager.Range range) {
             if (device.equals(mDevice)) {
                 updateRange(range);
+            }
+        }
+    };
+
+    private LinkingDeviceManager.OnBatteryListener mOnBatteryListener = new LinkingDeviceManager.OnBatteryListener() {
+        @Override
+        public void onBattery(final LinkingDevice device, final boolean lowBatteryFlag, final float batteryLevel) {
+            if (device.equals(mDevice)) {
+                updateBattery(lowBatteryFlag, batteryLevel);
+            }
+        }
+    };
+
+    private LinkingDeviceManager.OnTemperatureListener mOnTemperatureListener = new LinkingDeviceManager.OnTemperatureListener() {
+        @Override
+        public void onTemperature(final LinkingDevice device, final float temperature) {
+            if (device.equals(mDevice)) {
+                updateTemperature(temperature);
+            }
+        }
+    };
+
+    private LinkingDeviceManager.OnHumidityListener mOnHumidityListener = new LinkingDeviceManager.OnHumidityListener() {
+        @Override
+        public void onHumidity(final LinkingDevice device, final float humidity) {
+            if (device.equals(mDevice)) {
+                updateHumidity(humidity);
             }
         }
     };

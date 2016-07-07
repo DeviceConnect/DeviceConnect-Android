@@ -70,7 +70,7 @@ public class LinkingProximityProfile extends ProximityProfile implements Linking
 
                 @Override
                 public void onCleanup() {
-                    if (isEmptyEventList()) {
+                    if (isEmptyEventList(mDevice)) {
                         deviceManager.stopRange(mDevice);
                     }
                     deviceManager.removeRangeListener(this);
@@ -141,7 +141,7 @@ public class LinkingProximityProfile extends ProximityProfile implements Linking
 
             EventError error = EventManager.INSTANCE.removeEvent(request);
             if (error == EventError.NONE) {
-                if (isEmptyEventList()) {
+                if (isEmptyEventList(device)) {
                     getLinkingDeviceManager().stopRange(device);
                 }
                 setResult(response, DConnectMessage.RESULT_OK);
@@ -173,9 +173,9 @@ public class LinkingProximityProfile extends ProximityProfile implements Linking
         return device;
     }
 
-    private boolean isEmptyEventList() {
+    private boolean isEmptyEventList(final LinkingDevice device) {
         List<Event> events = EventManager.INSTANCE.getEventList(
-                PROFILE_NAME, null, ATTRIBUTE_ON_DEVICE_PROXIMITY);
+                device.getBdAddress(), PROFILE_NAME, null, ATTRIBUTE_ON_DEVICE_PROXIMITY);
         return events.isEmpty();
     }
 

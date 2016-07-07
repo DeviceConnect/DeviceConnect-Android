@@ -15,13 +15,14 @@ import com.nttdocomo.android.sdaiflib.NotifyNotification;
 
 import org.deviceconnect.android.deviceplugin.linking.BuildConfig;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 class LinkingNotifyKey {
     private static final String TAG = "LinkingPlugIn";
 
-    private final List<LinkingDeviceManager.OnKeyEventListener> mOnKeyEventListeners = new CopyOnWriteArrayList<>();
+    private final List<LinkingDeviceManager.OnKeyEventListener> mOnKeyEventListeners = new ArrayList<>();
     private final List<LinkingDevice> mKeyEventDeviceHolders = new CopyOnWriteArrayList<>();
 
     private NotifyNotification mNotifyNotification;
@@ -36,35 +37,28 @@ class LinkingNotifyKey {
             return;
         }
         mKeyEventDeviceHolders.add(device);
-        start();
+        startNotifyNotification();
     }
 
     public synchronized void remove(final LinkingDevice device) {
         mKeyEventDeviceHolders.remove(device);
 
         if (mKeyEventDeviceHolders.isEmpty()) {
-            release();
+            stopNotifyNotification();
         }
     }
 
     public synchronized void release() {
         mOnKeyEventListeners.clear();
         mKeyEventDeviceHolders.clear();
-
-        if (mNotifyNotification != null) {
-            if (BuildConfig.DEBUG) {
-                Log.d(TAG, "Stop a key event.");
-            }
-            mNotifyNotification.release();
-            mNotifyNotification = null;
-        }
+        stopNotifyNotification();
     }
 
-    public void addListener(final LinkingDeviceManager.OnKeyEventListener listener) {
+    public synchronized void addListener(final LinkingDeviceManager.OnKeyEventListener listener) {
         mOnKeyEventListeners.add(listener);
     }
 
-    public void removeListener(final LinkingDeviceManager.OnKeyEventListener listener) {
+    public synchronized void removeListener(final LinkingDeviceManager.OnKeyEventListener listener) {
         mOnKeyEventListeners.remove(listener);
     }
 
@@ -77,13 +71,18 @@ class LinkingNotifyKey {
         return null;
     }
 
-    private void start() {
+    private void startNotifyNotification() {
         if (mNotifyNotification != null) {
             if (BuildConfig.DEBUG) {
                 Log.w(TAG, "mNotifyNotification is already running.");
             }
             return;
         }
+
+        if (BuildConfig.DEBUG) {
+            Log.d(TAG, "startNotifyNotification");
+        }
+
         mNotifyNotification = new NotifyNotification(mContext, new NotifyNotification.NotificationInterface() {
             @Override
             public void onNotify() {
@@ -111,7 +110,17 @@ class LinkingNotifyKey {
         });
     }
 
-    private void notifyOnKeyEvent(final LinkingDevice device, final int keyCode) {
+    private void stopNotifyNotification() {
+        if (mNotifyNotification != null) {
+            if (BuildConfig.DEBUG) {
+                Log.d(TAG, "Stop a key event.");
+            }
+            mNotifyNotification.release();
+            mNotifyNotification = null;
+        }
+    }
+
+    private synchronized void notifyOnKeyEvent(final LinkingDevice device, final int keyCode) {
         for (LinkingDeviceManager.OnKeyEventListener listener : mOnKeyEventListeners) {
             listener.onKeyEvent(device, keyCode);
         }

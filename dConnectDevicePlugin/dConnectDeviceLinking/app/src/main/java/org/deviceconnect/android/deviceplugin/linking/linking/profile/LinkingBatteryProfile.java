@@ -113,7 +113,9 @@ public class LinkingBatteryProfile extends BatteryProfile implements LinkingDest
 
             EventError error = EventManager.INSTANCE.removeEvent(request);
             if (error == EventError.NONE) {
-                getLinkingDeviceManager().stopBattery(device);
+                if (isEmptyEventList(device)) {
+                    getLinkingDeviceManager().stopBattery(device);
+                }
                 setResult(response, DConnectMessage.RESULT_OK);
             } else if (error == EventError.INVALID_PARAMETER) {
                 MessageUtils.setInvalidRequestParameterError(response);
@@ -142,7 +144,9 @@ public class LinkingBatteryProfile extends BatteryProfile implements LinkingDest
         deviceManager.addBatteryListener(new OnBatteryListenerImpl(device) {
             @Override
             public void onCleanup() {
-                deviceManager.stopHumidity(mDevice);
+                if (isEmptyEventList(mDevice)) {
+                    deviceManager.stopBattery(mDevice);
+                }
                 deviceManager.removeBatteryListener(this);
             }
 
@@ -185,6 +189,12 @@ public class LinkingBatteryProfile extends BatteryProfile implements LinkingDest
         }
 
         return device;
+    }
+
+    private boolean isEmptyEventList(final LinkingDevice device) {
+        List<Event> events = EventManager.INSTANCE.getEventList(
+                device.getBdAddress(), PROFILE_NAME, null, ATTRIBUTE_ON_BATTERY_CHANGE);
+        return events.isEmpty();
     }
 
     private  void notifyBattery(final LinkingDevice device, final float batteryLevel) {

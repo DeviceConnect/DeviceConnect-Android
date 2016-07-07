@@ -181,7 +181,7 @@ public class LinkingDevice {
 
     @Override
     public String toString() {
-        return "Name: " + getDisplayName() + "\n  Address: " + getBdAddress()
+        return "Name: " + getDisplayName() + "\n  Address: " + getBdAddress() + "\n  Online: " + isConnected()
                 + "\n  ModelId: " + getModelId() + "\n  UniqueId: " + getUniqueId()
                 + "\n  Feature: " + getFeature() + "\n  ExSensorType: " + getExSensorType()
                 + "\n  Version: " + getVersion() + "\n  LED: " + isLED() + "\n  Gyro: " + isGyro()

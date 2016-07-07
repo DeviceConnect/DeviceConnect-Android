@@ -80,6 +80,13 @@
     <string name="activity_device_gyro">ジャイロ</string>
     <string name="activity_device_acceleration">加速度</string>
     <string name="activity_device_orientation">方位</string>
+    <string name="activity_device_battery">バッテリー</string>
+    <string name="activity_device_battery_level">残量</string>
+    <string name="activity_device_temperature">気温</string>
+    <string name="activity_device_temperature_value">温度</string>
+    <string name="activity_device_temperature_value_default">-</string>
+    <string name="activity_device_humidity">湿度</string>
+    <string name="activity_device_humidity_value">湿度</string>
     <string name="activity_device_button_id">ボタンID</string>
     <string name="activity_device_register_sensor">登録</string>
     <string name="activity_device_unregister_sensor">解除</string>
@@ -93,6 +100,9 @@
     <string name="activity_device_not_support_led">このデバイスはLEDをサポートしていません。</string>
     <string name="activity_device_not_support_vibration">このデバイスはバイブレーションをサポートしていません。</string>
     <string name="activity_device_not_support_sensor">このデバイスはセンサーをサポートしていません。</string>
+    <string name="activity_device_not_support_battery">このデバイスはバッテリーをサポートしていません。</string>
+    <string name="activity_device_not_support_temperature">このデバイスは気温センサーをサポートしていません。</string>
+    <string name="activity_device_not_support_humidity">このデバイスは湿度センサーをサポートしていません。</string>
     <string name="activity_device_sensor_value">x:%1$f\ny:%2$f\nz:%3$f\ntime:%4$d</string>
 
     <string name="activity_beacon_title">Linkingビーコン確認</string>

@@ -37,7 +37,6 @@ public class DConnectServiceManager implements DConnectServiceProvider {
     private final Map<String, DConnectService> mDConnectServices
         = Collections.synchronizedMap(new HashMap<String, DConnectService>());
 
-
     @Override
     public void addService(final DConnectService service) {
         Log.d("AAA", "addService: id = " + service.getId());
@@ -102,6 +101,7 @@ public class DConnectServiceManager implements DConnectServiceProvider {
         mDConnectServices.clear();
     }
 
+    @Override
     public boolean hasService(final String serviceId) {
         return getService(serviceId) != null;
     }

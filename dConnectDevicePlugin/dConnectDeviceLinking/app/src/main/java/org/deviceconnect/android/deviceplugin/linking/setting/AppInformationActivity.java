@@ -26,6 +26,7 @@ public class AppInformationActivity extends AppCompatActivity {
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
+            actionBar.setElevation(0);
         }
 
         TextView tv = (TextView) findViewById(R.id.activity_detail_version);

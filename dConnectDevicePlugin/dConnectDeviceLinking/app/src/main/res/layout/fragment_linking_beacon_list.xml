@@ -8,12 +8,12 @@
 
     <TextView
         android:id="@+id/fragment_beacon_warning"
-        android:text="@string/fragment_beacon_list_warning"
-        android:textColor="#000"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:background="#eee"
         android:padding="8dp"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
+        android:text="@string/fragment_beacon_list_warning"
+        android:textColor="#000"/>
 
     <LinearLayout
         android:id="@+id/fragment_beacon_scan"
@@ -24,33 +24,17 @@
         android:layout_gravity="center_vertical"
         android:orientation="horizontal">
 
-        <TextView
+        <Switch
+            android:id="@+id/fragment_beacon_scan_switch"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
-            android:layout_marginRight="12dp"
+            android:layout_margin="12dp"
+            android:singleLine="true"
             android:text="@string/fragment_beacon_list_scan_title"
             android:textColor="#000"
-            android:textSize="18sp"/>
-
-        <Button
-            android:id="@+id/fragment_beacon_scan_start"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="8dp"
-            android:background="@drawable/button_blue"
-            android:text="@string/fragment_beacon_list_scan_start"
-            android:textColor="#FFF"
-            android:textSize="18sp"/>
-
-        <Button
-            android:id="@+id/fragment_beacon_scan_stop"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="8dp"
-            android:background="@drawable/button_blue"
-            android:text="@string/fragment_beacon_list_scan_stop"
-            android:textColor="#FFF"
+            android:textOff="@string/fragment_beacon_list_scan_stop"
+            android:textOn="@string/fragment_beacon_list_scan_start"
             android:textSize="18sp"/>
     </LinearLayout>
 
@@ -58,12 +42,14 @@
         android:layout_width="match_parent"
         android:layout_height="1px"
         android:layout_above="@id/fragment_beacon_scan"
-        android:background="#888" />
+        android:background="#888"/>
 
     <ListView
         android:id="@+id/fragment_beacon_list_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_above="@id/fragment_beacon_scan"
         android:layout_below="@id/fragment_beacon_warning"
-        android:layout_above="@id/fragment_beacon_scan"/>
+        android:divider="@drawable/linking_listview_divider"
+        android:dividerHeight="1sp"/>
 </RelativeLayout>

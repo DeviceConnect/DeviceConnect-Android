@@ -4,7 +4,7 @@
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
  */
-package org.deviceconnect.android.deviceplugin.linking.profile;
+package org.deviceconnect.android.deviceplugin.linking.linking.profile;
 
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;

@@ -6,9 +6,11 @@
  */
 package org.deviceconnect.android.event.cache.db;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.logging.Logger;
+import android.content.Context;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteException;
+import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventError;
@@ -16,10 +18,9 @@ import org.deviceconnect.android.event.cache.BaseCacheController;
 import org.deviceconnect.android.event.cache.db.ClientDao.Client;
 import org.deviceconnect.android.event.cache.db.EventSessionDao.EventSession;
 
-import android.content.Context;
-import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteException;
-import android.database.sqlite.SQLiteOpenHelper;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Logger;
 
 /**
  * イベントデータをデータベースに保存し、キャッシュの操作機能を提供する. 
@@ -87,7 +88,7 @@ public final class DBCacheController extends BaseCacheController {
         if (db == null) {
             return EventError.FAILED;
         }
-        
+
         do {
             db.beginTransaction();
             long pId = ProfileDao.insert(db, event.getProfile());
@@ -280,6 +281,45 @@ public final class DBCacheController extends BaseCacheController {
             db.close();
         }
         
+        return result;
+    }
+
+    @Override
+    public List<Event> getEvents(final String sessionKey) {
+
+        if (sessionKey == null) {
+            throw new IllegalArgumentException("Session key is null.");
+        }
+
+        List<Event> result = new ArrayList<Event>();
+        SQLiteDatabase db = null;
+        do {
+            db = openDB();
+            if (db == null) {
+                break;
+            }
+            Client[] clients = ClientDao.getBySessionKey(db, sessionKey);
+            if (clients == null) {
+                break;
+            }
+
+            for (Client client : clients) {
+                List<Event> events = EventSessionDao.getEventsByCid(db, client.mId);
+                for (Event event : events) {
+                    event.setSessionKey(client.mSessionKey);
+                    event.setAccessToken(client.mAccessToken);
+                    event.setReceiverName(client.mReceiver);
+                    event.setCreateDate(client.mESCreateDate);
+                    event.setUpdateDate(client.mESUpdateDate);
+                    result.add(event);
+                }
+            }
+        } while (false);
+
+        if (db != null) {
+            db.close();
+        }
+
         return result;
     }
 

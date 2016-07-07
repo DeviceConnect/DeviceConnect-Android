@@ -13,12 +13,14 @@ import android.support.v4.app.DialogFragment;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.deviceconnect.android.deviceplugin.linking.BuildConfig;
 import org.deviceconnect.android.deviceplugin.linking.LinkingApplication;
 import org.deviceconnect.android.deviceplugin.linking.R;
 import org.deviceconnect.android.deviceplugin.linking.linking.IlluminationData;
@@ -47,6 +49,7 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
             actionBar.setTitle(getString(R.string.activity_device_title));
+            actionBar.setElevation(0);
         }
 
         Intent intent = getIntent();
@@ -69,22 +72,20 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
     protected void onResume() {
         super.onResume();
 
-        getLinkingDeviceManager().addSensorListener(mSensorListener);
-        getLinkingDeviceManager().addKeyEventListener(mKeyEventListener);
-        getLinkingDeviceManager().addRangeListener(mRangeListener);
-        getLinkingDeviceManager().addConnectListener(mConnectListener);
-        getLinkingDeviceManager().startNotifyConnect();
+        getLinkingDeviceManager().addSensorListener(mOnSensorListener);
+        getLinkingDeviceManager().addKeyEventListener(mOnKeyEventListener);
+        getLinkingDeviceManager().addRangeListener(mOnRangeListener);
+        getLinkingDeviceManager().addConnectListener(mOnConnectListener);
     }
 
     @Override
     protected void onPause() {
         super.onPause();
 
-        getLinkingDeviceManager().stopNotifyConnect();
-        getLinkingDeviceManager().removeSensorListener(mSensorListener);
-        getLinkingDeviceManager().removeKeyEventListener(mKeyEventListener);
-        getLinkingDeviceManager().removeRangeListener(mRangeListener);
-        getLinkingDeviceManager().removeConnectListener(mConnectListener);
+        getLinkingDeviceManager().removeSensorListener(mOnSensorListener);
+        getLinkingDeviceManager().removeKeyEventListener(mOnKeyEventListener);
+        getLinkingDeviceManager().removeRangeListener(mOnRangeListener);
+        getLinkingDeviceManager().removeConnectListener(mOnConnectListener);
     }
 
     @Override
@@ -148,10 +149,16 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
             return;
         }
 
-        IlluminationData data = new IlluminationData(illumination);
-        for (IlluminationData.Setting setting : data.getPattern().getChildren()) {
-            if ((setting.getId() & 0xFF) == patternId) {
-                btn.setText(setting.getName(0).getName());
+        try {
+            IlluminationData data = new IlluminationData(illumination);
+            for (IlluminationData.Setting setting : data.getPattern().getChildren()) {
+                if ((setting.getId() & 0xFF) == patternId) {
+                    btn.setText(setting.getName(0).getName());
+                }
+            }
+        } catch (Exception e) {
+            if (BuildConfig.DEBUG) {
+                Log.w(TAG, "", e);
             }
         }
     }
@@ -193,10 +200,16 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
             return;
         }
 
-        VibrationData data = new VibrationData(vibration);
-        for (VibrationData.Setting setting : data.getPattern().getChildren()) {
-            if ((setting.getId() & 0xFF) == patternId) {
-                btn.setText(setting.getName(0).getName());
+        try {
+            VibrationData data = new VibrationData(vibration);
+            for (VibrationData.Setting setting : data.getPattern().getChildren()) {
+                if ((setting.getId() & 0xFF) == patternId) {
+                    btn.setText(setting.getName(0).getName());
+                }
+            }
+        } catch (Exception e) {
+            if (BuildConfig.DEBUG) {
+                Log.w(TAG, "", e);
             }
         }
     }
@@ -268,25 +281,29 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
             return;
         }
 
-        final IlluminationData data = new IlluminationData(illumination);
+        try {
+            final IlluminationData data = new IlluminationData(illumination);
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(LinkingDeviceActivity.this);
-        final String[] items = new String[data.getPattern().getChildren().length];
-        for (int i = 0; i < data.getPattern().getChildren().length; i++) {
-            items[i] = data.getPattern().getChild(i).getName(0).getName();
-        }
-        builder.setTitle(getString(R.string.activity_device_pattern_list)).setItems(items, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(final DialogInterface dialog, final int which) {
-                IlluminationData.Setting selectedPattern = data.getPattern().getChild(which);
-                Button btn = ((Button) findViewById(R.id.select_light_off));
-                if (btn != null) {
-                    btn.setText(selectedPattern.getName(0).getName());
-                }
-                updateLightOffSetting(selectedPattern.getId() & 0xFF);
+            AlertDialog.Builder builder = new AlertDialog.Builder(LinkingDeviceActivity.this);
+            final String[] items = new String[data.getPattern().getChildren().length];
+            for (int i = 0; i < data.getPattern().getChildren().length; i++) {
+                items[i] = data.getPattern().getChild(i).getName(0).getName();
             }
-        });
-        builder.create().show();
+            builder.setTitle(getString(R.string.activity_device_pattern_list)).setItems(items, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(final DialogInterface dialog, final int which) {
+                    IlluminationData.Setting selectedPattern = data.getPattern().getChild(which);
+                    Button btn = ((Button) findViewById(R.id.select_light_off));
+                    if (btn != null) {
+                        btn.setText(selectedPattern.getName(0).getName());
+                    }
+                    updateLightOffSetting(selectedPattern.getId() & 0xFF);
+                }
+            });
+            builder.create().show();
+        } catch (Exception e) {
+            Toast.makeText(getApplicationContext(), getString(R.string.activity_device_not_support_led), Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void setVibrationButton() {
@@ -328,25 +345,29 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
             return;
         }
 
-        final VibrationData data = new VibrationData(vibration);
+        try {
+            final VibrationData data = new VibrationData(vibration);
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(LinkingDeviceActivity.this);
-        final String[] items = new String[data.getPattern().getChildren().length];
-        for (int i = 0; i < data.getPattern().getChildren().length; i++) {
-            items[i] = data.getPattern().getChild(i).getName(0).getName();
-        }
-        builder.setTitle(getString(R.string.activity_device_pattern_list)).setItems(items, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                VibrationData.Setting selectedPattern = data.getPattern().getChild(which);
-                Button btn = (Button) findViewById(R.id.select_vibration_off);
-                if (btn != null) {
-                    btn.setText(selectedPattern.getName(0).getName());
-                }
-                updateVibrationOffSetting(selectedPattern.getId() & 0xFF);
+            AlertDialog.Builder builder = new AlertDialog.Builder(LinkingDeviceActivity.this);
+            final String[] items = new String[data.getPattern().getChildren().length];
+            for (int i = 0; i < data.getPattern().getChildren().length; i++) {
+                items[i] = data.getPattern().getChild(i).getName(0).getName();
             }
-        });
-        builder.create().show();
+            builder.setTitle(getString(R.string.activity_device_pattern_list)).setItems(items, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    VibrationData.Setting selectedPattern = data.getPattern().getChild(which);
+                    Button btn = (Button) findViewById(R.id.select_vibration_off);
+                    if (btn != null) {
+                        btn.setText(selectedPattern.getName(0).getName());
+                    }
+                    updateVibrationOffSetting(selectedPattern.getId() & 0xFF);
+                }
+            });
+            builder.create().show();
+        } catch (Exception e) {
+            Toast.makeText(getApplicationContext(), getString(R.string.activity_device_not_support_vibration), Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void setSensorButton() {
@@ -499,7 +520,7 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
     }
 
     private void onClickLED(boolean isOn) {
-        if (mDevice.getIllumination() == null) {
+        if (!mDevice.isLED()) {
             Toast.makeText(this, getString(R.string.activity_device_not_support_led), Toast.LENGTH_SHORT).show();
             return;
         }
@@ -509,7 +530,7 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
     }
 
     private void onClickVibration(final boolean isOn) {
-        if (mDevice.getVibration() == null) {
+        if (!mDevice.isVibration()) {
             Toast.makeText(this, getString(R.string.activity_device_not_support_vibration), Toast.LENGTH_SHORT).show();
             return;
         }
@@ -519,6 +540,11 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
     }
 
     private void onClickSensor(final boolean isOn) {
+        if (!mDevice.isGyro() && !mDevice.isAcceleration() && !mDevice.isCompass()) {
+            Toast.makeText(this, getString(R.string.activity_device_not_support_sensor), Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         LinkingDeviceManager mgr = getLinkingDeviceManager();
         if (isOn) {
             mgr.startSensor(mDevice);
@@ -530,43 +556,49 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
     private void onClickButtonId(final boolean isOn) {
         LinkingDeviceManager mgr = getLinkingDeviceManager();
         if (isOn) {
-            mgr.startKeyEvent();
+            mgr.startKeyEvent(mDevice);
         } else {
-            mgr.stopKeyEvent();
+            mgr.stopKeyEvent(mDevice);
         }
     }
 
     private void onClickProximity(final boolean isOn) {
         LinkingDeviceManager mgr = getLinkingDeviceManager();
         if (isOn) {
-            mgr.startRange();
+            mgr.startRange(mDevice);
         } else {
-            mgr.stopRange();
+            mgr.stopRange(mDevice);
         }
     }
 
-    private LinkingDeviceManager.SensorListener mSensorListener = new LinkingDeviceManager.SensorListener() {
+    private LinkingDeviceManager.OnSensorListener mOnSensorListener = new LinkingDeviceManager.OnSensorListener() {
         @Override
         public void onChangeSensor(final LinkingDevice device, final LinkingSensorData sensor) {
-            updateDataText(sensor.getType(), sensor.getX(), sensor.getY(), sensor.getZ(), sensor.getTime());
+            if (device.equals(mDevice)) {
+                updateDataText(sensor.getType(), sensor.getX(), sensor.getY(), sensor.getZ(), sensor.getTime());
+            }
         }
     };
 
-    private LinkingDeviceManager.KeyEventListener mKeyEventListener = new LinkingDeviceManager.KeyEventListener() {
+    private LinkingDeviceManager.OnKeyEventListener mOnKeyEventListener = new LinkingDeviceManager.OnKeyEventListener() {
         @Override
         public void onKeyEvent(final LinkingDevice device, final int keyCode) {
-            updateKeyEvent(device.getModelId(), device.getUniqueId(), keyCode);
+            if (device.equals(mDevice)) {
+                updateKeyEvent(device.getModelId(), device.getUniqueId(), keyCode);
+            }
         }
     };
 
-    private LinkingDeviceManager.RangeListener mRangeListener = new LinkingDeviceManager.RangeListener() {
+    private LinkingDeviceManager.OnRangeListener mOnRangeListener = new LinkingDeviceManager.OnRangeListener() {
         @Override
         public void onChangeRange(final LinkingDevice device, final LinkingDeviceManager.Range range) {
-            updateRange(range);
+            if (device.equals(mDevice)) {
+                updateRange(range);
+            }
         }
     };
 
-    private LinkingDeviceManager.ConnectListener mConnectListener = new LinkingDeviceManager.ConnectListener() {
+    private LinkingDeviceManager.OnConnectListener mOnConnectListener = new LinkingDeviceManager.OnConnectListener() {
         @Override
         public void onConnect(final LinkingDevice device) {
         }

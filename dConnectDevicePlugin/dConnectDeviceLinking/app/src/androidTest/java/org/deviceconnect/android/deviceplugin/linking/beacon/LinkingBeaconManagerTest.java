@@ -6,7 +6,7 @@ import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 import android.test.RenamingDelegatingContext;
 
-import org.deviceconnect.android.deviceplugin.linking.LinkingDeviceService;
+import org.deviceconnect.android.deviceplugin.linking.LinkingDevicePluginService;
 import org.deviceconnect.android.deviceplugin.linking.beacon.data.AtmosphericPressureData;
 import org.deviceconnect.android.deviceplugin.linking.beacon.data.BatteryData;
 import org.deviceconnect.android.deviceplugin.linking.beacon.data.GattData;
@@ -634,7 +634,7 @@ public class LinkingBeaconManagerTest {
     private Intent createAll() {
         Intent intent = new Intent();
         intent.setAction(LinkingBeaconUtil.ACTION_BEACON_SCAN_RESULT);
-        intent.setClass(mContext, LinkingDeviceService.class);
+        intent.setClass(mContext, LinkingDevicePluginService.class);
         intent.putExtra(LinkingBeaconUtil.EXTRA_ID, LINKING_EXTRA_ID);
         intent.putExtra(LinkingBeaconUtil.VENDOR_ID, LINKING_VENDOR_ID);
         intent.putExtra(LinkingBeaconUtil.VERSION, LINKING_VERSION);
@@ -655,7 +655,7 @@ public class LinkingBeaconManagerTest {
     private Intent createGatt() {
         Intent intent = new Intent();
         intent.setAction(LinkingBeaconUtil.ACTION_BEACON_SCAN_RESULT);
-        intent.setClass(mContext, LinkingDeviceService.class);
+        intent.setClass(mContext, LinkingDevicePluginService.class);
         intent.putExtra(LinkingBeaconUtil.EXTRA_ID, LINKING_EXTRA_ID);
         intent.putExtra(LinkingBeaconUtil.VENDOR_ID, LINKING_VENDOR_ID);
         intent.putExtra(LinkingBeaconUtil.VERSION, LINKING_VERSION);
@@ -669,7 +669,7 @@ public class LinkingBeaconManagerTest {
     private Intent createBatteryIntent() {
         Intent intent = new Intent();
         intent.setAction(LinkingBeaconUtil.ACTION_BEACON_SCAN_RESULT);
-        intent.setClass(mContext, LinkingDeviceService.class);
+        intent.setClass(mContext, LinkingDevicePluginService.class);
         intent.putExtra(LinkingBeaconUtil.EXTRA_ID, LINKING_EXTRA_ID);
         intent.putExtra(LinkingBeaconUtil.VENDOR_ID, LINKING_VENDOR_ID);
         intent.putExtra(LinkingBeaconUtil.VERSION, LINKING_VERSION);
@@ -685,7 +685,7 @@ public class LinkingBeaconManagerTest {
     private Intent createAtmosphericPressureIntent() {
         Intent intent = new Intent();
         intent.setAction(LinkingBeaconUtil.ACTION_BEACON_SCAN_RESULT);
-        intent.setClass(mContext, LinkingDeviceService.class);
+        intent.setClass(mContext, LinkingDevicePluginService.class);
         intent.putExtra(LinkingBeaconUtil.EXTRA_ID, LINKING_EXTRA_ID);
         intent.putExtra(LinkingBeaconUtil.VENDOR_ID, LINKING_VENDOR_ID);
         intent.putExtra(LinkingBeaconUtil.VERSION, LINKING_VERSION);
@@ -701,7 +701,7 @@ public class LinkingBeaconManagerTest {
     private Intent createTemperatureIntent() {
         Intent intent = new Intent();
         intent.setAction(LinkingBeaconUtil.ACTION_BEACON_SCAN_RESULT);
-        intent.setClass(mContext, LinkingDeviceService.class);
+        intent.setClass(mContext, LinkingDevicePluginService.class);
         intent.putExtra(LinkingBeaconUtil.EXTRA_ID, LINKING_EXTRA_ID);
         intent.putExtra(LinkingBeaconUtil.VENDOR_ID, LINKING_VENDOR_ID);
         intent.putExtra(LinkingBeaconUtil.VERSION, LINKING_VERSION);
@@ -716,7 +716,7 @@ public class LinkingBeaconManagerTest {
     private Intent createHumidityIntent() {
         Intent intent = new Intent();
         intent.setAction(LinkingBeaconUtil.ACTION_BEACON_SCAN_RESULT);
-        intent.setClass(mContext, LinkingDeviceService.class);
+        intent.setClass(mContext, LinkingDevicePluginService.class);
         intent.putExtra(LinkingBeaconUtil.EXTRA_ID, LINKING_EXTRA_ID);
         intent.putExtra(LinkingBeaconUtil.VENDOR_ID, LINKING_VENDOR_ID);
         intent.putExtra(LinkingBeaconUtil.VERSION, LINKING_VERSION);
@@ -731,7 +731,7 @@ public class LinkingBeaconManagerTest {
     private Intent createRawDataIntent() {
         Intent intent = new Intent();
         intent.setAction(LinkingBeaconUtil.ACTION_BEACON_SCAN_RESULT);
-        intent.setClass(mContext, LinkingDeviceService.class);
+        intent.setClass(mContext, LinkingDevicePluginService.class);
         intent.putExtra(LinkingBeaconUtil.EXTRA_ID, LINKING_EXTRA_ID);
         intent.putExtra(LinkingBeaconUtil.VENDOR_ID, LINKING_VENDOR_ID);
         intent.putExtra(LinkingBeaconUtil.VERSION, LINKING_VERSION);
@@ -747,7 +747,7 @@ public class LinkingBeaconManagerTest {
     private Intent createButtonIntent() {
         Intent intent = new Intent();
         intent.setAction(LinkingBeaconUtil.ACTION_BEACON_SCAN_RESULT);
-        intent.setClass(mContext, LinkingDeviceService.class);
+        intent.setClass(mContext, LinkingDevicePluginService.class);
         intent.putExtra(LinkingBeaconUtil.EXTRA_ID, LINKING_EXTRA_ID);
         intent.putExtra(LinkingBeaconUtil.VENDOR_ID, LINKING_VENDOR_ID);
         intent.putExtra(LinkingBeaconUtil.VERSION, LINKING_VERSION);

@@ -20,26 +20,26 @@ import java.util.Map;
 /**
  * PreferenceManagerのユーティリティー
  */
-final public class PreferenceUtil {
+public final class PreferenceUtil {
 
     private static PreferenceUtil mInstance;
 
     private SharedPreferences mPreferences;
     private Context mContext;
 
-    private PreferenceUtil(Context context) {
+    private PreferenceUtil(final Context context) {
         mContext = context;
         mPreferences = PreferenceManager.getDefaultSharedPreferences(mContext);
     }
 
-    public static PreferenceUtil getInstance(Context context) {
+    public static PreferenceUtil getInstance(final Context context) {
         if (mInstance == null) {
             mInstance = new PreferenceUtil(context);
         }
         return mInstance;
     }
 
-    public void setVibrationOffSetting(Map<String, Integer> map) {
+    public void setVibrationOffSetting(final Map<String, Integer> map) {
         JSONObject obj = new JSONObject(map);
         putValue("pref_vibrationOffSetting", obj.toString());
     }
@@ -65,7 +65,7 @@ final public class PreferenceUtil {
         }
     }
 
-    public void setLightOffSetting(Map<String, Integer> map) {
+    public void setLightOffSetting(final Map<String, Integer> map) {
         JSONObject obj = new JSONObject(map);
         putValue("pref_lightOffSetting", obj.toString());
     }
@@ -91,7 +91,15 @@ final public class PreferenceUtil {
         }
     }
 
-    public void setBeaconScanStatus(boolean status) {
+    public void setForceBeaconScanStatus(final boolean status) {
+        putValue("forceBeaconScanStatus", status);
+    }
+
+    public boolean getForceBeaconScanStatus() {
+        return mPreferences.getBoolean("forceBeaconScanStatus", false);
+    }
+
+    public void setBeaconScanStatus(final boolean status) {
         putValue("beaconScanStatus", status);
     }
 
@@ -99,7 +107,7 @@ final public class PreferenceUtil {
         return mPreferences.getBoolean("beaconScanStatus", false);
     }
 
-    public void setBeaconScanMode(int mode) {
+    public void setBeaconScanMode(final int mode) {
         putValue("beaconScanMode", mode);
     }
 
@@ -107,7 +115,7 @@ final public class PreferenceUtil {
         return mPreferences.getInt("beaconScanMode", 0);
     }
 
-    public void putValue(String key, Object value) {
+    public void putValue(final String key, final Object value) {
         if (value == null) {
             throw new IllegalArgumentException();
         }
@@ -126,19 +134,19 @@ final public class PreferenceUtil {
         editor.apply();
     }
 
-    private String getString(int id) {
+    private String getString(final int id) {
         return mContext.getString(id);
     }
 
-    private boolean getBoolean(int id) {
+    private boolean getBoolean(final int id) {
         return Boolean.parseBoolean(mContext.getString(id));
     }
 
-    private int getInt(int id) {
+    private int getInt(final int id) {
         return Integer.parseInt(mContext.getString(id));
     }
 
-    private long getLong(int id) {
+    private long getLong(final int id) {
         return Long.parseLong(mContext.getString(id));
     }
 

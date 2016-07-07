@@ -6,9 +6,13 @@
  */
 package org.deviceconnect.android.deviceplugin.linking.beacon.data;
 
+import org.deviceconnect.android.deviceplugin.linking.beacon.LinkingBeaconUtil;
+
 public class LinkingBeacon {
 
     private boolean mOnline;
+
+    private String mDisplayName;
 
     private int mExtraId;
     private int mVendorId;
@@ -21,9 +25,16 @@ public class LinkingBeacon {
     private AtmosphericPressureData mAtmosphericPressureData;
     private RawData mRawData;
 
+    public String getServiceId() {
+        return LinkingBeaconUtil.createServiceIdFromLinkingBeacon(this);
+    }
 
     public String getDisplayName() {
-        return "Linking:ビーコン(" + getExtraId() + ")";
+        return mDisplayName;
+    }
+
+    public void setDisplayName(final String displayName) {
+        mDisplayName = displayName;
     }
 
     public long getTimeStamp() {
@@ -126,11 +137,42 @@ public class LinkingBeacon {
                 .append(getVersion())
                 .append("\n")
                 .append(getGattData())
+                .append("\n")
                 .append(getBatteryData())
+                .append("\n")
                 .append(getHumidityData())
+                .append("\n")
                 .append(getTemperatureData())
+                .append("\n")
                 .append(getAtmosphericPressureData())
+                .append("\n")
                 .append(getRawData());
         return sb.toString();
+    }
+
+    @Override
+    public boolean equals(final Object obj) {
+        if (obj == null) {
+            return false;
+        }
+
+        if (obj == this) {
+            return true;
+        }
+
+        if (!(obj instanceof LinkingBeacon)) {
+            return false;
+        }
+
+        LinkingBeacon beacon = (LinkingBeacon) obj;
+        return (beacon.mExtraId == mExtraId && beacon.mVendorId == mVendorId);
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + mExtraId + mVendorId;
+        return result;
     }
 }

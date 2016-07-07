@@ -29,7 +29,7 @@ public class TemperatureData {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append("Temperature: ").append(getValue()).append("\n");
+        sb.append("Temperature: ").append(getValue());
         return sb.toString();
     }
 }

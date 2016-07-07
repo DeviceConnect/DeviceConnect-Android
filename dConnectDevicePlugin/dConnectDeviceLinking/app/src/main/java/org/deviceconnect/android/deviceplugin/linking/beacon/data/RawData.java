@@ -29,7 +29,7 @@ public class RawData {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append("RawData: ").append(getValue()).append("\n");
+        sb.append("RawData: ").append(getValue());
         return sb.toString();
     }
 }

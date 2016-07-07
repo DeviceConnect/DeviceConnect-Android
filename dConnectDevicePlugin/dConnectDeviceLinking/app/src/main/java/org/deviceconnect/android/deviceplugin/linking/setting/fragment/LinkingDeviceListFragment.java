@@ -92,8 +92,7 @@ public class LinkingDeviceListFragment extends Fragment implements ConfirmationD
 
         LinkingDeviceManager mgr = getLinkingDeviceManager();
         if (mgr != null) {
-            mgr.addConnectListener(mConnectListener);
-            mgr.startNotifyConnect();
+            mgr.addConnectListener(mOnConnectListener);
         }
     }
 
@@ -103,8 +102,7 @@ public class LinkingDeviceListFragment extends Fragment implements ConfirmationD
 
         LinkingDeviceManager mgr = getLinkingDeviceManager();
         if (mgr != null) {
-            mgr.stopNotifyConnect();
-            mgr.removeConnectListener(mConnectListener);
+            mgr.removeConnectListener(mOnConnectListener);
         }
     }
 
@@ -260,7 +258,7 @@ public class LinkingDeviceListFragment extends Fragment implements ConfirmationD
         boolean isConnected = false;
     }
 
-    private LinkingDeviceManager.ConnectListener mConnectListener = new LinkingDeviceManager.ConnectListener() {
+    private LinkingDeviceManager.OnConnectListener mOnConnectListener = new LinkingDeviceManager.OnConnectListener() {
         @Override
         public void onConnect(final LinkingDevice device) {
             refreshDeviceList();

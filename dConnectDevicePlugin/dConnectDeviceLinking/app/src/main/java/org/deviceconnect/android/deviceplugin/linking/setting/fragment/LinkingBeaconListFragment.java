@@ -17,20 +17,22 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.ListView;
+import android.widget.Switch;
 import android.widget.TextView;
 
 import org.deviceconnect.android.deviceplugin.linking.LinkingApplication;
 import org.deviceconnect.android.deviceplugin.linking.R;
 import org.deviceconnect.android.deviceplugin.linking.beacon.LinkingBeaconManager;
+import org.deviceconnect.android.deviceplugin.linking.beacon.LinkingBeaconUtil;
 import org.deviceconnect.android.deviceplugin.linking.beacon.data.LinkingBeacon;
 import org.deviceconnect.android.deviceplugin.linking.setting.LinkingBeaconActivity;
 import org.deviceconnect.android.deviceplugin.linking.setting.LinkingInductionActivity;
 import org.deviceconnect.android.deviceplugin.linking.setting.fragment.dialog.ConfirmationDialogFragment;
 
 public class LinkingBeaconListFragment extends Fragment implements ConfirmationDialogFragment.OnDialogEventListener,
-        LinkingBeaconManager.OnBeaconConnectListener {
+        LinkingBeaconManager.OnBeaconConnectListener, LinkingBeaconManager.OnBeaconScanStateListener {
 
     private static final String TAG_DELETE_BEACON = "delete_beacon";
     private static final String TAG_ERROR_BEACON = "error_beacon";
@@ -68,21 +70,20 @@ public class LinkingBeaconListFragment extends Fragment implements ConfirmationD
         });
         listView.setAdapter(mAdapter);
 
-        Button startScanBtn = (Button) root.findViewById(R.id.fragment_beacon_scan_start);
-        startScanBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startScan();
-            }
-        });
-
-        Button stopScanBtn = (Button) root.findViewById(R.id.fragment_beacon_scan_stop);
-        stopScanBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                stopScan();
-            }
-        });
+        Switch switchBtn = (Switch) root.findViewById(R.id.fragment_beacon_scan_switch);
+        if (switchBtn != null) {
+            switchBtn.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(final CompoundButton buttonView, final boolean isChecked) {
+                    if (isChecked) {
+                        getLinkingBeaconManager().startForceBeaconScan();
+                    } else {
+                        getLinkingBeaconManager().stopForceBeaconScan();
+                    }
+                }
+            });
+            switchBtn.setChecked(getLinkingBeaconManager().isStartForceBeaconScan());
+        }
 
         return root;
     }
@@ -94,6 +95,7 @@ public class LinkingBeaconListFragment extends Fragment implements ConfirmationD
         LinkingApplication app = (LinkingApplication) getActivity().getApplication();
         LinkingBeaconManager mgr = app.getLinkingBeaconManager();
         mgr.addOnBeaconConnectListener(this);
+        mgr.addOnBeaconScanStateListener(this);
     }
 
 
@@ -102,6 +104,7 @@ public class LinkingBeaconListFragment extends Fragment implements ConfirmationD
         LinkingApplication app = (LinkingApplication) getActivity().getApplication();
         LinkingBeaconManager mgr = app.getLinkingBeaconManager();
         mgr.removeOnBeaconConnectListener(this);
+        mgr.removeOnBeaconScanStateListener(this);
         super.onPause();
     }
 
@@ -130,6 +133,34 @@ public class LinkingBeaconListFragment extends Fragment implements ConfirmationD
     @Override
     public void onDisconnected(final LinkingBeacon beacon) {
         refresh();
+    }
+
+    @Override
+    public void onScanState(final LinkingBeaconUtil.ScanState state, final LinkingBeaconUtil.ScanDetail detail) {
+        if (state != LinkingBeaconUtil.ScanState.RESULT_OK || detail != LinkingBeaconUtil.ScanDetail.DETAIL_OK) {
+            String message;
+            switch (detail) {
+                case DETAIL_TIMEOUT:
+                    message = getString(R.string.linking_beacon_scan_detail_timeout);
+                    break;
+                case DETAIL_META_DATA_NONE:
+                    message = getString(R.string.linking_beacon_scan_detail_meta_data_none);
+                    break;
+                case DETAIL_BT_DISABLED:
+                    message = getString(R.string.linking_beacon_scan_detail_bt_disabled);
+                    break;
+                case DETAIL_SDA_DISABLED:
+                    message = getString(R.string.linking_beacon_scan_detail_sda_disabled);
+                    break;
+                case DETAIL_PERMISSION_DENIED:
+                    message = getString(R.string.linking_beacon_scan_detail_permission_denied);
+                    break;
+                default:
+                    message = "Unknown";
+                    break;
+            }
+            showErrorDialog(message);
+        }
     }
 
     private void refresh() {
@@ -182,12 +213,7 @@ public class LinkingBeaconListFragment extends Fragment implements ConfirmationD
             } else {
                 message = getString(R.string.fragment_beacon_error_message_not_start_beacon_scan);
             }
-
-            String title = getString(R.string.fragment_beacon_error_title);
-            String positive = getString(R.string.fragment_beacon_error_positive);
-            String negative = getString(R.string.fragment_beacon_error_negative);
-            ConfirmationDialogFragment dialog = ConfirmationDialogFragment.newInstance(title, message, positive, negative, this);
-            dialog.show(getFragmentManager(), TAG_ERROR_BEACON);
+            showErrorDialog(message);
         }
     }
 
@@ -202,14 +228,17 @@ public class LinkingBeaconListFragment extends Fragment implements ConfirmationD
         fragment.show(getFragmentManager(), TAG_DELETE_BEACON);
     }
 
-    private void startScan() {
-        LinkingApplication app = (LinkingApplication) getActivity().getApplication();
-        app.getLinkingBeaconManager().startBeaconScan();
+    private void showErrorDialog(final String message) {
+        String title = getString(R.string.fragment_beacon_error_title);
+        String positive = getString(R.string.fragment_beacon_error_positive);
+        String negative = getString(R.string.fragment_beacon_error_negative);
+        ConfirmationDialogFragment dialog = ConfirmationDialogFragment.newInstance(title, message, positive, negative, this);
+        dialog.show(getFragmentManager(), TAG_ERROR_BEACON);
     }
 
-    private void stopScan() {
+    private LinkingBeaconManager getLinkingBeaconManager() {
         LinkingApplication app = (LinkingApplication) getActivity().getApplication();
-        app.getLinkingBeaconManager().stopBeaconScan();
+        return app.getLinkingBeaconManager();
     }
 
     private class ListAdapter extends ArrayAdapter<DeviceItem> {

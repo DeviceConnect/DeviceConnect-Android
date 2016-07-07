@@ -6,10 +6,10 @@
  */
 package org.deviceconnect.android.event.cache;
 
-import java.util.List;
-
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventError;
+
+import java.util.List;
 
 /**
  * イベントデータ操作インターフェース.
@@ -74,7 +74,9 @@ public interface EventCacheController {
      * @return イベントデータの一覧。無い場合は空のリストを返す。
      */
     List<Event> getEvents(String serviceId, String profile, String inter, String attribute);
-    
+
+    List<Event> getEvents(String sessionKey);
+
     /**
      * キャッシュデータをフラッシュする.
      */

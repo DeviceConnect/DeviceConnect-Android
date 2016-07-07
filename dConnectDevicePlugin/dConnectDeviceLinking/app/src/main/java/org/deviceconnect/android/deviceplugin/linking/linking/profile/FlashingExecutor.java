@@ -4,7 +4,7 @@
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
  */
-package org.deviceconnect.android.deviceplugin.linking.profile;
+package org.deviceconnect.android.deviceplugin.linking.linking.profile;
 
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -31,18 +31,18 @@ final class FlashingExecutor {
     private LightControllable mListener;
     private ScheduledExecutorService mFlashingService = Executors.newSingleThreadScheduledExecutor();
     private ScheduledFuture mLatestScheduledFuture;
-    private Queue<Long> mFlashingQueue = new ConcurrentLinkedQueue<Long>();
+    private Queue<Long> mFlashingQueue = new ConcurrentLinkedQueue<>();
     private boolean mIsOn = true;
     private int mLastIdentifier = 0;
 
     public FlashingExecutor() {
     }
 
-    public synchronized void setLightControllable(LightControllable controllable) {
+    public synchronized void setLightControllable(final LightControllable controllable) {
         mListener = controllable;
     }
 
-    public synchronized void start(long[] flashing) {
+    public synchronized void start(final long[] flashing) {
         cancelSchedule();
         updateQueue(flashing);
         setOn(true);
@@ -70,7 +70,7 @@ final class FlashingExecutor {
         });
     }
 
-    private synchronized void next(Runnable runnable, int identifier) {
+    private synchronized void next(final Runnable runnable, final int identifier) {
         //Return if other execution has been begin.
         if (mLastIdentifier != identifier) {
             return;
@@ -99,11 +99,11 @@ final class FlashingExecutor {
         }
     }
 
-    private synchronized void schedule(Runnable runnable, long interval) {
+    private synchronized void schedule(final Runnable runnable, final long interval) {
         mLatestScheduledFuture = mFlashingService.schedule(runnable, interval, TimeUnit.MILLISECONDS);
     }
 
-    private synchronized void updateQueue(long[] flashing) {
+    private synchronized void updateQueue(final long[] flashing) {
         mFlashingQueue.clear();
         for (long value : flashing) {
             mFlashingQueue.add(value);
@@ -114,7 +114,7 @@ final class FlashingExecutor {
         return mFlashingQueue.poll();
     }
 
-    private synchronized void setOn(boolean isOn) {
+    private synchronized void setOn(final boolean isOn) {
         mIsOn = isOn;
     }
 

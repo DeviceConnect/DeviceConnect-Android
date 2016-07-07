@@ -4,7 +4,6 @@
     <profile name="servicediscovery"/>
     <profile name="serviceinformation"/>
     <profile name="system"/>
-    <profile name="settings"/>
 
     <profile name="light">
         <name lang="ja-JP">ライト</name>
@@ -23,6 +22,5 @@
     <profile name="temperature"></profile>
     <profile name="atmosphericPressure"></profile>
     <profile name="humidity"></profile>
-    <profile name="linking"></profile>
 
 </deviceplugin-provider>

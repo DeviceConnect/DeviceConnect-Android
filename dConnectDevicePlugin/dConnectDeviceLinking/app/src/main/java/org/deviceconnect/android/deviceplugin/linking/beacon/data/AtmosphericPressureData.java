@@ -28,7 +28,7 @@ public class AtmosphericPressureData {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append("AtmosphericPressure: ").append(getValue()).append("\n");
+        sb.append("AtmosphericPressure: ").append(getValue());
         return sb.toString();
     }
 }

@@ -49,18 +49,61 @@ public final class LinkingBeaconUtil {
     public static final String PREFIX = "linking_beacon";
     public static final String SEPARATOR = "-";
 
-    public static final int DETAIL_OK = 0;
-    public static final int DETAIL_TIMEOUT = 1;
-    public static final int DETAIL_META_DATA_NONE = 2;
-    public static final int DETAIL_BT_DISABLED = 3;
-    public static final int DETAIL_SDA_DISABLED = 4;
-    public static final int DETAIL_PERMISSION_DENIED = 5;
+    public enum ScanState {
+        RESULT_OK(0),
+        RESULT_NG(1);
 
-    public static final int RESULT_OK = 0;
-    public static final int RESULT_NG = 1;
+        private int mValue;
+
+        ScanState(int value) {
+            mValue = value;
+        }
+
+        public int getValue() {
+            return mValue;
+        }
+
+        public static ScanState valueOf(int value) {
+            for (ScanState state : values()) {
+                if (state.getValue() == value) {
+                    return state;
+                }
+            }
+            return RESULT_NG;
+        }
+    }
+
+    public enum ScanDetail {
+        DETAIL_OK(0),
+        DETAIL_TIMEOUT(1),
+        DETAIL_META_DATA_NONE(2),
+        DETAIL_BT_DISABLED(3),
+        DETAIL_SDA_DISABLED(4),
+        DETAIL_PERMISSION_DENIED(5),
+        DETAIL_UNKNOWN(6);
+
+        private int mValue;
+
+        ScanDetail(int value) {
+            mValue = value;
+        }
+
+        public int getValue() {
+            return mValue;
+        }
+
+        public static ScanDetail valueOf(int value) {
+            for (ScanDetail detail : values()) {
+                if (detail.getValue() == value) {
+                    return detail;
+                }
+            }
+            return DETAIL_UNKNOWN;
+        }
+    }
 
     public enum ScanMode {
-        HIGHT(0),
+        HIGH(0),
         NORMAL(1),
         LOW(2);
 
@@ -80,7 +123,7 @@ public final class LinkingBeaconUtil {
                     return mode;
                 }
             }
-            return null;
+            return NORMAL;
         }
     }
 
@@ -89,47 +132,5 @@ public final class LinkingBeaconUtil {
 
     public static String createServiceIdFromLinkingBeacon(final LinkingBeacon beacon) {
         return PREFIX + SEPARATOR + beacon.getVendorId() + SEPARATOR + beacon.getExtraId();
-    }
-
-    public static boolean isLinkingBeaconByServiceId(final String serviceId) {
-        if (serviceId != null) {
-            String[] split = serviceId.split(SEPARATOR);
-            if (split.length == 3) {
-                return PREFIX.equals(split[0]);
-            }
-        }
-        return false;
-    }
-
-    public static int getVendorIdFromServiceId(final String serviceId) throws IllegalArgumentException {
-        if (serviceId == null) {
-            throw new IllegalArgumentException("serviceId is null");
-        }
-        String[] split = serviceId.split(SEPARATOR);
-        if (split.length == 3) {
-            return Integer.parseInt(split[1]);
-        }
-        throw new IllegalArgumentException("Cannot separate the serviceId.");
-    }
-
-    public static int getExtraIdFromServiceId(final String serviceId) throws IllegalArgumentException {
-        if (serviceId == null) {
-            throw new IllegalArgumentException("serviceId is null");
-        }
-        String[] split = serviceId.split(SEPARATOR);
-        if (split.length == 3) {
-            return Integer.parseInt(split[2]);
-        }
-        throw new IllegalArgumentException("Cannot separate the serviceId.");
-    }
-
-    public static LinkingBeacon findLinkingBeacon(final LinkingBeaconManager mgr, final String serviceId) {
-        try {
-            int vendorId = getVendorIdFromServiceId(serviceId);
-            int extraId = getExtraIdFromServiceId(serviceId);
-            return mgr.findBeacon(extraId, vendorId);
-        } catch (IllegalArgumentException e) {
-            return null;
-        }
     }
 }

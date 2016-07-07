@@ -10,7 +10,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 
-import org.deviceconnect.android.deviceplugin.linking.LinkingDeviceService;
+import org.deviceconnect.android.deviceplugin.linking.LinkingDevicePluginService;
 
 public class LinkingBeaconReceiver extends BroadcastReceiver {
     @Override
@@ -18,7 +18,7 @@ public class LinkingBeaconReceiver extends BroadcastReceiver {
         String action = intent.getAction();
         if (LinkingBeaconUtil.ACTION_BEACON_SCAN_RESULT.equals(action) ||
                 LinkingBeaconUtil.ACTION_BEACON_SCAN_STATE.equals(action)) {
-            intent.setClass(context, LinkingDeviceService.class);
+            intent.setClass(context, LinkingDevicePluginService.class);
             context.startService(intent);
         }
     }

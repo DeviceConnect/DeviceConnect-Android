@@ -64,7 +64,7 @@ public class GattData {
         StringBuilder sb = new StringBuilder();
         sb.append("RSSI: ").append(getRssi()).append("\n")
                 .append("TxPower: ").append(getTxPower()).append("\n")
-                .append("Distance: ").append(getDistance()).append("\n");
+                .append("Distance: ").append(getDistance());
         return sb.toString();
     }
 }

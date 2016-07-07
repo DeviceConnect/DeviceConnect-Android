@@ -13,11 +13,18 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import org.deviceconnect.android.deviceplugin.linking.BuildConfig;
+import org.deviceconnect.android.deviceplugin.linking.LinkingApplication;
 import org.deviceconnect.android.deviceplugin.linking.R;
+import org.deviceconnect.android.deviceplugin.linking.linking.LinkingDevice;
+import org.deviceconnect.android.deviceplugin.linking.linking.LinkingDeviceManager;
+import org.deviceconnect.android.deviceplugin.linking.linking.LinkingUtil;
 import org.deviceconnect.android.deviceplugin.linking.setting.fragment.LinkingBeaconListFragment;
 import org.deviceconnect.android.deviceplugin.linking.setting.fragment.LinkingDeviceListFragment;
 
@@ -27,6 +34,9 @@ import org.deviceconnect.android.deviceplugin.linking.setting.fragment.LinkingDe
  * @author NTT DOCOMO, INC.
  */
 public class SettingActivity extends AppCompatActivity {
+
+    public static final String TAG = "Linking-Plugin";
+
     private Fragment[] mFragments = new Fragment[2];
     private String[] pageTitle = new String[2];
 
@@ -34,6 +44,11 @@ public class SettingActivity extends AppCompatActivity {
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_linking_setting);
+
+        ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.setElevation(0);
+        }
 
         pageTitle[0] = getString(R.string.activity_setting_tab_paring);
         pageTitle[1] = getString(R.string.activity_setting_tab_beacon);
@@ -50,6 +65,14 @@ public class SettingActivity extends AppCompatActivity {
                 tabLayout.setupWithViewPager(viewPager);
             }
         }
+
+        checkArguments(getIntent());
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        checkArguments(intent);
     }
 
     @Override
@@ -68,6 +91,21 @@ public class SettingActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    private void checkArguments(final Intent intent) {
+        if (intent != null) {
+            String appName = intent.getStringExtra(getPackageName() + LinkingUtil.EXTRA_APP_NAME);
+            if (BuildConfig.DEBUG) {
+                Log.i(TAG, "appName=" + appName);
+            }
+            int deviceId = intent.getIntExtra(getPackageName() + LinkingUtil.EXTRA_DEVICE_ID, -1);
+            int deviceUid = intent.getIntExtra(getPackageName() + LinkingUtil.EXTRA_DEVICE_UID, -1);
+            LinkingDevice device = getLinkingDeviceId(deviceId, deviceUid);
+            if (device != null) {
+                transitionDeviceControl(device);
+            }
+        }
+    }
+
     private void transitionLinkingApp() {
         Intent intent = new Intent();
         intent.setClass(this, LinkingInductionActivity.class);
@@ -78,6 +116,25 @@ public class SettingActivity extends AppCompatActivity {
         Intent intent = new Intent();
         intent.setClass(this, AppInformationActivity.class);
         startActivity(intent);
+    }
+
+    private void transitionDeviceControl(final LinkingDevice device) {
+        if (device.isConnected()) {
+            Intent intent = new Intent();
+            intent.putExtra(LinkingDeviceActivity.EXTRA_ADDRESS, device.getBdAddress());
+            intent.setClass(this, LinkingDeviceActivity.class);
+            startActivity(intent);
+        }
+    }
+
+    private LinkingDeviceManager getLinkingDeviceManager() {
+        LinkingApplication app = (LinkingApplication) getApplication();
+        return app.getLinkingDeviceManager();
+    }
+
+    private LinkingDevice getLinkingDeviceId(final int deviceId, final int deviceUid) {
+        LinkingDeviceManager mgr = getLinkingDeviceManager();
+        return mgr.findDeviceByDeviceId(deviceId, deviceUid);
     }
 
     private class MyFragmentPagerAdapter extends FragmentPagerAdapter {

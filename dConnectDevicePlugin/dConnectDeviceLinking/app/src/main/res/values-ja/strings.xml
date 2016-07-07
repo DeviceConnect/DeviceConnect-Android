@@ -92,10 +92,14 @@
     <string name="activity_device_pattern_list">パターンリスト</string>
     <string name="activity_device_not_support_led">このデバイスはLEDをサポートしていません。</string>
     <string name="activity_device_not_support_vibration">このデバイスはバイブレーションをサポートしていません。</string>
+    <string name="activity_device_not_support_sensor">このデバイスはセンサーをサポートしていません。</string>
     <string name="activity_device_sensor_value">x:%1$f\ny:%2$f\nz:%3$f\ntime:%4$d</string>
 
     <string name="activity_beacon_title">Linkingビーコン確認</string>
+    <string name="activity_beacon_vendor_id">VendorID</string>
     <string name="activity_beacon_extra_id">ExtraID</string>
+    <string name="activity_beacon_version">Version</string>
+    <string name="activity_beacon_status">Status</string>
     <string name="activity_beacon_time_stamp">タイムスタンプ</string>
     <string name="activity_beacon_battery_low">ロウバッテリー</string>
     <string name="activity_beacon_battery_level">バッテリーレベル</string>
@@ -103,6 +107,7 @@
     <string name="activity_beacon_temperature">気温</string>
     <string name="activity_beacon_humidity">湿度</string>
     <string name="activity_beacon_distance">距離</string>
+    <string name="activity_beacon_raw_data">RawData</string>
     <string name="activity_beacon_button">ボタン</string>
     <string name="activity_beacon_menu">削除</string>
     <string name="activity_beacon_clear_button">クリア</string>
@@ -120,4 +125,19 @@
 
     <string name="activity_app_info_name">アプリケーション名</string>
     <string name="activity_app_info_version">バージョン</string>
+
+    <string name="linking_beacon_display_name">Linking:ビーコン(%1$d)</string>
+
+    <string name="linking_notification_profile_type_default">通知</string>
+    <string name="linking_notification_profile_type_phone">着信通知</string>
+    <string name="linking_notification_profile_type_mail">メール通知</string>
+    <string name="linking_notification_profile_type_sms">SMS通知</string>
+    <string name="linking_notification_profile_type_event">イベント通知</string>
+    <string name="linking_notification_profile_body">通知が来ています。</string>
+
+    <string name="linking_beacon_scan_detail_timeout">ビーコンスキャン要求のタイムアウト</string>
+    <string name="linking_beacon_scan_detail_meta_data_none">呼び出し元アプリにて、機器通知対応の宣言が定義されていない</string>
+    <string name="linking_beacon_scan_detail_bt_disabled">端末のBluetooth設定がOFF</string>
+    <string name="linking_beacon_scan_detail_sda_disabled">Linkingアプリのビーコン設定がOFF</string>
+    <string name="linking_beacon_scan_detail_permission_denied">Linkingアプリにてビーコンスキャンに必要なPermissionが未許諾</string>
 </resources>

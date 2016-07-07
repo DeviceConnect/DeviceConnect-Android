@@ -7,8 +7,7 @@
         android:name=".LinkingApplication"
         android:allowBackup="true"
         android:icon="@mipmap/dconnect_icon"
-        android:label="@string/linking_app_name"
-        android:theme="@style/Theme.AppCompat">
+        android:label="@string/linking_app_name">
 
         <meta-data
             android:name="com.nttdocomo.android.smartdeviceagent.feature.setting_activity"
@@ -20,7 +19,7 @@
 
         <meta-data
             android:name="com.nttdocomo.android.smartdeviceagent.feature.beacon"
-            android:value="true" />
+            android:value="true"/>
 
         <meta-data
             android:name="com.nttdocomo.android.smartdeviceagent.feature.notify_distance"
@@ -36,7 +35,7 @@
         </receiver>
 
         <service
-            android:name=".LinkingDeviceService"
+            android:name=".LinkingDevicePluginService"
             android:enabled="true"
             android:exported="false"/>
 
@@ -44,7 +43,8 @@
             android:name=".setting.SettingActivity"
             android:configChanges="orientation|screenSize"
             android:label="@string/linking_app_name"
-            android:launchMode="singleInstance">
+            android:launchMode="singleInstance"
+            android:theme="@style/LinkingTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
             </intent-filter>
@@ -54,52 +54,58 @@
             android:name=".setting.LinkingDeviceActivity"
             android:configChanges="orientation|screenSize"
             android:label="@string/linking_app_name"
-            android:launchMode="singleInstance">
+            android:launchMode="singleInstance"
+            android:theme="@style/LinkingTheme">
         </activity>
 
         <activity
             android:name=".setting.LinkingBeaconActivity"
             android:configChanges="orientation|screenSize"
             android:label="@string/linking_app_name"
-            android:launchMode="singleInstance">
+            android:launchMode="singleInstance"
+            android:theme="@style/LinkingTheme">
         </activity>
 
         <activity
             android:name=".setting.LinkingInductionActivity"
             android:configChanges="orientation|screenSize"
             android:label="@string/linking_app_name"
-            android:launchMode="singleInstance">
+            android:launchMode="singleInstance"
+            android:theme="@style/LinkingTheme">
         </activity>
 
         <activity
             android:name=".setting.LinkingHelpActivity"
             android:configChanges="orientation|screenSize"
             android:label="@string/linking_app_name"
-            android:launchMode="singleInstance">
+            android:launchMode="singleInstance"
+            android:theme="@style/LinkingTheme">
         </activity>
 
         <activity
             android:name=".setting.AppInformationActivity"
             android:configChanges="orientation|screenSize"
             android:label="@string/linking_app_name"
-            android:launchMode="singleInstance">
+            android:launchMode="singleInstance"
+            android:theme="@style/LinkingTheme">
         </activity>
 
         <activity
             android:name=".linking.ConfirmActivity"
+            android:configChanges="orientation|screenSize"
             android:excludeFromRecents="true"
             android:finishOnCloseSystemDialogs="true"
-            android:configChanges="orientation|screenSize"
             android:label="@string/activity_linking_confirm_title"
             android:taskAffinity=""
             android:theme="@android:style/Theme.Translucent.NoTitleBar">
         </activity>
 
         <receiver
-            android:name=".beacon.LinkingBeaconReceiver" android:exported="true">
+            android:name=".beacon.LinkingBeaconReceiver"
+            android:exported="true">
             <intent-filter>
-                <action android:name="com.nttdocomo.android.smartdeviceagent.action.BEACON_SCAN_RESULT" />
-                <action android:name="com.nttdocomo.android.smartdeviceagent.action.BEACON_SCAN_STATE" />
+                <action android:name="com.nttdocomo.android.smartdeviceagent.action.BEACON_SCAN_RESULT"/>
+                <action android:name="com.nttdocomo.android.smartdeviceagent.action.BEACON_SCAN_STATE"/>
             </intent-filter>
         </receiver>
     </application>

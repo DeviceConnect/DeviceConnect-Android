@@ -60,7 +60,7 @@ public class SettingTokenFragment extends Fragment {
                             // Tokenを保存
                             Utils.saveAccessToken(context, token);
                             // 画面遷移
-                            Utils.transition(new SettingFragment(), getFragmentManager(), true);
+                            Utils.transition(new SettingFragment(), getFragmentManager(), false);
                         } else {
                             // エラーダイアログ表示
                             // TODO: 詳細なエラー表示

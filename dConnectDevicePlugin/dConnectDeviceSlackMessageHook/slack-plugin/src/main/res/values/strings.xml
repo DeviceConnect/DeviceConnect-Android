@@ -2,9 +2,12 @@
     <string name="app_name">SlackMessageHook Plugin</string>
     <string name="next">次へ</string>
     <string name="help">？</string>
+    <string name="send">送信</string>
     <string name="status">Status</string>
     <string name="settings">設定</string>
+    <string name="slack_settings">Slack設定</string>
     <string name="settings_desc">\@SlackMessageHook</string>
+    <string name="channel_list">Channelリスト</string>
     <string name="token_settings">トークン設定</string>
     <string name="token_desc">Slack Bot のアクセストークンを設定</string>
     <string name="token_hint">アクセストークンの設定</string>
@@ -19,5 +22,5 @@
     <string name="help04">Botが作成され、API Tokenが表示されていますのでコピーしておきます。</string>
     <string name="help05">プラグインの設定画面に戻り、先ほどコピーしたAPITokenを入力し「次へ」をタップします。</string>
     <string name="help06">接続に成功するとステータス設定画面に遷移します。</string>
-    <string name="empty_channels">利用できるChannelがありません。</string>
+    <string name="not_online">BotがOlineになっていません。\n設定画面からOnlineにしてください。</string>
 </resources>

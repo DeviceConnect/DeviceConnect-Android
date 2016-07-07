@@ -23,8 +23,14 @@ public class MessageListFragment extends ListFragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_message_list, container, false);
-        final TextView emptyText = (TextView)view.findViewById(android.R.id.empty);
+        TextView emptyText = (TextView)view.findViewById(android.R.id.empty);
         emptyText.setText("未実装です");
+
+        TextView titleText = (TextView)view.findViewById(R.id.textViewTitle);
+        Bundle bundle = getArguments();
+        String title = bundle.getString("name");
+        titleText.setText(title);
+
         return view;
     }
 }

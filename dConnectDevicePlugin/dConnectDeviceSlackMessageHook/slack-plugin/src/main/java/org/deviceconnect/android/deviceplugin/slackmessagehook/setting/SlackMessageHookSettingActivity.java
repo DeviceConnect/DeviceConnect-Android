@@ -38,9 +38,10 @@ public class SlackMessageHookSettingActivity extends Activity {
         setTheme(android.R.style.Theme_Holo_Light_DarkActionBar);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        final boolean launchAsApp = Intent.ACTION_MAIN.equals(getIntent().getAction());
 
         // CLOSEボタン作成
-        if (getActionBar() != null) {
+        if (getActionBar() != null && !launchAsApp) {
             getActionBar().setDisplayHomeAsUpEnabled(true);
             getActionBar().setDisplayOptions(0, ActionBar.DISPLAY_SHOW_HOME);
             getActionBar().setTitle(DConnectSettingPageActivity.DEFAULT_TITLE);
@@ -63,7 +64,7 @@ public class SlackMessageHookSettingActivity extends Activity {
                     // Token未設定の場合はToken設定画面へ
                     fragment = new SettingTokenFragment();
                 } else {
-                    if (Intent.ACTION_MAIN.equals(getIntent().getAction())) {
+                    if (launchAsApp) {
                         // ラウンチャーから起動の場合はChannelリスト画面へ
                         fragment = new ChannelListFragment();
                     } else {

@@ -9,6 +9,7 @@ package org.deviceconnect.android.deviceplugin.slackmessagehook.setting.fragment
 import android.app.AlertDialog;
 import android.app.Fragment;
 import android.app.ListFragment;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -17,7 +18,9 @@ import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -35,29 +38,57 @@ public class ChannelListFragment extends ListFragment implements ShowMenuFragmen
 
     /** メニュー */
     private Menu mainMenu;
+    /** アダプター */
+    private ChannelAdapter adapter;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         setHasOptionsMenu(true);
-        View view = inflater.inflate(R.layout.fragment_channel_list, container, false);
-        final TextView emptyText = (TextView)view.findViewById(android.R.id.empty);
-        SlackManager.INSTANCE.getAllChannelList(new SlackManager.FinishCallback<List<SlackManager.ListInfo>>() {
+        final View view = inflater.inflate(R.layout.fragment_channel_list, container, false);
+        final Context context = view.getContext();
+        // OFFLineメッセージを非表示
+        LinearLayout emptyLayout = (LinearLayout)view.findViewById(R.id.empty);
+        emptyLayout.setVisibility(View.GONE);
+        // 設定ボタンイベント
+        Button emptyButton = (Button)view.findViewById(R.id.emptyButton);
+        emptyButton.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onFinish(List<SlackManager.ListInfo> listInfos, Exception error) {
-                if (error == null) {
-                    ChannelAdapter adapter = new ChannelAdapter(getActivity(), listInfos);
-                    setListAdapter(adapter);
-                } else {
-                    // TODO: 詳細なエラー表示
-                    new AlertDialog.Builder(getActivity())
-                            .setTitle("エラー")
-                            .setMessage("エラーです")
-                            .setPositiveButton("OK", null)
-                            .show();
-                    emptyText.setText(getString(R.string.empty_channels));
-                }
+            public void onClick(View v) {
+                // 設定画面へ
+                Fragment fragment = new SettingFragment();
+                Utils.transition(fragment, getFragmentManager(), true);
             }
         });
+
+        if (Utils.getOnlineStatus(context)) {
+            // プログレスダイアログを表示
+            final ProgressDialog dialog = Utils.showProgressDialog(context);
+            // ONLineの場合はChannelリスト取得
+            SlackManager.INSTANCE.getAllChannelList(new SlackManager.FinishCallback<List<SlackManager.ListInfo>>() {
+                @Override
+                public void onFinish(List<SlackManager.ListInfo> listInfos, Exception error) {
+                    // プログレスダイアログを閉じる
+                    dialog.dismiss();
+                    if (error == null) {
+                        adapter = new ChannelAdapter(context, listInfos);
+                        setListAdapter(adapter);
+                    } else {
+                        // TODO: 詳細なエラー表示
+                        new AlertDialog.Builder(context)
+                                .setTitle("エラー")
+                                .setMessage("エラーです")
+                                .setPositiveButton("OK", null)
+                                .show();
+                    }
+                }
+            });
+        } else {
+            // OFFLineメッセージを表示
+            emptyLayout.setVisibility(View.VISIBLE);
+            adapter = null;
+            setListAdapter(null);
+        }
+
         return view;
     }
 
@@ -71,8 +102,10 @@ public class ChannelListFragment extends ListFragment implements ShowMenuFragmen
     @Override
     public void onListItemClick(ListView l, View v, int position, long id) {
         Fragment fragment = new MessageListFragment();
+        SlackManager.ListInfo info = adapter.getItem(position);
         Bundle bundle = new Bundle();
-        bundle.putLong("id", id);
+        bundle.putString("name", info.name);
+        bundle.putString("id", info.id);
         fragment.setArguments(bundle);
         Utils.transition(fragment, getFragmentManager(), true);
     }

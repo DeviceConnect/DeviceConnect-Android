@@ -194,6 +194,10 @@ public class LinkingBatteryProfile extends BatteryProfile implements LinkingDest
     }
 
     private void notifyBatteryEvent(final LinkingBeacon beacon, final BatteryData batteryData) {
+        if (beacon.equals(getLinkingBeacon())) {
+            return;
+        }
+
         String serviceId = beacon.getServiceId();
         List<Event> events = EventManager.INSTANCE.getEventList(serviceId,
                 PROFILE_NAME, null, ATTRIBUTE_ON_BATTERY_CHANGE);
@@ -217,6 +221,10 @@ public class LinkingBatteryProfile extends BatteryProfile implements LinkingDest
         setLevel(response, batteryData.getLevel() / 100.0f);
     }
 
+    private LinkingBeacon getLinkingBeacon() {
+        return ((LinkingBeaconService) getService()).getLinkingBeacon();
+    }
+
     private LinkingBeaconManager getLinkingBeaconManager() {
         LinkingApplication app = getLinkingApplication();
         return app.getLinkingBeaconManager();
@@ -226,7 +234,6 @@ public class LinkingBatteryProfile extends BatteryProfile implements LinkingDest
         LinkingDevicePluginService service = (LinkingDevicePluginService) getContext();
         return (LinkingApplication) service.getApplication();
     }
-
 
     private abstract class OnBeaconBatteryEventListenerImpl extends TimeoutSchedule implements
             LinkingBeaconManager.OnBeaconBatteryEventListener, Runnable {

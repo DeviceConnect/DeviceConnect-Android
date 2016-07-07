@@ -175,8 +175,12 @@ public class LinkingBatteryProfile extends BatteryProfile implements LinkingDest
         return false;
     }
 
+    private LinkingDevice getDevice() {
+        return ((LinkingDeviceService) getService()).getLinkingDevice();
+    }
+
     private LinkingDevice getDevice(final Intent response) {
-        LinkingDevice device = ((LinkingDeviceService) getService()).getLinkingDevice();
+        LinkingDevice device = getDevice();
 
         if (!device.isConnected()) {
             MessageUtils.setIllegalDeviceStateError(response, "device not connected");
@@ -198,6 +202,10 @@ public class LinkingBatteryProfile extends BatteryProfile implements LinkingDest
     }
 
     private  void notifyBattery(final LinkingDevice device, final float batteryLevel) {
+        if (!device.equals(getDevice())) {
+            return;
+        }
+
         String serviceId = device.getBdAddress();
         List<Event> events = EventManager.INSTANCE.getEventList(serviceId,
                 PROFILE_NAME, null, ATTRIBUTE_ON_BATTERY_CHANGE);

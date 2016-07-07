@@ -197,6 +197,10 @@ public class LinkingProximityProfile extends ProximityProfile implements Linking
     }
 
     private void notifyProximityEvent(final LinkingBeacon beacon, final GattData gatt) {
+        if (!beacon.equals(getLinkingBeacon())) {
+            return;
+        }
+
         String serviceId = beacon.getServiceId();
         List<Event> events = EventManager.INSTANCE.getEventList(serviceId,
                 PROFILE_NAME, null, ATTRIBUTE_ON_DEVICE_PROXIMITY);
@@ -225,6 +229,10 @@ public class LinkingProximityProfile extends ProximityProfile implements Linking
 
     private double calcDistance(final GattData gatt) {
       return Math.pow(10.0, (gatt.getTxPower() - gatt.getRssi()) / 20.0);
+    }
+
+    private LinkingBeacon getLinkingBeacon() {
+        return ((LinkingBeaconService) getService()).getLinkingBeacon();
     }
 
     private LinkingBeaconManager getLinkingBeaconManager() {

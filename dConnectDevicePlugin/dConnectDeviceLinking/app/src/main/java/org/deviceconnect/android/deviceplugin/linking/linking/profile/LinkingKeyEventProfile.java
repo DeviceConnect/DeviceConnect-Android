@@ -34,7 +34,7 @@ public class LinkingKeyEventProfile extends KeyEventProfile implements LinkingDe
 
     private static final String TAG = "LinkingPlugIn";
 
-    public LinkingKeyEventProfile(DConnectMessageService service) {
+    public LinkingKeyEventProfile(final DConnectMessageService service) {
         LinkingApplication app = (LinkingApplication) service.getApplication();
         LinkingDeviceManager deviceManager = app.getLinkingDeviceManager();
         deviceManager.addKeyEventListener(mListener);
@@ -118,8 +118,12 @@ public class LinkingKeyEventProfile extends KeyEventProfile implements LinkingDe
         return events.isEmpty();
     }
 
+    private LinkingDevice getDevice() {
+        return ((LinkingDeviceService) getService()).getLinkingDevice();
+    }
+
     private LinkingDevice getDevice(final Intent response) {
-        LinkingDevice device = ((LinkingDeviceService) getService()).getLinkingDevice();
+        LinkingDevice device = getDevice();
 
         if (!device.isConnected()) {
             MessageUtils.setIllegalDeviceStateError(response, "device not connected");
@@ -139,6 +143,10 @@ public class LinkingKeyEventProfile extends KeyEventProfile implements LinkingDe
     }
 
     private void notifyKeyEvent(final LinkingDevice device, final int keyCode) {
+        if (!device.equals(getDevice())) {
+            return;
+        }
+
         if (BuildConfig.DEBUG) {
             Log.d(TAG, "notifyKeyEvent: " + device.getDisplayName() + "[" + keyCode + "]");
         }

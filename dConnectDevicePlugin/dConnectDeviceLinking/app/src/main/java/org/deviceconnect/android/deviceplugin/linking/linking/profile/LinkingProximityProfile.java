@@ -162,8 +162,12 @@ public class LinkingProximityProfile extends ProximityProfile implements Linking
         getLinkingDeviceManager().removeRangeListener(mListener);
     }
 
+    private LinkingDevice getDevice() {
+        return ((LinkingDeviceService) getService()).getLinkingDevice();
+    }
+
     private LinkingDevice getDevice(final Intent response) {
-        LinkingDevice device = ((LinkingDeviceService) getService()).getLinkingDevice();
+        LinkingDevice device = getDevice();
 
         if (!device.isConnected()) {
             MessageUtils.setIllegalDeviceStateError(response, "device not connected");
@@ -200,6 +204,10 @@ public class LinkingProximityProfile extends ProximityProfile implements Linking
     }
 
     private void notifyProximityEvent(final LinkingDevice device, final LinkingDeviceManager.Range range) {
+        if (!device.equals(getDevice())) {
+            return;
+        }
+
         String serviceId = device.getBdAddress();
         List<Event> events = EventManager.INSTANCE.getEventList(serviceId,
                 PROFILE_NAME, null, ATTRIBUTE_ON_DEVICE_PROXIMITY);

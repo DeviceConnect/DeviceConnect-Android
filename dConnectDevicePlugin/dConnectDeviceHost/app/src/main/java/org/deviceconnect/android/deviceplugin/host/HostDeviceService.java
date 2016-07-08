@@ -130,6 +130,10 @@ public class HostDeviceService extends DConnectMessageService {
     /** HostDeviceAudioRecorder. */
     private HostDeviceVideoRecorder mDefaultVideoRecorder;
 
+    /** HostKeyEventProfile instance. */
+    private HostKeyEventProfile mHostKeyEventProfile;
+
+    private HostMediaStreamingRecordingProfile mHostMediaStreamingRecordingProfile;
     @Override
     public void onCreate() {
 
@@ -152,7 +156,8 @@ public class HostDeviceService extends DConnectMessageService {
         addProfile(new HostNotificationProfile());
         addProfile(new HostDeviceOrientationProfile());
         addProfile(new HostBatteryProfile());
-        addProfile(new HostMediaStreamingRecordingProfile(mRecorderMgr));
+        mHostMediaStreamingRecordingProfile = new HostMediaStreamingRecordingProfile(mRecorderMgr);
+        addProfile(mHostMediaStreamingRecordingProfile);
         addProfile(new HostPhoneProfile());
         addProfile(new HostSettingsProfile());
         addProfile(new HostMediaPlayerProfile());
@@ -162,7 +167,8 @@ public class HostDeviceService extends DConnectMessageService {
         addProfile(new HostProximityProfile());
         addProfile(new HostCanvasProfile());
         addProfile(new HostTouchProfile());
-        addProfile(new HostKeyEventProfile());
+        mHostKeyEventProfile = new HostKeyEventProfile();
+        addProfile(mHostKeyEventProfile);
 
         // バッテリー関連の処理と値の保持
         mHostBatteryManager = new HostBatteryManager();
@@ -324,6 +330,35 @@ public class HostDeviceService extends DConnectMessageService {
     protected void onDevicePluginReset() {
         // TODO: Device Plug-inへのReset要求受信時の処理要追加。
         mLogger.info("Plug-in : onDevicePluginReset");
+        resetPluginResource();
+    }
+
+    /**
+     * リソースリセット処理.
+     */
+    private void resetPluginResource() {
+        /** 全イベント削除. */
+        EventManager.INSTANCE.removeAll();
+
+        /** バッテリー関連イベントリスナー解除 */
+        unregisterBatteryChargeBroadcastReceiver();
+        unregisterBatteryConnectBroadcastReceiver();
+
+        /** FileDescriptorProfile リセット */
+        // TODO:ファイル管理機能の実装検討必要。
+
+        /** KeyEventProfile リセット */
+        mHostKeyEventProfile.resetKeyEventProfile();
+
+        /** MediaPlayerProfile 状態変化イベント通知フラグクリア */
+        mOnStatusChangeEventFlag = false;
+        if (mMediaPlayer != null) {
+            stopMedia(null);
+        }
+
+        /** MediaStreamingRecorder reset */
+        mHostMediaStreamingRecordingProfile.forcedStopRecording();
+        mHostMediaStreamingRecordingProfile.forcedStopPreview();
     }
 
     /** HostDeviceRecorderManager. */
@@ -1095,16 +1130,20 @@ public class HostDeviceService extends DConnectMessageService {
                     e.printStackTrace();
                 }
             }
-            response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
-            sendResponse(response);
+            if (response != null) {
+                response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
+                sendResponse(response);
+            }
         } else if (mSetMediaType == MEDIA_TYPE_VIDEO) {
             mMediaStatus = MEDIA_PLAYER_STOP;
             Intent mIntent = new Intent(VideoConst.SEND_HOSTDP_TO_VIDEOPLAYER);
             mIntent.putExtra(VideoConst.EXTRA_NAME, VideoConst.EXTRA_VALUE_VIDEO_PLAYER_STOP);
             getContext().sendBroadcast(mIntent);
             sendOnStatusChangeEvent("stop");
-            response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
-            sendResponse(response);
+            if (response != null) {
+                response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
+                sendResponse(response);
+            }
         }
     }
 

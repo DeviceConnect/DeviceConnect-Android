@@ -337,6 +337,7 @@ public class HostFileDescriptorProfile extends FileDescriptorProfile {
 
         List<Event> events = EventManager.INSTANCE.getEventList(HostServiceDiscoveryProfile.SERVICE_ID, PROFILE_NAME,
                 null, ATTRIBUTE_ON_WATCH_FILE);
+        // TODO:Eventが無くなっていたらlistener 解除を行うように実装。
         synchronized (events) {
             for (File f : files) {
                 Bundle file = createFile(f);

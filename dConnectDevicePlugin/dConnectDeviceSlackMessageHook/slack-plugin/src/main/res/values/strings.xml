@@ -23,4 +23,5 @@
     <string name="help05">プラグインの設定画面に戻り、先ほどコピーしたAPITokenを入力し「次へ」をタップします。</string>
     <string name="help06">接続に成功するとステータス設定画面に遷移します。</string>
     <string name="not_online">BotがOlineになっていません。\n設定画面からOnlineにしてください。</string>
+    <string name="empty_message">メッセージがありません。</string>
 </resources>

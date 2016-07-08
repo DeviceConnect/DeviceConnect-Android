@@ -554,6 +554,113 @@ public class SlackManager {
         webSocket.connect();
     }
 
+    //endregion
+    //---------------------------------------------------------------------------------------
+    //region History
+
+    /**
+     * Channelの履歴を取得
+     * @param callback 取得コールバック
+     */
+    public void getHistory(String channel, final FinishCallback<ArrayList<HistoryInfo>> callback) {
+        if (Debug) Log.d(TAG, "*getHistory:" + channel);
+        if (channel.startsWith("D")) {
+            getHistory("im.history", "&channel=" + channel, callback);
+        } else {
+            getHistory("channels.history", "&channel=" + channel, callback);
+        }
+    }
+
+    /**
+     * 受け渡し情報
+     */
+    public class HistoryInfo {
+        public String user;
+        public Double ts;
+        public String text;
+        public String name;
+        public String icon;
+        public String file;
+        public int height = 0;
+        public int width = 0;
+    }
+
+    /**
+     * 履歴取得
+     * @param target ターゲットAPI
+     * @param params パラメータ
+     * @param callback 取得コールバック
+     */
+    private void getHistory(String target, String params, final FinishCallback<ArrayList<HistoryInfo>> callback) {
+        if (connectState != CONNECT_STATE_CONNECTED) {
+            if (callback != null) {
+                callback.onFinish(null, new SlackConnectionException());
+            }
+            return;
+        }
+        new GetTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, new TaskParam(target, params) {
+            @Override
+            public void callBack(JSONObject json) {
+                if (Debug) Log.d(TAG, json.toString());
+
+                try {
+                    JSONArray jsonArray = json.getJSONArray("messages");
+                    int length = jsonArray.length();
+                    ArrayList<HistoryInfo> array = new ArrayList<>(length);
+                    for (int i = 0; i < length; i++) {
+                        JSONObject obj = (JSONObject) jsonArray.get(i);
+                        HistoryInfo info = new HistoryInfo();
+                        String type = obj.getString("type");
+                        if (Debug) Log.d(TAG, "obj:" + obj.toString());
+                        if (!"message".equals(type)) {
+                            continue;
+                        }
+                        if (obj.has("user")) {
+                            info.user = obj.getString("user");
+                        }
+                        if (obj.has("text")) {
+                            info.text = obj.getString("text");
+                        }
+                        if (obj.has("ts")) {
+                            info.ts = obj.getDouble("ts");
+                        }
+                        if (obj.has("file")) {
+                            JSONObject file = obj.getJSONObject("file");
+                            if (file.has("thumb_360")) {
+                                info.file = file.getString("thumb_360");
+                            }
+                            if (file.has("thumb_360_h")) {
+                                info.height = file.getInt("thumb_360_h");
+                            }
+                            if (file.has("thumb_360_w")) {
+                                info.width = file.getInt("thumb_360_w");
+                            }
+                            if (file.has("initial_comment")) {
+                                JSONObject comment = file.getJSONObject("initial_comment");
+                                if (comment.has("comment")) {
+                                    info.text = comment.getString("comment");
+                                }
+                            } else {
+                                if (info.file != null) {
+                                    info.text = null;
+                                }
+                            }
+                        }
+                        array.add(info);
+                    }
+                    if (callback != null) {
+                        callback.onFinish(array, null);
+                    }
+                } catch (JSONException e) {
+                    Log.e(TAG, "error", e);
+                    if (callback != null) {
+                        callback.onFinish(null, e);
+                    }
+                }
+            }
+        });
+    }
+
 
     //endregion
     //---------------------------------------------------------------------------------------

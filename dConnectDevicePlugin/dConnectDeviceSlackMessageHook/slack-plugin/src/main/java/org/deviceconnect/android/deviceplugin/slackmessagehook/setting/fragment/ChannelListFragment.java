@@ -166,4 +166,5 @@ public class ChannelListFragment extends ListFragment implements ShowMenuFragmen
             }
             return v;
         }
-    }}
+    }
+}

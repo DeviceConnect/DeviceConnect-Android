@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">Device Connect Manager</string>
+    <string name="app_name">Device Web API Manager</string>
     <string name="description"></string>
 
     <!-- ================= DConnectLaunchActivity ================= -->
@@ -61,6 +61,8 @@
     <string name="activity_settings_yes">はい</string>
     <string name="activity_settings_no">いいえ</string>
     <string name="activity_settings_close">閉じる</string>
+    <string name="activity_settings_demo_link">デモアプリへのリンク</string>
+    <string name="activity_settings_consortium_link">デバイスWebAPIコンソーシアム</string>
     <string name="activity_settings_manager_terminate">全デバイスプラグインへManager終了通知</string>
     <string name="activity_settings_manager_terminate_title">デバイスプラグインへManager終了通知中</string>
     <string name="activity_settings_manager_terminate_message">処理中</string>
@@ -100,6 +102,8 @@
     <string name="key_settings_web_server_host">key_settings_web_server_host</string>
     <string name="key_settings_web_server_port">key_settings_web_server_port</string>
     <string name="key_settings_web_server_document_root_path">key_settings_web_server_document_root_path</string>
+    <string name="key_settings_demo_link">settings_demo_link</string>
+    <string name="key_settings_about_consortium_link">settings_about_consortium_link</string>
 
     <!-- ================= WhitelistActivity ================= -->
     <string name="activity_whitelist_title">Originホワイトリスト</string>

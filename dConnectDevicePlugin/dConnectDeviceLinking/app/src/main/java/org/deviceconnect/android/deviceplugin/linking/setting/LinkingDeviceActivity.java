@@ -72,21 +72,29 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
     protected void onResume() {
         super.onResume();
 
-        getLinkingDeviceManager().addConnectListener(mOnConnectListener);
+        LinkingDeviceManager mgr = getLinkingDeviceManager();
+        mgr.addConnectListener(mOnConnectListener);
     }
 
     @Override
     protected void onPause() {
+        LinkingDeviceManager mgr = getLinkingDeviceManager();
+        mgr.removeConnectListener(mOnConnectListener);
+
         super.onPause();
+    }
 
-        getLinkingDeviceManager().removeConnectListener(mOnConnectListener);
+    @Override
+    protected void onDestroy() {
+        LinkingDeviceManager mgr = getLinkingDeviceManager();
+        mgr.disableListenSensor(mDevice, mOnSensorListener);
+        mgr.disableListenRange(mDevice, mOnRangeListener);
+        mgr.disableListenButtonEvent(mDevice, mOnButtonEventListener);
+        mgr.disableListenHumidity(mDevice, mOnHumidityListener);
+        mgr.disableListenTemperature(mDevice, mOnTemperatureListener);
+        mgr.disableListenBattery(mDevice, mOnBatteryListener);
 
-        getLinkingDeviceManager().disableListenSensor(mDevice, mOnSensorListener);
-        getLinkingDeviceManager().disableListenRange(mDevice, mOnRangeListener);
-        getLinkingDeviceManager().disableListenButtonEvent(mDevice, mOnButtonEventListener);
-        getLinkingDeviceManager().disableListenHumidity(mDevice, mOnHumidityListener);
-        getLinkingDeviceManager().disableListenTemperature(mDevice, mOnTemperatureListener);
-        getLinkingDeviceManager().disableListenBattery(mDevice, mOnBatteryListener);
+        super.onDestroy();
     }
 
     @Override
@@ -686,6 +694,11 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
     }
 
     private void onClickButtonId(final boolean isOn) {
+        if (!mDevice.isButton()) {
+            Toast.makeText(this, getString(R.string.activity_device_not_support_button), Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         LinkingDeviceManager mgr = getLinkingDeviceManager();
         if (isOn) {
             mgr.enableListenButtonEvent(mDevice, mOnButtonEventListener);

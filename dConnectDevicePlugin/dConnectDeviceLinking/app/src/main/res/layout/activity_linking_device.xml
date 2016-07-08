@@ -16,7 +16,7 @@
             android:id="@+id/device_name"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="16dp"
+            android:padding="16dp"
             android:text="@string/activity_device_name"
             android:textColor="#666"
             android:textSize="18sp"

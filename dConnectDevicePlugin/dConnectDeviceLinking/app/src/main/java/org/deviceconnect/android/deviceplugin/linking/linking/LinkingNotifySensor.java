@@ -84,7 +84,7 @@ class LinkingNotifySensor {
     public synchronized void disableListenOrientation(final LinkingDevice device,
                                                       final LinkingDeviceManager.OnSensorListener listener) {
         if (BuildConfig.DEBUG) {
-            Log.i(TAG, "LinkingNotifySensor:stopOrientation: " + device.getDisplayName());
+            Log.i(TAG, "LinkingNotifySensor:disableListenOrientation: " + device.getDisplayName());
         }
 
         List<LinkingDeviceManager.OnSensorListener> listeners = mSensorMap.get(device);

@@ -67,9 +67,9 @@ public class LinkingBeaconManager {
         mLinkingBeacons.addAll(mDBAdapter.queryBeacons());
         mScanMode = LinkingBeaconUtil.ScanMode.valueOf(PreferenceUtil.getInstance(mContext).getBeaconScanMode());
 
-        boolean scan = isStartForceBeaconScan();
+        boolean scan = isStartedForceBeaconScan();
         if (scan) {
-            startBeaconScan(mScanMode);
+            stopForceBeaconScan();
         }
 
         startCheckConnectionOfBeacon();
@@ -107,19 +107,28 @@ public class LinkingBeaconManager {
 
     public void stopForceBeaconScan() {
         PreferenceUtil.getInstance(mContext).setForceBeaconScanStatus(false);
-        if (!isStartBeaconScan()) {
+
+        if (BuildConfig.DEBUG) {
+            Log.d(TAG, "stopForceBeaconScan: " + isStartedBeaconScan());
+        }
+
+        if (!isStartedBeaconScan()) {
             stopBeaconScanInternal();
         }
     }
 
-    public boolean isStartForceBeaconScan() {
+    public boolean isStartedForceBeaconScan() {
         return PreferenceUtil.getInstance(mContext).getForceBeaconScanStatus();
     }
 
     public synchronized void startBeaconScanWithTimeout(final int timeout) {
 
-        if (isStartBeaconScan()) {
+        if (isStartedBeaconScan()) {
             return;
+        }
+
+        if (BuildConfig.DEBUG) {
+            Log.d(TAG, "startBeaconScanWithTimeout");
         }
 
         if (mTimeoutRunnable != null) {
@@ -130,10 +139,9 @@ public class LinkingBeaconManager {
             @Override
             public void onTimeout() {
                 if (BuildConfig.DEBUG) {
-                    Log.d(TAG, "startBeaconScanWithTimeout");
+                    Log.d(TAG, "startBeaconScanWithTimeout:onTimeout");
                 }
-                mTimeoutRunnable = null;
-                if (!isStartBeaconScan()) {
+                if (!isStartedBeaconScan()) {
                     stopBeaconScan();
                 }
             }
@@ -157,14 +165,14 @@ public class LinkingBeaconManager {
         }
     }
 
-    public void stopBeaconScan() {
+    public synchronized void stopBeaconScan() {
         mScanFlag = false;
-        if (!isStartForceBeaconScan()) {
+        if (!isStartedForceBeaconScan()) {
             stopBeaconScanInternal();
         }
     }
 
-    public synchronized boolean isStartBeaconScan() {
+    public synchronized boolean isStartedBeaconScan() {
         return mScanFlag;
     }
 
@@ -305,7 +313,7 @@ public class LinkingBeaconManager {
         mContext.startService(intent);
     }
 
-    private synchronized void stopBeaconScanInternal() {
+    private void stopBeaconScanInternal() {
         if (BuildConfig.DEBUG) {
             Log.i(TAG, "LinkingBeaconManager#stopBeaconScan");
         }
@@ -326,7 +334,8 @@ public class LinkingBeaconManager {
                     if (BuildConfig.DEBUG) {
                         Log.d(TAG, "@@ Restart the beacon scan.");
                     }
-                    startBeaconScan(mScanMode);
+                    stopBeaconScan();
+                    stopForceBeaconScan();
                     break;
                 case DETAIL_META_DATA_NONE:
                     if (BuildConfig.DEBUG) {

@@ -82,7 +82,7 @@ public class LinkingBeaconListFragment extends Fragment implements ConfirmationD
                     }
                 }
             });
-            switchBtn.setChecked(getLinkingBeaconManager().isStartForceBeaconScan());
+            switchBtn.setChecked(getLinkingBeaconManager().isStartedForceBeaconScan());
         }
 
         return root;
@@ -208,7 +208,7 @@ public class LinkingBeaconListFragment extends Fragment implements ConfirmationD
             String message;
 
             LinkingApplication app = (LinkingApplication) getActivity().getApplication();
-            if (app.getLinkingBeaconManager().isStartBeaconScan()) {
+            if (app.getLinkingBeaconManager().isStartedBeaconScan()) {
                 message = getString(R.string.fragment_beacon_error_message, item.mDevice.getDisplayName());
             } else {
                 message = getString(R.string.fragment_beacon_error_message_not_start_beacon_scan);

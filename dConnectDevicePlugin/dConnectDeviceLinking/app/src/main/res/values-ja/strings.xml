@@ -103,6 +103,7 @@
     <string name="activity_device_not_support_battery">このデバイスはバッテリーをサポートしていません。</string>
     <string name="activity_device_not_support_temperature">このデバイスは気温センサーをサポートしていません。</string>
     <string name="activity_device_not_support_humidity">このデバイスは湿度センサーをサポートしていません。</string>
+    <string name="activity_device_not_support_button">このデバイスはボタンをサポートしていません。</string>
     <string name="activity_device_sensor_value">x:%1$f\ny:%2$f\nz:%3$f\ntime:%4$d</string>
 
     <string name="activity_beacon_title">Linkingビーコン確認</string>

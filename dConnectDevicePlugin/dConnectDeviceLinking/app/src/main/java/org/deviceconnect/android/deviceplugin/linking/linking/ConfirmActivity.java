@@ -102,7 +102,7 @@ public class ConfirmActivity extends Activity {
 
     private void startSensor() {
         if (BuildConfig.DEBUG) {
-            Log.i(TAG, "ConfirmActivity:startSensor mIndex:" + mIndex);
+            Log.i(TAG, "ConfirmActivity:startSensor type:" + mRequestType[mIndex]);
         }
 
         Intent intent = new Intent(LinkingUtil.ACTION_START_SENSOR);

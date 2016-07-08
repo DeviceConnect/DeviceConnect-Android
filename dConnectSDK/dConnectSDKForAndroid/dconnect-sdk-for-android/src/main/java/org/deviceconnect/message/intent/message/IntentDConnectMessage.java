@@ -50,6 +50,21 @@ public interface IntentDConnectMessage extends DConnectMessage {
     String ACTION_MANAGER_LAUNCHED = "org.deviceconnect.action.MANAGER_LAUNCHED";
 
     /**
+     * アクション:EVENT_TRANSMIT_DISCONNECT.
+     */
+    String ACTION_EVENT_TRANSMIT_DISCONNECT = "org.deviceconnect.action.EVENT_TRANSMIT_DISCONNECT";
+
+    /**
+     * アクション:MANAGER_TERMINATED.
+     */
+    String ACTION_MANAGER_TERMINATED = "org.deviceconnect.action.MANAGER_TERMINATED";
+
+    /**
+     * アクション:DEVICEPLUGIN_RESET.
+     */
+    String ACTION_DEVICEPLUGIN_RESET = "org.deviceconnect.action.DEVICEPLUGIN_RESET";
+
+    /**
      * パラメータ: {@value} .
      */
     String EXTRA_ORIGIN = "origin";

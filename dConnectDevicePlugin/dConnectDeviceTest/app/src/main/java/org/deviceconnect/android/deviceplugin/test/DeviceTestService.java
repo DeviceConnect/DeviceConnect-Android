@@ -6,8 +6,8 @@
  */
 package org.deviceconnect.android.deviceplugin.test;
 
-import java.util.Iterator;
-import java.util.logging.Logger;
+import android.content.Intent;
+import android.os.Bundle;
 
 import org.deviceconnect.android.deviceplugin.test.profile.TestBatteryProfile;
 import org.deviceconnect.android.deviceplugin.test.profile.TestConnectProfile;
@@ -25,7 +25,10 @@ import org.deviceconnect.android.deviceplugin.test.profile.TestServiceInformatio
 import org.deviceconnect.android.deviceplugin.test.profile.TestSettingsProfile;
 import org.deviceconnect.android.deviceplugin.test.profile.TestSystemProfile;
 import org.deviceconnect.android.deviceplugin.test.profile.TestVibrationProfile;
+import org.deviceconnect.android.deviceplugin.test.profile.unique.TestDriveControllerProfile;
 import org.deviceconnect.android.deviceplugin.test.profile.unique.TestJSONConversionProfile;
+import org.deviceconnect.android.deviceplugin.test.profile.unique.TestOmnidirectionalImageProfile;
+import org.deviceconnect.android.deviceplugin.test.profile.unique.TestRemoteControllerProfile;
 import org.deviceconnect.android.deviceplugin.test.profile.unique.TestUniqueProfile;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.event.cache.db.DBCacheController;
@@ -36,8 +39,8 @@ import org.deviceconnect.android.profile.ServiceInformationProfile;
 import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.android.provider.FileManager;
 
-import android.content.Intent;
-import android.os.Bundle;
+import java.util.Iterator;
+import java.util.logging.Logger;
 
 
 /**
@@ -69,6 +72,9 @@ public class DeviceTestService extends DConnectMessageService {
         addProfile(new TestLightProfile());
 
         // 独自プロファイル
+        addProfile(new TestDriveControllerProfile());
+        addProfile(new TestRemoteControllerProfile());
+        addProfile(new TestOmnidirectionalImageProfile());
         addProfile(new TestUniqueProfile());
         addProfile(new TestJSONConversionProfile());
     }

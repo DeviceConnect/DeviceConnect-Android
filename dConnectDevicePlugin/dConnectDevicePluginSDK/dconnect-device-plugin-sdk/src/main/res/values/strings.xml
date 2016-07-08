@@ -4,9 +4,9 @@
 
     <string name="password">Password</string>
 
-    <string name="ok">OK</string>
+    <string name="activity_linking_ok">OK</string>
 
-    <string name="cancel">Cancel</string>
+    <string name="activity_linking_cancel">Cancel</string>
 
     <string name="approval">ACCEPT</string>
 
@@ -19,11 +19,12 @@
     <string name="display_scope_battery">battery</string>
     <string name="display_scope_connect">connect</string>
     <string name="display_scope_deviceorientation">deviceorientation</string>
-    <string name="display_scope_file_descriptor">file_descriptor</string>
+    <string name="display_scope_filedescriptor">filedescriptor</string>
     <string name="display_scope_file">file</string>
-    <string name="display_scope_mediastreams_play">mediastreams_play</string>
-    <string name="display_scope_mediastream_recording">mediastream_recording</string>
+    <string name="display_scope_mediaplayer">mediaplayer</string>
+    <string name="display_scope_mediastream_recording">mediastreamrecording</string>
     <string name="display_scope_servicediscovery">servicediscovery</string>
+    <string name="display_scope_serviceinformation">serviceinformation</string>
     <string name="display_scope_notification">notification</string>
     <string name="display_scope_phone">phone</string>
     <string name="display_scope_proximity">proximity</string>

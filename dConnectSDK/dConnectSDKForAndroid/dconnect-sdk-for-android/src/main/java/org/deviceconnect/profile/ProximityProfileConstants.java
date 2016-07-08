@@ -21,12 +21,12 @@ public interface ProximityProfileConstants extends DConnectProfileConstants {
     /**
      * 属性: {@value} .
      */
-    String ATTRIBUTE_ON_DEVICE_PROXIMITY = "ondeviceproximity";
+    String ATTRIBUTE_ON_DEVICE_PROXIMITY = "onDeviceProximity";
 
     /**
      * 属性: {@value} .
      */
-    String ATTRIBUTE_ON_USER_PROXIMITY = "onuserproximity";
+    String ATTRIBUTE_ON_USER_PROXIMITY = "onUserProximity";
 
     /**
      * パス: {@value}.
@@ -73,4 +73,26 @@ public interface ProximityProfileConstants extends DConnectProfileConstants {
      * パラメータ: {@value}.
      */
     String PARAM_NEAR = "near";
+
+    /**
+     * パラメータ: {@value}.
+     */
+    String PARAM_RANGE = "range";
+
+    enum Range {
+        IMMEDIATE("IMMEDIATE"),
+        NEAR("NEAR"),
+        FAR("FAR"),
+        UNKNOWN("UNKNOWN");
+
+        private String mValue;
+
+        Range(String value) {
+            mValue = value;
+        }
+
+        public String getValue() {
+            return mValue;
+        }
+    }
 }

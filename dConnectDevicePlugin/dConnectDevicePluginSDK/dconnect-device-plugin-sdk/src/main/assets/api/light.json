@@ -1,0 +1,112 @@
+[
+    {
+        "name": "Light Status API",
+        "type": "one-shot",
+        "method": "GET",
+        "path": "/gotapi/light",
+        "requestParams": [
+            {
+                "name": "serviceId",
+                "type": "string",
+                "mandatory": true
+            }
+        ]
+    },
+    {
+        "name": "Light On API",
+        "type": "one-shot",
+        "method": "POST",
+        "path": "/gotapi/light",
+        "requestParams": [
+            {
+                "name": "serviceId",
+                "type": "string",
+                "mandatory": true
+            },
+            {
+                "name": "lightId",
+                "type": "string",
+                "mandatory": true
+            },
+            {
+                "name": "brightness",
+                "type": "number",
+                "format": "float",
+                "mandatory": false,
+                "minValue": 0.0,
+                "maxValue": 1.0
+            },
+            {
+                "name": "color",
+                "type": "string",
+                "format": "rgb",
+                "mandatory": false
+            },
+            {
+                "name": "flashing",
+                "type": "string",
+                "mandatory": false
+            }
+        ]
+    },
+    {
+        "name": "Light Off API",
+        "type": "one-shot",
+        "method": "DELETE",
+        "path": "/gotapi/light",
+        "requestParams": [
+            {
+                "name": "serviceId",
+                "type": "string",
+                "mandatory": true
+            },
+            {
+                "name": "lightId",
+                "type": "string",
+                "mandatory": true
+            }
+        ]
+    },
+    {
+        "name": "Light Status Change API",
+        "type": "one-shot",
+        "method": "PUT",
+        "path": "/gotapi/light",
+        "requestParams": [
+            {
+                "name": "serviceId",
+                "type": "string",
+                "mandatory": true
+            },
+            {
+                "name": "lightId",
+                "type": "string",
+                "mandatory": true
+            },
+            {
+                "name": "name",
+                "type": "string",
+                "mandatory": true
+            },
+            {
+                "name": "brightness",
+                "type": "number",
+                "format": "float",
+                "mandatory": false,
+                "minValue": 0.0,
+                "maxValue": 1.0
+            },
+            {
+                "name": "color",
+                "type": "string",
+                "format": "rgb",
+                "mandatory": false
+            },
+            {
+                "name": "flashing",
+                "type": "string",
+                "mandatory": false
+            }
+        ]
+    }
+]

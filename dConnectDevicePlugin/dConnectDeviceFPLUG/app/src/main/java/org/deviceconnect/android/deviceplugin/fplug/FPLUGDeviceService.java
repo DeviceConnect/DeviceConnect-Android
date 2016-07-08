@@ -6,39 +6,30 @@
  */
 package org.deviceconnect.android.deviceplugin.fplug;
 
-import org.deviceconnect.android.deviceplugin.fplug.profile.FPLUGHumidityProfile;
-import org.deviceconnect.android.deviceplugin.fplug.profile.FPLUGIlluminanceProfile;
-import org.deviceconnect.android.deviceplugin.fplug.profile.FPLUGLightProfile;
-import org.deviceconnect.android.deviceplugin.fplug.profile.FPLUGPowerMeterProfile;
-import org.deviceconnect.android.deviceplugin.fplug.profile.FPLUGServiceDiscoveryProfile;
-import org.deviceconnect.android.deviceplugin.fplug.profile.FPLUGServiceInformationProfile;
-import org.deviceconnect.android.deviceplugin.fplug.profile.FPLUGSettingsProfile;
+import org.deviceconnect.android.deviceplugin.fplug.fplug.FPLUGController;
 import org.deviceconnect.android.deviceplugin.fplug.profile.FPLUGSystemProfile;
-import org.deviceconnect.android.deviceplugin.fplug.profile.FPLUGTemperatureProfile;
+import org.deviceconnect.android.deviceplugin.fplug.service.FPLUGService;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.event.cache.MemoryCacheController;
 import org.deviceconnect.android.message.DConnectMessageService;
-import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
-import org.deviceconnect.android.profile.ServiceInformationProfile;
 import org.deviceconnect.android.profile.SystemProfile;
+import org.deviceconnect.android.service.DConnectService;
 
 /**
  * F-PLUG device plug-in.
  *
  * @author NTT DOCOMO, INC.
  */
-public class FPLUGDeviceService extends DConnectMessageService {
+public class FPLUGDeviceService extends DConnectMessageService
+    implements FPLUGApplication.ControllerListener {
 
     @Override
     public void onCreate() {
         super.onCreate();
         EventManager.INSTANCE.setController(new MemoryCacheController());
-        addProfile(new FPLUGPowerMeterProfile());
-        addProfile(new FPLUGLightProfile());
-        addProfile(new FPLUGSettingsProfile());
-        addProfile(new FPLUGTemperatureProfile());
-        addProfile(new FPLUGHumidityProfile());
-        addProfile(new FPLUGIlluminanceProfile());
+
+        FPLUGApplication app = (FPLUGApplication) getApplication();
+        app.setControllerListener(this);
     }
 
     @Override
@@ -47,13 +38,23 @@ public class FPLUGDeviceService extends DConnectMessageService {
     }
 
     @Override
-    protected ServiceInformationProfile getServiceInformationProfile() {
-        return new FPLUGServiceInformationProfile(this);
+    public void onAdded(final FPLUGController controller) {
+        getServiceProvider().addService(new FPLUGService(controller.getAddress()));
     }
 
     @Override
-    protected ServiceDiscoveryProfile getServiceDiscoveryProfile() {
-        return new FPLUGServiceDiscoveryProfile(this);
+    public void onConnected(final FPLUGController controller) {
+        DConnectService service = getServiceProvider().getService(controller.getAddress());
+        if (service != null) {
+            service.setOnline(true);
+        }
     }
 
+    @Override
+    public void onDisconnected(final FPLUGController controller) {
+        DConnectService service = getServiceProvider().getService(controller.getAddress());
+        if (service != null) {
+            service.setOnline(false);
+        }
+    }
 }

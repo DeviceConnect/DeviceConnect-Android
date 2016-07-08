@@ -69,516 +69,192 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
         return PROFILE_NAME;
     }
 
-    @Override
-    protected boolean onGetRequest(final Intent request, final Intent response) {
-        if (isNullAttribute(request)) {
-            String serviceId = getServiceID(request);
-            return onGetLight(request, response, serviceId);
-        } else if (isLightGroupAttribute(request)) {
-            String serviceId = getServiceID(request);
-            return onGetLightGroup(request, response, serviceId);
-        } else {
-            return onGetOther(request, response);
-        }
-    }
+//    @Override
+//    protected boolean onGetRequest(final Intent request, final Intent response) {
+//        if (isNullAttribute(request)) {
+//            String serviceId = getServiceID(request);
+//            return onGetLight(request, response, serviceId);
+//        } else if (isLightGroupAttribute(request)) {
+//            String serviceId = getServiceID(request);
+//            return onGetLightGroup(request, response, serviceId);
+//        } else {
+//            return onGetOther(request, response);
+//        }
+//    }
+//
+//    @Override
+//    protected boolean onPostRequest(final Intent request, final Intent response) {
+//        if (isNullAttribute(request)) {
+//            String serviceId = getServiceID(request);
+//            String lightId = getLightId(request);
+//
+//            Integer color;
+//            try {
+//                color = getColor(request);
+//            } catch (Exception e) {
+//                MessageUtils.setInvalidRequestParameterError(response, e.getMessage());
+//                return true;
+//            }
+//
+//            Double brightness;
+//            try {
+//                brightness = getBrightness(request);
+//            } catch (Exception e) {
+//                MessageUtils.setInvalidRequestParameterError(response, e.getMessage());
+//                return true;
+//            }
+//
+//            long[] flashing;
+//            try {
+//                flashing = getFlashing(request);
+//            } catch (Exception e) {
+//                MessageUtils.setInvalidRequestParameterError(response, e.getMessage());
+//                return true;
+//            }
+//            return onPostLight(request, response, serviceId, lightId, color, brightness, flashing);
+//        } else if (isLightGroupAttribute(request)) {
+//            String serviceId = getServiceID(request);
+//            String groupId = getGroupId(request);
+//
+//            Integer color;
+//            try {
+//                color = getColor(request);
+//            } catch (Exception e) {
+//                MessageUtils.setInvalidRequestParameterError(response, e.getMessage());
+//                return true;
+//            }
+//
+//            Double brightness;
+//            try {
+//                brightness = getBrightness(request);
+//            } catch (Exception e) {
+//                MessageUtils.setInvalidRequestParameterError(response, e.getMessage());
+//                return true;
+//            }
+//
+//            long[] flashing;
+//            try {
+//                flashing = getFlashing(request);
+//            } catch (Exception e) {
+//                MessageUtils.setInvalidRequestParameterError(response, e.getMessage());
+//                return true;
+//            }
+//            return onPostLightGroup(request, response, serviceId, groupId, color, brightness, flashing);
+//        } else if (isLightGroupCreateAttribute(request)) {
+//            String serviceId = getServiceID(request);
+//            String[] lightIds = getLightIds(request);
+//            String groupName = getGroupName(request);
+//
+//            if (lightIds == null || lightIds.length == 0) {
+//                MessageUtils.setInvalidRequestParameterError(response, "lightIds is not specified.");
+//                return true;
+//            }
+//
+//            if (groupName == null || groupName.length() == 0) {
+//                MessageUtils.setInvalidRequestParameterError(response, "groupName is not specified.");
+//                return true;
+//            }
+//
+//            return onPostLightGroupCreate(request, response, serviceId, lightIds, groupName);
+//        } else {
+//            return onPostOther(request, response);
+//        }
+//    }
+//
+//    @Override
+//    protected boolean onDeleteRequest(final Intent request, final Intent response) {
+//        if (isNullAttribute(request)) {
+//            String serviceId = getServiceID(request);
+//            String lightId = getLightId(request);
+//            return onDeleteLight(request, response, serviceId, lightId);
+//        } else if (isLightGroupAttribute(request)) {
+//            String serviceId = getServiceID(request);
+//            String groupId = getGroupId(request);
+//            return onDeleteLightGroup(request, response, serviceId, groupId);
+//        } else if (isLightGroupClearAttribute(request)) {
+//            String serviceId = getServiceID(request);
+//            String groupId = getGroupId(request);
+//            return onDeleteLightGroupClear(request, response, serviceId, groupId);
+//        } else {
+//            return onDeleteOther(request, response);
+//        }
+//    }
+//
+//    @Override
+//    protected boolean onPutRequest(final Intent request, final Intent response) {
+//        if (isNullAttribute(request)) {
+//            String serviceId = getServiceID(request);
+//            String lightId = getLightId(request);
+//            String name = getName(request);
+//
+//            if (name == null || name.length() == 0) {
+//                MessageUtils.setInvalidRequestParameterError(response, "name is not specified.");
+//                return true;
+//            }
+//
+//            Integer color;
+//            try {
+//                color = getColor(request);
+//            } catch (Exception e) {
+//                MessageUtils.setInvalidRequestParameterError(response, e.getMessage());
+//                return true;
+//            }
+//
+//            Double brightness;
+//            try {
+//                brightness = getBrightness(request);
+//            } catch (Exception e) {
+//                MessageUtils.setInvalidRequestParameterError(response, e.getMessage());
+//                return true;
+//            }
+//
+//            long[] flashing;
+//            try {
+//                flashing = getFlashing(request);
+//            } catch (Exception e) {
+//                MessageUtils.setInvalidRequestParameterError(response, e.getMessage());
+//                return true;
+//            }
+//            return onPutLight(request, response, serviceId, lightId, name, color, brightness, flashing);
+//        } else if (isLightGroupAttribute(request)) {
+//            String serviceId = getServiceID(request);
+//            String groupId = getGroupId(request);
+//            String name = getName(request);
+//
+//            if (name == null || name.length() == 0) {
+//                MessageUtils.setInvalidRequestParameterError(response, "name is not specified.");
+//                return true;
+//            }
+//
+//            Integer color;
+//            try {
+//                color = getColor(request);
+//            } catch (Exception e) {
+//                MessageUtils.setInvalidRequestParameterError(response, e.getMessage());
+//                return true;
+//            }
+//
+//            Double brightness;
+//            try {
+//                brightness = getBrightness(request);
+//            } catch (Exception e) {
+//                MessageUtils.setInvalidRequestParameterError(response, e.getMessage());
+//                return true;
+//            }
+//
+//            long[] flashing;
+//            try {
+//                flashing = getFlashing(request);
+//            } catch (Exception e) {
+//                MessageUtils.setInvalidRequestParameterError(response, e.getMessage());
+//                return true;
+//            }
+//            return onPutLightGroup(request, response, serviceId, groupId, name, color, brightness, flashing);
+//        } else {
+//            return onPutOther(request, response);
+//        }
+//    }
 
-    @Override
-    protected boolean onPostRequest(final Intent request, final Intent response) {
-        if (isNullAttribute(request)) {
-            String serviceId = getServiceID(request);
-            String lightId = getLightId(request);
-
-            Integer color;
-            try {
-                color = getColor(request);
-            } catch (Exception e) {
-                MessageUtils.setInvalidRequestParameterError(response, e.getMessage());
-                return true;
-            }
-
-            Double brightness;
-            try {
-                brightness = getBrightness(request);
-            } catch (Exception e) {
-                MessageUtils.setInvalidRequestParameterError(response, e.getMessage());
-                return true;
-            }
-
-            long[] flashing;
-            try {
-                flashing = getFlashing(request);
-            } catch (Exception e) {
-                MessageUtils.setInvalidRequestParameterError(response, e.getMessage());
-                return true;
-            }
-            return onPostLight(request, response, serviceId, lightId, color, brightness, flashing);
-        } else if (isLightGroupAttribute(request)) {
-            String serviceId = getServiceID(request);
-            String groupId = getGroupId(request);
-
-            Integer color;
-            try {
-                color = getColor(request);
-            } catch (Exception e) {
-                MessageUtils.setInvalidRequestParameterError(response, e.getMessage());
-                return true;
-            }
-
-            Double brightness;
-            try {
-                brightness = getBrightness(request);
-            } catch (Exception e) {
-                MessageUtils.setInvalidRequestParameterError(response, e.getMessage());
-                return true;
-            }
-
-            long[] flashing;
-            try {
-                flashing = getFlashing(request);
-            } catch (Exception e) {
-                MessageUtils.setInvalidRequestParameterError(response, e.getMessage());
-                return true;
-            }
-            return onPostLightGroup(request, response, serviceId, groupId, color, brightness, flashing);
-        } else if (isLightGroupCreateAttribute(request)) {
-            String serviceId = getServiceID(request);
-            String[] lightIds = getLightIds(request);
-            String groupName = getGroupName(request);
-
-            if (lightIds == null || lightIds.length == 0) {
-                MessageUtils.setInvalidRequestParameterError(response, "lightIds is not specified.");
-                return true;
-            }
-
-            if (groupName == null || groupName.length() == 0) {
-                MessageUtils.setInvalidRequestParameterError(response, "groupName is not specified.");
-                return true;
-            }
-
-            return onPostLightGroupCreate(request, response, serviceId, lightIds, groupName);
-        } else {
-            return onPostOther(request, response);
-        }
-    }
-
-    @Override
-    protected boolean onDeleteRequest(final Intent request, final Intent response) {
-        if (isNullAttribute(request)) {
-            String serviceId = getServiceID(request);
-            String lightId = getLightId(request);
-            return onDeleteLight(request, response, serviceId, lightId);
-        } else if (isLightGroupAttribute(request)) {
-            String serviceId = getServiceID(request);
-            String groupId = getGroupId(request);
-            return onDeleteLightGroup(request, response, serviceId, groupId);
-        } else if (isLightGroupClearAttribute(request)) {
-            String serviceId = getServiceID(request);
-            String groupId = getGroupId(request);
-            return onDeleteLightGroupClear(request, response, serviceId, groupId);
-        } else {
-            return onDeleteOther(request, response);
-        }
-    }
-
-    @Override
-    protected boolean onPutRequest(final Intent request, final Intent response) {
-        if (isNullAttribute(request)) {
-            String serviceId = getServiceID(request);
-            String lightId = getLightId(request);
-            String name = getName(request);
-
-            if (name == null || name.length() == 0) {
-                MessageUtils.setInvalidRequestParameterError(response, "name is not specified.");
-                return true;
-            }
-
-            Integer color;
-            try {
-                color = getColor(request);
-            } catch (Exception e) {
-                MessageUtils.setInvalidRequestParameterError(response, e.getMessage());
-                return true;
-            }
-
-            Double brightness;
-            try {
-                brightness = getBrightness(request);
-            } catch (Exception e) {
-                MessageUtils.setInvalidRequestParameterError(response, e.getMessage());
-                return true;
-            }
-
-            long[] flashing;
-            try {
-                flashing = getFlashing(request);
-            } catch (Exception e) {
-                MessageUtils.setInvalidRequestParameterError(response, e.getMessage());
-                return true;
-            }
-            return onPutLight(request, response, serviceId, lightId, name, color, brightness, flashing);
-        } else if (isLightGroupAttribute(request)) {
-            String serviceId = getServiceID(request);
-            String groupId = getGroupId(request);
-            String name = getName(request);
-
-            if (name == null || name.length() == 0) {
-                MessageUtils.setInvalidRequestParameterError(response, "name is not specified.");
-                return true;
-            }
-
-            Integer color;
-            try {
-                color = getColor(request);
-            } catch (Exception e) {
-                MessageUtils.setInvalidRequestParameterError(response, e.getMessage());
-                return true;
-            }
-
-            Double brightness;
-            try {
-                brightness = getBrightness(request);
-            } catch (Exception e) {
-                MessageUtils.setInvalidRequestParameterError(response, e.getMessage());
-                return true;
-            }
-
-            long[] flashing;
-            try {
-                flashing = getFlashing(request);
-            } catch (Exception e) {
-                MessageUtils.setInvalidRequestParameterError(response, e.getMessage());
-                return true;
-            }
-            return onPutLightGroup(request, response, serviceId, groupId, name, color, brightness, flashing);
-        } else {
-            return onPutOther(request, response);
-        }
-    }
-
-    /**
-     * ライト情報取得リクエストハンドラー.
-     * <p>
-     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。<br>
-     * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
-     * </p>
-     * 
-     * @param request リクエストパラメータ
-     * @param response レスポンスパラメータ
-     * @param serviceId サービスID
-     * @return レスポンスパラメータを送信するか否か
-     */
-    protected boolean onGetLight(final Intent request, final Intent response, final String serviceId) {
-        MessageUtils.setNotSupportAttributeError(response);
-        return true;
-    }
-
-    /**
-     * ライト点灯リクエストハンドラー.
-     * 
-     * <p>
-     * colorが<code>null</code>の場合には省略されたので、デバイスのデフォルトの色を使用すること。<br>
-     * colorは以下のように使用する。<br>
-     * int red = Color.red(color);<br>
-     * int green = Color.green(color);<br>
-     * int blue = Color.blue(color);<br>
-     * 各値は[0〜255]の範囲になっている。<br>
-     * </p>
-     * 
-     * <p>
-     * brightnessが<code>null</code>の場合には、省略されたので、デバイスのデフォルトの明るさを使用すること。<br>
-     * </p>
-     * 
-     * <p>
-     * flashingがnullの場合には省略されたので、点滅はせずに点灯し続けること。<br>
-     * flashingには、点灯・消灯が交互に格納されている。
-     * </p>
-     * 
-     * <p>
-     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。<br>
-     * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
-     * </p>
-     * 
-     * @param request リクエストパラメータ
-     * @param response レスポンスパラメータ
-     * @param serviceId サービスID
-     * @param lightId ライトID
-     * @param color 色情報
-     * @param brightness 明るさ (0.0〜1.0)
-     * @param flashing 点滅情報
-     * @return レスポンスパラメータを送信するか否か
-     */
-    protected boolean onPostLight(final Intent request, final Intent response, final String serviceId,
-            final String lightId, final Integer color, final Double brightness, final long[] flashing) {
-        MessageUtils.setNotSupportAttributeError(response);
-        return true;
-    }
-
-    /**
-     * ライト消灯リクエストハンドラー.
-     * <p>
-     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。<br>
-     * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
-     * </p>
-     * 
-     * @param request リクエストパラメータ
-     * @param response レスポンスパラメータ
-     * @param serviceId サービスID
-     * @param lightId ライトID
-     * @return レスポンスパラメータを送信するか否か
-     */
-    protected boolean onDeleteLight(final Intent request, final Intent response, final String serviceId,
-            final String lightId) {
-        MessageUtils.setNotSupportAttributeError(response);
-        return true;
-    }
-
-    /**
-     * ライト情報更新リクエストハンドラー.
-     * <p>
-     * colorが<code>null</code>の場合には省略されたので、デバイスのデフォルトの色を使用すること。<br>
-     * colorは以下のように使用する。<br>
-     * int red = Color.red(color);<br>
-     * int green = Color.green(color);<br>
-     * int blue = Color.blue(color);<br>
-     * 各値は[0〜255]の範囲になっている。<br>
-     * </p>
-     * 
-     * <p>
-     * brightnessが<code>null</code>の場合には、省略されたので、デバイスのデフォルトの明るさを使用すること。<br>
-     * </p>
-     * 
-     * <p>
-     * flashingがnullの場合には省略されたので、点滅はせずに点灯し続けること。<br>
-     * flashingには、点灯・消灯が交互に格納されている。
-     * </p>
-     * <p>
-     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。<br>
-     * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
-     * </p>
-     * 
-     * @param request リクエストパラメータ
-     * @param response レスポンスパラメータ
-     * @param serviceId サービスID
-     * @param lightId ライトID
-     * @param name ライト名
-     * @param color 色情報
-     * @param brightness 明るさ (0.0〜1.0)
-     * @param flashing 点滅情報
-     * @return レスポンスパラメータを送信するか否か
-     */
-    protected boolean onPutLight(final Intent request, final Intent response, final String serviceId,
-            final String lightId, final String name, final Integer color, final Double brightness, final long[] flashing) {
-        MessageUtils.setNotSupportAttributeError(response);
-        return true;
-    }
-
-    /**
-     * ライトグループ情報取得リクエストハンドラー.
-     * 
-     * <p>
-     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。<br>
-     * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
-     * </p>
-     *
-     * @deprecated 廃止します。
-     * @param request リクエストパラメータ
-     * @param response レスポンスパラメータ
-     * @param serviceId サービスID
-     * @return レスポンスパラメータを送信するか否か
-     */
-    protected boolean onGetLightGroup(final Intent request, final Intent response, final String serviceId) {
-        MessageUtils.setNotSupportAttributeError(response);
-        return true;
-    }
-
-    /**
-     * ライトグループ点灯リクエストハンドラー.
-     * <p>
-     * colorが<code>null</code>の場合には省略されたので、デバイスのデフォルトの色を使用すること。<br>
-     * colorは以下のように使用する。<br>
-     * int red = Color.red(color);<br>
-     * int green = Color.green(color);<br>
-     * int blue = Color.blue(color);<br>
-     * 各値は[0〜255]の範囲になっている。<br>
-     * </p>
-     * 
-     * <p>
-     * brightnessが<code>null</code>の場合には、省略されたので、デバイスのデフォルトの明るさを使用すること。<br>
-     * </p>
-     * 
-     * <p>
-     * flashingがnullの場合には省略されたので、点滅はせずに点灯し続けること。<br>
-     * flashingには、点灯・消灯が交互に格納されている。
-     * </p>
-     * <p>
-     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。<br>
-     * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
-     * </p>
-     *
-     * @deprecated 廃止します。
-     * @param request リクエストパラメータ
-     * @param response レスポンスパラメータ
-     * @param serviceId サービスID
-     * @param groupId グループID
-     * @param color 色情報
-     * @param brightness 明るさ (0.0〜1.0)
-     * @param flashing 点滅情報
-     * @return レスポンスパラメータを送信するか否か
-     */
-    protected boolean onPostLightGroup(final Intent request, final Intent response, final String serviceId,
-            final String groupId, final Integer color, final Double brightness, final long[] flashing) {
-        MessageUtils.setNotSupportAttributeError(response);
-        return true;
-    }
-
-    /**
-     * ライトグループ消灯リクエストハンドラー.
-     * <p>
-     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。<br>
-     * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
-     * </p>
-     *
-     * @deprecated 廃止します。
-     * @param request リクエストパラメータ
-     * @param response レスポンスパラメータ
-     * @param serviceId サービスID
-     * @param groupId グループID
-     * @return レスポンスパラメータを送信するか否か
-     */
-    protected boolean onDeleteLightGroup(final Intent request, final Intent response, final String serviceId,
-            final String groupId) {
-        MessageUtils.setNotSupportAttributeError(response);
-        return true;
-    }
-
-    /**
-     * ライトグループ情報更新リクエストハンドラー.
-     * <p>
-     * colorが<code>null</code>の場合には省略されたので、デバイスのデフォルトの色を使用すること。<br>
-     * colorは以下のように使用する。<br>
-     * int red = Color.red(color);<br>
-     * int green = Color.green(color);<br>
-     * int blue = Color.blue(color);<br>
-     * 各値は[0〜255]の範囲になっている。<br>
-     * </p>
-     * 
-     * <p>
-     * brightnessが<code>null</code>の場合には、省略されたので、デバイスのデフォルトの明るさを使用すること。<br>
-     * </p>
-     * 
-     * <p>
-     * flashingが<code>null</code>の場合には省略されたので、点滅はせずに点灯し続けること。<br>
-     * flashingには、点灯・消灯が交互に格納されている。
-     * </p>
-     * <p>
-     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。<br>
-     * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
-     * </p>
-     *
-     * @deprecated 廃止します。
-     * @param request リクエストパラメータ
-     * @param response レスポンスパラメータ
-     * @param serviceId サービスID
-     * @param groupId グループID
-     * @param name グループ名前
-     * @param color 色情報
-     * @param brightness 明るさ (0.0〜1.0)
-     * @param flashing 点滅情報
-     * @return レスポンスパラメータを送信するか否か
-     */
-    protected boolean onPutLightGroup(final Intent request, final Intent response, final String serviceId,
-            final String groupId, final String name, final Integer color, final Double brightness, final long[] flashing) {
-        MessageUtils.setNotSupportAttributeError(response);
-        return true;
-    }
-
-    /**
-     * ライトグループ作成リクエストハンドラー.
-     * <p>
-     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。<br>
-     * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
-     * </p>
-     *
-     * @deprecated 廃止します。
-     * @param request リクエストパラメータ
-     * @param response レスポンスパラメータ
-     * @param serviceId サービスID
-     * @param lightIds 追加するライトのID一覧
-     * @param name グループ名前
-     * @return レスポンスパラメータを送信するか否か
-     */
-    protected boolean onPostLightGroupCreate(final Intent request, final Intent response,
-            final String serviceId, final String[] lightIds, final String name) {
-        MessageUtils.setNotSupportAttributeError(response);
-        return true;
-    }
-
-    /**
-     * ライトグループ削除リクエストハンドラー.
-     * <p>
-     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。<br>
-     * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
-     * </p>
-     *
-     * @deprecated 廃止します。
-     * @param request リクエストパラメータ
-     * @param response レスポンスパラメータ
-     * @param serviceId サービスID
-     * @param groupId グループID
-     * @return レスポンスパラメータを送信するか否か
-     */
-    protected boolean onDeleteLightGroupClear(final Intent request, final Intent response, final String serviceId, final String groupId) {
-        MessageUtils.setNotSupportAttributeError(response);
-        return true;
-    }
-
-    /**
-     * onGetOtherメソッドハンドラー AttributeやInterfaceがある場合はコチラを継承.<br>
-     * 
-     * @param request リクエストパラメータ
-     * @param response レスポンスパラメータ
-     * @return レスポンスパラメータを送信するか否か
-     */
-    protected boolean onGetOther(final Intent request, final Intent response) {
-        MessageUtils.setUnknownAttributeError(response);
-        return true;
-    }
-
-    /**
-     * onPostOtherメソッドハンドラー AttributeやInterfaceがある場合はコチラを継承.<br>
-     * 
-     * @param request リクエストパラメータ
-     * @param response レスポンスパラメータ
-     * @return レスポンスパラメータを送信するか否か
-     */
-    protected boolean onPostOther(final Intent request, final Intent response) {
-        MessageUtils.setUnknownAttributeError(response);
-        return true;
-    }
-
-    /**
-     * onDeleteOtherメソッドハンドラー AttributeやInterfaceがある場合はコチラを継承.<br>
-     * 
-     * @param request リクエストパラメータ
-     * @param response レスポンスパラメータ
-     * @return レスポンスパラメータを送信するか否か
-     */
-    protected boolean onDeleteOther(final Intent request, final Intent response) {
-        MessageUtils.setUnknownAttributeError(response);
-        return true;
-    }
-
-    /**
-     * onPutOtherメソッドハンドラー AttributeやInterfaceがある場合はコチラを継承.<br>
-     * 
-     * @param request リクエストパラメータ
-     * @param response レスポンスパラメータ
-     * @return レスポンスパラメータを送信するか否か
-     */
-    protected boolean onPutOther(final Intent request, final Intent response) {
-        MessageUtils.setUnknownAttributeError(response);
-        return true;
-    }
 
     /**
      * 明るさのチェックする.
@@ -623,7 +299,7 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
      */
     private boolean isLightGroupAttribute(final Intent request) {
         String attribute = getAttribute(request);
-        return isNullInterface(request) && ATTRIBUTE_GROUP.equals(attribute);
+        return isNullInterface(request) && ATTRIBUTE_GROUP.equalsIgnoreCase(attribute);
     }
 
     /**
@@ -635,7 +311,8 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
     private boolean isLightGroupCreateAttribute(final Intent request) {
         String myInterface = getInterface(request);
         String attribute = getAttribute(request);
-        return INTERFACE_GROUP.equals(myInterface) && ATTRIBUTE_CREATE.equals(attribute);
+        return INTERFACE_GROUP.equalsIgnoreCase(myInterface)
+            && ATTRIBUTE_CREATE.equalsIgnoreCase(attribute);
     }
 
     /**
@@ -647,7 +324,8 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
     private boolean isLightGroupClearAttribute(final Intent request) {
         String myInterface = getInterface(request);
         String attribute = getAttribute(request);
-        return INTERFACE_GROUP.equals(myInterface) && ATTRIBUTE_CLEAR.equals(attribute);
+        return INTERFACE_GROUP.equalsIgnoreCase(myInterface)
+            && ATTRIBUTE_CLEAR.equalsIgnoreCase(attribute);
     }
 
     /**

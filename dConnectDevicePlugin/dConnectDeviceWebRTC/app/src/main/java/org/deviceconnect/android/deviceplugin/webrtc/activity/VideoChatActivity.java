@@ -10,6 +10,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -146,11 +147,16 @@ public class VideoChatActivity extends Activity {
             builder.setAudioSampleRate(audioSampleRateValue);
             builder.setAudioBitDepth(audioBitDepth);
             builder.setAudioChannel(audioChannel);
+            builder.setLandscape(isLandscape());
             mWebRTCController = builder.create();
             updateVideoView(videoUri);
         } else {
             openWebRTCErrorDialog();
         }
+    }
+
+    private boolean isLandscape() {
+        return (this.getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE);
     }
 
     @Override

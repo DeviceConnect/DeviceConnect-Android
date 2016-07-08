@@ -6,14 +6,14 @@
  */
 package org.deviceconnect.android.event;
 
-import java.util.List;
+import android.content.ComponentName;
+import android.content.Intent;
 
 import org.deviceconnect.android.event.cache.EventCacheController;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.message.DConnectMessage;
 
-import android.content.ComponentName;
-import android.content.Intent;
+import java.util.List;
 
 /**
  * イベント管理クラス. イベントの登録、解除、送信などはこのクラスを通すことで一元管理される。
@@ -109,7 +109,11 @@ public enum EventManager {
         Event event = createEvent(request);
         return mController.removeEvent(event);
     }
-    
+
+    public EventError removeEvent(final Event event) {
+        return mController.removeEvent(event);
+    }
+
     /**
      * 指定されたセッションキーに紐づくイベント情報を解除する.
      * 
@@ -120,7 +124,7 @@ public enum EventManager {
         checkState();
         return mController.removeEvents(sessionKey);
     }
-    
+
     /**
      * イベントを全て削除する.
      * 
@@ -137,6 +141,19 @@ public enum EventManager {
     public void flush() {
         checkState();
         mController.flush();
+    }
+
+    public Event getEvent(final Intent request) {
+        checkState();
+
+        ComponentName receiver = request.getParcelableExtra(DConnectMessage.EXTRA_RECEIVER);
+        String receiverName = receiver != null ? receiver.flattenToString() : null;
+        return mController.getEvent(request.getStringExtra(DConnectMessage.EXTRA_SERVICE_ID),
+                request.getStringExtra(DConnectMessage.EXTRA_PROFILE),
+                request.getStringExtra(DConnectMessage.EXTRA_INTERFACE),
+                request.getStringExtra(DConnectMessage.EXTRA_ATTRIBUTE),
+                request.getStringExtra(DConnectMessage.EXTRA_SESSION_KEY),
+                receiverName);
     }
 
     /**
@@ -165,9 +182,12 @@ public enum EventManager {
     public List<Event> getEventList(final String serviceId, final String profile, 
             final String inter, final String attribute) {
         checkState();
-        return mController.getEvents(serviceId, profile, inter, attribute);
+        return mController.getEvents(serviceId,
+                profile != null ? profile.toLowerCase() : null,
+                inter != null ? inter.toLowerCase() : null,
+                attribute != null ? attribute.toLowerCase() : null);
     }
-    
+
     /**
      * 指定されたAPIに紐づくイベント情報の一覧を取得する.
      * 
@@ -177,7 +197,6 @@ public enum EventManager {
      * @return イベントの一覧
      */
     public List<Event> getEventList(final String profile, final String inter, final String attribute) {
-        checkState();
         return getEventList(null, profile, inter, attribute);
     }
     
@@ -189,10 +208,20 @@ public enum EventManager {
      * @return イベントの一覧
      */
     public List<Event> getEventList(final String profile, final String attribute) {
-        checkState();
         return getEventList(profile, null, attribute);
     }
-    
+
+    /**
+     * 指定されたAPIに紐づくイベント情報の一覧を取得する.
+     *
+     * @param sessionKey セッションキー
+     * @return イベントの一覧
+     */
+    public List<Event> getEventList(final String sessionKey) {
+        checkState();
+        return mController.getEvents(sessionKey);
+    }
+
     /**
      * イベントデータからイベントメッセージ用のIntentを生成する.
      * 取得したIntentに適宜イベントオブジェクトを設定し送信すること。

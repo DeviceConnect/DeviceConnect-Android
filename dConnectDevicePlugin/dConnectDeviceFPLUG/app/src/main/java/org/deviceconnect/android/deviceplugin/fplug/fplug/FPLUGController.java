@@ -106,6 +106,10 @@ public class FPLUGController {
         }).start();
     }
 
+    public synchronized void addConnectionListener(FPLUGConnectionListener listener) {
+        mConnectionListenerSet.add(listener);
+    }
+
     public synchronized void removeConnectionListener(FPLUGConnectionListener listener) {
         mConnectionListenerSet.remove(listener);
     }

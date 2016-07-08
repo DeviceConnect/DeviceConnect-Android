@@ -71,8 +71,11 @@ public class DevicePluginInfoFragment extends Fragment {
         String versionName = null;
         try {
             ApplicationInfo app = pm.getApplicationInfo(mPackageName, 0);
-            name = app.loadLabel(pm).toString();
-            icon = pm.getApplicationIcon(app.packageName);
+            if (mPackageName.equals(getActivity().getPackageName())) {
+                name = getString(R.string.linking_app_name);
+            } else {
+                name = app.loadLabel(pm).toString();
+            }            icon = pm.getApplicationIcon(app.packageName);
             PackageInfo info = pm.getPackageInfo(app.packageName, PackageManager.GET_META_DATA);
             versionName = info.versionName;
         } catch (PackageManager.NameNotFoundException e) {

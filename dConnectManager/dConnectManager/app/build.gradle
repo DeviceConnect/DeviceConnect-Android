@@ -56,7 +56,7 @@ android {
 
 dependencies {
     compile fileTree(include: '*.jar', dir: 'libs')
-    compile project(':dconnect-device-plugin-sdk')
+    compile project(':dconnect-device-plugin-linking')
     compile project(':dconnect-server-nano-httpd')
     androidTestCompile 'com.android.support.test:testing-support-lib:0.1'
 }

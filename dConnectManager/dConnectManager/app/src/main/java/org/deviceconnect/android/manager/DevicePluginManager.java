@@ -160,6 +160,7 @@ public class DevicePluginManager {
                     String versionName = pkgInfo.versionName;
                     String startClassName = getStartServiceClassName(packageName);
                     String hash = md5(packageName + className);
+                    String deviceName = receiverInfo.applicationInfo.loadLabel(pkgMgr).toString();
                     if (hash == null) {
                         throw new RuntimeException("Can't generate md5.");
                     }
@@ -174,12 +175,16 @@ public class DevicePluginManager {
                         mLogger.warning("DevicePlugin[" + hash + "] already exists.");
                     }
 
+                    if (packageName.equals(mContext.getPackageName())) {
+                        deviceName = mContext.getString(R.string.linking_app_name);
+                    }
+
                     DevicePlugin plugin = new DevicePlugin();
                     plugin.setClassName(className);
                     plugin.setPackageName(packageName);
                     plugin.setVersionName(versionName);
                     plugin.setServiceId(hash);
-                    plugin.setDeviceName(receiverInfo.applicationInfo.loadLabel(pkgMgr).toString());
+                    plugin.setDeviceName(deviceName);
                     plugin.setStartServiceClassName(startClassName);
                     plugin.setSupportProfiles(checkDevicePluginXML(receiverInfo));
                     plugin.setPluginSdkVersionName(sdkVersionName);

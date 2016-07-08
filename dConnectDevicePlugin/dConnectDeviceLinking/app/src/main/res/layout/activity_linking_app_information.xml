@@ -12,7 +12,7 @@
         android:layout_margin="32dp"
         android:contentDescription="@string/linking_app_name"
         android:gravity="center_horizontal"
-        android:src="@mipmap/dconnect_icon"/>
+        android:src="@mipmap/ic_launcher"/>
 
     <LinearLayout
         android:layout_width="match_parent"

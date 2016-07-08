@@ -6,7 +6,7 @@
  */
 package org.deviceconnect.android.manager;
 
-import android.app.Application;
+import org.deviceconnect.android.deviceplugin.linking.LinkingApplication;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -16,7 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * @author NTT DOCOMO, INC.
  */
-public class DConnectApplication extends Application {
+public class DConnectApplication extends LinkingApplication {
 
     /** デバイスプラグインに紐付くイベント判断用キー格納領域 */
     private final Map<String, String> mEventKeys = new ConcurrentHashMap<>();

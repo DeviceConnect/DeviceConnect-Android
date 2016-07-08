@@ -63,7 +63,11 @@ public class DevicePluginListFragment extends Fragment {
      */
     private PluginContainer createContainer(final PackageManager pm, final ApplicationInfo app) {
         PluginContainer container = new PluginContainer();
-        container.setLabel(app.loadLabel(pm).toString());
+        if (app.packageName.equals(getActivity().getPackageName())) {
+            container.setLabel(getString(R.string.linking_app_name));
+        } else {
+            container.setLabel(app.loadLabel(pm).toString());
+        }
         container.setPackageName(app.packageName);
         try {
             container.setIcon(pm.getApplicationIcon(app.packageName));

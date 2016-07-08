@@ -61,6 +61,8 @@
     <string name="activity_settings_yes">Yes</string>
     <string name="activity_settings_no">No</string>
     <string name="activity_settings_close">Close</string>
+    <string name="activity_settings_demo_link">Link of Demo Web</string>
+    <string name="activity_settings_consortium_link">Device Web API Consortium</string>
     <string name="activity_settings_manager_terminate">Manager termination notification to all devices plug-ins</string>
     <string name="activity_settings_manager_terminate_title">Manager termination notification in to the device plug-ins</string>
     <string name="activity_settings_manager_terminate_message">Processing</string>

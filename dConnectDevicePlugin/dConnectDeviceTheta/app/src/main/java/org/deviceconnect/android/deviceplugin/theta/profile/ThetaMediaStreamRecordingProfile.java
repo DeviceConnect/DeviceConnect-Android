@@ -211,7 +211,7 @@ public class ThetaMediaStreamRecordingProfile extends MediaStreamRecordingProfil
         if (!mClient.hasDevice(serviceId)) {
             MessageUtils.setNotFoundServiceError(response);
         } else if (sessionKey == null) {
-            MessageUtils.setInvalidRequestParameterError(response, "Not found sessionKey:" + sessionKey);
+            MessageUtils.setInvalidRequestParameterError(response, "Not found sessionKey: null");
         } else {
             EventError error = EventManager.INSTANCE.addEvent(request);
             if (error == EventError.NONE) {
@@ -231,7 +231,7 @@ public class ThetaMediaStreamRecordingProfile extends MediaStreamRecordingProfil
         if (!mClient.hasDevice(serviceId)) {
             MessageUtils.setNotFoundServiceError(response);
         } else if (sessionKey == null) {
-            MessageUtils.setInvalidRequestParameterError(response, "Not found sessionKey:" + sessionKey);
+            MessageUtils.setInvalidRequestParameterError(response, "Not found sessionKey: null");
         } else {
             EventError error = EventManager.INSTANCE.removeEvent(request);
             if (error == EventError.NONE) {
@@ -489,7 +489,7 @@ public class ThetaMediaStreamRecordingProfile extends MediaStreamRecordingProfil
         if (!mClient.hasDevice(serviceId)) {
             MessageUtils.setNotFoundServiceError(response);
         } else if (sessionKey == null) {
-            MessageUtils.setInvalidRequestParameterError(response, "Not found sessionKey:" + sessionKey);
+            MessageUtils.setInvalidRequestParameterError(response, "Not found sessionKey: null");
         } else {
             EventError error = EventManager.INSTANCE.addEvent(request);
             if (error == EventError.NONE) {
@@ -576,5 +576,48 @@ public class ThetaMediaStreamRecordingProfile extends MediaStreamRecordingProfil
 
     private static Integer getHeight(final Intent request) {
         return parseInteger(request, PARAM_HEIGHT);
+    }
+
+    public void forcedStopRecording() {
+        /** 動画記録停止処理 */
+        mClient.execute(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    ThetaDevice device = mClient.getCurrentConnectDevice();
+                    ThetaDevice.Recorder recorder = device.getRecorder();
+                    if (recorder != null && recorder.supportsVideoRecording()) {
+                        ThetaDevice.RecorderState state = recorder.getState();
+                        switch (state) {
+                            case RECORDING:
+                                device.stopVideoRecording();
+                                break;
+                            case INACTIVE:
+                            default:
+                                break;
+                        }
+                    }
+                } catch (ThetaDeviceException e) {
+                    // Not operation.
+                }
+
+            }
+        });
+
+        /** プレビュー停止処理 */
+        mClient.execute(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    ThetaDevice device = mClient.getCurrentConnectDevice();
+                    ThetaDevice.Recorder recorder = device.getRecorder();
+                    if (recorder != null && recorder.supportsPreview()) {
+                        stopLivePreview();
+                    }
+                } catch (ThetaDeviceException cause) {
+                    // Not operation.
+                }
+            }
+        });
     }
 }

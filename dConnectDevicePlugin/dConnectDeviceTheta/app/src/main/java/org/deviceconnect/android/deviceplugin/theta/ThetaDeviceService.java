@@ -44,6 +44,7 @@ public class ThetaDeviceService extends DConnectMessageService {
     private static final String TYPE_NONE = "none";
     private ThetaDeviceManager mDeviceMgr;
     private ThetaDeviceClient mClient;
+    private ThetaMediaStreamRecordingProfile mThetaMediaStreamRecording;
 
     @Override
     public void onCreate() {
@@ -56,9 +57,10 @@ public class ThetaDeviceService extends DConnectMessageService {
         EventManager.INSTANCE.setController(new MemoryCacheController());
 
         FileManager fileMgr = new FileManager(this);
+        mThetaMediaStreamRecording = new ThetaMediaStreamRecordingProfile(mClient, fileMgr);
         addProfile(new ThetaBatteryProfile(mClient));
         addProfile(new ThetaFileProfile(mClient, fileMgr));
-        addProfile(new ThetaMediaStreamRecordingProfile(mClient, fileMgr));
+        addProfile(mThetaMediaStreamRecording);
         addProfile(new ThetaOmnidirectionalImageProfile(app.getHeadTracker()));
     }
 
@@ -70,6 +72,43 @@ public class ThetaDeviceService extends DConnectMessageService {
             // Nothing to do.
         }
         super.onDestroy();
+    }
+
+    @Override
+    protected void onManagerUninstalled() {
+        // TODO: Managerアンインストール検知時の処理要追加。
+    }
+
+    @Override
+    protected void onManagerTerminated() {
+        // TODO: Manager正常終了通知受信時の処理要追加。
+    }
+
+    @Override
+    protected void onManagerEventTransmitDisconnected(String sessionKey) {
+        // TODO: ManagerのEvent送信経路切断通知受信時の処理要追加。
+        if (sessionKey != null) {
+            EventManager.INSTANCE.removeEvents(sessionKey);
+        } else {
+            EventManager.INSTANCE.removeAll();
+        }
+    }
+
+    @Override
+    protected void onDevicePluginReset() {
+        // TODO: Device Plug-inへのReset要求受信時の処理要追加。
+        resetPluginResource();
+    }
+
+    /**
+     * リソースリセット処理.
+     */
+    private void resetPluginResource() {
+        /** 全イベント削除. */
+        EventManager.INSTANCE.removeAll();
+
+        /** 記録処理・プレビュー停止 */
+        mThetaMediaStreamRecording.forcedStopRecording();
     }
 
     @Override

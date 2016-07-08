@@ -44,7 +44,7 @@ import java.util.concurrent.Executors;
  *
  * @author NTT DOCOMO, INC.
  */
-public class ThetaMediaStreamRecordingProfile extends MediaStreamRecordingProfile {
+public abstract class ThetaMediaStreamRecordingProfile extends MediaStreamRecordingProfile {
 
     private static final String PARAM_WIDTH = "width";
     private static final String PARAM_HEIGHT = "height";
@@ -59,7 +59,7 @@ public class ThetaMediaStreamRecordingProfile extends MediaStreamRecordingProfil
     private LivePreviewTask mLivePreviewTask;
     private MixedReplaceMediaServer mServer;
 
-    private final DConnectApi mGetMediaRecorderApi = new GetApi() {
+    protected final DConnectApi mGetMediaRecorderApi = new GetApi() {
         @Override
         public String getAttribute() {
             return ATTRIBUTE_MEDIARECORDER;
@@ -127,7 +127,7 @@ public class ThetaMediaStreamRecordingProfile extends MediaStreamRecordingProfil
         }
     };
 
-    private final DConnectApi mPostTakePhotoApi = new PostApi() {
+    protected final DConnectApi mPostTakePhotoApi = new PostApi() {
         @Override
         public String getAttribute() {
             return ATTRIBUTE_TAKE_PHOTO;
@@ -194,7 +194,7 @@ public class ThetaMediaStreamRecordingProfile extends MediaStreamRecordingProfil
         }
     };
 
-    private final DConnectApi mPutOnPhotoApi = new PutApi() {
+    protected final DConnectApi mPutOnPhotoApi = new PutApi() {
         @Override
         public String getAttribute() {
             return ATTRIBUTE_ON_PHOTO;
@@ -214,7 +214,7 @@ public class ThetaMediaStreamRecordingProfile extends MediaStreamRecordingProfil
         }
     };
 
-    private final DConnectApi mDeleteOnPhotoApi = new DeleteApi() {
+    protected final DConnectApi mDeleteOnPhotoApi = new DeleteApi() {
         @Override
         public String getAttribute() {
             return ATTRIBUTE_ON_PHOTO;
@@ -238,7 +238,7 @@ public class ThetaMediaStreamRecordingProfile extends MediaStreamRecordingProfil
         }
     };
 
-    private final DConnectApi mPostRecordApi = new PostApi() {
+    protected final DConnectApi mPostRecordApi = new PostApi() {
         @Override
         public String getAttribute() {
             return ATTRIBUTE_RECORD;
@@ -287,7 +287,7 @@ public class ThetaMediaStreamRecordingProfile extends MediaStreamRecordingProfil
         }
     };
 
-    private final DConnectApi mPutStopApi = new PutApi() {
+    protected final DConnectApi mPutStopApi = new PutApi() {
         @Override
         public String getAttribute() {
             return ATTRIBUTE_STOP;
@@ -336,7 +336,7 @@ public class ThetaMediaStreamRecordingProfile extends MediaStreamRecordingProfil
         }
     };
 
-    private final DConnectApi mPutPreviewApi = new PutApi() {
+    protected final DConnectApi mPutPreviewApi = new PutApi() {
         @Override
         public String getAttribute() {
             return ATTRIBUTE_PREVIEW;
@@ -387,7 +387,7 @@ public class ThetaMediaStreamRecordingProfile extends MediaStreamRecordingProfil
         }
     };
 
-    private final DConnectApi mDeletePreviewApi = new DeleteApi() {
+    protected final DConnectApi mDeletePreviewApi = new DeleteApi() {
         @Override
         public String getAttribute() {
             return ATTRIBUTE_PREVIEW;
@@ -437,7 +437,7 @@ public class ThetaMediaStreamRecordingProfile extends MediaStreamRecordingProfil
         }
     };
 
-    private final DConnectApi mPutOnRecordingChangeApi = new PutApi() {
+    protected final DConnectApi mPutOnRecordingChangeApi = new PutApi() {
         @Override
         public String getAttribute() {
             return ATTRIBUTE_ON_RECORDING_CHANGE;
@@ -457,7 +457,7 @@ public class ThetaMediaStreamRecordingProfile extends MediaStreamRecordingProfil
         }
     };
 
-    private final DConnectApi mDeleteOnRecordingChangeApi = new DeleteApi() {
+    protected final DConnectApi mDeleteOnRecordingChangeApi = new DeleteApi() {
         @Override
         public String getAttribute() {
             return ATTRIBUTE_ON_RECORDING_CHANGE;
@@ -487,8 +487,8 @@ public class ThetaMediaStreamRecordingProfile extends MediaStreamRecordingProfil
      * @param client an instance of {@link ThetaDeviceClient}
      * @param fileMgr an instance of {@link FileManager}
      */
-    public ThetaMediaStreamRecordingProfile(final ThetaDeviceClient client,
-                                            final FileManager fileMgr) {
+    protected ThetaMediaStreamRecordingProfile(final ThetaDeviceClient client,
+                                               final FileManager fileMgr) {
         mClient = client;
         mFileMgr = fileMgr;
         addApi(mGetMediaRecorderApi);
@@ -497,8 +497,6 @@ public class ThetaMediaStreamRecordingProfile extends MediaStreamRecordingProfil
         addApi(mDeleteOnPhotoApi);
         addApi(mPostRecordApi);
         addApi(mPutStopApi);
-        addApi(mPutPreviewApi);
-        addApi(mDeletePreviewApi);
         addApi(mPutOnRecordingChangeApi);
         addApi(mDeleteOnRecordingChangeApi);
     }

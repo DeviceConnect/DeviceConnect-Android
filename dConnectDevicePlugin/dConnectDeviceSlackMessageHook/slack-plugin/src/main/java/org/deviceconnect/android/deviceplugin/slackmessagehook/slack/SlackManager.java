@@ -12,6 +12,7 @@ import android.util.Log;
 
 import com.codebutler.android_websockets.WebSocketClient;
 
+import org.deviceconnect.android.deviceplugin.slackmessagehook.BuildConfig;
 import org.deviceconnect.message.DConnectMessage;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -49,8 +50,6 @@ public class SlackManager {
 
     /** TAG. */
     private final static String TAG = "SlackManager";
-    /** デバッグフラグ */
-    private final static boolean Debug = true;
 
     /** SlackAPIベースURL */
     private final static String BASE_URL = "https://slack.com/api/";
@@ -186,7 +185,7 @@ public class SlackManager {
      * @param apiToken APIToken
      */
     public void setApiToken(final String apiToken, boolean needsConnect, final FinishCallback<Void> callback) {
-        if (Debug) Log.d(TAG, "*setApiToken");
+        if (BuildConfig.DEBUG) Log.d(TAG, "*setApiToken");
         if (apiToken == null) {
             if (callback != null) {
                 callback.onFinish(null, new SlackAPITokenValueException());
@@ -263,7 +262,7 @@ public class SlackManager {
      * @param callback 接続完了コールバック
      */
     public void connect(FinishCallback<Void> callback) {
-        if (Debug) Log.d(TAG, "*connect");
+        if (BuildConfig.DEBUG) Log.d(TAG, "*connect");
         if (token == null) {
             if (callback != null) {
                 callback.onFinish(null, new SlackAPITokenValueException());
@@ -290,7 +289,7 @@ public class SlackManager {
                     return;
                 }
                 // WebSocketに接続
-                if (Debug) Log.d(TAG, json.toString());
+                if (BuildConfig.DEBUG) Log.d(TAG, json.toString());
                 // 接続
                 String jsonUrl;
                 try {
@@ -300,14 +299,14 @@ public class SlackManager {
                         return;
                     }
                     jsonUrl = json.getString("url");
-                    if (Debug) Log.d(TAG, "url:"+jsonUrl);
+                    if (BuildConfig.DEBUG) Log.d(TAG, "url:"+jsonUrl);
                     JSONObject selfJson = json.getJSONObject("self");
                     botInfo.id = selfJson.getString("id");
                     botInfo.name = selfJson.getString("name");
                     JSONObject teamJson = json.getJSONObject("team");
                     botInfo.teamName = teamJson.getString("name");
                     botInfo.teamDomain = teamJson.getString("domain");
-                    if (Debug) Log.d(TAG, "bot:" + botInfo.toString());
+                    if (BuildConfig.DEBUG) Log.d(TAG, "bot:" + botInfo.toString());
                     connectWebSocket(URI.create(jsonUrl));
                 } catch (JSONException e) {
                     Log.e(TAG, "error", e);
@@ -331,7 +330,7 @@ public class SlackManager {
      * @param callback 切断完了コールバック
      */
     public void disconnect(FinishCallback<Void> callback) {
-        if (Debug) Log.d(TAG, "*disconnect");
+        if (BuildConfig.DEBUG) Log.d(TAG, "*disconnect");
         if (webSocket ==null || connectState < CONNECT_STATE_CONNECTING) {
             if (callback != null) {
                 callback.onFinish(null, null);
@@ -355,7 +354,7 @@ public class SlackManager {
      * @param callback 完了コールバック
      */
     public void sendMessage(String msg, String channel, final FinishCallback<String> callback) {
-        if (Debug) Log.d(TAG, "*sendMessage:" + msg);
+        if (BuildConfig.DEBUG) Log.d(TAG, "*sendMessage:" + msg);
         if (connectState != CONNECT_STATE_CONNECTED) {
             callSendMsgFinishCallback(null, new SlackConnectionException(), null);
             return;
@@ -450,7 +449,7 @@ public class SlackManager {
         webSocket = new WebSocketClient(uri, new WebSocketClient.Listener() {
             @Override
             public void onConnect() {
-                if (Debug) Log.d(TAG, "Connected!");
+                if (BuildConfig.DEBUG) Log.d(TAG, "Connected!");
                 connectState = CONNECT_STATE_CONNECTED;
                 callConnectionFinishCallback(null, handler);
                 for (final SlackEventListener listener: slackEventListeners){
@@ -464,7 +463,7 @@ public class SlackManager {
 
             @Override
             public void onMessage(String message) {
-                if (Debug) Log.d(TAG, String.format("Got string message! %s", message));
+                if (BuildConfig.DEBUG) Log.d(TAG, String.format("Got string message! %s", message));
                 try {
                     JSONObject json = new JSONObject(message);
                     if (json.has("type")) {
@@ -539,7 +538,7 @@ public class SlackManager {
 
             @Override
             public void onDisconnect(int code, String reason) {
-                if (Debug) Log.d(TAG, String.format("Disconnected! Code: %d Reason: %s", code, reason));
+                if (BuildConfig.DEBUG) Log.d(TAG, String.format("Disconnected! Code: %d Reason: %s", code, reason));
                 connectState = CONNECT_STATE_DISCONNECTED;
                 callConnectionFinishCallback(null, handler);
             }
@@ -563,7 +562,7 @@ public class SlackManager {
      * @param callback 取得コールバック
      */
     public void getHistory(String channel, final FinishCallback<ArrayList<HistoryInfo>> callback) {
-        if (Debug) Log.d(TAG, "*getHistory:" + channel);
+        if (BuildConfig.DEBUG) Log.d(TAG, "*getHistory:" + channel);
         if (channel.startsWith("D")) {
             getHistory("im.history", "&channel=" + channel, callback);
         } else {
@@ -601,7 +600,7 @@ public class SlackManager {
         new GetTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, new TaskParam(target, params) {
             @Override
             public void callBack(JSONObject json) {
-                if (Debug) Log.d(TAG, json.toString());
+                if (BuildConfig.DEBUG) Log.d(TAG, json.toString());
 
                 try {
                     JSONArray jsonArray = json.getJSONArray("messages");
@@ -611,7 +610,7 @@ public class SlackManager {
                         JSONObject obj = (JSONObject) jsonArray.get(i);
                         HistoryInfo info = new HistoryInfo();
                         String type = obj.getString("type");
-                        if (Debug) Log.d(TAG, "obj:" + obj.toString());
+                        if (BuildConfig.DEBUG) Log.d(TAG, "obj:" + obj.toString());
                         if (!"message".equals(type)) {
                             continue;
                         }
@@ -782,7 +781,7 @@ public class SlackManager {
      * @param callback 取得コールバック
      */
     public void getChannelList(final FinishCallback<ArrayList<ListInfo>> callback) {
-        if (Debug) Log.d(TAG, "*getChannelList");
+        if (BuildConfig.DEBUG) Log.d(TAG, "*getChannelList");
         getList("channels.list", "&exclude_archived=1", "channels", callback);
     }
 
@@ -791,7 +790,7 @@ public class SlackManager {
      * @param callback 取得コールバック
      */
     public void getIMList(final FinishCallback<ArrayList<ListInfo>> callback) {
-        if (Debug) Log.d(TAG, "*getIMList");
+        if (BuildConfig.DEBUG) Log.d(TAG, "*getIMList");
         getList("im.list", "", "ims",callback);
     }
 
@@ -800,7 +799,7 @@ public class SlackManager {
      * @param callback 取得コールバック
      */
     public void getUserList(final FinishCallback<ArrayList<ListInfo>> callback) {
-        if (Debug) Log.d(TAG, "*getUserList");
+        if (BuildConfig.DEBUG) Log.d(TAG, "*getUserList");
         getList("users.list", "", "members", callback);
     }
 
@@ -821,7 +820,7 @@ public class SlackManager {
         new GetTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, new TaskParam(target, params) {
             @Override
             public void callBack(JSONObject json) {
-                if (Debug) Log.d(TAG, json.toString());
+                if (BuildConfig.DEBUG) Log.d(TAG, json.toString());
 
                 try {
                     JSONArray jsonArray = json.getJSONArray(listname);
@@ -922,7 +921,7 @@ public class SlackManager {
                 con.setInstanceFollowRedirects(false);
                 con.connect();
                 stream = con.getInputStream();
-                if (Debug) Log.d(TAG, "url:"+url.toString());
+                if (BuildConfig.DEBUG) Log.d(TAG, "url:"+url.toString());
 
                 // レスポンス取得
                 BufferedReader streamReader = new BufferedReader(new InputStreamReader(stream, "UTF-8"));
@@ -1079,7 +1078,7 @@ public class SlackManager {
 
                 // Json
                 json = new JSONObject(responseStrBuilder.toString());
-                if (Debug) Log.d(TAG, responseStrBuilder.toString());
+                if (BuildConfig.DEBUG) Log.d(TAG, responseStrBuilder.toString());
 
 
             } catch (IOException | JSONException e) {

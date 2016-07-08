@@ -12,6 +12,7 @@ import android.util.Log;
 
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
+import org.deviceconnect.android.app.simplebot.BuildConfig;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.basic.message.BasicDConnectMessage;
 import org.deviceconnect.message.basic.message.DConnectResponseMessage;
@@ -50,8 +51,6 @@ public class DConnectHelper {
 
     /** デバッグタグ */
     private static final String TAG = "DConnectHelper";
-    /** デバッグフラグ */
-    private static final boolean DEBUG = true;
 
     /** DConnectHelperの基底Exception */
     public abstract class DConnectHelperException extends Exception {
@@ -159,7 +158,7 @@ public class DConnectHelper {
      * @param callback コールバック
      */
     public void serviceDiscovery(String accessToken, final FinishCallback<List<ServiceInfo>> callback) {
-        if (DEBUG) Log.d(TAG, "serviceDiscovery");
+        if (BuildConfig.DEBUG) Log.d(TAG, "serviceDiscovery");
         // 接続情報
         ConnectionParam connectionParam = new ConnectionParam(
                 targetHost,
@@ -220,7 +219,7 @@ public class DConnectHelper {
      * @param callback 完了コールバック
      */
     public void auth(String appName, String clientId, String[] scopes, final FinishCallback<AuthInfo> callback) {
-        if (DEBUG) Log.d(TAG, "auth");
+        if (BuildConfig.DEBUG) Log.d(TAG, "auth");
         boolean isSSL = "https".equals(targetHost.getSchemeName());
         String host = targetHost.getHostName();
         int port = targetHost.getPort();
@@ -270,7 +269,7 @@ public class DConnectHelper {
      * @param callback Callback
      */
     public void registerEvent(String profile, String attribute, String serviceId, String accessToken, String clientId, boolean unregist, final FinishCallback<Void> callback) {
-        if (DEBUG) Log.d(TAG, "registerEvent:" + profile + ":" + attribute);
+        if (BuildConfig.DEBUG) Log.d(TAG, "registerEvent:" + profile + ":" + attribute);
         // 接続情報
         String method = "PUT";
         if (unregist) {
@@ -317,7 +316,7 @@ public class DConnectHelper {
      * @param text Text
      */
     public void sendMessage(String serviceId, String accessToken, String channelId, String text, String resource, final FinishCallback<Void> callback) {
-        if (DEBUG) Log.d(TAG, "sendMessage:" + channelId + ":" + text);
+        if (BuildConfig.DEBUG) Log.d(TAG, "sendMessage:" + channelId + ":" + text);
         // 接続情報
         ConnectionParam connectionParam = new ConnectionParam(
                 targetHost,
@@ -369,7 +368,7 @@ public class DConnectHelper {
      * @param callback Callback
      */
     public void sendRequest(String method, String path, String serviceId, String accessToken, Map<String, String> params, final FinishCallback<Map<String, Object>> callback) {
-        if (DEBUG) Log.d(TAG, "sendRequest");
+        if (BuildConfig.DEBUG) Log.d(TAG, "sendRequest");
         // 接続情報
         ConnectionParam connectionParam = new ConnectionParam(
                 targetHost,
@@ -533,7 +532,7 @@ public class DConnectHelper {
                     }
                 }
                 URL url = builder.build().toURL();
-                if (DEBUG) Log.d(TAG, url.toString());
+                if (BuildConfig.DEBUG) Log.d(TAG, url.toString());
 
                 // 接続
                 con = (HttpURLConnection)url.openConnection();
@@ -555,7 +554,7 @@ public class DConnectHelper {
                     wr.writeBytes (query.toString());
                     wr.flush ();
                     wr.close ();
-                    if (DEBUG) Log.d(TAG, query.toString());
+                    if (BuildConfig.DEBUG) Log.d(TAG, query.toString());
                 }
 
                 // 接続
@@ -587,7 +586,7 @@ public class DConnectHelper {
                     con.disconnect();
                 }
             }
-            if (DEBUG) Log.d(TAG, message.toString());
+            if (BuildConfig.DEBUG) Log.d(TAG, message.toString());
             return message;
         }
 
@@ -656,7 +655,7 @@ public class DConnectHelper {
 
         @Override
         protected void onPostExecute(DConnectMessage message) {
-            if (DEBUG) Log.d(TAG, message.toString());
+            if (BuildConfig.DEBUG) Log.d(TAG, message.toString());
             param.callBack(message);
         }
     }

@@ -39,8 +39,6 @@ public class SimpleBotService extends Service {
 
     /** デバッグタグ */
     private static final String TAG = "SimpleBotService";
-    /** デバッグフラグ */
-    private static final boolean DEBUG = true;
 
     /** Handler */
     private Handler handler;
@@ -68,7 +66,7 @@ public class SimpleBotService extends Service {
     public void onDestroy() {
         super.onDestroy();
         disconnect();
-        if (DEBUG) Log.d(TAG, "service destroyed...");
+        if (BuildConfig.DEBUG) Log.d(TAG, "service destroyed...");
         // サービス停止を通知
         Intent broadcastIntent = new Intent();
         broadcastIntent.setAction(SERVICE_STOP_ACTION);
@@ -85,7 +83,7 @@ public class SimpleBotService extends Service {
      */
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        if (DEBUG) Log.d(TAG, "onStartCommand");
+        if (BuildConfig.DEBUG) Log.d(TAG, "onStartCommand");
         if (intent == null)
             return super.onStartCommand(null, flags, startId);
 
@@ -154,7 +152,7 @@ public class SimpleBotService extends Service {
      * @param event イベント
      */
     private void handleEvent(JSONObject event) {
-        if (DEBUG) Log.d(TAG, event.toString());
+        if (BuildConfig.DEBUG) Log.d(TAG, event.toString());
         if (!event.has("message")) {
             return;
         }
@@ -215,7 +213,7 @@ public class SimpleBotService extends Service {
             return false;
         }
         // 一致
-        if (DEBUG) Log.d(TAG, "match:" +  data.keyword);
+        if (BuildConfig.DEBUG) Log.d(TAG, "match:" +  data.keyword);
         // パラメータ作成
         final Map<String, String> params = Utils.jsonToMap(data.body);
         if (params != null) {
@@ -224,11 +222,11 @@ public class SimpleBotService extends Service {
                 // groupをパラメータに渡す
                 for (int i=0; i<matcher.groupCount()+1; i++) {
                     val = val.replace("$"+i, matcher.group(i));
-                    if (DEBUG) Log.d(TAG, matcher.group(i));
+                    if (BuildConfig.DEBUG) Log.d(TAG, matcher.group(i));
                 }
                 params.put(key, val);
             }
-            if (DEBUG) Log.d(TAG, params.toString());
+            if (BuildConfig.DEBUG) Log.d(TAG, params.toString());
         }
 
         // このタイミングでToken確認画面が出たことがあったのでMainスレッドで処理。
@@ -252,10 +250,10 @@ public class SimpleBotService extends Service {
                     @Override
                     public void onFinish(Map<String, Object> stringObjectMap, Exception error) {
                         if (error == null) {
-                            if (DEBUG) Log.d(TAG, stringObjectMap.toString());
+                            if (BuildConfig.DEBUG) Log.d(TAG, stringObjectMap.toString());
                             sendResponse(result, result.data.success, result.data.successUri, stringObjectMap);
                         } else {
-                            if (DEBUG) Log.e(TAG, "Error on sendRequest", error);
+                            if (BuildConfig.DEBUG) Log.e(TAG, "Error on sendRequest", error);
                             sendResponse(result, result.data.error, result.data.errorUri, stringObjectMap);
                         }
                     }
@@ -289,8 +287,8 @@ public class SimpleBotService extends Service {
             return;
         }
 
-        if (DEBUG) Log.d(TAG, result.response);
-        if (DEBUG) Log.d(TAG, result.responseUri);
+        if (BuildConfig.DEBUG) Log.d(TAG, result.response);
+        if (BuildConfig.DEBUG) Log.d(TAG, result.responseUri);
 
         // 履歴に保存
         ResultData.INSTANCE.add(result);

@@ -13,6 +13,8 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
+import org.deviceconnect.android.app.simplebot.BuildConfig;
+
 /**
  * データ管理クラス
  */
@@ -20,8 +22,6 @@ public class DataManager {
 
     /** デバッグタグ */
     private static final String TAG = "DataManager";
-    /** デバッグフラグ */
-    private static final boolean DEBUG = true;
 
     /** DBのバージョン */
     private static final int DB_VERSION = 3;
@@ -146,9 +146,9 @@ public class DataManager {
                 sb.append(" text");
             }
             sb.append(");");
-            if (DEBUG) Log.d(TAG,"onCreate:" + sb.toString());
+            if (BuildConfig.DEBUG) Log.d(TAG,"onCreate:" + sb.toString());
             db.execSQL(sb.toString());
-            if (DEBUG) {
+            if (BuildConfig.DEBUG) {
                 addSampleData(db);
             }
         }
@@ -175,7 +175,7 @@ public class DataManager {
      * @return trueで成功
      */
     public boolean upsert(SQLiteDatabase db, Data data) {
-        if (DEBUG) Log.d(TAG,"upsert:" + data.toString());
+        if (BuildConfig.DEBUG) Log.d(TAG,"upsert:" + data.toString());
         ContentValues values = new ContentValues();
         values.put(COLUMN_KEYWORD, data.keyword);
         values.put(COLUMN_SERVICE_ID, data.serviceId);
@@ -215,7 +215,7 @@ public class DataManager {
      * @return trueで成功
      */
     public boolean delete(long id) {
-        if (DEBUG) Log.d(TAG,"upsert:" + String.valueOf(id));
+        if (BuildConfig.DEBUG) Log.d(TAG,"upsert:" + String.valueOf(id));
         SQLiteDatabase db = sql.getWritableDatabase();
         long ret = db.delete(TABLE_NAME, COLUMN_ID + "=?", new String[]{String.valueOf(id)});
         return ret > 0;
@@ -226,7 +226,7 @@ public class DataManager {
      * @return カーソル
      */
     public Cursor getAll() {
-        if (DEBUG) Log.d(TAG,"getAll");
+        if (BuildConfig.DEBUG) Log.d(TAG,"getAll");
         SQLiteDatabase db = sql.getReadableDatabase();
         return db.query(TABLE_NAME, COLUMNS, null, null, null, null, COLUMN_ID + " desc");
     }
@@ -237,7 +237,7 @@ public class DataManager {
      * @return データ
      */
     public Data getData(long id) {
-        if (DEBUG) Log.d(TAG,"getData:" + id);
+        if (BuildConfig.DEBUG) Log.d(TAG,"getData:" + id);
         SQLiteDatabase db = sql.getReadableDatabase();
         Cursor cursor = db.query(TABLE_NAME, COLUMNS, COLUMN_ID + "=?", new String[]{String.valueOf(id)}, null, null, COLUMN_ID + " desc");
         if (cursor.moveToFirst()) {

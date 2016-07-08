@@ -16,54 +16,66 @@ import com.nttdocomo.android.sdaiflib.NotifyNotification;
 import org.deviceconnect.android.deviceplugin.linking.BuildConfig;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.Map;
 
-class LinkingNotifyKey {
+class LinkingNotifyNotification {
     private static final String TAG = "LinkingPlugIn";
 
-    private final List<LinkingDeviceManager.OnKeyEventListener> mOnKeyEventListeners = new ArrayList<>();
-    private final List<LinkingDevice> mKeyEventDeviceHolders = new CopyOnWriteArrayList<>();
+    private final Map<LinkingDevice, List<LinkingDeviceManager.OnButtonEventListener>> mMap = new HashMap<>();
 
     private NotifyNotification mNotifyNotification;
     private Context mContext;
 
-    public LinkingNotifyKey(final Context context) {
+    public LinkingNotifyNotification(final Context context) {
         mContext = context;
     }
 
-    public synchronized void start(final LinkingDevice device) {
-        if (mKeyEventDeviceHolders.contains(device)) {
+    public synchronized void enableListenNotification(final LinkingDevice device,
+                                                      final LinkingDeviceManager.OnButtonEventListener listener) {
+        if (!device.isButton()) {
             return;
         }
-        mKeyEventDeviceHolders.add(device);
+
+        List<LinkingDeviceManager.OnButtonEventListener> listeners = mMap.get(device);
+        if (listeners == null) {
+            listeners = new ArrayList<>();
+            mMap.put(device, listeners);
+        } else if (listeners.contains(listener)) {
+            return;
+        }
+        listeners.add(listener);
+
         startNotifyNotification();
     }
 
-    public synchronized void stop(final LinkingDevice device) {
-        mKeyEventDeviceHolders.remove(device);
+    public synchronized void disableListenNotification(final LinkingDevice device,
+                                                       final LinkingDeviceManager.OnButtonEventListener listener) {
+        List<LinkingDeviceManager.OnButtonEventListener> listeners = mMap.get(device);
+        if (listeners != null) {
+            if (listener == null) {
+                mMap.remove(device);
+            } else {
+                listeners.remove(listener);
+                if (listeners.isEmpty()) {
+                    mMap.remove(device);
+                }
+            }
+        }
 
-        if (mKeyEventDeviceHolders.isEmpty()) {
+        if (mMap.isEmpty()) {
             stopNotifyNotification();
         }
     }
 
     public synchronized void release() {
-        mOnKeyEventListeners.clear();
-        mKeyEventDeviceHolders.clear();
+        mMap.clear();
         stopNotifyNotification();
     }
 
-    public synchronized void addListener(final LinkingDeviceManager.OnKeyEventListener listener) {
-        mOnKeyEventListeners.add(listener);
-    }
-
-    public synchronized void removeListener(final LinkingDeviceManager.OnKeyEventListener listener) {
-        mOnKeyEventListeners.remove(listener);
-    }
-
-    private LinkingDevice findDeviceFromKeyHolders(final int deviceId, final int uniqueId) {
-        for (LinkingDevice device : mKeyEventDeviceHolders) {
+    private synchronized LinkingDevice findDeviceFromKeyHolders(final int deviceId, final int uniqueId) {
+        for (LinkingDevice device : mMap.keySet()) {
             if (device.getModelId() == deviceId && device.getUniqueId() == uniqueId) {
                 return device;
             }
@@ -121,8 +133,8 @@ class LinkingNotifyKey {
     }
 
     private synchronized void notifyOnKeyEvent(final LinkingDevice device, final int keyCode) {
-        for (LinkingDeviceManager.OnKeyEventListener listener : mOnKeyEventListeners) {
-            listener.onKeyEvent(device, keyCode);
+        for (LinkingDeviceManager.OnButtonEventListener listener : mMap.get(device)) {
+            listener.onButtonEvent(device, keyCode);
         }
     }
 }

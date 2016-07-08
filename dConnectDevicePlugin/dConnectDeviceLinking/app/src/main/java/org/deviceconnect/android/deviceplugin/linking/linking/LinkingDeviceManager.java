@@ -24,7 +24,7 @@ public class LinkingDeviceManager {
 
     private LinkingNotifyConnect mNotifyConnect;
     private LinkingNotifyRange mNotifyRange;
-    private LinkingNotifyKey mNotifyKey;
+    private LinkingNotifyNotification mNotifyKey;
     private LinkingNotifySensor mNotifySensor;
 
     public LinkingDeviceManager(final Context context) {
@@ -32,7 +32,7 @@ public class LinkingDeviceManager {
 
         mNotifyConnect = new LinkingNotifyConnect(context, this);
         mNotifyRange = new LinkingNotifyRange(context);
-        mNotifyKey = new LinkingNotifyKey(context);
+        mNotifyKey = new LinkingNotifyNotification(context);
         mNotifySensor = new LinkingNotifySensor(context);
     }
 
@@ -89,56 +89,52 @@ public class LinkingDeviceManager {
         return null;
     }
 
-    public void startKeyEvent(final LinkingDevice device) {
-        mNotifyKey.start(device);
+    public void enableListenButtonEvent(final LinkingDevice device, final OnButtonEventListener listener) {
+        mNotifyKey.enableListenNotification(device, listener);
     }
 
-    public void stopKeyEvent(final LinkingDevice device) {
-        mNotifyKey.stop(device);
+    public void disableListenButtonEvent(final LinkingDevice device, final OnButtonEventListener listener) {
+        mNotifyKey.disableListenNotification(device, listener);
     }
 
-    public void startRange(final LinkingDevice device) {
-        mNotifyRange.start(device);
+    public void enableListenRange(final LinkingDevice device, final OnRangeListener listener) {
+        mNotifyRange.enableListenRange(device, listener);
     }
 
-    public void stopRange(final LinkingDevice device) {
-        mNotifyRange.stop(device);
+    public void disableListenRange(final LinkingDevice device, final OnRangeListener listener) {
+        mNotifyRange.disableListenRange(device, listener);
     }
 
-    public void startSensor(final LinkingDevice device) {
-        mNotifySensor.startOrientation(device);
+    public void enableListenSensor(final LinkingDevice device, final OnSensorListener listener) {
+        mNotifySensor.enableListenOrientation(device, listener);
     }
 
-    public void stopSensor(final LinkingDevice device) {
-        mNotifySensor.stopOrientation(device);
+    public void disableListenSensor(final LinkingDevice device, final OnSensorListener listener) {
+        mNotifySensor.disableListenOrientation(device, listener);
     }
 
-    public boolean isStartedSensor(final LinkingDevice device) {
-        return mNotifySensor.containsOrientation(device);
+    public void enableListenBattery(final LinkingDevice device, final OnBatteryListener listener) {
+        mNotifySensor.enableListenBattery(device, listener);
     }
 
-    public void startBattery(final LinkingDevice device) {
-        mNotifySensor.startBattery(device);
+    public void disableListenBattery(final LinkingDevice device, final OnBatteryListener listener) {
+        mNotifySensor.disableListenBattery(device, listener);
     }
 
-    public void stopBattery(final LinkingDevice device) {
-        mNotifySensor.stopBattery(device);
+    public void enableListenHumidity(final LinkingDevice device, final OnHumidityListener listener) {
+        mNotifySensor.enableListenHumidity(device, listener);
     }
 
-    public void startHumidity(final LinkingDevice device) {
-        mNotifySensor.startHumidity(device);
+    public void disableListenHumidity(final LinkingDevice device, final OnHumidityListener listener) {
+        mNotifySensor.disableListenHumidity(device, listener);
     }
 
-    public void stopHumidity(final LinkingDevice device) {
-        mNotifySensor.stopHumidity(device);
+    public void enableListenTemperature(final LinkingDevice device, final OnTemperatureListener listener) {
+        mNotifySensor.enableListenTemperature(device, listener);
     }
 
-    public void startTemperature(final LinkingDevice device) {
-        mNotifySensor.startTemperature(device);
-    }
-
-    public void stopTemperature(final LinkingDevice device) {
-        mNotifySensor.stopTemperature(device);
+    public void disableListenTemperature(final LinkingDevice device, final OnTemperatureListener listener) {
+        mNotifySensor.disableListenTemperature(device, listener);
     }
 
     public boolean sendLEDCommand(final LinkingDevice device, final boolean on) {
@@ -188,60 +184,12 @@ public class LinkingDeviceManager {
         return (result != ErrorCode.RESULT_OK);
     }
 
-    public void addKeyEventListener(final OnKeyEventListener listener) {
-        mNotifyKey.addListener(listener);
-    }
-
-    public void removeKeyEventListener(final OnKeyEventListener listener) {
-        mNotifyKey.removeListener(listener);
-    }
-
-    public void addSensorListener(final OnSensorListener listener) {
-        mNotifySensor.addSensorListener(listener);
-    }
-
-    public void removeSensorListener(final OnSensorListener listener) {
-        mNotifySensor.removeSensorListener(listener);
-    }
-
-    public void addRangeListener(final OnRangeListener listener) {
-        mNotifyRange.addListener(listener);
-    }
-
-    public void removeRangeListener(final OnRangeListener listener) {
-        mNotifyRange.removeListener(listener);
-    }
-
     public void addConnectListener(final OnConnectListener listener) {
         mNotifyConnect.addListener(listener);
     }
 
     public void removeConnectListener(final OnConnectListener listener) {
         mNotifyConnect.removeListener(listener);
-    }
-
-    public void addBatteryListener(final OnBatteryListener listener) {
-        mNotifySensor.addBatteryListener(listener);
-    }
-
-    public void removeBatteryListener(final OnBatteryListener listener) {
-        mNotifySensor.removeBatteryListener(listener);
-    }
-
-    public void addHumidityListener(final OnHumidityListener listener) {
-        mNotifySensor.addHumidityListener(listener);
-    }
-
-    public void removeHumidityListener(final OnHumidityListener listener) {
-        mNotifySensor.removeHumidityListener(listener);
-    }
-
-    public void addTemperatureListener(final OnTemperatureListener listener) {
-        mNotifySensor.addTemperatureListener(listener);
-    }
-
-    public void removeTemperatureListener(final OnTemperatureListener listener) {
-        mNotifySensor.removeTemperatureListener(listener);
     }
 
     private void setVibration(final SendNotification notify, final LinkingDevice device) {
@@ -346,8 +294,8 @@ public class LinkingDeviceManager {
         void onChangeRange(LinkingDevice device, Range range);
     }
 
-    public interface OnKeyEventListener {
-        void onKeyEvent(LinkingDevice device, int keyCode);
+    public interface OnButtonEventListener {
+        void onButtonEvent(LinkingDevice device, int keyCode);
     }
 
     public interface OnSensorListener {

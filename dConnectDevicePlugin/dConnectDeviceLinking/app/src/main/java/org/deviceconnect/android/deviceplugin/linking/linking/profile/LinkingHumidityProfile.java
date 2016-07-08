@@ -34,11 +34,10 @@ public class LinkingHumidityProfile extends HumidityProfile {
             }
 
             final LinkingDeviceManager deviceManager = getLinkingDeviceManager();
-            deviceManager.addHumidityListener(new OnHumidityListenerImpl(device) {
+            deviceManager.enableListenHumidity(device, new OnHumidityListenerImpl(device) {
                 @Override
                 public void onCleanup() {
-                    deviceManager.stopHumidity(mDevice);
-                    deviceManager.removeHumidityListener(this);
+                    deviceManager.disableListenHumidity(mDevice, this);
                 }
 
                 @Override
@@ -62,7 +61,6 @@ public class LinkingHumidityProfile extends HumidityProfile {
                     cleanup();
                 }
             });
-            deviceManager.startHumidity(device);
             return false;
         }
     };

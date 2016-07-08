@@ -12,15 +12,14 @@ import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.linking.BuildConfig;
 import org.deviceconnect.android.deviceplugin.linking.LinkingApplication;
+import org.deviceconnect.android.deviceplugin.linking.LinkingDestroy;
 import org.deviceconnect.android.deviceplugin.linking.LinkingDevicePluginService;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingDevice;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingDeviceManager;
 import org.deviceconnect.android.deviceplugin.linking.linking.service.LinkingDeviceService;
-import org.deviceconnect.android.deviceplugin.linking.LinkingDestroy;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
-import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.ProximityProfile;
 import org.deviceconnect.android.profile.api.DConnectApi;
@@ -35,11 +34,7 @@ public class LinkingProximityProfile extends ProximityProfile implements Linking
 
     private static final String TAG = "LinkingPlugIn";
 
-    public LinkingProximityProfile(final DConnectMessageService service) {
-        LinkingApplication app = (LinkingApplication) service.getApplication();
-        LinkingDeviceManager deviceManager = app.getLinkingDeviceManager();
-        deviceManager.addRangeListener(mListener);
-
+    public LinkingProximityProfile() {
         addApi(mGetOnDeviceProximity);
         addApi(mPutOnDeviceProximity);
         addApi(mDeleteOnDeviceProximity);
@@ -66,14 +61,10 @@ public class LinkingProximityProfile extends ProximityProfile implements Linking
             }
 
             final LinkingDeviceManager deviceManager = getLinkingDeviceManager();
-            deviceManager.addRangeListener(new OnRangeListenerImpl(device) {
-
+            deviceManager.enableListenRange(device, new OnRangeListenerImpl(device) {
                 @Override
                 public void onCleanup() {
-                    if (isEmptyEventList(mDevice)) {
-                        deviceManager.stopRange(mDevice);
-                    }
-                    deviceManager.removeRangeListener(this);
+                    deviceManager.disableListenRange(mDevice, this);
                 }
 
                 @Override
@@ -97,7 +88,6 @@ public class LinkingProximityProfile extends ProximityProfile implements Linking
                     cleanup();
                 }
             });
-            deviceManager.startRange(device);
             return false;
         }
     };
@@ -116,7 +106,7 @@ public class LinkingProximityProfile extends ProximityProfile implements Linking
 
             EventError error = EventManager.INSTANCE.addEvent(request);
             if (error == EventError.NONE) {
-                getLinkingDeviceManager().startRange(device);
+                getLinkingDeviceManager().enableListenRange(device, mListener);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else if (error == EventError.INVALID_PARAMETER) {
                 MessageUtils.setInvalidRequestParameterError(response);
@@ -142,7 +132,7 @@ public class LinkingProximityProfile extends ProximityProfile implements Linking
             EventError error = EventManager.INSTANCE.removeEvent(request);
             if (error == EventError.NONE) {
                 if (isEmptyEventList(device)) {
-                    getLinkingDeviceManager().stopRange(device);
+                    getLinkingDeviceManager().disableListenRange(device, mListener);
                 }
                 setResult(response, DConnectMessage.RESULT_OK);
             } else if (error == EventError.INVALID_PARAMETER) {
@@ -159,7 +149,7 @@ public class LinkingProximityProfile extends ProximityProfile implements Linking
         if (BuildConfig.DEBUG) {
             Log.i(TAG, "LinkingProximityProfile#destroy: " + getService().getId());
         }
-        getLinkingDeviceManager().removeRangeListener(mListener);
+        getLinkingDeviceManager().disableListenRange(getDevice(), mListener);
     }
 
     private LinkingDevice getDevice() {
@@ -204,10 +194,6 @@ public class LinkingProximityProfile extends ProximityProfile implements Linking
     }
 
     private void notifyProximityEvent(final LinkingDevice device, final LinkingDeviceManager.Range range) {
-        if (!device.equals(getDevice())) {
-            return;
-        }
-
         String serviceId = device.getBdAddress();
         List<Event> events = EventManager.INSTANCE.getEventList(serviceId,
                 PROFILE_NAME, null, ATTRIBUTE_ON_DEVICE_PROXIMITY);

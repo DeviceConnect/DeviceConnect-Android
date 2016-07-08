@@ -34,11 +34,10 @@ public class LinkingTemperatureProfile extends TemperatureProfile {
             }
 
             final LinkingDeviceManager deviceManager = getLinkingDeviceManager();
-            deviceManager.addTemperatureListener(new OnTemperatureListenerImpl(device) {
+            deviceManager.enableListenTemperature(device, new OnTemperatureListenerImpl(device) {
                 @Override
                 public void onCleanup() {
-                    deviceManager.stopTemperature(mDevice);
-                    deviceManager.removeTemperatureListener(this);
+                    deviceManager.disableListenTemperature(mDevice, this);
                 }
 
                 @Override
@@ -62,7 +61,6 @@ public class LinkingTemperatureProfile extends TemperatureProfile {
                     cleanup();
                 }
             });
-            deviceManager.startTemperature(device);
             return false;
         }
     };

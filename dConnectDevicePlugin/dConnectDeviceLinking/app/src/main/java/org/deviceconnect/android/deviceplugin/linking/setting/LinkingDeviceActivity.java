@@ -72,26 +72,21 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
     protected void onResume() {
         super.onResume();
 
-        getLinkingDeviceManager().addSensorListener(mOnSensorListener);
-        getLinkingDeviceManager().addKeyEventListener(mOnKeyEventListener);
-        getLinkingDeviceManager().addRangeListener(mOnRangeListener);
         getLinkingDeviceManager().addConnectListener(mOnConnectListener);
-        getLinkingDeviceManager().addBatteryListener(mOnBatteryListener);
-        getLinkingDeviceManager().addTemperatureListener(mOnTemperatureListener);
-        getLinkingDeviceManager().addHumidityListener(mOnHumidityListener);
     }
 
     @Override
     protected void onPause() {
         super.onPause();
 
-        getLinkingDeviceManager().removeSensorListener(mOnSensorListener);
-        getLinkingDeviceManager().removeKeyEventListener(mOnKeyEventListener);
-        getLinkingDeviceManager().removeRangeListener(mOnRangeListener);
         getLinkingDeviceManager().removeConnectListener(mOnConnectListener);
-        getLinkingDeviceManager().removeBatteryListener(mOnBatteryListener);
-        getLinkingDeviceManager().removeTemperatureListener(mOnTemperatureListener);
-        getLinkingDeviceManager().removeHumidityListener(mOnHumidityListener);
+
+        getLinkingDeviceManager().disableListenSensor(mDevice, mOnSensorListener);
+        getLinkingDeviceManager().disableListenRange(mDevice, mOnRangeListener);
+        getLinkingDeviceManager().disableListenButtonEvent(mDevice, mOnButtonEventListener);
+        getLinkingDeviceManager().disableListenHumidity(mDevice, mOnHumidityListener);
+        getLinkingDeviceManager().disableListenTemperature(mDevice, mOnTemperatureListener);
+        getLinkingDeviceManager().disableListenBattery(mDevice, mOnBatteryListener);
     }
 
     @Override
@@ -123,7 +118,7 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
         return mgr.findDeviceByBdAddress(address);
     }
 
-    public void setupUI() {
+    private void setupUI() {
         TextView tv = (TextView) findViewById(R.id.device_name);
         if (tv != null) {
             tv.setText(mDevice.getDisplayName());
@@ -641,9 +636,9 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
 
         LinkingDeviceManager mgr = getLinkingDeviceManager();
         if (isOn) {
-            mgr.startSensor(mDevice);
+            mgr.enableListenSensor(mDevice, mOnSensorListener);
         } else {
-            mgr.stopSensor(mDevice);
+            mgr.disableListenSensor(mDevice, mOnSensorListener);
         }
     }
 
@@ -655,9 +650,9 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
 
         LinkingDeviceManager mgr = getLinkingDeviceManager();
         if (isOn) {
-            mgr.startBattery(mDevice);
+            mgr.enableListenBattery(mDevice, mOnBatteryListener);
         } else {
-            mgr.stopBattery(mDevice);
+            mgr.disableListenBattery(mDevice, mOnBatteryListener);
         }
     }
 
@@ -669,9 +664,9 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
 
         LinkingDeviceManager mgr = getLinkingDeviceManager();
         if (isOn) {
-            mgr.startTemperature(mDevice);
+            mgr.enableListenTemperature(mDevice, mOnTemperatureListener);
         } else {
-            mgr.stopTemperature(mDevice);
+            mgr.disableListenTemperature(mDevice, mOnTemperatureListener);
         }
     }
 
@@ -684,81 +679,69 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
 
         LinkingDeviceManager mgr = getLinkingDeviceManager();
         if (isOn) {
-            mgr.startHumidity(mDevice);
+            mgr.enableListenHumidity(mDevice, mOnHumidityListener);
         } else {
-            mgr.stopHumidity(mDevice);
+            mgr.disableListenHumidity(mDevice, mOnHumidityListener);
         }
     }
 
     private void onClickButtonId(final boolean isOn) {
         LinkingDeviceManager mgr = getLinkingDeviceManager();
         if (isOn) {
-            mgr.startKeyEvent(mDevice);
+            mgr.enableListenButtonEvent(mDevice, mOnButtonEventListener);
         } else {
-            mgr.stopKeyEvent(mDevice);
+            mgr.disableListenButtonEvent(mDevice, mOnButtonEventListener);
         }
     }
 
     private void onClickProximity(final boolean isOn) {
         LinkingDeviceManager mgr = getLinkingDeviceManager();
         if (isOn) {
-            mgr.startRange(mDevice);
+            mgr.enableListenRange(mDevice, mOnRangeListener);
         } else {
-            mgr.stopRange(mDevice);
+            mgr.disableListenRange(mDevice, mOnRangeListener);
         }
     }
 
     private LinkingDeviceManager.OnSensorListener mOnSensorListener = new LinkingDeviceManager.OnSensorListener() {
         @Override
         public void onChangeSensor(final LinkingDevice device, final LinkingSensorData sensor) {
-            if (device.equals(mDevice)) {
-                updateDataText(sensor.getType(), sensor.getX(), sensor.getY(), sensor.getZ(), sensor.getTime());
-            }
+            updateDataText(sensor.getType(), sensor.getX(), sensor.getY(), sensor.getZ(), sensor.getTime());
         }
     };
 
-    private LinkingDeviceManager.OnKeyEventListener mOnKeyEventListener = new LinkingDeviceManager.OnKeyEventListener() {
+    private LinkingDeviceManager.OnButtonEventListener mOnButtonEventListener = new LinkingDeviceManager.OnButtonEventListener() {
         @Override
-        public void onKeyEvent(final LinkingDevice device, final int keyCode) {
-            if (device.equals(mDevice)) {
-                updateKeyEvent(device.getModelId(), device.getUniqueId(), keyCode);
-            }
+        public void onButtonEvent(final LinkingDevice device, final int keyCode) {
+            updateKeyEvent(device.getModelId(), device.getUniqueId(), keyCode);
         }
     };
 
     private LinkingDeviceManager.OnRangeListener mOnRangeListener = new LinkingDeviceManager.OnRangeListener() {
         @Override
         public void onChangeRange(final LinkingDevice device, final LinkingDeviceManager.Range range) {
-            if (device.equals(mDevice)) {
-                updateRange(range);
-            }
+            updateRange(range);
         }
     };
 
     private LinkingDeviceManager.OnBatteryListener mOnBatteryListener = new LinkingDeviceManager.OnBatteryListener() {
         @Override
         public void onBattery(final LinkingDevice device, final boolean lowBatteryFlag, final float batteryLevel) {
-            if (device.equals(mDevice)) {
-                updateBattery(lowBatteryFlag, batteryLevel);
-            }
+            updateBattery(lowBatteryFlag, batteryLevel);
         }
     };
 
     private LinkingDeviceManager.OnTemperatureListener mOnTemperatureListener = new LinkingDeviceManager.OnTemperatureListener() {
         @Override
         public void onTemperature(final LinkingDevice device, final float temperature) {
-            if (device.equals(mDevice)) {
-                updateTemperature(temperature);
-            }
+            updateTemperature(temperature);
         }
     };
 
     private LinkingDeviceManager.OnHumidityListener mOnHumidityListener = new LinkingDeviceManager.OnHumidityListener() {
         @Override
         public void onHumidity(final LinkingDevice device, final float humidity) {
-            if (device.equals(mDevice)) {
-                updateHumidity(humidity);
-            }
+            updateHumidity(humidity);
         }
     };
 

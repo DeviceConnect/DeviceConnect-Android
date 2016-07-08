@@ -44,11 +44,7 @@ public class LinkingDeviceOrientationProfile extends DeviceOrientationProfile im
     private EventDispatcherManager mDispatcherManager;
     private SensorHolder mSensorHolder;
 
-    public LinkingDeviceOrientationProfile(final DConnectMessageService service) {
-        LinkingApplication app = (LinkingApplication) service.getApplication();
-        LinkingDeviceManager deviceManager = app.getLinkingDeviceManager();
-        deviceManager.addSensorListener(mListener);
-
+    public LinkingDeviceOrientationProfile() {
         mDispatcherManager = new EventDispatcherManager();
 
         addApi(mGetOnDeviceOrientation);
@@ -77,13 +73,10 @@ public class LinkingDeviceOrientationProfile extends DeviceOrientationProfile im
             }
 
             final LinkingDeviceManager deviceManager = getLinkingDeviceManager();
-            deviceManager.addSensorListener(new OnSensorListenerImpl(device) {
+            getLinkingDeviceManager().enableListenSensor(device, new OnSensorListenerImpl(device) {
                 @Override
                 public void onCleanup() {
-                    if (isEmptyEventList(mDevice.getBdAddress())) {
-                        getLinkingDeviceManager().stopSensor(mDevice);
-                    }
-                    deviceManager.removeSensorListener(this);
+                    deviceManager.disableListenSensor(mDevice, this);
                 }
 
                 @Override
@@ -115,7 +108,6 @@ public class LinkingDeviceOrientationProfile extends DeviceOrientationProfile im
                     }
                 }
             });
-            getLinkingDeviceManager().startSensor(device);
             return false;
         }
     };
@@ -135,8 +127,8 @@ public class LinkingDeviceOrientationProfile extends DeviceOrientationProfile im
 
             EventError error = EventManager.INSTANCE.addEvent(request);
             if (error == EventError.NONE) {
-                if (!getLinkingDeviceManager().isStartedSensor(device)) {
-                    getLinkingDeviceManager().startSensor(device);
+                getLinkingDeviceManager().enableListenSensor(device, mListener);
+                if (mSensorHolder == null) {
                     mSensorHolder = createSensorHolder(device, getInterval(request));
                 }
                 addEventDispatcher(request);
@@ -168,7 +160,7 @@ public class LinkingDeviceOrientationProfile extends DeviceOrientationProfile im
             EventError error = EventManager.INSTANCE.removeEvent(request);
             if (error == EventError.NONE) {
                 if (isEmptyEventList(getServiceID(request))) {
-                    getLinkingDeviceManager().stopSensor(device);
+                    getLinkingDeviceManager().disableListenSensor(device, mListener);
                     mSensorHolder = null;
                 }
                 setResult(response, DConnectMessage.RESULT_OK);
@@ -186,7 +178,7 @@ public class LinkingDeviceOrientationProfile extends DeviceOrientationProfile im
         if (BuildConfig.DEBUG) {
             Log.i(TAG, "LinkingDeviceOrientationProfile#destroy: " + getService().getId());
         }
-        getLinkingDeviceManager().removeSensorListener(mListener);
+        getLinkingDeviceManager().disableListenSensor(getDevice(), mListener);
         mDispatcherManager.removeAllEventDispatcher();
     }
 
@@ -252,10 +244,6 @@ public class LinkingDeviceOrientationProfile extends DeviceOrientationProfile im
     }
 
     private void notifyOrientation(final LinkingDevice device, final LinkingSensorData sensor) {
-        if (!device.equals(getDevice())) {
-            return;
-        }
-
         if (mSensorHolder == null) {
             if (BuildConfig.DEBUG) {
                 Log.w(TAG, "holder is not exist.");

@@ -12,15 +12,14 @@ import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.linking.BuildConfig;
 import org.deviceconnect.android.deviceplugin.linking.LinkingApplication;
+import org.deviceconnect.android.deviceplugin.linking.LinkingDestroy;
 import org.deviceconnect.android.deviceplugin.linking.LinkingDevicePluginService;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingDevice;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingDeviceManager;
 import org.deviceconnect.android.deviceplugin.linking.linking.service.LinkingDeviceService;
-import org.deviceconnect.android.deviceplugin.linking.LinkingDestroy;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
-import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.KeyEventProfile;
 import org.deviceconnect.android.profile.api.DConnectApi;
@@ -34,18 +33,14 @@ public class LinkingKeyEventProfile extends KeyEventProfile implements LinkingDe
 
     private static final String TAG = "LinkingPlugIn";
 
-    public LinkingKeyEventProfile(final DConnectMessageService service) {
-        LinkingApplication app = (LinkingApplication) service.getApplication();
-        LinkingDeviceManager deviceManager = app.getLinkingDeviceManager();
-        deviceManager.addKeyEventListener(mListener);
-
+    public LinkingKeyEventProfile() {
         addApi(mPutOnDown);
         addApi(mDeleteOnDown);
     }
 
-    private final LinkingDeviceManager.OnKeyEventListener mListener = new LinkingDeviceManager.OnKeyEventListener() {
+    private final LinkingDeviceManager.OnButtonEventListener mListener = new LinkingDeviceManager.OnButtonEventListener() {
         @Override
-        public void onKeyEvent(final LinkingDevice device, final int keyCode) {
+        public void onButtonEvent(final LinkingDevice device, final int keyCode) {
             notifyKeyEvent(device, keyCode);
         }
     };
@@ -65,7 +60,7 @@ public class LinkingKeyEventProfile extends KeyEventProfile implements LinkingDe
 
             EventError error = EventManager.INSTANCE.addEvent(request);
             if (error == EventError.NONE) {
-                getLinkingDeviceManager().startKeyEvent(device);
+                getLinkingDeviceManager().enableListenButtonEvent(device, mListener);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else if (error == EventError.INVALID_PARAMETER) {
                 MessageUtils.setInvalidRequestParameterError(response);
@@ -92,7 +87,7 @@ public class LinkingKeyEventProfile extends KeyEventProfile implements LinkingDe
             EventError error = EventManager.INSTANCE.removeEvent(request);
             if (error == EventError.NONE) {
                 if (isEmptyEventList(device)) {
-                    getLinkingDeviceManager().stopKeyEvent(device);
+                    getLinkingDeviceManager().disableListenButtonEvent(device, mListener);
                 }
                 setResult(response, DConnectMessage.RESULT_OK);
             } else if (error == EventError.INVALID_PARAMETER) {
@@ -109,7 +104,7 @@ public class LinkingKeyEventProfile extends KeyEventProfile implements LinkingDe
         if (BuildConfig.DEBUG) {
             Log.i(TAG, "LinkingKeyEventProfile#destroy: " + getService().getId());
         }
-        getLinkingDeviceManager().removeKeyEventListener(mListener);
+        getLinkingDeviceManager().disableListenButtonEvent(getDevice(), mListener);
     }
 
     private boolean isEmptyEventList(final LinkingDevice device) {
@@ -143,13 +138,10 @@ public class LinkingKeyEventProfile extends KeyEventProfile implements LinkingDe
     }
 
     private void notifyKeyEvent(final LinkingDevice device, final int keyCode) {
-        if (!device.equals(getDevice())) {
-            return;
-        }
-
         if (BuildConfig.DEBUG) {
             Log.d(TAG, "notifyKeyEvent: " + device.getDisplayName() + "[" + keyCode + "]");
         }
+
         String serviceId = device.getBdAddress();
         List<Event> events = EventManager.INSTANCE.getEventList(serviceId,
                 PROFILE_NAME, null, ATTRIBUTE_ON_DOWN);

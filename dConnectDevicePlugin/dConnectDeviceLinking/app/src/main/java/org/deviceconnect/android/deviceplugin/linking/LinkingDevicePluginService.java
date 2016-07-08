@@ -224,8 +224,8 @@ public class LinkingDevicePluginService extends DConnectMessageService {
     }
 
     private void stopDeviceOrientation(final Event event) {
-        if (!DeviceOrientationProfile.PROFILE_NAME.equals(event.getProfile()) ||
-                !DeviceOrientationProfile.ATTRIBUTE_ON_DEVICE_ORIENTATION.equals(event.getAttribute())) {
+        if (!DeviceOrientationProfile.PROFILE_NAME.equalsIgnoreCase(event.getProfile()) ||
+                !DeviceOrientationProfile.ATTRIBUTE_ON_DEVICE_ORIENTATION.equalsIgnoreCase(event.getAttribute())) {
             return;
         }
 
@@ -239,7 +239,7 @@ public class LinkingDevicePluginService extends DConnectMessageService {
                 serviceId, DeviceOrientationProfile.PROFILE_NAME, null,
                 DeviceOrientationProfile.ATTRIBUTE_ON_DEVICE_ORIENTATION);
         if (events.isEmpty()) {
-            mgr.stopSensor(mgr.findDeviceByBdAddress(serviceId));
+            mgr.disableListenSensor(mgr.findDeviceByBdAddress(serviceId), null);
         } else {
             if (BuildConfig.DEBUG) {
                 Log.d(TAG, "events=" + events.size());
@@ -248,8 +248,8 @@ public class LinkingDevicePluginService extends DConnectMessageService {
     }
 
     private void stopProximity(final Event event) {
-        if (!ProximityProfile.PROFILE_NAME.equals(event.getProfile()) ||
-                !ProximityProfile.ATTRIBUTE_ON_DEVICE_PROXIMITY.equals(event.getAttribute())) {
+        if (!ProximityProfile.PROFILE_NAME.equalsIgnoreCase(event.getProfile()) ||
+                !ProximityProfile.ATTRIBUTE_ON_DEVICE_PROXIMITY.equalsIgnoreCase(event.getAttribute())) {
             return;
         }
 
@@ -263,7 +263,7 @@ public class LinkingDevicePluginService extends DConnectMessageService {
                 serviceId, ProximityProfile.PROFILE_NAME, null,
                 ProximityProfile.ATTRIBUTE_ON_DEVICE_PROXIMITY);
         if (events.isEmpty()) {
-            mgr.stopRange(mgr.findDeviceByBdAddress(serviceId));
+            mgr.disableListenRange(mgr.findDeviceByBdAddress(serviceId), null);
         } else {
             if (BuildConfig.DEBUG) {
                 Log.d(TAG, "events=" + events.size());
@@ -272,13 +272,13 @@ public class LinkingDevicePluginService extends DConnectMessageService {
     }
 
     private void stopKeyEvent(final Event event) {
-        if (!KeyEventProfile.PROFILE_NAME.equals(event.getProfile()) ||
-                !KeyEventProfile.ATTRIBUTE_ON_DOWN.equals(event.getAttribute())) {
+        if (!KeyEventProfile.PROFILE_NAME.equalsIgnoreCase(event.getProfile()) ||
+                !KeyEventProfile.ATTRIBUTE_ON_DOWN.equalsIgnoreCase(event.getAttribute())) {
             return;
         }
 
         if (BuildConfig.DEBUG) {
-            Log.i(TAG, "stopKeyEvent");
+            Log.i(TAG, "disableListenButtonEvent");
         }
 
         LinkingDeviceManager mgr = getLinkingDeviceManager();
@@ -287,7 +287,7 @@ public class LinkingDevicePluginService extends DConnectMessageService {
         List<Event> events = EventManager.INSTANCE.getEventList(
                 serviceId, KeyEventProfile.PROFILE_NAME, null, KeyEventProfile.ATTRIBUTE_ON_DOWN);
         if (events.isEmpty()) {
-            mgr.stopKeyEvent(mgr.findDeviceByBdAddress(serviceId));
+            mgr.disableListenButtonEvent(mgr.findDeviceByBdAddress(serviceId), null);
         } else {
             if (BuildConfig.DEBUG) {
                 Log.d(TAG, "events=" + events.size());

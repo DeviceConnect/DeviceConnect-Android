@@ -17,20 +17,17 @@ import com.nttdocomo.android.sdaiflib.ControlSensorData;
 import org.deviceconnect.android.deviceplugin.linking.BuildConfig;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 class LinkingNotifySensor {
     private static final String TAG = "LinkingPlugIn";
 
-    private final List<LinkingDeviceManager.OnSensorListener> mOnSensorListeners = new ArrayList<>();
-    private final List<LinkingDeviceManager.OnBatteryListener> mOnBatteryListeners = new ArrayList<>();
-    private final List<LinkingDeviceManager.OnHumidityListener> mOnHumidityListeners = new ArrayList<>();
-    private final List<LinkingDeviceManager.OnTemperatureListener> mOnTemperatureListeners = new ArrayList<>();
-
-    private final List<LinkingDevice> mSensorDeviceHolders = new ArrayList<>();
-    private final List<LinkingDevice> mBatteryDeviceHolders = new ArrayList<>();
-    private final List<LinkingDevice> mHumidityDeviceHolders = new ArrayList<>();
-    private final List<LinkingDevice> mTemperatureDeviceHolders = new ArrayList<>();
+    private final Map<LinkingDevice, List<LinkingDeviceManager.OnSensorListener>> mSensorMap = new HashMap<>();
+    private final Map<LinkingDevice, List<LinkingDeviceManager.OnBatteryListener>> mBatteryMap = new HashMap<>();
+    private final Map<LinkingDevice, List<LinkingDeviceManager.OnHumidityListener>> mHumidityMap = new HashMap<>();
+    private final Map<LinkingDevice, List<LinkingDeviceManager.OnTemperatureListener>> mTemperatureMap = new HashMap<>();
 
     private NotifySensorData mNotifySensor;
     private Context mContext;
@@ -41,15 +38,10 @@ class LinkingNotifySensor {
     }
 
     public synchronized void release() {
-        mOnSensorListeners.clear();
-        mOnBatteryListeners.clear();
-        mOnHumidityListeners.clear();
-        mOnTemperatureListeners.clear();
-
-        mSensorDeviceHolders.clear();
-        mBatteryDeviceHolders.clear();
-        mHumidityDeviceHolders.clear();
-        mTemperatureDeviceHolders.clear();
+        mSensorMap.clear();
+        mBatteryMap.clear();
+        mHumidityMap.clear();
+        mTemperatureMap.clear();
 
         if (mNotifySensor != null) {
             if (BuildConfig.DEBUG) {
@@ -60,146 +52,206 @@ class LinkingNotifySensor {
         }
     }
 
-    public synchronized void startOrientation(final LinkingDevice device) {
-        if (mSensorDeviceHolders.contains(device)) {
+    public synchronized void enableListenOrientation(final LinkingDevice device,
+                                                     final LinkingDeviceManager.OnSensorListener listener) {
+        if (!device.isGyro() && !device.isAcceleration() && !device.isCompass()) {
             return;
         }
+
+        List<LinkingDeviceManager.OnSensorListener> listeners = mSensorMap.get(device);
+        if (listeners == null) {
+            listeners = new ArrayList<>();
+            mSensorMap.put(device, listeners);
+        } else if (listeners.contains(listener)) {
+            return;
+        }
+        listeners.add(listener);
+
+        if (listeners.size() > 1) {
+            if (BuildConfig.DEBUG) {
+                Log.i(TAG, device.getDisplayName() + " orientation is already running.");
+            }
+            return;
+        }
+
         if (BuildConfig.DEBUG) {
             Log.i(TAG, "LinkingNotifySensor:startOrientation: " + device.getDisplayName());
         }
 
-        mSensorDeviceHolders.add(device);
         startSensor(device.getBdAddress(), getSupportSensorType(device), 100);
     }
 
-    public synchronized void stopOrientation(final LinkingDevice device) {
+    public synchronized void disableListenOrientation(final LinkingDevice device,
+                                                      final LinkingDeviceManager.OnSensorListener listener) {
         if (BuildConfig.DEBUG) {
             Log.i(TAG, "LinkingNotifySensor:stopOrientation: " + device.getDisplayName());
         }
 
-        mSensorDeviceHolders.remove(device);
+        List<LinkingDeviceManager.OnSensorListener> listeners = mSensorMap.get(device);
+        if (listeners != null) {
+            if (listener == null) {
+                mSensorMap.remove(device);
+            } else {
+                listeners.remove(listener);
+                if (listeners.isEmpty()) {
+                    mSensorMap.remove(device);
+                }
+            }
+        }
+
         stopSensors(device);
     }
 
-    public synchronized boolean containsOrientation(final LinkingDevice device) {
-        return mSensorDeviceHolders.contains(device);
-    }
-
-    public synchronized void startBattery(final LinkingDevice device) {
-        if (mBatteryDeviceHolders.contains(device)) {
-            return;
-        }
-
+    public synchronized void enableListenBattery(final LinkingDevice device,
+                                                 final LinkingDeviceManager.OnBatteryListener listener) {
         if (!device.isBattery()) {
             return;
         }
 
-        int[] type = { LinkingSensorData.SensorType.BATTERY.getValue() };
-        mBatteryDeviceHolders.add(device);
-        startSensor(device.getBdAddress(), type, 100);
-    }
-
-    public synchronized void stopBattery(final LinkingDevice device) {
-        if (BuildConfig.DEBUG) {
-            Log.i(TAG, "LinkingNotifySensor#stopBattery: " + device.getDisplayName());
+        List<LinkingDeviceManager.OnBatteryListener> listeners = mBatteryMap.get(device);
+        if (listeners == null) {
+            listeners = new ArrayList<>();
+            mBatteryMap.put(device, listeners);
+        } else if (listeners.contains(listener)) {
+            return;
         }
+        listeners.add(listener);
 
-        mBatteryDeviceHolders.remove(device);
-        stopSensors(device);
-    }
-
-    public boolean containsBattery(final LinkingDevice device) {
-        return mBatteryDeviceHolders.contains(device);
-    }
-
-    public synchronized void startHumidity(final LinkingDevice device) {
-        if (mHumidityDeviceHolders.contains(device)) {
+        if (listeners.size() > 1) {
             return;
         }
 
+        int[] type = { LinkingSensorData.SensorType.BATTERY.getValue() };
+        startSensor(device.getBdAddress(), type, 100);
+    }
+
+    public synchronized void disableListenBattery(final LinkingDevice device,
+                                                  final LinkingDeviceManager.OnBatteryListener listener) {
+        if (BuildConfig.DEBUG) {
+            Log.i(TAG, "LinkingNotifySensor#disableListenBattery: " + device.getDisplayName());
+        }
+
+        List<LinkingDeviceManager.OnBatteryListener> listeners = mBatteryMap.get(device);
+        if (listeners != null) {
+            if (listener == null) {
+                mBatteryMap.remove(device);
+            } else {
+                listeners.remove(listener);
+                if (listeners.isEmpty()) {
+                    mBatteryMap.remove(device);
+                }
+            }
+        }
+
+        stopSensors(device);
+    }
+
+    public synchronized void enableListenHumidity(final LinkingDevice device,
+                                                  final LinkingDeviceManager.OnHumidityListener listener) {
         if (!device.isHumidity()) {
+            return;
+        }
+
+        List<LinkingDeviceManager.OnHumidityListener> listeners = mHumidityMap.get(device);
+        if (listeners == null) {
+            listeners = new ArrayList<>();
+            mHumidityMap.put(device, listeners);
+        } else if (listeners.contains(listener)) {
+            return;
+        }
+        listeners.add(listener);
+
+        if (listeners.size() > 1) {
             return;
         }
 
         int[] type = { LinkingSensorData.SensorType.HUMIDITY.getValue() };
-        mHumidityDeviceHolders.add(device);
         startSensor(device.getBdAddress(), type, 100);
     }
 
-    public synchronized void stopHumidity(final LinkingDevice device) {
+    public synchronized void disableListenHumidity(final LinkingDevice device,
+                                                   final LinkingDeviceManager.OnHumidityListener listener) {
         if (BuildConfig.DEBUG) {
-            Log.i(TAG, "LinkingNotifySensor#stopHumidity: " + device.getDisplayName());
+            Log.i(TAG, "LinkingNotifySensor#disableListenHumidity: " + device.getDisplayName());
         }
 
-        mHumidityDeviceHolders.remove(device);
+        List<LinkingDeviceManager.OnHumidityListener> listeners = mHumidityMap.get(device);
+        if (listeners != null) {
+            if (listener == null) {
+                mHumidityMap.remove(device);
+            } else {
+                listeners.remove(listener);
+                if (listeners.isEmpty()) {
+                    mHumidityMap.remove(device);
+                }
+            }
+        }
+
         stopSensors(device);
     }
 
-    public synchronized boolean containsHumidity(final LinkingDevice device) {
-        return mHumidityDeviceHolders.contains(device);
-    }
-
-    public synchronized void startTemperature(final LinkingDevice device) {
-        if (mTemperatureDeviceHolders.contains(device)) {
-            return;
-        }
-
+    public synchronized void enableListenTemperature(final LinkingDevice device,
+                                                     final LinkingDeviceManager.OnTemperatureListener listener) {
         if (!device.isHumidity()) {
             return;
         }
 
+        List<LinkingDeviceManager.OnTemperatureListener> listeners = mTemperatureMap.get(device);
+        if (listeners == null) {
+            listeners = new ArrayList<>();
+            mTemperatureMap.put(device, listeners);
+        } else if (listeners.contains(listener)) {
+            return;
+        }
+        listeners.add(listener);
+
+        if (listeners.size() > 1) {
+            return;
+        }
+
         int[] type = { LinkingSensorData.SensorType.TEMPERATURE.getValue() };
-        mTemperatureDeviceHolders.add(device);
         startSensor(device.getBdAddress(), type, 100);
     }
 
-    public synchronized void stopTemperature(final LinkingDevice device) {
+    public synchronized void disableListenTemperature(final LinkingDevice device,
+                                                      final LinkingDeviceManager.OnTemperatureListener listener) {
         if (BuildConfig.DEBUG) {
-            Log.i(TAG, "LinkingNotifySensor#stopTemperature: " + device.getDisplayName());
+            Log.i(TAG, "LinkingNotifySensor#disableListenTemperature: " + device.getDisplayName());
         }
 
-        mTemperatureDeviceHolders.remove(device);
+        List<LinkingDeviceManager.OnTemperatureListener> listeners = mTemperatureMap.get(device);
+        if (listeners != null) {
+            if (listener == null) {
+                mTemperatureMap.remove(device);
+            } else {
+                listeners.remove(listener);
+                if (listeners.isEmpty()) {
+                    mTemperatureMap.remove(device);
+                }
+            }
+        }
+
         stopSensors(device);
     }
 
-    public synchronized boolean containsTemperature(final LinkingDevice device) {
-        return mTemperatureDeviceHolders.contains(device);
+    private boolean containsOrientation(final LinkingDevice device) {
+        return mSensorMap.keySet().contains(device);
     }
 
-    public synchronized void addSensorListener(final LinkingDeviceManager.OnSensorListener listener) {
-        mOnSensorListeners.add(listener);
+    private boolean containsBattery(final LinkingDevice device) {
+        return mBatteryMap.keySet().contains(device);
     }
 
-    public synchronized void removeSensorListener(final LinkingDeviceManager.OnSensorListener listener) {
-        mOnSensorListeners.remove(listener);
+    private synchronized boolean containsHumidity(final LinkingDevice device) {
+        return mHumidityMap.keySet().contains(device);
     }
 
-    public synchronized void addBatteryListener(final LinkingDeviceManager.OnBatteryListener listener) {
-        mOnBatteryListeners.add(listener);
+    private synchronized boolean containsTemperature(final LinkingDevice device) {
+        return mTemperatureMap.keySet().contains(device);
     }
 
-    public synchronized void removeBatteryListener(final LinkingDeviceManager.OnBatteryListener listener) {
-        mOnBatteryListeners.remove(listener);
-    }
-
-    public synchronized void addHumidityListener(final LinkingDeviceManager.OnHumidityListener listener) {
-        mOnHumidityListeners.add(listener);
-    }
-
-    public synchronized void removeHumidityListener(final LinkingDeviceManager.OnHumidityListener listener) {
-        mOnHumidityListeners.remove(listener);
-    }
-
-    public synchronized void addTemperatureListener(final LinkingDeviceManager.OnTemperatureListener listener) {
-        mOnTemperatureListeners.add(listener);
-    }
-
-    public synchronized void removeTemperatureListener(final LinkingDeviceManager.OnTemperatureListener listener) {
-        mOnTemperatureListeners.remove(listener);
-    }
-
-    private synchronized LinkingDevice findDeviceFromSensorHolders(final String address) {
-        for (LinkingDevice device : mSensorDeviceHolders) {
+    private synchronized LinkingDevice findDeviceFromSensor(final String address) {
+        for (LinkingDevice device : mSensorMap.keySet()) {
             if (device.getBdAddress().equals(address)) {
                 return device;
             }
@@ -207,8 +259,8 @@ class LinkingNotifySensor {
         return null;
     }
 
-    private synchronized LinkingDevice findDeviceFromBatteryHolders(final String address) {
-        for (LinkingDevice device : mBatteryDeviceHolders) {
+    private synchronized LinkingDevice findDeviceFromBattery(final String address) {
+        for (LinkingDevice device : mBatteryMap.keySet()) {
             if (device.getBdAddress().equals(address)) {
                 return device;
             }
@@ -216,8 +268,8 @@ class LinkingNotifySensor {
         return null;
     }
 
-    private synchronized LinkingDevice findDeviceFromHumidityHolders(final String address) {
-        for (LinkingDevice device : mHumidityDeviceHolders) {
+    private synchronized LinkingDevice findDeviceFromHumidity(final String address) {
+        for (LinkingDevice device : mHumidityMap.keySet()) {
             if (device.getBdAddress().equals(address)) {
                 return device;
             }
@@ -225,8 +277,8 @@ class LinkingNotifySensor {
         return null;
     }
 
-    private synchronized LinkingDevice findDeviceFromTemperatureHolders(final String address) {
-        for (LinkingDevice device : mTemperatureDeviceHolders) {
+    private synchronized LinkingDevice findDeviceFromTemperature(final String address) {
+        for (LinkingDevice device : mTemperatureMap.keySet()) {
             if (device.getBdAddress().equals(address)) {
                 return device;
             }
@@ -256,7 +308,6 @@ class LinkingNotifySensor {
             }
         }
     }
-
 
     private void stopSensors(final LinkingDevice device) {
         if (containsBattery(device) || containsHumidity(device) ||
@@ -314,11 +365,6 @@ class LinkingNotifySensor {
             public synchronized void onSensorData(final String bd, final int type,
                                                   final float x, final float y, final float z,
                                                   final byte[] originalData, final long time) {
-                if (BuildConfig.DEBUG) {
-                    Log.i(TAG, "onSensorData:[" + bd + "] type:" + type + " time:" + time
-                            + "( x: " + x + " y: " + y + " z: " + z + ")");
-                }
-
                 mSensorData.setBdAddress(bd);
                 mSensorData.setX(x);
                 mSensorData.setY(y);
@@ -326,6 +372,10 @@ class LinkingNotifySensor {
                 mSensorData.setOriginalData(originalData);
                 mSensorData.setType(LinkingSensorData.SensorType.valueOf(type));
                 mSensorData.setTime(time);
+
+                if (BuildConfig.DEBUG) {
+                    Log.i(TAG, "onSensorData: " + mSensorData);
+                }
 
                 switch (mSensorData.getType()) {
                     case GYRO:
@@ -361,7 +411,7 @@ class LinkingNotifySensor {
                 if (BuildConfig.DEBUG) {
                     Log.e(TAG, "Not support battery sensor.");
                 }
-                LinkingDevice device = findDeviceFromBatteryHolders(bd);
+                LinkingDevice device = findDeviceFromBattery(bd);
                 if (device == null) {
                     if (BuildConfig.DEBUG) {
                         Log.w(TAG, "Not Found the device that address is " + bd);
@@ -376,7 +426,7 @@ class LinkingNotifySensor {
                 if (BuildConfig.DEBUG) {
                     Log.e(TAG, "Not support temperature sensor.");
                 }
-                LinkingDevice device = findDeviceFromTemperatureHolders(bd);
+                LinkingDevice device = findDeviceFromTemperature(bd);
                 if (device == null) {
                     if (BuildConfig.DEBUG) {
                         Log.w(TAG, "Not Found the device that address is " + bd);
@@ -392,7 +442,7 @@ class LinkingNotifySensor {
                     Log.e(TAG, "Not support humidity sensor.");
                 }
 
-                LinkingDevice device = findDeviceFromHumidityHolders(bd);
+                LinkingDevice device = findDeviceFromHumidity(bd);
                 if (device == null) {
                     if (BuildConfig.DEBUG) {
                         Log.w(TAG, "Not Found the device that address is " + bd);
@@ -404,7 +454,7 @@ class LinkingNotifySensor {
             }
 
             private void onOrientationSensor(final String bd) {
-                LinkingDevice device = findDeviceFromSensorHolders(bd);
+                LinkingDevice device = findDeviceFromSensor(bd);
                 if (device == null) {
                     if (BuildConfig.DEBUG) {
                         Log.w(TAG, "Not Found the device that address is " + bd);
@@ -417,25 +467,25 @@ class LinkingNotifySensor {
     }
 
     private synchronized void notifyOnChangeSensor(final LinkingDevice device, final LinkingSensorData data) {
-        for (LinkingDeviceManager.OnSensorListener listener : mOnSensorListeners) {
+        for (LinkingDeviceManager.OnSensorListener listener : mSensorMap.get(device)) {
             listener.onChangeSensor(device, data);
         }
     }
 
     private synchronized void notifyOnBattery(final LinkingDevice device, final boolean lowBatteryFlag, final float batteryLevel) {
-        for (LinkingDeviceManager.OnBatteryListener listener : mOnBatteryListeners) {
+        for (LinkingDeviceManager.OnBatteryListener listener : mBatteryMap.get(device)) {
             listener.onBattery(device, lowBatteryFlag, batteryLevel);
         }
     }
 
     private synchronized void notifyOnHumidity(final LinkingDevice device, final float humidity) {
-        for (LinkingDeviceManager.OnHumidityListener listener : mOnHumidityListeners) {
+        for (LinkingDeviceManager.OnHumidityListener listener : mHumidityMap.get(device)) {
             listener.onHumidity(device, humidity);
         }
     }
 
     private synchronized void notifyOnTemperature(final LinkingDevice device, final float temperature) {
-        for (LinkingDeviceManager.OnTemperatureListener listener : mOnTemperatureListeners) {
+        for (LinkingDeviceManager.OnTemperatureListener listener : mTemperatureMap.get(device)) {
             listener.onTemperature(device, temperature);
         }
     }

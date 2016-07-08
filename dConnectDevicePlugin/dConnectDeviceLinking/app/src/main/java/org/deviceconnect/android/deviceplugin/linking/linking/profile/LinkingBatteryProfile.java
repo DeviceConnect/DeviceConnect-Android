@@ -12,15 +12,14 @@ import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.linking.BuildConfig;
 import org.deviceconnect.android.deviceplugin.linking.LinkingApplication;
+import org.deviceconnect.android.deviceplugin.linking.LinkingDestroy;
 import org.deviceconnect.android.deviceplugin.linking.LinkingDevicePluginService;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingDevice;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingDeviceManager;
 import org.deviceconnect.android.deviceplugin.linking.linking.service.LinkingDeviceService;
-import org.deviceconnect.android.deviceplugin.linking.LinkingDestroy;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
-import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.BatteryProfile;
 import org.deviceconnect.android.profile.api.DConnectApi;
@@ -35,11 +34,7 @@ public class LinkingBatteryProfile extends BatteryProfile implements LinkingDest
 
     private static final String TAG = "LinkingPlugIn";
 
-    public LinkingBatteryProfile(final DConnectMessageService service) {
-        LinkingApplication app = (LinkingApplication) service.getApplication();
-        LinkingDeviceManager deviceManager = app.getLinkingDeviceManager();
-        deviceManager.addBatteryListener(mListener);
-
+    public LinkingBatteryProfile() {
         addApi(mGetAll);
         addApi(mGetLevel);
         addApi(mPutOnBatteryChange);
@@ -87,7 +82,7 @@ public class LinkingBatteryProfile extends BatteryProfile implements LinkingDest
 
             EventError error = EventManager.INSTANCE.addEvent(request);
             if (error == EventError.NONE) {
-                getLinkingDeviceManager().startBattery(device);
+                getLinkingDeviceManager().enableListenBattery(device, mListener);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else if (error == EventError.INVALID_PARAMETER) {
                 MessageUtils.setInvalidRequestParameterError(response);
@@ -114,7 +109,7 @@ public class LinkingBatteryProfile extends BatteryProfile implements LinkingDest
             EventError error = EventManager.INSTANCE.removeEvent(request);
             if (error == EventError.NONE) {
                 if (isEmptyEventList(device)) {
-                    getLinkingDeviceManager().stopBattery(device);
+                    getLinkingDeviceManager().disableListenBattery(device, mListener);
                 }
                 setResult(response, DConnectMessage.RESULT_OK);
             } else if (error == EventError.INVALID_PARAMETER) {
@@ -131,7 +126,7 @@ public class LinkingBatteryProfile extends BatteryProfile implements LinkingDest
         if (BuildConfig.DEBUG) {
             Log.i(TAG, "LinkingBatteryProfile#destroy: " + getService().getId());
         }
-        getLinkingDeviceManager().removeBatteryListener(mListener);
+        getLinkingDeviceManager().disableListenBattery(getDevice(), mListener);
     }
 
     private boolean getBattery(final Intent request, final Intent response) {
@@ -141,13 +136,10 @@ public class LinkingBatteryProfile extends BatteryProfile implements LinkingDest
         }
 
         final LinkingDeviceManager deviceManager = getLinkingDeviceManager();
-        deviceManager.addBatteryListener(new OnBatteryListenerImpl(device) {
+        deviceManager.enableListenBattery(device, new OnBatteryListenerImpl(device) {
             @Override
             public void onCleanup() {
-                if (isEmptyEventList(mDevice)) {
-                    deviceManager.stopBattery(mDevice);
-                }
-                deviceManager.removeBatteryListener(this);
+                deviceManager.disableListenBattery(mDevice, this);
             }
 
             @Override
@@ -171,7 +163,6 @@ public class LinkingBatteryProfile extends BatteryProfile implements LinkingDest
                 cleanup();
             }
         });
-        deviceManager.startBattery(device);
         return false;
     }
 
@@ -202,10 +193,6 @@ public class LinkingBatteryProfile extends BatteryProfile implements LinkingDest
     }
 
     private  void notifyBattery(final LinkingDevice device, final float batteryLevel) {
-        if (!device.equals(getDevice())) {
-            return;
-        }
-
         String serviceId = device.getBdAddress();
         List<Event> events = EventManager.INSTANCE.getEventList(serviceId,
                 PROFILE_NAME, null, ATTRIBUTE_ON_BATTERY_CHANGE);

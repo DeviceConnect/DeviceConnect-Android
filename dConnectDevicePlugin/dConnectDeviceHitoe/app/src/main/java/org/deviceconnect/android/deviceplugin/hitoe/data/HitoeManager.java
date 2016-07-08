@@ -319,7 +319,6 @@ public class HitoeManager {
     // ------------------------------------
     // Public Method
     // ------------------------------------
-
     /**
      * Set Hitoe Connection Listener.
      * @param l listener
@@ -511,15 +510,15 @@ public class HitoeManager {
             mDBHelper.updateHitoeDevice(mRegisterDevices.get(i));
             mRegisterDevices.get(i).setSessionId(null);
         }
+        scanHitoeDevice(false);
+
     }
     /**
      * Discovery hitoe device.
      */
     public void discoveryHitoeDevices() {
         StringBuilder paramStringBuilder = new StringBuilder();
-        if(HitoeConstants.GET_AVAILABLE_SENSOR_PARAM_SEARCH_TIME != -1) {
-            paramStringBuilder.append("search_time=" + String.valueOf(HitoeConstants.GET_AVAILABLE_SENSOR_PARAM_SEARCH_TIME));
-        }
+        paramStringBuilder.append("search_time=" + String.valueOf(HitoeConstants.GET_AVAILABLE_SENSOR_PARAM_SEARCH_TIME));
         mHitoeSdkAPI.getAvailableSensor(HitoeConstants.GET_AVAILABLE_SENSOR_DEVICE_TYPE, paramStringBuilder.toString());
 
         if (mRegisterDevices.size() > 0) {
@@ -542,26 +541,16 @@ public class HitoeManager {
             return;
         }
         StringBuilder paramBuilder = new StringBuilder();
-        if (HitoeConstants.CONNECT_DISCONNECT_RETRY_TIME > 0) {
-
-            paramBuilder.append("disconnect_retry_time=" + HitoeConstants.CONNECT_DISCONNECT_RETRY_TIME);
+        paramBuilder.append("disconnect_retry_time=" + HitoeConstants.CONNECT_DISCONNECT_RETRY_TIME);
+        if (paramBuilder.length() > 0) {
+            paramBuilder.append(HitoeConstants.BR);
         }
-        if (HitoeConstants.CONNECT_DISCONNECT_RETRY_COUNT > 0) {
-
-            if (paramBuilder.length() > 0) {
-                paramBuilder.append(HitoeConstants.BR);
-            }
-            paramBuilder.append("disconnect_retry_count=" + HitoeConstants.CONNECT_DISCONNECT_RETRY_COUNT);
+        paramBuilder.append("disconnect_retry_count=" + HitoeConstants.CONNECT_DISCONNECT_RETRY_COUNT);
+        if (paramBuilder.length() > 0) {
+            paramBuilder.append(HitoeConstants.BR);
         }
-        if (HitoeConstants.CONNECT_NOPACKET_RETRY_TIME > 0) {
-
-            if (paramBuilder.length() > 0) {
-                paramBuilder.append(HitoeConstants.BR);
-            }
-            paramBuilder.append("nopacket_retry_time=" + HitoeConstants.CONNECT_NOPACKET_RETRY_TIME);
-        }
+        paramBuilder.append("nopacket_retry_time=" + HitoeConstants.CONNECT_NOPACKET_RETRY_TIME);
         if(paramBuilder.length() > 0) {
-
             paramBuilder.append(HitoeConstants.BR);
         }
         paramBuilder.append("pincode=");
@@ -589,7 +578,7 @@ public class HitoeManager {
         current.setRegisterFlag(false);
         current.setSessionId(null);
         mDBHelper.updateHitoeDevice(current);
-        if (mRegisterDevices.size() > 0) {
+        if (mRegisterDevices.size() <= 0) {
             scanHitoeDevice(false);
         }
         for (OnHitoeConnectionListener l: mConnectionListeners) {
@@ -657,7 +646,7 @@ public class HitoeManager {
             if (sensorStr.length() == 0) {
                 continue;
             }
-            if (sensorStr.indexOf("memory_setting") < 0 && sensorStr.indexOf("memory_get") < 0) {
+            if (!sensorStr.contains("memory_setting") && !sensorStr.contains("memory_get")) {
                 HitoeDevice device = new HitoeDevice(sensorStr);
                 if (mRegisterDevices.size() == 0) {
                     mRegisterDevices.add(device);
@@ -764,45 +753,35 @@ public class HitoeManager {
 
                     paramStringBuilder.append(HitoeConstants.BR);
                 }
-                if (HitoeConstants.ADD_RECEIVER_PARAM_ECG_SAMPLING_INTERVAL != -1) {
-                    paramStringBuilder.append("raw.ecg_interval=" + String.valueOf(HitoeConstants.ADD_RECEIVER_PARAM_ECG_SAMPLING_INTERVAL));
-                }
+                paramStringBuilder.append("raw.ecg_interval=" + String.valueOf(HitoeConstants.ADD_RECEIVER_PARAM_ECG_SAMPLING_INTERVAL));
             } else if (keyList.get(i).equals("raw.acc")) {
 
                 if (paramStringBuilder.lastIndexOf(HitoeConstants.BR) != paramStringBuilder.length() - 1) {
 
                     paramStringBuilder.append(HitoeConstants.BR);
                 }
-                if (HitoeConstants.ADD_RECEIVER_PARAM_ACC_SAMPLING_INTERVAL != -1) {
-                    paramStringBuilder.append("raw.acc_interval=" + String.valueOf(HitoeConstants.ADD_RECEIVER_PARAM_ACC_SAMPLING_INTERVAL));
-                }
+                paramStringBuilder.append("raw.acc_interval=" + String.valueOf(HitoeConstants.ADD_RECEIVER_PARAM_ACC_SAMPLING_INTERVAL));
             } else if (keyList.get(i).equals("raw.rri")) {
 
                 if (paramStringBuilder.lastIndexOf(HitoeConstants.BR) != paramStringBuilder.length() - 1) {
 
                     paramStringBuilder.append(HitoeConstants.BR);
                 }
-                if (HitoeConstants.ADD_RECEIVER_PARAM_RRI_SAMPLING_INTERVAL != -1) {
-                    paramStringBuilder.append("raw.rri_interval=" + String.valueOf(HitoeConstants.ADD_RECEIVER_PARAM_RRI_SAMPLING_INTERVAL));
-                }
+                paramStringBuilder.append("raw.rri_interval=" + String.valueOf(HitoeConstants.ADD_RECEIVER_PARAM_RRI_SAMPLING_INTERVAL));
             } else if (keyList.get(i).equals("raw.hr")) {
 
                 if (paramStringBuilder.lastIndexOf(HitoeConstants.BR) != paramStringBuilder.length() - 1) {
 
                     paramStringBuilder.append(HitoeConstants.BR);
                 }
-                if (HitoeConstants.ADD_RECEIVER_PARAM_HR_SAMPLING_INTERVAL != -1) {
-                    paramStringBuilder.append("raw.hr_interval=" + String.valueOf(HitoeConstants.ADD_RECEIVER_PARAM_HR_SAMPLING_INTERVAL));
-                }
+                paramStringBuilder.append("raw.hr_interval=" + String.valueOf(HitoeConstants.ADD_RECEIVER_PARAM_HR_SAMPLING_INTERVAL));
             } else if (keyList.get(i).equals("raw.bat")) {
 
                 if (paramStringBuilder.lastIndexOf(HitoeConstants.BR) != paramStringBuilder.length() - 1) {
 
                     paramStringBuilder.append(HitoeConstants.BR);
                 }
-                if (HitoeConstants.ADD_RECEIVER_PARAM_BAT_SAMPLING_INTERVAL != -1) {
-                    paramStringBuilder.append("raw.bat_interval=" + String.valueOf(HitoeConstants.ADD_RECEIVER_PARAM_BAT_SAMPLING_INTERVAL));
-                }
+                paramStringBuilder.append("raw.bat_interval=" + String.valueOf(HitoeConstants.ADD_RECEIVER_PARAM_BAT_SAMPLING_INTERVAL));
             } else if (keyList.get(i).equals("raw.saved_hr") || keyList.get(i).equals("raw.saved_rri")) {
 
             } else {
@@ -941,83 +920,70 @@ public class HitoeManager {
 
             if(keyList.get(i).equals("ba.extracted_rri")) {
 
-                if(HitoeConstants.ADD_RECEIVER_PARAM_BA_SAMPLING_INTERVAL != -1 && paramStringBuilder.indexOf("ba.sampling_interval") == -1) {
+                if(paramStringBuilder.indexOf("ba.sampling_interval") == -1) {
                     if(paramStringBuilder.length() > 0 && paramStringBuilder.lastIndexOf(HitoeConstants.BR) != paramStringBuilder.length() - 1) {
 
                         paramStringBuilder.append(HitoeConstants.BR);
                     }
-                    paramStringBuilder.append("ba.sampling_interval="+String.valueOf(HitoeConstants.ADD_RECEIVER_PARAM_BA_SAMPLING_INTERVAL));
+                    paramStringBuilder.append("ba.sampling_interval=").append(String.valueOf(HitoeConstants.ADD_RECEIVER_PARAM_BA_SAMPLING_INTERVAL));
                 }
-                if(HitoeConstants.ADD_RECEIVER_PARAM_BA_ECG_THRESHHOLD != -1) {
-                    if(paramStringBuilder.length() > 0 && paramStringBuilder.lastIndexOf(HitoeConstants.BR) != paramStringBuilder.length() - 1) {
+                if(paramStringBuilder.length() > 0 && paramStringBuilder.lastIndexOf(HitoeConstants.BR) != paramStringBuilder.length() - 1) {
 
-                        paramStringBuilder.append(HitoeConstants.BR);
-                    }
-                    paramStringBuilder.append("ba.ecg_threshhold="+String.valueOf(HitoeConstants.ADD_RECEIVER_PARAM_BA_ECG_THRESHHOLD));
+                    paramStringBuilder.append(HitoeConstants.BR);
                 }
-                if(HitoeConstants.ADD_RECEIVER_PARAM_BA_SKIP_COUNT != -1) {
-                    if(paramStringBuilder.length() > 0 && paramStringBuilder.lastIndexOf(HitoeConstants.BR) != paramStringBuilder.length() - 1) {
+                paramStringBuilder.append("ba.ecg_threshhold="+String.valueOf(HitoeConstants.ADD_RECEIVER_PARAM_BA_ECG_THRESHHOLD));
+                if(paramStringBuilder.length() > 0 && paramStringBuilder.lastIndexOf(HitoeConstants.BR) != paramStringBuilder.length() - 1) {
 
-                        paramStringBuilder.append(HitoeConstants.BR);
-                    }
-                    paramStringBuilder.append("ba.ecg_skip_count="+String.valueOf(HitoeConstants.ADD_RECEIVER_PARAM_BA_SKIP_COUNT));
+                    paramStringBuilder.append(HitoeConstants.BR);
                 }
+                paramStringBuilder.append("ba.ecg_skip_count="+String.valueOf(HitoeConstants.ADD_RECEIVER_PARAM_BA_SKIP_COUNT));
 
             } else if(keyList.get(i).equals("ba.cleaned_rri")) {
 
-                if(HitoeConstants.ADD_RECEIVER_PARAM_BA_SAMPLING_INTERVAL != -1 && paramStringBuilder.indexOf("ba.sampling_interval") == -1) {
+                if(paramStringBuilder.indexOf("ba.sampling_interval") == -1) {
                     if(paramStringBuilder.length() > 0 && paramStringBuilder.lastIndexOf(HitoeConstants.BR) != paramStringBuilder.length() - 1) {
 
                         paramStringBuilder.append(HitoeConstants.BR);
                     }
                     paramStringBuilder.append("ba.sampling_interval="+String.valueOf(HitoeConstants.ADD_RECEIVER_PARAM_BA_SAMPLING_INTERVAL));
                 }
-                if(HitoeConstants.ADD_RECEIVER_PARAM_BA_RRI_MIN != -1) {
-                    if(paramStringBuilder.length() > 0 && paramStringBuilder.lastIndexOf(HitoeConstants.BR) != paramStringBuilder.length() - 1) {
+                if(paramStringBuilder.length() > 0 && paramStringBuilder.lastIndexOf(HitoeConstants.BR) != paramStringBuilder.length() - 1) {
 
-                        paramStringBuilder.append(HitoeConstants.BR);
-                    }
-                    paramStringBuilder.append("ba.rri_min="+String.valueOf(HitoeConstants.ADD_RECEIVER_PARAM_BA_RRI_MIN));
+                    paramStringBuilder.append(HitoeConstants.BR);
                 }
-                if(HitoeConstants.ADD_RECEIVER_PARAM_BA_RRI_MAX != -1) {
-                    if(paramStringBuilder.length() > 0 && paramStringBuilder.lastIndexOf(HitoeConstants.BR) != paramStringBuilder.length() - 1) {
+                paramStringBuilder.append("ba.rri_min="+String.valueOf(HitoeConstants.ADD_RECEIVER_PARAM_BA_RRI_MIN));
+                if(paramStringBuilder.length() > 0 && paramStringBuilder.lastIndexOf(HitoeConstants.BR) != paramStringBuilder.length() - 1) {
 
-                        paramStringBuilder.append(HitoeConstants.BR);
-                    }
-                    paramStringBuilder.append("ba.rri_max="+String.valueOf(HitoeConstants.ADD_RECEIVER_PARAM_BA_RRI_MAX));
+                    paramStringBuilder.append(HitoeConstants.BR);
                 }
-                if(HitoeConstants.ADD_RECEIVER_PARAM_BA_SAMPLE_COUNT != -1) {
-                    if(paramStringBuilder.length() > 0 && paramStringBuilder.lastIndexOf(HitoeConstants.BR) != paramStringBuilder.length() - 1) {
+                paramStringBuilder.append("ba.rri_max="+String.valueOf(HitoeConstants.ADD_RECEIVER_PARAM_BA_RRI_MAX));
+                if(paramStringBuilder.length() > 0 && paramStringBuilder.lastIndexOf(HitoeConstants.BR) != paramStringBuilder.length() - 1) {
 
-                        paramStringBuilder.append(HitoeConstants.BR);
-                    }
-                    paramStringBuilder.append("ba.sample_count="+String.valueOf(HitoeConstants.ADD_RECEIVER_PARAM_BA_SAMPLE_COUNT));
+                    paramStringBuilder.append(HitoeConstants.BR);
                 }
-                if(HitoeConstants.ADD_RECEIVER_PARAM_BA_RRI_INPUT != null) {
+                paramStringBuilder.append("ba.sample_count="+String.valueOf(HitoeConstants.ADD_RECEIVER_PARAM_BA_SAMPLE_COUNT));
+                if(paramStringBuilder.length() > 0 && paramStringBuilder.lastIndexOf(HitoeConstants.BR) != paramStringBuilder.length() - 1) {
 
-                    if(paramStringBuilder.length() > 0 && paramStringBuilder.lastIndexOf(HitoeConstants.BR) != paramStringBuilder.length() - 1) {
-
-                        paramStringBuilder.append(HitoeConstants.BR);
-                    }
-                    paramStringBuilder.append("ba.rri_input="+String.valueOf(HitoeConstants.ADD_RECEIVER_PARAM_BA_RRI_INPUT));
+                    paramStringBuilder.append(HitoeConstants.BR);
                 }
+                paramStringBuilder.append("ba.rri_input="+String.valueOf(HitoeConstants.ADD_RECEIVER_PARAM_BA_RRI_INPUT));
             } else if(keyList.get(i).equals("ba.interpolated_rri")) {
 
-                if (HitoeConstants.ADD_RECEIVER_PARAM_BA_FREQ_SAMPLING_INTERVAL != -1 && paramStringBuilder.indexOf("ba.freq_sampling_interval") == -1) {
+                if (paramStringBuilder.indexOf("ba.freq_sampling_interval") == -1) {
                     if(paramStringBuilder.length() > 0 && paramStringBuilder.lastIndexOf(HitoeConstants.BR) != paramStringBuilder.length() - 1) {
 
                         paramStringBuilder.append(HitoeConstants.BR);
                     }
                     paramStringBuilder.append("ba.freq_sampling_interval=" + String.valueOf(HitoeConstants.ADD_RECEIVER_PARAM_BA_FREQ_SAMPLING_INTERVAL));
                 }
-                if(HitoeConstants.ADD_RECEIVER_PARAM_BA_FREQ_SAMPLING_WINDOW != -1 && paramStringBuilder.indexOf("ba.freq_sampling_window") == -1) {
+                if(paramStringBuilder.indexOf("ba.freq_sampling_window") == -1) {
                     if (paramStringBuilder.length() > 0 && paramStringBuilder.lastIndexOf(HitoeConstants.BR) != paramStringBuilder.length() - 1) {
 
                         paramStringBuilder.append(HitoeConstants.BR);
                     }
                     paramStringBuilder.append("ba.freq_sampling_window="+String.valueOf(HitoeConstants.ADD_RECEIVER_PARAM_BA_FREQ_SAMPLING_WINDOW));
                 }
-                if(HitoeConstants.ADD_RECEIVER_PARAM_BA_RRI_SAMPLING_RATE != -1 && paramStringBuilder.indexOf("ba.rri_sampling_rate") == -1) {
+                if(paramStringBuilder.indexOf("ba.rri_sampling_rate") == -1) {
                     if(paramStringBuilder.length() > 0 && paramStringBuilder.lastIndexOf(HitoeConstants.BR) != paramStringBuilder.length() - 1) {
 
                         paramStringBuilder.append(HitoeConstants.BR);
@@ -1026,21 +992,21 @@ public class HitoeManager {
                 }
             } else if(keyList.get(i).equals("ba.freq_domain")) {
 
-                if (HitoeConstants.ADD_RECEIVER_PARAM_BA_FREQ_SAMPLING_INTERVAL != -1 && paramStringBuilder.indexOf("ba.freq_sampling_interval") == -1) {
+                if (paramStringBuilder.indexOf("ba.freq_sampling_interval") == -1) {
                     if(paramStringBuilder.length() > 0 && paramStringBuilder.lastIndexOf(HitoeConstants.BR) != paramStringBuilder.length() - 1) {
 
                         paramStringBuilder.append(HitoeConstants.BR);
                     }
                     paramStringBuilder.append("ba.freq_sampling_interval=" + String.valueOf(HitoeConstants.ADD_RECEIVER_PARAM_BA_FREQ_SAMPLING_INTERVAL));
                 }
-                if(HitoeConstants.ADD_RECEIVER_PARAM_BA_FREQ_SAMPLING_WINDOW != -1 && paramStringBuilder.indexOf("ba.freq_sampling_window") == -1) {
+                if(paramStringBuilder.indexOf("ba.freq_sampling_window") == -1) {
                     if (paramStringBuilder.length() > 0 && paramStringBuilder.lastIndexOf(HitoeConstants.BR) != paramStringBuilder.length() - 1) {
 
                         paramStringBuilder.append(HitoeConstants.BR);
                     }
                     paramStringBuilder.append("ba.freq_sampling_window="+String.valueOf(HitoeConstants.ADD_RECEIVER_PARAM_BA_FREQ_SAMPLING_WINDOW));
                 }
-                if(HitoeConstants.ADD_RECEIVER_PARAM_BA_RRI_SAMPLING_RATE != -1 && paramStringBuilder.indexOf("ba.rri_sampling_rate") == -1) {
+                if(paramStringBuilder.indexOf("ba.rri_sampling_rate") == -1) {
                     if(paramStringBuilder.length() > 0 && paramStringBuilder.lastIndexOf(HitoeConstants.BR) != paramStringBuilder.length() - 1) {
 
                         paramStringBuilder.append(HitoeConstants.BR);
@@ -1048,21 +1014,16 @@ public class HitoeManager {
                     paramStringBuilder.append("ba.rri_sampling_rate="+String.valueOf(HitoeConstants.ADD_RECEIVER_PARAM_BA_RRI_SAMPLING_RATE));
                 }
             } else if(keyList.get(i).equals("ba.time_domain")) {
+                if(paramStringBuilder.length() > 0 && paramStringBuilder.lastIndexOf(HitoeConstants.BR) != paramStringBuilder.length() - 1) {
 
-                if (HitoeConstants.ADD_RECEIVER_PARAM_BA_TIME_SAMPLING_INTERVAL != -1) {
-                    if(paramStringBuilder.length() > 0 && paramStringBuilder.lastIndexOf(HitoeConstants.BR) != paramStringBuilder.length() - 1) {
-
-                        paramStringBuilder.append(HitoeConstants.BR);
-                    }
-                    paramStringBuilder.append("ba.time_sampling_interval=" + String.valueOf(HitoeConstants.ADD_RECEIVER_PARAM_BA_TIME_SAMPLING_INTERVAL));
+                    paramStringBuilder.append(HitoeConstants.BR);
                 }
-                if(HitoeConstants.ADD_RECEIVER_PARAM_BA_TIME_SAMPLING_WINDOW != -1) {
-                    if(paramStringBuilder.length() > 0 && paramStringBuilder.lastIndexOf(HitoeConstants.BR) != paramStringBuilder.length() - 1) {
+                paramStringBuilder.append("ba.time_sampling_interval=" + String.valueOf(HitoeConstants.ADD_RECEIVER_PARAM_BA_TIME_SAMPLING_INTERVAL));
+                if(paramStringBuilder.length() > 0 && paramStringBuilder.lastIndexOf(HitoeConstants.BR) != paramStringBuilder.length() - 1) {
 
-                        paramStringBuilder.append(HitoeConstants.BR);
-                    }
-                    paramStringBuilder.append("ba.time_sampling_window="+String.valueOf(HitoeConstants.ADD_RECEIVER_PARAM_BA_TIME_SAMPLING_WINDOW));
+                    paramStringBuilder.append(HitoeConstants.BR);
                 }
+                paramStringBuilder.append("ba.time_sampling_window="+String.valueOf(HitoeConstants.ADD_RECEIVER_PARAM_BA_TIME_SAMPLING_WINDOW));
             }
         }
 
@@ -1113,71 +1074,46 @@ public class HitoeManager {
             }
             dataStringBuilder.append(dataList.get(i));
         }
+        if (keyString.equals("ex.posture")) {
 
-        if(keyString.equals("ex.stress")) {
+            if(paramStringBuilder.length() > 0) {
 
-
-        } else if(keyString.equals("ex.posture")) {
-
-            if(HitoeConstants.ADD_RECEIVER_PARAM_EX_ACC_AXIS_XYZ != null) {
-
-                if(paramStringBuilder.length() > 0) {
-
-                    paramStringBuilder.append(HitoeConstants.BR);
-                }
-                paramStringBuilder.append("ex.acc_axis_xyz="+HitoeConstants.ADD_RECEIVER_PARAM_EX_ACC_AXIS_XYZ);
+                paramStringBuilder.append(HitoeConstants.BR);
             }
-            if(HitoeConstants.ADD_RECEIVER_PARAM_EX_POSTURE_WINDOW != -1) {
+            paramStringBuilder.append("ex.acc_axis_xyz="+HitoeConstants.ADD_RECEIVER_PARAM_EX_ACC_AXIS_XYZ);
+            if(paramStringBuilder.length() > 0) {
 
-                if(paramStringBuilder.length() > 0) {
-
-                    paramStringBuilder.append(HitoeConstants.BR);
-                }
-                paramStringBuilder.append("ex.posture_window="+HitoeConstants.ADD_RECEIVER_PARAM_EX_POSTURE_WINDOW);
+                paramStringBuilder.append(HitoeConstants.BR);
             }
+            paramStringBuilder.append("ex.posture_window="+HitoeConstants.ADD_RECEIVER_PARAM_EX_POSTURE_WINDOW);
         } else if(keyString.equals("ex.walk")) {
+            if(paramStringBuilder.length() > 0) {
 
-            if(HitoeConstants.ADD_RECEIVER_PARAM_EX_ACC_AXIS_XYZ != null) {
-
-                if(paramStringBuilder.length() > 0) {
-
-                    paramStringBuilder.append(HitoeConstants.BR);
-                }
-                paramStringBuilder.append("ex.acc_axis_xyz="+HitoeConstants.ADD_RECEIVER_PARAM_EX_ACC_AXIS_XYZ);
+                paramStringBuilder.append(HitoeConstants.BR);
             }
-            if(HitoeConstants.ADD_RECEIVER_PARAM_EX_WALK_STRIDE != -1) {
+            paramStringBuilder.append("ex.acc_axis_xyz="+HitoeConstants.ADD_RECEIVER_PARAM_EX_ACC_AXIS_XYZ);
+            if(paramStringBuilder.length() > 0) {
 
-                if(paramStringBuilder.length() > 0) {
-
-                    paramStringBuilder.append(HitoeConstants.BR);
-                }
-                paramStringBuilder.append("ex.walk_stride="+HitoeConstants.ADD_RECEIVER_PARAM_EX_WALK_STRIDE);
+                paramStringBuilder.append(HitoeConstants.BR);
             }
-            if(HitoeConstants.ADD_RECEIVER_PARAM_EX_RUN_STRIDE_COF != -1) {
+            paramStringBuilder.append("ex.walk_stride="+HitoeConstants.ADD_RECEIVER_PARAM_EX_WALK_STRIDE);
+            if(paramStringBuilder.length() > 0) {
 
-                if(paramStringBuilder.length() > 0) {
-
-                    paramStringBuilder.append(HitoeConstants.BR);
-                }
-                paramStringBuilder.append("ex.run_stride_cof="+HitoeConstants.ADD_RECEIVER_PARAM_EX_RUN_STRIDE_COF);
+                paramStringBuilder.append(HitoeConstants.BR);
             }
-            if(HitoeConstants.ADD_RECEIVER_PARAM_EX_RUN_STRIDE_INT != -1) {
+            paramStringBuilder.append("ex.run_stride_cof="+HitoeConstants.ADD_RECEIVER_PARAM_EX_RUN_STRIDE_COF);
+            if(paramStringBuilder.length() > 0) {
 
-                if(paramStringBuilder.length() > 0) {
-
-                    paramStringBuilder.append(HitoeConstants.BR);
-                }
-                paramStringBuilder.append("ex.run_stride_int="+HitoeConstants.ADD_RECEIVER_PARAM_EX_RUN_STRIDE_INT);
+                paramStringBuilder.append(HitoeConstants.BR);
             }
+            paramStringBuilder.append("ex.run_stride_int="+HitoeConstants.ADD_RECEIVER_PARAM_EX_RUN_STRIDE_INT);
         } else if(keyString.equals("ex.lr_balance")) {
-            if(HitoeConstants.ADD_RECEIVER_PARAM_EX_ACC_AXIS_XYZ != null) {
 
-                if(paramStringBuilder.length() > 0) {
+            if(paramStringBuilder.length() > 0) {
 
-                    paramStringBuilder.append(HitoeConstants.BR);
-                }
-                paramStringBuilder.append("ex.acc_axis_xyz="+HitoeConstants.ADD_RECEIVER_PARAM_EX_ACC_AXIS_XYZ);
+                paramStringBuilder.append(HitoeConstants.BR);
             }
+            paramStringBuilder.append("ex.acc_axis_xyz="+HitoeConstants.ADD_RECEIVER_PARAM_EX_ACC_AXIS_XYZ);
         }
 
         paramString = paramStringBuilder.toString();
@@ -1195,8 +1131,6 @@ public class HitoeManager {
                 mLockForEx.unlock();
             }
         }
-
-        return;
     }
 
     /**
@@ -1341,8 +1275,6 @@ public class HitoeManager {
                 mLockForEx.unlock();
             }
         }
-
-        return;
     }
     /**
      * Extract health data.
@@ -1409,7 +1341,7 @@ public class HitoeManager {
 
         ArrayList<String> workList = new ArrayList<String>();
 
-        for(int i=0; i < lineList.length; i++) {
+        for (int i=0; i < lineList.length; i++) {
 
             if(receiveDevice.getAvailableExDataList().contains("ex.posture")) {
                 try {
@@ -1543,7 +1475,7 @@ public class HitoeManager {
             mIsCallbackRunning = true;
             mNowTimestamps.clear();
             for (HitoeDevice heart: mRegisterDevices) {
-                mNowTimestamps.put(heart, new Long(System.currentTimeMillis()));
+                mNowTimestamps.put(heart, System.currentTimeMillis());
             }
             mScanTimerFuture = mExecutor.scheduleAtFixedRate(new Runnable() {
                 @Override

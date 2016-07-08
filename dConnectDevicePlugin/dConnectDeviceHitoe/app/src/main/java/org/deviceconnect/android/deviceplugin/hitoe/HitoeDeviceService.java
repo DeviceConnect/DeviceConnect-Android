@@ -135,10 +135,15 @@ public class HitoeDeviceService extends DConnectMessageService {
     @Override
     protected void onManagerUninstalled() {
         if (BuildConfig.DEBUG) {
-            Log.d(TAG, "onManagerUninstalled");
+            Log.d(TAG, "start-onManagerUninstalled");
         }
+        getManager().stop();
         EventManager.INSTANCE.removeAll();
         removeAllServices();
+        if (BuildConfig.DEBUG) {
+            Log.d(TAG, "end-onManagerUninstalled");
+        }
+
     }
 
     @Override
@@ -146,7 +151,6 @@ public class HitoeDeviceService extends DConnectMessageService {
         if (BuildConfig.DEBUG) {
             Log.d(TAG, "onManagerTerminated");
         }
-
         EventManager.INSTANCE.removeAll();
         removeAllServices();
     }

@@ -1,55 +1,67 @@
 package org.deviceconnect.android.manager.compat;
 
 import android.content.Intent;
+import android.os.Bundle;
+import android.os.Parcelable;
 
 import org.deviceconnect.android.compat.MessageConverter;
-import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
-import org.deviceconnect.profile.ServiceInformationProfileConstants;
 
-public class ServiceDiscoveryConverter implements MessageConverter {
+import java.util.ArrayList;
+import java.util.List;
+
+public class ServiceDiscoveryConverter implements MessageConverter,
+    ServiceDiscoveryProfileConstants {
 
     @Override
     public boolean convert(final Intent message) {
         if (!isResponse(message)) {
             return false;
         }
-        if (!isServiceDiscoveryResponse(message)) {
-            return false;
-        }
-        return convertSupportsParam(message);
+        convertSupportsParam(message);
+        return true;
     }
 
     private boolean isResponse(final Intent message) {
-        String method = message.getStringExtra(IntentDConnectMessage.EXTRA_METHOD);
-        return IntentDConnectMessage.ACTION_RESPONSE.equals(method);
+        String action = message.getAction();
+        return IntentDConnectMessage.ACTION_RESPONSE.equals(action);
     }
 
-    private boolean isServiceDiscoveryResponse(final Intent message) {
-        String profile = message.getStringExtra(DConnectMessage.EXTRA_PROFILE);
-        return ServiceDiscoveryProfileConstants.PROFILE_NAME.equalsIgnoreCase(profile);
-    }
-
-    private boolean convertSupportsParam(final Intent response) {
-        final String key = ServiceInformationProfileConstants.PARAM_SUPPORTS;
-        if (!response.hasExtra(key)) {
-            return false;
+    private void convertSupportsParam(final Intent response) {
+        Bundle[] serviceBundles = getBundleExtra(response, PARAM_SERVICES);
+        if (serviceBundles == null) {
+            return;
         }
-        Object array = response.getParcelableArrayExtra(key);
-        if (array instanceof String[]) {
-            String[] supports = (String[]) array;
-            for (int i = 0; i < supports.length; i++) {
-                String profileName = supports[i];
-                String forward = PathConversionTable.forwardProfileName(profileName);
-                if (forward != null) {
-                    supports[i] = forward;
+        for (Bundle serviceBundle : serviceBundles) {
+            String[] supportsParam = serviceBundle.getStringArray(PARAM_SCOPES);
+            if (supportsParam != null) {
+                for (int i = 0; i < supportsParam.length; i++) {
+                    String profileName = supportsParam[i];
+                    String forward = PathConversionTable.forwardProfileName(profileName);
+                    if (forward != null) {
+                        supportsParam[i] = forward;
+                    }
                 }
+                response.putExtra(PARAM_SCOPES, supportsParam);
             }
-            response.putExtra(key, supports);
-            return true;
-        } else {
-            return false;
         }
+    }
+
+    private Bundle[] getBundleExtra(final Intent intent, final String key) {
+        return getBundleExtra(intent.getParcelableArrayExtra(key));
+    }
+
+    private Bundle[] getBundleExtra(final Parcelable[] parcelables) {
+        if (parcelables == null) {
+            return null;
+        }
+        List<Bundle> bundleList = new ArrayList<Bundle>();
+        for (Parcelable parcelable : parcelables) {
+            if (parcelable instanceof Bundle) {
+                bundleList.add((Bundle) parcelable);
+            }
+        }
+        return bundleList.toArray(new Bundle[bundleList.size()]);
     }
 }

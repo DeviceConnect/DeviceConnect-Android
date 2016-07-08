@@ -149,12 +149,7 @@ public class SettingFragment extends Fragment implements SlackManager.SlackEvent
     }
 
     @Override
-    public void OnReceiveSlackMessage(String text, String channel, String user, String ts) {
-
-    }
-
-    @Override
-    public void OnReceiveSlackFile(String comment, String channel, String user, String ts, String url, String mimeType) {
+    public void OnReceiveSlackMessage(SlackManager.HistoryInfo info) {
 
     }
 }

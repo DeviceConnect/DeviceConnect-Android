@@ -16,9 +16,11 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AbsListView;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -52,12 +54,21 @@ import okhttp3.Response;
 /**
  * メッセージ一覧画面のFragment
  */
-public class MessageListFragment extends ListFragment {
+public class MessageListFragment extends ListFragment implements SlackManager.SlackEventListener {
 
     /** アダプター */
-    private MessageAdapter adapter;
+    private MessageAdapter mAdapter;
     /** Picasso */
-    private Picasso picasso;
+    private Picasso mPicasso;
+    /** ChannelID */
+    private String mChannelId;
+    /** ユーザー情報 */
+    private HashMap<String, SlackManager.ListInfo> mUserMap;
+    /** 最後のセルを表示中かどうか */
+    private boolean isLastCell = false;
+
+    //---------------------------------------------------------------------------------------
+    //region View
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -66,9 +77,23 @@ public class MessageListFragment extends ListFragment {
         final TextView emptyText = (TextView)view.findViewById(android.R.id.empty);
         TextView titleText = (TextView)view.findViewById(R.id.textViewTitle);
 
-        final String token = Utils.getAccessToken(context);
+        // スクリールイベント
+        ListView listView = (ListView) view.findViewById(android.R.id.list);
+        listView.setOnScrollListener(new AbsListView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(AbsListView view, int scrollState) {}
+            @Override
+            public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+                // 最後のセルを表示した
+                isLastCell = (totalItemCount != 0 && totalItemCount == firstVisibleItem + visibleItemCount);
+            }
+        });
+
+        // イベントリスナーを登録
+        SlackManager.INSTANCE.addSlackEventListener(this);
 
         // Picassoで認証するためにヘッダを追加
+        final String token = Utils.getAccessToken(context);
         OkHttpClient httpClient = new OkHttpClient.Builder().cache(new Cache(context.getCacheDir(), Integer.MAX_VALUE)).addInterceptor(new Interceptor() {
             @Override
             public Response intercept(Chain chain) throws IOException {
@@ -78,15 +103,15 @@ public class MessageListFragment extends ListFragment {
                 return chain.proceed(newRequest);
             }
         }).build();
-        picasso = new Picasso.Builder(context)
+        mPicasso = new Picasso.Builder(context)
                 .downloader(new OkHttp3Downloader(httpClient))
                 .build();
-        picasso.setIndicatorsEnabled(true);
+        mPicasso.setIndicatorsEnabled(true);
 
         // パラメータ取得
         Bundle bundle = getArguments();
         String title = bundle.getString("name");
-        final String channel = bundle.getString("id");
+        mChannelId = bundle.getString("id");
         // タイトル設定
         titleText.setText(title);
 
@@ -114,7 +139,7 @@ public class MessageListFragment extends ListFragment {
                 });
 
                 // 履歴を取得
-                SlackManager.INSTANCE.getHistory(channel, new SlackManager.FinishCallback<ArrayList<SlackManager.HistoryInfo>>() {
+                SlackManager.INSTANCE.getHistory(mChannelId, new SlackManager.FinishCallback<ArrayList<SlackManager.HistoryInfo>>() {
                     @Override
                     public void onFinish(ArrayList<SlackManager.HistoryInfo> historyInfos, Exception error) {
                         if (error == null) {
@@ -138,44 +163,13 @@ public class MessageListFragment extends ListFragment {
                 final ArrayList histories = resMap.get("history");
                 if (users != null && histories != null) {
                     // UserをHashMapへ
-                    HashMap<String, SlackManager.ListInfo> userMap = new HashMap<>();
+                    mUserMap = new HashMap<>();
                     for (Object obj : users) {
                         SlackManager.ListInfo info = (SlackManager.ListInfo)obj;
-                        userMap.put(info.id, info);
+                        mUserMap.put(info.id, info);
                     }
                     for (Object obj : histories) {
-                        SlackManager.HistoryInfo history = (SlackManager.HistoryInfo)obj;
-                        // 名前とアイコン
-                        SlackManager.ListInfo info = userMap.get(history.user);
-                        if (info != null) {
-                            history.name = info.name;
-                            history.icon = info.icon;
-                        }
-                        // メンション処理
-                        if (history.text == null) continue;
-                        Pattern p = Pattern.compile("<@(\\w*)>");
-                        Matcher m = p.matcher(history.text);
-                        StringBuffer sb = new StringBuffer();
-                        while (m.find()) {
-                            String uid = m.group(1);
-                            info = userMap.get(uid);
-                            if (info != null) {
-                                m.appendReplacement(sb, "@" + info.name);
-                            } else {
-                                m.appendReplacement(sb, m.group());
-                            }
-                        }
-                        m.appendTail(sb);
-                        history.text = sb.toString();
-                        // <@UserID|UserName>の形式をUserNameのみに置き換え
-                        p = Pattern.compile("<@\\w*\\|([\\w._-]*)>");
-                        m = p.matcher(history.text);
-                        sb = new StringBuffer();
-                        if (m.find()) {
-                            m.appendReplacement(sb, m.group(1));
-                        }
-                        m.appendTail(sb);
-                        history.text = sb.toString();
+                        formatHistory((SlackManager.HistoryInfo)obj);
                     }
 
                     // 表示順を逆順に
@@ -185,8 +179,8 @@ public class MessageListFragment extends ListFragment {
                         @Override
                         public void run() {
                             // アダプターを生成
-                            adapter = new MessageAdapter(context, histories);
-                            setListAdapter(adapter);
+                            mAdapter = new MessageAdapter(context, histories);
+                            setListAdapter(mAdapter);
                             // 最後の行を表示
                             getListView().setSelection(histories.size());
                         }
@@ -221,23 +215,96 @@ public class MessageListFragment extends ListFragment {
         return view;
     }
 
+    @Override
+    public void onDestroyView() {
+        // イベントリスナーを解除
+        SlackManager.INSTANCE.removeSlackEventListener(this);
+        super.onDestroyView();
+    }
+
+    //endregion
+    //---------------------------------------------------------------------------------------
+    //region SlackEvent
+
+    @Override
+    public void OnConnect() {
+
+    }
+
+    @Override
+    public void OnReceiveSlackMessage(SlackManager.HistoryInfo info) {
+        if (!info.channel.equals(mChannelId)) return;
+        formatHistory(info);
+        mAdapter.add(info);
+        mAdapter.notifyDataSetChanged();
+        if (isLastCell) {
+            // 最後の行を表示
+            getListView().setSelection(mAdapter.getCount());
+        }
+    }
+
+    //endregion
+    //---------------------------------------------------------------------------------------
+    //region etc.
+
     /**
-     * アダプター
+     * 履歴情報をフォーマットする
+     * @param history 履歴
+     */
+    private void formatHistory(SlackManager.HistoryInfo history) {
+        // 名前とアイコン
+        SlackManager.ListInfo info = mUserMap.get(history.user);
+        if (info != null) {
+            history.name = info.name;
+            history.icon = info.icon;
+        }
+        // メンション処理
+        if (history.text == null) return;
+        Pattern p = Pattern.compile("<@(\\w*)>");
+        Matcher m = p.matcher(history.text);
+        StringBuffer sb = new StringBuffer();
+        while (m.find()) {
+            String uid = m.group(1);
+            info = mUserMap.get(uid);
+            if (info != null) {
+                m.appendReplacement(sb, "@" + info.name);
+            } else {
+                m.appendReplacement(sb, m.group());
+            }
+        }
+        m.appendTail(sb);
+        history.text = sb.toString();
+        // <@UserID|UserName>の形式をUserNameのみに置き換え
+        p = Pattern.compile("<@\\w*\\|([\\w._-]*)>");
+        m = p.matcher(history.text);
+        sb = new StringBuffer();
+        if (m.find()) {
+            m.appendReplacement(sb, m.group(1));
+        }
+        m.appendTail(sb);
+        history.text = sb.toString();
+    }
+
+    /**
+     * 履歴リストアダプター
      */
     public class MessageAdapter extends BaseAdapter {
 
-        List<SlackManager.HistoryInfo> list = null;
-        LayoutInflater inflater;
-        static final int resource = R.layout.list_item_message;
+        /** ListItemのID */
+        static final int sResource = R.layout.list_item_message;
+        /** 履歴リスト */
+        List<SlackManager.HistoryInfo> mList = null;
+        /** inflater */
+        LayoutInflater mInflater;
 
         @Override
         public int getCount() {
-            return list.size();
+            return mList.size();
         }
 
         @Override
         public SlackManager.HistoryInfo getItem(int position) {
-            return list.get(position);
+            return mList.get(position);
         }
 
         @Override
@@ -246,15 +313,23 @@ public class MessageListFragment extends ListFragment {
         }
 
         public MessageAdapter(Context context, List<SlackManager.HistoryInfo> list) {
-            this.list = list;
-            this.inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            this.mList = list;
+            this.mInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        }
+
+        /**
+         * 履歴を追加する
+         * @param info 履歴
+         */
+        public void add(SlackManager.HistoryInfo info) {
+            mList.add(info);
         }
 
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
             View v = convertView;
             if (v == null) {
-                v = inflater.inflate(resource, parent, false);
+                v = mInflater.inflate(sResource, parent, false);
             }
             Context context = v.getContext();
             SlackManager.HistoryInfo info = this.getItem(position);
@@ -309,19 +384,19 @@ public class MessageListFragment extends ListFragment {
             }
             textDate.setText(format.format(date));
             // アイコン
-            picasso.cancelRequest(iconImage);
+            mPicasso.cancelRequest(iconImage);
             if (info.icon != null) {
-                picasso.load(info.icon).into(iconImage);
+                mPicasso.load(info.icon).into(iconImage);
 
             } else {
                 iconImage.setImageResource(R.drawable.slack_icon);
             }
             // イメージ
-            picasso.cancelRequest(imageImage);
-            if (info.file != null) {
+            mPicasso.cancelRequest(imageImage);
+            if (info.thumb != null) {
                 imageImage.setVisibility(View.VISIBLE);
-                imageImage.setLayoutParams(new LinearLayout.LayoutParams(info.width, info.height));
-                picasso.load(info.file).into(imageImage);
+                imageImage.setLayoutParams(new LinearLayout.LayoutParams(info.thumbWidth, info.thumbHeight));
+                mPicasso.load(info.thumb).into(imageImage);
             } else {
                 imageImage.setVisibility(View.GONE);
             }
@@ -329,4 +404,6 @@ public class MessageListFragment extends ListFragment {
             return v;
         }
     }
+    //endregion
+    //---------------------------------------------------------------------------------------
 }

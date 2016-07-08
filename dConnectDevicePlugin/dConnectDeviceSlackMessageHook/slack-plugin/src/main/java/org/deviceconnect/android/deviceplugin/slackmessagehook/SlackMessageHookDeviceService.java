@@ -91,13 +91,8 @@ public class SlackMessageHookDeviceService extends DConnectMessageService implem
     }
 
     @Override
-    public void OnReceiveSlackMessage(String text, String channel, String user, String ts) {
-        sendMessageEvent(text, channel, user, ts, null, null);
-    }
-
-    @Override
-    public void OnReceiveSlackFile(String comment, String channel, String user, String ts, String url, String mimeType) {
-        sendMessageEvent(comment, channel, user, ts, url, mimeType);
+    public void OnReceiveSlackMessage(SlackManager.HistoryInfo info) {
+        sendMessageEvent(info.text, info.channel, info.user, info.ts, info.file, info.mimetype);
     }
 
 
@@ -110,7 +105,7 @@ public class SlackMessageHookDeviceService extends DConnectMessageService implem
      * @param url リソースURL
      * @param mimeType MimeType
      */
-    private void sendMessageEvent(String text, String channel, String user, String ts, String url, String mimeType) {
+    private void sendMessageEvent(String text, String channel, String user, Double ts, String url, String mimeType) {
         String serviceId = SlackMessageHookServiceDiscoveryProfile.SERVICE_ID;
         String profile = SlackMessageHookProfile.PROFILE_NAME;
         String attribute = SlackMessageHookProfile.ATTRIBUTE_MESSAGE;
@@ -124,7 +119,7 @@ public class SlackMessageHookDeviceService extends DConnectMessageService implem
                 message.putString("channelId", channel);
 
                 // TimeStampは少数以下切り捨て
-                double time = Double.parseDouble(ts);
+                double time = ts;
                 message.putLong("timeStamp", (long)time);
 
                 // 送信者情報を変換

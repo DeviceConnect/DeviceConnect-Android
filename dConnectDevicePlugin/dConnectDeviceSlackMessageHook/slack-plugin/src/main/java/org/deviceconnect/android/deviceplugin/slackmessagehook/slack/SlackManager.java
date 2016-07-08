@@ -111,23 +111,9 @@ public class SlackManager {
 
         /**
          * メッセージを受信したイベント.
-         * @param text メッセージ
-         * @param channel チャンネル
-         * @param user ユーザー
-         * @param ts タイムスタンプ
+         * @param info メッセージ
          */
-        void OnReceiveSlackMessage(String text, String channel, String user, String ts);
-
-        /**
-         * ファイルアップロードを受信したイベント
-         * @param comment コメント
-         * @param channel チャンネル
-         * @param user ユーザー
-         * @param ts タイムスタンプ
-         * @param url リソースURL
-         * @param mimeType MimeType
-         */
-        void OnReceiveSlackFile(String comment, String channel, String user, String ts, String url, String mimeType);
+        void OnReceiveSlackMessage(HistoryInfo info);
     }
 
     /** Slackイベントリスナー */
@@ -473,41 +459,46 @@ public class SlackManager {
                             case "message":
                                 if (!json.has("subtype")) {
                                     // subtypeが無いものが純粋なメッセージ
-                                    final String text = json.getString("text");
-                                    final String channel = json.getString("channel");
-                                    final String user = json.getString("user");
-                                    final String ts = json.getString("ts");
+                                    final HistoryInfo info = new HistoryInfo();
+                                    info.text = json.getString("text");
+                                    info.channel = json.getString("channel");
+                                    info.user = json.getString("user");
+                                    info.ts = json.getDouble("ts");
                                     for (final SlackEventListener listener: slackEventListeners){
                                         handler.post(new Runnable() {
                                             public void run() {
-                                                listener.OnReceiveSlackMessage(text, channel, user, ts);
+                                                listener.OnReceiveSlackMessage(info);
                                             }
                                         });
                                     }
                                 } else if (json.getString("subtype").equals("file_share")) {
                                     // ファイルアップロード
-                                    final String channel = json.getString("channel");
-                                    final String user = json.getString("user");
-                                    final String ts = json.getString("ts");
-                                    String text = null;
-                                    String url = null;
-                                    String mimetype = null;
+                                    final HistoryInfo info = new HistoryInfo();
+                                    info.channel = json.getString("channel");
+                                    info.user = json.getString("user");
+                                    info.ts = json.getDouble("ts");
                                     if(json.has("file")) {
                                         JSONObject file = json.getJSONObject("file");
-                                        mimetype = file.getString("mimetype");
-                                        url = file.getString("url_private");
+                                        info.mimetype = file.getString("mimetype");
+                                        info.file = file.getString("url_private");
                                         if(file.has("initial_comment")) {
                                             JSONObject comment = file.getJSONObject("initial_comment");
-                                            text = comment.getString("comment");
+                                            info.text = comment.getString("comment");
+                                        }
+                                        if (file.has("thumb_360")) {
+                                            info.thumb = file.getString("thumb_360");
+                                        }
+                                        if (file.has("thumb_360_h")) {
+                                            info.thumbHeight = file.getInt("thumb_360_h");
+                                        }
+                                        if (file.has("thumb_360_w")) {
+                                            info.thumbWidth = file.getInt("thumb_360_w");
                                         }
                                     }
-                                    final String finalUrl = url;
-                                    final String finalMimetype = mimetype;
-                                    final String finalText = text;
                                     for (final SlackEventListener listener: slackEventListeners){
                                         handler.post(new Runnable() {
                                             public void run() {
-                                                listener.OnReceiveSlackFile(finalText, channel, user, ts, finalUrl, finalMimetype);
+                                                listener.OnReceiveSlackMessage(info);
                                             }
                                         });
                                     }
@@ -573,15 +564,18 @@ public class SlackManager {
     /**
      * 受け渡し情報
      */
-    public class HistoryInfo {
+    public static class HistoryInfo {
+        public String channel;
         public String user;
         public Double ts;
         public String text;
         public String name;
         public String icon;
         public String file;
-        public int height = 0;
-        public int width = 0;
+        public String mimetype;
+        public String thumb;
+        public int thumbHeight = 0;
+        public int thumbWidth = 0;
     }
 
     /**
@@ -626,13 +620,13 @@ public class SlackManager {
                         if (obj.has("file")) {
                             JSONObject file = obj.getJSONObject("file");
                             if (file.has("thumb_360")) {
-                                info.file = file.getString("thumb_360");
+                                info.thumb = file.getString("thumb_360");
                             }
                             if (file.has("thumb_360_h")) {
-                                info.height = file.getInt("thumb_360_h");
+                                info.thumbHeight = file.getInt("thumb_360_h");
                             }
                             if (file.has("thumb_360_w")) {
-                                info.width = file.getInt("thumb_360_w");
+                                info.thumbWidth = file.getInt("thumb_360_w");
                             }
                             if (file.has("initial_comment")) {
                                 JSONObject comment = file.getJSONObject("initial_comment");
@@ -640,7 +634,7 @@ public class SlackManager {
                                     info.text = comment.getString("comment");
                                 }
                             } else {
-                                if (info.file != null) {
+                                if (info.thumb != null) {
                                     info.text = null;
                                 }
                             }

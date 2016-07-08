@@ -12,10 +12,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Handler;
+import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.hitoe.data.HitoeDevice;
 import org.deviceconnect.android.deviceplugin.hitoe.data.HitoeManager;
-import org.deviceconnect.android.deviceplugin.hitoe.profile.HitoeServiceDiscoveryProfile;
 import org.deviceconnect.android.deviceplugin.hitoe.profile.HitoeSystemProfile;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.event.cache.MemoryCacheController;
@@ -30,6 +30,10 @@ import java.util.List;
  * @author NTT DOCOMO, INC.
  */
 public class HitoeDeviceService extends DConnectMessageService {
+    /**
+     * Tag.
+     */
+    private final String TAG = "HitoeDeviceService";
     /**
      * Instance of handler.
      */
@@ -56,19 +60,42 @@ public class HitoeDeviceService extends DConnectMessageService {
         @Override
         public void onConnected(HitoeDevice device) {
             DConnectService service = new HitoeService(getManager(), device);
+            service.setOnline(true);
             getServiceProvider().addService(service);
         }
 
         @Override
         public void onConnectFailed(HitoeDevice device) {
+            DConnectService service = getServiceProvider().getService(device.getId());
+            if (service != null) {
+                service.setOnline(false);
+            }
         }
 
         @Override
         public void onDiscovery(List<HitoeDevice> devices) {
+            for (HitoeDevice device: devices) {
+                if (device.getPinCode() != null) {
+                    DConnectService service = new HitoeService(getManager(), device);
+                    getServiceProvider().addService(service);
+                }
+            }
         }
 
         @Override
         public void onDisconnected(int res, HitoeDevice device) {
+            DConnectService service = getServiceProvider().getService(device.getId());
+            if (service != null) {
+                service.setOnline(false);
+            }
+        }
+
+        @Override
+        public void onDeleted(HitoeDevice device) {
+            DConnectService service = getServiceProvider().getService(device.getId());
+            if (service != null) {
+                getServiceProvider().removeService(service);
+            }
         }
 
     };
@@ -85,11 +112,11 @@ public class HitoeDeviceService extends DConnectMessageService {
         if (mgr != null) {
             List<HitoeDevice> devices = mgr.getRegisterDevices();
             for (HitoeDevice device : devices) {
-                getServiceProvider().addService(new HitoeService(mgr, device));
+                if (device.getPinCode() != null) {
+                    getServiceProvider().addService(new HitoeService(mgr, device));
+                }
             }
         }
-        addProfile(new HitoeServiceDiscoveryProfile(getServiceProvider()));
-
     }
 
     @Override
@@ -105,7 +132,45 @@ public class HitoeDeviceService extends DConnectMessageService {
         return new HitoeSystemProfile();
     }
 
+    @Override
+    protected void onManagerUninstalled() {
+        if (BuildConfig.DEBUG) {
+            Log.d(TAG, "onManagerUninstalled");
+        }
+        EventManager.INSTANCE.removeAll();
+        removeAllServices();
+    }
 
+    @Override
+    protected void onManagerTerminated() {
+        if (BuildConfig.DEBUG) {
+            Log.d(TAG, "onManagerTerminated");
+        }
+
+        EventManager.INSTANCE.removeAll();
+        removeAllServices();
+    }
+
+    @Override
+    protected void onManagerEventTransmitDisconnected(String sessionKey) {
+        if (BuildConfig.DEBUG) {
+            Log.d(TAG, "onManagerEventTransmitDisconnected: " + sessionKey);
+        }
+
+        if (sessionKey != null) {
+            EventManager.INSTANCE.removeEvents(sessionKey);
+        } else {
+            EventManager.INSTANCE.removeAll();
+        }
+    }
+
+    @Override
+    protected void onDevicePluginReset() {
+        if (BuildConfig.DEBUG) {
+            Log.d(TAG, "onDevicePluginReset");
+        }
+        resetService();
+    }
     /**
      * Register a BroadcastReceiver of Bluetooth event.
      */
@@ -130,4 +195,24 @@ public class HitoeDeviceService extends DConnectMessageService {
         HitoeApplication app = (HitoeApplication) getApplication();
         return app.getHitoeManager();
     }
+
+    private void removeAllServices() {
+        List<DConnectService> services = getServiceProvider().getServiceList();
+        for (DConnectService service : services) {
+            getServiceProvider().removeService(service);
+        }
+    }
+    private void resetService() {
+        removeAllServices();
+        HitoeManager mgr =  getManager();
+        if (mgr != null) {
+            List<HitoeDevice> devices = mgr.getRegisterDevices();
+            for (HitoeDevice device : devices) {
+                if (device.getPinCode() != null) {
+                    getServiceProvider().addService(new HitoeService(mgr, device));
+                }
+            }
+        }
+    }
+
 }

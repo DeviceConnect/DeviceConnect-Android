@@ -328,8 +328,8 @@ public class HitoeManager {
         mConnectionListeners.add(l);
     }
 
-    public void removeHitoeConnectionListener() {
-        mConnectionListeners.remove(0);
+    public void removeHitoeConnectionListener(final OnHitoeConnectionListener l) {
+        mConnectionListeners.remove(l);
     }
     /**
      * Set Hitoe HeartRate Listener
@@ -589,8 +589,9 @@ public class HitoeManager {
         current.setRegisterFlag(false);
         current.setSessionId(null);
         mDBHelper.updateHitoeDevice(current);
-        // TODO 継続するかは、現在接続中のデバイスによる
-        scanHitoeDevice(false);
+        if (mRegisterDevices.size() > 0) {
+            scanHitoeDevice(false);
+        }
         for (OnHitoeConnectionListener l: mConnectionListeners) {
             if (l != null) {
                 l.onDisconnected(res, device);
@@ -606,9 +607,15 @@ public class HitoeManager {
     public void deleteHitoeDevice(final HitoeDevice device) {
 
         mDBHelper.removeHitoeDevice(device);
+
         for (int i = 0; i < mRegisterDevices.size(); i++) {
             if (mRegisterDevices.get(i).getId().equals(device.getId())) {
-                mRegisterDevices.remove(i);
+                HitoeDevice d = mRegisterDevices.remove(i);
+                for (OnHitoeConnectionListener l: mConnectionListeners) {
+                    if (l != null) {
+                        l.onDeleted(d);
+                    }
+                }
             }
         }
     }
@@ -1625,6 +1632,12 @@ public class HitoeManager {
          * @param device disconnect device
          */
         void onDisconnected(final int res, final HitoeDevice device);
+
+        /**
+         * Deleted Listener.
+         * @param device delte device
+         */
+        void onDeleted(final HitoeDevice device);
     }
 
     /**

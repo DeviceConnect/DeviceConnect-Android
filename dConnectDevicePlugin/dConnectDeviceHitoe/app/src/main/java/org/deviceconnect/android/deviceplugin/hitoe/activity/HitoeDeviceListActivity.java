@@ -75,7 +75,7 @@ public class HitoeDeviceListActivity extends HitoeListActivity implements
     @Override
     public void onPause() {
         super.onPause();
-        getManager().removeHitoeConnectionListener();
+        getManager().removeHitoeConnectionListener(this);
         unregisterReceiver(mSensorReceiver);
     }
 
@@ -211,6 +211,11 @@ public class HitoeDeviceListActivity extends HitoeListActivity implements
             }
             mDeviceAdapter.notifyDataSetChanged();
         }
+
+    }
+
+    @Override
+    public void onDeleted(HitoeDevice device) {
 
     }
 }

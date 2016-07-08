@@ -33,7 +33,9 @@ public class HitoeService extends DConnectService {
     public HitoeService(final HitoeManager manager, final HitoeDevice entity) {
         super(entity.getId());
         setName(entity.getName());
-
+        setNetworkType(NetworkType.BLE);
+        setConfig("");
+        setOnline(entity.isRegisterFlag());
         addProfile(new HitoeHealthProfile(manager));
         addProfile(new HitoeDeviceOrientationProfile(manager));
         addProfile(new HitoeBatteryProfile());

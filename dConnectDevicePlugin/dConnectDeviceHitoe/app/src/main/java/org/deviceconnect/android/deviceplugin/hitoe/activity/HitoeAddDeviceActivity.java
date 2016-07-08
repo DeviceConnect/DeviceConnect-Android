@@ -96,7 +96,7 @@ public class HitoeAddDeviceActivity extends HitoeListActivity  implements HitoeM
     @Override
     public void onPause() {
         super.onPause();
-        getManager().removeHitoeConnectionListener();
+        getManager().removeHitoeConnectionListener(this);
         mScheduler.scanHitoeDevice(false);
         dismissProgressDialog();
         dismissErrorDialog();
@@ -196,6 +196,11 @@ public class HitoeAddDeviceActivity extends HitoeListActivity  implements HitoeM
 
     @Override
     public void onDisconnected(final int res, final HitoeDevice device) {
+    }
+
+    @Override
+    public void onDeleted(HitoeDevice device) {
+
     }
 
     @Override

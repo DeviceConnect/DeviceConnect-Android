@@ -209,6 +209,73 @@ public class SonyCameraDeviceService extends DConnectMessageService {
     }
 
     @Override
+    protected void onManagerUninstalled() {
+        // TODO: Managerアンインストール検知時の処理要追加。
+        mLogger.info("Plug-in : onManagerUninstalled");
+    }
+
+    @Override
+    protected void onManagerTerminated() {
+        // TODO: Manager正常終了通知受信時の処理要追加。
+        mLogger.info("Plug-in : onManagerTerminated");
+    }
+
+    @Override
+    protected void onManagerEventTransmitDisconnected(String sessionKey) {
+        // TODO: ManagerのEvent送信経路切断通知受信時の処理要追加。
+        mLogger.info("Plug-in : onManagerEventTransmitDisconnected");
+        if (sessionKey != null) {
+            EventManager.INSTANCE.removeEvents(sessionKey);
+        } else {
+            EventManager.INSTANCE.removeAll();
+        }
+    }
+
+    @Override
+    protected void onDevicePluginReset() {
+        // TODO: Device Plug-inへのReset要求受信時の処理要追加。
+        mLogger.info("Plug-in : onDevicePluginReset");
+        resetPluginResource();
+    }
+
+    /**
+     * リソースリセット処理.
+     */
+    private void resetPluginResource() {
+        /** 全イベント削除. */
+        EventManager.INSTANCE.removeAll();
+
+        /** 記録中判定 */
+        if (SONY_CAMERA_STATUS_RECORDING.equals(mEventObserver.getCameraStatus())) {
+            if (SONY_CAMERA_SHOOT_MODE_MOVIE.equals(mEventObserver.getShootMode())) {
+                if (mRemoteApi != null) {
+                    try {
+                        mRemoteApi.stopMovieRec();
+                    } catch (IOException e) {
+                        mLogger.warning("Exception occurred in stopMovieRec." + e.toString());
+                    }
+                }
+            }
+        }
+        /** プレビュー停止 */
+        mExecutor.execute(new Runnable() {
+            @Override
+            public void run() {
+                while (!(SONY_CAMERA_STATUS_IDLE.equals(mEventObserver.getCameraStatus()))) {
+                    try {
+                        Thread.sleep(PERIOD_WAIT_TIME);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    }
+                }
+                if (mWhileFetching && mRemoteApi != null) {
+                    stopPreview();
+                }
+            }
+        });
+    }
+
+    @Override
     public int onStartCommand(final Intent intent, final int flags, final int startId) {
         if (intent == null) {
             return START_STICKY;

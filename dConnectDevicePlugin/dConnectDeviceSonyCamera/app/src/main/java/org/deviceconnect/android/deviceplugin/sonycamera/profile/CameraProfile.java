@@ -84,8 +84,7 @@ public class CameraProfile extends DConnectProfile {
      * @return movement
      */
     public static String getMovement(final Intent request) {
-        String movement = request.getStringExtra("movement");
-        return movement;
+        return request.getStringExtra("movement");
     }
 
     /**
@@ -94,8 +93,7 @@ public class CameraProfile extends DConnectProfile {
      *  @return direction
      */
     public static String getDirection(final Intent request) {
-        String direction = request.getStringExtra("direction");
-        return direction;
+        return request.getStringExtra("direction");
     }
 
     // -------------------------------

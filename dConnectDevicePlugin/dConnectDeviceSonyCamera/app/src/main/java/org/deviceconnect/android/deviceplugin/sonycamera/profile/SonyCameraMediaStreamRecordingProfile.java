@@ -30,9 +30,9 @@ public class SonyCameraMediaStreamRecordingProfile extends MediaStreamRecordingP
     protected boolean onPutOnPhoto(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
         if (serviceId == null) {
-            MessageUtils.setNotFoundServiceError(response, "Not found serviceID:" + serviceId);
+            MessageUtils.setNotFoundServiceError(response, "Not found serviceID: null");
         } else if (sessionKey == null) {
-            MessageUtils.setInvalidRequestParameterError(response, "Not found sessionKey:" + sessionKey);
+            MessageUtils.setInvalidRequestParameterError(response, "Not found sessionKey: null");
         } else {
             EventError error = EventManager.INSTANCE.addEvent(request);
             if (error == EventError.NONE) {

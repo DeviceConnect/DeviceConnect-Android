@@ -77,6 +77,8 @@ public class StringRequestParamSpec extends DConnectRequestParamSpec {
                 return true; // TODO バイナリのサイズ確認(現状、プラグインにはURL形式で通知される)
             case DATE:
                 return true; // TODO RFC3339形式であることの確認
+            case DATE_TIME:
+                return true; // TODO RFC3339形式であることの確認
             case RGB:
                 return RGB_PATTERN.matcher(param).matches();
             default:

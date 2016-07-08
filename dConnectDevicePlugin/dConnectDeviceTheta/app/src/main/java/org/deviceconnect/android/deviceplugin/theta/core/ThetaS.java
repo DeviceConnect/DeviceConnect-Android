@@ -22,7 +22,7 @@ import java.util.List;
 
 class ThetaS extends AbstractThetaDevice {
 
-    private static final String ID = "theta";
+    private static final String ID_PREFIX = "theta-s-";
 
     private static final String PARAM_RESULTS = "results";
 
@@ -54,13 +54,13 @@ class ThetaS extends AbstractThetaDevice {
 
     private OscClient mOscClient = new OscClient();
 
-    ThetaS(final String name) {
-        super(name);
+    ThetaS(final String ssId) {
+        super(ssId);
     }
 
     @Override
     public String getId() {
-        return ID;
+        return ID_PREFIX + mSSID;
     }
 
     @Override

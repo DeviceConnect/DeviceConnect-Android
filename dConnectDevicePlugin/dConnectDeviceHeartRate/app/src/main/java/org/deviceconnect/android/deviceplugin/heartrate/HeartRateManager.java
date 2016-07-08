@@ -269,6 +269,9 @@ public class HeartRateManager {
      */
     public HeartRateData getHeartRateData(final String address) {
         HeartRateDevice device = findRegisteredHeartRateDeviceByAddress(address);
+        if (device == null) {
+            return null;
+        }
         return getHeartRateData(device);
     }
 
@@ -491,7 +494,7 @@ public class HeartRateManager {
     /**
      * This interface is used to implement {@link HeartRateManager} callbacks.
      */
-    public static interface OnHeartRateDiscoveryListener {
+    public interface OnHeartRateDiscoveryListener {
         void onDiscovery(List<BluetoothDevice> devices);
 
         void onConnected(BluetoothDevice device);
@@ -504,7 +507,7 @@ public class HeartRateManager {
     /**
      * This interface is used to implement {@link HeartRateManager} callbacks.
      */
-    public static interface OnHeartRateEventListener {
+    public interface OnHeartRateEventListener {
         void onReceivedData(HeartRateDevice device, HeartRateData data);
     }
 }

@@ -17,17 +17,15 @@ import android.os.Handler;
 import org.deviceconnect.android.deviceplugin.heartrate.ble.BleUtils;
 import org.deviceconnect.android.deviceplugin.heartrate.profile.HeartRateHealthProfile;
 import org.deviceconnect.android.deviceplugin.heartrate.profile.HeartRateServiceDiscoveryProfile;
-import org.deviceconnect.android.deviceplugin.heartrate.profile.HeartRateServiceInformationProfile;
 import org.deviceconnect.android.deviceplugin.heartrate.profile.HeartRateSystemProfile;
+import org.deviceconnect.android.deviceplugin.heartrate.service.HeartRateService;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.event.cache.MemoryCacheController;
 import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.profile.DConnectProfile;
-import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
-import org.deviceconnect.android.profile.ServiceInformationProfile;
 import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.android.service.DConnectService;
-import org.deviceconnect.android.service.DConnectServiceManager;
+import org.deviceconnect.android.service.DConnectServiceProvider;
 
 import java.util.List;
 import java.util.logging.Logger;
@@ -65,15 +63,21 @@ public class HeartRateDeviceService extends DConnectMessageService {
         = new HeartRateManager.OnHeartRateDiscoveryListener() {
             @Override
             public void onDiscovery(final List<BluetoothDevice> devices) {
-                // NOP.
+                DConnectServiceProvider provider = getServiceProvider();
+                for (BluetoothDevice device : devices) {
+                    if (provider.getService(device.getAddress()) == null) {
+                        DConnectService service = new HeartRateService(device);
+                        service.addProfile(mHeartRateProfile);
+                        provider.addService(service);
+                    }
+                }
             }
 
             @Override
             public void onConnected(final BluetoothDevice device) {
-                String serviceId = device.getAddress();
-                if (!DConnectServiceManager.INSTANCE.existsService(serviceId)) {
-                    DConnectService service = new DConnectService(serviceId);
-                    service.addProfile(mHeartRateProfile);
+                DConnectService service = getServiceProvider().getService(device.getAddress());
+                if (service != null) {
+                    service.setOnline(true);
                 }
             }
 
@@ -84,7 +88,10 @@ public class HeartRateDeviceService extends DConnectMessageService {
 
             @Override
             public void onDisconnected(final BluetoothDevice device) {
-                DConnectServiceManager.INSTANCE.removeService(device.getAddress());
+                DConnectService service = getServiceProvider().getService(device.getAddress());
+                if (service != null) {
+                    service.setOnline(false);
+                }
             }
         };
 
@@ -111,6 +118,7 @@ public class HeartRateDeviceService extends DConnectMessageService {
 
         getManager().addOnHeartRateDiscoveryListener(mOnDiscoveryListener);
 
+        addProfile(new HeartRateServiceDiscoveryProfile(getServiceProvider()));
         mHeartRateProfile = new HeartRateHealthProfile(app.getHeartRateManager());
 
         registerBluetoothFilter();
@@ -128,16 +136,6 @@ public class HeartRateDeviceService extends DConnectMessageService {
     @Override
     protected SystemProfile getSystemProfile() {
         return new HeartRateSystemProfile();
-    }
-
-    @Override
-    protected ServiceDiscoveryProfile getServiceDiscoveryProfile() {
-        return new HeartRateServiceDiscoveryProfile(this);
-    }
-
-    @Override
-    protected ServiceInformationProfile getServiceInformationProfile() {
-        return new HeartRateServiceInformationProfile(this);
     }
 
     /**

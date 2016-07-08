@@ -19,8 +19,9 @@ import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.HealthProfile;
 import org.deviceconnect.android.profile.api.DConnectApi;
-import org.deviceconnect.android.profile.spec.ApiSpec;
-import org.deviceconnect.android.service.DConnectService;
+import org.deviceconnect.android.profile.api.DeleteApi;
+import org.deviceconnect.android.profile.api.GetApi;
+import org.deviceconnect.android.profile.api.PutApi;
 import org.deviceconnect.message.DConnectMessage;
 
 import java.util.List;
@@ -41,32 +42,15 @@ public class HeartRateHealthProfile extends HealthProfile {
             }
         };
 
-    /**
-     * Constructor.
-     * @param mgr instance of {@link HeartRateManager}
-     */
-    public HeartRateHealthProfile(final HeartRateManager mgr) {
-        mgr.setOnHeartRateEventListener(mHeartRateEventListener);
-
-        addApi(mHeartRateGetApi);
-    }
-
-    private final DConnectApi mHeartRateGetApi = new DConnectApi() {
-
+    private final DConnectApi mGetHeartRateApi = new GetApi() {
         @Override
         public String getAttribute() {
             return ATTRIBUTE_HEART_RATE;
         }
 
         @Override
-        public ApiSpec.Method getMethod() {
-            return ApiSpec.Method.GET;
-        }
-
-        @Override
-        public boolean onRequest(final Intent request, final Intent response,
-                                 final DConnectService service) {
-            String serviceId = service.getId();
+        public boolean onRequest(final Intent request, final Intent response) {
+            String serviceId = getServiceID(request);
             HeartRateData data = getManager().getHeartRateData(serviceId);
             if (data == null) {
                 MessageUtils.setNotFoundServiceError(response);
@@ -78,14 +62,15 @@ public class HeartRateHealthProfile extends HealthProfile {
         }
     };
 
-    @Override
-    public boolean onPutHeartRate(final Intent request, final Intent response,
-                                  final String serviceId, final String sessionKey) {
-        if (serviceId == null) {
-            MessageUtils.setNotFoundServiceError(response, "Not found serviceID:" + serviceId);
-        } else if (sessionKey == null) {
-            MessageUtils.setInvalidRequestParameterError(response, "Not found sessionKey:" + sessionKey);
-        } else {
+    private final DConnectApi mPutHeartRateApi = new PutApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_HEART_RATE;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String serviceId = getServiceID(request);
             HeartRateData data = getManager().getHeartRateData(serviceId);
             if (data == null) {
                 MessageUtils.setNotFoundServiceError(response);
@@ -97,18 +82,18 @@ public class HeartRateHealthProfile extends HealthProfile {
                     MessageUtils.setUnknownError(response);
                 }
             }
+            return true;
         }
-        return true;
-    }
+    };
 
-    @Override
-    public boolean onDeleteHeartRate(final Intent request, final Intent response,
-                                     final String serviceId, final String sessionKey) {
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-        } else if (sessionKey == null) {
-            MessageUtils.setInvalidRequestParameterError(response, "There is no sessionKey.");
-        } else {
+    private final DConnectApi mDeleteHeartRateApi = new DeleteApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_HEART_RATE;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
             EventError error = EventManager.INSTANCE.removeEvent(request);
             if (error == EventError.NONE) {
                 setResult(response, DConnectMessage.RESULT_OK);
@@ -121,8 +106,20 @@ public class HeartRateHealthProfile extends HealthProfile {
             } else {
                 MessageUtils.setUnknownError(response);
             }
+            return true;
         }
-        return true;
+    };
+
+    /**
+     * Constructor.
+     * @param mgr instance of {@link HeartRateManager}
+     */
+    public HeartRateHealthProfile(final HeartRateManager mgr) {
+        mgr.setOnHeartRateEventListener(mHeartRateEventListener);
+
+        addApi(mGetHeartRateApi);
+        addApi(mPutHeartRateApi);
+        addApi(mDeleteHeartRateApi);
     }
 
     /**

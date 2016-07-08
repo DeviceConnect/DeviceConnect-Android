@@ -36,6 +36,17 @@ public class ServiceDiscoveryProfile extends DConnectProfile implements
     private final DConnectServiceProvider mProvider;
 
     /**
+     * Service Discovery API.
+     */
+    private final DConnectApi mServiceDiscoveryApi = new GetApi() {
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            appendServiceList(response);
+            return true;
+        }
+    };
+
+    /**
      * 指定されたサービスプロバイダーをもつSystemプロファイルを生成する.
      * 
      * @param provider サービスプロバイダー
@@ -59,24 +70,21 @@ public class ServiceDiscoveryProfile extends DConnectProfile implements
         return PROFILE_NAME;
     }
 
-    private final DConnectApi mServiceDiscoveryApi = new GetApi() {
-        @Override
-        public boolean onRequest(final Intent request, final Intent response) {
-            List<Bundle> serviceBundles = new ArrayList<Bundle>();
-            for (DConnectService service : mProvider.getServiceList()) {
-                Bundle serviceBundle = new Bundle();
-                setId(serviceBundle, service.getId());
-                setName(serviceBundle, service.getName());
-                setType(serviceBundle, service.getNetworkType());
-                setOnline(serviceBundle, service.isOnline());
-                setConfig(serviceBundle, service.getConfig());
-                serviceBundles.add(serviceBundle);
-            }
-            setServices(response, serviceBundles);
-            setResult(response, DConnectMessage.RESULT_OK);
-            return true;
+    protected void appendServiceList(final Intent response) {
+        List<Bundle> serviceBundles = new ArrayList<Bundle>();
+        for (DConnectService service : mProvider.getServiceList()) {
+            Bundle serviceBundle = new Bundle();
+            setId(serviceBundle, service.getId());
+            setName(serviceBundle, service.getName());
+            setType(serviceBundle, service.getNetworkType());
+            setOnline(serviceBundle, service.isOnline());
+            setConfig(serviceBundle, service.getConfig());
+            setScopes(serviceBundle, service);
+            serviceBundles.add(serviceBundle);
         }
-    };
+        setServices(response, serviceBundles);
+        setResult(response, DConnectMessage.RESULT_OK);
+    }
 
     // TODO Status Change Event APIの実装.
 
@@ -195,12 +203,13 @@ public class ServiceDiscoveryProfile extends DConnectProfile implements
      * 
      * @param service デバイスパラメータ
      */
-    public static void setScopes(final Bundle service, final DConnectProfileProvider provider) {
+    public static void setScopes(final Bundle serviceBundle, final DConnectService service) {
         ArrayList<String> scopes = new ArrayList<String>();
-        for (DConnectProfile profile : provider.getProfileList()) {
+        List<DConnectProfile> profileList = service.getProfileList();
+        for (DConnectProfile profile : profileList) {
             scopes.add(profile.getProfileName());
         }
-        service.putStringArray(PARAM_SCOPES, scopes.toArray(new String[scopes.size()]));
+        serviceBundle.putStringArray(PARAM_SCOPES, scopes.toArray(new String[scopes.size()]));
     }
 
 }

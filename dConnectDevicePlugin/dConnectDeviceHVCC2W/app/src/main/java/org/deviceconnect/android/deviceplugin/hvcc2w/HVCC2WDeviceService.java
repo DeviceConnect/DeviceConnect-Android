@@ -73,6 +73,50 @@ public class HVCC2WDeviceService extends DConnectMessageService
     }
 
     @Override
+    protected void onManagerUninstalled() {
+        // TODO: Managerアンインストール検知時の処理要追加。
+    }
+
+    @Override
+    protected void onManagerTerminated() {
+        // TODO: Manager正常終了通知受信時の処理要追加。
+    }
+
+    @Override
+    protected void onManagerEventTransmitDisconnected(String sessionKey) {
+        // TODO: ManagerのEvent送信経路切断通知受信時の処理要追加。
+        if (sessionKey != null) {
+            if (EventManager.INSTANCE.removeEvents(sessionKey)) {
+                String[] param = sessionKey.split(".", -1);
+                if (param[1] != null) { /** param[1] : pluginID (serviceId) */
+                    HVCManager.INSTANCE.removeBodyDetectEventListener(param[1]);
+                    HVCManager.INSTANCE.removeHandDetectEventListener(param[1]);
+                    HVCManager.INSTANCE.removeFaceDetectEventListener(param[1]);
+                    HVCManager.INSTANCE.removeFaceRecognizeEventListener(param[1]);
+                }
+            }
+        } else {
+            EventManager.INSTANCE.removeAll();
+            HVCManager.INSTANCE.removeAllEventListener();
+        }
+    }
+
+    @Override
+    protected void onDevicePluginReset() {
+        // TODO: Device Plug-inへのReset要求受信時の処理要追加。
+        resetPluginResource();
+    }
+
+    /**
+     * リソースリセット処理.
+     */
+    private void resetPluginResource() {
+        /** 全イベント削除. */
+        EventManager.INSTANCE.removeAll();
+        HVCManager.INSTANCE.removeAllEventListener();
+    }
+
+    @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         return super.onStartCommand(intent, flags, startId);
     }

@@ -77,8 +77,8 @@ public class MessageListFragment extends ListFragment implements SlackManager.Sl
         final TextView emptyText = (TextView)view.findViewById(android.R.id.empty);
         TextView titleText = (TextView)view.findViewById(R.id.textViewTitle);
 
-        // スクリールイベント
-        ListView listView = (ListView) view.findViewById(android.R.id.list);
+        // スクロールイベント
+        final ListView listView = (ListView) view.findViewById(android.R.id.list);
         listView.setOnScrollListener(new AbsListView.OnScrollListener() {
             @Override
             public void onScrollStateChanged(AbsListView view, int scrollState) {}
@@ -178,11 +178,12 @@ public class MessageListFragment extends ListFragment implements SlackManager.Sl
                     handler.post(new Runnable() {
                         @Override
                         public void run() {
+                            if (getView()==null) return;
                             // アダプターを生成
                             mAdapter = new MessageAdapter(context, histories);
                             setListAdapter(mAdapter);
                             // 最後の行を表示
-                            getListView().setSelection(histories.size());
+                            listView.setSelection(histories.size());
                         }
                     });
 
@@ -190,6 +191,7 @@ public class MessageListFragment extends ListFragment implements SlackManager.Sl
                     handler.post(new Runnable() {
                         @Override
                         public void run() {
+                            if (getView()==null) return;
                             // TODO: 詳細なエラー表示
                             new AlertDialog.Builder(context)
                                     .setTitle("エラー")
@@ -203,6 +205,7 @@ public class MessageListFragment extends ListFragment implements SlackManager.Sl
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
+                        if (getView()==null) return;
                         // プログレスダイアログを閉じる
                         dialog.dismiss();
                         // 空メッセージを設定

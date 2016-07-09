@@ -11,6 +11,7 @@ import android.app.Fragment;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -18,6 +19,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 
 import org.deviceconnect.android.deviceplugin.slackmessagehook.R;
 import org.deviceconnect.android.deviceplugin.slackmessagehook.setting.HelpActivity;
@@ -30,19 +32,53 @@ import org.deviceconnect.android.deviceplugin.slackmessagehook.slack.SlackManage
  */
 public class SettingTokenFragment extends Fragment {
 
+    /** 回転時の画面切り替え用にrootを保持しておく */
+    private FrameLayout rootLayout;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, final Bundle savedInstanceState) {
+        // View作成
+        View view = initView();
+        rootLayout = new FrameLayout(view.getContext());
+        rootLayout.addView(view);
+        return rootLayout;
+    }
 
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        // 画面回転時にレイアウトを作り直す
+        rootLayout. removeAllViews();
+        View view = initView();
+        rootLayout.addView(view);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+    }
+
+    /**
+     * View作成
+     * @return View
+     */
+    private View initView() {
         // Root view.
-        final View root = inflater.inflate(R.layout.fragment_token, container, false);
-        final Context context = root.getContext();
+        LayoutInflater inflater = (LayoutInflater)getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        final View view = inflater.inflate(R.layout.fragment_token, null);
+        final Context context = view.getContext();
 
         // アクセストークン
-        final EditText text = (EditText)root.findViewById(R.id.textToken);
+        final EditText text = (EditText)view.findViewById(R.id.textToken);
         text.setText(Utils.getAccessToken(context));
 
         // 次へボタン
-        Button nextButton = (Button)root.findViewById(R.id.buttonNext);
+        Button nextButton = (Button)view.findViewById(R.id.buttonNext);
         nextButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -76,7 +112,7 @@ public class SettingTokenFragment extends Fragment {
         });
 
         // トークン取得ボタン
-        Button tokenButton = (Button)root.findViewById(R.id.buttonGetToken);
+        Button tokenButton = (Button)view.findViewById(R.id.buttonGetToken);
         tokenButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -87,7 +123,7 @@ public class SettingTokenFragment extends Fragment {
         });
 
         // ヘルプボタン
-        Button helpButton = (Button)root.findViewById(R.id.buttonHelp);
+        Button helpButton = (Button)view.findViewById(R.id.buttonHelp);
         helpButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -95,18 +131,6 @@ public class SettingTokenFragment extends Fragment {
                 startActivity(intent);
             }
         });
-
-        return root;
+        return view;
     }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-    }
-
-    @Override
-    public void onStop() {
-        super.onStop();
-    }
-
 }

@@ -34,6 +34,7 @@ import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.CountDownLatch;
 
 
@@ -552,12 +553,16 @@ public class SlackManager {
      * Channelの履歴を取得
      * @param callback 取得コールバック
      */
-    public void getHistory(String channel, final FinishCallback<ArrayList<HistoryInfo>> callback) {
+    public void getHistory(String channel, Double latest, final FinishCallback<ArrayList<HistoryInfo>> callback) {
         if (BuildConfig.DEBUG) Log.d(TAG, "*getHistory:" + channel);
+        String params = "&channel=" + channel;
+        if (latest != null) {
+            params += "&latest=" + String.format(Locale.ENGLISH, "%.2f", latest);
+        }
         if (channel.startsWith("D")) {
-            getHistory("im.history", "&channel=" + channel, callback);
+            getHistoryData("im.history", params, callback);
         } else {
-            getHistory("channels.history", "&channel=" + channel, callback);
+            getHistoryData("channels.history", params, callback);
         }
     }
 
@@ -584,7 +589,7 @@ public class SlackManager {
      * @param params パラメータ
      * @param callback 取得コールバック
      */
-    private void getHistory(String target, String params, final FinishCallback<ArrayList<HistoryInfo>> callback) {
+    private void getHistoryData(String target, String params, final FinishCallback<ArrayList<HistoryInfo>> callback) {
         if (connectState != CONNECT_STATE_CONNECTED) {
             if (callback != null) {
                 callback.onFinish(null, new SlackConnectionException());

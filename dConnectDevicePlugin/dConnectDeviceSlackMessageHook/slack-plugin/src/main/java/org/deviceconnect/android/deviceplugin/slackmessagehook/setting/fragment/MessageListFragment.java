@@ -58,6 +58,8 @@ import okhttp3.Response;
  */
 public class MessageListFragment extends ListFragment implements SlackManager.SlackEventListener {
 
+    /** TAG. */
+    private final static String TAG = "MessageListFragment";
     /** アダプター */
     private MessageAdapter mAdapter;
     /** Picasso */
@@ -68,6 +70,8 @@ public class MessageListFragment extends ListFragment implements SlackManager.Sl
     private HashMap<String, SlackManager.ListInfo> mUserMap;
     /** 最後のセルを表示中かどうか */
     private boolean mIsLastCell = false;
+    /** 読み込み不可能フラグ */
+    boolean mCannotLoading = false;
 
     //---------------------------------------------------------------------------------------
     //region View
@@ -88,6 +92,38 @@ public class MessageListFragment extends ListFragment implements SlackManager.Sl
             public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
                 // 最後のセルを表示した
                 mIsLastCell = (totalItemCount != 0 && totalItemCount == firstVisibleItem + visibleItemCount);
+                // 先頭のセルを表示した
+                if (firstVisibleItem == 0 && !mCannotLoading && mAdapter != null) {
+                    mCannotLoading = true;
+                    SlackManager.HistoryInfo info = mAdapter.getItem(0);
+                    // 続きの履歴を取得
+                    SlackManager.INSTANCE.getHistory(mChannelId, info.ts, new SlackManager.FinishCallback<ArrayList<SlackManager.HistoryInfo>>() {
+                        @Override
+                        public void onFinish(ArrayList<SlackManager.HistoryInfo> historyInfos, Exception error) {
+                            if (error == null) {
+                                // もう続きがない
+                                if (historyInfos.size() == 0) {
+                                    mCannotLoading = true;
+                                    return;
+                                }
+                                mCannotLoading = false;
+                                // フォーマット変換
+                                for (Object obj : historyInfos) {
+                                    formatHistory((SlackManager.HistoryInfo)obj);
+                                }
+                                // 表示順を逆順に
+                                Collections.reverse(historyInfos);
+                                // 最初に挿入
+                                mAdapter.insertToFirst(historyInfos);
+                                mAdapter.notifyDataSetChanged();
+                                // 挿入前の位置まで移動
+                                getListView().setSelection(historyInfos.size());
+                            } else {
+                                Log.e(TAG, "Error on getHistory", error);
+                            }
+                        }
+                    });
+                }
             }
         });
 
@@ -163,20 +199,20 @@ public class MessageListFragment extends ListFragment implements SlackManager.Sl
                         if (error == null) {
                             resMap.put("user", listInfos);
                         } else {
-                            Log.e("slack", "err", error);
+                            Log.e(TAG, "Error on getUserList", error);
                         }
                         latch.countDown();
                     }
                 });
 
                 // 履歴を取得
-                SlackManager.INSTANCE.getHistory(mChannelId, new SlackManager.FinishCallback<ArrayList<SlackManager.HistoryInfo>>() {
+                SlackManager.INSTANCE.getHistory(mChannelId, null, new SlackManager.FinishCallback<ArrayList<SlackManager.HistoryInfo>>() {
                     @Override
                     public void onFinish(ArrayList<SlackManager.HistoryInfo> historyInfos, Exception error) {
                         if (error == null) {
                             resMap.put("history", historyInfos);
                         } else {
-                            Log.e("slack", "err", error);
+                            Log.e(TAG, "Error on getHistory", error);
                         }
                         latch.countDown();
                     }
@@ -357,6 +393,14 @@ public class MessageListFragment extends ListFragment implements SlackManager.Sl
          */
         public void add(SlackManager.HistoryInfo info) {
             mList.add(info);
+        }
+
+        /**
+         * 履歴を最初に追加する
+         * @param infos 履歴
+         */
+        public void insertToFirst(List<SlackManager.HistoryInfo> infos) {
+            mList.addAll(0, infos);
         }
 
         @Override

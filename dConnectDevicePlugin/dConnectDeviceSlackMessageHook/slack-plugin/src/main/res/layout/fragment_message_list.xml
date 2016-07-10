@@ -46,17 +46,17 @@
         android:id="@+id/linearLayout">
 
         <EditText
+            android:id="@+id/editText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="@drawable/border_edit"
             android:padding="10dp"
             android:layout_margin="2dp"
             android:layout_alignParentLeft="true"
-            android:id="@+id/editText"
-            android:layout_toLeftOf="@+id/buttonAdd" />
+            android:layout_toLeftOf="@+id/buttonSend" />
 
         <Button
-            android:id="@+id/buttonAdd"
+            android:id="@+id/buttonSend"
             android:layout_width="80dp"
             android:layout_height="wrap_content"
             android:text="@string/send"

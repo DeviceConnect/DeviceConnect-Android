@@ -18,6 +18,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
 import android.widget.BaseAdapter;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -65,13 +67,13 @@ public class MessageListFragment extends ListFragment implements SlackManager.Sl
     /** ユーザー情報 */
     private HashMap<String, SlackManager.ListInfo> mUserMap;
     /** 最後のセルを表示中かどうか */
-    private boolean isLastCell = false;
+    private boolean mIsLastCell = false;
 
     //---------------------------------------------------------------------------------------
     //region View
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(final LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_message_list, container, false);
         final Context context = view.getContext();
         final TextView emptyText = (TextView)view.findViewById(android.R.id.empty);
@@ -85,7 +87,7 @@ public class MessageListFragment extends ListFragment implements SlackManager.Sl
             @Override
             public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
                 // 最後のセルを表示した
-                isLastCell = (totalItemCount != 0 && totalItemCount == firstVisibleItem + visibleItemCount);
+                mIsLastCell = (totalItemCount != 0 && totalItemCount == firstVisibleItem + visibleItemCount);
             }
         });
 
@@ -114,6 +116,35 @@ public class MessageListFragment extends ListFragment implements SlackManager.Sl
         mChannelId = bundle.getString("id");
         // タイトル設定
         titleText.setText(title);
+
+        // 送信ボタンイベント
+        final EditText editText = (EditText)view.findViewById(R.id.editText);
+        Button sendButton = (Button)view.findViewById(R.id.buttonSend);
+        sendButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String msg = editText.getText().toString();
+                if (msg != null && msg.length() > 0) {
+                    SlackManager.INSTANCE.sendMessage(msg, mChannelId);
+                    editText.setText(null);
+                    //
+                    SlackManager.HistoryInfo history = new SlackManager.HistoryInfo();
+                    history.text = msg;
+                    history.channel = mChannelId;
+                    history.ts = new Date().getTime() / 1000.0;
+                    history.user = SlackManager.INSTANCE.getBotInfo().id;
+                    // 名前とアイコン
+                    SlackManager.ListInfo info = mUserMap.get(history.user);
+                    if (info != null) {
+                        history.name = info.name;
+                        history.icon = info.icon;
+                    }
+                    mAdapter.add(history);
+                    // 最後の行を表示
+                    getListView().setSelection(mAdapter.getCount());
+                }
+            }
+        });
 
         // プログレスダイアログを表示
         final ProgressDialog dialog = Utils.showProgressDialog(context);
@@ -240,7 +271,7 @@ public class MessageListFragment extends ListFragment implements SlackManager.Sl
         formatHistory(info);
         mAdapter.add(info);
         mAdapter.notifyDataSetChanged();
-        if (isLastCell) {
+        if (mIsLastCell) {
             // 最後の行を表示
             getListView().setSelection(mAdapter.getCount());
         }
@@ -390,7 +421,6 @@ public class MessageListFragment extends ListFragment implements SlackManager.Sl
             mPicasso.cancelRequest(iconImage);
             if (info.icon != null) {
                 mPicasso.load(info.icon).into(iconImage);
-
             } else {
                 iconImage.setImageResource(R.drawable.slack_icon);
             }

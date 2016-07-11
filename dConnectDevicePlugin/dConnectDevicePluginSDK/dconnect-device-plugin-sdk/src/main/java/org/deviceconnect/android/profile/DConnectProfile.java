@@ -781,7 +781,7 @@ public abstract class DConnectProfile implements DConnectProfileConstants {
 
         @Override
         public int hashCode() {
-            int result = mPath.toLowerCase().hashCode();
+            int result = mPath.toLowerCase().hashCode(); // XXXX パスの大文字小文字を無視
             result = 31 * result + mMethod.hashCode();
             return result;
         }
@@ -795,6 +795,7 @@ public abstract class DConnectProfile implements DConnectProfileConstants {
                 return false;
             }
             ApiIdentifier that = ((ApiIdentifier) o);
+            // XXXX パスの大文字小文字を無視
             return mPath.equalsIgnoreCase(that.mPath) && mMethod == that.mMethod;
         }
     }

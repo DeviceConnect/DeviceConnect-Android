@@ -24,7 +24,6 @@ import java.util.List;
 
 public class LinkingServiceDiscoveryProfile extends ServiceDiscoveryProfile {
 
-    private static final String TAG = "LinkingPlugin";
     private static final int TIMEOUT = 20 * 1000;
 
     private LinkingDevicePluginService mService;

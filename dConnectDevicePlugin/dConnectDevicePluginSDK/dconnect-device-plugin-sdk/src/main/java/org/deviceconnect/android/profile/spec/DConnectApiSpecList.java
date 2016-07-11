@@ -11,20 +11,24 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DConnectApiSpecList {
+public class DConnectApiSpecList implements DConnectApiSpecConstants {
 
     private final List<DConnectApiSpec> mApiSpecList = new ArrayList<DConnectApiSpec>();
 
     public DConnectApiSpecList() {}
 
-    public DConnectApiSpec findApiSpec(final String method, final String path) {
+    public DConnectApiSpec findApiSpec(final Method method, final String path) {
         for (DConnectApiSpec spec : mApiSpecList) {
-            if (spec.getMethod().getName().equalsIgnoreCase(method)
+            if (spec.getMethod() == method
                 && spec.getPath().equalsIgnoreCase(path)) {
                 return spec;
             }
         }
         return null;
+    }
+
+    public DConnectApiSpec findApiSpec(final String method, final String path) {
+        return findApiSpec(Method.parse(method), path);
     }
 
     public void addApiSpecList(final InputStream json, final DConnectApiSpecFilter filter) throws IOException, JSONException {

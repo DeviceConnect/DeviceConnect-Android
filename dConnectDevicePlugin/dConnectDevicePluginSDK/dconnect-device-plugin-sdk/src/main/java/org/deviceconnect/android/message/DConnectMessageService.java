@@ -105,12 +105,15 @@ public abstract class DConnectMessageService extends Service implements DConnect
         return mServiceManager;
     }
 
+    private DConnectApiSpecList mApiSpecList;
+
     @Override
     public void onCreate() {
         super.onCreate();
 
+        mApiSpecList = loadApiSpecList();
         mServiceManager = new DConnectServiceManager();
-        mServiceManager.setApiSpecDictionary(loadApiSpecList());
+        mServiceManager.setApiSpecList(mApiSpecList);
         mServiceManager.setContext(getContext());
 
         // LocalOAuthの初期化
@@ -357,6 +360,7 @@ public abstract class DConnectMessageService extends Service implements DConnect
             return;
         }
         profile.setContext(this);
+        profile.setApiSpecList(mApiSpecList);
         //XXXX パスの大文字小文字の無視
         mProfileMap.put(profile.getProfileName().toLowerCase(), profile);
     }

@@ -6,6 +6,7 @@
  */
 package org.deviceconnect.android.deviceplugin.linking.linking.service;
 
+import org.deviceconnect.android.deviceplugin.linking.LinkingDestroy;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingDevice;
 import org.deviceconnect.android.deviceplugin.linking.linking.profile.LinkingBatteryProfile;
 import org.deviceconnect.android.deviceplugin.linking.linking.profile.LinkingDeviceOrientationProfile;
@@ -16,8 +17,6 @@ import org.deviceconnect.android.deviceplugin.linking.linking.profile.LinkingNot
 import org.deviceconnect.android.deviceplugin.linking.linking.profile.LinkingProximityProfile;
 import org.deviceconnect.android.deviceplugin.linking.linking.profile.LinkingTemperatureProfile;
 import org.deviceconnect.android.deviceplugin.linking.linking.profile.LinkingVibrationProfile;
-import org.deviceconnect.android.deviceplugin.linking.LinkingDestroy;
-import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.android.service.DConnectService;
 
@@ -25,7 +24,7 @@ public class LinkingDeviceService extends DConnectService implements LinkingDest
 
     private LinkingDevice mDevice;
 
-    public LinkingDeviceService(final DConnectMessageService service, final LinkingDevice device) {
+    public LinkingDeviceService(final LinkingDevice device) {
         super(device.getBdAddress());
 
         setName(device.getDisplayName());

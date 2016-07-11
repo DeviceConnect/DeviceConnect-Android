@@ -17,6 +17,8 @@ import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.api.DConnectApi;
 import org.deviceconnect.android.profile.spec.DConnectApiSpec;
+import org.deviceconnect.android.profile.spec.DConnectApiSpecConstants;
+import org.deviceconnect.android.profile.spec.DConnectApiSpecList;
 import org.deviceconnect.android.service.DConnectService;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.profile.DConnectProfileConstants;
@@ -34,7 +36,8 @@ import java.util.logging.Logger;
  * DConnect プロファイルクラス.
  * @author NTT DOCOMO, INC.
  */
-public abstract class DConnectProfile implements DConnectProfileConstants {
+public abstract class DConnectProfile implements DConnectProfileConstants,
+    DConnectApiSpecConstants {
 
     /** バッファサイズを定義. */
     private static final int BUF_SIZE = 4096;
@@ -48,6 +51,11 @@ public abstract class DConnectProfile implements DConnectProfileConstants {
      * DeviceConnectサービス.
      */
     private DConnectService mService;
+
+    /**
+     * Device Connect API 仕様定義リスト.
+     */
+    private DConnectApiSpecList mApiSpecList;
 
     /**
      * ロガー.
@@ -79,7 +87,7 @@ public abstract class DConnectProfile implements DConnectProfileConstants {
      */
     public DConnectApi findApi(final Intent request) {
         String action = request.getAction();
-        DConnectApiSpec.Method method = DConnectApiSpec.Method.fromAction(action);
+        Method method = Method.fromAction(action);
         if (method == null) {
             return null;
         }
@@ -94,7 +102,7 @@ public abstract class DConnectProfile implements DConnectProfileConstants {
      * @param method リクエストされたAPIのメソッド
      * @return 指定されたリクエストに対応するAPI実装を返す. 存在しない場合は<code>null</code>
      */
-    public DConnectApi findApi(final String path, final DConnectApiSpec.Method method) {
+    public DConnectApi findApi(final String path, final Method method) {
         return mApis.get(new ApiIdentifier(path, method));
     }
 
@@ -134,6 +142,8 @@ public abstract class DConnectProfile implements DConnectProfileConstants {
                               final String attributeName) {
         StringBuilder path = new StringBuilder();
         path.append("/");
+        path.append(DConnectMessage.DEFAULT_API);
+        path.append("/");
         path.append(profileName);
         if (interfaceName != null) {
             path.append("/");
@@ -144,6 +154,19 @@ public abstract class DConnectProfile implements DConnectProfileConstants {
             path.append(attributeName);
         }
         return path.toString();
+    }
+
+    private boolean isKnownApi(final Intent request) {
+        String action = request.getAction();
+        Method method = Method.fromAction(action);
+        if (method == null) {
+            return false;
+        }
+        String path = getApiPath(getProfile(request), getInterface(request), getAttribute(request));
+        if (mApiSpecList == null) {
+            return false;
+        }
+        return mApiSpecList.findApiSpec(method, path) != null;
     }
 
     /**
@@ -173,7 +196,11 @@ public abstract class DConnectProfile implements DConnectProfileConstants {
             }
             return api.onRequest(request, response);
         } else {
-            MessageUtils.setUnknownAttributeError(response);
+            if (isKnownApi(request)) {
+                MessageUtils.setNotSupportAttributeError(response);
+            } else {
+                MessageUtils.setUnknownAttributeError(response);
+            }
             return true;
         }
     }
@@ -212,6 +239,14 @@ public abstract class DConnectProfile implements DConnectProfileConstants {
      */
     public DConnectService getService() {
         return mService;
+    }
+
+    /**
+     * Device Connect API 仕様定義リストを設定する.
+     * @param apiSpecList API 仕様定義リスト
+     */
+    public void setApiSpecList(final DConnectApiSpecList apiSpecList) {
+        mApiSpecList = apiSpecList;
     }
 
     /**
@@ -781,7 +816,7 @@ public abstract class DConnectProfile implements DConnectProfileConstants {
 
         @Override
         public int hashCode() {
-            int result = mPath.toLowerCase().hashCode();
+            int result = mPath.toLowerCase().hashCode(); // XXXX パスの大文字小文字を無視
             result = 31 * result + mMethod.hashCode();
             return result;
         }
@@ -795,6 +830,7 @@ public abstract class DConnectProfile implements DConnectProfileConstants {
                 return false;
             }
             ApiIdentifier that = ((ApiIdentifier) o);
+            // XXXX パスの大文字小文字を無視
             return mPath.equalsIgnoreCase(that.mPath) && mMethod == that.mMethod;
         }
     }

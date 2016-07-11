@@ -15,12 +15,11 @@ public class ServiceDiscoveryConverter implements MessageConverter,
     ServiceDiscoveryProfileConstants {
 
     @Override
-    public boolean convert(final Intent message) {
+    public void convert(final Intent message) {
         if (!isResponse(message)) {
-            return false;
+            return;
         }
         convertSupportsParam(message);
-        return true;
     }
 
     private boolean isResponse(final Intent message) {

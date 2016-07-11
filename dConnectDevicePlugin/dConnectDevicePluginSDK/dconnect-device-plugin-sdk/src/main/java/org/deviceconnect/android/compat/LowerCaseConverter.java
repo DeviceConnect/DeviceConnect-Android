@@ -9,7 +9,7 @@ import org.deviceconnect.android.profile.DConnectProfile;
 public class LowerCaseConverter implements MessageConverter {
 
     @Override
-    public boolean convert(final Intent request) {
+    public void convert(final Intent request) {
         String profileName = DConnectProfile.getProfile(request);
         String interfaceName = DConnectProfile.getInterface(request);
         String attributeName = DConnectProfile.getAttribute(request);
@@ -30,7 +30,6 @@ public class LowerCaseConverter implements MessageConverter {
         if (attributeName != null) {
             DConnectProfile.setAttribute(request, attributeName.toLowerCase());
         }
-        return true;
     }
 
     private boolean isAccessTokenRequest(final String profileName, final String attributeName) {

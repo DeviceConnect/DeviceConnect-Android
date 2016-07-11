@@ -69,7 +69,7 @@ class LinkingNotifySensor {
 
         if (listeners.size() > 1) {
             if (BuildConfig.DEBUG) {
-                Log.i(TAG, device.getDisplayName() + " orientation is already running.");
+                Log.i(TAG, device.getDisplayName() + ": orientation is already running.");
             }
             return;
         }
@@ -118,6 +118,9 @@ class LinkingNotifySensor {
         listeners.add(listener);
 
         if (listeners.size() > 1) {
+            if (BuildConfig.DEBUG) {
+                Log.i(TAG, device.getDisplayName() + ": battery is already running.");
+            }
             return;
         }
 
@@ -162,6 +165,9 @@ class LinkingNotifySensor {
         listeners.add(listener);
 
         if (listeners.size() > 1) {
+            if (BuildConfig.DEBUG) {
+                Log.i(TAG, device.getDisplayName() + ": humidity is already running.");
+            }
             return;
         }
 
@@ -206,6 +212,9 @@ class LinkingNotifySensor {
         listeners.add(listener);
 
         if (listeners.size() > 1) {
+            if (BuildConfig.DEBUG) {
+                Log.i(TAG, device.getDisplayName() + ": temperature is already running.");
+            }
             return;
         }
 

@@ -114,6 +114,9 @@ public class LinkingDevicePluginService extends DConnectMessageService {
 
     public void cleanupSession(final String sessionKey) {
         if (sessionKey == null) {
+            if (BuildConfig.DEBUG) {
+                Log.w(TAG, "cleanupSession: sessionKey is null.");
+            }
             return;
         }
 
@@ -143,7 +146,7 @@ public class LinkingDevicePluginService extends DConnectMessageService {
                 if (BuildConfig.DEBUG) {
                     Log.i(TAG, "Added Device: " + device.getDisplayName());
                 }
-                getServiceProvider().addService(new LinkingDeviceService(this, device));
+                getServiceProvider().addService(new LinkingDeviceService(device));
             } else {
                 ((LinkingDeviceService) service).setLinkingDevice(device);
             }

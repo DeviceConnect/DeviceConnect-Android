@@ -50,16 +50,6 @@ import java.util.concurrent.TimeUnit;
 public class ThetaOmnidirectionalImageProfile extends OmnidirectionalImageProfile
     implements MixedReplaceMediaServer.ServerEventListener {
 
-    /**
-     * The service ID of ROI Image Service.
-     */
-    public static final String SERVICE_ID = "roi";
-
-    /**
-     * The name of ROI Image Service.
-     */
-    public static final String SERVICE_NAME = "ROI Image Service";
-
     private final Object mLockObj = new Object();
 
     private MixedReplaceMediaServer mServer;
@@ -167,11 +157,6 @@ public class ThetaOmnidirectionalImageProfile extends OmnidirectionalImageProfil
         mExecutor.execute(new Runnable() {
             @Override
             public void run() {
-                if (!checkServiceId(serviceId)) {
-                    MessageUtils.setNotFoundServiceError(response);
-                    ((ThetaDeviceService) getContext()).sendResponse(response);
-                    return;
-                }
                 try {
                     final String serverUri = startMediaServer();
                     final String id = generateId();
@@ -331,13 +316,6 @@ public class ThetaOmnidirectionalImageProfile extends OmnidirectionalImageProfil
     @Override
     public void onCloseServer() {
         mViewers.clear();
-    }
-
-    private boolean checkServiceId(final String serviceId) {
-        if (TextUtils.isEmpty(serviceId)) {
-            return false;
-        }
-        return serviceId.equals(SERVICE_ID);
     }
 
     private String omitParameters(final String uri) {

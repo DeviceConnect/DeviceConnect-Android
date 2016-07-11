@@ -13,9 +13,9 @@ import org.deviceconnect.android.deviceplugin.theta.core.ThetaDevice;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceClient;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceEventListener;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceManager;
-import org.deviceconnect.android.deviceplugin.theta.core.sensor.HeadTracker;
 import org.deviceconnect.android.deviceplugin.theta.profile.ThetaMediaStreamRecordingProfile;
 import org.deviceconnect.android.deviceplugin.theta.profile.ThetaSystemProfile;
+import org.deviceconnect.android.deviceplugin.theta.service.ThetaImageService;
 import org.deviceconnect.android.deviceplugin.theta.service.ThetaService;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.event.cache.MemoryCacheController;
@@ -34,7 +34,6 @@ public class ThetaDeviceService extends DConnectMessageService
 
     private static final String TYPE_NONE = "none";
     private ThetaDeviceManager mDeviceMgr;
-    private HeadTracker mHeadTracker;
     private ThetaDeviceClient mClient;
     private FileManager mFileMgr;
     private ThetaMediaStreamRecordingProfile mThetaMediaStreamRecording;
@@ -47,11 +46,12 @@ public class ThetaDeviceService extends DConnectMessageService
         mDeviceMgr = app.getDeviceManager();
         mDeviceMgr.registerDeviceEventListener(this);
         mDeviceMgr.checkConnectedDevice();
-        mHeadTracker = app.getHeadTracker();
         mClient = new ThetaDeviceClient(mDeviceMgr);
         mFileMgr = new FileManager(this);
 
         EventManager.INSTANCE.setController(new MemoryCacheController());
+
+        getServiceProvider().addService(new ThetaImageService(app.getHeadTracker()));
     }
 
     @Override
@@ -74,7 +74,7 @@ public class ThetaDeviceService extends DConnectMessageService
     public void onConnected(final ThetaDevice device) {
         DConnectService service = getServiceProvider().getService(device.getId());
         if (service == null) {
-            service = new ThetaService(device, mClient, mFileMgr, mHeadTracker);
+            service = new ThetaService(device, mClient, mFileMgr);
             getServiceProvider().addService(service);
             mThetaMediaStreamRecording = (ThetaMediaStreamRecordingProfile)service.getProfile(ThetaMediaStreamRecordingProfile.PROFILE_NAME);
         }

@@ -18,7 +18,7 @@ import java.util.Map;
 
 public class DConnectServiceManager implements DConnectServiceProvider {
 
-    private DConnectApiSpecList mApiSpecs;
+    private DConnectApiSpecList mApiSpecList;
 
     private Context mContext;
 
@@ -30,8 +30,8 @@ public class DConnectServiceManager implements DConnectServiceProvider {
         return mContext;
     }
 
-    public void setApiSpecDictionary(final DConnectApiSpecList dictionary) {
-        mApiSpecs = dictionary;
+    public void setApiSpecList(final DConnectApiSpecList apiSpecList) {
+        mApiSpecList = apiSpecList;
     }
 
     private final Map<String, DConnectService> mDConnectServices
@@ -39,13 +39,12 @@ public class DConnectServiceManager implements DConnectServiceProvider {
 
     @Override
     public void addService(final DConnectService service) {
-        Log.d("AAA", "addService: id = " + service.getId());
-
-        if (mApiSpecs != null) {
+        if (mApiSpecList != null) {
             for (DConnectProfile profile : service.getProfileList()) {
+                profile.setApiSpecList(mApiSpecList);
                 for (DConnectApi api : profile.getApiList()) {
                     String path = createPath(profile.getProfileName(), api);
-                    DConnectApiSpec spec = mApiSpecs.findApiSpec(api.getMethod().getName(), path);
+                    DConnectApiSpec spec = mApiSpecList.findApiSpec(api.getMethod().getName(), path);
                     if (spec != null) {
                         api.setApiSpec(spec);
                     }

@@ -2,53 +2,31 @@ package org.deviceconnect.android.manager.compat;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Parcelable;
 
 import org.deviceconnect.android.compat.MessageConverter;
-import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 import org.deviceconnect.profile.ServiceInformationProfileConstants;
 
-public class ServiceInformationConverter implements MessageConverter {
+public class ServiceInformationConverter implements MessageConverter,
+    ServiceInformationProfileConstants {
 
     @Override
-    public boolean convert(final Intent message) {
+    public void convert(final Intent message) {
         if (!isResponse(message)) {
-            return false;
+            return;
         }
-        if (!isServiceInformationResponse(message)) {
-            return false;
-        }
-        return convertSupportsParam(message);
+        convertSupportsParam(message);
     }
 
     private boolean isResponse(final Intent message) {
-        String method = message.getStringExtra(IntentDConnectMessage.EXTRA_METHOD);
-        return IntentDConnectMessage.ACTION_RESPONSE.equals(method);
+        String action = message.getAction();
+        return IntentDConnectMessage.ACTION_RESPONSE.equals(action);
     }
 
-    private boolean isServiceInformationResponse(final Intent message) {
-        String profile = message.getStringExtra(DConnectMessage.EXTRA_PROFILE);
-        return ServiceInformationProfileConstants.PROFILE_NAME.equalsIgnoreCase(profile);
-    }
-
-    private boolean convertSupportsParam(final Intent response) {
-        final String key = ServiceInformationProfileConstants.PARAM_SUPPORTS;
-        if (!response.hasExtra(key)) {
-            return false;
-        }
-        Object array = response.getParcelableArrayExtra(key);
-        if (array instanceof Bundle[]) {
-            Bundle[] supports = (Bundle[]) array;
-            for (int i = 0; i < supports.length; i++) {
-                Bundle support = supports[i];
-                String path = getPathFromBundle(support);
-                Path forward = PathConversionTable.forwardPath(path);
-                putPathToBundle(support, forward.toString());
-            }
-            response.putExtra(key, supports);
-            return true;
-        } else if (array instanceof String[]) {
-            String[] supports = (String[]) array;
+    private void convertSupportsParam(final Intent response) {
+        String[] supports = response.getStringArrayExtra(PARAM_SUPPORTS);
+        if (supports != null) {
             for (int i = 0; i < supports.length; i++) {
                 String profileName = supports[i];
                 String forward = PathConversionTable.forwardProfileName(profileName);
@@ -56,18 +34,43 @@ public class ServiceInformationConverter implements MessageConverter {
                     supports[i] = forward;
                 }
             }
-            response.putExtra(key, supports);
-            return true;
-        } else {
-            return false;
+            response.putExtra(PARAM_SUPPORTS, supports);
+        }
+
+        Bundle supportApisParam = response.getBundleExtra(PARAM_SUPPORT_APIS);
+        if (supportApisParam != null) {
+            for (String key : supportApisParam.keySet()) {
+                Parcelable[] apiSpecs = supportApisParam.getParcelableArray(key);
+
+                // APIのパスを新仕様に統一
+                for (Parcelable apiSpec : apiSpecs) {
+                    if (apiSpec instanceof Bundle) {
+                        String pathParam = getPathFromBundle((Bundle) apiSpec);
+                        if (pathParam != null) {
+                            try {
+                                Path path = Path.parsePath(pathParam);
+                                Path newPath = PathConversionTable.forwardPath(path);
+                                String newPathParam = newPath.mExpression;
+                                putPathToBundle((Bundle) apiSpec, newPathParam);
+                            } catch (IllegalArgumentException e) {
+                                continue;
+                            }
+                        }
+                    }
+                }
+
+                // プロファイル名を新仕様に統一
+                String convertedKey = PathConversionTable.forwardProfileName(key);
+                supportApisParam.putParcelableArray(convertedKey, apiSpecs);
+            }
         }
     }
 
     private String getPathFromBundle(final Bundle support) {
-        return support.getString("path"); // TODO "path"を定数化
+        return support.getString(PARAM_PATH);
     }
 
     private void putPathToBundle(final Bundle support, String path) {
-        support.putString("path", path); // TODO "path"を定数化
+        support.putString(PARAM_PATH, path);
     }
 }

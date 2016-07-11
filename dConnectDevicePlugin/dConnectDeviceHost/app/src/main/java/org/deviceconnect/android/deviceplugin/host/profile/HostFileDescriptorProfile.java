@@ -21,6 +21,10 @@ import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.FileDescriptorProfile;
+import org.deviceconnect.android.profile.api.DConnectApi;
+import org.deviceconnect.android.profile.api.DeleteApi;
+import org.deviceconnect.android.profile.api.GetApi;
+import org.deviceconnect.android.profile.api.PutApi;
 import org.deviceconnect.message.DConnectMessage;
 
 import java.io.File;
@@ -46,185 +50,193 @@ public class HostFileDescriptorProfile extends FileDescriptorProfile {
     /** 時刻フォーマット. */
     private SimpleDateFormat mDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss+0900", Locale.getDefault());
 
-    /**
-     * コンストラクタ.
-     * 
-     * @param mgr ファイルデータ管理クラス.
-     */
-    public HostFileDescriptorProfile(final FileDataManager mgr) {
-        mFileDataManager = mgr;
-        mFileDataManager.setFileModifiedListener(new FileModifiedListener() {
-            @Override
-            public void onWatchFile(final List<File> files) {
-                sendWatchFileEvent(files);
-            }
-        });
-    }
+    private final DConnectApi mGetOpenApi = new GetApi() {
 
-    @Override
-    protected boolean onGetOpen(final Intent request, final Intent response, final String serviceId, final String path,
-            final Flag flag) {
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else if (path == null) {
-            MessageUtils.setInvalidRequestParameterError(response, "path is invalid.");
-        } else if (path.trim().equals("") || path.trim().equals("/")) {
-            MessageUtils.setInvalidRequestParameterError(response, "path is invalid.");
-        } else if (flag == Flag.UNKNOWN) {
-            MessageUtils.setInvalidRequestParameterError(response, "flag is invalid.");
-        } else {
-            FileDataManager mgr = getFileDataManager();
-            FileData file = mgr.getFileData(path);
-            if (file != null) {
-                MessageUtils.setIllegalDeviceStateError(response, "Already file is open.");
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_OPEN;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String path = getPath(request);
+            Flag flag = getFlag(request);
+            if (path == null) {
+                MessageUtils.setInvalidRequestParameterError(response, "path is invalid.");
+            } else if (path.trim().equals("") || path.trim().equals("/")) {
+                MessageUtils.setInvalidRequestParameterError(response, "path is invalid.");
+            } else if (flag == Flag.UNKNOWN) {
+                MessageUtils.setInvalidRequestParameterError(response, "flag is invalid.");
             } else {
-                try {
-                    file = mgr.openFileData(path, flag);
-                    if (BuildConfig.DEBUG) {
-                        if (file != null) {
-                            Log.e("Host", "file is opened.");
+                FileDataManager mgr = getFileDataManager();
+                FileData file = mgr.getFileData(path);
+                if (file != null) {
+                    MessageUtils.setIllegalDeviceStateError(response, "Already file is open.");
+                } else {
+                    try {
+                        file = mgr.openFileData(path, flag);
+                        if (BuildConfig.DEBUG) {
+                            if (file != null) {
+                                Log.e("Host", "file is opened.");
+                            }
                         }
-                    }
-                    setResult(response, DConnectMessage.RESULT_OK);
-                } catch (IOException e) {
-                    MessageUtils.setIllegalDeviceStateError(response, "file cannot open.");
-                } catch (IllegalStateException e) {
-                    MessageUtils.setIllegalDeviceStateError(response, "file is already opened.");
-                }
-            }
-        }
-        return true;
-    }
-
-    @Override
-    protected boolean onGetRead(final Intent request, final Intent response, final String serviceId, final String path,
-            final Long length, final Long position) {
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else if (path == null) {
-            MessageUtils.setInvalidRequestParameterError(response, "path is invalid.");
-        } else if (length == null || length < 0) {
-            MessageUtils.setInvalidRequestParameterError(response, "length is invalid.");
-        } else if (position != null && position < 0) {
-            MessageUtils.setInvalidRequestParameterError(response, "position is invalid.");
-        } else {
-            long pos = 0;
-            if (position != null) {
-                pos = position;
-            }
-
-            FileDataManager mgr = getFileDataManager();
-            FileData file = mgr.getFileData(path);
-            if (file == null) {
-                MessageUtils.setInvalidRequestParameterError(response, "file is not opened.");
-            } else {
-                mgr.readFile(file, (int) pos, length.intValue(), new FileDataManager.ReadFileCallback() {
-                    @Override
-                    public void onSuccess(@NonNull final String data) {
                         setResult(response, DConnectMessage.RESULT_OK);
-                        setSize(response, data.length());
-                        setFileData(response, data);
-                        sendResponse(response);
+                    } catch (IOException e) {
+                        MessageUtils.setIllegalDeviceStateError(response, "file cannot open.");
+                    } catch (IllegalStateException e) {
+                        MessageUtils.setIllegalDeviceStateError(response, "file is already opened.");
                     }
-
-                    @Override
-                    public void onFail() {
-                        MessageUtils.setIllegalDeviceStateError(response, "file cannot be read.");
-                        sendResponse(response);
-                    }
-                });
-            }
-            return false;
-        }
-        return true;
-    }
-
-    @Override
-    protected boolean onPutClose(final Intent request, final Intent response, final String serviceId,
-            final String path) {
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else if (path == null) {
-            MessageUtils.setInvalidRequestParameterError(response, "path is invalid.");
-        } else {
-            FileDataManager mgr = getFileDataManager();
-            FileData file = mgr.getFileData(path);
-            if (file != null) {
-                boolean isSuccess = mgr.closeFileData(path);
-                if (isSuccess) {
-                    setResult(response, DConnectMessage.RESULT_OK);
-                } else {
-                    MessageUtils.setIllegalServerStateError(response, "file is not opened.");
                 }
-            } else {
-                MessageUtils.setIllegalServerStateError(response, "file is not opened.");
             }
+            return true;
         }
-        return true;
-    }
+    };
 
-    @Override
-    protected boolean onPutWrite(final Intent request, final Intent response, final String serviceId, final String path,
-            final byte[] data, final Long position) {
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else if (path == null) {
-            MessageUtils.setInvalidRequestParameterError(response, "path is invalid.");
-        } else if (data == null) {
-            MessageUtils.setInvalidRequestParameterError(response, "data is invalid.");
-        } else if (position != null && position < 0) {
-            MessageUtils.setInvalidRequestParameterError(response, "position is invalid.");
-        } else {
-            int pos = 0;
-            if (position != null) {
-                pos = position.intValue();
-            }
+    private final DConnectApi mGetReadApi = new GetApi() {
 
-            FileDataManager mgr = getFileDataManager();
-            FileData file = mgr.getFileData(path);
-            if (file == null) {
-                MessageUtils.setInvalidRequestParameterError(response, "file is not opened.");
-            } else if (file.getFlag() != Flag.RW) {
-                MessageUtils.setInvalidRequestParameterError(response, "file must be opened with Read & Write mode.");
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_READ;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String path = getPath(request);
+            Long length = getLength(request);
+            Long position = getPosition(request);
+            if (path == null) {
+                MessageUtils.setInvalidRequestParameterError(response, "path is invalid.");
+            } else if (length == null || length < 0) {
+                MessageUtils.setInvalidRequestParameterError(response, "length is invalid.");
+            } else if (position != null && position < 0) {
+                MessageUtils.setInvalidRequestParameterError(response, "position is invalid.");
             } else {
-                if (pos < 0 || data.length < pos) {
-                    MessageUtils.setInvalidRequestParameterError(response, "position is invalid.");
+                long pos = 0;
+                if (position != null) {
+                    pos = position;
+                }
+
+                FileDataManager mgr = getFileDataManager();
+                FileData file = mgr.getFileData(path);
+                if (file == null) {
+                    MessageUtils.setInvalidRequestParameterError(response, "file is not opened.");
                 } else {
-                    mgr.writeFile(file, data, pos, new FileDataManager.WriteFileCallback() {
+                    mgr.readFile(file, (int) pos, length.intValue(), new FileDataManager.ReadFileCallback() {
                         @Override
-                        public void onSuccess() {
+                        public void onSuccess(@NonNull final String data) {
                             setResult(response, DConnectMessage.RESULT_OK);
+                            setSize(response, data.length());
+                            setFileData(response, data);
                             sendResponse(response);
                         }
 
                         @Override
                         public void onFail() {
-                            MessageUtils.setUnknownError(response, "file cannot write.");
+                            MessageUtils.setIllegalDeviceStateError(response, "file cannot be read.");
                             sendResponse(response);
                         }
                     });
-                    return false;
+                }
+                return false;
+            }
+            return true;
+        }
+    };
+
+    private final DConnectApi mPutCloseApi = new PutApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_CLOSE;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String path = getPath(request);
+            if (path == null) {
+                MessageUtils.setInvalidRequestParameterError(response, "path is invalid.");
+            } else {
+                FileDataManager mgr = getFileDataManager();
+                FileData file = mgr.getFileData(path);
+                if (file != null) {
+                    boolean isSuccess = mgr.closeFileData(path);
+                    if (isSuccess) {
+                        setResult(response, DConnectMessage.RESULT_OK);
+                    } else {
+                        MessageUtils.setIllegalServerStateError(response, "file is not opened.");
+                    }
+                } else {
+                    MessageUtils.setIllegalServerStateError(response, "file is not opened.");
                 }
             }
+            return true;
         }
-        return true;
-    }
+    };
 
-    @Override
-    protected boolean onGetOnWatchFile(final Intent request, final Intent response, final String serviceId) {
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else {
+    private final DConnectApi mPutWriteApi = new PutApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_WRITE;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String path = getPath(request);
+            byte[] data = getContentData(getUri(request));
+            Long position = getPosition(request);
+            if (path == null) {
+                MessageUtils.setInvalidRequestParameterError(response, "path is invalid.");
+            } else if (data == null) {
+                MessageUtils.setInvalidRequestParameterError(response, "data is invalid.");
+            } else if (position != null && position < 0) {
+                MessageUtils.setInvalidRequestParameterError(response, "position is invalid.");
+            } else {
+                int pos = 0;
+                if (position != null) {
+                    pos = position.intValue();
+                }
+
+                FileDataManager mgr = getFileDataManager();
+                FileData file = mgr.getFileData(path);
+                if (file == null) {
+                    MessageUtils.setInvalidRequestParameterError(response, "file is not opened.");
+                } else if (file.getFlag() != Flag.RW) {
+                    MessageUtils.setInvalidRequestParameterError(response, "file must be opened with Read & Write mode.");
+                } else {
+                    if (pos < 0 || data.length < pos) {
+                        MessageUtils.setInvalidRequestParameterError(response, "position is invalid.");
+                    } else {
+                        mgr.writeFile(file, data, pos, new FileDataManager.WriteFileCallback() {
+                            @Override
+                            public void onSuccess() {
+                                setResult(response, DConnectMessage.RESULT_OK);
+                                sendResponse(response);
+                            }
+
+                            @Override
+                            public void onFail() {
+                                MessageUtils.setUnknownError(response, "file cannot write.");
+                                sendResponse(response);
+                            }
+                        });
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+    };
+
+    private final DConnectApi mGetOnWatchFileApi = new GetApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_WATCH_FILE;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
             FileDataManager mgr = getFileDataManager();
             mgr.getUpdatedFiles(new FileDataManager.CheckUpdatedFilesCallback() {
                 @Override
@@ -242,89 +254,90 @@ public class HostFileDescriptorProfile extends FileDescriptorProfile {
                 @Override
                 public void onFail() {
                     MessageUtils.setIllegalServerStateError(response,
-                            "READ_EXTERNAL_STORAGE permission not granted.");
+                        "READ_EXTERNAL_STORAGE permission not granted.");
                     sendResponse(response);
                 }
             });
             return false;
         }
-        return true;
-    }
+    };
 
-    @Override
-    protected boolean onPutOnWatchFile(final Intent request, final Intent response, final String serviceId,
-            final String sessionKey) {
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else if (sessionKey == null) {
-            MessageUtils.setInvalidRequestParameterError(response);
-        } else {
-            EventError error = EventManager.INSTANCE.addEvent(request);
-            if (error == EventError.NONE) {
-                List<Event> events = EventManager.INSTANCE.getEventList(request);
-                if (events.size() == 1) {
-                    mFileDataManager.startTimer();
-                }
-                setResult(response, DConnectMessage.RESULT_OK);
-            } else {
-                MessageUtils.setError(response, ERROR_VALUE_IS_NULL, "Can not register event.");
-            }
+    private final DConnectApi mPutOnWatchFileApi = new PutApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_WATCH_FILE;
         }
-        return true;
-    }
 
-    @Override
-    protected boolean onDeleteOnWatchFile(final Intent request, final Intent response, final String serviceId,
-            final String sessionKey) {
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else if (sessionKey == null) {
-            MessageUtils.setInvalidRequestParameterError(response);
-        } else {
-            EventError error = EventManager.INSTANCE.removeEvent(request);
-            if (error == EventError.NONE) {
-                List<Event> events = EventManager.INSTANCE.getEventList(request);
-                if (events.size() == 0) {
-                    mFileDataManager.stopTimer();
-                }
-                setResult(response, DConnectMessage.RESULT_OK);
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String sessionKey = getSessionKey(request);
+            if (sessionKey == null) {
+                MessageUtils.setInvalidRequestParameterError(response);
             } else {
-                MessageUtils.setError(response, ERROR_VALUE_IS_NULL, "Can not unregister event.");
+                EventError error = EventManager.INSTANCE.addEvent(request);
+                if (error == EventError.NONE) {
+                    List<Event> events = EventManager.INSTANCE.getEventList(request);
+                    if (events.size() == 1) {
+                        mFileDataManager.startTimer();
+                    }
+                    setResult(response, DConnectMessage.RESULT_OK);
+                } else {
+                    MessageUtils.setError(response, ERROR_VALUE_IS_NULL, "Can not register event.");
+                }
             }
+            return true;
         }
-        return true;
-    }
+    };
+
+    private final DConnectApi mDeleteOnWatchFileApi = new DeleteApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_WATCH_FILE;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String sessionKey = getSessionKey(request);
+            if (sessionKey == null) {
+                MessageUtils.setInvalidRequestParameterError(response);
+            } else {
+                EventError error = EventManager.INSTANCE.removeEvent(request);
+                if (error == EventError.NONE) {
+                    List<Event> events = EventManager.INSTANCE.getEventList(request);
+                    if (events.size() == 0) {
+                        mFileDataManager.stopTimer();
+                    }
+                    setResult(response, DConnectMessage.RESULT_OK);
+                } else {
+                    MessageUtils.setError(response, ERROR_VALUE_IS_NULL, "Can not unregister event.");
+                }
+            }
+            return true;
+        }
+    };
 
     /**
-     * サービスIDをチェックする.
+     * コンストラクタ.
      * 
-     * @param serviceId サービスID
-     * @return <code>serviceId</code>がテスト用サービスIDに等しい場合はtrue、そうでない場合はfalse
+     * @param mgr ファイルデータ管理クラス.
      */
-    private boolean checkServiceId(final String serviceId) {
-        return HostServiceDiscoveryProfile.SERVICE_ID.equals(serviceId);
-    }
-
-    /**
-     * サービスIDが空の場合のエラーを作成する.
-     * 
-     * @param response レスポンスを格納するIntent
-     */
-    private void createEmptyServiceId(final Intent response) {
-        MessageUtils.setEmptyServiceIdError(response, "Service ID is empty.");
-    }
-
-    /**
-     * サービスが発見できなかった場合のエラーを作成する.
-     * 
-     * @param response レスポンスを格納するIntent
-     */
-    private void createNotFoundService(final Intent response) {
-        MessageUtils.setNotFoundServiceError(response, "Service is not found.");
+    public HostFileDescriptorProfile(final FileDataManager mgr) {
+        mFileDataManager = mgr;
+        mFileDataManager.setFileModifiedListener(new FileModifiedListener() {
+            @Override
+            public void onWatchFile(final List<File> files) {
+                sendWatchFileEvent(files);
+            }
+        });
+        addApi(mGetOpenApi);
+        addApi(mGetReadApi);
+        addApi(mPutCloseApi);
+        addApi(mPutWriteApi);
+        addApi(mGetOnWatchFileApi);
+        addApi(mPutOnWatchFileApi);
+        addApi(mDeleteOnWatchFileApi);
     }
 
     /**
@@ -335,7 +348,7 @@ public class HostFileDescriptorProfile extends FileDescriptorProfile {
     private void sendWatchFileEvent(final List<File> files) {
         HostDeviceService service = (HostDeviceService) getContext();
 
-        List<Event> events = EventManager.INSTANCE.getEventList(HostServiceDiscoveryProfile.SERVICE_ID, PROFILE_NAME,
+        List<Event> events = EventManager.INSTANCE.getEventList(HostDeviceService.SERVICE_ID, PROFILE_NAME,
                 null, ATTRIBUTE_ON_WATCH_FILE);
         // TODO:Eventが無くなっていたらlistener 解除を行うように実装。
         synchronized (events) {

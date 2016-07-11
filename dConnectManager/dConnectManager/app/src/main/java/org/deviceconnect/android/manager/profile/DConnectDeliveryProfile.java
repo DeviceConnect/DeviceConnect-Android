@@ -6,7 +6,7 @@
  */
 package org.deviceconnect.android.manager.profile;
 
-import java.util.List;
+import android.content.Intent;
 
 import org.deviceconnect.android.manager.DConnectLocalOAuth;
 import org.deviceconnect.android.manager.DConnectMessageService;
@@ -18,7 +18,7 @@ import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.profile.SystemProfileConstants;
 
-import android.content.Intent;
+import java.util.List;
 
 /**
  * 指定されたリクエストを各デバイスプラグインに送信するためのプロファイル.
@@ -54,22 +54,17 @@ public class DConnectDeliveryProfile extends DConnectProfile {
 
     @Override
     public boolean onRequest(final Intent request, final Intent response) {
+        String profileName = getProfile(request);
         String serviceId = getServiceID(request);
 
         // TODO wakeup以外にも例外的な動きをするProfileがある場合には再検討すること。
         // System Profileのwakeupは例外的にpluginIdで宛先を決める
         // ここでは、/system/device/wakeupの場合のみpluginIdを使用するようにする
-        String profileName = getProfile(request);
-        if (SystemProfileConstants.PROFILE_NAME.equals(profileName)) {
-            String inter = getInterface(request);
-            String attr = getAttribute(request);
-            if (SystemProfileConstants.INTERFACE_DEVICE.equals(inter)
-                    && SystemProfileConstants.ATTRIBUTE_WAKEUP.equals(attr)) {
-                serviceId = request.getStringExtra(SystemProfileConstants.PARAM_PLUGIN_ID);
-                if (serviceId == null) {
-                    sendEmptyPluginId(request, response);
-                    return true;
-                }
+        if (DConnectSystemProfile.isWakeUpRequest(request)) {
+            serviceId = request.getStringExtra(SystemProfileConstants.PARAM_PLUGIN_ID);
+            if (serviceId == null) {
+                sendEmptyPluginId(request, response);
+                return true;
             }
         }
 

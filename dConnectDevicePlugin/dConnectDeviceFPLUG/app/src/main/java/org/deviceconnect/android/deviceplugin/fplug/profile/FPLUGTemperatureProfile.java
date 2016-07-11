@@ -15,6 +15,8 @@ import org.deviceconnect.android.deviceplugin.fplug.fplug.FPLUGRequestCallback;
 import org.deviceconnect.android.deviceplugin.fplug.fplug.FPLUGResponse;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.TemperatureProfile;
+import org.deviceconnect.android.profile.api.DConnectApi;
+import org.deviceconnect.android.profile.api.GetApi;
 import org.deviceconnect.message.DConnectMessage;
 
 /**
@@ -24,35 +26,41 @@ import org.deviceconnect.message.DConnectMessage;
  */
 public class FPLUGTemperatureProfile extends TemperatureProfile {
 
-    @Override
-    protected boolean onGetRequest(Intent request, final Intent response) {
-        String serviceId = getServiceID(request);
+    private final DConnectApi mGetTemperatureApi = new GetApi() {
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String serviceId = getServiceID(request);
 
-        FPLUGApplication app = ((FPLUGApplication) getContext().getApplicationContext());
-        FPLUGController controller = app.getConnectedController(serviceId);
-        if (controller == null) {
-            MessageUtils.setNotFoundServiceError(response, "Not found fplug: " + serviceId);
-            return true;
+            FPLUGApplication app = ((FPLUGApplication) getContext().getApplicationContext());
+            FPLUGController controller = app.getConnectedController(serviceId);
+            if (controller == null) {
+                MessageUtils.setNotFoundServiceError(response, "Not found fplug: " + serviceId);
+                return true;
+            }
+            controller.requestTemperature(new FPLUGRequestCallback() {
+                @Override
+                public void onSuccess(FPLUGResponse fResponse) {
+                    setTemperature(response, fResponse.getTemperature());
+                    setType(response, TemperatureType.Celsius.getValue());
+                    sendResultOK(response);
+                }
+
+                @Override
+                public void onError(String message) {
+                    sendResultError(response);
+                }
+
+                @Override
+                public void onTimeout() {
+                    sendResultTimeout(response);
+                }
+            });
+            return false;
         }
-        controller.requestTemperature(new FPLUGRequestCallback() {
-            @Override
-            public void onSuccess(FPLUGResponse fResponse) {
-                setTemperature(response, fResponse.getTemperature());
-                setType(response, TemperatureType.Celsius.getValue());
-                sendResultOK(response);
-            }
+    };
 
-            @Override
-            public void onError(String message) {
-                sendResultError(response);
-            }
-
-            @Override
-            public void onTimeout() {
-                sendResultTimeout(response);
-            }
-        });
-        return false;
+    public FPLUGTemperatureProfile() {
+        addApi(mGetTemperatureApi);
     }
 
     private void sendResultOK(Intent response) {

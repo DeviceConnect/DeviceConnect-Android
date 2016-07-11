@@ -1,0 +1,54 @@
+[
+    {
+        "name": "Key Down Event API",
+        "type": "event",
+        "method": "PUT",
+        "path": "/gotapi/keyEvent/onDown",
+        "requestParams": [
+            {
+                "name": "serviceId",
+                "type": "string",
+                "mandatory": true
+            }
+        ]
+    },
+    {
+        "name": "Key Down Event API",
+        "type": "event",
+        "method": "DELETE",
+        "path": "/gotapi/keyEvent/onDown",
+        "requestParams": [
+            {
+                "name": "serviceId",
+                "type": "string",
+                "mandatory": true
+            }
+        ]
+    },
+    {
+        "name": "Key Up Event API",
+        "type": "event",
+        "method": "PUT",
+        "path": "/gotapi/keyEvent/onUp",
+        "requestParams": [
+            {
+                "name": "serviceId",
+                "type": "string",
+                "mandatory": true
+            }
+        ]
+    },
+    {
+        "name": "Key Up Event API",
+        "type": "event",
+        "method": "DELETE",
+        "path": "/gotapi/keyEvent/onUp",
+        "requestParams": [
+            {
+                "name": "serviceId",
+                "type": "string",
+                "mandatory": true
+            }
+        ]
+    }
+]

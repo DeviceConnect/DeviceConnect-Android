@@ -124,22 +124,22 @@ public class HostDeviceApplication extends Application {
      */
     public void setTouchCache(final String attr, final Bundle touchData) {
         long lCurrentTime = System.currentTimeMillis();
-        if (attr.equals(TouchProfile.ATTRIBUTE_ON_TOUCH)) {
+        if (attr.equals(TouchProfile.ATTRIBUTE_ON_TOUCH.toLowerCase())) {
             mOnTouchCache = touchData;
             mOnTouchCacheTime = lCurrentTime;
-        } else if (attr.equals(TouchProfile.ATTRIBUTE_ON_TOUCH_START)) {
+        } else if (attr.equals(TouchProfile.ATTRIBUTE_ON_TOUCH_START.toLowerCase())) {
             mOnTouchStartCache = touchData;
             mOnTouchStartCacheTime = lCurrentTime;
-        } else if (attr.equals(TouchProfile.ATTRIBUTE_ON_TOUCH_END)) {
+        } else if (attr.equals(TouchProfile.ATTRIBUTE_ON_TOUCH_END.toLowerCase())) {
             mOnTouchEndCache = touchData;
             mOnTouchEndCacheTime = lCurrentTime;
-        } else if (attr.equals(TouchProfile.ATTRIBUTE_ON_DOUBLE_TAP)) {
+        } else if (attr.equals(TouchProfile.ATTRIBUTE_ON_DOUBLE_TAP.toLowerCase())) {
             mOnDoubleTapCache = touchData;
             mOnDoubleTapCacheTime = lCurrentTime;
-        } else if (attr.equals(TouchProfile.ATTRIBUTE_ON_TOUCH_MOVE)) {
+        } else if (attr.equals(TouchProfile.ATTRIBUTE_ON_TOUCH_MOVE.toLowerCase())) {
             mOnTouchMoveCache = touchData;
             mOnTouchMoveCacheTime = lCurrentTime;
-        } else if (attr.equals(TouchProfile.ATTRIBUTE_ON_TOUCH_CANCEL)) {
+        } else if (attr.equals(TouchProfile.ATTRIBUTE_ON_TOUCH_CANCEL.toLowerCase())) {
             mOnTouchCancelCache = touchData;
             mOnTouchCancelCacheTime = lCurrentTime;
         }
@@ -190,10 +190,10 @@ public class HostDeviceApplication extends Application {
      */
     public void setKeyEventCache(final String attr, final Bundle keyeventData) {
         long lCurrentTime = System.currentTimeMillis();
-        if (attr.equals(KeyEventProfile.ATTRIBUTE_ON_DOWN)) {
+        if (attr.equals(KeyEventProfile.ATTRIBUTE_ON_DOWN.toLowerCase())) {
             mOnDownCache = keyeventData;
             sOnDownCacheTime = lCurrentTime;
-        } else if (attr.equals(KeyEventProfile.ATTRIBUTE_ON_UP)) {
+        } else if (attr.equals(KeyEventProfile.ATTRIBUTE_ON_UP.toLowerCase())) {
             mOnUpCache = keyeventData;
             sOnUpCacheTime = lCurrentTime;
         }

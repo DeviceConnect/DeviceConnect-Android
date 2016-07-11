@@ -41,7 +41,6 @@ public class ServiceInformationConverter implements MessageConverter,
         if (supportApisParam != null) {
             for (String key : supportApisParam.keySet()) {
                 Parcelable[] apiSpecs = supportApisParam.getParcelableArray(key);
-                supportApisParam.remove(key);
 
                 // APIのパスを新仕様に統一
                 for (Parcelable apiSpec : apiSpecs) {

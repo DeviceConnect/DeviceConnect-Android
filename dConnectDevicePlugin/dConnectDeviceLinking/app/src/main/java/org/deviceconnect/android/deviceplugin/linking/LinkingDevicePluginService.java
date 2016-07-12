@@ -195,7 +195,7 @@ public class LinkingDevicePluginService extends DConnectMessageService {
 
     private boolean containsLinkingDevices(final String id) {
         for (LinkingDevice device : getLinkingDeviceManager().getDevices()) {
-            if (id.equals(device.getBdAddress())) {
+            if (device.getBdAddress().equals(id)) {
                 return true;
             }
         }
@@ -204,7 +204,7 @@ public class LinkingDevicePluginService extends DConnectMessageService {
 
     private boolean containsLinkingBeacons(final String id) {
         for (LinkingBeacon beacon : getLinkingBeaconManager().getLinkingBeacons()) {
-            if (id.equals(beacon.getServiceId())) {
+            if (beacon.getServiceId().equals(id)) {
                 return true;
             }
         }

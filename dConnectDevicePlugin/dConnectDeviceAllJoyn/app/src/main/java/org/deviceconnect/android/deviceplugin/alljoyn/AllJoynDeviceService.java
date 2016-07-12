@@ -38,11 +38,6 @@ public class AllJoynDeviceService extends DConnectMessageService
     }
 
     @Override
-    protected void onManagerEventTransmitDisconnected(String sessionKey) {
-        // ManagerのEvent送信経路切断通知受信時の処理
-    }
-
-    @Override
     protected void onDevicePluginReset() {
         // Device Plug-inへのReset要求受信時の処理
     }

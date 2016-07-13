@@ -32,6 +32,7 @@ import com.squareup.picasso.Picasso;
 import org.deviceconnect.android.deviceplugin.slackmessagehook.R;
 import org.deviceconnect.android.deviceplugin.slackmessagehook.slack.SlackManager;
 
+import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -132,7 +133,8 @@ public class MessageListFragment extends ListFragment implements SlackManager.Sl
 
         // Picassoで認証するためにヘッダを追加
         final String token = Utils.getAccessToken(context);
-        OkHttpClient httpClient = new OkHttpClient.Builder().cache(new Cache(context.getCacheDir(), Integer.MAX_VALUE)).addInterceptor(new Interceptor() {
+        File cacheDir = Utils.getCacheDir(context);
+        OkHttpClient httpClient = new OkHttpClient.Builder().cache(new Cache(cacheDir, Integer.MAX_VALUE)).addInterceptor(new Interceptor() {
             @Override
             public Response intercept(Chain chain) throws IOException {
                 Request newRequest = chain.request().newBuilder().

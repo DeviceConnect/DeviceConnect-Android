@@ -17,6 +17,8 @@
     <string name="menu_change_token">Bot切り替え</string>
     <string name="menu_open_slack">Slackを開く</string>
     <string name="menu_setting">設定</string>
+    <string name="menu_clear_cache">キャッシュクリア</string>
+    <string name="clear_cache">キャッシュしていたリソースを削除しても良いですか？</string>
     <string name="help_title">アクセストークンの取得方法</string>
     <string name="help01">「アクセストークンを取得」をタップしてブラウザでSlackのページを開きます。</string>
     <string name="help02">Botの管理ページが開きますので「Configure」をタップして新しくBotを作成します。この時Slackにログインしていない場合はログインしてください。</string>

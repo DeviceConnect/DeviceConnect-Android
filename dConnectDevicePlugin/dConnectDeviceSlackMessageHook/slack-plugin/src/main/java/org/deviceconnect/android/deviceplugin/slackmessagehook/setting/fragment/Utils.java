@@ -22,6 +22,8 @@ import android.preference.PreferenceManager;
 import org.deviceconnect.android.deviceplugin.slackmessagehook.R;
 import org.deviceconnect.android.deviceplugin.slackmessagehook.slack.SlackManager;
 
+import java.io.File;
+
 /**
  * ユーティリティクラス
  */
@@ -57,6 +59,34 @@ public class Utils {
             transaction.addToBackStack(null);
         }
         transaction.commit();
+    }
+
+    /**
+     * キャッシュのフォルダを取得
+     * @param context Context
+     * @return フォルダ
+     */
+    public static File getCacheDir(Context context) {
+        return new File(context.getApplicationContext().getCacheDir(), context.getString(R.string.app_name));
+    }
+
+    /**
+     * フォルダを削除
+     * @param dir フォルダ
+     * @return 成功ならtrue
+     */
+    public static boolean deleteDir(File dir) {
+        if (dir.isDirectory()) {
+            String[] children = dir.list();
+            for (int i = 0; i < children.length; i++) {
+                boolean success = deleteDir(new File(dir, children[i]));
+                if (!success) {
+                    return false;
+                }
+            }
+        }
+        // The directory is now empty so delete it
+        return dir.delete();
     }
 
 
@@ -147,6 +177,22 @@ public class Utils {
         dialog.setCanceledOnTouchOutside(false);
         dialog.show();
         return dialog;
+    }
+
+    /**
+     * 確認ダイアログ表示
+     * @param context Context
+     * @param title タイトル
+     * @param msg メッセージ
+     * @param listener OKボタンイベントリスナー
+     */
+    public static void showConfirmDialog(Context context, String title, String msg, DialogInterface.OnClickListener listener) {
+        new AlertDialog.Builder(context)
+                .setTitle(title)
+                .setMessage(msg)
+                .setPositiveButton("OK", listener)
+                .setNegativeButton("Cancel", null)
+                .show();
     }
 
     /**

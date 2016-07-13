@@ -10,6 +10,8 @@ import android.app.ActionBar;
 import android.app.Activity;
 import android.app.Fragment;
 import android.app.ProgressDialog;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -25,6 +27,8 @@ import org.deviceconnect.android.deviceplugin.slackmessagehook.setting.fragment.
 import org.deviceconnect.android.deviceplugin.slackmessagehook.setting.fragment.Utils;
 import org.deviceconnect.android.deviceplugin.slackmessagehook.slack.SlackManager;
 import org.deviceconnect.android.ui.activity.DConnectSettingPageActivity;
+
+import java.io.File;
 
 /**
  * 設定用Activity.
@@ -105,6 +109,7 @@ public class SlackMessageHookSettingActivity extends Activity {
 
     @Override
     public boolean onOptionsItemSelected(final MenuItem item) {
+        final Context context = SlackMessageHookSettingActivity.this;
         switch (item.getItemId()) {
             case android.R.id.home:
                 // 閉じる
@@ -119,6 +124,16 @@ public class SlackMessageHookSettingActivity extends Activity {
                 Fragment fragment = new SettingFragment();
                 Utils.transition(fragment, getFragmentManager(), true);
                 break;
+            case R.id.menu_clear_cache:
+                // キャッシュクリア
+                Utils.showConfirmDialog(context, context.getString(R.string.menu_clear_cache), context.getString(R.string.clear_cache), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        File cacheDir = Utils.getCacheDir(context);
+                        Utils.deleteDir(cacheDir);
+                    }
+                });
+                break;
             case R.id.menu_open_slack:
                 // Slackを開く
                 Uri uri = Uri.parse("https://slack.com/messages");
@@ -128,4 +143,5 @@ public class SlackMessageHookSettingActivity extends Activity {
         }
         return super.onOptionsItemSelected(item);
     }
+
 }

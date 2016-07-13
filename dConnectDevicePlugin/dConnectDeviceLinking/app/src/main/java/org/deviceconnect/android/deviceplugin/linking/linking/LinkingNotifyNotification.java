@@ -34,7 +34,7 @@ class LinkingNotifyNotification {
 
     public synchronized void enableListenNotification(final LinkingDevice device,
                                                       final LinkingDeviceManager.OnButtonEventListener listener) {
-        if (!device.isButton()) {
+        if (!device.isSupportButton()) {
             return;
         }
 

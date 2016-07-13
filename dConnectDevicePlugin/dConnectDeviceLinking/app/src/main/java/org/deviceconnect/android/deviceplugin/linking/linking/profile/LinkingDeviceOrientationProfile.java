@@ -282,7 +282,7 @@ public class LinkingDeviceOrientationProfile extends DeviceOrientationProfile im
             return null;
         }
 
-        if (!device.isGyro() && !device.isAcceleration() && !device.isCompass()) {
+        if (!device.isSupportGyro() && !device.isSupportAcceleration() && !device.isSupportCompass()) {
             MessageUtils.setIllegalDeviceStateError(response, "device has not Sensor");
             return null;
         }
@@ -302,9 +302,9 @@ public class LinkingDeviceOrientationProfile extends DeviceOrientationProfile im
 
     private SensorHolder createSensorHolder(final LinkingDevice device, final int interval) {
         SensorHolder holder = new SensorHolder();
-        holder.setSupportGyro(device.isGyro());
-        holder.setSupportAcceleration(device.isAcceleration());
-        holder.setSupportCompass(device.isCompass());
+        holder.setSupportGyro(device.isSupportGyro());
+        holder.setSupportAcceleration(device.isSupportAcceleration());
+        holder.setSupportCompass(device.isSupportCompass());
         holder.setTime(System.currentTimeMillis());
         holder.setInterval(interval);
         return holder;

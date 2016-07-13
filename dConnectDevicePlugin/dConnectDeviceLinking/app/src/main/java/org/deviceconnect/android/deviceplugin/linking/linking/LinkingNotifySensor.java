@@ -32,6 +32,8 @@ class LinkingNotifySensor {
     private NotifySensorData mNotifySensor;
     private Context mContext;
 
+    private final Map<String, Integer> mCountOfSensor = new HashMap<>();
+
     public LinkingNotifySensor(final Context context) {
         mContext = context;
         startNotifySensor();
@@ -42,6 +44,7 @@ class LinkingNotifySensor {
         mBatteryMap.clear();
         mHumidityMap.clear();
         mTemperatureMap.clear();
+        mCountOfSensor.clear();
 
         if (mNotifySensor != null) {
             if (BuildConfig.DEBUG) {
@@ -54,7 +57,7 @@ class LinkingNotifySensor {
 
     public synchronized void enableListenOrientation(final LinkingDevice device,
                                                      final LinkingDeviceManager.OnSensorListener listener) {
-        if (!device.isGyro() && !device.isAcceleration() && !device.isCompass()) {
+        if (!device.isSupportGyro() && !device.isSupportAcceleration() && !device.isSupportCompass()) {
             return;
         }
 
@@ -104,7 +107,7 @@ class LinkingNotifySensor {
 
     public synchronized void enableListenBattery(final LinkingDevice device,
                                                  final LinkingDeviceManager.OnBatteryListener listener) {
-        if (!device.isBattery()) {
+        if (!device.isSupportBattery()) {
             return;
         }
 
@@ -151,7 +154,7 @@ class LinkingNotifySensor {
 
     public synchronized void enableListenHumidity(final LinkingDevice device,
                                                   final LinkingDeviceManager.OnHumidityListener listener) {
-        if (!device.isHumidity()) {
+        if (!device.isSupportHumidity()) {
             return;
         }
 
@@ -198,7 +201,7 @@ class LinkingNotifySensor {
 
     public synchronized void enableListenTemperature(final LinkingDevice device,
                                                      final LinkingDeviceManager.OnTemperatureListener listener) {
-        if (!device.isHumidity()) {
+        if (!device.isSupportTemperature()) {
             return;
         }
 
@@ -295,7 +298,7 @@ class LinkingNotifySensor {
         return null;
     }
 
-    private void startSensor(final String address, final int[] type, final int interval) {
+    private void startSensor(final String address, final int[] types, final int interval) {
         if (BuildConfig.DEBUG) {
             Log.i(TAG, "LinkingNotifySensor#startSensor: " + address);
         }
@@ -308,9 +311,10 @@ class LinkingNotifySensor {
         intent.putExtra(LinkingUtil.EXTRA_X_THRESHOLD, 0.0F);
         intent.putExtra(LinkingUtil.EXTRA_Y_THRESHOLD, 0.0F);
         intent.putExtra(LinkingUtil.EXTRA_Z_THRESHOLD, 0.0F);
-        intent.putExtra(ConfirmActivity.EXTRA_REQUEST_SENSOR_TYPE, type);
+        intent.putExtra(ConfirmActivity.EXTRA_REQUEST_SENSOR_TYPE, types);
         try {
             mContext.startActivity(intent);
+            countUpSensor(address, types.length);
         } catch (ActivityNotFoundException e) {
             if (BuildConfig.DEBUG) {
                 e.printStackTrace();
@@ -323,7 +327,11 @@ class LinkingNotifySensor {
                 containsOrientation(device) || containsTemperature(device)) {
             return;
         }
-        stopSensors(device.getBdAddress());
+
+        int count = countDownSensor(device.getBdAddress());
+        for (int i = 0; i < count; i++) {
+            stopSensors(device.getBdAddress());
+        }
     }
 
     private void stopSensors(final String address) {
@@ -343,15 +351,31 @@ class LinkingNotifySensor {
         }
     }
 
+    private void countUpSensor(final String address, final int length) {
+        Integer count = mCountOfSensor.get(address);
+        if (count == null) {
+            count = 0;
+        }
+        mCountOfSensor.put(address, count + length);
+    }
+
+    private int countDownSensor(final String address) {
+        Integer count = mCountOfSensor.remove(address);
+        if (count == null) {
+            count = 1;
+        }
+        return count;
+    }
+
     private int[] getSupportSensorType(final LinkingDevice device) {
         List<Integer> type = new ArrayList<>();
-        if (device.isGyro()) {
+        if (device.isSupportGyro()) {
             type.add(LinkingSensorData.SensorType.GYRO.getValue());
         }
-        if (device.isAcceleration()) {
+        if (device.isSupportAcceleration()) {
             type.add(LinkingSensorData.SensorType.ACCELERATION.getValue());
         }
-        if (device.isCompass()) {
+        if (device.isSupportCompass()) {
             type.add(LinkingSensorData.SensorType.COMPASS.getValue());
         }
         int[] types = new int[type.size()];

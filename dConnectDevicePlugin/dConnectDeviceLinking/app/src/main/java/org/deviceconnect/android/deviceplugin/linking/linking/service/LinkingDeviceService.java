@@ -32,27 +32,27 @@ public class LinkingDeviceService extends DConnectService implements LinkingDest
 
         mDevice = device;
 
-        if (mDevice.isGyro() || mDevice.isAcceleration() || mDevice.isCompass()) {
+        if (mDevice.isSupportGyro() || mDevice.isSupportAcceleration() || mDevice.isSupportCompass()) {
             addProfile(new LinkingDeviceOrientationProfile());
         }
-        if (mDevice.isButton()) {
+        if (mDevice.isSupportButton()) {
             addProfile(new LinkingKeyEventProfile());
         }
-        if (mDevice.isLED()) {
+        if (mDevice.isSupportLED()) {
             addProfile(new LinkingLightProfile());
         }
         addProfile(new LinkingNotificationProfile());
         addProfile(new LinkingProximityProfile());
-        if (mDevice.isVibration()) {
+        if (mDevice.isSupportVibration()) {
             addProfile(new LinkingVibrationProfile());
         }
-        if (mDevice.isBattery()) {
+        if (mDevice.isSupportBattery()) {
             addProfile(new LinkingBatteryProfile());
         }
-        if (mDevice.isTemperature()) {
+        if (mDevice.isSupportTemperature()) {
             addProfile(new LinkingTemperatureProfile());
         }
-        if (mDevice.isHumidity()) {
+        if (mDevice.isSupportHumidity()) {
             addProfile(new LinkingHumidityProfile());
         }
     }

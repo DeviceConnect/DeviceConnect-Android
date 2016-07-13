@@ -617,7 +617,7 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
     }
 
     private void onClickLED(boolean isOn) {
-        if (!mDevice.isLED()) {
+        if (!mDevice.isSupportLED()) {
             Toast.makeText(this, getString(R.string.activity_device_not_support_led), Toast.LENGTH_SHORT).show();
             return;
         }
@@ -627,7 +627,7 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
     }
 
     private void onClickVibration(final boolean isOn) {
-        if (!mDevice.isVibration()) {
+        if (!mDevice.isSupportVibration()) {
             Toast.makeText(this, getString(R.string.activity_device_not_support_vibration), Toast.LENGTH_SHORT).show();
             return;
         }
@@ -637,7 +637,7 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
     }
 
     private void onClickSensor(final boolean isOn) {
-        if (!mDevice.isGyro() && !mDevice.isAcceleration() && !mDevice.isCompass()) {
+        if (!mDevice.isSupportGyro() && !mDevice.isSupportAcceleration() && !mDevice.isSupportCompass()) {
             Toast.makeText(this, getString(R.string.activity_device_not_support_sensor), Toast.LENGTH_SHORT).show();
             return;
         }
@@ -651,7 +651,7 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
     }
 
     private void onClickBatterySensor(final boolean isOn) {
-        if (!mDevice.isBattery()) {
+        if (!mDevice.isSupportBattery()) {
             Toast.makeText(this, getString(R.string.activity_device_not_support_battery), Toast.LENGTH_SHORT).show();
             return;
         }
@@ -665,7 +665,7 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
     }
 
     private void onClickTemperatureSensor(final boolean isOn) {
-        if (!mDevice.isTemperature()) {
+        if (!mDevice.isSupportTemperature()) {
             Toast.makeText(this, getString(R.string.activity_device_not_support_temperature), Toast.LENGTH_SHORT).show();
             return;
         }
@@ -680,7 +680,7 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
 
 
     private void onClickHumiditySensor(final boolean isOn) {
-        if (!mDevice.isHumidity()) {
+        if (!mDevice.isSupportHumidity()) {
             Toast.makeText(this, getString(R.string.activity_device_not_support_humidity), Toast.LENGTH_SHORT).show();
             return;
         }
@@ -694,7 +694,7 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
     }
 
     private void onClickButtonId(final boolean isOn) {
-        if (!mDevice.isButton()) {
+        if (!mDevice.isSupportButton()) {
             Toast.makeText(this, getString(R.string.activity_device_not_support_button), Toast.LENGTH_SHORT).show();
             return;
         }

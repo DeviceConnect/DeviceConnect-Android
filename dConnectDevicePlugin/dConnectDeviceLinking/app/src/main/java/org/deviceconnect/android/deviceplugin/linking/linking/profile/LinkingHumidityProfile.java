@@ -79,7 +79,7 @@ public class LinkingHumidityProfile extends HumidityProfile {
             return null;
         }
 
-        if (!device.isHumidity()) {
+        if (!device.isSupportHumidity()) {
             MessageUtils.setIllegalDeviceStateError(response, "device has not humidity");
             return null;
         }

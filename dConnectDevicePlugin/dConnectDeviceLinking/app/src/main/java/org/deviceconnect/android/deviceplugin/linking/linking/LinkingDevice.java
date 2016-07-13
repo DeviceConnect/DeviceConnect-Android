@@ -111,39 +111,39 @@ public class LinkingDevice {
         mExSensorType = exSensorType;
     }
 
-    public boolean isLED() {
+    public boolean isSupportLED() {
         return mIllumination != null;
     }
 
-    public boolean isVibration() {
+    public boolean isSupportVibration() {
         return mVibration != null;
     }
 
-    public boolean isGyro() {
+    public boolean isSupportGyro() {
         return (mFeature & GYRO) != 0;
     }
 
-    public boolean isAcceleration() {
+    public boolean isSupportAcceleration() {
         return (mFeature & ACCELERATION) != 0;
     }
 
-    public boolean isCompass() {
+    public boolean isSupportCompass() {
         return (mFeature & COMPASS) != 0;
     }
 
-    public boolean isBattery() {
+    public boolean isSupportBattery() {
         return (mFeature & BATTERY) != 0;
     }
 
-    public boolean isTemperature() {
+    public boolean isSupportTemperature() {
         return (mFeature & TEMPERATURE) != 0;
     }
 
-    public boolean isHumidity() {
+    public boolean isSupportHumidity() {
         return (mFeature & HUMIDITY) != 0;
     }
 
-    public boolean isButton() {
+    public boolean isSupportButton() {
         return (mExSensorType & BUTTON) != 0;
     }
 
@@ -184,9 +184,9 @@ public class LinkingDevice {
         return "Name: " + getDisplayName() + "\n  Address: " + getBdAddress() + "\n  Online: " + isConnected()
                 + "\n  ModelId: " + getModelId() + "\n  UniqueId: " + getUniqueId()
                 + "\n  Feature: " + getFeature() + "\n  ExSensorType: " + getExSensorType()
-                + "\n  Version: " + getVersion() + "\n  LED: " + isLED() + "\n  Gyro: " + isGyro()
-                + "\n  Accel: " + isAcceleration() + "\n  Compass: " + isCompass()
-                + "\n  Battery: " + isBattery() + "\n  Humidity: " + isHumidity()
-                + "\n  Temperature: " + isTemperature() + "\n  Button: " + isButton();
+                + "\n  Version: " + getVersion() + "\n  LED: " + isSupportLED() + "\n  Gyro: " + isSupportGyro()
+                + "\n  Accel: " + isSupportAcceleration() + "\n  Compass: " + isSupportCompass()
+                + "\n  Battery: " + isSupportBattery() + "\n  Humidity: " + isSupportHumidity()
+                + "\n  Temperature: " + isSupportTemperature() + "\n  Button: " + isSupportButton();
     }
 }

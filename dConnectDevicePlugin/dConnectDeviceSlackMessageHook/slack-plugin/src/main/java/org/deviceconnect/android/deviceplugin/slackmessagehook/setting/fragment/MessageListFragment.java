@@ -259,12 +259,8 @@ public class MessageListFragment extends ListFragment implements SlackManager.Sl
                         @Override
                         public void run() {
                             if (getView()==null) return;
-                            // TODO: 詳細なエラー表示
-                            new AlertDialog.Builder(context)
-                                    .setTitle("エラー")
-                                    .setMessage("エラーです")
-                                    .setPositiveButton("OK", null)
-                                    .show();
+                            // エラー表示
+                            Utils.showAlertDialog(context, context.getString(R.string.error_unknown));
                         }
                     });
                 }

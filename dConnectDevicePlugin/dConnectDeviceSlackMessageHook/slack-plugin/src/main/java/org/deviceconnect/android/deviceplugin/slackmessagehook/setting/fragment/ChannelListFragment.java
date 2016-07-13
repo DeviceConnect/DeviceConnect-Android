@@ -6,7 +6,6 @@
  */
 package org.deviceconnect.android.deviceplugin.slackmessagehook.setting.fragment;
 
-import android.app.AlertDialog;
 import android.app.Fragment;
 import android.app.ListFragment;
 import android.app.ProgressDialog;
@@ -40,6 +39,10 @@ public class ChannelListFragment extends ListFragment implements ShowMenuFragmen
     private Menu mainMenu;
     /** アダプター */
     private ChannelAdapter adapter;
+    /** 現在の表示位置 */
+    private static int currentPos = 0;
+    /** 現在の表示位置 */
+    private static int currentY = 0;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -61,27 +64,7 @@ public class ChannelListFragment extends ListFragment implements ShowMenuFragmen
         });
 
         if (Utils.getOnlineStatus(context)) {
-            // プログレスダイアログを表示
-            final ProgressDialog dialog = Utils.showProgressDialog(context);
-            // ONLineの場合はChannelリスト取得
-            SlackManager.INSTANCE.getAllChannelList(new SlackManager.FinishCallback<List<SlackManager.ListInfo>>() {
-                @Override
-                public void onFinish(List<SlackManager.ListInfo> listInfos, Exception error) {
-                    // プログレスダイアログを閉じる
-                    dialog.dismiss();
-                    if (error == null) {
-                        adapter = new ChannelAdapter(context, listInfos);
-                        setListAdapter(adapter);
-                    } else {
-                        // TODO: 詳細なエラー表示
-                        new AlertDialog.Builder(context)
-                                .setTitle("エラー")
-                                .setMessage("エラーです")
-                                .setPositiveButton("OK", null)
-                                .show();
-                    }
-                }
-            });
+            getChannelList(context);
         } else {
             // OFFLineメッセージを表示
             emptyLayout.setVisibility(View.VISIBLE);
@@ -90,6 +73,49 @@ public class ChannelListFragment extends ListFragment implements ShowMenuFragmen
         }
 
         return view;
+    }
+
+    /**
+     * Channelリストを取得
+     * @param context Context
+     */
+    private void getChannelList(final Context context) {
+        // プログレスダイアログを表示
+        final ProgressDialog dialog = Utils.showProgressDialog(context);
+        // ONLineの場合はChannelリスト取得
+        SlackManager.INSTANCE.getAllChannelList(new SlackManager.FinishCallback<List<SlackManager.ListInfo>>() {
+            @Override
+            public void onFinish(List<SlackManager.ListInfo> listInfos, Exception error) {
+                // プログレスダイアログを閉じる
+                dialog.dismiss();
+                SlackManager.FinishCallback<Boolean> finishCallback = new SlackManager.FinishCallback<Boolean>() {
+                    @Override
+                    public void onFinish(Boolean retry, Exception error) {
+                        if (retry) {
+                            getChannelList(context);
+                        }
+                    }
+                };
+
+                if (error == null) {
+                    adapter = new ChannelAdapter(context, listInfos);
+                    setListAdapter(adapter);
+                    // 以前の表示位置までスクロール
+                    getListView().setSelectionFromTop(currentPos, currentY);
+                } else {
+                    if (error instanceof SlackManager.SlackAuthException) {
+                        // エラー表示
+                        Utils.showSlackAuthErrorDialog(context, getFragmentManager(), finishCallback);
+                    } else if (error instanceof SlackManager.SlackConnectionException) {
+                        // エラー表示
+                        Utils.showSlackErrorDialog(context, finishCallback);
+                    } else {
+                        // エラー表示
+                        Utils.showErrorDialog(context, finishCallback);
+                    }
+                }
+            }
+        });
     }
 
     @Override
@@ -101,6 +127,8 @@ public class ChannelListFragment extends ListFragment implements ShowMenuFragmen
 
     @Override
     public void onListItemClick(ListView l, View v, int position, long id) {
+        currentPos = position;
+        currentY = l.getChildAt(0).getTop();
         Fragment fragment = new MessageListFragment();
         SlackManager.ListInfo info = adapter.getItem(position);
         Bundle bundle = new Bundle();

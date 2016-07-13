@@ -6,7 +6,6 @@
  */
 package org.deviceconnect.android.deviceplugin.slackmessagehook.setting.fragment;
 
-import android.app.AlertDialog;
 import android.app.Fragment;
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -35,7 +34,7 @@ public class SettingFragment extends Fragment implements SlackManager.SlackEvent
     /** メニュー */
     private Menu mainMenu;
     /** Switchの設定変更イベントリスナー */
-    private CompoundButton.OnCheckedChangeListener checkedChangeListener;
+    private View.OnClickListener onClickListener;
     /** 回転時の画面切り替え用にrootを保持しておく */
     private FrameLayout rootLayout;
 
@@ -97,14 +96,35 @@ public class SettingFragment extends Fragment implements SlackManager.SlackEvent
     private View initView() {
         LayoutInflater inflater = (LayoutInflater)getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         final View view = inflater.inflate(R.layout.fragment_setting, null);
+        final Context context = view.getContext();
         // Switchの設定
-        Switch sw = (Switch)view.findViewById(R.id.statusSwitch);
-        checkedChangeListener = new CompoundButton.OnCheckedChangeListener() {
+        final Switch sw = (Switch)view.findViewById(R.id.statusSwitch);
+        onClickListener = new View.OnClickListener() {
             @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+            public void onClick(final View v) {
                 // プログレスダイアログを表示
                 final ProgressDialog dialog = Utils.showProgressDialog(getActivity());
-                if (isChecked) {
+                final SlackManager.FinishCallback<Boolean> finishCallback = new SlackManager.FinishCallback<Boolean>() {
+                    @Override
+                    public void onFinish(Boolean retry, Exception error) {
+                        if (retry) {
+                            // 再試行
+                            onClickListener.onClick(v);
+                        } else {
+                            // 状態を更新
+                            refreshStatus(view);
+                        }
+                    }
+                };
+                if (sw.isChecked()) {
+                    // ネットワーク接続チェック
+                    if (!Utils.onlineCheck(context)) {
+                        // プログレスダイアログを閉じる
+                        dialog.dismiss();
+                        // エラー表示
+                        Utils.showNetworkErrorDialog(context, finishCallback);
+                        return;
+                    }
                     // 接続
                     SlackManager.INSTANCE.connect(new SlackManager.FinishCallback<Void>() {
                         @Override
@@ -114,12 +134,16 @@ public class SettingFragment extends Fragment implements SlackManager.SlackEvent
                             // 状態を更新
                             refreshStatus(view);
                             if (error != null) {
-                                // TODO: 詳細なエラー表示
-                                new AlertDialog.Builder(getActivity())
-                                        .setTitle("エラー")
-                                        .setMessage("エラーです")
-                                        .setPositiveButton("OK", null)
-                                        .show();
+                                if (error instanceof SlackManager.SlackAuthException) {
+                                    // エラー表示
+                                    Utils.showSlackAuthErrorDialog(context, getFragmentManager(), finishCallback);
+                                } else if (error instanceof SlackManager.SlackConnectionException) {
+                                    // エラー表示
+                                    Utils.showSlackErrorDialog(context, finishCallback);
+                                } else {
+                                    // エラー表示
+                                    Utils.showErrorDialog(context, finishCallback);
+                                }
                             }
                         }
                     });
@@ -136,7 +160,7 @@ public class SettingFragment extends Fragment implements SlackManager.SlackEvent
                 }
             }
         };
-        sw.setOnCheckedChangeListener(checkedChangeListener);
+        sw.setOnClickListener(onClickListener);
         refreshStatus(view);
         return view;
     }
@@ -158,9 +182,7 @@ public class SettingFragment extends Fragment implements SlackManager.SlackEvent
             }
             // Switchの設定
             Switch sw = (Switch) v.findViewById(R.id.statusSwitch);
-            sw.setOnCheckedChangeListener(null);
             sw.setChecked(SlackManager.INSTANCE.isConnected());
-            sw.setOnCheckedChangeListener(checkedChangeListener);
         }
     }
 

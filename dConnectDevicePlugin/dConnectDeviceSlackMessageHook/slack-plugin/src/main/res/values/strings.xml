@@ -4,8 +4,10 @@
     <string name="help">？</string>
     <string name="send">送信</string>
     <string name="status">Status</string>
+    <string name="retry">再試行</string>
     <string name="settings">設定</string>
     <string name="slack_settings">Slack設定</string>
+    <string name="wifi_settings">WiFi設定</string>
     <string name="settings_desc">\@SlackMessageHook</string>
     <string name="channel_list">Channelリスト</string>
     <string name="token_settings">トークン設定</string>
@@ -24,4 +26,8 @@
     <string name="help06">接続に成功するとステータス設定画面に遷移します。</string>
     <string name="not_online">BotがOlineになっていません。\n設定画面からOnlineにしてください。</string>
     <string name="empty_message">メッセージがありません。</string>
+    <string name="error_auth">Slackサーバーとの認証に失敗しました。Tokenを確認してください。</string>
+    <string name="error_network">Slackサーバーへの接続に失敗しました。ネットワーク接続を確認してください。</string>
+    <string name="error_slack">Slackサーバーからエラーが返りました。しばらく待ってお試しください。</string>
+    <string name="error_unknown">不明なエラーが発生しました。</string>
 </resources>

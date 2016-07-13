@@ -60,11 +60,11 @@ public class SlackMessageHookSettingActivity extends Activity {
             public void onFinish(Void aVoid, Exception error) {
                 if (finalDialog != null) finalDialog.dismiss();
                 Fragment fragment;
-                if (token == null) {
+                if (token == null || error instanceof SlackManager.SlackAuthException) {
                     // Token未設定の場合はToken設定画面へ
                     fragment = new SettingTokenFragment();
                 } else {
-                    if (launchAsApp) {
+                    if (launchAsApp || error != null) {
                         // ラウンチャーから起動の場合はChannelリスト画面へ
                         fragment = new ChannelListFragment();
                     } else {

@@ -6,7 +6,6 @@
  */
 package org.deviceconnect.android.deviceplugin.slackmessagehook.setting.fragment;
 
-import android.app.AlertDialog;
 import android.app.Fragment;
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -34,6 +33,8 @@ public class SettingTokenFragment extends Fragment {
 
     /** 回転時の画面切り替え用にrootを保持しておく */
     private FrameLayout rootLayout;
+    /** 次へボタンクリックリスナー */
+    private View.OnClickListener onClickListener;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, final Bundle savedInstanceState) {
@@ -79,12 +80,21 @@ public class SettingTokenFragment extends Fragment {
 
         // 次へボタン
         Button nextButton = (Button)view.findViewById(R.id.buttonNext);
-        nextButton.setOnClickListener(new View.OnClickListener() {
+        onClickListener = new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
+            public void onClick(final View v) {
                 final String token = text.getText().toString();
                 // プログレスダイアログを表示
                 final ProgressDialog dialog = Utils.showProgressDialog(context);
+                final SlackManager.FinishCallback<Boolean> finishCallback = new SlackManager.FinishCallback<Boolean>() {
+                    @Override
+                    public void onFinish(Boolean retry, Exception error) {
+                        if (retry) {
+                            // 再試行
+                            onClickListener.onClick(v);
+                        }
+                    }
+                };
 
                 // Token設定
                 SlackManager.INSTANCE.setApiToken(token, true, new SlackManager.FinishCallback<Void>() {
@@ -99,17 +109,23 @@ public class SettingTokenFragment extends Fragment {
                             Utils.transition(new SettingFragment(), getFragmentManager(), false);
                         } else {
                             // エラーダイアログ表示
-                            // TODO: 詳細なエラー表示
-                            new AlertDialog.Builder(context)
-                                    .setTitle("エラー")
-                                    .setMessage("エラーです")
-                                    .setPositiveButton("OK", null)
-                                    .show();
+                            if (error instanceof SlackManager.SlackAuthException ||
+                                    error instanceof SlackManager.SlackAPITokenValueException) {
+                                // エラー表示
+                                Utils.showAlertDialog(context, context.getString(R.string.error_auth));
+                            } else if (error instanceof SlackManager.SlackConnectionException) {
+                                // エラー表示
+                                Utils.showSlackErrorDialog(context, finishCallback);
+                            } else {
+                                // エラー表示
+                                Utils.showErrorDialog(context, finishCallback);
+                            }
                         }
                     }
                 });
             }
-        });
+        };
+        nextButton.setOnClickListener(onClickListener);
 
         // トークン取得ボタン
         Button tokenButton = (Button)view.findViewById(R.id.buttonGetToken);

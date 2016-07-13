@@ -76,6 +76,8 @@ public class SlackManager {
     public class SlackAPITokenValueException extends SlackManagerException {}
     /** 接続エラー */
     public class SlackConnectionException extends SlackManagerException {}
+    /** Slack認証エラー */
+    public class SlackAuthException extends SlackManagerException {}
     /** 未知のエラー */
     public class SlackUnknownException extends SlackManagerException {}
 
@@ -282,7 +284,14 @@ public class SlackManager {
                 try {
                     if (json.has("error")) {
                         connectState = CONNECT_STATE_DISCONNECTED;
-                        callConnectionFinishCallback(new SlackConnectionException(), null);
+                        String err = json.getString("error");
+                        if (err.equals("invalid_auth") || err.equals("not_authed")) {
+                            // Slack認証エラー
+                            callConnectionFinishCallback(new SlackAuthException(), null);
+                        } else {
+                            // Slackサーバーエラー
+                            callConnectionFinishCallback(new SlackConnectionException(), null);
+                        }
                         return;
                     }
                     jsonUrl = json.getString("url");
@@ -984,17 +993,13 @@ public class SlackManager {
                     } else {
                         try {
                             if (!json.getBoolean("ok")) {
-                                // TODO: エラー内容を精査
                                 exception = new SlackConnectionException();
                             }
                         } catch (JSONException e) {
-                            // TODO: エラー内容を精査
                             exception = new SlackConnectionException();
                         }
                     }
-                    if (callback != null) {
-                        callback.onFinish(json, exception);
-                    }
+                    callback.onFinish(json, exception);
                 }
             }
         });

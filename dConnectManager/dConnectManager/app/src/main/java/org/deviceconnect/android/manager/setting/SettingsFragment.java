@@ -228,6 +228,9 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
         mObserverPreferences.setChecked(isObservationServices());
         showIPAddress();
 
+        // サービスとの接続完了まで操作無効
+        getPreferenceScreen().setEnabled(false);
+
         Intent intent = new Intent(IDConnectService.class.getName());
         intent.setPackage(getActivity().getPackageName());
         getActivity().bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
@@ -677,6 +680,8 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
                             SwitchPreference serverPreferences = (SwitchPreference) getPreferenceScreen()
                                     .findPreference(getString(R.string.key_settings_dconn_server_on_off));
                             serverPreferences.setChecked(running);
+
+                            checkServiceConnections();
                         } catch (RemoteException e) {
                             if (BuildConfig.DEBUG) {
                                 e.printStackTrace();
@@ -714,6 +719,8 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
                             SwitchPreference webPreferences = (SwitchPreference) getPreferenceScreen()
                                     .findPreference(getString(R.string.key_settings_web_server_on_off));
                             webPreferences.setChecked(running);
+
+                            checkServiceConnections();
                         } catch (RemoteException e) {
                             if (BuildConfig.DEBUG) {
                                 e.printStackTrace();
@@ -728,4 +735,10 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
             mWebService = null;
         }
     };
+
+    private synchronized void checkServiceConnections() {
+        if (mDConnectService != null && mWebService != null) {
+            getPreferenceScreen().setEnabled(true);
+        }
+    }
 }

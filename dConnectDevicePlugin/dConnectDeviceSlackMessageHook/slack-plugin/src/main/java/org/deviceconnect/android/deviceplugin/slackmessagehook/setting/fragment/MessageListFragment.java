@@ -6,7 +6,7 @@
  */
 package org.deviceconnect.android.deviceplugin.slackmessagehook.setting.fragment;
 
-import android.app.AlertDialog;
+import android.app.Fragment;
 import android.app.ListFragment;
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -83,6 +83,20 @@ public class MessageListFragment extends ListFragment implements SlackManager.Sl
         final Context context = view.getContext();
         final TextView emptyText = (TextView)view.findViewById(android.R.id.empty);
         TextView titleText = (TextView)view.findViewById(R.id.textViewTitle);
+
+        // OFFLineメッセージを非表示
+        LinearLayout emptyLayout = (LinearLayout)view.findViewById(R.id.empty);
+        emptyLayout.setVisibility(View.GONE);
+        // 設定ボタンイベント
+        Button emptyButton = (Button)view.findViewById(R.id.emptyButton);
+        emptyButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // 設定画面へ
+                Fragment fragment = new SettingFragment();
+                Utils.transition(fragment, getFragmentManager(), true);
+            }
+        });
 
         // スクロールイベント
         final ListView listView = (ListView) view.findViewById(android.R.id.list);
@@ -162,7 +176,7 @@ public class MessageListFragment extends ListFragment implements SlackManager.Sl
             @Override
             public void onClick(View v) {
                 String msg = editText.getText().toString();
-                if (msg != null && msg.length() > 0) {
+                if (msg.length() > 0) {
                     SlackManager.INSTANCE.sendMessage(msg, mChannelId);
                     editText.setText(null);
                     //
@@ -184,103 +198,146 @@ public class MessageListFragment extends ListFragment implements SlackManager.Sl
             }
         });
 
-        // プログレスダイアログを表示
-        final ProgressDialog dialog = Utils.showProgressDialog(context);
-        final Handler handler = new Handler();
-
-        new Thread() {
-            @Override
-            public void run() {
-                final CountDownLatch latch = new CountDownLatch(2);
-                final HashMap<String, ArrayList> resMap = new HashMap<>();
-
-                // ユーザーリスト取得
-                SlackManager.INSTANCE.getUserList(new SlackManager.FinishCallback<ArrayList<SlackManager.ListInfo>>() {
-                    @Override
-                    public void onFinish(ArrayList<SlackManager.ListInfo> listInfos, Exception error) {
-                        if (error == null) {
-                            resMap.put("user", listInfos);
-                        } else {
-                            Log.e(TAG, "Error on getUserList", error);
-                        }
-                        latch.countDown();
-                    }
-                });
-
-                // 履歴を取得
-                SlackManager.INSTANCE.getHistory(mChannelId, null, new SlackManager.FinishCallback<ArrayList<SlackManager.HistoryInfo>>() {
-                    @Override
-                    public void onFinish(ArrayList<SlackManager.HistoryInfo> historyInfos, Exception error) {
-                        if (error == null) {
-                            resMap.put("history", historyInfos);
-                        } else {
-                            Log.e(TAG, "Error on getHistory", error);
-                        }
-                        latch.countDown();
-                    }
-                });
-
-                // 処理終了を待つ
-                try {
-                    latch.await();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-
-                // メッセージを整える
-                ArrayList users = resMap.get("user");
-                final ArrayList histories = resMap.get("history");
-                if (users != null && histories != null) {
-                    // UserをHashMapへ
-                    mUserMap = new HashMap<>();
-                    for (Object obj : users) {
-                        SlackManager.ListInfo info = (SlackManager.ListInfo)obj;
-                        mUserMap.put(info.id, info);
-                    }
-                    for (Object obj : histories) {
-                        formatHistory((SlackManager.HistoryInfo)obj);
-                    }
-
-                    // 表示順を逆順に
-                    Collections.reverse(histories);
-
-                    handler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            if (getView()==null) return;
-                            // アダプターを生成
-                            mAdapter = new MessageAdapter(context, histories);
-                            setListAdapter(mAdapter);
-                            // 最後の行を表示
-                            listView.setSelection(histories.size());
-                        }
-                    });
-
-                } else {
-                    handler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            if (getView()==null) return;
-                            // エラー表示
-                            Utils.showAlertDialog(context, context.getString(R.string.error_unknown));
-                        }
-                    });
-                }
-
-                handler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (getView()==null) return;
-                        // プログレスダイアログを閉じる
-                        dialog.dismiss();
-                        // 空メッセージを設定
-                        emptyText.setText(context.getString(R.string.empty_message));
-                    }
-                });
-            }
-        }.start();
+        getMessageList(context, listView, emptyText, emptyLayout);
 
         return view;
+    }
+
+    /**
+     * メッセージ一覧を取得
+     * @param context Context
+     * @param listView ListView
+     * @param emptyText EmptyText
+     * @param emptyLayout EmptyLayout
+     */
+    private void getMessageList(final Context context, final ListView listView, final TextView emptyText, final LinearLayout emptyLayout) {
+        final SlackManager.FinishCallback<Boolean> finishCallback = new SlackManager.FinishCallback<Boolean>() {
+            @Override
+            public void onFinish(Boolean retry, Exception error) {
+                if (retry) {
+                    getMessageList(context, listView, emptyText, emptyLayout);
+                }
+            }
+        };
+        // ネットワーク接続チェック
+        if (!Utils.onlineCheck(context)) {
+            // エラー表示
+            Utils.showNetworkErrorDialog(context, finishCallback);
+            return;
+        }
+
+        if (SlackManager.INSTANCE.isConnected()) {
+            // プログレスダイアログを表示
+            final ProgressDialog dialog = Utils.showProgressDialog(context);
+            final Handler handler = new Handler();
+
+            new Thread() {
+                @Override
+                public void run() {
+                    final CountDownLatch latch = new CountDownLatch(2);
+                    final HashMap<String, ArrayList> resMap = new HashMap<>();
+                    final Exception[] err = new Exception[1];
+
+                    // ユーザーリスト取得
+                    SlackManager.INSTANCE.getUserList(new SlackManager.FinishCallback<ArrayList<SlackManager.ListInfo>>() {
+                        @Override
+                        public void onFinish(ArrayList<SlackManager.ListInfo> listInfos, Exception error) {
+                            if (error == null) {
+                                resMap.put("user", listInfos);
+                            } else {
+                                err[0] = error;
+                                Log.e(TAG, "Error on getUserList", error);
+                            }
+                            latch.countDown();
+                        }
+                    });
+
+                    // 履歴を取得
+                    SlackManager.INSTANCE.getHistory(mChannelId, null, new SlackManager.FinishCallback<ArrayList<SlackManager.HistoryInfo>>() {
+                        @Override
+                        public void onFinish(ArrayList<SlackManager.HistoryInfo> historyInfos, Exception error) {
+                            if (error == null) {
+                                resMap.put("history", historyInfos);
+                            } else {
+                                err[0] = error;
+                                Log.e(TAG, "Error on getHistory", error);
+                            }
+                            latch.countDown();
+                        }
+                    });
+
+                    // 処理終了を待つ
+                    try {
+                        latch.await();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+
+                    // メッセージを整える
+                    ArrayList users = resMap.get("user");
+                    final ArrayList histories = resMap.get("history");
+                    if (users != null && histories != null) {
+                        // UserをHashMapへ
+                        mUserMap = new HashMap<>();
+                        for (Object obj : users) {
+                            SlackManager.ListInfo info = (SlackManager.ListInfo)obj;
+                            mUserMap.put(info.id, info);
+                        }
+                        for (Object obj : histories) {
+                            formatHistory((SlackManager.HistoryInfo)obj);
+                        }
+
+                        // 表示順を逆順に
+                        Collections.reverse(histories);
+
+                        handler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (getView()==null) return;
+                                // アダプターを生成
+                                mAdapter = new MessageAdapter(context, histories);
+                                setListAdapter(mAdapter);
+                                // 最後の行を表示
+                                listView.setSelection(histories.size());
+                            }
+                        });
+
+                    } else {
+                        handler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (getView()==null) return;
+                                if (err[0] != null && err[0] instanceof SlackManager.SlackAuthException) {
+                                    // エラー表示
+                                    Utils.showSlackAuthErrorDialog(context, getFragmentManager(), finishCallback);
+                                } else if (err[0] != null && err[0] instanceof SlackManager.SlackConnectionException) {
+                                    // エラー表示
+                                    Utils.showSlackErrorDialog(context, finishCallback);
+                                } else {
+                                    // エラー表示
+                                    Utils.showErrorDialog(context, finishCallback);
+                                }
+                            }
+                        });
+                    }
+
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (getView()==null) return;
+                            // プログレスダイアログを閉じる
+                            dialog.dismiss();
+                            // 空メッセージを設定
+                            emptyText.setText(context.getString(R.string.empty_message));
+                        }
+                    });
+                }
+            }.start();
+        } else {
+            // OFFLineメッセージを表示
+            emptyLayout.setVisibility(View.VISIBLE);
+            setListAdapter(null);
+        }
     }
 
     @Override

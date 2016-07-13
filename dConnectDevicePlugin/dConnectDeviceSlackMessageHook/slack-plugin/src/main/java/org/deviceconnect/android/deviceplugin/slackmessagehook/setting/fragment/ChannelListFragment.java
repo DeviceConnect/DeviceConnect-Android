@@ -62,15 +62,7 @@ public class ChannelListFragment extends ListFragment implements ShowMenuFragmen
                 Utils.transition(fragment, getFragmentManager(), true);
             }
         });
-
-        if (Utils.getOnlineStatus(context)) {
-            getChannelList(context);
-        } else {
-            // OFFLineメッセージを表示
-            emptyLayout.setVisibility(View.VISIBLE);
-            adapter = null;
-            setListAdapter(null);
-        }
+        getChannelList(context, emptyLayout);
 
         return view;
     }
@@ -79,43 +71,56 @@ public class ChannelListFragment extends ListFragment implements ShowMenuFragmen
      * Channelリストを取得
      * @param context Context
      */
-    private void getChannelList(final Context context) {
-        // プログレスダイアログを表示
-        final ProgressDialog dialog = Utils.showProgressDialog(context);
-        // ONLineの場合はChannelリスト取得
-        SlackManager.INSTANCE.getAllChannelList(new SlackManager.FinishCallback<List<SlackManager.ListInfo>>() {
+    private void getChannelList(final Context context, final LinearLayout emptyLayout) {
+        final SlackManager.FinishCallback<Boolean> finishCallback = new SlackManager.FinishCallback<Boolean>() {
             @Override
-            public void onFinish(List<SlackManager.ListInfo> listInfos, Exception error) {
-                // プログレスダイアログを閉じる
-                dialog.dismiss();
-                SlackManager.FinishCallback<Boolean> finishCallback = new SlackManager.FinishCallback<Boolean>() {
-                    @Override
-                    public void onFinish(Boolean retry, Exception error) {
-                        if (retry) {
-                            getChannelList(context);
-                        }
-                    }
-                };
-
-                if (error == null) {
-                    adapter = new ChannelAdapter(context, listInfos);
-                    setListAdapter(adapter);
-                    // 以前の表示位置までスクロール
-                    getListView().setSelectionFromTop(currentPos, currentY);
-                } else {
-                    if (error instanceof SlackManager.SlackAuthException) {
-                        // エラー表示
-                        Utils.showSlackAuthErrorDialog(context, getFragmentManager(), finishCallback);
-                    } else if (error instanceof SlackManager.SlackConnectionException) {
-                        // エラー表示
-                        Utils.showSlackErrorDialog(context, finishCallback);
-                    } else {
-                        // エラー表示
-                        Utils.showErrorDialog(context, finishCallback);
-                    }
+            public void onFinish(Boolean retry, Exception error) {
+                if (retry) {
+                    getChannelList(context, emptyLayout);
                 }
             }
-        });
+        };
+        // ネットワーク接続チェック
+        if (!Utils.onlineCheck(context)) {
+            // エラー表示
+            Utils.showNetworkErrorDialog(context, finishCallback);
+            return;
+        }
+        if (SlackManager.INSTANCE.isConnected()) {
+            // プログレスダイアログを表示
+            final ProgressDialog dialog = Utils.showProgressDialog(context);
+            // ONLineの場合はChannelリスト取得
+            SlackManager.INSTANCE.getAllChannelList(new SlackManager.FinishCallback<List<SlackManager.ListInfo>>() {
+                @Override
+                public void onFinish(List<SlackManager.ListInfo> listInfos, Exception error) {
+                    // プログレスダイアログを閉じる
+                    dialog.dismiss();
+
+                    if (error == null) {
+                        adapter = new ChannelAdapter(context, listInfos);
+                        setListAdapter(adapter);
+                        // 以前の表示位置までスクロール
+                        getListView().setSelectionFromTop(currentPos, currentY);
+                    } else {
+                        if (error instanceof SlackManager.SlackAuthException) {
+                            // エラー表示
+                            Utils.showSlackAuthErrorDialog(context, getFragmentManager(), finishCallback);
+                        } else if (error instanceof SlackManager.SlackConnectionException) {
+                            // エラー表示
+                            Utils.showSlackErrorDialog(context, finishCallback);
+                        } else {
+                            // エラー表示
+                            Utils.showErrorDialog(context, finishCallback);
+                        }
+                    }
+                }
+            });
+        } else {
+            // OFFLineメッセージを表示
+            emptyLayout.setVisibility(View.VISIBLE);
+            adapter = null;
+            setListAdapter(null);
+        }
     }
 
     @Override

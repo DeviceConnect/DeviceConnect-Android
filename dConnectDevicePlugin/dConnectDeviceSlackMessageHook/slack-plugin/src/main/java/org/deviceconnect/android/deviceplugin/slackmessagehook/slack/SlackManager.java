@@ -611,6 +611,18 @@ public class SlackManager {
                 if (BuildConfig.DEBUG) Log.d(TAG, json.toString());
 
                 try {
+                    if (json.has("error")) {
+                        connectState = CONNECT_STATE_DISCONNECTED;
+                        String err = json.getString("error");
+                        if (err.equals("invalid_auth") || err.equals("not_authed")) {
+                            // Slack認証エラー
+                            callConnectionFinishCallback(new SlackAuthException(), null);
+                        } else {
+                            // Slackサーバーエラー
+                            callConnectionFinishCallback(new SlackConnectionException(), null);
+                        }
+                        return;
+                    }
                     JSONArray jsonArray = json.getJSONArray("messages");
                     int length = jsonArray.length();
                     ArrayList<HistoryInfo> array = new ArrayList<>(length);
@@ -693,6 +705,7 @@ public class SlackManager {
             public void run() {
                 final CountDownLatch latch = new CountDownLatch(3);
                 final HashMap<String, ArrayList<ListInfo>> resMap = new HashMap<>();
+                final Exception[] err = new Exception[1];
 
                 // Channelリスト取得
                 getChannelList(new FinishCallback<ArrayList<ListInfo>>() {
@@ -701,6 +714,7 @@ public class SlackManager {
                         if (error == null) {
                             resMap.put("channel", listInfos);
                         } else {
+                            err[0] = error;
                             Log.e("slack", "err", error);
                         }
                         latch.countDown();
@@ -714,6 +728,7 @@ public class SlackManager {
                         if (error == null) {
                             resMap.put("im", listInfos);
                         } else {
+                            err[0] = error;
                             Log.e("slack", "err", error);
                         }
                         latch.countDown();
@@ -727,6 +742,7 @@ public class SlackManager {
                         if (error == null) {
                             resMap.put("user", listInfos);
                         } else {
+                            err[0] = error;
                             Log.e("slack", "err", error);
                         }
                         latch.countDown();
@@ -775,7 +791,7 @@ public class SlackManager {
                     if (callback != null) {
                         handler.post(new Runnable() {
                             public void run() {
-                                callback.onFinish(null, new SlackUnknownException());
+                                callback.onFinish(null, err[0]);
                             }
                         });
                     }
@@ -828,9 +844,29 @@ public class SlackManager {
         new GetTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, new TaskParam(target, params) {
             @Override
             public void callBack(JSONObject json) {
-                if (BuildConfig.DEBUG) Log.d(TAG, json.toString());
+                if (BuildConfig.DEBUG && json != null) Log.d(TAG, json.toString());
+
+                if (json == null) {
+                    if (callback != null) {
+                        // Slackサーバーエラー
+                        callback.onFinish(null, new SlackConnectionException());
+                    }
+                    return;
+                }
 
                 try {
+                    if (json.has("error") && callback != null) {
+                        connectState = CONNECT_STATE_DISCONNECTED;
+                        String err = json.getString("error");
+                        if (err.equals("invalid_auth") || err.equals("not_authed")) {
+                            // Slack認証エラー
+                            callback.onFinish(null, new SlackAuthException());
+                        } else {
+                            // Slackサーバーエラー
+                            callback.onFinish(null, new SlackConnectionException());
+                        }
+                        return;
+                    }
                     JSONArray jsonArray = json.getJSONArray(listname);
                     int length = jsonArray.length();
                     ArrayList<ListInfo> array = new ArrayList<>(length);

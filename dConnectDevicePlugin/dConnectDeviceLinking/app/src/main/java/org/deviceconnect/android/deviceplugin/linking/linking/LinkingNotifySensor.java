@@ -125,7 +125,7 @@ class LinkingNotifySensor {
         }
 
         int[] type = { LinkingSensorData.SensorType.BATTERY.getValue() };
-        startSensor(device.getBdAddress(), type, 100);
+        startSensor(device.getBdAddress(), type, 1000);
     }
 
     public synchronized void disableListenBattery(final LinkingDevice device,
@@ -172,7 +172,7 @@ class LinkingNotifySensor {
         }
 
         int[] type = { LinkingSensorData.SensorType.HUMIDITY.getValue() };
-        startSensor(device.getBdAddress(), type, 100);
+        startSensor(device.getBdAddress(), type, 1000);
     }
 
     public synchronized void disableListenHumidity(final LinkingDevice device,
@@ -219,7 +219,7 @@ class LinkingNotifySensor {
         }
 
         int[] type = { LinkingSensorData.SensorType.TEMPERATURE.getValue() };
-        startSensor(device.getBdAddress(), type, 100);
+        startSensor(device.getBdAddress(), type, 1000);
     }
 
     public synchronized void disableListenTemperature(final LinkingDevice device,
@@ -417,48 +417,42 @@ class LinkingNotifySensor {
             }
 
             private void onBatterySensor(final String bd) {
-                if (BuildConfig.DEBUG) {
-                    Log.e(TAG, "Not support battery sensor.");
-                }
                 LinkingDevice device = findDeviceFromBattery(bd);
                 if (device == null) {
                     if (BuildConfig.DEBUG) {
                         Log.w(TAG, "Not Found the device that address is " + bd);
                     }
                 } else {
-                    // TODO batteryの計算
-                    notifyOnBattery(device, false, 0);
+                    int value = LinkingUtil.byteToShort(mSensorData.getOriginalData());
+                    boolean lowBatteryFlag = (value & (1 << 11)) != 0;
+                    float batteryLevel = (value & 0x07ff) / 10.0f;
+                    notifyOnBattery(device, lowBatteryFlag, batteryLevel);
                 }
             }
 
             private void onTemperature(final String bd) {
-                if (BuildConfig.DEBUG) {
-                    Log.e(TAG, "Not support temperature sensor.");
-                }
                 LinkingDevice device = findDeviceFromTemperature(bd);
                 if (device == null) {
                     if (BuildConfig.DEBUG) {
                         Log.w(TAG, "Not Found the device that address is " + bd);
                     }
                 } else {
-                    // TODO temperatureの計算
-                    notifyOnTemperature(device, 0);
+                    int value = LinkingUtil.byteToShort(mSensorData.getOriginalData());
+                    float temperature = LinkingUtil.intToFloatIEEE754(value, 7, 4, true);
+                    notifyOnTemperature(device, temperature);
                 }
             }
 
             private void onHumidity(final String bd) {
-                if (BuildConfig.DEBUG) {
-                    Log.e(TAG, "Not support humidity sensor.");
-                }
-
                 LinkingDevice device = findDeviceFromHumidity(bd);
                 if (device == null) {
                     if (BuildConfig.DEBUG) {
                         Log.w(TAG, "Not Found the device that address is " + bd);
                     }
                 } else {
-                    // TODO humidityの計算
-                    notifyOnHumidity(device, 0);
+                    int value = LinkingUtil.byteToShort(mSensorData.getOriginalData());
+                    float humidity = LinkingUtil.intToFloatIEEE754(value, 8, 4, false);
+                    notifyOnHumidity(device, humidity);
                 }
             }
 

@@ -145,7 +145,7 @@ public class LinkingDeviceManager {
         notify.setTitle("title");
         notify.setText("linking");
         notify.setDeviceID(device.getModelId());
-        notify.setDeviceUID(device.getUniqueId());
+        notify.setDeviceUID(new int[] {device.getUniqueId()});
         setVibration(notify, device);
         if (!on) {
             setIllumination(notify, device);
@@ -162,7 +162,7 @@ public class LinkingDeviceManager {
         notify.setTitle("title");
         notify.setText("linking");
         notify.setDeviceID(device.getModelId());
-        notify.setDeviceUID(device.getUniqueId());
+        notify.setDeviceUID(new int[] {device.getUniqueId()});
         if (!on) {
             setVibration(notify, device);
         }
@@ -179,7 +179,7 @@ public class LinkingDeviceManager {
         notify.setTitle(notification.getTitle());
         notify.setText(notification.getDetail());
         notify.setDeviceID(device.getModelId());
-        notify.setDeviceUID(device.getUniqueId());
+        notify.setDeviceUID(new int[] {device.getUniqueId()});
         int result = notify.send();
         return (result != ErrorCode.RESULT_OK);
     }

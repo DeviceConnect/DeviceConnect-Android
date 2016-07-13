@@ -594,21 +594,21 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
     private void updateBattery(final boolean lowBatteryFlag, final float batteryLevel) {
         TextView tv = (TextView) findViewById(R.id.battery_text);
         if (tv != null) {
-            tv.setText(String.valueOf(batteryLevel));
+            tv.setText(getString(R.string.activity_device_unit_percent, batteryLevel));
         }
     }
 
     private void updateTemperature(final float temperature) {
         TextView tv = (TextView) findViewById(R.id.temperature_text);
         if (tv != null) {
-            tv.setText(String.valueOf(temperature));
+            tv.setText(getString(R.string.activity_device_unit_c, temperature));
         }
     }
 
     private void updateHumidity(final float humidity) {
-        TextView tv = (TextView) findViewById(R.id.temperature_text);
+        TextView tv = (TextView) findViewById(R.id.humidity_text);
         if (tv != null) {
-            tv.setText(String.valueOf(humidity));
+            tv.setText(getString(R.string.activity_device_unit_percent, humidity));
         }
     }
 

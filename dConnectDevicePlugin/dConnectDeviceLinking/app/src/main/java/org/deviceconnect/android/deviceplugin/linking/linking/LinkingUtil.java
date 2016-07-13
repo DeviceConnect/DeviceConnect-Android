@@ -169,12 +169,12 @@ public final class LinkingUtil {
         return false;
     }
 
-    public static short byteToShort(final byte[] buf) {
-        return (short) ((buf[1] << 8) | buf[0]);
+    public static int byteToShort(final byte[] buf) {
+        return (((buf[1] << 8) & 0xFF00) | (buf[0] & 0xff));
     }
 
     public static int byteToInt(final byte[] buf) {
-        return (buf[3] << 24) | (buf[2] << 16) | (buf[1] << 8) | buf[0];
+        return ((buf[3] << 24) & 0xFF000000) | ((buf[2] << 16) & 0xFF0000) | ((buf[1] << 8) & 0xFF00) | (buf[0] & 0xFF);
     }
 
     public static int floatToIntIEEE754(final float value, final int fraction, final int exponent, final boolean sign) {

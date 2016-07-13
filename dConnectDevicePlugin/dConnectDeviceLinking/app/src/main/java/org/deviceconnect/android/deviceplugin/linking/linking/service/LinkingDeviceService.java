@@ -62,14 +62,6 @@ public class LinkingDeviceService extends DConnectService implements LinkingDest
         return mDevice.isConnected();
     }
 
-    public void setLinkingDevice(final LinkingDevice device) {
-        mDevice = device;
-    }
-
-    public LinkingDevice getLinkingDevice() {
-        return mDevice;
-    }
-
     @Override
     public void onDestroy() {
         for (DConnectProfile profile : getProfileList()) {
@@ -77,5 +69,13 @@ public class LinkingDeviceService extends DConnectService implements LinkingDest
                 ((LinkingDestroy) profile).onDestroy();
             }
         }
+    }
+
+    public void setLinkingDevice(final LinkingDevice device) {
+        mDevice = device;
+    }
+
+    public LinkingDevice getLinkingDevice() {
+        return mDevice;
     }
 }

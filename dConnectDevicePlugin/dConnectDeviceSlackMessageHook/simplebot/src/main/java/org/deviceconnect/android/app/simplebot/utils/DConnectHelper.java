@@ -183,7 +183,9 @@ public class DConnectHelper {
                 // エラーチェック
                 int result = message.getInt(DConnectMessage.EXTRA_RESULT);
                 if (result == DConnectMessage.RESULT_ERROR) {
-                    callback.onFinish(null, new DConnectInvalidResultException());
+                    DConnectHelperException e = new DConnectInvalidResultException();
+                    e.errorCode = message.getInt(DConnectMessage.EXTRA_ERROR_CODE);
+                    callback.onFinish(null, e);
                     return;
                 }
                 // サービスリストを取得
@@ -300,7 +302,9 @@ public class DConnectHelper {
                 // エラーチェック
                 int result = message.getInt(DConnectMessage.EXTRA_RESULT);
                 if (result == DConnectMessage.RESULT_ERROR) {
-                    callback.onFinish(null, new DConnectInvalidResultException());
+                    DConnectHelperException e = new DConnectInvalidResultException();
+                    e.errorCode = message.getInt(DConnectMessage.EXTRA_ERROR_CODE);
+                    callback.onFinish(null, e);
                     return;
                 }
                 callback.onFinish(null, null);
@@ -350,7 +354,9 @@ public class DConnectHelper {
                 // エラーチェック
                 int result = message.getInt(DConnectMessage.EXTRA_RESULT);
                 if (result == DConnectMessage.RESULT_ERROR) {
-                    callback.onFinish(null, new DConnectInvalidResultException());
+                    DConnectHelperException e = new DConnectInvalidResultException();
+                    e.errorCode = message.getInt(DConnectMessage.EXTRA_ERROR_CODE);
+                    callback.onFinish(null, e);
                     return;
                 }
                 callback.onFinish(null, null);
@@ -395,7 +401,9 @@ public class DConnectHelper {
                 // エラーチェック
                 int result = message.getInt(DConnectMessage.EXTRA_RESULT);
                 if (result == DConnectMessage.RESULT_ERROR) {
-                    callback.onFinish(message, new DConnectInvalidResultException());
+                    DConnectHelperException e = new DConnectInvalidResultException();
+                    e.errorCode = message.getInt(DConnectMessage.EXTRA_ERROR_CODE);
+                    callback.onFinish(null, e);
                     return;
                 }
                 callback.onFinish(message, null);

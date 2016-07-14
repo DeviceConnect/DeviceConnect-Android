@@ -401,7 +401,11 @@ public class Utils {
                     DConnectHelper.INSTANCE.serviceDiscovery(authInfo.accessToken, new DConnectHelper.FinishCallback<List<DConnectHelper.ServiceInfo>>() {
                         @Override
                         public void onFinish(List<DConnectHelper.ServiceInfo> serviceInfos, Exception error) {
-                            callback.onFinish(serviceInfos, error);
+                            if (retryCheck(context, error)) {
+                                fetchServices(context, callback);
+                            } else {
+                                callback.onFinish(serviceInfos, error);
+                            }
                         }
                     });
                 } else {
@@ -432,7 +436,11 @@ public class Utils {
                                 DConnectHelper.INSTANCE.openWebsocket(authInfo.clientId);
                                 callback.onFinish(null, null);
                             } else {
-                                callback.onFinish(null, error);
+                                if (retryCheck(context, error)) {
+                                    registEvent(context, unregist, callback);
+                                } else {
+                                    callback.onFinish(null, error);
+                                }
                             }
                         }
                     });
@@ -496,6 +504,36 @@ public class Utils {
             }
         };
         Utils.connect(context, finishCallback);
+    }
+
+    /** 再接続カウンタ */
+    private static int retryCount = 0;
+
+    /**
+     * 再接続チェック
+     * @param context Context
+     * @param error Error
+     * @return 再接続必要ならtrue
+     */
+    public static boolean retryCheck(Context context, Exception error) {
+        if (error instanceof DConnectHelper.DConnectInvalidResultException) {
+            // "clientId was not found"の場合はclientIdを消して再接続
+            if (((DConnectHelper.DConnectInvalidResultException) error).errorCode == 15) {
+                if (retryCount++ > 3) {
+                    retryCount = 0;
+                    return false;
+                }
+                SettingData setting = SettingData.getInstance(context);
+                setting.accessToken = null;
+                setting.clientId = null;
+                setting.save();
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
     }
 
     //endregion

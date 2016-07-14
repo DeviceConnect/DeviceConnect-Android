@@ -177,8 +177,6 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
         mObserverPreferences = (CheckBoxPreference) getPreferenceScreen()
                 .findPreference(getString(R.string.key_settings_dconn_observer_on_off));
 
-        // Webサーバ
-
         // ドキュメントルートパス
         EditTextPreference editDocPreferences = (EditTextPreference)
                 getPreferenceScreen().findPreference(getString(R.string.key_settings_web_server_document_root_path));
@@ -545,7 +543,9 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
                         restartDevicePlugin(plugin);
                     }
                 }
-                dialog.dismiss();
+                if (dialog.isResumed()) {
+                    dialog.dismiss();
+                }
             }
         }).start();
     }
@@ -578,6 +578,12 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
             setCancelable(false);
             return progressDialog;
         }
+
+        @Override
+        public void onPause() {
+            dismiss();
+            super.onPause();
+        }
     }
 
     /**
@@ -601,7 +607,9 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
                         getActivity().sendBroadcast(request);
                     }
                 }
-                dialog.dismiss();
+                if (dialog.isResumed()) {
+                    dialog.dismiss();
+                }
             }
         }).start();
     }
@@ -620,6 +628,12 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
             progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
             setCancelable(false);
             return progressDialog;
+        }
+
+        @Override
+        public void onPause() {
+            dismiss();
+            super.onPause();
         }
     }
 

@@ -57,7 +57,7 @@ class LinkingNotifySensor {
 
     public synchronized void enableListenOrientation(final LinkingDevice device,
                                                      final LinkingDeviceManager.OnSensorListener listener) {
-        if (!device.isSupportGyro() && !device.isSupportAcceleration() && !device.isSupportCompass()) {
+        if (!device.isSupportSensor()) {
             return;
         }
 

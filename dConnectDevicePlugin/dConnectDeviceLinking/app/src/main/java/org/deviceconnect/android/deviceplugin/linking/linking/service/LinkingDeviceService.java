@@ -32,7 +32,7 @@ public class LinkingDeviceService extends DConnectService implements LinkingDest
 
         mDevice = device;
 
-        if (mDevice.isSupportGyro() || mDevice.isSupportAcceleration() || mDevice.isSupportCompass()) {
+        if (mDevice.isSupportSensor()) {
             addProfile(new LinkingDeviceOrientationProfile());
         }
         if (mDevice.isSupportButton()) {

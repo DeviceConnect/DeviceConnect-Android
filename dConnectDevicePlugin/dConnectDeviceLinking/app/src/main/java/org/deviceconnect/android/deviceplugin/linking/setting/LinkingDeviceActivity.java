@@ -653,7 +653,7 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
     }
 
     private void onClickSensor(final boolean isOn) {
-        if (!mDevice.isSupportGyro() && !mDevice.isSupportAcceleration() && !mDevice.isSupportCompass()) {
+        if (!mDevice.isSupportSensor()) {
             Toast.makeText(this, getString(R.string.activity_device_not_support_sensor), Toast.LENGTH_SHORT).show();
             return;
         }

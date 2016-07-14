@@ -136,6 +136,8 @@ public class SlackManager {
 
     /** Botの情報 */
     private BotInfo botInfo = new BotInfo();
+    /** 再接続カウンタ */
+    private int retryCount = 0;
 
 
     //endregion
@@ -266,7 +268,9 @@ public class SlackManager {
             return;
         }
         connectState = CONNECT_STATE_CONNECTING;
-        this.connectionFinishCallback = callback;
+        if (callback != null) {
+            this.connectionFinishCallback = callback;
+        }
         // 接続処理
         new GetTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, new TaskParam("rtm.start", "&simple_latest=True&no_unreads=True") {
             @Override
@@ -440,12 +444,13 @@ public class SlackManager {
      * WebSocket接続
      * @param uri 接続先
      */
-    private void connectWebSocket(URI uri) {
+    private void connectWebSocket(final URI uri) {
         final Handler handler = new Handler();
         webSocket = new WebSocketClient(uri, new WebSocketClient.Listener() {
             @Override
             public void onConnect() {
                 if (BuildConfig.DEBUG) Log.d(TAG, "Connected!");
+                retryCount = 0;
                 connectState = CONNECT_STATE_CONNECTED;
                 callConnectionFinishCallback(null, handler);
                 for (final SlackEventListener listener: slackEventListeners){
@@ -540,18 +545,106 @@ public class SlackManager {
             @Override
             public void onDisconnect(int code, String reason) {
                 if (BuildConfig.DEBUG) Log.d(TAG, String.format("Disconnected! Code: %d Reason: %s", code, reason));
-                connectState = CONNECT_STATE_DISCONNECTED;
-                callConnectionFinishCallback(null, handler);
+                if (connectState == CONNECT_STATE_CONNECTED) {
+                    // 接続中に急に切れたら再接続を試みる
+                    if (!retry(handler)) {
+                        // 切断処理
+                        retryCount = 0;
+                        connectState = CONNECT_STATE_DISCONNECTED;
+                        callConnectionFinishCallback(null, handler);
+                    }
+                } else {
+                    // 切断処理
+                    connectState = CONNECT_STATE_DISCONNECTED;
+                    callConnectionFinishCallback(null, handler);
+                }
             }
 
             @Override
             public void onError(Exception error) {
                 Log.e(TAG, "Error!", error);
-                callConnectionFinishCallback(error, handler);
-                callSendMsgFinishCallback(null, error, handler);
+                if (connectState == CONNECT_STATE_CONNECTED) {
+                    // 接続中に急に切れたら再接続を試みる
+                    if (!retry(handler)) {
+                        retryCount = 0;
+                        callConnectionFinishCallback(error, handler);
+                        callSendMsgFinishCallback(null, error, handler);
+                    }
+                } else {
+                    callConnectionFinishCallback(error, handler);
+                    callSendMsgFinishCallback(null, error, handler);
+                }
             }
         }, null);
         webSocket.connect();
+    }
+
+    /**
+     * 再接続処理
+     * @param handler Handler
+     * @return 再接続した場合はtrue
+     */
+    private boolean retry(final Handler handler) {
+        int delay = 0;
+        switch (retryCount++) {
+            case 0:
+                delay = 1000; // 1s
+                break;
+            case 1:
+                delay = 5000; // 5s
+                break;
+            case 2:
+                delay = 30000; // 30s
+                break;
+            case 4:
+                delay = 60000; // 1m
+                break;
+            case 5:
+                delay = 3 * 60000; // 3m
+                break;
+            default:
+                return false;
+        }
+        if (BuildConfig.DEBUG) Log.d(TAG, "retry:" + delay);
+        handler.postDelayed(new Runnable() {
+            public void run() {
+                // 再接続処理
+                new GetTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, new TaskParam("rtm.start", "&simple_latest=True&no_unreads=True") {
+                    @Override
+                    public void callBack(JSONObject json) {
+                        // rtm.startに失敗
+                        if (json == null) {
+                            retry(handler);
+                            return;
+                        }
+                        // WebSocketに接続
+                        if (BuildConfig.DEBUG) Log.d(TAG, json.toString());
+                        // 接続
+                        String jsonUrl;
+                        try {
+                            if (json.has("error")) {
+                                retry(handler);
+                                return;
+                            }
+                            jsonUrl = json.getString("url");
+                            if (BuildConfig.DEBUG) Log.d(TAG, "url:"+jsonUrl);
+                            JSONObject selfJson = json.getJSONObject("self");
+                            botInfo.id = selfJson.getString("id");
+                            botInfo.name = selfJson.getString("name");
+                            JSONObject teamJson = json.getJSONObject("team");
+                            botInfo.teamName = teamJson.getString("name");
+                            botInfo.teamDomain = teamJson.getString("domain");
+                            if (BuildConfig.DEBUG) Log.d(TAG, "bot:" + botInfo.toString());
+                            connectWebSocket(URI.create(jsonUrl));
+                        } catch (JSONException e) {
+                            Log.e(TAG, "error", e);
+                            retry(handler);
+                        }
+                    }
+                });
+            }
+        }, delay);
+        return true;
     }
 
     //endregion

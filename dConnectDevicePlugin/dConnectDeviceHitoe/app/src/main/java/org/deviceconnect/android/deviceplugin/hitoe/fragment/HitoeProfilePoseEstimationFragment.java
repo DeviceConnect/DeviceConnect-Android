@@ -42,14 +42,16 @@ public class HitoeProfilePoseEstimationFragment extends Fragment  implements Hit
      * Pose ImageView.
      */
     private ImageView mPoseView;
-
+    /**
+     * Hitoe scheduler.
+     */
     private HitoeScheduler mScheduler;
 
     @Override
-    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
-                             @Nullable Bundle savedInstanceState) {
+    public View onCreateView(final LayoutInflater inflater, final @Nullable ViewGroup container,
+                             final @Nullable Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_pose_instructions, null);
-        mScheduler = new HitoeScheduler(getActivity(), this, HitoeConstants.HR_TEXT_UPDATE_CYCLE_TIME,
+        mScheduler = new HitoeScheduler(this, HitoeConstants.HR_TEXT_UPDATE_CYCLE_TIME,
                                                 HitoeConstants.HR_TEXT_UPDATE_CYCLE_TIME);
         rootView.findViewById(R.id.button_register).setOnClickListener(new View.OnClickListener() {
 

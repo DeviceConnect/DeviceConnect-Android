@@ -46,13 +46,13 @@ public class HitoeProfileBatteryFragment extends Fragment {
     private ImageView mBatteryImage;
 
     @Override
-    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
-                             @Nullable Bundle savedInstanceState) {
+    public View onCreateView(final LayoutInflater inflater, final @Nullable ViewGroup container,
+                             final @Nullable Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_battery_instructions, null);
         rootView.findViewById(R.id.button_register).setOnClickListener(new View.OnClickListener() {
 
             @Override
-            public void onClick(View view) {
+            public void onClick(final View view) {
                 setBattery();
             }
         });
@@ -76,7 +76,9 @@ public class HitoeProfileBatteryFragment extends Fragment {
         return rootView;
     }
 
-
+    /**
+     * Set Battery value.
+     */
     public void setBattery() {
         if (getActivity() == null) {
             return;

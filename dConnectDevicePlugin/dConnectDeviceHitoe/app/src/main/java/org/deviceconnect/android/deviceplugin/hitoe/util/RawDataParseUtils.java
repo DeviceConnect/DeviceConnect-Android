@@ -31,7 +31,8 @@ public final class RawDataParseUtils {
     /**
      * Private Constructor.
      */
-    private RawDataParseUtils() {}
+    private RawDataParseUtils() {
+    }
 
 
     /**
@@ -83,27 +84,25 @@ public final class RawDataParseUtils {
 
     /**
      * Parse Acceleration Data.
+     * @param data Accleration data
      * @param raw raw data
      * @return Acceleration object
      */
     public static AccelerationData parseAccelerationData(final AccelerationData data, final String raw) {
-        AccelerationData accel = data;
-
-        if(raw == null) {
-            return accel;
+        if (raw == null) {
+            return data;
         }
-        String[] lineList=raw.split(HitoeConstants.BR);
+        String[] lineList = raw.split(HitoeConstants.BR);
         String[] list = lineList[0].split(HitoeConstants.COMMA, -1);
         String[] accList = list[1].split(HitoeConstants.COLON, -1);
-//        long timestamp = Long.parseLong(list[0]);
         double[] accelList = new double[3];
-        for(int i = 0; i < accList.length; i++) {
+        for (int i = 0; i < accList.length; i++) {
             accelList[i] = Double.valueOf(accList[i]);
         }
-        accel.setAccelX(accelList[0]);
-        accel.setAccelY(accelList[1]);
-        accel.setAccelZ(accelList[2]);
-        return accel;
+        data.setAccelX(accelList[0]);
+        data.setAccelY(accelList[1]);
+        data.setAccelZ(accelList[2]);
+        return data;
     }
 
 
@@ -114,11 +113,11 @@ public final class RawDataParseUtils {
      * @return ECG data object
      */
     public static HeartData parseECG(final String raw) {
-        String[] lineList=raw.split(HitoeConstants.BR);
+        String[] lineList = raw.split(HitoeConstants.BR);
         HeartData heart = new HeartData();
-        for(int i=0; i < lineList.length; i++) {
+        for (int i = 0; i < lineList.length; i++) {
             String val = lineList[i];
-            if(val == null) {
+            if (val == null) {
                 continue;
             }
             String[] list = val.split(HitoeConstants.COMMA, -1);
@@ -147,10 +146,10 @@ public final class RawDataParseUtils {
      */
     public static StressEstimationData parseStressEstimation(final String raw) {
         StressEstimationData stress = new StressEstimationData();
-        if(raw == null) {
+        if (raw == null) {
             return stress;
         }
-        String[] lineList=raw.split(HitoeConstants.BR);
+        String[] lineList = raw.split(HitoeConstants.BR);
         String[] stressList = lineList[0].split(HitoeConstants.COMMA, -1);
         if (stressList[0].isEmpty() || stressList[1].isEmpty()) {
             return stress;
@@ -174,7 +173,7 @@ public final class RawDataParseUtils {
         if (raw == null) {
             return pose;
         }
-        String[] lineList=raw.split(HitoeConstants.BR);
+        String[] lineList = raw.split(HitoeConstants.BR);
         String[] poseList = lineList[0].split(HitoeConstants.COMMA, -1);
         long timestamp  = 0;
         try {
@@ -222,7 +221,7 @@ public final class RawDataParseUtils {
      * @return walk state object
      */
     public static WalkStateData parseWalkState(final WalkStateData data, final String raw) {
-        String[] lineList=raw.split(HitoeConstants.BR);
+        String[] lineList = raw.split(HitoeConstants.BR);
         String[] walkList = lineList[0].split(HitoeConstants.COMMA, -1);
         long timestamp  = 0;
         try {
@@ -252,7 +251,7 @@ public final class RawDataParseUtils {
      * @return walk state object
      */
     public static WalkStateData parseWalkStateForBalance(final WalkStateData data, final String raw) {
-        String[] lineList=raw.split(HitoeConstants.BR);
+        String[] lineList = raw.split(HitoeConstants.BR);
         String[] walkList = lineList[0].split(HitoeConstants.COMMA, -1);
         if (walkList.length <= 1) {
             return data;
@@ -275,7 +274,7 @@ public final class RawDataParseUtils {
                                             final String type, final int typeCode,
                                             final String unit, final int unitCode) {
         HeartData heart = new HeartData();
-        String[] lineList=raw.split(HitoeConstants.BR);
+        String[] lineList = raw.split(HitoeConstants.BR);
         String rateString = lineList[lineList.length - 1];
         heart.setHeartRateType(heartRateType);
         if (rateString == null) {

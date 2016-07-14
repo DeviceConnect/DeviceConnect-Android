@@ -21,13 +21,13 @@ public class TempExData {
     /**
      * Consutructor.
      * @param key Key
-     * @param dataList
+     * @param dataList Ex data list
      */
     public TempExData(final String key, final ArrayList<String> dataList) {
         setKey(key);
         setDataList(new ArrayList<String>());
-        for(int i=0; i < dataList.size(); i++) {
-            getDataList().add(new String(dataList.get(i)));
+        for (int i = 0; i < dataList.size(); i++) {
+            getDataList().add(dataList.get(i));
         }
     }
 

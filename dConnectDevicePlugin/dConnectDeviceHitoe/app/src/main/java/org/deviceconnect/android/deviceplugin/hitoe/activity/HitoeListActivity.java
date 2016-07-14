@@ -8,7 +8,6 @@ import android.content.res.Resources;
 import android.os.Bundle;
 import android.os.Handler;
 import android.provider.Settings;
-import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentActivity;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -20,6 +19,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import org.deviceconnect.android.activity.PermissionUtility;
+import org.deviceconnect.android.deviceplugin.hitoe.BuildConfig;
 import org.deviceconnect.android.deviceplugin.hitoe.HitoeApplication;
 import org.deviceconnect.android.deviceplugin.hitoe.R;
 import org.deviceconnect.android.deviceplugin.hitoe.data.HitoeConstants;
@@ -73,12 +73,17 @@ public abstract class HitoeListActivity extends FragmentActivity {
      * Enabled connected button.
      */
     protected boolean mEnableConnectedBtn;
+    /**
+     * Progress dialog flag.
+     */
     protected boolean mCheckDialog;
-
+    /**
+     * Now connecting device.
+     */
     protected HitoeDevice mConnectingDevice;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_hitoe_device_list);
         HitoeApplication app = (HitoeApplication) getApplication();
@@ -100,6 +105,9 @@ public abstract class HitoeListActivity extends FragmentActivity {
 
     }
 
+    /**
+     * Initialize sub classs's ui.
+     */
     protected abstract void setUI();
 
     @Override
@@ -170,7 +178,6 @@ public abstract class HitoeListActivity extends FragmentActivity {
                                         public void onSuccess() {
                                         }
 
-                                        @NonNull
                                         @Override
                                         public void onFail(final String deniedPermission) {
                                         }
@@ -181,7 +188,7 @@ public abstract class HitoeListActivity extends FragmentActivity {
 
                     mListView.addFooterView(mFooterView);
 
-                } else if (!BleUtils.isEnabled(HitoeListActivity.this)){
+                } else if (!BleUtils.isEnabled(HitoeListActivity.this)) {
                     Button btn = (Button) findViewById(R.id.btn_add_open);
                     btn.setVisibility(View.GONE);
 
@@ -281,24 +288,6 @@ public abstract class HitoeListActivity extends FragmentActivity {
         });
     }
 
-    /**
-     * Update Exist Devie.
-     */
-    protected void updateExistDevice() {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-
-                mDeviceAdapter.clear();
-                for (HitoeDevice existDevice : getManager().getRegisterDevices()) {
-                    if (!containAddressForAdapter(existDevice.getId())) {
-                        mDeviceAdapter.add(existDevice);
-                    }
-                }
-                mDeviceAdapter.notifyDataSetChanged();
-            }
-        });
-    }
 
     /**
      * Display the dialog of connecting a ble device.
@@ -346,14 +335,6 @@ public abstract class HitoeListActivity extends FragmentActivity {
         showErrorDialog(message);
     }
 
-    /**
-     * Display the error dialog for no permissions.
-     */
-    protected void showErrorDialogNoPermissions() {
-        Resources res = getResources();
-        String message = res.getString(R.string.hitoe_setting_dialog_error_permission);
-        showErrorDialog(message);
-    }
 
     /**
      * Display the error dialog.
@@ -374,7 +355,9 @@ public abstract class HitoeListActivity extends FragmentActivity {
                 }
             });
         } catch (IllegalStateException e) {
-
+            if (BuildConfig.DEBUG) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -388,6 +371,9 @@ public abstract class HitoeListActivity extends FragmentActivity {
                 mErrorDialogFragment = null;
             }
         } catch (IllegalStateException e) {
+            if (BuildConfig.DEBUG) {
+                e.printStackTrace();
+            }
 
         }
     }
@@ -446,9 +432,20 @@ public abstract class HitoeListActivity extends FragmentActivity {
         return false;
     }
 
+    /**
+     * Device List's adapter.
+     */
     protected class DeviceAdapter extends ArrayAdapter<HitoeDevice> {
+        /**
+         * Adapter inflater.
+         */
         private LayoutInflater mInflater;
 
+        /**
+         * Constructor.
+         * @param context context
+         * @param objects hitoe's list
+         */
         public DeviceAdapter(final Context context, final List<HitoeDevice> objects) {
             super(context, 0, objects);
             mInflater = (LayoutInflater) context.getSystemService(
@@ -456,7 +453,7 @@ public abstract class HitoeListActivity extends FragmentActivity {
         }
 
         @Override
-        public View getView(final int position, View convertView, ViewGroup parent) {
+        public View getView(final int position, View convertView, final ViewGroup parent) {
             if (convertView == null) {
                 convertView = mInflater.inflate(R.layout.item_hitoe_device, null);
             }
@@ -502,9 +499,10 @@ public abstract class HitoeListActivity extends FragmentActivity {
                                 pinDialog.show(getSupportFragmentManager(), "pin_dialog");
                                 pinDialog.setOnPinCodeListener(new PinCodeDialogFragment.OnPinCodeListener() {
                                     @Override
-                                    public void onPinCode(String pin) {
+                                    public void onPinCode(final String pin) {
                                         if (pin.isEmpty()) {
-                                            showErrorDialog(res.getString(R.string.hitoe_setting_dialog_error_message02));
+                                            showErrorDialog(
+                                                    res.getString(R.string.hitoe_setting_dialog_error_message02));
                                             return;
                                         }
                                         device.setPinCode(pin);
@@ -524,7 +522,8 @@ public abstract class HitoeListActivity extends FragmentActivity {
                                             public void run() {
                                                 dismissProgressDialog();
                                                 Resources res = getResources();
-                                                showErrorDialog(res.getString(R.string.hitoe_setting_dialog_error_message04));
+                                                showErrorDialog(
+                                                        res.getString(R.string.hitoe_setting_dialog_error_message04));
 
                                             }
                                         });

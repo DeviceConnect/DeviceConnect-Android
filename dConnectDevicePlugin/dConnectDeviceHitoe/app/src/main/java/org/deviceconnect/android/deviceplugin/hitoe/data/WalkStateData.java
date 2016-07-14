@@ -66,7 +66,7 @@ public class WalkStateData {
 
     /**
      * Get walk speed.
-     * @return
+     * @return walk speed(km/s)
      */
     public double getSpeed() {
         return mSpeed;
@@ -146,16 +146,20 @@ public class WalkStateData {
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
-        builder.append("{\"steps\": " + mStep + ", ");
-        builder.append("\"state\": " + mState.getState() + ", ");
-        builder.append("\"speed\": " + mSpeed + ", ");
-        builder.append("\"distance\": " + mDistance + ", ");
-        builder.append("\"balance\": " + mBalance + ", ");
-        builder.append("\"timeStamp\": " + mTimeStamp + ", ");
-        builder.append("\"timeStampString\": " + mTimeStampString +  "} ");
+        builder.append("{\"steps\": ").append(mStep).append(", ");
+        builder.append("\"state\": ").append(mState.getState()).append(", ");
+        builder.append("\"speed\": ").append(mSpeed).append(", ");
+        builder.append("\"distance\": ").append(mDistance).append(", ");
+        builder.append("\"balance\": ").append(mBalance).append(", ");
+        builder.append("\"timeStamp\": ").append(mTimeStamp).append(", ");
+        builder.append("\"timeStampString\": ").append(mTimeStampString).append("} ");
         return builder.toString();
     }
 
+    /**
+     * To bundle.
+     * @return bundle
+     */
     public Bundle toBundle() {
         Bundle walk = new Bundle();
         WalkStateProfile.setStep(walk, mStep);

@@ -11,6 +11,7 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -24,23 +25,31 @@ import org.deviceconnect.android.deviceplugin.hitoe.R;
  * @author NTT DOCOMO, INC.
  */
 public class PinCodeDialogFragment extends DialogFragment {
-    private static final String PARAM_TITLE = "title";
-    private static final String PARAM_MESSAGE = "message";
+    /** Dialog. */
     private AlertDialog mDialog;
+    /** Dialog's listener. */
     private OnPinCodeListener mListener;
 
+    /**
+     * Pin Code listener interface.
+     */
     public interface OnPinCodeListener {
+        /**
+         * Notify pin code listener.
+         * @param pin pin code
+         */
         void onPinCode(final String pin);
     }
 
-
+    /**
+     * Initialize Pin code dialog.
+     * @return pin code dialog
+     */
     public static PinCodeDialogFragment newInstance() {
-        PinCodeDialogFragment instance = new PinCodeDialogFragment();
-
-
-        return instance;
+        return new PinCodeDialogFragment();
     }
 
+    @NonNull
     @Override
     public Dialog onCreateDialog(final Bundle savedInstanceState) {
         if (mDialog != null) {
@@ -58,7 +67,7 @@ public class PinCodeDialogFragment extends DialogFragment {
         builder.setPositiveButton(R.string.hitoe_setting_dialog_positive,
                 new DialogInterface.OnClickListener() {
                     @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
+                    public void onClick(final DialogInterface dialogInterface, final int i) {
                         String pinString = pinEdit.getText().toString();
                         if (mListener != null) {
                             mListener.onPinCode(pinString);
@@ -86,6 +95,10 @@ public class PinCodeDialogFragment extends DialogFragment {
         super.onDismiss(dialog);
     }
 
+    /**
+     * Set Pin Code listener.
+     * @param listener listener
+     */
     public void setOnPinCodeListener(final OnPinCodeListener listener) {
         mListener = listener;
     }

@@ -41,26 +41,28 @@ public class HitoeProfileHealthFragment extends Fragment  implements HitoeSchedu
      * HeartRate TextView.
      */
     private TextView mHeartRate;
-
+    /**
+     * Hitoe Scheduler.
+     */
     private HitoeScheduler mScheduler;
 
     @Override
-    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
-                             @Nullable Bundle savedInstanceState) {
+    public View onCreateView(final LayoutInflater inflater, final @Nullable ViewGroup container,
+                             final @Nullable Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_heartrate_instructions, null);
-        mScheduler = new HitoeScheduler(getActivity(), this, HitoeConstants.HR_TEXT_UPDATE_CYCLE_TIME,
+        mScheduler = new HitoeScheduler(this, HitoeConstants.HR_TEXT_UPDATE_CYCLE_TIME,
                                                 HitoeConstants.HR_TEXT_UPDATE_CYCLE_TIME);
         rootView.findViewById(R.id.button_register).setOnClickListener(new View.OnClickListener() {
 
             @Override
-            public void onClick(View view) {
+            public void onClick(final View view) {
                 mScheduler.scanHitoeDevice(true);
             }
         });
         rootView.findViewById(R.id.button_unregister).setOnClickListener(new View.OnClickListener() {
 
             @Override
-            public void onClick(View view) {
+            public void onClick(final View view) {
                 mScheduler.scanHitoeDevice(false);
             }
         });

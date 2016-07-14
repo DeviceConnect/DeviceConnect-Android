@@ -63,6 +63,9 @@ public class HitoeECGProfile extends ECGProfile {
         addApi(mDeleteOnECG);
     }
 
+    /**
+     * Get ECG.
+     */
     private final DConnectApi mGetOnECG = new GetApi() {
         @Override
         public String getAttribute() {
@@ -75,7 +78,12 @@ public class HitoeECGProfile extends ECGProfile {
             if (serviceId == null) {
                 MessageUtils.setEmptyServiceIdError(response);
             } else {
-                HeartRateData data = getManager().getECGData(serviceId);
+                HitoeManager mgr = getManager();
+                if (mgr == null) {
+                    MessageUtils.setNotFoundServiceError(response);
+                    return true;
+                }
+                HeartRateData data = mgr.getECGData(serviceId);
                 if (data == null) {
                     MessageUtils.setNotFoundServiceError(response);
                 } else {
@@ -87,6 +95,9 @@ public class HitoeECGProfile extends ECGProfile {
         }
     };
 
+    /**
+     * Register event ECG.
+     */
     private final DConnectApi mPutOnECG = new PutApi() {
         @Override
         public String getAttribute() {
@@ -98,20 +109,22 @@ public class HitoeECGProfile extends ECGProfile {
             String serviceId = getServiceID(request);
             String sessionKey = getSessionKey(request);
             if (serviceId == null) {
-                MessageUtils.setNotFoundServiceError(response, "Not found serviceID:" + serviceId);
+                MessageUtils.setNotFoundServiceError(response, "Not found serviceID");
             } else if (sessionKey == null) {
-                MessageUtils.setInvalidRequestParameterError(response, "Not found sessionKey:" + sessionKey);
+                MessageUtils.setInvalidRequestParameterError(response, "Not found sessionKey:");
             } else {
-                HeartRateData data = getManager().getECGData(serviceId);
+                HitoeManager mgr = getManager();
+                if (mgr == null) {
+                    MessageUtils.setNotFoundServiceError(response);
+                    return true;
+                }
+                HeartRateData data = mgr.getECGData(serviceId);
                 if (data == null) {
                     MessageUtils.setNotFoundServiceError(response);
                 } else {
                     EventError error = EventManager.INSTANCE.addEvent(request);
                     if (error == EventError.NONE) {
-                        HitoeManager mgr = getManager();
-                        if (mgr != null) {
-                            mgr.setHitoeECGEventListener(mECGEventListener);
-                        }
+                        mgr.setHitoeECGEventListener(mECGEventListener);
                         addEventDispatcher(request);
                         setResult(response, DConnectMessage.RESULT_OK);
                     } else {
@@ -123,6 +136,9 @@ public class HitoeECGProfile extends ECGProfile {
         }
     };
 
+    /**
+     * Unregister event ECG.
+     */
     private final DConnectApi mDeleteOnECG = new DeleteApi() {
         @Override
         public String getAttribute() {
@@ -185,7 +201,7 @@ public class HitoeECGProfile extends ECGProfile {
     private void addEventDispatcher(final Intent request) {
         Event event = EventManager.INSTANCE.getEvent(request);
         EventDispatcher dispatcher = EventDispatcherFactory.createEventDispatcher(
-                (DConnectMessageService)getContext(), request);
+                (DConnectMessageService) getContext(), request);
         mDispatcherManager.addEventDispatcher(event, dispatcher);
     }
 

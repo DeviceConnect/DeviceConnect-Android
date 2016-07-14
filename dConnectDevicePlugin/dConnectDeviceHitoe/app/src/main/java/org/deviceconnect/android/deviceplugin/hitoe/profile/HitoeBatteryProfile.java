@@ -10,8 +10,8 @@ import android.content.Intent;
 
 import org.deviceconnect.android.deviceplugin.hitoe.HitoeApplication;
 import org.deviceconnect.android.deviceplugin.hitoe.HitoeDeviceService;
-import org.deviceconnect.android.deviceplugin.hitoe.data.HitoeManager;
 import org.deviceconnect.android.deviceplugin.hitoe.data.HeartRateData;
+import org.deviceconnect.android.deviceplugin.hitoe.data.HitoeManager;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.BatteryProfile;
 import org.deviceconnect.android.profile.api.DConnectApi;
@@ -24,12 +24,17 @@ import org.deviceconnect.message.DConnectMessage;
  */
 public class HitoeBatteryProfile extends BatteryProfile {
 
-
+    /**
+     * Constructor.
+     */
     public HitoeBatteryProfile() {
         addApi(mGetAll);
         addApi(mGetLevel);
     }
 
+    /**
+     * Get Battery all.
+     */
     private final DConnectApi mGetAll = new GetApi() {
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
@@ -37,6 +42,9 @@ public class HitoeBatteryProfile extends BatteryProfile {
         }
     };
 
+    /**
+     * Get Battery level.
+     */
     private final DConnectApi mGetLevel = new GetApi() {
         @Override
         public String getAttribute() {
@@ -49,13 +57,23 @@ public class HitoeBatteryProfile extends BatteryProfile {
         }
     };
 
-
+    /**
+     * Get Battery info.
+     * @param request request
+     * @param response response
+     * @return true:sync, false:async
+     */
     private boolean getBattery(final Intent request, final Intent response) {
         String serviceId = getServiceID(request);
         if (serviceId == null) {
             MessageUtils.setEmptyServiceIdError(response);
         } else {
-            HeartRateData data = getManager().getHeartRateData(serviceId);
+            HitoeManager mgr = getManager();
+            if (mgr == null) {
+                MessageUtils.setNotFoundServiceError(response);
+                return true;
+            }
+            HeartRateData data = mgr.getHeartRateData(serviceId);
             if (data == null) {
                 MessageUtils.setNotFoundServiceError(response);
                 return true;

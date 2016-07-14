@@ -34,11 +34,13 @@ public class AccelerationData {
     /** Gyro Z. */
     private double mGyroGamma;
     /** TimeStamp. */
-    private long mTimeStamp;
+    private long mInterval;
 
-
+    /**
+     * Constructor.
+     */
     public AccelerationData() {
-        mTimeStamp = 0;
+        mInterval = 0;
     }
 
 
@@ -191,7 +193,7 @@ public class AccelerationData {
      * @return timestamp
      */
     public long getTimeStamp() {
-        return mTimeStamp;
+        return mInterval;
     }
 
     /**
@@ -199,23 +201,23 @@ public class AccelerationData {
      * @param timeStamp timestamp
      */
     public void setTimeStamp(final long timeStamp) {
-        mTimeStamp = timeStamp;
+        mInterval = timeStamp;
     }
 
-
+    /**
+     * To Bundle.
+     * @return bundle
+     */
     public Bundle toBundle() {
         Bundle orientation = new Bundle();
-        Bundle a = new Bundle();
 
         Bundle ag = new Bundle();
         DeviceOrientationProfile.setX(ag, mAccelX);
         DeviceOrientationProfile.setY(ag, mAccelY);
         DeviceOrientationProfile.setZ(ag, mAccelZ);
 
-        Bundle r = new Bundle();
-
         DeviceOrientationProfile.setAcceleration(orientation, ag);
-        DeviceOrientationProfile.setInterval(orientation, mTimeStamp);
+        DeviceOrientationProfile.setInterval(orientation, mInterval);
         return orientation;
     }
 }

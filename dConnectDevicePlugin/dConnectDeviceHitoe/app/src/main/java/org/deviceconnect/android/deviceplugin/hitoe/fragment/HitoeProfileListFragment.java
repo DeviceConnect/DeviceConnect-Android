@@ -37,15 +37,18 @@ public class HitoeProfileListFragment extends Fragment implements AdapterView.On
      */
     private ListView mProfileListView;
 
-
+    /**
+     * Current control hitoe device info object.
+     */
     private HitoeDevice mCurrentDevice;
 
+    /** page title. */
     private TextView mTitle;
 
 
     @Override
-    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
-                             @Nullable Bundle savedInstanceState) {
+    public View onCreateView(final LayoutInflater inflater, final @Nullable ViewGroup container,
+                             final @Nullable Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.activity_hitoe_device_list, null);
         Button underBtn = (Button) rootView.findViewById(R.id.btn_add_open);
         underBtn.setVisibility(View.GONE);
@@ -74,7 +77,7 @@ public class HitoeProfileListFragment extends Fragment implements AdapterView.On
 
 
     @Override
-    public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+    public void onItemClick(final AdapterView<?> adapterView, final View view, final int i, final long l) {
         HitoeDeviceControlActivity control = (HitoeDeviceControlActivity) getActivity();
         control.movePage(i + 1);
     }

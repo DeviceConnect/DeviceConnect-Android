@@ -64,9 +64,9 @@ public class HitoeProfileDeviceOrientationFragment extends Fragment  implements 
     /** data count. */
     private static final int DATA_COUNT = 3;
     /** orientation title. */
-    private static final String[] TITLES = new String[] { "X", "Y", "Z" };
+    private static final String[] TITLES = new String[] {"X", "Y", "Z" };
     /** data color. */
-    private static final int[] COLORS = new int[] { Color.RED, Color.GREEN, Color.BLUE };
+    private static final int[] COLORS = new int[] {Color.RED, Color.GREEN, Color.BLUE };
     /** data count. */
     private static final long MAX_RANGE = 5000;
 
@@ -92,23 +92,21 @@ public class HitoeProfileDeviceOrientationFragment extends Fragment  implements 
     private HitoeDevice mCurrentDevice;
 
     /**
-     * HeartRate TextView.
+     * Hitoe's Scheduler.
      */
-    private TextView mHeartRate;
-
     private HitoeScheduler mScheduler;
 
     @Override
-    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
-                             @Nullable Bundle savedInstanceState) {
+    public View onCreateView(final LayoutInflater inflater, final @Nullable ViewGroup container,
+                             final @Nullable Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_orientation_instructions, null);
-        mScheduler = new HitoeScheduler(getActivity(), this,HitoeConstants.ACC_CHART_UPDATE_CYCLE_TIME,
+        mScheduler = new HitoeScheduler(this,HitoeConstants.ACC_CHART_UPDATE_CYCLE_TIME,
                                                                 HitoeConstants.ACC_CHART_UPDATE_CYCLE_TIME);
 
         rootView.findViewById(R.id.button_register).setOnClickListener(new View.OnClickListener() {
 
             @Override
-            public void onClick(View view) {
+            public void onClick(final View view) {
                 clear();
                 mScheduler.scanHitoeDevice(true);
             }
@@ -116,7 +114,7 @@ public class HitoeProfileDeviceOrientationFragment extends Fragment  implements 
         rootView.findViewById(R.id.button_unregister).setOnClickListener(new View.OnClickListener() {
 
             @Override
-            public void onClick(View view) {
+            public void onClick(final View view) {
                 mScheduler.scanHitoeDevice(false);
             }
         });
@@ -170,8 +168,11 @@ public class HitoeProfileDeviceOrientationFragment extends Fragment  implements 
         });
     }
 
+    /**
+     * Initialilze chart.
+     */
     private void init() {
-        mACCList = new ArrayList<XYSeries>();
+        mACCList = new ArrayList<>();
         mACCList.add(new XYSeries(TITLES[0]));
         mACCList.add(new XYSeries(TITLES[1]));
         mACCList.add(new XYSeries(TITLES[2]));
@@ -183,8 +184,12 @@ public class HitoeProfileDeviceOrientationFragment extends Fragment  implements 
         mGraphicalView = new GraphicalView(getActivity(), mLineChart);
     }
 
-
-    private void setACC(long timestamp, double[] accList) {
+    /**
+     * Set Acceleration data.
+     * @param timestamp timestamp
+     * @param accList acceleration data list
+     */
+    private void setACC(final long timestamp, final double[] accList) {
 
         if (this.mACCList.get(0).getItemCount() == 0) {
             mMinX = timestamp;
@@ -205,15 +210,19 @@ public class HitoeProfileDeviceOrientationFragment extends Fragment  implements 
         this.mACCList.get(2).add(timestamp, accList[2]);
     }
 
-
-    private void updateChart(){
+    /**
+     * Update chart.
+     */
+    private void updateChart() {
         mXYMultipleSeriesRenderer.setXAxisMin(mMinX);
         mXYMultipleSeriesRenderer.setXAxisMax(mMaxX);
 
         mGraphicalView.repaint();
     }
 
-
+    /**
+     * Clear chart.
+     */
     private void clear() {
         mACCList.get(0).clear();
         mACCList.get(1).clear();
@@ -221,6 +230,10 @@ public class HitoeProfileDeviceOrientationFragment extends Fragment  implements 
         mGraphicalView.repaint();
     }
 
+    /**
+     * Build chart's renderer.
+     * @return chart renderer
+     */
     private XYMultipleSeriesRenderer buildRenderer() {
 
         XYMultipleSeriesRenderer renderer = new XYMultipleSeriesRenderer();
@@ -263,7 +276,7 @@ public class HitoeProfileDeviceOrientationFragment extends Fragment  implements 
         renderer.setApplyBackgroundColor(true);
         renderer.setBackgroundColor(Color.WHITE);
 
-        renderer.setMargins(new int[] { 16, 48, 16, 8 });
+        renderer.setMargins(new int[] {16, 48, 16, 8 });
         renderer.setMarginsColor(Color.argb(0, 255, 255, 255));
 
         renderer.setPanEnabled(false, false);

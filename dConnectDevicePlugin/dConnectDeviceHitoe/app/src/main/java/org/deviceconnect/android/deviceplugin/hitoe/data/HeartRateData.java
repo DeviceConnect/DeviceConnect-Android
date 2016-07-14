@@ -80,14 +80,14 @@ public class HeartRateData {
 
 
     /**
-     * Set Health device's RRInterval data
+     * Set Health device's RRInterval data.
      * @param rrInterval Health device's RRInterval data
      */
     public void setRRInterval(final HeartData rrInterval) {
         mRRInterval = rrInterval;
     }
     /**
-     * Set Health device's ecg data
+     * Set Health device's ecg data.
      * @param ecg Health device's ecg data
      */
     public void setECG(final HeartData ecg) {
@@ -105,22 +105,10 @@ public class HeartRateData {
     public String toString() {
         StringBuilder builder = new StringBuilder();
         builder.append("{\"heart\":{");
-        builder.append("\"device\":" + mTarget.toString() + ", ");
-        builder.append("\"rate\":" + mHeartRate.toString() + ", ");
-        builder.append("\"rr\":" + mRRInterval.toString() + ", ");
-        builder.append("\"energy\":" + mEnergyExpended.toString() +  "}} ");
+        builder.append("\"device\":").append(mTarget.toString()).append(", ");
+        builder.append("\"rate\":").append(mHeartRate.toString()).append(", ");
+        builder.append("\"rr\":").append(mRRInterval.toString()).append(", ");
+        builder.append("\"energy\":").append(mEnergyExpended.toString()).append("}} ");
         return builder.toString();
-    }
-
-    /**
-     * Notify HeartRate data listener.
-     */
-    public interface OnHeartRateDataListener {
-        /**
-         * Notify HeartRate data.
-         * @param device Hitoe device
-         * @param notify HeartRate data
-         */
-        void onNotifyHeartRateData(final HitoeDevice device, final HeartRateData notify);
     }
 }

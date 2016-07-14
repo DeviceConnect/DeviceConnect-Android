@@ -31,15 +31,23 @@ public class HitoeDBHelper {
      * Define the version of the database.
      */
     private static final int DB_VERSION = 1;
+    /** DB Name. */
     private static final String TBL_NAME = "device_tbl";
 
+    /** DB column  {@value} . */
     private static final String COL_TYPE = "type";
+    /** DB column  {@value} . */
     private static final String COL_NAME = "name";
+    /** DB column  {@value} . */
     private static final String COL_ID = "device_id";
+    /** DB column  {@value} . */
     private static final String COL_CONNECT_MODE = "connect_mode";
+    /** DB column  {@value} . */
     private static final String COL_PIN_CODE = "pin_code";
+    /** DB column  {@value} . */
     private static final String COL_REGISTER_FLAG = "register_flag";
 
+    /** DB Helper. */
     private DBHelper mDBHelper;
 
     /**
@@ -147,8 +155,15 @@ public class HitoeDBHelper {
         return devices;
     }
 
+    /**
+     * SQL DB Helper.
+     */
     private static class DBHelper extends SQLiteOpenHelper {
-        public DBHelper(Context context) {
+        /**
+         * Constructor.
+         * @param context Context
+         */
+        public DBHelper(final Context context) {
             super(context, DB_NAME, null, DB_VERSION);
         }
 
@@ -163,6 +178,10 @@ public class HitoeDBHelper {
             createDB(db);
         }
 
+        /**
+         * Create DB's sql.
+         * @param db DB
+         */
         private void createDB(final SQLiteDatabase db) {
             String sql = "CREATE TABLE " + TBL_NAME + " ("
                     + BaseColumns._ID + " INTEGER PRIMARY KEY, "

@@ -1,7 +1,5 @@
 package org.deviceconnect.android.deviceplugin.hitoe.util;
 
-import android.content.Context;
-
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -35,17 +33,20 @@ public class HitoeScheduler {
      * Scanning flag.
      */
     private boolean mScanning;
-
-    private Context mContext;
-
+    /** Notify listener. */
     private OnRegularNotify mNotify;
-
+    /** Default wait period. */
     private long mWaitPeriod = SCAN_WAIT_PERIOD;
-
+    /** Default first wait period. */
     private long mFirstWaitPeriod = SCAN_FIRST_WAIT_PERIOD;
 
-    public HitoeScheduler(final Context context, final OnRegularNotify notify, final long first, final long period) {
-        mContext = context;
+    /**
+     * Constructor.
+     * @param notify listener
+     * @param first first wait period
+     * @param period wait period
+     */
+    public HitoeScheduler(final OnRegularNotify notify, final long first, final long period) {
         mNotify = notify;
         if (first > 0) {
             mFirstWaitPeriod = first;

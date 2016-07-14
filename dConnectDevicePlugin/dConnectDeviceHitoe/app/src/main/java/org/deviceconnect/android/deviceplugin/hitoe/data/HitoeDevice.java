@@ -29,11 +29,11 @@ public class HitoeDevice {
     /** memory setting. */
     private String mMemorySetting;
     /** available raw datalist. */
-    private List<String> mAvailableRawDataList = new ArrayList<String>();
+    private List<String> mAvailableRawDataList = new ArrayList<>();
     /** available ba datalist. */
-    private List<String> mAvailableBaDataList = new ArrayList<String>();
+    private List<String> mAvailableBaDataList = new ArrayList<>();
     /** available ex datalist. */
-    private List<String> mAvailableExDataList = new ArrayList<String>();
+    private List<String> mAvailableExDataList = new ArrayList<>();
 
     /** session id. */
     private String mSessionId;
@@ -44,7 +44,7 @@ public class HitoeDevice {
     /** Ex connection id. */
     private String mExConnectionId;
     /** ex connection list. */
-    private ArrayList<String> mExConnectionList = new ArrayList<String>();
+    private List<String> mExConnectionList = new ArrayList<>();
 
     /** Response id. */
     private int mResponseId;
@@ -55,22 +55,26 @@ public class HitoeDevice {
      */
     public HitoeDevice(final String raw) {
         setData(raw);
-        String data_list[] = HitoeConstants.AVAILABLE_EX_DATA_STR.split("\n");
-        for(int i=0; i < data_list.length; i++) {
-            mAvailableExDataList.add(data_list[i]);
+        String[] dataList = HitoeConstants.AVAILABLE_EX_DATA_STR.split("\n");
+        for (int i = 0; i < dataList.length; i++) {
+            mAvailableExDataList.add(dataList[i]);
         }
     }
     /**
      * Get Device type.
      * @return Device type
      */
-    public String getType() { return mType; }
+    public String getType() {
+        return mType;
+    }
 
     /**
      * Set Device Type.
      * @param type Device Type
      */
-    public void setType(final String type) { mType = type; }
+    public void setType(final String type) {
+        mType = type;
+    }
 
     /**
      * Get device id.
@@ -230,7 +234,7 @@ public class HitoeDevice {
 
     /**
      * Get raw connection id.
-     * @return
+     * @return Raw connection id
      */
     public String getRawConnectionId() {
         return mRawConnectionId;
@@ -280,15 +284,15 @@ public class HitoeDevice {
      * Get Ex connection list.
      * @return ex connection list
      */
-    public ArrayList<String> getExConnectionList() {
+    public List<String> getExConnectionList() {
         return mExConnectionList;
     }
 
     /**
-     * Set ex connection list
+     * Set ex connection list.
      * @param exConnectionList ex connection list
      */
-    public void setExConnectionList(ArrayList<String> exConnectionList) {
+    public void setExConnectionList(final ArrayList<String> exConnectionList) {
         this.mExConnectionList = exConnectionList;
     }
     /**
@@ -308,42 +312,16 @@ public class HitoeDevice {
     }
 
 
-    @Override
-    public boolean equals(final Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        HitoeDevice that = (HitoeDevice) o;
-
-        if (mId != that.mId) {
-            return false;
-        }
-        if (mType != null ? !mType.equals(that.mType) : that.mType != null) {
-            return false;
-        }
-        if (mPin != null ? !mPin.equals(that.mPin) : that.mPin != null) {
-            return false;
-        }
-        if (mName != null ? !mName.equals(that.mName) : that.mName != null) {
-            return false;
-        }
-        return true;
-    }
-
 
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
-        builder.append("{\"type\": " + mType + ", ");
-        builder.append("\"name\": " + mName + ", ");
-        builder.append("\"id\": " + mId + ", ");
-        builder.append("\"address\": " + mPin + ", ");
-        builder.append("\"connectMode\": " + mConnectMode + ", ");
-        builder.append("\"registerFlag\": " + mRegisterFlag + "} ");
+        builder.append("{\"type\": ").append(mType).append(", ");
+        builder.append("\"name\": ").append(mName).append(", ");
+        builder.append("\"id\": ").append(mId).append(", ");
+        builder.append("\"address\": ").append(mPin).append(", ");
+        builder.append("\"connectMode\": ").append(mConnectMode).append(", ");
+        builder.append("\"registerFlag\": ").append(mRegisterFlag).append("} ");
         return builder.toString();
     }
 
@@ -351,9 +329,9 @@ public class HitoeDevice {
      * Set Data.
      * @param val raw data
      */
-    public void setData(String val) {
+    public void setData(final String val) {
 
-        if(val == null) {
+        if (val == null) {
 
             return;
         }
@@ -376,22 +354,22 @@ public class HitoeDevice {
     public void setAvailableData(final String availableData) {
 
         String[] dataList = availableData.split(HitoeConstants.BR);
-        for(int i = 0; i < dataList.length; i++) {
-            if(dataList[i].startsWith(HitoeConstants.RAW_DATA_PREFFIX)) {
+        for (int i = 0; i < dataList.length; i++) {
+            if (dataList[i].startsWith(HitoeConstants.RAW_DATA_PREFFIX)) {
 
-                if(!mAvailableRawDataList.contains(dataList[i])) {
+                if (!mAvailableRawDataList.contains(dataList[i])) {
 
                     mAvailableRawDataList.add(dataList[i]);
                 }
-            } else if(dataList[i].startsWith(HitoeConstants.BA_DATA_PREFFIX)) {
+            } else if (dataList[i].startsWith(HitoeConstants.BA_DATA_PREFFIX)) {
 
-                if(!mAvailableBaDataList.contains(dataList[i])) {
+                if (!mAvailableBaDataList.contains(dataList[i])) {
 
                     mAvailableBaDataList.add(dataList[i]);
                 }
-            } else if(dataList[i].startsWith(HitoeConstants.EX_DATA_PREFFIX)) {
+            } else if (dataList[i].startsWith(HitoeConstants.EX_DATA_PREFFIX)) {
 
-                if(!mAvailableExDataList.contains(dataList[i])) {
+                if (!mAvailableExDataList.contains(dataList[i])) {
 
                     mAvailableExDataList.add(dataList[i]);
                 }
@@ -403,15 +381,15 @@ public class HitoeDevice {
      * Set Connection Id.
      * @param connectionId connection id
      */
-    public void setConnectionId(String connectionId) {
+    public void setConnectionId(final String connectionId) {
 
-        if(connectionId.startsWith(HitoeConstants.RAW_CONNECTION_PREFFIX)) {
+        if (connectionId.startsWith(HitoeConstants.RAW_CONNECTION_PREFFIX)) {
 
             mRawConnectionId = connectionId;
-        } else if(connectionId.startsWith(HitoeConstants.BA_CONNECTION_PREFFIX)) {
+        } else if (connectionId.startsWith(HitoeConstants.BA_CONNECTION_PREFFIX)) {
 
             mBaConnectionId = connectionId;
-        } else if(connectionId.startsWith(HitoeConstants.EX_CONNECTION_PREFFIX)) {
+        } else if (connectionId.startsWith(HitoeConstants.EX_CONNECTION_PREFFIX)) {
             getExConnectionList().add(connectionId);
         }
     }
@@ -421,15 +399,15 @@ public class HitoeDevice {
      *  Remove connection id.
      *  @param connectionId connection id
      */
-    public void removeConnectionId(String connectionId) {
+    public void removeConnectionId(final String connectionId) {
 
-        if(mRawConnectionId != null && mRawConnectionId.equals(connectionId)) {
+        if (mRawConnectionId != null && mRawConnectionId.equals(connectionId)) {
 
             mRawConnectionId = null;
-        } else if(mBaConnectionId != null && mBaConnectionId.equals(connectionId)) {
+        } else if (mBaConnectionId != null && mBaConnectionId.equals(connectionId)) {
 
             mBaConnectionId = null;
-        } else if(mExConnectionList != null && mExConnectionList.contains(connectionId)) {
+        } else if (mExConnectionList != null && mExConnectionList.contains(connectionId)) {
 
             mExConnectionList.remove(connectionId);
         }

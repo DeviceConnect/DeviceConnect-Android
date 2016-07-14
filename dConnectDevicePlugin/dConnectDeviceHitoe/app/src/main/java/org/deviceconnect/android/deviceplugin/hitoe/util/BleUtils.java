@@ -66,6 +66,9 @@ public final class BleUtils {
             Manifest.permission.ACCESS_FINE_LOCATION
     };
 
+    /**
+     * Private constructor.
+     */
     private BleUtils() {
     }
 
@@ -76,8 +79,8 @@ public final class BleUtils {
      * false.
      */
     public static boolean isBLESupported(final Context context) {
-        return Build.VERSION.SDK_INT >= 18 &&
-                context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE);
+        return Build.VERSION.SDK_INT >= 18
+                && context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE);
     }
 
     /**

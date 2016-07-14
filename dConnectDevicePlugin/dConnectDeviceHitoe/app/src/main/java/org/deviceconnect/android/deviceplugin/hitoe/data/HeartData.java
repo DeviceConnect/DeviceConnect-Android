@@ -17,7 +17,22 @@ import org.deviceconnect.android.profile.HealthProfile;
 public class HeartData {
     /** HeartRate type.*/
     public enum HeartRateType {
-        Rate, RRI, EnergyExpended, ECG;
+        /**
+         * HeartRate.
+         */
+        Rate,
+        /**
+         * RRI.
+         */
+        RRI,
+        /**
+         * Energy Expended.
+         */
+        EnergyExpended,
+        /**
+         * ECG.
+         */
+        ECG
 
     }
 
@@ -197,18 +212,21 @@ public class HeartData {
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
-        builder.append("{\"value\": " + mValue + ", ");
-        builder.append("\"MderFloat\": " + mMderFloat + ", ");
-        builder.append("\"type\": " + mType + ", ");
-        builder.append("\"typeCode\": " + mTypeCode + ", ");
-        builder.append("\"unit\": " + mUnit + ", ");
-        builder.append("\"unitCode\": " + mUnitCode + ", ");
-        builder.append("\"timeStamp\": " + mTimeStamp + ", ");
-        builder.append("\"timeStampString\": " + mTimeStampString +  "} ");
+        builder.append("{\"value\": ").append(mValue).append(", ");
+        builder.append("\"MderFloat\": ").append(mMderFloat).append(", ");
+        builder.append("\"type\": ").append(mType).append(", ");
+        builder.append("\"typeCode\": ").append(mTypeCode).append(", ");
+        builder.append("\"unit\": ").append(mUnit).append(", ");
+        builder.append("\"unitCode\": ").append(mUnitCode).append(", ");
+        builder.append("\"timeStamp\": ").append(mTimeStamp).append(", ");
+        builder.append("\"timeStampString\": ").append(mTimeStampString).append("} ");
         return builder.toString();
     }
 
-
+    /**
+     * To Bundle.
+     * @return  Bundle
+     */
     public Bundle toBundle() {
         Bundle heart = new Bundle();
         HealthProfile.setValue(heart, mValue);

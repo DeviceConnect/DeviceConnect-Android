@@ -7,7 +7,6 @@
 package org.deviceconnect.android.deviceplugin.hitoe.profile;
 
 import android.content.Intent;
-import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.hitoe.HitoeApplication;
 import org.deviceconnect.android.deviceplugin.hitoe.HitoeDeviceService;
@@ -65,6 +64,10 @@ public class HitoeWalkStateProfile extends WalkStateProfile {
         addApi(mDeleteOnWalk);
 
     }
+
+    /**
+     * Get walk state.
+     */
     private final DConnectApi mGetOnWalk = new GetApi() {
         @Override
         public String getAttribute() {
@@ -77,7 +80,12 @@ public class HitoeWalkStateProfile extends WalkStateProfile {
             if (serviceId == null) {
                 MessageUtils.setEmptyServiceIdError(response);
             } else {
-                WalkStateData data = getManager().getWalkStateData(serviceId);
+                HitoeManager mgr = getManager();
+                if (mgr == null) {
+                    MessageUtils.setNotFoundServiceError(response);
+                    return true;
+                }
+                WalkStateData data = mgr.getWalkStateData(serviceId);
                 if (data == null) {
                     MessageUtils.setNotFoundServiceError(response);
                 } else {
@@ -89,6 +97,9 @@ public class HitoeWalkStateProfile extends WalkStateProfile {
         }
     };
 
+    /**
+     * Register event walk state.
+     */
     private final DConnectApi mPutOnWalk = new PutApi() {
         @Override
         public String getAttribute() {
@@ -100,20 +111,22 @@ public class HitoeWalkStateProfile extends WalkStateProfile {
             String serviceId = getServiceID(request);
             String sessionKey = getSessionKey(request);
             if (serviceId == null) {
-                MessageUtils.setNotFoundServiceError(response, "Not found serviceID:" + serviceId);
+                MessageUtils.setNotFoundServiceError(response, "Not found serviceID");
             } else if (sessionKey == null) {
-                MessageUtils.setInvalidRequestParameterError(response, "Not found sessionKey:" + sessionKey);
+                MessageUtils.setInvalidRequestParameterError(response, "Not found sessionKey");
             } else {
-                WalkStateData data = getManager().getWalkStateData(serviceId);
+                HitoeManager mgr = getManager();
+                if (mgr == null) {
+                    MessageUtils.setNotFoundServiceError(response);
+                    return true;
+                }
+                WalkStateData data = mgr.getWalkStateData(serviceId);
                 if (data == null) {
                     MessageUtils.setNotFoundServiceError(response);
                 } else {
                     EventError error = EventManager.INSTANCE.addEvent(request);
                     if (error == EventError.NONE) {
-                        HitoeManager mgr = getManager();
-                        if (mgr != null) {
-                            mgr.setHitoeWalkStateEventListener(mWalkStateEventListener);
-                        }
+                        mgr.setHitoeWalkStateEventListener(mWalkStateEventListener);
                         addEventDispatcher(request);
                         setResult(response, DConnectMessage.RESULT_OK);
                     } else {
@@ -125,6 +138,9 @@ public class HitoeWalkStateProfile extends WalkStateProfile {
         }
     };
 
+    /**
+     * Unregister event walk state.
+     */
     private final DConnectApi mDeleteOnWalk = new DeleteApi() {
         @Override
         public String getAttribute() {
@@ -173,7 +189,6 @@ public class HitoeWalkStateProfile extends WalkStateProfile {
                 }
 
                 Intent intent = EventManager.createEventMessage(event);
-Log.d("TEST", "send");
                 setWalk(intent, data.toBundle());
                 mDispatcherManager.sendEvent(event, intent);
             }
@@ -187,7 +202,7 @@ Log.d("TEST", "send");
     private void addEventDispatcher(final Intent request) {
         Event event = EventManager.INSTANCE.getEvent(request);
         EventDispatcher dispatcher = EventDispatcherFactory.createEventDispatcher(
-                (DConnectMessageService)getContext(), request);
+                (DConnectMessageService) getContext(), request);
         mDispatcherManager.addEventDispatcher(event, dispatcher);
     }
 

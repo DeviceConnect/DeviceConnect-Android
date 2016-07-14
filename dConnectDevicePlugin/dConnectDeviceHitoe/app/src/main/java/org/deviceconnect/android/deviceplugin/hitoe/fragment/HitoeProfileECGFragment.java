@@ -64,9 +64,9 @@ public class HitoeProfileECGFragment extends Fragment  implements HitoeScheduler
     /** data count. */
     private static final int DATA_COUNT = 1;
     /** orientation title. */
-    private static final String[] TITLES = new String[] { "ECG" };
+    private static final String[] TITLES = new String[] {"ECG" };
     /** data color. */
-    private static final int[] COLORS = new int[] { Color.GREEN };
+    private static final int[] COLORS = new int[] {Color.GREEN };
     /** data count. */
     private static final long MAX_RANGE = 10000;
 
@@ -91,23 +91,21 @@ public class HitoeProfileECGFragment extends Fragment  implements HitoeScheduler
     private HitoeDevice mCurrentDevice;
 
     /**
-     * HeartRate TextView.
+     * Hitoe Scheduler.
      */
-    private TextView mHeartRate;
-
     private HitoeScheduler mScheduler;
 
     @Override
-    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
-                             @Nullable Bundle savedInstanceState) {
+    public View onCreateView(final LayoutInflater inflater, final @Nullable ViewGroup container,
+                             final @Nullable Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_ecg_instructions, null);
-        mScheduler = new HitoeScheduler(getActivity(), this,HitoeConstants.ACC_CHART_UPDATE_CYCLE_TIME,
+        mScheduler = new HitoeScheduler(this, HitoeConstants.ACC_CHART_UPDATE_CYCLE_TIME,
                                                                 HitoeConstants.ACC_CHART_UPDATE_CYCLE_TIME);
 
         rootView.findViewById(R.id.button_register).setOnClickListener(new View.OnClickListener() {
 
             @Override
-            public void onClick(View view) {
+            public void onClick(final View view) {
                 clear();
                 mScheduler.scanHitoeDevice(true);
             }
@@ -115,7 +113,7 @@ public class HitoeProfileECGFragment extends Fragment  implements HitoeScheduler
         rootView.findViewById(R.id.button_unregister).setOnClickListener(new View.OnClickListener() {
 
             @Override
-            public void onClick(View view) {
+            public void onClick(final View view) {
                 mScheduler.scanHitoeDevice(false);
             }
         });
@@ -164,8 +162,11 @@ public class HitoeProfileECGFragment extends Fragment  implements HitoeScheduler
         });
     }
 
+    /**
+     * Initialize ECG chart.
+     */
     private void init() {
-        this.mECGList = new ArrayList<XYSeries>();
+        this.mECGList = new ArrayList<>();
         this.mECGList.add(new XYSeries(TITLES[0]));
         XYMultipleSeriesDataset dataset = new XYMultipleSeriesDataset();
         dataset.addAllSeries(this.mECGList);
@@ -175,8 +176,12 @@ public class HitoeProfileECGFragment extends Fragment  implements HitoeScheduler
         mGraphicalView = new GraphicalView(getActivity(), mLineChart);
     }
 
-
-    private void setECG(long timestamp, double ecg) {
+    /**
+     * Set ECG data.
+     * @param timestamp timestamp
+     * @param ecg ecg data
+     */
+    private void setECG(final long timestamp, final double ecg) {
 
         if (mECGList.get(0).getItemCount() == 0) {
             mMinX = timestamp;
@@ -193,20 +198,28 @@ public class HitoeProfileECGFragment extends Fragment  implements HitoeScheduler
 
     }
 
-
-    private void updateChart(){
+    /**
+     * Update chart.
+     */
+    private void updateChart() {
         mXYMultipleSeriesRenderer.setXAxisMin(mMinX);
         mXYMultipleSeriesRenderer.setXAxisMax(mMaxX);
 
         mGraphicalView.repaint();
     }
 
-
+    /**
+     * Clear chart.
+     */
     private void clear() {
         this.mECGList.get(0).clear();
         mGraphicalView.repaint();
     }
 
+    /**
+     * Build ECG Chart renderer.
+     * @return ecg chart renderer
+     */
     private XYMultipleSeriesRenderer buildRenderer() {
 
         XYMultipleSeriesRenderer renderer = new XYMultipleSeriesRenderer();
@@ -250,7 +263,7 @@ public class HitoeProfileECGFragment extends Fragment  implements HitoeScheduler
         renderer.setApplyBackgroundColor(true);
         renderer.setBackgroundColor(Color.BLACK);
 
-        renderer.setMargins(new int[] { 16, 48, 16, 8 });
+        renderer.setMargins(new int[] {16, 48, 16, 8 });
         renderer.setMarginsColor(Color.argb(0, 255, 255, 255));
         renderer.setPanEnabled(false, false);
         renderer.setShowLegend(true);

@@ -64,6 +64,10 @@ public class HitoeDeviceOrientationProfile extends DeviceOrientationProfile {
         addApi(mPutOnDeviceOrientation);
         addApi(mDeleteOnDeviceOrientation);
     }
+
+    /**
+     * Get device orientation.
+     */
     private final DConnectApi mGetOnDeviceOrientation = new GetApi() {
         @Override
         public String getAttribute() {
@@ -76,7 +80,13 @@ public class HitoeDeviceOrientationProfile extends DeviceOrientationProfile {
             if (serviceId == null) {
                 MessageUtils.setEmptyServiceIdError(response);
             } else {
-                AccelerationData data = getManager().getAccelerationData(serviceId);
+                HitoeManager mgr = getManager();
+                if (mgr == null) {
+                    MessageUtils.setNotFoundServiceError(response);
+                    return true;
+                }
+
+                AccelerationData data = mgr.getAccelerationData(serviceId);
                 if (data == null) {
                     MessageUtils.setNotFoundServiceError(response);
                 } else {
@@ -89,6 +99,9 @@ public class HitoeDeviceOrientationProfile extends DeviceOrientationProfile {
         }
     };
 
+    /**
+     * Register event device orientation.
+     */
     private final DConnectApi mPutOnDeviceOrientation = new PutApi() {
         @Override
         public String getAttribute() {
@@ -100,25 +113,28 @@ public class HitoeDeviceOrientationProfile extends DeviceOrientationProfile {
             String serviceId = getServiceID(request);
             String sessionKey = getSessionKey(request);
             if (serviceId == null) {
-                MessageUtils.setNotFoundServiceError(response, "Not found serviceID:" + serviceId);
+                MessageUtils.setNotFoundServiceError(response, "Not found serviceID");
             } else if (sessionKey == null) {
-                MessageUtils.setInvalidRequestParameterError(response, "Not found sessionKey:" + sessionKey);
+                MessageUtils.setInvalidRequestParameterError(response, "Not found sessionKey");
             } else {
-                AccelerationData data = getManager().getAccelerationData(serviceId);
+                HitoeManager mgr = getManager();
+                if (mgr == null) {
+                    MessageUtils.setNotFoundServiceError(response);
+                    return true;
+                }
+                AccelerationData data = mgr.getAccelerationData(serviceId);
                 if (data == null) {
                     MessageUtils.setNotFoundServiceError(response);
                 } else {
                     EventError error = EventManager.INSTANCE.addEvent(request);
                     if (error == EventError.NONE) {
-                        HitoeManager mgr = getManager();
-                        if (mgr != null) {
-                            mgr.setHitoeDeviceOrientationEventListener(mDeviceOrientationEventListener);
-                        }
+                        mgr.setHitoeDeviceOrientationEventListener(mDeviceOrientationEventListener);
                         String intervalString = request.getStringExtra("interval");
-                        long interval = HitoeConstants.ADD_RECEIVER_PARAM_ACC_SAMPLING_INTERVAL;
+                        long interval;
                         try {
                             interval = Long.parseLong(intervalString);
                         } catch (NumberFormatException e) {
+                            interval = HitoeConstants.ADD_RECEIVER_PARAM_ACC_SAMPLING_INTERVAL;
                         }
                         getManager().getAccelerationData(serviceId).setTimeStamp(interval);
                         addEventDispatcher(request);
@@ -132,6 +148,9 @@ public class HitoeDeviceOrientationProfile extends DeviceOrientationProfile {
         }
     };
 
+    /**
+     * Unregister event device orientation.
+     */
     private final DConnectApi mDeleteOnDeviceOrientation = new DeleteApi() {
         @Override
         public String getAttribute() {
@@ -194,7 +213,7 @@ public class HitoeDeviceOrientationProfile extends DeviceOrientationProfile {
     private void addEventDispatcher(final Intent request) {
         Event event = EventManager.INSTANCE.getEvent(request);
         EventDispatcher dispatcher = EventDispatcherFactory.createEventDispatcher(
-                (DConnectMessageService)getContext(), request);
+                (DConnectMessageService) getContext(), request);
         mDispatcherManager.addEventDispatcher(event, dispatcher);
     }
 

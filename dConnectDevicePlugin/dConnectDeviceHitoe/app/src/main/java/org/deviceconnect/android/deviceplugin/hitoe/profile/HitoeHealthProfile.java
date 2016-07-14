@@ -8,7 +8,6 @@ package org.deviceconnect.android.deviceplugin.hitoe.profile;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 
 import org.deviceconnect.android.deviceplugin.hitoe.HitoeApplication;
 import org.deviceconnect.android.deviceplugin.hitoe.HitoeDeviceService;
@@ -66,6 +65,9 @@ public class HitoeHealthProfile extends HealthProfile {
         addApi(mDeleteHeart);
     }
 
+    /**
+     * Get Heart rate.
+     */
     private final DConnectApi mGetHeart = new GetApi() {
         @Override
         public String getAttribute() {
@@ -78,7 +80,12 @@ public class HitoeHealthProfile extends HealthProfile {
             if (serviceId == null) {
                 MessageUtils.setEmptyServiceIdError(response);
             } else {
-                HeartRateData data = getManager().getHeartRateData(serviceId);
+                HitoeManager mgr = getManager();
+                if (mgr == null) {
+                    MessageUtils.setNotFoundServiceError(response);
+                    return true;
+                }
+                HeartRateData data = mgr.getHeartRateData(serviceId);
                 if (data == null) {
                     MessageUtils.setNotFoundServiceError(response);
                 } else {
@@ -90,6 +97,9 @@ public class HitoeHealthProfile extends HealthProfile {
         }
     };
 
+    /**
+     * Register event heartrate.
+     */
     private final DConnectApi mPutHeart = new PutApi() {
         @Override
         public String getAttribute() {
@@ -101,20 +111,23 @@ public class HitoeHealthProfile extends HealthProfile {
             String serviceId = getServiceID(request);
             String sessionKey = getSessionKey(request);
             if (serviceId == null) {
-                MessageUtils.setNotFoundServiceError(response, "Not found serviceID:" + serviceId);
+                MessageUtils.setNotFoundServiceError(response, "Not found serviceID");
             } else if (sessionKey == null) {
-                MessageUtils.setInvalidRequestParameterError(response, "Not found sessionKey:" + sessionKey);
+                MessageUtils.setInvalidRequestParameterError(response, "Not found sessionKey");
             } else {
-                HeartRateData data = getManager().getHeartRateData(serviceId);
+                HitoeManager mgr = getManager();
+                if (mgr == null) {
+                    MessageUtils.setNotFoundServiceError(response);
+                    return true;
+                }
+
+                HeartRateData data = mgr.getHeartRateData(serviceId);
                 if (data == null) {
                     MessageUtils.setNotFoundServiceError(response);
                 } else {
                     EventError error = EventManager.INSTANCE.addEvent(request);
                     if (error == EventError.NONE) {
-                        HitoeManager mgr = getManager();
-                        if (mgr != null) {
-                            mgr.setHitoeHeartRateEventListener(mHeartRateEventListener);
-                        }
+                        mgr.setHitoeHeartRateEventListener(mHeartRateEventListener);
                         addEventDispatcher(request);
                         setResult(response, DConnectMessage.RESULT_OK);
                     } else {
@@ -126,6 +139,9 @@ public class HitoeHealthProfile extends HealthProfile {
         }
     };
 
+    /**
+     * Unregister event heartrate.
+     */
     private final DConnectApi mDeleteHeart = new DeleteApi() {
         @Override
         public String getAttribute() {
@@ -181,7 +197,11 @@ public class HitoeHealthProfile extends HealthProfile {
         }
     }
 
-    @NonNull
+    /**
+     * Get Heartrate bundle object.
+     * @param data heartrate data
+     * @return bundle object
+     */
     private Bundle getHeartRateBundle(final HeartRateData data) {
         Bundle heart = new Bundle();
         HealthProfile.setRate(heart, data.getHeartRate().toBundle());
@@ -204,7 +224,7 @@ public class HitoeHealthProfile extends HealthProfile {
     private void addEventDispatcher(final Intent request) {
         Event event = EventManager.INSTANCE.getEvent(request);
         EventDispatcher dispatcher = EventDispatcherFactory.createEventDispatcher(
-                (DConnectMessageService)getContext(), request);
+                (DConnectMessageService) getContext(), request);
         mDispatcherManager.addEventDispatcher(event, dispatcher);
     }
 

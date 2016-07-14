@@ -33,7 +33,7 @@ import jp.ne.docomo.smt.dev.hitoetransmitter.sdk.HitoeSdkAPIImpl;
  * @author NTT DOCOMO, INC.
  */
 public class HitoeManager {
-    
+    /** Log's tag name. */
     private static final String TAG = "HitoeManager";
 
     /**
@@ -60,10 +60,14 @@ public class HitoeManager {
      * Stops scanning after 1 second.
      */
     private static final long SCAN_PERIOD = 2000;
+    /** Device scanning flag. */
     private boolean mScanning;
+    /** Device scanning running. */
     private boolean mIsCallbackRunning;
 
+    /** Device scan timestamp. */
     private final Map<HitoeDevice, Long> mNowTimestamps;
+    /** Handler. */
     private Handler mHandler = new Handler();
 
     /**
@@ -115,32 +119,32 @@ public class HitoeManager {
     /** Walk State datas. */
     private final Map<HitoeDevice, WalkStateData> mWalkStateData;
 
-    // Save data for extended analysis
+    /** Save data for extended analysis. */
     private ArrayList<TempExData> mListForEx;
-    // Lock for the extension analysis
+    /** Lock for the extension analysis. */
     private ReentrantLock mLockForEx;
-    // Expanded analysis flag
+    /** Expanded analysis flag. */
     private boolean mFlagForEx;
-    // Acceleration's interval
+    /** Acceleration's interval. */
     private long mInterval = 0;
-    // Temporary storage data for pose estimation
+    /** Temporary storage data for pose estimation. */
     private ArrayList<String> mListForPosture;
-    // Lock for pose estimation
+    /** Lock for pose estimation. */
     private ReentrantLock mLockForPosture;
-    // Temporary storage data for walking state estimation
+    /** Temporary storage data for walking state estimation. */
     private ArrayList<String> mListForWalk;
-    // Lock for walking state estimation
+    /** Lock for walking state estimation. */
     private ReentrantLock mLockForWalk;
-    // Temporary storage data for the left and right balance estimation
+    /** Temporary storage data for the left and right balance estimation. */
     private ArrayList<String> mListForLRBalance;
-    // Lock for the left and right balance estimation
+    /** Lock for the left and right balance estimation. */
     private ReentrantLock mLockForLRBalance;
 
     /** Hitoe API Callback. */
     HitoeSdkAPI.APICallback mAPICallback = new HitoeSdkAPI.APICallback() {
 
         @Override
-        public void onResponse(int apiId, int responseId, String responseString) {
+        public void onResponse(final int apiId, final int responseId, final String responseString) {
 
                 final StringBuilder messageTextBuilder = new StringBuilder();
 
@@ -177,9 +181,6 @@ public class HitoeManager {
                         }
                         break;
                 }
-            
-
-            return;
         }
     };
 
@@ -187,11 +188,12 @@ public class HitoeManager {
 
 
     /**
-     * データレシーバ
+     * Data receiver.
      */
     HitoeSdkAPI.DataReceiverCallback mDataReceiverCallback = new HitoeSdkAPI.DataReceiverCallback() {
         @Override
-        public void onDataReceive(final String connectionId, final int responseId, final String dataKey, final String rawData) {
+        public void onDataReceive(final String connectionId, final int responseId,
+                                  final String dataKey, final String rawData) {
 
 
             int pos = getPosForConnectionId(connectionId);
@@ -269,8 +271,6 @@ public class HitoeManager {
                     mLockForEx.unlock();
                 }
                 if (exData != null) {
-
-                    // nullでなければ続けて投げる
                     addExReceiverProcess(pos, exData);
                 }
             }
@@ -290,7 +290,7 @@ public class HitoeManager {
     public HitoeManager(final Context context) {
         mContext = context;
         mDBHelper = new HitoeDBHelper(context);
-        mListForEx = new ArrayList<TempExData>();
+        mListForEx = new ArrayList<>();
         mLockForEx = new ReentrantLock();
         mRegisterDevices = Collections.synchronizedList(
                 new ArrayList<HitoeDevice>());
@@ -300,14 +300,14 @@ public class HitoeManager {
         mStressEstimationData = new ConcurrentHashMap<>();
         mWalkStateData = new ConcurrentHashMap<>();
         mAccelData = new ConcurrentHashMap<>();
-        mConnectionListeners = new ArrayList<OnHitoeConnectionListener>();
-        mListForPosture = new ArrayList<String>();
+        mConnectionListeners = new ArrayList<>();
+        mListForPosture = new ArrayList<>();
         mLockForPosture = new ReentrantLock();
-        mListForWalk = new ArrayList<String>();
+        mListForWalk = new ArrayList<>();
         mLockForWalk = new ReentrantLock();
-        mListForLRBalance = new ArrayList<String>();
+        mListForLRBalance = new ArrayList<>();
         mLockForLRBalance = new ReentrantLock();
-        mListForEx = new ArrayList<TempExData>();
+        mListForEx = new ArrayList<>();
         mLockForEx = new ReentrantLock();
         mNowTimestamps = new ConcurrentHashMap<>();
         mHitoeSdkAPI = HitoeSdkAPIImpl.getInstance(context);
@@ -327,18 +327,22 @@ public class HitoeManager {
         mConnectionListeners.add(l);
     }
 
+    /**
+     * Remove Hitoe Connection listener.
+     * @param l connection listener
+     */
     public void removeHitoeConnectionListener(final OnHitoeConnectionListener l) {
         mConnectionListeners.remove(l);
     }
     /**
-     * Set Hitoe HeartRate Listener
+     * Set Hitoe HeartRate Listener.
      * @param l listener
      */
     public void setHitoeHeartRateEventListener(final OnHitoeHeartRateEventListener l) {
         mHeartRataListener = l;
     }
     /**
-     * Set Hitoe Acceleration Listener
+     * Set Hitoe Acceleration Listener.
      * @param l listener
      */
     public void setHitoeDeviceOrientationEventListener(final OnHitoeDeviceOrientationEventListener l) {
@@ -386,6 +390,9 @@ public class HitoeManager {
         return mRegisterDevices;
     }
 
+    /**
+     * Read device info.
+     */
     public void readHitoeDeviceForDB() {
         List<HitoeDevice> list = mDBHelper.getHitoeDevices(null);
         for (int i = 0; i < list.size(); i++) {
@@ -488,7 +495,9 @@ public class HitoeManager {
         return mAccelData.get(mRegisterDevices.get(pos));
     }
 
-
+    /**
+     * Stats the HitoeManager.
+     */
     public void start() {
         synchronized (mRegisterDevices) {
             for (int i = 0; i < mRegisterDevices.size(); i++) {
@@ -501,7 +510,7 @@ public class HitoeManager {
 
     }
     /**
-     * Stops the HeartRateManager.
+     * Stops the HitoeManager.
      */
     public void stop() {
         for (int i = 0; i < mRegisterDevices.size(); i++) {
@@ -518,7 +527,8 @@ public class HitoeManager {
      */
     public void discoveryHitoeDevices() {
         StringBuilder paramStringBuilder = new StringBuilder();
-        paramStringBuilder.append("search_time=" + String.valueOf(HitoeConstants.GET_AVAILABLE_SENSOR_PARAM_SEARCH_TIME));
+        paramStringBuilder.append("search_time=")
+                .append(String.valueOf(HitoeConstants.GET_AVAILABLE_SENSOR_PARAM_SEARCH_TIME));
         mHitoeSdkAPI.getAvailableSensor(HitoeConstants.GET_AVAILABLE_SENSOR_DEVICE_TYPE, paramStringBuilder.toString());
 
         if (mRegisterDevices.size() > 0) {
@@ -550,7 +560,7 @@ public class HitoeManager {
             paramBuilder.append(HitoeConstants.BR);
         }
         paramBuilder.append("nopacket_retry_time=" + HitoeConstants.CONNECT_NOPACKET_RETRY_TIME);
-        if(paramBuilder.length() > 0) {
+        if (paramBuilder.length() > 0) {
             paramBuilder.append(HitoeConstants.BR);
         }
         paramBuilder.append("pincode=");
@@ -559,6 +569,7 @@ public class HitoeManager {
         mHitoeSdkAPI.connect(device.getType(), device.getId(), device.getConnectMode(), param);
         device.setResponseId(HitoeConstants.RES_ID_SENSOR_CONNECT);
         mDBHelper.addHitoeDevice(device);
+        mStressEstimationData.put(device, new StressEstimationData());
         for (int i = 0; i < mRegisterDevices.size(); i++) {
             if (mRegisterDevices.get(i).getId().equals(device.getId())) {
                 mRegisterDevices.set(i, device);
@@ -578,7 +589,7 @@ public class HitoeManager {
         current.setRegisterFlag(false);
         current.setSessionId(null);
         mDBHelper.updateHitoeDevice(current);
-        if (mRegisterDevices.size() <= 0) {
+        if (!existConnected()) {
             scanHitoeDevice(false);
         }
         for (OnHitoeConnectionListener l: mConnectionListeners) {
@@ -687,7 +698,6 @@ public class HitoeManager {
             return;
         }
         if (responseId == HitoeConstants.RES_ID_SENSOR_DISCONECT_NOTICE) {
-            // センサー接続が途切れた
             for (OnHitoeConnectionListener l: mConnectionListeners) {
                 if (l != null) {
 
@@ -695,14 +705,12 @@ public class HitoeManager {
                 }
             }
             return;
-        } else if(responseId == HitoeConstants.RES_ID_SENSOR_CONNECT_NOTICE) {
-            // センサー接続が再開
+        } else if (responseId == HitoeConstants.RES_ID_SENSOR_CONNECT_NOTICE) {
             for (OnHitoeConnectionListener l: mConnectionListeners) {
                 l.onConnected(mRegisterDevices.get(pos));
             }
             return;
         } else if (responseId != HitoeConstants.RES_ID_SENSOR_CONNECT) {
-            //センサー接続に失敗
             for (OnHitoeConnectionListener l: mConnectionListeners) {
                 if (l != null) {
 
@@ -753,44 +761,46 @@ public class HitoeManager {
 
                     paramStringBuilder.append(HitoeConstants.BR);
                 }
-                paramStringBuilder.append("raw.ecg_interval=" + String.valueOf(HitoeConstants.ADD_RECEIVER_PARAM_ECG_SAMPLING_INTERVAL));
+                paramStringBuilder.append("raw.ecg_interval=")
+                        .append(String.valueOf(HitoeConstants.ADD_RECEIVER_PARAM_ECG_SAMPLING_INTERVAL));
             } else if (keyList.get(i).equals("raw.acc")) {
 
                 if (paramStringBuilder.lastIndexOf(HitoeConstants.BR) != paramStringBuilder.length() - 1) {
 
                     paramStringBuilder.append(HitoeConstants.BR);
                 }
-                paramStringBuilder.append("raw.acc_interval=" + String.valueOf(HitoeConstants.ADD_RECEIVER_PARAM_ACC_SAMPLING_INTERVAL));
+                paramStringBuilder.append("raw.acc_interval=")
+                        .append(String.valueOf(HitoeConstants.ADD_RECEIVER_PARAM_ACC_SAMPLING_INTERVAL));
             } else if (keyList.get(i).equals("raw.rri")) {
 
                 if (paramStringBuilder.lastIndexOf(HitoeConstants.BR) != paramStringBuilder.length() - 1) {
 
                     paramStringBuilder.append(HitoeConstants.BR);
                 }
-                paramStringBuilder.append("raw.rri_interval=" + String.valueOf(HitoeConstants.ADD_RECEIVER_PARAM_RRI_SAMPLING_INTERVAL));
+                paramStringBuilder.append("raw.rri_interval=")
+                        .append(String.valueOf(HitoeConstants.ADD_RECEIVER_PARAM_RRI_SAMPLING_INTERVAL));
             } else if (keyList.get(i).equals("raw.hr")) {
 
                 if (paramStringBuilder.lastIndexOf(HitoeConstants.BR) != paramStringBuilder.length() - 1) {
 
                     paramStringBuilder.append(HitoeConstants.BR);
                 }
-                paramStringBuilder.append("raw.hr_interval=" + String.valueOf(HitoeConstants.ADD_RECEIVER_PARAM_HR_SAMPLING_INTERVAL));
+                paramStringBuilder.append("raw.hr_interval=")
+                        .append(String.valueOf(HitoeConstants.ADD_RECEIVER_PARAM_HR_SAMPLING_INTERVAL));
             } else if (keyList.get(i).equals("raw.bat")) {
 
                 if (paramStringBuilder.lastIndexOf(HitoeConstants.BR) != paramStringBuilder.length() - 1) {
 
                     paramStringBuilder.append(HitoeConstants.BR);
                 }
-                paramStringBuilder.append("raw.bat_interval=" + String.valueOf(HitoeConstants.ADD_RECEIVER_PARAM_BAT_SAMPLING_INTERVAL));
-            } else if (keyList.get(i).equals("raw.saved_hr") || keyList.get(i).equals("raw.saved_rri")) {
-
-            } else {
-                // Unknown
+                paramStringBuilder.append("raw.bat_interval=")
+                        .append(String.valueOf(HitoeConstants.ADD_RECEIVER_PARAM_BAT_SAMPLING_INTERVAL));
             }
         }
 
         paramString = paramStringBuilder.toString();
-        mHitoeSdkAPI.addReceiver(mRegisterDevices.get(pos).getSessionId(), keys, mDataReceiverCallback, paramString, null);
+        mHitoeSdkAPI.addReceiver(mRegisterDevices.get(pos).getSessionId(),
+                                        keys, mDataReceiverCallback, paramString, null);
         scanHitoeDevice(true);
     }
 
@@ -809,15 +819,14 @@ public class HitoeManager {
             return;
         }
         mRegisterDevices.get(pos).setConnectionId(responseString);
-        if(responseString.startsWith(HitoeConstants.RAW_CONNECTION_PREFFIX)) {
+        if (responseString.startsWith(HitoeConstants.RAW_CONNECTION_PREFFIX)) {
             addBaReceiverProcess(pos);
         } else {
             TempExData exData = null;
-            try{
-
+            try {
                 mLockForEx.lock();
 
-                if(mListForEx.size() > 0) {
+                if (mListForEx.size() > 0) {
                     exData = mListForEx.get(0);
                     mListForEx.remove(0);
                 } else {
@@ -825,12 +834,11 @@ public class HitoeManager {
                     mFlagForEx = false;
                 }
 
-            }finally {
+            } finally {
 
                 mLockForEx.unlock();
             }
-            if(exData != null) {
-                // nullでなければ続けて投げる
+            if (exData != null) {
                 addExReceiverProcess(pos, exData);
             }
         }
@@ -853,10 +861,9 @@ public class HitoeManager {
         mRegisterDevices.get(pos).removeConnectionId(responseString);
         mDBHelper.updateHitoeDevice(mRegisterDevices.get(pos));
 
-        // 終了プロセス
-        if(responseString.startsWith(HitoeConstants.BA_CONNECTION_PREFFIX)) {
+        if (responseString.startsWith(HitoeConstants.BA_CONNECTION_PREFFIX)) {
             removeRawReceiverProcess(mRegisterDevices.get(pos).getRawConnectionId());
-        } else if(responseString.startsWith(HitoeConstants.RAW_CONNECTION_PREFFIX)) {
+        } else if (responseString.startsWith(HitoeConstants.RAW_CONNECTION_PREFFIX)) {
             disconnectProcess(pos);
         }
     }
@@ -901,7 +908,6 @@ public class HitoeManager {
     /**
      * Add ba Receiver process.
      * @param pos device pos
-     * @return true:end process, false:continue process
      */
     private void addBaReceiverProcess(final int pos) {
         List<String> keyList = mRegisterDevices.get(pos).getAvailableBaDataList();
@@ -910,126 +916,159 @@ public class HitoeManager {
         String[] keys = new String[keyList.size()];
         String paramString;
 
-        if(keyList.size() == 0) {
+        if (keyList.size() == 0) {
             return;
         }
 
-        for(int i = 0; i < keyList.size(); i++) {
+        for (int i = 0; i < keyList.size(); i++) {
 
             keys[i] = keyList.get(i);
 
-            if(keyList.get(i).equals("ba.extracted_rri")) {
+            if (keyList.get(i).equals("ba.extracted_rri")) {
 
-                if(paramStringBuilder.indexOf("ba.sampling_interval") == -1) {
-                    if(paramStringBuilder.length() > 0 && paramStringBuilder.lastIndexOf(HitoeConstants.BR) != paramStringBuilder.length() - 1) {
-
-                        paramStringBuilder.append(HitoeConstants.BR);
-                    }
-                    paramStringBuilder.append("ba.sampling_interval=").append(String.valueOf(HitoeConstants.ADD_RECEIVER_PARAM_BA_SAMPLING_INTERVAL));
-                }
-                if(paramStringBuilder.length() > 0 && paramStringBuilder.lastIndexOf(HitoeConstants.BR) != paramStringBuilder.length() - 1) {
-
-                    paramStringBuilder.append(HitoeConstants.BR);
-                }
-                paramStringBuilder.append("ba.ecg_threshhold="+String.valueOf(HitoeConstants.ADD_RECEIVER_PARAM_BA_ECG_THRESHHOLD));
-                if(paramStringBuilder.length() > 0 && paramStringBuilder.lastIndexOf(HitoeConstants.BR) != paramStringBuilder.length() - 1) {
-
-                    paramStringBuilder.append(HitoeConstants.BR);
-                }
-                paramStringBuilder.append("ba.ecg_skip_count="+String.valueOf(HitoeConstants.ADD_RECEIVER_PARAM_BA_SKIP_COUNT));
-
-            } else if(keyList.get(i).equals("ba.cleaned_rri")) {
-
-                if(paramStringBuilder.indexOf("ba.sampling_interval") == -1) {
-                    if(paramStringBuilder.length() > 0 && paramStringBuilder.lastIndexOf(HitoeConstants.BR) != paramStringBuilder.length() - 1) {
+                if (paramStringBuilder.indexOf("ba.sampling_interval") == -1) {
+                    if (paramStringBuilder.length() > 0
+                            && paramStringBuilder.lastIndexOf(HitoeConstants.BR) != paramStringBuilder.length() - 1) {
 
                         paramStringBuilder.append(HitoeConstants.BR);
                     }
-                    paramStringBuilder.append("ba.sampling_interval="+String.valueOf(HitoeConstants.ADD_RECEIVER_PARAM_BA_SAMPLING_INTERVAL));
+                    paramStringBuilder.append("ba.sampling_interval=")
+                            .append(String.valueOf(HitoeConstants.ADD_RECEIVER_PARAM_BA_SAMPLING_INTERVAL));
                 }
-                if(paramStringBuilder.length() > 0 && paramStringBuilder.lastIndexOf(HitoeConstants.BR) != paramStringBuilder.length() - 1) {
+                if (paramStringBuilder.length() > 0
+                        && paramStringBuilder.lastIndexOf(HitoeConstants.BR) != paramStringBuilder.length() - 1) {
 
                     paramStringBuilder.append(HitoeConstants.BR);
                 }
-                paramStringBuilder.append("ba.rri_min="+String.valueOf(HitoeConstants.ADD_RECEIVER_PARAM_BA_RRI_MIN));
-                if(paramStringBuilder.length() > 0 && paramStringBuilder.lastIndexOf(HitoeConstants.BR) != paramStringBuilder.length() - 1) {
+                paramStringBuilder.append("ba.ecg_threshhold=")
+                        .append(String.valueOf(HitoeConstants.ADD_RECEIVER_PARAM_BA_ECG_THRESHHOLD));
+                if (paramStringBuilder.length() > 0
+                        && paramStringBuilder.lastIndexOf(HitoeConstants.BR) != paramStringBuilder.length() - 1) {
 
                     paramStringBuilder.append(HitoeConstants.BR);
                 }
-                paramStringBuilder.append("ba.rri_max="+String.valueOf(HitoeConstants.ADD_RECEIVER_PARAM_BA_RRI_MAX));
-                if(paramStringBuilder.length() > 0 && paramStringBuilder.lastIndexOf(HitoeConstants.BR) != paramStringBuilder.length() - 1) {
+                paramStringBuilder.append("ba.ecg_skip_count=")
+                        .append(String.valueOf(HitoeConstants.ADD_RECEIVER_PARAM_BA_SKIP_COUNT));
+
+            } else if (keyList.get(i).equals("ba.cleaned_rri")) {
+
+                if (paramStringBuilder.indexOf("ba.sampling_interval") == -1) {
+                    if (paramStringBuilder.length() > 0
+                            && paramStringBuilder.lastIndexOf(HitoeConstants.BR) != paramStringBuilder.length() - 1) {
+
+                        paramStringBuilder.append(HitoeConstants.BR);
+                    }
+                    paramStringBuilder.append("ba.sampling_interval=")
+                            .append(String.valueOf(HitoeConstants.ADD_RECEIVER_PARAM_BA_SAMPLING_INTERVAL));
+                }
+                if (paramStringBuilder.length() > 0
+                        && paramStringBuilder.lastIndexOf(HitoeConstants.BR) != paramStringBuilder.length() - 1) {
 
                     paramStringBuilder.append(HitoeConstants.BR);
                 }
-                paramStringBuilder.append("ba.sample_count="+String.valueOf(HitoeConstants.ADD_RECEIVER_PARAM_BA_SAMPLE_COUNT));
-                if(paramStringBuilder.length() > 0 && paramStringBuilder.lastIndexOf(HitoeConstants.BR) != paramStringBuilder.length() - 1) {
+                paramStringBuilder.append("ba.rri_min=")
+                        .append(String.valueOf(HitoeConstants.ADD_RECEIVER_PARAM_BA_RRI_MIN));
+                if (paramStringBuilder.length() > 0
+                        && paramStringBuilder.lastIndexOf(HitoeConstants.BR) != paramStringBuilder.length() - 1) {
 
                     paramStringBuilder.append(HitoeConstants.BR);
                 }
-                paramStringBuilder.append("ba.rri_input="+String.valueOf(HitoeConstants.ADD_RECEIVER_PARAM_BA_RRI_INPUT));
-            } else if(keyList.get(i).equals("ba.interpolated_rri")) {
+                paramStringBuilder.append("ba.rri_max=")
+                        .append(String.valueOf(HitoeConstants.ADD_RECEIVER_PARAM_BA_RRI_MAX));
+                if (paramStringBuilder.length() > 0
+                        && paramStringBuilder.lastIndexOf(HitoeConstants.BR) != paramStringBuilder.length() - 1) {
+
+                    paramStringBuilder.append(HitoeConstants.BR);
+                }
+                paramStringBuilder.append("ba.sample_count=")
+                        .append(String.valueOf(HitoeConstants.ADD_RECEIVER_PARAM_BA_SAMPLE_COUNT));
+                if (paramStringBuilder.length() > 0
+                        && paramStringBuilder.lastIndexOf(HitoeConstants.BR) != paramStringBuilder.length() - 1) {
+
+                    paramStringBuilder.append(HitoeConstants.BR);
+                }
+                paramStringBuilder.append("ba.rri_input=")
+                        .append(String.valueOf(HitoeConstants.ADD_RECEIVER_PARAM_BA_RRI_INPUT));
+            } else if (keyList.get(i).equals("ba.interpolated_rri")) {
 
                 if (paramStringBuilder.indexOf("ba.freq_sampling_interval") == -1) {
-                    if(paramStringBuilder.length() > 0 && paramStringBuilder.lastIndexOf(HitoeConstants.BR) != paramStringBuilder.length() - 1) {
+                    if (paramStringBuilder.length() > 0
+                            && paramStringBuilder.lastIndexOf(HitoeConstants.BR) != paramStringBuilder.length() - 1) {
 
                         paramStringBuilder.append(HitoeConstants.BR);
                     }
-                    paramStringBuilder.append("ba.freq_sampling_interval=" + String.valueOf(HitoeConstants.ADD_RECEIVER_PARAM_BA_FREQ_SAMPLING_INTERVAL));
+                    paramStringBuilder.append("ba.freq_sampling_interval=")
+                            .append(String.valueOf(HitoeConstants.ADD_RECEIVER_PARAM_BA_FREQ_SAMPLING_INTERVAL));
                 }
-                if(paramStringBuilder.indexOf("ba.freq_sampling_window") == -1) {
-                    if (paramStringBuilder.length() > 0 && paramStringBuilder.lastIndexOf(HitoeConstants.BR) != paramStringBuilder.length() - 1) {
+                if (paramStringBuilder.indexOf("ba.freq_sampling_window") == -1) {
+                    if (paramStringBuilder.length() > 0
+                            && paramStringBuilder.lastIndexOf(HitoeConstants.BR) != paramStringBuilder.length() - 1) {
 
                         paramStringBuilder.append(HitoeConstants.BR);
                     }
-                    paramStringBuilder.append("ba.freq_sampling_window="+String.valueOf(HitoeConstants.ADD_RECEIVER_PARAM_BA_FREQ_SAMPLING_WINDOW));
+                    paramStringBuilder.append("ba.freq_sampling_window=")
+                            .append(String.valueOf(HitoeConstants.ADD_RECEIVER_PARAM_BA_FREQ_SAMPLING_WINDOW));
                 }
-                if(paramStringBuilder.indexOf("ba.rri_sampling_rate") == -1) {
-                    if(paramStringBuilder.length() > 0 && paramStringBuilder.lastIndexOf(HitoeConstants.BR) != paramStringBuilder.length() - 1) {
+                if (paramStringBuilder.indexOf("ba.rri_sampling_rate") == -1) {
+                    if (paramStringBuilder.length() > 0
+                            && paramStringBuilder.lastIndexOf(HitoeConstants.BR) != paramStringBuilder.length() - 1) {
 
                         paramStringBuilder.append(HitoeConstants.BR);
                     }
-                    paramStringBuilder.append("ba.rri_sampling_rate="+String.valueOf(HitoeConstants.ADD_RECEIVER_PARAM_BA_RRI_SAMPLING_RATE));
+                    paramStringBuilder.append("ba.rri_sampling_rate=")
+                            .append(String.valueOf(HitoeConstants.ADD_RECEIVER_PARAM_BA_RRI_SAMPLING_RATE));
                 }
-            } else if(keyList.get(i).equals("ba.freq_domain")) {
+            } else if (keyList.get(i).equals("ba.freq_domain")) {
 
                 if (paramStringBuilder.indexOf("ba.freq_sampling_interval") == -1) {
-                    if(paramStringBuilder.length() > 0 && paramStringBuilder.lastIndexOf(HitoeConstants.BR) != paramStringBuilder.length() - 1) {
+                    if (paramStringBuilder.length() > 0
+                            && paramStringBuilder.lastIndexOf(HitoeConstants.BR) != paramStringBuilder.length() - 1) {
 
                         paramStringBuilder.append(HitoeConstants.BR);
                     }
-                    paramStringBuilder.append("ba.freq_sampling_interval=" + String.valueOf(HitoeConstants.ADD_RECEIVER_PARAM_BA_FREQ_SAMPLING_INTERVAL));
+                    paramStringBuilder.append("ba.freq_sampling_interval=")
+                            .append(String.valueOf(HitoeConstants.ADD_RECEIVER_PARAM_BA_FREQ_SAMPLING_INTERVAL));
                 }
-                if(paramStringBuilder.indexOf("ba.freq_sampling_window") == -1) {
-                    if (paramStringBuilder.length() > 0 && paramStringBuilder.lastIndexOf(HitoeConstants.BR) != paramStringBuilder.length() - 1) {
+                if (paramStringBuilder.indexOf("ba.freq_sampling_window") == -1) {
+                    if (paramStringBuilder.length() > 0
+                            && paramStringBuilder.lastIndexOf(HitoeConstants.BR) != paramStringBuilder.length() - 1) {
 
                         paramStringBuilder.append(HitoeConstants.BR);
                     }
-                    paramStringBuilder.append("ba.freq_sampling_window="+String.valueOf(HitoeConstants.ADD_RECEIVER_PARAM_BA_FREQ_SAMPLING_WINDOW));
+                    paramStringBuilder.append("ba.freq_sampling_window=")
+                            .append(String.valueOf(HitoeConstants.ADD_RECEIVER_PARAM_BA_FREQ_SAMPLING_WINDOW));
                 }
-                if(paramStringBuilder.indexOf("ba.rri_sampling_rate") == -1) {
-                    if(paramStringBuilder.length() > 0 && paramStringBuilder.lastIndexOf(HitoeConstants.BR) != paramStringBuilder.length() - 1) {
+                if (paramStringBuilder.indexOf("ba.rri_sampling_rate") == -1) {
+                    if (paramStringBuilder.length() > 0
+                            && paramStringBuilder.lastIndexOf(HitoeConstants.BR) != paramStringBuilder.length() - 1) {
 
                         paramStringBuilder.append(HitoeConstants.BR);
                     }
-                    paramStringBuilder.append("ba.rri_sampling_rate="+String.valueOf(HitoeConstants.ADD_RECEIVER_PARAM_BA_RRI_SAMPLING_RATE));
+                    paramStringBuilder.append("ba.rri_sampling_rate=")
+                            .append(String.valueOf(HitoeConstants.ADD_RECEIVER_PARAM_BA_RRI_SAMPLING_RATE));
                 }
-            } else if(keyList.get(i).equals("ba.time_domain")) {
-                if(paramStringBuilder.length() > 0 && paramStringBuilder.lastIndexOf(HitoeConstants.BR) != paramStringBuilder.length() - 1) {
+            } else if (keyList.get(i).equals("ba.time_domain")) {
+                if (paramStringBuilder.length() > 0
+                        && paramStringBuilder.lastIndexOf(HitoeConstants.BR) != paramStringBuilder.length() - 1) {
 
                     paramStringBuilder.append(HitoeConstants.BR);
                 }
-                paramStringBuilder.append("ba.time_sampling_interval=" + String.valueOf(HitoeConstants.ADD_RECEIVER_PARAM_BA_TIME_SAMPLING_INTERVAL));
-                if(paramStringBuilder.length() > 0 && paramStringBuilder.lastIndexOf(HitoeConstants.BR) != paramStringBuilder.length() - 1) {
+                paramStringBuilder.append("ba.time_sampling_interval=")
+                        .append(String.valueOf(HitoeConstants.ADD_RECEIVER_PARAM_BA_TIME_SAMPLING_INTERVAL));
+                if (paramStringBuilder.length() > 0
+                        && paramStringBuilder.lastIndexOf(HitoeConstants.BR) != paramStringBuilder.length() - 1) {
 
                     paramStringBuilder.append(HitoeConstants.BR);
                 }
-                paramStringBuilder.append("ba.time_sampling_window="+String.valueOf(HitoeConstants.ADD_RECEIVER_PARAM_BA_TIME_SAMPLING_WINDOW));
+                paramStringBuilder.append("ba.time_sampling_window=")
+                        .append(String.valueOf(HitoeConstants.ADD_RECEIVER_PARAM_BA_TIME_SAMPLING_WINDOW));
             }
         }
 
         paramString = paramStringBuilder.toString();
 
-        int resId = mHitoeSdkAPI.addReceiver(mRegisterDevices.get(pos).getSessionId(), keys, mDataReceiverCallback, paramString, null);
+        int resId = mHitoeSdkAPI.addReceiver(mRegisterDevices.get(pos).getSessionId(),
+                keys, mDataReceiverCallback, paramString, null);
         mRegisterDevices.get(pos).setResponseId(resId);
     }
 
@@ -1043,14 +1082,13 @@ public class HitoeManager {
         String keyString = exData.getKey();
         ArrayList<String> dataList = exData.getDataList();
 
-        if(!mRegisterDevices.get(pos).getAvailableExDataList().contains(keyString)) {
+        if (!mRegisterDevices.get(pos).getAvailableExDataList().contains(keyString)) {
 
-            try{
-
+            try {
                 mLockForEx.lock();
                 mFlagForEx = false;
 
-            }finally {
+            } finally {
 
                 mLockForEx.unlock();
             }
@@ -1066,9 +1104,9 @@ public class HitoeManager {
         String paramString;
         String dataString;
 
-        for(int i = 0; i < dataList.size(); i ++) {
+        for (int i = 0; i < dataList.size(); i++) {
 
-            if(dataStringBuilder.length() > 0) {
+            if (dataStringBuilder.length() > 0) {
 
                 dataStringBuilder.append(HitoeConstants.BR);
             }
@@ -1076,44 +1114,51 @@ public class HitoeManager {
         }
         if (keyString.equals("ex.posture")) {
 
-            if(paramStringBuilder.length() > 0) {
+            if (paramStringBuilder.length() > 0) {
 
                 paramStringBuilder.append(HitoeConstants.BR);
             }
-            paramStringBuilder.append("ex.acc_axis_xyz="+HitoeConstants.ADD_RECEIVER_PARAM_EX_ACC_AXIS_XYZ);
-            if(paramStringBuilder.length() > 0) {
+            paramStringBuilder.append("ex.acc_axis_xyz=")
+                    .append(HitoeConstants.ADD_RECEIVER_PARAM_EX_ACC_AXIS_XYZ);
+            if (paramStringBuilder.length() > 0) {
 
                 paramStringBuilder.append(HitoeConstants.BR);
             }
-            paramStringBuilder.append("ex.posture_window="+HitoeConstants.ADD_RECEIVER_PARAM_EX_POSTURE_WINDOW);
-        } else if(keyString.equals("ex.walk")) {
-            if(paramStringBuilder.length() > 0) {
+            paramStringBuilder.append("ex.posture_window=")
+                    .append(HitoeConstants.ADD_RECEIVER_PARAM_EX_POSTURE_WINDOW);
+        } else if (keyString.equals("ex.walk")) {
+            if (paramStringBuilder.length() > 0) {
 
                 paramStringBuilder.append(HitoeConstants.BR);
             }
-            paramStringBuilder.append("ex.acc_axis_xyz="+HitoeConstants.ADD_RECEIVER_PARAM_EX_ACC_AXIS_XYZ);
-            if(paramStringBuilder.length() > 0) {
+            paramStringBuilder.append("ex.acc_axis_xyz=")
+                    .append(HitoeConstants.ADD_RECEIVER_PARAM_EX_ACC_AXIS_XYZ);
+            if (paramStringBuilder.length() > 0) {
 
                 paramStringBuilder.append(HitoeConstants.BR);
             }
-            paramStringBuilder.append("ex.walk_stride="+HitoeConstants.ADD_RECEIVER_PARAM_EX_WALK_STRIDE);
-            if(paramStringBuilder.length() > 0) {
+            paramStringBuilder.append("ex.walk_stride=")
+                    .append(HitoeConstants.ADD_RECEIVER_PARAM_EX_WALK_STRIDE);
+            if (paramStringBuilder.length() > 0) {
 
                 paramStringBuilder.append(HitoeConstants.BR);
             }
-            paramStringBuilder.append("ex.run_stride_cof="+HitoeConstants.ADD_RECEIVER_PARAM_EX_RUN_STRIDE_COF);
-            if(paramStringBuilder.length() > 0) {
+            paramStringBuilder.append("ex.run_stride_cof=")
+                    .append(HitoeConstants.ADD_RECEIVER_PARAM_EX_RUN_STRIDE_COF);
+            if (paramStringBuilder.length() > 0) {
 
                 paramStringBuilder.append(HitoeConstants.BR);
             }
-            paramStringBuilder.append("ex.run_stride_int="+HitoeConstants.ADD_RECEIVER_PARAM_EX_RUN_STRIDE_INT);
-        } else if(keyString.equals("ex.lr_balance")) {
+            paramStringBuilder.append("ex.run_stride_int=")
+                    .append(HitoeConstants.ADD_RECEIVER_PARAM_EX_RUN_STRIDE_INT);
+        } else if (keyString.equals("ex.lr_balance")) {
 
-            if(paramStringBuilder.length() > 0) {
+            if (paramStringBuilder.length() > 0) {
 
                 paramStringBuilder.append(HitoeConstants.BR);
             }
-            paramStringBuilder.append("ex.acc_axis_xyz="+HitoeConstants.ADD_RECEIVER_PARAM_EX_ACC_AXIS_XYZ);
+            paramStringBuilder.append("ex.acc_axis_xyz=")
+                    .append(HitoeConstants.ADD_RECEIVER_PARAM_EX_ACC_AXIS_XYZ);
         }
 
         paramString = paramStringBuilder.toString();
@@ -1121,12 +1166,11 @@ public class HitoeManager {
         mHitoeSdkAPI.removeReceiver(null);
         responseId = mHitoeSdkAPI.addReceiver(null, keys, mDataReceiverCallback, paramString, dataString);
         if (responseId != HitoeConstants.RES_ID_SUCCESS) {
-            try{
-
+            try {
                 mLockForEx.lock();
                 mFlagForEx = false;
 
-            }finally {
+            } finally {
 
                 mLockForEx.unlock();
             }
@@ -1138,7 +1182,7 @@ public class HitoeManager {
      * @param rawConnectionId raw connection id
      */
     private void removeRawReceiverProcess(final String rawConnectionId) {
-        if(rawConnectionId == null) {
+        if (rawConnectionId == null) {
             return;
         }
         mHitoeSdkAPI.removeReceiver(rawConnectionId);
@@ -1154,7 +1198,7 @@ public class HitoeManager {
         }
         HitoeDevice device = mRegisterDevices.get(pos);
 
-        if(device.getSessionId() == null) {
+        if (device.getSessionId() == null) {
             return;
         }
         mRegisterDevices.get(pos).setSessionId(null);
@@ -1164,7 +1208,6 @@ public class HitoeManager {
         if (mRegisterDevices.size() == 0) {
             scanHitoeDevice(false);
         }
-//        mRegisterDevices.remove(pos);
     }
 
     /**
@@ -1254,17 +1297,17 @@ public class HitoeManager {
     }
 
     /**
-     *  周波数領域特徴量データをパースする
+     *  周波数領域特徴量データをパースする.
+     *  @param receiveDevice ReceiveDevice
      * @param data 周波数領域特徴量データ
      */
     private void parseFreqDomain(final HitoeDevice receiveDevice, final String data) {
 
-        String[] lineList=data.split(HitoeConstants.BR);
+        String[] lineList = data.split(HitoeConstants.BR);
         ArrayList<String> stressInputList = new ArrayList<String>();
 
-        if(receiveDevice.getAvailableExDataList().contains("ex.stress")) {
+        if (receiveDevice.getAvailableExDataList().contains("ex.stress")) {
             for (int i = 0; i < lineList.length; i++) {
-
                 stressInputList.add(lineList[i]);
             }
 
@@ -1313,7 +1356,7 @@ public class HitoeManager {
      * @param rawData raw data
      * @param receiveDevice Hitoe device
      */
-    private void extractBattery(String rawData, HitoeDevice receiveDevice) {
+    private void extractBattery(final String rawData, final HitoeDevice receiveDevice) {
         String[] lineList = rawData.split(HitoeConstants.BR);
         String levelString = lineList[lineList.length - 1];
         String[] level = levelString.split(",", -1);
@@ -1341,9 +1384,9 @@ public class HitoeManager {
 
         ArrayList<String> workList = new ArrayList<String>();
 
-        for (int i=0; i < lineList.length; i++) {
+        for (int i = 0; i < lineList.length; i++) {
 
-            if(receiveDevice.getAvailableExDataList().contains("ex.posture")) {
+            if (receiveDevice.getAvailableExDataList().contains("ex.posture")) {
                 try {
                     mLockForPosture.lock();
                     mListForPosture.add(lineList[i]);
@@ -1353,11 +1396,12 @@ public class HitoeManager {
 
                             postureInputList.add(mListForPosture.get(j));
                         }
-                        for (int j = HitoeConstants.EX_POSTURE_UNIT_NUM; j < HitoeConstants.EX_POSTURE_UNIT_NUM + 5; j++) {
+                        for (int j = HitoeConstants.EX_POSTURE_UNIT_NUM;
+                                    j < HitoeConstants.EX_POSTURE_UNIT_NUM + 5; j++) {
 
                             postureInputList.add(mListForPosture.get(j));
                         }
-                        workList = new ArrayList<String>();
+                        workList = new ArrayList<>();
                         for (int j = 25; j < mListForPosture.size(); j++) {
 
                             workList.add(mListForPosture.get(j));
@@ -1368,7 +1412,7 @@ public class HitoeManager {
 
                     mLockForPosture.unlock();
                 }
-                if(postureInputList.size() > 0) {
+                if (postureInputList.size() > 0) {
 
                     try {
                         mLockForEx.lock();
@@ -1380,7 +1424,7 @@ public class HitoeManager {
                     postureInputList.clear();
                 }
             }
-            if(receiveDevice.getAvailableExDataList().contains("ex.walk")) {
+            if (receiveDevice.getAvailableExDataList().contains("ex.walk")) {
                 try {
                     mLockForWalk.lock();
                     mListForWalk.add(lineList[i]);
@@ -1390,12 +1434,13 @@ public class HitoeManager {
 
                             walkInputList.add(mListForWalk.get(j));
                         }
-                        for (int j = HitoeConstants.EX_WALK_UNIT_NUM; j < HitoeConstants.EX_WALK_UNIT_NUM + 5; j++) {
+                        for (int j = HitoeConstants.EX_WALK_UNIT_NUM;
+                                    j < HitoeConstants.EX_WALK_UNIT_NUM + 5; j++) {
 
                             walkInputList.add(mListForWalk.get(j));
                         }
 
-                        workList = new ArrayList<String>();
+                        workList = new ArrayList<>();
                         for (int j = 25; j < mListForWalk.size(); j++) {
 
                             workList.add(mListForWalk.get(j));
@@ -1406,7 +1451,7 @@ public class HitoeManager {
 
                     mLockForWalk.unlock();
                 }
-                if(walkInputList.size() > 0) {
+                if (walkInputList.size() > 0) {
 
                     try {
                         mLockForEx.lock();
@@ -1418,7 +1463,7 @@ public class HitoeManager {
                     walkInputList.clear();
                 }
             }
-            if(receiveDevice.getAvailableExDataList().contains("ex.lr_balance")) {
+            if (receiveDevice.getAvailableExDataList().contains("ex.lr_balance")) {
                 try {
                     mLockForLRBalance.lock();
                     mListForLRBalance.add(lineList[i]);
@@ -1428,11 +1473,12 @@ public class HitoeManager {
 
                             lrBalanceInputList.add(mListForLRBalance.get(j));
                         }
-                        for (int j = HitoeConstants.EX_LR_BALANCE_UNIT_NUM; j < HitoeConstants.EX_LR_BALANCE_UNIT_NUM + 5; j++) {
+                        for (int j = HitoeConstants.EX_LR_BALANCE_UNIT_NUM;
+                                j < HitoeConstants.EX_LR_BALANCE_UNIT_NUM + 5; j++) {
 
                             lrBalanceInputList.add(mListForLRBalance.get(j));
                         }
-                        workList = new ArrayList<String>();
+                        workList = new ArrayList<>();
                         for (int j = 25; j < mListForLRBalance.size(); j++) {
 
                             workList.add(mListForLRBalance.get(j));
@@ -1444,7 +1490,7 @@ public class HitoeManager {
 
                     mLockForLRBalance.unlock();
                 }
-                if(lrBalanceInputList.size() > 0) {
+                if (lrBalanceInputList.size() > 0) {
 
                     try {
                         mLockForEx.lock();
@@ -1484,7 +1530,7 @@ public class HitoeManager {
                     for (HitoeDevice heart: mHRData.keySet()) {
                         HeartRateData data = mHRData.get(heart);
                         long timestamp = data.getHeartRate().getTimeStamp();
-                        long history = mNowTimestamps.get(heart).longValue();
+                        long history = mNowTimestamps.get(heart);
                         if (BuildConfig.DEBUG) {
                             Log.d(TAG, "================>");
                             Log.d(TAG, "timestamp:" + timestamp);
@@ -1514,7 +1560,7 @@ public class HitoeManager {
                             });
                             mIsCallbackRunning = true;
                         }
-                        mNowTimestamps.put(heart, new Long(timestamp));
+                        mNowTimestamps.put(heart, timestamp);
                     }
                 }
             }, SCAN_FIRST_WAIT_PERIOD, SCAN_WAIT_PERIOD, TimeUnit.MILLISECONDS);
@@ -1532,6 +1578,20 @@ public class HitoeManager {
             mScanTimerFuture.cancel(true);
             mScanTimerFuture = null;
         }
+    }
+
+    /**
+     * Is Exist Disconnected.
+     * @return true:exist connect, false: non exist connect
+     */
+    private boolean existConnected() {
+        int connectCount = 0;
+        for (int i = 0; i < mRegisterDevices.size(); i++) {
+            if (mRegisterDevices.get(i).isRegisterFlag()) {
+                connectCount++;
+            }
+        }
+        return (connectCount > 0);
     }
     // ------------------------------------
     // Listener.
@@ -1561,6 +1621,7 @@ public class HitoeManager {
 
         /**
          * Disconnected Listener.
+         * @param res response id
          * @param device disconnect device
          */
         void onDisconnected(final int res, final HitoeDevice device);

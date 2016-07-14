@@ -9,6 +9,7 @@ package org.deviceconnect.android.deviceplugin.hitoe.fragment.dialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
 
 /**
@@ -16,10 +17,19 @@ import android.support.v4.app.DialogFragment;
  * @author NTT DOCOMO, INC.
  */
 public class ProgressDialogFragment extends DialogFragment {
+    /** Title's key. */
     private static final String PARAM_TITLE = "title";
+    /** Message's key. */
     private static final String PARAM_MESSAGE = "message";
+    /** Progress dialog. */
     private ProgressDialog mDialog;
 
+    /**
+     * Initialize progress dialog.
+     * @param title dialog's title
+     * @param message dialog's message
+     * @return progress dialog
+     */
     public static ProgressDialogFragment newInstance(final String title, final String message) {
         ProgressDialogFragment instance = new ProgressDialogFragment();
 
@@ -32,6 +42,7 @@ public class ProgressDialogFragment extends DialogFragment {
         return instance;
     }
 
+    @NonNull
     @Override
     public Dialog onCreateDialog(final Bundle savedInstanceState) {
         if (mDialog != null) {

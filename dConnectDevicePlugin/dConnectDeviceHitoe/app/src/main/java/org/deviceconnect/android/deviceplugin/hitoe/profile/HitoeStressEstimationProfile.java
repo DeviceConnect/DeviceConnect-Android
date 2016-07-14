@@ -10,9 +10,8 @@ import android.content.Intent;
 
 import org.deviceconnect.android.deviceplugin.hitoe.HitoeApplication;
 import org.deviceconnect.android.deviceplugin.hitoe.HitoeDeviceService;
-import org.deviceconnect.android.deviceplugin.hitoe.data.HitoeManager;
-import org.deviceconnect.android.deviceplugin.hitoe.data.HeartRateData;
 import org.deviceconnect.android.deviceplugin.hitoe.data.HitoeDevice;
+import org.deviceconnect.android.deviceplugin.hitoe.data.HitoeManager;
 import org.deviceconnect.android.deviceplugin.hitoe.data.StressEstimationData;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventDispatcher;
@@ -63,6 +62,10 @@ public class HitoeStressEstimationProfile extends StressEstimationProfile {
         addApi(mPutOnStress);
         addApi(mDeleteOnStress);
     }
+
+    /**
+     * Get Stress estimation.
+     */
     private final DConnectApi mGetOnStress = new GetApi() {
         @Override
         public String getAttribute() {
@@ -75,7 +78,12 @@ public class HitoeStressEstimationProfile extends StressEstimationProfile {
             if (serviceId == null) {
                 MessageUtils.setEmptyServiceIdError(response);
             } else {
-                StressEstimationData data = getManager().getStressEstimationData(serviceId);
+                HitoeManager mgr = getManager();
+                if (mgr == null) {
+                    MessageUtils.setNotFoundServiceError(response);
+                    return true;
+                }
+                StressEstimationData data = mgr.getStressEstimationData(serviceId);
                 if (data == null) {
                     MessageUtils.setNotFoundServiceError(response);
                 } else {
@@ -87,6 +95,9 @@ public class HitoeStressEstimationProfile extends StressEstimationProfile {
         }
     };
 
+    /**
+     * Register event stress estimation.
+     */
     private final DConnectApi mPutOnStress = new PutApi() {
         @Override
         public String getAttribute() {
@@ -98,21 +109,22 @@ public class HitoeStressEstimationProfile extends StressEstimationProfile {
             String serviceId = getServiceID(request);
             String sessionKey = getSessionKey(request);
             if (serviceId == null) {
-                MessageUtils.setNotFoundServiceError(response, "Not found serviceID:" + serviceId);
+                MessageUtils.setNotFoundServiceError(response, "Not found serviceID");
             } else if (sessionKey == null) {
-                MessageUtils.setInvalidRequestParameterError(response, "Not found sessionKey:" + sessionKey);
+                MessageUtils.setInvalidRequestParameterError(response, "Not found sessionKey");
             } else {
-                HeartRateData data = getManager().getECGData(serviceId);
+                HitoeManager mgr = getManager();
+                if (mgr == null) {
+                    MessageUtils.setNotFoundServiceError(response);
+                    return true;
+                }
+                StressEstimationData data = mgr.getStressEstimationData(serviceId);
                 if (data == null) {
                     MessageUtils.setNotFoundServiceError(response);
                 } else {
                     EventError error = EventManager.INSTANCE.addEvent(request);
                     if (error == EventError.NONE) {
-                        HitoeManager mgr = getManager();
-                        if (mgr != null) {
-                            mgr.setHitoeStressEstimationEventListener(mStressEstimationEventListener);
-                        }
-
+                        mgr.setHitoeStressEstimationEventListener(mStressEstimationEventListener);
                         addEventDispatcher(request);
                         setResult(response, DConnectMessage.RESULT_OK);
                     } else {
@@ -124,6 +136,9 @@ public class HitoeStressEstimationProfile extends StressEstimationProfile {
         }
     };
 
+    /**
+     * Unregister event stress estimation.
+     */
     private final DConnectApi mDeleteOnStress = new DeleteApi() {
         @Override
         public String getAttribute() {
@@ -185,7 +200,7 @@ public class HitoeStressEstimationProfile extends StressEstimationProfile {
     private void addEventDispatcher(final Intent request) {
         Event event = EventManager.INSTANCE.getEvent(request);
         EventDispatcher dispatcher = EventDispatcherFactory.createEventDispatcher(
-                (DConnectMessageService)getContext(), request);
+                (DConnectMessageService) getContext(), request);
         mDispatcherManager.addEventDispatcher(event, dispatcher);
     }
 

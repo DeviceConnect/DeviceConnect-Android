@@ -30,6 +30,11 @@ public class HitoeService extends DConnectService {
      */
     private final HitoeDevice mEntity;
 
+    /**
+     * Construcotr.
+     * @param manager HitoeManager
+     * @param entity HitoeDevice
+     */
     public HitoeService(final HitoeManager manager, final HitoeDevice entity) {
         super(entity.getId());
         setName(entity.getName());
@@ -50,7 +55,4 @@ public class HitoeService extends DConnectService {
         return mEntity.isRegisterFlag();
     }
 
-    public HitoeDevice getEntity() {
-        return mEntity;
-    }
 }

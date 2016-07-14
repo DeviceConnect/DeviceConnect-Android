@@ -12,8 +12,6 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTransaction;
 import android.view.MenuItem;
-import android.widget.ArrayAdapter;
-import android.widget.ListView;
 
 import org.deviceconnect.android.deviceplugin.hitoe.HitoeApplication;
 import org.deviceconnect.android.deviceplugin.hitoe.data.HitoeManager;
@@ -41,29 +39,54 @@ public class HitoeDeviceControlActivity extends FragmentActivity {
      */
     public static final String DEFAULT_TITLE = "CLOSE";
 
-
+    /**
+     * Main control page.
+     */
     public static final int CONTROL_PAGE_MAIN = 0;
+    /**
+     * Heartrate control page.
+     */
     public static final int CONTROL_PAGE_HEARTRATE = 1;
+    /**
+     * Battery control page.
+     */
     public static final int CONTROL_PAGE_BATTERY = 2;
+    /**
+     * DeviceOrientation control page.
+     */
     public static final int CONTROL_PAGE_DEVICEORIENTATION = 3;
+    /**
+     * ECG control page.
+     */
     public static final int CONTROL_PAGE_ECG = 4;
+    /**
+     * Stress Estimation control page.
+     */
     public static final int CONTROL_PAGE_STRESS = 5;
+    /**
+     * Pose Estimation control page.
+     */
     public static final int CONTROL_PAGE_POSE = 6;
+    /**
+     * Walk State control page.
+     */
     public static final int CONTROL_PAGE_WALK = 7;
 
-
-    private ListView mProfileListView;
-    private ArrayAdapter<String> mAdapter;
-    private HitoeManager mManager;
+    /**
+     * Selected control page no.
+     */
     private int mPage = CONTROL_PAGE_MAIN;
-    protected final Handler mHandler = new Handler();
+    /**
+     * Handler.
+     */
+    private final Handler mHandler = new Handler();
 
     /**
      * Received a event that Bluetooth has been changed.
      */
     private final BroadcastReceiver mSensorReceiver = new BroadcastReceiver() {
         @Override
-        public void onReceive(Context context, Intent intent) {
+        public void onReceive(final Context context, final Intent intent) {
             String action = intent.getAction();
             if (BluetoothAdapter.ACTION_STATE_CHANGED.equals(action)) {
                 int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, -1);
@@ -117,6 +140,10 @@ public class HitoeDeviceControlActivity extends FragmentActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    /**
+     * Move Page.
+     * @param page page no
+     */
     public void movePage(final int page) {
         Bundle args = new Bundle();
         Intent device = getIntent();
@@ -143,7 +170,8 @@ public class HitoeDeviceControlActivity extends FragmentActivity {
                 batteryProfile.setArguments(args);
                 break;
             case CONTROL_PAGE_DEVICEORIENTATION:
-                HitoeProfileDeviceOrientationFragment deviceOrientationProfile = new HitoeProfileDeviceOrientationFragment();
+                HitoeProfileDeviceOrientationFragment deviceOrientationProfile
+                                                = new HitoeProfileDeviceOrientationFragment();
                 moveFragment(false, deviceOrientationProfile);
                 deviceOrientationProfile.setArguments(args);
                 break;
@@ -167,6 +195,7 @@ public class HitoeDeviceControlActivity extends FragmentActivity {
                 moveFragment(false, walkProfile);
                 walkProfile.setArguments(args);
                 break;
+            default:
 
         }
 
@@ -182,6 +211,11 @@ public class HitoeDeviceControlActivity extends FragmentActivity {
         return application.getHitoeManager();
     }
 
+    /**
+     * Move Fragment.
+     * @param isFirst true:main, false:sub
+     * @param f Fragment
+     */
     private void moveFragment(final boolean isFirst, final Fragment f) {
         FragmentTransaction t = getSupportFragmentManager().beginTransaction();
         t.setTransition(FragmentTransaction.TRANSIT_NONE);

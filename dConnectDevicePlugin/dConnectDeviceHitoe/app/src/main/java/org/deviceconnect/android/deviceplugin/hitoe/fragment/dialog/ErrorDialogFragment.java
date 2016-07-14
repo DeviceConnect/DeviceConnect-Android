@@ -10,6 +10,7 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
 
 import org.deviceconnect.android.deviceplugin.hitoe.R;
@@ -20,11 +21,25 @@ import org.deviceconnect.android.deviceplugin.hitoe.R;
  * @author NTT DOCOMO, INC.
  */
 public class ErrorDialogFragment extends DialogFragment {
+    /**
+     * Title's key.
+     */
     private static final String PARAM_TITLE = "title";
+    /**
+     * Message's key.
+     */
     private static final String PARAM_MESSAGE = "message";
+    /** dialog. */
     private AlertDialog mDialog;
+    /** dialog's listener. */
     private DialogInterface.OnDismissListener mListener;
 
+    /**
+     * Initialize error dialog.
+     * @param title dialog's title
+     * @param message dialog's message
+     * @return error dialog
+     */
     public static ErrorDialogFragment newInstance(final String title, final String message) {
         ErrorDialogFragment instance = new ErrorDialogFragment();
 
@@ -36,7 +51,7 @@ public class ErrorDialogFragment extends DialogFragment {
 
         return instance;
     }
-
+    @NonNull
     @Override
     public Dialog onCreateDialog(final Bundle savedInstanceState) {
         if (mDialog != null) {
@@ -52,7 +67,7 @@ public class ErrorDialogFragment extends DialogFragment {
         builder.setPositiveButton(R.string.hitoe_setting_dialog_positive,
                 new DialogInterface.OnClickListener() {
                     @Override
-                    public void onClick(DialogInterface dialog, int which) {
+                    public void onClick(final DialogInterface dialog, final int which) {
                         dismiss();
                     }
                 });
@@ -79,6 +94,10 @@ public class ErrorDialogFragment extends DialogFragment {
         }
     }
 
+    /**
+     * Set listener.
+     * @param listener listener
+     */
     public void setOnDismissListener(final DialogInterface.OnDismissListener listener) {
         mListener = listener;
     }

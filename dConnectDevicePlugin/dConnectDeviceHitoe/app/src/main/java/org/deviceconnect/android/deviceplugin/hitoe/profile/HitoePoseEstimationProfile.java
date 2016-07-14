@@ -62,6 +62,10 @@ public class HitoePoseEstimationProfile extends PoseEstimationProfile {
         addApi(mPutOnPose);
         addApi(mDeleteOnPose);
     }
+
+    /**
+     * Get Pose estimation.
+     */
     private final DConnectApi mGetOnPose = new GetApi() {
         @Override
         public String getAttribute() {
@@ -74,7 +78,13 @@ public class HitoePoseEstimationProfile extends PoseEstimationProfile {
             if (serviceId == null) {
                 MessageUtils.setEmptyServiceIdError(response);
             } else {
-                PoseEstimationData data = getManager().getPoseEstimationData(serviceId);
+                HitoeManager mgr = getManager();
+                if (mgr == null) {
+                    MessageUtils.setNotFoundServiceError(response);
+                    return true;
+                }
+
+                PoseEstimationData data = mgr.getPoseEstimationData(serviceId);
                 if (data == null) {
                     MessageUtils.setNotFoundServiceError(response);
                 } else {
@@ -86,6 +96,9 @@ public class HitoePoseEstimationProfile extends PoseEstimationProfile {
         }
     };
 
+    /**
+     * Register event pose estimation.
+     */
     private final DConnectApi mPutOnPose = new PutApi() {
         @Override
         public String getAttribute() {
@@ -97,20 +110,22 @@ public class HitoePoseEstimationProfile extends PoseEstimationProfile {
             String serviceId = getServiceID(request);
             String sessionKey = getSessionKey(request);
             if (serviceId == null) {
-                MessageUtils.setNotFoundServiceError(response, "Not found serviceID:" + serviceId);
+                MessageUtils.setNotFoundServiceError(response, "Not found serviceID");
             } else if (sessionKey == null) {
-                MessageUtils.setInvalidRequestParameterError(response, "Not found sessionKey:" + sessionKey);
+                MessageUtils.setInvalidRequestParameterError(response, "Not found sessionKey");
             } else {
-                PoseEstimationData data = getManager().getPoseEstimationData(serviceId);
+                HitoeManager mgr = getManager();
+                if (mgr == null) {
+                    MessageUtils.setNotFoundServiceError(response);
+                    return true;
+                }
+                PoseEstimationData data = mgr.getPoseEstimationData(serviceId);
                 if (data == null) {
                     MessageUtils.setNotFoundServiceError(response);
                 } else {
                     EventError error = EventManager.INSTANCE.addEvent(request);
                     if (error == EventError.NONE) {
-                        HitoeManager mgr = getManager();
-                        if (mgr != null) {
-                            mgr.setHitoePoseEstimationEventListener(mPoseEstimationEventListener);
-                        }
+                        mgr.setHitoePoseEstimationEventListener(mPoseEstimationEventListener);
                         addEventDispatcher(request);
                         setResult(response, DConnectMessage.RESULT_OK);
                     } else {
@@ -122,6 +137,9 @@ public class HitoePoseEstimationProfile extends PoseEstimationProfile {
         }
     };
 
+    /**
+     * Unregister event pose estimation.
+     */
     private final DConnectApi mDeleteOnPose = new DeleteApi() {
         @Override
         public String getAttribute() {
@@ -183,7 +201,7 @@ public class HitoePoseEstimationProfile extends PoseEstimationProfile {
     private void addEventDispatcher(final Intent request) {
         Event event = EventManager.INSTANCE.getEvent(request);
         EventDispatcher dispatcher = EventDispatcherFactory.createEventDispatcher(
-                (DConnectMessageService)getContext(), request);
+                (DConnectMessageService) getContext(), request);
         mDispatcherManager.addEventDispatcher(event, dispatcher);
     }
 

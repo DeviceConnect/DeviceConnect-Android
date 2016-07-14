@@ -44,7 +44,7 @@ public class UserSettings {
     }
 
     /**
-     * Register the Next state
+     * Register the Next state.
      * @param state true:next show false:next not show
      */
     public void setNextState(final boolean state) {

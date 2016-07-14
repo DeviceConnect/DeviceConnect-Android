@@ -29,8 +29,12 @@ public class DefaultDialogFragment extends DialogFragment {
 
     /**
      * Factory Method.
+     * @param title dialog's title
+     * @param message dialog's message
+     * @return dialog fragment
      */
-    public static DefaultDialogFragment newInstance(String title, String message){
+    public static DefaultDialogFragment newInstance(final String title,
+                                                    final String message) {
         DefaultDialogFragment instance = new DefaultDialogFragment();
 
         Bundle arguments = new Bundle();
@@ -56,25 +60,7 @@ public class DefaultDialogFragment extends DialogFragment {
         return progressDialog;
     }
 
-    /**
-     * Show Alert.
-     * @param activity Activity
-     * @param title title
-     * @param message message
-     */
-    public static void showAlert(final Activity activity, final String title, final String message,
-                                 final DialogInterface.OnClickListener listener) {
-        if (activity == null) {
-            return;
-        }
 
-        new AlertDialog.Builder(activity)
-                .setTitle(title)
-                .setMessage(message)
-                .setCancelable(false)
-                .setPositiveButton(R.string.ok, listener)
-                .show();
-    }
 
     /**
      * Show Confirm Alert.
@@ -119,7 +105,7 @@ public class DefaultDialogFragment extends DialogFragment {
                 .setTitle(activity.getString(R.string.dialog_title_lunch_hitoe))
                 .setNeutralButton(R.string.ok, new DialogInterface.OnClickListener() {
                     @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
+                    public void onClick(final DialogInterface dialogInterface, final int i) {
                         CheckBox nextState = (CheckBox) layout.findViewById(R.id.chceck_next);
                         userSettings.setNextState(nextState.isChecked());
                     }
@@ -143,39 +129,12 @@ public class DefaultDialogFragment extends DialogFragment {
                 .setTitle(activity.getString(R.string.dialog_title_equip_hitoe))
                 .setNeutralButton(R.string.ok, new DialogInterface.OnClickListener() {
                     @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
+                    public void onClick(final DialogInterface dialogInterface,final int i) {
 
                     }
                 })
                 .show();
     }
 
-    public static void showSelectCommandDialog(final Activity activity,
-                                               final String[] commands,
-                                               final DialogInterface.OnClickListener selected) {
-        if (activity == null) {
-            return;
-        }
-        new AlertDialog.Builder(activity)
-                .setItems(commands, selected)
-                .show();
-    }
-
-
-    public static void showSelectWifiDialog(final Activity activity,
-                                            final String title,
-                                            final String[] list,
-                                            final DialogInterface.OnClickListener singleChoiceListner,
-                                            final DialogInterface.OnClickListener positiveListener,
-                                            final DialogInterface.OnClickListener negativeListener) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(activity);
-        builder.setIcon(android.R.drawable.ic_dialog_alert);
-        builder.setTitle(title);
-        builder.setSingleChoiceItems(list, 0, singleChoiceListner);
-        builder.setPositiveButton(R.string.ok, positiveListener);
-        builder.setNegativeButton(R.string.cancel, negativeListener);
-        builder.setCancelable(true);
-        builder.show();
-    }
 
 }

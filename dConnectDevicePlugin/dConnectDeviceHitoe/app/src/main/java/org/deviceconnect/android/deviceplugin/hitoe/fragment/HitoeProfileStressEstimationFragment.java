@@ -42,28 +42,31 @@ public class HitoeProfileStressEstimationFragment extends Fragment  implements H
      * HeartRate TextView.
      */
     private TextView mLFHF;
-
+    /**
+     * Hitoe scheduler.
+     */
     private HitoeScheduler mScheduler;
+    /** LFHF view. */
     private GradientDrawable mLFHFGradientDrawable;
 
     @Override
-    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
-                             @Nullable Bundle savedInstanceState) {
+    public View onCreateView(final LayoutInflater inflater, final @Nullable ViewGroup container,
+                             final @Nullable Bundle savedInstanceState) {
 
         View rootView = inflater.inflate(R.layout.fragment_stress_instructions, null);
-        mScheduler = new HitoeScheduler(getActivity(), this, HitoeConstants.LFHF_TEXT_UPDATE_CYCLE_TIME,
+        mScheduler = new HitoeScheduler(this, HitoeConstants.LFHF_TEXT_UPDATE_CYCLE_TIME,
                                                 HitoeConstants.LFHF_TEXT_UPDATE_CYCLE_TIME);
         rootView.findViewById(R.id.button_register).setOnClickListener(new View.OnClickListener() {
 
             @Override
-            public void onClick(View view) {
+            public void onClick(final View view) {
                 mScheduler.scanHitoeDevice(true);
             }
         });
         rootView.findViewById(R.id.button_unregister).setOnClickListener(new View.OnClickListener() {
 
             @Override
-            public void onClick(View view) {
+            public void onClick(final View view) {
                 mScheduler.scanHitoeDevice(false);
             }
         });
@@ -113,32 +116,37 @@ public class HitoeProfileStressEstimationFragment extends Fragment  implements H
         });
     }
 
+    /**
+     * Update view.
+     * @param timestamp timestamp
+     * @param lfhf stress estimation
+     */
     public void updateView(final long timestamp, final double lfhf) {
 
-        final int score_RGB;
-        final int score_R;
-        final int score_G;
-        final int score_B;
+        final int scoreRGB;
+        final int scoreR;
+        final int scoreG;
+        final int scoreB;
 
         if (timestamp == -1) {
 
             return;
         }
-        score_RGB = (int) (150 * (lfhf / 5));
-        if(105 + score_RGB < 255) {
-            score_R = 105 + score_RGB;
+        scoreRGB = (int) (150 * (lfhf / 5));
+        if(105 + scoreRGB < 255) {
+            scoreR = 105 + scoreRGB;
         } else {
-            score_R = 255;
+            scoreR = 255;
         }
-        if(255 - score_RGB > 0) {
-            score_G = 255 - score_RGB;
-            score_B = 255 - score_RGB;
+        if(255 - scoreRGB > 0) {
+            scoreG = 255 - scoreRGB;
+            scoreB = 255 - scoreRGB;
         } else {
-            score_G = 0;
-            score_B = 0;
+            scoreG = 0;
+            scoreB = 0;
         }
 
         mLFHF.setText("LF/HF:" + String.valueOf(lfhf));
-        mLFHFGradientDrawable.setColors(new int[]{0xFFCDFFFF, Color.rgb(score_R, score_G, score_B)});
+        mLFHFGradientDrawable.setColors(new int[]{0xFFCDFFFF, Color.rgb(scoreR, scoreG, scoreB)});
     }
 }

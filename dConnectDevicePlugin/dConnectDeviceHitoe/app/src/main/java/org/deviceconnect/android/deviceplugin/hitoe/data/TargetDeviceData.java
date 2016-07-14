@@ -234,20 +234,24 @@ public class TargetDeviceData {
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
-        builder.append("{\"productName\": " + mProductName + ", ");
-        builder.append("\"manufactureName\": " + mManufactureName + ", ");
-        builder.append("\"modelNumber\": " + mModelNumber + ", ");
-        builder.append("\"firmwareRevision\": " + mFirmwareRevision + ", ");
-        builder.append("\"serialNumber\": " + mSerialNumber + ", ");
-        builder.append("\"softwareRevision\": " + mSoftwareRevision + ", ");
-        builder.append("\"hardwareRevision\": " + mHardwareRevision + ", ");
-        builder.append("\"partNumber\": " + mPartNumber + ", ");
-        builder.append("\"protocolRevision\": " + mProtocolRevision + ", ");
-        builder.append("\"systemId\": " + mSystemId + ", ");
-        builder.append("\"batteryLevel\": " + mBatteryLevel +  "} ");
+        builder.append("{\"productName\": ").append(mProductName).append(", ");
+        builder.append("\"manufactureName\": ").append(mManufactureName).append(", ");
+        builder.append("\"modelNumber\": ").append(mModelNumber).append(", ");
+        builder.append("\"firmwareRevision\": ").append(mFirmwareRevision).append(", ");
+        builder.append("\"serialNumber\": ").append(mSerialNumber).append(", ");
+        builder.append("\"softwareRevision\": ").append(mSoftwareRevision).append(", ");
+        builder.append("\"hardwareRevision\": ").append(mHardwareRevision).append(", ");
+        builder.append("\"partNumber\": ").append(mPartNumber).append(", ");
+        builder.append("\"protocolRevision\": ").append(mProtocolRevision).append(", ");
+        builder.append("\"systemId\": ").append(mSystemId).append(", ");
+        builder.append("\"batteryLevel\": ").append(mBatteryLevel).append("} ");
         return builder.toString();
     }
 
+    /**
+     * To Bundle.
+     * @return bundle
+     */
     public Bundle toBundle() {
         Bundle device = new Bundle();
         HealthProfile.setProductName(device, mProductName);

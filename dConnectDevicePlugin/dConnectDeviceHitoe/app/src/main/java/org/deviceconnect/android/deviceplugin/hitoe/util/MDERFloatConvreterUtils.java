@@ -18,7 +18,8 @@ public final class MDERFloatConvreterUtils {
     /**
      * Private Constructor.
      */
-    private MDERFloatConvreterUtils() {}
+    private MDERFloatConvreterUtils() {
+    }
 
     /**
      * The Plug-Ins and the APIs designed for consumer/ personal use perspective.
@@ -59,6 +60,9 @@ public final class MDERFloatConvreterUtils {
      */
     private static int countZero(final String c) {
         int count = 0;
+        if (c.charAt(c.length() - 1) != '0') {
+            return 0;
+        }
         for (int i = 0; i < c.length(); i++) {
             if (c.charAt(i) == '0') {
                 count++;

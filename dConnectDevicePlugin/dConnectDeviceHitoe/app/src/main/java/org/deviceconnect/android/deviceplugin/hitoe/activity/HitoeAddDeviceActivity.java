@@ -48,11 +48,11 @@ public class HitoeAddDeviceActivity extends HitoeListActivity  implements HitoeM
      */
     private final BroadcastReceiver mSensorReceiver = new BroadcastReceiver() {
         @Override
-        public void onReceive(Context context, Intent intent) {
+        public void onReceive(final Context context, final Intent intent) {
             String action = intent.getAction();
             if (BluetoothAdapter.ACTION_STATE_CHANGED.equals(action)) {
                 int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, -1);
-                if (state == BluetoothAdapter.STATE_ON ){
+                if (state == BluetoothAdapter.STATE_ON) {
                     addFooterView();
                     getManager().addHitoeConnectionListener(HitoeAddDeviceActivity.this);
                     mScheduler.scanHitoeDevice(true);
@@ -67,7 +67,7 @@ public class HitoeAddDeviceActivity extends HitoeListActivity  implements HitoeM
 
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
     }
 
@@ -79,7 +79,7 @@ public class HitoeAddDeviceActivity extends HitoeListActivity  implements HitoeM
         mDeviceAdapter.clear();
         mDeviceAdapter.notifyDataSetChanged();
         mListView.setOnItemClickListener(this);
-        mScheduler = new HitoeScheduler(this, this, -1, -1);
+        mScheduler = new HitoeScheduler(this, -1, -1);
         DefaultDialogFragment.showHitoeONStateDialog(this);
         registerBluetoothFilter();
         getManager().addHitoeConnectionListener(this);
@@ -112,7 +112,7 @@ public class HitoeAddDeviceActivity extends HitoeListActivity  implements HitoeM
         btn.setOnClickListener(new View.OnClickListener() {
 
             @Override
-            public void onClick(View view) {
+            public void onClick(final View view) {
                 getManager().addHitoeConnectionListener(HitoeAddDeviceActivity.this);
                 getManager().discoveryHitoeDevices();
             }
@@ -199,12 +199,13 @@ public class HitoeAddDeviceActivity extends HitoeListActivity  implements HitoeM
     }
 
     @Override
-    public void onDeleted(HitoeDevice device) {
+    public void onDeleted(final HitoeDevice device) {
 
     }
 
     @Override
-    public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+    public void onItemClick(final AdapterView<?> adapterView, final View view,
+                            final int i, final long l) {
         final HitoeDevice hitoe = (HitoeDevice) adapterView.getItemAtPosition(i);
         if (hitoe == null) {
             return;
@@ -216,7 +217,7 @@ public class HitoeAddDeviceActivity extends HitoeListActivity  implements HitoeM
             pinDialog.show(getSupportFragmentManager(), "pin_dialog");
             pinDialog.setOnPinCodeListener(new PinCodeDialogFragment.OnPinCodeListener() {
                 @Override
-                public void onPinCode(String pin) {
+                public void onPinCode(final String pin) {
                     if (pin.isEmpty()) {
                         showErrorDialog(res.getString(R.string.hitoe_setting_dialog_error_message02));
                         return;

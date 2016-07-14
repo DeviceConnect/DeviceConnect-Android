@@ -41,7 +41,7 @@ public class HitoeDeviceListActivity extends HitoeListActivity implements
      */
     private final BroadcastReceiver mSensorReceiver = new BroadcastReceiver() {
         @Override
-        public void onReceive(Context context, Intent intent) {
+        public void onReceive(final Context context, final Intent intent) {
             String action = intent.getAction();
             if (BluetoothAdapter.ACTION_STATE_CHANGED.equals(action)) {
                 addFooterView();
@@ -50,7 +50,7 @@ public class HitoeDeviceListActivity extends HitoeListActivity implements
     };
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
     }
@@ -89,7 +89,7 @@ public class HitoeDeviceListActivity extends HitoeListActivity implements
         btn.setOnClickListener(new View.OnClickListener() {
 
             @Override
-            public void onClick(View view) {
+            public void onClick(final View view) {
                 Intent intent = new Intent();
                 intent.setClass(HitoeDeviceListActivity.this, HitoeAddDeviceActivity.class);
                 startActivity(intent);
@@ -98,7 +98,8 @@ public class HitoeDeviceListActivity extends HitoeListActivity implements
     }
 
     @Override
-    public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+    public void onItemClick(final AdapterView<?> adapterView, final View view,
+                                                            final int i, final long l) {
         final HitoeDevice hitoe = (HitoeDevice) adapterView.getItemAtPosition(i);
         if (hitoe == null || !hitoe.isRegisterFlag()) {
             Toast.makeText(this, R.string.error_disconnected_hitoe, Toast.LENGTH_SHORT).show();
@@ -111,7 +112,8 @@ public class HitoeDeviceListActivity extends HitoeListActivity implements
     }
 
     @Override
-    public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
+    public boolean onItemLongClick(final AdapterView<?> adapterView, final View view,
+                                                    final int i, final long l) {
         final HitoeDevice hitoe = (HitoeDevice) adapterView.getItemAtPosition(i);
         if (hitoe == null) {
             return false;
@@ -120,7 +122,7 @@ public class HitoeDeviceListActivity extends HitoeListActivity implements
         DefaultDialogFragment.showConfirmAlert(this, hitoe.getName(), getString(R.string.confirm_delete_device),
                 getString(R.string.ok), new DialogInterface.OnClickListener() {
                     @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
+                    public void onClick(final DialogInterface dialogInterface, final int i) {
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
@@ -215,7 +217,7 @@ public class HitoeDeviceListActivity extends HitoeListActivity implements
     }
 
     @Override
-    public void onDeleted(HitoeDevice device) {
+    public void onDeleted(final HitoeDevice device) {
 
     }
 }

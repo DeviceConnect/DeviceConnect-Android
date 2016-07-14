@@ -76,13 +76,16 @@ public class PoseEstimationData {
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
-        builder.append("{\"state\": " + mState.getState() + ", ");
-        builder.append("\"timeStamp\": " + mTimeStamp + ", ");
-        builder.append("\"timeStampString\": " + mTimeStampString +  "} ");
+        builder.append("{\"state\": ").append(mState.getState()).append(", ");
+        builder.append("\"timeStamp\": ").append(mTimeStamp).append(", ");
+        builder.append("\"timeStampString\": ").append(mTimeStampString).append("} ");
         return builder.toString();
     }
 
-
+    /**
+     * To bundle.
+     * @return bundle
+     */
     public Bundle toBundle() {
         Bundle pose = new Bundle();
         PoseEstimationProfile.setState(pose, mState.getState());

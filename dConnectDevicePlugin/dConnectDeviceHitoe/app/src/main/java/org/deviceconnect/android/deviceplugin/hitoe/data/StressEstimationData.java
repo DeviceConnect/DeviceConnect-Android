@@ -73,12 +73,16 @@ public class StressEstimationData {
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
-        builder.append("{\"lfhf\": " + mLFHF + ", ");
-        builder.append("\"timeStamp\": " + mTimeStamp + ", ");
-        builder.append("\"timeStampString\": " + mTimeStampString +  "} ");
+        builder.append("{\"lfhf\": ").append(mLFHF).append(", ");
+        builder.append("\"timeStamp\": ").append(mTimeStamp).append(", ");
+        builder.append("\"timeStampString\": ").append(mTimeStampString).append("} ");
         return builder.toString();
     }
 
+    /**
+     * To bundle.
+     * @return bundle
+     */
     public Bundle toBundle() {
         Bundle stress = new Bundle();
         StressEstimationProfile.setLFHF(stress, mLFHF);

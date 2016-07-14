@@ -15,20 +15,29 @@ import android.os.Bundle;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.message.MessageUtils;
+import org.deviceconnect.android.profile.api.DConnectApi;
+import org.deviceconnect.android.profile.spec.DConnectApiSpec;
+import org.deviceconnect.android.profile.spec.DConnectApiSpecConstants;
+import org.deviceconnect.android.profile.spec.DConnectApiSpecList;
+import org.deviceconnect.android.service.DConnectService;
 import org.deviceconnect.message.DConnectMessage;
-import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 import org.deviceconnect.profile.DConnectProfileConstants;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 
 /**
  * DConnect プロファイルクラス.
  * @author NTT DOCOMO, INC.
  */
-public abstract class DConnectProfile implements DConnectProfileConstants {
+public abstract class DConnectProfile implements DConnectProfileConstants,
+    DConnectApiSpecConstants {
 
     /** バッファサイズを定義. */
     private static final int BUF_SIZE = 4096;
@@ -36,12 +45,134 @@ public abstract class DConnectProfile implements DConnectProfileConstants {
     /**
      * コンテキスト.
      */
-    private Context mContext = null;
+    private Context mContext;
+
+    /**
+     * DeviceConnectサービス.
+     */
+    private DConnectService mService;
+
+    /**
+     * Device Connect API 仕様定義リスト.
+     */
+    private DConnectApiSpecList mApiSpecList;
 
     /**
      * ロガー.
      */
-    protected Logger mLogger = Logger.getLogger("org.deviceconnect.dplugin");
+    protected final Logger mLogger = Logger.getLogger("org.deviceconnect.dplugin");
+
+    /**
+     * サポートするAPI.
+     */
+    protected final Map<ApiIdentifier, DConnectApi> mApis
+        = new HashMap<ApiIdentifier, DConnectApi>();
+
+    /**
+     * プロファイルに設定されているDevice Connect API実装のリストを返す.
+     *
+     * @return API実装のリスト
+     */
+    public List<DConnectApi> getApiList() {
+        List<DConnectApi> list = new ArrayList<DConnectApi>();
+        list.addAll(mApis.values());
+        return list;
+    }
+
+    /**
+     * 指定されたリクエストに対応するDevice Connect API実装を返す.
+     *
+     * @param request リクエスト
+     * @return 指定されたリクエストに対応するAPI実装を返す. 存在しない場合は<code>null</code>
+     */
+    public DConnectApi findApi(final Intent request) {
+        String action = request.getAction();
+        Method method = Method.fromAction(action);
+        if (method == null) {
+            return null;
+        }
+        String path = getApiPath(getProfile(request), getInterface(request), getAttribute(request));
+        return findApi(path, method);
+    }
+
+    /**
+     * 指定されたリクエストに対応するDevice Connect API実装を返す.
+     *
+     * @param path リクエストされたAPIのパス
+     * @param method リクエストされたAPIのメソッド
+     * @return 指定されたリクエストに対応するAPI実装を返す. 存在しない場合は<code>null</code>
+     */
+    public DConnectApi findApi(final String path, final Method method) {
+        return mApis.get(new ApiIdentifier(path, method));
+    }
+
+    /**
+     * Device Connect API実装を追加する.
+     * @param api API 追加するAPI実装
+     */
+    public void addApi(final DConnectApi api) {
+        mApis.put(new ApiIdentifier(getApiPath(api), api.getMethod()), api);
+    }
+
+    /**
+     * Device Connect API実装を削除する.
+     * @param api 削除するAPI実装
+     */
+    public void removeApi(final DConnectApi api) {
+        mApis.remove(new ApiIdentifier(getApiPath(api), api.getMethod()));
+    }
+
+    /**
+     * 指定されたDevice Connect APIへのパスを返す.
+     * @param api API実装
+     * @return パス
+     */
+    private String getApiPath(final DConnectApi api) {
+        return getApiPath(getProfileName(), api.getInterface(), api.getAttribute());
+    }
+
+    /**
+     * プロファイル名、インターフェース名、アトリビュート名からパスを作成する.
+     * @param profileName プロファイル名
+     * @param interfaceName インターフェース名
+     * @param attributeName アトリビュート名
+     * @return パス
+     */
+    private String getApiPath(final String profileName, final String interfaceName,
+                              final String attributeName) {
+        StringBuilder path = new StringBuilder();
+        path.append("/");
+        path.append(DConnectMessage.DEFAULT_API);
+        path.append("/");
+        path.append(profileName);
+        if (interfaceName != null) {
+            path.append("/");
+            path.append(interfaceName);
+        }
+        if (attributeName != null) {
+            path.append("/");
+            path.append(attributeName);
+        }
+        return path.toString();
+    }
+
+    private boolean isKnownPath(final Intent request) {
+        String path = getApiPath(getProfile(request), getInterface(request), getAttribute(request));
+        return mApiSpecList.findApiSpecs(path) != null;
+    }
+
+    private boolean isKnownMethod(final Intent request) {
+        String action = request.getAction();
+        Method method = Method.fromAction(action);
+        if (method == null) {
+            return false;
+        }
+        String path = getApiPath(getProfile(request), getInterface(request), getAttribute(request));
+        if (mApiSpecList == null) {
+            return false;
+        }
+        return mApiSpecList.findApiSpec(method, path) != null;
+    }
 
     /**
      * プロファイル名を取得する.
@@ -52,92 +183,35 @@ public abstract class DConnectProfile implements DConnectProfileConstants {
 
     /**
      * RESPONSEメソッドハンドラー.<br>
-     * リクエストパラメータに応じてデバイスのサービスを提供し、その結果をレスポンスパラメータに格納する。
-     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
-     * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
-     * 
+     * リクエストされたAPIが実装されていて、かつ、パラメータが正常な場合は
+     * {@link DConnectApi#onRequest(Intent, Intent)}を実行する.
+     * そうでない場合は、即座にエラーレスポンスを送信する.
+     *
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
      * @return レスポンスパラメータを送信するか否か
      */
     public boolean onRequest(final Intent request, final Intent response) {
-        String action = request.getAction();
-        boolean send = true;
-        try {
-            if (IntentDConnectMessage.ACTION_GET.equals(action)) {
-                send = onGetRequest(request, response);
-            } else if (IntentDConnectMessage.ACTION_POST.equals(action)) {
-                send = onPostRequest(request, response);
-            } else if (IntentDConnectMessage.ACTION_PUT.equals(action)) {
-                send = onPutRequest(request, response);
-            } else if (IntentDConnectMessage.ACTION_DELETE.equals(action)) {
-                send = onDeleteRequest(request, response);
-            } else {
-                mLogger.warning("Unknown action. action=" + action);
-                MessageUtils.setNotSupportActionError(response);
+        DConnectApi api = findApi(request);
+        if (api != null) {
+            DConnectApiSpec spec = api.getApiSpec();
+            if (spec != null && !spec.validate(request)) {
+                MessageUtils.setInvalidRequestParameterError(response);
+                return true;
             }
-        } catch (Exception e) {
-            mLogger.severe("Exception occurred in the profile. " + e.getMessage());
-            MessageUtils.setUnknownError(response, e.getMessage());
+            return api.onRequest(request, response);
+        } else {
+            if (isKnownPath(request)) {
+                if (isKnownMethod(request)) {
+                    MessageUtils.setNotSupportAttributeError(response);
+                } else {
+                    MessageUtils.setNotSupportActionError(response);
+                }
+            } else {
+                MessageUtils.setUnknownAttributeError(response);
+            }
+            return true;
         }
-        return send;
-    }
-
-    /**
-     * GETメソッドハンドラー.<br>
-     * リクエストパラメータに応じてデバイスのサービスを提供し、その結果をレスポンスパラメータに格納する。
-     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
-     * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
-     * 
-     * @param request リクエストパラメータ
-     * @param response レスポンスパラメータ
-     * @return レスポンスパラメータを送信するか否か
-     */
-    protected boolean onGetRequest(final Intent request, final Intent response) {
-        MessageUtils.setNotSupportActionError(response);
-        return true;
-    }
-
-    /**
-     * POSTメソッドハンドラー.
-     * 
-     * @param request リクエストパラメータ
-     * @param response レスポンスパラメータ
-     * @return レスポンスパラメータを送信するか否か
-     */
-    protected boolean onPostRequest(final Intent request, final Intent response) {
-        MessageUtils.setNotSupportActionError(response);
-        return true;
-    }
-
-    /**
-     * PUTメソッドハンドラー.<br>
-     * リクエストパラメータに応じてデバイスのサービスを提供し、その結果をレスポンスパラメータに格納する。
-     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
-     * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
-     * 
-     * @param request リクエストパラメータ
-     * @param response レスポンスパラメータ
-     * @return レスポンスパラメータを送信するか否か
-     */
-    protected boolean onPutRequest(final Intent request, final Intent response) {
-        MessageUtils.setNotSupportActionError(response);
-        return true;
-    }
-
-    /**
-     * DELETEメソッドハンドラー.<br>
-     * リクエストパラメータに応じてデバイスのサービスを提供し、その結果をレスポンスパラメータに格納する。
-     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
-     * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
-     * 
-     * @param request リクエストパラメータ
-     * @param response レスポンスパラメータ
-     * @return レスポンスパラメータを送信するか否か
-     */
-    protected boolean onDeleteRequest(final Intent request, final Intent response) {
-        MessageUtils.setNotSupportActionError(response);
-        return true;
     }
 
     /**
@@ -156,6 +230,32 @@ public abstract class DConnectProfile implements DConnectProfileConstants {
      */
     public Context getContext() {
         return mContext;
+    }
+
+    /**
+     * 本プロファイル実装を提供するサービスを設定する.
+     *
+     * @param service サービス
+     */
+    public void setService(final DConnectService service) {
+        mService = service;
+    }
+
+    /**
+     * 本プロファイル実装を提供するサービスを取得する.
+     *
+     * @return サービス
+     */
+    public DConnectService getService() {
+        return mService;
+    }
+
+    /**
+     * Device Connect API 仕様定義リストを設定する.
+     * @param apiSpecList API 仕様定義リスト
+     */
+    public void setApiSpecList(final DConnectApiSpecList apiSpecList) {
+        mApiSpecList = apiSpecList;
     }
 
     /**
@@ -699,6 +799,48 @@ public abstract class DConnectProfile implements DConnectProfileConstants {
                     e.printStackTrace();
                 }
             }
+        }
+    }
+
+    private static class ApiIdentifier {
+
+        private final String mPath;
+
+        private final DConnectApiSpec.Method mMethod;
+
+        public ApiIdentifier(final String path, final DConnectApiSpec.Method method) {
+            if (path == null) {
+                throw new IllegalArgumentException("path is null.");
+            }
+            if (method == null) {
+                throw new IllegalArgumentException("method is null.");
+            }
+            mPath = path;
+            mMethod = method;
+        }
+
+        public ApiIdentifier(final String path, final String method) {
+            this(path, DConnectApiSpec.Method.parse(method));
+        }
+
+        @Override
+        public int hashCode() {
+            int result = mPath.toLowerCase().hashCode(); // XXXX パスの大文字小文字を無視
+            result = 31 * result + mMethod.hashCode();
+            return result;
+        }
+
+        @Override
+        public boolean equals(final Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (!(o instanceof ApiIdentifier)) {
+                return false;
+            }
+            ApiIdentifier that = ((ApiIdentifier) o);
+            // XXXX パスの大文字小文字を無視
+            return mPath.equalsIgnoreCase(that.mPath) && mMethod == that.mMethod;
         }
     }
 }

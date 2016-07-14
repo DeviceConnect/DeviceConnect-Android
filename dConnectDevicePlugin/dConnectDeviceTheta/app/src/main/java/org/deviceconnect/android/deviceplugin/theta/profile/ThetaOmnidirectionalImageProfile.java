@@ -22,12 +22,13 @@ import org.deviceconnect.android.deviceplugin.theta.ThetaDeviceService;
 import org.deviceconnect.android.deviceplugin.theta.core.SphericalViewParam;
 import org.deviceconnect.android.deviceplugin.theta.core.SphericalViewRenderer;
 import org.deviceconnect.android.deviceplugin.theta.core.sensor.HeadTracker;
-import org.deviceconnect.android.deviceplugin.theta.profile.param.BooleanParamDefinition;
-import org.deviceconnect.android.deviceplugin.theta.profile.param.DoubleParamDefinition;
-import org.deviceconnect.android.deviceplugin.theta.profile.param.ParamDefinitionSet;
 import org.deviceconnect.android.deviceplugin.theta.utils.MixedReplaceMediaServer;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.OmnidirectionalImageProfile;
+import org.deviceconnect.android.profile.api.DConnectApi;
+import org.deviceconnect.android.profile.api.DeleteApi;
+import org.deviceconnect.android.profile.api.GetApi;
+import org.deviceconnect.android.profile.api.PutApi;
 import org.deviceconnect.message.DConnectMessage;
 
 import java.io.FileNotFoundException;
@@ -49,18 +50,6 @@ import java.util.concurrent.TimeUnit;
 public class ThetaOmnidirectionalImageProfile extends OmnidirectionalImageProfile
     implements MixedReplaceMediaServer.ServerEventListener {
 
-    /**
-     * The service ID of ROI Image Service.
-     */
-    public static final String SERVICE_ID = "roi";
-
-    /**
-     * The name of ROI Image Service.
-     */
-    public static final String SERVICE_NAME = "ROI Image Service";
-
-    private final ParamDefinitionSet mParamSet;
-
     private final Object mLockObj = new Object();
 
     private MixedReplaceMediaServer mServer;
@@ -73,74 +62,81 @@ public class ThetaOmnidirectionalImageProfile extends OmnidirectionalImageProfil
 
     private final Handler mHandler;
 
-    {
-        mParamSet = new ParamDefinitionSet();
-        mParamSet.add(new DoubleParamDefinition(PARAM_X, null));
-        mParamSet.add(new DoubleParamDefinition(PARAM_Y, null));
-        mParamSet.add(new DoubleParamDefinition(PARAM_Z, null));
-        mParamSet.add(new DoubleParamDefinition(PARAM_ROLL, new DoubleParamDefinition.Range() {
-            @Override
-            public boolean validate(final double v) {
-                return 0.0 <= v && v < 360.0;
+    private final DConnectApi mGetViewApi = new GetApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ROI;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            requestView(request, response, getServiceID(request), getSource(request), true);
+            return false;
+        }
+    };
+
+    private final DConnectApi mPutViewApi = new PutApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ROI;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            requestView(request, response, getServiceID(request), getSource(request), false);
+            return false;
+        }
+    };
+
+    private final DConnectApi mDeleteViewApi = new DeleteApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ROI;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            Viewer viewer = mViewers.remove(omitParameters(getURI(request)));
+            if (viewer != null) {
+                viewer.stop();
+                mServer.stopMedia(viewer.getId());
             }
-        }));
-        mParamSet.add(new DoubleParamDefinition(PARAM_YAW, new DoubleParamDefinition.Range() {
-            @Override
-            public boolean validate(final double v) {
-                return 0.0 <= v && v < 360.0;
+            setResult(response, DConnectMessage.RESULT_OK);
+            return true;
+        }
+    };
+
+    private final DConnectApi mPutSettingsApi = new PutApi() {
+        @Override
+        public String getInterface() {
+            return INTERFACE_ROI;
+        }
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_SETTINGS;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            final Viewer viewer = mViewers.get(omitParameters(getURI(request)));
+            if (viewer == null) {
+                MessageUtils.setInvalidRequestParameterError(response, "The specified media is not found.");
+                return true;
             }
-        }));
-        mParamSet.add(new DoubleParamDefinition(PARAM_PITCH, new DoubleParamDefinition.Range() {
-            @Override
-            public boolean validate(final double v) {
-                return 0.0 <= v && v < 360.0;
-            }
-        }));
-        mParamSet.add(new DoubleParamDefinition(PARAM_FOV, new DoubleParamDefinition.Range() {
-            @Override
-            public boolean validate(final double v) {
-                return 0.0 < v && v < 180.0;
-            }
-        }));
-        mParamSet.add(new DoubleParamDefinition(PARAM_SPHERE_SIZE, new DoubleParamDefinition.Range() {
-            @Override
-            public boolean validate(final double v) {
-                return SphericalViewRenderer.Z_NEAR < v && v < SphericalViewRenderer.Z_FAR;
-            }
-        }));
-        mParamSet.add(new DoubleParamDefinition(PARAM_WIDTH, new DoubleParamDefinition.Range() {
-            @Override
-            public boolean validate(final double v) {
-                return 0.0 < v;
-            }
-        }));
-        mParamSet.add(new DoubleParamDefinition(PARAM_HEIGHT, new DoubleParamDefinition.Range() {
-            @Override
-            public boolean validate(final double v) {
-                return 0.0 < v;
-            }
-        }));
-        mParamSet.add(new BooleanParamDefinition(PARAM_STEREO));
-        mParamSet.add(new BooleanParamDefinition(PARAM_VR));
-    }
+            viewer.setParameter(parseParam(request));
+            setResult(response, DConnectMessage.RESULT_OK);
+            return true;
+        }
+    };
 
     public ThetaOmnidirectionalImageProfile(final HeadTracker tracker) {
         mHeadTracker = tracker;
         mHandler = new Handler(Looper.getMainLooper());
-    }
-
-    @Override
-    protected boolean onGetView(final Intent request, final Intent response, final String serviceId,
-                                final String source) {
-        requestView(request, response, serviceId, source, true);
-        return false;
-    }
-
-    @Override
-    protected boolean onPutView(final Intent request, final Intent response, final String serviceId,
-                                final String source) {
-        requestView(request, response, serviceId, source, false);
-        return false;
+        addApi(mGetViewApi);
+        addApi(mPutViewApi);
+        addApi(mDeleteViewApi);
+        addApi(mPutSettingsApi);
     }
 
     private String startMediaServer() {
@@ -161,11 +157,6 @@ public class ThetaOmnidirectionalImageProfile extends OmnidirectionalImageProfil
         mExecutor.execute(new Runnable() {
             @Override
             public void run() {
-                if (!checkServiceId(serviceId)) {
-                    MessageUtils.setNotFoundServiceError(response);
-                    ((ThetaDeviceService) getContext()).sendResponse(response);
-                    return;
-                }
                 try {
                     final String serverUri = startMediaServer();
                     final String id = generateId();
@@ -301,50 +292,6 @@ public class ThetaOmnidirectionalImageProfile extends OmnidirectionalImageProfil
     }
 
     @Override
-    protected boolean onDeleteView(final Intent request, final Intent response, final String serviceId,
-                                   final String uri) {
-        if (!checkServiceId(serviceId)) {
-            MessageUtils.setNotFoundServiceError(response);
-            return true;
-        }
-        if (uri == null) {
-            MessageUtils.setInvalidRequestParameterError(response, "uri is not specified.");
-            return true;
-        }
-        Viewer viewer = mViewers.remove(omitParameters(uri));
-        if (viewer != null) {
-            viewer.stop();
-            mServer.stopMedia(viewer.getId());
-        }
-        setResult(response, DConnectMessage.RESULT_OK);
-        return true;
-    }
-
-    @Override
-    protected boolean onPutSettings(final Intent request, final Intent response, final String serviceId,
-                                    final String uri) {
-        if (!checkServiceId(serviceId)) {
-            MessageUtils.setNotFoundServiceError(response);
-            return true;
-        }
-        if (uri == null) {
-            MessageUtils.setInvalidRequestParameterError(response, "uri is not specified.");
-            return true;
-        }
-        if (!mParamSet.validateRequest(request, response)) {
-            return true;
-        }
-        final Viewer viewer = mViewers.get(omitParameters(uri));
-        if (viewer == null) {
-            MessageUtils.setInvalidRequestParameterError(response, "The specified media is not found.");
-            return true;
-        }
-        viewer.setParameter(parseParam(request));
-        setResult(response, DConnectMessage.RESULT_OK);
-        return true;
-    }
-
-    @Override
     public byte[] onConnect(final MixedReplaceMediaServer.Request request) {
         String resourceUri = request.getUri();
         Viewer viewer = mViewers.get(resourceUri);
@@ -369,13 +316,6 @@ public class ThetaOmnidirectionalImageProfile extends OmnidirectionalImageProfil
     @Override
     public void onCloseServer() {
         mViewers.clear();
-    }
-
-    private boolean checkServiceId(final String serviceId) {
-        if (TextUtils.isEmpty(serviceId)) {
-            return false;
-        }
-        return serviceId.equals(SERVICE_ID);
     }
 
     private String omitParameters(final String uri) {

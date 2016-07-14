@@ -23,32 +23,32 @@ public interface TouchProfileConstants extends DConnectProfileConstants {
     /**
      * Attribute: {@value} .
      */
-    String ATTRIBUTE_ON_TOUCH = "ontouch";
+    String ATTRIBUTE_ON_TOUCH = "onTouch";
 
     /**
      * Attribute: {@value} .
      */
-    String ATTRIBUTE_ON_TOUCH_START = "ontouchstart";
+    String ATTRIBUTE_ON_TOUCH_START = "onTouchStart";
 
     /**
      * Attribute: {@value} .
      */
-    String ATTRIBUTE_ON_TOUCH_END = "ontouchend";
+    String ATTRIBUTE_ON_TOUCH_END = "onTouchEnd";
 
     /**
      * Attribute: {@value} .
      */
-    String ATTRIBUTE_ON_DOUBLE_TAP = "ondoubletap";
+    String ATTRIBUTE_ON_DOUBLE_TAP = "onDoubleTap";
 
     /**
      * Attribute: {@value} .
      */
-    String ATTRIBUTE_ON_TOUCH_MOVE = "ontouchmove";
+    String ATTRIBUTE_ON_TOUCH_MOVE = "onTouchMove";
 
     /**
      * Attribute: {@value} .
      */
-    String ATTRIBUTE_ON_TOUCH_CANCEL = "ontouchcancel";
+    String ATTRIBUTE_ON_TOUCH_CANCEL = "onTouchCancel";
 
     /**
      * Path: {@value} .

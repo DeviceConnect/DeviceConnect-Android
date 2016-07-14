@@ -2,13 +2,13 @@
 <deviceplugin-provider xmlns:android="http://schemas.android.com/apk/res/android" >
 
     <!-- dConnect Standard Profiles -->
-    <profile name="servicediscovery" expireperiod="86400000">
+    <profile name="serviceDiscovery" expireperiod="86400000">
         <name lang="ja">デバイス検索 (テスト用)</name>
         <description lang="ja">周辺のデバイスを検索する (テスト用)</description>
         <name lang="en">Network Service Discovery (for test)</name>
         <description lang="en">Searches near devices. (for test)</description>
     </profile>
-    <profile name="serviceinformation" expireperiod="86400000">
+    <profile name="serviceInformation" expireperiod="86400000">
         <name lang="ja">デバイス情報 (テスト用)</name>
         <description lang="ja">デバイス情報を取得する (テスト用)</description>
         <name lang="en">Service Information (for test)</name>
@@ -44,7 +44,7 @@
         <name lang="en">Settings (for test)</name>
         <description lang="en">Settings of devices (for test)</description>
     </profile>
-    <profile name="deviceorientation" expireperiod="86400000">
+    <profile name="deviceOrientation" expireperiod="86400000">
         <name lang="ja">デバイスの向き (テスト用)</name>
         <description lang="ja">デバイスの向きを取得する (テスト用)</description>
         <name lang="en">Device Orientation (for test)</name>
@@ -56,7 +56,7 @@
         <name lang="en">File (for test)</name>
         <description lang="en">Accesses files in devices. (for test)</description>
     </profile>
-    <profile name="file_descriptor" expireperiod="86400000">
+    <profile name="fileDescriptor" expireperiod="86400000">
         <name lang="ja">ファイルディスクリプタ (テスト用)</name>
         <description lang="ja">ファイルディスクリプタ機能にアクセスする (テスト用)</description>
         <name lang="en">File Descriptor (for test)</name>
@@ -74,7 +74,7 @@
         <name lang="en">Connect (for test)</name>
         <description lang="en">Connects smart phone to devices. (for test)</description>
     </profile>
-    <profile name="mediastream_recording" expireperiod="86400000">
+    <profile name="mediaStreamRecording" expireperiod="86400000">
         <name lang="ja">メディアレコーディング (テスト用)</name>
         <description lang="ja">メディアレコーディング機能にアクセスする (テスト用)</description>
         <name lang="en">MediaStream Recording(for test)</name>
@@ -86,7 +86,7 @@
         <name lang="en">Phone (for test)</name>
         <description lang="en">Accesses phone feature. (for test)</description>
     </profile>
-    <profile name="media_player" expireperiod="86400000">
+    <profile name="mediaPlayer" expireperiod="86400000">
         <name lang="ja">メディアプレイヤー (テスト用)</name>
         <description lang="ja">メディアプレイヤー機能にアクセスする (テスト用)</description>
         <name lang="en">Media Player (for test)</name>
@@ -100,6 +100,24 @@
     </profile>
     
     <!-- Unique Profile -->
+    <profile name="driveController" expireperiod="86400000">
+        <name lang="ja">Drive Controller (テスト用)</name>
+        <description lang="ja">Drive Controllerにアクセスする (テスト用)</description>
+        <name lang="en">Drive Controller (for test)</name>
+        <description lang="en">Accesses to drive controllers. (for test)</description>
+    </profile>
+    <profile name="remoteController" expireperiod="86400000">
+        <name lang="ja">Remote Controller (テスト用)</name>
+        <description lang="ja">Remote Controllerにアクセスする (テスト用)</description>
+        <name lang="en">Remote Controller (for test)</name>
+        <description lang="en">Accesses to remote controllers. (for test)</description>
+    </profile>
+    <profile name="omnidirectionalImage" expireperiod="86400000">
+        <name lang="ja">Omnidirectional Image (テスト用)</name>
+        <description lang="ja">Omnidirectional Imageにアクセスする (テスト用)</description>
+        <name lang="en">Omnidirectional Image (for test)</name>
+        <description lang="en">Accesses to omnidirectional images. (for test)</description>
+    </profile>
     <profile name="unique" expireperiod="86400000">
         <name lang="ja">独自プロファイル</name>
         <description lang="ja">独自プロファイルにアクセスする (テスト用)</description>

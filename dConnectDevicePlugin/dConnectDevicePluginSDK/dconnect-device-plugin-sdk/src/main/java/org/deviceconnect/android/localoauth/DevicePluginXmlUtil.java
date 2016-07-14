@@ -6,14 +6,6 @@
  */
 package org.deviceconnect.android.localoauth;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-
-import org.deviceconnect.android.BuildConfig;
-import org.xmlpull.v1.XmlPullParser;
-import org.xmlpull.v1.XmlPullParserException;
-
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.pm.ActivityInfo;
@@ -21,6 +13,14 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.XmlResourceParser;
+
+import org.deviceconnect.android.BuildConfig;
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * デバイスプラグインxml関連ユーティリティ.

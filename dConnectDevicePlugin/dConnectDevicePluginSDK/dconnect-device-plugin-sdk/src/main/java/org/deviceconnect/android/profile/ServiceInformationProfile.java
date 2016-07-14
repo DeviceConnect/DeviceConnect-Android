@@ -6,41 +6,35 @@
  */
 package org.deviceconnect.android.profile;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.deviceconnect.android.message.MessageUtils;
-import org.deviceconnect.message.DConnectMessage;
-import org.deviceconnect.profile.ServiceInformationProfileConstants;
-
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.Bundle;
 
+import org.deviceconnect.android.profile.api.DConnectApi;
+import org.deviceconnect.android.profile.api.GetApi;
+import org.deviceconnect.android.profile.spec.DConnectApiSpec;
+import org.deviceconnect.android.profile.spec.DConnectRequestParamSpec;
+import org.deviceconnect.android.profile.spec.IntegerRequestParamSpec;
+import org.deviceconnect.android.profile.spec.NumberRequestParamSpec;
+import org.deviceconnect.android.profile.spec.StringRequestParamSpec;
+import org.deviceconnect.message.DConnectMessage;
+import org.deviceconnect.profile.ServiceInformationProfileConstants;
+
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Service Information プロファイル.
  * 
  * <p>
- * サービス情報を提供するAPI.<br>
- * サービス情報を提供するデバイスプラグインは当クラスを継承し、対応APIを実装すること。 <br>
+ * サービス情報を提供するAPI.
  * </p>
- * 
- * <h1>各API提供メソッド</h1>
- * <p>
- * System Profile の各APIへのリクエストに対し、以下のコールバックメソッド群が自動的に呼び出される。<br>
- * サブクラスは以下のメソッド群からデバイスプラグインが提供するAPI用のメソッドをオーバーライドし、機能を実装すること。<br>
- * オーバーライドされていない機能は自動的に非対応APIとしてレスポンスを返す。
- * </p>
- * <ul>
- * <li>System API [GET] :
- * {@link ServiceInformationProfile#onGetInformation(Intent, Intent, String)}</li>
- * </ul>
  * 
  * @author NTT DOCOMO, INC.
  */
-public abstract class ServiceInformationProfile extends DConnectProfile implements ServiceInformationProfileConstants {
+public class ServiceInformationProfile extends DConnectProfile implements ServiceInformationProfileConstants {
 
     /**
      * 設定画面起動用IntentのパラメータオブジェクトのExtraキー.
@@ -48,26 +42,45 @@ public abstract class ServiceInformationProfile extends DConnectProfile implemen
     public static final String SETTING_PAGE_PARAMS = "org.deviceconnect.profile.system.setting_params";
 
     /**
-     * プロファイルプロバイダー.
+     * Service Information API.
      */
-    private final DConnectProfileProvider mProvider;
+    private final DConnectApi mServiceInformationApi = new GetApi() {
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String serviceId = getService().getId();
+
+            // connect
+            Bundle connect = new Bundle();
+            setWifiState(connect, getWifiState(serviceId));
+            setBluetoothState(connect, getBluetoothState(serviceId));
+            setNFCState(connect, getNFCState(serviceId));
+            setBLEState(connect, getBLEState(serviceId));
+            setConnect(response, connect);
+
+            // version
+            setVersion(response, getCurrentVersionName());
+
+            // supports, supportApis
+            List<DConnectProfile> profileList = getService().getProfileList();
+            String[] profileNames = new String[profileList.size()];
+            int i = 0;
+            for (DConnectProfile profile : profileList) {
+                profileNames[i++] = profile.getProfileName();
+            }
+            setSupports(response, profileNames);
+            setSupportApis(response, profileList);
+
+            setResult(response, DConnectMessage.RESULT_OK);
+            return true;
+        }
+    };
 
     /**
-     * 指定されたプロファイルプロバイダーをもつSystemプロファイルを生成する.
-     * 
-     * @param provider プロファイルプロバイダー
+     * ServiceInformationプロファイルを生成する.
      */
-    public ServiceInformationProfile(final DConnectProfileProvider provider) {
-        this.mProvider = provider;
-    }
-
-    /**
-     * プロファイルプロバイダーを取得する.
-     * 
-     * @return プロファイルプロバイダー
-     */
-    protected DConnectProfileProvider getProfileProvider() {
-        return mProvider;
+    public ServiceInformationProfile() {
+        addApi(mServiceInformationApi);
     }
 
     @Override
@@ -135,61 +148,6 @@ public abstract class ServiceInformationProfile extends DConnectProfile implemen
         return ConnectState.NONE;
     }
 
-    @Override
-    protected boolean onGetRequest(final Intent request, final Intent response) {
-        String attribute = getAttribute(request);
-        boolean result = true;
-        String serviceId = getServiceID(request);
-
-        if (attribute == null) {
-            result = onGetInformation(request, response, serviceId);
-        } else {
-            MessageUtils.setUnknownAttributeError(response);
-        }
-
-        return result;
-    }
-
-    // ------------------------------------
-    // GET
-    // ------------------------------------
-
-    /**
-     * 周辺機器のサービス情報取得リクエストハンドラー.<br>
-     * 周辺機器のサービス情報取得を提供し、その結果をレスポンスパラメータに格納する。
-     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
-     * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
-     * このメソッドでは自動的にサービス情報を返信する。返信処理に変更を加えたい場合はオーバーライドし、処理を上書きすること。
-     * 
-     * @param request リクエストパラメータ
-     * @param response レスポンスパラメータ
-     * @param serviceId サービスID
-     * @return レスポンスパラメータを送信するか否か
-     */
-    protected boolean onGetInformation(final Intent request, final Intent response, final String serviceId) {
-
-        // connect
-        Bundle connect = new Bundle();
-        setWifiState(connect, getWifiState(serviceId));
-        setBluetoothState(connect, getBluetoothState(serviceId));
-        setNFCState(connect, getNFCState(serviceId));
-        setBLEState(connect, getBLEState(serviceId));
-        setConnect(response, connect);
-
-        // version
-        setVersion(response, getCurrentVersionName());
-
-        // supports
-        ArrayList<String> profiles = new ArrayList<String>();
-        for (DConnectProfile profile : mProvider.getProfileList()) {
-            profiles.add(profile.getProfileName());
-        }
-        setSupports(response, profiles.toArray(new String[0]));
-        setResult(response, DConnectMessage.RESULT_OK);
-
-        return true;
-    }
-
     // ------------------------------------
     // レスポンスセッターメソッド群
     // ------------------------------------
@@ -209,6 +167,7 @@ public abstract class ServiceInformationProfile extends DConnectProfile implemen
      * 
      * @param response レスポンスパラメータ
      * @param supports サポートしているI/F一覧
+     * @see #setSupportApis(Intent, List)
      */
     public static void setSupports(final Intent response, final String[] supports) {
         response.putExtra(PARAM_SUPPORTS, supports);
@@ -219,9 +178,130 @@ public abstract class ServiceInformationProfile extends DConnectProfile implemen
      * 
      * @param response レスポンスパラメータ
      * @param supports サポートしているI/F一覧
+     * @deprecated
+     * @see #setSupportApis(Intent, List)
      */
     public static void setSupports(final Intent response, final List<String> supports) {
         setSupports(response, supports.toArray(new String[supports.size()]));
+    }
+
+    public static void setSupportApis(final Intent response, final List<DConnectProfile> profileList) {
+        Bundle supportApisBundle = new Bundle();
+        for (DConnectProfile profile : profileList) {
+            String key = profile.getProfileName();
+            Bundle[] supportApis = createSupportApis(profile);
+            supportApisBundle.putParcelableArray(key, supportApis);
+        }
+        response.putExtra(PARAM_SUPPORT_APIS, supportApisBundle);
+    }
+
+    public static Bundle[] createSupportApis(final DConnectProfile profile) {
+        List<Bundle> supports = new ArrayList<Bundle>();
+        for (DConnectApi api : profile.getApiList()) {
+            Bundle support = new Bundle();
+            DConnectApiSpec spec = api.getApiSpec();
+            if (spec != null) {
+                setSupportApi(support, spec);
+            }
+            supports.add(support);
+        }
+        return supports.toArray(new Bundle[supports.size()]);
+    }
+
+    public static void setSupportApi(final Bundle api, final DConnectApiSpec spec) {
+        setSupportApiName(api, spec.getName());
+        setSupportApiMethod(api, spec.getMethod().getName());
+        setSupportApiPath(api, spec.getPath());
+        setSupportApiParams(api, spec.getRequestParamList());
+    }
+
+    public static void setSupportApiName(final Bundle api, final String name) {
+        api.putString(PARAM_NAME, name);
+    }
+
+    public static void setSupportApiMethod(final Bundle api, final String method) {
+        api.putString(PARAM_METHOD, method);
+    }
+
+    public static void setSupportApiPath(final Bundle api, final String path) {
+        api.putString(PARAM_PATH, path);
+    }
+
+    public static void setSupportApiParams(final Bundle api, final DConnectRequestParamSpec[] paramSpecs) {
+        ArrayList<Bundle> params = new ArrayList<Bundle>();
+        for (DConnectRequestParamSpec paramSpec : paramSpecs) {
+            Bundle param = new Bundle();
+            setRequestParam(param, paramSpec);
+            params.add(param);
+        }
+        api.putParcelableArrayList(PARAM_REQUEST_PARAMS, params);
+    }
+
+    public static void setRequestParam(final Bundle param, final DConnectRequestParamSpec paramSpec) {
+        param.putString(PARAM_NAME, paramSpec.getName());
+        param.putString(PARAM_TYPE, paramSpec.getType().getName());
+        param.putBoolean(PARAM_MANDATORY, paramSpec.isMandatory());
+
+        if (paramSpec instanceof IntegerRequestParamSpec) {
+            IntegerRequestParamSpec intParamSpec = (IntegerRequestParamSpec) paramSpec;
+            param.putString(PARAM_FORMAT, intParamSpec.getFormat().getName());
+            if (intParamSpec.getEnumList() != null) {
+                ArrayList<Bundle> enums = new ArrayList<Bundle>();
+                for (DConnectRequestParamSpec.Enum<Long> e : intParamSpec.getEnumList()) {
+                    Bundle b = new Bundle();
+                    b.putString(PARAM_NAME, e.getName());
+                    b.putLong(PARAM_VALUE, e.getValue());
+                    enums.add(b);
+                }
+                param.putParcelableArrayList(PARAM_ENUM, enums);
+            }
+            if (intParamSpec.getMaxValue() != null) {
+                param.putLong(PARAM_MAX_VALUE, intParamSpec.getMaxValue());
+            }
+            if (intParamSpec.getMinValue() != null) {
+                param.putLong(PARAM_MIN_VALUE, intParamSpec.getMinValue());
+            }
+            if (intParamSpec.getExclusiveMaxValue() != null) {
+                param.putLong(PARAM_EXCLUSIVE_MAX_VALUE, intParamSpec.getExclusiveMaxValue());
+            }
+            if (intParamSpec.getExclusiveMinValue() != null) {
+                param.putLong(PARAM_EXCLUSIVE_MIN_VALUE, intParamSpec.getExclusiveMinValue());
+            }
+        } else if (paramSpec instanceof NumberRequestParamSpec) {
+            NumberRequestParamSpec numParamSpec = (NumberRequestParamSpec) paramSpec;
+            param.putString(PARAM_FORMAT, numParamSpec.getFormat().getName());
+            if (numParamSpec.getMaxValue() != null) {
+                param.putDouble(PARAM_MAX_VALUE, numParamSpec.getMaxValue());
+            }
+            if (numParamSpec.getMinValue() != null) {
+                param.putDouble(PARAM_MIN_VALUE, numParamSpec.getMinValue());
+            }
+            if (numParamSpec.getExclusiveMaxValue() != null) {
+                param.putDouble(PARAM_EXCLUSIVE_MAX_VALUE, numParamSpec.getExclusiveMaxValue());
+            }
+            if (numParamSpec.getExclusiveMinValue() != null) {
+                param.putDouble(PARAM_EXCLUSIVE_MIN_VALUE, numParamSpec.getExclusiveMinValue());
+            }
+        } else if (paramSpec instanceof StringRequestParamSpec) {
+            StringRequestParamSpec strParamSpec = (StringRequestParamSpec) paramSpec;
+            param.putString(PARAM_FORMAT, strParamSpec.getFormat().getName());
+            if (strParamSpec.getEnumList() != null) {
+                ArrayList<Bundle> enums = new ArrayList<Bundle>();
+                for (DConnectRequestParamSpec.Enum<String> e : strParamSpec.getEnumList()) {
+                    Bundle b = new Bundle();
+                    b.putString(PARAM_NAME, e.getName());
+                    b.putString(PARAM_VALUE, e.getValue());
+                    enums.add(b);
+                }
+                param.putParcelableArrayList(PARAM_ENUM, enums);
+            }
+            if (strParamSpec.getMaxLength() != null) {
+                param.putLong(PARAM_MAX_LENGTH, strParamSpec.getMaxLength());
+            }
+            if (strParamSpec.getMinLength() != null) {
+                param.putLong(PARAM_MIN_LENGTH, strParamSpec.getMinLength());
+            }
+        }
     }
 
     /**

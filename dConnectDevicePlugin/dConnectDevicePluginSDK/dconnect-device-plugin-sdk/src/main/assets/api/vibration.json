@@ -1,0 +1,33 @@
+[
+    {
+        "name": "Vibration Start API",
+        "type": "one-shot",
+        "method": "PUT",
+        "path": "/gotapi/vibration/vibrate",
+        "requestParams": [
+            {
+                "name": "serviceId",
+                "type": "string",
+                "mandatory": true
+            },
+            {
+                "name": "pattern",
+                "type": "string",
+                "mandatory": false
+            }
+        ]
+    },
+    {
+        "name": "Vibration Stop API",
+        "type": "one-shot",
+        "method": "DELETE",
+        "path": "/gotapi/vibration/vibrate",
+        "requestParams": [
+            {
+                "name": "serviceId",
+                "type": "string",
+                "mandatory": true
+            }
+        ]
+    }
+]

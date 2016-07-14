@@ -22,6 +22,10 @@ import android.webkit.MimeTypeMap;
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.FileProfile;
+import org.deviceconnect.android.profile.api.DConnectApi;
+import org.deviceconnect.android.profile.api.DeleteApi;
+import org.deviceconnect.android.profile.api.GetApi;
+import org.deviceconnect.android.profile.api.PostApi;
 import org.deviceconnect.android.provider.FileManager;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
@@ -33,8 +37,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * File Profile.
@@ -52,27 +54,17 @@ public class HostFileProfile extends FileProfile {
     /** SimpleDataFormat. */
     private SimpleDateFormat mDataFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
 
-    /**
-     * コンストラクタ.
-     * 
-     * @param fileMgr ファイル管理クラス.
-     */
-    public HostFileProfile(final FileManager fileMgr) {
-        super(fileMgr);
-        mFileManager = fileMgr;
-    }
+    private final DConnectApi mGetReceiveApi = new GetApi() {
 
-    @Override
-    protected boolean onGetReceive(final Intent request, final Intent response, final String serviceId,
-            final String path) {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_RECEIVE;
+        }
 
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else if (path == null) {
-            MessageUtils.setInvalidRequestParameterError(response);
-        } else {
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String path = getPath(request);
+
             File mFile = null;
             String filePath = "";
 
@@ -92,36 +84,27 @@ public class HostFileProfile extends FileProfile {
             } else {
                 MessageUtils.setInvalidRequestParameterError(response, "not found:" + path);
             }
+            return true;
         }
-        return true;
-    }
+    };
 
-    /**
-     * OnList実装メソッド.
-     * 
-     * @param request リクエスト
-     * @param response レスポンス
-     * @param serviceId サービスID
-     * @param path リストを表示するパス
-     * @param mimeType MIME-TYPE
-     * @param order 並び順
-     * @param offset オフセット
-     * @param limit 配列の最大数
-     * @return 非同期処理を行っているため,falseとしておきスレッドで明示的にsendBroadcastで返却
-     */
-    @Override
-    protected boolean onGetList(final Intent request, final Intent response, final String serviceId, final String path,
-            final String mimeType, final String order, final Integer offset, final Integer limit) {
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-            return true;
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-            return true;
-        } else {
+    private final DConnectApi mGetListApi = new GetApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_LIST;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
             new Thread(new Runnable() {
                 @Override
                 public void run() {
+                    final String path = getPath(request);
+                    final String order = getOrder(request);
+                    final Integer limit = getLimit(request);
+                    final Integer offset = getOffset(request);
+
                     File tmpDir = null;
                     String mPath = null;
                     Boolean currentTop = false;
@@ -164,7 +147,7 @@ public class HostFileProfile extends FileProfile {
                             if (respFileList == null) {
                                 setResult(response, DConnectMessage.RESULT_ERROR);
                                 MessageUtils.setInvalidRequestParameterError(response,
-                                        "Dir is not exist:" + finalTmpDir);
+                                    "Dir is not exist:" + finalTmpDir);
                                 sendResponse(response);
                             } else if (order != null && !order.endsWith("desc") && !order.endsWith("asc")) {
                                 MessageUtils.setInvalidRequestParameterError(response);
@@ -172,7 +155,7 @@ public class HostFileProfile extends FileProfile {
                             } else {
                                 // Set arraylist from respFileList
                                 ArrayList<FileAttribute> filelist = new ArrayList<FileAttribute>();
-                                filelist = setArryList(respFileList, filelist);
+                                filelist = setArrayList(respFileList, filelist);
 
                                 // Sort
                                 filelist = sortFilelist(order, filelist);
@@ -268,14 +251,230 @@ public class HostFileProfile extends FileProfile {
                         @Override
                         public void onFail() {
                             MessageUtils.setIllegalServerStateError(response,
-                                    "Permission READ_EXTERNAL_STORAGE not granted.");
+                                "Permission READ_EXTERNAL_STORAGE not granted.");
                             sendResponse(response);
                         }
                     });
                 }
             }).start();
+            return false;
         }
-        return false;
+    };
+
+    private final DConnectApi mPostSendApi = new PostApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_SEND;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            final String path = getPath(request);
+            final byte[] data = getContentData(getURI(request));
+            getFileManager().saveFile(path, data, new FileManager.SaveFileCallback() {
+                @Override
+                public void onSuccess(@NonNull final String uri) {
+                    String mMineType = getMIMEType(getFileManager().getBasePath() + "/" + path);
+
+                    if (BuildConfig.DEBUG) {
+                        Log.i(TAG, "mMineType:" + mMineType);
+                    }
+
+                    // MimeTypeが不明の場合はエラーを返す
+                    if (mMineType == null) {
+                        MessageUtils.setInvalidRequestParameterError(response, "Not support format");
+                        setResult(response, DConnectMessage.RESULT_ERROR);
+                        sendResponse(response);
+                        return;
+                    }
+                    // 音楽データに関してはContents Providerに登録
+                    if (mMineType.endsWith("audio/mpeg") || mMineType.endsWith("audio/x-wav")
+                        || mMineType.endsWith("audio/mp4") || mMineType.endsWith("audio/ogg")
+                        || mMineType.endsWith("audio/mp3") || mMineType.endsWith("audio/x-ms-wma")) {
+
+                        MediaMetadataRetriever mMediaMeta = new MediaMetadataRetriever();
+                        mMediaMeta.setDataSource(getFileManager().getBasePath() + "/" + path);
+                        String mTitle = mMediaMeta.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
+                        String mComposer = mMediaMeta.extractMetadata(MediaMetadataRetriever.METADATA_KEY_COMPOSER);
+                        String mArtist = mMediaMeta.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST);
+                        String mDuration = mMediaMeta.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
+                        ContentResolver mContentResolver = getContext().getApplicationContext().getContentResolver();
+                        ContentValues mValues = new ContentValues();
+
+                        if (mTitle == null) {
+                            String[] array = path.split("/");
+                            mTitle = array[array.length - 1];
+                        }
+                        mValues.put(Audio.Media.TITLE, mTitle);
+                        mValues.put(Audio.Media.DISPLAY_NAME, mTitle);
+                        mValues.put(Audio.Media.COMPOSER, mComposer);
+                        mValues.put(Audio.Media.ARTIST, mArtist);
+                        mValues.put(Audio.Media.DURATION, mDuration);
+                        mValues.put(Audio.Media.MIME_TYPE, mMineType);
+                        mValues.put(Audio.Media.DATA, getFileManager().getBasePath() + "/" + path);
+                        mContentResolver.insert(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, mValues);
+                    } else if (mMineType.endsWith("video/mp4") || mMineType.endsWith("video/3gpp")
+                        || mMineType.endsWith("video/3gpp2") || mMineType.endsWith("video/mpeg")
+                        || mMineType.endsWith("video/m4v")) {
+                        MediaMetadataRetriever mMediaMeta = new MediaMetadataRetriever();
+                        mMediaMeta.setDataSource(getFileManager().getBasePath() + "/" + path);
+                        String mTitle = mMediaMeta.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
+                        String mArtist = mMediaMeta.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST);
+                        String mDuration = mMediaMeta.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
+                        ContentResolver mContentResolver = getContext().getApplicationContext().getContentResolver();
+                        ContentValues mValues = new ContentValues();
+
+                        mValues.put(Video.Media.TITLE, mTitle);
+                        mValues.put(Video.Media.DISPLAY_NAME, mTitle);
+                        mValues.put(Video.Media.ARTIST, mArtist);
+                        mValues.put(Video.Media.DURATION, mDuration);
+                        mValues.put(Video.Media.MIME_TYPE, mMineType);
+                        mValues.put(Video.Media.DATA, getFileManager().getBasePath() + "/" + path);
+                        mContentResolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, mValues);
+                    }
+
+                    setResult(response, DConnectMessage.RESULT_OK);
+                    sendResponse(response);
+                }
+
+                @Override
+                public void onFail(@NonNull final Throwable throwable) {
+                    setResult(response, DConnectMessage.RESULT_ERROR);
+                    MessageUtils.setInvalidRequestParameterError(response, "Path is null, you must input path.");
+                    sendResponse(response);
+                }
+            });
+            return false;
+        }
+    };
+
+    private DConnectApi mDeleteRemoveApi = new DeleteApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_REMOVE;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            final String path = getPath(request);
+            getFileManager().removeFile(path, new FileManager.RemoveFileCallback() {
+                @Override
+                public void onSuccess() {
+                    setResult(response, DConnectMessage.RESULT_OK);
+                    sendResponse(response);
+                }
+
+                @Override
+                public void onFail(@NonNull final Throwable throwable) {
+                    MessageUtils.setInvalidRequestParameterError(response, "Failed to remove file: " + path);
+                    sendResponse(response);
+                }
+            });
+            return false;
+        }
+    };
+
+    private final DConnectApi mPostMkdirApi = new PostApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_MKDIR;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            final String path = getPath(request);
+            getFileManager().checkWritePermission(new FileManager.CheckPermissionCallback() {
+                @Override
+                public void onSuccess() {
+                    File mBaseDir = mFileManager.getBasePath();
+                    File mMakeDir = new File(mBaseDir, path);
+
+                    if (mMakeDir.isDirectory()) {
+                        setResult(response, DConnectMessage.RESULT_ERROR);
+                        MessageUtils.setInvalidRequestParameterError(response,
+                            "can not make dir, \"" + mMakeDir + "\" already exist.");
+                    } else {
+                        boolean isMakeDir = mMakeDir.mkdirs();
+                        if (isMakeDir) {
+                            setResult(response, DConnectMessage.RESULT_OK);
+                        } else {
+                            setResult(response, DConnectMessage.RESULT_ERROR);
+                            MessageUtils.setInvalidRequestParameterError(response, "can not make dir :" + mMakeDir);
+                        }
+                    }
+                    sendResponse(response);
+                }
+
+                @Override
+                public void onFail() {
+                    MessageUtils.setIllegalServerStateError(response,
+                        "Permission WRITE_EXTERNAL_STORAGE not granted.");
+                    sendResponse(response);
+                }
+            });
+            return false;
+        }
+    };
+
+    private final DConnectApi mDeleteRmdirApi = new DeleteApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_RMDIR;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            final String path = getPath(request);
+            getFileManager().checkWritePermission(new FileManager.CheckPermissionCallback() {
+                @Override
+                public void onSuccess() {
+                    File mBaseDir = mFileManager.getBasePath();
+                    File mDeleteDir = new File(mBaseDir, path);
+
+                    if (mDeleteDir.isFile()) {
+                        setResult(response, DConnectMessage.RESULT_ERROR);
+                        MessageUtils.setInvalidRequestParameterError(response, mDeleteDir + "is file");
+                    } else {
+                        boolean isDelete = mDeleteDir.delete();
+                        if (isDelete) {
+                            setResult(response, DConnectMessage.RESULT_OK);
+                        } else {
+                            setResult(response, DConnectMessage.RESULT_ERROR);
+                            MessageUtils.setUnknownError(response, "can not delete dir :" + mDeleteDir);
+                        }
+                    }
+                    sendResponse(response);
+                }
+
+                @Override
+                public void onFail() {
+                    MessageUtils.setIllegalServerStateError(response,
+                        "Permission WRITE_EXTERNAL_STORAGE not granted.");
+                    sendResponse(response);
+                }
+            });
+            return false;
+        }
+    };
+
+    /**
+     * コンストラクタ.
+     * 
+     * @param fileMgr ファイル管理クラス.
+     */
+    public HostFileProfile(final FileManager fileMgr) {
+        super(fileMgr);
+        mFileManager = fileMgr;
+        addApi(mGetReceiveApi);
+        addApi(mGetListApi);
+        addApi(mPostSendApi);
+        addApi(mDeleteRemoveApi);
+        addApi(mPostMkdirApi);
+        addApi(mDeleteRmdirApi);
     }
 
     /**
@@ -335,7 +534,7 @@ public class HostFileProfile extends FileProfile {
      * @param filelist FileAttribute list.
      * @return FileAttribute list.
      */
-    protected ArrayList<FileAttribute> setArryList(final File[] respFileList, final ArrayList<FileAttribute> filelist) {
+    protected ArrayList<FileAttribute> setArrayList(final File[] respFileList, final ArrayList<FileAttribute> filelist) {
         for (File file : respFileList) {
             String path = file.getPath().replaceAll("" + mFileManager.getBasePath(), "");
             if (path == null) {
@@ -363,218 +562,6 @@ public class HostFileProfile extends FileProfile {
             filelist.add(fileAttr);
         }
         return filelist;
-    }
-
-    @Override
-    protected boolean onPostSend(final Intent request, final Intent response, final String serviceId, final String path,
-            final String mimeType, final byte[] data) {
-
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else if (path == null) {
-            MessageUtils.setInvalidRequestParameterError(response);
-        } else if (data == null) {
-            MessageUtils.setInvalidRequestParameterError(response, "data is null.");
-            return true;
-        } else {
-            getFileManager().saveFile(path, data, new FileManager.SaveFileCallback() {
-                @Override
-                public void onSuccess(@NonNull final String uri) {
-                    String mMineType = getMIMEType(getFileManager().getBasePath() + "/" + path);
-
-                    if (BuildConfig.DEBUG) {
-                        Log.i(TAG, "mMineType:" + mMineType);
-                    }
-
-                    // MimeTypeが不明の場合はエラーを返す
-                    if (mMineType == null) {
-                        MessageUtils.setInvalidRequestParameterError(response, "Not support format");
-                        setResult(response, DConnectMessage.RESULT_ERROR);
-                        sendResponse(response);
-                        return;
-                    }
-                    // 音楽データに関してはContents Providerに登録
-                    if (mMineType.endsWith("audio/mpeg") || mMineType.endsWith("audio/x-wav")
-                            || mMineType.endsWith("audio/mp4") || mMineType.endsWith("audio/ogg")
-                            || mMineType.endsWith("audio/mp3") || mMineType.endsWith("audio/x-ms-wma")) {
-
-                        MediaMetadataRetriever mMediaMeta = new MediaMetadataRetriever();
-                        mMediaMeta.setDataSource(getFileManager().getBasePath() + "/" + path);
-                        String mTitle = mMediaMeta.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
-                        String mComposer = mMediaMeta.extractMetadata(MediaMetadataRetriever.METADATA_KEY_COMPOSER);
-                        String mArtist = mMediaMeta.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST);
-                        String mDuration = mMediaMeta.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
-                        ContentResolver mContentResolver = getContext().getApplicationContext().getContentResolver();
-                        ContentValues mValues = new ContentValues();
-
-                        if (mTitle == null) {
-                            String[] array = path.split("/");
-                            mTitle = array[array.length - 1];
-                        }
-                        mValues.put(Audio.Media.TITLE, mTitle);
-                        mValues.put(Audio.Media.DISPLAY_NAME, mTitle);
-                        mValues.put(Audio.Media.COMPOSER, mComposer);
-                        mValues.put(Audio.Media.ARTIST, mArtist);
-                        mValues.put(Audio.Media.DURATION, mDuration);
-                        mValues.put(Audio.Media.MIME_TYPE, mMineType);
-                        mValues.put(Audio.Media.DATA, getFileManager().getBasePath() + "/" + path);
-                        mContentResolver.insert(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, mValues);
-                    } else if (mMineType.endsWith("video/mp4") || mMineType.endsWith("video/3gpp")
-                            || mMineType.endsWith("video/3gpp2") || mMineType.endsWith("video/mpeg")
-                            || mMineType.endsWith("video/m4v")) {
-                        MediaMetadataRetriever mMediaMeta = new MediaMetadataRetriever();
-                        mMediaMeta.setDataSource(getFileManager().getBasePath() + "/" + path);
-                        String mTitle = mMediaMeta.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
-                        String mArtist = mMediaMeta.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST);
-                        String mDuration = mMediaMeta.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
-                        ContentResolver mContentResolver = getContext().getApplicationContext().getContentResolver();
-                        ContentValues mValues = new ContentValues();
-
-                        mValues.put(Video.Media.TITLE, mTitle);
-                        mValues.put(Video.Media.DISPLAY_NAME, mTitle);
-                        mValues.put(Video.Media.ARTIST, mArtist);
-                        mValues.put(Video.Media.DURATION, mDuration);
-                        mValues.put(Video.Media.MIME_TYPE, mMineType);
-                        mValues.put(Video.Media.DATA, getFileManager().getBasePath() + "/" + path);
-                        mContentResolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, mValues);
-                    }
-
-                    setResult(response, DConnectMessage.RESULT_OK);
-                    sendResponse(response);
-                }
-
-                @Override
-                public void onFail(@NonNull final Throwable throwable) {
-                    setResult(response, DConnectMessage.RESULT_ERROR);
-                    MessageUtils.setInvalidRequestParameterError(response, "Path is null, you must input path.");
-                    sendResponse(response);
-                }
-            });
-            return false;
-        }
-        return true;
-    }
-
-    @Override
-    protected boolean onDeleteRemove(final Intent request, final Intent response, final String serviceId,
-            final String path) {
-
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else if (path == null) {
-            MessageUtils.setInvalidRequestParameterError(response);
-        } else {
-            getFileManager().removeFile(path, new FileManager.RemoveFileCallback() {
-                @Override
-                public void onSuccess() {
-                    setResult(response, DConnectMessage.RESULT_OK);
-                    sendResponse(response);
-                }
-
-                @Override
-                public void onFail(@NonNull final Throwable throwable) {
-                    MessageUtils.setInvalidRequestParameterError(response, "Failed to remove file: " + path);
-                    sendResponse(response);
-                }
-            });
-            return false;
-        }
-        return true;
-    }
-
-    @Override
-    protected boolean onPostMkdir(final Intent request, final Intent response, final String serviceId,
-            final String path) {
-
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else if (path == null) {
-            MessageUtils.setInvalidRequestParameterError(response);
-        } else {
-            getFileManager().checkWritePermission(new FileManager.CheckPermissionCallback() {
-                @Override
-                public void onSuccess() {
-                    File mBaseDir = mFileManager.getBasePath();
-                    File mMakeDir = new File(mBaseDir, path);
-
-                    if (mMakeDir.isDirectory()) {
-                        setResult(response, DConnectMessage.RESULT_ERROR);
-                        MessageUtils.setInvalidRequestParameterError(response,
-                                "can not make dir, \"" + mMakeDir + "\" already exist.");
-                    } else {
-                        boolean isMakeDir = mMakeDir.mkdirs();
-                        if (isMakeDir) {
-                            setResult(response, DConnectMessage.RESULT_OK);
-                        } else {
-                            setResult(response, DConnectMessage.RESULT_ERROR);
-                            MessageUtils.setInvalidRequestParameterError(response, "can not make dir :" + mMakeDir);
-                        }
-                    }
-                    sendResponse(response);
-                }
-
-                @Override
-                public void onFail() {
-                    MessageUtils.setIllegalServerStateError(response,
-                            "Permission WRITE_EXTERNAL_STORAGE not granted.");
-                    sendResponse(response);
-                }
-            });
-            return false;
-        }
-
-        return true;
-    }
-
-    @Override
-    protected boolean onDeleteRmdir(final Intent request, final Intent response, final String serviceId,
-            final String path, final boolean force) {
-
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else if (path == null) {
-            MessageUtils.setInvalidRequestParameterError(response);
-        } else {
-            getFileManager().checkWritePermission(new FileManager.CheckPermissionCallback() {
-                @Override
-                public void onSuccess() {
-                    File mBaseDir = mFileManager.getBasePath();
-                    File mDeleteDir = new File(mBaseDir, path);
-
-                    if (mDeleteDir.isFile()) {
-                        setResult(response, DConnectMessage.RESULT_ERROR);
-                        MessageUtils.setInvalidRequestParameterError(response, mDeleteDir + "is file");
-                    } else {
-                        boolean isDelete = mDeleteDir.delete();
-                        if (isDelete) {
-                            setResult(response, DConnectMessage.RESULT_OK);
-                        } else {
-                            setResult(response, DConnectMessage.RESULT_ERROR);
-                            MessageUtils.setUnknownError(response, "can not delete dir :" + mDeleteDir);
-                        }
-                    }
-                    sendResponse(response);
-                }
-
-                @Override
-                public void onFail() {
-                    MessageUtils.setIllegalServerStateError(response,
-                            "Permission WRITE_EXTERNAL_STORAGE not granted.");
-                    sendResponse(response);
-                }
-            });
-            return false;
-        }
-
-        return true;
     }
 
     /**
@@ -608,38 +595,6 @@ public class HostFileProfile extends FileProfile {
         ext = ext.toLowerCase(Locale.getDefault());
         // MIME Typeを返す
         return MimeTypeMap.getSingleton().getMimeTypeFromExtension(ext);
-    }
-
-    /**
-     * サービスIDをチェックする.
-     * 
-     * @param serviceId サービスID
-     * @return <code>serviceId</code>がテスト用サービスIDに等しい場合はtrue、そうでない場合はfalse
-     */
-    private boolean checkServiceId(final String serviceId) {
-        String regex = HostServiceDiscoveryProfile.SERVICE_ID;
-        Pattern mPattern = Pattern.compile(regex);
-        Matcher match = mPattern.matcher(serviceId);
-
-        return match.find();
-    }
-
-    /**
-     * サービスIDが空の場合のエラーを作成する.
-     * 
-     * @param response レスポンスを格納するIntent
-     */
-    private void createEmptyServiceId(final Intent response) {
-        MessageUtils.setEmptyServiceIdError(response);
-    }
-
-    /**
-     * デバイスが発見できなかった場合のエラーを作成する.
-     * 
-     * @param response レスポンスを格納するIntent
-     */
-    private void createNotFoundService(final Intent response) {
-        MessageUtils.setNotFoundServiceError(response);
     }
 
     /**

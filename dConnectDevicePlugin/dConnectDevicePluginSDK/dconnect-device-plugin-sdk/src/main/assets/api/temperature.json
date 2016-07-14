@@ -1,0 +1,15 @@
+[
+    {
+        "name": "Temperature API",
+        "type": "one-shot",
+        "method": "GET",
+        "path": "/gotapi/temperature",
+        "requestParams": [
+            {
+                "name": "serviceId",
+                "type": "string",
+                "mandatory": true
+            }
+        ]
+    }
+]

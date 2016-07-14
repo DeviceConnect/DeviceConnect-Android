@@ -14,7 +14,12 @@ import android.net.ConnectivityManager;
 import android.os.IBinder;
 import android.os.RemoteException;
 
+import org.deviceconnect.android.compat.MessageConverter;
+import org.deviceconnect.android.manager.compat.CompatibleRequestConverter;
+import org.deviceconnect.android.manager.compat.ServiceDiscoveryConverter;
+import org.deviceconnect.android.manager.compat.ServiceInformationConverter;
 import org.deviceconnect.android.manager.util.DConnectUtil;
+import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.server.DConnectServer;
 import org.deviceconnect.server.DConnectServerConfig;
@@ -51,6 +56,10 @@ public class DConnectService extends DConnectMessageService {
     /** イベント送信スレッド. */
     private ExecutorService mEventSender = Executors.newSingleThreadExecutor();
 
+    private MessageConverter[] mRequestConverters;
+
+    private MessageConverter[] mResponseConverters;
+
     @Override
     public IBinder onBind(final Intent intent) {
         return (IBinder) mBinder;
@@ -64,6 +73,13 @@ public class DConnectService extends DConnectMessageService {
     @Override
     public void onCreate() {
         super.onCreate();
+        mRequestConverters = new MessageConverter[] {
+            new CompatibleRequestConverter(mPluginMgr)
+        };
+        mResponseConverters = new MessageConverter[] {
+            new ServiceDiscoveryConverter(),
+            new ServiceInformationConverter()
+        };
     }
 
     @Override
@@ -86,26 +102,29 @@ public class DConnectService extends DConnectMessageService {
     public void sendEvent(final String receiver, final Intent event) {
         if (receiver == null || receiver.length() <= 0) {
             final String key = event.getStringExtra(DConnectMessage.EXTRA_SESSION_KEY);
-            if (key != null && mRESTfulServer != null && mRESTfulServer.isRunning()) {
                 mEventSender.execute(new Runnable() {
                     @Override
                     public void run() {
-                        try {
-                            if (BuildConfig.DEBUG) {
-                                mLogger.info(String.format("sendEvent: %s extra: %s", key, event.getExtras()));
-                            }
-                            JSONObject root = new JSONObject();
-                            DConnectUtil.convertBundleToJSON(root, event.getExtras());
+                        if (key != null && mRESTfulServer != null && mRESTfulServer.isRunning()) {
+                            try {
+                                if (BuildConfig.DEBUG) {
+                                    mLogger.info(String.format("sendEvent: %s extra: %s", key, event.getExtras()));
+                                }
+                                JSONObject root = new JSONObject();
+                                DConnectUtil.convertBundleToJSON(root, event.getExtras());
 
-                            mRESTfulServer.sendEvent(key, root.toString());
-                        } catch (JSONException e) {
-                            mLogger.warning("JSONException in sendEvent: " + e.toString());
-                        } catch (IOException e) {
-                            mLogger.warning("IOException in sendEvent: " + e.toString());
+                                mRESTfulServer.sendEvent(key, root.toString());
+                            } catch (JSONException e) {
+                                mLogger.warning("JSONException in sendEvent: " + e.toString());
+                            } catch (IOException e) {
+                                mLogger.warning("IOException in sendEvent: " + e.toString());
+                                if (mWebServerListener != null) {
+                                    mWebServerListener.onWebSocketDisconnected(key);
+                                }
+                            }
                         }
                     }
                 });
-            }
         } else {
             super.sendEvent(receiver, event);
         }
@@ -115,59 +134,70 @@ public class DConnectService extends DConnectMessageService {
      * HTTPサーバを開始する.
      */
     private void startRESTfulServer() {
-        mSettings.load(this);
+        mEventSender.execute(new Runnable() {
+            @Override
+            public void run() {
+                mSettings.load(getApplicationContext());
 
-        mWebServerListener = new DConnectServerEventListenerImpl(this);
-        mWebServerListener.setFileManager(mFileMgr);
+                mWebServerListener = new DConnectServerEventListenerImpl(getApplicationContext());
+                mWebServerListener.setFileManager(mFileMgr);
 
-        DConnectServerConfig.Builder builder = new DConnectServerConfig.Builder();
-        builder.port(mSettings.getPort()).isSsl(mSettings.isSSL())
-            .documentRootPath(getFilesDir().getAbsolutePath());
+                DConnectServerConfig.Builder builder = new DConnectServerConfig.Builder();
+                builder.port(mSettings.getPort()).isSsl(mSettings.isSSL())
+                        .documentRootPath(getFilesDir().getAbsolutePath());
 
-        if (!mSettings.allowExternalIP()) {
-            ArrayList<String> list = new ArrayList<>();
-            list.add("127.0.0.1");
-            list.add("::1");
-            builder.ipWhiteList(list);
-        }
+                if (!mSettings.allowExternalIP()) {
+                    ArrayList<String> list = new ArrayList<>();
+                    list.add("127.0.0.1");
+                    list.add("::1");
+                    builder.ipWhiteList(list);
+                }
 
-        if (BuildConfig.DEBUG) {
-            mLogger.info("RESTful Server was Started.");
-            mLogger.info("Host: " + mSettings.getHost());
-            mLogger.info("Port: " + mSettings.getPort());
-            mLogger.info("SSL: " + mSettings.isSSL());
-            mLogger.info("External IP: " + mSettings.allowExternalIP());
-        }
+                if (BuildConfig.DEBUG) {
+                    mLogger.info("RESTful Server was Started.");
+                    mLogger.info("Host: " + mSettings.getHost());
+                    mLogger.info("Port: " + mSettings.getPort());
+                    mLogger.info("SSL: " + mSettings.isSSL());
+                    mLogger.info("External IP: " + mSettings.allowExternalIP());
+                }
 
-        if (mRESTfulServer == null) {
-            mRESTfulServer = new DConnectServerNanoHttpd(builder.build(), this);
-            mRESTfulServer.setServerEventListener(mWebServerListener);
-            mRESTfulServer.start();
+                if (mRESTfulServer == null) {
+                    mRESTfulServer = new DConnectServerNanoHttpd(builder.build(), getApplicationContext());
+                    mRESTfulServer.setServerEventListener(mWebServerListener);
+                    mRESTfulServer.start();
 
-            IntentFilter filter = new IntentFilter();
-            filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
-            registerReceiver(mWiFiReceiver, filter);
-        }
+                    IntentFilter filter = new IntentFilter();
+                    filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
+                    registerReceiver(mWiFiReceiver, filter);
+                }
+            }
+        });
     }
 
     /**
      * HTTPサーバを停止する.
      */
     private void stopRESTfulServer() {
-        if (mRESTfulServer != null) {
-            unregisterReceiver(mWiFiReceiver);
-            mRESTfulServer.shutdown();
-            mRESTfulServer = null;
-        }
-        if (BuildConfig.DEBUG) {
-            mLogger.info("RESTful Server was Stopped.");
-        }
+        mEventSender.execute(new Runnable() {
+            @Override
+            public void run() {
+                if (mRESTfulServer != null) {
+                    unregisterReceiver(mWiFiReceiver);
+                    mRESTfulServer.shutdown();
+                    mRESTfulServer = null;
+                }
+
+                if (BuildConfig.DEBUG) {
+                    mLogger.info("RESTful Server was Stopped.");
+                }
+            }
+        });
     }
 
     /**
      * DConnectManagerを起動する.
      */
-    private synchronized void startInternal() {
+    private void startInternal() {
         if (!mRunningFlag) {
             mRunningFlag = true;
             startDConnect();
@@ -178,7 +208,7 @@ public class DConnectService extends DConnectMessageService {
     /**
      * DConnectManagerを停止する.
      */
-    private synchronized void stopInternal() {
+    private void stopInternal() {
         if (mRunningFlag) {
             mRunningFlag = false;
             stopRESTfulServer();
@@ -212,7 +242,7 @@ public class DConnectService extends DConnectMessageService {
     };
 
     /**
-     * ネットワークiの接続状態の変化を受け取るレシーバー.
+     * ネットワークの接続状態の変化を受け取るレシーバー.
      */
     private final BroadcastReceiver mWiFiReceiver = new BroadcastReceiver() {
         @Override
@@ -220,4 +250,61 @@ public class DConnectService extends DConnectMessageService {
             showNotification();
         }
     };
+
+    @Override
+    protected String parseProfileName(final Intent request) {
+        String profileName = super.parseProfileName(request);
+        if (profileName != null) {
+            //XXXX パスの大文字小文字を無視
+            profileName = profileName.toLowerCase();
+        }
+        return profileName;
+    }
+
+    @Override
+    public void addProfile(final DConnectProfile profile) {
+        if (profile != null) {
+            profile.setContext(this);
+            //XXXX パスの大文字小文字を無視
+            mProfileMap.put(profile.getProfileName().toLowerCase(), profile);
+        }
+    }
+
+    @Override
+    public void removeProfile(final DConnectProfile profile) {
+        if (profile != null) {
+            //XXXX パスの大文字小文字を無視
+            mProfileMap.remove(profile.getProfileName().toLowerCase());
+        }
+    }
+
+    @Override
+    public DConnectProfile getProfile(final String name) {
+        if (name == null) {
+            return null;
+        }
+        //XXXX パスの大文字小文字を無視
+        return mProfileMap.get(name.toLowerCase());
+    }
+
+    @Override
+    protected void sendDeliveryProfile(final Intent request, final Intent response) {
+        //XXXX パスの互換性を担保
+        for (MessageConverter converter : mRequestConverters) {
+            converter.convert(request);
+        }
+        super.sendDeliveryProfile(request, response);
+    }
+
+    @Override
+    protected Intent createResponseIntent(final Intent request, final Intent response) {
+        Intent result = super.createResponseIntent(request, response);
+
+        //XXXX パスの互換性の担保
+        for (MessageConverter converter : mResponseConverters) {
+            converter.convert(result);
+        }
+        return result;
+    }
+
 }

@@ -11,7 +11,6 @@ import android.os.Bundle;
 import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.slackmessagehook.profile.SlackMessageHookProfile;
-import org.deviceconnect.android.deviceplugin.slackmessagehook.profile.SlackMessageHookServiceDiscoveryProfile;
 import org.deviceconnect.android.deviceplugin.slackmessagehook.profile.SlackMessageHookSystemProfile;
 import org.deviceconnect.android.deviceplugin.slackmessagehook.setting.fragment.Utils;
 import org.deviceconnect.android.deviceplugin.slackmessagehook.slack.SlackManager;
@@ -19,9 +18,9 @@ import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.event.cache.MemoryCacheController;
 import org.deviceconnect.android.message.DConnectMessageService;
-import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
-import org.deviceconnect.android.profile.ServiceInformationProfile;
 import org.deviceconnect.android.profile.SystemProfile;
+import org.deviceconnect.android.service.DConnectService;
+import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -36,12 +35,16 @@ import java.util.regex.Pattern;
  */
 public class SlackMessageHookDeviceService extends DConnectMessageService implements SlackManager.SlackEventListener {
 
+    /** サービスID */
+    public static final String SERVICE_ID = "SlackMessageHook";
+
     /** メッセージ履歴保持時間（秒） */
     private static final int MESSAGE_HOLD_LIMIT = 60;
     /** メッセージ履歴 */
     private List<Bundle> eventHistory = new ArrayList<>();
     /** ユーザーリスト */
     private HashMap<String, SlackManager.ListInfo> userMap = new HashMap<>();
+
 
     @Override
     public void onCreate() {
@@ -52,7 +55,11 @@ public class SlackMessageHookDeviceService extends DConnectMessageService implem
         SlackManager.INSTANCE.addSlackEventListener(this);
 
         // Profile追加
-        addProfile(new SlackMessageHookProfile());
+        DConnectService service = new DConnectService(SERVICE_ID);
+        service.setName(SERVICE_ID);
+        service.setNetworkType(ServiceDiscoveryProfileConstants.NetworkType.WIFI);
+        service.addProfile(new SlackMessageHookProfile());
+        getServiceProvider().addService(service);
 
         // 接続
         if (Utils.getOnlineStatus(getContext())) {
@@ -73,20 +80,24 @@ public class SlackMessageHookDeviceService extends DConnectMessageService implem
     }
 
     @Override
-    protected ServiceInformationProfile getServiceInformationProfile() {
-        return new ServiceInformationProfile(this){};
-    }
-
-    @Override
-    protected ServiceDiscoveryProfile getServiceDiscoveryProfile() {
-        return new SlackMessageHookServiceDiscoveryProfile(this);
-    }
-
-    @Override
     public void OnConnect() {
+        // オンライン
+        DConnectService service = getServiceProvider().getService(SERVICE_ID);
+        if (service != null) {
+            service.setOnline(true);
+        }
         // ユーザーリスト取得
         if (SlackManager.INSTANCE.isConnected()) {
             fetchUserList();
+        }
+    }
+
+    @Override
+    public void OnConnectLost() {
+        // オフライン
+        DConnectService service = getServiceProvider().getService(SERVICE_ID);
+        if (service != null) {
+            service.setOnline(false);
         }
     }
 
@@ -106,7 +117,7 @@ public class SlackMessageHookDeviceService extends DConnectMessageService implem
      * @param mimeType MimeType
      */
     private void sendMessageEvent(String text, String channel, String user, Double ts, String url, String mimeType) {
-        String serviceId = SlackMessageHookServiceDiscoveryProfile.SERVICE_ID;
+        String serviceId = SERVICE_ID;
         String profile = SlackMessageHookProfile.PROFILE_NAME;
         String attribute = SlackMessageHookProfile.ATTRIBUTE_MESSAGE;
         List<Event> events = EventManager.INSTANCE.getEventList(serviceId, profile, null, attribute);

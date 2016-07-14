@@ -1,0 +1,87 @@
+[
+    {
+        "name": "Message Hook Get Channel API",
+        "type": "one-shot",
+        "method": "GET",
+        "path": "/gotapi/messageHook/channel",
+        "requestParams": [
+            {
+                "name": "serviceId",
+                "type": "string",
+                "mandatory": true
+            }
+        ]
+    },
+    {
+        "name": "Message Hook Send Message API",
+        "type": "one-shot",
+        "method": "POST",
+        "path": "/gotapi/messageHook/message",
+        "requestParams": [
+            {
+                "name": "serviceId",
+                "type": "string",
+                "mandatory": true
+            },
+            {
+                "name": "channelId",
+                "type": "string",
+                "mandatory": true
+            },
+            {
+                "name": "text",
+                "type": "string",
+                "mandatory": false
+            },
+            {
+                "name": "resource",
+                "type": "string",
+                "mandatory": false
+            },
+            {
+                "name": "mimeType",
+                "type": "string",
+                "mandatory": false
+            }
+        ]
+    },
+    {
+        "name": "Message Hook Received Message API",
+        "type": "event",
+        "method": "PUT",
+        "path": "/gotapi/messageHook/message",
+        "requestParams": [
+            {
+                "name": "serviceId",
+                "type": "string",
+                "mandatory": true
+            }
+        ]
+    },
+    {
+        "name": "Message Hook Received Message API",
+        "type": "event",
+        "method": "DELETE",
+        "path": "/gotapi/messageHook/message",
+        "requestParams": [
+            {
+                "name": "serviceId",
+                "type": "string",
+                "mandatory": true
+            }
+        ]
+    },
+    {
+        "name": "Message Hook Get Message API",
+        "type": "one-shot",
+        "method": "GET",
+        "path": "/gotapi/messageHook/message",
+        "requestParams": [
+            {
+                "name": "serviceId",
+                "type": "string",
+                "mandatory": true
+            }
+        ]
+    }
+]

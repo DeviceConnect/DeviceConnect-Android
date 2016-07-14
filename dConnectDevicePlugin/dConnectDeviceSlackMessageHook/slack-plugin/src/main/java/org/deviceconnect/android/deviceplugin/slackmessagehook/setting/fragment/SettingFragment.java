@@ -209,6 +209,11 @@ public class SettingFragment extends Fragment implements SlackManager.SlackEvent
     }
 
     @Override
+    public void OnConnectLost() {
+
+    }
+
+    @Override
     public void OnReceiveSlackMessage(SlackManager.HistoryInfo info) {
 
     }

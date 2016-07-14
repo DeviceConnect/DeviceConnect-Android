@@ -357,6 +357,11 @@ public class MessageListFragment extends ListFragment implements SlackManager.Sl
     }
 
     @Override
+    public void OnConnectLost() {
+
+    }
+
+    @Override
     public void OnReceiveSlackMessage(SlackManager.HistoryInfo info) {
         if (!info.channel.equals(mChannelId)) return;
         formatHistory(info);

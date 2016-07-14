@@ -113,6 +113,11 @@ public class SlackManager {
         void OnConnect();
 
         /**
+         * 切断イベント
+         */
+        void OnConnectLost();
+
+        /**
          * メッセージを受信したイベント.
          * @param info メッセージ
          */
@@ -399,6 +404,15 @@ public class SlackManager {
      * @param e 例外
      */
     private void callConnectionFinishCallback(final Exception e, Handler handler) {
+        if (connectState == CONNECT_STATE_DISCONNECTED) {
+            for (final SlackEventListener listener: slackEventListeners){
+                handler.post(new Runnable() {
+                    public void run() {
+                        listener.OnConnectLost();
+                    }
+                });
+            }
+        }
         if (connectionFinishCallback != null) {
             final FinishCallback callback = connectionFinishCallback;
             connectionFinishCallback = null;

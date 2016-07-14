@@ -8,7 +8,6 @@ package org.deviceconnect.android.deviceplugin.slackmessagehook.profile;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.slackmessagehook.SlackMessageHookDeviceService;
 import org.deviceconnect.android.deviceplugin.slackmessagehook.slack.SlackManager;
@@ -16,21 +15,36 @@ import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.MessageHookProfile;
+import org.deviceconnect.android.profile.api.DConnectApi;
+import org.deviceconnect.android.profile.api.DeleteApi;
+import org.deviceconnect.android.profile.api.GetApi;
+import org.deviceconnect.android.profile.api.PostApi;
+import org.deviceconnect.android.profile.api.PutApi;
 import org.deviceconnect.message.DConnectMessage;
 import org.json.JSONObject;
 
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
 
 /**
  * MessageHook プロファイルの実装クラス.
  * @author docomo
  */
 public class SlackMessageHookProfile extends MessageHookProfile {
+
+    /**
+     * コンストラクタ
+     */
+    public SlackMessageHookProfile() {
+        addApi(mGetMessageApi);
+        addApi(mGetChannelsApi);
+        addApi(mPostMessageApi);
+        addApi(mOnPutOnMessageReceivedApi);
+        addApi(mOnDeleteOnMessageReceivedApi);
+    }
+
 
     /**
      * ServiceIDチェック.
@@ -43,186 +57,248 @@ public class SlackMessageHookProfile extends MessageHookProfile {
             MessageUtils.setEmptyServiceIdError(response);
             return true;
         }
-        if (!SlackMessageHookServiceDiscoveryProfile.SERVICE_ID.equals(serviceId)) {
+        if (!SlackMessageHookDeviceService.SERVICE_ID.equals(serviceId)) {
             MessageUtils.setNotFoundServiceError(response);
             return true;
         }
         return false;
     }
 
-    @Override
-    protected boolean onGetMessage(Intent request, final Intent response, String serviceId) {
+    /**
+     * メッセージ取得API
+     */
+    private final DConnectApi mGetMessageApi = new GetApi() {
 
-        // ServiceIDチェック
-        if (checkServiceId(serviceId, response)) {
-            return true;
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_MESSAGE;
         }
 
-        // 接続チェック
-        if (!SlackManager.INSTANCE.isConnected()) {
-            MessageUtils.setUnknownError(response, "Not connected to the Slack server");
-            return true;
-        }
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
 
-        new Thread() {
-            @Override
-            public void run() {
-                // 履歴を返す
-                SlackMessageHookDeviceService service = (SlackMessageHookDeviceService) getContext();
-                List<Bundle> history = service.getHistory();
-                Bundle[] bundles = new Bundle[history.size()];
-                history.toArray(bundles);
-                response.putExtra(PARAM_MESSAGES, bundles);
-                setResult(response, DConnectMessage.RESULT_OK);
-                service.sendResponse(response);
+            // ServiceIDチェック
+            String serviceId = getServiceID(request);
+            if (checkServiceId(serviceId, response)) {
+                return true;
             }
-        }.start();
 
-        return false;
-    }
+            // 接続チェック
+            if (!SlackManager.INSTANCE.isConnected()) {
+                MessageUtils.setUnknownError(response, "Not connected to the Slack server");
+                return true;
+            }
 
-    @Override
-    protected boolean onGetChannel(Intent request, final Intent response, String serviceId) {
-
-        // ServiceIDチェック
-        if (checkServiceId(serviceId, response)) {
-            return true;
-        }
-
-        // 接続チェック
-        if (!SlackManager.INSTANCE.isConnected()) {
-            MessageUtils.setUnknownError(response, "Not connected to the Slack server");
-            return true;
-        }
-
-        // Channelリストを取得
-        SlackManager.INSTANCE.getAllChannelList(new SlackManager.FinishCallback<List<SlackManager.ListInfo>>() {
-            @Override
-            public void onFinish(List<SlackManager.ListInfo> listInfos, Exception error) {
-                if (error == null) {
-                    List<Bundle> bundleList = new ArrayList<>();
-                    for (SlackManager.ListInfo info : listInfos) {
-                        Bundle bundle = new Bundle();
-                        bundle.putString(PARAM_ID, info.id);
-                        bundle.putString(PARAM_NAME, info.name);
-                        bundle.putString(PARAM_TYPE, "slack");
-                        bundleList.add(bundle);
-                    }
-                    Bundle[] bundles = new Bundle[bundleList.size()];
-                    bundleList.toArray(bundles);
-                    response.putExtra(PARAM_CHANNELS, bundles);
+            new Thread() {
+                @Override
+                public void run() {
+                    // 履歴を返す
+                    SlackMessageHookDeviceService service = (SlackMessageHookDeviceService) getContext();
+                    List<Bundle> history = service.getHistory();
+                    Bundle[] bundles = new Bundle[history.size()];
+                    history.toArray(bundles);
+                    response.putExtra(PARAM_MESSAGES, bundles);
                     setResult(response, DConnectMessage.RESULT_OK);
-                } else {
-                    MessageUtils.setUnknownError(response);
-                    setResult(response, DConnectMessage.RESULT_ERROR);
+                    service.sendResponse(response);
                 }
-                SlackMessageHookDeviceService service = (SlackMessageHookDeviceService) getContext();
-                service.sendResponse(response);
+            }.start();
+            return true;
+        }
+    };
+
+    /**
+     * Channelリスト取得API
+     */
+    private final DConnectApi mGetChannelsApi = new GetApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_CHANNEL;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+
+            String serviceId = getServiceID(request);
+
+            // ServiceIDチェック
+            if (checkServiceId(serviceId, response)) {
+                return true;
             }
-        });
 
-        return false;
-    }
+            // 接続チェック
+            if (!SlackManager.INSTANCE.isConnected()) {
+                MessageUtils.setUnknownError(response, "Not connected to the Slack server");
+                return true;
+            }
 
-    @Override
-    protected boolean onPostMessage(Intent request, final Intent response, String serviceId, String channel, String text, String resource, String mimeType) {
-
-        // ServiceIDチェック
-        if (checkServiceId(serviceId, response)) {
+            // Channelリストを取得
+            SlackManager.INSTANCE.getAllChannelList(new SlackManager.FinishCallback<List<SlackManager.ListInfo>>() {
+                @Override
+                public void onFinish(List<SlackManager.ListInfo> listInfos, Exception error) {
+                    if (error == null) {
+                        List<Bundle> bundleList = new ArrayList<>();
+                        for (SlackManager.ListInfo info : listInfos) {
+                            Bundle bundle = new Bundle();
+                            bundle.putString(PARAM_ID, info.id);
+                            bundle.putString(PARAM_NAME, info.name);
+                            bundle.putString(PARAM_TYPE, "slack");
+                            bundleList.add(bundle);
+                        }
+                        Bundle[] bundles = new Bundle[bundleList.size()];
+                        bundleList.toArray(bundles);
+                        response.putExtra(PARAM_CHANNELS, bundles);
+                        setResult(response, DConnectMessage.RESULT_OK);
+                    } else {
+                        MessageUtils.setUnknownError(response);
+                        setResult(response, DConnectMessage.RESULT_ERROR);
+                    }
+                    SlackMessageHookDeviceService service = (SlackMessageHookDeviceService) getContext();
+                    service.sendResponse(response);
+                }
+            });
             return true;
         }
+    };
 
-        // channelIDチェック
-        if (channel == null) {
-            MessageUtils.setInvalidRequestParameterError(response, "Needs to have a \"channel\" parameter");
-            return true;
+    /**
+     * メッセージ投稿API
+     */
+    private final DConnectApi mPostMessageApi = new PostApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_MESSAGE;
         }
 
-        // 接続チェック
-        if (!SlackManager.INSTANCE.isConnected()) {
-            MessageUtils.setUnknownError(response, "Not connected to the Slack server");
-            return true;
-        }
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
 
-        if (resource == null) {
-            if (text == null) {
-                // 最低限textパラメータは必要
-                MessageUtils.setInvalidRequestParameterError(response, "Needs to have a \"text\" parameter");
+            String serviceId = getServiceID(request);
+            String channelid = request.getStringExtra(PARAM_CHANNELID);
+            String text = request.getStringExtra(PARAM_TEXT);
+            String resource = request.getStringExtra(PARAM_RESOURCE);
+
+            // ServiceIDチェック
+            if (checkServiceId(serviceId, response)) {
+                return true;
+            }
+
+            // channelIDチェック
+            if (channelid == null) {
+                MessageUtils.setInvalidRequestParameterError(response, "Needs to have a \"channelId\" parameter");
+                return true;
+            }
+
+            // 接続チェック
+            if (!SlackManager.INSTANCE.isConnected()) {
+                MessageUtils.setUnknownError(response, "Not connected to the Slack server");
+                return true;
+            }
+
+            if (resource == null) {
+                if (text == null) {
+                    // 最低限textパラメータは必要
+                    MessageUtils.setInvalidRequestParameterError(response, "Needs to have a \"text\" parameter");
+                } else {
+                    // メッセージ送信
+                    SlackManager.INSTANCE.sendMessage(text, channelid, new SlackManager.FinishCallback<String>() {
+                        @Override
+                        public void onFinish(String s, Exception error) {
+                            if (error == null) {
+                                setResult(response, DConnectMessage.RESULT_OK);
+                            } else {
+                                MessageUtils.setUnknownError(response);
+                                setResult(response, DConnectMessage.RESULT_ERROR);
+                            }
+                            SlackMessageHookDeviceService service = (SlackMessageHookDeviceService) getContext();
+                            service.sendResponse(response);
+                        }
+                    });
+                    return false;
+                }
             } else {
-                // メッセージ送信
-                SlackManager.INSTANCE.sendMessage(text, channel, new SlackManager.FinishCallback<String>() {
-                    @Override
-                    public void onFinish(String s, Exception error) {
-                        if (error == null) {
-                            setResult(response, DConnectMessage.RESULT_OK);
-                        } else {
-                            MessageUtils.setUnknownError(response);
-                            setResult(response, DConnectMessage.RESULT_ERROR);
+                try {
+                    // ファイルアップロード
+                    URL url = new URL(resource);
+                    String origin = getContext().getPackageName();
+                    SlackManager.INSTANCE.uploadFile(text, channelid, url, origin, new SlackManager.FinishCallback<JSONObject>() {
+                        @Override
+                        public void onFinish(JSONObject jsonObject, Exception error) {
+                            if (error == null) {
+                                setResult(response, DConnectMessage.RESULT_OK);
+                            } else {
+                                MessageUtils.setUnknownError(response);
+                                setResult(response, DConnectMessage.RESULT_ERROR);
+                            }
+                            SlackMessageHookDeviceService service = (SlackMessageHookDeviceService) getContext();
+                            service.sendResponse(response);
                         }
-                        SlackMessageHookDeviceService service = (SlackMessageHookDeviceService) getContext();
-                        service.sendResponse(response);
-                    }
-                });
-                return false;
+                    });
+                    return false;
+                } catch (MalformedURLException e) {
+                    MessageUtils.setInvalidRequestParameterError(response, "Invalid resource url");
+                }
             }
-        } else {
-            try {
-                // ファイルアップロード
-                URL url = new URL(resource);
-                String origin = getContext().getPackageName();
-                SlackManager.INSTANCE.uploadFile(text, channel, url, origin, new SlackManager.FinishCallback<JSONObject>() {
-                    @Override
-                    public void onFinish(JSONObject jsonObject, Exception error) {
-                        if (error == null) {
-                            setResult(response, DConnectMessage.RESULT_OK);
-                        } else {
-                            MessageUtils.setUnknownError(response);
-                            setResult(response, DConnectMessage.RESULT_ERROR);
-                        }
-                        SlackMessageHookDeviceService service = (SlackMessageHookDeviceService) getContext();
-                        service.sendResponse(response);
-                    }
-                });
-                return false;
-            } catch (MalformedURLException e) {
-                MessageUtils.setInvalidRequestParameterError(response, "Invalid resource url");
+
+            return true;
+        }
+    };
+
+    /**
+     * メッセージイベント登録API
+     */
+    private final DConnectApi mOnPutOnMessageReceivedApi = new PutApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_MESSAGE;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            EventError error = EventManager.INSTANCE.addEvent(request);
+            switch (error) {
+                case NONE:
+                    setResult(response, DConnectMessage.RESULT_OK);
+                    break;
+                case INVALID_PARAMETER:
+                    MessageUtils.setInvalidRequestParameterError(response);
+                    break;
+                default:
+                    MessageUtils.setUnknownError(response);
+                    break;
             }
+            return true;
+        }
+    };
+
+    /**
+     * メッセージイベント解除API
+     */
+    private final DConnectApi mOnDeleteOnMessageReceivedApi = new DeleteApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_MESSAGE;
         }
 
-        return true;
-    }
-
-    @Override
-    protected boolean onPutOnMessageReceived(Intent request, Intent response, String serviceId, String sessionKey) {
-        EventError error = EventManager.INSTANCE.addEvent(request);
-        switch (error) {
-            case NONE:
-                setResult(response, DConnectMessage.RESULT_OK);
-                break;
-            case INVALID_PARAMETER:
-                MessageUtils.setInvalidRequestParameterError(response);
-                break;
-            default:
-                MessageUtils.setUnknownError(response);
-                break;
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            EventError error = EventManager.INSTANCE.removeEvent(request);
+            switch (error) {
+                case NONE:
+                    setResult(response, DConnectMessage.RESULT_OK);
+                    break;
+                case INVALID_PARAMETER:
+                    MessageUtils.setInvalidRequestParameterError(response);
+                    break;
+                default:
+                    MessageUtils.setUnknownError(response);
+                    break;
+            }
+            return true;
         }
-        return true;
-    }
+    };
 
-    @Override
-    protected boolean onDeleteOnMessageReceived(Intent request, Intent response, String serviceId, String sessionKey) {
-        EventError error = EventManager.INSTANCE.removeEvent(request);
-        switch (error) {
-            case NONE:
-                setResult(response, DConnectMessage.RESULT_OK);
-                break;
-            case INVALID_PARAMETER:
-                MessageUtils.setInvalidRequestParameterError(response);
-                break;
-            default:
-                MessageUtils.setUnknownError(response);
-                break;
-        }
-        return true;
-    }
 }

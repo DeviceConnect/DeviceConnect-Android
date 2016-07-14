@@ -52,6 +52,7 @@ public class LinkingServiceDiscoveryProfile extends ServiceDiscoveryProfile {
                 if (service.getConfig() != null) {
                     setConfig(serviceBundle, service.getConfig());
                 }
+                setScopes(serviceBundle, service);
                 serviceBundles.add(serviceBundle);
             }
             setServices(response, serviceBundles);

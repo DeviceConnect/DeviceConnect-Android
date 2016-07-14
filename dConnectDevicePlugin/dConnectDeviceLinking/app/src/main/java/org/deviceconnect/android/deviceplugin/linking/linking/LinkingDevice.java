@@ -119,6 +119,10 @@ public class LinkingDevice {
         return mVibration != null;
     }
 
+    public boolean isSupportSensor() {
+        return isSupportGyro() || isSupportAcceleration() || isSupportCompass();
+    }
+
     public boolean isSupportGyro() {
         return (mFeature & GYRO) != 0;
     }

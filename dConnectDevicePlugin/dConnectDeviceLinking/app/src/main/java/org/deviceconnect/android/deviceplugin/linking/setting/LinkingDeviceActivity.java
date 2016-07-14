@@ -152,6 +152,7 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
         byte[] illumination = mDevice.getIllumination();
         if (illumination == null) {
             btn.setText(getString(R.string.activity_device_not_selected));
+            btn.setEnabled(false);
             return;
         }
 
@@ -203,6 +204,7 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
         byte[] vibration = mDevice.getVibration();
         if (vibration == null) {
             btn.setText(getString(R.string.activity_device_not_selected));
+            btn.setEnabled(false);
             return;
         }
 
@@ -264,6 +266,7 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
                     onClickLED(true);
                 }
             });
+            onBtn.setEnabled(mDevice.isSupportLED());
         }
 
         Button offBtn = (Button) findViewById(R.id.off);
@@ -274,6 +277,7 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
                     onClickLED(false);
                 }
             });
+            offBtn.setEnabled(mDevice.isSupportLED());
         }
     }
 
@@ -337,6 +341,7 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
                     onClickVibration(true);
                 }
             });
+            onBtn.setEnabled(mDevice.isSupportVibration());
         }
 
         Button offBtn = (Button) findViewById(R.id.vibration_off);
@@ -347,6 +352,7 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
                     onClickVibration(false);
                 }
             });
+            offBtn.setEnabled(mDevice.isSupportVibration());
         }
     }
 
@@ -391,6 +397,7 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
                     onClickSensor(true);
                 }
             });
+            onBtn.setEnabled(mDevice.isSupportSensor());
         }
         Button offBtn = (Button) findViewById(R.id.sensor_off);
         if (offBtn != null) {
@@ -400,6 +407,7 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
                     onClickSensor(false);
                 }
             });
+            offBtn.setEnabled(mDevice.isSupportSensor());
         }
 
         updateDataText(LinkingSensorData.SensorType.GYRO, 0, 0, 0, 0);
@@ -416,6 +424,7 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
                     onClickButtonId(true);
                 }
             });
+            onBtn.setEnabled(mDevice.isSupportButton());
         }
         Button offBtn = (Button) findViewById(R.id.button_id_off);
         if (offBtn != null) {
@@ -425,6 +434,7 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
                     onClickButtonId(false);
                 }
             });
+            offBtn.setEnabled(mDevice.isSupportButton());
         }
     }
 
@@ -458,6 +468,7 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
                     onClickBatterySensor(true);
                 }
             });
+            onBtn.setEnabled(mDevice.isSupportBattery());
         }
         Button offBtn = (Button) findViewById(R.id.battery_sensor_off);
         if (offBtn != null) {
@@ -467,6 +478,7 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
                     onClickBatterySensor(false);
                 }
             });
+            offBtn.setEnabled(mDevice.isSupportBattery());
         }
     }
 
@@ -479,6 +491,7 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
                     onClickTemperatureSensor(true);
                 }
             });
+            onBtn.setEnabled(mDevice.isSupportTemperature());
         }
         Button offBtn = (Button) findViewById(R.id.battery_temperature_off);
         if (offBtn != null) {
@@ -488,6 +501,7 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
                     onClickTemperatureSensor(false);
                 }
             });
+            offBtn.setEnabled(mDevice.isSupportTemperature());
         }
     }
 
@@ -501,6 +515,7 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
                     onClickHumiditySensor(true);
                 }
             });
+            onBtn.setEnabled(mDevice.isSupportHumidity());
         }
         Button offBtn = (Button) findViewById(R.id.battery_humidity_off);
         if (offBtn != null) {
@@ -510,6 +525,7 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
                     onClickHumiditySensor(false);
                 }
             });
+            offBtn.setEnabled(mDevice.isSupportHumidity());
         }
     }
 

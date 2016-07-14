@@ -6,6 +6,7 @@
     <string name="activity_linking_cancel">Cancel</string>
 
     <string name="activity_linking_confirm_title">ConfirmActivity</string>
+    <string name="activity_linking_confirm_message">Linkingアプリに接続しています...</string>
 
     <string name="activity_setting_tab_paring">ペアリング</string>
     <string name="activity_setting_tab_beacon">ビーコン</string>

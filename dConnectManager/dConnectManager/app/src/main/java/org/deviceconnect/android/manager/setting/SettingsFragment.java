@@ -138,7 +138,6 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
             docRootPath = file.getPath();
         }
 
-        editKeywordPreferences.setOnPreferenceChangeListener(this);
         editKeywordPreferences.setSummary(keyword);
         editKeywordPreferences.setDefaultValue(keyword);
         editKeywordPreferences.setText(keyword);
@@ -147,44 +146,36 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
         // SSLのON/OFF
         mCheckBoxSslPreferences = (CheckBoxPreference) getPreferenceScreen()
                 .findPreference(getString(R.string.key_settings_dconn_ssl));
-        mCheckBoxSslPreferences.setOnPreferenceChangeListener(this);
 
         // ホスト名設定
         EditTextPreference editHostPreferences = (EditTextPreference) getPreferenceScreen()
                 .findPreference(getString(R.string.key_settings_dconn_host));
-        editHostPreferences.setOnPreferenceChangeListener(this);
         editHostPreferences.setSummary(editHostPreferences.getText());
 
         // ポート番号設定
         mEditPortPreferences = (EditTextPreference) getPreferenceScreen()
                 .findPreference(getString(R.string.key_settings_dconn_port));
-        mEditPortPreferences.setOnPreferenceChangeListener(this);
         mEditPortPreferences.setSummary(mEditPortPreferences.getText());
 
         // Local OAuthのON/OFF
         mCheckBoxOauthPreferences = (CheckBoxPreference) getPreferenceScreen()
                 .findPreference(getString(R.string.key_settings_dconn_local_oauth));
-        mCheckBoxOauthPreferences.setOnPreferenceChangeListener(this);
 
         // グローバル設定のON/OFF
         mCheckBoxExternalPreferences = (CheckBoxPreference) getPreferenceScreen()
                 .findPreference(getString(R.string.key_settings_dconn_allow_external_ip));
-        mCheckBoxExternalPreferences.setOnPreferenceChangeListener(this);
 
         // Origin不要フラグ設定のON/OFF
         mCheckBoxRequireOriginPreferences = (CheckBoxPreference) getPreferenceScreen()
                 .findPreference(getString(R.string.key_settings_dconn_require_origin));
-        mCheckBoxRequireOriginPreferences.setOnPreferenceChangeListener(this);
 
         // Originブロック設定のON/OFF
         mCheckBoxOriginBlockingPreferences = (CheckBoxPreference) getPreferenceScreen()
                 .findPreference(getString(R.string.key_settings_dconn_whitelist_origin_blocking));
-        mCheckBoxOriginBlockingPreferences.setOnPreferenceChangeListener(this);
 
         // ポート監視設定のON/OFF
         mObserverPreferences = (CheckBoxPreference) getPreferenceScreen()
                 .findPreference(getString(R.string.key_settings_dconn_observer_on_off));
-        mObserverPreferences.setOnPreferenceChangeListener(this);
 
         // Webサーバ
 
@@ -198,16 +189,7 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
 
         mWebPortPreferences = (EditTextPreference) getPreferenceScreen()
                 .findPreference(getString(R.string.key_settings_web_server_port));
-        mWebPortPreferences.setOnPreferenceChangeListener(this);
         mWebPortPreferences.setSummary(mWebPortPreferences.getText());
-
-        SwitchPreference serverPreferences = (SwitchPreference) getPreferenceScreen()
-                .findPreference(getString(R.string.key_settings_dconn_server_on_off));
-        serverPreferences.setOnPreferenceChangeListener(this);
-
-        SwitchPreference webPreferences = (SwitchPreference) getPreferenceScreen()
-                .findPreference(getString(R.string.key_settings_web_server_on_off));
-        webPreferences.setOnPreferenceChangeListener(this);
 
         editHostPreferences.setEnabled(false);
         editDocPreferences.setEnabled(false);
@@ -738,7 +720,35 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
 
     private synchronized void checkServiceConnections() {
         if (mDConnectService != null && mWebService != null) {
-            getPreferenceScreen().setEnabled(true);
+            enablePreference();
         }
     }
+
+    private void enablePreference() {
+        // 設定画面の有効化
+        getPreferenceScreen().setEnabled(true);
+
+        // 設定変更イベントの受信開始
+        mCheckBoxSslPreferences.setOnPreferenceChangeListener(this);
+        EditTextPreference editHostPreferences = (EditTextPreference) getPreferenceScreen()
+            .findPreference(getString(R.string.key_settings_dconn_host));
+        editHostPreferences.setOnPreferenceChangeListener(this);
+        EditTextPreference editKeywordPreferences = (EditTextPreference) getPreferenceScreen()
+            .findPreference(getString(R.string.key_settings_dconn_keyword));
+        editKeywordPreferences.setOnPreferenceChangeListener(this);
+        mEditPortPreferences.setOnPreferenceChangeListener(this);
+        mCheckBoxOauthPreferences.setOnPreferenceChangeListener(this);
+        mCheckBoxExternalPreferences.setOnPreferenceChangeListener(this);
+        mCheckBoxRequireOriginPreferences.setOnPreferenceChangeListener(this);
+        mCheckBoxOriginBlockingPreferences.setOnPreferenceChangeListener(this);
+        mObserverPreferences.setOnPreferenceChangeListener(this);
+        mWebPortPreferences.setOnPreferenceChangeListener(this);
+        SwitchPreference serverPreferences = (SwitchPreference) getPreferenceScreen()
+            .findPreference(getString(R.string.key_settings_dconn_server_on_off));
+        serverPreferences.setOnPreferenceChangeListener(this);
+        SwitchPreference webPreferences = (SwitchPreference) getPreferenceScreen()
+            .findPreference(getString(R.string.key_settings_web_server_on_off));
+        webPreferences.setOnPreferenceChangeListener(this);
+    }
+
 }

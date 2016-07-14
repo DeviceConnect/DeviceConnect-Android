@@ -8,7 +8,8 @@ public interface DConnectApiSpecConstants {
     enum Type {
 
         ONESHOT("one-shot"),
-        EVENT("event");
+        EVENT("event"),
+        STREAMING("streaming");
 
         private String mName;
 

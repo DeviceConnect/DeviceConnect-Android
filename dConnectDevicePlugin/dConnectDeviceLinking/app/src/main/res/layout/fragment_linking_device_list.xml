@@ -12,7 +12,7 @@
         android:layout_alignParentBottom="true"
         android:layout_centerInParent="true"
         android:layout_margin="12dp"
-        android:background="@drawable/button_blue"
+        android:background="@drawable/linking_button_blue"
         android:text="@string/activity_setting_refresh_devices"
         android:textColor="#FFF"
         android:textSize="18sp"/>
@@ -48,7 +48,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="12dp"
-            android:background="@drawable/button_blue"
+            android:background="@drawable/linking_button_blue"
             android:paddingLeft="32dp"
             android:paddingRight="32dp"
             android:text="@string/fragment_device_linking_app"

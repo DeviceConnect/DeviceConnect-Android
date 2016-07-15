@@ -67,7 +67,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_margin="8dp"
-                android:background="@drawable/button_blue"
+                android:background="@drawable/linking_button_blue"
                 android:paddingLeft="8dp"
                 android:paddingRight="8dp"
                 android:text="@string/activity_device_not_selected"
@@ -120,7 +120,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_margin="8dp"
-                android:background="@drawable/button_blue"
+                android:background="@drawable/linking_button_blue"
                 android:paddingLeft="8dp"
                 android:paddingRight="8dp"
                 android:text="@string/activity_device_not_selected"
@@ -154,7 +154,7 @@
                 android:layout_height="wrap_content"
                 android:layout_margin="4dp"
                 android:layout_weight="2"
-                android:background="@drawable/button_blue"
+                android:background="@drawable/linking_button_blue"
                 android:gravity="center"
                 android:text="@string/activity_device_on"
                 android:textColor="#FFF"
@@ -166,7 +166,7 @@
                 android:layout_height="wrap_content"
                 android:layout_margin="4dp"
                 android:layout_weight="2"
-                android:background="@drawable/button_blue"
+                android:background="@drawable/linking_button_blue"
                 android:gravity="center"
                 android:text="@string/activity_device_off"
                 android:textColor="#FFF"/>
@@ -198,7 +198,7 @@
                 android:layout_height="wrap_content"
                 android:layout_margin="4dp"
                 android:layout_weight="2"
-                android:background="@drawable/button_blue"
+                android:background="@drawable/linking_button_blue"
                 android:text="@string/activity_device_on"
                 android:textColor="#FFF"/>
 
@@ -208,7 +208,7 @@
                 android:layout_height="wrap_content"
                 android:layout_margin="4dp"
                 android:layout_weight="2"
-                android:background="@drawable/button_blue"
+                android:background="@drawable/linking_button_blue"
                 android:text="@string/activity_device_off"
                 android:textColor="#FFF"/>
 
@@ -244,7 +244,7 @@
                     android:layout_height="wrap_content"
                     android:layout_margin="4dp"
                     android:layout_weight="2"
-                    android:background="@drawable/button_blue"
+                    android:background="@drawable/linking_button_blue"
                     android:text="@string/activity_device_register_sensor"
                     android:textColor="#FFF"/>
 
@@ -254,7 +254,7 @@
                     android:layout_height="wrap_content"
                     android:layout_margin="4dp"
                     android:layout_weight="2"
-                    android:background="@drawable/button_blue"
+                    android:background="@drawable/linking_button_blue"
                     android:text="@string/activity_device_unregister_sensor"
                     android:textColor="#FFF"/>
             </LinearLayout>
@@ -366,7 +366,7 @@
                     android:layout_height="wrap_content"
                     android:layout_margin="4dp"
                     android:layout_weight="2"
-                    android:background="@drawable/button_blue"
+                    android:background="@drawable/linking_button_blue"
                     android:text="@string/activity_device_register_sensor"
                     android:textColor="#FFF"/>
 
@@ -376,7 +376,7 @@
                     android:layout_height="wrap_content"
                     android:layout_margin="4dp"
                     android:layout_weight="2"
-                    android:background="@drawable/button_blue"
+                    android:background="@drawable/linking_button_blue"
                     android:text="@string/activity_device_unregister_sensor"
                     android:textColor="#FFF"/>
             </LinearLayout>
@@ -437,7 +437,7 @@
                     android:layout_height="wrap_content"
                     android:layout_margin="4dp"
                     android:layout_weight="2"
-                    android:background="@drawable/button_blue"
+                    android:background="@drawable/linking_button_blue"
                     android:text="@string/activity_device_register_sensor"
                     android:textColor="#FFF"/>
 
@@ -447,7 +447,7 @@
                     android:layout_height="wrap_content"
                     android:layout_margin="4dp"
                     android:layout_weight="2"
-                    android:background="@drawable/button_blue"
+                    android:background="@drawable/linking_button_blue"
                     android:text="@string/activity_device_unregister_sensor"
                     android:textColor="#FFF"/>
             </LinearLayout>
@@ -507,7 +507,7 @@
                     android:layout_height="wrap_content"
                     android:layout_margin="4dp"
                     android:layout_weight="2"
-                    android:background="@drawable/button_blue"
+                    android:background="@drawable/linking_button_blue"
                     android:text="@string/activity_device_register_sensor"
                     android:textColor="#FFF"/>
 
@@ -517,7 +517,7 @@
                     android:layout_height="wrap_content"
                     android:layout_margin="4dp"
                     android:layout_weight="2"
-                    android:background="@drawable/button_blue"
+                    android:background="@drawable/linking_button_blue"
                     android:text="@string/activity_device_unregister_sensor"
                     android:textColor="#FFF"/>
             </LinearLayout>
@@ -578,7 +578,7 @@
                     android:layout_height="wrap_content"
                     android:layout_margin="4dp"
                     android:layout_weight="2"
-                    android:background="@drawable/button_blue"
+                    android:background="@drawable/linking_button_blue"
                     android:text="@string/activity_device_register_sensor"
                     android:textColor="#FFF"/>
 
@@ -588,7 +588,7 @@
                     android:layout_height="wrap_content"
                     android:layout_margin="4dp"
                     android:layout_weight="2"
-                    android:background="@drawable/button_blue"
+                    android:background="@drawable/linking_button_blue"
                     android:text="@string/activity_device_unregister_sensor"
                     android:textColor="#FFF"/>
             </LinearLayout>
@@ -649,7 +649,7 @@
                     android:layout_height="wrap_content"
                     android:layout_margin="4dp"
                     android:layout_weight="2"
-                    android:background="@drawable/button_blue"
+                    android:background="@drawable/linking_button_blue"
                     android:text="@string/activity_device_register_sensor"
                     android:textColor="#FFF"/>
 
@@ -659,7 +659,7 @@
                     android:layout_height="wrap_content"
                     android:layout_margin="4dp"
                     android:layout_weight="2"
-                    android:background="@drawable/button_blue"
+                    android:background="@drawable/linking_button_blue"
                     android:text="@string/activity_device_unregister_sensor"
                     android:textColor="#FFF"/>
             </LinearLayout>
@@ -668,7 +668,7 @@
                 android:id="@+id/linking_button_id"
                 android:layout_width="match_parent"
                 android:layout_height="100dp"
-                android:background="@drawable/textview_broder"
+                android:background="@drawable/linking_textview_border"
                 android:ellipsize="end"
                 android:maxLines="5"
                 android:padding="4dp"

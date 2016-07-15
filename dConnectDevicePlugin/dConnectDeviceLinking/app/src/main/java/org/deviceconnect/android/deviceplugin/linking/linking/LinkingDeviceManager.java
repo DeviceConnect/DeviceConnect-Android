@@ -17,7 +17,6 @@ import org.deviceconnect.android.deviceplugin.linking.util.PreferenceUtil;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 public class LinkingDeviceManager {
 
@@ -259,11 +258,7 @@ public class LinkingDeviceManager {
     }
 
     private Integer getVibrationOffSetting(final LinkingDevice device) {
-        Map<String, Integer> map = PreferenceUtil.getInstance(mContext).getVibrationOffSetting();
-        if (map == null || map.get(device.getBdAddress()) == null) {
-            return LinkingUtil.getDefaultOffSettingOfLightId(device);
-        }
-        return map.get(device.getBdAddress());
+        return PreferenceUtil.getInstance(mContext).getVibrationOffSetting(device.getBdAddress());
     }
 
     private void setIllumination(final SendNotification notify, final LinkingDevice device) {
@@ -288,11 +283,7 @@ public class LinkingDeviceManager {
     }
 
     private Integer getLightOffSetting(final LinkingDevice device) {
-        Map<String, Integer> map = PreferenceUtil.getInstance(mContext).getLightOffSetting();
-        if (map == null || map.get(device.getBdAddress()) == null) {
-            return LinkingUtil.getDefaultOffSettingOfLightId(device);
-        }
-        return map.get(device.getBdAddress());
+        return PreferenceUtil.getInstance(mContext).getLightOffSetting(device.getBdAddress());
     }
 
     public enum Range {

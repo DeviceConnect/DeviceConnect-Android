@@ -32,18 +32,19 @@ import org.deviceconnect.android.deviceplugin.linking.linking.VibrationData;
 import org.deviceconnect.android.deviceplugin.linking.setting.fragment.dialog.ConfirmationDialogFragment;
 import org.deviceconnect.android.deviceplugin.linking.util.PreferenceUtil;
 
-import java.util.Map;
-
 public class LinkingDeviceActivity extends AppCompatActivity implements ConfirmationDialogFragment.OnDialogEventListener {
     private static final String TAG = "LinkingPlugIn";
     public static final String EXTRA_ADDRESS = "bdAddress";
 
     private LinkingDevice mDevice;
+    private PreferenceUtil mUtil;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_linking_device);
+
+        mUtil = PreferenceUtil.getInstance(getApplicationContext());
 
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
@@ -107,12 +108,12 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
     }
 
     @Override
-    public void onPositiveClick(DialogFragment fragment) {
+    public void onPositiveClick(final DialogFragment fragment) {
         finish();
     }
 
     @Override
-    public void onNegativeClick(DialogFragment fragment) {
+    public void onNegativeClick(final DialogFragment fragment) {
 
     }
 
@@ -156,7 +157,7 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
             return;
         }
 
-        Integer patternId = getLightOffSetting();
+        Integer patternId = mUtil.getLightOffSetting(mDevice.getBdAddress());
         if (patternId == null) {
             setupDefaultOffSettingOfLight(mDevice);
             return;
@@ -174,12 +175,6 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
                 Log.w(TAG, "", e);
             }
         }
-    }
-
-    private Integer getLightOffSetting() {
-        PreferenceUtil util = PreferenceUtil.getInstance(getApplicationContext());
-        Map<String, Integer> map = util.getLightOffSetting();
-        return map == null ? null : map.get(mDevice.getBdAddress());
     }
 
     private void setupDefaultOffSettingOfLight(final LinkingDevice device) {
@@ -208,7 +203,7 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
             return;
         }
 
-        Integer patternId = getVibrationOffSetting();
+        Integer patternId = mUtil.getVibrationOffSetting(mDevice.getBdAddress());
         if (patternId == null) {
             setupDefaultOffSettingOfVibration(mDevice);
             return;
@@ -226,12 +221,6 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
                 Log.w(TAG, "", e);
             }
         }
-    }
-
-    private Integer getVibrationOffSetting() {
-        PreferenceUtil util = PreferenceUtil.getInstance(getApplicationContext());
-        Map<String, Integer> map = util.getVibrationOffSetting();
-        return map == null ? null : map.get(mDevice.getBdAddress());
     }
 
     private void setupDefaultOffSettingOfVibration(final LinkingDevice device) {
@@ -505,7 +494,6 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
         }
     }
 
-
     private void setHumidityButton() {
         Button onBtn = (Button) findViewById(R.id.battery_humidity_on);
         if (onBtn != null) {
@@ -530,23 +518,11 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
     }
 
     private void updateLightOffSetting(final Integer id) {
-        PreferenceUtil util = PreferenceUtil.getInstance(getApplicationContext());
-        Map<String, Integer> map = util.getLightOffSetting();
-        if (map == null) {
-            return;
-        }
-        map.put(mDevice.getBdAddress(), id);
-        util.setLightOffSetting(map);
+        mUtil.setLightOffSetting(mDevice.getBdAddress(), id);
     }
 
     private void updateVibrationOffSetting(final Integer id) {
-        PreferenceUtil util = PreferenceUtil.getInstance(getApplicationContext());
-        Map<String, Integer> map = util.getVibrationOffSetting();
-        if (map == null) {
-            return;
-        }
-        map.put(mDevice.getBdAddress(), id);
-        util.setVibrationOffSetting(map);
+        mUtil.setVibrationOffSetting(mDevice.getBdAddress(), id);
     }
 
     private void updateDataText(final LinkingSensorData.SensorType type, final float x, final float y, final float z, final long time) {

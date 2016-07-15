@@ -178,7 +178,7 @@ public class LinkingBatteryProfile extends BatteryProfile implements LinkingDest
             return null;
         }
 
-        if (!device.isBattery()) {
+        if (!device.isSupportBattery()) {
             MessageUtils.setIllegalDeviceStateError(response, "device has not battery");
             return null;
         }

@@ -56,6 +56,10 @@ public class LinkingApplication extends Application {
     }
 
     public void resetManager() {
+        if (BuildConfig.DEBUG) {
+            Log.i(TAG, "LinkingApplication#resetManager");
+        }
+
         if (mBeaconManager != null) {
             mBeaconManager.destroy();
             mBeaconManager = null;

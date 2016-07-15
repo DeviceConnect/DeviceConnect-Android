@@ -12,12 +12,11 @@ public class ServiceInformationConverter implements MessageConverter,
     ServiceInformationProfileConstants {
 
     @Override
-    public boolean convert(final Intent message) {
+    public void convert(final Intent message) {
         if (!isResponse(message)) {
-            return false;
+            return;
         }
         convertSupportsParam(message);
-        return true;
     }
 
     private boolean isResponse(final Intent message) {
@@ -42,7 +41,6 @@ public class ServiceInformationConverter implements MessageConverter,
         if (supportApisParam != null) {
             for (String key : supportApisParam.keySet()) {
                 Parcelable[] apiSpecs = supportApisParam.getParcelableArray(key);
-                supportApisParam.remove(key);
 
                 // APIのパスを新仕様に統一
                 for (Parcelable apiSpec : apiSpecs) {

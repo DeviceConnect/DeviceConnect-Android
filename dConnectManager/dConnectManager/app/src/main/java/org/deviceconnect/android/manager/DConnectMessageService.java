@@ -273,7 +273,8 @@ public abstract class DConnectMessageService extends Service
         if (mSettings.isUseALocalOAuth()) {
             // アクセストークンの取得
             String accessToken = request.getStringExtra(AuthorizationProfile.PARAM_ACCESS_TOKEN);
-            CheckAccessTokenResult result = LocalOAuth2Main.checkAccessToken(accessToken, profileName,
+            CheckAccessTokenResult result = LocalOAuth2Main.checkAccessToken(accessToken,
+                    profileName.toLowerCase(),
                     DConnectLocalOAuth.IGNORE_PROFILES);
             if (result.checkResult()) {
                 executeRequest(request, response);

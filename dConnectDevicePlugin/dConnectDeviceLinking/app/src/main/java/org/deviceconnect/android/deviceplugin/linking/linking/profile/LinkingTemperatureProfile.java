@@ -90,7 +90,7 @@ public class LinkingTemperatureProfile extends TemperatureProfile {
             return null;
         }
 
-        if (!device.isTemperature()) {
+        if (!device.isSupportTemperature()) {
             MessageUtils.setIllegalDeviceStateError(response, "device has not temperature");
             return null;
         }

@@ -114,6 +114,9 @@ public class LinkingDevicePluginService extends DConnectMessageService {
 
     public void cleanupSession(final String sessionKey) {
         if (sessionKey == null) {
+            if (BuildConfig.DEBUG) {
+                Log.w(TAG, "cleanupSession: sessionKey is null.");
+            }
             return;
         }
 
@@ -143,7 +146,7 @@ public class LinkingDevicePluginService extends DConnectMessageService {
                 if (BuildConfig.DEBUG) {
                     Log.i(TAG, "Added Device: " + device.getDisplayName());
                 }
-                getServiceProvider().addService(new LinkingDeviceService(this, device));
+                getServiceProvider().addService(new LinkingDeviceService(device));
             } else {
                 ((LinkingDeviceService) service).setLinkingDevice(device);
             }
@@ -192,7 +195,7 @@ public class LinkingDevicePluginService extends DConnectMessageService {
 
     private boolean containsLinkingDevices(final String id) {
         for (LinkingDevice device : getLinkingDeviceManager().getDevices()) {
-            if (id.equals(device.getBdAddress())) {
+            if (device.getBdAddress().equals(id)) {
                 return true;
             }
         }
@@ -201,7 +204,7 @@ public class LinkingDevicePluginService extends DConnectMessageService {
 
     private boolean containsLinkingBeacons(final String id) {
         for (LinkingBeacon beacon : getLinkingBeaconManager().getLinkingBeacons()) {
-            if (id.equals(beacon.getServiceId())) {
+            if (beacon.getServiceId().equals(id)) {
                 return true;
             }
         }

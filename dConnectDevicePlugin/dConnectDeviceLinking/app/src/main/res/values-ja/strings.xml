@@ -6,6 +6,7 @@
     <string name="activity_linking_cancel">Cancel</string>
 
     <string name="activity_linking_confirm_title">ConfirmActivity</string>
+    <string name="activity_linking_confirm_message">Linkingアプリに接続しています...</string>
 
     <string name="activity_setting_tab_paring">ペアリング</string>
     <string name="activity_setting_tab_beacon">ビーコン</string>
@@ -105,6 +106,8 @@
     <string name="activity_device_not_support_humidity">このデバイスは湿度センサーをサポートしていません。</string>
     <string name="activity_device_not_support_button">このデバイスはボタンをサポートしていません。</string>
     <string name="activity_device_sensor_value">x:%1$f\ny:%2$f\nz:%3$f\ntime:%4$d</string>
+    <string name="activity_device_unit_c">%1$.2f℃</string>
+    <string name="activity_device_unit_percent">%1$.2f%%</string>
 
     <string name="activity_beacon_title">Linkingビーコン確認</string>
     <string name="activity_beacon_vendor_id">VendorID</string>

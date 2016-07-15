@@ -15,10 +15,10 @@ import com.nttdocomo.android.sdaiflib.NotifyNotification;
 
 import org.deviceconnect.android.deviceplugin.linking.BuildConfig;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 class LinkingNotifyNotification {
     private static final String TAG = "LinkingPlugIn";
@@ -34,13 +34,13 @@ class LinkingNotifyNotification {
 
     public synchronized void enableListenNotification(final LinkingDevice device,
                                                       final LinkingDeviceManager.OnButtonEventListener listener) {
-        if (!device.isButton()) {
+        if (!device.isSupportButton()) {
             return;
         }
 
         List<LinkingDeviceManager.OnButtonEventListener> listeners = mMap.get(device);
         if (listeners == null) {
-            listeners = new ArrayList<>();
+            listeners = new CopyOnWriteArrayList<>();
             mMap.put(device, listeners);
         } else if (listeners.contains(listener)) {
             return;

@@ -43,14 +43,6 @@ public class LinkingBeaconService extends DConnectService implements LinkingDest
         return mBeacon.isOnline();
     }
 
-    public void setLinkingBeacon(final LinkingBeacon beacon) {
-        mBeacon = beacon;
-    }
-
-    public LinkingBeacon getLinkingBeacon() {
-        return mBeacon;
-    }
-
     @Override
     public void onDestroy() {
         for (DConnectProfile profile : getProfileList()) {
@@ -58,5 +50,13 @@ public class LinkingBeaconService extends DConnectService implements LinkingDest
                 ((LinkingDestroy) profile).onDestroy();
             }
         }
+    }
+
+    public void setLinkingBeacon(final LinkingBeacon beacon) {
+        mBeacon = beacon;
+    }
+
+    public LinkingBeacon getLinkingBeacon() {
+        return mBeacon;
     }
 }

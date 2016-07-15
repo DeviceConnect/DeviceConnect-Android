@@ -1,6 +1,9 @@
 package org.deviceconnect.android.deviceplugin.linking.linking;
 
 import android.content.Context;
+import android.content.Intent;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 
 import com.nttdocomo.android.sdaiflib.DeviceInfo;
@@ -27,13 +30,21 @@ public class LinkingDeviceManager {
     private LinkingNotifyNotification mNotifyKey;
     private LinkingNotifySensor mNotifySensor;
 
+    private List<Intent> mRequestSensorType = new ArrayList<>();
+
+    private Handler mHandler = new Handler(Looper.getMainLooper());
+
     public LinkingDeviceManager(final Context context) {
         mContext = context;
 
         mNotifyConnect = new LinkingNotifyConnect(context, this);
         mNotifyRange = new LinkingNotifyRange(context);
         mNotifyKey = new LinkingNotifyNotification(context);
-        mNotifySensor = new LinkingNotifySensor(context);
+        mNotifySensor = new LinkingNotifySensor(context, this);
+    }
+
+    public Context getContext() {
+        return mContext;
     }
 
     public void destroy() {
@@ -41,6 +52,7 @@ public class LinkingDeviceManager {
         mNotifyKey.release();
         mNotifySensor.release();
         mNotifyConnect.release();
+        mRequestSensorType.clear();
     }
 
     public List<LinkingDevice> getDevices() {
@@ -65,6 +77,41 @@ public class LinkingDeviceManager {
             }
         }
         return devices;
+    }
+
+    public synchronized void startConfirmActivity(final Intent request) {
+        if (BuildConfig.DEBUG) {
+            Log.d(TAG, "AAAAAAAAAAAA startConfirmActivity");
+        }
+
+        mRequestSensorType.add(request);
+        if (mRequestSensorType.size() == 1) {
+            mHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    mContext.startActivity(request);
+                }
+            });
+        }
+    }
+
+    public synchronized void onConfirmActivityResult(final Intent request) {
+        if (BuildConfig.DEBUG) {
+            Log.d(TAG, "AAAAAAAAAAAA onConfirmActivityResult");
+        }
+
+        if (mRequestSensorType.size() > 0) {
+            mRequestSensorType.remove(0);
+        }
+
+        if (mRequestSensorType.size() > 0) {
+            mHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    mContext.startActivity(mRequestSensorType.get(0));
+                }
+            });
+        }
     }
 
     public LinkingDevice findDeviceByDeviceId(final int deviceId, final int uniqueId) {
@@ -145,7 +192,7 @@ public class LinkingDeviceManager {
         notify.setTitle("title");
         notify.setText("linking");
         notify.setDeviceID(device.getModelId());
-        notify.setDeviceUID(device.getUniqueId());
+        notify.setDeviceUID(new int[] {device.getUniqueId()});
         setVibration(notify, device);
         if (!on) {
             setIllumination(notify, device);
@@ -162,7 +209,7 @@ public class LinkingDeviceManager {
         notify.setTitle("title");
         notify.setText("linking");
         notify.setDeviceID(device.getModelId());
-        notify.setDeviceUID(device.getUniqueId());
+        notify.setDeviceUID(new int[] {device.getUniqueId()});
         if (!on) {
             setVibration(notify, device);
         }
@@ -179,7 +226,7 @@ public class LinkingDeviceManager {
         notify.setTitle(notification.getTitle());
         notify.setText(notification.getDetail());
         notify.setDeviceID(device.getModelId());
-        notify.setDeviceUID(device.getUniqueId());
+        notify.setDeviceUID(new int[] {device.getUniqueId()});
         int result = notify.send();
         return (result != ErrorCode.RESULT_OK);
     }

@@ -135,7 +135,7 @@ public class LinkingLightProfile extends LightProfile {
             return null;
         }
 
-        if (!device.isLED()) {
+        if (!device.isSupportLED()) {
             MessageUtils.setIllegalDeviceStateError(response, "device has not LED");
             return null;
         }

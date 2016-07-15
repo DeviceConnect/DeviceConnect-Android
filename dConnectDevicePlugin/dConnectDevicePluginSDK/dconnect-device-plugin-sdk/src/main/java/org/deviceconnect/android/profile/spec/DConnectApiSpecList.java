@@ -8,23 +8,35 @@ import org.json.JSONObject;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
-public class DConnectApiSpecList {
+public class DConnectApiSpecList implements DConnectApiSpecConstants {
 
-    private final List<DConnectApiSpec> mApiSpecList = new ArrayList<DConnectApiSpec>();
+    private final Map<String, Map<Method, DConnectApiSpec>> mAllApiSpecs
+        = new HashMap<String, Map<Method, DConnectApiSpec>>();
 
     public DConnectApiSpecList() {}
 
-    public DConnectApiSpec findApiSpec(final String method, final String path) {
-        for (DConnectApiSpec spec : mApiSpecList) {
-            if (spec.getMethod().getName().equalsIgnoreCase(method)
-                && spec.getPath().equalsIgnoreCase(path)) {
-                return spec;
-            }
+    public Map<Method, DConnectApiSpec> findApiSpecs(final String path) {
+        synchronized (mAllApiSpecs) {
+            String key = path.toLowerCase();
+            return mAllApiSpecs.get(key);
         }
-        return null;
+    }
+
+    public DConnectApiSpec findApiSpec(final Method method, final String path) {
+        synchronized (mAllApiSpecs) {
+            Map<Method, DConnectApiSpec> apiSpecs = findApiSpecs(path);
+            if (apiSpecs == null) {
+                return null;
+            }
+            return apiSpecs.get(method);
+        }
+    }
+
+    public DConnectApiSpec findApiSpec(final String method, final String path) {
+        return findApiSpec(Method.parse(method), path);
     }
 
     public void addApiSpecList(final InputStream json, final DConnectApiSpecFilter filter) throws IOException, JSONException {
@@ -58,7 +70,15 @@ public class DConnectApiSpecList {
     }
 
     private void addApiSpec(final DConnectApiSpec apiSpec) {
-        mApiSpecList.add(apiSpec);
+        synchronized (mAllApiSpecs) {
+            String path = apiSpec.getPath().toLowerCase();
+            Map<Method, DConnectApiSpec> apiSpecs = mAllApiSpecs.get(path);
+            if (apiSpecs == null) {
+                apiSpecs = new HashMap<Method, DConnectApiSpec>();
+                mAllApiSpecs.put(path, apiSpecs);
+            }
+            apiSpecs.put(apiSpec.getMethod(), apiSpec);
+        }
     }
 
 }

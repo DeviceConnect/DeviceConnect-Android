@@ -6,6 +6,7 @@
  */
 package org.deviceconnect.android.deviceplugin.linking.linking.service;
 
+import org.deviceconnect.android.deviceplugin.linking.LinkingDestroy;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingDevice;
 import org.deviceconnect.android.deviceplugin.linking.linking.profile.LinkingBatteryProfile;
 import org.deviceconnect.android.deviceplugin.linking.linking.profile.LinkingDeviceOrientationProfile;
@@ -16,8 +17,6 @@ import org.deviceconnect.android.deviceplugin.linking.linking.profile.LinkingNot
 import org.deviceconnect.android.deviceplugin.linking.linking.profile.LinkingProximityProfile;
 import org.deviceconnect.android.deviceplugin.linking.linking.profile.LinkingTemperatureProfile;
 import org.deviceconnect.android.deviceplugin.linking.linking.profile.LinkingVibrationProfile;
-import org.deviceconnect.android.deviceplugin.linking.LinkingDestroy;
-import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.android.service.DConnectService;
 
@@ -25,7 +24,7 @@ public class LinkingDeviceService extends DConnectService implements LinkingDest
 
     private LinkingDevice mDevice;
 
-    public LinkingDeviceService(final DConnectMessageService service, final LinkingDevice device) {
+    public LinkingDeviceService(final LinkingDevice device) {
         super(device.getBdAddress());
 
         setName(device.getDisplayName());
@@ -33,27 +32,27 @@ public class LinkingDeviceService extends DConnectService implements LinkingDest
 
         mDevice = device;
 
-        if (mDevice.isGyro() || mDevice.isAcceleration() || mDevice.isCompass()) {
+        if (mDevice.isSupportSensor()) {
             addProfile(new LinkingDeviceOrientationProfile());
         }
-        if (mDevice.isButton()) {
+        if (mDevice.isSupportButton()) {
             addProfile(new LinkingKeyEventProfile());
         }
-        if (mDevice.isLED()) {
+        if (mDevice.isSupportLED()) {
             addProfile(new LinkingLightProfile());
         }
         addProfile(new LinkingNotificationProfile());
         addProfile(new LinkingProximityProfile());
-        if (mDevice.isVibration()) {
+        if (mDevice.isSupportVibration()) {
             addProfile(new LinkingVibrationProfile());
         }
-        if (mDevice.isBattery()) {
+        if (mDevice.isSupportBattery()) {
             addProfile(new LinkingBatteryProfile());
         }
-        if (mDevice.isTemperature()) {
+        if (mDevice.isSupportTemperature()) {
             addProfile(new LinkingTemperatureProfile());
         }
-        if (mDevice.isHumidity()) {
+        if (mDevice.isSupportHumidity()) {
             addProfile(new LinkingHumidityProfile());
         }
     }
@@ -63,14 +62,6 @@ public class LinkingDeviceService extends DConnectService implements LinkingDest
         return mDevice.isConnected();
     }
 
-    public void setLinkingDevice(final LinkingDevice device) {
-        mDevice = device;
-    }
-
-    public LinkingDevice getLinkingDevice() {
-        return mDevice;
-    }
-
     @Override
     public void onDestroy() {
         for (DConnectProfile profile : getProfileList()) {
@@ -78,5 +69,13 @@ public class LinkingDeviceService extends DConnectService implements LinkingDest
                 ((LinkingDestroy) profile).onDestroy();
             }
         }
+    }
+
+    public void setLinkingDevice(final LinkingDevice device) {
+        mDevice = device;
+    }
+
+    public LinkingDevice getLinkingDevice() {
+        return mDevice;
     }
 }

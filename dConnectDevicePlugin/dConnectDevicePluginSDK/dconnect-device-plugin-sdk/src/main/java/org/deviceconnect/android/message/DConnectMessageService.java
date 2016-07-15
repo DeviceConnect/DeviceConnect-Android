@@ -286,27 +286,15 @@ public abstract class DConnectMessageService extends Service implements DConnect
             return;
         }
 
-        // 指定されたサービスの各プロファイルでリクエストを処理する
-        DConnectProfile profile = getProfile(profileName);
         boolean send = true;
-        if (profile == null) {
-            DConnectService service = mServiceManager.getService(DConnectProfile.getServiceID(request));
-            if (service != null) {
-                send = service.onRequest(request, response);
-            } else {
-                MessageUtils.setNotFoundServiceError(response);
-            }
-        }
-
-        // プラグイン本体の各プロファイルでリクエストを処理する
-        else if (isUseLocalOAuth()) {
+        if (isUseLocalOAuth()) {
             // アクセストークン
             String accessToken = request.getStringExtra(AuthorizationProfile.PARAM_ACCESS_TOKEN);
             // LocalOAuth処理
             CheckAccessTokenResult result = LocalOAuth2Main.checkAccessToken(accessToken, profileName,
                 IGNORE_PROFILES);
             if (result.checkResult()) {
-                send = profile.onRequest(request, response);
+                send = executeRequest(profileName, request, response);
             } else {
                 if (accessToken == null) {
                     MessageUtils.setEmptyAccessTokenError(response);
@@ -323,11 +311,28 @@ public abstract class DConnectMessageService extends Service implements DConnect
                 }
             }
         } else {
-            send = profile.onRequest(request, response);
+            send = executeRequest(profileName, request, response);
         }
 
         if (send) {
             sendResponse(response);
+        }
+    }
+
+    private boolean executeRequest(final String profileName, final Intent request,
+                                   final Intent response) {
+        DConnectProfile profile = getProfile(profileName);
+        if (profile == null) {
+            String serviceId = DConnectProfile.getServiceID(request);
+            DConnectService service = mServiceManager.getService(serviceId);
+            if (service != null) {
+                return service.onRequest(request, response);
+            } else {
+                MessageUtils.setNotFoundServiceError(response);
+                return true;
+            }
+        } else {
+            return profile.onRequest(request, response);
         }
     }
 

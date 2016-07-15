@@ -156,7 +156,12 @@ public abstract class DConnectProfile implements DConnectProfileConstants,
         return path.toString();
     }
 
-    private boolean isKnownApi(final Intent request) {
+    private boolean isKnownPath(final Intent request) {
+        String path = getApiPath(getProfile(request), getInterface(request), getAttribute(request));
+        return mApiSpecList.findApiSpecs(path) != null;
+    }
+
+    private boolean isKnownMethod(final Intent request) {
         String action = request.getAction();
         Method method = Method.fromAction(action);
         if (method == null) {
@@ -196,8 +201,12 @@ public abstract class DConnectProfile implements DConnectProfileConstants,
             }
             return api.onRequest(request, response);
         } else {
-            if (isKnownApi(request)) {
-                MessageUtils.setNotSupportAttributeError(response);
+            if (isKnownPath(request)) {
+                if (isKnownMethod(request)) {
+                    MessageUtils.setNotSupportAttributeError(response);
+                } else {
+                    MessageUtils.setNotSupportActionError(response);
+                }
             } else {
                 MessageUtils.setUnknownAttributeError(response);
             }

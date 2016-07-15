@@ -184,6 +184,19 @@ public class LinkingDeviceManager {
     }
 
     public boolean sendLEDCommand(final LinkingDevice device, final boolean on) {
+        if (device == null) {
+            if (BuildConfig.DEBUG) {
+                Log.e(TAG, "device is null.");
+            }
+            return false;
+        }
+
+        if (!device.isSupportLED()) {
+            if (BuildConfig.DEBUG) {
+                Log.w(TAG, "Not support led. name=" + device.getDisplayName());
+            }
+            return false;
+        }
         SendNotification notify = new SendNotification(mContext);
         notify.setDispNameEn("Linking Device Plug-in");
         notify.setDispNameJa("Linking Device Plug-in");
@@ -192,15 +205,30 @@ public class LinkingDeviceManager {
         notify.setText("linking");
         notify.setDeviceID(device.getModelId());
         notify.setDeviceUID(new int[] {device.getUniqueId()});
-        setVibration(notify, device);
-        if (!on) {
-            setIllumination(notify, device);
+        setVibration(notify, getVibrationOffSetting(device));
+        if (on) {
+            setIllumination(notify, getLightPatternSetting(device), getLightColorSetting(device));
+        } else {
+            setIllumination(notify, getLightOffSetting(device), getLightColorSetting(device));
         }
         int result = notify.send();
         return (result != ErrorCode.RESULT_OK);
     }
 
     public boolean sendVibrationCommand(final LinkingDevice device, final boolean on) {
+        if (device == null) {
+            if (BuildConfig.DEBUG) {
+                Log.e(TAG, "device is null.");
+            }
+            return false;
+        }
+
+        if (!device.isSupportLED()) {
+            if (BuildConfig.DEBUG) {
+                Log.w(TAG, "Not support vibration. name=" + device.getDisplayName());
+            }
+            return false;
+        }
         SendNotification notify = new SendNotification(mContext);
         notify.setDispNameEn("Linking Device Plug-in");
         notify.setDispNameJa("Linking Device Plug-in");
@@ -209,10 +237,12 @@ public class LinkingDeviceManager {
         notify.setText("linking");
         notify.setDeviceID(device.getModelId());
         notify.setDeviceUID(new int[] {device.getUniqueId()});
-        if (!on) {
-            setVibration(notify, device);
+        if (on) {
+            setVibration(notify, getVibrationOnSetting(device));
+        } else {
+            setVibration(notify, getVibrationOffSetting(device));
         }
-        setIllumination(notify, device);
+        setIllumination(notify, getLightOffSetting(device), getLightColorSetting(device));
         int result = notify.send();
         return (result != ErrorCode.RESULT_OK);
     }
@@ -238,16 +268,8 @@ public class LinkingDeviceManager {
         mNotifyConnect.removeListener(listener);
     }
 
-    private void setVibration(final SendNotification notify, final LinkingDevice device) {
-        if (device.getVibration() == null) {
-            return;
-        }
-
-        Integer patternId = getVibrationOffSetting(device);
+    private void setVibration(final SendNotification notify, final Integer patternId) {
         if (patternId == null) {
-            if (BuildConfig.DEBUG) {
-                Log.e(TAG, "Not exist pattern of Vibration. name=" + device.getDisplayName());
-            }
             return;
         }
         byte pattern = (byte) (patternId & 0xFF);
@@ -257,33 +279,38 @@ public class LinkingDeviceManager {
         notify.setVibration(vibration);
     }
 
-    private Integer getVibrationOffSetting(final LinkingDevice device) {
-        return PreferenceUtil.getInstance(mContext).getVibrationOffSetting(device.getBdAddress());
-    }
-
-    private void setIllumination(final SendNotification notify, final LinkingDevice device) {
-        if (device.getIllumination() == null) {
-            return;
-        }
-
-        Integer patternId = getLightOffSetting(device);
-        if (patternId == null) {
-            if (BuildConfig.DEBUG) {
-                Log.e(TAG, "Not exist pattern of LED. name=" + device.getDisplayName());
-            }
+    private void setIllumination(final SendNotification notify, final Integer patternId, final Integer colorId) {
+        if (patternId == null || colorId == null) {
             return;
         }
         byte pattern = (byte) (patternId & 0xFF);
+        byte color = (byte) (colorId & 0xFF);
         byte[] illumination = new byte[4];
         illumination[0] = 0x20;
         illumination[1] = pattern;
         illumination[2] = 0x30;
-        illumination[3] = 0x01;//default color id
+        illumination[3] = color;
         notify.setIllumination(illumination);
     }
 
+    private Integer getVibrationOnSetting(final LinkingDevice device) {
+        return PreferenceUtil.getInstance(mContext).getVibrationOnSetting(device.getBdAddress());
+    }
+
+    private Integer getVibrationOffSetting(final LinkingDevice device) {
+        return PreferenceUtil.getInstance(mContext).getVibrationOffSetting(device.getBdAddress());
+    }
+
+    private Integer getLightColorSetting(final LinkingDevice device) {
+        return PreferenceUtil.getInstance(mContext).getLEDColorSetting(device.getBdAddress());
+    }
+
+    private Integer getLightPatternSetting(final LinkingDevice device) {
+        return PreferenceUtil.getInstance(mContext).getLEDPatternSetting(device.getBdAddress());
+    }
+
     private Integer getLightOffSetting(final LinkingDevice device) {
-        return PreferenceUtil.getInstance(mContext).getLightOffSetting(device.getBdAddress());
+        return PreferenceUtil.getInstance(mContext).getLEDOffSetting(device.getBdAddress());
     }
 
     public enum Range {

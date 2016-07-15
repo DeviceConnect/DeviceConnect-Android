@@ -22,7 +22,10 @@ import java.util.Map;
  */
 public final class PreferenceUtil {
 
-    private static final String PREF_LIGHT_OFF_SETTING = "pref_lightOffSetting";
+    private static final String PREF_LED_ON_COLOR_SETTING = "pref_ledOnColorSetting";
+    private static final String PREF_LED_ON_PATTERN_SETTING = "pref_ledOnPatternSetting";
+    private static final String PREF_LED_OFF_SETTING = "pref_lightOffSetting";
+    private static final String PREF_VIB_ON_SETTING = "pref_vibrationOnSetting";
     private static final String PREF_VIB_OFF_SETTING = "pref_vibrationOffSetting";
     private static final String PREF_BEACON_SCAN_STATUS = "forceBeaconScanStatus";
     private static final String PREF_BEACON_SCAN_MODE = "beaconScanMode";
@@ -42,6 +45,20 @@ public final class PreferenceUtil {
         return mInstance;
     }
 
+    public Integer getVibrationOnSetting(final String address) {
+        Map<String, Integer> map = getVibrationOnSetting();
+        return map == null ? null : map.get(address);
+    }
+
+    public void setVibrationOnSetting(final String address, final Integer id) {
+        Map<String, Integer> map = getVibrationOnSetting();
+        if (map == null) {
+            return;
+        }
+        map.put(address, id);
+        putValue(PREF_VIB_ON_SETTING, new JSONObject(map).toString());
+    }
+
     public Integer getVibrationOffSetting(final String address) {
         Map<String, Integer> map = getVibrationOffSetting();
         return map == null ? null : map.get(address);
@@ -56,7 +73,36 @@ public final class PreferenceUtil {
         putValue(PREF_VIB_OFF_SETTING, new JSONObject(map).toString());
     }
 
-    public Integer getLightOffSetting(final String address) {
+    public Integer getLEDColorSetting(final String address) {
+        Map<String, Integer> map = getLEDColorSetting();
+        return map == null ? null : map.get(address);
+    }
+
+    public void setLEDColorSetting(final String address, final Integer id) {
+        Map<String, Integer> map = getLEDColorSetting();
+        if (map == null) {
+            return;
+        }
+        map.put(address, id);
+        putValue(PREF_LED_ON_COLOR_SETTING, new JSONObject(map).toString());
+    }
+
+
+    public Integer getLEDPatternSetting(final String address) {
+        Map<String, Integer> map = getLEDPatternSetting();
+        return map == null ? null : map.get(address);
+    }
+
+    public void setLEDPatternSetting(final String address, final Integer id) {
+        Map<String, Integer> map = getLEDPatternSetting();
+        if (map == null) {
+            return;
+        }
+        map.put(address, id);
+        putValue(PREF_LED_ON_PATTERN_SETTING, new JSONObject(map).toString());
+    }
+
+    public Integer getLEDOffSetting(final String address) {
         Map<String, Integer> map = getLightOffSetting();
         return map == null ? null : map.get(address);
     }
@@ -67,7 +113,7 @@ public final class PreferenceUtil {
             return;
         }
         map.put(address, id);
-        putValue(PREF_LIGHT_OFF_SETTING, new JSONObject(map).toString());
+        putValue(PREF_LED_OFF_SETTING, new JSONObject(map).toString());
     }
 
     public void setForceBeaconScanStatus(final boolean status) {
@@ -86,12 +132,24 @@ public final class PreferenceUtil {
         return mPreferences.getInt(PREF_BEACON_SCAN_MODE, 0);
     }
 
+    private Map<String, Integer> getLEDColorSetting() {
+        return getSetting(PREF_LED_ON_COLOR_SETTING);
+    }
+
+    private Map<String, Integer> getLEDPatternSetting() {
+        return getSetting(PREF_LED_ON_PATTERN_SETTING);
+    }
+
+    private Map<String, Integer> getVibrationOnSetting() {
+        return getSetting(PREF_VIB_ON_SETTING);
+    }
+
     private Map<String, Integer> getVibrationOffSetting() {
         return getSetting(PREF_VIB_OFF_SETTING);
     }
 
     private Map<String, Integer> getLightOffSetting() {
-        return getSetting(PREF_LIGHT_OFF_SETTING);
+        return getSetting(PREF_LED_OFF_SETTING);
     }
 
     private Map<String, Integer> getSetting(final String pref) {

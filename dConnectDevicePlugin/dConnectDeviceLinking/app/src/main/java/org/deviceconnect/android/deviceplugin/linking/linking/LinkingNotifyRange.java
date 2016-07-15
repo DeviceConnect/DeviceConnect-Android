@@ -111,7 +111,7 @@ class LinkingNotifyRange {
                     notifyOnChangeRange(device, LinkingDeviceManager.Range.valueOf(rangeSetting, range));
                 } else {
                     if (BuildConfig.DEBUG) {
-                        Log.w(TAG, "Not found a device.");
+                        Log.w(TAG, "Not found a device. bdAddress=" + bdAddress);
                     }
                 }
             }

@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 class LinkingNotifySensor {
     private static final String TAG = "LinkingPlugIn";
@@ -30,12 +31,14 @@ class LinkingNotifySensor {
     private final Map<LinkingDevice, List<LinkingDeviceManager.OnTemperatureListener>> mTemperatureMap = new HashMap<>();
 
     private NotifySensorData mNotifySensor;
+    private LinkingDeviceManager mLinkingDeviceManager;
     private Context mContext;
 
     private final Map<String, Integer> mCountOfSensor = new HashMap<>();
 
-    public LinkingNotifySensor(final Context context) {
+    public LinkingNotifySensor(final Context context, final LinkingDeviceManager manager) {
         mContext = context;
+        mLinkingDeviceManager = manager;
         startNotifySensor();
     }
 
@@ -63,7 +66,7 @@ class LinkingNotifySensor {
 
         List<LinkingDeviceManager.OnSensorListener> listeners = mSensorMap.get(device);
         if (listeners == null) {
-            listeners = new ArrayList<>();
+            listeners = new CopyOnWriteArrayList<>();
             mSensorMap.put(device, listeners);
         } else if (listeners.contains(listener)) {
             return;
@@ -113,7 +116,7 @@ class LinkingNotifySensor {
 
         List<LinkingDeviceManager.OnBatteryListener> listeners = mBatteryMap.get(device);
         if (listeners == null) {
-            listeners = new ArrayList<>();
+            listeners = new CopyOnWriteArrayList<>();
             mBatteryMap.put(device, listeners);
         } else if (listeners.contains(listener)) {
             return;
@@ -160,7 +163,7 @@ class LinkingNotifySensor {
 
         List<LinkingDeviceManager.OnHumidityListener> listeners = mHumidityMap.get(device);
         if (listeners == null) {
-            listeners = new ArrayList<>();
+            listeners = new CopyOnWriteArrayList<>();
             mHumidityMap.put(device, listeners);
         } else if (listeners.contains(listener)) {
             return;
@@ -207,7 +210,7 @@ class LinkingNotifySensor {
 
         List<LinkingDeviceManager.OnTemperatureListener> listeners = mTemperatureMap.get(device);
         if (listeners == null) {
-            listeners = new ArrayList<>();
+            listeners = new CopyOnWriteArrayList<>();
             mTemperatureMap.put(device, listeners);
         } else if (listeners.contains(listener)) {
             return;
@@ -313,7 +316,7 @@ class LinkingNotifySensor {
         intent.putExtra(LinkingUtil.EXTRA_Z_THRESHOLD, 0.0F);
         intent.putExtra(ConfirmActivity.EXTRA_REQUEST_SENSOR_TYPE, types);
         try {
-            mContext.startActivity(intent);
+            mLinkingDeviceManager.startConfirmActivity(intent);
             countUpSensor(address, types.length);
         } catch (ActivityNotFoundException e) {
             if (BuildConfig.DEBUG) {
@@ -343,7 +346,7 @@ class LinkingNotifySensor {
         intent.setComponent(new ComponentName(LinkingUtil.PACKAGE_NAME, LinkingUtil.RECEIVER_NAME));
         intent.putExtra(mContext.getPackageName() + ".sda.extra.BD_ADDRESS", address);
         try {
-            mContext.sendBroadcast(intent);
+            mLinkingDeviceManager.getContext().sendBroadcast(intent);
         } catch (ActivityNotFoundException e) {
             if (BuildConfig.DEBUG) {
                 e.printStackTrace();

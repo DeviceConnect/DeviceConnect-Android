@@ -15,10 +15,10 @@ import com.nttdocomo.android.sdaiflib.NotifyRange;
 
 import org.deviceconnect.android.deviceplugin.linking.BuildConfig;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 class LinkingNotifyRange {
     private static final String TAG = "LinkingPlugIn";
@@ -35,7 +35,7 @@ class LinkingNotifyRange {
     public synchronized void enableListenRange(final LinkingDevice device, final LinkingDeviceManager.OnRangeListener listener) {
         List<LinkingDeviceManager.OnRangeListener> listeners = mMap.get(device);
         if (listeners == null) {
-            listeners = new ArrayList<>();
+            listeners = new CopyOnWriteArrayList<>();
             mMap.put(device, listeners);
         } else if (listeners.contains(listener)) {
             return;

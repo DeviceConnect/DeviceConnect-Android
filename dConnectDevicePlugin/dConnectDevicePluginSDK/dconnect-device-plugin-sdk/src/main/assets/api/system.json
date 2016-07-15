@@ -1,0 +1,10 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "title": "System Profile",
+        "version": "2.0.0",
+        "description": ""
+    },
+    "consumes": [],
+    "paths": {}
+}

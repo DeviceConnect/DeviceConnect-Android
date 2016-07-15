@@ -2,12 +2,12 @@ package org.deviceconnect.android.service;
 
 
 import android.content.Context;
-import android.util.Log;
 
 import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.android.profile.api.DConnectApi;
 import org.deviceconnect.android.profile.spec.DConnectApiSpec;
-import org.deviceconnect.android.profile.spec.DConnectApiSpecList;
+import org.deviceconnect.android.profile.spec.DConnectPluginSpec;
+import org.deviceconnect.android.profile.spec.DConnectProfileSpec;
 import org.deviceconnect.message.DConnectMessage;
 
 import java.util.ArrayList;
@@ -18,7 +18,7 @@ import java.util.Map;
 
 public class DConnectServiceManager implements DConnectServiceProvider {
 
-    private DConnectApiSpecList mApiSpecList;
+    private DConnectPluginSpec mPluginSpec;
 
     private Context mContext;
 
@@ -30,8 +30,8 @@ public class DConnectServiceManager implements DConnectServiceProvider {
         return mContext;
     }
 
-    public void setApiSpecList(final DConnectApiSpecList apiSpecList) {
-        mApiSpecList = apiSpecList;
+    public void setPluginSpec(final DConnectPluginSpec pluginSpec) {
+        mPluginSpec = pluginSpec;
     }
 
     private final Map<String, DConnectService> mDConnectServices
@@ -39,12 +39,17 @@ public class DConnectServiceManager implements DConnectServiceProvider {
 
     @Override
     public void addService(final DConnectService service) {
-        if (mApiSpecList != null) {
+        if (mPluginSpec != null) {
             for (DConnectProfile profile : service.getProfileList()) {
-                profile.setApiSpecList(mApiSpecList);
+                DConnectProfileSpec profileSpec =
+                    mPluginSpec.findProfileSpec(profile.getProfileName().toLowerCase());
+                if (profileSpec == null) {
+                    continue;
+                }
+                profile.setProfileSpec(profileSpec);
                 for (DConnectApi api : profile.getApiList()) {
                     String path = createPath(profile.getProfileName(), api);
-                    DConnectApiSpec spec = mApiSpecList.findApiSpec(api.getMethod().getName(), path);
+                    DConnectApiSpec spec = profileSpec.findApiSpec(path, api.getMethod());
                     if (spec != null) {
                         api.setApiSpec(spec);
                     }
@@ -88,8 +93,6 @@ public class DConnectServiceManager implements DConnectServiceProvider {
 
     @Override
     public List<DConnectService> getServiceList() {
-        Log.d("AAA", "getServiceList: " + mDConnectServices.size());
-
         List<DConnectService> list = new ArrayList<DConnectService>();
         list.addAll(mDConnectServices.values());
         return list;

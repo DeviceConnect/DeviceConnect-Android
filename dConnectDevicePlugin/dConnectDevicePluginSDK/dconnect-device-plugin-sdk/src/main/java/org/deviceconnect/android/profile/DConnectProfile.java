@@ -18,7 +18,7 @@ import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.api.DConnectApi;
 import org.deviceconnect.android.profile.spec.DConnectApiSpec;
 import org.deviceconnect.android.profile.spec.DConnectApiSpecConstants;
-import org.deviceconnect.android.profile.spec.DConnectApiSpecList;
+import org.deviceconnect.android.profile.spec.DConnectProfileSpec;
 import org.deviceconnect.android.service.DConnectService;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.profile.DConnectProfileConstants;
@@ -55,7 +55,7 @@ public abstract class DConnectProfile implements DConnectProfileConstants,
     /**
      * Device Connect API 仕様定義リスト.
      */
-    private DConnectApiSpecList mApiSpecList;
+    private DConnectProfileSpec mProfileSpec;
 
     /**
      * ロガー.
@@ -122,6 +122,10 @@ public abstract class DConnectProfile implements DConnectProfileConstants,
         mApis.remove(new ApiIdentifier(getApiPath(api), api.getMethod()));
     }
 
+    public boolean hasApi(final String path, final Method method) {
+        return findApi(path, method) != null;
+    }
+
     /**
      * 指定されたDevice Connect APIへのパスを返す.
      * @param api API実装
@@ -158,7 +162,7 @@ public abstract class DConnectProfile implements DConnectProfileConstants,
 
     private boolean isKnownPath(final Intent request) {
         String path = getApiPath(getProfile(request), getInterface(request), getAttribute(request));
-        return mApiSpecList.findApiSpecs(path) != null;
+        return mProfileSpec.findApiSpecs(path) != null;
     }
 
     private boolean isKnownMethod(final Intent request) {
@@ -168,10 +172,10 @@ public abstract class DConnectProfile implements DConnectProfileConstants,
             return false;
         }
         String path = getApiPath(getProfile(request), getInterface(request), getAttribute(request));
-        if (mApiSpecList == null) {
+        if (mProfileSpec == null) {
             return false;
         }
-        return mApiSpecList.findApiSpec(method, path) != null;
+        return mProfileSpec.findApiSpec(path, method) != null;
     }
 
     /**
@@ -252,10 +256,18 @@ public abstract class DConnectProfile implements DConnectProfileConstants,
 
     /**
      * Device Connect API 仕様定義リストを設定する.
-     * @param apiSpecList API 仕様定義リスト
+     * @param profileSpec API 仕様定義リスト
      */
-    public void setApiSpecList(final DConnectApiSpecList apiSpecList) {
-        mApiSpecList = apiSpecList;
+    public void setProfileSpec(final DConnectProfileSpec profileSpec) {
+        mProfileSpec = profileSpec;
+    }
+
+    /**
+     * Device Connect API 仕様定義リストを取得する.
+     * @return API 仕様定義リスト
+     */
+    public DConnectProfileSpec getProfileSpec() {
+        return mProfileSpec;
     }
 
     /**

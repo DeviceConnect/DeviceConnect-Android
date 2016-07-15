@@ -5,24 +5,21 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.regex.Pattern;
 
 public class StringRequestParamSpec extends DConnectRequestParamSpec {
 
-    private static final String FORMAT = "format";
-    private static final String MAX_LENGTH = "maxLength";
-    private static final String MIN_LENGTH = "minLength";
-    private static final String ENUM = "enum";
-    private static final String VALUE = "value";
+    private static final String KEY_FORMAT = "format";
+    private static final String KEY_MAX_LENGTH = "maxLength";
+    private static final String KEY_MIN_LENGTH = "minLength";
+    private static final String KEY_ENUM = "enum";
 
     private static final Pattern RGB_PATTERN = Pattern.compile("[0-9a-zA-Z]{6}");
 
     private final Format mFormat;
     private Integer mMaxLength;
     private Integer mMinLength;
-    private Enum<String>[] mEnumList;
+    private String[] mEnumList;
 
     private StringRequestParamSpec(final Format format) {
         super(Type.STRING);
@@ -49,11 +46,11 @@ public class StringRequestParamSpec extends DConnectRequestParamSpec {
         return mMinLength;
     }
 
-    void setEnumList(final Enum<String>[] enumList) {
+    void setEnumList(final String[] enumList) {
         mEnumList = enumList;
     }
 
-    public Enum<String>[] getEnumList() {
+    public String[] getEnumList() {
         return mEnumList;
     }
 
@@ -98,30 +95,25 @@ public class StringRequestParamSpec extends DConnectRequestParamSpec {
 
     public static StringRequestParamSpec fromJson(final JSONObject json) throws JSONException {
         Builder builder = new Builder();
-        builder.setName(json.getString(NAME));
-        builder.setMandatory(json.getBoolean(MANDATORY));
-        if (json.has(FORMAT)) {
-            Format format = Format.parse(json.getString(FORMAT));
+        builder.setRequired(json.getBoolean(KEY_REQUIRED));
+        if (json.has(KEY_FORMAT)) {
+            Format format = Format.parse(json.getString(KEY_FORMAT));
             if (format == null) {
-                throw new IllegalArgumentException("format is invalid: " + json.getString(FORMAT));
+                throw new IllegalArgumentException("format is invalid: " + json.getString(KEY_FORMAT));
             }
             builder.setFormat(format);
         }
-        if (json.has(MAX_LENGTH)) {
-            builder.setMaxLength(json.getInt(MAX_LENGTH));
+        if (json.has(KEY_MAX_LENGTH)) {
+            builder.setMaxLength(json.getInt(KEY_MAX_LENGTH));
         }
-        if (json.has(MIN_LENGTH)) {
-            builder.setMinLength(json.getInt(MIN_LENGTH));
+        if (json.has(KEY_MIN_LENGTH)) {
+            builder.setMinLength(json.getInt(KEY_MIN_LENGTH));
         }
-        if (json.has(ENUM)) {
-            List<Enum<String>> enumList = new ArrayList<Enum<String>>();
-            JSONArray array = json.getJSONArray(ENUM);
+        if (json.has(KEY_ENUM)) {
+            JSONArray array = json.getJSONArray(KEY_ENUM);
+            String[] enumList = new String[array.length()];
             for (int i = 0; i < array.length(); i++) {
-                JSONObject obj = array.getJSONObject(i);
-                Enum<String> enumSpec =  new Enum<String>();
-                enumSpec.setName(obj.getString(NAME));
-                enumSpec.setValue(obj.getString(VALUE));
-                enumList.add(enumSpec);
+                enumList[i] = array.getString(i);
             }
             builder.setEnumList(enumList);
         }
@@ -130,19 +122,18 @@ public class StringRequestParamSpec extends DConnectRequestParamSpec {
 
     public static class Builder {
         private String mName;
-        private boolean mIsMandatory;
+        private boolean mIsRequired;
         private Format mFormat;
         private Integer mMaxLength;
         private Integer mMinLength;
-        private List<Enum<String>> mEnumList;
+        private String[] mEnumList;
 
-        public Builder setName(final String name) {
+        public void setName(final String name) {
             mName = name;
-            return this;
         }
 
-        public Builder setMandatory(final boolean isMandatory) {
-            mIsMandatory = isMandatory;
+        public Builder setRequired(final boolean isRequired) {
+            mIsRequired = isRequired;
             return this;
         }
 
@@ -161,7 +152,7 @@ public class StringRequestParamSpec extends DConnectRequestParamSpec {
             return this;
         }
 
-        public Builder setEnumList(final List<Enum<String>> enumList) {
+        public Builder setEnumList(final String[] enumList) {
             mEnumList = enumList;
             return this;
         }
@@ -172,9 +163,9 @@ public class StringRequestParamSpec extends DConnectRequestParamSpec {
             }
             StringRequestParamSpec spec = new StringRequestParamSpec(mFormat);
             spec.setName(mName);
-            spec.setMandatory(mIsMandatory);
+            spec.setRequired(mIsRequired);
             if (mEnumList != null) {
-                spec.setEnumList(mEnumList.toArray(new Enum[mEnumList.size()]));
+                spec.setEnumList(mEnumList);
             } else {
                 spec.setMaxLength(mMaxLength);
                 spec.setMinLength(mMinLength);

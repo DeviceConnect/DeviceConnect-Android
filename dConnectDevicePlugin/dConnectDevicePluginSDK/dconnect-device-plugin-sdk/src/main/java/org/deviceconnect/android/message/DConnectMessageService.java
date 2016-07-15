@@ -28,9 +28,7 @@ import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.android.profile.DConnectProfileProvider;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.android.profile.SystemProfile;
-import org.deviceconnect.android.profile.spec.DConnectApiSpec;
-import org.deviceconnect.android.profile.spec.DConnectApiSpecFilter;
-import org.deviceconnect.android.profile.spec.DConnectApiSpecList;
+import org.deviceconnect.android.profile.spec.DConnectPluginSpec;
 import org.deviceconnect.android.service.DConnectService;
 import org.deviceconnect.android.service.DConnectServiceManager;
 import org.deviceconnect.android.service.DConnectServiceProvider;
@@ -105,15 +103,15 @@ public abstract class DConnectMessageService extends Service implements DConnect
         return mServiceManager;
     }
 
-    private DConnectApiSpecList mApiSpecList;
+    private DConnectPluginSpec mPluginSpec;
 
     @Override
     public void onCreate() {
         super.onCreate();
 
-        mApiSpecList = loadApiSpecList();
+        mPluginSpec = loadPluginSpec();
         mServiceManager = new DConnectServiceManager();
-        mServiceManager.setApiSpecList(mApiSpecList);
+        mServiceManager.setPluginSpec(mPluginSpec);
         mServiceManager.setContext(getContext());
 
         // LocalOAuthの初期化
@@ -126,30 +124,19 @@ public abstract class DConnectMessageService extends Service implements DConnect
         addProfile(getSystemProfile());
     }
 
-    private DConnectApiSpecList loadApiSpecList() {
+    private DConnectPluginSpec loadPluginSpec() {
         try {
             final Map<String, DevicePluginXmlProfile> supportedProfiles = DevicePluginXmlUtil.getSupportProfiles(this, getPackageName());
             final Set<String> profileNames = supportedProfiles.keySet();
 
-            String[] fileNames = getAssets().list("api");
-            final DConnectApiSpecList specList = new DConnectApiSpecList();
-            final DConnectApiSpecFilter filter = new DConnectApiSpecFilter() {
-                @Override
-                public boolean filter(final DConnectApiSpec apiSpec) {
-                    for (String profileName : profileNames) {
-                        if (profileName.equalsIgnoreCase(apiSpec.getProfileName())) {
-                            return true;
-                        }
-                    }
-                    return false;
-                }
-            };
-            for (String fileName : fileNames) {
-                mLogger.info("Loading API Spec file...: " + fileName);
-                specList.addApiSpecList(getAssets().open("api/" + fileName), filter);
-                mLogger.info("Loaded API Spec file: " + fileName);
+            final DConnectPluginSpec pluginSpec = new DConnectPluginSpec();
+            for (String profileName : profileNames) {
+                mLogger.info("Loading API Spec file...: " + profileName);
+                String key = profileName.toLowerCase();
+                pluginSpec.addProfileSpec(key, getAssets().open("api/" + key + ".json"));
+                mLogger.info("Loaded API Spec file: " + profileName);
             }
-            return specList;
+            return pluginSpec;
         } catch (IOException e) {
             mLogger.warning("Failed to load Device Connect API Specs.");
             throw new RuntimeException(e);
@@ -364,10 +351,11 @@ public abstract class DConnectMessageService extends Service implements DConnect
         if (profile == null) {
             return;
         }
+        String profileName = profile.getProfileName().toLowerCase();
         profile.setContext(this);
-        profile.setApiSpecList(mApiSpecList);
+        profile.setProfileSpec(mPluginSpec.findProfileSpec(profileName));
         //XXXX パスの大文字小文字の無視
-        mProfileMap.put(profile.getProfileName().toLowerCase(), profile);
+        mProfileMap.put(profileName, profile);
     }
 
     /**

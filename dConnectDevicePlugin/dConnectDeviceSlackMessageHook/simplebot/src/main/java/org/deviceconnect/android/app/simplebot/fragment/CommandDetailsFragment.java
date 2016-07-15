@@ -16,19 +16,25 @@ import android.text.InputType;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.ScrollView;
+import android.widget.TextView;
 
 import org.deviceconnect.android.app.simplebot.R;
 import org.deviceconnect.android.app.simplebot.data.DataManager;
 import org.deviceconnect.android.app.simplebot.data.DataManager.Data;
-import org.deviceconnect.android.app.simplebot.data.SettingData;
 import org.deviceconnect.android.app.simplebot.utils.DConnectHelper;
 import org.deviceconnect.android.app.simplebot.utils.Utils;
+import org.json.JSONException;
+import org.json.JSONObject;
 
-import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 
 /**
  *　コマンド詳細画面
@@ -39,8 +45,8 @@ public class CommandDetailsFragment extends Fragment implements View.OnClickList
     private EditText editTextKeyword;
     /** ServiceIDボタン */
     private Button buttonServiceId;
-    /** パスボタン */
-    private Button buttonPath;
+    /** APIボタン */
+    private Button buttonApi;
     /** データボタン */
     private Button buttonBody;
     /** 受付レスポンスボタン */
@@ -56,9 +62,6 @@ public class CommandDetailsFragment extends Fragment implements View.OnClickList
     /** 失敗レスポンスURIボタン */
     private Button buttonErrorUri;
 
-    // TODO: 仮実装
-    private Button buttonMethod;
-
     /** コマンドデータ */
     private Data commandData = new Data();
 
@@ -66,6 +69,11 @@ public class CommandDetailsFragment extends Fragment implements View.OnClickList
     private List<DConnectHelper.ServiceInfo> services;
     /** 選択されたサービス*/
     private DConnectHelper.ServiceInfo selectedService = null;
+    /** API一覧 */
+    private List<DConnectHelper.APIInfo> apiInfoList;
+    /** 選択されたAPI */
+    private DConnectHelper.APIInfo selectedApi;
+
 
     /** 画面を戻すフラグ */
     private boolean popBackFlg = false;
@@ -74,7 +82,7 @@ public class CommandDetailsFragment extends Fragment implements View.OnClickList
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_command_details, container, false);
-        Context context = view.getContext();
+        final Context context = view.getContext();
         Bundle bundle = getArguments();
         if (bundle == null) {
             return view;
@@ -84,7 +92,7 @@ public class CommandDetailsFragment extends Fragment implements View.OnClickList
         Button buttonAdd = (Button)view.findViewById(R.id.buttonAdd);
         editTextKeyword = (EditText)view.findViewById(R.id.editTextKeyword);
         buttonServiceId = (Button)view.findViewById(R.id.buttonServiceId);
-        buttonPath = (Button)view.findViewById(R.id.buttonPath);
+        buttonApi = (Button)view.findViewById(R.id.buttonApi);
         buttonBody = (Button)view.findViewById(R.id.buttonBody);
         buttonAccept = (Button)view.findViewById(R.id.buttonAccept);
         buttonAcceptUri = (Button)view.findViewById(R.id.buttonAcceptUri);
@@ -92,8 +100,6 @@ public class CommandDetailsFragment extends Fragment implements View.OnClickList
         buttonSuccessUri = (Button)view.findViewById(R.id.buttonSuccessUri);
         buttonError = (Button)view.findViewById(R.id.buttonError);
         buttonErrorUri = (Button)view.findViewById(R.id.buttonErrorUri);
-        // TODO: 仮実装
-        buttonMethod = (Button)view.findViewById(R.id.buttonMethod);
         // ボタン表示切り替え
         if ("add".equals(bundle.getString("mode"))) {
             buttonDelete.setVisibility(View.GONE);
@@ -121,7 +127,7 @@ public class CommandDetailsFragment extends Fragment implements View.OnClickList
         buttonUpdate.setOnClickListener(this);
         buttonDelete.setOnClickListener(this);
         buttonServiceId.setOnClickListener(this);
-        buttonPath.setOnClickListener(this);
+        buttonApi.setOnClickListener(this);
         buttonBody.setOnClickListener(this);
         buttonAccept.setOnClickListener(this);
         buttonAcceptUri.setOnClickListener(this);
@@ -129,8 +135,6 @@ public class CommandDetailsFragment extends Fragment implements View.OnClickList
         buttonSuccessUri.setOnClickListener(this);
         buttonError.setOnClickListener(this);
         buttonErrorUri.setOnClickListener(this);
-        // TODO: 仮実装
-        buttonMethod.setOnClickListener(this);
 
         // プログレスダイアログを表示
         final ProgressDialog dialog = Utils.showProgressDialog(context);
@@ -138,13 +142,24 @@ public class CommandDetailsFragment extends Fragment implements View.OnClickList
         Utils.fetchServices(context, new DConnectHelper.FinishCallback<List<DConnectHelper.ServiceInfo>>() {
             @Override
             public void onFinish(List<DConnectHelper.ServiceInfo> serviceInfos, Exception error) {
-                // プログレスダイアログを閉じる
-                dialog.dismiss();
                 // エラーチェック
                 if (error != null) {
                     Utils.showErrorDialog(getActivity(), error);
                 }
                 services = serviceInfos;
+                // 選択中のサービスを再設定
+                for(DConnectHelper.ServiceInfo info: services) {
+                    if (info.id.equals(commandData.serviceId)) {
+                        selectedService = info;
+                        // プログレスダイアログを表示
+                        fetchServiceInformation(context, dialog);
+                        break;
+                    }
+                }
+                if (selectedService == null) {
+                    // プログレスダイアログを閉じる
+                    dialog.dismiss();
+                }
             }
         });
 
@@ -167,7 +182,7 @@ public class CommandDetailsFragment extends Fragment implements View.OnClickList
      */
     private void updateViews() {
         buttonServiceId.setText(checkUnset(commandData.serviceName));
-        buttonPath.setText(checkUnset(commandData.path));
+        buttonApi.setText(checkUnset(commandData.api));
         buttonBody.setText(checkUnset(commandData.body));
         buttonAccept.setText(checkUnset(commandData.accept));
         buttonAcceptUri.setText(checkUnset(commandData.acceptUri));
@@ -175,8 +190,6 @@ public class CommandDetailsFragment extends Fragment implements View.OnClickList
         buttonSuccessUri.setText(checkUnset(commandData.successUri));
         buttonError.setText(checkUnset(commandData.error));
         buttonErrorUri.setText(checkUnset(commandData.errorUri));
-        // TODO: 仮実装
-        buttonMethod.setText(checkUnset(commandData.method));
     }
 
     /**
@@ -185,12 +198,51 @@ public class CommandDetailsFragment extends Fragment implements View.OnClickList
      * @return 文字列がnullの場合に未設定の文字列を返す
      */
     private String checkUnset(String str) {
-        if (str == null) {
+        if (str == null || str.length() == 0) {
             return getString(R.string.unset);
         }
         return str;
     }
 
+
+    /**
+     * ServiceInformationを取得
+     * @param context Context
+     */
+    private void fetchServiceInformation(final Context context, final ProgressDialog dialog) {
+        // 選択状態初期化
+        apiInfoList = null;
+        selectedApi = null;
+        Utils.fetchServiceInformation(context, selectedService.id, new DConnectHelper.FinishCallback<Map<String, List<DConnectHelper.APIInfo>>>() {
+            @Override
+            public void onFinish(Map<String, List<DConnectHelper.APIInfo>> apiInfos, Exception error) {
+                // プログレスダイアログを閉じる
+                dialog.dismiss();
+                // エラーチェック
+                if (error != null) {
+                    Utils.showErrorDialog(context, error);
+                } else if (apiInfos == null) {
+                    Utils.showAlertDialog(context, context.getString(R.string.service_not_supported));
+                } else {
+                    // Profile単位を除外して一律のリストに格納
+                    // TODO: Swagger対応
+                    apiInfoList = new ArrayList<>();
+                    for (Map.Entry<String, List<DConnectHelper.APIInfo>> apis: apiInfos.entrySet()) {
+                        apiInfoList.addAll(apis.getValue());
+                    }
+                    // 選択中のAPIを再設定
+                    if (commandData.path != null && commandData.method != null) {
+                        for (DConnectHelper.APIInfo info: apiInfoList) {
+                            if (info.path.equals(commandData.path) && info.method.equals(commandData.method)) {
+                                selectedApi = info;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
 
     //---------------------------------------------------------------------------------------
     //region Click Events
@@ -209,13 +261,11 @@ public class CommandDetailsFragment extends Fragment implements View.OnClickList
             case R.id.buttonDelete:
                 onClickDelete();
                 break;
-            case R.id.buttonPath:
-                // TODO: 選択ダイアログにする
-                onClickTextButton("パス入力", id);
+            case R.id.buttonApi:
+                onClickApi();
                 break;
             case R.id.buttonBody:
-                // TODO: 選択ダイアログにする
-                onClickTextButton("データ入力", id);
+                onClickData();
                 break;
             case R.id.buttonAccept:
                 onClickTextButton("受付レスポンス入力", id);
@@ -235,18 +285,6 @@ public class CommandDetailsFragment extends Fragment implements View.OnClickList
             case R.id.buttonErrorUri:
                 onClickTextButton("失敗レスポンスリソースURI入力", id);
                 break;
-            // TODO: 仮実装
-            case R.id.buttonMethod:
-                final String items[] = new String[]{"GET", "POST", "PUT", "DELETE"};
-                Utils.showSelectDialog(getActivity(), "メソッド選択（仮実装）", items, new DConnectHelper.FinishCallback<Integer>() {
-                    @Override
-                    public void onFinish(Integer integer, Exception error) {
-                        commandData.method = items[integer];
-                        // View更新
-                        updateViews();
-                    }
-                });
-                break;
         }
     }
 
@@ -254,9 +292,10 @@ public class CommandDetailsFragment extends Fragment implements View.OnClickList
      * サービスID選択ボタンイベント
      */
     private void onClickServiceId() {
+        final Context context = getActivity();
         // サービス存在チェック
         if (services == null || services.size() == 0) {
-            Utils.showAlertDialog(getActivity(), getString(R.string.service_not_found));
+            Utils.showAlertDialog(context, getString(R.string.service_not_found));
             return;
         }
         // 選択ダイアログ表示
@@ -264,7 +303,7 @@ public class CommandDetailsFragment extends Fragment implements View.OnClickList
         for (int i = 0; i < services.size(); i++) {
             items[i] = services.get(i).name;
         }
-        new AlertDialog.Builder(getActivity())
+        new AlertDialog.Builder(context)
                 .setTitle(getString(R.string.select_service))
                 .setItems(items, new DialogInterface.OnClickListener() {
                     @Override
@@ -273,6 +312,14 @@ public class CommandDetailsFragment extends Fragment implements View.OnClickList
                         selectedService = services.get(which);
                         commandData.serviceId = selectedService.id;
                         commandData.serviceName = selectedService.name;
+                        commandData.api = null;
+                        commandData.method = null;
+                        commandData.path = null;
+                        commandData.body = null;
+                        // ServiceInformationを取得
+                        // プログレスダイアログを表示
+                        final ProgressDialog progressDialog = Utils.showProgressDialog(context);
+                        fetchServiceInformation(context, progressDialog);
                         // View更新
                         updateViews();
                     }
@@ -281,24 +328,145 @@ public class CommandDetailsFragment extends Fragment implements View.OnClickList
     }
 
     /**
-     * テキスト入力ボタンイベント
+     * API選択ボタンイベント
      */
-    private void onClickTextButton(String title, final int button) {
+    private void onClickApi() {
         // サービス選択チェック
-        if (commandData.serviceId == null) {
+        if (selectedService == null) {
             Utils.showAlertDialog(getActivity(), getString(R.string.service_not_selected));
             return;
         }
+        // サービス対応チェック
+        if (apiInfoList == null) {
+            Utils.showAlertDialog(getActivity(), getString(R.string.service_not_supported));
+            return;
+        }
+
+        // 選択ダイアログ表示
+        String items[] = new String[apiInfoList.size()];
+        for (int i = 0; i < apiInfoList.size(); i++) {
+            items[i] = apiInfoList.get(i).name;
+        }
+        new AlertDialog.Builder(getActivity())
+                .setTitle(getString(R.string.select_api))
+                .setItems(items, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        DConnectHelper.APIInfo info = apiInfoList.get(which);
+                        commandData.api = info.name;
+                        commandData.path = info.path;
+                        commandData.method = info.method;
+                        commandData.body = null;
+                        // 選択中のAPI
+                        selectedApi = info;
+                        // View更新
+                        updateViews();
+                    }
+                })
+                .show();
+    }
+
+    /**
+     * Data選択ボタンイベント
+     */
+    private void onClickData() {
+        // API選択チェック
+        if (selectedApi == null) {
+            Utils.showAlertDialog(getActivity(), getString(R.string.api_not_selected));
+            return;
+        }
+
+        // 設定済みのBodyデータをパース
+        Map<String, String> bodyJson = Utils.jsonToMap(commandData.body);
+
+        // 入力ダイアログ作成
+        Context context = getActivity();
+        float dp = context.getResources().getDisplayMetrics().density;
+        ScrollView scrollView = new ScrollView(context);
+        LinearLayout rootLayout = new LinearLayout(context);
+        int p = (int) (10 * dp);
+        rootLayout.setPadding(p, 0, p, 0);
+        rootLayout.setOrientation(LinearLayout.VERTICAL);
+        scrollView.addView(rootLayout);
+        final Map<String, EditText> editMap = new HashMap<>();
+        for (DConnectHelper.APIParam param: selectedApi.params) {
+            LinearLayout layout = new LinearLayout(context);
+            layout.setOrientation(LinearLayout.HORIZONTAL);
+
+            // サービスIDは自動入力なので無視
+            if (param.name.equals(DataManager.COLUMN_SERVICE_ID)) {
+                continue;
+            }
+
+            // 説明テキスト
+            TextView textView = new TextView(context);
+            textView.setText(param.name);
+            textView.setLayoutParams(new LinearLayout.LayoutParams(
+                    (int) (100 * dp),
+                    LinearLayout.LayoutParams.WRAP_CONTENT));
+            layout.addView(textView);
+
+            // 入力エリア
+            EditText editView = new EditText(context);
+            editView.setHint(param.name);
+            // TODO: inputTypeを設定
+            //editView.setInputType();
+            editView.setLayoutParams(new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT));
+            layout.addView(editView);
+            editMap.put(param.name, editView);
+
+            // 設定済みのBodyデータを反映
+            if (bodyJson != null && bodyJson.containsKey(param.name)) {
+                editView.setText(bodyJson.get(param.name));
+            }
+
+            rootLayout.addView(layout);
+        }
+
+        // データなし
+        if (editMap.size() == 0) {
+            Utils.showAlertDialog(context, context.getString(R.string.no_data_to_set));
+            return;
+        }
+
+        // ダイアログ表示
+        AlertDialog dialog = new AlertDialog.Builder(context)
+                .setTitle(context.getString(R.string.data_set))
+                .setView(scrollView)
+                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        JSONObject jsonObject = new JSONObject();
+                        for (DConnectHelper.APIParam param: selectedApi.params) {
+                            EditText editText = editMap.get(param.name);
+                            if (editText != null && editText.getText().length() > 0) {
+                                try {
+                                    jsonObject.put(param.name, editText.getText().toString());
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        }
+                        commandData.body = jsonObject.toString();
+                        // View更新
+                        updateViews();
+                    }
+                })
+                .setNegativeButton("Cancel", null)
+                .create();
+        dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
+        dialog.show();
+    }
+
+    /**
+     * テキスト入力ボタンイベント
+     */
+    private void onClickTextButton(String title, final int button) {
         int inputType = InputType.TYPE_CLASS_TEXT;
         String text = null;
         switch (button) {
-            case R.id.buttonPath:
-                text = commandData.path;
-                inputType = inputType | InputType.TYPE_TEXT_VARIATION_URI;
-                break;
-            case R.id.buttonBody:
-                text = commandData.body;
-                break;
             case R.id.buttonAccept:
                 text = commandData.accept;
                 break;
@@ -322,13 +490,6 @@ public class CommandDetailsFragment extends Fragment implements View.OnClickList
             @Override
             public void onFinish(String s, Exception error) {
                 switch (button) {
-                    case R.id.buttonPath:
-                        commandData.method = "GET";
-                        commandData.path = s;
-                        break;
-                    case R.id.buttonBody:
-                        commandData.body = s;
-                        break;
                     case R.id.buttonAccept:
                         commandData.accept = s;
                         break;
@@ -363,10 +524,7 @@ public class CommandDetailsFragment extends Fragment implements View.OnClickList
         commandData.keyword = editTextKeyword.getText().toString();
         // 入力チェック
         if (commandData.keyword.length() == 0 ||
-            commandData.path == null ||
-            commandData.body == null ||
-            commandData.success == null ||
-            commandData.error == null) {
+            commandData.path == null) {
             Utils.showAlertDialog(context, getString(R.string.not_input_all));
             return;
         }

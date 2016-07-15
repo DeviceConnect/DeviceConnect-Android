@@ -20,6 +20,7 @@ import org.deviceconnect.message.http.event.CloseHandler;
 import org.deviceconnect.message.http.event.HttpEventManager;
 import org.deviceconnect.message.http.impl.factory.HttpMessageFactory;
 import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
+import org.deviceconnect.profile.ServiceInformationProfileConstants;
 import org.deviceconnect.utils.AuthProcesser;
 import org.deviceconnect.utils.URIBuilder;
 import org.json.JSONObject;
@@ -104,6 +105,26 @@ public class DConnectHelper {
         public String toString() {
             return "ServiceInfo{" + "id='" + id + '\'' + ", name='" + name + '\'' + ", scopes='" + scopes.toString() + '\'' + '}';
         }
+    }
+
+    /**
+     * APIの情報
+     */
+    public static class APIInfo {
+        public String name;
+        public String method;
+        public String path;
+        public List<APIParam> params;
+    }
+
+    /**
+     * APIパラメータ情報
+     */
+    public static class APIParam {
+        public String type;
+        public String format;
+        public boolean mandatory;
+        public String name;
     }
 
     /**
@@ -209,6 +230,86 @@ public class DConnectHelper {
                     list.add(info);
                 }
                 callback.onFinish(list, null);
+            }
+        });
+    }
+
+    /**
+     * ServiceInformationを実行
+     * @param accessToken AccessToken
+     * @param serviceId ServiceID
+     * @param callback コールバック
+     */
+    public void serviceInformation(String accessToken, String serviceId, final FinishCallback<Map<String, List<APIInfo>>> callback) {
+        if (BuildConfig.DEBUG) Log.d(TAG, "serviceInformation");
+        // 接続情報
+        ConnectionParam connectionParam = new ConnectionParam(
+                targetHost,
+                "GET",
+                ServiceInformationProfileConstants.PROFILE_NAME,
+                null,
+                origin
+        );
+        // パラメータ
+        Map<String, String> params = new HashMap<>();
+        if (accessToken != null) {
+            params.put(DConnectMessage.EXTRA_ACCESS_TOKEN, accessToken);
+        }
+        params.put(DConnectMessage.EXTRA_SERVICE_ID, serviceId);
+        // 接続
+        new HttpTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, new TaskParam(connectionParam, params) {
+            @Override
+            public void callBack(DConnectMessage message) {
+                // コールバックがないので処理する意味がない
+                if (callback == null) {
+                    return;
+                }
+                // エラーチェック
+                int result = message.getInt(DConnectMessage.EXTRA_RESULT);
+                if (result == DConnectMessage.RESULT_ERROR) {
+                    DConnectHelperException e = new DConnectInvalidResultException();
+                    e.errorCode = message.getInt(DConnectMessage.EXTRA_ERROR_CODE);
+                    callback.onFinish(null, e);
+                    return;
+                }
+                // APIリストを取得
+                @SuppressWarnings("unchecked")
+                Map<String, List<Map<String, Object>>> prifiles = (Map<String, List<Map<String, Object>>>)message.get(ServiceInformationProfileConstants.PARAM_SUPPORT_APIS);
+                if (prifiles == null) {
+                    // サービスがない？
+                    callback.onFinish(null, null);
+                    return;
+                }
+                // 詰め直しして返却
+                // TODO: Swagger対応
+                Map<String, List<APIInfo>> res = new HashMap<>();
+                for (Map.Entry<String, List<Map<String, Object>>> apis: prifiles.entrySet()) {
+                    List<APIInfo> list = new ArrayList<>();
+                    for (Map<String, Object> api :apis.getValue()) {
+                        APIInfo info = new APIInfo();
+                        if (!api.containsKey(ServiceInformationProfileConstants.PARAM_NAME)) continue;
+                        info.name = api.get(ServiceInformationProfileConstants.PARAM_NAME).toString();
+                        info.method = api.get(ServiceInformationProfileConstants.PARAM_METHOD).toString();
+                        info.path = api.get(ServiceInformationProfileConstants.PARAM_PATH).toString();
+                        Log.d(TAG, info.name);
+                        @SuppressWarnings("unchecked")
+                        List<Map<String, Object>> params = (List<Map<String, Object>>) api.get(ServiceInformationProfileConstants.PARAM_REQUEST_PARAMS);
+                        if (params != null) {
+                            info.params = new ArrayList<>();
+                            for (Map<String, Object> paramMap: params) {
+                                APIParam param = new APIParam();
+                                param.name = paramMap.get(ServiceInformationProfileConstants.PARAM_NAME).toString();
+                                param.type = paramMap.get(ServiceInformationProfileConstants.PARAM_TYPE).toString();
+                                param.mandatory = paramMap.get(ServiceInformationProfileConstants.PARAM_MANDATORY).toString().equals("true");
+                                param.format = paramMap.get(ServiceInformationProfileConstants.PARAM_FORMAT).toString();
+                                info.params.add(param);
+                            }
+                        }
+                        list.add(info);
+                    }
+                    res.put(apis.getKey(), list);
+                }
+                callback.onFinish(res, null);
             }
         });
     }

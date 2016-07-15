@@ -142,7 +142,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textColor="@android:color/tertiary_text_dark"
-            android:text="@string/path" />
+            android:text="@string/api" />
 
         <TextView
             android:id="@+id/textResultPath"

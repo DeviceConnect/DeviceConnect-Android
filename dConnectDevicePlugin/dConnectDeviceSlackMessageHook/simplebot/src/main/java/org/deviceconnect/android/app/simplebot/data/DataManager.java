@@ -24,7 +24,7 @@ public class DataManager {
     private static final String TAG = "DataManager";
 
     /** DBのバージョン */
-    private static final int DB_VERSION = 3;
+    private static final int DB_VERSION = 4;
     /** DBファイル名 */
     public static final String DB_NAME = "simplebot.db";
     /** テーブル名 */
@@ -38,6 +38,8 @@ public class DataManager {
     public static final String COLUMN_SERVICE_ID = "serviceId";
     /** serviceNameのカラム名 */
     public static final String COLUMN_SERVICE_NAME = "serviceName";
+    /** apiのカラム名 */
+    public static final String COLUMN_API = "api";
     /** methodのカラム名 */
     public static final String COLUMN_METHOD = "method";
     /** pathのカラム名 */
@@ -63,6 +65,7 @@ public class DataManager {
             COLUMN_KEYWORD, // キーワード
             COLUMN_SERVICE_ID, // サービスID
             COLUMN_SERVICE_NAME, // サービス名
+            COLUMN_API, // API
             COLUMN_METHOD, // メソッド
             COLUMN_PATH, // パス
             COLUMN_BODY, // ボディ
@@ -85,6 +88,7 @@ public class DataManager {
         public String keyword;
         public String serviceId;
         public String serviceName;
+        public String api;
         public String method;
         public String path;
         public String body;
@@ -102,6 +106,7 @@ public class DataManager {
                     ", keyword='" + keyword + '\'' +
                     ", serviceId='" + serviceId + '\'' +
                     ", serviceName='" + serviceName + '\'' +
+                    ", api='" + api + '\'' +
                     ", method='" + method + '\'' +
                     ", path='" + path + '\'' +
                     ", body='" + body + '\'' +
@@ -180,6 +185,7 @@ public class DataManager {
         values.put(COLUMN_KEYWORD, data.keyword);
         values.put(COLUMN_SERVICE_ID, data.serviceId);
         values.put(COLUMN_SERVICE_NAME, data.serviceName);
+        values.put(COLUMN_API, data.api);
         values.put(COLUMN_METHOD, data.method);
         values.put(COLUMN_PATH, data.path);
         values.put(COLUMN_BODY, data.body);
@@ -261,6 +267,7 @@ public class DataManager {
         data.keyword = cursor.getString(cursor.getColumnIndex(COLUMN_KEYWORD));
         data.serviceId = cursor.getString(cursor.getColumnIndex(COLUMN_SERVICE_ID));
         data.serviceName = cursor.getString(cursor.getColumnIndex(COLUMN_SERVICE_NAME));
+        data.api = cursor.getString(cursor.getColumnIndex(COLUMN_API));
         data.method = cursor.getString(cursor.getColumnIndex(COLUMN_METHOD));
         data.path = cursor.getString(cursor.getColumnIndex(COLUMN_PATH));
         data.body = cursor.getString(cursor.getColumnIndex(COLUMN_BODY));
@@ -279,7 +286,7 @@ public class DataManager {
      * @return データ
      */
     public Data convertData(String[] csv) {
-        if (csv == null || csv.length < 12) {
+        if (csv == null || csv.length < 13) {
             return null;
         }
         Data data = new Data();
@@ -287,6 +294,7 @@ public class DataManager {
         data.keyword = csv[index++];
         data.serviceId = csv[index++];
         data.serviceName = csv[index++];
+        data.api = csv[index++];
         data.method = csv[index++];
         data.path = csv[index++];
         data.body = csv[index++];
@@ -306,9 +314,10 @@ public class DataManager {
         // 音楽リスト
         Data data = new Data();
         data.keyword = "音楽(リスト|一覧)";
-        data.path = "/gotapi/media_player/media_list";
+        data.path = "/gotapi/mediaPlayer/mediaList";
+        data.api = "Media Player Media List API GET";
         data.method = "GET";
-        data.body = "{}";
+        data.body = null;
         data.success = "{%loop in $media as $m}[{$m.mediaId}:{$m.title}]{% endloop %}";
         data.error = "エラーです。 {$errorMessage}";
         data.serviceId = "Host.e87e3213b730843a437ff6c676899df0.localhost.deviceconnect.org";
@@ -316,37 +325,39 @@ public class DataManager {
         upsert(db, data);
         // 音楽設定
         data.keyword = "(\\d+)を設定";
-        data.path = "/gotapi/media_player/media";
+        data.path = "/gotapi/mediaPlayer/media";
+        data.api = "Media Player Media API PUT";
         data.method = "PUT";
         data.body = "{\"mediaId\":\"$1\"}";
         data.success = "設定しました。";
         upsert(db, data);
         // 再生
         data.keyword = "再生";
-        data.path = "/gotapi/media_player/play";
+        data.path = "/gotapi/mediaPlayer/play";
+        data.api = "Media Player Play API";
         data.method = "PUT";
-        data.body = "{}";
+        data.body = null;
         data.success = "再生しました。";
         upsert(db, data);
         // 停止
         data.keyword = "停止";
-        data.path = "/gotapi/media_player/stop";
+        data.path = "/gotapi/mediaPlayer/stop";
+        data.api = "Media Player Stop API";
         data.method = "PUT";
-        data.body = "{}";
         data.success = "停止しました。";
         upsert(db, data);
         // バッテリー残量
         data.keyword = "バッテリー|電池";
         data.path = "/gotapi/battery/level";
+        data.api = "Battery Status Level API";
         data.method = "GET";
-        data.body = "{}";
         data.success = "残り{$level|calc(*100)}%です。";
         upsert(db, data);
         // 写真
         data.keyword = "写真";
-        data.path = "/gotapi/mediastream_recording/takephoto";
+        data.path = "/gotapi/mediastreamRecording/takephoto";
+        data.api = "Media Stream Recording TakePhoto API";
         data.method = "POST";
-        data.body = "{}";
         data.accept = "撮影します、しばらくお待ちください。";
         data.acceptUri = "https://sdl-stickershop.line.naver.jp/products/0/0/1/1027426/android/stickers/1173138.png";
         data.success = "撮影しました。";

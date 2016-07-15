@@ -386,7 +386,6 @@ public class Utils {
         }
     }
 
-
     /**
      * サービス一覧を取得
      * @param context context
@@ -405,6 +404,35 @@ public class Utils {
                                 fetchServices(context, callback);
                             } else {
                                 callback.onFinish(serviceInfos, error);
+                            }
+                        }
+                    });
+                } else {
+                    callback.onFinish(null, error);
+                }
+            }
+        };
+        Utils.connect(context, finishCallback);
+    }
+
+    /**
+     * サービス情報を取得
+     * @param context context
+     * @param callback 終了コールバック
+     */
+    public static void fetchServiceInformation(final Context context, final String serviceId, final DConnectHelper.FinishCallback<Map<String, List<DConnectHelper.APIInfo>>> callback) {
+        DConnectHelper.FinishCallback<DConnectHelper.AuthInfo> finishCallback = new DConnectHelper.FinishCallback<DConnectHelper.AuthInfo>() {
+            @Override
+            public void onFinish(DConnectHelper.AuthInfo authInfo, Exception error) {
+                if (error == null) {
+                    // サービス検索
+                    DConnectHelper.INSTANCE.serviceInformation(authInfo.accessToken, serviceId, new DConnectHelper.FinishCallback<Map<String, List<DConnectHelper.APIInfo>>>() {
+                        @Override
+                        public void onFinish(Map<String, List<DConnectHelper.APIInfo>> apiInfos, Exception error) {
+                            if (retryCheck(context, error)) {
+                                fetchServiceInformation(context, serviceId, callback);
+                            } else {
+                                callback.onFinish(apiInfos, error);
                             }
                         }
                     });

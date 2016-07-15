@@ -81,10 +81,10 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textColor="@android:color/tertiary_text_dark"
-            android:text="@string/path" />
+            android:text="@string/api" />
 
         <Button
-            android:id="@+id/buttonPath"
+            android:id="@+id/buttonApi"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textColor="@android:color/primary_text_light"
@@ -106,17 +106,6 @@
             android:layout_height="wrap_content"
             android:textColor="@android:color/tertiary_text_dark"
             android:text="@string/data" />
-
-        <Button
-            android:id="@+id/buttonMethod"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textColor="@android:color/primary_text_light"
-            android:gravity="start|center_vertical"
-            android:layout_marginLeft="10dp"
-            android:layout_marginRight="10dp"
-            style="@android:style/Widget.Holo.Button.Borderless"
-            android:text="@string/unset" />
 
         <Button
             android:id="@+id/buttonBody"

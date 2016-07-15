@@ -234,7 +234,7 @@ public class SimpleBotService extends Service {
             @Override
             public void run() {
                 // 受付メッセージ送信
-                if (data.accept != null || data.acceptUri != null) {
+                if ((data.accept != null && data.accept.length() > 0) || (data.acceptUri != null && data.acceptUri.length() > 0)) {
                     Utils.sendMessage(context, result.channel, data.accept, data.acceptUri, new DConnectHelper.FinishCallback<Void>() {
                         @Override
                         public void onFinish(Void aVoid, Exception error) {
@@ -272,6 +272,10 @@ public class SimpleBotService extends Service {
      * @param response Response
      */
     private void sendResponse(ResultData.Result result, String text, String uri, Map<String, Object> response) {
+        // レスポンスがない
+        if ((text == null || text.length() == 0) && (uri == null || uri.length() == 0)) {
+            return;
+        }
         // ChunkでTemplate処理
         try {
             Chunk chunk = new Chunk();

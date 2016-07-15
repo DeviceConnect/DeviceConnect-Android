@@ -41,7 +41,7 @@
             android:layout_marginLeft="16dp"
             android:layout_marginRight="16dp"
             android:maxWidth="320dp"
-            android:background="@drawable/bg_balloon"
+            android:background="@drawable/linking_bg_balloon"
             android:padding="12dp"
             android:text="@string/fragment_help_3_text2"
             android:textColor="@android:color/white"

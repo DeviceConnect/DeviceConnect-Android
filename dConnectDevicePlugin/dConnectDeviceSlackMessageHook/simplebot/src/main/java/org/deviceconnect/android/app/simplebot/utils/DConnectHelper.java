@@ -504,7 +504,7 @@ public class DConnectHelper {
                 if (result == DConnectMessage.RESULT_ERROR) {
                     DConnectHelperException e = new DConnectInvalidResultException();
                     e.errorCode = message.getInt(DConnectMessage.EXTRA_ERROR_CODE);
-                    callback.onFinish(null, e);
+                    callback.onFinish(message, e);
                     return;
                 }
                 callback.onFinish(message, null);

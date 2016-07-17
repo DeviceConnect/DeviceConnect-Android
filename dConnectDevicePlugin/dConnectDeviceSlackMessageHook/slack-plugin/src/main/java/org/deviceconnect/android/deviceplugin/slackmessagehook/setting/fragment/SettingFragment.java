@@ -80,8 +80,9 @@ public class SettingFragment extends Fragment implements SlackManager.SlackEvent
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        super.onCreateOptionsMenu(menu, inflater);
+        menu.clear();
         inflater.inflate(R.menu.setting_menu, menu);
+        super.onCreateOptionsMenu(menu, inflater);
         mainMenu = menu;
     }
 

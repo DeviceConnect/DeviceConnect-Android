@@ -125,14 +125,15 @@ public class ChannelListFragment extends ListFragment implements ShowMenuFragmen
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        super.onCreateOptionsMenu(menu, inflater);
+        menu.clear();
         inflater.inflate(R.menu.channel_list_menu, menu);
+        super.onCreateOptionsMenu(menu, inflater);
         mainMenu = menu;
     }
 
     @Override
     public void onListItemClick(ListView l, View v, int position, long id) {
-        currentPos = position;
+        currentPos = l.getFirstVisiblePosition();
         currentY = l.getChildAt(0).getTop();
         Fragment fragment = new MessageListFragment();
         SlackManager.ListInfo info = adapter.getItem(position);

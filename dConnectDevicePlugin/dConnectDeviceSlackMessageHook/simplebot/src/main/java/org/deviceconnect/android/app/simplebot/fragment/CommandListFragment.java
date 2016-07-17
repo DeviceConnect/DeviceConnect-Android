@@ -127,8 +127,9 @@ public class CommandListFragment extends ListFragment implements ShowMenuFragmen
         for (String[] line: csv) {
             final DataManager dm = new DataManager(context);
             DataManager.Data commandData = dm.convertData(line);
-            if (!dm.upsert(commandData)) {
+            if (commandData == null || !dm.upsert(commandData)) {
                 Utils.showAlertDialog(context, context.getString(R.string.err_add_data));
+                break;
             }
         }
         Utils.showAlertDialog(context, context.getString(R.string.success_add_data));

@@ -145,15 +145,20 @@ public class CommandDetailsFragment extends Fragment implements View.OnClickList
                 // エラーチェック
                 if (error != null) {
                     Utils.showErrorDialog(getActivity(), error);
+                    // プログレスダイアログを閉じる
+                    dialog.dismiss();
+                    return;
                 }
                 services = serviceInfos;
-                // 選択中のサービスを再設定
-                for(DConnectHelper.ServiceInfo info: services) {
-                    if (info.id.equals(commandData.serviceId)) {
-                        selectedService = info;
-                        // プログレスダイアログを表示
-                        fetchServiceInformation(context, dialog);
-                        break;
+                if (services != null) {
+                    // 選択中のサービスを再設定
+                    for(DConnectHelper.ServiceInfo info: services) {
+                        if (info.id.equals(commandData.serviceId)) {
+                            selectedService = info;
+                            // プログレスダイアログを表示
+                            fetchServiceInformation(context, dialog);
+                            break;
+                        }
                     }
                 }
                 if (selectedService == null) {

@@ -404,7 +404,7 @@ public class SlackManager {
      * @param e 例外
      */
     private void callConnectionFinishCallback(final Exception e, Handler handler) {
-        if (connectState == CONNECT_STATE_DISCONNECTED) {
+        if (connectState == CONNECT_STATE_DISCONNECTED && handler != null) {
             for (final SlackEventListener listener: slackEventListeners){
                 handler.post(new Runnable() {
                     public void run() {

@@ -67,6 +67,11 @@ public class SlackMessageHookSettingActivity extends Activity {
                 if (token == null || error instanceof SlackManager.SlackAuthException) {
                     // Token未設定の場合はToken設定画面へ
                     fragment = new SettingTokenFragment();
+                    if (launchAsApp) {
+                        Utils.transition(new ChannelListFragment(), getFragmentManager(), false);
+                        Utils.transition(fragment, getFragmentManager(), true);
+                        return;
+                    }
                 } else {
                     if (launchAsApp || error != null) {
                         // ラウンチャーから起動の場合はChannelリスト画面へ

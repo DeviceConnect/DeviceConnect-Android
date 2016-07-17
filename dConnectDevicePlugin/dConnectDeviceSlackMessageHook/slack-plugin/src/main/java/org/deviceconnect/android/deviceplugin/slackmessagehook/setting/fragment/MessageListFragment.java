@@ -29,6 +29,7 @@ import android.widget.TextView;
 import com.jakewharton.picasso.OkHttp3Downloader;
 import com.squareup.picasso.Picasso;
 
+import org.deviceconnect.android.deviceplugin.slackmessagehook.BuildConfig;
 import org.deviceconnect.android.deviceplugin.slackmessagehook.R;
 import org.deviceconnect.android.deviceplugin.slackmessagehook.slack.SlackManager;
 
@@ -160,7 +161,7 @@ public class MessageListFragment extends ListFragment implements SlackManager.Sl
         mPicasso = new Picasso.Builder(context)
                 .downloader(new OkHttp3Downloader(httpClient))
                 .build();
-        mPicasso.setIndicatorsEnabled(true);
+        if (BuildConfig.DEBUG) mPicasso.setIndicatorsEnabled(true);
 
         // パラメータ取得
         Bundle bundle = getArguments();

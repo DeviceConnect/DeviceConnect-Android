@@ -286,7 +286,7 @@ public class DataManager {
      * @return データ
      */
     public Data convertData(String[] csv) {
-        if (csv == null || csv.length < 13) {
+        if (csv == null || csv.length != 13) {
             return null;
         }
         Data data = new Data();
@@ -303,7 +303,7 @@ public class DataManager {
         data.success = csv[index++];
         data.successUri = csv[index++];
         data.error = csv[index++];
-        data.errorUri = csv[index++];
+        data.errorUri = csv[index];
         return data;
     }
 

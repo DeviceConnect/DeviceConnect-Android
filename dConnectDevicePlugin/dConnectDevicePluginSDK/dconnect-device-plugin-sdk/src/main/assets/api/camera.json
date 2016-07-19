@@ -1,7 +1,7 @@
 {
     "swagger": "2.0",
     "info": {
-        "title": "Health Profile",
+        "title": "Camera Profile",
         "version": "2.0.0",
         "description": ""
     },
@@ -10,7 +10,7 @@
         "multipart/form-data"
     ],
     "paths": {
-        "/heartRate": {
+        "/zoom": {
             "get": {
                 "x-type": "one-shot",
                 "summary": "",
@@ -30,7 +30,7 @@
                 }
             },
             "put": {
-                "x-type": "event",
+                "x-type": "one-shot",
                 "summary": "",
                 "description": "",
                 "parameters": [
@@ -39,24 +39,20 @@
                         "in": "formData",
                         "required": true,
                         "type": "string"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": ""
-                    }
-                }
-            },
-            "delete": {
-                "x-type": "event",
-                "summary": "",
-                "description": "",
-                "parameters": [
+                    },
                     {
-                        "name": "serviceId",
-                        "in": "query",
+                        "name": "direction",
+                        "in": "formData",
                         "required": true,
-                        "type": "string"
+                        "type": "string",
+                        "enum": ["in", "out"]
+                    },
+                    {
+                        "name": "movement",
+                        "in": "formData",
+                        "required": true,
+                        "type": "string",
+                        "enum": ["in-start", "in-stop", "1shot", "max"]
                     }
                 ],
                 "responses": {

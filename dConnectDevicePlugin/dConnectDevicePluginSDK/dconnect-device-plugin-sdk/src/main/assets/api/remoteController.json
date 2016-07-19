@@ -1,7 +1,7 @@
 {
     "swagger": "2.0",
     "info": {
-        "title": "Health Profile",
+        "title": "Remote Controller Profile",
         "version": "2.0.0",
         "description": ""
     },
@@ -10,7 +10,7 @@
         "multipart/form-data"
     ],
     "paths": {
-        "/heartRate": {
+        "/": {
             "get": {
                 "x-type": "one-shot",
                 "summary": "",
@@ -29,8 +29,8 @@
                     }
                 }
             },
-            "put": {
-                "x-type": "event",
+            "post": {
+                "x-type": "one-shot",
                 "summary": "",
                 "description": "",
                 "parameters": [
@@ -39,22 +39,10 @@
                         "in": "formData",
                         "required": true,
                         "type": "string"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": ""
-                    }
-                }
-            },
-            "delete": {
-                "x-type": "event",
-                "summary": "",
-                "description": "",
-                "parameters": [
+                    },
                     {
-                        "name": "serviceId",
-                        "in": "query",
+                        "name": "message",
+                        "in": "formData",
                         "required": true,
                         "type": "string"
                     }

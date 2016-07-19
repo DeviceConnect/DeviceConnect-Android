@@ -1,7 +1,7 @@
 {
     "swagger": "2.0",
     "info": {
-        "title": "Settings Profile",
+        "title": "File Descriptor Profile",
         "version": "2.0.0",
         "description": ""
     },
@@ -10,7 +10,7 @@
         "multipart/form-data"
     ],
     "paths": {
-        "/sound/volume": {
+        "/open": {
             "get": {
                 "x-type": "one-shot",
                 "summary": "",
@@ -23,91 +23,17 @@
                         "type": "string"
                     },
                     {
-                        "name": "kind",
-                        "in": "query",
-                        "required": true,
-                        "type": "integer",
-                        "description": "|Value|Description|\n|:-----|:-----|\n|1|Alarm|\n|2|Voice Volume|\n|3|Ring Alert|\n|4|Incoming Mail Alert|\n|5|Media Player|\n|6|Other|",
-                        "enum": [1, 2, 3, 4, 5, 6]
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": ""
-                    }
-                }
-            },
-            "put": {
-                "x-type": "one-shot",
-                "summary": "",
-                "description": "",
-                "parameters": [
-                    {
-                        "name": "serviceId",
-                        "in": "formData",
-                        "required": true,
-                        "type": "string"
-                    },
-                    {
-                        "name": "kind",
-                        "in": "formData",
-                        "required": true,
-                        "type": "integer",
-                        "description": "|Value|Description|\n|:-----|:-----|\n|1|Alarm|\n|2|Voice Volume|\n|3|Ring Alert|\n|4|Incoming Mail Alert|\n|5|Media Player|\n|6|Other|",
-                        "enum": [1, 2, 3, 4, 5, 6]
-                    },
-                    {
-                        "name": "level",
-                        "in": "formData",
-                        "required": true,
-                        "type": "number",
-                        "minimum": 0.0,
-                        "maximum": 1.0
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": ""
-                    }
-                }
-            }
-        },
-        "/date": {
-            "get": {
-                "x-type": "one-shot",
-                "summary": "",
-                "description": "",
-                "parameters": [
-                    {
-                        "name": "serviceId",
+                        "name": "path",
                         "in": "query",
                         "required": true,
                         "type": "string"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": ""
-                    }
-                }
-            },
-            "put": {
-                "x-type": "one-shot",
-                "summary": "",
-                "description": "",
-                "parameters": [
-                    {
-                        "name": "serviceId",
-                        "in": "formData",
-                        "required": true,
-                        "type": "string"
                     },
                     {
-                        "name": "date",
-                        "in": "formData",
+                        "name": "flag",
+                        "in": "query",
                         "required": true,
                         "type": "string",
-                        "format": "date-time"
+                        "enum": ["r", "rw"]
                     }
                 ],
                 "responses": {
@@ -117,7 +43,116 @@
                 }
             }
         },
-        "/display/light": {
+        "/close": {
+            "put": {
+                "x-type": "one-shot",
+                "summary": "",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "formData",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "path",
+                        "in": "formData",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/read": {
+            "get": {
+                "x-type": "one-shot",
+                "summary": "",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "query",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "path",
+                        "in": "query",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "length",
+                        "in": "query",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64",
+                        "minimum": 0,
+                        "exclusiveMinimum": true
+                    },
+                    {
+                        "name": "position",
+                        "in": "query",
+                        "required": false,
+                        "type": "integer",
+                        "format": "int64",
+                        "minimum": 0
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/write": {
+            "put": {
+                "x-type": "one-shot",
+                "summary": "",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "formData",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "path",
+                        "in": "formData",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "data",
+                        "in": "formData",
+                        "required": true,
+                        "type": "file"
+                    },
+                    {
+                        "name": "position",
+                        "in": "formData",
+                        "required": false,
+                        "type": "integer",
+                        "format": "int64",
+                        "minimum": 0
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/onWatchFile": {
             "get": {
                 "x-type": "one-shot",
                 "summary": "",
@@ -137,41 +172,13 @@
                 }
             },
             "put": {
-                "x-type": "one-shot",
+                "x-type": "event",
                 "summary": "",
                 "description": "",
                 "parameters": [
                     {
                         "name": "serviceId",
                         "in": "formData",
-                        "required": true,
-                        "type": "string"
-                    },
-                    {
-                        "name": "level",
-                        "in": "formData",
-                        "required": true,
-                        "type": "number",
-                        "minimum": 0.0,
-                        "maximum": 1.0
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": ""
-                    }
-                }
-            }
-        },
-        "/display/sleep": {
-            "get": {
-                "x-type": "one-shot",
-                "summary": "",
-                "description": "",
-                "parameters": [
-                    {
-                        "name": "serviceId",
-                        "in": "query",
                         "required": true,
                         "type": "string"
                     }
@@ -182,23 +189,16 @@
                     }
                 }
             },
-            "put": {
-                "x-type": "one-shot",
+            "delete": {
+                "x-type": "event",
                 "summary": "",
                 "description": "",
                 "parameters": [
                     {
                         "name": "serviceId",
-                        "in": "formData",
+                        "in": "query",
                         "required": true,
                         "type": "string"
-                    },
-                    {
-                        "name": "time",
-                        "in": "formData",
-                        "required": true,
-                        "type": "number",
-                        "format": "int64"
                     }
                 ],
                 "responses": {

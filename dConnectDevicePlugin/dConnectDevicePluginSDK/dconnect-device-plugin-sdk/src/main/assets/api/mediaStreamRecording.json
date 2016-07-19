@@ -1,7 +1,7 @@
 {
     "swagger": "2.0",
     "info": {
-        "title": "Notification Profile",
+        "title": "Media Stream Recording Profile",
         "version": "2.0.0",
         "description": ""
     },
@@ -10,7 +10,27 @@
         "multipart/form-data"
     ],
     "paths": {
-        "/notify": {
+        "/mediaRecorder": {
+            "get": {
+                "x-type": "one-shot",
+                "summary": "",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "query",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/takePhoto": {
             "post": {
                 "x-type": "one-shot",
                 "summary": "",
@@ -23,39 +43,7 @@
                         "type": "string"
                     },
                     {
-                        "name": "type",
-                        "in": "formData",
-                        "required": true,
-                        "type": "integer",
-                        "enum": [0, 1, 2, 3]
-                    },
-                    {
-                        "name": "dir",
-                        "in": "formData",
-                        "required": false,
-                        "type": "string",
-                        "enum": ["auto", "ltr", "rtl"]
-                    },
-                    {
-                        "name": "lang",
-                        "in": "formData",
-                        "required": false,
-                        "type": "string"
-                    },
-                    {
-                        "name": "body",
-                        "in": "formData",
-                        "required": false,
-                        "type": "string"
-                    },
-                    {
-                        "name": "tag",
-                        "in": "formData",
-                        "required": false,
-                        "type": "string"
-                    },
-                    {
-                        "name": "uri",
+                        "name": "target",
                         "in": "formData",
                         "required": false,
                         "type": "string"
@@ -66,8 +54,173 @@
                         "description": ""
                     }
                 }
-            },
-            "delete": {
+            }
+        },
+        "/record": {
+            "post": {
+                "x-type": "one-shot",
+                "summary": "",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "formData",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "target",
+                        "in": "formData",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "timeslice",
+                        "in": "formData",
+                        "required": false,
+                        "type": "number",
+                        "format": "int64"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/pause": {
+            "put": {
+                "x-type": "one-shot",
+                "summary": "",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "formData",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "target",
+                        "in": "formData",
+                        "required": false,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/resume": {
+            "put": {
+                "x-type": "one-shot",
+                "summary": "",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "formData",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "target",
+                        "in": "formData",
+                        "required": false,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/stop": {
+            "put": {
+                "x-type": "one-shot",
+                "summary": "",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "formData",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "target",
+                        "in": "formData",
+                        "required": false,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/muteTrack": {
+            "put": {
+                "x-type": "one-shot",
+                "summary": "",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "formData",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "target",
+                        "in": "formData",
+                        "required": false,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/unmuteTrack": {
+            "put": {
+                "x-type": "one-shot",
+                "summary": "",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "formData",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "target",
+                        "in": "formData",
+                        "required": false,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/options": {
+            "get": {
                 "x-type": "one-shot",
                 "summary": "",
                 "description": "",
@@ -79,8 +232,70 @@
                         "type": "string"
                     },
                     {
-                        "name": "notificationId",
+                        "name": "target",
                         "in": "query",
+                        "required": false,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            },
+            "put": {
+                "x-type": "one-shot",
+                "summary": "",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "formData",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "target",
+                        "in": "formData",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "imageWidth",
+                        "in": "formData",
+                        "required": false,
+                        "type": "integer"
+                    },
+                    {
+                        "name": "imageHeight",
+                        "in": "formData",
+                        "required": false,
+                        "type": "integer"
+                    },
+                    {
+                        "name": "previewWidth",
+                        "in": "formData",
+                        "required": false,
+                        "type": "integer"
+                    },
+                    {
+                        "name": "previewHeight",
+                        "in": "formData",
+                        "required": false,
+                        "type": "integer"
+                    },
+                    {
+                        "name": "previewMaxFrameRate",
+                        "in": "formData",
+                        "required": false,
+                        "type": "number",
+                        "minimum": 0.0,
+                        "exclusiveMinimum": true
+                    },
+                    {
+                        "name": "mimeType",
+                        "in": "formData",
                         "required": true,
                         "type": "string"
                     }
@@ -92,7 +307,7 @@
                 }
             }
         },
-        "/onClick": {
+        "/onPhoto": {
             "get": {
                 "x-type": "one-shot",
                 "summary": "",
@@ -148,7 +363,7 @@
                 }
             }
         },
-        "/onShow": {
+        "/preview": {
             "get": {
                 "x-type": "one-shot",
                 "summary": "",
@@ -159,61 +374,11 @@
                         "in": "query",
                         "required": true,
                         "type": "string"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": ""
-                    }
-                }
-            },
-            "put": {
-                "x-type": "event",
-                "summary": "",
-                "description": "",
-                "parameters": [
+                    },
                     {
-                        "name": "serviceId",
-                        "in": "formData",
-                        "required": true,
-                        "type": "string"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": ""
-                    }
-                }
-            },
-            "delete": {
-                "x-type": "event",
-                "summary": "",
-                "description": "",
-                "parameters": [
-                    {
-                        "name": "serviceId",
+                        "name": "target",
                         "in": "query",
-                        "required": true,
-                        "type": "string"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": ""
-                    }
-                }
-            }
-        },
-        "/onClose": {
-            "get": {
-                "x-type": "one-shot",
-                "summary": "",
-                "description": "",
-                "parameters": [
-                    {
-                        "name": "serviceId",
-                        "in": "query",
-                        "required": true,
+                        "required": false,
                         "type": "string"
                     }
                 ],
@@ -224,7 +389,7 @@
                 }
             },
             "put": {
-                "x-type": "event",
+                "x-type": "streaming",
                 "summary": "",
                 "description": "",
                 "parameters": [
@@ -232,6 +397,12 @@
                         "name": "serviceId",
                         "in": "formData",
                         "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "target",
+                        "in": "formData",
+                        "required": false,
                         "type": "string"
                     }
                 ],
@@ -242,7 +413,7 @@
                 }
             },
             "delete": {
-                "x-type": "event",
+                "x-type": "streaming",
                 "summary": "",
                 "description": "",
                 "parameters": [
@@ -250,6 +421,12 @@
                         "name": "serviceId",
                         "in": "query",
                         "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "target",
+                        "in": "query",
+                        "required": false,
                         "type": "string"
                     }
                 ],
@@ -260,7 +437,7 @@
                 }
             }
         },
-        "/onError": {
+        "/onRecordingChange": {
             "get": {
                 "x-type": "one-shot",
                 "summary": "",

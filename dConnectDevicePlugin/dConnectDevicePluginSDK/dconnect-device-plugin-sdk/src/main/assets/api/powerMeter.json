@@ -1,7 +1,7 @@
 {
     "swagger": "2.0",
     "info": {
-        "title": "Health Profile",
+        "title": "Power Meter Profile",
         "version": "2.0.0",
         "description": ""
     },
@@ -10,7 +10,7 @@
         "multipart/form-data"
     ],
     "paths": {
-        "/heartRate": {
+        "/": {
             "get": {
                 "x-type": "one-shot",
                 "summary": "",
@@ -30,7 +30,7 @@
                 }
             },
             "put": {
-                "x-type": "event",
+                "x-type": "one-shot",
                 "summary": "",
                 "description": "",
                 "parameters": [
@@ -48,7 +48,54 @@
                 }
             },
             "delete": {
-                "x-type": "event",
+                "x-type": "one-shot",
+                "summary": "",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "query",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/integratedPowerValue": {
+            "get": {
+                "x-type": "one-shot",
+                "summary": "",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "query",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "date",
+                        "in": "query",
+                        "required": false,
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/instantaneousPowerValue": {
+            "get": {
+                "x-type": "one-shot",
                 "summary": "",
                 "description": "",
                 "parameters": [

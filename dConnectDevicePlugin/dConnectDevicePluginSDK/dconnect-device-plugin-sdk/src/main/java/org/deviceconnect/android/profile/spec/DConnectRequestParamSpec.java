@@ -56,7 +56,8 @@ public abstract class DConnectRequestParamSpec {
         STRING,
         INTEGER,
         NUMBER,
-        BOOLEAN;
+        BOOLEAN,
+        FILE;
 
         public String getName() {
             return this.name().toLowerCase();

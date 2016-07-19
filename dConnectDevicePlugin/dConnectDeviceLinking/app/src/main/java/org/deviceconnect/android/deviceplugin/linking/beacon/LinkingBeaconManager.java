@@ -306,7 +306,7 @@ public class LinkingBeaconManager {
         Intent intent = new Intent();
         intent.setClassName(LinkingBeaconUtil.LINKING_PACKAGE_NAME, LinkingBeaconUtil.BEACON_SERVICE_NAME);
         intent.setAction(mContext.getPackageName() + LinkingBeaconUtil.ACTION_START_BEACON_SCAN);
-        intent.putExtra(mContext.getPackageName() + LinkingBeaconUtil.EXTRA_SERVICE_ID, new int[] {0, 1, 2, 3, 4, 5, 15});
+//        intent.putExtra(mContext.getPackageName() + LinkingBeaconUtil.EXTRA_SERVICE_ID, new int[] {0, 1, 2, 3, 4, 5, 15});
         if (scanMode != null) {
             intent.putExtra(mContext.getPackageName() + LinkingBeaconUtil.EXTRA_SCAN_MODE, scanMode.getValue());
         }

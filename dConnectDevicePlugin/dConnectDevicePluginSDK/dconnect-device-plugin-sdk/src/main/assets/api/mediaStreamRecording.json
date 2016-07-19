@@ -78,7 +78,7 @@
                         "name": "timeslice",
                         "in": "formData",
                         "required": false,
-                        "type": "number",
+                        "type": "integer",
                         "format": "int64"
                     }
                 ],

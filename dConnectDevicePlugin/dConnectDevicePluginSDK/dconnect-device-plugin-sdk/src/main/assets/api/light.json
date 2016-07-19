@@ -67,7 +67,7 @@
                         "in": "formData",
                         "type": "array",
                         "items": {
-                            "type": "number",
+                            "type": "integer",
                             "format": "int64"
                         },
                         "required": false
@@ -147,7 +147,7 @@
                         "in": "formData",
                         "type": "array",
                         "items": {
-                            "type": "number",
+                            "type": "integer",
                             "format": "int64"
                         },
                         "required": false

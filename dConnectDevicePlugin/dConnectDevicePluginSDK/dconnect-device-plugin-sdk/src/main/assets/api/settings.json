@@ -197,7 +197,7 @@
                         "name": "time",
                         "in": "formData",
                         "required": true,
-                        "type": "number",
+                        "type": "integer",
                         "format": "int64"
                     }
                 ],

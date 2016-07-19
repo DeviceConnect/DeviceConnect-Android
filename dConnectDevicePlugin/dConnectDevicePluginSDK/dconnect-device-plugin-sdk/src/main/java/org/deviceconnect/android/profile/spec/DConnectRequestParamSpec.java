@@ -93,6 +93,9 @@ public abstract class DConnectRequestParamSpec {
             case NUMBER:
                 spec = NumberRequestParamSpec.fromJson(json);
                 break;
+            case FILE:
+                spec = NumberRequestParamSpec.fromJson(json);
+                break;
             default:
                 throw new IllegalArgumentException();
         }

@@ -91,7 +91,7 @@ public abstract class DConnectProfile implements DConnectProfileConstants,
         if (method == null) {
             return null;
         }
-        String path = getApiPath(getProfile(request), getInterface(request), getAttribute(request));
+        String path = getApiPath(getInterface(request), getAttribute(request));
         return findApi(path, method);
     }
 
@@ -132,36 +132,33 @@ public abstract class DConnectProfile implements DConnectProfileConstants,
      * @return パス
      */
     private String getApiPath(final DConnectApi api) {
-        return getApiPath(getProfileName(), api.getInterface(), api.getAttribute());
+        return getApiPath(api.getInterface(), api.getAttribute());
     }
 
     /**
      * プロファイル名、インターフェース名、アトリビュート名からパスを作成する.
-     * @param profileName プロファイル名
      * @param interfaceName インターフェース名
      * @param attributeName アトリビュート名
      * @return パス
      */
-    private String getApiPath(final String profileName, final String interfaceName,
-                              final String attributeName) {
+    private String getApiPath(final String interfaceName, final String attributeName) {
         StringBuilder path = new StringBuilder();
         path.append("/");
-        path.append(DConnectMessage.DEFAULT_API);
-        path.append("/");
-        path.append(profileName);
         if (interfaceName != null) {
-            path.append("/");
             path.append(interfaceName);
+            path.append("/");
         }
         if (attributeName != null) {
-            path.append("/");
             path.append(attributeName);
         }
         return path.toString();
     }
 
     private boolean isKnownPath(final Intent request) {
-        String path = getApiPath(getProfile(request), getInterface(request), getAttribute(request));
+        String path = getApiPath(getInterface(request), getAttribute(request));
+        if (mProfileSpec == null) {
+            return false;
+        }
         return mProfileSpec.findApiSpecs(path) != null;
     }
 
@@ -171,7 +168,7 @@ public abstract class DConnectProfile implements DConnectProfileConstants,
         if (method == null) {
             return false;
         }
-        String path = getApiPath(getProfile(request), getInterface(request), getAttribute(request));
+        String path = getApiPath(getInterface(request), getAttribute(request));
         if (mProfileSpec == null) {
             return false;
         }

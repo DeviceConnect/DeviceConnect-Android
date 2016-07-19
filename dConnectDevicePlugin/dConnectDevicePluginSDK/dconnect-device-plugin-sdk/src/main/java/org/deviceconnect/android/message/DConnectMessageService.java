@@ -9,6 +9,7 @@ package org.deviceconnect.android.message;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.AssetManager;
 import android.os.Bundle;
 import android.os.IBinder;
 
@@ -39,6 +40,7 @@ import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 import org.deviceconnect.profile.SystemProfileConstants;
 import org.json.JSONException;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -65,6 +67,9 @@ public abstract class DConnectMessageService extends Service implements DConnect
         SystemProfileConstants.PROFILE_NAME.toLowerCase(),
         ServiceDiscoveryProfileConstants.PROFILE_NAME.toLowerCase()
     };
+
+    /** プロファイル仕様定義ファイルの拡張子. */
+    private static final String SPEC_FILE_EXTENSION = ".json";
 
     /**
      * ロガー.
@@ -125,25 +130,43 @@ public abstract class DConnectMessageService extends Service implements DConnect
     }
 
     private DConnectPluginSpec loadPluginSpec() {
-        try {
-            final Map<String, DevicePluginXmlProfile> supportedProfiles = DevicePluginXmlUtil.getSupportProfiles(this, getPackageName());
-            final Set<String> profileNames = supportedProfiles.keySet();
+        final Map<String, DevicePluginXmlProfile> supportedProfiles = DevicePluginXmlUtil.getSupportProfiles(this, getPackageName());
+        final Set<String> profileNames = supportedProfiles.keySet();
 
-            final DConnectPluginSpec pluginSpec = new DConnectPluginSpec();
-            for (String profileName : profileNames) {
-                mLogger.info("Loading API Spec file...: " + profileName);
-                String key = profileName.toLowerCase();
-                pluginSpec.addProfileSpec(key, getAssets().open("api/" + key + ".json"));
-                mLogger.info("Loaded API Spec file: " + profileName);
+        final DConnectPluginSpec pluginSpec = new DConnectPluginSpec();
+        for (String profileName : profileNames) {
+            String key = profileName.toLowerCase();
+            try {
+                AssetManager assets = getAssets();
+                String path = findProfileSpecPath(assets, profileName);
+                pluginSpec.addProfileSpec(key, getAssets().open(path));
+                mLogger.info("Loaded a profile spec: " + profileName);
+            } catch (IOException e) {
+                throw new RuntimeException("Failed to load a profile spec: " + profileName, e);
+            } catch (JSONException e) {
+                throw new RuntimeException("Failed to load a profile spec: " + profileName, e);
             }
-            return pluginSpec;
-        } catch (IOException e) {
-            mLogger.warning("Failed to load Device Connect API Specs.");
-            throw new RuntimeException(e);
-        } catch (JSONException e) {
-            mLogger.warning("Device Connect API Specs is invalid.");
-            throw new RuntimeException(e);
         }
+        return pluginSpec;
+    }
+
+    private static String findProfileSpecPath(final AssetManager assets, final String profileName)
+        throws IOException {
+        String[] fileNames = assets.list("api");
+        if (fileNames == null) {
+            return null;
+        }
+        for (String fileFullName : fileNames) {
+            if (!fileFullName.endsWith(SPEC_FILE_EXTENSION)) {
+                continue;
+            }
+            String fileName = fileFullName.substring(0,
+                fileFullName.length() - SPEC_FILE_EXTENSION.length());
+            if (fileName.equalsIgnoreCase(profileName)) {
+                return "api/" + fileFullName;
+            }
+        }
+        throw new FileNotFoundException("A spec file is not found: " + profileName);
     }
 
     @Override

@@ -45,10 +45,10 @@ public class LinkingDevicePluginService extends DConnectMessageService {
         super.onCreate();
         EventManager.INSTANCE.setController(new MemoryCacheController());
 
+        addProfile(new LinkingServiceDiscoveryProfile(this, getServiceProvider()));
+
         createLinkingDeviceList();
         createLinkingBeaconList();
-
-        addProfile(new LinkingServiceDiscoveryProfile(this, getServiceProvider()));
     }
 
     @Override

@@ -12,6 +12,7 @@ import com.nttdocomo.android.sdaiflib.GetDeviceInformation;
 import com.nttdocomo.android.sdaiflib.SendNotification;
 
 import org.deviceconnect.android.deviceplugin.linking.BuildConfig;
+import org.deviceconnect.android.deviceplugin.linking.LinkingApplication;
 import org.deviceconnect.android.deviceplugin.linking.R;
 import org.deviceconnect.android.deviceplugin.linking.util.PreferenceUtil;
 
@@ -84,7 +85,9 @@ public class LinkingDeviceManager {
         }
 
         mRequestSensorType.add(request);
-        if (mRequestSensorType.size() == 1) {
+
+        LinkingApplication app = (LinkingApplication) mContext;
+        if (mRequestSensorType.size() == 1 || !app.isStartedConfirmActivity()) {
             mHandler.post(new Runnable() {
                 @Override
                 public void run() {

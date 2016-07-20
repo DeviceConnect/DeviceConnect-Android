@@ -1,7 +1,7 @@
 {
     "swagger": "2.0",
     "info": {
-        "title": "ServiceInformation Profile",
+        "title": "Availability Profile",
         "version": "2.0.0",
         "description": ""
     },
@@ -12,14 +12,12 @@
                 "x-type": "one-shot",
                 "summary": "",
                 "description": "",
-                "parameters": [
-                    {
-                        "name": "serviceId",
-                        "in": "formData",
-                        "required": true,
-                        "type": "string"
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": ""
                     }
-                ]
+                }
             }
         }
     }

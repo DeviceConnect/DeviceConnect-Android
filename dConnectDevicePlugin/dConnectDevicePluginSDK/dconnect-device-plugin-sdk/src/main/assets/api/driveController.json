@@ -1,7 +1,7 @@
 {
     "swagger": "2.0",
     "info": {
-        "title": "Health Profile",
+        "title": "Profile",
         "version": "2.0.0",
         "description": ""
     },
@@ -10,8 +10,42 @@
         "multipart/form-data"
     ],
     "paths": {
-        "/heartRate": {
-            "get": {
+        "/move": {
+            "post": {
+                "x-type": "one-shot",
+                "summary": "",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "formData",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "angle",
+                        "in": "formData",
+                        "required": true,
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 360
+                    },
+                    {
+                        "name": "speed",
+                        "in": "formData",
+                        "required": true,
+                        "type": "number",
+                        "minimum": 0.0,
+                        "maximum": 1.0
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            },
+            "delete": {
                 "x-type": "one-shot",
                 "summary": "",
                 "description": "",
@@ -28,9 +62,11 @@
                         "description": ""
                     }
                 }
-            },
+            }
+        },
+        "/rotate": {
             "put": {
-                "x-type": "event",
+                "x-type": "one-shot",
                 "summary": "",
                 "description": "",
                 "parameters": [
@@ -39,24 +75,14 @@
                         "in": "formData",
                         "required": true,
                         "type": "string"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": ""
-                    }
-                }
-            },
-            "delete": {
-                "x-type": "event",
-                "summary": "",
-                "description": "",
-                "parameters": [
+                    },
                     {
-                        "name": "serviceId",
-                        "in": "query",
+                        "name": "angle",
+                        "in": "formData",
                         "required": true,
-                        "type": "string"
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 360
                     }
                 ],
                 "responses": {

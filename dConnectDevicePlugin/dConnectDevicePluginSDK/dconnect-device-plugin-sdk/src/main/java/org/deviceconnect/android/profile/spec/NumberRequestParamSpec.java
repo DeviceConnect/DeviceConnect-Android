@@ -6,17 +6,18 @@ import org.json.JSONObject;
 
 public class NumberRequestParamSpec extends DConnectRequestParamSpec {
 
-    private static final String FORMAT = "format";
-    private static final String MAX_VALUE = "maxValue";
-    private static final String MIN_VALUE = "minValue";
-    private static final String EXCLUSIVE_MAX_VALUE = "exclusiveMaxValue";
-    private static final String EXCLUSIVE_MIN_VALUE = "exclusiveMinValue";
+    private static final String KEY_FORMAT = "format";
+    private static final String KEY_MAXIMUM = "maximum";
+    private static final String KEY_MINIMUM = "minimum";
+    private static final String KEY_EXCLUSIVE_MAXIMUM = "exclusiveMaximum";
+    private static final String KEY_EXCLUSIVE_MINIMUM = "exclusiveMinimum";
+    private static final String KEY_ENUM = "enum";
 
     private final Format mFormat;
-    private Double mMaxValue;
-    private Double mMinValue;
-    private Double mExclusiveMaxValue;
-    private Double mExclusiveMinValue;
+    private Double mMaximum;
+    private Double mMinimum;
+    private boolean mExclusiveMaximum;
+    private boolean mExclusiveMinimum;
 
     private NumberRequestParamSpec(final Format format) {
         super(Type.NUMBER);
@@ -27,36 +28,36 @@ public class NumberRequestParamSpec extends DConnectRequestParamSpec {
         return mFormat;
     }
 
-    void setMaxValue(final Double maxValue) {
-        mMaxValue = maxValue;
+    void setMaximum(final Double maximum) {
+        mMaximum = maximum;
     }
 
-    public Double getMaxValue() {
-        return mMaxValue;
+    public Double getMaximum() {
+        return mMaximum;
     }
 
-    void setMinValue(final Double minValue) {
-        mMinValue = minValue;
+    void setMinimum(final Double minimum) {
+        mMinimum = minimum;
     }
 
-    public Double getMinValue() {
-        return mMinValue;
+    public Double getMinimum() {
+        return mMinimum;
     }
 
-    void setExclusiveMaxValue(final Double exclusiveMaxValue) {
-        mExclusiveMaxValue = exclusiveMaxValue;
+    void setExclusiveMaximum(final boolean exclusiveMaximum) {
+        mExclusiveMaximum = exclusiveMaximum;
     }
 
-    public Double getExclusiveMaxValue() {
-        return mExclusiveMaxValue;
+    public boolean getExclusiveMaximum() {
+        return mExclusiveMaximum;
     }
 
-    void setExclusiveMinValue(final Double exclusiveMinValue) {
-        mExclusiveMinValue = exclusiveMinValue;
+    void setExclusiveMinimum(final boolean exclusiveMinimum) {
+        mExclusiveMinimum = exclusiveMinimum;
     }
 
-    public Double getExclusiveMinValue() {
-        return mExclusiveMinValue;
+    public boolean getExclusiveMinimum() {
+        return mExclusiveMinimum;
     }
 
     @Override
@@ -85,7 +86,7 @@ public class NumberRequestParamSpec extends DConnectRequestParamSpec {
                 return false;
             }
         } else if (param instanceof Float) {
-            return validateRange((Integer) param);
+            return validateRange((float) param);
         } else {
             return false;
         }
@@ -98,71 +99,63 @@ public class NumberRequestParamSpec extends DConnectRequestParamSpec {
             } catch (NumberFormatException e) {
                 return false;
             }
-        } else if (param instanceof Long) {
-            return validateRange((Long) param);
+        } else if (param instanceof Double) {
+            return validateRange((double) param);
         } else {
             return false;
         }
     }
 
     private boolean validateRange(final double value) {
-        if (mMaxValue != null && mMaxValue < value) {
-            return false;
+        if (mMaximum != null) {
+            return mExclusiveMaximum ? (mMaximum < value) : (mMaximum <= value);
         }
-        if (mExclusiveMaxValue != null && mExclusiveMaxValue <= value) {
-            return false;
-        }
-        if (mMinValue != null && mMinValue > value) {
-            return false;
-        }
-        if (mExclusiveMinValue != null && mExclusiveMinValue >= value) {
-            return false;
+        if (mMinimum != null) {
+            return mExclusiveMinimum ? (mMinimum > value) : (mMinimum >= value);
         }
         return true;
     }
 
     public static NumberRequestParamSpec fromJson(final JSONObject json) throws JSONException {
         Builder builder = new Builder();
-        builder.setName(json.getString(NAME));
-        builder.setMandatory(json.getBoolean(MANDATORY));
-        if (json.has(FORMAT)) {
-            Format format = Format.parse(json.getString(FORMAT));
+        builder.setRequired(json.getBoolean(KEY_REQUIRED));
+        if (json.has(KEY_FORMAT)) {
+            Format format = Format.parse(json.optString(KEY_FORMAT));
             if (format == null) {
-                throw new IllegalArgumentException("format is invalid: " + json.getString(FORMAT));
+                throw new IllegalArgumentException("format is invalid: " + json.optString(KEY_FORMAT));
             }
             builder.setFormat(format);
         }
-        if (json.has(MAX_VALUE)) {
-            builder.setMaxValue(json.getLong(MAX_VALUE));
+        if (json.has(KEY_MAXIMUM)) {
+            builder.setMaximum(json.getLong(KEY_MAXIMUM));
         }
-        if (json.has(MIN_VALUE)) {
-            builder.setMinValue(json.getLong(MIN_VALUE));
+        if (json.has(KEY_MINIMUM)) {
+            builder.setMinimum(json.getLong(KEY_MINIMUM));
         }
-        if (json.has(EXCLUSIVE_MAX_VALUE)) {
-            builder.setExclusiveMaxValue(json.getLong(EXCLUSIVE_MAX_VALUE));
+        if (json.has(KEY_EXCLUSIVE_MAXIMUM)) {
+            builder.setExclusiveMaximum(json.getBoolean(KEY_EXCLUSIVE_MAXIMUM));
         }
-        if (json.has(EXCLUSIVE_MIN_VALUE)) {
-            builder.setExclusiveMinValue(json.getLong(EXCLUSIVE_MIN_VALUE));
+        if (json.has(KEY_EXCLUSIVE_MINIMUM)) {
+            builder.setExclusiveMinimum(json.getBoolean(KEY_EXCLUSIVE_MINIMUM));
         }
         return builder.build();
     }
 
     public static class Builder {
         private String mName;
-        private boolean mIsMandatory;
+        private boolean mIsRequired;
         private Format mFormat;
-        private Double mMaxValue;
-        private Double mMinValue;
-        private Double mExclusiveMaxValue;
-        private Double mExclusiveMinValue;
+        private Double mMaximum;
+        private Double mMinimum;
+        private boolean mExclusiveMaximum;
+        private boolean mExclusiveMinimum;
 
-        public Builder setName(final String name) {
+        public void setName(final String name) {
             mName = name;
-            return this;
         }
 
-        public Builder setMandatory(final boolean isMandatory) {
-            mIsMandatory = isMandatory;
+        public Builder setRequired(final boolean isRequired) {
+            mIsRequired = isRequired;
             return this;
         }
 
@@ -171,23 +164,23 @@ public class NumberRequestParamSpec extends DConnectRequestParamSpec {
             return this;
         }
 
-        public Builder setMaxValue(final double maxValue) {
-            mMaxValue = maxValue;
+        public Builder setMaximum(final double maximum) {
+            mMaximum = maximum;
             return this;
         }
 
-        public Builder setMinValue(final double minValue) {
-            mMinValue = minValue;
+        public Builder setMinimum(final double minimum) {
+            mMinimum = minimum;
             return this;
         }
 
-        public Builder setExclusiveMaxValue(final double exclusiveMaxValue) {
-            mExclusiveMaxValue = exclusiveMaxValue;
+        public Builder setExclusiveMaximum(final boolean exclusiveMaximum) {
+            mExclusiveMaximum = exclusiveMaximum;
             return this;
         }
 
-        public Builder setExclusiveMinValue(final double exclusiveMinValue) {
-            mExclusiveMinValue = exclusiveMinValue;
+        public Builder setExclusiveMinimum(final boolean exclusiveMinimum) {
+            mExclusiveMinimum = exclusiveMinimum;
             return this;
         }
 
@@ -197,17 +190,11 @@ public class NumberRequestParamSpec extends DConnectRequestParamSpec {
             }
             NumberRequestParamSpec spec = new NumberRequestParamSpec(mFormat);
             spec.setName(mName);
-            spec.setMandatory(mIsMandatory);
-            if (mMaxValue != null) {
-                spec.setMaxValue(mMaxValue);
-            } else {
-                spec.setExclusiveMaxValue(mExclusiveMaxValue);
-            }
-            if (mMinValue != null) {
-                spec.setMinValue(mMinValue);
-            } else {
-                spec.setExclusiveMinValue(mExclusiveMinValue);
-            }
+            spec.setRequired(mIsRequired);
+            spec.setMaximum(mMaximum);
+            spec.setExclusiveMaximum(mExclusiveMaximum);
+            spec.setMinimum(mMinimum);
+            spec.setExclusiveMinimum(mExclusiveMinimum);
             return spec;
         }
     }

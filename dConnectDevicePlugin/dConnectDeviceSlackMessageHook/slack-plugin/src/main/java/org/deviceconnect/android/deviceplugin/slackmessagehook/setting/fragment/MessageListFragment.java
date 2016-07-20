@@ -27,6 +27,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.jakewharton.picasso.OkHttp3Downloader;
+import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 
 import org.deviceconnect.android.deviceplugin.slackmessagehook.BuildConfig;
@@ -162,6 +163,7 @@ public class MessageListFragment extends ListFragment implements SlackManager.Sl
                 .downloader(new OkHttp3Downloader(httpClient))
                 .build();
         if (BuildConfig.DEBUG) mPicasso.setIndicatorsEnabled(true);
+        if (BuildConfig.DEBUG) mPicasso.setLoggingEnabled(true);
 
         // パラメータ取得
         Bundle bundle = getArguments();
@@ -482,7 +484,7 @@ public class MessageListFragment extends ListFragment implements SlackManager.Sl
             TextView textMessage;
             TextView textDate;
             ImageView iconImage;
-            ImageView imageImage;
+            final ImageView imageImage;
             // 自分と他人では項目の配置が反対になる
             if (myself) {
                 rLayout.setVisibility(View.VISIBLE);
@@ -525,7 +527,7 @@ public class MessageListFragment extends ListFragment implements SlackManager.Sl
             // アイコン
             mPicasso.cancelRequest(iconImage);
             if (info.icon != null) {
-                mPicasso.load(info.icon).into(iconImage);
+                mPicasso.load(info.icon).error(android.R.drawable.ic_delete).into(iconImage);
             } else {
                 iconImage.setImageResource(R.drawable.slack_icon);
             }
@@ -534,7 +536,7 @@ public class MessageListFragment extends ListFragment implements SlackManager.Sl
             if (info.thumb != null) {
                 imageImage.setVisibility(View.VISIBLE);
                 imageImage.setLayoutParams(new LinearLayout.LayoutParams(info.thumbWidth, info.thumbHeight));
-                mPicasso.load(info.thumb).into(imageImage);
+                mPicasso.load(info.thumb).error(android.R.drawable.ic_delete).into(imageImage);
             } else {
                 imageImage.setVisibility(View.GONE);
             }

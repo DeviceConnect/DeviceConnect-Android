@@ -10,7 +10,7 @@
         "multipart/form-data"
     ],
     "paths": {
-        "/light": {
+        "/": {
             "get": {
                 "x-type": "one-shot",
                 "summary": "",

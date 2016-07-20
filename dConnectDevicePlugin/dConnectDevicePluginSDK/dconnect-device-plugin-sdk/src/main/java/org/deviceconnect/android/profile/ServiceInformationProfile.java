@@ -189,15 +189,7 @@ public class ServiceInformationProfile extends DConnectProfile implements Servic
                 Bundle bundle = profileSpec.toBundle(new DConnectApiSpecFilter() {
                     @Override
                     public boolean filter(final String path, final Method method) {
-                        StringBuilder apiPath = new StringBuilder();
-                        apiPath.append("/");
-                        apiPath.append(DConnectMessage.DEFAULT_API);
-                        apiPath.append("/");
-                        apiPath.append(profile.getProfileName());
-                        if (!path.equals("/")) {
-                            apiPath.append(path);
-                        }
-                        return profile.hasApi(apiPath.toString(), method);
+                        return profile.hasApi(path, method);
                     }
                 });
                 supportApisBundle.putBundle(profile.getProfileName(), bundle);

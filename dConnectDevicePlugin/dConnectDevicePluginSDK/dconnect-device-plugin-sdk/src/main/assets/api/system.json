@@ -1,52 +1,34 @@
 {
     "swagger": "2.0",
     "info": {
-        "title": "Vibration Profile",
+        "title": "System Profile",
         "version": "2.0.0",
         "description": ""
     },
-    "consumes": [
-        "application/x-www-form-urlencoded",
-        "multipart/form-data"
-    ],
+    "consumes": [],
     "paths": {
-        "/vibrate": {
+        "/": {
+            "get": {
+                "x-type": "one-shot",
+                "summary": "",
+                "description": "",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/device/wakeup": {
             "put": {
                 "x-type": "one-shot",
                 "summary": "",
                 "description": "",
                 "parameters": [
                     {
-                        "name": "serviceId",
+                        "name": "pluginId",
                         "in": "formData",
-                        "required": true,
-                        "type": "string"
-                    },
-                    {
-                        "name": "pattern",
-                        "in": "formData",
-                        "required": false,
-                        "type": "array",
-                        "items": {
-                            "type": "integer",
-                            "format": "int64"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": ""
-                    }
-                }
-            },
-            "delete": {
-                "x-type": "one-shot",
-                "summary": "",
-                "description": "",
-                "parameters": [
-                    {
-                        "name": "serviceId",
-                        "in": "query",
                         "required": true,
                         "type": "string"
                     }
@@ -57,7 +39,32 @@
                     }
                 }
             }
+        },
+        "/events": {
+            "delete": {
+                "x-type": "one-shot",
+                "summary": "",
+                "description": "",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/keyword": {
+            "put": {
+                "x-type": "one-shot",
+                "summary": "",
+                "description": "",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
         }
-
     }
 }

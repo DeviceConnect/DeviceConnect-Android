@@ -1,13 +1,60 @@
 {
     "swagger": "2.0",
     "info": {
-        "title": "Battery Profile",
+        "title": "File Profile",
         "version": "2.0.0",
         "description": ""
     },
-    "consumes": [],
+    "consumes": [
+        "application/x-www-form-urlencoded",
+        "multipart/form-data"
+    ],
     "paths": {
-        "/": {
+        "/send": {
+            "post": {
+                "x-type": "one-shot",
+                "summary": "",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "formData",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "fileName",
+                        "in": "formData",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "mimeType",
+                        "in": "formData",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "uri",
+                        "in": "formData",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "data",
+                        "in": "formData",
+                        "required": false,
+                        "type": "file"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/receive": {
             "get": {
                 "x-type": "one-shot",
                 "summary": "",
@@ -15,6 +62,12 @@
                 "parameters": [
                     {
                         "name": "serviceId",
+                        "in": "query",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "path",
                         "in": "query",
                         "required": true,
                         "type": "string"
@@ -27,7 +80,7 @@
                 }
             }
         },
-        "/charging": {
+        "/list": {
             "get": {
                 "x-type": "one-shot",
                 "summary": "",
@@ -38,6 +91,41 @@
                         "in": "query",
                         "required": true,
                         "type": "string"
+                    },
+                    {
+                        "name": "path",
+                        "in": "query",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "mimeType",
+                        "in": "query",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "order",
+                        "in": "query",
+                        "required": false,
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "offset",
+                        "in": "query",
+                        "required": false,
+                        "type": "integer",
+                        "minimum": 0
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "required": false,
+                        "type": "integer",
+                        "minimum": 0
                     }
                 ],
                 "responses": {
@@ -47,92 +135,20 @@
                 }
             }
         },
-        "/chargingTime": {
-            "get": {
-                "x-type": "one-shot",
-                "summary": "",
-                "description": "",
-                "parameters": [
-                    {
-                        "name": "serviceId",
-                        "in": "query",
-                        "required": true,
-                        "type": "string"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": ""
-                    }
-                }
-            }
-        },
-        "/dischargingTime": {
-            "get": {
-                "x-type": "one-shot",
-                "summary": "",
-                "description": "",
-                "parameters": [
-                    {
-                        "name": "serviceId",
-                        "in": "query",
-                        "required": true,
-                        "type": "string"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": ""
-                    }
-                }
-            }
-        },
-        "/level": {
-            "get": {
-                "x-type": "one-shot",
-                "summary": "",
-                "description": "",
-                "parameters": [
-                    {
-                        "name": "serviceId",
-                        "in": "query",
-                        "required": true,
-                        "type": "string"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": ""
-                    }
-                }
-            }
-        },
-        "/onBatteryChange": {
-            "put": {
-                "x-type": "event",
-                "summary": "",
-                "description": "",
-                "parameters": [
-                    {
-                        "name": "serviceId",
-                        "in": "query",
-                        "required": true,
-                        "type": "string"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": ""
-                    }
-                }
-            },
+        "/remove": {
             "delete": {
-                "x-type": "event",
+                "x-type": "one-shot",
                 "summary": "",
                 "description": "",
                 "parameters": [
                     {
                         "name": "serviceId",
+                        "in": "query",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "path",
                         "in": "query",
                         "required": true,
                         "type": "string"
@@ -145,15 +161,21 @@
                 }
             }
         },
-        "/onChargingChange": {
-            "put": {
-                "x-type": "event",
+        "/mkdir": {
+            "post": {
+                "x-type": "one-shot",
                 "summary": "",
                 "description": "",
                 "parameters": [
                     {
                         "name": "serviceId",
-                        "in": "query",
+                        "in": "formData",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "path",
+                        "in": "formData",
                         "required": true,
                         "type": "string"
                     }
@@ -163,9 +185,11 @@
                         "description": ""
                     }
                 }
-            },
+            }
+        },
+        "/rmdir": {
             "delete": {
-                "x-type": "event",
+                "x-type": "one-shot",
                 "summary": "",
                 "description": "",
                 "parameters": [
@@ -174,6 +198,18 @@
                         "in": "query",
                         "required": true,
                         "type": "string"
+                    },
+                    {
+                        "name": "path",
+                        "in": "query",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "force",
+                        "in": "query",
+                        "required": false,
+                        "type": "boolean"
                     }
                 ],
                 "responses": {

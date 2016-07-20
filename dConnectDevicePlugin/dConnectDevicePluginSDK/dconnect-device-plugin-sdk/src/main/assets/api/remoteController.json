@@ -1,7 +1,7 @@
 {
     "swagger": "2.0",
     "info": {
-        "title": "DeviceOrientation Profile",
+        "title": "Remote Controller Profile",
         "version": "2.0.0",
         "description": ""
     },
@@ -10,15 +10,15 @@
         "multipart/form-data"
     ],
     "paths": {
-        "/onDeviceOrientation": {
-            "put": {
-                "x-type": "event",
+        "/": {
+            "get": {
+                "x-type": "one-shot",
                 "summary": "",
                 "description": "",
                 "parameters": [
                     {
                         "name": "serviceId",
-                        "in": "formData",
+                        "in": "query",
                         "required": true,
                         "type": "string"
                     }
@@ -29,14 +29,20 @@
                     }
                 }
             },
-            "delete": {
-                "x-type": "event",
+            "post": {
+                "x-type": "one-shot",
                 "summary": "",
                 "description": "",
                 "parameters": [
                     {
                         "name": "serviceId",
-                        "in": "query",
+                        "in": "formData",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "message",
+                        "in": "formData",
                         "required": true,
                         "type": "string"
                     }

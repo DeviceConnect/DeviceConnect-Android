@@ -5,25 +5,21 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class IntegerRequestParamSpec extends DConnectRequestParamSpec {
 
-    private static final String FORMAT = "format";
-    private static final String MAX_VALUE = "maxValue";
-    private static final String MIN_VALUE = "minValue";
-    private static final String EXCLUSIVE_MAX_VALUE = "exclusiveMaxValue";
-    private static final String EXCLUSIVE_MIN_VALUE = "exclusiveMinValue";
-    private static final String ENUM = "enum";
-    private static final String VALUE = "value";
+    private static final String KEY_FORMAT = "format";
+    private static final String KEY_MAXIMUM = "maximum";
+    private static final String KEY_MINIMUM = "minimum";
+    private static final String KEY_EXCLUSIVE_MAXIMUM = "exclusiveMaximum";
+    private static final String KEY_EXCLUSIVE_MINIMUM = "exclusiveMinimum";
+    private static final String KEY_ENUM = "enum";
 
     private final Format mFormat;
-    private Long mMaxValue;
-    private Long mMinValue;
-    private Long mExclusiveMaxValue;
-    private Long mExclusiveMinValue;
-    private Enum<Long>[] mEnumList;
+    private Long mMaximum;
+    private Long mMinimum;
+    private boolean mExclusiveMaximum;
+    private boolean mExclusiveMinimum;
+    private long[] mEnumList;
 
     private IntegerRequestParamSpec(final Format format) {
         super(Type.INTEGER);
@@ -34,43 +30,43 @@ public class IntegerRequestParamSpec extends DConnectRequestParamSpec {
         return mFormat;
     }
 
-    void setMaxValue(final Long maxValue) {
-        mMaxValue = maxValue;
+    void setMaximum(final Long maximum) {
+        mMaximum = maximum;
     }
 
-    public Long getMaxValue() {
-        return mMaxValue;
+    public Long getMaximum() {
+        return mMaximum;
     }
 
-    void setMinValue(final Long minValue) {
-        mMinValue = minValue;
+    void setMinimum(final Long minimum) {
+        mMinimum = minimum;
     }
 
-    public Long getMinValue() {
-        return mMinValue;
+    public Long getMinimum() {
+        return mMinimum;
     }
 
-    void setExclusiveMaxValue(final Long exclusiveMaxValue) {
-        mExclusiveMaxValue = exclusiveMaxValue;
+    void setExclusiveMaximum(final boolean exclusiveMaximum) {
+        mExclusiveMaximum = exclusiveMaximum;
     }
 
-    public Long getExclusiveMaxValue() {
-        return mExclusiveMaxValue;
+    public boolean getExclusiveMaximum() {
+        return mExclusiveMaximum;
     }
 
-    void setExclusiveMinValue(final Long exclusiveMinValue) {
-        mExclusiveMinValue = exclusiveMinValue;
+    void setExclusiveMinimum(final boolean exclusiveMinimum) {
+        mExclusiveMinimum = exclusiveMinimum;
     }
 
-    public Long getExclusiveMinValue() {
-        return mExclusiveMinValue;
+    public boolean getExclusiveMinimum() {
+        return mExclusiveMinimum;
     }
 
-    void setEnumList(final Enum<Long>[] enumList) {
+    void setEnumList(final long[] enumList) {
         mEnumList = enumList;
     }
 
-    public Enum<Long>[] getEnumList() {
+    public long[] getEnumList() {
         return mEnumList;
     }
 
@@ -122,24 +118,18 @@ public class IntegerRequestParamSpec extends DConnectRequestParamSpec {
 
     private boolean validateRange(final long value) {
         if (mEnumList != null) {
-            for (Enum<Long> e : mEnumList) {
-                if (e.getValue() == value) {
+            for (long e : mEnumList) {
+                if (e == value) {
                     return true;
                 }
             }
             return false;
         } else {
-            if (mMaxValue != null && mMaxValue < value) {
-                return false;
+            if (mMaximum != null) {
+                return mExclusiveMaximum ? (mMaximum < value) : (mMaximum <= value);
             }
-            if (mExclusiveMaxValue != null && mExclusiveMaxValue <= value) {
-                return false;
-            }
-            if (mMinValue != null && mMinValue > value) {
-                return false;
-            }
-            if (mExclusiveMinValue != null && mExclusiveMinValue >= value) {
-                return false;
+            if (mMinimum != null) {
+                return mExclusiveMinimum ? (mMinimum > value) : (mMinimum >= value);
             }
             return true;
         }
@@ -147,36 +137,31 @@ public class IntegerRequestParamSpec extends DConnectRequestParamSpec {
 
     public static IntegerRequestParamSpec fromJson(final JSONObject json) throws JSONException {
         Builder builder = new Builder();
-        builder.setName(json.getString(NAME));
-        builder.setMandatory(json.getBoolean(MANDATORY));
-        if (json.has(FORMAT)) {
-            Format format = Format.parse(json.getString(FORMAT));
+        builder.setRequired(json.getBoolean(KEY_REQUIRED));
+        if (json.has(KEY_FORMAT)) {
+            Format format = Format.parse(json.optString(KEY_FORMAT));
             if (format == null) {
-                throw new IllegalArgumentException("format is invalid: " + json.getString(FORMAT));
+                throw new IllegalArgumentException("format is invalid: " + json.optString(KEY_FORMAT));
             }
             builder.setFormat(format);
         }
-        if (json.has(MAX_VALUE)) {
-            builder.setMaxValue(json.getLong(MAX_VALUE));
+        if (json.has(KEY_MAXIMUM)) {
+            builder.setMaximum(json.getLong(KEY_MAXIMUM));
         }
-        if (json.has(MIN_VALUE)) {
-            builder.setMinValue(json.getLong(MIN_VALUE));
+        if (json.has(KEY_MINIMUM)) {
+            builder.setMinimum(json.getLong(KEY_MINIMUM));
         }
-        if (json.has(EXCLUSIVE_MAX_VALUE)) {
-            builder.setExclusiveMaxValue(json.getLong(EXCLUSIVE_MAX_VALUE));
+        if (json.has(KEY_EXCLUSIVE_MAXIMUM)) {
+            builder.setExclusiveMaximum(json.getBoolean(KEY_EXCLUSIVE_MAXIMUM));
         }
-        if (json.has(EXCLUSIVE_MIN_VALUE)) {
-            builder.setExclusiveMinValue(json.getLong(EXCLUSIVE_MIN_VALUE));
+        if (json.has(KEY_EXCLUSIVE_MINIMUM)) {
+            builder.setExclusiveMinimum(json.getBoolean(KEY_EXCLUSIVE_MINIMUM));
         }
-        if (json.has(ENUM)) {
-            List<Enum<Long>> enumList = new ArrayList<Enum<Long>>();
-            JSONArray array = json.getJSONArray(ENUM);
+        if (json.has(KEY_ENUM)) {
+            JSONArray array = json.getJSONArray(KEY_ENUM);
+            long[] enumList = new long[array.length()];
             for (int i = 0; i < array.length(); i++) {
-                JSONObject obj = array.getJSONObject(i);
-                Enum<Long> enumSpec = new Enum<Long>();
-                enumSpec.setName(obj.getString(NAME));
-                enumSpec.setValue(obj.getLong(VALUE));
-                enumList.add(enumSpec);
+                enumList[i] = array.getLong(i);
             }
             builder.setEnumList(enumList);
         }
@@ -185,21 +170,20 @@ public class IntegerRequestParamSpec extends DConnectRequestParamSpec {
 
     public static class Builder {
         private String mName;
-        private boolean mIsMandatory;
+        private boolean mIsRequired;
         private Format mFormat;
-        private Long mMaxValue;
-        private Long mMinValue;
-        private Long mExclusiveMaxValue;
-        private Long mExclusiveMinValue;
-        private List<Enum<Long>> mEnumList;
+        private Long mMaximum;
+        private Long mMinimum;
+        private boolean mExclusiveMaximum;
+        private boolean mExclusiveMinimum;
+        private long[] mEnumList;
 
-        public Builder setName(final String name) {
+        public void setName(final String name) {
             mName = name;
-            return this;
         }
 
-        public Builder setMandatory(final boolean isMandatory) {
-            mIsMandatory = isMandatory;
+        public Builder setRequired(final boolean isRequired) {
+            mIsRequired = isRequired;
             return this;
         }
 
@@ -208,27 +192,27 @@ public class IntegerRequestParamSpec extends DConnectRequestParamSpec {
             return this;
         }
 
-        public Builder setMaxValue(final long maxValue) {
-            mMaxValue = maxValue;
+        public Builder setMaximum(final long maximum) {
+            mMaximum = maximum;
             return this;
         }
 
-        public Builder setMinValue(final long minValue) {
-            mMinValue = minValue;
+        public Builder setMinimum(final long minimum) {
+            mMinimum = minimum;
             return this;
         }
 
-        public Builder setExclusiveMaxValue(final long exclusiveMaxValue) {
-            mExclusiveMaxValue = exclusiveMaxValue;
+        public Builder setExclusiveMaximum(final boolean exclusiveMaximum) {
+            mExclusiveMaximum = exclusiveMaximum;
             return this;
         }
 
-        public Builder setExclusiveMinValue(final long exclusiveMinValue) {
-            mExclusiveMinValue = exclusiveMinValue;
+        public Builder setExclusiveMinimum(final boolean exclusiveMinimum) {
+            mExclusiveMinimum = exclusiveMinimum;
             return this;
         }
 
-        public Builder setEnumList(final List<Enum<Long>> enumList) {
+        public Builder setEnumList(final long[] enumList) {
             mEnumList = enumList;
             return this;
         }
@@ -239,21 +223,12 @@ public class IntegerRequestParamSpec extends DConnectRequestParamSpec {
             }
             IntegerRequestParamSpec spec = new IntegerRequestParamSpec(mFormat);
             spec.setName(mName);
-            spec.setMandatory(mIsMandatory);
-            if (mEnumList != null) {
-                spec.setEnumList(mEnumList.toArray(new Enum[mEnumList.size()]));
-            } else {
-                if (mMaxValue != null) {
-                    spec.setMaxValue(mMaxValue);
-                } else {
-                    spec.setExclusiveMaxValue(mExclusiveMaxValue);
-                }
-                if (mMinValue != null) {
-                    spec.setMinValue(mMinValue);
-                } else {
-                    spec.setExclusiveMinValue(mExclusiveMinValue);
-                }
-            }
+            spec.setRequired(mIsRequired);
+            spec.setEnumList(mEnumList);
+            spec.setMaximum(mMaximum);
+            spec.setExclusiveMaximum(mExclusiveMaximum);
+            spec.setMinimum(mMinimum);
+            spec.setExclusiveMinimum(mExclusiveMinimum);
             return spec;
         }
     }

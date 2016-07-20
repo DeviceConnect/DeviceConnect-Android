@@ -15,8 +15,8 @@ public class BooleanRequestParamSpec extends DConnectRequestParamSpec {
 
     public static BooleanRequestParamSpec fromJson(final JSONObject json) throws JSONException {
         Builder builder = new Builder();
-        builder.setName(json.getString(NAME));
-        builder.setMandatory(json.getBoolean(MANDATORY));
+        builder.setName(json.getString(KEY_NAME));
+        builder.setRequired(json.getBoolean(KEY_REQUIRED));
         return builder.build();
     }
 
@@ -40,22 +40,22 @@ public class BooleanRequestParamSpec extends DConnectRequestParamSpec {
     public static class Builder {
 
         private String mName;
-        private boolean mIsMandatory;
+        private boolean mIsRequired;
 
         public Builder setName(final String name) {
             mName = name;
             return this;
         }
 
-        public Builder setMandatory(final boolean isMandatory) {
-            mIsMandatory = isMandatory;
+        public Builder setRequired(final boolean isRequired) {
+            mIsRequired = isRequired;
             return this;
         }
 
         public BooleanRequestParamSpec build() {
             BooleanRequestParamSpec spec = new BooleanRequestParamSpec();
             spec.setName(mName);
-            spec.setMandatory(mIsMandatory);
+            spec.setRequired(mIsRequired);
             return spec;
         }
 

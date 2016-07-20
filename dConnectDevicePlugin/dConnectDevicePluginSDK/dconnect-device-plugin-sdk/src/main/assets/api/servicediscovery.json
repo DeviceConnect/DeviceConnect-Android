@@ -1,28 +1,31 @@
 {
     "swagger": "2.0",
     "info": {
-        "title": "Health Profile",
+        "title": "ServiceDiscovery Profile",
         "version": "2.0.0",
         "description": ""
     },
-    "consumes": [
-        "application/x-www-form-urlencoded",
-        "multipart/form-data"
-    ],
+    "consumes": [],
     "paths": {
-        "/heartRate": {
+        "/": {
             "get": {
                 "x-type": "one-shot",
                 "summary": "",
                 "description": "",
-                "parameters": [
-                    {
-                        "name": "serviceId",
-                        "in": "query",
-                        "required": true,
-                        "type": "string"
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": ""
                     }
-                ],
+                }
+            }
+        },
+        "/onServiceChange": {
+            "get": {
+                "x-type": "one-shot",
+                "summary": "",
+                "description": "",
+                "parameters": [],
                 "responses": {
                     "200": {
                         "description": ""
@@ -33,14 +36,7 @@
                 "x-type": "event",
                 "summary": "",
                 "description": "",
-                "parameters": [
-                    {
-                        "name": "serviceId",
-                        "in": "formData",
-                        "required": true,
-                        "type": "string"
-                    }
-                ],
+                "parameters": [],
                 "responses": {
                     "200": {
                         "description": ""
@@ -51,14 +47,7 @@
                 "x-type": "event",
                 "summary": "",
                 "description": "",
-                "parameters": [
-                    {
-                        "name": "serviceId",
-                        "in": "query",
-                        "required": true,
-                        "type": "string"
-                    }
-                ],
+                "parameters": [],
                 "responses": {
                     "200": {
                         "description": ""

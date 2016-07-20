@@ -1,7 +1,7 @@
 {
     "swagger": "2.0",
     "info": {
-        "title": "DeviceOrientation Profile",
+        "title": "Camera Profile",
         "version": "2.0.0",
         "description": ""
     },
@@ -10,15 +10,15 @@
         "multipart/form-data"
     ],
     "paths": {
-        "/onDeviceOrientation": {
-            "put": {
-                "x-type": "event",
+        "/zoom": {
+            "get": {
+                "x-type": "one-shot",
                 "summary": "",
                 "description": "",
                 "parameters": [
                     {
                         "name": "serviceId",
-                        "in": "formData",
+                        "in": "query",
                         "required": true,
                         "type": "string"
                     }
@@ -29,16 +29,30 @@
                     }
                 }
             },
-            "delete": {
-                "x-type": "event",
+            "put": {
+                "x-type": "one-shot",
                 "summary": "",
                 "description": "",
                 "parameters": [
                     {
                         "name": "serviceId",
-                        "in": "query",
+                        "in": "formData",
                         "required": true,
                         "type": "string"
+                    },
+                    {
+                        "name": "direction",
+                        "in": "formData",
+                        "required": true,
+                        "type": "string",
+                        "enum": ["in", "out"]
+                    },
+                    {
+                        "name": "movement",
+                        "in": "formData",
+                        "required": true,
+                        "type": "string",
+                        "enum": ["in-start", "in-stop", "1shot", "max"]
                     }
                 ],
                 "responses": {

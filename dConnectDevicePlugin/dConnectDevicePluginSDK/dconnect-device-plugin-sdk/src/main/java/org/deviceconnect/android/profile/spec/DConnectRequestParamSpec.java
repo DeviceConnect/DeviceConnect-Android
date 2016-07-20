@@ -8,13 +8,13 @@ import org.json.JSONObject;
 
 public abstract class DConnectRequestParamSpec {
 
-    protected static final String NAME = "name";
-    protected static final String MANDATORY = "mandatory";
-    protected static final String TYPE = "type";
+    protected static final String KEY_NAME = "name";
+    protected static final String KEY_REQUIRED = "required";
+    protected static final String KEY_TYPE = "type";
 
     final Type mType;
     String mName;
-    boolean mIsMandatory;
+    boolean mIsRequired;
 
     protected DConnectRequestParamSpec(final Type type) {
         mType = type;
@@ -24,25 +24,25 @@ public abstract class DConnectRequestParamSpec {
         return mType;
     }
 
-    void setName(final String name) {
-        mName = name;
-    }
-
     public String getName() {
         return mName;
     }
 
-    void setMandatory(final boolean isMandatory) {
-        mIsMandatory = isMandatory;
+    public void setName(final String name) {
+        mName = name;
     }
 
-    public boolean isMandatory() {
-        return mIsMandatory;
+    void setRequired(final boolean isRequired) {
+        mIsRequired = isRequired;
+    }
+
+    public boolean isRequired() {
+        return mIsRequired;
     }
 
     public boolean validate(final Object param) {
         if (param == null) {
-            return !isMandatory();
+            return !isRequired();
         }
         return true;
     }
@@ -56,7 +56,8 @@ public abstract class DConnectRequestParamSpec {
         STRING,
         INTEGER,
         NUMBER,
-        BOOLEAN;
+        BOOLEAN,
+        FILE;
 
         public String getName() {
             return this.name().toLowerCase();
@@ -73,7 +74,7 @@ public abstract class DConnectRequestParamSpec {
     }
 
     public static DConnectRequestParamSpec fromJson(final JSONObject json) throws JSONException {
-        String type = json.getString(TYPE);
+        String type = json.getString(KEY_TYPE);
         DConnectRequestParamSpec.Type paramType = DConnectRequestParamSpec.Type.fromName(type);
         if (paramType == null) {
             return null;
@@ -92,33 +93,13 @@ public abstract class DConnectRequestParamSpec {
             case NUMBER:
                 spec = NumberRequestParamSpec.fromJson(json);
                 break;
+            case FILE:
+                spec = NumberRequestParamSpec.fromJson(json);
+                break;
             default:
                 throw new IllegalArgumentException();
         }
         return spec;
-    }
-
-    public static class Enum<T> {
-
-        private String mName;
-
-        private T mValue;
-
-        public void setName(final String name) {
-            mName = name;
-        }
-
-        public String getName() {
-            return mName;
-        }
-
-        public void setValue(final T value) {
-            mValue = value;
-        }
-
-        public T getValue() {
-            return mValue;
-        }
     }
 
 }

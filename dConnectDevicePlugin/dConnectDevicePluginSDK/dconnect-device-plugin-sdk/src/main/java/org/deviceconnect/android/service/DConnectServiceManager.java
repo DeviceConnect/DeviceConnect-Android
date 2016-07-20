@@ -8,7 +8,6 @@ import org.deviceconnect.android.profile.api.DConnectApi;
 import org.deviceconnect.android.profile.spec.DConnectApiSpec;
 import org.deviceconnect.android.profile.spec.DConnectPluginSpec;
 import org.deviceconnect.android.profile.spec.DConnectProfileSpec;
-import org.deviceconnect.message.DConnectMessage;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -48,7 +47,7 @@ public class DConnectServiceManager implements DConnectServiceProvider {
                 }
                 profile.setProfileSpec(profileSpec);
                 for (DConnectApi api : profile.getApiList()) {
-                    String path = createPath(profile.getProfileName(), api);
+                    String path = createPath(api);
                     DConnectApiSpec spec = profileSpec.findApiSpec(path, api.getMethod());
                     if (spec != null) {
                         api.setApiSpec(spec);
@@ -62,20 +61,16 @@ public class DConnectServiceManager implements DConnectServiceProvider {
         mDConnectServices.put(service.getId(), service);
     }
 
-    private String createPath(final String profileName, final DConnectApi api) {
+    private String createPath(final DConnectApi api) {
         String interfaceName = api.getInterface();
         String attributeName = api.getAttribute();
         StringBuffer path = new StringBuffer();
         path.append("/");
-        path.append(DConnectMessage.DEFAULT_API);
-        path.append("/");
-        path.append(profileName);
         if (interfaceName != null) {
-            path.append("/");
             path.append(interfaceName);
+            path.append("/");
         }
         if (attributeName != null) {
-            path.append("/");
             path.append(attributeName);
         }
         return path.toString();

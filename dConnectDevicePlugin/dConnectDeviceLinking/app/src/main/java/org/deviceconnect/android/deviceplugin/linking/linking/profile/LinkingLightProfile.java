@@ -70,10 +70,16 @@ public class LinkingLightProfile extends LightProfile {
             }
 
             String lightId = getLightId(request);
-            long[] flashing = getFlashing(request);
-
             if (lightId != null && !device.getBdAddress().equals(lightId)) {
                 MessageUtils.setInvalidRequestParameterError(response, "lightId is invalid.");
+                return true;
+            }
+
+            long[] flashing;
+            try {
+                flashing = getFlashing(request);
+            } catch (Exception e) {
+                MessageUtils.setInvalidRequestParameterError(response, "flashing is negative.");
                 return true;
             }
 

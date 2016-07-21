@@ -1,53 +1,46 @@
 package org.deviceconnect.android.profile.spec;
 
 
-public class NumberParameterSpec extends DConnectParameterSpec {
+public class NumberParameterSpec extends DConnectParameterSpec<NumberDataSpec> {
 
-    private final Format mFormat;
-    private Double mMaximum;
-    private Double mMinimum;
-    private boolean mExclusiveMaximum;
-    private boolean mExclusiveMinimum;
-
-    private NumberParameterSpec(final Format format) {
-        super(Type.NUMBER);
-        mFormat = format;
+    NumberParameterSpec(final DataFormat format) {
+        super(new NumberDataSpec(format));
     }
 
-    public Format getFormat() {
-        return mFormat;
+    public DataFormat getFormat() {
+        return mDataSpec.getFormat();
     }
 
-    void setMaximum(final Double maximum) {
-        mMaximum = maximum;
-    }
-
-    public Double getMaximum() {
-        return mMaximum;
-    }
-
-    void setMinimum(final Double minimum) {
-        mMinimum = minimum;
+     void setMaximum(final Double maximum) {
+        mDataSpec.setMaximum(maximum);
     }
 
     public Double getMinimum() {
-        return mMinimum;
+        return mDataSpec.getMinimum();
     }
 
-    void setExclusiveMaximum(final boolean exclusiveMaximum) {
-        mExclusiveMaximum = exclusiveMaximum;
+    void setMinimum(final Double minimum) {
+        mDataSpec.setMinimum(minimum);
     }
 
-    public boolean getExclusiveMaximum() {
-        return mExclusiveMaximum;
+    public boolean isExclusiveMaximum() {
+        return mDataSpec.isExclusiveMaximum();
+    }
+
+    public boolean isExclusiveMinimum() {
+        return mDataSpec.isExclusiveMinimum();
     }
 
     void setExclusiveMinimum(final boolean exclusiveMinimum) {
-        mExclusiveMinimum = exclusiveMinimum;
+        mDataSpec.setExclusiveMinimum(exclusiveMinimum);
     }
 
-    public boolean getExclusiveMinimum() {
-        return mExclusiveMinimum;
+    public Double getMaximum() {
+        return mDataSpec.getMaximum();
+    }
+
+    void setExclusiveMaximum(final boolean exclusiveMaximum) {
+        mDataSpec.setExclusiveMaximum(exclusiveMaximum);
     }
 
     @Override
@@ -58,7 +51,7 @@ public class NumberParameterSpec extends DConnectParameterSpec {
         if (obj == null) {
             return true;
         }
-        switch (mFormat) {
+        switch (getFormat()) {
             case FLOAT:
                 return validateFloat(obj);
             case DOUBLE:
@@ -98,51 +91,51 @@ public class NumberParameterSpec extends DConnectParameterSpec {
 
     private boolean validateRange(final double value) {
         boolean isValid = true;
-        if (mMaximum != null) {
-            isValid &= mExclusiveMaximum ? (mMaximum > value) : (mMaximum >= value);
+        if (getMaximum() != null) {
+            isValid &= isExclusiveMaximum() ? (getMaximum() > value) : (getMaximum() >= value);
         }
-        if (mMinimum != null) {
-            isValid &= mExclusiveMinimum ? (mMinimum < value) : (mMinimum <= value);
+        if (getMinimum() != null) {
+            isValid &= isExclusiveMinimum() ? (getMinimum() < value) : (getMinimum() <= value);
         }
         return isValid;
     }
 
     public static class Builder extends BaseBuilder<Builder> {
 
-        private Format mFormat;
+        private DataFormat mFormat;
         private Double mMaximum;
         private Double mMinimum;
-        private boolean mExclusiveMaximum;
-        private boolean mExclusiveMinimum;
+        private Boolean mExclusiveMaximum;
+        private Boolean mExclusiveMinimum;
 
-        public Builder setFormat(final Format format) {
+        public Builder setFormat(final DataFormat format) {
             mFormat = format;
             return this;
         }
 
-        public Builder setMaximum(final double maximum) {
+        public Builder setMaximum(final Double maximum) {
             mMaximum = maximum;
             return this;
         }
 
-        public Builder setMinimum(final double minimum) {
+        public Builder setMinimum(final Double minimum) {
             mMinimum = minimum;
             return this;
         }
 
-        public Builder setExclusiveMaximum(final boolean exclusiveMaximum) {
+        public Builder setExclusiveMaximum(final Boolean exclusiveMaximum) {
             mExclusiveMaximum = exclusiveMaximum;
             return this;
         }
 
-        public Builder setExclusiveMinimum(final boolean exclusiveMinimum) {
+        public Builder setExclusiveMinimum(final Boolean exclusiveMinimum) {
             mExclusiveMinimum = exclusiveMinimum;
             return this;
         }
 
         public NumberParameterSpec build() {
             if (mFormat == null) {
-                mFormat = Format.FLOAT;
+                mFormat = DataFormat.FLOAT;
             }
             NumberParameterSpec spec = new NumberParameterSpec(mFormat);
             spec.setName(mName);
@@ -160,27 +153,4 @@ public class NumberParameterSpec extends DConnectParameterSpec {
         }
     }
 
-    public enum Format {
-        FLOAT("float"),
-        DOUBLE("double");
-
-        private final String mName;
-
-        Format(final String name) {
-            mName = name;
-        }
-
-        public String getName() {
-            return mName;
-        }
-
-        public static Format parse(final String name) {
-            for (Format format : Format.values()) {
-                if (format.mName.equalsIgnoreCase(name)) {
-                    return format;
-                }
-            }
-            return null;
-        }
-    }
 }

@@ -11,7 +11,7 @@ import java.util.List;
  * Device Connect APIの仕様を保持するクラス.
  * @author NTT DOCOMO, INC.
  */
-public class DConnectApiSpec implements DConnectApiSpecConstants {
+public class DConnectApiSpec implements DConnectSpecConstants {
 
     private Type mType;
     private Method mMethod;

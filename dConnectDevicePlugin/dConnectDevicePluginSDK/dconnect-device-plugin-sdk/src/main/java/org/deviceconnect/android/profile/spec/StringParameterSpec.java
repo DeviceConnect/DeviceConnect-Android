@@ -3,46 +3,40 @@ package org.deviceconnect.android.profile.spec;
 
 import java.util.regex.Pattern;
 
-public class StringParameterSpec extends DConnectParameterSpec {
+public class StringParameterSpec extends DConnectParameterSpec<StringDataSpec> {
 
     private static final Pattern RGB_PATTERN = Pattern.compile("[0-9a-zA-Z]{6}");
 
-    private final Format mFormat;
-    private Integer mMaxLength;
-    private Integer mMinLength;
-    private String[] mEnumList;
-
-    private StringParameterSpec(final Format format) {
-        super(Type.STRING);
-        mFormat = format;
+    private StringParameterSpec(final DataFormat format) {
+        super(new StringDataSpec(format));
     }
 
-    public Format getFormat() {
-        return mFormat;
+    public DataFormat getFormat() {
+        return mDataSpec.getFormat();
     }
 
-    void setMaxLength(final Integer maxLength) {
-        mMaxLength = maxLength;
-    }
-
-    public Integer getMaxLength() {
-        return mMaxLength;
-    }
-
-    void setMinLength(final Integer minLength) {
-        mMinLength = minLength;
-    }
-
-    public Integer getMinLength() {
-        return mMinLength;
-    }
-
-    void setEnumList(final String[] enumList) {
-        mEnumList = enumList;
+    public void setMaxLength(final Integer maxLength) {
+        mDataSpec.setMaxLength(maxLength);
     }
 
     public String[] getEnumList() {
-        return mEnumList;
+        return mDataSpec.getEnumList();
+    }
+
+    public void setMinLength(final Integer minLength) {
+        mDataSpec.setMinLength(minLength);
+    }
+
+    public void setEnumList(final String[] enumList) {
+        mDataSpec.setEnumList(enumList);
+    }
+
+    public Integer getMinLength() {
+        return mDataSpec.getMinLength();
+    }
+
+    public Integer getMaxLength() {
+        return mDataSpec.getMaxLength();
     }
 
     @Override
@@ -57,7 +51,7 @@ public class StringParameterSpec extends DConnectParameterSpec {
             return false;
         }
         String param = (String) obj;
-        switch (mFormat) {
+        switch (getFormat()) {
             case TEXT:
                 return validateLength(param);
             case BYTE:
@@ -75,10 +69,10 @@ public class StringParameterSpec extends DConnectParameterSpec {
     }
 
     private boolean validateLength(final String param) {
-        if (mMaxLength != null && param.length() > mMaxLength) {
+        if (getMaxLength() != null && param.length() > getMaxLength()) {
             return false;
         }
-        if (mMinLength != null && param.length() < mMinLength) {
+        if (getMinLength() != null && param.length() < getMinLength()) {
             return false;
         }
         return true;
@@ -86,22 +80,22 @@ public class StringParameterSpec extends DConnectParameterSpec {
 
     public static class Builder extends BaseBuilder<Builder> {
 
-        private Format mFormat;
+        private DataFormat mFormat;
         private Integer mMaxLength;
         private Integer mMinLength;
         private String[] mEnumList;
 
-        public Builder setFormat(final Format format) {
+        public Builder setFormat(final DataFormat format) {
             mFormat = format;
             return this;
         }
 
-        public Builder setMaxLength(final int maxLength) {
+        public Builder setMaxLength(final Integer maxLength) {
             mMaxLength = maxLength;
             return this;
         }
 
-        public Builder setMinLength(final int minLength) {
+        public Builder setMinLength(final Integer minLength) {
             mMinLength = minLength;
             return this;
         }
@@ -113,7 +107,7 @@ public class StringParameterSpec extends DConnectParameterSpec {
 
         public StringParameterSpec build() {
             if (mFormat == null) {
-                mFormat = Format.TEXT;
+                mFormat = DataFormat.TEXT;
             }
             StringParameterSpec spec = new StringParameterSpec(mFormat);
             spec.setName(mName);
@@ -133,31 +127,4 @@ public class StringParameterSpec extends DConnectParameterSpec {
         }
     }
 
-    public enum Format {
-        TEXT("text"),
-        BYTE("byte"),
-        BINARY("binary"),
-        DATE("date"),
-        DATE_TIME("date-time"),
-        RGB("rgb");
-
-        private final String mName;
-
-        Format(final String name) {
-            mName = name;
-        }
-
-        public String getName() {
-            return mName;
-        }
-
-        public static Format parse(final String name) {
-            for (Format format : Format.values()) {
-                if (format.mName.equalsIgnoreCase(name)) {
-                    return format;
-                }
-            }
-            return null;
-        }
-    }
 }

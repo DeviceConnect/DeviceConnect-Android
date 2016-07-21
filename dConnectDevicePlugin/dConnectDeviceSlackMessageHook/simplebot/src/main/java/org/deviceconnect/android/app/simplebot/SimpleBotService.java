@@ -274,6 +274,8 @@ public class SimpleBotService extends Service {
     private void sendResponse(ResultData.Result result, String text, String uri, Map<String, Object> response) {
         // レスポンスがない
         if ((text == null || text.length() == 0) && (uri == null || uri.length() == 0)) {
+            // 履歴に保存
+            ResultData.INSTANCE.add(result);
             return;
         }
         // ChunkでTemplate処理

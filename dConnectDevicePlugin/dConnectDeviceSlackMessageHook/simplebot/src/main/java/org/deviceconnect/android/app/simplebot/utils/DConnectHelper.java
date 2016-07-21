@@ -122,8 +122,7 @@ public class DConnectHelper {
      */
     public static class APIParam {
         public String type;
-        public String format;
-        public boolean mandatory;
+        public boolean required;
         public String name;
     }
 
@@ -274,40 +273,56 @@ public class DConnectHelper {
                 }
                 // APIリストを取得
                 @SuppressWarnings("unchecked")
-                Map<String, List<Map<String, Object>>> prifiles = (Map<String, List<Map<String, Object>>>)message.get(ServiceInformationProfileConstants.PARAM_SUPPORT_APIS);
+                Map<String, Map<String, Object>> prifiles = (Map<String, Map<String, Object>>)message.get(ServiceInformationProfileConstants.PARAM_SUPPORT_APIS);
                 if (prifiles == null) {
                     // サービスがない？
                     callback.onFinish(null, null);
                     return;
                 }
                 // 詰め直しして返却
-                // TODO: Swagger対応
                 Map<String, List<APIInfo>> res = new HashMap<>();
-                for (Map.Entry<String, List<Map<String, Object>>> apis: prifiles.entrySet()) {
+                for (Map.Entry<String, Map<String, Object>> profile: prifiles.entrySet()) {
                     List<APIInfo> list = new ArrayList<>();
-                    for (Map<String, Object> api :apis.getValue()) {
-                        APIInfo info = new APIInfo();
-                        if (!api.containsKey(ServiceInformationProfileConstants.PARAM_NAME)) continue;
-                        info.name = api.get(ServiceInformationProfileConstants.PARAM_NAME).toString();
-                        info.method = api.get(ServiceInformationProfileConstants.PARAM_METHOD).toString();
-                        info.path = api.get(ServiceInformationProfileConstants.PARAM_PATH).toString();
-                        Log.d(TAG, info.name);
-                        @SuppressWarnings("unchecked")
-                        List<Map<String, Object>> params = (List<Map<String, Object>>) api.get(ServiceInformationProfileConstants.PARAM_REQUEST_PARAMS);
-                        if (params != null) {
-                            info.params = new ArrayList<>();
-                            for (Map<String, Object> paramMap: params) {
-                                APIParam param = new APIParam();
-                                param.name = paramMap.get(ServiceInformationProfileConstants.PARAM_NAME).toString();
-                                param.type = paramMap.get(ServiceInformationProfileConstants.PARAM_TYPE).toString();
-                                param.mandatory = paramMap.get(ServiceInformationProfileConstants.PARAM_MANDATORY).toString().equals("true");
-                                param.format = paramMap.get(ServiceInformationProfileConstants.PARAM_FORMAT).toString();
-                                info.params.add(param);
+                    String profileName = profile.getKey();
+                    if (!(profile.getValue() instanceof Map)) {
+                        continue;
+                    }
+                    for (Map.Entry<String, Object> info: profile.getValue().entrySet()) {
+                        if ("paths".equals(info.getKey())) {
+                            @SuppressWarnings("unchecked")
+                            Map<String, Map<String, Object>> apis = (Map<String, Map<String, Object>>) info.getValue();
+                            for (Map.Entry<String, Map<String, Object>> api: apis.entrySet()) {
+                                for (Map.Entry<String, Object> method: api.getValue().entrySet()) {
+                                    APIInfo apiInfo = new APIInfo();
+                                    apiInfo.path = profileName;
+                                    if (!api.getKey().endsWith("/")) {
+                                        apiInfo.path += api.getKey();
+                                    }
+                                    apiInfo.method = method.getKey().toUpperCase();
+                                    @SuppressWarnings("unchecked")
+                                    Map<String, Object> methodInfo = (Map<String, Object>) method.getValue();
+                                    apiInfo.name = (String) methodInfo.get("summary");
+                                    if (apiInfo.name == null || apiInfo.name.length() == 0) {
+                                        apiInfo.name = apiInfo.method + " " + apiInfo.path;
+                                    }
+                                    @SuppressWarnings("unchecked")
+                                    List<Map<String, Object>> params = (List<Map<String, Object>>) methodInfo.get("parameters");
+                                    if (params != null) {
+                                        apiInfo.params = new ArrayList<>();
+                                        for (Map<String, Object> paramMap: params) {
+                                            APIParam param = new APIParam();
+                                            param.name = paramMap.get("name").toString();
+                                            param.type = paramMap.get("type").toString();
+                                            param.required = paramMap.get("required").toString().equals("true");
+                                            apiInfo.params.add(param);
+                                        }
+                                    }
+                                    list.add(apiInfo);
+                                }
                             }
                         }
-                        list.add(info);
                     }
-                    res.put(apis.getKey(), list);
+                    res.put(profileName, list);
                 }
                 callback.onFinish(res, null);
             }
@@ -348,6 +363,7 @@ public class DConnectHelper {
                         public void run() {
                             DConnectHelperException e = new DConnectAuthFailedException();
                             e.errorCode = error.getCode();
+                            if (BuildConfig.DEBUG) Log.e(TAG, "Error on auth:" + error);
                             callback.onFinish(null, e);
                         }
                     });

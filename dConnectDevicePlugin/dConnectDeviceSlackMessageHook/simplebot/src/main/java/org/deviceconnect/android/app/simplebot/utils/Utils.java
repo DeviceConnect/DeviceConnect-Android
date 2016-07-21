@@ -18,6 +18,7 @@ import android.widget.EditText;
 
 import org.deviceconnect.android.app.simplebot.R;
 import org.deviceconnect.android.app.simplebot.data.SettingData;
+import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 import org.deviceconnect.profile.ServiceInformationProfileConstants;
@@ -219,8 +220,13 @@ public class Utils {
     public static void showErrorDialog(Context context, Exception e) {
         String msg;
         if (e != null) {
-            if (e.getClass().equals(DConnectHelper.DConnectInvalidResultException.class)) {
-                msg = context.getString(R.string.err_server_res);
+            if (e instanceof DConnectHelper.DConnectHelperException) {
+                if (e.getClass().equals(DConnectHelper.DConnectInvalidResultException.class)) {
+                    msg = context.getString(R.string.err_server_res);
+                } else {
+                    DConnectMessage.ErrorCode code = DConnectMessage.ErrorCode.getInstance(((DConnectHelper.DConnectHelperException) e).errorCode);
+                    msg = code.toString();
+                }
             } else {
                 msg = e.toString();
             }
@@ -336,8 +342,8 @@ public class Utils {
             setting.scopes.add("messageHook");
             // TODO: debug用
             setting.scopes.add("battery");
-            setting.scopes.add("media_player");
-            setting.scopes.add("mediastream_recording");
+            setting.scopes.add("mediaPlayer");
+            setting.scopes.add("mediaStreamRecording");
 
             setting.save();
         }

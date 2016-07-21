@@ -13,6 +13,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.text.InputType;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,6 +23,7 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.deviceconnect.android.app.simplebot.R;
 import org.deviceconnect.android.app.simplebot.data.DataManager;
@@ -230,7 +232,6 @@ public class CommandDetailsFragment extends Fragment implements View.OnClickList
                     Utils.showAlertDialog(context, context.getString(R.string.service_not_supported));
                 } else {
                     // Profile単位を除外して一律のリストに格納
-                    // TODO: Swagger対応
                     apiInfoList = new ArrayList<>();
                     for (Map.Entry<String, List<DConnectHelper.APIInfo>> apis: apiInfos.entrySet()) {
                         apiInfoList.addAll(apis.getValue());
@@ -238,7 +239,8 @@ public class CommandDetailsFragment extends Fragment implements View.OnClickList
                     // 選択中のAPIを再設定
                     if (commandData.path != null && commandData.method != null) {
                         for (DConnectHelper.APIInfo info: apiInfoList) {
-                            if (info.path.equals(commandData.path) && info.method.equals(commandData.method)) {
+                            String path = "/gotapi/" + info.path;
+                            if (path.equals(commandData.path) && info.method.equals(commandData.method)) {
                                 selectedApi = info;
                                 break;
                             }
@@ -342,7 +344,7 @@ public class CommandDetailsFragment extends Fragment implements View.OnClickList
             return;
         }
         // サービス対応チェック
-        if (apiInfoList == null) {
+        if (apiInfoList == null || apiInfoList.size() == 0) {
             Utils.showAlertDialog(getActivity(), getString(R.string.service_not_supported));
             return;
         }
@@ -359,7 +361,7 @@ public class CommandDetailsFragment extends Fragment implements View.OnClickList
                     public void onClick(DialogInterface dialog, int which) {
                         DConnectHelper.APIInfo info = apiInfoList.get(which);
                         commandData.api = info.name;
-                        commandData.path = info.path;
+                        commandData.path = "/gotapi/" + info.path;
                         commandData.method = info.method;
                         commandData.body = null;
                         // 選択中のAPI
@@ -385,7 +387,7 @@ public class CommandDetailsFragment extends Fragment implements View.OnClickList
         Map<String, String> bodyJson = Utils.jsonToMap(commandData.body);
 
         // 入力ダイアログ作成
-        Context context = getActivity();
+        final Context context = getActivity();
         float dp = context.getResources().getDisplayMetrics().density;
         ScrollView scrollView = new ScrollView(context);
         LinearLayout rootLayout = new LinearLayout(context);
@@ -405,7 +407,11 @@ public class CommandDetailsFragment extends Fragment implements View.OnClickList
 
             // 説明テキスト
             TextView textView = new TextView(context);
-            textView.setText(param.name);
+            if (param.required) {
+                textView.setText(param.name + "*");
+            } else {
+                textView.setText(param.name);
+            }
             textView.setLayoutParams(new LinearLayout.LayoutParams(
                     (int) (100 * dp),
                     LinearLayout.LayoutParams.WRAP_CONTENT));
@@ -414,8 +420,10 @@ public class CommandDetailsFragment extends Fragment implements View.OnClickList
             // 入力エリア
             EditText editView = new EditText(context);
             editView.setHint(param.name);
-            // TODO: inputTypeを設定
-            //editView.setInputType();
+            // 入力制限
+            if ("number".endsWith(param.type) || "integer".endsWith(param.type)) {
+                editView.setInputType(InputType.TYPE_CLASS_NUMBER);
+            }
             editView.setLayoutParams(new LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,
                     LinearLayout.LayoutParams.WRAP_CONTENT));
@@ -437,30 +445,50 @@ public class CommandDetailsFragment extends Fragment implements View.OnClickList
         }
 
         // ダイアログ表示
-        AlertDialog dialog = new AlertDialog.Builder(context)
+        final AlertDialog dialog = new AlertDialog.Builder(context)
                 .setTitle(context.getString(R.string.data_set))
                 .setView(scrollView)
-                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                .setPositiveButton("OK", null)
+                .setNegativeButton("Cancel", null)
+                .create();
+        dialog.setOnShowListener(new DialogInterface.OnShowListener() {
+            @Override
+            public void onShow(final DialogInterface dialogInterface) {
+                Button okButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+                okButton.setOnClickListener(new View.OnClickListener() {
                     @Override
-                    public void onClick(DialogInterface dialog, int which) {
+                    public void onClick(View v) {
                         JSONObject jsonObject = new JSONObject();
                         for (DConnectHelper.APIParam param: selectedApi.params) {
                             EditText editText = editMap.get(param.name);
-                            if (editText != null && editText.getText().length() > 0) {
+                            if (editText == null) {
+                                continue;
+                            }
+                            if (editText.getText().length() > 0) {
                                 try {
                                     jsonObject.put(param.name, editText.getText().toString());
                                 } catch (JSONException e) {
                                     e.printStackTrace();
+                                }
+                            } else {
+                                // 入力必須チェック
+                                if (param.required) {
+                                    Toast ts = Toast.makeText(context, getString(R.string.not_input_all), Toast.LENGTH_SHORT);
+                                    ts.setGravity(Gravity.CENTER, 0, 0);
+                                    ts.show();
+                                    return;
                                 }
                             }
                         }
                         commandData.body = jsonObject.toString();
                         // View更新
                         updateViews();
+                        // 閉じる
+                        dialogInterface.dismiss();
                     }
-                })
-                .setNegativeButton("Cancel", null)
-                .create();
+                });
+            }
+        });
         dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
         dialog.show();
     }

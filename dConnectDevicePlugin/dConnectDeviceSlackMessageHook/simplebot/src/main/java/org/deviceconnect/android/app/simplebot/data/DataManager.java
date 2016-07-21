@@ -315,7 +315,7 @@ public class DataManager {
         Data data = new Data();
         data.keyword = "音楽(リスト|一覧)";
         data.path = "/gotapi/mediaPlayer/mediaList";
-        data.api = "Media Player Media List API GET";
+        data.api = "GET mediaPlayer/mediaList";
         data.method = "GET";
         data.body = null;
         data.success = "{%loop in $media as $m}[{$m.mediaId}:{$m.title}]{% endloop %}";
@@ -326,7 +326,7 @@ public class DataManager {
         // 音楽設定
         data.keyword = "(\\d+)を設定";
         data.path = "/gotapi/mediaPlayer/media";
-        data.api = "Media Player Media API PUT";
+        data.api = "PUT mediaPlayer/media";
         data.method = "PUT";
         data.body = "{\"mediaId\":\"$1\"}";
         data.success = "設定しました。";
@@ -334,7 +334,7 @@ public class DataManager {
         // 再生
         data.keyword = "再生";
         data.path = "/gotapi/mediaPlayer/play";
-        data.api = "Media Player Play API";
+        data.api = "PUT mediaPlayer/play";
         data.method = "PUT";
         data.body = null;
         data.success = "再生しました。";
@@ -342,21 +342,21 @@ public class DataManager {
         // 停止
         data.keyword = "停止";
         data.path = "/gotapi/mediaPlayer/stop";
-        data.api = "Media Player Stop API";
+        data.api = "PUT mediaPlayer/stop";
         data.method = "PUT";
         data.success = "停止しました。";
         upsert(db, data);
         // バッテリー残量
         data.keyword = "バッテリー|電池";
         data.path = "/gotapi/battery/level";
-        data.api = "Battery Status Level API";
+        data.api = "GET battery/level";
         data.method = "GET";
         data.success = "残り{$level|calc(*100)}%です。";
         upsert(db, data);
         // 写真
         data.keyword = "写真";
-        data.path = "/gotapi/mediastreamRecording/takephoto";
-        data.api = "Media Stream Recording TakePhoto API";
+        data.path = "/gotapi/mediaStreamRecording/takePhoto";
+        data.api = "POST mediaStreamRecording/takePhoto";
         data.method = "POST";
         data.accept = "撮影します、しばらくお待ちください。";
         data.acceptUri = "https://sdl-stickershop.line.naver.jp/products/0/0/1/1027426/android/stickers/1173138.png";

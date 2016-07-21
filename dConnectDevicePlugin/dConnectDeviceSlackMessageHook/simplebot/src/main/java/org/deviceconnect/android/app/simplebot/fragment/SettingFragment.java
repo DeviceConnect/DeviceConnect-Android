@@ -249,7 +249,7 @@ public class SettingFragment extends Fragment implements ShowMenuFragment {
                         Utils.showAlertDialog(context, getString(R.string.service_not_found_and_install));
                     }
                 } else {
-                    // TODO: エラー処理
+                    // エラー処理
                     Utils.showErrorDialog(context, error);
                 }
             }

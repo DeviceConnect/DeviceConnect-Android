@@ -75,6 +75,10 @@ public class LinkingBeaconManager {
         startCheckConnectionOfBeacon();
     }
 
+    public boolean isScanState() {
+        return isStartedForceBeaconScan() || isStartedBeaconScan();
+    }
+
     public void destroy() {
         stopBeaconScan();
         stopCheckConnectionOfBeacon();

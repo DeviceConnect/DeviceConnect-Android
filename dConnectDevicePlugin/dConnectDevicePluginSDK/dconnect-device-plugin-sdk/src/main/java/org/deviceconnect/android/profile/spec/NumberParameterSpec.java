@@ -1,17 +1,7 @@
 package org.deviceconnect.android.profile.spec;
 
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
-public class NumberRequestParamSpec extends DConnectRequestParamSpec {
-
-    private static final String KEY_FORMAT = "format";
-    private static final String KEY_MAXIMUM = "maximum";
-    private static final String KEY_MINIMUM = "minimum";
-    private static final String KEY_EXCLUSIVE_MAXIMUM = "exclusiveMaximum";
-    private static final String KEY_EXCLUSIVE_MINIMUM = "exclusiveMinimum";
-    private static final String KEY_ENUM = "enum";
+public class NumberParameterSpec extends DConnectParameterSpec {
 
     private final Format mFormat;
     private Double mMaximum;
@@ -19,7 +9,7 @@ public class NumberRequestParamSpec extends DConnectRequestParamSpec {
     private boolean mExclusiveMaximum;
     private boolean mExclusiveMinimum;
 
-    private NumberRequestParamSpec(final Format format) {
+    private NumberParameterSpec(final Format format) {
         super(Type.NUMBER);
         mFormat = format;
     }
@@ -107,57 +97,23 @@ public class NumberRequestParamSpec extends DConnectRequestParamSpec {
     }
 
     private boolean validateRange(final double value) {
+        boolean isValid = true;
         if (mMaximum != null) {
-            return mExclusiveMaximum ? (mMaximum < value) : (mMaximum <= value);
+            isValid &= mExclusiveMaximum ? (mMaximum > value) : (mMaximum >= value);
         }
         if (mMinimum != null) {
-            return mExclusiveMinimum ? (mMinimum > value) : (mMinimum >= value);
+            isValid &= mExclusiveMinimum ? (mMinimum < value) : (mMinimum <= value);
         }
-        return true;
+        return isValid;
     }
 
-    public static NumberRequestParamSpec fromJson(final JSONObject json) throws JSONException {
-        Builder builder = new Builder();
-        builder.setRequired(json.getBoolean(KEY_REQUIRED));
-        if (json.has(KEY_FORMAT)) {
-            Format format = Format.parse(json.optString(KEY_FORMAT));
-            if (format == null) {
-                throw new IllegalArgumentException("format is invalid: " + json.optString(KEY_FORMAT));
-            }
-            builder.setFormat(format);
-        }
-        if (json.has(KEY_MAXIMUM)) {
-            builder.setMaximum(json.getLong(KEY_MAXIMUM));
-        }
-        if (json.has(KEY_MINIMUM)) {
-            builder.setMinimum(json.getLong(KEY_MINIMUM));
-        }
-        if (json.has(KEY_EXCLUSIVE_MAXIMUM)) {
-            builder.setExclusiveMaximum(json.getBoolean(KEY_EXCLUSIVE_MAXIMUM));
-        }
-        if (json.has(KEY_EXCLUSIVE_MINIMUM)) {
-            builder.setExclusiveMinimum(json.getBoolean(KEY_EXCLUSIVE_MINIMUM));
-        }
-        return builder.build();
-    }
+    public static class Builder extends BaseBuilder<Builder> {
 
-    public static class Builder {
-        private String mName;
-        private boolean mIsRequired;
         private Format mFormat;
         private Double mMaximum;
         private Double mMinimum;
         private boolean mExclusiveMaximum;
         private boolean mExclusiveMinimum;
-
-        public void setName(final String name) {
-            mName = name;
-        }
-
-        public Builder setRequired(final boolean isRequired) {
-            mIsRequired = isRequired;
-            return this;
-        }
 
         public Builder setFormat(final Format format) {
             mFormat = format;
@@ -184,11 +140,11 @@ public class NumberRequestParamSpec extends DConnectRequestParamSpec {
             return this;
         }
 
-        public NumberRequestParamSpec build() {
+        public NumberParameterSpec build() {
             if (mFormat == null) {
                 mFormat = Format.FLOAT;
             }
-            NumberRequestParamSpec spec = new NumberRequestParamSpec(mFormat);
+            NumberParameterSpec spec = new NumberParameterSpec(mFormat);
             spec.setName(mName);
             spec.setRequired(mIsRequired);
             spec.setMaximum(mMaximum);
@@ -196,6 +152,11 @@ public class NumberRequestParamSpec extends DConnectRequestParamSpec {
             spec.setMinimum(mMinimum);
             spec.setExclusiveMinimum(mExclusiveMinimum);
             return spec;
+        }
+
+        @Override
+        protected Builder getThis() {
+            return this;
         }
     }
 

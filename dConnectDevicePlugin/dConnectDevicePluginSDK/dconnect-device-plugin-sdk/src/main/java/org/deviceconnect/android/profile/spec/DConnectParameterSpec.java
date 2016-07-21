@@ -31,11 +31,11 @@ public abstract class DConnectParameterSpec<T extends DConnectDataSpec> implemen
         return mIsRequired != null ? mIsRequired : false;
     }
 
-    public boolean validate(final Object param) {
+    public final boolean validate(final Object param) {
         if (param == null) {
             return !isRequired();
         }
-        return true;
+        return mDataSpec.validate(param);
     }
 
     public abstract static class BaseBuilder<T extends BaseBuilder<T>> {

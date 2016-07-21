@@ -12,4 +12,7 @@ public abstract class DConnectDataSpec implements DConnectSpecConstants {
     public DataType getDataType() {
         return mDataType;
     }
+
+    public abstract boolean validate(final Object param);
+
 }

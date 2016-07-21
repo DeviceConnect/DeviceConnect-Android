@@ -315,7 +315,7 @@ public class DataManager {
         Data data = new Data();
         data.keyword = "音楽(リスト|一覧)";
         data.path = "/gotapi/mediaPlayer/mediaList";
-        data.api = "GET mediaPlayer/mediaList";
+        data.api = "mediaPlayer/mediaList [GET]";
         data.method = "GET";
         data.body = null;
         data.success = "{%loop in $media as $m}[{$m.mediaId}:{$m.title}]{% endloop %}";
@@ -326,7 +326,7 @@ public class DataManager {
         // 音楽設定
         data.keyword = "(\\d+)を設定";
         data.path = "/gotapi/mediaPlayer/media";
-        data.api = "PUT mediaPlayer/media";
+        data.api = "mediaPlayer/media [PUT]";
         data.method = "PUT";
         data.body = "{\"mediaId\":\"$1\"}";
         data.success = "設定しました。";
@@ -334,7 +334,7 @@ public class DataManager {
         // 再生
         data.keyword = "再生";
         data.path = "/gotapi/mediaPlayer/play";
-        data.api = "PUT mediaPlayer/play";
+        data.api = "mediaPlayer/play [PUT]";
         data.method = "PUT";
         data.body = null;
         data.success = "再生しました。";
@@ -342,21 +342,21 @@ public class DataManager {
         // 停止
         data.keyword = "停止";
         data.path = "/gotapi/mediaPlayer/stop";
-        data.api = "PUT mediaPlayer/stop";
+        data.api = "mediaPlayer/stop [PUT]";
         data.method = "PUT";
         data.success = "停止しました。";
         upsert(db, data);
         // バッテリー残量
         data.keyword = "バッテリー|電池";
         data.path = "/gotapi/battery/level";
-        data.api = "GET battery/level";
+        data.api = "battery/level [GET]";
         data.method = "GET";
         data.success = "残り{$level|calc(*100)}%です。";
         upsert(db, data);
         // 写真
         data.keyword = "写真";
         data.path = "/gotapi/mediaStreamRecording/takePhoto";
-        data.api = "POST mediaStreamRecording/takePhoto";
+        data.api = "mediaStreamRecording/takePhoto [POST]";
         data.method = "POST";
         data.accept = "撮影します、しばらくお待ちください。";
         data.acceptUri = "https://sdl-stickershop.line.naver.jp/products/0/0/1/1027426/android/stickers/1173138.png";

@@ -303,7 +303,9 @@ public class DConnectHelper {
                                     Map<String, Object> methodInfo = (Map<String, Object>) method.getValue();
                                     apiInfo.name = (String) methodInfo.get("summary");
                                     if (apiInfo.name == null || apiInfo.name.length() == 0) {
-                                        apiInfo.name = apiInfo.method + " " + apiInfo.path;
+                                        apiInfo.name = apiInfo.path + " [" + apiInfo.method + "]";
+                                    } else {
+                                        apiInfo.name += "\n" + apiInfo.path + " [" + apiInfo.method + "]";
                                     }
                                     @SuppressWarnings("unchecked")
                                     List<Map<String, Object>> params = (List<Map<String, Object>>) methodInfo.get("parameters");

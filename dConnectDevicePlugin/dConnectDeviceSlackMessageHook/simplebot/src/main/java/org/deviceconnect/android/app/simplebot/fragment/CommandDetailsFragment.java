@@ -11,6 +11,7 @@ import android.app.Fragment;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.database.DataSetObserver;
 import android.os.Bundle;
 import android.text.InputType;
 import android.view.Gravity;
@@ -21,6 +22,8 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.ListAdapter;
+import android.widget.ListView;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -354,7 +357,7 @@ public class CommandDetailsFragment extends Fragment implements View.OnClickList
         for (int i = 0; i < apiInfoList.size(); i++) {
             items[i] = apiInfoList.get(i).name;
         }
-        new AlertDialog.Builder(getActivity())
+        AlertDialog dialog = new AlertDialog.Builder(getActivity())
                 .setTitle(getString(R.string.select_api))
                 .setItems(items, new DialogInterface.OnClickListener() {
                     @Override
@@ -369,8 +372,80 @@ public class CommandDetailsFragment extends Fragment implements View.OnClickList
                         // View更新
                         updateViews();
                     }
-                })
-                .show();
+                }).create();
+        dialog.setOnShowListener(new DialogInterface.OnShowListener() {
+            @Override
+            public void onShow(DialogInterface dialogInterface) {
+                ListView listView = ((AlertDialog) dialogInterface).getListView();
+                final ListAdapter originalAdapter = listView.getAdapter();
+
+                listView.setAdapter(new ListAdapter() {
+                    @Override
+                    public boolean areAllItemsEnabled() {
+                        return originalAdapter.areAllItemsEnabled();
+                    }
+
+                    @Override
+                    public boolean isEnabled(int position) {
+                        return originalAdapter.isEnabled(position);
+                    }
+
+                    @Override
+                    public void registerDataSetObserver(DataSetObserver observer) {
+                        originalAdapter.registerDataSetObserver(observer);
+                    }
+
+                    @Override
+                    public void unregisterDataSetObserver(DataSetObserver observer) {
+                        originalAdapter.unregisterDataSetObserver(observer);
+                    }
+
+                    @Override
+                    public int getCount() {
+                        return originalAdapter.getCount();
+                    }
+
+                    @Override
+                    public Object getItem(int position) {
+                        return originalAdapter.getItem(position);
+                    }
+
+                    @Override
+                    public long getItemId(int position) {
+                        return originalAdapter.getItemId(position);
+                    }
+
+                    @Override
+                    public boolean hasStableIds() {
+                        return originalAdapter.hasStableIds();
+                    }
+
+                    @Override
+                    public View getView(int position, View convertView, ViewGroup parent) {
+                        View view = originalAdapter.getView(position, convertView, parent);
+                        TextView textView = (TextView) view;
+                        textView.setTextSize(16);
+                        return textView;
+                    }
+
+                    @Override
+                    public int getItemViewType(int position) {
+                        return originalAdapter.getItemViewType(position);
+                    }
+
+                    @Override
+                    public int getViewTypeCount() {
+                        return originalAdapter.getViewTypeCount();
+                    }
+
+                    @Override
+                    public boolean isEmpty() {
+                        return originalAdapter.isEmpty();
+                    }
+                });
+            }
+        });
+        dialog.show();
     }
 
     /**

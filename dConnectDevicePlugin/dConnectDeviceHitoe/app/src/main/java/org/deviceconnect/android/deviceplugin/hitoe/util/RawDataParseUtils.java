@@ -76,7 +76,7 @@ public final class RawDataParseUtils {
         TargetDeviceData device = new TargetDeviceData();
         device.setProductName(hitoe.getName());
         if (batteryLevel > -1.0) {
-            device.setBatteryLevel(batteryLevel);
+            device.setBatteryLevel((batteryLevel + 1) / 4.0f);
         }
         return device;
     }

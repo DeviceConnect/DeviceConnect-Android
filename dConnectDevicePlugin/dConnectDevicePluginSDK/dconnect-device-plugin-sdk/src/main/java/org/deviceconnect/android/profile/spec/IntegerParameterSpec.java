@@ -1,62 +1,54 @@
 package org.deviceconnect.android.profile.spec;
 
 
-public class IntegerParameterSpec extends DConnectParameterSpec {
+public class IntegerParameterSpec extends DConnectParameterSpec<IntegerDataSpec> {
 
-    private final Format mFormat;
-    private Long mMaximum;
-    private Long mMinimum;
-    private boolean mExclusiveMaximum;
-    private boolean mExclusiveMinimum;
-    private long[] mEnumList;
-
-    private IntegerParameterSpec(final Format format) {
-        super(Type.INTEGER);
-        mFormat = format;
+    IntegerParameterSpec(final DataFormat format) {
+        super(new IntegerDataSpec(format));
     }
 
-    public Format getFormat() {
-        return mFormat;
-    }
-
-    void setMaximum(final Long maximum) {
-        mMaximum = maximum;
-    }
-
-    public Long getMaximum() {
-        return mMaximum;
-    }
-
-    void setMinimum(final Long minimum) {
-        mMinimum = minimum;
-    }
-
-    public Long getMinimum() {
-        return mMinimum;
+    public DataFormat getFormat() {
+        return mDataSpec.getFormat();
     }
 
     void setExclusiveMaximum(final boolean exclusiveMaximum) {
-        mExclusiveMaximum = exclusiveMaximum;
+        mDataSpec.setExclusiveMaximum(exclusiveMaximum);
     }
 
-    public boolean getExclusiveMaximum() {
-        return mExclusiveMaximum;
+    void setMaximum(final Long maximum) {
+        mDataSpec.setMaximum(maximum);
     }
 
-    void setExclusiveMinimum(final boolean exclusiveMinimum) {
-        mExclusiveMinimum = exclusiveMinimum;
-    }
-
-    public boolean getExclusiveMinimum() {
-        return mExclusiveMinimum;
-    }
-
-    void setEnumList(final long[] enumList) {
-        mEnumList = enumList;
+    public Long getMinimum() {
+        return mDataSpec.getMinimum();
     }
 
     public long[] getEnumList() {
-        return mEnumList;
+        return mDataSpec.getEnumList();
+    }
+
+    void setExclusiveMinimum(final boolean exclusiveMinimum) {
+        mDataSpec.setExclusiveMinimum(exclusiveMinimum);
+    }
+
+    public boolean isExclusiveMaximum() {
+        return mDataSpec.isExclusiveMaximum();
+    }
+
+    void setMinimum(final Long minimum) {
+        mDataSpec.setMinimum(minimum);
+    }
+
+    void setEnumList(final long[] enumList) {
+        mDataSpec.setEnumList(enumList);
+    }
+
+    public Long getMaximum() {
+        return mDataSpec.getMaximum();
+    }
+
+    public boolean isExclusiveMinimum() {
+        return mDataSpec.isExclusiveMinimum();
     }
 
     @Override
@@ -67,7 +59,7 @@ public class IntegerParameterSpec extends DConnectParameterSpec {
         if (obj == null) {
             return true;
         }
-        switch (mFormat) {
+        switch (getFormat()) {
             case INT32:
                 return validateInt32(obj);
             case INT64:
@@ -106,8 +98,8 @@ public class IntegerParameterSpec extends DConnectParameterSpec {
     }
 
     private boolean validateRange(final long value) {
-        if (mEnumList != null) {
-            for (long e : mEnumList) {
+        if (getEnumList() != null) {
+            for (long e : getEnumList()) {
                 if (e == value) {
                     return true;
                 }
@@ -115,11 +107,11 @@ public class IntegerParameterSpec extends DConnectParameterSpec {
             return false;
         } else {
             boolean isValid = true;
-            if (mMaximum != null) {
-                isValid &=  mExclusiveMaximum ? (mMaximum > value) : (mMaximum >= value);
+            if (getMaximum() != null) {
+                isValid &=  isExclusiveMaximum() ? (getMaximum() > value) : (getMaximum() >= value);
             }
-            if (mMinimum != null) {
-                isValid &= mExclusiveMinimum ? (mMinimum < value) : (mMinimum <= value);
+            if (getMinimum() != null) {
+                isValid &= isExclusiveMinimum() ? (getMinimum() < value) : (getMinimum() <= value);
             }
             return isValid;
         }
@@ -127,34 +119,34 @@ public class IntegerParameterSpec extends DConnectParameterSpec {
 
     public static class Builder extends BaseBuilder<Builder> {
 
-        private Format mFormat;
+        private DataFormat mFormat;
         private Long mMaximum;
         private Long mMinimum;
-        private boolean mExclusiveMaximum;
-        private boolean mExclusiveMinimum;
+        private Boolean mExclusiveMaximum;
+        private Boolean mExclusiveMinimum;
         private long[] mEnumList;
 
-        public Builder setFormat(final Format format) {
+        public Builder setFormat(final DataFormat format) {
             mFormat = format;
             return this;
         }
 
-        public Builder setMaximum(final long maximum) {
+        public Builder setMaximum(final Long maximum) {
             mMaximum = maximum;
             return this;
         }
 
-        public Builder setMinimum(final long minimum) {
+        public Builder setMinimum(final Long minimum) {
             mMinimum = minimum;
             return this;
         }
 
-        public Builder setExclusiveMaximum(final boolean exclusiveMaximum) {
+        public Builder setExclusiveMaximum(final Boolean exclusiveMaximum) {
             mExclusiveMaximum = exclusiveMaximum;
             return this;
         }
 
-        public Builder setExclusiveMinimum(final boolean exclusiveMinimum) {
+        public Builder setExclusiveMinimum(final Boolean exclusiveMinimum) {
             mExclusiveMinimum = exclusiveMinimum;
             return this;
         }
@@ -166,7 +158,7 @@ public class IntegerParameterSpec extends DConnectParameterSpec {
 
         public IntegerParameterSpec build() {
             if (mFormat == null) {
-                mFormat = Format.INT32;
+                mFormat = DataFormat.INT32;
             }
             IntegerParameterSpec spec = new IntegerParameterSpec(mFormat);
             spec.setName(mName);
@@ -185,27 +177,4 @@ public class IntegerParameterSpec extends DConnectParameterSpec {
         }
     }
 
-    public enum Format {
-        INT32("int32"),
-        INT64("int64");
-
-        private final String mName;
-
-        Format(final String name) {
-            mName = name;
-        }
-
-        public String getName() {
-            return mName;
-        }
-
-        public static Format parse(final String name) {
-            for (Format format : Format.values()) {
-                if (format.mName.equalsIgnoreCase(name)) {
-                    return format;
-                }
-            }
-            return null;
-        }
-    }
 }

@@ -17,7 +17,7 @@ import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.api.DConnectApi;
 import org.deviceconnect.android.profile.spec.DConnectApiSpec;
-import org.deviceconnect.android.profile.spec.DConnectApiSpecConstants;
+import org.deviceconnect.android.profile.spec.DConnectSpecConstants;
 import org.deviceconnect.android.profile.spec.DConnectProfileSpec;
 import org.deviceconnect.android.service.DConnectService;
 import org.deviceconnect.message.DConnectMessage;
@@ -37,7 +37,7 @@ import java.util.logging.Logger;
  * @author NTT DOCOMO, INC.
  */
 public abstract class DConnectProfile implements DConnectProfileConstants,
-    DConnectApiSpecConstants {
+    DConnectSpecConstants {
 
     /** バッファサイズを定義. */
     private static final int BUF_SIZE = 4096;

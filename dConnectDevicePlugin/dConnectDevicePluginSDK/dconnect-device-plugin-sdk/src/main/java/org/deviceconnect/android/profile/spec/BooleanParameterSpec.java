@@ -6,8 +6,8 @@ public class BooleanParameterSpec extends DConnectParameterSpec {
     private final String TRUE = "true";
     private final String FALSE = "false";
 
-    private BooleanParameterSpec() {
-        super(Type.BOOLEAN);
+    BooleanParameterSpec() {
+        super(new BooleanDataSpec());
     }
 
     @Override

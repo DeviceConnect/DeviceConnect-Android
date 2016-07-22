@@ -3,16 +3,22 @@ package org.deviceconnect.android.profile.spec.parser;
 
 import android.os.Bundle;
 
+import org.deviceconnect.android.profile.spec.ArrayDataSpec;
 import org.deviceconnect.android.profile.spec.ArrayParameterSpec;
+import org.deviceconnect.android.profile.spec.BooleanDataSpec;
 import org.deviceconnect.android.profile.spec.BooleanParameterSpec;
 import org.deviceconnect.android.profile.spec.DConnectApiSpec;
-import org.deviceconnect.android.profile.spec.DConnectApiSpecConstants;
 import org.deviceconnect.android.profile.spec.DConnectApiSpecFilter;
-import org.deviceconnect.android.profile.spec.DConnectProfileSpec;
+import org.deviceconnect.android.profile.spec.DConnectDataSpec;
 import org.deviceconnect.android.profile.spec.DConnectParameterSpec;
+import org.deviceconnect.android.profile.spec.DConnectProfileSpec;
+import org.deviceconnect.android.profile.spec.DConnectSpecConstants;
 import org.deviceconnect.android.profile.spec.FileParameterSpec;
+import org.deviceconnect.android.profile.spec.IntegerDataSpec;
 import org.deviceconnect.android.profile.spec.IntegerParameterSpec;
+import org.deviceconnect.android.profile.spec.NumberDataSpec;
 import org.deviceconnect.android.profile.spec.NumberParameterSpec;
+import org.deviceconnect.android.profile.spec.StringDataSpec;
 import org.deviceconnect.android.profile.spec.StringParameterSpec;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -24,15 +30,15 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-class SwaggerJsonParser implements DConnectProfileSpecJsonParser, DConnectApiSpecConstants  {
+class SwaggerJsonParser implements DConnectProfileSpecJsonParser, DConnectSpecConstants {
 
     private static final String KEY_PATHS = "paths";
 
     private static final OperationObjectParser OPERATION_OBJECT_PARSER = new OperationObjectParser() {
         @Override
         public DConnectApiSpec parseJson(final Method method, final JSONObject opObj) throws JSONException {
-            DConnectApiSpecConstants.Type type
-                = DConnectApiSpecConstants.Type.parse(opObj.getString(KEY_X_TYPE));
+            DConnectSpecConstants.Type type
+                = DConnectSpecConstants.Type.parse(opObj.getString(KEY_X_TYPE));
             JSONArray parameters = opObj.getJSONArray(KEY_PARAMETERS);
 
             List<DConnectParameterSpec> paramSpecList = new ArrayList<DConnectParameterSpec>();
@@ -51,12 +57,18 @@ class SwaggerJsonParser implements DConnectProfileSpecJsonParser, DConnectApiSpe
         }
     };
 
+    private static final ItemsObjectParser ARRAY_ITEMS_PARSER = new ArrayItemsObjectParser();
+    private static final ItemsObjectParser BOOLEAN_ITEMS_PARSER = new BooleanItemsObjectParser();
+    private static final ItemsObjectParser INTEGER_ITEMS_PARSER = new IntegerItemsObjectParser();
+    private static final ItemsObjectParser NUMBER_ITEMS_PARSER = new NumberItemsObjectParser();
+    private static final ItemsObjectParser STRING_ITEMS_PARSER = new StringItemsObjectParser();
+
+    private static final ParameterObjectParser ARRAY_PARAM_PARSER = new ArrayParameterParser();
     private static final ParameterObjectParser BOOLEAN_PARAM_PARSER = new BooleanParameterParser();
+    private static final ParameterObjectParser FILE_PARAM_PARSER = new FileParameterParser();
     private static final ParameterObjectParser INTEGER_PARAM_PARSER = new IntegerParameterParser();
     private static final ParameterObjectParser NUMBER_PARAM_PARSER = new NumberParameterParser();
     private static final ParameterObjectParser STRING_PARAM_PARSER = new StringParameterParser();
-    private static final ParameterObjectParser FILE_PARAM_PARSER = new FileParameterParser();
-    private static final ParameterObjectParser ARRAY_PARAM_PARSER = new ArrayParameterParser();
 
     @Override
     public DConnectProfileSpec parseJson(final JSONObject json) throws JSONException {
@@ -67,7 +79,7 @@ class SwaggerJsonParser implements DConnectProfileSpecJsonParser, DConnectApiSpe
         for (Iterator<String> it = pathsObj.keys(); it.hasNext(); ) {
             String path = it.next();
             JSONObject pathObj = pathsObj.getJSONObject(path);
-            for (DConnectApiSpecConstants.Method method : DConnectApiSpecConstants.Method.values()) {
+            for (DConnectSpecConstants.Method method : DConnectSpecConstants.Method.values()) {
                 JSONObject opObj = pathObj.optJSONObject(method.getName().toLowerCase());
                 if (opObj == null) {
                     continue;
@@ -83,7 +95,31 @@ class SwaggerJsonParser implements DConnectProfileSpecJsonParser, DConnectApiSpe
 
     private static ParameterObjectParser getParameterParser(final JSONObject json) throws JSONException {
         String type = json.getString(ParameterObjectParser.KEY_TYPE);
-        DConnectParameterSpec.Type paramType = DConnectParameterSpec.Type.fromName(type);
+        DataType paramType =  DataType.fromName(type);
+        if (paramType == null) {
+            throw new JSONException("Unknown parameter type '" + type + "' is specified.");
+        }
+        switch (paramType) {
+            case BOOLEAN:
+                return BOOLEAN_PARAM_PARSER;
+            case INTEGER:
+                return INTEGER_PARAM_PARSER;
+            case NUMBER:
+                return NUMBER_PARAM_PARSER;
+            case STRING:
+                return STRING_PARAM_PARSER;
+            case FILE:
+                return FILE_PARAM_PARSER;
+            case ARRAY:
+                return ARRAY_PARAM_PARSER;
+            default:
+                throw new IllegalArgumentException();
+        }
+    }
+
+    private static ParameterObjectParser getItemParser(final JSONObject json) throws JSONException {
+        String type = json.getString(ParameterObjectParser.KEY_TYPE);
+        DataType paramType =  DataType.fromName(type);
         if (paramType == null) {
             throw new JSONException("Unknown parameter type '" + type + "' is specified.");
         }
@@ -130,7 +166,7 @@ class SwaggerJsonParser implements DConnectProfileSpecJsonParser, DConnectApiSpe
                 if (pathObj == null) {
                     continue;
                 }
-                for (DConnectApiSpecConstants.Method method : DConnectApiSpecConstants.Method.values()) {
+                for (DConnectSpecConstants.Method method : DConnectSpecConstants.Method.values()) {
                     String methodName = method.getName().toLowerCase();
                     Bundle methodObj = pathObj.getBundle(methodName);
                     if (methodObj == null) {
@@ -228,6 +264,111 @@ class SwaggerJsonParser implements DConnectProfileSpecJsonParser, DConnectApiSpe
         String KEY_NAME = "name";
         String KEY_REQUIRED = "required";
         String KEY_TYPE = "type";
+
+        DConnectParameterSpec parseJson(JSONObject json) throws JSONException;
+    }
+
+    private static class ArrayParameterParser implements ParameterObjectParser {
+
+        @Override
+        public DConnectParameterSpec parseJson(final JSONObject json) throws JSONException {
+            ArrayDataSpec dataSpec = (ArrayDataSpec) ARRAY_ITEMS_PARSER.parseJson(json);
+
+            ArrayParameterSpec.Builder builder = new ArrayParameterSpec.Builder();
+            builder.setName(json.getString(KEY_NAME));
+            if (json.has(KEY_REQUIRED)) {
+                builder.setRequired(json.getBoolean(KEY_REQUIRED));
+            }
+            builder.setItemsSpec(dataSpec.getItemsSpec());
+            builder.setMaxLength(dataSpec.getMaxLength());
+            builder.setMinLength(dataSpec.getMinLength());
+            return builder.build();
+        }
+    }
+
+    private static class BooleanParameterParser implements ParameterObjectParser {
+
+        @Override
+        public DConnectParameterSpec parseJson(final JSONObject json) throws JSONException {
+            BooleanParameterSpec.Builder builder = new BooleanParameterSpec.Builder();
+            builder.setName(json.getString(KEY_NAME));
+            if (json.has(KEY_REQUIRED)) {
+                builder.setRequired(json.getBoolean(KEY_REQUIRED));
+            }
+            return builder.build();
+        }
+    }
+
+    private static class IntegerParameterParser implements ParameterObjectParser {
+
+        @Override
+        public DConnectParameterSpec parseJson(final JSONObject json) throws JSONException {
+            IntegerDataSpec dataSpec = (IntegerDataSpec) INTEGER_ITEMS_PARSER.parseJson(json);
+
+            IntegerParameterSpec.Builder builder = new IntegerParameterSpec.Builder();
+            builder.setName(json.getString(KEY_NAME));
+            if (json.has(KEY_REQUIRED)) {
+                builder.setRequired(json.getBoolean(KEY_REQUIRED));
+            }
+            builder.setMaximum(dataSpec.getMaximum());
+            builder.setMinimum(dataSpec.getMinimum());
+            builder.setExclusiveMaximum(dataSpec.isExclusiveMaximum());
+            builder.setExclusiveMinimum(dataSpec.isExclusiveMinimum());
+            builder.setEnumList(dataSpec.getEnumList());
+            return builder.build();
+        }
+    }
+
+    private static class NumberParameterParser implements ParameterObjectParser {
+
+        @Override
+        public DConnectParameterSpec parseJson(final JSONObject json) throws JSONException {
+            NumberDataSpec dataSpec = (NumberDataSpec) NUMBER_ITEMS_PARSER.parseJson(json);
+
+            NumberParameterSpec.Builder builder = new NumberParameterSpec.Builder();
+            builder.setName(json.getString(KEY_NAME));
+            if (json.has(KEY_REQUIRED)) {
+                builder.setRequired(json.getBoolean(KEY_REQUIRED));
+            }
+            builder.setMaximum(dataSpec.getMaximum());
+            builder.setMinimum(dataSpec.getMinimum());
+            builder.setExclusiveMaximum(dataSpec.isExclusiveMaximum());
+            builder.setExclusiveMinimum(dataSpec.isExclusiveMinimum());
+            return builder.build();
+        }
+    }
+
+    private static class StringParameterParser implements ParameterObjectParser {
+
+        @Override
+        public DConnectParameterSpec parseJson(final JSONObject json) throws JSONException {
+            StringDataSpec dataSpec = (StringDataSpec) STRING_ITEMS_PARSER.parseJson(json);
+
+            StringParameterSpec.Builder builder = new StringParameterSpec.Builder();
+            builder.setName(json.getString(KEY_NAME));
+            if (json.has(KEY_REQUIRED)) {
+                builder.setRequired(json.getBoolean(KEY_REQUIRED));
+            }
+            builder.setMaxLength(dataSpec.getMaxLength());
+            builder.setMinLength(dataSpec.getMinLength());
+            builder.setEnumList(dataSpec.getEnumList());
+            return builder.build();
+        }
+    }
+
+    private static class FileParameterParser implements ParameterObjectParser {
+
+        @Override
+        public DConnectParameterSpec parseJson(final JSONObject json) throws JSONException {
+            FileParameterSpec.Builder builder = new FileParameterSpec.Builder();
+            builder.setName(json.getString(KEY_NAME));
+            builder.setRequired(json.getBoolean(KEY_REQUIRED));
+            return builder.build();
+        }
+    }
+
+    private interface ItemsObjectParser {
+
         String KEY_FORMAT = "format";
         String KEY_MAXIMUM = "maximum";
         String KEY_MINIMUM = "minimum";
@@ -238,30 +379,67 @@ class SwaggerJsonParser implements DConnectProfileSpecJsonParser, DConnectApiSpe
         String KEY_ENUM = "enum";
         String KEY_ITEMS = "items";
 
-        DConnectParameterSpec parseJson(JSONObject json) throws JSONException;
+        DConnectDataSpec parseJson(JSONObject json) throws JSONException;
     }
 
-    private static class BooleanParameterParser implements ParameterObjectParser {
+    private static class ArrayItemsObjectParser implements ItemsObjectParser {
 
         @Override
-        public DConnectParameterSpec parseJson(final JSONObject json) throws JSONException {
-            BooleanParameterSpec.Builder builder = new BooleanParameterSpec.Builder();
-            builder.setName(json.getString(KEY_NAME));
-            builder.setRequired(json.getBoolean(KEY_REQUIRED));
+        public DConnectDataSpec parseJson(final JSONObject json) throws JSONException {
+            ArrayDataSpec.Builder builder = new ArrayDataSpec.Builder();
+
+            JSONObject itemsObj = json.getJSONObject(KEY_ITEMS);
+            ItemsObjectParser parser = getItemsParser(itemsObj);
+            DConnectDataSpec itemSpec = parser.parseJson(itemsObj);
+            builder.setItemsSpec(itemSpec);
+
+            if (json.has(KEY_MAX_LENGTH)) {
+                builder.setMaxLength(json.getInt(KEY_MAX_LENGTH));
+            }
+            if (json.has(KEY_MIN_LENGTH)) {
+                builder.setMinLength(json.getInt(KEY_MIN_LENGTH));
+            }
             return builder.build();
+        }
+
+        public ItemsObjectParser getItemsParser(final JSONObject json) throws JSONException {
+            String type = json.getString(ParameterObjectParser.KEY_TYPE);
+            DataType paramType =  DataType.fromName(type);
+            if (paramType == null) {
+                throw new JSONException("Unknown parameter type '" + type + "' is specified.");
+            }
+            switch (paramType) {
+                case BOOLEAN:
+                    return BOOLEAN_ITEMS_PARSER;
+                case INTEGER:
+                    return INTEGER_ITEMS_PARSER;
+                case NUMBER:
+                    return NUMBER_ITEMS_PARSER;
+                case STRING:
+                    return STRING_ITEMS_PARSER;
+                case ARRAY:
+                    return this;
+                default:
+                    throw new IllegalArgumentException();
+            }
         }
     }
 
-    private static class IntegerParameterParser implements ParameterObjectParser {
+    private static class BooleanItemsObjectParser implements ItemsObjectParser {
 
         @Override
-        public DConnectParameterSpec parseJson(final JSONObject json) throws JSONException {
-            IntegerParameterSpec.Builder builder = new IntegerParameterSpec.Builder();
-            builder.setName(json.getString(KEY_NAME));
-            builder.setRequired(json.getBoolean(KEY_REQUIRED));
+        public DConnectDataSpec parseJson(final JSONObject json) throws JSONException {
+            return new BooleanDataSpec.Builder().build();
+        }
+    }
+
+    private static class IntegerItemsObjectParser implements ItemsObjectParser {
+
+        @Override
+        public DConnectDataSpec parseJson(final JSONObject json) throws JSONException {
+            IntegerDataSpec.Builder builder = new IntegerDataSpec.Builder();
             if (json.has(KEY_FORMAT)) {
-                IntegerParameterSpec.Format format =
-                    IntegerParameterSpec.Format.parse(json.optString(KEY_FORMAT));
+                DataFormat format = DataFormat.fromName(json.optString(KEY_FORMAT));
                 if (format == null) {
                     throw new IllegalArgumentException("format is invalid: " + json.optString(KEY_FORMAT));
                 }
@@ -291,26 +469,23 @@ class SwaggerJsonParser implements DConnectProfileSpecJsonParser, DConnectApiSpe
         }
     }
 
-    private static class NumberParameterParser implements ParameterObjectParser {
+    private static class NumberItemsObjectParser implements ItemsObjectParser {
 
         @Override
-        public DConnectParameterSpec parseJson(final JSONObject json) throws JSONException {
-            NumberParameterSpec.Builder builder = new NumberParameterSpec.Builder();
-            builder.setName(json.getString(KEY_NAME));
-            builder.setRequired(json.getBoolean(KEY_REQUIRED));
+        public DConnectDataSpec parseJson(final JSONObject json) throws JSONException {
+            NumberDataSpec.Builder builder = new NumberDataSpec.Builder();
             if (json.has(KEY_FORMAT)) {
-                NumberParameterSpec.Format format =
-                    NumberParameterSpec.Format.parse(json.optString(KEY_FORMAT));
+                DataFormat format = DataFormat.fromName(json.optString(KEY_FORMAT));
                 if (format == null) {
                     throw new IllegalArgumentException("format is invalid: " + json.optString(KEY_FORMAT));
                 }
                 builder.setFormat(format);
             }
             if (json.has(KEY_MAXIMUM)) {
-                builder.setMaximum(json.getLong(KEY_MAXIMUM));
+                builder.setMaximum(json.getDouble(KEY_MAXIMUM));
             }
             if (json.has(KEY_MINIMUM)) {
-                builder.setMinimum(json.getLong(KEY_MINIMUM));
+                builder.setMinimum(json.getDouble(KEY_MINIMUM));
             }
             if (json.has(KEY_EXCLUSIVE_MAXIMUM)) {
                 builder.setExclusiveMaximum(json.getBoolean(KEY_EXCLUSIVE_MAXIMUM));
@@ -322,15 +497,13 @@ class SwaggerJsonParser implements DConnectProfileSpecJsonParser, DConnectApiSpe
         }
     }
 
-    private static class StringParameterParser implements ParameterObjectParser {
+    private static class StringItemsObjectParser implements ItemsObjectParser {
 
         @Override
-        public DConnectParameterSpec parseJson(final JSONObject json) throws JSONException {
-            StringParameterSpec.Builder builder = new StringParameterSpec.Builder();
-            builder.setName(json.getString(KEY_NAME));
-            builder.setRequired(json.getBoolean(KEY_REQUIRED));
+        public DConnectDataSpec parseJson(final JSONObject json) throws JSONException {
+            StringDataSpec.Builder builder = new StringDataSpec.Builder();
             if (json.has(KEY_FORMAT)) {
-                StringParameterSpec.Format format = StringParameterSpec.Format.parse(json.getString(KEY_FORMAT));
+                DataFormat format = DataFormat.fromName(json.getString(KEY_FORMAT));
                 if (format == null) {
                     throw new IllegalArgumentException("format is invalid: " + json.getString(KEY_FORMAT));
                 }
@@ -354,37 +527,4 @@ class SwaggerJsonParser implements DConnectProfileSpecJsonParser, DConnectApiSpe
         }
     }
 
-    private static class FileParameterParser implements ParameterObjectParser {
-
-        @Override
-        public DConnectParameterSpec parseJson(final JSONObject json) throws JSONException {
-            FileParameterSpec.Builder builder = new FileParameterSpec.Builder();
-            builder.setName(json.getString(KEY_NAME));
-            builder.setRequired(json.getBoolean(KEY_REQUIRED));
-            return builder.build();
-        }
-    }
-
-    private static class ArrayParameterParser implements ParameterObjectParser {
-
-        @Override
-        public DConnectParameterSpec parseJson(final JSONObject json) throws JSONException {
-            ArrayParameterSpec.Builder builder = new ArrayParameterSpec.Builder();
-            builder.setName(json.getString(KEY_NAME));
-            builder.setRequired(json.getBoolean(KEY_REQUIRED));
-            JSONObject itemsObj = json.getJSONObject(KEY_ITEMS);
-            DConnectParameterSpec.Type itemType = DConnectParameterSpec.Type.fromName(itemsObj.getString(KEY_TYPE));
-            if (itemType == null) {
-                throw new IllegalArgumentException("type is invalid: " + itemsObj.getString(KEY_TYPE));
-            }
-            builder.setItemType(itemType);
-            if (json.has(KEY_MAX_LENGTH)) {
-                builder.setMaxLength(json.getInt(KEY_MAX_LENGTH));
-            }
-            if (json.has(KEY_MIN_LENGTH)) {
-                builder.setMinLength(json.getInt(KEY_MIN_LENGTH));
-            }
-            return builder.build();
-        }
-    }
 }

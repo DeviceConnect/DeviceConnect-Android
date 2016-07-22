@@ -1,10 +1,10 @@
 package org.deviceconnect.android.profile.spec;
 
 
-public class FileParameterSpec extends DConnectParameterSpec {
+public class FileParameterSpec extends DConnectParameterSpec<FileDataSpec> {
 
-    private FileParameterSpec() {
-        super(Type.FILE);
+    FileParameterSpec() {
+        super(new FileDataSpec());
     }
 
     public static class Builder extends BaseBuilder<Builder> {

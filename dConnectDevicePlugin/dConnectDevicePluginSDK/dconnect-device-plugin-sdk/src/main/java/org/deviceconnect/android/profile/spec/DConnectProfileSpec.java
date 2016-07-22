@@ -15,7 +15,7 @@ import java.util.Map;
  * </p>
  * @author NTT DOCOMO, INC.
  */
-public class DConnectProfileSpec implements DConnectApiSpecConstants {
+public class DConnectProfileSpec implements DConnectSpecConstants {
 
     private BundleFactory mFactory;
 

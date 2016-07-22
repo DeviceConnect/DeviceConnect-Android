@@ -1,38 +1,30 @@
 package org.deviceconnect.android.profile.spec;
 
 
-public class ArrayParameterSpec extends DConnectParameterSpec {
+public class ArrayParameterSpec extends DConnectParameterSpec<ArrayDataSpec> {
 
-    private Type mItemType;
-    private Integer mMaxLength;
-    private Integer mMinLength;
-
-    private ArrayParameterSpec() {
-        super(Type.ARRAY);
+    ArrayParameterSpec(final DConnectDataSpec itemSpec) {
+        super(new ArrayDataSpec(itemSpec));
     }
 
-    public Type getItemType() {
-        return mItemType;
-    }
-
-    public void setItemType(final Type itemType) {
-        mItemType = itemType;
+    public DConnectDataSpec getItemSpec() {
+        return mDataSpec.getItemsSpec();
     }
 
     public Integer getMaxLength() {
-        return mMaxLength;
+        return mDataSpec.getMaxLength();
     }
 
-    void setMaxLength(final Integer maxLength) {
-        mMaxLength = maxLength;
+    public void setMinLength(final Integer minLength) {
+        mDataSpec.setMinLength(minLength);
     }
 
     public Integer getMinLength() {
-        return mMinLength;
+        return mDataSpec.getMinLength();
     }
 
-    void setMinLength(final Integer minLength) {
-        mMinLength = minLength;
+    public void setMaxLength(final Integer maxLength) {
+        mDataSpec.setMaxLength(maxLength);
     }
 
     @Override
@@ -46,7 +38,7 @@ public class ArrayParameterSpec extends DConnectParameterSpec {
         if (!(obj instanceof String)) {
             return false;
         }
-        switch (mItemType) {
+        switch (getItemSpec().getDataType()) {
             case INTEGER:
                 try {
                     String arrayParam = (String) obj;
@@ -65,30 +57,29 @@ public class ArrayParameterSpec extends DConnectParameterSpec {
 
     public static class Builder extends BaseBuilder<Builder> {
 
-        private Type mItemType;
+        private DConnectDataSpec mItemSpec;
         private Integer mMaxLength;
         private Integer mMinLength;
 
-        public Builder setItemType(final Type itemType) {
-            mItemType = itemType;
+        public Builder setItemsSpec(final DConnectDataSpec itemSpec) {
+            mItemSpec = itemSpec;
             return this;
         }
 
-        public Builder setMaxLength(final int maxLength) {
+        public Builder setMaxLength(final Integer maxLength) {
             mMaxLength = maxLength;
             return this;
         }
 
-        public Builder setMinLength(final int minLength) {
+        public Builder setMinLength(final Integer minLength) {
             mMinLength = minLength;
             return this;
         }
 
         public ArrayParameterSpec build() {
-            ArrayParameterSpec spec = new ArrayParameterSpec();
+            ArrayParameterSpec spec = new ArrayParameterSpec(mItemSpec);
             spec.setName(mName);
             spec.setRequired(mIsRequired);
-            spec.setItemType(mItemType);
             spec.setMaxLength(mMaxLength);
             spec.setMinLength(mMinLength);
             return spec;

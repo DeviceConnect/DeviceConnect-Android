@@ -81,19 +81,19 @@ public class LinkingDeviceManager {
 
     public synchronized void startConfirmActivity(final Intent request) {
         if (BuildConfig.DEBUG) {
-            Log.d(TAG, "AAAAAAAAAAAA startConfirmActivity");
+            Log.d(TAG, "AAAAAAAAAAAA startConfirmActivity " + mRequestSensorType.size());
         }
 
         mRequestSensorType.add(request);
 
         LinkingApplication app = (LinkingApplication) mContext;
         if (mRequestSensorType.size() == 1 || !app.isStartedConfirmActivity()) {
-            mHandler.post(new Runnable() {
+            mHandler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
                     mContext.startActivity(request);
                 }
-            });
+            }, 500);
         }
     }
 
@@ -107,12 +107,12 @@ public class LinkingDeviceManager {
         }
 
         if (mRequestSensorType.size() > 0) {
-            mHandler.post(new Runnable() {
+            mHandler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
                     mContext.startActivity(mRequestSensorType.get(0));
                 }
-            });
+            }, 500);
         }
     }
 

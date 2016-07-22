@@ -102,7 +102,7 @@ public class SlackMessageHookProfile extends MessageHookProfile {
                     service.sendResponse(response);
                 }
             }.start();
-            return true;
+            return false;
         }
     };
 
@@ -157,7 +157,7 @@ public class SlackMessageHookProfile extends MessageHookProfile {
                     service.sendResponse(response);
                 }
             });
-            return true;
+            return false;
         }
     };
 

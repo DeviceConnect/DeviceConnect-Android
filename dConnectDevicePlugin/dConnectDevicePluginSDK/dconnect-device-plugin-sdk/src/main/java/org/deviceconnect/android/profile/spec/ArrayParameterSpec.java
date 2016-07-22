@@ -27,34 +27,6 @@ public class ArrayParameterSpec extends DConnectParameterSpec<ArrayDataSpec> {
         mDataSpec.setMaxLength(maxLength);
     }
 
-    @Override
-    public boolean validate(final Object obj) {
-        if (!super.validate(obj)) {
-            return false;
-        }
-        if (obj == null) {
-            return true;
-        }
-        if (!(obj instanceof String)) {
-            return false;
-        }
-        switch (getItemSpec().getDataType()) {
-            case INTEGER:
-                try {
-                    String arrayParam = (String) obj;
-                    String[] items = arrayParam.split(","); // TODO csv以外の形式に対応
-                    for (String item : items) {
-                        Long.parseLong(item);
-                    }
-                    return true;
-                } catch (NumberFormatException e) {
-                    return false;
-                }
-            default:
-                return true; // TODO 他のタイプ・フォーマットに対応
-        }
-    }
-
     public static class Builder extends BaseBuilder<Builder> {
 
         private DConnectDataSpec mItemSpec;

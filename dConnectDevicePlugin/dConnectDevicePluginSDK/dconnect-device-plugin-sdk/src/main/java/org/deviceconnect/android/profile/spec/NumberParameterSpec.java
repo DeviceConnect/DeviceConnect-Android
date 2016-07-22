@@ -43,63 +43,6 @@ public class NumberParameterSpec extends DConnectParameterSpec<NumberDataSpec> {
         mDataSpec.setExclusiveMaximum(exclusiveMaximum);
     }
 
-    @Override
-    public boolean validate(final Object obj) {
-        if (!super.validate(obj)) {
-            return false;
-        }
-        if (obj == null) {
-            return true;
-        }
-        switch (getFormat()) {
-            case FLOAT:
-                return validateFloat(obj);
-            case DOUBLE:
-                return validateDouble(obj);
-            default:
-                throw new IllegalStateException();
-        }
-    }
-
-    private boolean validateFloat(final Object param) {
-        if (param instanceof String) {
-            try {
-                return validateRange(Float.parseFloat((String) param));
-            } catch (NumberFormatException e) {
-                return false;
-            }
-        } else if (param instanceof Float) {
-            return validateRange((float) param);
-        } else {
-            return false;
-        }
-    }
-
-    private boolean validateDouble(final Object param) {
-        if (param instanceof String) {
-            try {
-                return validateRange(Double.parseDouble((String) param));
-            } catch (NumberFormatException e) {
-                return false;
-            }
-        } else if (param instanceof Double) {
-            return validateRange((double) param);
-        } else {
-            return false;
-        }
-    }
-
-    private boolean validateRange(final double value) {
-        boolean isValid = true;
-        if (getMaximum() != null) {
-            isValid &= isExclusiveMaximum() ? (getMaximum() > value) : (getMaximum() >= value);
-        }
-        if (getMinimum() != null) {
-            isValid &= isExclusiveMinimum() ? (getMinimum() < value) : (getMinimum() <= value);
-        }
-        return isValid;
-    }
-
     public static class Builder extends BaseBuilder<Builder> {
 
         private DataFormat mFormat;

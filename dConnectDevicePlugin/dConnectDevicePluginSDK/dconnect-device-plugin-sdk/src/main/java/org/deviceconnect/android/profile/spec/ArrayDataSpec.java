@@ -32,6 +32,21 @@ public class ArrayDataSpec extends DConnectDataSpec {
         mMinLength = minLength;
     }
 
+    @Override
+    public boolean validate(final Object obj) {
+        if (obj == null) {
+            return true;
+        }
+        String arrayParam = obj.toString();
+        String[] items = arrayParam.split(","); // TODO csv以外の形式に対応
+        for (String item : items) {
+            if (!mItemsSpec.validate(item)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     public static class Builder {
 
         private DConnectDataSpec mItemsSpec;

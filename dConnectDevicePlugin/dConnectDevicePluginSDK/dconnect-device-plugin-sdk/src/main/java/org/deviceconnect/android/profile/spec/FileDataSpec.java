@@ -7,6 +7,11 @@ public class FileDataSpec extends DConnectDataSpec {
         super(DataType.FILE);
     }
 
+    @Override
+    public boolean validate(final Object param) {
+        return true;
+    }
+
     public static class Builder {
 
         public FileDataSpec build() {

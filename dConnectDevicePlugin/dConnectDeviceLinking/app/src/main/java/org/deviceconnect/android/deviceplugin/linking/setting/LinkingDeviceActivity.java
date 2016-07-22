@@ -492,7 +492,7 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
             for (int i = 0; i < data.getColor().getChildren().length; i++) {
                 items[i] = data.getColor().getChild(i).getName(0).getName();
             }
-            builder.setTitle(getString(R.string.activity_device_pattern_list)).setItems(items, new DialogInterface.OnClickListener() {
+            builder.setTitle(getString(R.string.activity_device_color_list)).setItems(items, new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(final DialogInterface dialog, final int which) {
                     IlluminationData.Setting selectedColor = data.getColor().getChild(which);

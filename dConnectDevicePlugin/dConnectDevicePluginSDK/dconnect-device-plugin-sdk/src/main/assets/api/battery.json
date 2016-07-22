@@ -1,119 +1,187 @@
-[
-    {
-        "name": "Battery Status API",
-        "type": "one-shot",
-        "method": "GET",
-        "path": "/gotapi/battery",
-        "requestParams": [
-            {
-                "name": "serviceId",
-                "type": "string",
-                "mandatory": true
-            }
-        ]
+{
+    "swagger": "2.0",
+    "info": {
+        "title": "Battery Profile",
+        "version": "2.0.0",
+        "description": ""
     },
-    {
-        "name": "Battery Status Charging API",
-        "type": "one-shot",
-        "method": "GET",
-        "path": "/gotapi/battery/charging",
-        "requestParams": [
-            {
-                "name": "serviceId",
-                "type": "string",
-                "mandatory": true
+    "consumes": [],
+    "paths": {
+        "/": {
+            "get": {
+                "x-type": "one-shot",
+                "summary": "",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "query",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
             }
-        ]
-    },
-    {
-        "name": "Battery Status Charging Time API",
-        "type": "one-shot",
-        "method": "GET",
-        "path": "/gotapi/battery/chargingTime",
-        "requestParams": [
-            {
-                "name": "serviceId",
-                "type": "string",
-                "mandatory": true
+        },
+        "/charging": {
+            "get": {
+                "x-type": "one-shot",
+                "summary": "",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "query",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
             }
-        ]
-    },
-    {
-        "name": "Battery Status Discharging Time API",
-        "type": "one-shot",
-        "method": "GET",
-        "path": "/gotapi/battery/dischargingTime",
-        "requestParams": [
-            {
-                "name": "serviceId",
-                "type": "string",
-                "mandatory": true
+        },
+        "/chargingTime": {
+            "get": {
+                "x-type": "one-shot",
+                "summary": "",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "query",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
             }
-        ]
-    },
-    {
-        "name": "Battery Status Level API",
-        "type": "one-shot",
-        "method": "GET",
-        "path": "/gotapi/battery/level",
-        "requestParams": [
-            {
-                "name": "serviceId",
-                "type": "string",
-                "mandatory": true
+        },
+        "/dischargingTime": {
+            "get": {
+                "x-type": "one-shot",
+                "summary": "",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "query",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
             }
-        ]
-    },
-    {
-        "name": "Battery Status Charging Event API",
-        "type": "event",
-        "method": "PUT",
-        "path": "/gotapi/battery/onChargingChange",
-        "requestParams": [
-            {
-                "name": "serviceId",
-                "type": "string",
-                "mandatory": true
+        },
+        "/level": {
+            "get": {
+                "x-type": "one-shot",
+                "summary": "",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "query",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
             }
-        ]
-    },
-    {
-        "name": "Battery Status Charging Event API",
-        "type": "event",
-        "method": "DELETE",
-        "path": "/gotapi/battery/onChargingChange",
-        "requestParams": [
-            {
-                "name": "serviceId",
-                "type": "string",
-                "mandatory": true
+        },
+        "/onBatteryChange": {
+            "put": {
+                "x-type": "event",
+                "summary": "",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "query",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            },
+            "delete": {
+                "x-type": "event",
+                "summary": "",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "query",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
             }
-        ]
-    },
-    {
-        "name": "Battery Status Change Event API",
-        "type": "event",
-        "method": "PUT",
-        "path": "/gotapi/battery/onBatteryChange",
-        "requestParams": [
-            {
-                "name": "serviceId",
-                "type": "string",
-                "mandatory": true
+        },
+        "/onChargingChange": {
+            "put": {
+                "x-type": "event",
+                "summary": "",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "query",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            },
+            "delete": {
+                "x-type": "event",
+                "summary": "",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "query",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
             }
-        ]
-    },
-    {
-        "name": "Battery Status Change Event API",
-        "type": "event",
-        "method": "DELETE",
-        "path": "/gotapi/battery/onBatteryChange",
-        "requestParams": [
-            {
-                "name": "serviceId",
-                "type": "string",
-                "mandatory": true
-            }
-        ]
+        }
     }
-]
+}

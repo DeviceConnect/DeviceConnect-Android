@@ -12,6 +12,7 @@ import com.nttdocomo.android.sdaiflib.GetDeviceInformation;
 import com.nttdocomo.android.sdaiflib.SendNotification;
 
 import org.deviceconnect.android.deviceplugin.linking.BuildConfig;
+import org.deviceconnect.android.deviceplugin.linking.LinkingApplication;
 import org.deviceconnect.android.deviceplugin.linking.R;
 import org.deviceconnect.android.deviceplugin.linking.util.PreferenceUtil;
 
@@ -80,17 +81,19 @@ public class LinkingDeviceManager {
 
     public synchronized void startConfirmActivity(final Intent request) {
         if (BuildConfig.DEBUG) {
-            Log.d(TAG, "AAAAAAAAAAAA startConfirmActivity");
+            Log.d(TAG, "AAAAAAAAAAAA startConfirmActivity " + mRequestSensorType.size());
         }
 
         mRequestSensorType.add(request);
-        if (mRequestSensorType.size() == 1) {
-            mHandler.post(new Runnable() {
+
+        LinkingApplication app = (LinkingApplication) mContext;
+        if (mRequestSensorType.size() == 1 || !app.isStartedConfirmActivity()) {
+            mHandler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
                     mContext.startActivity(request);
                 }
-            });
+            }, 500);
         }
     }
 
@@ -104,12 +107,12 @@ public class LinkingDeviceManager {
         }
 
         if (mRequestSensorType.size() > 0) {
-            mHandler.post(new Runnable() {
+            mHandler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
                     mContext.startActivity(mRequestSensorType.get(0));
                 }
-            });
+            }, 500);
         }
     }
 

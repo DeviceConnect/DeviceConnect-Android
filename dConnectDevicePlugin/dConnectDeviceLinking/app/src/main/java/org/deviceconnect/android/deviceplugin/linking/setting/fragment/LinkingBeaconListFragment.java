@@ -27,6 +27,7 @@ import org.deviceconnect.android.deviceplugin.linking.R;
 import org.deviceconnect.android.deviceplugin.linking.beacon.LinkingBeaconManager;
 import org.deviceconnect.android.deviceplugin.linking.beacon.LinkingBeaconUtil;
 import org.deviceconnect.android.deviceplugin.linking.beacon.data.LinkingBeacon;
+import org.deviceconnect.android.deviceplugin.linking.linking.LinkingUtil;
 import org.deviceconnect.android.deviceplugin.linking.setting.LinkingBeaconActivity;
 import org.deviceconnect.android.deviceplugin.linking.setting.LinkingInductionActivity;
 import org.deviceconnect.android.deviceplugin.linking.setting.fragment.dialog.ConfirmationDialogFragment;
@@ -92,6 +93,14 @@ public class LinkingBeaconListFragment extends Fragment implements ConfirmationD
     public void onResume() {
         super.onResume();
         refresh();
+
+        if (getView() != null) {
+            Switch switchBtn = (Switch) getView().findViewById(R.id.fragment_beacon_scan_switch);
+            if (switchBtn != null) {
+                switchBtn.setEnabled(LinkingUtil.isApplicationInstalled(getContext()));
+            }
+        }
+
         LinkingApplication app = (LinkingApplication) getActivity().getApplication();
         LinkingBeaconManager mgr = app.getLinkingBeaconManager();
         mgr.addOnBeaconConnectListener(this);
@@ -208,7 +217,7 @@ public class LinkingBeaconListFragment extends Fragment implements ConfirmationD
             String message;
 
             LinkingApplication app = (LinkingApplication) getActivity().getApplication();
-            if (app.getLinkingBeaconManager().isStartedBeaconScan()) {
+            if (app.getLinkingBeaconManager().isScanState()) {
                 message = getString(R.string.fragment_beacon_error_message, item.mDevice.getDisplayName());
             } else {
                 message = getString(R.string.fragment_beacon_error_message_not_start_beacon_scan);

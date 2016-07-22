@@ -3,7 +3,7 @@ package org.deviceconnect.android.profile.spec;
 
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
-public interface DConnectApiSpecConstants {
+public interface DConnectSpecConstants {
 
     enum Type {
 
@@ -75,4 +75,68 @@ public interface DConnectApiSpecConstants {
         }
     }
 
+    enum DataType {
+
+        ARRAY("array"),
+        BOOLEAN("boolean"),
+        INTEGER("integer"),
+        NUMBER("number"),
+        STRING("string"),
+        FILE("file");
+
+        private final String mName;
+
+        DataType(final String name) {
+            mName = name;
+        }
+
+        public String getName() {
+            return mName;
+        }
+
+        public static DataType fromName(final String name) {
+            for (DataType type : DataType.values()) {
+                if (type.mName.equalsIgnoreCase(name)) {
+                    return type;
+                }
+            }
+            return null;
+        }
+    }
+
+    enum DataFormat {
+
+        INT32("int32"),
+        INT64("int64"),
+
+        FLOAT("float"),
+        DOUBLE("double"),
+
+        TEXT("text"),
+        BYTE("byte"),
+        BINARY("binary"),
+        DATE("date"),
+        DATE_TIME("date-time"),
+        PASSWORD("password"),
+        RGB("rgb");
+
+        private final String mName;
+
+        DataFormat(final String name) {
+            mName = name;
+        }
+
+        public String getName() {
+            return mName;
+        }
+
+        public static DataFormat fromName(final String name) {
+            for (DataFormat format : DataFormat.values()) {
+                if (format.mName.equalsIgnoreCase(name)) {
+                    return format;
+                }
+            }
+            return null;
+        }
+    }
 }

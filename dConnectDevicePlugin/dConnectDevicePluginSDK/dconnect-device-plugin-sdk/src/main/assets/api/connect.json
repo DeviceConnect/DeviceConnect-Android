@@ -1,288 +1,500 @@
-[
-    {
-        "name": "Wi-Fi Connect API GET",
-        "type": "one-shot",
-        "method": "GET",
-        "path": "/gotapi/connect/wifi",
-        "requestParams": [
-            {
-                "name": "serviceId",
-                "type": "string",
-                "mandatory": true
-            }
-        ]
+{
+    "swagger": "2.0",
+    "info": {
+        "title": "Connect Profile",
+        "version": "2.0.0",
+        "description": ""
     },
-    {
-        "name": "Wi-Fi Connect API PUT",
-        "type": "one-shot",
-        "method": "PUT",
-        "path": "/gotapi/connect/wifi",
-        "requestParams": [
-            {
-                "name": "serviceId",
-                "type": "string",
-                "mandatory": true
+    "consumes": [
+        "application/x-www-form-urlencoded",
+        "multipart/form-data"
+    ],
+    "paths": {
+        "/wifi": {
+            "get": {
+                "x-type": "one-shot",
+                "summary": "",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "query",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            },
+            "put": {
+                "x-type": "one-shot",
+                "summary": "",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "formData",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            },
+            "delete": {
+                "x-type": "one-shot",
+                "summary": "",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "query",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
             }
-        ]
-    },
-    {
-        "name": "Wi-Fi Connect API DELETE",
-        "type": "one-shot",
-        "method": "DELETE",
-        "path": "/gotapi/connect/wifi",
-        "requestParams": [
-            {
-                "name": "serviceId",
-                "type": "string",
-                "mandatory": true
+        },
+        "/onWifiChange": {
+            "get": {
+                "x-type": "one-shot",
+                "summary": "",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "query",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            },
+            "put": {
+                "x-type": "event",
+                "summary": "",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "formData",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            },
+            "delete": {
+                "x-type": "event",
+                "summary": "",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "query",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
             }
-        ]
-    },
-    {
-        "name": "WIFI Connect Status Change Event API",
-        "type": "event",
-        "method": "PUT",
-        "path": "/gotapi/connect/onWifiChange",
-        "requestParams": [
-            {
-                "name": "serviceId",
-                "type": "string",
-                "mandatory": true
+        },
+        "/bluetooth": {
+            "get": {
+                "x-type": "one-shot",
+                "summary": "",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "query",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            },
+            "put": {
+                "x-type": "one-shot",
+                "summary": "",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "formData",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            },
+            "delete": {
+                "x-type": "one-shot",
+                "summary": "",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "query",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
             }
-        ]
-    },
-    {
-        "name": "Wi-Fi Connect Status Change Event API",
-        "type": "event",
-        "method": "DELETE",
-        "path": "/gotapi/connect/onWifiChange",
-        "requestParams": [
-            {
-                "name": "serviceId",
-                "type": "string",
-                "mandatory": true
+        },
+        "/onBluetoothChange": {
+            "get": {
+                "x-type": "one-shot",
+                "summary": "",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "query",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            },
+            "put": {
+                "x-type": "event",
+                "summary": "",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "formData",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            },
+            "delete": {
+                "x-type": "event",
+                "summary": "",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "query",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
             }
-        ]
-    },
-    {
-        "name": "Bluetooth Connect API GET",
-        "type": "one-shot",
-        "method": "GET",
-        "path": "/gotapi/connect/bluetooth",
-        "requestParams": [
-            {
-                "name": "serviceId",
-                "type": "string",
-                "mandatory": true
+        },
+        "/bluetooth/discoverable": {
+            "put": {
+                "x-type": "one-shot",
+                "summary": "",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "formData",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            },
+            "delete": {
+                "x-type": "one-shot",
+                "summary": "",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "query",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
             }
-        ]
-    },
-    {
-        "name": "Bluetooth Connect API PUT",
-        "type": "one-shot",
-        "method": "PUT",
-        "path": "/gotapi/connect/bluetooth",
-        "requestParams": [
-            {
-                "name": "serviceId",
-                "type": "string",
-                "mandatory": true
+        },
+        "/nfc": {
+            "get": {
+                "x-type": "one-shot",
+                "summary": "",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "query",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            },
+            "put": {
+                "x-type": "one-shot",
+                "summary": "",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "formData",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            },
+            "delete": {
+                "x-type": "one-shot",
+                "summary": "",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "query",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
             }
-        ]
-    },
-    {
-        "name": "Bluetooth Connect API DELETE",
-        "type": "one-shot",
-        "method": "DELETE",
-        "path": "/gotapi/connect/bluetooth",
-        "requestParams": [
-            {
-                "name": "serviceId",
-                "type": "string",
-                "mandatory": true
+        },
+        "/onNfcChange": {
+            "get": {
+                "x-type": "one-shot",
+                "summary": "",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "query",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            },
+            "put": {
+                "x-type": "event",
+                "summary": "",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "formData",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            },
+            "delete": {
+                "x-type": "event",
+                "summary": "",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "query",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
             }
-        ]
-    },
-    {
-        "name": "Bluetooth Connect Status Change Event API",
-        "type": "event",
-        "method": "PUT",
-        "path": "/gotapi/connect/onBluetoothChange",
-        "requestParams": [
-            {
-                "name": "serviceId",
-                "type": "string",
-                "mandatory": true
+        },
+        "/ble": {
+            "get": {
+                "x-type": "one-shot",
+                "summary": "",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "query",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            },
+            "put": {
+                "x-type": "one-shot",
+                "summary": "",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "formData",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            },
+            "delete": {
+                "x-type": "one-shot",
+                "summary": "",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "query",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
             }
-        ]
-    },
-    {
-        "name": "Bluetooth Connect Status Change Event API",
-        "type": "event",
-        "method": "DELETE",
-        "path": "/gotapi/connect/onBluetoothChange",
-        "requestParams": [
-            {
-                "name": "serviceId",
-                "type": "string",
-                "mandatory": true
+        },
+        "/onBleChange": {
+            "get": {
+                "x-type": "one-shot",
+                "summary": "",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "query",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            },
+            "put": {
+                "x-type": "event",
+                "summary": "",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "formData",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            },
+            "delete": {
+                "x-type": "event",
+                "summary": "",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "query",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
             }
-        ]
-    },
-    {
-        "name": "Bluetooth Discoverable API PUT",
-        "type": "one-shot",
-        "method": "PUT",
-        "path": "/gotapi/connect/bluetooth/discoverable",
-        "requestParams": [
-            {
-                "name": "serviceId",
-                "type": "string",
-                "mandatory": true
-            }
-        ]
-    },
-    {
-        "name": "Bluetooth Discoverable API PUT",
-        "type": "one-shot",
-        "method": "DELETE",
-        "path": "/gotapi/connect/bluetooth/discoverable",
-        "requestParams": [
-            {
-                "name": "serviceId",
-                "type": "string",
-                "mandatory": true
-            }
-        ]
-    },
-    {
-        "name": "NFC Connect API GET",
-        "type": "one-shot",
-        "method": "GET",
-        "path": "/gotapi/connect/nfc",
-        "requestParams": [
-            {
-                "name": "serviceId",
-                "type": "string",
-                "mandatory": true
-            }
-        ]
-    },
-    {
-        "name": "NFC Connect API PUT",
-        "type": "one-shot",
-        "method": "PUT",
-        "path": "/gotapi/connect/nfc",
-        "requestParams": [
-            {
-                "name": "serviceId",
-                "type": "string",
-                "mandatory": true
-            }
-        ]
-    },
-    {
-        "name": "NFC Connect API DELETE",
-        "type": "one-shot",
-        "method": "DELETE",
-        "path": "/gotapi/connect/nfc",
-        "requestParams": [
-            {
-                "name": "serviceId",
-                "type": "string",
-                "mandatory": true
-            }
-        ]
-    },
-    {
-        "name": "NFC Connect Status Change Event API",
-        "type": "event",
-        "method": "PUT",
-        "path": "/gotapi/connect/onNfcChange",
-        "requestParams": [
-            {
-                "name": "serviceId",
-                "type": "string",
-                "mandatory": true
-            }
-        ]
-    },
-    {
-        "name": "NFC Connect Status Change Event API",
-        "type": "event",
-        "method": "DELETE",
-        "path": "/gotapi/connect/onNfcChange",
-        "requestParams": [
-            {
-                "name": "serviceId",
-                "type": "string",
-                "mandatory": true
-            }
-        ]
-    },
-    {
-        "name": "BLE Connect API GET",
-        "type": "one-shot",
-        "method": "GET",
-        "path": "/gotapi/connect/ble",
-        "requestParams": [
-            {
-                "name": "serviceId",
-                "type": "string",
-                "mandatory": true
-            }
-        ]
-    },
-    {
-        "name": "BLE Connect API PUT",
-        "type": "one-shot",
-        "method": "PUT",
-        "path": "/gotapi/connect/ble",
-        "requestParams": [
-            {
-                "name": "serviceId",
-                "type": "string",
-                "mandatory": true
-            }
-        ]
-    },
-    {
-        "name": "BLE Connect API DELETE",
-        "type": "one-shot",
-        "method": "DELETE",
-        "path": "/gotapi/connect/ble",
-        "requestParams": [
-            {
-                "name": "serviceId",
-                "type": "string",
-                "mandatory": true
-            }
-        ]
-    },
-    {
-        "name": "BLE Connect Status Change Event API",
-        "type": "event",
-        "method": "PUT",
-        "path": "/gotapi/connect/onBleChange",
-        "requestParams": [
-            {
-                "name": "serviceId",
-                "type": "string",
-                "mandatory": true
-            }
-        ]
-    },
-    {
-        "name": "BLE Connect Status Change Event API",
-        "type": "event",
-        "method": "DELETE",
-        "path": "/gotapi/connect/onBleChange",
-        "requestParams": [
-            {
-                "name": "serviceId",
-                "type": "string",
-                "mandatory": true
-            }
-        ]
+        }
     }
-]
+}

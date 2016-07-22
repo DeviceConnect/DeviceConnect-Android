@@ -25,8 +25,8 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="4dp"
             android:background="#888"
+            android:padding="4dp"
             android:text="@string/activity_device_setting"
             android:textColor="#FFF"
             android:textSize="14sp"
@@ -59,8 +59,8 @@
                 <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_centerInParent="true"
                     android:layout_alignParentRight="true"
+                    android:layout_centerInParent="true"
                     android:layout_marginTop="4dp"
                     android:orientation="vertical">
 
@@ -68,7 +68,10 @@
                         android:id="@+id/select_light_on_color"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_margin="8dp"
+                        android:layout_marginTop="2dp"
+                        android:layout_marginBottom="2dp"
+                        android:layout_marginLeft="8dp"
+                        android:layout_marginRight="8dp"
                         android:background="@drawable/linking_button_blue"
                         android:paddingLeft="8dp"
                         android:paddingRight="8dp"
@@ -79,7 +82,10 @@
                         android:id="@+id/select_light_on_pattern"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_margin="8dp"
+                        android:layout_marginTop="2dp"
+                        android:layout_marginBottom="2dp"
+                        android:layout_marginLeft="8dp"
+                        android:layout_marginRight="8dp"
                         android:background="@drawable/linking_button_blue"
                         android:paddingLeft="8dp"
                         android:paddingRight="8dp"
@@ -88,10 +94,10 @@
                 </LinearLayout>
 
                 <LinearLayout
-                    android:layout_centerInParent="true"
-                    android:layout_alignParentLeft="true"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_alignParentLeft="true"
+                    android:layout_centerInParent="true"
                     android:layout_marginTop="4dp"
                     android:orientation="vertical">
 
@@ -125,9 +131,9 @@
                     android:id="@+id/select_light_off"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_margin="8dp"
-                    android:layout_centerInParent="true"
                     android:layout_alignParentRight="true"
+                    android:layout_centerInParent="true"
+                    android:layout_margin="8dp"
                     android:background="@drawable/linking_button_blue"
                     android:paddingLeft="8dp"
                     android:paddingRight="8dp"
@@ -137,8 +143,8 @@
                 <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_centerInParent="true"
                     android:layout_alignParentLeft="true"
+                    android:layout_centerInParent="true"
                     android:layout_marginTop="4dp"
                     android:orientation="vertical">
 
@@ -205,9 +211,9 @@
                 <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:layout_centerInParent="true"
                     android:layout_alignParentLeft="true"
+                    android:layout_centerInParent="true"
+                    android:layout_marginTop="4dp"
                     android:orientation="vertical">
 
                     <TextView
@@ -228,10 +234,7 @@
                         android:textSize="9sp"
                         />
                 </LinearLayout>
-
-
             </RelativeLayout>
-
 
             <RelativeLayout
                 android:layout_width="match_parent"
@@ -256,9 +259,9 @@
                 <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
                     android:layout_alignParentLeft="true"
                     android:layout_centerInParent="true"
+                    android:layout_marginTop="4dp"
                     android:orientation="vertical">
 
                     <TextView
@@ -286,8 +289,8 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="4dp"
             android:background="#888"
+            android:padding="4dp"
             android:text="@string/activity_device_operation_check"
             android:textColor="#FFF"
             android:textSize="14sp"

@@ -84,7 +84,7 @@ class LinkingNotifySensor {
             Log.i(TAG, "LinkingNotifySensor:startOrientation: " + device.getDisplayName());
         }
 
-        startSensor(device.getBdAddress(), getSupportSensorType(device), 100);
+        startSensor(device.getBdAddress(), getSupportSensorType(device), 200);
     }
 
     public synchronized void disableListenOrientation(final LinkingDevice device,

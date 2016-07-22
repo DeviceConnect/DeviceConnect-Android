@@ -10,6 +10,7 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.ComponentName;
 import android.content.Intent;
+import android.content.res.AssetManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -43,11 +44,20 @@ import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.android.profile.DConnectProfileProvider;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
+import org.deviceconnect.android.profile.spec.DConnectProfileSpec;
+import org.deviceconnect.android.profile.spec.parser.DConnectProfileSpecJsonParser;
+import org.deviceconnect.android.profile.spec.parser.DConnectProfileSpecJsonParserFactory;
 import org.deviceconnect.android.provider.FileManager;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
+import org.json.JSONException;
+import org.json.JSONObject;
 
+import java.io.ByteArrayOutputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -69,6 +79,9 @@ public abstract class DConnectMessageService extends Service
 
     /** Notification ID.*/
     private static final int ONGOING_NOTIFICATION_ID = 4035;
+
+    /** プロファイル仕様定義ファイルの拡張子. */
+    private static final String SPEC_FILE_EXTENSION = ".json";
 
     /** サービスIDやセッションキーを分割するセパレータ. */
     public static final String SEPARATOR = ".";
@@ -164,6 +177,8 @@ public abstract class DConnectMessageService extends Service
         // dConnect Managerで処理せず、登録されたデバイスプラグインに処理させるプロファイル
         setDeliveryProfile(new DConnectDeliveryProfile(mPluginMgr, mLocalOAuth,
                 mSettings.requireOrigin()));
+
+        loadProfileSpecs();
     }
 
     @Override
@@ -462,6 +477,66 @@ public abstract class DConnectMessageService extends Service
         if (profile != null) {
             profile.setContext(this);
             mProfileMap.put(profile.getProfileName(), profile);
+        }
+    }
+
+    private void loadProfileSpecs() {
+        for (DConnectProfile profile : mProfileMap.values()) {
+            final String profileName = profile.getProfileName();
+            try {
+                profile.setProfileSpec(loadProfileSpec(profileName));
+                mLogger.info("Loaded a profile spec: " + profileName);
+            } catch (IOException e) {
+                throw new RuntimeException("Failed to load a profile spec: " + profileName, e);
+            } catch (JSONException e) {
+                throw new RuntimeException("Failed to load a profile spec: " + profileName, e);
+            }
+        }
+    }
+
+    private DConnectProfileSpec loadProfileSpec(final String profileName)
+        throws IOException, JSONException {
+        AssetManager assets = getAssets();
+        String path = findProfileSpecPath(assets, profileName);
+        if (path == null) {
+            return null;
+        }
+        String json = loadFile(assets.open(path));
+        DConnectProfileSpecJsonParser parser =
+            DConnectProfileSpecJsonParserFactory.getDefaultFactory().createParser();
+        return parser.parseJson(new JSONObject(json));
+    }
+
+    private static String findProfileSpecPath(final AssetManager assets, final String profileName)
+        throws IOException {
+        String[] fileNames = assets.list("api");
+        if (fileNames == null) {
+            return null;
+        }
+        for (String fileFullName : fileNames) {
+            if (!fileFullName.endsWith(SPEC_FILE_EXTENSION)) {
+                continue;
+            }
+            String fileName = fileFullName.substring(0,
+                fileFullName.length() - SPEC_FILE_EXTENSION.length());
+            if (fileName.equalsIgnoreCase(profileName)) {
+                return "api/" + fileFullName;
+            }
+        }
+        throw new FileNotFoundException("A spec file is not found: " + profileName);
+    }
+
+    private static String loadFile(final InputStream in) throws IOException {
+        try {
+            byte[] buf = new byte[1024];
+            int len;
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            while ((len = in.read(buf)) > 0) {
+                baos.write(buf, 0, len);
+            }
+            return new String(baos.toByteArray());
+        } finally {
+            in.close();
         }
     }
 

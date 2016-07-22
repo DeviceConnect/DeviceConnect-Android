@@ -38,6 +38,9 @@ public class ArrayDataSpec extends DConnectDataSpec {
             return true;
         }
         String arrayParam = obj.toString();
+        if (arrayParam.equals("")) { // TODO allowEmptyValueに対応
+            return true;
+        }
         String[] items = arrayParam.split(","); // TODO csv以外の形式に対応
         for (String item : items) {
             if (!mItemsSpec.validate(item)) {

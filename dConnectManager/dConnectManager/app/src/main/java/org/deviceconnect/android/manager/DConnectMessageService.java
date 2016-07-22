@@ -45,6 +45,8 @@ import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.android.profile.DConnectProfileProvider;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.android.profile.spec.DConnectProfileSpec;
+import org.deviceconnect.android.profile.spec.parser.DConnectProfileSpecJsonParser;
+import org.deviceconnect.android.profile.spec.parser.DConnectProfileSpecJsonParserFactory;
 import org.deviceconnect.android.provider.FileManager;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
@@ -500,7 +502,9 @@ public abstract class DConnectMessageService extends Service
             return null;
         }
         String json = loadFile(assets.open(path));
-        return DConnectProfileSpec.fromJson(new JSONObject(json));
+        DConnectProfileSpecJsonParser parser =
+            DConnectProfileSpecJsonParserFactory.getDefaultFactory().createParser();
+        return parser.parseJson(new JSONObject(json));
     }
 
     private static String findProfileSpecPath(final AssetManager assets, final String profileName)

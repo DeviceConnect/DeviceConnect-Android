@@ -310,6 +310,7 @@ class SwaggerJsonParser implements DConnectProfileSpecJsonParser, DConnectSpecCo
             if (json.has(KEY_REQUIRED)) {
                 builder.setRequired(json.getBoolean(KEY_REQUIRED));
             }
+            builder.setFormat(dataSpec.getFormat());
             builder.setMaximum(dataSpec.getMaximum());
             builder.setMinimum(dataSpec.getMinimum());
             builder.setExclusiveMaximum(dataSpec.isExclusiveMaximum());
@@ -330,6 +331,7 @@ class SwaggerJsonParser implements DConnectProfileSpecJsonParser, DConnectSpecCo
             if (json.has(KEY_REQUIRED)) {
                 builder.setRequired(json.getBoolean(KEY_REQUIRED));
             }
+            builder.setFormat(dataSpec.getFormat());
             builder.setMaximum(dataSpec.getMaximum());
             builder.setMinimum(dataSpec.getMinimum());
             builder.setExclusiveMaximum(dataSpec.isExclusiveMaximum());
@@ -349,6 +351,7 @@ class SwaggerJsonParser implements DConnectProfileSpecJsonParser, DConnectSpecCo
             if (json.has(KEY_REQUIRED)) {
                 builder.setRequired(json.getBoolean(KEY_REQUIRED));
             }
+            builder.setFormat(dataSpec.getFormat());
             builder.setMaxLength(dataSpec.getMaxLength());
             builder.setMinLength(dataSpec.getMinLength());
             builder.setEnumList(dataSpec.getEnumList());

@@ -17,6 +17,7 @@ import org.deviceconnect.android.profile.api.GetApi;
 import org.deviceconnect.android.profile.spec.DConnectApiSpecFilter;
 import org.deviceconnect.android.profile.spec.DConnectProfileSpec;
 import org.deviceconnect.message.DConnectMessage;
+import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 import org.deviceconnect.profile.ServiceInformationProfileConstants;
 
 import java.util.List;
@@ -44,15 +45,29 @@ public class ServiceInformationProfile extends DConnectProfile implements Servic
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            String serviceId = getService().getId();
-
             // connect
             Bundle connect = new Bundle();
-            setWifiState(connect, getWifiState(serviceId));
-            setBluetoothState(connect, getBluetoothState(serviceId));
-            setNFCState(connect, getNFCState(serviceId));
-            setBLEState(connect, getBLEState(serviceId));
+            String networkType = getService().getNetworkType();
+            boolean isOnline = getService().isOnline();
+            switch (ServiceDiscoveryProfileConstants.NetworkType.getInstance(networkType)) {
+                case WIFI:
+                    setWifiState(connect, isOnline);
+                    break;
+                case BLUETOOTH:
+                    setBluetoothState(connect, isOnline);
+                    break;
+                case BLE:
+                    setBLEState(connect, isOnline);
+                    break;
+                case NFC:
+                    setNFCState(connect, isOnline);
+                    break;
+                default:
+                    break;
+            }
             setConnect(response, connect);
+
+            // TODO: getXXXStateメソッドを削除する。
 
             // version
             setVersion(response, getCurrentVersionName());

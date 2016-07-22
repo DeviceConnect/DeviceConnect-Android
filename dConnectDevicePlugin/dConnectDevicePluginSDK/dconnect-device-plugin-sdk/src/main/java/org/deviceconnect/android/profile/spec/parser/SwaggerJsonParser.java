@@ -28,7 +28,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 
 class SwaggerJsonParser implements DConnectProfileSpecJsonParser, DConnectSpecConstants {
 
@@ -157,7 +156,7 @@ class SwaggerJsonParser implements DConnectProfileSpecJsonParser, DConnectSpecCo
             if (pathsObj == null) {
                 return tmpBundle;
             }
-            Set<String> pathNames = pathsObj.keySet();
+            List<String> pathNames = new ArrayList<String>(pathsObj.keySet());
             if (pathNames == null) {
                 return tmpBundle;
             }

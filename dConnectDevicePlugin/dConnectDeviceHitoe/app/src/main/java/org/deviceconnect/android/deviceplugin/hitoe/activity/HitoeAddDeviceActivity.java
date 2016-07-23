@@ -234,7 +234,9 @@ public class HitoeAddDeviceActivity extends HitoeListActivity  implements HitoeM
             public void run() {
                 if (mCheckDialog) {
                     HitoeDevice containar = findDeviceContainerByAddress(hitoe.getId());
-                    containar.setPinCode(null);
+                    if (containar != null) {
+                        containar.setPinCode(null);
+                    }
 
                     runOnUiThread(new Runnable() {
                         @Override

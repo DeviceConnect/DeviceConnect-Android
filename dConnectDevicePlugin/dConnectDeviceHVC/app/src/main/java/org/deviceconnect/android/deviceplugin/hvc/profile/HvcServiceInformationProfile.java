@@ -6,14 +6,15 @@
  */
 package org.deviceconnect.android.deviceplugin.hvc.profile;
 
-import java.util.LinkedList;
-import java.util.List;
-
-import org.deviceconnect.android.profile.DConnectProfileProvider;
-import org.deviceconnect.android.profile.ServiceInformationProfile;
-
 import android.content.Intent;
 import android.os.Bundle;
+
+import org.deviceconnect.android.profile.ServiceInformationProfile;
+import org.deviceconnect.android.profile.api.DConnectApi;
+import org.deviceconnect.android.profile.api.GetApi;
+
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Hvc service information profile.
@@ -39,32 +40,32 @@ public class HvcServiceInformationProfile extends ServiceInformationProfile {
      */
     private static final String PARAM_HEIGHT = "height";
 
+    private final DConnectApi mServiceInformationApi = new GetApi() {
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            appendServiceInformation(response);
+
+            // Proprietary extensions for HumanDetect.
+
+            Bundle camera = new Bundle();
+            camera.putInt(PARAM_WIDTH, HvcConstants.HVC_C_CAMERA_WIDTH);
+            camera.putInt(PARAM_HEIGHT, HvcConstants.HVC_C_CAMERA_HEIGHT);
+
+            List<Bundle> cameraArray = new LinkedList<Bundle>();
+            cameraArray.add(camera);
+
+            Bundle humandetect = new Bundle();
+            humandetect.putParcelableArray(PARAM_CAMERA, cameraArray.toArray(new Bundle[cameraArray.size()]));
+            response.putExtra(PARAM_HUMANDETECT, humandetect);
+
+            return true;
+        }
+    };
+
     /**
      * Constructor.
-     * @param provider provider
      */
-    public HvcServiceInformationProfile(final DConnectProfileProvider provider) {
-        super(provider);
-    }
-
-    @Override
-    protected boolean onGetInformation(final Intent request, final Intent response, final String serviceId) {
-        
-        boolean result = super.onGetInformation(request, response, serviceId);
-        
-        // Proprietary extensions for HumanDetect.
-        
-        Bundle camera = new Bundle();
-        camera.putInt(PARAM_WIDTH, HvcConstants.HVC_C_CAMERA_WIDTH);
-        camera.putInt(PARAM_HEIGHT, HvcConstants.HVC_C_CAMERA_HEIGHT);
-        
-        List<Bundle> cameraArray = new LinkedList<Bundle>();
-        cameraArray.add(camera);
-        
-        Bundle humandetect = new Bundle();
-        humandetect.putParcelableArray(PARAM_CAMERA, cameraArray.toArray(new Bundle[cameraArray.size()]));
-        response.putExtra(PARAM_HUMANDETECT, humandetect);
-        
-        return result;
+    public HvcServiceInformationProfile() {
+        addApi(mServiceInformationApi);
     }
 }

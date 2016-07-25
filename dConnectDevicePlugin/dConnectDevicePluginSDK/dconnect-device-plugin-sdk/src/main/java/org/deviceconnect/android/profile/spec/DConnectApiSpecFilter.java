@@ -1,8 +1,8 @@
 package org.deviceconnect.android.profile.spec;
 
 
-public interface DConnectApiSpecFilter {
+public interface DConnectApiSpecFilter extends DConnectSpecConstants {
 
-    boolean filter(DConnectApiSpec apiSpec);
+    boolean filter(String path, Method method);
 
 }

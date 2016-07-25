@@ -18,9 +18,11 @@ import org.deviceconnect.android.compat.MessageConverter;
 import org.deviceconnect.android.manager.compat.CompatibleRequestConverter;
 import org.deviceconnect.android.manager.compat.ServiceDiscoveryConverter;
 import org.deviceconnect.android.manager.compat.ServiceInformationConverter;
+import org.deviceconnect.android.manager.keepalive.KeepAliveManager;
 import org.deviceconnect.android.manager.util.DConnectUtil;
 import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.message.DConnectMessage;
+import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 import org.deviceconnect.server.DConnectServer;
 import org.deviceconnect.server.DConnectServerConfig;
 import org.deviceconnect.server.nanohttpd.DConnectServerNanoHttpd;
@@ -89,6 +91,32 @@ public class DConnectService extends DConnectMessageService {
     }
 
     @Override
+    public int onStartCommand(final Intent intent, final int flags, final int startId) {
+        String action = intent.getAction();
+        if (action == null) {
+            mLogger.warning("action is null.");
+            return START_STICKY;
+        }
+
+        if (IntentDConnectMessage.ACTION_KEEPALIVE.equals(action)) {
+            String status = intent.getStringExtra(IntentDConnectMessage.EXTRA_KEEPALIVE_STATUS);
+            if (status.equals("RESPONSE")) {
+                String serviceId = intent.getStringExtra("serviceId");
+                if (serviceId != null) {
+                    KeepAliveManager.getInstance().getKeepAlive(serviceId).setResponseFlag();
+                }
+            } else if (status.equals("DISCONNECT")) {
+                String sessionKey = intent.getStringExtra(IntentDConnectMessage.EXTRA_SESSION_KEY);
+                if (sessionKey != null) {
+                    sendDisconnectWebSocket(sessionKey);
+                }
+            }
+            return START_STICKY;
+        }
+        return super.onStartCommand(intent, flags, startId);
+    }
+
+    @Override
     public void sendResponse(final Intent request, final Intent response) {
         Intent intent = createResponseIntent(request, response);
         if (INNER_TYPE_HTTP.equals(request.getStringExtra(EXTRA_INNER_TYPE))) {
@@ -127,6 +155,25 @@ public class DConnectService extends DConnectMessageService {
                 });
         } else {
             super.sendEvent(receiver, event);
+        }
+    }
+
+    /**
+     * 該当セッションキーを持つWebSocket切断要求を送る.
+     * @param sessionKey セッションキー.
+     */
+    public void sendDisconnectWebSocket(final String sessionKey) {
+        if (sessionKey != null) {
+            mEventSender.execute(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        mRESTfulServer.disconnectionWebSocket(sessionKey);
+                    } catch (IOException e) {
+                        mLogger.warning("IOException in disconnectWebSocket: " + e.toString());
+                    }
+                }
+            });
         }
     }
 

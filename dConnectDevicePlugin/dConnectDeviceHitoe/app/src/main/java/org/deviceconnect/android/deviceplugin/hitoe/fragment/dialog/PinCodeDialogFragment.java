@@ -13,6 +13,7 @@ import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
+import android.text.InputType;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
@@ -63,6 +64,7 @@ public class PinCodeDialogFragment extends DialogFragment {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         builder.setTitle(getString(R.string.dialog_title_pin_input));
         final EditText pinEdit = (EditText) layout.findViewById(R.id.input_pin);
+        pinEdit.setInputType(InputType.TYPE_CLASS_NUMBER);
         builder.setView(layout);
         builder.setPositiveButton(R.string.hitoe_setting_dialog_positive,
                 new DialogInterface.OnClickListener() {

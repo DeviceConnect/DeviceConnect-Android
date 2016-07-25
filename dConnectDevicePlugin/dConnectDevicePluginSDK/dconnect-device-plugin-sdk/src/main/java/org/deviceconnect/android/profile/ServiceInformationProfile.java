@@ -45,44 +45,7 @@ public class ServiceInformationProfile extends DConnectProfile implements Servic
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            // connect
-            Bundle connect = new Bundle();
-            String networkType = getService().getNetworkType();
-            boolean isOnline = getService().isOnline();
-            switch (ServiceDiscoveryProfileConstants.NetworkType.getInstance(networkType)) {
-                case WIFI:
-                    setWifiState(connect, isOnline);
-                    break;
-                case BLUETOOTH:
-                    setBluetoothState(connect, isOnline);
-                    break;
-                case BLE:
-                    setBLEState(connect, isOnline);
-                    break;
-                case NFC:
-                    setNFCState(connect, isOnline);
-                    break;
-                default:
-                    break;
-            }
-            setConnect(response, connect);
-
-            // TODO: getXXXStateメソッドを削除する。
-
-            // version
-            setVersion(response, getCurrentVersionName());
-
-            // supports, supportApis
-            List<DConnectProfile> profileList = getService().getProfileList();
-            String[] profileNames = new String[profileList.size()];
-            int i = 0;
-            for (DConnectProfile profile : profileList) {
-                profileNames[i++] = profile.getProfileName();
-            }
-            setSupports(response, profileNames);
-            setSupportApis(response, profileList);
-
-            setResult(response, DConnectMessage.RESULT_OK);
+            appendServiceInformation(response);
             return true;
         }
     };
@@ -97,6 +60,47 @@ public class ServiceInformationProfile extends DConnectProfile implements Servic
     @Override
     public final String getProfileName() {
         return PROFILE_NAME;
+    }
+
+    protected void appendServiceInformation(final Intent response) {
+        // connect
+        Bundle connect = new Bundle();
+        String networkType = getService().getNetworkType();
+        boolean isOnline = getService().isOnline();
+        switch (ServiceDiscoveryProfileConstants.NetworkType.getInstance(networkType)) {
+            case WIFI:
+                setWifiState(connect, isOnline);
+                break;
+            case BLUETOOTH:
+                setBluetoothState(connect, isOnline);
+                break;
+            case BLE:
+                setBLEState(connect, isOnline);
+                break;
+            case NFC:
+                setNFCState(connect, isOnline);
+                break;
+            default:
+                break;
+        }
+        setConnect(response, connect);
+
+        // TODO: getXXXStateメソッドを削除する。
+
+        // version
+        setVersion(response, getCurrentVersionName());
+
+        // supports, supportApis
+        List<DConnectProfile> profileList = getService().getProfileList();
+        String[] profileNames = new String[profileList.size()];
+        int i = 0;
+        for (DConnectProfile profile : profileList) {
+            profileNames[i++] = profile.getProfileName();
+        }
+        setSupports(response, profileNames);
+        setSupportApis(response, profileList);
+
+        setResult(response, DConnectMessage.RESULT_OK);
     }
 
     /**

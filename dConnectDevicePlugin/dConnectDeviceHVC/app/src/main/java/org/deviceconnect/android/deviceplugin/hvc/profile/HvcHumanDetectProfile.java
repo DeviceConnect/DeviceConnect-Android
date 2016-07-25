@@ -6,7 +6,8 @@
  */
 package org.deviceconnect.android.deviceplugin.hvc.profile;
 
-import java.util.List;
+import android.content.Intent;
+import android.content.pm.PackageManager;
 
 import org.deviceconnect.android.deviceplugin.hvc.BuildConfig;
 import org.deviceconnect.android.deviceplugin.hvc.HvcDeviceService;
@@ -17,9 +18,10 @@ import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.HumanDetectProfile;
-
-import android.content.Intent;
-import android.content.pm.PackageManager;
+import org.deviceconnect.android.profile.api.DConnectApi;
+import org.deviceconnect.android.profile.api.DeleteApi;
+import org.deviceconnect.android.profile.api.GetApi;
+import org.deviceconnect.android.profile.api.PutApi;
 
 
 /**
@@ -43,77 +45,164 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
      * error message. {@value}
      */
     protected static final String ERROR_BLE_NOT_AVAILABLE = "ble not available.";
-    
+
     //
     // Get Detection API
     //
-    
-    @Override
-    protected boolean onGetBodyDetection(final Intent request, final Intent response, final String serviceId,
-            final List<String> options) {
 
-        return doGetDetectionProc(request, response, serviceId, options, HumanDetectKind.BODY);
-    }
+    private final DConnectApi mGetBodyDetectionApi = new GetApi() {
+        @Override
+        public String getInterface() {
+            return INTERFACE_DETECTION;
+        }
 
-    @Override
-    protected boolean onGetHandDetection(final Intent request, final Intent response, final String serviceId,
-            final List<String> options) {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_BODY_DETECTION;
+        }
 
-        return doGetDetectionProc(request, response, serviceId, options, HumanDetectKind.HAND);
-    }
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            return doGetDetectionProc(request, response, getServiceID(request),
+                HumanDetectKind.BODY);
+        }
+    };
 
-    @Override
-    protected boolean onGetFaceDetection(final Intent request, final Intent response, final String serviceId,
-            final List<String> options) {
+    private final DConnectApi mGetHandDetectionApi = new GetApi() {
+        @Override
+        public String getInterface() {
+            return INTERFACE_DETECTION;
+        }
 
-        return doGetDetectionProc(request, response, serviceId, options, HumanDetectKind.FACE);
-    }
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_HAND_DETECTION;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            return doGetDetectionProc(request, response, getServiceID(request),
+                HumanDetectKind.HAND);
+        }
+    };
+
+    private final DConnectApi mGetFaceDetectionApi = new GetApi() {
+        @Override
+        public String getInterface() {
+            return INTERFACE_DETECTION;
+        }
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_FACE_DETECTION;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            return doGetDetectionProc(request, response, getServiceID(request),
+                HumanDetectKind.FACE);
+        }
+    };
 
     //
     // Put Detection API
     //
-    
-    @Override
-    protected boolean onPutOnBodyDetection(final Intent request, final Intent response, final String serviceId,
-            final String sessionKey) {
 
-        return doPutDetectionProc(request, response, serviceId, sessionKey, HumanDetectKind.BODY);
-    }
-    
-    @Override
-    protected boolean onPutOnHandDetection(final Intent request, final Intent response, final String serviceId,
-            final String sessionKey) {
+    private final DConnectApi mPutBodyDetectionApi = new PutApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_BODY_DETECTION;
+        }
 
-        return doPutDetectionProc(request, response, serviceId, sessionKey, HumanDetectKind.HAND);
-    }
-    
-    @Override
-    protected boolean onPutOnFaceDetection(final Intent request, final Intent response, final String serviceId,
-            final String sessionKey) {
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            return doPutDetectionProc(request, response, getServiceID(request),
+                getSessionKey(request), HumanDetectKind.BODY);
+        }
+    };
 
-        return doPutDetectionProc(request, response, serviceId, sessionKey, HumanDetectKind.FACE);
-    }
+    private final DConnectApi mPutHandDetectionApi = new PutApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_HAND_DETECTION;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            return doPutDetectionProc(request, response, getServiceID(request),
+                getSessionKey(request), HumanDetectKind.HAND);
+        }
+    };
+
+    private final DConnectApi mPutFaceDetectionApi = new PutApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_FACE_DETECTION;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            return doPutDetectionProc(request, response, getServiceID(request),
+                getSessionKey(request), HumanDetectKind.FACE);
+        }
+    };
     
     //
     // Delete Detection API
     //
-    
-    @Override
-    protected boolean onDeleteOnBodyDetection(final Intent request, final Intent response, final String serviceId,
-            final String sessionKey) {
-        return doDeleteDetectionProc(request, response, serviceId, sessionKey, HumanDetectKind.BODY);
-    }
-    
-    @Override
-    protected boolean onDeleteOnHandDetection(final Intent request, final Intent response, final String serviceId,
-            final String sessionKey) {
-        return doDeleteDetectionProc(request, response, serviceId, sessionKey, HumanDetectKind.HAND);
-    }
-    
-    @Override
-    protected boolean onDeleteOnFaceDetection(final Intent request, final Intent response, final String serviceId,
-            final String sessionKey) {
-        return doDeleteDetectionProc(request, response, serviceId, sessionKey, HumanDetectKind.FACE);
+
+    private final DConnectApi mDeleteBodyDetectionApi = new DeleteApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_BODY_DETECTION;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            return doDeleteDetectionProc(request, response, getServiceID(request),
+                getSessionKey(request), HumanDetectKind.BODY);
+        }
+    };
+
+    private final DConnectApi mDeleteHandDetectionApi = new DeleteApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_HAND_DETECTION;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            return doDeleteDetectionProc(request, response, getServiceID(request),
+                getSessionKey(request), HumanDetectKind.HAND);
+        }
+    };
+
+    private final DConnectApi mDeleteFaceDetectionApi = new DeleteApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_FACE_DETECTION;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            return doDeleteDetectionProc(request, response, getServiceID(request),
+                getSessionKey(request), HumanDetectKind.FACE);
+        }
+    };
+
+    /**
+     * Constructor.
+     */
+    public HvcHumanDetectProfile() {
+        addApi(mGetBodyDetectionApi);
+        addApi(mGetHandDetectionApi);
+        addApi(mGetFaceDetectionApi);
+        addApi(mPutBodyDetectionApi);
+        addApi(mPutHandDetectionApi);
+        addApi(mPutFaceDetectionApi);
+        addApi(mDeleteBodyDetectionApi);
+        addApi(mDeleteHandDetectionApi);
+        addApi(mDeleteFaceDetectionApi);
     }
     
     /**
@@ -122,24 +211,20 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
      * @param request request
      * @param response response
      * @param serviceId serviceId
-     * @param options options
      * @param detectKind detectKind
      * @return send response flag.(true:sent / false: unsent (Send after the
      *         thread has been completed))
      */
     protected boolean doGetDetectionProc(final Intent request, final Intent response,
-            final String serviceId, final List<String> options, final HumanDetectKind detectKind) {
+            final String serviceId, final HumanDetectKind detectKind) {
         
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-            return true;
-        } else if (!getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
+        if (!getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
             // ble not available.
             MessageUtils.setNotSupportProfileError(response, ERROR_BLE_NOT_AVAILABLE);
             return true;
         } else {
             // get parameter.
-            HumanDetectRequestParams requestParams = null;
+            HumanDetectRequestParams requestParams;
             try {
                 requestParams = HvcDetectRequestUtils.getRequestParams(request, response, detectKind);
             } catch (IllegalStateException e) {
@@ -181,9 +266,7 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
     protected boolean doPutDetectionProc(final Intent request, final Intent response,
             final String serviceId, final String sessionKey, final HumanDetectKind detectKind) {
         
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (sessionKey == null) {
+        if (sessionKey == null) {
             createEmptySessionKey(response);
         } else if (!getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
             // ble not available.
@@ -191,7 +274,7 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
             return true;
         } else {
             // get parameter.
-            HumanDetectRequestParams requestParams = null;
+            HumanDetectRequestParams requestParams;
             try {
                 requestParams = HvcDetectRequestUtils.getRequestParams(request, response, detectKind);
             } catch (IllegalStateException e) {
@@ -238,9 +321,7 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
     private boolean doDeleteDetectionProc(final Intent request, final Intent response, final String serviceId,
             final String sessionKey, final HumanDetectKind detectKind) {
         
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (sessionKey == null) {
+        if (sessionKey == null) {
             createEmptySessionKey(response);
         } else {
             // unregister event.
@@ -255,16 +336,6 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
             }
         }
         return true;
-    }
-    
-    
-    /**
-     * create empty serviceId error response.
-     * 
-     * @param response response
-     */
-    private void createEmptyServiceId(final Intent response) {
-        MessageUtils.setEmptyServiceIdError(response);
     }
 
     /**

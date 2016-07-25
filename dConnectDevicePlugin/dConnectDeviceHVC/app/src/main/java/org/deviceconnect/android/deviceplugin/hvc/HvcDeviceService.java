@@ -21,15 +21,14 @@ import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectRequest
 import org.deviceconnect.android.deviceplugin.hvc.profile.HvcConstants;
 import org.deviceconnect.android.deviceplugin.hvc.profile.HvcHumanDetectProfile;
 import org.deviceconnect.android.deviceplugin.hvc.profile.HvcServiceDiscoveryProfile;
-import org.deviceconnect.android.deviceplugin.hvc.profile.HvcServiceInformationProfile;
 import org.deviceconnect.android.deviceplugin.hvc.profile.HvcSystemProfile;
+import org.deviceconnect.android.deviceplugin.hvc.service.HvcService;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.event.cache.MemoryCacheController;
 import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.message.MessageUtils;
-import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
-import org.deviceconnect.android.profile.ServiceInformationProfile;
 import org.deviceconnect.android.profile.SystemProfile;
+import org.deviceconnect.android.service.DConnectService;
 import org.deviceconnect.message.DConnectMessage;
 
 import java.util.ArrayList;
@@ -90,6 +89,7 @@ public class HvcDeviceService extends DConnectMessageService {
         EventManager.INSTANCE.setController(new MemoryCacheController());
 
         // add supported profiles
+        addProfile(new HvcServiceDiscoveryProfile(getServiceProvider()));
         addProfile(new HvcHumanDetectProfile());
         
         // start timeout judget timer.
@@ -127,17 +127,6 @@ public class HvcDeviceService extends DConnectMessageService {
     @Override
     protected SystemProfile getSystemProfile() {
         return new HvcSystemProfile();
-    }
-
-    @Override
-    protected ServiceInformationProfile getServiceInformationProfile() {
-        return new HvcServiceInformationProfile(this) {
-        };
-    }
-
-    @Override
-    protected ServiceDiscoveryProfile getServiceDiscoveryProfile() {
-        return new HvcServiceDiscoveryProfile(this);
     }
 
     //
@@ -394,6 +383,15 @@ public class HvcDeviceService extends DConnectMessageService {
                     synchronized (mCacheDeviceList) {
                         mCacheDeviceList.clear();
                         mCacheDeviceList.addAll(devices);
+                    }
+
+                    for (BluetoothDevice device : devices) {
+                        DConnectService service = getServiceProvider().getService(device.getAddress());
+                        if (service == null) {
+                            service = new HvcService(device);
+                            service.setOnline(true);
+                            getServiceProvider().addService(service);
+                        }
                     }
                 }
             });

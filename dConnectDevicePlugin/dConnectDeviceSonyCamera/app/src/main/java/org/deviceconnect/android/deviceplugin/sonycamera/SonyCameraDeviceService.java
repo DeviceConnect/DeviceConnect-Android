@@ -241,34 +241,36 @@ public class SonyCameraDeviceService extends DConnectMessageService {
         /** 全イベント削除. */
         EventManager.INSTANCE.removeAll();
 
-        /** 記録中判定 */
-        if (SONY_CAMERA_STATUS_RECORDING.equals(mEventObserver.getCameraStatus())) {
-            if (SONY_CAMERA_SHOOT_MODE_MOVIE.equals(mEventObserver.getShootMode())) {
-                if (mRemoteApi != null) {
-                    try {
-                        mRemoteApi.stopMovieRec();
-                    } catch (IOException e) {
-                        mLogger.warning("Exception occurred in stopMovieRec." + e.toString());
+        if (mEventObserver != null) {
+            /** 記録中判定 */
+            if (SONY_CAMERA_STATUS_RECORDING.equals(mEventObserver.getCameraStatus())) {
+                if (SONY_CAMERA_SHOOT_MODE_MOVIE.equals(mEventObserver.getShootMode())) {
+                    if (mRemoteApi != null) {
+                        try {
+                            mRemoteApi.stopMovieRec();
+                        } catch (IOException e) {
+                            mLogger.warning("Exception occurred in stopMovieRec." + e.toString());
+                        }
                     }
                 }
             }
+            /** プレビュー停止 */
+            mExecutor.execute(new Runnable() {
+                @Override
+                public void run() {
+                    while (!(SONY_CAMERA_STATUS_IDLE.equals(mEventObserver.getCameraStatus()))) {
+                        try {
+                            Thread.sleep(PERIOD_WAIT_TIME);
+                        } catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
+                        }
+                    }
+                    if (mWhileFetching && mRemoteApi != null) {
+                        stopPreview();
+                    }
+                }
+            });
         }
-        /** プレビュー停止 */
-        mExecutor.execute(new Runnable() {
-            @Override
-            public void run() {
-                while (!(SONY_CAMERA_STATUS_IDLE.equals(mEventObserver.getCameraStatus()))) {
-                    try {
-                        Thread.sleep(PERIOD_WAIT_TIME);
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                    }
-                }
-                if (mWhileFetching && mRemoteApi != null) {
-                    stopPreview();
-                }
-            }
-        });
     }
 
     @Override

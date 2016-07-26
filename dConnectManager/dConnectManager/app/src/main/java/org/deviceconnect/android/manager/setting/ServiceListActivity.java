@@ -1,12 +1,16 @@
 package org.deviceconnect.android.manager.setting;
 
+import android.animation.Animator;
 import android.app.Activity;
+import android.app.DialogFragment;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.RemoteException;
@@ -18,6 +22,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.GridView;
 import android.widget.ImageView;
@@ -30,6 +35,8 @@ import org.deviceconnect.android.manager.DevicePlugin;
 import org.deviceconnect.android.manager.DevicePluginManager;
 import org.deviceconnect.android.manager.IDConnectService;
 import org.deviceconnect.android.manager.R;
+import org.deviceconnect.android.manager.util.AnimationUtil;
+import org.deviceconnect.android.manager.util.DConnectUtil;
 import org.deviceconnect.android.manager.util.ServiceContainer;
 import org.deviceconnect.android.manager.util.ServiceDiscovery;
 
@@ -41,10 +48,20 @@ public class ServiceListActivity extends Activity {
     private static final boolean DEBUG = BuildConfig.DEBUG;
     private static final String TAG = "Manager";
 
+    private static final String FILE_NAME = "__service_list__.dat";
+    private static final String KEY_SHOW_GUIDE = "show_guide";
+
+    private static final int[] GUIDE_ID_LIST = {
+            R.id.activity_service_guide_1,
+            R.id.activity_service_guide_2,
+    };
+
     private ServiceAdapter mServiceAdapter;
     private DevicePluginManager mDevicePluginManager;
+    private SharedPreferences mSharedPreferences;
 
     private Switch mSwitchAction;
+    private int mPageIndex;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -76,6 +93,10 @@ public class ServiceListActivity extends Activity {
 
         DConnectApplication app = (DConnectApplication) getApplication();
         mDevicePluginManager = app.getDevicePluginManager();
+
+        if (load(this)) {
+            showGuide();
+        }
     }
 
     @Override
@@ -92,7 +113,7 @@ public class ServiceListActivity extends Activity {
         intent.setPackage(getPackageName());
         bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
 
-        if (mDevicePluginManager.getDevicePlugins().size() == 0) {
+        if (!hasDevicePlugins()) {
             showNoDevicePlugin();
         }
     }
@@ -135,7 +156,102 @@ public class ServiceListActivity extends Activity {
         return super.onOptionsItemSelected(item);
     }
 
+    private boolean hasDevicePlugins() {
+        return mDevicePluginManager.getDevicePlugins().size() > 0;
+    }
+
+    private boolean load(final Context context) {
+        mSharedPreferences = context.getSharedPreferences(FILE_NAME, Context.MODE_PRIVATE);
+        return mSharedPreferences.getBoolean(KEY_SHOW_GUIDE, true);
+    }
+
+    private void save(final boolean showGuideFlag) {
+        SharedPreferences.Editor editor = mSharedPreferences.edit();
+        editor.putBoolean(KEY_SHOW_GUIDE, showGuideFlag);
+        editor.apply();
+    }
+
+    private void showGuide() {
+        View guideView = findViewById(R.id.activity_service_guide);
+        if (guideView != null) {
+            guideView.setVisibility(View.VISIBLE);
+            guideView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(final View v) {
+                    nextGuide();
+                }
+            });
+        }
+
+        Button button = (Button) findViewById(R.id.activity_service_guide_button);
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                nextGuide();
+            }
+        });
+    }
+
+    private void nextGuide() {
+        if (mPageIndex == GUIDE_ID_LIST.length - 1) {
+            endGuide();
+        } else {
+            animateGuide(new AnimationUtil.AnimationAdapter() {
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    mPageIndex++;
+                    visibleGuide();
+                }
+            });
+        }
+    }
+
+    private void animateGuide(final AnimationUtil.AnimationAdapter listener) {
+        for (int i = 0; i < GUIDE_ID_LIST.length; i++) {
+            View view = findViewById(GUIDE_ID_LIST[i]);
+            if (i == mPageIndex) {
+                AnimationUtil.animateAlpha(view, listener);
+            }
+        }
+    }
+
+    private void visibleGuide() {
+        for (int i = 0; i < GUIDE_ID_LIST.length; i++) {
+            View view = findViewById(GUIDE_ID_LIST[i]);
+            if (i == mPageIndex) {
+                view.setVisibility(View.VISIBLE);
+                AnimationUtil.animateAlpha2(view, new AnimationUtil.AnimationAdapter() {
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        Log.e("ABC", "abc");
+                    }
+                });
+            } else {
+                view.setVisibility(View.GONE);
+            }
+        }
+    }
+
+    private void endGuide() {
+        boolean result = true;
+        CheckBox checkBox = (CheckBox) findViewById(R.id.activity_service_guide_checkbox);
+        if (checkBox != null) {
+            result = !checkBox.isChecked();
+        }
+
+        View guideView = findViewById(R.id.activity_service_guide);
+        if (guideView != null) {
+            guideView.setVisibility(View.GONE);
+        }
+
+        save(result);
+    }
+
     private void switchDConnectServer(final boolean checked) {
+        if (mDConnectService == null) {
+            return;
+        }
+
         try {
             if (checked) {
                 mDConnectService.start();
@@ -150,16 +266,20 @@ public class ServiceListActivity extends Activity {
         }
     }
 
-    /**
-     * Manager termination notification to all device plug-ins.
-     */
     private void notifyManagerTerminate() {
         ManagerTerminationFragment.show(this);
     }
 
     private void reload() {
+        if (DEBUG) {
+            Log.i(TAG, "reload a device plugin.");
+        }
+        if (mDConnectService == null) {
+            return;
+        }
+
         try {
-            if (mDConnectService != null && !mDConnectService.isRunning()) {
+            if (!mDConnectService.isRunning()) {
                 return;
             }
         } catch (RemoteException e) {
@@ -169,16 +289,24 @@ public class ServiceListActivity extends Activity {
         }
 
         ServiceDiscovery discovery = new ServiceDiscovery(this) {
+            private DialogFragment mDialog;
             @Override
             protected void onPreExecute() {
-                // TODO ダイアログ表示
+                mDialog = new ServiceDiscoveryDialogFragment();
+                mDialog.show(getFragmentManager(), null);
             }
 
             @Override
             protected void onPostExecute(final List<ServiceContainer> serviceContainers) {
-                // TODO ダイアログ非表示
+                mDialog.dismiss();
+
                 mServiceAdapter.mServices = serviceContainers;
                 mServiceAdapter.notifyDataSetInvalidated();
+
+                View view = findViewById(R.id.activity_service_no_service);
+                if (view != null) {
+                    view.setVisibility(serviceContainers.size() == 0 ? View.VISIBLE : View.GONE);
+                }
             }
         };
         discovery.execute();
@@ -200,16 +328,27 @@ public class ServiceListActivity extends Activity {
 
     private void shiftService(final int position) {
         ServiceContainer service = (ServiceContainer) mServiceAdapter.getItem(position);
-        String url = "file:///android_asset/html/demo/index.html?serviceId=" + service.getId();
-        Intent intent = new Intent();
-        intent.setClass(this, WebViewActivity.class);
-        intent.putExtra(WebViewActivity.EXTRA_URL, url);
-        startActivity(intent);
+        if (service.isOnline()) {
+            String url = "file:///android_asset/html/demo/index.html?serviceId=" + service.getId();
+            Intent intent = new Intent();
+            intent.setClass(this, WebViewActivity.class);
+            intent.putExtra(WebViewActivity.EXTRA_URL, url);
+            startActivity(intent);
+        } else {
+            String title = getString(R.string.activity_service_list_offline_title);
+            String message = getString(R.string.activity_service_list_offline_message, service.getName());
+            String positive = getString(R.string.activity_service_list_offline_positive);
+            AlertDialogFragment dialog = AlertDialogFragment.create("offline", title, message, positive);
+            dialog.show(getFragmentManager(), "offline");
+        }
     }
 
     private void showNoDevicePlugin() {
-        AlertDialogFragment dialog = AlertDialogFragment.create("no", "", "");
-        dialog.show(getFragmentManager(), "");
+        String title = getString(R.string.activity_service_list_no_plugin_title);
+        String message = getString(R.string.activity_service_list_no_plugin_message);
+        String positive = getString(R.string.activity_service_list_no_plugin_positive);
+        AlertDialogFragment dialog = AlertDialogFragment.create("no", title, message, positive);
+        dialog.show(getFragmentManager(), "no");
     }
 
     private String getPackageName(final String serviceId) {
@@ -237,16 +376,16 @@ public class ServiceListActivity extends Activity {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    if (mSwitchAction != null) {
-                        try {
+                    try {
+                        if (mSwitchAction != null) {
                             mSwitchAction.setChecked(mDConnectService.isRunning());
-                            if (mDConnectService.isRunning()) {
-                                reload();
-                            }
-                        } catch (RemoteException e) {
-                            if (DEBUG) {
-                                Log.e(TAG, "", e);
-                            }
+                        }
+                        if (mDConnectService.isRunning()) {
+                            reload();
+                        }
+                    } catch (RemoteException e) {
+                        if (DEBUG) {
+                            Log.e(TAG, "", e);
                         }
                     }
                 }
@@ -295,7 +434,13 @@ public class ServiceListActivity extends Activity {
                     try {
                         PackageManager pm = getPackageManager();
                         ApplicationInfo app = pm.getApplicationInfo(packageName, 0);
-                        imageView.setImageDrawable(pm.getApplicationIcon(app.packageName));
+                        Drawable icon = pm.getApplicationIcon(app.packageName);
+                        if (!service.isOnline()) {
+                            icon = DConnectUtil.convertToGrayScale(icon);
+                        } else {
+                            icon.setColorFilter(null);
+                        }
+                        imageView.setImageDrawable(icon);
                     } catch (PackageManager.NameNotFoundException e) {
                         if (DEBUG) {
                             Log.e(TAG, "", e);

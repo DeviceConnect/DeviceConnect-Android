@@ -9,7 +9,6 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_centerInParent="true"
-
         android:layout_margin="8dp"
         android:text="@string/activity_service_list_search"/>
 
@@ -18,20 +17,132 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_above="@id/activity_service_list_search_button"
+        android:layout_margin="8dp"
         android:columnWidth="100dp"
         android:gravity="center"
         android:horizontalSpacing="8dp"
         android:minHeight="100dp"
-
-        android:layout_margin="8dp"
         android:numColumns="auto_fit"
         android:stretchMode="columnWidth"
         android:verticalSpacing="8dp"/>
+
+
+    <FrameLayout
+        android:id="@+id/activity_service_no_service"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:text="@string/activity_service_list_no_service"
+            android:textColor="#444"/>
+    </FrameLayout>
+
 
     <FrameLayout
         android:id="@+id/activity_service_guide"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#88000000" />
+        android:visibility="gone">
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#88000000"/>
+
+        <LinearLayout
+            android:id="@+id/activity_service_guide_1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="right"
+            android:layout_marginTop="-8dp"
+            android:orientation="vertical">
+
+            <View
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginRight="-64dp"
+                android:layout_marginTop="16dp"
+                android:background="@android:color/white"
+                android:rotation="45"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginLeft="16dp"
+                android:layout_marginRight="16dp"
+                android:layout_marginTop="-16dp"
+                android:background="@drawable/manager_bg_balloon"
+                android:maxWidth="320dp"
+                android:padding="16dp"
+                android:text="@string/activity_service_list_guide_1"
+                android:textColor="@android:color/black"
+                android:textSize="18sp"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/activity_service_guide_2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="right"
+            android:layout_marginTop="-8dp"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <View
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_gravity="right"
+                android:layout_marginRight="24dp"
+                android:layout_marginTop="16dp"
+                android:background="@android:color/white"
+                android:rotation="45"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginLeft="16dp"
+                android:layout_marginRight="16dp"
+                android:layout_marginTop="-16dp"
+                android:background="@drawable/manager_bg_balloon"
+                android:maxWidth="320dp"
+                android:padding="16dp"
+                android:text="@string/activity_service_list_guide_2"
+                android:textColor="@android:color/black"
+                android:textSize="18sp"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|center_horizontal"
+            android:layout_margin="24dp"
+            android:gravity="center_horizontal"
+            android:orientation="vertical">
+
+            <CheckBox
+                android:id="@+id/activity_service_guide_checkbox"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="12dp"
+                android:checked="true"
+                android:text="@string/activity_service_list_checkbox"
+                android:textColor="@android:color/white"/>
+
+            <Button
+                android:id="@+id/activity_service_guide_button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/activity_service_list_guide_next"/>
+        </LinearLayout>
+
+    </FrameLayout>
 
 </RelativeLayout>

@@ -763,7 +763,12 @@ public class DConnectServerNanoHttpd extends DConnectServer {
                     mSessionKey = sessionKey;
                     mSockets.put(sessionKey, this);
                     if (mListener != null) {
-                        mListener.onWebSocketConnected(getHandshakeRequest().getHeaders().get("origin") + getHandshakeRequest().getUri(), mSessionKey);
+                        NanoHTTPD.IHTTPSession request = getHandshakeRequest();
+                        String origin = request.getHeaders().get("origin");
+                        if (origin == null) {
+                            origin = request.getHeaders().get("X-GotAPI-Origin");
+                        }
+                        mListener.onWebSocketConnected(origin + getHandshakeRequest().getUri(), mSessionKey);
                     }
                     mWebSockets.add(this);
                 }

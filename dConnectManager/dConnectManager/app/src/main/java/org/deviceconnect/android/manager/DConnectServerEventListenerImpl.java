@@ -88,16 +88,12 @@ public class DConnectServerEventListenerImpl implements DConnectServerEventListe
     /** ロックオブジェクト. */
     private final Object mLockObj = new Object();
 
-    /** アプリケーションクラスインスタンス. */
-    private DConnectApplication mApp;
-
     /**
      * コンストラクタ.
      * @param context このクラスが属するコンテキスト
      */
     public DConnectServerEventListenerImpl(final Context context) {
         mContext = context;
-        mApp = (DConnectApplication) DConnectApplication.getInstance().getApplicationContext();
     }
 
     /**
@@ -141,7 +137,8 @@ public class DConnectServerEventListenerImpl implements DConnectServerEventListe
             mLogger.info("onWebSocketConnected: sessionKey :" + sessionKey);
         }
 
-        DConnectApplication app = (DConnectApplication) mContext;
+        DConnectService service = (DConnectService) mContext;
+        DConnectApplication app = (DConnectApplication) service.getApplication();
         app.getWebSocketInfoManager().addWebSocketInfo(sessionKey, uri);
     }
 
@@ -150,56 +147,26 @@ public class DConnectServerEventListenerImpl implements DConnectServerEventListe
         if (BuildConfig.DEBUG) {
             mLogger.info("onWebSocketDisconnected: sessionKey :" + sessionKey);
         }
-        DConnectApplication app = (DConnectApplication) mContext;
-        app.getWebSocketInfoManager().removeWebSocketInfo(sessionKey);
 
-//        String matchSessionKey = mApp.getIdentifySessionKey(sessionKey);
-//        if (matchSessionKey == null) {
-//            if (BuildConfig.DEBUG) {
-//                mLogger.info(" Didn't find the corresponding device plug-in to the sessionKey.");
-//            }
-//            return;
-//        }
-//        String matchServiceId = mApp.getDevicePluginIdentifyKey(matchSessionKey);
-//        if (matchServiceId == null) {
-//            if (BuildConfig.DEBUG) {
-//                mLogger.info(" Didn't find the corresponding device plug-in to the sessionKey.");
-//            }
-//            return;
-//        }
-//
-//        DevicePluginManager mgr = new DevicePluginManager(mContext, null);
-//        mgr.createDevicePluginList();
-//        List<DevicePlugin> plugins = mgr.getDevicePlugins();
-//        for (DevicePlugin plugin : plugins) {
-//            String serviceId = plugin.getServiceId();
-//            if (serviceId != null && serviceId.equals(matchServiceId)) {
-//                Intent request = new Intent();
-//                request.setComponent(plugin.getComponentName());
-//                request.setAction(IntentDConnectMessage.ACTION_EVENT_TRANSMIT_DISCONNECT);
-//                request.putExtra("pluginId", serviceId);
-//                request.putExtra(IntentDConnectMessage.EXTRA_SESSION_KEY, matchSessionKey);
-//                mContext.sendBroadcast(request);
-//            }
-//        }
-//        mApp.removeDevicePluginIdentifyKey(matchSessionKey);
+        DConnectService service = (DConnectService) mContext;
+        DConnectApplication app = (DConnectApplication) service.getApplication();
+        app.getWebSocketInfoManager().removeWebSocketInfo(sessionKey);
     }
 
-    /**
-     * WebSocketのsessionKeyがリセットされた時に呼び出されます.
-     *
-     * @param sessionKey リセットされたsessionKey
-     */
     @Override
-    public void onResetEventSessionKey(String sessionKey) {
-        String matchSessionKey = mApp.getIdentifySessionKey(sessionKey);
-        if (matchSessionKey != null) {
-            mApp.removeDevicePluginIdentifyKey(matchSessionKey);
-        } else {
-            if (BuildConfig.DEBUG) {
-                mLogger.info(" Didn't find the corresponding device plug-in to the sessionKey.");
-            }
+    public void onResetEventSessionKey(final String sessionKey) {
+        if (BuildConfig.DEBUG) {
+            mLogger.info("onResetEventSessionKey: sessionKey :" + sessionKey);
         }
+
+//        String matchSessionKey = mApp.getIdentifySessionKey(sessionKey);
+//        if (matchSessionKey != null) {
+//            mApp.removeDevicePluginIdentifyKey(matchSessionKey);
+//        } else {
+//            if (BuildConfig.DEBUG) {
+//                mLogger.info(" Didn't find the corresponding device plug-in to the sessionKey.");
+//            }
+//        }
     }
 
     @Override

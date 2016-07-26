@@ -16,7 +16,7 @@ import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
 import java.util.List;
 
-public class RestartingDialogFragment  extends DialogFragment {
+public class RestartingDialogFragment extends DialogFragment {
 
     @Override
     public Dialog onCreateDialog(final Bundle savedInstanceState) {

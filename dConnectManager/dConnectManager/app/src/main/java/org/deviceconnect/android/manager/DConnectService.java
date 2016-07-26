@@ -151,7 +151,7 @@ public class DConnectService extends DConnectMessageService {
             public void run() {
                 mSettings.load(getApplicationContext());
 
-                mWebServerListener = new DConnectServerEventListenerImpl(getApplicationContext());
+                mWebServerListener = new DConnectServerEventListenerImpl(DConnectService.this);
                 mWebServerListener.setFileManager(mFileMgr);
 
                 DConnectServerConfig.Builder builder = new DConnectServerConfig.Builder();

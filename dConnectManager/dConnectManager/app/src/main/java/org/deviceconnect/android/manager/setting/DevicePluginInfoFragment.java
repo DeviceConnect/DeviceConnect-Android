@@ -29,6 +29,7 @@ import android.widget.TextView;
 import org.deviceconnect.android.localoauth.DevicePluginXmlProfile;
 import org.deviceconnect.android.localoauth.DevicePluginXmlProfileLocale;
 import org.deviceconnect.android.localoauth.DevicePluginXmlUtil;
+import org.deviceconnect.android.manager.DConnectApplication;
 import org.deviceconnect.android.manager.DevicePlugin;
 import org.deviceconnect.android.manager.DevicePluginManager;
 import org.deviceconnect.android.manager.R;
@@ -167,12 +168,11 @@ public class DevicePluginInfoFragment extends Fragment {
      * Open device plug-in's settings.
      */
     private void openSettings() {
-        DevicePluginManager mgr = new DevicePluginManager(getActivity(), null);
-        mgr.createDevicePluginList();
+        DConnectApplication app = (DConnectApplication) getActivity().getApplication();
+        DevicePluginManager mgr = app.getDevicePluginManager();
         List<DevicePlugin> plugins = mgr.getDevicePlugins();
         for (DevicePlugin plugin : plugins) {
-            if (mPackageName.equals(plugin.getPackageName())
-                    && plugin.getServiceId() != null) {
+            if (mPackageName.equals(plugin.getPackageName()) && plugin.getServiceId() != null) {
                 Intent request = new Intent();
                 request.setComponent(plugin.getComponentName());
                 request.setAction(IntentDConnectMessage.ACTION_PUT);
@@ -200,38 +200,7 @@ public class DevicePluginInfoFragment extends Fragment {
      * Restart device plug-in.
      */
     private void restartDevicePlugin() {
-        final StartingDialogFragment dialog = new StartingDialogFragment();
-        dialog.show(getFragmentManager(), "dialog");
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                DevicePluginManager mgr = new DevicePluginManager(getActivity(), null);
-                mgr.createDevicePluginList();
-                List<DevicePlugin> plugins = mgr.getDevicePlugins();
-                for (DevicePlugin plugin : plugins) {
-                    if (mPackageName.equals(plugin.getPackageName())
-                            && plugin.getStartServiceClassName() != null
-                            && plugin.getServiceId() != null) {
-                        restartDevicePlugin(plugin);
-                        break;
-                    }
-                }
-                dialog.dismiss();
-            }
-        }).start();
-    }
-
-    /**
-     * Start a device plugin.
-     *
-     * @param plugin device plugin to be started
-     */
-    private void restartDevicePlugin(final DevicePlugin plugin) {
-        Intent request = new Intent();
-        request.setComponent(plugin.getComponentName());
-        request.setAction(IntentDConnectMessage.ACTION_DEVICEPLUGIN_RESET);
-        request.putExtra("pluginId", plugin.getServiceId());
-        getActivity().sendBroadcast(request);
+        RestartingDialogFragment.show(getActivity(), mPackageName);
     }
 
     /**
@@ -254,22 +223,5 @@ public class DevicePluginInfoFragment extends Fragment {
             }
         }
         return false;
-    }
-
-    /**
-     * Show a dialog of restart a device plugin.
-     */
-    public static class StartingDialogFragment extends DialogFragment {
-        @Override
-        public Dialog onCreateDialog(final Bundle savedInstanceState) {
-            String title = getString(R.string.activity_settings_restart_device_plugin_title);
-            String msg = getString(R.string.activity_settings_restart_device_plugin_message);
-            ProgressDialog progressDialog = new ProgressDialog(getActivity());
-            progressDialog.setTitle(title);
-            progressDialog.setMessage(msg);
-            progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-            setCancelable(false);
-            return progressDialog;
-        }
     }
 }

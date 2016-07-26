@@ -50,8 +50,7 @@ import java.util.logging.Logger;
  * Webサーバからのイベントを受領するクラス.
  * @author NTT DOCOMO, INC.
  */
-public class DConnectServerEventListenerImpl implements
-        DConnectServerEventListener {
+public class DConnectServerEventListenerImpl implements DConnectServerEventListener {
     /**
      * HTTPサーバからリクエストのマップ.
      */
@@ -136,46 +135,54 @@ public class DConnectServerEventListenerImpl implements
         mLogger.info("HttpServer was started.");
     }
 
-    /**
-     * WebSocketのセッションが切断された時に呼び出されます.
-     *
-     * @param sessionKey 切断されたセッションのsessionKey
-     */
+    @Override
+    public void onWebSocketConnected(final String uri, final String sessionKey) {
+        if (BuildConfig.DEBUG) {
+            mLogger.info("onWebSocketConnected: sessionKey :" + sessionKey);
+        }
+
+        DConnectApplication app = (DConnectApplication) mContext;
+        app.getWebSocketInfoManager().addWebSocketInfo(sessionKey, uri);
+    }
+
     @Override
     public void onWebSocketDisconnected(final String sessionKey) {
         if (BuildConfig.DEBUG) {
-            mLogger.info("sessionKey :" + sessionKey);
+            mLogger.info("onWebSocketDisconnected: sessionKey :" + sessionKey);
         }
-        String matchSessionKey = mApp.getIdentifySessionKey(sessionKey);
-        if (matchSessionKey == null) {
-            if (BuildConfig.DEBUG) {
-                mLogger.info(" Didn't find the corresponding device plug-in to the sessionKey.");
-            }
-            return;
-        }
-        String matchServiceId = mApp.getDevicePluginIdentifyKey(matchSessionKey);
-        if (matchServiceId == null) {
-            if (BuildConfig.DEBUG) {
-                mLogger.info(" Didn't find the corresponding device plug-in to the sessionKey.");
-            }
-            return;
-        }
+        DConnectApplication app = (DConnectApplication) mContext;
+        app.getWebSocketInfoManager().removeWebSocketInfo(sessionKey);
 
-        DevicePluginManager mgr = new DevicePluginManager(mContext, null);
-        mgr.createDevicePluginList();
-        List<DevicePlugin> plugins = mgr.getDevicePlugins();
-        for (DevicePlugin plugin : plugins) {
-            String serviceId = plugin.getServiceId();
-            if (serviceId != null && serviceId.equals(matchServiceId)) {
-                Intent request = new Intent();
-                request.setComponent(plugin.getComponentName());
-                request.setAction(IntentDConnectMessage.ACTION_EVENT_TRANSMIT_DISCONNECT);
-                request.putExtra("pluginId", serviceId);
-                request.putExtra(IntentDConnectMessage.EXTRA_SESSION_KEY, matchSessionKey);
-                mContext.sendBroadcast(request);
-            }
-        }
-        mApp.removeDevicePluginIdentifyKey(matchSessionKey);
+//        String matchSessionKey = mApp.getIdentifySessionKey(sessionKey);
+//        if (matchSessionKey == null) {
+//            if (BuildConfig.DEBUG) {
+//                mLogger.info(" Didn't find the corresponding device plug-in to the sessionKey.");
+//            }
+//            return;
+//        }
+//        String matchServiceId = mApp.getDevicePluginIdentifyKey(matchSessionKey);
+//        if (matchServiceId == null) {
+//            if (BuildConfig.DEBUG) {
+//                mLogger.info(" Didn't find the corresponding device plug-in to the sessionKey.");
+//            }
+//            return;
+//        }
+//
+//        DevicePluginManager mgr = new DevicePluginManager(mContext, null);
+//        mgr.createDevicePluginList();
+//        List<DevicePlugin> plugins = mgr.getDevicePlugins();
+//        for (DevicePlugin plugin : plugins) {
+//            String serviceId = plugin.getServiceId();
+//            if (serviceId != null && serviceId.equals(matchServiceId)) {
+//                Intent request = new Intent();
+//                request.setComponent(plugin.getComponentName());
+//                request.setAction(IntentDConnectMessage.ACTION_EVENT_TRANSMIT_DISCONNECT);
+//                request.putExtra("pluginId", serviceId);
+//                request.putExtra(IntentDConnectMessage.EXTRA_SESSION_KEY, matchSessionKey);
+//                mContext.sendBroadcast(request);
+//            }
+//        }
+//        mApp.removeDevicePluginIdentifyKey(matchSessionKey);
     }
 
     /**

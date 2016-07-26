@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+    <Button
+        android:id="@+id/activity_service_list_search_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerInParent="true"
+
+        android:layout_margin="8dp"
+        android:text="@string/activity_service_list_search"/>
+
+    <GridView
+        android:id="@+id/activity_service_list_grid_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@id/activity_service_list_search_button"
+        android:columnWidth="100dp"
+        android:gravity="center"
+        android:horizontalSpacing="8dp"
+        android:minHeight="100dp"
+
+        android:layout_margin="8dp"
+        android:numColumns="auto_fit"
+        android:stretchMode="columnWidth"
+        android:verticalSpacing="8dp"/>
+
+    <FrameLayout
+        android:id="@+id/activity_service_guide"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#88000000" />
+
+</RelativeLayout>

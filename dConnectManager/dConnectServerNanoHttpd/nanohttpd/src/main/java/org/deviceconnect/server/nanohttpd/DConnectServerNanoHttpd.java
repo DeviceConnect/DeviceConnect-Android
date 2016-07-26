@@ -29,7 +29,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.GeneralSecurityException;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -76,6 +78,8 @@ public class DConnectServerNanoHttpd extends DConnectServer {
 
     /** コンテキストオブジェクト. */
     private Context mContext;
+
+    private List<NanoWebSocket> mWebSockets = new ArrayList<>();
 
     /**
      * Keep-Aliveの状態定数.
@@ -758,6 +762,10 @@ public class DConnectServerNanoHttpd extends DConnectServer {
 
                     mSessionKey = sessionKey;
                     mSockets.put(sessionKey, this);
+                    if (mListener != null) {
+                        mListener.onWebSocketConnected(getHandshakeRequest().getHeaders().get("origin") + getHandshakeRequest().getUri(), mSessionKey);
+                    }
+                    mWebSockets.add(this);
                 }
             } catch (JSONException e) {
                 mLogger.warning("Exception in the NanoWebSocket#onMessage() method." + e.toString());
@@ -769,11 +777,15 @@ public class DConnectServerNanoHttpd extends DConnectServer {
             if (mSessionKey != null) {
                 mSockets.remove(mSessionKey);
                 mLogger.fine("WebSocket closed. Session Key : " + mSessionKey);
+                if (mListener != null) {
+                    mListener.onWebSocketDisconnected(mSessionKey);
+                }
                 mSessionKey = null;
             }
             if (mServer != null) {
                 mServer.countdownWebSocket();
             }
+            mWebSockets.remove(this);
 
             mKeepAliveTimer.cancel();
         }
@@ -835,10 +847,21 @@ public class DConnectServerNanoHttpd extends DConnectServer {
                 } catch (IOException e) {
                     // 例外が発生したらタスクを終了し、タイムアウトに任せる
                     cancel();
-                    if (mSessionKey != null) {
-                        mListener.onWebSocketDisconnected(mSessionKey);
-                    }
                 }
+            }
+        }
+    }
+
+    @Override
+    public void disconnectWebSocket(final String sessionKey) {
+        for (NanoWebSocket socket : mWebSockets) {
+            if (sessionKey.equals(socket.mSessionKey)) {
+                try {
+                    socket.close(CloseCode.GoingAway, "User disconnect");
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                return;
             }
         }
     }

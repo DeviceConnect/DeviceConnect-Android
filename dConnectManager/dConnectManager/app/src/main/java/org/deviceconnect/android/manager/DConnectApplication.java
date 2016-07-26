@@ -17,6 +17,11 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author NTT DOCOMO, INC.
  */
 public class DConnectApplication extends Application {
+    /** ドメイン名. */
+    private static final String DCONNECT_DOMAIN = ".deviceconnect.org";
+
+    /** ローカルのドメイン名. */
+    private static final String LOCALHOST_DCONNECT = "localhost" + DCONNECT_DOMAIN;
 
     /** デバイスプラグインに紐付くイベント判断用キー格納領域 */
     private final Map<String, String> mEventKeys = new ConcurrentHashMap<>();
@@ -24,10 +29,33 @@ public class DConnectApplication extends Application {
     /** インスタンス */
     private static DConnectApplication sInstance;
 
+    private WebSocketInfoManager mWebSocketInfoManager;
+    private DevicePluginManager mDevicePluginManager;
+
     @Override
     public void onCreate() {
         super.onCreate();
         sInstance = this;
+
+        mDevicePluginManager = new DevicePluginManager(this, LOCALHOST_DCONNECT);
+        mDevicePluginManager.createDevicePluginList();
+
+        mWebSocketInfoManager = new WebSocketInfoManager(this);
+    }
+
+    @Override
+    public void onTerminate() {
+        mWebSocketInfoManager = null;
+        mDevicePluginManager = null;
+        super.onTerminate();
+    }
+
+    public WebSocketInfoManager getWebSocketInfoManager() {
+        return mWebSocketInfoManager;
+    }
+
+    public DevicePluginManager getDevicePluginManager() {
+        return mDevicePluginManager;
     }
 
     /**

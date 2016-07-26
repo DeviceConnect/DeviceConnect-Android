@@ -28,6 +28,7 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 /**
  * ユーティリティクラス.
@@ -191,4 +192,7 @@ public final class DConnectUtil {
             return result;
         }
     }
+
+
+
 }

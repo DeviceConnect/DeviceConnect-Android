@@ -31,6 +31,7 @@ public class HueDeviceService extends DConnectMessageService {
     @Override
     public void onCreate() {
         super.onCreate();
+        android.os.Debug.waitForDebugger();
 
         //hue SDKの初期化
         PHHueSDK hueSDK = PHHueSDK.getInstance();
@@ -54,6 +55,21 @@ public class HueDeviceService extends DConnectMessageService {
             hueSDK.disconnect(bridge);
         }
         super.onDestroy();
+    }
+
+    @Override
+    protected void onManagerUninstalled() {
+        // Managerアンインストール検知時の処理。
+    }
+
+    @Override
+    protected void onManagerTerminated() {
+        // Manager正常終了通知受信時の処理。
+    }
+
+    @Override
+    protected void onDevicePluginReset() {
+        // Device Plug-inへのReset要求受信時の処理。
     }
 
     @Override

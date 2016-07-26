@@ -1,6 +1,7 @@
 package org.deviceconnect.android.service;
 
 
+import android.content.Context;
 import android.content.Intent;
 
 import org.deviceconnect.android.message.MessageUtils;
@@ -34,6 +35,8 @@ public class DConnectService implements DConnectProfileProvider, ServiceDiscover
     private boolean mIsOnline;
 
     private String mConfig;
+
+    private Context mContext;
 
     /**
      * コンストラクタ.
@@ -89,6 +92,14 @@ public class DConnectService implements DConnectProfileProvider, ServiceDiscover
 
     public void setConfig(final String config) {
         mConfig = config;
+    }
+
+    void setContext(final Context context) {
+        mContext = context;
+    }
+
+    public Context getContext() {
+        return mContext;
     }
 
     @Override

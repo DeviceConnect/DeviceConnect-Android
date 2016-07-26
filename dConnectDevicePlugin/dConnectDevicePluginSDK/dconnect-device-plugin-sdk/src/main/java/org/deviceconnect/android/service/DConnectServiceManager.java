@@ -38,6 +38,7 @@ public class DConnectServiceManager implements DConnectServiceProvider {
 
     @Override
     public void addService(final DConnectService service) {
+        service.setContext(mContext);
         if (mPluginSpec != null) {
             for (DConnectProfile profile : service.getProfileList()) {
                 DConnectProfileSpec profileSpec =

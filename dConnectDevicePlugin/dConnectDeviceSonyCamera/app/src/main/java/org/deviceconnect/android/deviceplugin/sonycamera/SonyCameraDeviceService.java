@@ -23,10 +23,9 @@ import com.example.sony.cameraremote.SimpleSsdpClient;
 import com.example.sony.cameraremote.utils.SimpleLiveviewSlicer;
 import com.example.sony.cameraremote.utils.SimpleLiveviewSlicer.Payload;
 
-import org.deviceconnect.android.deviceplugin.sonycamera.profile.SonyCameraMediaStreamRecordingProfile;
-import org.deviceconnect.android.deviceplugin.sonycamera.profile.SonyCameraServiceDiscoveryProfile;
 import org.deviceconnect.android.deviceplugin.sonycamera.profile.SonyCameraSystemProfile;
 import org.deviceconnect.android.deviceplugin.sonycamera.profile.SonyCameraZoomProfile;
+import org.deviceconnect.android.deviceplugin.sonycamera.service.SonyCameraService;
 import org.deviceconnect.android.deviceplugin.sonycamera.utils.DConnectUtil;
 import org.deviceconnect.android.deviceplugin.sonycamera.utils.MixedReplaceMediaServer;
 import org.deviceconnect.android.deviceplugin.sonycamera.utils.MixedReplaceMediaServer.ServerEventListener;
@@ -39,9 +38,9 @@ import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.android.profile.MediaStreamRecordingProfile;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
-import org.deviceconnect.android.profile.ServiceInformationProfile;
 import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.android.provider.FileManager;
+import org.deviceconnect.android.service.DConnectService;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 import org.deviceconnect.profile.MediaStreamRecordingProfileConstants;
@@ -74,9 +73,9 @@ public class SonyCameraDeviceService extends DConnectMessageService {
     /** ファイルの拡張子. */
     private static final String FILE_EXTENSION = ".png";
     /** デバイス名. */
-    private static final String DEVICE_NAME = "Sony Camera";
+    private static final String DEVICE_NAME = SonyCameraService.DEVICE_NAME;
     /** サービスID. */
-    private static final String SERVICE_ID = "sony_camera";
+    private static final String SERVICE_ID = SonyCameraService.SERVICE_ID;
     /** リトライ回数. */
     private static final int MAX_RETRY_COUNT = 3;
     /** 待機時間. */
@@ -180,11 +179,8 @@ public class SonyCameraDeviceService extends DConnectMessageService {
         // ファイル管理クラスの作成
         mFileMgr = new FileManager(this);
 
-        addProfile(new SonyCameraMediaStreamRecordingProfile());
-        addProfile(new SonyCameraZoomProfile());
-
-        // SonyCameraデバイスプラグインではSettingsプロファイルは非サポート.
-        //addProfile(new SonyCameraSettingsProfile());
+        DConnectService service = new SonyCameraService();
+        getServiceProvider().addService(service);
 
         WifiManager wifiMgr = (WifiManager) getSystemService(Context.WIFI_SERVICE);
         WifiInfo wifiInfo = wifiMgr.getConnectionInfo();
@@ -210,19 +206,19 @@ public class SonyCameraDeviceService extends DConnectMessageService {
 
     @Override
     protected void onManagerUninstalled() {
-        // TODO: Managerアンインストール検知時の処理要追加。
+        // Managerアンインストール検知時の処理。
         mLogger.info("Plug-in : onManagerUninstalled");
     }
 
     @Override
     protected void onManagerTerminated() {
-        // TODO: Manager正常終了通知受信時の処理要追加。
+        // Manager正常終了通知受信時の処理。
         mLogger.info("Plug-in : onManagerTerminated");
     }
 
     @Override
     protected void onManagerEventTransmitDisconnected(String sessionKey) {
-        // TODO: ManagerのEvent送信経路切断通知受信時の処理要追加。
+        // ManagerのEvent送信経路切断通知受信時の処理。
         mLogger.info("Plug-in : onManagerEventTransmitDisconnected");
         if (sessionKey != null) {
             EventManager.INSTANCE.removeEvents(sessionKey);
@@ -233,7 +229,7 @@ public class SonyCameraDeviceService extends DConnectMessageService {
 
     @Override
     protected void onDevicePluginReset() {
-        // TODO: Device Plug-inへのReset要求受信時の処理要追加。
+        // Device Plug-inへのReset要求受信時の処理。
         mLogger.info("Plug-in : onDevicePluginReset");
         resetPluginResource();
     }
@@ -317,45 +313,6 @@ public class SonyCameraDeviceService extends DConnectMessageService {
             return START_STICKY;
         }
         return super.onStartCommand(intent, flags, startId);
-    }
-
-    /**
-     * SonyCameraデバイスの検索を行う. 
-     * <p>
-     * Network Service Deiscovery APIに対応する.
-     * </p>
-     * @param request リクエスト
-     * @param response レスポンス
-     * @return 即座にレスポンスを返す場合はtrue、それ以外はfalse
-     */
-    public boolean searchSonyCameraDevice(final Intent request, final Intent response) {
-        mLogger.entering(this.getClass().getName(), "createSearchResponse");
-
-        WifiManager wifiMgr = (WifiManager) getSystemService(Context.WIFI_SERVICE);
-        WifiInfo wifiInfo = wifiMgr.getConnectionInfo();
-        List<Bundle> services = new ArrayList<Bundle>();
-        if (checkDevice() && DConnectUtil.checkSSID(wifiInfo.getSSID())) {
-            mLogger.fine("device found: " + checkDevice());
-
-            Bundle service = new Bundle();
-            service.putString(ServiceDiscoveryProfile.PARAM_ID, SERVICE_ID);
-            service.putString(ServiceDiscoveryProfile.PARAM_NAME, DEVICE_NAME);
-            service.putString(ServiceDiscoveryProfile.PARAM_TYPE,
-                    ServiceDiscoveryProfile.NetworkType.WIFI.getValue());
-            service.putBoolean(ServiceDiscoveryProfile.PARAM_ONLINE, true);
-            service.putString(ServiceDiscoveryProfile.PARAM_CONFIG, wifiInfo.getSSID());
-            setScopes(service);
-            services.add(service);
-
-            // SonyCameraを見つけたので、SSIDを保存しておく
-            mSettings.setSSID(wifiInfo.getSSID());
-        }
-
-        response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
-        response.putExtra(ServiceDiscoveryProfile.PARAM_SERVICES, services.toArray(new Bundle[services.size()]));
-
-        mLogger.exiting(this.getClass().getName(), "createSearchResponse");
-        return true;
     }
 
     /**
@@ -900,6 +857,21 @@ public class SonyCameraDeviceService extends DConnectMessageService {
         mLogger.exiting(this.getClass().getName(), "notifyTakePhoto");
     }
 
+    private void setOnline(final WifiInfo wifiInfo) {
+        DConnectService service = getServiceProvider().getService(SERVICE_ID);
+        if (service != null) {
+            service.setOnline(true);
+            service.setConfig(wifiInfo.getSSID());
+        }
+    }
+
+    private void setOffline() {
+        DConnectService service = getServiceProvider().getService(SERVICE_ID);
+        if (service != null) {
+            service.setOnline(false);
+        }
+    }
+
     /**
      * SonyCameraに接続する.
      */
@@ -917,6 +889,8 @@ public class SonyCameraDeviceService extends DConnectMessageService {
                 WifiManager wifiMgr = (WifiManager) getSystemService(Context.WIFI_SERVICE);
                 WifiInfo wifiInfo = wifiMgr.getConnectionInfo();
                 mSSID = wifiInfo.getSSID();
+
+                setOnline(wifiInfo);
             }
 
             @Override
@@ -996,6 +970,8 @@ public class SonyCameraDeviceService extends DConnectMessageService {
      * SonyCameraデバイスSDKを破棄する.
      */
     private void deleteSonyCameraSDK() {
+        setOffline();
+
         mWhileFetching = false;
 
         if (mEventObserver != null) {
@@ -1314,16 +1290,6 @@ public class SonyCameraDeviceService extends DConnectMessageService {
     @Override
     protected SystemProfile getSystemProfile() {
         return new SonyCameraSystemProfile();
-    }
-
-    @Override
-    protected ServiceInformationProfile getServiceInformationProfile() {
-        return new ServiceInformationProfile(this) { };
-    }
-
-    @Override
-    protected ServiceDiscoveryProfile getServiceDiscoveryProfile() {
-        return new SonyCameraServiceDiscoveryProfile(this);
     }
 
     /**

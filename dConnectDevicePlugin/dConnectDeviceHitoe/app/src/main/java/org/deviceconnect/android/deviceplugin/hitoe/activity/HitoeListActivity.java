@@ -488,6 +488,12 @@ public abstract class HitoeListActivity extends FragmentActivity {
                 btn.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(final View v) {
+                        for (HitoeDevice d: getManager().getRegisterDevices()) {
+                            if (!d.getName().equals(device.getName()) && d.isRegisterFlag()) {
+                                getManager().disconnectHitoeDevice(d);
+                            }
+                        }
+
                         if (device.isRegisterFlag()) {
                             btn.setBackgroundResource(R.drawable.button_blue);
                             btn.setText(R.string.hitoe_setting_connect);

@@ -223,11 +223,15 @@ public class HitoeAddDeviceActivity extends HitoeListActivity  implements HitoeM
                         return;
                     }
                     hitoe.setPinCode(pin);
+                    for (HitoeDevice d: getManager().getRegisterDevices()) {
+                        if (!d.getName().equals(hitoe.getName()) && d.isRegisterFlag()) {
+                            getManager().disconnectHitoeDevice(d);
+                        }
+                    }
+
                     connectDevice(hitoe);
                 }
             });
-        } else {
-            connectDevice(hitoe);
         }
         new Handler().postDelayed(new Runnable() {
             @Override

@@ -373,4 +373,12 @@ public class SWTouchProfile extends TouchProfile {
     private void sendToHostApp(final Intent request) {
         ((SWService) getService()).sendRequest(request);
     }
+
+    /**
+     * Release Touch Event.
+     */
+    public void releaseTouchEvent() {
+        sFlagTouchEventManage = 0;
+        clearTouchScreen();
+    }
 }

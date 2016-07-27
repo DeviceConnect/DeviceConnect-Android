@@ -17,6 +17,10 @@ import org.deviceconnect.android.deviceplugin.kadecot.kadecotdevice.KadecotResul
 import org.deviceconnect.android.deviceplugin.kadecot.KadecotDeviceService;
 import org.deviceconnect.android.deviceplugin.kadecot.profile.original.AirConditionerProfile;
 import org.deviceconnect.android.message.MessageUtils;
+import org.deviceconnect.android.profile.api.DConnectApi;
+import org.deviceconnect.android.profile.api.DeleteApi;
+import org.deviceconnect.android.profile.api.GetApi;
+import org.deviceconnect.android.profile.api.PutApi;
 import org.deviceconnect.message.DConnectMessage;
 
 import java.util.ArrayList;
@@ -46,29 +50,21 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
                 if (attr == null) {
                     getAirConditioner(request, response);
                 } else {
-                    switch (attr) {
-                        case KadecotHomeAirConditionerProfile.ATTRIBUTE_OPERATION_POWER_SAVING:
-                            getAirConditionerOperationPowerSaving(request, response);
-                            break;
-                        case KadecotHomeAirConditionerProfile.ATTRIBUTE_OPERATION_MODE_SETTING:
-                            getAirConditionerOperationModeSetting(request, response);
-                            break;
-                        case KadecotHomeAirConditionerProfile.ATTRIBUTE_ROOM_TEMPERATURE:
-                            getAirConditionerRoomTemperature(request, response);
-                            break;
-                        case KadecotHomeAirConditionerProfile.ATTRIBUTE_TEMPERATURE_VALUE:
-                            getAirConditionerTemperatureValue(request, response);
-                            break;
-                        case KadecotHomeAirConditionerProfile.ATTRIBUTE_AIR_FLOW_VALUE:
-                            getAirConditionerAirFlowValue(request, response);
-                            break;
-                        case KadecotHomeAirConditionerProfile.ATTRIBUTE_ENL_PROPERTY:
-                            getAirConditionerECHONETLiteProperty(request, response);
-                            break;
-                        default:
-                            MessageUtils.setNotSupportAttributeError(response);
-                            sendResponse(response);
-                            break;
+                    if (isEqual(KadecotHomeAirConditionerProfile.ATTRIBUTE_OPERATION_POWER_SAVING, attr)) {
+                        getAirConditionerOperationPowerSaving(request, response);
+                    } else if (isEqual(KadecotHomeAirConditionerProfile.ATTRIBUTE_OPERATION_MODE_SETTING, attr)) {
+                        getAirConditionerOperationModeSetting(request, response);
+                    } else if (isEqual(KadecotHomeAirConditionerProfile.ATTRIBUTE_ROOM_TEMPERATURE, attr)) {
+                        getAirConditionerRoomTemperature(request, response);
+                    } else if (isEqual(KadecotHomeAirConditionerProfile.ATTRIBUTE_TEMPERATURE_VALUE, attr)) {
+                        getAirConditionerTemperatureValue(request, response);
+                    } else if (isEqual(KadecotHomeAirConditionerProfile.ATTRIBUTE_AIR_FLOW_VALUE, attr)) {
+                        getAirConditionerAirFlowValue(request, response);
+                    } else if (isEqual(KadecotHomeAirConditionerProfile.ATTRIBUTE_ENL_PROPERTY, attr)) {
+                        getAirConditionerECHONETLiteProperty(request, response);
+                    } else {
+                        MessageUtils.setNotSupportAttributeError(response);
+                        sendResponse(response);
                     }
                 }
             } else if (action.endsWith(DConnectMessage.METHOD_POST)) {
@@ -78,26 +74,19 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
                 if (attr == null) {
                     putAirConditioner(request, response);
                 } else {
-                    switch (attr) {
-                        case KadecotHomeAirConditionerProfile.ATTRIBUTE_OPERATION_POWER_SAVING:
-                            putAirConditionerOperationPowerSaving(request, response);
-                            break;
-                        case KadecotHomeAirConditionerProfile.ATTRIBUTE_OPERATION_MODE_SETTING:
-                            putAirConditionerOperationModeSetting(request, response);
-                            break;
-                        case KadecotHomeAirConditionerProfile.ATTRIBUTE_TEMPERATURE_VALUE:
-                            putAirConditionerTemperatureValue(request, response);
-                            break;
-                        case KadecotHomeAirConditionerProfile.ATTRIBUTE_AIR_FLOW_VALUE:
-                            putAirConditionerAirFlowValue(request, response);
-                            break;
-                        case KadecotHomeAirConditionerProfile.ATTRIBUTE_ENL_PROPERTY:
-                            putAirConditionerECHONETLiteProperty(request, response);
-                            break;
-                        default:
-                            MessageUtils.setNotSupportAttributeError(response);
-                            sendResponse(response);
-                            break;
+                    if (isEqual(KadecotHomeAirConditionerProfile.ATTRIBUTE_OPERATION_POWER_SAVING, attr)) {
+                        putAirConditionerOperationPowerSaving(request, response);
+                    } else if (isEqual(KadecotHomeAirConditionerProfile.ATTRIBUTE_OPERATION_MODE_SETTING, attr)) {
+                        putAirConditionerOperationModeSetting(request, response);
+                    } else if (isEqual(KadecotHomeAirConditionerProfile.ATTRIBUTE_TEMPERATURE_VALUE, attr)) {
+                        putAirConditionerTemperatureValue(request, response);
+                    } else if (isEqual(KadecotHomeAirConditionerProfile.ATTRIBUTE_AIR_FLOW_VALUE, attr)) {
+                        putAirConditionerAirFlowValue(request, response);
+                    } else if (isEqual(KadecotHomeAirConditionerProfile.ATTRIBUTE_ENL_PROPERTY, attr)) {
+                        putAirConditionerECHONETLiteProperty(request, response);
+                    } else {
+                        MessageUtils.setNotSupportAttributeError(response);
+                        sendResponse(response);
                     }
                 }
             } else if (action.endsWith(DConnectMessage.METHOD_DELETE)) {
@@ -127,15 +116,30 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
     /** Index of profile name. */
     static final int IDX_PROFILENAME = 2;
 
+    public KadecotHomeAirConditionerProfile() {
+        addApi(mGetAirConditionerApi);
+        addApi(mGetOperationPowerSavingApi);
+        addApi(mGetOperationModeSettingApi);
+        addApi(mGetRoomTemperatureApi);
+        addApi(mGetTemperatureValueApi);
+        addApi(mGetAirFlowValueApi);
+        addApi(mGetECHONETLitePropertyApi);
+        addApi(mPutAirConditionerApi);
+        addApi(mPutOperationPowerSavingApi);
+        addApi(mPutOperationModeSettingApi);
+        addApi(mPutTemperatureValueApi);
+        addApi(mPutAirFlowValueApi);
+        addApi(mPutECHONETLitePropertyApi);
+        addApi(mDeleteAirConditionerApi);
+    }
 
-    @Override
-    protected boolean onGetAirConditioner(final Intent request, final Intent response, final String serviceId) {
-        if (checkServiceId(serviceId, response)) {
+    private final DConnectApi mGetAirConditionerApi = new GetApi() {
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
             new KadecotServerQueryTask().execute(request, response);
             return false;
         }
-        return true;
-    }
+    };
 
     /**
      * Get air conditioner power status.
@@ -169,15 +173,18 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
         sendResponse(response);
     }
 
-    @Override
-    protected boolean onGetAirConditionerOperationPowerSaving(final Intent request, final Intent response,
-                                                              final String serviceId) {
-        if (checkServiceId(serviceId, response)) {
+    private final DConnectApi mGetOperationPowerSavingApi = new GetApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_OPERATION_POWER_SAVING;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
             new KadecotServerQueryTask().execute(request, response);
             return false;
         }
-        return true;
-    }
+    };
 
     /**
      * Get air conditioner operation power saving status.
@@ -211,15 +218,18 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
         sendResponse(response);
     }
 
-    @Override
-    protected boolean onGetAirConditionerOperationModeSetting(final Intent request, final Intent response,
-                                                              final String serviceId) {
-        if (checkServiceId(serviceId, response)) {
+    private final DConnectApi mGetOperationModeSettingApi = new GetApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_OPERATION_MODE_SETTING;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
             new KadecotServerQueryTask().execute(request, response);
             return false;
         }
-        return true;
-    }
+    };
 
     /**
      * Get air conditioner operation mode setting status.
@@ -257,15 +267,18 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
         sendResponse(response);
     }
 
-    @Override
-    protected boolean onGetAirConditionerRoomTemperature(final Intent request, final Intent response,
-                                                         final String serviceId) {
-        if (checkServiceId(serviceId, response)) {
+    private final DConnectApi mGetRoomTemperatureApi = new GetApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ROOM_TEMPERATURE;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
             new KadecotServerQueryTask().execute(request, response);
             return false;
         }
-        return true;
-    }
+    };
 
     /**
      * Get air conditioner room temperature.
@@ -299,15 +312,18 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
         sendResponse(response);
     }
 
-    @Override
-    protected boolean onGetAirConditionerTemperatureValue(final Intent request, final Intent response,
-                                                          final String serviceId) {
-        if (checkServiceId(serviceId, response)) {
+    private final DConnectApi mGetTemperatureValueApi = new GetApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_TEMPERATURE_VALUE;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
             new KadecotServerQueryTask().execute(request, response);
             return false;
         }
-        return true;
-    }
+    };
 
     /**
      * Get air conditioner temperature value.
@@ -337,15 +353,18 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
         sendResponse(response);
     }
 
-    @Override
-    protected boolean onGetAirConditionerAirFlowValue(final Intent request, final Intent response,
-                                                      final String serviceId) {
-        if (checkServiceId(serviceId, response)) {
+    private final DConnectApi mGetAirFlowValueApi = new GetApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_AIR_FLOW_VALUE;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
             new KadecotServerQueryTask().execute(request, response);
             return false;
         }
-        return true;
-    }
+    };
 
     /**
      * Get air conditioner air flow value.
@@ -390,15 +409,18 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
         sendResponse(response);
     }
 
-    @Override
-    protected boolean onGetAirConditionerECHONETLiteProperty(final Intent request, final Intent response,
-                                                             final String serviceId) {
-        if (checkServiceId(serviceId, response)) {
+    private final DConnectApi mGetECHONETLitePropertyApi = new GetApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ENL_PROPERTY;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
             new KadecotServerQueryTask().execute(request, response);
             return false;
         }
-        return true;
-    }
+    };
 
     /**
      * Get air conditioner ECHONET Lite property.
@@ -407,8 +429,7 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
      * @param response Response.
      */
     protected void getAirConditionerECHONETLiteProperty(final Intent request, final Intent response) {
-        KadecotDeviceService service = (KadecotDeviceService) getContext();
-        String[] element = service.getElementFromServiceId(getServiceID(request));
+        String[] element = KadecotDeviceService.getElementFromServiceId(getServiceID(request));
         if (element[IDX_PREFIX].equals(PREFIX_KADECOT) && element[IDX_DEVICEID] != null
                 && element[IDX_PROFILENAME].equals(PROFILE_NAME)) {
             String strEpcs = getEpc(request);
@@ -447,8 +468,8 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
                 if (cursor != null) {
                     cursor.moveToFirst();
                     String result = cursor.getString(0);
-                    String propertyName = service.getPropertyName(result);
-                    String propertyValue = service.getPropertyValue(result);
+                    String propertyName = KadecotDeviceService.getPropertyName(result);
+                    String propertyValue = KadecotDeviceService.getPropertyValue(result);
                     if (propertyName != null && propertyValue != null) {
                         if (result.equals(NO_RESULT)) {
                             cursor.close();
@@ -482,15 +503,14 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
         sendResponse(response);
     }
 
+    private final DConnectApi mPutAirConditionerApi = new PutApi() {
 
-    @Override
-    protected boolean onPutAirConditioner(final Intent request, final Intent response, final String serviceId) {
-        if (checkServiceId(serviceId, response)) {
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
             new KadecotServerQueryTask().execute(request, response);
             return false;
         }
-        return true;
-    }
+    };
 
     /**
      * Put air conditioner power status.
@@ -524,15 +544,18 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
         sendResponse(response);
     }
 
-    @Override
-    protected boolean onPutAirConditionerOperationPowerSaving(final Intent request, final Intent response,
-                                                              final String serviceId) {
-        if (checkServiceId(serviceId, response)) {
+    private final DConnectApi mPutOperationPowerSavingApi = new PutApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_OPERATION_POWER_SAVING;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
             new KadecotServerQueryTask().execute(request, response);
             return false;
         }
-        return true;
-    }
+    };
 
     /**
      * Put air conditioner operation power saving status.
@@ -582,15 +605,18 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
         sendResponse(response);
     }
 
-    @Override
-    protected boolean onPutAirConditionerOperationModeSetting(final Intent request, final Intent response,
-                                                              final String serviceId) {
-        if (checkServiceId(serviceId, response)) {
+    private final DConnectApi mPutOperationModeSettingApi = new PutApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_OPERATION_MODE_SETTING;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
             new KadecotServerQueryTask().execute(request, response);
             return false;
         }
-        return true;
-    }
+    };
 
     /**
      * Put air conditioner operation mode setting status.
@@ -648,15 +674,18 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
         sendResponse(response);
     }
 
-    @Override
-    protected boolean onPutAirConditionerTemperatureValue(final Intent request, final Intent response,
-                                                          final String serviceId) {
-        if (checkServiceId(serviceId, response)) {
+    private final DConnectApi mPutTemperatureValueApi = new PutApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_TEMPERATURE_VALUE;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
             new KadecotServerQueryTask().execute(request, response);
             return false;
         }
-        return true;
-    }
+    };
 
     /**
      * Put air conditioner temperature value.
@@ -696,15 +725,18 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
         sendResponse(response);
     }
 
-    @Override
-    protected boolean onPutAirConditionerAirFlowValue(final Intent request, final Intent response,
-                                                      final String serviceId) {
-        if (checkServiceId(serviceId, response)) {
+    private final DConnectApi mPutAirFlowValueApi = new PutApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_AIR_FLOW_VALUE;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
             new KadecotServerQueryTask().execute(request, response);
             return false;
         }
-        return true;
-    }
+    };
 
     /**
      * Put air conditioner air flow value.
@@ -803,15 +835,18 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
         sendResponse(response);
     }
 
-    @Override
-    protected boolean onPutAirConditionerECHONETLiteProperty(final Intent request, final Intent response,
-                                                             final String serviceId) {
-        if (checkServiceId(serviceId, response)) {
+    private final DConnectApi mPutECHONETLitePropertyApi = new PutApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ENL_PROPERTY;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
             new KadecotServerQueryTask().execute(request, response);
             return false;
         }
-        return true;
-    }
+    };
 
     /**
      * Put air conditioner ECHONET Lite property.
@@ -820,8 +855,7 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
      * @param response Response.
      */
     protected void putAirConditionerECHONETLiteProperty(final Intent request, final Intent response) {
-        KadecotDeviceService service = (KadecotDeviceService) getContext();
-        String[] element = service.getElementFromServiceId(getServiceID(request));
+        String[] element = KadecotDeviceService.getElementFromServiceId(getServiceID(request));
         if (element[IDX_PREFIX].equals(PREFIX_KADECOT) && element[IDX_DEVICEID] != null
                 && element[IDX_PROFILENAME].equals(PROFILE_NAME)) {
             String epc = getEpc(request);
@@ -880,8 +914,8 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
             if (cursor != null) {
                 cursor.moveToFirst();
                 String result = cursor.getString(0);
-                String propertyName = service.getPropertyName(result);
-                String propertyValue = service.getPropertyValue(result);
+                String propertyName = KadecotDeviceService.getPropertyName(result);
+                String propertyValue = KadecotDeviceService.getPropertyValue(result);
                 if (propertyName != null && propertyValue != null) {
                     if (result.equals(NO_RESULT)) {
                         MessageUtils.setNotSupportAttributeError(response,
@@ -904,15 +938,13 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
         sendResponse(response);
     }
 
-
-    @Override
-    protected boolean onDeleteAirConditioner(final Intent request, final Intent response, final String serviceId) {
-        if (checkServiceId(serviceId, response)) {
+    private final DConnectApi mDeleteAirConditionerApi = new DeleteApi() {
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
             new KadecotServerQueryTask().execute(request, response);
             return false;
         }
-        return true;
-    }
+    };
 
     /**
      * Delete air conditioner power status.
@@ -943,27 +975,6 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
             }
         }
         sendResponse(response);
-    }
-
-
-    /**
-     * Check serviceID.
-     *
-     * @param serviceId ServiceId.
-     * @param response Response intent.
-     * @return Normal(true) / Abnormal(false).
-     */
-    private boolean checkServiceId(final String serviceId, final Intent response) {
-        KadecotDeviceService service = (KadecotDeviceService) getContext();
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-            return false;
-        } else if (!(service.checkServiceId(serviceId))) {
-            createNotFoundService(response);
-            return false;
-        } else {
-            return true;
-        }
     }
 
     /**
@@ -997,24 +1008,6 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
     }
 
     /**
-     * Creates an error of "serviceId is empty".
-     *
-     * @param response Intent to store the response.
-     */
-    private void createEmptyServiceId(final Intent response) {
-        MessageUtils.setEmptyServiceIdError(response);
-    }
-
-    /**
-     * Creates an error of "service not found".
-     *
-     * @param response Intent to store the response.
-     */
-    private void createNotFoundService(final Intent response) {
-        MessageUtils.setNotFoundServiceError(response);
-    }
-
-    /**
      * Creates an error of "unknown error" for Kadecot server response.
      *
      * @param response Intent to store the response.
@@ -1033,8 +1026,7 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
      * @return Request result. (Processing error is null.)
      */
     protected KadecotResult requestKadecotServer(final Intent response, final String serviceId, final int property) {
-        KadecotDeviceService service = (KadecotDeviceService) getContext();
-        String[] element = service.getElementFromServiceId(serviceId);
+        String[] element = KadecotDeviceService.getElementFromServiceId(serviceId);
         if (element[IDX_PREFIX].equals(PREFIX_KADECOT) && element[IDX_DEVICEID] != null
                 && element[IDX_PROFILENAME].equals(PROFILE_NAME)) {
             KadecotHomeAirConditioner khac = new KadecotHomeAirConditioner();
@@ -1045,8 +1037,8 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
                 KadecotResult result = new KadecotResult();
                 String strResult = cursor.getString(0);
                 result.setServerResult(strResult);
-                result.setPropertyName(service.getPropertyName(strResult));
-                result.setPropertyValue(service.getPropertyValue(strResult));
+                result.setPropertyName(KadecotDeviceService.getPropertyName(strResult));
+                result.setPropertyValue(KadecotDeviceService.getPropertyValue(strResult));
                 cursor.close();
                 return result;
             } else {
@@ -1070,8 +1062,7 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
      */
     protected KadecotResult requestKadecotServer(final Intent response, final String serviceId, final int property,
                                                  final int value) {
-        KadecotDeviceService service = (KadecotDeviceService) getContext();
-        String[] element = service.getElementFromServiceId(serviceId);
+        String[] element = KadecotDeviceService.getElementFromServiceId(serviceId);
         if (element[IDX_PREFIX].equals(PREFIX_KADECOT) && element[IDX_DEVICEID] != null
                 && element[IDX_PROFILENAME].equals(PROFILE_NAME)) {
             KadecotHomeAirConditioner khac = new KadecotHomeAirConditioner();
@@ -1082,8 +1073,8 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
                 KadecotResult result = new KadecotResult();
                 String strResult = cursor.getString(0);
                 result.setServerResult(strResult);
-                result.setPropertyName(service.getPropertyName(strResult));
-                result.setPropertyValue(service.getPropertyValue(strResult));
+                result.setPropertyName(KadecotDeviceService.getPropertyName(strResult));
+                result.setPropertyValue(KadecotDeviceService.getPropertyValue(strResult));
                 cursor.close();
                 return result;
             } else {

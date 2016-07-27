@@ -87,7 +87,7 @@ public abstract class DConnectMessageService extends Service implements DConnect
      */
     private boolean mUseLocalOAuth = true;
 
-    private DConnectServiceManager mServiceManager;
+    private DConnectServiceProvider mServiceProvider;
 
     private final MessageConverter[] mRequestConverters = {
         new ServiceDiscoveryRequestConverter(),
@@ -105,7 +105,15 @@ public abstract class DConnectMessageService extends Service implements DConnect
     protected abstract SystemProfile getSystemProfile();
 
     protected final DConnectServiceProvider getServiceProvider() {
-        return mServiceManager;
+        return mServiceProvider;
+    }
+
+    protected final void setServiceProvider(final DConnectServiceProvider provider) {
+        mServiceProvider = provider;
+    }
+
+    protected final DConnectPluginSpec getPluginSpec() {
+        return mPluginSpec;
     }
 
     private DConnectPluginSpec mPluginSpec;
@@ -115,9 +123,11 @@ public abstract class DConnectMessageService extends Service implements DConnect
         super.onCreate();
 
         mPluginSpec = loadPluginSpec();
-        mServiceManager = new DConnectServiceManager();
-        mServiceManager.setPluginSpec(mPluginSpec);
-        mServiceManager.setContext(getContext());
+
+        DConnectServiceManager serviceManager = new DConnectServiceManager();
+        serviceManager.setPluginSpec(mPluginSpec);
+        serviceManager.setContext(getContext());
+        mServiceProvider = serviceManager;
 
         // LocalOAuthの初期化
         LocalOAuth2Main.initialize(this);
@@ -125,7 +135,7 @@ public abstract class DConnectMessageService extends Service implements DConnect
         // 認証プロファイルの追加
         addProfile(new AuthorizationProfile(this));
         // 必須プロファイルの追加
-        addProfile(new ServiceDiscoveryProfile(mServiceManager));
+        addProfile(new ServiceDiscoveryProfile(mServiceProvider));
         addProfile(getSystemProfile());
     }
 
@@ -334,7 +344,7 @@ public abstract class DConnectMessageService extends Service implements DConnect
         DConnectProfile profile = getProfile(profileName);
         if (profile == null) {
             String serviceId = DConnectProfile.getServiceID(request);
-            DConnectService service = mServiceManager.getService(serviceId);
+            DConnectService service = getServiceProvider().getService(serviceId);
             if (service != null) {
                 return service.onRequest(request, response);
             } else {

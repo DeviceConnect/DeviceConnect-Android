@@ -68,6 +68,17 @@ public abstract class DConnectProfile implements DConnectProfileConstants,
     protected final Map<ApiIdentifier, DConnectApi> mApis
         = new HashMap<ApiIdentifier, DConnectApi>();
 
+    protected boolean isEqual(final String s1, final String s2) {
+        if (s1 == null && s2 == null) {
+            return true;
+        }
+        if (s1 != null) {
+            return s1.equalsIgnoreCase(s2);
+        } else {
+            return s2.equalsIgnoreCase(s1);
+        }
+    }
+
     /**
      * プロファイルに設定されているDevice Connect API実装のリストを返す.
      *

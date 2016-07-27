@@ -41,6 +41,46 @@ public class WebRTCDeviceService extends DConnectMessageService {
     }
 
     @Override
+    protected void onManagerUninstalled() {
+        // Managerアンインストール検知時の処理。
+    }
+
+    @Override
+    protected void onManagerTerminated() {
+        // Manager正常終了通知受信時の処理。
+    }
+
+    @Override
+    protected void onManagerEventTransmitDisconnected(String sessionKey) {
+        // ManagerのEvent送信経路切断通知受信時の処理。
+        if (sessionKey != null) {
+            EventManager.INSTANCE.removeEvents(sessionKey);
+        } else {
+            EventManager.INSTANCE.removeAll();
+        }
+    }
+
+    @Override
+    protected void onDevicePluginReset() {
+        // Device Plug-inへのReset要求受信時の処理。
+        resetPluginResource();
+    }
+
+    /**
+     * リソースリセット処理.
+     */
+    private void resetPluginResource() {
+        /** 全イベント削除. */
+        EventManager.INSTANCE.removeAll();
+
+        /** Peer切断処理. */
+        WebRTCApplication app = (WebRTCApplication) ((DConnectMessageService) getContext()).getApplication();
+        if (app != null) {
+            app.destroyPeer();
+        }
+    }
+
+    @Override
     protected SystemProfile getSystemProfile() {
         return new WebRTCSystemProfile();
     }

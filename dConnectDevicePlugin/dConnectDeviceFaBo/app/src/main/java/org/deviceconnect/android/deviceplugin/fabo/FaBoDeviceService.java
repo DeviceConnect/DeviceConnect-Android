@@ -16,31 +16,30 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
 import android.widget.Toast;
+
+import com.hoho.android.usbserial.driver.UsbSerialDriver;
+import com.hoho.android.usbserial.driver.UsbSerialPort;
+import com.hoho.android.usbserial.driver.UsbSerialProber;
+import com.hoho.android.usbserial.util.SerialInputOutputManager;
+
+import org.deviceconnect.android.deviceplugin.fabo.param.ArduinoUno;
+import org.deviceconnect.android.deviceplugin.fabo.param.FaBoConst;
+import org.deviceconnect.android.deviceplugin.fabo.param.FirmataV32;
+import org.deviceconnect.android.deviceplugin.fabo.profile.FaBoGPIOProfile;
+import org.deviceconnect.android.deviceplugin.fabo.profile.FaBoSystemProfile;
+import org.deviceconnect.android.deviceplugin.fabo.service.FaBoService;
+import org.deviceconnect.android.event.Event;
+import org.deviceconnect.android.event.EventManager;
+import org.deviceconnect.android.event.cache.MemoryCacheController;
+import org.deviceconnect.android.message.DConnectMessageService;
+import org.deviceconnect.android.profile.SystemProfile;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
-import org.deviceconnect.android.deviceplugin.fabo.param.ArduinoUno;
-import org.deviceconnect.android.deviceplugin.fabo.param.FaBoConst;
-import org.deviceconnect.android.deviceplugin.fabo.param.FirmataV32;
-import org.deviceconnect.android.deviceplugin.fabo.profile.FaBoGPIOProfile;
-import org.deviceconnect.android.deviceplugin.fabo.profile.FaBoServiceDiscoveryProfile;
-import org.deviceconnect.android.deviceplugin.fabo.profile.FaBoSystemProfile;
-import org.deviceconnect.android.event.Event;
-import org.deviceconnect.android.event.EventManager;
-import org.deviceconnect.android.event.cache.MemoryCacheController;
-import org.deviceconnect.android.message.DConnectMessageService;
-import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
-import org.deviceconnect.android.profile.ServiceInformationProfile;
-import org.deviceconnect.android.profile.SystemProfile;
-
-import com.hoho.android.usbserial.driver.UsbSerialDriver;
-import com.hoho.android.usbserial.driver.UsbSerialPort;
-import com.hoho.android.usbserial.driver.UsbSerialProber;
-import com.hoho.android.usbserial.util.SerialInputOutputManager;
 
 /**
  * 本デバイスプラグインのプロファイルをDeviceConnectに登録するサービス.
@@ -100,11 +99,6 @@ public class FaBoDeviceService extends DConnectMessageService {
         // Set status.
         setStatus(FaBoConst.STATUS_FABO_NOCONNECT);
 
-         //ここで、DConnectMessageServiceProviderにプロファイルを追加.
-        addProfile(new FaBoServiceDiscoveryProfile(this));
-        addProfile(new FaBoSystemProfile());
-        addProfile(new FaBoGPIOProfile());
-
         // Eventの設定.
         EventManager.INSTANCE.setController(new MemoryCacheController());
 
@@ -123,6 +117,9 @@ public class FaBoDeviceService extends DConnectMessageService {
         mIntentFilter.addAction(FaBoConst.DEVICE_TO_ARDUINO_CLOSE_USB);
         mIntentFilter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
         registerReceiver(mUSBEvent, mIntentFilter);
+
+        // FaBoサービスを登録.
+        getServiceProvider().addService(new FaBoService());
     }
 
     /**
@@ -183,16 +180,6 @@ public class FaBoDeviceService extends DConnectMessageService {
     @Override
     protected SystemProfile getSystemProfile() {
         return new FaBoSystemProfile();
-    }
-
-    @Override
-    protected ServiceInformationProfile getServiceInformationProfile() {
-        return new ServiceInformationProfile(this){};
-    }
-
-    @Override
-    protected ServiceDiscoveryProfile getServiceDiscoveryProfile() {
-        return new FaBoServiceDiscoveryProfile(this);
     }
 
     /**

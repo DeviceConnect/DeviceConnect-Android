@@ -16,11 +16,11 @@ import android.app.Service;
  * @param <T> DeviceTestService
  * @author NTT DOCOMO, INC.
  */
-public class DeviceTestServiceProvider<T extends Service> extends DConnectMessageServiceProvider<Service> {
+public class UnitTestDeviceServiceProvider<T extends Service> extends DConnectMessageServiceProvider<Service> {
     @SuppressWarnings("unchecked")
     @Override
     protected Class<Service> getServiceClass() {
-        Class<? extends Service> clazz = (Class<? extends Service>) DeviceTestService.class;
+        Class<? extends Service> clazz = (Class<? extends Service>) UnitTestDeviceService.class;
         return (Class<Service>) clazz;
     }
 }

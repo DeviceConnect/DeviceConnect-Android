@@ -7,62 +7,66 @@
 package org.deviceconnect.android.deviceplugin.irkit.profile;
 
 
+import android.content.Intent;
+import android.util.Log;
+
 import org.deviceconnect.android.deviceplugin.irkit.BuildConfig;
 import org.deviceconnect.android.deviceplugin.irkit.IRKitDevice;
 import org.deviceconnect.android.deviceplugin.irkit.IRKitDeviceService;
 import org.deviceconnect.android.deviceplugin.irkit.IRKitManager;
 import org.deviceconnect.android.deviceplugin.irkit.IRKitManager.GetMessageCallback;
-import org.deviceconnect.android.deviceplugin.irkit.IRKitManager.PostMessageCallback;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.DConnectProfile;
+import org.deviceconnect.android.profile.api.DConnectApi;
+import org.deviceconnect.android.profile.api.GetApi;
+import org.deviceconnect.android.profile.api.PostApi;
 import org.deviceconnect.message.DConnectMessage;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import android.content.Intent;
-import android.util.Log;
-
 /**
  * IRKit Remote Controller Profile.
  * @author NTT DOCOMO, INC.
  */
-public class IRKitRmeoteControllerProfile extends DConnectProfile {
+public class IRKitRemoteControllerProfile extends DConnectProfile {
     
     /** Debug . */
     private static final String TAG = "IRKit";
 
     /** プロファイル名. */
-    public static final String PROFILE_NAME = "remote_controller";
+    public static final String PROFILE_NAME = "remoteController";
     
     /** 
      * パラメータ: {@value} .
      */
     public static final String PARAM_MESSAGE = "message";
 
+    public IRKitRemoteControllerProfile() {
+        addApi(mGetApi);
+        addApi(mPostApi);
+    }
+
     @Override
     public String getProfileName() {
         return PROFILE_NAME;
     }
 
-    @Override
-    public boolean onGetRequest(final Intent request, final Intent response) {
-        
-        boolean send = true;
-        String attribute = getAttribute(request);
-        if (attribute != null && attribute.length() != 0) {
-            MessageUtils.setUnknownAttributeError(response);
-        } else {
+    private final DConnectApi mGetApi = new GetApi() {
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            boolean send = true;
+
             String serviceId = getServiceID(request);
             final IRKitDeviceService service = (IRKitDeviceService) getContext();
             IRKitDevice device = service.getDevice(serviceId);
-            
+
             if (device == null) {
                 MessageUtils.setNotFoundServiceError(response);
             } else {
                 send = false;
                 IRKitManager.INSTANCE.fetchMessage(device.getIp(), new GetMessageCallback() {
-                    
+
                     @Override
                     public void onGetMessage(final String message) {
                         if (message == null) {
@@ -75,22 +79,14 @@ public class IRKitRmeoteControllerProfile extends DConnectProfile {
                     }
                 });
             }
+            return send;
         }
-        return send;
-    }
+    };
 
-    @Override
-    public boolean onPostRequest(final Intent request, final Intent response) {
-
-        boolean send = true;
-        String attribute = getAttribute(request);
-
-        if (attribute != null && attribute.length() != 0) {
-            MessageUtils.setUnknownAttributeError(response);
-            if (BuildConfig.DEBUG) {
-                Log.d(TAG, "onPostRequest setUnknownAttributeError error");
-            }
-        } else {
+    private final DConnectApi mPostApi = new PostApi() {
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            boolean send = true;
             String serviceId = getServiceID(request);
             String message = request.getStringExtra(PARAM_MESSAGE);
 
@@ -115,7 +111,7 @@ public class IRKitRmeoteControllerProfile extends DConnectProfile {
                 if (BuildConfig.DEBUG) {
                     Log.d(TAG, "onPostRequest ip=" + device.getIp() + " message=" + message);
                 }
-                IRKitManager.INSTANCE.sendMessage(device.getIp(), message, new PostMessageCallback() {
+                IRKitManager.INSTANCE.sendMessage(device.getIp(), message, new IRKitManager.PostMessageCallback() {
                     @Override
                     public void onPostMessage(final boolean result) {
                         if (result) {
@@ -130,9 +126,10 @@ public class IRKitRmeoteControllerProfile extends DConnectProfile {
                     }
                 });
             }
+            return send;
         }
-        return send;
-    }
+    };
+
     /**
      * 送られてきたデータがIRKitに対応しているかチェックを行う.
      * @param message データ

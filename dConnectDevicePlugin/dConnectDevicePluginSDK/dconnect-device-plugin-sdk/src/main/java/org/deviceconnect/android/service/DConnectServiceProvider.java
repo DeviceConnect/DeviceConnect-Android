@@ -13,7 +13,9 @@ public interface DConnectServiceProvider {
 
     void addService(DConnectService service);
 
-    void removeService(DConnectService service);
+    boolean removeService(DConnectService service);
+
+    DConnectService removeService(String serviceId);
 
     void removeAllServices();
 }

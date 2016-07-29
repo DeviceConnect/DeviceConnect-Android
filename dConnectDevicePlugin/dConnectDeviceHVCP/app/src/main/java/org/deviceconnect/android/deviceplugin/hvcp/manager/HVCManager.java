@@ -24,6 +24,7 @@ import org.deviceconnect.android.deviceplugin.hvcp.manager.data.OkaoResult;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -261,6 +262,10 @@ public enum HVCManager {
                 HVCCameraInfo camera = new HVCCameraInfo("" + device.getDeviceId() + "_" + device.getProductId() + "_" + device.getVendorId(),
                                 "HVC-P:" + "" + device.getDeviceId() + "_" + device.getProductId() + "_" + device.getVendorId());
                 mServices.put(camera.getID(), camera);
+
+                // デバイスとの接続完了を通知.
+                notifyOnConnected(camera);
+
                 HVCManager.INSTANCE.init(context);
                 if (BuildConfig.DEBUG) {
                     Log.d(TAG, "device:true:" + device.getDeviceId());
@@ -273,6 +278,9 @@ public enum HVCManager {
 
         }
     };
+
+    private final List<ConnectionListener> mConnectionListeners = new ArrayList<ConnectionListener>();
+
     /**
      * Constructor.
      */
@@ -327,7 +335,11 @@ public enum HVCManager {
      * @param device device
      */
     public void removeUSBDevice(final UsbDevice device) {
-        mServices.remove("" + device.getDeviceId() + "_" + device.getProductId() + "_" + device.getVendorId());
+        HVCCameraInfo camera = mServices.remove("" + device.getDeviceId() + "_" + device.getProductId() + "_" + device.getVendorId());
+        if (camera != null) {
+            // デバイスとの接続切断を通知.
+            notifyOnDisconnected(camera);
+        }
     }
 
     /**
@@ -891,5 +903,49 @@ public enum HVCManager {
     private String swapLSBandMSB(final int parameter) {
         String size = String.format("%04X", parameter & 0xFFFF);
         return size.substring(2, size.length()) + size.substring(0, 2);
+    }
+
+    public void addConnectionListener(final ConnectionListener listener) {
+        synchronized (mConnectionListeners) {
+            if (!mConnectionListeners.contains(listener)) {
+                mConnectionListeners.add(listener);
+            }
+        }
+    }
+
+    public void removeConnectionListener(final ConnectionListener listener) {
+        synchronized (mConnectionListeners) {
+            for (Iterator<ConnectionListener> it = mConnectionListeners.iterator(); ; it.hasNext()) {
+                ConnectionListener l = it.next();
+                if (l == listener) {
+                    it.remove();
+                    break;
+                }
+            }
+        }
+    }
+
+    private void notifyOnConnected(final HVCCameraInfo cameraInfo) {
+        synchronized (mConnectionListeners) {
+            for (Iterator<ConnectionListener> it = mConnectionListeners.iterator(); ; it.hasNext()) {
+                it.next().onConnected(cameraInfo);
+            }
+        }
+    }
+
+    private void notifyOnDisconnected(final HVCCameraInfo cameraInfo) {
+        synchronized (mConnectionListeners) {
+            for (Iterator<ConnectionListener> it = mConnectionListeners.iterator(); ; it.hasNext()) {
+                it.next().onDisconnected(cameraInfo);
+            }
+        }
+    }
+
+    public interface ConnectionListener {
+
+        void onConnected(HVCCameraInfo camera);
+
+        void onDisconnected(HVCCameraInfo camera);
+
     }
 }

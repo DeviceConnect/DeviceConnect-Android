@@ -78,8 +78,13 @@ public class DConnectServiceManager implements DConnectServiceProvider {
     }
 
     @Override
-    public void removeService(final DConnectService service) {
-        mDConnectServices.remove(service.getId());
+    public boolean removeService(final DConnectService service) {
+        return removeService(service.getId()) != null;
+    }
+
+    @Override
+    public DConnectService removeService(final String serviceId) {
+        return mDConnectServices.remove(serviceId);
     }
 
     @Override

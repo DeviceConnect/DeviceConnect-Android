@@ -20,9 +20,8 @@ import org.deviceconnect.android.deviceplugin.hvcp.manager.HVCManager;
 import org.deviceconnect.android.deviceplugin.hvcp.manager.data.HVCCameraInfo;
 import org.deviceconnect.android.deviceplugin.hvcp.manager.data.HumanDetectKind;
 import org.deviceconnect.android.deviceplugin.hvcp.manager.data.OkaoResult;
-import org.deviceconnect.android.deviceplugin.hvcp.profile.HVCPHumanDetectProfile;
-import org.deviceconnect.android.deviceplugin.hvcp.profile.HVCPServiceDiscoveryProfile;
 import org.deviceconnect.android.deviceplugin.hvcp.profile.HVCPSystemProfile;
+import org.deviceconnect.android.deviceplugin.hvcp.service.HVCPService;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
@@ -31,9 +30,8 @@ import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.android.profile.HumanDetectProfile;
-import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
-import org.deviceconnect.android.profile.ServiceInformationProfile;
 import org.deviceconnect.android.profile.SystemProfile;
+import org.deviceconnect.android.service.DConnectService;
 import org.deviceconnect.message.DConnectMessage;
 
 import java.util.LinkedList;
@@ -46,7 +44,7 @@ import java.util.List;
  */
 public class HVCPDeviceService extends DConnectMessageService
         implements HVCCameraInfo.OnBodyEventListener, HVCCameraInfo.OnHandEventListener,
-        HVCCameraInfo.OnFaceEventListener {
+        HVCCameraInfo.OnFaceEventListener, HVCManager.ConnectionListener {
 
 
     private BroadcastReceiver mReceiver = new BroadcastReceiver() {
@@ -80,12 +78,10 @@ public class HVCPDeviceService extends DConnectMessageService
         super.onCreate();
         EventManager.INSTANCE.setController(new MemoryCacheController());
         HVCManager.INSTANCE.init(this);
-        addProfile(new HVCPHumanDetectProfile());
         final IntentFilter filter = new IntentFilter(HVCManager.INSTANCE.ACTION_USB_PERMISSION);
         filter.addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED); // MODIFIED
         filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
         registerReceiver(mReceiver, filter);
-
     }
 
     @Override
@@ -103,16 +99,6 @@ public class HVCPDeviceService extends DConnectMessageService
     @Override
     protected SystemProfile getSystemProfile() {
         return new HVCPSystemProfile();
-    }
-
-    @Override
-    protected ServiceInformationProfile getServiceInformationProfile() {
-        return new ServiceInformationProfile(this) {};
-    }
-
-    @Override
-    protected ServiceDiscoveryProfile getServiceDiscoveryProfile() {
-        return new HVCPServiceDiscoveryProfile(this);
     }
 
 
@@ -424,6 +410,23 @@ public class HVCPDeviceService extends DConnectMessageService
         }
     }
 
+    @Override
+    public void onConnected(final HVCCameraInfo camera) {
+        DConnectService service = getServiceProvider().getService(camera.getID());
+        if (service == null) {
+            service = new HVCPService(camera);
+            getServiceProvider().addService(service);
+        }
+        service.setOnline(true);
+    }
+
+    @Override
+    public void onDisconnected(final HVCCameraInfo camera) {
+        DConnectService service = getServiceProvider().getService(camera.getID());
+        if (service != null) {
+            service.setOnline(false);
+        }
+    }
 
     /**
      * Make Body Detect Response.

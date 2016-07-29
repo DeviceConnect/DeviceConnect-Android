@@ -5,7 +5,7 @@ var util = (function(parent, global) {
     var mSessionKey = "test-session-key";
 
     function init(callback) {
-        dConnect.setHost("192.168.1.82");
+        dConnect.setHost("localhost");
         dConnect.setExtendedOrigin("file://android_asset/");
         checkDeviceConnect(callback);
     }
@@ -35,7 +35,11 @@ var util = (function(parent, global) {
         startManager(function(apiVersion) {
             console.log('Device Connect API version: ' + apiVersion);
 
-            mAccessToken = getCookie('accessToken');
+            if (window.Android) {
+                mAccessToken = Android.getCookie('accessToken');
+            } else {
+                mAccessToken = getCookie('accessToken');
+            }
 
             openWebSocketIfNeeded();
 
@@ -55,7 +59,11 @@ var util = (function(parent, global) {
         dConnect.authorization(scopes, 'ヘルプ',
             function(clientId, accessToken) {
                 mAccessToken = accessToken;
-                setCookie("accessToken", mAccessToken);
+                if (window.Android) {
+                    Android.setCookie("accessToken", mAccessToken);
+                } else {
+                    setCookie("accessToken", mAccessToken);
+                }
                 callback();
             },
             function(errorCode, errorMessage) {
@@ -84,7 +92,7 @@ var util = (function(parent, global) {
             }
             alert("HOSTデバイスプラグインの発見に失敗しました。\nデバイスプラグインがインストールされていない可能性があります。");
         }, function(errorCode, errorMessage) {
-            if (errorCode == 11 || errorCode == 12 || errorCode == 13) {
+            if (errorCode == 11 || errorCode == 12 || errorCode == 13 || errorCode == 15) {
                 authorization(function() {
                     findHostDevicePlugin(callback);
                 });

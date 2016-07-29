@@ -27,6 +27,7 @@ table.request tr td {
 table.request tr td span {
     margin: 8px;
     padding: 0px;
+    font-size: xx-small;
 }
 
 table.request tr td div {

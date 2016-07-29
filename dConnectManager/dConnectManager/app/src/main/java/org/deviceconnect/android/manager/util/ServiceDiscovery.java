@@ -81,7 +81,9 @@ public class ServiceDiscovery extends Authorization {
         ServiceContainer service = new ServiceContainer();
         service.setId(obj.getString(ServiceDiscoveryProfile.PARAM_ID));
         service.setName(obj.getString(ServiceDiscoveryProfile.PARAM_NAME));
-        service.setNetworkType(ServiceDiscoveryProfile.NetworkType.getInstance(obj.getString(ServiceDiscoveryProfile.PARAM_TYPE)));
+        if (obj.has(ServiceDiscoveryProfile.PARAM_TYPE)) {
+            service.setNetworkType(ServiceDiscoveryProfile.NetworkType.getInstance(obj.getString(ServiceDiscoveryProfile.PARAM_TYPE)));
+        }
         service.setOnline(obj.getBoolean(ServiceDiscoveryProfile.PARAM_ONLINE));
         return service;
     }

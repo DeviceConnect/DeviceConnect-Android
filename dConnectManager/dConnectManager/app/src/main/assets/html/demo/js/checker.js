@@ -2,11 +2,9 @@
 var main = (function(parent, global) {
 
     function init() {
-//        util.init(function(json) {
-//            createSupportApi();
-//        });
-
-        document.getElementById('main').innerHTML = createCommand();
+        util.init(function(json) {
+            createSupportApis(json);
+        });
     }
     parent.init = init;
 
@@ -17,16 +15,13 @@ var main = (function(parent, global) {
     }
     parent.onChangeValue = onChangeValue;
 
+    function checkHiddenParam(name) {
+        return name == 'deviceconnect.method' || name == 'deviceconnect.type' || name == 'deviceconnect.path';
+    }
 
-    function onSendRequest(nav) {
-        var method;
-        var path;
-        var accessToken;
-        var serviceId;
+    function createBody(nav) {
         var data = [];
-        var body = null;
 
-        data.push("serviceId=" + util.getServiceId());
         data.push("accessToken=" + util.getAccessToken());
 
         var formElem = document.forms[nav];
@@ -34,58 +29,91 @@ var main = (function(parent, global) {
             var elem = formElem[key];
             if (elem && elem.tagName) {
                 if (elem.tagName.toLowerCase() == 'input') {
-                    if (elem.name == 'deviceconnect.method') {
-                        method = elem.value;
-                    } else if (elem.name == 'deviceconnect.path') {
-                        path = elem.value;
+                    if (checkHiddenParam(elem.name)) {
+                        // 隠しパラメータ
+                    } else if (elem.type == 'file') {
+                        // どうするべきか検討
                     } else if (elem.name.indexOf('t_') != 0) {
-                        data.push(elem.name + "=" + elem.value);
+                        if (elem.value.length != 0) {
+                            data.push(elem.name + "=" + encodeURIComponent(elem.value));
+                        }
                     }
                 } else if (elem.tagName.toLowerCase() == 'select') {
-                    data.push(elem.name + "=" + elem.value);
+                    data.push(elem.name + "=" + encodeURIComponent(elem.value));
                 }
             }
         }
 
+        return data;
+    }
+
+    function createFormData(nav) {
+        var formData = new FormData();
+
+        formData.append('accessToken', util.getAccessToken());
+
+        var formElem = document.forms[nav];
+        for (var key in formElem) {
+            var elem = formElem[key];
+            if (elem && elem.tagName) {
+                if (elem.tagName.toLowerCase() == 'input') {
+                    if (checkHiddenParam(elem.name)) {
+                        // 隠しパラメータ
+                    } else if (elem.type == 'file') {
+                        formData.append(elem.name, elem.files[0]);
+                    } else if (elem.name.indexOf('t_') != 0) {
+                        if (elem.value.length != 0) {
+                            formData.append(elem.name, elem.value);
+                        }
+                    }
+                } else if (elem.tagName.toLowerCase() == 'select') {
+                    formData.append(elem.name, elem.value);
+                }
+            }
+        }
+        return formData;
+    }
+
+    function onSendRequest(nav) {
+        var formElem = document.forms[nav];
+
+        var method = formElem['deviceconnect.method'].value;
+        var path = formElem['deviceconnect.path'].value;
+        var xType = formElem['deviceconnect.type'].value;
+        var body = null;
+
+        console.log('method:' + method)
+        console.log('path:' + path)
+        console.log('xtype:' + xType)
+
         if (method == 'GET' || method == 'DELETE') {
-            path = path + "?" + data.join('&');
+            path = path + "?" + createBody(nav).join('&');
         } else {
-            body = data.join('&');
+            body = createFormData(nav);
         }
 
-        document.getElementById(nav + '_request').innerHTML = createRequest(method + " " + path);
+        setRequestText(nav, createRequest(method + " " + path));
 
         util.sendRequest(method, util.getUri(path), body, function(status, response) {
             if (status == 200) {
-                document.getElementById(nav + '_response').innerHTML = createResponse(util.formatJSON(response));
+                setResponseText(nav, createResponse(util.formatJSON(response)));
             } else {
-                document.getElementById(nav + '_response').innerHTML = createResponse("" + status);
+                setResponseText(nav, createResponse("" + status));
             }
         });
     }
     parent.onSendRequest = onSendRequest;
 
-
-    function createCommand() {
-        var data = {
-            'title': 'GET /gotapi/availability',
-            'nav' : 'nav1',
-            'content' : createParam()
-        };
-        return util.createTemplate('command', data);
+    function setRequestText(nav, requestText) {
+        document.getElementById(nav + '_request').innerHTML = requestText;
     }
 
-    function createParam() {
-        var list = [
-            "abc1", "abc2", "abc3"
-        ];
-        var data = {
-            'nav' : "TEST",
-            'method' : 'GET',
-            'path' : '/gotapi/availability',
-            'content' : createTextParam("text0", "default") + createSelectParam("test1", list) + createSliderParam()
-        };
-        return util.createTemplate('param', data);
+    function setResponseText(nav, responseText) {
+        document.getElementById(nav + '_response').innerHTML = responseText;
+    }
+
+    function createDConnectPath(path) {
+        return '/gotapi/' + util.getProfile() + path;
     }
 
     function createTextParam(name, value) {
@@ -94,6 +122,13 @@ var main = (function(parent, global) {
             'value' : value
         };
         return util.createTemplate('param_text', data);
+    }
+
+    function createFileParam(name) {
+        var data = {
+            'name' : name
+        };
+        return util.createTemplate('param_file', data);
     }
 
     function createNumberParam(name, value) {
@@ -116,38 +151,126 @@ var main = (function(parent, global) {
         return util.createTemplate('param_select', data);
     }
 
-    function createSliderParam() {
+    function createSliderParam(nav, name, min, max, step) {
         var data = {
-            'nav' : 'TEST',
-            'name' : "test3",
-            'value' : "0.5",
-            'step' : 0.01,
-            'min' : "0.0",
-            'max' : "1.0"
+            'nav' : nav,
+            'name' : name,
+            'value' : (max + min) / 2.0,
+            'step' : step,
+            'min' : '' + min,
+            'max' : '' + max
         };
         return util.createTemplate('param_slider', data);
     }
 
-    function createRequest(t) {
+    function createRequest(body) {
         var data = {
-            'body' : t
+            'body' : body
         };
         return util.createTemplate('request', data);
     }
 
-    function createResponse(t) {
+    function createResponse(body) {
         var data = {
-            'body' : t
+            'body' : body
         };
         return util.createTemplate('response', data);
     }
 
-    function createSupportApi(json) {
+    function createParams(nav, params) {
+        var contentHtml = "";
+        for (var i = 0; i < params.length; i++) {
+            var param = params[i];
+            switch (param.type) {
+            case 'string':
+                if (('enum' in param)) {
+                    contentHtml += createSelectParam(param.name, param.enum);
+                } else {
+                    if (param.name == 'serviceId') {
+                        contentHtml += createTextParam(param.name, util.getServiceId());
+                    } else {
+                        contentHtml += createTextParam(param.name, '');
+                    }
+                }
+                break;
+            case 'array': {
+                contentHtml += createTextParam(param.name, '');
+                break;
+            }
+            case 'integer': {
+                if (('enum' in param)) {
+                    contentHtml += createSelectParam(param.name, param.enum);
+                } else if (('minimum' in param) && ('maximum' in param)) {
+                    contentHtml += createSliderParam(nav, param.name, param.minimum, param.maximum, 1);
+                } else {
+                    contentHtml += createNumberParam(param.name, 0);
+                }
+                break;
+            }
+            case 'number': {
+                if (('enum' in param)) {
+                    contentHtml += createSelectParam(param.name, param.enum);
+                } else if (('minimum' in param) && ('maximum' in param)) {
+                    contentHtml += createSliderParam(nav, param.name, param.minimum, param.maximum, 0.01);
+                } else {
+                    contentHtml += createNumberParam(param.name, 0);
+                }
+                break;
+            }
+            case 'file':
+                contentHtml += createFileParam(param.name);
+                break;
+            default:
+                console.log("Error: " + param.type);
+                break;
+            }
+        }
+        return contentHtml;
+    }
+
+    function createParameter(method, path, xtype, params) {
+        var nav = method + '_' + path;
         var data = {
-            title : "abc"
+            'nav' : nav,
+            'method' : method.toUpperCase(),
+            'path' : createDConnectPath(path),
+            'xtype' : xtype,
+            'content' : createParams(nav, params)
         };
-        var htmlText = util.createTemplate('request', data);
-        document.getElementById('main').innerHTML = htmlText;
+        return util.createTemplate('param', data);
+    }
+
+    function createCommand(method, path, param) {
+        var data = {
+            'title': method.toUpperCase() + ' ' + createDConnectPath(path),
+            'nav' : method + '_' + path,
+            'content' : createParameter(method, path, param['x-type'], param.parameters)
+        };
+        return util.createTemplate('command', data);
+    }
+
+    function createSupportMethod(path, data) {
+        var contentHtml = "";
+        for (var method in data) {
+            contentHtml += createCommand(method, path, data[method]);
+        }
+        return contentHtml;
+    }
+
+    function createSupportPath(paths) {
+        var contentHtml = "";
+        for (var path in paths) {
+            contentHtml += createSupportMethod(path, paths[path]);
+        }
+        return contentHtml;
+    }
+
+    function createSupportApis(json) {
+        console.log(json);
+        var profile = util.getProfile();
+        if (json.supportApis) {
+            document.getElementById('main').innerHTML = createSupportPath(json.supportApis[profile].paths);
+        }
     }
 
     return parent;

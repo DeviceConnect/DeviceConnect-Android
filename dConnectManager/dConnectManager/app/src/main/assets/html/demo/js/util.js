@@ -1,9 +1,10 @@
 var util = (function(parent, global) {
     var mAccessToken = null;
     var mSessionKey = "test-session-key";
+    var mHost = "localhost";
 
     function init(callback) {
-        dConnect.setHost("192.168.1.82");
+        dConnect.setHost(mHost);
         dConnect.setExtendedOrigin("file://android_asset/");
         checkDeviceConnect(callback);
     }
@@ -33,7 +34,11 @@ var util = (function(parent, global) {
         startManager(function(apiVersion) {
             console.log('Device Connect API version: ' + apiVersion);
 
-            mAccessToken = getCookie('accessToken');
+            if (window.Android) {
+                mAccessToken = Android.getCookie('accessToken');
+            } else {
+                mAccessToken = getCookie('accessToken');
+            }
 
             openWebSocketIfNeeded();
 
@@ -47,13 +52,47 @@ var util = (function(parent, global) {
             'serviceinformation',
             'system',
             'battery',
+            'connect',
             'deviceorientation',
-            'mediastream_recording',
-            'vibration');
+            'filedescriptor',
+            'file',
+            'mediaplayer',
+            'mediastreamrecording',
+            'notification',
+            'phone',
+            'proximity',
+            'settings',
+            'vibration',
+            'light',
+            'remotecontroller',
+            'drivecontroller',
+            'mhealth',
+            'sphero',
+            'dice',
+            'temperature',
+            'camera',
+            'canvas',
+            'health',
+            'touch',
+            'humandetect',
+            'keyevent',
+            'omnidirectionalimage',
+            'tv',
+            'powermeter',
+            'humidity',
+            'illuminance',
+            'videochat',
+            'airconditioner',
+            'atmosphericpressure',
+            'gpio');
         dConnect.authorization(scopes, 'ヘルプ',
             function(clientId, accessToken) {
                 mAccessToken = accessToken;
-                setCookie("accessToken", mAccessToken);
+                if (window.Android) {
+                    Android.setCookie("accessToken", mAccessToken);
+                } else {
+                    setCookie("accessToken", mAccessToken);
+                }
                 callback();
             },
             function(errorCode, errorMessage) {
@@ -65,7 +104,7 @@ var util = (function(parent, global) {
         dConnect.getSystemDeviceInfo(getServiceId(), getAccessToken(), function(json) {
             callback(json);
         }, function(errorCode, errorMessage) {
-            if (errorCode == 11 || errorCode == 12 || errorCode == 13) {
+            if (errorCode == 11 || errorCode == 12 || errorCode == 13 || errorCode == 15) {
                 authorization(function() {
                     serviceInformation(callback);
                 });
@@ -88,6 +127,38 @@ var util = (function(parent, global) {
 
     function setCookie(key, value) {
         document.cookie = key + '=' + value;
+    }
+
+    function getCookie(name) {
+        var result = null;
+        var cookieName = name + '=';
+        var allCookies = document.cookie;
+        var position = allCookies.indexOf(cookieName);
+        if (position != -1) {
+            var startIndex = position + cookieName.length;
+            var endIndex = allCookies.indexOf(';', startIndex);
+            if (endIndex == -1) {
+                endIndex = allCookies.length;
+            }
+            result = decodeURIComponent(allCookies.substring(startIndex, endIndex));
+        }
+        return result;
+    }
+
+    function getQuery(name) {
+        if (1 < document.location.search.length) {
+            var query = document.location.search.substring(1);
+            var parameters = query.split('&');
+            for (var i = 0; i < parameters.length; i++) {
+                var element = parameters[i].split('=');
+                var paramName = decodeURIComponent(element[0]);
+                var paramValue = decodeURIComponent(element[1]);
+                if (paramName == name) {
+                    return paramValue;
+                }
+            }
+        }
+        return null;
     }
 
     function createXMLHttpRequest() {
@@ -135,74 +206,35 @@ var util = (function(parent, global) {
                  break;
              case 3:
                  console.log("リクエストの処理中。\nxhr.readyState=" + xhr.readyState + "\nxhr.statusText=" + xhr.statusText);
-                 break;
+                break;
              case 4:
                  cb(xhr.status, xhr.responseText);
                  break;
              default:
                  break;
              }
-         };
-         xhr.open(method, uri);
-     }
-     parent.sendRequest = sendRequest;
-
-    function getCookie(name) {
-        var result = null;
-        var cookieName = name + '=';
-        var allCookies = document.cookie;
-        var position = allCookies.indexOf(cookieName);
-        if (position != -1) {
-            var startIndex = position + cookieName.length;
-            var endIndex = allCookies.indexOf(';', startIndex);
-            if (endIndex == -1) {
-                endIndex = allCookies.length;
-            }
-            result = decodeURIComponent(allCookies.substring(startIndex, endIndex));
-        }
-        return result;
+        };
+        xhr.open(method, uri);
     }
+    parent.sendRequest = sendRequest;
+
 
     function getUri(path) {
-        return 'http://192.168.1.82:4035' + path;
+        return 'http://' + mHost + ':4035' + path;
     }
     parent.getUri = getUri;
 
 
-    function getServiceId() {
-        if (1 < document.location.search.length) {
-            var query = document.location.search.substring(1);
-            var parameters = query.split('&');
-            for (var i = 0; i < parameters.length; i++) {
-                var element = parameters[i].split('=');
-                var paramName = decodeURIComponent(element[0]);
-                var paramValue = decodeURIComponent(element[1]);
-                if (paramName == 'serviceId') {
-                    return paramValue;
-                }
-            }
-        }
-        return null;
-    }
-    parent.getServiceId = getServiceId;
-
-
     function getProfile() {
-        if (1 < document.location.search.length) {
-            var query = document.location.search.substring(1);
-            var parameters = query.split('&');
-            for (var i = 0; i < parameters.length; i++) {
-                var element = parameters[i].split('=');
-                var paramName = decodeURIComponent(element[0]);
-                var paramValue = decodeURIComponent(element[1]);
-                if (paramName == 'profile') {
-                    return paramValue;
-                }
-            }
-        }
-        return null;
+        return getQuery('profile');
     }
     parent.getProfile = getProfile;
+
+
+    function getServiceId() {
+        return getQuery('serviceId');
+    }
+    parent.getServiceId = getServiceId;
 
 
     function getAccessToken() {

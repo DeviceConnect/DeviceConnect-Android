@@ -3,15 +3,26 @@ package org.deviceconnect.android.manager.setting;
 import android.app.ActionBar;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
+import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.MediaStore;
+import android.util.Base64;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MenuItem;
+import android.webkit.JavascriptInterface;
 import android.webkit.JsPromptResult;
 import android.webkit.JsResult;
+import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -21,12 +32,21 @@ import android.widget.EditText;
 import org.deviceconnect.android.manager.BuildConfig;
 import org.deviceconnect.android.manager.R;
 
+import java.io.ByteArrayOutputStream;
+
 public class WebViewActivity extends Activity {
     private static final boolean DEBUG = BuildConfig.DEBUG;
     private static final String TAG = "Manager";
 
     public static final String EXTRA_URL = "url";
     public static final String EXTRA_TITLE = "title";
+
+    private static final String TYPE_IMAGE = "image/*";
+    private static final int INPUT_FILE_REQUEST_CODE = 1;
+    private static final int REQUEST_CODE_FROM_JS = 2;
+
+    private ValueCallback<Uri> mUploadMessage;
+    private ValueCallback<Uri[]> mFilePathCallback;
 
     private WebView mWebView;
 
@@ -63,6 +83,7 @@ public class WebViewActivity extends Activity {
             mWebView.setWebChromeClient(mChromeClient);
             mWebView.setVerticalScrollBarEnabled(false);
             mWebView.setHorizontalScrollBarEnabled(false);
+            mWebView.addJavascriptInterface(new JavaScriptInterface(), "Android");
 
             WebSettings webSettings = mWebView.getSettings();
             webSettings.setJavaScriptEnabled(true);
@@ -107,6 +128,75 @@ public class WebViewActivity extends Activity {
             return true;
         }
         return super.onKeyDown(keyCode, event);
+    }
+
+    @Override
+    protected void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
+        if (requestCode == INPUT_FILE_REQUEST_CODE) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                if (mFilePathCallback == null) {
+                    super.onActivityResult(requestCode, resultCode, data);
+                    return;
+                }
+
+                Uri[] results = null;
+                if (resultCode == RESULT_OK) {
+                    String dataString = data.getDataString();
+                    if (dataString != null) {
+                        results = new Uri[] { Uri.parse(dataString) };
+                    }
+                }
+
+                mFilePathCallback.onReceiveValue(results);
+                mFilePathCallback = null;
+            } else {
+                if (mUploadMessage == null) {
+                    super.onActivityResult(requestCode, resultCode, data);
+                    return;
+                }
+
+                Uri result = null;
+                if (resultCode == RESULT_OK) {
+                    if (data != null) {
+                        result = data.getData();
+                    }
+                }
+
+                mUploadMessage.onReceiveValue(result);
+                mUploadMessage = null;
+            }
+        } else if(requestCode == REQUEST_CODE_FROM_JS) {
+            Uri selectedImage = data.getData();
+            String[] filePathColumn = {MediaStore.Images.Media.DATA};
+
+            Cursor cursor = getContentResolver().query(selectedImage, filePathColumn, null, null, null);
+            if (cursor != null) {
+                cursor.moveToFirst();
+                cursor.close();
+            }
+
+            String imgPath = getPath(this, selectedImage);
+
+            BitmapFactory.Options options;
+            options = new BitmapFactory.Options();
+            options.inSampleSize = 3;
+            Bitmap bitmap = BitmapFactory.decodeFile(imgPath, options);
+
+            ByteArrayOutputStream stream = new ByteArrayOutputStream();
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
+            byte[] b = stream.toByteArray();
+            String encodedString = Base64.encodeToString(b, Base64.DEFAULT);
+            mWebView.loadUrl("javascript:chooseImgResult(" + encodedString + ")");
+        }else{
+            super.onActivityResult(requestCode,resultCode, data);
+        }
+    }
+
+    public static String getPath(final Context context, final Uri uri) {
+        if ("file".equalsIgnoreCase(uri.getScheme())) {
+            return uri.getPath();
+        }
+        return null;
     }
 
     private final WebViewClient mWebViewClient = new WebViewClient() {
@@ -232,5 +322,49 @@ public class WebViewActivity extends Activity {
             dialog.show();
             return true;
         }
+
+        // For Android 5.0+
+        @Override
+        public boolean onShowFileChooser(final WebView webView, final ValueCallback<Uri[]> filePathCallback,
+                                         final FileChooserParams fileChooserParams) {
+            if (mFilePathCallback != null) {
+                mFilePathCallback.onReceiveValue(null);
+            }
+            mFilePathCallback = filePathCallback;
+
+            Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+            intent.addCategory(Intent.CATEGORY_OPENABLE);
+            intent.setType(TYPE_IMAGE);
+            startActivityForResult(intent, INPUT_FILE_REQUEST_CODE);
+
+            return true;
+        }
     };
+
+    private class JavaScriptInterface {
+        SharedPreferences mPref;
+
+        JavaScriptInterface() {
+            mPref = getSharedPreferences("__cookie.dat", Context.MODE_PRIVATE);
+        }
+
+        @JavascriptInterface
+        public void setCookie(String name, String value) {
+            SharedPreferences.Editor editor = mPref.edit();
+            editor.putString(name, value);
+            editor.commit();
+        }
+
+        @JavascriptInterface
+        public String getCookie(String name) {
+            return mPref.getString(name, null);
+        }
+
+        @JavascriptInterface
+        public void deleteCookie(String name) {
+            SharedPreferences.Editor editor = mPref.edit();
+            editor.remove(name);
+            editor.commit();
+        }
+    }
 }

@@ -1,0 +1,36 @@
+table.profileTable {
+    width: 96%;
+    margin: 8px;
+    padding: 0px;
+    border-collapse: separate;
+    border-spacing: 8px;
+}
+
+table.profileTable tr td {
+    width: 50%;
+    border: solid 1px #0000ff;
+    padding: 0px;
+    margin: 0px;
+    text-align: center;
+}
+
+table.profileTable tr td div {
+    padding: 0px;
+    margin: 0px;
+}
+
+div.line {
+    width: 100%;
+    height: 20px;
+    margin: 0px;
+    padding: 0px;
+    background-color: #0000ff;
+}
+
+span.serviceName {
+    font-size: x-large;
+}
+
+span.serviceId {
+    font-size: xx-small;
+}

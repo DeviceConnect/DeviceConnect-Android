@@ -3,7 +3,7 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no">
     <link rel="stylesheet" href="css/accordion.css" type="text/css" />
-    <link rel="stylesheet" href="css/main.css" type="text/css" />
+    <link rel="stylesheet" href="css/checker.css" type="text/css" />
 
     <script id="command" type="text/x-template">
         <label for="{#nav}">{#title}</label>
@@ -19,6 +19,7 @@
             <form name="{#nav}">
                 <input type="hidden" name="deviceconnect.method" value="{#method}">
                 <input type="hidden" name="deviceconnect.path" value="{#path}">
+                <input type="hidden" name="deviceconnect.type" value="{#xtype}">
                 {#content}
             </form>
             <div class="send_request">
@@ -28,6 +29,21 @@
         <div id="{#nav}_request"></div>
         <div id="{#nav}_response"></div>
     </script>
+
+
+    <script id="param_file" type="text/x-template">
+        <table class="request">
+            <tr>
+                <td width="20%"><span>{#name}</span></td>
+                <td width="80%">
+                    <div>
+                        <input class="text" type="file" name="{#name}">
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </script>
+
 
     <script id="param_text" type="text/x-template">
         <table class="request">

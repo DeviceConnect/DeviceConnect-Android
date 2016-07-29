@@ -196,10 +196,11 @@ public final class DConnectUtil {
     }
 
     public static Drawable convertToGrayScale(final Drawable drawable) {
+        Drawable clone = drawable.getConstantState().newDrawable().mutate();
         ColorMatrix matrix = new ColorMatrix();
         matrix.setSaturation(0.2f);
         ColorMatrixColorFilter filter = new ColorMatrixColorFilter(matrix);
-        drawable.setColorFilter(filter);
-        return drawable;
+        clone.setColorFilter(filter);
+        return clone;
     }
 }

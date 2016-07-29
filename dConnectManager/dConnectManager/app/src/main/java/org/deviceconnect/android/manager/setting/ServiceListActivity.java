@@ -323,6 +323,7 @@ public class ServiceListActivity extends Activity {
         Intent intent = new Intent();
         intent.setClass(this, WebViewActivity.class);
         intent.putExtra(WebViewActivity.EXTRA_URL, url);
+        intent.putExtra(WebViewActivity.EXTRA_TITLE, getString(R.string.activity_help_title));
         startActivity(intent);
     }
 
@@ -333,6 +334,7 @@ public class ServiceListActivity extends Activity {
             Intent intent = new Intent();
             intent.setClass(this, WebViewActivity.class);
             intent.putExtra(WebViewActivity.EXTRA_URL, url);
+            intent.putExtra(WebViewActivity.EXTRA_TITLE, service.getName());
             startActivity(intent);
         } else {
             String title = getString(R.string.activity_service_list_offline_title);

@@ -179,6 +179,8 @@
     <string name="webview_js_alert_positive_btn">はい</string>
     <string name="webview_js_alert_negative_btn">いいえ</string>
 
+    <string name="activity_help_title">ヘルプ</string>
+
     <!-- ================= Chrome for Android ================= -->
     <string name="chrome_bookmark_provider_url">content://com.android.chrome.browser/bookmarks</string>
 

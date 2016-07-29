@@ -2,10 +2,25 @@
 <html>
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no">
-    <link rel="stylesheet" href="file:///android_asset/html/help/css/main.css" type="text/css" />
+    <link rel="stylesheet" href="../../css/main.css" type="text/css" />
+    <script type="text/javascript" src="../../js/dconnectsdk-2.0.0.js"></script>
+    <script type="text/javascript" src="../../js/util.js"></script>
+    <script type="text/javascript" src="js/demo_take_photo.js"></script>
     <title>写真を撮影する</title>
 </head>
-<body>
-<div class="heading">写真を撮影する</div>
+<body onLoad="demoTakePhoto.init()">
+    <div class="heading">写真を撮影する</div>
+    <div class="photo">
+        <form name="recorder">
+            <select name="target" onchange="demoTakePhoto.onChangeTarget()"></select>
+            <select name="imageSize" onchange="demoTakePhoto.onChangeOption()"></select>
+            <select name="previewSize" onchange="demoTakePhoto.onChangeOption()"></select>
+        </form>
+        <div style="margin:12px;">
+            <img id="preview" crossorigin="anonymous">
+        </div>
+        <button onclick="demoTakePhoto.onTakePhoto()">撮影</button>
+    </div>
+    <div id="photos" style="margin:12px;"></div>
 </body>
 </html>

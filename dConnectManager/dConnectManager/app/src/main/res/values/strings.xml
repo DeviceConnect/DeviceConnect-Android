@@ -161,6 +161,8 @@
     <string name="webview_js_alert_positive_btn">はい</string>
     <string name="webview_js_alert_negative_btn">いいえ</string>
 
+    <string name="activity_help_title">Help</string>
+
     <!-- =================     ServiceListActivity     ================= -->
     <string name="activity_service_list_search">Search of service</string>
     <string name="activity_service_menu_settings">Settings</string>

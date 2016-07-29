@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no">
+    <link rel="stylesheet" href="css/accordion.css" type="text/css" />
+    <link rel="stylesheet" href="css/main.css" type="text/css" />
+
+    <script id="command" type="text/x-template">
+        <label for="{#nav}">{#title}</label>
+        <input type="checkbox" id="{#nav}" class="bellows" />
+        <div class="ac_content">
+            {#content}
+        </div>
+    </script>
+
+    <script id="param" type="text/x-template">
+        <div class="request_param">
+            <span>リクエストパラメータ</span>
+            <form name="{#nav}">
+                <input type="hidden" name="deviceconnect.method" value="{#method}">
+                <input type="hidden" name="deviceconnect.path" value="{#path}">
+                {#content}
+            </form>
+            <div class="send_request">
+                <button onclick="return main.onSendRequest('{#nav}')">Send Request</button>
+            </div>
+        </div>
+        <div id="{#nav}_request"></div>
+        <div id="{#nav}_response"></div>
+    </script>
+
+    <script id="param_text" type="text/x-template">
+        <table class="request">
+            <tr>
+                <td width="20%"><span>{#name}</span></td>
+                <td width="80%">
+                    <div>
+                        <input class="text" type="text" name="{#name}" value="{#value}">
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </script>
+
+    <script id="param_number" type="text/x-template">
+        <table class="request">
+            <tr>
+                <td width="20%"><span>{#name}</span></td>
+                <td width="80%">
+                    <div>
+                        <input class="text" type="number" name="{#name}" value="{#value}">
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </script>
+
+    <script id="param_select" type="text/x-template">
+        <table class="request">
+            <tr>
+                <td width="20%"><span>{#name}</span></td>
+                <td width="80%">
+                    <div>
+                        <select name="{#name}">
+                            {#value}
+                        </select>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </script>
+
+    <script id="param_slider" type="text/x-template">
+        <table class="request">
+            <tr>
+                <td width="20%"><span>{#name}</span></td>
+                <td width="10%">
+                    <div>
+                        <input class="text" type="text" name="t_{#name}" value="{#value}">
+                    </div>
+                </td>
+                <td width="70%">
+                    <div>
+                        <span class="min">{#min}</span>
+                        <input class="slider" type="range" onchange="main.onChangeValue('{#nav}', '{#name}')" name="{#name}" value="{#value}" min="{#min}" max="{#max}" step="{#step}">
+                        <span class="max">{#max}</span>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </script>
+
+    <script id="request" type="text/x-template">
+        <div class="request">
+            <span>リクエスト</span>
+            <div>{#body}</div>
+        </div>
+    </script>
+
+    <script id="response" type="text/x-template">
+        <div class="response">
+            <span>レスポンス</span>
+            <div>{#body}</div>
+        </div>
+    </script>
+
+    <script type="text/javascript" src="js/dconnectsdk-2.0.0.js"></script>
+    <script type="text/javascript" src="js/util.js"></script>
+    <script type="text/javascript" src="js/checker.js"></script>
+    <title>デバイス確認画面</title>
+</head>
+<body onload="main.init()">
+<div id="main" class="ac_menu"></div>
+</body>
+</html>

@@ -8,6 +8,23 @@ div.heading {
     font-weight: bold;
 }
 
+button {
+    font-size: 1.2em;
+    padding: 10px 50px;
+    margin: 4px;
+    background-color: #9ECDF9;
+    color: #000;
+    border-style: none;
+
+    -moz-border-radius: 16px;
+    -webkit-border-radius: 16px;
+    border-radius: 16px;
+}
+
+button:active {
+    background-color:#69c;
+}
+
 img.start {
     width: 80%;
 }
@@ -52,4 +69,23 @@ div.box:before {
     border-left: 11px solid transparent;
     top: -16px;
     right: 47px;
+}
+
+div#battery {
+    font-size: 200%;
+}
+
+div.photo {
+    text-align: center;
+    margin: 12px;
+}
+
+img#preview {
+    width: 80%;
+    margin: 12px;
+}
+
+img.photo {
+    width: 10%;
+    margin: 12px;
 }

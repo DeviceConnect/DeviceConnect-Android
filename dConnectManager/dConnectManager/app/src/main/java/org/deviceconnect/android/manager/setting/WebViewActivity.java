@@ -26,6 +26,7 @@ public class WebViewActivity extends Activity {
     private static final String TAG = "Manager";
 
     public static final String EXTRA_URL = "url";
+    public static final String EXTRA_TITLE = "title";
 
     private WebView mWebView;
 
@@ -49,6 +50,11 @@ public class WebViewActivity extends Activity {
         if (url == null) {
             finish();
             return;
+        }
+
+        String title = intent.getStringExtra(EXTRA_TITLE);
+        if (title != null) {
+            setTitle(title);
         }
 
         mWebView = (WebView) findViewById(R.id.activity_web_view);

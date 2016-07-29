@@ -8,9 +8,9 @@ package org.deviceconnect.android.deviceplugin.irkit.profile;
 
 import android.content.Intent;
 
-import org.deviceconnect.android.deviceplugin.irkit.IRKitDeviceService;
 import org.deviceconnect.android.deviceplugin.irkit.data.IRKitDBHelper;
 import org.deviceconnect.android.deviceplugin.irkit.data.VirtualProfileData;
+import org.deviceconnect.android.deviceplugin.irkit.service.VirtualService;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.android.profile.api.DConnectApi;
@@ -243,10 +243,10 @@ public class IRKitTVProfile extends DConnectProfile {
             return send;
         }
         for (VirtualProfileData req : requests) {
-            if (req.getUri().equals(uri) && req.getMethod().equals(method)
+            if (req.getUri().equalsIgnoreCase(uri)
+                    && req.getMethod().equals(method)
                     && req.getIr() != null) {
-                final IRKitDeviceService service = (IRKitDeviceService) getContext();
-                send = service.sendIR(serviceId, req.getIr(), response);
+                send = ((VirtualService) getService()).sendIR(req.getIr(), response);
                 break;
             } else {
                 MessageUtils.setInvalidRequestParameterError(response, "IR is not registered for that request");

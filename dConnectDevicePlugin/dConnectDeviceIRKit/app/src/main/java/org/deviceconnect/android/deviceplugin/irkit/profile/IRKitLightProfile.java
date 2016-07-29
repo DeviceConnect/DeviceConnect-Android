@@ -9,9 +9,9 @@ package org.deviceconnect.android.deviceplugin.irkit.profile;
 import android.content.Intent;
 import android.os.Bundle;
 
-import org.deviceconnect.android.deviceplugin.irkit.IRKitDeviceService;
 import org.deviceconnect.android.deviceplugin.irkit.data.IRKitDBHelper;
 import org.deviceconnect.android.deviceplugin.irkit.data.VirtualProfileData;
+import org.deviceconnect.android.deviceplugin.irkit.service.VirtualService;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.LightProfile;
 import org.deviceconnect.android.profile.api.DConnectApi;
@@ -104,11 +104,10 @@ public class IRKitLightProfile extends LightProfile {
 
         for (VirtualProfileData req : requests) {
             String uri = req.getUri();
-            if (req.getUri().equals(uri)
+            if (req.getUri().equalsIgnoreCase(uri)
                     && req.getMethod().equals(method)
                     && req.getIr() != null) {
-                final IRKitDeviceService service = (IRKitDeviceService) getContext();
-                return service.sendIR(serviceId, req.getIr(), response);
+                return ((VirtualService) getService()).sendIR(req.getIr(), response);
             } else {
                 MessageUtils.setInvalidRequestParameterError(response, "IR is not registered for that request");
             }

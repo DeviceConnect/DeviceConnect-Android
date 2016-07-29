@@ -20,10 +20,8 @@ import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.event.cache.MemoryCacheController;
 import org.deviceconnect.android.localoauth.LocalOAuth2Main;
 import org.deviceconnect.android.message.DConnectMessageService;
-import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.android.service.DConnectService;
-import org.deviceconnect.message.DConnectMessage;
 
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -180,35 +178,6 @@ public class IRKitDeviceService extends DConnectMessageService implements Detect
         if (service != null) {
             service.setOnline(false);
         }
-    }
-
-    /**
-     * 赤外線を送信する.
-     * @param serviceId サービスID
-     * @param message 赤外線
-     * @param response レスポンス
-     * @return true:同期 false:非同期
-     */
-    public boolean sendIR(final String serviceId, final String message,
-                          final Intent response) {
-        boolean send = true;
-        String[] ids = serviceId.split("\\.");
-        IRKitDevice device = mDevices.get(ids[0]);
-        if (message != null) {
-            send = false;
-            IRKitManager.INSTANCE.sendMessage(device.getIp(), message, new IRKitManager.PostMessageCallback() {
-                @Override
-                public void onPostMessage(boolean result) {
-                    if (result) {
-                        response.putExtra(DConnectMessage.EXTRA_RESULT,  DConnectMessage.RESULT_OK);
-                    } else {
-                        MessageUtils.setUnknownError(response);
-                    }
-                    sendResponse(response);
-                }
-            });
-        }
-        return send;
     }
 
 

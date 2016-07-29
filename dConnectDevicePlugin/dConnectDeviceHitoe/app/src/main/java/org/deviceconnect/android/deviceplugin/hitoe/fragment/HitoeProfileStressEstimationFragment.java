@@ -89,10 +89,9 @@ public class HitoeProfileStressEstimationFragment extends Fragment  implements H
         return rootView;
     }
 
-
     @Override
-    public void onPause() {
-        super.onPause();
+    public void onDestroy() {
+        super.onDestroy();
         mScheduler.scanHitoeDevice(false);
     }
 

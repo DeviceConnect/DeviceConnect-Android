@@ -20,21 +20,19 @@
         <activity
             android:name=".activity.HitoeDeviceListActivity"
             android:label="@string/app_name"
-
+            android:configChanges="orientation|keyboardHidden|screenSize"
             >
-            <!--<intent-filter>-->
-                <!--<action android:name="android.intent.action.MAIN"/>-->
-                <!--<category android:name="android.intent.category.LAUNCHER"/>-->
-            <!--</intent-filter>-->
         </activity>
         <activity
             android:name=".activity.HitoeAddDeviceActivity"
             android:label="@string/app_name"
+            android:configChanges="orientation|keyboardHidden|screenSize"
             android:exported="false">
         </activity>
         <activity
             android:name=".activity.HitoeDeviceControlActivity"
             android:label="@string/app_name"
+            android:configChanges="orientation|keyboardHidden|screenSize"
             android:exported="false"
             >
         </activity>

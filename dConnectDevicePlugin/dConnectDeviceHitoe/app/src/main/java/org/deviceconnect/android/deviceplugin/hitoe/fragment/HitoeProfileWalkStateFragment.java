@@ -105,11 +105,9 @@ public class HitoeProfileWalkStateFragment extends Fragment  implements HitoeSch
         return rootView;
     }
 
-
-
     @Override
-    public void onPause() {
-        super.onPause();
+    public void onDestroy() {
+        super.onDestroy();
         mScheduler.scanHitoeDevice(false);
     }
 

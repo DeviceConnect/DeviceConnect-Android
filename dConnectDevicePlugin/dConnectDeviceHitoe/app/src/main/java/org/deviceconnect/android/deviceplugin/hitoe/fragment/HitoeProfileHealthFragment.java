@@ -86,10 +86,9 @@ public class HitoeProfileHealthFragment extends Fragment  implements HitoeSchedu
     }
 
 
-
     @Override
-    public void onPause() {
-        super.onPause();
+    public void onDestroy() {
+        super.onDestroy();
         mScheduler.scanHitoeDevice(false);
     }
 

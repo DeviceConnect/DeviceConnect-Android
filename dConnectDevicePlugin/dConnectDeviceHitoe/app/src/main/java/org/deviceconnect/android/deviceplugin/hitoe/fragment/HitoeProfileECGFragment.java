@@ -137,10 +137,11 @@ public class HitoeProfileECGFragment extends Fragment  implements HitoeScheduler
     }
 
     @Override
-    public void onPause() {
-        super.onPause();
+    public void onDestroy() {
+        super.onDestroy();
         mScheduler.scanHitoeDevice(false);
     }
+
 
     @Override
     public void onRegularNotify() {

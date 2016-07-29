@@ -13,11 +13,14 @@ import org.deviceconnect.android.deviceplugin.irkit.data.IRKitDBHelper;
 import org.deviceconnect.android.deviceplugin.irkit.data.VirtualProfileData;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.DConnectProfile;
+import org.deviceconnect.android.profile.api.DConnectApi;
+import org.deviceconnect.android.profile.api.DeleteApi;
+import org.deviceconnect.android.profile.api.PutApi;
 
 import java.util.List;
 
 /**
- * TVプロファイル.
+ * 仮想デバイスのTVプロファイル.
  * @author NTT DOCOMO, INC.
  */
 public class IRKitTVProfile extends DConnectProfile {
@@ -38,7 +41,7 @@ public class IRKitTVProfile extends DConnectProfile {
     /**
      * 属性: {@value}.
      */
-    public static final String ATTRIBUTE_BROADCASTWAVE = "broadcastwave";
+    public static final String ATTRIBUTE_BROADCASTWAVE = "broadcastWave";
 
     /**
      * 属性: {@value}.
@@ -48,7 +51,7 @@ public class IRKitTVProfile extends DConnectProfile {
     /**
      * 属性: {@value}.
      */
-    public static final String ATTRIBUTE_ENLPROPERTY = "enlproperty";
+    public static final String ATTRIBUTE_ENLPROPERTY = "enlProperty";
 
     /**
      * パラメータ: {@value}.
@@ -140,25 +143,39 @@ public class IRKitTVProfile extends DConnectProfile {
      */
     public static final String PARAM_CS = "CS";
 
+    public IRKitTVProfile() {
+        addApi(mPutPowerOnApi);
+        addApi(mPutChannelApi);
+        addApi(mPutVolumeApi);
+        addApi(mPutBroadcastWaveApi);
+        addApi(mDeletePowerOffApi);
+    }
 
     @Override
     public String getProfileName() {
         return PROFILE_NAME;
     }
 
+    private final DConnectApi mPutPowerOnApi = new PutApi() {
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String tv = "/" + PROFILE_NAME;
+            return sendTVRequest(getServiceID(request), "PUT", tv, response);
+        }
+    };
+
+    private final DConnectApi mPutChannelApi = new PutApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_CHANNEL;
+        }
 
         @Override
-    protected boolean onPutRequest(final Intent request, final Intent response) {
-        String attribute = getAttribute(request);
-        String serviceId = getServiceID(request);
-        if (attribute == null) {
-            String tv = "/" + PROFILE_NAME;
-            return sendTVRequest(serviceId, "PUT", tv, response);
-        } else if (attribute.equals(ATTRIBUTE_CHANNEL)){
+        public boolean onRequest(final Intent request, final Intent response) {
             String control = null;
             if (request.getExtras().getString(PARAM_CONTROL) != null) {
                 control = "/" + PROFILE_NAME + "/" + ATTRIBUTE_CHANNEL
-                        + "?" + PARAM_CONTROL + "=" + request.getExtras().getString(PARAM_CONTROL);
+                    + "?" + PARAM_CONTROL + "=" + request.getExtras().getString(PARAM_CONTROL);
             }
             if (request.getExtras().getString(PARAM_TUNING) != null) {
                 if (request.getExtras().getString(PARAM_CONTROL) == null) {
@@ -168,34 +185,45 @@ public class IRKitTVProfile extends DConnectProfile {
                 }
                 control = control + PARAM_TUNING + "=" + request.getExtras().getString(PARAM_TUNING);
             }
-            return sendTVRequest(serviceId, "PUT", control, response);
-        } else if (attribute.equals(ATTRIBUTE_VOLUME)) {
+            return sendTVRequest(getServiceID(request), "PUT", control, response);
+        }
+    };
+
+    private final DConnectApi mPutVolumeApi = new PutApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_VOLUME;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
             String control = "/" + PROFILE_NAME + "/" + ATTRIBUTE_VOLUME
-                    + "?" + PARAM_CONTROL + "=" +  request.getExtras().getString(PARAM_CONTROL);
-            return sendTVRequest(serviceId, "PUT", control, response);
-        } else if (attribute.equals(ATTRIBUTE_BROADCASTWAVE)) {
+                + "?" + PARAM_CONTROL + "=" +  request.getExtras().getString(PARAM_CONTROL);
+            return sendTVRequest(getServiceID(request), "PUT", control, response);
+        }
+    };
+
+    private final DConnectApi mPutBroadcastWaveApi = new PutApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_BROADCASTWAVE;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
             String select = "/" + PROFILE_NAME + "/" + ATTRIBUTE_BROADCASTWAVE
-                    + "?" + PARAM_SELECT + "=" +  request.getExtras().getString(PARAM_SELECT);
-            return sendTVRequest(serviceId, "PUT", select, response);
-        } else {
-            MessageUtils.setNotSupportAttributeError(response);
-            return true;
+                + "?" + PARAM_SELECT + "=" +  request.getExtras().getString(PARAM_SELECT);
+            return sendTVRequest(getServiceID(request), "PUT", select, response);
         }
-    }
+    };
 
-    @Override
-    protected boolean onDeleteRequest(final Intent request, final Intent response) {
-
-        String attribute = getAttribute(request);
-        String serviceId = getServiceID(request);
-        if (attribute == null) {
+    private final DConnectApi mDeletePowerOffApi = new DeleteApi() {
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
             String tv = "/" + PROFILE_NAME;
-            return sendTVRequest(serviceId, "DELETE", tv, response);
-        } else {
-            MessageUtils.setNotSupportAttributeError(response);
-            return true;
+            return sendTVRequest(getServiceID(request), "DELETE", tv, response);
         }
-    }
+    };
 
     /**
      * ライト用の赤外線を送信する.

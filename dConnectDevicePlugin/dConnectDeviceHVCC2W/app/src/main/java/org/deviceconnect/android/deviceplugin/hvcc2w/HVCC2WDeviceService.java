@@ -15,7 +15,6 @@ import org.deviceconnect.android.deviceplugin.hvcc2w.manager.HVCManager;
 import org.deviceconnect.android.deviceplugin.hvcc2w.manager.HVCStorage;
 import org.deviceconnect.android.deviceplugin.hvcc2w.manager.data.HVCCameraInfo;
 import org.deviceconnect.android.deviceplugin.hvcc2w.manager.data.HumanDetectKind;
-import org.deviceconnect.android.deviceplugin.hvcc2w.profile.HVCC2WHumanDetectProfile;
 import org.deviceconnect.android.deviceplugin.hvcc2w.profile.HVCC2WServiceDiscoveryProfile;
 import org.deviceconnect.android.deviceplugin.hvcc2w.profile.HVCC2WSystemProfile;
 import org.deviceconnect.android.event.Event;
@@ -26,8 +25,6 @@ import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.android.profile.HumanDetectProfile;
-import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
-import org.deviceconnect.android.profile.ServiceInformationProfile;
 import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.message.DConnectMessage;
 
@@ -64,7 +61,7 @@ public class HVCC2WDeviceService extends DConnectMessageService
         HVCManager.INSTANCE.init(this);
         HVCStorage.INSTANCE.init(this);
 
-        addProfile(new HVCC2WHumanDetectProfile());
+        addProfile(new HVCC2WServiceDiscoveryProfile(getServiceProvider()));
     }
 
     @Override
@@ -81,17 +78,6 @@ public class HVCC2WDeviceService extends DConnectMessageService
     protected SystemProfile getSystemProfile() {
         return new HVCC2WSystemProfile();
     }
-
-    @Override
-    protected ServiceInformationProfile getServiceInformationProfile() {
-        return new ServiceInformationProfile(this) {};
-    }
-
-    @Override
-    protected ServiceDiscoveryProfile getServiceDiscoveryProfile() {
-        return new HVCC2WServiceDiscoveryProfile(this);
-    }
-
 
     /**
      * Register Human Detect Event.

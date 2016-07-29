@@ -9,6 +9,7 @@ import org.json.JSONObject;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -50,6 +51,10 @@ public class DConnectPluginSpec {
 
     public DConnectProfileSpec findProfileSpec(final String profileName) {
         return mProfileSpecs.get(profileName);
+    }
+
+    public Map<String, DConnectProfileSpec> getProfileSpecs() {
+        return new HashMap<String, DConnectProfileSpec>(mProfileSpecs);
     }
 
 }

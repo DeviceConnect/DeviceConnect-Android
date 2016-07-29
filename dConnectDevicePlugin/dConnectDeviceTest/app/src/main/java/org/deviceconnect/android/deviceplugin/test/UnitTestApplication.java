@@ -6,19 +6,19 @@
  */
 package org.deviceconnect.android.deviceplugin.test;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.logging.SimpleFormatter;
+import android.app.Application;
 
 import org.deviceconnect.android.logger.AndroidHandler;
 
-import android.app.Application;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 
 /**
  * テスト用デバイスプラグインアプリケーション.
  * @author NTT DOCOMO, INC.
  */
-public class DeviceTestApplication extends Application {
+public class UnitTestApplication extends Application {
 
     /** ロガー. */
     private Logger mLogger = Logger.getLogger("dconnect.dplugin.test");

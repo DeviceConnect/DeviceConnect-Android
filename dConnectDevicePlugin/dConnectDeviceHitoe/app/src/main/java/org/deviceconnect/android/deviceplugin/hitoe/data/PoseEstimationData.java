@@ -19,7 +19,7 @@ public class PoseEstimationData {
 
 
     /** Pose state. */
-    private PoseEstimationProfileConstants.PoseState mState;
+    private PoseEstimationProfileConstants.PoseState mState = PoseEstimationProfileConstants.PoseState.Standing;
     /** Poses TimeStamp. */
     private long mTimeStamp;
     /** Poses TimeStamp String. */

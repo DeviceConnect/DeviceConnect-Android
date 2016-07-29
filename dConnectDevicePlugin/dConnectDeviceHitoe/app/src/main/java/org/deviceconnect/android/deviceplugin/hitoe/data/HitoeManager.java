@@ -1537,7 +1537,7 @@ public class HitoeManager {
                             Log.d(TAG, "history:" + history);
                             Log.d(TAG, "<================");
                         }
-                        if (mIsCallbackRunning && history == timestamp) {
+                        if (mIsCallbackRunning && history == timestamp && heart.isRegisterFlag()) {
                             final String name = heart.getName();
 
                             mHandler.post(new Runnable() {
@@ -1549,7 +1549,7 @@ public class HitoeManager {
                             });
 
                             mIsCallbackRunning = false;
-                        } else if (!mIsCallbackRunning && history < timestamp) {
+                        } else if (!mIsCallbackRunning && history < timestamp && heart.isRegisterFlag()) {
                             final String name = heart.getName();
                             mHandler.post(new Runnable() {
                                 @Override

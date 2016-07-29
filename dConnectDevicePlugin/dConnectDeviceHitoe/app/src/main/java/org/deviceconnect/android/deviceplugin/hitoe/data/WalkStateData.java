@@ -20,7 +20,7 @@ public class WalkStateData {
     /** Step. */
     private int mStep;
     /** Walk state. */
-    private WalkStateProfileConstants.WalkState mState;
+    private WalkStateProfileConstants.WalkState mState = WalkStateProfileConstants.WalkState.Stop;
     /** Walk speed. */
     private double mSpeed;
     /** Walk distance. */

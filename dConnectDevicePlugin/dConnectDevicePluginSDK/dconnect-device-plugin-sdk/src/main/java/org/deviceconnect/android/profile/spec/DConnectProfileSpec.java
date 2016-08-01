@@ -17,15 +17,15 @@ import java.util.Map;
  */
 public class DConnectProfileSpec implements DConnectSpecConstants {
 
-    private BundleFactory mFactory;
+    private Bundle mBundle;
 
     private Map<String, Map<Method, DConnectApiSpec>> mAllApiSpecs;
 
     private DConnectProfileSpec() {
     }
 
-    void setBundleFactory(final BundleFactory factory) {
-        mFactory = factory;
+    void setBundle(final Bundle bundle) {
+        mBundle = bundle;
     }
 
     void setApiSpecs(final Map<String, Map<Method, DConnectApiSpec>> apiSpecs) {
@@ -64,14 +64,7 @@ public class DConnectProfileSpec implements DConnectSpecConstants {
     }
 
     public Bundle toBundle() {
-        return toBundle(null);
-    }
-
-    public Bundle toBundle(final DConnectApiSpecFilter filter) {
-        if (mFactory == null) {
-            return null;
-        }
-        return mFactory.createBundle(this, filter);
+        return mBundle;
     }
 
     public static class Builder {
@@ -79,7 +72,7 @@ public class DConnectProfileSpec implements DConnectSpecConstants {
         private final Map<String, Map<Method, DConnectApiSpec>> mAllApiSpecs =
             new HashMap<String, Map<Method, DConnectApiSpec>>();
 
-        private BundleFactory mFactory;
+        private Bundle mBundle;
 
         public void addApiSpec(final String path, final Method method,
                                final DConnectApiSpec apiSpec) {
@@ -92,22 +85,15 @@ public class DConnectProfileSpec implements DConnectSpecConstants {
             apiSpecs.put(method, apiSpec);
         }
 
-        public void setBundleFactory(final BundleFactory factory) {
-            mFactory = factory;
+        public void setBundle(final Bundle bundle) {
+            mBundle = bundle;
         }
 
         public DConnectProfileSpec build() {
             DConnectProfileSpec profileSpec = new DConnectProfileSpec();
             profileSpec.setApiSpecs(mAllApiSpecs);
-            profileSpec.setBundleFactory(mFactory);
+            profileSpec.setBundle(mBundle);
             return profileSpec;
         }
-    }
-
-    public interface BundleFactory {
-
-        Bundle createBundle(final DConnectProfileSpec profileSpec,
-                            final DConnectApiSpecFilter filter);
-
     }
 }

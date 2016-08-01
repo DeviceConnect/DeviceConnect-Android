@@ -1,6 +1,17 @@
+/*
+ IntegerDataSpec.java
+ Copyright (c) 2016 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.profile.spec;
 
 
+/**
+ * Integer型データの仕様.
+ *
+ * @author NTT DOCOMO, INC.
+ */
 public class IntegerDataSpec extends DConnectDataSpec {
 
     private final DataFormat mFormat;
@@ -10,52 +21,101 @@ public class IntegerDataSpec extends DConnectDataSpec {
     private Boolean mExclusiveMinimum;
     private long[] mEnumList;
 
+    /**
+     * コンストラクタ.
+     *
+     * @param format データのフォーマット指定
+     */
     IntegerDataSpec(final DataFormat format) {
         super(DataType.INTEGER);
         mFormat = format;
     }
 
+    /**
+     * データのフォーマット指定を取得する.
+     * @return データのフォーマット指定
+     */
     public DataFormat getFormat() {
         return mFormat;
     }
 
+    /**
+     * 最大値を取得する.
+     * @return 最大値
+     */
     public Long getMaximum() {
         return mMaximum;
     }
 
-    public void setMaximum(final Long maximum) {
+    /**
+     * 最大値を設定する.
+     * @param maximum 最大値
+     */
+    void setMaximum(final Long maximum) {
         mMaximum = maximum;
     }
 
+    /**
+     * 最小値を取得する.
+     * @return 最小値
+     */
     public Long getMinimum() {
         return mMinimum;
     }
 
-    public void setMinimum(final Long minimum) {
+    /**
+     * 最小値を設定する.
+     * @param minimum 最小値
+     */
+    void setMinimum(final Long minimum) {
         mMinimum = minimum;
     }
 
+    /**
+     * 最大値自体を指定可能かどうかのフラグを取得する.
+     * @return 指定できない場合は<code>true</code>. それ以外の場合は<code>false</code>
+     */
     public boolean isExclusiveMaximum() {
         return mExclusiveMaximum != null ? mExclusiveMaximum : false;
     }
 
-    public void setExclusiveMaximum(final Boolean exclusiveMaximum) {
+    /**
+     * 最大値自体を指定可能かどうかのフラグを設定する.
+     * @param exclusiveMaximum 指定できない場合は<code>true</code>. それ以外の場合は<code>false</code>
+     */
+    void setExclusiveMaximum(final Boolean exclusiveMaximum) {
         mExclusiveMaximum = exclusiveMaximum;
     }
 
+    /**
+     * 最小値自体を指定可能かどうかのフラグを取得する
+     * @return 指定できない場合は<code>true</code>. それ以外の場合は<code>false</code>
+     */
     public boolean isExclusiveMinimum() {
         return mExclusiveMinimum != null ? mExclusiveMinimum : false;
     }
 
-    public void setExclusiveMinimum(final Boolean exclusiveMinimum) {
+    /**
+     * 最小値自体を指定可能かどうかのフラグを設定する.
+     * @param exclusiveMinimum 指定できない場合は<code>true</code>. それ以外の場合は<code>false</code>
+     */
+    void setExclusiveMinimum(final Boolean exclusiveMinimum) {
         mExclusiveMinimum = exclusiveMinimum;
     }
 
+    /**
+     * 定数一覧を取得する.
+     * @return 定数の配列
+     */
     public long[] getEnumList() {
         return mEnumList;
     }
 
-    public void setEnumList(final long[] enumList) {
+    /**
+     * 定数一覧を設定する.
+     * @param enumList 定数の配列
+     */
+    void setEnumList(final long[] enumList) {
         mEnumList = enumList;
     }
 
@@ -122,6 +182,11 @@ public class IntegerDataSpec extends DConnectDataSpec {
         }
     }
 
+    /**
+     * {@link IntegerDataSpec}のビルダー.
+     *
+     * @author NTT DOCOMO, INC.
+     */
     public static class Builder {
 
         private DataFormat mFormat;
@@ -131,36 +196,70 @@ public class IntegerDataSpec extends DConnectDataSpec {
         private Boolean mExclusiveMinimum;
         private long[] mEnumList;
 
+        /**
+         * データのフォーマット指定を設定する.
+         * @param format データのフォーマット指定
+         * @return ビルダー自身のインスタンス
+         */
         public Builder setFormat(final DataFormat format) {
             mFormat = format;
             return this;
         }
 
+        /**
+         * 最大値を設定する.
+         * @param maximum 最大値
+         * @return ビルダー自身のインスタンス
+         */
         public Builder setMaximum(final Long maximum) {
             mMaximum = maximum;
             return this;
         }
 
+        /**
+         * 最小値を設定する.
+         * @param minimum 最小値
+         * @return ビルダー自身のインスタンス
+         */
         public Builder setMinimum(final Long minimum) {
             mMinimum = minimum;
             return this;
         }
 
+        /**
+         * 最大値自体を指定可能かどうかのフラグを設定する.
+         * @param exclusiveMaximum 指定できない場合は<code>true</code>. それ以外の場合は<code>false</code>
+         * @return ビルダー自身のインスタンス
+         */
         public Builder setExclusiveMaximum(final Boolean exclusiveMaximum) {
             mExclusiveMaximum = exclusiveMaximum;
             return this;
         }
 
+        /**
+         * 最小値自体を指定可能かどうかのフラグを設定する.
+         * @param exclusiveMinimum 指定できない場合は<code>true</code>. それ以外の場合は<code>false</code>
+         * @return ビルダー自身のインスタンス
+         */
         public Builder setExclusiveMinimum(final Boolean exclusiveMinimum) {
             mExclusiveMinimum = exclusiveMinimum;
             return this;
         }
 
+        /**
+         * 定数一覧を取得する.
+         * @param enumList 定数の配列
+         * @return ビルダー自身のインスタンス
+         */
         public Builder setEnumList(final long[] enumList) {
             mEnumList = enumList;
             return this;
         }
 
+        /**
+         * {@link IntegerDataSpec}のインスタンスを生成する.
+         * @return {@link IntegerDataSpec}のインスタンス
+         */
         public IntegerDataSpec build() {
             if (mFormat == null) {
                 mFormat = DataFormat.INT32;

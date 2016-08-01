@@ -1,3 +1,9 @@
+/*
+ DConnectProfileSpec.java
+ Copyright (c) 2016 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.profile.spec;
 
 
@@ -24,14 +30,26 @@ public class DConnectProfileSpec implements DConnectSpecConstants {
     private DConnectProfileSpec() {
     }
 
+    /**
+     * API仕様定義ファイルから生成したBundleのインスタンスを設定する.
+     * @param bundle Bundleのインスタンス
+     */
     void setBundle(final Bundle bundle) {
         mBundle = bundle;
     }
 
+    /**
+     * APIの仕様定義のマップを設定する.
+     * @param apiSpecs {@link DConnectApiSpec}のマップ
+     */
     void setApiSpecs(final Map<String, Map<Method, DConnectApiSpec>> apiSpecs) {
         mAllApiSpecs = apiSpecs;
     }
 
+    /**
+     * 当該プロファイル上で定義されている、APIの仕様定義のリストを取得する.
+     * @return {@link DConnectApiSpec}のリスト
+     */
     public List<DConnectApiSpec> getApiSpecList() {
         List<DConnectApiSpec> list = new ArrayList<DConnectApiSpec>();
         if (mAllApiSpecs == null) {
@@ -45,6 +63,12 @@ public class DConnectProfileSpec implements DConnectSpecConstants {
         return list;
     }
 
+    /**
+     * 指定されたパスで提供されるAPIの仕様定義のマップを取得する.
+     * @param path APIのパス
+     * @return {@link DConnectApiSpec}のマップ. キーはメソッド名.
+     *         指定されたパスで提供しているAPIが存在しない場合は<code>null</code>
+     */
     public Map<Method, DConnectApiSpec> findApiSpecs(final String path) {
         if (path == null) {
             throw new IllegalArgumentException("path is null.");
@@ -52,6 +76,13 @@ public class DConnectProfileSpec implements DConnectSpecConstants {
         return mAllApiSpecs.get(path.toLowerCase());
     }
 
+    /**
+     * 指定されたパスとメソッドで提供されるAPIの仕様定義を取得する.
+     * @param path APIのパス
+     * @param method APIのメソッド名
+     * @return {@link DConnectApiSpec}のインスタンス.
+     *         指定されたパスとメソッドで提供しているAPIが存在しない場合は<code>null</code>
+     */
     public DConnectApiSpec findApiSpec(final String path, final Method method) {
         if (method == null) {
             throw new IllegalArgumentException("method is null.");
@@ -63,10 +94,19 @@ public class DConnectProfileSpec implements DConnectSpecConstants {
         return apiSpecsOfPath.get(method);
     }
 
+    /**
+     * API仕様定義ファイルから生成したBundleのインスタンスを取得する.
+     * @return Bundleのインスタンス
+     */
     public Bundle toBundle() {
         return mBundle;
     }
 
+    /**
+     * {@link DConnectProfileSpec}のビルダー.
+     *
+     * @author NTT DOCOMO, INC.
+     */
     public static class Builder {
 
         private final Map<String, Map<Method, DConnectApiSpec>> mAllApiSpecs =
@@ -74,7 +114,15 @@ public class DConnectProfileSpec implements DConnectSpecConstants {
 
         private Bundle mBundle;
 
-        public void addApiSpec(final String path, final Method method,
+        /**
+         * APIの仕様定義を追加する.
+         *
+         * @param path パス
+         * @param method メソッド
+         * @param apiSpec 仕様定義
+         * @return ビルダー自身のインスタンス
+         */
+        public Builder addApiSpec(final String path, final Method method,
                                final DConnectApiSpec apiSpec) {
             String pathKey = path.toLowerCase();
             Map<Method, DConnectApiSpec> apiSpecs = mAllApiSpecs.get(pathKey);
@@ -83,12 +131,25 @@ public class DConnectProfileSpec implements DConnectSpecConstants {
                 mAllApiSpecs.put(pathKey, apiSpecs);
             }
             apiSpecs.put(method, apiSpec);
+            return this;
         }
 
-        public void setBundle(final Bundle bundle) {
+        /**
+         * API仕様定義ファイルから生成したBundleのインスタンスを取得する.
+         *
+         * @param bundle Bundleのインスタンス
+         * @return ビルダー自身のインスタンス
+         */
+        public Builder setBundle(final Bundle bundle) {
             mBundle = bundle;
+            return this;
         }
 
+        /**
+         * {@link DConnectProfileSpec}のインスタンスを生成する.
+         *
+         * @return {@link DConnectProfileSpec}のインスタンス
+         */
         public DConnectProfileSpec build() {
             DConnectProfileSpec profileSpec = new DConnectProfileSpec();
             profileSpec.setApiSpecs(mAllApiSpecs);

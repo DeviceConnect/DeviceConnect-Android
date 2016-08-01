@@ -444,6 +444,7 @@ public class SonyCameraDeviceService extends DConnectMessageService {
                 int[] s = new int[2];
                 s[0] = width;
                 s[1] = height;
+                return s;
             }
         }
         return null;
@@ -1317,8 +1318,7 @@ public class SonyCameraDeviceService extends DConnectMessageService {
                     JSONObject replyJson = mRemoteApi.setCurrentTime(mDate, mTimeZone);
                     if (replyJson == null) {
                         sendErrorResponse(request, response);
-                    }
-                    if (isErrorReply(replyJson)) {
+                    } else if (isErrorReply(replyJson)) {
                         sendErrorResponse(request, response);
                     } else {
                         JSONArray resultsObj = replyJson.getJSONArray("result");

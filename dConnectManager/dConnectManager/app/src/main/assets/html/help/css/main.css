@@ -27,6 +27,11 @@ button:active {
 
 img.start {
     width: 80%;
+    border: solid 1px #000000;
+}
+
+img.dialog {
+    width: 40%;
 }
 
 div.image {

@@ -15,7 +15,7 @@ var main = (function(parent, global) {
     }
     parent.onChangeValue = onChangeValue;
 
-    function checkHiddenParam(name) {
+    function isHiddenParam(name) {
         return name == 'deviceconnect.method' || name == 'deviceconnect.type' || name == 'deviceconnect.path';
     }
 
@@ -29,7 +29,7 @@ var main = (function(parent, global) {
             var elem = formElem[key];
             if (elem && elem.tagName) {
                 if (elem.tagName.toLowerCase() == 'input') {
-                    if (checkHiddenParam(elem.name)) {
+                    if (isHiddenParam(elem.name)) {
                         // 隠しパラメータ
                     } else if (elem.type == 'file') {
                         // どうするべきか検討
@@ -57,7 +57,7 @@ var main = (function(parent, global) {
             var elem = formElem[key];
             if (elem && elem.tagName) {
                 if (elem.tagName.toLowerCase() == 'input') {
-                    if (checkHiddenParam(elem.name)) {
+                    if (isHiddenParam(elem.name)) {
                         // 隠しパラメータ
                     } else if (elem.type == 'file') {
                         formData.append(elem.name, elem.files[0]);
@@ -86,21 +86,44 @@ var main = (function(parent, global) {
         console.log('path:' + path)
         console.log('xtype:' + xType)
 
-        if (method == 'GET' || method == 'DELETE') {
-            path = path + "?" + createBody(nav).join('&');
-        } else {
-            body = createFormData(nav);
-        }
+        if (xType == 'event') {
+            var uri = "http://localhost:4035" + path.toLowerCase() + "?" + createBody(nav).join('&') + "&sessionKey=" + util.getSessionKey();
+            console.log(uri);
 
-        setRequestText(nav, createRequest(method + " " + path));
+            setRequestText(nav, createRequest(method + " " + path));
 
-        util.sendRequest(method, util.getUri(path), body, function(status, response) {
-            if (status == 200) {
-                setResponseText(nav, createResponse(util.formatJSON(response)));
+            if (method == 'PUT') {
+                dConnect.addEventListener(uri, function(json) {
+                    setEventText(nav, createEvent(util.formatJSON(json)));
+                }, function(json) {
+                    setResponseText(nav, createResponse(util.formatJSON(JSON.stringify(json))));
+                }, function(errorCode, errorMessage) {
+                    setResponseText(nav, createResponse("errorCode=" + errorCode + " errorMessage=" + errorMessage));
+                });
             } else {
-                setResponseText(nav, createResponse("" + status));
+                dConnect.removeEventListener(uri, function(json) {
+                    setResponseText(nav, createResponse(util.formatJSON(JSON.stringify(json))));
+                }, function(errorCode, errorMessage) {
+                    setResponseText(nav, createResponse("errorCode=" + errorCode + " errorMessage=" + errorMessage));
+                });
             }
-        });
+        } else {
+            if (method == 'GET' || method == 'DELETE') {
+                path = path + "?" + createBody(nav).join('&');
+            } else {
+                body = createFormData(nav);
+            }
+
+            setRequestText(nav, createRequest(method + " " + path + "<br><br>" + body));
+
+            util.sendRequest(method, util.getUri(path), body, function(status, response) {
+                if (status == 200) {
+                    setResponseText(nav, createResponse(util.formatJSON(response)));
+                } else {
+                    setResponseText(nav, createResponse("" + status));
+                }
+            });
+        }
     }
     parent.onSendRequest = onSendRequest;
 
@@ -110,6 +133,10 @@ var main = (function(parent, global) {
 
     function setResponseText(nav, responseText) {
         document.getElementById(nav + '_response').innerHTML = responseText;
+    }
+
+    function setEventText(nav, eventText) {
+        document.getElementById(nav + '_event').innerHTML = eventText;
     }
 
     function createDConnectPath(path) {
@@ -177,6 +204,13 @@ var main = (function(parent, global) {
         return util.createTemplate('response', data);
     }
 
+    function createEvent(body) {
+        var data = {
+            'body' : body
+        };
+        return util.createTemplate('event', data);
+    }
+
     function createParams(nav, params) {
         var contentHtml = "";
         for (var i = 0; i < params.length; i++) {
@@ -193,11 +227,10 @@ var main = (function(parent, global) {
                     }
                 }
                 break;
-            case 'array': {
+            case 'array':
                 contentHtml += createTextParam(param.name, '');
                 break;
-            }
-            case 'integer': {
+            case 'integer':
                 if (('enum' in param)) {
                     contentHtml += createSelectParam(param.name, param.enum);
                 } else if (('minimum' in param) && ('maximum' in param)) {
@@ -206,8 +239,7 @@ var main = (function(parent, global) {
                     contentHtml += createNumberParam(param.name, 0);
                 }
                 break;
-            }
-            case 'number': {
+            case 'number':
                 if (('enum' in param)) {
                     contentHtml += createSelectParam(param.name, param.enum);
                 } else if (('minimum' in param) && ('maximum' in param)) {
@@ -216,7 +248,6 @@ var main = (function(parent, global) {
                     contentHtml += createNumberParam(param.name, 0);
                 }
                 break;
-            }
             case 'file':
                 contentHtml += createFileParam(param.name);
                 break;
@@ -228,13 +259,13 @@ var main = (function(parent, global) {
         return contentHtml;
     }
 
-    function createParameter(method, path, xtype, params) {
+    function createParameter(method, path, xType, params) {
         var nav = method + '_' + path;
         var data = {
             'nav' : nav,
             'method' : method.toUpperCase(),
             'path' : createDConnectPath(path),
-            'xtype' : xtype,
+            'xtype' : xType,
             'content' : createParams(nav, params)
         };
         return util.createTemplate('param', data);

@@ -19,9 +19,12 @@ table.request tr {
 
 table.request tr td {
     background-color: #9ECDF9;
-    border-radius: 10px 0 0 10px;
     margin: 0px;
     padding: 0px;
+}
+
+table.request tr td.left {
+    border-radius: 10px 0 0 10px;
 }
 
 table.request tr td span {
@@ -95,10 +98,11 @@ div.request {
 
 div.request div {
     background-color: #FFFFCC;
-    margin: 8px;
+    margin: 0px 8px 8px 8px;
     padding: 4px;
     font-size: xx-small;
     box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+    word-break: break-all;
 }
 
 div.response {
@@ -107,8 +111,22 @@ div.response {
 
 div.response div {
     background-color: #FFFFCC;
-    margin: 8px;
+    margin: 0px 8px 8px 8px;
     padding: 4px;
     font-size: xx-small;
     box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+    word-break: break-all;
+}
+
+div.event {
+    margin: 8px;
+}
+
+div.event div {
+    background-color: #FFFFCC;
+    margin: 0px 8px 8px 8px;
+    padding: 4px;
+    font-size: xx-small;
+    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+    word-break: break-all;
 }

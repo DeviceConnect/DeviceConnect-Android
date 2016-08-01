@@ -1681,7 +1681,7 @@ var dConnect = (function(parent, global) {
         parent.put(uri, null, null, function(json) {
             eventListener[uri] = event_cb;
             if (success_cb) {
-                success_cb();
+                success_cb(json);
             }
         }, error_cb);
     };
@@ -1702,7 +1702,7 @@ var dConnect = (function(parent, global) {
         parent.delete(uri, null, function(json) {
             delete eventListener[uri];
             if (success_cb) {
-                success_cb();
+                success_cb(json);
             }
         }, error_cb);
     };

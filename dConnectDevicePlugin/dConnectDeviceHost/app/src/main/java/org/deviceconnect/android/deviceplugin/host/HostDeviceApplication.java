@@ -75,44 +75,45 @@ public class HostDeviceApplication extends Application {
      */
     public Bundle getTouchCache(final String attr) {
         long lCurrentTime = System.currentTimeMillis();
-        if (attr.equals(TouchProfile.ATTRIBUTE_ON_TOUCH)) {
-            if (lCurrentTime - mOnTouchCacheTime <= CACHE_RETENTION_TIME) {
-                return mOnTouchCache;
-            } else {
+        switch (attr) {
+            case TouchProfile.ATTRIBUTE_ON_TOUCH:
+                if (lCurrentTime - mOnTouchCacheTime <= CACHE_RETENTION_TIME) {
+                    return mOnTouchCache;
+                } else {
+                    return null;
+                }
+            case TouchProfile.ATTRIBUTE_ON_TOUCH_START:
+                if (lCurrentTime - mOnTouchStartCacheTime <= CACHE_RETENTION_TIME) {
+                    return mOnTouchStartCache;
+                } else {
+                    return null;
+                }
+            case TouchProfile.ATTRIBUTE_ON_TOUCH_END:
+                if (lCurrentTime - mOnTouchEndCacheTime <= CACHE_RETENTION_TIME) {
+                    return mOnTouchEndCache;
+                } else {
+                    return null;
+                }
+            case TouchProfile.ATTRIBUTE_ON_DOUBLE_TAP:
+                if (lCurrentTime - mOnDoubleTapCacheTime <= CACHE_RETENTION_TIME) {
+                    return mOnDoubleTapCache;
+                } else {
+                    return null;
+                }
+            case TouchProfile.ATTRIBUTE_ON_TOUCH_MOVE:
+                if (lCurrentTime - mOnTouchMoveCacheTime <= CACHE_RETENTION_TIME) {
+                    return mOnTouchMoveCache;
+                } else {
+                    return null;
+                }
+            case TouchProfile.ATTRIBUTE_ON_TOUCH_CANCEL:
+                if (lCurrentTime - mOnTouchCancelCacheTime <= CACHE_RETENTION_TIME) {
+                    return mOnTouchCancelCache;
+                } else {
+                    return null;
+                }
+            default:
                 return null;
-            }
-        } else if (attr.equals(TouchProfile.ATTRIBUTE_ON_TOUCH_START)) {
-            if (lCurrentTime - mOnTouchStartCacheTime <= CACHE_RETENTION_TIME) {
-                return mOnTouchStartCache;
-            } else {
-                return null;
-            }
-        } else if (attr.equals(TouchProfile.ATTRIBUTE_ON_TOUCH_END)) {
-            if (lCurrentTime - mOnTouchEndCacheTime <= CACHE_RETENTION_TIME) {
-                return mOnTouchEndCache;
-            } else {
-                return null;
-            }
-        } else if (attr.equals(TouchProfile.ATTRIBUTE_ON_DOUBLE_TAP)) {
-            if (lCurrentTime - mOnDoubleTapCacheTime <= CACHE_RETENTION_TIME) {
-                return mOnDoubleTapCache;
-            } else {
-                return null;
-            }
-        } else if (attr.equals(TouchProfile.ATTRIBUTE_ON_TOUCH_MOVE)) {
-            if (lCurrentTime - mOnTouchMoveCacheTime <= CACHE_RETENTION_TIME) {
-                return mOnTouchMoveCache;
-            } else {
-                return null;
-            }
-        } else if (attr.equals(TouchProfile.ATTRIBUTE_ON_TOUCH_CANCEL)) {
-            if (lCurrentTime - mOnTouchCancelCacheTime <= CACHE_RETENTION_TIME) {
-                return mOnTouchCancelCache;
-            } else {
-                return null;
-            }
-        } else {
-            return null;
         }
     }
 
@@ -165,20 +166,21 @@ public class HostDeviceApplication extends Application {
      */
     public Bundle getKeyEventCache(final String attr) {
         long lCurrentTime = System.currentTimeMillis();
-        if (attr.equals(KeyEventProfile.ATTRIBUTE_ON_DOWN)) {
-            if (lCurrentTime - sOnDownCacheTime <= CACHE_RETENTION_TIME) {
-                return mOnDownCache;
-            } else {
+        switch (attr) {
+            case KeyEventProfile.ATTRIBUTE_ON_DOWN:
+                if (lCurrentTime - sOnDownCacheTime <= CACHE_RETENTION_TIME) {
+                    return mOnDownCache;
+                } else {
+                    return null;
+                }
+            case KeyEventProfile.ATTRIBUTE_ON_UP:
+                if (lCurrentTime - sOnUpCacheTime <= CACHE_RETENTION_TIME) {
+                    return mOnUpCache;
+                } else {
+                    return null;
+                }
+            default:
                 return null;
-            }
-        } else if (attr.equals(KeyEventProfile.ATTRIBUTE_ON_UP)) {
-            if (lCurrentTime - sOnUpCacheTime <= CACHE_RETENTION_TIME) {
-                return mOnUpCache;
-            } else {
-                return null;
-            }
-        } else {
-            return null;
         }
     }
 

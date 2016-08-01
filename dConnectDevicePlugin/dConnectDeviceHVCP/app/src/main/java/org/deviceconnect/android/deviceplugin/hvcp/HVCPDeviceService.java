@@ -78,6 +78,8 @@ public class HVCPDeviceService extends DConnectMessageService
         super.onCreate();
         EventManager.INSTANCE.setController(new MemoryCacheController());
         HVCManager.INSTANCE.init(this);
+        HVCManager.INSTANCE.addConnectionListener(this);
+
         final IntentFilter filter = new IntentFilter(HVCManager.INSTANCE.ACTION_USB_PERMISSION);
         filter.addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED); // MODIFIED
         filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
@@ -88,6 +90,8 @@ public class HVCPDeviceService extends DConnectMessageService
     public void onDestroy() {
         super.onDestroy();
         unregisterReceiver(mReceiver);
+        HVCManager.INSTANCE.removeConnectionListener(this);
+
         HVCManager.INSTANCE.destroyFilter(this);
     }
 
@@ -413,6 +417,8 @@ public class HVCPDeviceService extends DConnectMessageService
     @Override
     public void onConnected(final HVCCameraInfo camera) {
         DConnectService service = getServiceProvider().getService(camera.getID());
+
+        Log.d("TEST", "init");
         if (service == null) {
             service = new HVCPService(camera);
             getServiceProvider().addService(service);

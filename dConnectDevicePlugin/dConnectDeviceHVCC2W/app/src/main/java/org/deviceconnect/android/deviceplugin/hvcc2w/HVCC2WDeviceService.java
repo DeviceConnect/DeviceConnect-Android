@@ -112,7 +112,7 @@ public class HVCC2WDeviceService extends DConnectMessageService
                     Long interval = HumanDetectProfile.getInterval(request, HVCManager.PARAM_INTERVAL_MIN,
                             HVCManager.PARAM_INTERVAL_MAX);
                     if (interval == null) {
-                        interval = new Long(HVCManager.PARAM_INTERVAL_MIN);
+                        interval = HVCManager.PARAM_INTERVAL_MIN;
                     }
                     List<String> options = HumanDetectProfile.getOptions(request);
                     EventError error = EventManager.INSTANCE.addEvent(request);
@@ -136,7 +136,7 @@ public class HVCC2WDeviceService extends DConnectMessageService
                                 break;
                             default:
                         }
-                        HVCManager.INSTANCE.startEventTimer(interval);
+                        HVCManager.INSTANCE.startEventTimer(kind, interval);
                         DConnectProfile.setResult(response, DConnectMessage.RESULT_OK);
                     } else {
                         MessageUtils.setIllegalDeviceStateError(response, "Can not register event.");
@@ -185,6 +185,7 @@ public class HVCC2WDeviceService extends DConnectMessageService
                             break;
                         default:
                     }
+                    HVCManager.INSTANCE.stopEventTimer(kind);
                     DConnectProfile.setResult(response, DConnectMessage.RESULT_OK);
                 } else {
                     MessageUtils.setIllegalDeviceStateError(response, "Can not unregister event.");

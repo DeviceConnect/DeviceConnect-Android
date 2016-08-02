@@ -8,6 +8,14 @@ div.heading {
     font-weight: bold;
 }
 
+div.content {
+    margin: 0px 0px;
+}
+
+div.link {
+    margin: 32px 4px 4px 4px;
+}
+
 button {
     font-size: 1.2em;
     padding: 10px 50px;
@@ -94,3 +102,4 @@ img.photo {
     width: 10%;
     margin: 12px;
 }
+

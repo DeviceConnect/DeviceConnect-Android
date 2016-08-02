@@ -207,9 +207,39 @@ var util = (function(parent, global) {
              case 3:
                  console.log("リクエストの処理中。\nxhr.readyState=" + xhr.readyState + "\nxhr.statusText=" + xhr.statusText);
                 break;
-             case 4:
+             case 4: {
+                 if (xhr.status == 200) {
+                    var json = JSON.parse(xhr.responseText);
+                    if (json.result == 1 && json.errorCode == 14) {
+                        authorization(function() {
+                            var elm = document.createElement('a');
+                            elm.href = uri;
+
+                            var u = elm.origin + elm.pathname + '?';
+                            var parameters = elm.search.split('&');
+                            for (var i = 0; i < parameters.length; i++) {
+                                var element = parameters[i].split('=');
+                                var paramName = decodeURIComponent(element[0]);
+                                var paramValue = decodeURIComponent(element[1]);
+                                if (i > 0) {
+                                    u += '&';
+                                }
+                                if (paramName == 'accessToken') {
+                                    u += element[0] + "=" + mAccessToken;
+                                } else {
+                                    u += element[0] + "=" + element[1];
+                                }
+                            }
+                            console.log(body);
+
+                            sendRequest(method, u, body, cb);
+                        });
+                        return;
+                    }
+                 }
                  cb(xhr.status, xhr.responseText);
                  break;
+             }
              default:
                  break;
              }

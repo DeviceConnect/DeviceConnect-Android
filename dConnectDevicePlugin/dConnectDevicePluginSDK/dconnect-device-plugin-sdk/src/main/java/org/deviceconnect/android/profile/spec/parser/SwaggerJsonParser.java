@@ -1,3 +1,9 @@
+/*
+ SwaggerJsonParser.java
+ Copyright (c) 2016 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.profile.spec.parser;
 
 
@@ -8,7 +14,6 @@ import org.deviceconnect.android.profile.spec.ArrayParameterSpec;
 import org.deviceconnect.android.profile.spec.BooleanDataSpec;
 import org.deviceconnect.android.profile.spec.BooleanParameterSpec;
 import org.deviceconnect.android.profile.spec.DConnectApiSpec;
-import org.deviceconnect.android.profile.spec.DConnectApiSpecFilter;
 import org.deviceconnect.android.profile.spec.DConnectDataSpec;
 import org.deviceconnect.android.profile.spec.DConnectParameterSpec;
 import org.deviceconnect.android.profile.spec.DConnectProfileSpec;
@@ -72,7 +77,7 @@ class SwaggerJsonParser implements DConnectProfileSpecJsonParser, DConnectSpecCo
     @Override
     public DConnectProfileSpec parseJson(final JSONObject json) throws JSONException {
         DConnectProfileSpec.Builder builder = new DConnectProfileSpec.Builder();
-        builder.setBundleFactory(new SwaggerBundleFactory(json));
+        builder.setBundle(toBundle(json));
 
         JSONObject pathsObj = json.getJSONObject(KEY_PATHS);
         for (Iterator<String> it = pathsObj.keys(); it.hasNext(); ) {
@@ -90,6 +95,73 @@ class SwaggerJsonParser implements DConnectProfileSpecJsonParser, DConnectSpecCo
             }
         }
         return builder.build();
+    }
+
+    private Bundle toBundle(final JSONObject jsonObj) throws JSONException {
+        Bundle bundle = new Bundle();
+        for (Iterator<String> it = jsonObj.keys(); it.hasNext(); ) {
+            String name = it.next();
+            Object value = jsonObj.get(name);
+            if (value instanceof JSONArray) {
+                putArray(bundle, name, (JSONArray) value);
+            } else if (value instanceof JSONObject) {
+                bundle.putBundle(name, toBundle((JSONObject) value));
+            } else if (value instanceof Serializable) {
+                bundle.putSerializable(name, (Serializable) value);
+            }
+        }
+        return bundle;
+    }
+
+    private void putArray(final Bundle bundle, final String name, final JSONArray jsonArray)
+        throws JSONException {
+        if (jsonArray.length() == 0) {
+            bundle.putParcelableArray(name, new Bundle[0]);
+        } else {
+            final Class base = getBaseClass(jsonArray);
+            final int length = jsonArray.length();
+            if (base == Integer.class) {
+                int[] array = new int[length];
+                for (int i = 0; i < length; i++) {
+                    array[i] = jsonArray.getInt(i);
+                }
+                bundle.putIntArray(name, array);
+            } else if (base == Long.class) {
+                long[] array = new long[length];
+                for (int i = 0; i < length; i++) {
+                    array[i] = jsonArray.getLong(i);
+                }
+                bundle.putLongArray(name, array);
+            } else if (base == Double.class) {
+                double[] array = new double[length];
+                for (int i = 0; i < length; i++) {
+                    array[i] = jsonArray.getDouble(i);
+                }
+                bundle.putDoubleArray(name, array);
+            } else if (base == String.class) {
+                String[] array = new String[length];
+                for (int i = 0; i < length; i++) {
+                    array[i] = jsonArray.getString(i);
+                }
+                bundle.putStringArray(name, array);
+            } else if (base == JSONObject.class) {
+                Bundle[] array = new Bundle[length];
+                for (int i = 0; i < length; i++) {
+                    array[i] = toBundle(jsonArray.getJSONObject(i));
+                }
+                bundle.putParcelableArray(name, array);
+            }
+        }
+    }
+
+    private Class getBaseClass(final JSONArray array) throws JSONException {
+        Class cls = array.get(0).getClass();
+        for (int i = 1; i < array.length(); i++) {
+            if (cls != array.get(i).getClass()) {
+                return null;
+            }
+        }
+        return cls;
     }
 
     private static ParameterObjectParser getParameterParser(final JSONObject json) throws JSONException {
@@ -137,116 +209,6 @@ class SwaggerJsonParser implements DConnectProfileSpecJsonParser, DConnectSpecCo
                 return ARRAY_PARAM_PARSER;
             default:
                 throw new IllegalArgumentException();
-        }
-    }
-
-    private static class SwaggerBundleFactory implements DConnectProfileSpec.BundleFactory {
-
-        final Bundle mBundle;
-
-        SwaggerBundleFactory(final JSONObject jsonObj) throws JSONException {
-            mBundle = toBundle(jsonObj);
-        }
-
-        @Override
-        public Bundle createBundle(final DConnectProfileSpec spec,
-                                   final DConnectApiSpecFilter filter) {
-            Bundle tmpBundle = new Bundle(mBundle);
-            Bundle pathsObj = tmpBundle.getBundle(KEY_PATHS);
-            if (pathsObj == null) {
-                return tmpBundle;
-            }
-            List<String> pathNames = new ArrayList<String>(pathsObj.keySet());
-            if (pathNames == null) {
-                return tmpBundle;
-            }
-            for (String pathName : pathNames) {
-                Bundle pathObj = pathsObj.getBundle(pathName);
-                if (pathObj == null) {
-                    continue;
-                }
-                for (DConnectSpecConstants.Method method : DConnectSpecConstants.Method.values()) {
-                    String methodName = method.getName().toLowerCase();
-                    Bundle methodObj = pathObj.getBundle(methodName);
-                    if (methodObj == null) {
-                        continue;
-                    }
-                    if (!filter.filter(pathName, method)) {
-                        pathObj.remove(methodName);
-                    }
-                }
-                if (pathObj.size() == 0) {
-                    pathsObj.remove(pathName);
-                }
-            }
-            return tmpBundle;
-        }
-
-        Bundle toBundle(final JSONObject jsonObj) throws JSONException {
-            Bundle bundle = new Bundle();
-            for (Iterator<String> it = jsonObj.keys(); it.hasNext(); ) {
-                String name = it.next();
-                Object value = jsonObj.get(name);
-                if (value instanceof JSONArray) {
-                    putArray(bundle, name, (JSONArray) value);
-                } else if (value instanceof JSONObject) {
-                    bundle.putBundle(name, toBundle((JSONObject) value));
-                } else if (value instanceof Serializable) {
-                    bundle.putSerializable(name, (Serializable) value);
-                }
-            }
-            return bundle;
-        }
-
-        void putArray(final Bundle bundle, final String name, final JSONArray jsonArray)
-            throws JSONException {
-            if (jsonArray.length() == 0) {
-                bundle.putParcelableArray(name, new Bundle[0]);
-            } else {
-                final Class base = getBaseClass(jsonArray);
-                final int length = jsonArray.length();
-                if (base == Integer.class) {
-                    int[] array = new int[length];
-                    for (int i = 0; i < length; i++) {
-                        array[i] = jsonArray.getInt(i);
-                    }
-                    bundle.putIntArray(name, array);
-                } else if (base == Long.class) {
-                    long[] array = new long[length];
-                    for (int i = 0; i < length; i++) {
-                        array[i] = jsonArray.getLong(i);
-                    }
-                    bundle.putLongArray(name, array);
-                } else if (base == Double.class) {
-                    double[] array = new double[length];
-                    for (int i = 0; i < length; i++) {
-                        array[i] = jsonArray.getDouble(i);
-                    }
-                    bundle.putDoubleArray(name, array);
-                } else if (base == String.class) {
-                    String[] array = new String[length];
-                    for (int i = 0; i < length; i++) {
-                        array[i] = jsonArray.getString(i);
-                    }
-                    bundle.putStringArray(name, array);
-                } else if (base == JSONObject.class) {
-                    Bundle[] array = new Bundle[length];
-                    for (int i = 0; i < length; i++) {
-                        array[i] = toBundle(jsonArray.getJSONObject(i));
-                    }
-                    bundle.putParcelableArray(name, array);
-                }
-            }
-        }
-
-        Class getBaseClass(final JSONArray array) throws JSONException {
-            Class cls = array.get(0).getClass();
-            for (int i = 1; i < array.length(); i++) {
-                if (cls != array.get(i).getClass()) {
-                    return null;
-                }
-            }
-            return cls;
         }
     }
 

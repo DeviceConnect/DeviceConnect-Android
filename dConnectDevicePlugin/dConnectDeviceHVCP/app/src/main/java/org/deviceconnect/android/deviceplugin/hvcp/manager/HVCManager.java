@@ -927,16 +927,18 @@ public enum HVCManager {
 
     private void notifyOnConnected(final HVCCameraInfo cameraInfo) {
         synchronized (mConnectionListeners) {
-            for (Iterator<ConnectionListener> it = mConnectionListeners.iterator(); ; it.hasNext()) {
-                it.next().onConnected(cameraInfo);
+            for (Iterator<ConnectionListener> it = mConnectionListeners.iterator(); it.hasNext(); ) {
+                ConnectionListener listener = it.next();
+                listener.onConnected(cameraInfo);
             }
         }
     }
 
     private void notifyOnDisconnected(final HVCCameraInfo cameraInfo) {
         synchronized (mConnectionListeners) {
-            for (Iterator<ConnectionListener> it = mConnectionListeners.iterator(); ; it.hasNext()) {
-                it.next().onDisconnected(cameraInfo);
+            for (Iterator<ConnectionListener> it = mConnectionListeners.iterator(); it.hasNext(); ) {
+                ConnectionListener listener = it.next();
+                listener.onDisconnected(cameraInfo);
             }
         }
     }

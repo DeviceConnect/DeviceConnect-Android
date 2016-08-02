@@ -182,10 +182,11 @@ public enum EventManager {
     public List<Event> getEventList(final String serviceId, final String profile, 
             final String inter, final String attribute) {
         checkState();
+        // XXXX パスの大文字小文字を無視
         return mController.getEvents(serviceId,
-                profile != null ? profile.toLowerCase() : null,
-                inter != null ? inter.toLowerCase() : null,
-                attribute != null ? attribute.toLowerCase() : null);
+            profile != null ? profile.toLowerCase() : null,
+            inter != null ? inter.toLowerCase() : null,
+            attribute != null ? attribute.toLowerCase() : null);
     }
 
     /**

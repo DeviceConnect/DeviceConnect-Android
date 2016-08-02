@@ -6,10 +6,10 @@
  */
 package org.deviceconnect.android.deviceplugin.test.profile;
 
-import org.deviceconnect.message.intent.impl.client.DefaultIntentClient;
-
 import android.content.Context;
 import android.content.Intent;
+
+import org.deviceconnect.message.intent.impl.client.DefaultIntentClient;
 
 /**
  * テスト用ユーティリティクラス.

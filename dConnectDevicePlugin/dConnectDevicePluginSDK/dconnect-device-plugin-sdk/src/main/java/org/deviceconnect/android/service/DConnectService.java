@@ -1,6 +1,13 @@
+/*
+ DConnectService.java
+ Copyright (c) 2016 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.service;
 
 
+import android.content.Context;
 import android.content.Intent;
 
 import org.deviceconnect.android.message.MessageUtils;
@@ -14,7 +21,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-
+/**
+ * Device Connect APIサービス.
+ * @author NTT DOCOMO, INC.
+ */
 public class DConnectService implements DConnectProfileProvider, ServiceDiscoveryProfileConstants {
 
     /**
@@ -34,6 +44,8 @@ public class DConnectService implements DConnectProfileProvider, ServiceDiscover
     private boolean mIsOnline;
 
     private String mConfig;
+
+    private Context mContext;
 
     /**
      * コンストラクタ.
@@ -89,6 +101,14 @@ public class DConnectService implements DConnectProfileProvider, ServiceDiscover
 
     public void setConfig(final String config) {
         mConfig = config;
+    }
+
+    void setContext(final Context context) {
+        mContext = context;
+    }
+
+    public Context getContext() {
+        return mContext;
     }
 
     @Override

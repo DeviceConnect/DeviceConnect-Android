@@ -1,59 +1,71 @@
+/*
+ DConnectApiSpec.java
+ Copyright (c) 2016 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.profile.spec;
 
 
 import android.content.Intent;
 import android.os.Bundle;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.util.ArrayList;
 import java.util.List;
 
-public class DConnectApiSpec implements DConnectApiSpecConstants {
+/**
+ * Device Connect APIの仕様を保持するクラス.
+ *
+ * @author NTT DOCOMO, INC.
+ */
+public class DConnectApiSpec implements DConnectSpecConstants {
 
-    private static final String NAME = "name";
-    private static final String PATH = "path";
-    private static final String METHOD = "method";
-    private static final String TYPE = "type";
-    private static final String REQUEST_PARAMS = "requestParams";
-
-    private String mName;
     private Type mType;
     private Method mMethod;
     private String mPath;
     private String mProfileName;
     private String mInterfaceName;
     private String mAttributeName;
-    private DConnectRequestParamSpec[] mRequestParamList;
+    private DConnectParameterSpec[] mRequestParamList;
 
     private DConnectApiSpec() {}
 
-    private void setName(final String name) {
-        mName = name;
-    }
-
-    public String getName() {
-        return mName;
-    }
-
+    /**
+     * APIの種類を設定する.
+     * @param type APIの種類
+     */
     void setType(final Type type) {
         mType = type;
     }
 
+    /**
+     * APIの種類を取得する.
+     * @return APIの種類
+     */
     public Type getType() {
         return mType;
     }
 
+    /**
+     * APIのメソッドを設定する.
+     * @param method APIのメソッド
+     */
     void setMethod(final Method method) {
         mMethod = method;
     }
 
+    /**
+     * APIのメソッドを取得する.
+     * @return APIのメソッド
+     */
     public Method getMethod() {
         return mMethod;
     }
 
+    /**
+     * APIのパスを設定する.
+     * @param path APIのパス
+     */
     void setPath(final String path) {
         mPath = path;
 
@@ -67,33 +79,63 @@ public class DConnectApiSpec implements DConnectApiSpecConstants {
         }
     }
 
-    public String getProfileName() {
-        return mProfileName;
-    }
-
-    public String getInterfaceName() {
-        return mInterfaceName;
-    }
-
-    public String getAttributeName() {
-        return mAttributeName;
-    }
-
+    /**
+     * APIのパスを取得する.
+     * @return APIのパス
+     */
     public String getPath() {
         return mPath;
     }
 
-    void setRequestParamList(final DConnectRequestParamSpec[] paramList) {
+    /**
+     * プロファイル名を取得する.
+     * @return プロファイル名
+     */
+    public String getProfileName() {
+        return mProfileName;
+    }
+
+    /**
+     * インターフェース名を取得する.
+     * @return インターフェース名
+     */
+    public String getInterfaceName() {
+        return mInterfaceName;
+    }
+
+    /**
+     * アトリビュート名を取得する.
+     * @return アトリビュート名
+     */
+    public String getAttributeName() {
+        return mAttributeName;
+    }
+
+    /**
+     * リクエストパラメータ仕様の一覧を設定する.
+     * @param paramList リクエストパラメータ仕様の配列
+     */
+    void setRequestParamList(final DConnectParameterSpec[] paramList) {
         mRequestParamList = paramList;
     }
 
-    public DConnectRequestParamSpec[] getRequestParamList() {
+    /**
+     * リクエストパラメータ仕様の一覧を取得する.
+     * @return リクエストパラメータ仕様の配列
+     */
+    public DConnectParameterSpec[] getRequestParamList() {
         return mRequestParamList;
     }
 
+    /**
+     * リクエストの内容が仕様に反していないことを確認する.
+     *
+     * @param request リクエスト
+     * @return 仕様に反していない場合は<code>true</code>. そうでない場合は<code>false</code>
+     */
     public boolean validate(final Intent request) {
         Bundle extras = request.getExtras();
-        for (DConnectRequestParamSpec paramSpec : getRequestParamList()) {
+        for (DConnectParameterSpec paramSpec : getRequestParamList()) {
             Object paramValue = extras.get(paramSpec.getName());
             if (!paramSpec.validate(paramValue)) {
                 return false;
@@ -102,87 +144,59 @@ public class DConnectApiSpec implements DConnectApiSpecConstants {
         return true;
     }
 
-    public static DConnectApiSpec fromJson(final JSONObject apiObj) throws JSONException {
-        String name = apiObj.getString(NAME);
-        String path = apiObj.getString(PATH);
-        String methodStr = apiObj.getString(METHOD);
-        String typeStr = apiObj.getString(TYPE);
-
-        String[] array = path.split("/");
-        if (!(3 <= array.length && array.length <= 5)) {
-            throw new JSONException("path is invalid: " + path);
-        }
-        Method method = Method.parse(methodStr);
-        if (method == null) {
-            throw new JSONException("method is invalid: " + methodStr);
-        }
-        Type type = Type.parse(typeStr);
-        if (type == null) {
-            throw new JSONException("type is invalid: " + typeStr);
-        }
-
-        List<DConnectRequestParamSpec> paramList = new ArrayList<DConnectRequestParamSpec>();
-        if (apiObj.has(REQUEST_PARAMS)) {
-            JSONArray requestParams = apiObj.getJSONArray(REQUEST_PARAMS);
-            for (int k = 0; k < requestParams.length(); k++) {
-                JSONObject paramObj = requestParams.getJSONObject(k);
-                DConnectRequestParamSpec paramSpec = DConnectRequestParamSpec.fromJson(paramObj);
-                paramList.add(paramSpec);
-            }
-        }
-
-        return new Builder()
-            .setName(name)
-            .setType(type)
-            .setMethod(method)
-            .setPath(path)
-            .setRequestParamList(paramList)
-            .build();
-    }
-
+    /**
+     * {@link DConnectApiSpec}のビルダー.
+     *
+     * @author NTT DOCOMO, INC.
+     */
     public static class Builder {
-        private String mName;
         private Type mType;
         private Method mMethod;
-        private String mPath;
-        private List<DConnectRequestParamSpec> mRequestParams;
+        private List<DConnectParameterSpec> mParamList;
 
-        public Builder setName(final String name) {
-            mName = name;
-            return this;
-        }
-
+        /**
+         * APIの種類を設定する.
+         * @param type APIの種類
+         */
         public Builder setType(final Type type) {
             mType = type;
             return this;
         }
 
+        /**
+         * APIのメソッドを設定する.
+         * @param method APIのメソッド
+         * @return ビルダー自身のインスタンス
+         */
         public Builder setMethod(final Method method) {
             mMethod = method;
             return this;
         }
 
-        public Builder setPath(final String path) {
-            mPath = path;
+        /**
+         * リクエストパラメータ仕様の一覧を設定する.
+         * @param paramList リクエストパラメータ仕様のリスト
+         * @return ビルダー自身のインスタンス
+         */
+        public Builder setRequestParamList(final List<DConnectParameterSpec> paramList) {
+            mParamList = paramList;
             return this;
         }
 
-        public Builder setRequestParamList(final List<DConnectRequestParamSpec> requestParamList) {
-            mRequestParams = requestParamList;
-            return this;
-        }
-
+        /**
+         * {@link DConnectApiSpec}のインスタンスを生成する.
+         *
+         * @return {@link DConnectApiSpec}のインスタンス
+         */
         public DConnectApiSpec build() {
-            if (mRequestParams == null) {
-                mRequestParams = new ArrayList<DConnectRequestParamSpec>();
+            if (mParamList == null) {
+                mParamList = new ArrayList<DConnectParameterSpec>();
             }
             DConnectApiSpec spec = new DConnectApiSpec();
-            spec.setName(mName);
             spec.setType(mType);
             spec.setMethod(mMethod);
-            spec.setPath(mPath);
             spec.setRequestParamList(
-                mRequestParams.toArray(new DConnectRequestParamSpec[mRequestParams.size()]));
+                mParamList.toArray(new DConnectParameterSpec[mParamList.size()]));
             return spec;
         }
     }

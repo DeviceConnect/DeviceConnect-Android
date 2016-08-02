@@ -1,0 +1,31 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "title": "Illuminance Profile",
+        "version": "2.0.0",
+        "description": ""
+    },
+    "consumes": [],
+    "paths": {
+        "/": {
+            "get": {
+                "x-type": "one-shot",
+                "summary": "",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "query",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        }
+    }
+}

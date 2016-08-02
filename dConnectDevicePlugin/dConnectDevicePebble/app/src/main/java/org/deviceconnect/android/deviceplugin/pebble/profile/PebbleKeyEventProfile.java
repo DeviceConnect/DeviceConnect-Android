@@ -20,6 +20,10 @@ import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.KeyEventProfile;
+import org.deviceconnect.android.profile.api.DConnectApi;
+import org.deviceconnect.android.profile.api.DeleteApi;
+import org.deviceconnect.android.profile.api.GetApi;
+import org.deviceconnect.android.profile.api.PutApi;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.profile.KeyEventProfileConstants;
 
@@ -91,6 +95,212 @@ public class PebbleKeyEventProfile extends KeyEventProfile {
         }
     }
 
+    private final DConnectApi mGetOnDownApi = new GetApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_DOWN;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            Bundle keyevent = getKeyEventCache(KeyEventProfile.ATTRIBUTE_ON_DOWN);
+            if (keyevent == null) {
+                response.putExtra(KeyEventProfile.PARAM_KEYEVENT, "");
+            } else {
+                response.putExtra(KeyEventProfile.PARAM_KEYEVENT, keyevent);
+            }
+            setResult(response, DConnectMessage.RESULT_OK);
+            return true;
+        }
+    };
+
+    private final DConnectApi mGetOnUpApi = new GetApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_UP;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            Bundle keyevent = getKeyEventCache(KeyEventProfile.ATTRIBUTE_ON_UP);
+            if (keyevent == null) {
+                response.putExtra(KeyEventProfile.PARAM_KEYEVENT, "");
+            } else {
+                response.putExtra(KeyEventProfile.PARAM_KEYEVENT, keyevent);
+            }
+            setResult(response, DConnectMessage.RESULT_OK);
+            return true;
+        }
+    };
+
+    private final DConnectApi mPutOnDownApi = new PutApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_DOWN;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String sessionKey = getSessionKey(request);
+            if (sessionKey == null) {
+                MessageUtils.setInvalidRequestParameterError(response, ERROR_MESSAGE);
+                return true;
+            } else {
+
+                PebbleManager mgr = ((PebbleDeviceService) getContext()).getPebbleManager();
+                // To Pebble, Send registration request of key event.
+                PebbleDictionary dic = new PebbleDictionary();
+                dic.addInt8(PebbleManager.KEY_PROFILE, (byte) PebbleManager.PROFILE_KEY_EVENT);
+                dic.addInt8(PebbleManager.KEY_ATTRIBUTE, (byte) PebbleManager.KEY_EVENT_ATTRIBUTE_ON_DOWN);
+                dic.addInt8(PebbleManager.KEY_ACTION, (byte) PebbleManager.ACTION_PUT);
+                mgr.sendCommandToPebble(dic, new OnSendCommandListener() {
+                    @Override
+                    public void onReceivedData(final PebbleDictionary dic) {
+                        if (dic == null) {
+                            MessageUtils.setUnknownError(response);
+                        } else {
+                            // Registration event listener.
+                            EventError error = EventManager.INSTANCE.addEvent(request);
+                            if (error == EventError.NONE) {
+                                setResult(response, DConnectMessage.RESULT_OK);
+                            } else if (error == EventError.INVALID_PARAMETER) {
+                                MessageUtils.setInvalidRequestParameterError(response);
+                            } else {
+                                MessageUtils.setUnknownError(response);
+                            }
+                        }
+                        sendResponse(response);
+                    }
+                });
+                // Since returning the response asynchronously, it returns false.
+                return false;
+            }
+        }
+    };
+
+    private final DConnectApi mPutOnUpApi = new PutApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_UP;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String sessionKey = getSessionKey(request);
+            if (sessionKey == null) {
+                MessageUtils.setInvalidRequestParameterError(response, ERROR_MESSAGE);
+                return true;
+            } else {
+
+                PebbleManager mgr = ((PebbleDeviceService) getContext()).getPebbleManager();
+                // To Pebble, Send registration request of key event.
+                PebbleDictionary dic = new PebbleDictionary();
+                dic.addInt8(PebbleManager.KEY_PROFILE, (byte) PebbleManager.PROFILE_KEY_EVENT);
+                dic.addInt8(PebbleManager.KEY_ATTRIBUTE, (byte) PebbleManager.KEY_EVENT_ATTRIBUTE_ON_UP);
+                dic.addInt8(PebbleManager.KEY_ACTION, (byte) PebbleManager.ACTION_PUT);
+                mgr.sendCommandToPebble(dic, new OnSendCommandListener() {
+                    @Override
+                    public void onReceivedData(final PebbleDictionary dic) {
+                        if (dic == null) {
+                            MessageUtils.setUnknownError(response);
+                        } else {
+                            // Registration event listener.
+                            EventError error = EventManager.INSTANCE.addEvent(request);
+                            if (error == EventError.NONE) {
+                                setResult(response, DConnectMessage.RESULT_OK);
+                            } else if (error == EventError.INVALID_PARAMETER) {
+                                MessageUtils.setInvalidRequestParameterError(response);
+                            } else {
+                                MessageUtils.setUnknownError(response);
+                            }
+                        }
+                        sendResponse(response);
+                    }
+                });
+                // Since returning the response asynchronously, it returns false.
+                return false;
+            }
+        }
+    };
+
+    private final DConnectApi mDeleteOnDownApi = new DeleteApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_DOWN;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String sessionKey = getSessionKey(request);
+            if (sessionKey == null) {
+                MessageUtils.setInvalidRequestParameterError(response, ERROR_MESSAGE);
+                return true;
+            } else {
+                PebbleManager mgr = ((PebbleDeviceService) getContext()).getPebbleManager();
+
+                // To Pebble, Send cancellation request of key event.
+                PebbleDictionary dic = new PebbleDictionary();
+                dic.addInt8(PebbleManager.KEY_PROFILE, (byte) PebbleManager.PROFILE_KEY_EVENT);
+                dic.addInt8(PebbleManager.KEY_ATTRIBUTE, (byte) PebbleManager.KEY_EVENT_ATTRIBUTE_ON_DOWN);
+                dic.addInt8(PebbleManager.KEY_ACTION, (byte) PebbleManager.ACTION_DELETE);
+                mgr.sendCommandToPebble(dic, new OnSendCommandListener() {
+                    @Override
+                    public void onReceivedData(final PebbleDictionary dic) {
+                    }
+                });
+                // Remove event listener.
+                EventError error = EventManager.INSTANCE.removeEvent(request);
+                if (error == EventError.NONE) {
+                    setResult(response, DConnectMessage.RESULT_OK);
+                } else if (error == EventError.INVALID_PARAMETER) {
+                    MessageUtils.setInvalidRequestParameterError(response);
+                } else {
+                    MessageUtils.setUnknownError(response);
+                }
+                return true;
+            }
+        }
+    };
+
+    private final DConnectApi mDeleteOnUpApi = new DeleteApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_UP;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String sessionKey = getSessionKey(request);
+            if (sessionKey == null) {
+                MessageUtils.setInvalidRequestParameterError(response, ERROR_MESSAGE);
+                return true;
+            } else {
+                PebbleManager mgr = ((PebbleDeviceService) getContext()).getPebbleManager();
+
+                // To Pebble, Send cancellation request of key event.
+                PebbleDictionary dic = new PebbleDictionary();
+                dic.addInt8(PebbleManager.KEY_PROFILE, (byte) PebbleManager.PROFILE_KEY_EVENT);
+                dic.addInt8(PebbleManager.KEY_ATTRIBUTE, (byte) PebbleManager.KEY_EVENT_ATTRIBUTE_ON_UP);
+                dic.addInt8(PebbleManager.KEY_ACTION, (byte) PebbleManager.ACTION_DELETE);
+                mgr.sendCommandToPebble(dic, new OnSendCommandListener() {
+                    @Override
+                    public void onReceivedData(final PebbleDictionary dic) {
+                    }
+                });
+                // Remove event listener.
+                EventError error = EventManager.INSTANCE.removeEvent(request);
+                if (error == EventError.NONE) {
+                    setResult(response, DConnectMessage.RESULT_OK);
+                } else if (error == EventError.INVALID_PARAMETER) {
+                    MessageUtils.setInvalidRequestParameterError(response);
+                } else {
+                    MessageUtils.setUnknownError(response);
+                }
+                return true;
+            }
+        }
+    };
+
     /**
      * Constructor.
      * 
@@ -132,208 +342,13 @@ public class PebbleKeyEventProfile extends KeyEventProfile {
                 }
             }
         });
-    }
 
-    @Override
-    protected boolean onGetOnDown(final Intent request, final Intent response, final String serviceId) {
-
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-        } else if (!PebbleUtil.checkServiceId(serviceId)) {
-            MessageUtils.setNotFoundServiceError(response);
-        } else {
-            Bundle keyevent = getKeyEventCache(KeyEventProfile.ATTRIBUTE_ON_DOWN);
-            if (keyevent == null) {
-                response.putExtra(KeyEventProfile.PARAM_KEYEVENT, "");
-            } else {
-                response.putExtra(KeyEventProfile.PARAM_KEYEVENT, keyevent);
-            }
-            setResult(response, DConnectMessage.RESULT_OK);
-        }
-        return true;
-    }
-
-    @Override
-    protected boolean onGetOnUp(final Intent request, final Intent response, final String serviceId) {
-
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-        } else if (!PebbleUtil.checkServiceId(serviceId)) {
-            MessageUtils.setNotFoundServiceError(response);
-        } else {
-            Bundle keyevent = getKeyEventCache(KeyEventProfile.ATTRIBUTE_ON_UP);
-            if (keyevent == null) {
-                response.putExtra(KeyEventProfile.PARAM_KEYEVENT, "");
-            } else {
-                response.putExtra(KeyEventProfile.PARAM_KEYEVENT, keyevent);
-            }
-            setResult(response, DConnectMessage.RESULT_OK);
-        }
-        return true;
-    }
-
-    @Override
-    protected boolean onPutOnDown(final Intent request, final Intent response, final String serviceId,
-            final String sessionKey) {
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-            return true;
-        } else if (!PebbleUtil.checkServiceId(serviceId)) {
-            MessageUtils.setNotFoundServiceError(response);
-            return true;
-        } else if (sessionKey == null) {
-            MessageUtils.setInvalidRequestParameterError(response, ERROR_MESSAGE);
-            return true;
-        } else {
-
-            PebbleManager mgr = ((PebbleDeviceService) getContext()).getPebbleManager();
-            // To Pebble, Send registration request of key event.
-            PebbleDictionary dic = new PebbleDictionary();
-            dic.addInt8(PebbleManager.KEY_PROFILE, (byte) PebbleManager.PROFILE_KEY_EVENT);
-            dic.addInt8(PebbleManager.KEY_ATTRIBUTE, (byte) PebbleManager.KEY_EVENT_ATTRIBUTE_ON_DOWN);
-            dic.addInt8(PebbleManager.KEY_ACTION, (byte) PebbleManager.ACTION_PUT);
-            mgr.sendCommandToPebble(dic, new OnSendCommandListener() {
-                @Override
-                public void onReceivedData(final PebbleDictionary dic) {
-                    if (dic == null) {
-                        MessageUtils.setUnknownError(response);
-                    } else {
-                        // Registration event listener.
-                        EventError error = EventManager.INSTANCE.addEvent(request);
-                        if (error == EventError.NONE) {
-                            setResult(response, DConnectMessage.RESULT_OK);
-                        } else if (error == EventError.INVALID_PARAMETER) {
-                            MessageUtils.setInvalidRequestParameterError(response);
-                        } else {
-                            MessageUtils.setUnknownError(response);
-                        }
-                    }
-                    sendResponse(response);
-                }
-            });
-            // Since returning the response asynchronously, it returns false.
-            return false;
-        }
-    }
-
-    @Override
-    protected boolean onPutOnUp(final Intent request, final Intent response, final String serviceId,
-            final String sessionKey) {
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-            return true;
-        } else if (!PebbleUtil.checkServiceId(serviceId)) {
-            MessageUtils.setNotFoundServiceError(response);
-            return true;
-        } else if (sessionKey == null) {
-            MessageUtils.setInvalidRequestParameterError(response, ERROR_MESSAGE);
-            return true;
-        } else {
-
-            PebbleManager mgr = ((PebbleDeviceService) getContext()).getPebbleManager();
-            // To Pebble, Send registration request of key event.
-            PebbleDictionary dic = new PebbleDictionary();
-            dic.addInt8(PebbleManager.KEY_PROFILE, (byte) PebbleManager.PROFILE_KEY_EVENT);
-            dic.addInt8(PebbleManager.KEY_ATTRIBUTE, (byte) PebbleManager.KEY_EVENT_ATTRIBUTE_ON_UP);
-            dic.addInt8(PebbleManager.KEY_ACTION, (byte) PebbleManager.ACTION_PUT);
-            mgr.sendCommandToPebble(dic, new OnSendCommandListener() {
-                @Override
-                public void onReceivedData(final PebbleDictionary dic) {
-                    if (dic == null) {
-                        MessageUtils.setUnknownError(response);
-                    } else {
-                        // Registration event listener.
-                        EventError error = EventManager.INSTANCE.addEvent(request);
-                        if (error == EventError.NONE) {
-                            setResult(response, DConnectMessage.RESULT_OK);
-                        } else if (error == EventError.INVALID_PARAMETER) {
-                            MessageUtils.setInvalidRequestParameterError(response);
-                        } else {
-                            MessageUtils.setUnknownError(response);
-                        }
-                    }
-                    sendResponse(response);
-                }
-            });
-            // Since returning the response asynchronously, it returns false.
-            return false;
-        }
-    }
-
-    @Override
-    protected boolean onDeleteOnDown(final Intent request, final Intent response, final String serviceId,
-            final String sessionKey) {
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-            return true;
-        } else if (!PebbleUtil.checkServiceId(serviceId)) {
-            MessageUtils.setNotFoundServiceError(response);
-            return true;
-        } else if (sessionKey == null) {
-            MessageUtils.setInvalidRequestParameterError(response, ERROR_MESSAGE);
-            return true;
-        } else {
-            PebbleManager mgr = ((PebbleDeviceService) getContext()).getPebbleManager();
-
-            // To Pebble, Send cancellation request of key event.
-            PebbleDictionary dic = new PebbleDictionary();
-            dic.addInt8(PebbleManager.KEY_PROFILE, (byte) PebbleManager.PROFILE_KEY_EVENT);
-            dic.addInt8(PebbleManager.KEY_ATTRIBUTE, (byte) PebbleManager.KEY_EVENT_ATTRIBUTE_ON_DOWN);
-            dic.addInt8(PebbleManager.KEY_ACTION, (byte) PebbleManager.ACTION_DELETE);
-            mgr.sendCommandToPebble(dic, new OnSendCommandListener() {
-                @Override
-                public void onReceivedData(final PebbleDictionary dic) {
-                }
-            });
-            // Remove event listener.
-            EventError error = EventManager.INSTANCE.removeEvent(request);
-            if (error == EventError.NONE) {
-                setResult(response, DConnectMessage.RESULT_OK);
-            } else if (error == EventError.INVALID_PARAMETER) {
-                MessageUtils.setInvalidRequestParameterError(response);
-            } else {
-                MessageUtils.setUnknownError(response);
-            }
-            return true;
-        }
-    }
-
-    @Override
-    protected boolean onDeleteOnUp(final Intent request, final Intent response, final String serviceId,
-            final String sessionKey) {
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-            return true;
-        } else if (!PebbleUtil.checkServiceId(serviceId)) {
-            MessageUtils.setNotFoundServiceError(response);
-            return true;
-        } else if (sessionKey == null) {
-            MessageUtils.setInvalidRequestParameterError(response, ERROR_MESSAGE);
-            return true;
-        } else {
-            PebbleManager mgr = ((PebbleDeviceService) getContext()).getPebbleManager();
-
-            // To Pebble, Send cancellation request of key event.
-            PebbleDictionary dic = new PebbleDictionary();
-            dic.addInt8(PebbleManager.KEY_PROFILE, (byte) PebbleManager.PROFILE_KEY_EVENT);
-            dic.addInt8(PebbleManager.KEY_ATTRIBUTE, (byte) PebbleManager.KEY_EVENT_ATTRIBUTE_ON_UP);
-            dic.addInt8(PebbleManager.KEY_ACTION, (byte) PebbleManager.ACTION_DELETE);
-            mgr.sendCommandToPebble(dic, new OnSendCommandListener() {
-                @Override
-                public void onReceivedData(final PebbleDictionary dic) {
-                }
-            });
-            // Remove event listener.
-            EventError error = EventManager.INSTANCE.removeEvent(request);
-            if (error == EventError.NONE) {
-                setResult(response, DConnectMessage.RESULT_OK);
-            } else if (error == EventError.INVALID_PARAMETER) {
-                MessageUtils.setInvalidRequestParameterError(response);
-            } else {
-                MessageUtils.setUnknownError(response);
-            }
-            return true;
-        }
+        addApi(mGetOnDownApi);
+        addApi(mGetOnUpApi);
+        addApi(mPutOnDownApi);
+        addApi(mPutOnUpApi);
+        addApi(mDeleteOnDownApi);
+        addApi(mDeleteOnUpApi);
     }
 
     /**

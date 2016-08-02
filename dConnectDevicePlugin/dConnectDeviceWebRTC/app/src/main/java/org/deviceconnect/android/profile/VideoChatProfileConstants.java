@@ -13,7 +13,7 @@ public interface VideoChatProfileConstants extends DConnectProfileConstants {
     /**
      * profile name.
      */
-    String PROFILE_NAME = "videochat";
+    String PROFILE_NAME = "videoChat";
 
     /**
      * attribute : {@value} .
@@ -38,7 +38,7 @@ public interface VideoChatProfileConstants extends DConnectProfileConstants {
     /**
      * attribute : {@value} .
      */
-    String ATTR_ONCALL = "oncall";
+    String ATTR_ONCALL = "onCall";
 
     /**
      * attribute : {@value} .
@@ -248,7 +248,7 @@ public interface VideoChatProfileConstants extends DConnectProfileConstants {
          *
          * @param value 定義値
          */
-        private State(final String value) {
+        State(final String value) {
             this.mValue = value;
         }
 

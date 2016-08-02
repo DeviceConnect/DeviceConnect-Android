@@ -32,7 +32,7 @@ public interface PhoneProfileConstants extends DConnectProfileConstants {
     /**
      * 属性: {@value} .
      */
-    String ATTRIBUTE_ON_CONNECT = "onconnect";
+    String ATTRIBUTE_ON_CONNECT = "onConnect";
 
     /**
      * パス: {@value}.

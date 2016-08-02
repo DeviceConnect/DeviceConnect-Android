@@ -11,7 +11,6 @@ import android.os.Bundle;
 import android.os.Parcelable;
 import android.util.SparseArray;
 
-import org.deviceconnect.android.manager.BuildConfig;
 import org.deviceconnect.android.manager.DevicePlugin;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.message.DConnectMessage;
@@ -21,6 +20,8 @@ import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 /**
@@ -44,16 +45,15 @@ public class ServiceDiscoveryRequest extends DConnectRequest {
     private int mResponseCount;
 
     /** リクエストコードを格納する配列. */
-    private SparseArray<DevicePlugin> mRequestCodeArray = new SparseArray<DevicePlugin>();
+    private SparseArray<DevicePlugin> mRequestCodeArray = new SparseArray<>();
 
     /** 発見したサービスを一時的に格納しておくリスト. */
-    private final List<Bundle> mServices = new ArrayList<Bundle>();
+    private final List<Bundle> mServices = new ArrayList<>();
 
     /** ロガー. */
     private final Logger mLogger = Logger.getLogger("dconnect.manager");
 
-    /** ロックオブジェクト. */
-    private final Object mLockObj = new Object();
+    private CountDownLatch mCountDownLatch;
 
     @Override
     public void setResponse(final Intent response) {
@@ -76,16 +76,8 @@ public class ServiceDiscoveryRequest extends DConnectRequest {
                 for (Parcelable p : services) {
                     Bundle b = (Bundle) p;
                     String id = b.getString(ServiceDiscoveryProfile.PARAM_ID);
-                    b.putString(ServiceDiscoveryProfile.PARAM_ID, 
-                            mPluginMgr.appendServiceId(plugin, id));
+                    b.putString(ServiceDiscoveryProfile.PARAM_ID, mPluginMgr.appendServiceId(plugin, id));
                     mServices.add(b);
-
-                    if (BuildConfig.DEBUG) {
-                        Object scopes = b.getStringArray(ServiceDiscoveryProfileConstants.PARAM_SCOPES);
-                        if (scopes == null || !(scopes instanceof String[])) {
-                            mLogger.warning(String.format("Scopes param is illegal type.serviceId: %s scopes: %s", id, scopes));
-                        }
-                    }
                 }
                 mRequestCodeArray.remove(requestCode);
             }
@@ -93,27 +85,7 @@ public class ServiceDiscoveryRequest extends DConnectRequest {
 
         // レスポンス個数を追加
         mResponseCount++;
-        synchronized (mLockObj) {
-            mLockObj.notifyAll();
-        }
-    }
-
-    /**
-     * 文字列配列を直列化する.
-     * @param array 文字列配列
-     * @return 文字列
-     */
-    private static String toString(final String[] array) {
-        StringBuilder sb = new StringBuilder();
-        if (array != null) {
-            for (int i = 0; i < array.length; i++) {
-                sb.append(array[i]);
-                if (i < array.length - 1) {
-                    sb.append(", ");
-                }
-            }
-        }
-        return sb.toString();
+        mCountDownLatch.countDown();
     }
 
     @Override
@@ -140,6 +112,8 @@ public class ServiceDiscoveryRequest extends DConnectRequest {
         request.putExtra(DConnectMessage.EXTRA_PROFILE, PROFILE_NETWORK_SERVICE_DISCOVERY);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, ATTRIBUTE_GET_NETWORK_SERVICES);
 
+        mCountDownLatch = new CountDownLatch(plugins.size());
+
         for (int i = 0; i < plugins.size(); i++) {
             DevicePlugin plugin = plugins.get(i);
 
@@ -151,22 +125,14 @@ public class ServiceDiscoveryRequest extends DConnectRequest {
             mContext.sendBroadcast(request);
         }
 
-        // 各デバイスのレスポンスを待つ
-        long start = System.currentTimeMillis();
-        while (plugins.size() > 0 && mResponseCount < plugins.size()) {
-            synchronized (mLockObj) {
-                try {
-                    mLockObj.wait(mTimeout);
-                } catch (InterruptedException e) {
-                    // do nothing.
-                    mLogger.warning("Exception ouccered in wait.");
-                }
-            }
-            // タイムアウトチェック
-            if (System.currentTimeMillis() - start > mTimeout) {
-                restartDevicePlugins();
-                break;
-            }
+        try {
+            mCountDownLatch.await(mTimeout, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            mLogger.warning("Exception occurred in wait.");
+        }
+
+        if (mResponseCount < plugins.size()) {
+            restartDevicePlugins();
         }
 
         // パラメータを設定する

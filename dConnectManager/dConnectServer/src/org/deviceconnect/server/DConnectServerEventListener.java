@@ -39,4 +39,15 @@ public interface DConnectServerEventListener {
      */
     void onServerLaunched();
 
+    /**
+     * WebSocketのセッションが切断された時に呼び出されます.
+     * @param sessionKey 切断されたセッションのsessionKey
+     */
+    void onWebSocketDisconnected(String sessionKey);
+
+    /**
+     * WebSocketのsessionKeyがリセットされた時に呼び出されます.
+     * @param sessionKey リセットされたsessionKey
+     */
+    void onResetEventSessionKey(String sessionKey);
 }

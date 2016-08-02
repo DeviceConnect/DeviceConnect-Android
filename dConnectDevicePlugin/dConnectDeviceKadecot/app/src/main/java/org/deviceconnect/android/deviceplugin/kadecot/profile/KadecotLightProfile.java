@@ -12,12 +12,17 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 
+import org.deviceconnect.android.deviceplugin.kadecot.KadecotDeviceService;
 import org.deviceconnect.android.deviceplugin.kadecot.kadecotdevice.KadecotGeneralLighting;
 import org.deviceconnect.android.deviceplugin.kadecot.kadecotdevice.KadecotHomeAirConditioner;
 import org.deviceconnect.android.deviceplugin.kadecot.kadecotdevice.KadecotResult;
-import org.deviceconnect.android.deviceplugin.kadecot.KadecotDeviceService;
+import org.deviceconnect.android.deviceplugin.kadecot.service.KadecotService;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.LightProfile;
+import org.deviceconnect.android.profile.api.DConnectApi;
+import org.deviceconnect.android.profile.api.DeleteApi;
+import org.deviceconnect.android.profile.api.GetApi;
+import org.deviceconnect.android.profile.api.PostApi;
 import org.deviceconnect.message.DConnectMessage;
 
 import java.util.ArrayList;
@@ -45,6 +50,11 @@ public class KadecotLightProfile extends LightProfile {
     /** Index of profile name. */
     static final int IDX_PROFILENAME = 2;
 
+    public KadecotLightProfile() {
+        addApi(mGetLightApi);
+        addApi(mPostLightApi);
+        addApi(mDeleteLightApi);
+    }
 
     /**
      * Kadecot server query task class.
@@ -86,18 +96,13 @@ public class KadecotLightProfile extends LightProfile {
         }
     }
 
-    @Override
-    protected boolean onGetLight(final Intent request, final Intent response, final String serviceId) {
-        KadecotDeviceService service = (KadecotDeviceService) getContext();
-        String[] element = service.getElementFromServiceId(serviceId);
-        if (!(getProfileName().equals(element[IDX_PROFILENAME]))) {
-            MessageUtils.setNotSupportProfileError(response);
-        } else if (checkServiceId(getServiceID(request), response)) {
+    private final DConnectApi mGetLightApi = new GetApi() {
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
             new KadecotServerQueryTask().execute(request, response);
             return false;
         }
-        return true;
-    }
+    };
 
     /**
      * Get light status.
@@ -116,7 +121,7 @@ public class KadecotLightProfile extends LightProfile {
                 if (propertyName.equals(KadecotGeneralLighting.PROP_OPERATIONSTATUS)) {
                     Bundle lightParam = new Bundle();
                     String serviceId = getServiceID(request);
-                    String[] element = ((KadecotDeviceService) getContext()).getElementFromServiceId(serviceId);
+                    String[] element = KadecotDeviceService.getElementFromServiceId(serviceId);
                     setResult(response, DConnectMessage.RESULT_OK);
                     switch (propertyValue) {
                         case "48":  lightParam.putBoolean(PARAM_ON, true);  break;
@@ -140,25 +145,24 @@ public class KadecotLightProfile extends LightProfile {
         sendResponse(response);
     }
 
-    @Override
-    protected boolean onPostLight(final Intent request, final Intent response, final String serviceId,
-                                  final String lightId, final Integer color, final Double brightness,
-                                  final long[] flashing) {
-        // Kadecot plug-in not support brightness, color, flashing.
-        KadecotDeviceService service = (KadecotDeviceService) getContext();
-        String[] element = service.getElementFromServiceId(serviceId);
-        if (!(getProfileName().equals(element[IDX_PROFILENAME]))) {
-            MessageUtils.setNotSupportProfileError(response);
-        } else if (lightId == null || lightId.length() == 0) {
-            MessageUtils.setInvalidRequestParameterError(response, "lightId is not specified.");
-        } else if (!(lightId.equals(element[IDX_DEVICEID]))) {
-            MessageUtils.setInvalidRequestParameterError(response, "lightId is not match.");
-        } else if (checkServiceId(getServiceID(request), response)) {
-            new KadecotServerQueryTask().execute(request, response);
-            return false;
+    private final DConnectApi mPostLightApi = new PostApi() {
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            KadecotService service = (KadecotService) getService();
+            String lightId = getLightId(request);
+
+            // Kadecot plug-in not support brightness, color, flashing.
+            if (lightId == null || lightId.length() == 0) {
+                MessageUtils.setInvalidRequestParameterError(response, "lightId is not specified.");
+            } else if (!service.hasDeviceId(lightId)) {
+                MessageUtils.setInvalidRequestParameterError(response, "lightId is not match.");
+            } else {
+                new KadecotServerQueryTask().execute(request, response);
+                return false;
+            }
+            return true;
         }
-        return true;
-    }
+    };
 
     /**
      * Post Light status.
@@ -192,23 +196,23 @@ public class KadecotLightProfile extends LightProfile {
         sendResponse(response);
     }
 
-    @Override
-    protected boolean onDeleteLight(final Intent request, final Intent response, final String serviceId,
-                                    final String lightId) {
-        KadecotDeviceService service = (KadecotDeviceService) getContext();
-        String[] element = service.getElementFromServiceId(serviceId);
-        if (!(getProfileName().equals(element[IDX_PROFILENAME]))) {
-            MessageUtils.setNotSupportProfileError(response);
-        } else if (lightId == null || lightId.length() == 0) {
-            MessageUtils.setInvalidRequestParameterError(response, "lightId is not specified.");
-        } else if (!(lightId.equals(element[IDX_DEVICEID]))) {
-            MessageUtils.setInvalidRequestParameterError(response, "lightId is not match.");
-        } else if (checkServiceId(getServiceID(request), response)) {
-            new KadecotServerQueryTask().execute(request, response);
-            return false;
+    private final DConnectApi mDeleteLightApi = new DeleteApi() {
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            KadecotService service = (KadecotService) getService();
+            String lightId = getLightId(request);
+
+            if (lightId == null || lightId.length() == 0) {
+                MessageUtils.setInvalidRequestParameterError(response, "lightId is not specified.");
+            } else if (!service.hasDeviceId(lightId)) {
+                MessageUtils.setInvalidRequestParameterError(response, "lightId is not match.");
+            } else {
+                new KadecotServerQueryTask().execute(request, response);
+                return false;
+            }
+            return true;
         }
-        return true;
-    }
+    };
 
     /**
      * Delete Light status.
@@ -252,44 +256,6 @@ public class KadecotLightProfile extends LightProfile {
     }
 
     /**
-     * Check serviceID.
-     *
-     * @param serviceId ServiceId.
-     * @param response Response intent.
-     * @return Normal(true) / Abnormal(false).
-     */
-    private boolean checkServiceId(final String serviceId, final Intent response) {
-        KadecotDeviceService service = (KadecotDeviceService) getContext();
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-            return false;
-        } else if (!(service.checkServiceId(serviceId))) {
-            createNotFoundService(response);
-            return false;
-        } else {
-            return true;
-        }
-    }
-
-    /**
-     * Creates an error of "serviceId is empty".
-     *
-     * @param response Intent to store the response.
-     */
-    private void createEmptyServiceId(final Intent response) {
-        MessageUtils.setEmptyServiceIdError(response);
-    }
-
-    /**
-     * Creates an error of "service not found".
-     *
-     * @param response Intent to store the response.
-     */
-    private void createNotFoundService(final Intent response) {
-        MessageUtils.setNotFoundServiceError(response);
-    }
-
-    /**
      * Request Kadecot server.
      *
      * @param response Response.
@@ -298,8 +264,7 @@ public class KadecotLightProfile extends LightProfile {
      * @return Request result. (Processing error is null.)
      */
     protected KadecotResult requestKadecotServer(final Intent response, final String serviceId, final int property) {
-        KadecotDeviceService service = (KadecotDeviceService) getContext();
-        String[] element = service.getElementFromServiceId(serviceId);
+        String[] element = KadecotDeviceService.getElementFromServiceId(serviceId);
         if (element[IDX_PREFIX].equals(PREFIX_KADECOT) && element[IDX_DEVICEID] != null
                 && element[IDX_PROFILENAME].equals(PROFILE_NAME)) {
             KadecotHomeAirConditioner khac = new KadecotHomeAirConditioner();
@@ -310,8 +275,8 @@ public class KadecotLightProfile extends LightProfile {
                 KadecotResult result = new KadecotResult();
                 String strResult = cursor.getString(0);
                 result.setServerResult(strResult);
-                result.setPropertyName(service.getPropertyName(strResult));
-                result.setPropertyValue(service.getPropertyValue(strResult));
+                result.setPropertyName(KadecotDeviceService.getPropertyName(strResult));
+                result.setPropertyValue(KadecotDeviceService.getPropertyValue(strResult));
                 cursor.close();
                 return result;
             } else {

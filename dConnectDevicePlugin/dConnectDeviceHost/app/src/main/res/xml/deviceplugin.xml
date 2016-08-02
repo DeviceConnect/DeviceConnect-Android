@@ -2,13 +2,13 @@
 <deviceplugin-provider xmlns:android="http://schemas.android.com/apk/res/android" >
 
     <!-- dConnect Standard Profiles -->
-    <profile name="servicediscovery" expireperiod="86400000">
+    <profile name="serviceDiscovery" expireperiod="86400000">
         <name lang="ja">デバイス検索 </name>
         <description lang="ja">周辺のデバイスを検索する </description>
         <name lang="en">Network Service Discovery </name>
         <description lang="en">Searches near devices. </description>
     </profile>
-    <profile name="serviceinformation" expireperiod="86400000">
+    <profile name="serviceInformation" expireperiod="86400000">
         <name lang="ja">デバイス情報 </name>
         <description lang="ja">デバイス情報を取得する </description>
         <name lang="en">Service Information</name>
@@ -44,7 +44,7 @@
         <name lang="en">Settings </name>
         <description lang="en">Settings of devices </description>
     </profile>
-    <profile name="deviceorientation" expireperiod="86400000">
+    <profile name="deviceOrientation" expireperiod="86400000">
         <name lang="ja">デバイスの向き </name>
         <description lang="ja">デバイスの向きを取得する </description>
         <name lang="en">Device Orientation </name>
@@ -56,7 +56,7 @@
         <name lang="en">File </name>
         <description lang="en">Accesses files in devices. </description>
     </profile>
-    <profile name="file_descriptor" expireperiod="86400000">
+    <profile name="fileDescriptor" expireperiod="86400000">
         <name lang="ja">ファイルディスクリプタ </name>
         <description lang="ja">ファイルディスクリプタ機能にアクセスする </description>
         <name lang="en">File Descriptor </name>
@@ -74,7 +74,7 @@
         <name lang="en">Connect </name>
         <description lang="en">Connects smart phone to devices. </description>
     </profile>
-    <profile name="mediastream_recording" expireperiod="86400000">
+    <profile name="mediaStreamRecording" expireperiod="86400000">
         <name lang="ja">メディアレコーディング </name>
         <description lang="ja">メディアレコーディング機能にアクセスする </description>
         <name lang="en">MediaStream Recording</name>
@@ -86,7 +86,7 @@
         <name lang="en">Phone </name>
         <description lang="en">Accesses phone feature. </description>
     </profile>
-    <profile name="media_player" expireperiod="86400000">
+    <profile name="mediaPlayer" expireperiod="86400000">
         <name lang="ja">メディアプレイヤー </name>
         <description lang="ja">メディアプレイヤー機能にアクセスする </description>
         <name lang="en">Media Player </name>
@@ -107,7 +107,7 @@
         <description lang="en">Draw Shapes. </description>
     </profile>
 
-    <profile name="keyevent" expireperiod="86400000">
+    <profile name="keyEvent" expireperiod="86400000">
         <name lang="ja">キーイベント </name>
         <description lang="ja">キーイベント状態を取得する </description>
         <name lang="en">KeyEvent </name>

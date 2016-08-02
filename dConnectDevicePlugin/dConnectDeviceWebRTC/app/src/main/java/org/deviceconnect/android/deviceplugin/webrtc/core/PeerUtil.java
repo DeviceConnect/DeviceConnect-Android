@@ -8,7 +8,7 @@ package org.deviceconnect.android.deviceplugin.webrtc.core;
 
 import android.os.Build;
 
-import org.deviceconnect.android.deviceplugin.webrtc.profile.WebRTCServceDiscoveryProfile;
+import org.deviceconnect.android.deviceplugin.webrtc.service.WebRTCService;
 import org.json.JSONObject;
 import org.webrtc.PeerConnection;
 
@@ -205,6 +205,6 @@ public final class PeerUtil {
      * @return service id
      */
     public static String getServiceId(final Peer peer) {
-        return WebRTCServceDiscoveryProfile.PLUGIN_ID + peer.getMyAddressId();
+        return WebRTCService.PLUGIN_ID + peer.getMyAddressId();
     }
 }

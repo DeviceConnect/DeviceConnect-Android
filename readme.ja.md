@@ -9,7 +9,8 @@ Device Connect AndroidはAndroid版のDeviceConnectのプラットフォーム�
 * [プロジェクトのインストール](#section2)
 * [DeviceConnectManagerの起動](#section3)
 * [動作確認](#section4)
-* [DeviceConnectアプリの開発](#section5)
+* [Webサーバの起動](#section5)
+* [DeviceConnectアプリの開発](#section6)
 
 # <a name="section1">プロジェクトの説明</a>
 ## dConnectDevicePlugin
@@ -18,6 +19,7 @@ Device Connect AndroidはAndroid版のDeviceConnectのプラットフォーム�
 |dConnectDeviceAllJoyn|AllJoynのデバイスプラグイン。|
 |dConnectDeviceChromeCast|Chromecastのデバイスプラグイン。 |
 |dConnectDeviceFPLUG|F-PLUGのデバイスプラグイン。|
+|dConnectDeviceFaBo|FaBoのデバイスプラグイン。|
 |dConnectDeviceHeartRate|Mio AlphaなどのHeartRateのデバイスプラグイン。|
 |dConnectDeviceHost|Androidのデバイスプラグイン。|
 |dConnectDeviceHue|Hueのデバイスプラグイン。|
@@ -26,6 +28,7 @@ Device Connect AndroidはAndroid版のDeviceConnectのプラットフォーム�
 |dConnectDeviceHVCP|HVC-Pのデバイスプラグイン。|
 |dConnectDeviceIRKit|IRKitのデバイスプラグイン。|
 |dConnectDeviceKadecot|Kadecotのデバイスプラグイン。|
+|dConnectDeviceLinking|Linkingのデバイスプラグイン。|
 |dConnectDevicePebble|Pebbleのデバイスプラグイン。|
 |dConnectDeviceSonyCamera|QX10などのSonyCameraのデバイスプラグイン。|
 |dConnectDeviceSonySW|SonySmartWatchデバイスプラグイン。<br>※SmartWatch3は未対応。|
@@ -58,6 +61,7 @@ Device Connect AndroidはAndroid版のDeviceConnectのプラットフォーム�
 * [AllJoyn](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/AllJoyn-Build)
 * [ChromeCast](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/ChromeCast-Build)
 * [F-PLUG](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/F-PLUG-Build)
+* [FaBo](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/FaBo-Build)
 * [HeartRate](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/HeartRateDevice-Build)
 * [Host](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Host-Build)
 * [Hue](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Hue-Build)
@@ -66,6 +70,7 @@ Device Connect AndroidはAndroid版のDeviceConnectのプラットフォーム�
 * [HVC-P](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/HVCPDevice-Build)
 * [IRKit](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/IRKit-Build)
 * [Kadecot](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Kadecot-Build)
+* [Linking](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Linking-Build)
 * [Pebble](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Pebble-Build)
 * [SonyCamera](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/SonyCamera-Build)
 * [SonySW](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/SonySW-Build)
@@ -73,7 +78,7 @@ Device Connect AndroidはAndroid版のDeviceConnectのプラットフォーム�
 * [Theta](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Theta-Build)
 * [UVC](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/UVC-Build)
 * [AndroidWear](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/AndroidWear-Build)
-* [AndroidWear](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/WebRTC-Build)
+* [WebRTC](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/WebRTC-Build)
 
 　なお、[こちら](https://github.com/DeviceConnect/DeviceConnect-Docs/tree/master/Bin/Android)からもapkを取得することができます。
 　インストール方法につきましては、以下のようにコマンドラインからコマンドの実行することができます。<br>
@@ -89,15 +94,15 @@ adbコマンドにつきましては、Android SDKを確認してください。
 
 # <a name="section3">DeviceConnectManagerの起動</a>
  DeviceConnectManagerのアイコンをタップしてください。
- <center><a href="https://raw.githubusercontent.com/wiki/DeviceConnect/DeviceConnect-Android/DevicePluginManual/image35.png" target="_blank">
-<img src="https://raw.githubusercontent.com/wiki/DeviceConnect/DeviceConnect-Android/DevicePluginManual/image35.png" border="0"
+ <center><a href="./assets/icon.png" target="_blank">
+<img src="./assets/icon.png" border="0"
   width="200" height="200" alt="" /></a><br></center>
 
 DeviceConnectManagerの欄をONにすることによって、起動することができます。
 
-<center><a href="https://raw.githubusercontent.com/wiki/DeviceConnect/DeviceConnect-Android/DevicePluginManual/image39.png" target="_blank">
-<img src="https://raw.githubusercontent.com/wiki/DeviceConnect/DeviceConnect-Android/DevicePluginManual/image39.png" border="0"
- width="410" height="146" alt="" /></a></center>
+<center><a href="./assets/manager_setting_ja.png" target="_blank">
+<img src="./assets/manager_setting_ja.png" border="0"
+ width="320" height="550" alt="" /></a></center>
 
 # <a name="section4">動作確認</a>
 
@@ -105,8 +110,8 @@ DeviceConnectManagerの欄をONにすることによって、起動すること�
 以下のようなJSONのレスポンスが返って来れば、DeviceConnectManagerが動作していることが確認できます。<br>
 <br>
 
- <center><a href="https://raw.githubusercontent.com/wiki/DeviceConnect/DeviceConnect-Android/imageX.PNG" target="_blank">
-<img src="https://raw.githubusercontent.com/wiki/DeviceConnect/DeviceConnect-Android/imageX.PNG" border="0"
+ <center><a href="./assets/availability.png" target="_blank">
+<img src="./assets/availability.png" border="0"
  width="320" height="550" alt="" /></a></center>
 
  リクエスト
@@ -128,7 +133,29 @@ DeviceConnectManagerの欄をONにすることによって、起動すること�
  availability以外のAPIには、基本的にはアクセストークンが必要になるためにchromeブラウザのアドレスでは簡単に確認することができません。
 Device Connect の具体的な利用法に関しましては、[こちら](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Application-Manual)のWikiをご参考にしてください。
 
-# <a name="section5">DeviceConnectアプリの開発</a>
+
+# <a name="section5">Webサーバの起動</a>
+[DeviceConnect-JSのdConnectJavascriptApp](https://github.com/DeviceConnect/DeviceConnect-JS/tree/master/dConnectJavascriptApp)をAndroid端末のSDカード内に配置し、アクセスすることができます。
+
+dConnectManagerの設定画面の以下の項目をONにすることによりWebサーバを起動することができます。<br>
+その時のドキュメントルートは、SDカードのorg.deviceconnect.android.manager直下になります。<br>
+
+<center><a href="./assets/webserver_setting.png" target="_blank">
+<img src="./assets/webserver_setting.png" border="0"
+ width="320" height="550" alt="" /></a></center><br>
+
+`/storage/emulated/0/org.deviceconnect.android.manager/index.html`にHTMLファイルを配置した場合は、ブラウザでは、`http://localhost:8080/index.html`のようにURLを入力することでアクセスすることができます。<br>
+<br>
+その時、この機能がセキュリティホールになる恐れがあるため、以下のように確認ダイアログが表示されるようになっています。<br>
+<br>
+
+<center><a href="./assets/webserver.png" target="_blank">
+<img src="./assets/webserver.png" border="0"
+ width="320" height="550" alt="" /></a></center><br>
+
+
+
+# <a name="section6">DeviceConnectアプリの開発</a>
  DeviceConnectを使ったアプリケーションおよび、アプリケーションの開発に関しましては、以下のページを参考にしてください。
 
 * [アプリケーション開発マニュアル(AndroidStudio)](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Application-Manual-for-Android-Studio)

@@ -21,12 +21,16 @@ import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.android.service.DConnectService;
 
 import java.util.List;
+import java.util.logging.Logger;
 
 /**
  * 本デバイスプラグインのプロファイルをDeviceConnectに登録するサービス.
  * @author NTT DOCOMO, INC.
  */
 public class HueDeviceService extends DConnectMessageService {
+
+    /** ロガー. */
+    private final Logger mLogger = Logger.getLogger("hue.dplugin");
 
     @Override
     public void onCreate() {
@@ -60,16 +64,25 @@ public class HueDeviceService extends DConnectMessageService {
     @Override
     protected void onManagerUninstalled() {
         // Managerアンインストール検知時の処理。
+        if (BuildConfig.DEBUG) {
+            mLogger.info("Plug-in : onManagerUninstalled");
+        }
     }
 
     @Override
     protected void onManagerTerminated() {
         // Manager正常終了通知受信時の処理。
+        if (BuildConfig.DEBUG) {
+            mLogger.info("Plug-in : onManagerTerminated");
+        }
     }
 
     @Override
     protected void onDevicePluginReset() {
         // Device Plug-inへのReset要求受信時の処理。
+        if (BuildConfig.DEBUG) {
+            mLogger.info("Plug-in : onDevicePluginReset");
+        }
     }
 
     @Override

@@ -18,7 +18,7 @@
         android:layout_height="match_parent"
         android:layout_above="@id/activity_service_list_search_button"
         android:layout_margin="8dp"
-        android:columnWidth="100dp"
+        android:columnWidth="80dp"
         android:gravity="center"
         android:horizontalSpacing="8dp"
         android:minHeight="100dp"

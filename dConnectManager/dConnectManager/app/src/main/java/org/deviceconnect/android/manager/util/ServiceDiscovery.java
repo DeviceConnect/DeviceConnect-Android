@@ -6,6 +6,7 @@ import android.util.Log;
 import org.deviceconnect.android.manager.BuildConfig;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.message.DConnectMessage;
+import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -83,6 +84,8 @@ public class ServiceDiscovery extends Authorization {
         service.setName(obj.getString(ServiceDiscoveryProfile.PARAM_NAME));
         if (obj.has(ServiceDiscoveryProfile.PARAM_TYPE)) {
             service.setNetworkType(ServiceDiscoveryProfile.NetworkType.getInstance(obj.getString(ServiceDiscoveryProfile.PARAM_TYPE)));
+        } else {
+            service.setNetworkType(ServiceDiscoveryProfileConstants.NetworkType.UNKNOWN);
         }
         service.setOnline(obj.getBoolean(ServiceDiscoveryProfile.PARAM_ONLINE));
         return service;

@@ -59,6 +59,7 @@ public class ServiceListActivity extends Activity {
     private ServiceAdapter mServiceAdapter;
     private DevicePluginManager mDevicePluginManager;
     private SharedPreferences mSharedPreferences;
+    private ServiceDiscovery mServiceDiscovery;
 
     private Switch mSwitchAction;
     private int mPageIndex;
@@ -222,8 +223,7 @@ public class ServiceListActivity extends Activity {
                 view.setVisibility(View.VISIBLE);
                 AnimationUtil.animateAlpha2(view, new AnimationUtil.AnimationAdapter() {
                     @Override
-                    public void onAnimationEnd(Animator animation) {
-                        Log.e("ABC", "abc");
+                    public void onAnimationEnd(final Animator animation) {
                     }
                 });
             } else {
@@ -274,6 +274,7 @@ public class ServiceListActivity extends Activity {
         if (DEBUG) {
             Log.i(TAG, "reload a device plugin.");
         }
+
         if (mDConnectService == null) {
             return;
         }
@@ -288,8 +289,13 @@ public class ServiceListActivity extends Activity {
             }
         }
 
-        ServiceDiscovery discovery = new ServiceDiscovery(this) {
+        if (mServiceDiscovery != null) {
+            return;
+        }
+
+        mServiceDiscovery = new ServiceDiscovery(this) {
             private DialogFragment mDialog;
+
             @Override
             protected void onPreExecute() {
                 mDialog = new ServiceDiscoveryDialogFragment();
@@ -300,16 +306,17 @@ public class ServiceListActivity extends Activity {
             protected void onPostExecute(final List<ServiceContainer> serviceContainers) {
                 mDialog.dismiss();
 
-                mServiceAdapter.mServices = serviceContainers;
-                mServiceAdapter.notifyDataSetInvalidated();
-
                 View view = findViewById(R.id.activity_service_no_service);
                 if (view != null) {
                     view.setVisibility(serviceContainers.size() == 0 ? View.VISIBLE : View.GONE);
                 }
+
+                mServiceAdapter.mServices = serviceContainers;
+                mServiceAdapter.notifyDataSetInvalidated();
+                mServiceDiscovery = null;
             }
         };
-        discovery.execute();
+        mServiceDiscovery.execute();
     }
 
     private void shiftSettings() {
@@ -428,6 +435,28 @@ public class ServiceListActivity extends Activity {
 
             TextView textView = (TextView) view.findViewById(R.id.item_name);
             textView.setText(service.getName());
+
+            ImageView typeView = (ImageView) view.findViewById(R.id.item_type);
+            if (typeView != null) {
+                switch(service.getNetworkType()) {
+                    case BLE:
+                    case BLUETOOTH:
+                        typeView.setVisibility(View.VISIBLE);
+                        typeView.setImageResource(R.drawable.bluetooth_on);
+                        break;
+                    case WIFI:
+                        typeView.setVisibility(View.VISIBLE);
+                        typeView.setImageResource(R.drawable.wifi_on);
+                        break;
+                    case NFC:
+                        typeView.setVisibility(View.VISIBLE);
+                        typeView.setImageResource(R.drawable.nfc_on);
+                        break;
+                    default:
+                        typeView.setVisibility(View.GONE);
+                        break;
+                }
+            }
 
             ImageView imageView = (ImageView) view.findViewById(R.id.item_icon);
             if (imageView != null) {

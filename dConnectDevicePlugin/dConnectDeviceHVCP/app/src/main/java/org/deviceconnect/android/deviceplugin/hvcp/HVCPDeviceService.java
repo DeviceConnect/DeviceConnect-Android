@@ -36,6 +36,7 @@ import org.deviceconnect.message.DConnectMessage;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Logger;
 
 /**
  * HVC-P Device Service.
@@ -46,6 +47,8 @@ public class HVCPDeviceService extends DConnectMessageService
         implements HVCCameraInfo.OnBodyEventListener, HVCCameraInfo.OnHandEventListener,
         HVCCameraInfo.OnFaceEventListener, HVCManager.ConnectionListener {
 
+    /** ロガー. */
+    private final Logger mLogger = Logger.getLogger("hvcp.dplugin");
 
     private BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
@@ -56,7 +59,7 @@ public class HVCPDeviceService extends DConnectMessageService
             String action = intent.getAction();
             if (action.equals(UsbManager.ACTION_USB_DEVICE_ATTACHED)) {
                 synchronized (this) {
-                    UsbDevice device = (UsbDevice)intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+                    UsbDevice device = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
                     if ((device.getVendorId() == 1027 && device.getProductId() == 24577)
                         || (device.getVendorId() == 1118 && device.getProductId() == 688)) {
                         HVCManager.INSTANCE.addUSBDevice(device);
@@ -64,7 +67,7 @@ public class HVCPDeviceService extends DConnectMessageService
                 }
             } else if (action.equals(UsbManager.ACTION_USB_DEVICE_DETACHED)) {
                 synchronized (this) {
-                    UsbDevice device = (UsbDevice)intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+                    UsbDevice device = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
                     HVCManager.INSTANCE.removeUSBDevice(device);
                 }
 
@@ -97,17 +100,26 @@ public class HVCPDeviceService extends DConnectMessageService
 
     @Override
     protected void onManagerUninstalled() {
-        // TODO: Managerアンインストール検知時の処理要追加。
+        // Managerアンインストール検知時の処理。
+        if (BuildConfig.DEBUG) {
+            mLogger.info("Plug-in : onManagerUninstalled");
+        }
     }
 
     @Override
     protected void onManagerTerminated() {
-        // TODO: Manager正常終了通知受信時の処理要追加。
+        // Manager正常終了通知受信時の処理。
+        if (BuildConfig.DEBUG) {
+            mLogger.info("Plug-in : onManagerTerminated");
+        }
     }
 
     @Override
     protected void onManagerEventTransmitDisconnected(String sessionKey) {
-        // TODO: ManagerのEvent送信経路切断通知受信時の処理要追加。
+        // ManagerのEvent送信経路切断通知受信時の処理。
+        if (BuildConfig.DEBUG) {
+            mLogger.info("Plug-in : onManagerEventTransmitDisconnected");
+        }
         if (sessionKey != null) {
             if (EventManager.INSTANCE.removeEvents(sessionKey)) {
                 String[] param = sessionKey.split(".", -1);
@@ -126,7 +138,10 @@ public class HVCPDeviceService extends DConnectMessageService
 
     @Override
     protected void onDevicePluginReset() {
-        // TODO: Device Plug-inへのReset要求受信時の処理要追加。
+        // Device Plug-inへのReset要求受信時の処理。
+        if (BuildConfig.DEBUG) {
+            mLogger.info("Plug-in : onDevicePluginReset");
+        }
         resetPluginResource();
     }
 
@@ -182,7 +197,7 @@ public class HVCPDeviceService extends DConnectMessageService
                     HVCManager.PARAM_INTERVAL_MAX);
 
             if (inter[0] == null) {
-                inter[0] = new Long(HVCManager.PARAM_INTERVAL_MIN);
+                inter[0] = HVCManager.PARAM_INTERVAL_MIN;
             }
             final List<String> options = HumanDetectProfile.getOptions(request);
             EventError error = EventManager.INSTANCE.addEvent(request);
@@ -485,7 +500,7 @@ public class HVCPDeviceService extends DConnectMessageService
      */
     private void makeBodyDetectResultResponse(final Intent response, final OkaoResult result) {
 
-        List<Bundle> bodyDetects = new LinkedList<Bundle>();
+        List<Bundle> bodyDetects = new LinkedList<>();
         int count = result.getNumberOfBody();
         for (int i = 0; i < count; i++) {
             Bundle bodyDetect = new Bundle();
@@ -514,7 +529,7 @@ public class HVCPDeviceService extends DConnectMessageService
      */
     private void makeHandDetectResultResponse(final Intent response, final OkaoResult result) {
 
-        List<Bundle> handDetects = new LinkedList<Bundle>();
+        List<Bundle> handDetects = new LinkedList<>();
         int count = result.getNumberOfHand();
 
         for (int i = 0; i < count; i++) {
@@ -544,7 +559,7 @@ public class HVCPDeviceService extends DConnectMessageService
      * @param options Options
      */
     private void makeFaceDetectResultResponse(final Intent response, final OkaoResult result, final List<String> options) {
-        List<Bundle> faceDetects = new LinkedList<Bundle>();
+        List<Bundle> faceDetects = new LinkedList<>();
         int count = result.getNumberOfFace();
 
         for (int i = 0; i < count; i++) {
@@ -624,7 +639,7 @@ public class HVCPDeviceService extends DConnectMessageService
                 // expression.
                 Bundle expressionResult = new Bundle();
                 HumanDetectProfile.setParamExpression(expressionResult,
-                        HVCManager.INSTANCE.convertToNormalizeExpression(index));
+                        HVCManager.convertToNormalizeExpression(index));
                 HumanDetectProfile.setParamConfidence(expressionResult,
                         (double) score / (double) HVCManager.EXPRESSION_SCORE_MAX);
 

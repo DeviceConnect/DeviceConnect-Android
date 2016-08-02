@@ -41,7 +41,7 @@ public enum HVCManager {
     INSTANCE;
 
     /** TAG. */
-    private static final String TAG = "AAA";
+    private static final String TAG = "HVCManager";
     /** Okao Execute Command. */
     private static final String OKAO_EXECUTE = "FE040300FF0102";
 

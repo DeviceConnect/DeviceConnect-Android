@@ -207,19 +207,25 @@ public class SonyCameraDeviceService extends DConnectMessageService {
     @Override
     protected void onManagerUninstalled() {
         // Managerアンインストール検知時の処理。
-        mLogger.info("Plug-in : onManagerUninstalled");
+        if (BuildConfig.DEBUG) {
+            mLogger.info("Plug-in : onManagerUninstalled");
+        }
     }
 
     @Override
     protected void onManagerTerminated() {
         // Manager正常終了通知受信時の処理。
-        mLogger.info("Plug-in : onManagerTerminated");
+        if (BuildConfig.DEBUG) {
+            mLogger.info("Plug-in : onManagerTerminated");
+        }
     }
 
     @Override
     protected void onManagerEventTransmitDisconnected(String sessionKey) {
         // ManagerのEvent送信経路切断通知受信時の処理。
-        mLogger.info("Plug-in : onManagerEventTransmitDisconnected");
+        if (BuildConfig.DEBUG) {
+            mLogger.info("Plug-in : onManagerEventTransmitDisconnected");
+        }
         if (sessionKey != null) {
             EventManager.INSTANCE.removeEvents(sessionKey);
         } else {
@@ -230,7 +236,9 @@ public class SonyCameraDeviceService extends DConnectMessageService {
     @Override
     protected void onDevicePluginReset() {
         // Device Plug-inへのReset要求受信時の処理。
-        mLogger.info("Plug-in : onDevicePluginReset");
+        if (BuildConfig.DEBUG) {
+            mLogger.info("Plug-in : onDevicePluginReset");
+        }
         resetPluginResource();
     }
 
@@ -323,7 +331,7 @@ public class SonyCameraDeviceService extends DConnectMessageService {
      * @param service デバイスパラメータ
      */
     private void setScopes(final Bundle service) {
-        ArrayList<String> scopes = new ArrayList<String>();
+        ArrayList<String> scopes = new ArrayList<>();
         for (DConnectProfile profile : getProfileList()) {
             scopes.add(profile.getProfileName());
         }
@@ -351,7 +359,7 @@ public class SonyCameraDeviceService extends DConnectMessageService {
             return true;
         }
 
-        if (mAvailableApiList.indexOf("getStillSize") == -1) {
+        if (!mAvailableApiList.contains("getStillSize")) {
             MessageUtils.setNotSupportAttributeError(response);
             return true;
         }
@@ -361,9 +369,7 @@ public class SonyCameraDeviceService extends DConnectMessageService {
             public void run() {
                 try {
                     getMediaRecorder(request, response);
-                } catch (IOException e) {
-                    sendErrorResponse(request, response);
-                } catch (JSONException e) {
+                } catch (IOException | JSONException e) {
                     sendErrorResponse(request, response);
                 }
             }
@@ -381,7 +387,7 @@ public class SonyCameraDeviceService extends DConnectMessageService {
     private void getMediaRecorder(final Intent request, final Intent response)
             throws IOException, JSONException {
 
-        List<Bundle> recorders = new ArrayList<Bundle>();
+        List<Bundle> recorders = new ArrayList<>();
 
         String state = convertCameraState(getCameraState());
         int[] size = getCameraSize();
@@ -455,8 +461,8 @@ public class SonyCameraDeviceService extends DConnectMessageService {
         if (stillSize != null) {
             String aspect = stillSize[0];
             String size = stillSize[1];
-            int width = 0;
-            int height = 0;
+            int width;
+            int height;
             int index = aspect.indexOf(":");
             if (index != -1) {
                 width = Integer.valueOf(aspect.substring(0, index));
@@ -470,6 +476,7 @@ public class SonyCameraDeviceService extends DConnectMessageService {
                 int[] s = new int[2];
                 s[0] = width;
                 s[1] = height;
+                return s;
             }
         }
         return null;
@@ -508,35 +515,42 @@ public class SonyCameraDeviceService extends DConnectMessageService {
      * @return stillSize
      */
     private double pixelValueCalculate(final int widthVal, final int heightVal, final String size) {
-        int pixels = 0;
-        int width = widthVal;
-        int height = heightVal;
+        int pixels;
         double pixelValue = 0;
 
-        if (size.equals("20M")) {
-            pixels = PIXELS_20_M;
-            pixelValue = Math.sqrt(pixels / (width * height));
-        } else if (size.equals("18M")) {
-            pixels = PIXELS_18_M;
-            pixelValue = Math.sqrt(pixels / (width * height));
-        } else if (size.equals("17M")) {
-            pixels = PIXELS_17_M;
-            pixelValue = Math.sqrt(pixels / (width * height));
-        } else if (size.equals("13M")) {
-            pixels = PIXELS_13_M;
-            pixelValue = Math.sqrt(pixels / (width * height));
-        } else if (size.equals("7.5M")) {
-            pixels = PIXELS_7_5_M;
-            pixelValue = Math.sqrt(pixels / (width * height));
-        } else if (size.equals("5M")) {
-            pixels = PIXELS_5_M;
-            pixelValue = Math.sqrt(pixels / (width * height));
-        } else if (size.equals("4.2M")) {
-            pixels = PIXELS_4_2_M;
-            pixelValue = Math.sqrt(pixels / (width * height));
-        } else if (size.equals("3.7M")) {
-            pixels = PIXELS_3_7_M;
-            pixelValue = Math.sqrt(pixels / (width * height));
+        switch (size) {
+            case "20M":
+                pixels = PIXELS_20_M;
+                pixelValue = Math.sqrt(pixels / (widthVal * heightVal));
+                break;
+            case "18M":
+                pixels = PIXELS_18_M;
+                pixelValue = Math.sqrt(pixels / (widthVal * heightVal));
+                break;
+            case "17M":
+                pixels = PIXELS_17_M;
+                pixelValue = Math.sqrt(pixels / (widthVal * heightVal));
+                break;
+            case "13M":
+                pixels = PIXELS_13_M;
+                pixelValue = Math.sqrt(pixels / (widthVal * heightVal));
+                break;
+            case "7.5M":
+                pixels = PIXELS_7_5_M;
+                pixelValue = Math.sqrt(pixels / (widthVal * heightVal));
+                break;
+            case "5M":
+                pixels = PIXELS_5_M;
+                pixelValue = Math.sqrt(pixels / (widthVal * heightVal));
+                break;
+            case "4.2M":
+                pixels = PIXELS_4_2_M;
+                pixelValue = Math.sqrt(pixels / (widthVal * heightVal));
+                break;
+            case "3.7M":
+                pixels = PIXELS_3_7_M;
+                pixelValue = Math.sqrt(pixels / (widthVal * heightVal));
+                break;
         }
 
         return pixelValue;
@@ -632,10 +646,7 @@ public class SonyCameraDeviceService extends DConnectMessageService {
                             }
                         }
                     }
-                } catch (IOException e) {
-                    mLogger.warning("Exception in takePicture." + e.toString());
-                    sendErrorResponse(request, response);
-                } catch (JSONException e) {
+                } catch (IOException | JSONException e) {
                     mLogger.warning("Exception in takePicture." + e.toString());
                     sendErrorResponse(request, response);
                 } finally {
@@ -713,10 +724,7 @@ public class SonyCameraDeviceService extends DConnectMessageService {
                             sendErrorResponse(request, response);
                         }
                     }
-                } catch (IOException e) {
-                    mLogger.warning("Exception occurred in startMovieRec.");
-                    sendErrorResponse(request, response);
-                } catch (JSONException e) {
+                } catch (IOException | JSONException e) {
                     mLogger.warning("Exception occurred in startMovieRec.");
                     sendErrorResponse(request, response);
                 }
@@ -806,10 +814,7 @@ public class SonyCameraDeviceService extends DConnectMessageService {
                             sendErrorResponse(request, response);
                         }
                     }
-                } catch (IOException e) {
-                    mLogger.warning("Exception occurred in setShootMode.");
-                    sendErrorResponse(request, response);
-                } catch (JSONException e) {
+                } catch (IOException | JSONException e) {
                     mLogger.warning("Exception occurred in setShootMode.");
                     sendErrorResponse(request, response);
                 }
@@ -839,7 +844,7 @@ public class SonyCameraDeviceService extends DConnectMessageService {
                 MediaStreamRecordingProfileConstants.PROFILE_NAME, null,
                 MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_PHOTO);
 
-        String photoPath = mFileMgr.getBasePath().getPath().toString() + "/" + path;
+        String photoPath = mFileMgr.getBasePath().getPath() + "/" + path;
         for (Event evt : evts) {
             Bundle photo = new Bundle();
             photo.putString(MediaStreamRecordingProfile.PARAM_URI, uri);
@@ -1113,8 +1118,7 @@ public class SonyCameraDeviceService extends DConnectMessageService {
                 SimpleLiveviewSlicer slicer = null;
                 try {
                     // Prepare for connecting.
-                    JSONObject replyJson = null;
-                    replyJson = mRemoteApi.startLiveview();
+                    JSONObject replyJson = mRemoteApi.startLiveview();
                     if (!isErrorReply(replyJson)) {
                         JSONArray resultsObj = replyJson.getJSONArray("result");
                         String liveviewUrl = null;
@@ -1285,8 +1289,7 @@ public class SonyCameraDeviceService extends DConnectMessageService {
      * @return エラーの場合はtrue、それ以外はfalse
      */
     private boolean isErrorReply(final JSONObject replyJson) {
-        boolean hasError = (replyJson != null && replyJson.has("error"));
-        return hasError;
+        return (replyJson != null && replyJson.has("error"));
     }
 
     @Override
@@ -1321,7 +1324,7 @@ public class SonyCameraDeviceService extends DConnectMessageService {
             MessageUtils.setUnknownError(response);
             return true;
         }
-        if (mAvailableApiList.indexOf("setCurrentTime") == -1) {
+        if (!mAvailableApiList.contains("setCurrentTime")) {
             MessageUtils.setNotSupportActionError(response);
             return true;
         }
@@ -1352,8 +1355,7 @@ public class SonyCameraDeviceService extends DConnectMessageService {
                     JSONObject replyJson = mRemoteApi.setCurrentTime(mDate, mTimeZone);
                     if (replyJson == null) {
                         sendErrorResponse(request, response);
-                    }
-                    if (isErrorReply(replyJson)) {
+                    } else if (isErrorReply(replyJson)) {
                         sendErrorResponse(request, response);
                     } else {
                         JSONArray resultsObj = replyJson.getJSONArray("result");
@@ -1363,10 +1365,7 @@ public class SonyCameraDeviceService extends DConnectMessageService {
                             sendErrorResponse(request, response);
                         }
                     }
-                } catch (IOException e) {
-                    mLogger.warning("Exception in setCurrentTime." + e.toString());
-                    sendErrorResponse(request, response);
-                } catch (JSONException e) {
+                } catch (IOException | JSONException e) {
                     mLogger.warning("Exception in setCurrentTime." + e.toString());
                     sendErrorResponse(request, response);
                 }
@@ -1405,7 +1404,7 @@ public class SonyCameraDeviceService extends DConnectMessageService {
             return true;
         }
         
-        if (mAvailableApiList.indexOf("actZoom") == -1) {
+        if (!mAvailableApiList.contains("actZoom")) {
             MessageUtils.setNotSupportActionError(response);
             return true;
         }
@@ -1445,10 +1444,7 @@ public class SonyCameraDeviceService extends DConnectMessageService {
                             sendErrorResponse(request, response);
                         }
                     }
-                } catch (IOException e) {
-                    mLogger.warning("Exception in actZoom." + e.toString());
-                    sendErrorResponse(request, response);
-                } catch (JSONException e) {
+                } catch (IOException | JSONException e) {
                     mLogger.warning("Exception in actZoom." + e.toString());
                     sendErrorResponse(request, response);
                 }
@@ -1479,8 +1475,8 @@ public class SonyCameraDeviceService extends DConnectMessageService {
             sendResponse(response);
             return true;
         }
-        if (mAvailableApiList.indexOf("getEvent") == -1
-                || mAvailableApiList.indexOf("actZoom") == -1) {
+        if (!mAvailableApiList.contains("getEvent")
+                || !mAvailableApiList.contains("actZoom")) {
             MessageUtils.setNotSupportActionError(response);
             sendResponse(response);
             return true;
@@ -1489,7 +1485,7 @@ public class SonyCameraDeviceService extends DConnectMessageService {
         mExecutor.execute(new Runnable() {
             @Override
             public void run() {
-                double zoomDiameterParam = 0;
+                double zoomDiameterParam;
                 try {
                     JSONObject replyJson = mRemoteApi.getEvent(mWhileFetching);
                     if (isErrorReply(replyJson)) {
@@ -1497,7 +1493,7 @@ public class SonyCameraDeviceService extends DConnectMessageService {
                     } else {
                         JSONArray resultsObj = replyJson.getJSONArray("result");
                         replyJson = resultsObj.getJSONObject(2);
-                        zoomDiameterParam = (Double) Double.valueOf(replyJson.getString("zoomPosition"))
+                        zoomDiameterParam = Double.valueOf(replyJson.getString("zoomPosition"))
                                 / (Double) VAL_TO_PERCENTAGE;
                         DecimalFormat decimalFormat = new DecimalFormat("0.0#");
                         zoomDiameterParam = Double.valueOf(decimalFormat.format(zoomDiameterParam));
@@ -1505,9 +1501,7 @@ public class SonyCameraDeviceService extends DConnectMessageService {
                         response.putExtra(SonyCameraZoomProfile.PARAM_ZOOM_POSITION, zoomDiameterParam);
                         sendResponse(request, response);
                     }
-                } catch (IOException e) {
-                    sendErrorResponse(request, response);
-                } catch (JSONException e) {
+                } catch (IOException | JSONException e) {
                     sendErrorResponse(request, response);
                 }
             }

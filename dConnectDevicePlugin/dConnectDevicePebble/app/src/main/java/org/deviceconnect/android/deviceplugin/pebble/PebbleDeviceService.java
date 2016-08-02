@@ -22,12 +22,16 @@ import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.android.service.DConnectService;
 
 import java.util.Set;
+import java.util.logging.Logger;
 
 /**
  * Pebbleデバイスプロバイダ.
  * @author NTT DOCOMO, INC.
  */
 public class PebbleDeviceService extends DConnectMessageService {
+    /** ロガー. */
+    private final Logger mLogger = Logger.getLogger("pebble.dplugin");
+
     /**
      * Pebbleとのインターフェースを管理するクラス.
      */
@@ -97,16 +101,25 @@ public class PebbleDeviceService extends DConnectMessageService {
     @Override
     protected void onManagerUninstalled() {
         // Managerアンインストール検知時の処理。
+        if (BuildConfig.DEBUG) {
+            mLogger.info("Plug-in : onManagerUninstalled");
+        }
     }
 
     @Override
     protected void onManagerTerminated() {
         // Manager正常終了通知受信時の処理。
+        if (BuildConfig.DEBUG) {
+            mLogger.info("Plug-in : onManagerTerminated");
+        }
     }
 
     @Override
     protected void onManagerEventTransmitDisconnected(String sessionKey) {
         // ManagerのEvent送信経路切断通知受信時の処理。
+        if (BuildConfig.DEBUG) {
+            mLogger.info("Plug-in : onManagerEventTransmitDisconnected");
+        }
         if (sessionKey != null) {
             EventManager.INSTANCE.removeEvents(sessionKey);
         } else {
@@ -117,6 +130,9 @@ public class PebbleDeviceService extends DConnectMessageService {
     @Override
     protected void onDevicePluginReset() {
         // Device Plug-inへのReset要求受信時の処理。
+        if (BuildConfig.DEBUG) {
+            mLogger.info("Plug-in : onDevicePluginReset");
+        }
         resetPluginResource();
     }
 

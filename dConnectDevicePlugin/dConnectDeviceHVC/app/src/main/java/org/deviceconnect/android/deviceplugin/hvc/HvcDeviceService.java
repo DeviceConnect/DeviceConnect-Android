@@ -92,24 +92,33 @@ public class HvcDeviceService extends DConnectMessageService {
         addProfile(new HvcServiceDiscoveryProfile(getServiceProvider()));
         addProfile(new HvcHumanDetectProfile());
         
-        // start timeout judget timer.
+        // start timeout judge timer.
         startTimeoutJudgeTimer();
     }
 
     @Override
     protected void onManagerUninstalled() {
-        // TODO: Managerアンインストール検知時の処理要追加。
+        // Managerアンインストール検知時の処理。
+        if (DEBUG) {
+            Log.i(TAG, "Plug-in : onManagerUninstalled");
+        }
         resetPluginResource();
     }
 
     @Override
     protected void onManagerTerminated() {
-        // TODO: Manager正常終了通知受信時の処理要追加。
+        // Manager正常終了通知受信時の処理。
+        if (DEBUG) {
+            Log.i(TAG, "Plug-in : onManagerTerminated");
+        }
     }
 
     @Override
     protected void onManagerEventTransmitDisconnected(String sessionKey) {
-        // TODO: ManagerのEvent送信経路切断通知受信時の処理要追加。
+        // ManagerのEvent送信経路切断通知受信時の処理。
+        if (DEBUG) {
+            Log.i(TAG, "Plug-in : onManagerEventTransmitDisconnected");
+        }
         if (sessionKey != null) {
             unregisterDetectionEventByMatchedSessionKey(sessionKey);
         } else {
@@ -119,7 +128,10 @@ public class HvcDeviceService extends DConnectMessageService {
 
     @Override
     protected void onDevicePluginReset() {
-        // TODO: Device Plug-inへのReset要求受信時の処理要追加。
+        // Device Plug-inへのReset要求受信時の処理。
+        if (DEBUG) {
+            Log.i(TAG, "Plug-in : onDevicePluginReset");
+        }
         resetPluginResource();
     }
 

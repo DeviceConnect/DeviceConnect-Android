@@ -24,6 +24,8 @@ import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.android.provider.FileManager;
 import org.deviceconnect.android.service.DConnectService;
 
+import java.util.logging.Logger;
+
 /**
  * Theta Device Service.
  *
@@ -32,6 +34,8 @@ import org.deviceconnect.android.service.DConnectService;
 public class ThetaDeviceService extends DConnectMessageService
     implements ThetaDeviceEventListener {
 
+    /** ロガー. */
+    private final Logger mLogger = Logger.getLogger("theta.dplugin");
     private static final String TYPE_NONE = "none";
     private ThetaDeviceManager mDeviceMgr;
     private ThetaDeviceClient mClient;
@@ -91,17 +95,26 @@ public class ThetaDeviceService extends DConnectMessageService
 
     @Override
     protected void onManagerUninstalled() {
-        // TODO: Managerアンインストール検知時の処理要追加。
+        // Managerアンインストール検知時の処理。
+        if (BuildConfig.DEBUG) {
+            mLogger.info("Plug-in : onManagerUninstalled");
+        }
     }
 
     @Override
     protected void onManagerTerminated() {
-        // TODO: Manager正常終了通知受信時の処理要追加。
+        // Manager正常終了通知受信時の処理。
+        if (BuildConfig.DEBUG) {
+            mLogger.info("Plug-in : onManagerTerminated");
+        }
     }
 
     @Override
     protected void onManagerEventTransmitDisconnected(String sessionKey) {
-        // TODO: ManagerのEvent送信経路切断通知受信時の処理要追加。
+        // ManagerのEvent送信経路切断通知受信時の処理。
+        if (BuildConfig.DEBUG) {
+            mLogger.info("Plug-in : onManagerEventTransmitDisconnected");
+        }
         if (sessionKey != null) {
             EventManager.INSTANCE.removeEvents(sessionKey);
         } else {
@@ -111,7 +124,10 @@ public class ThetaDeviceService extends DConnectMessageService
 
     @Override
     protected void onDevicePluginReset() {
-        // TODO: Device Plug-inへのReset要求受信時の処理要追加。
+        // Device Plug-inへのReset要求受信時の処理。
+        if (BuildConfig.DEBUG) {
+            mLogger.info("Plug-in : onDevicePluginReset");
+        }
         resetPluginResource();
     }
 

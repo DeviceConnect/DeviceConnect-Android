@@ -18,7 +18,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Parcelable;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -122,7 +121,6 @@ public class DeviceSelectionPageFragment extends Fragment implements DeviceContr
     @Override
     public void onConnectedDevices(final List<Parcelable> devices) {
         if (devices.size() == 0) {
-            mIsThreadRunning = true;
             startDiscoveryTimer();
         } else {
             for (Parcelable device : devices) {
@@ -152,14 +150,12 @@ public class DeviceSelectionPageFragment extends Fragment implements DeviceContr
         if (!isExist) {
             mAdapter.add(device);
         }
-        mIsThreadRunning = true;
         startDiscoveryTimer();
     }
 
     @Override
     public void onDeviceLost(final SpheroParcelable device) {
         mAdapter.remove(device);
-        mIsThreadRunning = true;
         startDiscoveryTimer();
         
         if (mIndView != null && mIndView.isShowing()) {
@@ -179,7 +175,6 @@ public class DeviceSelectionPageFragment extends Fragment implements DeviceContr
 
     @Override
     public void onDeviceConnected(final SpheroParcelable device) {
-        mIsThreadRunning = true;
         startDiscoveryTimer();
 
         if (mIndView != null) {
@@ -207,7 +202,6 @@ public class DeviceSelectionPageFragment extends Fragment implements DeviceContr
 
     @Override
     public void onDeviceDisconnected(SpheroParcelable device) {
-        mIsThreadRunning = true;
         startDiscoveryTimer();
         if (device == null) {
             AlertDialog.Builder builder = new Builder(getActivity());
@@ -258,11 +252,10 @@ public class DeviceSelectionPageFragment extends Fragment implements DeviceContr
         stopDiscovery();
         if (device.isConnected()) {
             ((SettingActivity) activity).sendDisonnectBroadcast(device.getSpheroId());
-//            if (mAdapter.getCount() == 0) {
-//                // 現在検知している場合は一旦検知をやめ、新たに検知を開始する.
-//                mIsThreadRunning = true;
-//                startDiscoveryTimer();
-//            }
+            if (mAdapter.getCount() == 0) {
+                // 現在検知している場合は一旦検知をやめ、新たに検知を開始する.
+                startDiscoveryTimer();
+            }
         } else {
             mIndView = new ProgressDialog(activity);
             mIndView.setMessage(activity.getString(R.string.connecting));
@@ -308,7 +301,6 @@ public class DeviceSelectionPageFragment extends Fragment implements DeviceContr
                     return;
                 }
                 while (mIsThreadRunning) {
-                    Log.d("TEST", "where??????");
                     if (BluetoothAdapter.STATE_ON == mBluetoothAdapter.getState()) {
                         mThreadHandler.post(new Runnable() {
                             @Override

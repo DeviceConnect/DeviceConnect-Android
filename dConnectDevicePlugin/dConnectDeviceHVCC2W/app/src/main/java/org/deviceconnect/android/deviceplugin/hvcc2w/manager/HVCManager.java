@@ -63,7 +63,7 @@ public enum HVCManager {
 
 
     /** TAG. */
-    private static final String TAG = "ABC";
+    private static final String TAG = "HVCManager";
     /** Based request URL of the Web API. */
     private static final String HVC_SERVICE_URL = "https://developer.hvc.omron.com/c2w";
 

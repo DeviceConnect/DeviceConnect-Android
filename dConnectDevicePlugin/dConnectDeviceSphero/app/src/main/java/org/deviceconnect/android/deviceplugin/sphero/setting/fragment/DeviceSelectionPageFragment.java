@@ -89,19 +89,15 @@ public class DeviceSelectionPageFragment extends Fragment implements DeviceContr
         listView.setEmptyView(emptyView);
         listView.setItemsCanFocus(true);
 
+        View progressZone = root.findViewById(R.id.progress_zone);
         if (savedInstanceState != null) {
             mSearchingVisibility = savedInstanceState.getInt(KEY_PROGRESS_VISIBILITY);
         }
 
         if (mSearchingVisibility == -1 || mAdapter.getCount() != 0) {
-            mSearchingVisibility = View.GONE;
+            progressZone.setVisibility(View.GONE);
         }
         
-        View progressZone = root.findViewById(R.id.progress_zone);
-        progressZone.setVisibility(mSearchingVisibility);
-        
-        startDiscovery();
-
         return root;
     }
 
@@ -119,46 +115,15 @@ public class DeviceSelectionPageFragment extends Fragment implements DeviceContr
     @Override
     public void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mIsThreadRunning = true;
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-                if (mBluetoothAdapter == null) {
-                    return;
-                }
-                int prevState = mBluetoothAdapter.getState();
-                while (mIsThreadRunning) {
-                    if (prevState != mBluetoothAdapter.getState()) {
-                        if ((mBluetoothAdapter.getState() == BluetoothAdapter.STATE_ON)
-                          && (prevState == BluetoothAdapter.STATE_TURNING_ON
-                          || prevState == BluetoothAdapter.STATE_OFF)) {
-                            mThreadHandler.post(new Runnable() {
-                                @Override
-                                public void run() {
-                                    stopDiscovery();
-                                    startDiscovery();
-                                }
-                            });
-                        }
-                        prevState = mBluetoothAdapter.getState();
-                    }
-                    
-                    try {
-                        Thread.sleep(200);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        }).start();
+        startDiscoveryTimer();
     }
-    
+
+
     @Override
     public void onConnectedDevices(final List<Parcelable> devices) {
         if (devices.size() == 0) {
-            stopDiscovery();
-            startDiscovery();
+            mIsThreadRunning = true;
+            startDiscoveryTimer();
         } else {
             for (Parcelable device : devices) {
                 if (device instanceof SpheroParcelable) {
@@ -187,15 +152,15 @@ public class DeviceSelectionPageFragment extends Fragment implements DeviceContr
         if (!isExist) {
             mAdapter.add(device);
         }
-        stopDiscovery();
-        startDiscovery();
+        mIsThreadRunning = true;
+        startDiscoveryTimer();
     }
 
     @Override
     public void onDeviceLost(final SpheroParcelable device) {
         mAdapter.remove(device);
-        stopDiscovery();
-        startDiscovery();
+        mIsThreadRunning = true;
+        startDiscoveryTimer();
         
         if (mIndView != null && mIndView.isShowing()) {
             mIndView.dismiss();
@@ -214,6 +179,8 @@ public class DeviceSelectionPageFragment extends Fragment implements DeviceContr
 
     @Override
     public void onDeviceConnected(final SpheroParcelable device) {
+        mIsThreadRunning = true;
+        startDiscoveryTimer();
 
         if (mIndView != null) {
             mIndView.dismiss();
@@ -227,8 +194,6 @@ public class DeviceSelectionPageFragment extends Fragment implements DeviceContr
                 @Override
                 public void onClick(final DialogInterface dialog, final int which) {
                     dialog.dismiss();
-                    stopDiscovery();
-                    startDiscovery();
                 }
             });
             AlertDialog dialog = builder.create();
@@ -236,10 +201,33 @@ public class DeviceSelectionPageFragment extends Fragment implements DeviceContr
 
             return;
         }
-
+        device.setConnected(true);
         mAdapter.changeConnectionState(device);
     }
-    
+
+    @Override
+    public void onDeviceDisconnected(SpheroParcelable device) {
+        mIsThreadRunning = true;
+        startDiscoveryTimer();
+        if (device == null) {
+            AlertDialog.Builder builder = new Builder(getActivity());
+            builder.setTitle(R.string.title_error);
+            builder.setMessage(R.string.message_disconn_error);
+            builder.setPositiveButton(R.string.btn_close, new OnClickListener() {
+                @Override
+                public void onClick(final DialogInterface dialog, final int which) {
+                    dialog.dismiss();
+                }
+            });
+            AlertDialog dialog = builder.create();
+            dialog.show();
+
+            return;
+        }
+        device.setConnected(false);
+        mAdapter.changeConnectionState(device);
+    }
+
     @Override
     public void onDestroyView() {
         super.onDestroyView();
@@ -250,6 +238,7 @@ public class DeviceSelectionPageFragment extends Fragment implements DeviceContr
             mSearchingVisibility = progressZone.getVisibility();
         }
     }
+
 
     @Override
     public void onDestroy() {
@@ -265,13 +254,15 @@ public class DeviceSelectionPageFragment extends Fragment implements DeviceContr
         if (activity == null) {
             return;
         }
+        mIsThreadRunning = false;
+        stopDiscovery();
         if (device.isConnected()) {
             ((SettingActivity) activity).sendDisonnectBroadcast(device.getSpheroId());
-            if (mAdapter.getCount() == 0) {
-                // 現在検知している場合は一旦検知をやめ、新たに検知を開始する.
-//                stopDiscovery();
-//                startDiscovery();
-            }
+//            if (mAdapter.getCount() == 0) {
+//                // 現在検知している場合は一旦検知をやめ、新たに検知を開始する.
+//                mIsThreadRunning = true;
+//                startDiscoveryTimer();
+//            }
         } else {
             mIndView = new ProgressDialog(activity);
             mIndView.setMessage(activity.getString(R.string.connecting));
@@ -306,4 +297,36 @@ public class DeviceSelectionPageFragment extends Fragment implements DeviceContr
             ((SettingActivity) activity).sendStopDiscoveryBroadcast();
         }
     }
+
+    private void startDiscoveryTimer() {
+        mIsThreadRunning = true;
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+                if (mBluetoothAdapter == null) {
+                    return;
+                }
+                while (mIsThreadRunning) {
+                    Log.d("TEST", "where??????");
+                    if (BluetoothAdapter.STATE_ON == mBluetoothAdapter.getState()) {
+                        mThreadHandler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                stopDiscovery();
+                                startDiscovery();
+                            }
+                        });
+                    }
+
+                    try {
+                        Thread.sleep(5000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }).start();
+    }
+
 }

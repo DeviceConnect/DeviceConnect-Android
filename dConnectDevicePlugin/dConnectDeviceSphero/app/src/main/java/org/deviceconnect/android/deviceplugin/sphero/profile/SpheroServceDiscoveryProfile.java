@@ -45,7 +45,7 @@ public class SpheroServceDiscoveryProfile extends ServiceDiscoveryProfile {
             ServiceDiscoveryProfile.setId(service, info.getDevice().getRobot().getIdentifier());
             ServiceDiscoveryProfile.setName(service, info.getDevice().getRobot().getName());
             ServiceDiscoveryProfile.setType(service, NetworkType.BLUETOOTH);
-            ServiceDiscoveryProfile.setOnline(service, true);
+            ServiceDiscoveryProfile.setOnline(service, info.getDevice().isConnected());
             ServiceDiscoveryProfile.setScopes(service, getProfileProvider());
 
             services[index++] = service;

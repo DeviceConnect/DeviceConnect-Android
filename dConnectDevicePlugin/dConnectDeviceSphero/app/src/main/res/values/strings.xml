@@ -13,6 +13,7 @@
     <string name="connecting">Sphero に接続中です</string>
     <string name="title_error">エラー</string>
     <string name="message_conn_error">接続に失敗しました</string>
+    <string name="message_disconn_error">切断に失敗しました</string>
     <string name="btn_close">閉じる</string>
     <string name="message_searching">Sphero を検索中&#8230;</string>
 

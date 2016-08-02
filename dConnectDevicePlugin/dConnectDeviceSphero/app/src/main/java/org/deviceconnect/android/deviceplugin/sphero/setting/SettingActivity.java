@@ -58,7 +58,11 @@ public class SettingActivity extends DConnectSettingPageFragmentActivity {
      * デバイスを削除するアクション.
      */
     public static final String ACTION_CONNECTED = ACTION_NAMESPACE + ".ACTION_CONNECTED";
-    
+    /**
+     * デバイスを削除するアクション.
+     */
+    public static final String ACTION_DISCONNECTED = ACTION_NAMESPACE + ".ACTION_DISCONNECTED";
+
     /**
      * Extraキー : {@value} .
      */
@@ -105,7 +109,8 @@ public class SettingActivity extends DConnectSettingPageFragmentActivity {
         filter.addAction(ACTION_REMOVE_DEVICE_ALL);
         filter.addAction(ACTION_ADD_CONNECTED_DEVICE);
         filter.addAction(ACTION_CONNECTED);
-        
+        filter.addAction(ACTION_DISCONNECTED);
+
         mReceiver = new ServiceReceiver();
         lbm.registerReceiver(mReceiver, filter);
     }
@@ -227,6 +232,9 @@ public class SettingActivity extends DConnectSettingPageFragmentActivity {
             } else if (action.equals(ACTION_CONNECTED)) {
                 SpheroParcelable sd = (SpheroParcelable) intent.getParcelableExtra(EXTRA_DEVICE);
                 mListener.get().onDeviceConnected(sd);
+            } else if (action.equals(ACTION_DISCONNECTED)) {
+                SpheroParcelable sd = (SpheroParcelable) intent.getParcelableExtra(EXTRA_DEVICE);
+                mListener.get().onDeviceDisconnected(sd);
             }
         }
     }
@@ -275,5 +283,11 @@ public class SettingActivity extends DConnectSettingPageFragmentActivity {
          * @param device デバイス
          */
         void onDeviceConnected(SpheroParcelable device);
+        /**
+         * デバイスが接続された場合に呼び出される.
+         *
+         * @param device デバイス
+         */
+        void onDeviceDisconnected(SpheroParcelable device);
     }
 }

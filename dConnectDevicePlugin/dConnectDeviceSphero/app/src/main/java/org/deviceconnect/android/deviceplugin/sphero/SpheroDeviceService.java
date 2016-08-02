@@ -14,7 +14,6 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import com.orbotix.ConvenienceRobot;
-import com.orbotix.common.Robot;
 
 import org.deviceconnect.android.deviceplugin.sphero.SpheroManager.DeviceDiscoveryListener;
 import org.deviceconnect.android.deviceplugin.sphero.data.DeviceInfo;
@@ -131,7 +130,7 @@ public class SpheroDeviceService extends DConnectMessageService implements Devic
                     public void run() {
                         if (SpheroManager.INSTANCE.connect(id)) {
                             if (BuildConfig.DEBUG) {
-                                Log.d(TAG, "************ connected **********");
+                                Log.d("TEST", "************ connected **********");
                             }
                             DeviceInfo info = SpheroManager.INSTANCE.getDevice(id);
                             ConvenienceRobot device;
@@ -141,13 +140,13 @@ public class SpheroDeviceService extends DConnectMessageService implements Devic
                                 device = info.getDevice();
                             }
                             if (device != null) {
-                                sendDevice(SettingActivity.ACTION_CONNECTED, device.getRobot());
+                                sendDevice(SettingActivity.ACTION_CONNECTED, device);
                             } else {
                                 sendDevice(SettingActivity.ACTION_CONNECTED, null);
                             }
                         } else {
                             if (BuildConfig.DEBUG) {
-                                Log.d(TAG, "************ fialed to connect **********");
+                                Log.d("TEST", "************ failed to connect **********");
                             }
                             sendDevice(SettingActivity.ACTION_CONNECTED, null);                            
                         }
@@ -155,7 +154,11 @@ public class SpheroDeviceService extends DConnectMessageService implements Devic
                 }).start();
             } else if (action.equals(ACTION_DISCONNECT)) {
                 String id = intent.getStringExtra(EXTRA_ID);
+                DeviceInfo info = SpheroManager.INSTANCE.getDevice(id);
                 SpheroManager.INSTANCE.disconnect(id);
+                if (info != null) {
+                    sendDevice(SettingActivity.ACTION_DISCONNECTED, info.getDevice());
+                }
             } else if (action.equals(ACTION_GET_CONNECTED)) {
                 Collection<DeviceInfo> devices = SpheroManager.INSTANCE.getConnectedDevices();
                 Intent res = new Intent();
@@ -164,7 +167,7 @@ public class SpheroDeviceService extends DConnectMessageService implements Devic
                 for (DeviceInfo info : devices) {
                     devs.add(new SpheroParcelable(info.getDevice().getRobot().getIdentifier(),
                             info.getDevice().getRobot().getName(),
-                            info.getDevice().getRobot().isConnected()));
+                            info.getDevice().getRobot().isOnline()));
                 }
                 res.putParcelableArrayListExtra(SettingActivity.EXTRA_DEVICES, devs);
                 LocalBroadcastManager.getInstance(this).sendBroadcast(res);
@@ -201,12 +204,12 @@ public class SpheroDeviceService extends DConnectMessageService implements Devic
 
 
     @Override
-    public void onDeviceFound(Robot sphero) {
+    public void onDeviceFound(ConvenienceRobot sphero) {
         sendDevice(SettingActivity.ACTION_ADD_DEVICE, sphero);
     }
 
     @Override
-    public void onDeviceLost(Robot sphero) {
+    public void onDeviceLost(ConvenienceRobot sphero) {
         sendDevice(SettingActivity.ACTION_REMOVE_DEVICE, sphero);
     }
 
@@ -221,13 +224,14 @@ public class SpheroDeviceService extends DConnectMessageService implements Devic
      * @param action アクション
      * @param sphero デバイス情報
      */
-    private void sendDevice(final String action, final Robot sphero) {
+    private void sendDevice(final String action, final ConvenienceRobot sphero) {
         Intent res = new Intent();
         res.setAction(action);
         SpheroParcelable s = null;
+
         if (sphero != null) {
-            s = new SpheroParcelable(sphero.getIdentifier(),
-                    sphero.getName(),
+            s = new SpheroParcelable(sphero.getRobot().getIdentifier(),
+                    sphero.getRobot().getName(),
                     sphero.isConnected());
         }
         res.putExtra(SettingActivity.EXTRA_DEVICE, s);

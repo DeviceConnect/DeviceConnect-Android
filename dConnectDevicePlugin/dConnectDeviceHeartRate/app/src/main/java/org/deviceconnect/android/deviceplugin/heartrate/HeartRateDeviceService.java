@@ -135,20 +135,26 @@ public class HeartRateDeviceService extends DConnectMessageService {
 
     @Override
     protected void onManagerUninstalled() {
-        // TODO: Managerアンインストール検知時の処理要追加。
-        mLogger.info("Plug-in : onManagerUninstalled");
+        // Managerアンインストール検知時の処理。
+        if (BuildConfig.DEBUG) {
+            mLogger.info("Plug-in : onManagerUninstalled");
+        }
     }
 
     @Override
     protected void onManagerTerminated() {
-        // TODO: Manager正常終了通知受信時の処理要追加。
-        mLogger.info("Plug-in : onManagerTerminated");
+        // Manager正常終了通知受信時の処理。
+        if (BuildConfig.DEBUG) {
+            mLogger.info("Plug-in : onManagerTerminated");
+        }
     }
 
     @Override
     protected void onManagerEventTransmitDisconnected(String sessionKey) {
-        // TODO: ManagerのEvent送信経路切断通知受信時の処理要追加。
-        mLogger.info("Plug-in : onManagerEventTransmitDisconnected");
+        // ManagerのEvent送信経路切断通知受信時の処理。
+        if (BuildConfig.DEBUG) {
+            mLogger.info("Plug-in : onManagerEventTransmitDisconnected");
+        }
         if (sessionKey != null) {
             EventManager.INSTANCE.removeEvents(sessionKey);
         } else {
@@ -158,8 +164,10 @@ public class HeartRateDeviceService extends DConnectMessageService {
 
     @Override
     protected void onDevicePluginReset() {
-        // TODO: Device Plug-inへのReset要求受信時の処理要追加。
-        mLogger.info("Plug-in : onDevicePluginReset");
+        // Device Plug-inへのReset要求受信時の処理。
+        if (BuildConfig.DEBUG) {
+            mLogger.info("Plug-in : onDevicePluginReset");
+        }
         resetPluginResource();
     }
 

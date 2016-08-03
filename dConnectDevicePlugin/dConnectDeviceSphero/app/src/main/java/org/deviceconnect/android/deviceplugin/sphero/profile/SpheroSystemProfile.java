@@ -10,17 +10,8 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 
-import org.deviceconnect.android.deviceplugin.sphero.SpheroManager;
-import org.deviceconnect.android.deviceplugin.sphero.data.DeviceInfo;
 import org.deviceconnect.android.deviceplugin.sphero.setting.SettingActivity;
-import org.deviceconnect.android.event.Event;
-import org.deviceconnect.android.event.EventManager;
-import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.SystemProfile;
-import org.deviceconnect.message.DConnectMessage;
-
-import java.util.Collection;
-import java.util.List;
 
 /**
  * System プロファイル.
@@ -33,31 +24,31 @@ public class SpheroSystemProfile extends SystemProfile {
         return SettingActivity.class;
     }
 
-    @Override
-    protected boolean onDeleteEvents(final Intent request, final Intent response, final String sessionKey) {
-        
-        if (sessionKey == null || sessionKey.length() == 0) {
-            MessageUtils.setInvalidRequestParameterError(response);
-        } else if (EventManager.INSTANCE.removeEvents(sessionKey)) {
-            setResult(response, DConnectMessage.RESULT_OK);
-            
-            Collection<DeviceInfo> devices = SpheroManager.INSTANCE.getConnectedDevices();
-            for (DeviceInfo info : devices) {
-                if (!SpheroManager.INSTANCE.hasSensorEvent(info)) {
-                    SpheroManager.INSTANCE.stopSensor(info);
-                }
-                List<Event> events = EventManager.INSTANCE.getEventList(
-                        info.getDevice().getRobot().getIdentifier(), SpheroProfile.PROFILE_NAME,
-                        SpheroProfile.INTER_COLLISION, SpheroProfile.ATTR_ON_COLLISION);
-                
-                if (events.size() == 0) {
-                    SpheroManager.INSTANCE.stopCollision(info);
-                }
-            }
-        } else {
-            MessageUtils.setUnknownError(response);
-        }
-        
-        return true;
-    }
+//    @Override
+//    protected boolean onDeleteEvents(final Intent request, final Intent response, final String sessionKey) {
+//
+//        if (sessionKey == null || sessionKey.length() == 0) {
+//            MessageUtils.setInvalidRequestParameterError(response);
+//        } else if (EventManager.INSTANCE.removeEvents(sessionKey)) {
+//            setResult(response, DConnectMessage.RESULT_OK);
+//
+//            Collection<DeviceInfo> devices = SpheroManager.INSTANCE.getConnectedDevices();
+//            for (DeviceInfo info : devices) {
+//                if (!SpheroManager.INSTANCE.hasSensorEvent(info)) {
+//                    SpheroManager.INSTANCE.stopSensor(info);
+//                }
+//                List<Event> events = EventManager.INSTANCE.getEventList(
+//                        info.getDevice().getRobot().getIdentifier(), SpheroProfile.PROFILE_NAME,
+//                        SpheroProfile.INTER_COLLISION, SpheroProfile.ATTR_ON_COLLISION);
+//
+//                if (events.size() == 0) {
+//                    SpheroManager.INSTANCE.stopCollision(info);
+//                }
+//            }
+//        } else {
+//            MessageUtils.setUnknownError(response);
+//        }
+//
+//        return true;
+//    }
 }

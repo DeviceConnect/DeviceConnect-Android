@@ -18,19 +18,14 @@ import com.orbotix.ConvenienceRobot;
 import org.deviceconnect.android.deviceplugin.sphero.SpheroManager.DeviceDiscoveryListener;
 import org.deviceconnect.android.deviceplugin.sphero.data.DeviceInfo;
 import org.deviceconnect.android.deviceplugin.sphero.data.SpheroParcelable;
-import org.deviceconnect.android.deviceplugin.sphero.profile.SpheroDeviceOrientationProfile;
-import org.deviceconnect.android.deviceplugin.sphero.profile.SpheroDriveControllerProfile;
-import org.deviceconnect.android.deviceplugin.sphero.profile.SpheroLightProfile;
-import org.deviceconnect.android.deviceplugin.sphero.profile.SpheroProfile;
-import org.deviceconnect.android.deviceplugin.sphero.profile.SpheroServceDiscoveryProfile;
 import org.deviceconnect.android.deviceplugin.sphero.profile.SpheroSystemProfile;
+import org.deviceconnect.android.deviceplugin.sphero.service.SpheroService;
 import org.deviceconnect.android.deviceplugin.sphero.setting.SettingActivity;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.event.cache.MemoryCacheController;
 import org.deviceconnect.android.message.DConnectMessageService;
-import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
-import org.deviceconnect.android.profile.ServiceInformationProfile;
 import org.deviceconnect.android.profile.SystemProfile;
+import org.deviceconnect.android.service.DConnectService;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -103,12 +98,6 @@ public class SpheroDeviceService extends DConnectMessageService implements Devic
             }
         };
         lbm.registerReceiver(mReceiver, filter);
-
-        // 追加するプロファイル
-        addProfile(new SpheroLightProfile());
-        addProfile(new SpheroDriveControllerProfile());
-        addProfile(new SpheroDeviceOrientationProfile());
-        addProfile(new SpheroProfile());
     }
 
     @Override
@@ -140,6 +129,9 @@ public class SpheroDeviceService extends DConnectMessageService implements Devic
                                 device = info.getDevice();
                             }
                             if (device != null) {
+                                DConnectService service = new SpheroService(info);
+                                getServiceProvider().addService(service);
+
                                 sendDevice(SettingActivity.ACTION_CONNECTED, device);
                             } else {
                                 sendDevice(SettingActivity.ACTION_CONNECTED, null);
@@ -155,6 +147,11 @@ public class SpheroDeviceService extends DConnectMessageService implements Devic
             } else if (action.equals(ACTION_DISCONNECT)) {
                 String id = intent.getStringExtra(EXTRA_ID);
                 DeviceInfo info = SpheroManager.INSTANCE.getDevice(id);
+                DConnectService service = getServiceProvider().getService(id);
+                if (service != null) {
+                    service.setOnline(false);
+                }
+
                 SpheroManager.INSTANCE.disconnect(id);
                 if (info != null) {
                     sendDevice(SettingActivity.ACTION_DISCONNECTED, info.getDevice());
@@ -165,6 +162,10 @@ public class SpheroDeviceService extends DConnectMessageService implements Devic
                 res.setAction(SettingActivity.ACTION_ADD_CONNECTED_DEVICE);
                 ArrayList<SpheroParcelable> devs = new ArrayList<SpheroParcelable>();
                 for (DeviceInfo info : devices) {
+                    DConnectService service = getServiceProvider().getService(info.getDevice().getRobot().getIdentifier());
+                    if (service != null) {
+                        service.setOnline(true);
+                    }
                     devs.add(new SpheroParcelable(info.getDevice().getRobot().getIdentifier(),
                             info.getDevice().getRobot().getName(),
                             info.getDevice().getRobot().isOnline()));
@@ -184,15 +185,7 @@ public class SpheroDeviceService extends DConnectMessageService implements Devic
         return new SpheroSystemProfile();
     }
 
-    @Override
-    protected ServiceInformationProfile getServiceInformationProfile() {
-        return new ServiceInformationProfile(this) { };
-    }
 
-    @Override
-    protected ServiceDiscoveryProfile getServiceDiscoveryProfile() {
-        return new SpheroServceDiscoveryProfile(this);
-    }
 
     @Override
     public void onDestroy() {

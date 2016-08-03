@@ -37,7 +37,9 @@ import org.deviceconnect.android.profile.DeviceOrientationProfile;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 
@@ -147,6 +149,8 @@ public final class SpheroManager implements DeviceInfo.DeviceSensorListener, Dev
     private boolean mConnecting;
 
     private int mConnectingTimeoutCount;
+
+    private Map<String, Boolean> mConnectingFlags;
     /**
      * SpheroManagerを生成する.
      */
@@ -159,6 +163,7 @@ public final class SpheroManager implements DeviceInfo.DeviceSensorListener, Dev
         mConnLock = new Object();
         mConnecting = false;
         mConnectingTimeoutCount = 0;
+        mConnectingFlags = new HashMap<String, Boolean>();
     }
 
     /**
@@ -325,7 +330,8 @@ public final class SpheroManager implements DeviceInfo.DeviceSensorListener, Dev
 
         if (connected != null) {
             synchronized (mConnLock) {
-                mConnecting = true;
+//                mConnecting = true;
+                mConnectingFlags.put(connected.getIdentifier(), true);
                 mConnectingTimeoutCount = 0;
                 discoveryAgent.connect(connected);
             }
@@ -692,13 +698,15 @@ public final class SpheroManager implements DeviceInfo.DeviceSensorListener, Dev
             ConvenienceRobot cRobot = new ConvenienceRobot(robot);
             switch (robotChangedStateNotificationType) {
                 case Online:
-                    if (!mConnecting) { // startDiscovery時は接続しないようにする
+                    if (mConnectingFlags.get(robot.getIdentifier()) != null
+                        && !mConnectingFlags.get(robot.getIdentifier())) { // startDiscovery時は接続しないようにする
                         cRobot.disconnect();
                     } else {
                         if (BuildConfig.DEBUG) {
                             Log.d("TEST", "online");
                         }
-                        mConnecting = false;
+//                        mConnecting = false;
+                        mConnectingFlags.remove(robot.getIdentifier());
                         SpheroManager.this.onConnected(cRobot);
                     }
                     break;
@@ -706,6 +714,7 @@ public final class SpheroManager implements DeviceInfo.DeviceSensorListener, Dev
                     if (BuildConfig.DEBUG) {
                         Log.d("TEST", "connecting");
                     }
+                    mDevices.remove(robot);
                     mFoundDevices.add(robot);
                     if (mDiscoveryListener != null) {
                         mDiscoveryListener.onDeviceFound(cRobot);

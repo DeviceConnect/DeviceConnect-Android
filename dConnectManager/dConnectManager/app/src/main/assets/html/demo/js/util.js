@@ -2,52 +2,7 @@ var util = (function(parent, global) {
     var mAccessToken = null;
     var mSessionKey = "test-session-key";
     var mHost = "localhost";
-
-    function init(callback) {
-        dConnect.setHost(mHost);
-        dConnect.setExtendedOrigin("file://android_asset/");
-        checkDeviceConnect(callback);
-    }
-    parent.init = init;
-
-    function startManager(onAvailable) {
-        var errorCallback = function(errorCode, errorMessage) {
-            switch (errorCode) {
-            case dConnect.constants.ErrorCode.ACCESS_FAILED:
-                alert('Device Connect Managerが起動していません。');
-                break;
-            case dConnect.constants.ErrorCode.INVALID_SERVER:
-                alert('WARNING: Device Connect Manager may be spoofed.');
-                break;
-            case dConnect.constants.ErrorCode.INVALID_ORIGIN:
-                alert('WARNING: Origin of this app is invalid. Maybe the origin is not registered in whiteList.');
-                break;
-            default:
-                alert(errorMessage);
-                break;
-            }
-        };
-        dConnect.checkDeviceConnect(onAvailable, errorCallback);
-    }
-
-    function checkDeviceConnect(callback) {
-        startManager(function(apiVersion) {
-            console.log('Device Connect API version: ' + apiVersion);
-
-            if (window.Android) {
-                mAccessToken = Android.getCookie('accessToken');
-            } else {
-                mAccessToken = getCookie('accessToken');
-            }
-
-            openWebSocketIfNeeded();
-
-            serviceInformation(callback);
-        });
-    }
-
-    function authorization(callback) {
-        var scopes = Array(
+    var scopes = Array(
             'servicediscovery',
             'serviceinformation',
             'system',
@@ -85,14 +40,51 @@ var util = (function(parent, global) {
             'airconditioner',
             'atmosphericpressure',
             'gpio');
+
+    function init(callback) {
+        dConnect.setHost(mHost);
+        dConnect.setExtendedOrigin("file://android_asset/");
+        checkDeviceConnect(callback);
+    }
+    parent.init = init;
+
+    function startManager(onAvailable) {
+        var errorCallback = function(errorCode, errorMessage) {
+            switch (errorCode) {
+            case dConnect.constants.ErrorCode.ACCESS_FAILED:
+                alert('Device Connect Managerが起動していません。');
+                break;
+            case dConnect.constants.ErrorCode.INVALID_SERVER:
+                alert('WARNING: Device Connect Manager may be spoofed.');
+                break;
+            case dConnect.constants.ErrorCode.INVALID_ORIGIN:
+                alert('WARNING: Origin of this app is invalid. Maybe the origin is not registered in whiteList.');
+                break;
+            default:
+                alert(errorMessage);
+                break;
+            }
+        };
+        dConnect.checkDeviceConnect(onAvailable, errorCallback);
+    }
+
+    function checkDeviceConnect(callback) {
+        startManager(function(apiVersion) {
+            console.log('Device Connect API version: ' + apiVersion);
+
+            mAccessToken = getCookie('accessToken');
+
+            openWebSocketIfNeeded();
+
+            serviceInformation(callback);
+        });
+    }
+
+    function authorization(callback) {
         dConnect.authorization(scopes, 'ヘルプ',
             function(clientId, accessToken) {
                 mAccessToken = accessToken;
-                if (window.Android) {
-                    Android.setCookie("accessToken", mAccessToken);
-                } else {
-                    setCookie("accessToken", mAccessToken);
-                }
+                setCookie('accessToken', mAccessToken);
                 callback();
             },
             function(errorCode, errorMessage) {
@@ -125,11 +117,11 @@ var util = (function(parent, global) {
         }
     }
 
-    function setCookie(key, value) {
+    function setCookieInternal(key, value) {
         document.cookie = key + '=' + value;
     }
 
-    function getCookie(name) {
+    function getCookieInternal(name) {
         var result = null;
         var cookieName = name + '=';
         var allCookies = document.cookie;
@@ -143,6 +135,22 @@ var util = (function(parent, global) {
             result = decodeURIComponent(allCookies.substring(startIndex, endIndex));
         }
         return result;
+    }
+
+    function setCookie(key, value) {
+        if (window.Android) {
+            Android.setCookie(key, value);
+        } else {
+            setCookieInternal(key, value);
+        }
+    }
+
+    function getCookie(name) {
+        if (window.Android) {
+            return Android.getCookie(name);
+        } else {
+            return getCookieInternal(name);
+        }
     }
 
     function getQuery(name) {
@@ -161,6 +169,53 @@ var util = (function(parent, global) {
         return null;
     }
 
+    function containsScope(profile) {
+        for (var i = 0; i < scopes.length; i++) {
+            if (scopes[i] == profile) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    function appendScope(uri) {
+        var elm = document.createElement('a');
+        elm.href = uri;
+
+        var p = elm.pathname.split('/');
+        for (var i = 0; i < p.length; i++) {
+            if (p[i] != '' && p[i] != 'gotapi') {
+                if (!containsScope(p[i])) {
+                    scopes.push(p[i]);
+                }
+                break;
+            }
+        }
+    }
+
+    function rebuildUri(uri) {
+        var elm = document.createElement('a');
+        elm.href = uri;
+
+        var u = elm.origin + elm.pathname + "?";
+
+        var parameters = elm.search.substring(1).split('&');
+        for (var i = 0; i < parameters.length; i++) {
+            var element = parameters[i].split('=');
+            var paramName = decodeURIComponent(element[0]);
+            var paramValue = decodeURIComponent(element[1]);
+            if (i > 0) {
+                u += '&';
+            }
+            if (paramName == 'accessToken') {
+                u += element[0] + "=" + mAccessToken;
+            } else {
+                u += element[0] + "=" + element[1];
+            }
+        }
+        return u;
+    }
+
     function createXMLHttpRequest() {
         try {
             return new XMLHttpRequest();
@@ -177,18 +232,20 @@ var util = (function(parent, global) {
         return null;
     }
 
-    function sendRequest(method, uri, body, cb) {
+    function sendRequest(method, uri, body, callback) {
          var xhr = createXMLHttpRequest();
          xhr.onerror = function (e) {
              console.log("onerror:" + xhr.statusText);
          };
+
          xhr.onload = function (e) {
              console.log("onload:" + xhr.readyState);
          };
+
          xhr.onreadystatechange = function() {
              switch (xhr.readyState) {
              case 1: {
-                 console.log("サーバ接続を確立しました。\nxhr.readyState=" + xhr.readyState + "\nxhr.statusText=" + xhr.statusText);
+                 console.log("サーバ接続を確立しました。\n xhr.readyState=" + xhr.readyState + "\n xhr.statusText=" + xhr.statusText);
                  try {
                      xhr.setRequestHeader("X-GotAPI-Origin".toLowerCase(), "file://android_assets");
                  } catch (e) {
@@ -202,42 +259,28 @@ var util = (function(parent, global) {
                  break;
              }
              case 2:
-                 console.log("リクエストを送信しました。\nxhr.readyState=" + xhr.readyState + "\nxhr.statusText=" + xhr.statusText);
+                 console.log("リクエストを送信しました。\n xhr.readyState=" + xhr.readyState + "\n xhr.statusText=" + xhr.statusText);
                  break;
              case 3:
-                 console.log("リクエストの処理中。\nxhr.readyState=" + xhr.readyState + "\nxhr.statusText=" + xhr.statusText);
+                 console.log("リクエストの処理中。\n xhr.readyState=" + xhr.readyState + "\n xhr.statusText=" + xhr.statusText);
                 break;
              case 4: {
                  if (xhr.status == 200) {
                     var json = JSON.parse(xhr.responseText);
                     if (json.result == 1 && json.errorCode == 14) {
+                        appendScope(uri);
                         authorization(function() {
-                            var elm = document.createElement('a');
-                            elm.href = uri;
-
-                            var u = elm.origin + elm.pathname + '?';
-                            var parameters = elm.search.split('&');
-                            for (var i = 0; i < parameters.length; i++) {
-                                var element = parameters[i].split('=');
-                                var paramName = decodeURIComponent(element[0]);
-                                var paramValue = decodeURIComponent(element[1]);
-                                if (i > 0) {
-                                    u += '&';
-                                }
-                                if (paramName == 'accessToken') {
-                                    u += element[0] + "=" + mAccessToken;
-                                } else {
-                                    u += element[0] + "=" + element[1];
-                                }
+                            if (method.toUpperCase() == 'GET' || method.toUpperCase() == 'DELETE') {
+                                uri = rebuildUri(uri);
+                            } else {
+                                body.set('accessToken', mAccessToken);
                             }
-                            console.log(body);
-
-                            sendRequest(method, u, body, cb);
+                            sendRequest(method, uri, body, callback);
                         });
                         return;
                     }
                  }
-                 cb(xhr.status, xhr.responseText);
+                 callback(xhr.status, xhr.responseText);
                  break;
              }
              default:

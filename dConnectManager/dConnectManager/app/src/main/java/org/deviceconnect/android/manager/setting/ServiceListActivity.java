@@ -14,6 +14,7 @@ import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.RemoteException;
+import android.support.v4.content.res.ResourcesCompat;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -39,14 +40,18 @@ import org.deviceconnect.android.manager.util.AnimationUtil;
 import org.deviceconnect.android.manager.util.DConnectUtil;
 import org.deviceconnect.android.manager.util.ServiceContainer;
 import org.deviceconnect.android.manager.util.ServiceDiscovery;
+import org.deviceconnect.android.profile.SystemProfile;
+import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class ServiceListActivity extends Activity {
+public class ServiceListActivity extends Activity implements AlertDialogFragment.OnAlertDialogListener {
 
     private static final boolean DEBUG = BuildConfig.DEBUG;
     private static final String TAG = "Manager";
+
+    private static final String TAG_OFFLINE = "offline";
 
     private static final String FILE_NAME = "__service_list__.dat";
     private static final String KEY_SHOW_GUIDE = "show_guide";
@@ -60,6 +65,7 @@ public class ServiceListActivity extends Activity {
     private DevicePluginManager mDevicePluginManager;
     private SharedPreferences mSharedPreferences;
     private ServiceDiscovery mServiceDiscovery;
+    private ServiceContainer mSelectedService;
 
     private Switch mSwitchAction;
     private int mPageIndex;
@@ -77,7 +83,7 @@ public class ServiceListActivity extends Activity {
             gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 @Override
                 public void onItemClick(final AdapterView<?> parent, final View view, final int position, final long id) {
-                    shiftService(position);
+                    openServiceInfo(position);
                 }
             });
         }
@@ -149,12 +155,24 @@ public class ServiceListActivity extends Activity {
         int id = item.getItemId();
 
         if (id == R.id.activity_service_menu_item_settings) {
-            shiftSettings();
+            openSettings();
         } else if (id == R.id.activity_service_menu_item_help) {
-            shiftHelp();
+            openHelp();
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onPositiveButton(final String tag) {
+        if (TAG_OFFLINE.equals(tag)) {
+            openPluginSettings();
+        }
+    }
+
+    @Override
+    public void onNegativeButton(final String tag) {
+
     }
 
     private boolean hasDevicePlugins() {
@@ -239,9 +257,14 @@ public class ServiceListActivity extends Activity {
             result = !checkBox.isChecked();
         }
 
-        View guideView = findViewById(R.id.activity_service_guide);
+        final View guideView = findViewById(R.id.activity_service_guide);
         if (guideView != null) {
-            guideView.setVisibility(View.GONE);
+            AnimationUtil.animateAlpha(guideView, new AnimationUtil.AnimationAdapter() {
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    guideView.setVisibility(View.GONE);
+                }
+            });
         }
 
         save(result);
@@ -319,13 +342,13 @@ public class ServiceListActivity extends Activity {
         mServiceDiscovery.execute();
     }
 
-    private void shiftSettings() {
+    private void openSettings() {
         Intent intent = new Intent();
         intent.setClass(this, SettingActivity.class);
         startActivity(intent);
     }
 
-    private void shiftHelp() {
+    private void openHelp() {
         String url = "file:///android_asset/html/help/index.html";
         Intent intent = new Intent();
         intent.setClass(this, WebViewActivity.class);
@@ -334,21 +357,22 @@ public class ServiceListActivity extends Activity {
         startActivity(intent);
     }
 
-    private void shiftService(final int position) {
-        ServiceContainer service = (ServiceContainer) mServiceAdapter.getItem(position);
-        if (service.isOnline()) {
-            String url = "file:///android_asset/html/demo/index.html?serviceId=" + service.getId();
+    private void openServiceInfo(final int position) {
+        mSelectedService = (ServiceContainer) mServiceAdapter.getItem(position);
+        if (mSelectedService.isOnline()) {
+            String url = "file:///android_asset/html/demo/index.html?serviceId=" + mSelectedService.getId();
             Intent intent = new Intent();
             intent.setClass(this, WebViewActivity.class);
             intent.putExtra(WebViewActivity.EXTRA_URL, url);
-            intent.putExtra(WebViewActivity.EXTRA_TITLE, service.getName());
+            intent.putExtra(WebViewActivity.EXTRA_TITLE, mSelectedService.getName());
             startActivity(intent);
         } else {
             String title = getString(R.string.activity_service_list_offline_title);
-            String message = getString(R.string.activity_service_list_offline_message, service.getName());
+            String message = getString(R.string.activity_service_list_offline_message, mSelectedService.getName());
             String positive = getString(R.string.activity_service_list_offline_positive);
-            AlertDialogFragment dialog = AlertDialogFragment.create("offline", title, message, positive);
-            dialog.show(getFragmentManager(), "offline");
+            String negative = getString(R.string.activity_service_list_offline_negative);
+            AlertDialogFragment dialog = AlertDialogFragment.create(TAG_OFFLINE, title, message, positive, negative);
+            dialog.show(getFragmentManager(), TAG_OFFLINE);
         }
     }
 
@@ -358,6 +382,26 @@ public class ServiceListActivity extends Activity {
         String positive = getString(R.string.activity_service_list_no_plugin_positive);
         AlertDialogFragment dialog = AlertDialogFragment.create("no", title, message, positive);
         dialog.show(getFragmentManager(), "no");
+    }
+
+    private void openPluginSettings() {
+        DConnectApplication app = (DConnectApplication) getApplication();
+        DevicePluginManager mgr = app.getDevicePluginManager();
+        List<DevicePlugin> plugins = mgr.getDevicePlugins();
+        for (DevicePlugin plugin : plugins) {
+            if (mSelectedService.getId().contains(plugin.getServiceId())) {
+                Intent request = new Intent();
+                request.setComponent(plugin.getComponentName());
+                request.setAction(IntentDConnectMessage.ACTION_PUT);
+                SystemProfile.setApi(request, "gotapi");
+                SystemProfile.setProfile(request, SystemProfile.PROFILE_NAME);
+                SystemProfile.setInterface(request, SystemProfile.INTERFACE_DEVICE);
+                SystemProfile.setAttribute(request, SystemProfile.ATTRIBUTE_WAKEUP);
+                request.putExtra("pluginId", plugin.getServiceId());
+                sendBroadcast(request);
+                break;
+            }
+        }
     }
 
     private String getPackageName(final String serviceId) {
@@ -370,14 +414,8 @@ public class ServiceListActivity extends Activity {
         return null;
     }
 
-    /**
-     * DConnectServiceを操作するクラス.
-     */
     private IDConnectService mDConnectService;
 
-    /**
-     * DConnectServiceと接続するためのクラス.
-     */
     private final ServiceConnection mServiceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(final ComponentName name, final IBinder service) {
@@ -434,23 +472,22 @@ public class ServiceListActivity extends Activity {
             ServiceContainer service = (ServiceContainer) getItem(position);
 
             TextView textView = (TextView) view.findViewById(R.id.item_name);
-            textView.setText(service.getName());
+            if (textView != null) {
+                textView.setText(service.getName());
+            }
 
             ImageView typeView = (ImageView) view.findViewById(R.id.item_type);
             if (typeView != null) {
                 switch(service.getNetworkType()) {
                     case BLE:
                     case BLUETOOTH:
-                        typeView.setVisibility(View.VISIBLE);
-                        typeView.setImageResource(R.drawable.bluetooth_on);
+                        setImageView(typeView, service, R.drawable.bluetooth_on);
                         break;
                     case WIFI:
-                        typeView.setVisibility(View.VISIBLE);
-                        typeView.setImageResource(R.drawable.wifi_on);
+                        setImageView(typeView, service, R.drawable.wifi_on);
                         break;
                     case NFC:
-                        typeView.setVisibility(View.VISIBLE);
-                        typeView.setImageResource(R.drawable.nfc_on);
+                        setImageView(typeView, service, R.drawable.nfc_on);
                         break;
                     default:
                         typeView.setVisibility(View.GONE);
@@ -465,13 +502,7 @@ public class ServiceListActivity extends Activity {
                     try {
                         PackageManager pm = getPackageManager();
                         ApplicationInfo app = pm.getApplicationInfo(packageName, 0);
-                        Drawable icon = pm.getApplicationIcon(app.packageName);
-                        if (!service.isOnline()) {
-                            icon = DConnectUtil.convertToGrayScale(icon);
-                        } else {
-                            icon.setColorFilter(null);
-                        }
-                        imageView.setImageDrawable(icon);
+                        setImageView(imageView, service, pm.getApplicationIcon(app.packageName));
                     } catch (PackageManager.NameNotFoundException e) {
                         if (DEBUG) {
                             Log.e(TAG, "", e);
@@ -480,6 +511,26 @@ public class ServiceListActivity extends Activity {
                 }
             }
             return view;
+        }
+
+        private void setImageView(final ImageView imageView, final ServiceContainer service, final int resId) {
+            setImageView(imageView, service, ResourcesCompat.getDrawable(getResources(),resId, null));
+        }
+
+        private void setImageView(final ImageView imageView, final ServiceContainer service, final Drawable icon) {
+            if (icon == null) {
+                imageView.setVisibility(View.GONE);
+                return;
+            }
+
+            Drawable newIcon = icon;
+            if (!service.isOnline()) {
+                newIcon = DConnectUtil.convertToGrayScale(icon);
+            } else {
+                newIcon.setColorFilter(null);
+            }
+            imageView.setVisibility(View.VISIBLE);
+            imageView.setImageDrawable(newIcon);
         }
     }
 }

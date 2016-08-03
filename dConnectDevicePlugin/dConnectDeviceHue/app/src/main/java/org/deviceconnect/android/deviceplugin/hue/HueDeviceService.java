@@ -21,6 +21,7 @@ import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.android.service.DConnectService;
 
 import java.util.List;
+import java.util.logging.Logger;
 
 /**
  * 本デバイスプラグインのプロファイルをDeviceConnectに登録するサービス.
@@ -28,9 +29,13 @@ import java.util.List;
  */
 public class HueDeviceService extends DConnectMessageService {
 
+    /** ロガー. */
+    private final Logger mLogger = Logger.getLogger("hue.dplugin");
+
     @Override
     public void onCreate() {
         super.onCreate();
+        android.os.Debug.waitForDebugger();
 
         //hue SDKの初期化
         PHHueSDK hueSDK = PHHueSDK.getInstance();
@@ -54,6 +59,30 @@ public class HueDeviceService extends DConnectMessageService {
             hueSDK.disconnect(bridge);
         }
         super.onDestroy();
+    }
+
+    @Override
+    protected void onManagerUninstalled() {
+        // Managerアンインストール検知時の処理。
+        if (BuildConfig.DEBUG) {
+            mLogger.info("Plug-in : onManagerUninstalled");
+        }
+    }
+
+    @Override
+    protected void onManagerTerminated() {
+        // Manager正常終了通知受信時の処理。
+        if (BuildConfig.DEBUG) {
+            mLogger.info("Plug-in : onManagerTerminated");
+        }
+    }
+
+    @Override
+    protected void onDevicePluginReset() {
+        // Device Plug-inへのReset要求受信時の処理。
+        if (BuildConfig.DEBUG) {
+            mLogger.info("Plug-in : onDevicePluginReset");
+        }
     }
 
     @Override

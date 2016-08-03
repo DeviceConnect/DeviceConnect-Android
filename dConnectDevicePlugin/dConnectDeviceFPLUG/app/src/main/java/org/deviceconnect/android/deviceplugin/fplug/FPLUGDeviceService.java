@@ -15,6 +15,8 @@ import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.android.service.DConnectService;
 
+import android.util.Log;
+
 /**
  * F-PLUG device plug-in.
  *
@@ -30,6 +32,30 @@ public class FPLUGDeviceService extends DConnectMessageService
 
         FPLUGApplication app = (FPLUGApplication) getApplication();
         app.setControllerListener(this);
+    }
+
+    @Override
+    protected void onManagerUninstalled() {
+        // Managerアンインストール検知時の処理
+        if (BuildConfig.DEBUG) {
+            Log.i("fplug.dplugin", "Plug-in : onManagerUninstalled");
+        }
+    }
+
+    @Override
+    protected void onManagerTerminated() {
+        // Manager正常終了通知受信時の処理
+        if (BuildConfig.DEBUG) {
+            Log.i("fplug.dplugin", "Plug-in : onManagerTerminated");
+        }
+    }
+
+    @Override
+    protected void onDevicePluginReset() {
+        // Device Plug-inへのReset要求受信時の処理
+        if (BuildConfig.DEBUG) {
+            Log.i("fplug.dplugin", "Plug-in : onDevicePluginReset");
+        }
     }
 
     @Override

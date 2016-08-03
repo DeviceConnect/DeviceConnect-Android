@@ -12,6 +12,7 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
 import android.os.RemoteException;
 import android.support.v4.content.res.ResourcesCompat;
@@ -66,6 +67,8 @@ public class ServiceListActivity extends Activity implements AlertDialogFragment
     private SharedPreferences mSharedPreferences;
     private ServiceDiscovery mServiceDiscovery;
     private ServiceContainer mSelectedService;
+
+    private Handler mHandler = new Handler();
 
     private Switch mSwitchAction;
     private int mPageIndex;
@@ -278,9 +281,22 @@ public class ServiceListActivity extends Activity implements AlertDialogFragment
         try {
             if (checked) {
                 mDConnectService.start();
+                mHandler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        reload();
+                    }
+                }, 400);
             } else {
                 mDConnectService.stop();
                 notifyManagerTerminate();
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        mServiceAdapter.mServices = new ArrayList<>();
+                        mServiceAdapter.notifyDataSetInvalidated();
+                    }
+                });
             }
         } catch (RemoteException e) {
             if (DEBUG) {
@@ -481,13 +497,13 @@ public class ServiceListActivity extends Activity implements AlertDialogFragment
                 switch(service.getNetworkType()) {
                     case BLE:
                     case BLUETOOTH:
-                        setImageView(typeView, service, R.drawable.bluetooth_on);
+                        setNetworkTypeIcon(typeView, service, R.drawable.bluetooth_on);
                         break;
                     case WIFI:
-                        setImageView(typeView, service, R.drawable.wifi_on);
+                        setNetworkTypeIcon(typeView, service, R.drawable.wifi_on);
                         break;
                     case NFC:
-                        setImageView(typeView, service, R.drawable.nfc_on);
+                        setNetworkTypeIcon(typeView, service, R.drawable.nfc_on);
                         break;
                     default:
                         typeView.setVisibility(View.GONE);
@@ -502,7 +518,7 @@ public class ServiceListActivity extends Activity implements AlertDialogFragment
                     try {
                         PackageManager pm = getPackageManager();
                         ApplicationInfo app = pm.getApplicationInfo(packageName, 0);
-                        setImageView(imageView, service, pm.getApplicationIcon(app.packageName));
+                        setIcon(imageView, service, pm.getApplicationIcon(app.packageName));
                     } catch (PackageManager.NameNotFoundException e) {
                         if (DEBUG) {
                             Log.e(TAG, "", e);
@@ -513,11 +529,11 @@ public class ServiceListActivity extends Activity implements AlertDialogFragment
             return view;
         }
 
-        private void setImageView(final ImageView imageView, final ServiceContainer service, final int resId) {
-            setImageView(imageView, service, ResourcesCompat.getDrawable(getResources(),resId, null));
+        private void setNetworkTypeIcon(final ImageView imageView, final ServiceContainer service, final int resId) {
+            setIcon(imageView, service, ResourcesCompat.getDrawable(getResources(),resId, null));
         }
 
-        private void setImageView(final ImageView imageView, final ServiceContainer service, final Drawable icon) {
+        private void setIcon(final ImageView imageView, final ServiceContainer service, final Drawable icon) {
             if (icon == null) {
                 imageView.setVisibility(View.GONE);
                 return;

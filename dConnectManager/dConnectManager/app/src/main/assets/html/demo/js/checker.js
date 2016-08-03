@@ -120,7 +120,7 @@ var main = (function(parent, global) {
                 if (status == 200) {
                     setResponseText(nav, createResponse(util.formatJSON(response)));
                 } else {
-                    setResponseText(nav, createResponse("" + status));
+                    setResponseText(nav, createResponse("Http Status: " + status + "<br><br>" + response));
                 }
             });
         }

@@ -37,12 +37,12 @@ public final class HttpUtil {
     /**
      * 接続のタイムアウト.
      */
-    private static final int CONNECT_TIMEOUT = 30 * 1000;
+    private static final int CONNECT_TIMEOUT = 10 * 1000;
 
     /**
      * 読み込みのタイムアウト時間.
      */
-    private static final int READ_TIMEOUT = 3 * 60 * 1000;
+    private static final int READ_TIMEOUT = 30 * 1000;
 
     /**
      * POSTメソッドを定義します.

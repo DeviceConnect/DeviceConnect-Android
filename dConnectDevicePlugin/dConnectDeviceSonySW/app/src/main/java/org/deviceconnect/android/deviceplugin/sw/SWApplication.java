@@ -6,18 +6,18 @@
  */
 package org.deviceconnect.android.deviceplugin.sw;
 
+import android.app.Application;
+import android.os.Bundle;
+
+import org.deviceconnect.android.logger.AndroidHandler;
+import org.deviceconnect.android.profile.KeyEventProfile;
+import org.deviceconnect.android.profile.TouchProfile;
+
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
-
-import org.deviceconnect.android.logger.AndroidHandler;
-import org.deviceconnect.android.profile.TouchProfile;
-import org.deviceconnect.android.profile.KeyEventProfile;
-
-import android.app.Application;
-import android.os.Bundle;
 
 /**
  * SonyWatchDevicePlugin_LoggerLevelSetting.
@@ -71,37 +71,37 @@ public class SWApplication extends Application {
      */
     public static Bundle getTouchCache(final String attr) {
         long lCurrentTime = System.currentTimeMillis();
-        if (attr.equals(TouchProfile.ATTRIBUTE_ON_TOUCH)) {
+        if (attr.equalsIgnoreCase(TouchProfile.ATTRIBUTE_ON_TOUCH)) {
             if (lCurrentTime - sOnTouchCacheTime <= CACHE_RETENTION_TIME) {
                 return sOnTouchCache;
             } else {
                 return null;
             }
-        } else if (attr.equals(TouchProfile.ATTRIBUTE_ON_TOUCH_START)) {
+        } else if (attr.equalsIgnoreCase(TouchProfile.ATTRIBUTE_ON_TOUCH_START)) {
             if (lCurrentTime - sOnTouchStartCacheTime <= CACHE_RETENTION_TIME) {
                 return sOnTouchStartCache;
             } else {
                 return null;
             }
-        } else if (attr.equals(TouchProfile.ATTRIBUTE_ON_TOUCH_END)) {
+        } else if (attr.equalsIgnoreCase(TouchProfile.ATTRIBUTE_ON_TOUCH_END)) {
             if (lCurrentTime - sOnTouchEndCacheTime <= CACHE_RETENTION_TIME) {
                 return sOnTouchEndCache;
             } else {
                 return null;
             }
-        } else if (attr.equals(TouchProfile.ATTRIBUTE_ON_DOUBLE_TAP)) {
+        } else if (attr.equalsIgnoreCase(TouchProfile.ATTRIBUTE_ON_DOUBLE_TAP)) {
             if (lCurrentTime - sOnDoubleTapCacheTime <= CACHE_RETENTION_TIME) {
                 return sOnDoubleTapCache;
             } else {
                 return null;
             }
-        } else if (attr.equals(TouchProfile.ATTRIBUTE_ON_TOUCH_MOVE)) {
+        } else if (attr.equalsIgnoreCase(TouchProfile.ATTRIBUTE_ON_TOUCH_MOVE)) {
             if (lCurrentTime - sOnTouchMoveCacheTime <= CACHE_RETENTION_TIME) {
                 return sOnTouchMoveCache;
             } else {
                 return null;
             }
-        } else if (attr.equals(TouchProfile.ATTRIBUTE_ON_TOUCH_CANCEL)) {
+        } else if (attr.equalsIgnoreCase(TouchProfile.ATTRIBUTE_ON_TOUCH_CANCEL)) {
             if (lCurrentTime - sOnTouchCancelCacheTime <= CACHE_RETENTION_TIME) {
                 return sOnTouchCancelCache;
             } else {
@@ -120,22 +120,22 @@ public class SWApplication extends Application {
      */
     public static void setTouchCache(final String attr, final Bundle touchData) {
         long lCurrentTime = System.currentTimeMillis();
-        if (attr.equals(TouchProfile.ATTRIBUTE_ON_TOUCH)) {
+        if (attr.equalsIgnoreCase(TouchProfile.ATTRIBUTE_ON_TOUCH)) {
             sOnTouchCache = touchData;
             sOnTouchCacheTime = lCurrentTime;
-        } else if (attr.equals(TouchProfile.ATTRIBUTE_ON_TOUCH_START)) {
+        } else if (attr.equalsIgnoreCase(TouchProfile.ATTRIBUTE_ON_TOUCH_START)) {
             sOnTouchStartCache = touchData;
             sOnTouchStartCacheTime = lCurrentTime;
-        } else if (attr.equals(TouchProfile.ATTRIBUTE_ON_TOUCH_END)) {
+        } else if (attr.equalsIgnoreCase(TouchProfile.ATTRIBUTE_ON_TOUCH_END)) {
             sOnTouchEndCache = touchData;
             sOnTouchEndCacheTime = lCurrentTime;
-        } else if (attr.equals(TouchProfile.ATTRIBUTE_ON_DOUBLE_TAP)) {
+        } else if (attr.equalsIgnoreCase(TouchProfile.ATTRIBUTE_ON_DOUBLE_TAP)) {
             sOnDoubleTapCache = touchData;
             sOnDoubleTapCacheTime = lCurrentTime;
-        } else if (attr.equals(TouchProfile.ATTRIBUTE_ON_TOUCH_MOVE)) {
+        } else if (attr.equalsIgnoreCase(TouchProfile.ATTRIBUTE_ON_TOUCH_MOVE)) {
             sOnTouchMoveCache = touchData;
             sOnTouchMoveCacheTime = lCurrentTime;
-        } else if (attr.equals(TouchProfile.ATTRIBUTE_ON_TOUCH_CANCEL)) {
+        } else if (attr.equalsIgnoreCase(TouchProfile.ATTRIBUTE_ON_TOUCH_CANCEL)) {
             sOnTouchCancelCache = touchData;
             sOnTouchCancelCacheTime = lCurrentTime;
         }
@@ -161,13 +161,13 @@ public class SWApplication extends Application {
      */
     public static Bundle getKeyEventCache(final String attr) {
         long lCurrentTime = System.currentTimeMillis();
-        if (attr.equals(KeyEventProfile.ATTRIBUTE_ON_DOWN)) {
+        if (attr.equalsIgnoreCase(KeyEventProfile.ATTRIBUTE_ON_DOWN)) {
             if (lCurrentTime - sOnDownCacheTime <= CACHE_RETENTION_TIME) {
                 return sOnDownCache;
             } else {
                 return null;
             }
-        } else if (attr.equals(KeyEventProfile.ATTRIBUTE_ON_UP)) {
+        } else if (attr.equalsIgnoreCase(KeyEventProfile.ATTRIBUTE_ON_UP)) {
             if (lCurrentTime - sOnUpCacheTime <= CACHE_RETENTION_TIME) {
                 return sOnUpCache;
             } else {
@@ -186,10 +186,10 @@ public class SWApplication extends Application {
      */
     public static void setKeyEventCache(final String attr, final Bundle keyeventData) {
         long lCurrentTime = System.currentTimeMillis();
-        if (attr.equals(KeyEventProfile.ATTRIBUTE_ON_DOWN)) {
+        if (attr.equalsIgnoreCase(KeyEventProfile.ATTRIBUTE_ON_DOWN)) {
             sOnDownCache = keyeventData;
             sOnDownCacheTime = lCurrentTime;
-        } else if (attr.equals(KeyEventProfile.ATTRIBUTE_ON_UP)) {
+        } else if (attr.equalsIgnoreCase(KeyEventProfile.ATTRIBUTE_ON_UP)) {
             sOnUpCache = keyeventData;
             sOnUpCacheTime = lCurrentTime;
         }

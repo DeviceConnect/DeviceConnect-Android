@@ -18,7 +18,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Parcelable;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -74,6 +73,7 @@ public class DeviceSelectionPageFragment extends Fragment implements DeviceContr
         ((SettingActivity) activity).setDeviceControlListener(this);
         mAdapter = new DeviceListAdapter(getActivity());
         mAdapter.setOnConnectButtonClickListener(this);
+        ((SettingActivity) activity).sendGetFoundedDevicesBroadcast();
         ((SettingActivity) activity).sendGetConnectedDevicesBroadcast();
     }
 
@@ -115,6 +115,7 @@ public class DeviceSelectionPageFragment extends Fragment implements DeviceContr
     @Override
     public void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         startDiscoveryTimer();
     }
 
@@ -156,7 +157,6 @@ public class DeviceSelectionPageFragment extends Fragment implements DeviceContr
 
     @Override
     public void onDeviceLost(final SpheroParcelable device) {
-        Log.d("TEST", "device lost:" + device.getSpheroName());
         mAdapter.remove(device);
         startDiscoveryTimer();
 

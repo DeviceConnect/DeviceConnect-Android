@@ -43,7 +43,11 @@ public class SettingActivity extends DConnectSettingPageFragmentActivity {
      * 接続済みのデバイスを追加するアクション.
      */
     public static final String ACTION_ADD_CONNECTED_DEVICE = ACTION_NAMESPACE + ".ADD_CONNECTED_DEVICE";
-    
+    /**
+     * 接続されていないデバイスを追加するアクション.
+     */
+    public static final String ACTION_ADD_FOUNDED_DEVICE = ACTION_NAMESPACE + ".ADD_FOUNDED_DEVICE";
+
     /** 
      * デバイスを削除するアクション.
      */
@@ -157,7 +161,13 @@ public class SettingActivity extends DConnectSettingPageFragmentActivity {
     public void sendGetConnectedDevicesBroadcast() {
         sendAction(SpheroDeviceService.ACTION_GET_CONNECTED);
     }
-    
+    /**
+     * 接続されていないデバイス一覧を取得するブロードキャストを投げる.
+     */
+    public void sendGetFoundedDevicesBroadcast() {
+        sendAction(SpheroDeviceService.ACTION_GET_FOUND);
+    }
+
     /**
      * 検知開始のブロードキャストを投げる.
      */
@@ -221,6 +231,11 @@ public class SettingActivity extends DConnectSettingPageFragmentActivity {
             if (action.equals(ACTION_ADD_DEVICE)) {
                 SpheroParcelable sd = (SpheroParcelable) intent.getParcelableExtra(EXTRA_DEVICE);
                 mListener.get().onDeviceFound(sd);
+            } else if (action.equals(ACTION_ADD_FOUNDED_DEVICE)) {
+                List<SpheroParcelable> devices = intent.getParcelableArrayListExtra(EXTRA_DEVICES);
+                for (SpheroParcelable sd : devices) {
+                    mListener.get().onDeviceFound(sd);
+                }
             } else if (action.equals(ACTION_REMOVE_DEVICE)) {
                 SpheroParcelable sd = (SpheroParcelable) intent.getParcelableExtra(EXTRA_DEVICE);
                 mListener.get().onDeviceLost(sd);

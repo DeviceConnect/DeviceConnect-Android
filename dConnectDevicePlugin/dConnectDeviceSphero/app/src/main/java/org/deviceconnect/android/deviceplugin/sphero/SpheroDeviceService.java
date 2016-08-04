@@ -14,6 +14,7 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import com.orbotix.ConvenienceRobot;
+import com.orbotix.common.Robot;
 
 import org.deviceconnect.android.deviceplugin.sphero.SpheroManager.DeviceDiscoveryListener;
 import org.deviceconnect.android.deviceplugin.sphero.data.DeviceInfo;
@@ -68,6 +69,10 @@ public class SpheroDeviceService extends DConnectMessageService implements Devic
      * 接続済みデバイス取得アクション.
      */
     public static final String ACTION_GET_CONNECTED = ACTION_NAMESPACE + ".GET_CONNECTED";
+    /**
+     * 見つかっているが、接続されていないデバイス取得アクション.
+     */
+    public static final String ACTION_GET_FOUND = ACTION_NAMESPACE + ".GET_FOUND";
 
     /**
      * Extraキー : {@value} .
@@ -93,7 +98,8 @@ public class SpheroDeviceService extends DConnectMessageService implements Devic
         filter.addAction(ACTION_GET_CONNECTED);
         filter.addAction(ACTION_START_DISCOVERY);
         filter.addAction(ACTION_STOP_DISCOVERY);
-        
+        filter.addAction(ACTION_GET_FOUND);
+
         mReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(final Context context, final Intent intent) {
@@ -172,6 +178,26 @@ public class SpheroDeviceService extends DConnectMessageService implements Devic
                     devs.add(new SpheroParcelable(info.getDevice().getRobot().getIdentifier(),
                             info.getDevice().getRobot().getName(),
                             info.getDevice().getRobot().isOnline()));
+                }
+                res.putParcelableArrayListExtra(SettingActivity.EXTRA_DEVICES, devs);
+                LocalBroadcastManager.getInstance(this).sendBroadcast(res);
+            } else if (action.equals(ACTION_GET_FOUND)) {
+                List<Robot> devices = SpheroManager.INSTANCE.getFoundDevices();
+                Intent res = new Intent();
+                res.setAction(SettingActivity.ACTION_ADD_FOUNDED_DEVICE);
+                ArrayList<SpheroParcelable> devs = new ArrayList<SpheroParcelable>();
+                for (Robot device : devices) {
+                    DConnectService service = getServiceProvider().getService(device.getIdentifier());
+                    if (service == null) {
+                        DeviceInfo info = SpheroManager.INSTANCE.getDevice(device.getIdentifier());
+                        if (info != null) {
+                            service = new SpheroService(info);
+                            getServiceProvider().addService(service);
+                        }
+                    }
+                    devs.add(new SpheroParcelable(device.getIdentifier(),
+                            device.getName(),
+                            device.isOnline()));
                 }
                 res.putParcelableArrayListExtra(SettingActivity.EXTRA_DEVICES, devs);
                 LocalBroadcastManager.getInstance(this).sendBroadcast(res);

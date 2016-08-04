@@ -222,9 +222,9 @@ public final class SpheroManager implements DeviceInfo.DeviceSensorListener, Dev
             discoveryAgent.stopDiscovery();
         }
         mIsDiscovering = false;
-        if (mFoundDevices != null) {
-            mFoundDevices.clear();
-        }
+//        if (mFoundDevices != null) {
+//            mFoundDevices.clear();
+//        }
     }
 
     /**
@@ -343,7 +343,7 @@ public final class SpheroManager implements DeviceInfo.DeviceSensorListener, Dev
             discoveryAgent.connect(connected);
             do {
                 try {
-                    Thread.sleep(DISCONNECTION_RETRY_DELAY);
+                    Thread.sleep(DISCONNECTION_RETRY_DELAY * 3);
                 } catch (InterruptedException e) {
                     continue;
                 }

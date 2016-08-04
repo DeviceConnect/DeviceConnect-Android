@@ -18,6 +18,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Parcelable;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -61,7 +62,7 @@ public class DeviceSelectionPageFragment extends Fragment implements DeviceContr
     /**
      * Is Thread Running.
      */
-    private boolean mIsThreadRunning;
+    private boolean mIsThreadRunning = false;
     /**
      * Thread Handler.
      */
@@ -133,13 +134,13 @@ public class DeviceSelectionPageFragment extends Fragment implements DeviceContr
 
     @Override
     public void onDeviceFound(final SpheroParcelable device) {
-        
+
         View root = getView();
         if (root != null) {
             View progressZone = root.findViewById(R.id.progress_zone);
             progressZone.setVisibility(View.GONE);
         }
-        
+
         boolean isExist = false;
         for (int i = 0; i < mAdapter.getCount(); i++) {
             SpheroParcelable s = mAdapter.getItem(i);
@@ -155,14 +156,15 @@ public class DeviceSelectionPageFragment extends Fragment implements DeviceContr
 
     @Override
     public void onDeviceLost(final SpheroParcelable device) {
+        Log.d("TEST", "device lost:" + device.getSpheroName());
         mAdapter.remove(device);
         startDiscoveryTimer();
-        
+
         if (mIndView != null && mIndView.isShowing()) {
             mIndView.dismiss();
         }
     }
-    
+
     @Override
     public void onDeviceLostAll() {
         mAdapter.clear();
@@ -175,9 +177,7 @@ public class DeviceSelectionPageFragment extends Fragment implements DeviceContr
 
     @Override
     public void onDeviceConnected(final SpheroParcelable device) {
-        startDiscoveryTimer();
-
-        if (mIndView != null) {
+       if (mIndView != null) {
             mIndView.dismiss();
         }
 
@@ -198,11 +198,13 @@ public class DeviceSelectionPageFragment extends Fragment implements DeviceContr
         }
         device.setConnected(true);
         mAdapter.changeConnectionState(device);
+        startDiscoveryTimer();
+
+
     }
 
     @Override
     public void onDeviceDisconnected(SpheroParcelable device) {
-        startDiscoveryTimer();
         if (device == null) {
             AlertDialog.Builder builder = new Builder(getActivity());
             builder.setTitle(R.string.title_error);
@@ -220,12 +222,13 @@ public class DeviceSelectionPageFragment extends Fragment implements DeviceContr
         }
         device.setConnected(false);
         mAdapter.changeConnectionState(device);
+        startDiscoveryTimer();
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        
+
         View root = getView();
         if (root != null) {
             View progressZone = root.findViewById(R.id.progress_zone);
@@ -292,6 +295,9 @@ public class DeviceSelectionPageFragment extends Fragment implements DeviceContr
     }
 
     private void startDiscoveryTimer() {
+        if (mIsThreadRunning) {
+            return;
+        }
         mIsThreadRunning = true;
         new Thread(new Runnable() {
             @Override
@@ -312,7 +318,7 @@ public class DeviceSelectionPageFragment extends Fragment implements DeviceContr
                     }
 
                     try {
-                        Thread.sleep(5000);
+                        Thread.sleep(3000);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }

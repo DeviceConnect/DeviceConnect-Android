@@ -46,7 +46,11 @@ public class DConnectPluginSpec {
      */
     public void addProfileSpec(final String profileName, final InputStream in)
         throws IOException, JSONException {
-        mProfileSpecs.put(profileName, mJsonParser.parseJson(new JSONObject(loadFile(in))));
+        DConnectProfileSpec profileSpec = mJsonParser.parseJson(new JSONObject(loadFile(in)));
+        for (DConnectApiSpec apiSpec : profileSpec.getApiSpecList()) {
+            apiSpec.setProfileName(profileName);
+        }
+        mProfileSpecs.put(profileName, profileSpec);
     }
 
     private static String loadFile(final InputStream in) throws IOException {

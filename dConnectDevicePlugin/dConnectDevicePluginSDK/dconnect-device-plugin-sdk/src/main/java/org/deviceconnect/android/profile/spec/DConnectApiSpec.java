@@ -22,7 +22,6 @@ public class DConnectApiSpec implements DConnectSpecConstants {
 
     private Type mType;
     private Method mMethod;
-    private String mPath;
     private String mProfileName;
     private String mInterfaceName;
     private String mAttributeName;
@@ -62,29 +61,16 @@ public class DConnectApiSpec implements DConnectSpecConstants {
         return mMethod;
     }
 
-    /**
-     * APIのパスを設定する.
-     * @param path APIのパス
-     */
-    void setPath(final String path) {
-        mPath = path;
-
-        String[] array = path.split("/");
-        mProfileName = array[2];
-        if (array.length == 4) {
-            mAttributeName = array[3];
-        } else if (array.length == 5) {
-            mInterfaceName = array[3];
-            mAttributeName = array[4];
-        }
+    void setProfileName(final String profileName) {
+        mProfileName = profileName;
     }
 
-    /**
-     * APIのパスを取得する.
-     * @return APIのパス
-     */
-    public String getPath() {
-        return mPath;
+    void setInterfaceName(final String interfaceName) {
+        mInterfaceName = interfaceName;
+    }
+
+    void setAttributeName(final String attributeName) {
+        mAttributeName = attributeName;
     }
 
     /**

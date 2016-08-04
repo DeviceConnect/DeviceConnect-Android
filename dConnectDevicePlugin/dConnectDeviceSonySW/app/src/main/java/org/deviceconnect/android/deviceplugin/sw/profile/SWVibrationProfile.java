@@ -62,8 +62,14 @@ public class SWVibrationProfile extends VibrationProfile {
 
     public SWVibrationProfile(final SWService.WatchType type) {
         addApi(mPutVibrateApi);
-        if (type != SWService.WatchType.SW2) {
-            addApi(mDeleteVibrateApi);
+        switch (type) {
+            case SW2:
+                break;
+            case MN2:
+                addApi(mDeleteVibrateApi);
+                break;
+            default:
+                break;
         }
     }
 

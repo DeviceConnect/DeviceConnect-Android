@@ -52,7 +52,7 @@
         </receiver>
 
         <service
-            android:name="org.deviceconnect.android.deviceplugin.sw.SWService"
+            android:name=".SWDeviceService"
             android:exported="false">
         </service>
 

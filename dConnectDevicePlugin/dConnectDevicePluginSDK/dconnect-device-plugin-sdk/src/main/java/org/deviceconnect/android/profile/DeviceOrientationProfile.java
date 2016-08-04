@@ -9,7 +9,6 @@ package org.deviceconnect.android.profile;
 import android.content.Intent;
 import android.os.Bundle;
 
-import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.profile.DeviceOrientationProfileConstants;
 
 /**
@@ -40,111 +39,6 @@ public class DeviceOrientationProfile extends DConnectProfile implements DeviceO
     @Override
     public final String getProfileName() {
         return PROFILE_NAME;
-    }
-
-    @Override
-    protected boolean onGetRequest(final Intent request, final Intent response) {
-        boolean result = true;
-        String attribute = getAttribute(request);
-
-        if (ATTRIBUTE_ON_DEVICE_ORIENTATION.equalsIgnoreCase(attribute)) {
-            result = onGetOnDeviceOrientation(request, response, getServiceID(request));
-        } else {
-            MessageUtils.setUnknownAttributeError(response);
-        }
-        return result;
-    }
-
-    @Override
-    protected boolean onPutRequest(final Intent request, final Intent response) {
-        boolean result = true;
-        String attribute = getAttribute(request);
-
-        if (ATTRIBUTE_ON_DEVICE_ORIENTATION.equalsIgnoreCase(attribute)) {
-            result = onPutOnDeviceOrientation(request, response, getServiceID(request), getSessionKey(request));
-        } else {
-            MessageUtils.setUnknownAttributeError(response);
-        }
-
-        return result;
-    }
-
-    @Override
-    protected boolean onDeleteRequest(final Intent request, final Intent response) {
-        boolean result = true;
-        String attribute = getAttribute(request);
-
-        if (ATTRIBUTE_ON_DEVICE_ORIENTATION.equalsIgnoreCase(attribute)) {
-            result = onDeleteOnDeviceOrientation(request, response, getServiceID(request), getSessionKey(request));
-        } else {
-            MessageUtils.setUnknownAttributeError(response);
-        }
-
-        return result;
-    }
-
-    // ------------------------------------
-    // GET
-    // ------------------------------------
-
-    /**
-     * ondeviceorientation属性取得リクエストハンドラー.<br>
-     * スマートフォンまたは周辺機器上の加速度センサーなどのデータを取得し、その結果をレスポンスパラメータに格納する。
-     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
-     * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
-     * 
-     * @param request リクエストパラメータ
-     * @param response レスポンスパラメータ
-     * @param serviceId サービスID
-     * @return レスポンスパラメータを送信するか否か
-     */
-    protected boolean onGetOnDeviceOrientation(final Intent request, final Intent response, final String serviceId) {
-        setUnsupportedError(response);
-        return true;
-    }
-
-    // ------------------------------------
-    // PUT
-    // ------------------------------------
-
-    /**
-     * ondeviceorientationコールバック登録リクエストハンドラー.<br>
-     * ondeviceorientationコールバックを登録し、その結果をレスポンスパラメータに格納する。
-     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
-     * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
-     * 
-     * @param request リクエストパラメータ
-     * @param response レスポンスパラメータ
-     * @param serviceId サービスID
-     * @param sessionKey セッションキー
-     * @return レスポンスパラメータを送信するか否か
-     */
-    protected boolean onPutOnDeviceOrientation(final Intent request, final Intent response, 
-            final String serviceId, final String sessionKey) {
-        setUnsupportedError(response);
-        return true;
-    }
-
-    // ------------------------------------
-    // DELETE
-    // ------------------------------------
-
-    /**
-     * ondeviceorientationコールバック解除リクエストハンドラー.<br>
-     * ondeviceorientationコールバックを解除し、その結果をレスポンスパラメータに格納する。
-     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
-     * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
-     * 
-     * @param request リクエストパラメータ
-     * @param response レスポンスパラメータ
-     * @param serviceId サービスID
-     * @param sessionKey セッションキー
-     * @return レスポンスパラメータを送信するか否か
-     */
-    protected boolean onDeleteOnDeviceOrientation(final Intent request, final Intent response,
-            final String serviceId, final String sessionKey) {
-        setUnsupportedError(response);
-        return true;
     }
 
     // ------------------------------------

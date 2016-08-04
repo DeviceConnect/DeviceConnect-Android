@@ -7,11 +7,8 @@
 package org.deviceconnect.android.deviceplugin.kadecot.kadecotdevice;
 
 import org.deviceconnect.android.deviceplugin.kadecot.profile.original.AirConditionerProfileConstants;
-import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.deviceconnect.profile.LightProfileConstants;
-import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 import org.deviceconnect.profile.ServiceInformationProfileConstants;
-import org.deviceconnect.profile.SystemProfileConstants;
 
 import java.util.ArrayList;
 
@@ -109,9 +106,6 @@ public class ENLObject {
      * @param scopes Scope list.
      */
     private void setBaseProfile(final ArrayList<String> scopes) {
-        scopes.add(ServiceDiscoveryProfileConstants.PROFILE_NAME);
         scopes.add(ServiceInformationProfileConstants.PROFILE_NAME);
-        scopes.add(SystemProfileConstants.PROFILE_NAME);
-        scopes.add(AuthorizationProfileConstants.PROFILE_NAME);
     }
 }

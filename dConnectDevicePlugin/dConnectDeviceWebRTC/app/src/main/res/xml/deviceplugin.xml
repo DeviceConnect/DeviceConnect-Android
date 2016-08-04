@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <deviceplugin-provider>
 
-    <profile name="servicediscovery" />
-    <profile name="serviceinformation" />
+    <profile name="serviceDiscovery" />
+    <profile name="serviceInformation" />
     <profile name="system" />
 
-    <profile name="videochat">
+    <profile name="videoChat">
         <name lang="ja-JP">ビデオチャット</name>
         <description lang="ja-JP">ビデオチャット用のプロファイルです。</description>
         <name lang="en-US">Video Chat</name>

@@ -6,11 +6,11 @@
  */
 package org.deviceconnect.android.profile;
 
-import android.content.Intent;
-import android.os.Bundle;
-
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.profile.PhoneProfileConstants;
+
+import android.content.Intent;
+import android.os.Bundle;
 
 /**
  * Phone プロファイル.
@@ -42,142 +42,6 @@ public abstract class PhoneProfile extends DConnectProfile implements PhoneProfi
     @Override
     public final String getProfileName() {
         return PROFILE_NAME;
-    }
-
-    @Override
-    protected boolean onPostRequest(final Intent request, final Intent response) {
-        String attribute = getAttribute(request);
-        boolean result = true;
-
-        if (ATTRIBUTE_CALL.equalsIgnoreCase(attribute)) {
-            result = onPostCall(request, response, getServiceID(request), getPhoneNumber(request));
-        } else {
-            MessageUtils.setUnknownAttributeError(response);
-        }
-
-        return result;
-    }
-
-    @Override
-    protected boolean onPutRequest(final Intent request, final Intent response) {
-        String attribute = getAttribute(request);
-        boolean result = true;
-
-        if (attribute == null) {
-            MessageUtils.setUnknownAttributeError(response);
-        } else {
-            String serviceId = getServiceID(request);
-            if (attribute.equalsIgnoreCase(ATTRIBUTE_SET)) {
-                result = onPutSet(request, response, serviceId, getMode(request));
-            } else if (attribute.equalsIgnoreCase(ATTRIBUTE_ON_CONNECT)) {
-                result = onPutOnConnect(request, response, serviceId, getSessionKey(request));
-            } else {
-                MessageUtils.setUnknownAttributeError(response);
-            }
-        }
-
-        return result;
-    }
-
-    @Override
-    protected boolean onDeleteRequest(final Intent request, final Intent response) {
-        String attribute = getAttribute(request);
-        boolean result = true;
-
-        if (attribute == null) {
-            MessageUtils.setUnknownAttributeError(response);
-        } else {
-            if (attribute.equalsIgnoreCase(ATTRIBUTE_ON_CONNECT)) {
-                result = onDeleteOnConnect(request, response, getServiceID(request), getSessionKey(request));
-            } else {
-                MessageUtils.setUnknownAttributeError(response);
-            }
-        }
-
-        return result;
-    }
-
-    // ------------------------------------
-    // POST
-    // ------------------------------------
-
-    /**
-     * デバイスへの電話発信要求リクエストハンドラー.<br>
-     * 電話発信をし、その結果をレスポンスパラメータに格納する。 レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
-     * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
-     * 
-     * @param request リクエストパラメータ
-     * @param response レスポンスパラメータ
-     * @param serviceId サービスID
-     * @param phoneNumber 発信先の電話番号
-     * @return レスポンスパラメータを送信するか否か
-     */
-    protected boolean onPostCall(final Intent request, final Intent response, final String serviceId, 
-            final String phoneNumber) {
-        setUnsupportedError(response);
-        return true;
-    }
-
-    // ------------------------------------
-    // PUT
-    // ------------------------------------
-
-    /**
-     * 設定項目設定リクエストハンドラー.<br>
-     * リクエストパラメータに応じてデバイスのサービスを提供し、その結果をレスポンスパラメータに格納する。
-     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
-     * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
-     * 
-     * @param request リクエストパラメータ
-     * @param response レスポンスパラメータ
-     * @param serviceId サービスID
-     * @param mode 電話のモード
-     * @return レスポンスパラメータを送信するか否か
-     */
-    protected boolean onPutSet(final Intent request, final Intent response, final String serviceId,
-            final PhoneMode mode) {
-        setUnsupportedError(response);
-        return true;
-    }
-
-    /**
-     * onconnectコールバック登録リクエストハンドラー.<br>
-     * onconnectコールバックを登録し、その結果をレスポンスパラメータに格納する。
-     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
-     * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
-     * 
-     * @param request リクエストパラメータ
-     * @param response レスポンスパラメータ
-     * @param serviceId サービスID
-     * @param sessionKey セッションキー
-     * @return レスポンスパラメータを送信するか否か
-     */
-    protected boolean onPutOnConnect(final Intent request, final Intent response, final String serviceId,
-            final String sessionKey) {
-        setUnsupportedError(response);
-        return true;
-    }
-
-    // ------------------------------------
-    // DELETE
-    // ------------------------------------
-
-    /**
-     * onconnectコールバック解除リクエストハンドラー.<br>
-     * onconnectコールバックを解除し、その結果をレスポンスパラメータに格納する。
-     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
-     * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
-     * 
-     * @param request リクエストパラメータ
-     * @param response レスポンスパラメータ
-     * @param serviceId サービスID
-     * @param sessionKey セッションキー
-     * @return レスポンスパラメータを送信するか否か
-     */
-    protected boolean onDeleteOnConnect(final Intent request, final Intent response, final String serviceId, 
-            final String sessionKey) {
-        setUnsupportedError(response);
-        return true;
     }
 
     // ------------------------------------

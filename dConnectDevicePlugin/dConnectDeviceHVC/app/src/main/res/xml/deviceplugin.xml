@@ -2,13 +2,13 @@
 <deviceplugin-provider xmlns:android="http://schemas.android.com/apk/res/android" >
 
     <!-- dConnect Standard Profiles -->
-    <profile name="servicediscovery" expireperiod="86400000">
+    <profile name="serviceDiscovery" expireperiod="86400000">
         <name lang="ja">デバイス検索 </name>
         <description lang="ja">周辺のデバイスを検索する </description>
         <name lang="en">Network Service Discovery </name>
         <description lang="en">Searches near devices. </description>
     </profile>
-    <profile name="serviceinformation" expireperiod="86400000">
+    <profile name="serviceInformation" expireperiod="86400000">
         <name lang="ja">デバイス情報 </name>
         <description lang="ja">デバイス情報を取得する </description>
         <name lang="en">Service Information</name>
@@ -20,7 +20,7 @@
         <name lang="en">System </name>
         <description lang="en">Obtains system information. </description>
     </profile>
-     <profile name="humandetect" expireperiod="86400000">
+     <profile name="humanDetect" expireperiod="86400000">
         <name lang="ja">人体検出</name>
         <description lang="ja">人体検出する。</description>
         <name lang="en">Human Detect</name>

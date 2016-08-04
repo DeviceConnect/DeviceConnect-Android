@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest
     package="org.deviceconnect.android.manager.test"
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    android:versionCode="1"
-    android:versionName="2.0.0">
+    xmlns:android="http://schemas.android.com/apk/res/android">
 
     <application>
         <!-- テスト用レスポンスを受け取るBroadcastReceiver. -->

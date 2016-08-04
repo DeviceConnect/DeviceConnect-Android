@@ -14,7 +14,6 @@ import org.deviceconnect.server.DConnectServerError;
 import org.deviceconnect.server.http.HttpRequest;
 import org.deviceconnect.server.http.HttpResponse;
 import org.deviceconnect.server.nanohttpd.logger.AndroidHandler;
-import org.deviceconnect.server.nanohttpd.security.Firewall;
 import org.deviceconnect.server.nanohttpd.util.KeyStoreManager;
 import org.deviceconnect.server.websocket.DConnectWebSocket;
 import org.json.JSONException;
@@ -47,9 +46,6 @@ import fi.iki.elonen.NanoHTTPD;
 import fi.iki.elonen.NanoHTTPD.IHTTPSession;
 import fi.iki.elonen.NanoHTTPD.Response.Status;
 import fi.iki.elonen.NanoWSD;
-import fi.iki.elonen.WebSocket;
-import fi.iki.elonen.WebSocketFrame;
-import fi.iki.elonen.WebSocketFrame.CloseCode;
 
 /**
  * Device Connect サーバー NanoHTTPD.
@@ -62,7 +58,7 @@ public class DConnectServerNanoHttpd extends DConnectServer {
     private static final String TAG = "DConnectServerNanoHttpd";
 
     /** バージョン. */
-    private static final String VERESION = "1.0.1";
+    private static final String VERSION = "1.0.1";
 
     /** WebSocketのKeepAlive処理のインターバル. */
     private static final int WEBSOCKET_KEEP_ALIVE_INTERVAL = 3000;
@@ -93,7 +89,23 @@ public class DConnectServerNanoHttpd extends DConnectServer {
 
         /** pong受信完了状態. */
         GOT_PONG,
+    }
 
+    static {
+        MIME_TYPES = new HashMap<>();
+        MIME_TYPES.put("css", "text/css");
+        MIME_TYPES.put("htm", "text/html");
+        MIME_TYPES.put("html", "text/html");
+        MIME_TYPES.put("txt", "text/plain");
+        MIME_TYPES.put("jpg", "image/jpeg");
+        MIME_TYPES.put("jpeg", "image/jpeg");
+        MIME_TYPES.put("png", "image/png");
+        MIME_TYPES.put("js", "application/javascript");
+        // ローカルサーバ使用時にapkをダウンロードするのに必要
+        MIME_TYPES.put("apk", "application/vnd.android.package-archive");
+        // lighttpdには指定していないが使いそうなものなので入れておく
+        MIME_TYPES.put("gif", "image/gif");
+        MIME_TYPES.put("zip", "application/octet-stream");
     }
 
     /**
@@ -108,8 +120,8 @@ public class DConnectServerNanoHttpd extends DConnectServer {
         if (context == null) {
             throw new IllegalArgumentException("Context must not be null.");
         }
-
         mContext = context;
+
         if (BuildConfig.DEBUG) {
             Handler handler = new AndroidHandler(TAG);
             handler.setFormatter(new SimpleFormatter());
@@ -117,23 +129,6 @@ public class DConnectServerNanoHttpd extends DConnectServer {
             mLogger.addHandler(handler);
             mLogger.setLevel(Level.WARNING);
         }
-    }
-
-    static {
-        MIME_TYPES = new HashMap<String, String>();
-        MIME_TYPES.put("css", "text/css");
-        MIME_TYPES.put("htm", "text/html");
-        MIME_TYPES.put("html", "text/html");
-        MIME_TYPES.put("txt", "text/plain");
-        MIME_TYPES.put("jpg", "image/jpeg");
-        MIME_TYPES.put("jpeg", "image/jpeg");
-        MIME_TYPES.put("png", "image/png");
-        MIME_TYPES.put("js", "application/javascript");
-        // ローカルサーバ使用時にapkをダウンロードするのに必要
-        MIME_TYPES.put("apk", "application/vnd.android.package-archive");
-        // lighttpdには指定していないが使いそうなものなので入れておく
-        MIME_TYPES.put("gif", "image/gif");
-        MIME_TYPES.put("zip", "application/octet-stream");
     }
 
     @Override
@@ -160,7 +155,7 @@ public class DConnectServerNanoHttpd extends DConnectServer {
                 return;
             }
 
-            mServer.makeSecure(factory);
+            mServer.makeSecure(factory, null);
         }
 
         // Androidで利用する場合にMainThreadで利用できない処理がNanoServer#start()にあるため
@@ -193,11 +188,10 @@ public class DConnectServerNanoHttpd extends DConnectServer {
         }
 
         if (mSockets != null) {
-
             for (Entry<String, DConnectWebSocket> data : mSockets.entrySet()) {
-                if (data.getValue() instanceof WebSocket) {
+                if (data.getValue() instanceof NanoWSD.WebSocket) {
                     try {
-                        ((WebSocket) data.getValue()).close(CloseCode.NormalClosure, "Server was shutdown.");
+                        ((NanoWSD.WebSocket) data.getValue()).close(NanoWSD.WebSocketFrame.CloseCode.NormalClosure, "Server was shutdown.", false);
                     } catch (IOException e) {
                         mLogger.warning("Exception in the DConnectServerNanoHttpd#shutdown() method. " + e.toString());
                     }
@@ -212,7 +206,7 @@ public class DConnectServerNanoHttpd extends DConnectServer {
 
     @Override
     public synchronized boolean isRunning() {
-        return (mServer == null) ? false : mServer.isAlive();
+        return mServer != null && mServer.isAlive();
     }
 
     /**
@@ -270,8 +264,8 @@ public class DConnectServerNanoHttpd extends DConnectServer {
          */
         public NanoServer(final String hostname, final int port) {
             super(hostname, port);
-            Firewall firewall = new Firewall(mConfig.getIPWhiteList());
-            setFirewall(firewall);
+//            Firewall firewall = new Firewall(mConfig.getIPWhiteList());
+//            setFirewall(firewall);
             mWebSocketCount = 0;
         }
 
@@ -283,7 +277,7 @@ public class DConnectServerNanoHttpd extends DConnectServer {
                 if (isWebsocketRequested(session)) {
 
                     if (!countupWebSocket()) {
-                        nanoRes = new Response(Status.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT,
+                        nanoRes = newFixedLengthResponse(Status.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT,
                                 "Server can't create more connections.");
                         break;
                     }
@@ -306,7 +300,7 @@ public class DConnectServerNanoHttpd extends DConnectServer {
                     }
                 }
 
-                nanoRes = new NanoHTTPD.Response("");
+                nanoRes = newFixedLengthResponse("");
                 HttpRequest req = createRequest(session, nanoRes);
                 if (req == null) {
                     // Device Connect 用のリクエストが生成できない場合は何かしらのエラー、または別対応が入るので
@@ -316,24 +310,20 @@ public class DConnectServerNanoHttpd extends DConnectServer {
 
                 HttpResponse res = new HttpResponse();
                 if (mListener != null && mListener.onReceivedHttpRequest(req, res)) {
-
                     ByteArrayInputStream stream;
 
                     if (res.getBody() != null) {
                         stream = new ByteArrayInputStream(res.getBody());
                     } else {
-                        stream = new ByteArrayInputStream("".getBytes());
+                        stream = new ByteArrayInputStream(new byte[0]);
                     }
 
-                    nanoRes.setStatus(getStatus(res.getCode()));
-                    nanoRes.setMimeType(res.getContentType());
-                    nanoRes.setData(stream);
+                    nanoRes = newFixedLengthResponse(getStatus(res.getCode()), res.getContentType(), stream, res.getBody().length);
 
                     Map<String, String> headers = res.getHeaders();
                     for (Entry<String, String> head : headers.entrySet()) {
                         nanoRes.addHeader(head.getKey(), head.getValue());
                     }
-
                 } else {
                     nanoRes = super.serve(session);
                 }
@@ -362,12 +352,12 @@ public class DConnectServerNanoHttpd extends DConnectServer {
          * NanoWSDの当メソッドはFireFoxのリクエストに対応していないため、オーバーライドして修正する。
          * 
          * @param session リクエスト情報
-         * @return リクエストがWebsocket用かどうか
+         * @return リクエストがWebSocket用かどうか
          * @see fi.iki.elonen.NanoWSD#isWebsocketRequested(fi.iki.elonen.NanoHTTPD.IHTTPSession)
          */
         @Override
         protected boolean isWebsocketRequested(final IHTTPSession session) {
-            // FireFox では Connetion : keep-alive, Upgrade とリクエストがくるので
+            // FireFox では Connection : keep-alive, Upgrade とリクエストがくるので
             // Upgradeを含んでいればOKと見なす。
             Map<String, String> headers = session.getHeaders();
             String conValue = HEADER_CONNECTION_VALUE.toLowerCase(Locale.ENGLISH);
@@ -377,8 +367,7 @@ public class DConnectServerNanoHttpd extends DConnectServer {
             }
             headValue = headValue.toLowerCase(Locale.ENGLISH);
 
-            return ((HEADER_UPGRADE_VALUE.equalsIgnoreCase(headers.get(HEADER_UPGRADE)))
-                            && headValue.indexOf(conValue) != -1);
+            return ((HEADER_UPGRADE_VALUE.equalsIgnoreCase(headers.get(HEADER_UPGRADE))) && headValue.contains(conValue));
         }
 
         /**
@@ -392,11 +381,11 @@ public class DConnectServerNanoHttpd extends DConnectServer {
             Map<String, String> headers = session.getHeaders();
 
             if (!HEADER_WEBSOCKET_VERSION_VALUE.equalsIgnoreCase(headers.get(HEADER_WEBSOCKET_VERSION))) {
-                return new Response(Response.Status.BAD_REQUEST, NanoHTTPD.MIME_PLAINTEXT, "Invalid Websocket-Version "
+                return newFixedLengthResponse(Response.Status.BAD_REQUEST, NanoHTTPD.MIME_PLAINTEXT, "Invalid Websocket-Version "
                         + headers.get(HEADER_WEBSOCKET_VERSION));
             }
             if (!headers.containsKey(HEADER_WEBSOCKET_KEY)) {
-                return new Response(Response.Status.BAD_REQUEST, NanoHTTPD.MIME_PLAINTEXT, "Missing Websocket-Key");
+                return newFixedLengthResponse(Response.Status.BAD_REQUEST, NanoHTTPD.MIME_PLAINTEXT, "Missing Websocket-Key");
             }
 
             WebSocket webSocket = openWebSocket(session);
@@ -405,7 +394,7 @@ public class DConnectServerNanoHttpd extends DConnectServer {
                 webSocket.getHandshakeResponse().addHeader(HEADER_WEBSOCKET_ACCEPT,
                         makeAcceptKey(headers.get(HEADER_WEBSOCKET_KEY)));
             } catch (NoSuchAlgorithmException e) {
-                return new Response(Response.Status.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT,
+                return newFixedLengthResponse(Response.Status.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT,
                         "The SHA-1 Algorithm required for websockets is not available on the server.");
             }
             if (headers.containsKey(HEADER_WEBSOCKET_PROTOCOL)) {
@@ -448,7 +437,7 @@ public class DConnectServerNanoHttpd extends DConnectServer {
          * @return Device Connect へのリクエストの場合はnullを返す。
          */
         private Response checkStaticFile(final IHTTPSession session) {
-            Response retval = null;
+            Response retValue = null;
 
             do {
                 String mime = session.getHeaders().get("content-type");
@@ -468,36 +457,37 @@ public class DConnectServerNanoHttpd extends DConnectServer {
                 File file = new File(mConfig.getDocumentRootPath(), session.getUri());
 
                 if (!file.exists()) {
-                    retval = new Response(Status.NOT_FOUND, MIME_PLAINTEXT, Status.NOT_FOUND.getDescription());
+                    retValue = newFixedLengthResponse(Status.NOT_FOUND, MIME_PLAINTEXT, Status.NOT_FOUND.getDescription());
                     break;
                 } else if (file.isDirectory()) {
                     break;
                 } else if (!isReadableFile(file)) {
-                    retval = new Response(Status.FORBIDDEN, MIME_PLAINTEXT, Status.FORBIDDEN.getDescription());
+                    retValue = newFixedLengthResponse(Status.FORBIDDEN, MIME_PLAINTEXT, Status.FORBIDDEN.getDescription());
+                    break;
                 }
 
                 // If-None-Match対応
                 String etag = Integer.toHexString((file.getAbsolutePath() + file.lastModified() + "" + file.length())
                         .hashCode());
                 if (etag.equals(session.getHeaders().get("if-none-match"))) {
-                    retval = new Response(Status.NOT_MODIFIED, mime, "");
+                    retValue = newFixedLengthResponse(Status.NOT_MODIFIED, mime, "");
                 } else {
                     try {
-                        retval = new Response(Status.OK, mime, new FileInputStream(file));
-                        retval.addHeader("Content-Length", "" + file.length());
-                        retval.addHeader("ETag", etag);
+                        retValue = newFixedLengthResponse(Status.OK, mime, new FileInputStream(file), file.length());
+                        retValue.addHeader("Content-Length", "" + file.length());
+                        retValue.addHeader("ETag", etag);
                     } catch (FileNotFoundException e) {
-                        retval = new Response(Status.NOT_FOUND, MIME_PLAINTEXT, Status.NOT_FOUND.getDescription());
+                        retValue = newFixedLengthResponse(Status.NOT_FOUND, MIME_PLAINTEXT, Status.NOT_FOUND.getDescription());
                         break;
                     }
                 }
 
                 // ByteRangeへの対応は必須ではないため、noneを指定して対応しないことを伝える。
                 // 対応が必要な場合はbyteを設定して実装すること。
-                retval.addHeader("Accept-Ranges", "none");
+                retValue.addHeader("Accept-Ranges", "none");
 
             } while (false);
-            return retval;
+            return retValue;
         }
 
         /**
@@ -628,42 +618,35 @@ public class DConnectServerNanoHttpd extends DConnectServer {
                 return null;
             }
 
-            long size;
-            int splitbyte = ((HTTPSession) session).getSplitbyte();
-            int rlen = ((HTTPSession) session).getRlen();
-            byte[] retval = null;
-
+            long size = 0;
             if (headers.containsKey("content-length")) {
                 size = Integer.parseInt(headers.get("content-length"));
-            } else if (splitbyte < rlen) {
-                size = rlen - splitbyte;
-            } else {
-                size = 0;
             }
 
             try {
+                int len = 0;
                 byte[] buf = new byte[512];
                 InputStream is = session.getInputStream();
                 ByteArrayOutputStream bout = new ByteArrayOutputStream();
 
-                while (rlen >= 0 && size > 0) {
-                    rlen = is.read(buf, 0, (int) Math.min(size, 512));
-                    size -= rlen;
-                    if (rlen > 0) {
-                        bout.write(buf, 0, rlen);
+                while (len >= 0 && size > 0) {
+                    len = is.read(buf, 0, (int) Math.min(size, 512));
+                    size -= len;
+                    if (len > 0) {
+                        bout.write(buf, 0, len);
                     }
                 }
 
-                if (size != 0 && bout.size() != size) {
-                    throw new RuntimeException();
+                if (size != 0) {
+                    throw new RuntimeException("Invalid content-length.");
                 }
 
-                retval = bout.toByteArray();
+                return bout.toByteArray();
             } catch (IOException e) {
                 mLogger.warning("Exception in the NanoServer#parseBody() method. " + e.toString());
             }
 
-            return retval;
+            return null;
         }
 
         /**
@@ -695,13 +678,13 @@ public class DConnectServerNanoHttpd extends DConnectServer {
      * @author NTT DOCOMO, INC.
      * 
      */
-    private class NanoWebSocket extends WebSocket implements DConnectWebSocket {
+    private class NanoWebSocket extends NanoWSD.WebSocket implements DConnectWebSocket {
 
         /** KeepAlive実行用のタイマー. */
         private Timer mKeepAliveTimer;
 
         /** Keep-Aliveのタスク. */
-        private KeepAliveTask mKeepAliveTask;
+        private final KeepAliveTask mKeepAliveTask;
 
         /** セッションキー. */
         private String mSessionKey;
@@ -716,6 +699,11 @@ public class DConnectServerNanoHttpd extends DConnectServer {
             mKeepAliveTimer = new Timer();
             mKeepAliveTimer.scheduleAtFixedRate(mKeepAliveTask, WEBSOCKET_KEEP_ALIVE_INTERVAL,
                     WEBSOCKET_KEEP_ALIVE_INTERVAL);
+        }
+
+        @Override
+        protected void onOpen() {
+            mLogger.fine("NanoWebSocket#onOpen()");
         }
 
         @Override
@@ -734,7 +722,7 @@ public class DConnectServerNanoHttpd extends DConnectServer {
         }
 
         @Override
-        protected void onPong(final WebSocketFrame pongFrame) {
+        protected void onPong(final NanoWSD.WebSocketFrame pongFrame) {
             synchronized (mKeepAliveTask) {
                 if (mKeepAliveTask.getState() == KeepAliveState.WAITING_PONG) {
                     mKeepAliveTask.setState(KeepAliveState.GOT_PONG);
@@ -743,7 +731,7 @@ public class DConnectServerNanoHttpd extends DConnectServer {
         }
 
         @Override
-        protected void onMessage(final WebSocketFrame messageFrame) {
+        protected void onMessage(final NanoWSD.WebSocketFrame messageFrame) {
             String jsonText = messageFrame.getTextPayload();
             if (jsonText == null || jsonText.length() == 0) {
                 mLogger.warning("onMessage: jsonText is null.");
@@ -778,7 +766,7 @@ public class DConnectServerNanoHttpd extends DConnectServer {
         }
 
         @Override
-        protected void onClose(final CloseCode code, final String reason, final boolean initiatedByRemote) {
+        protected void onClose(final NanoWSD.WebSocketFrame.CloseCode code, final String reason, final boolean initiatedByRemote) {
             if (mSessionKey != null) {
                 mSockets.remove(mSessionKey);
                 mLogger.fine("WebSocket closed. Session Key : " + mSessionKey);
@@ -845,7 +833,7 @@ public class DConnectServerNanoHttpd extends DConnectServer {
                             setState(KeepAliveState.WAITING_PONG);
                             ping("".getBytes());
                         } else {
-                            close(CloseCode.GoingAway, "Client is dead.");
+                            close(NanoWSD.WebSocketFrame.CloseCode.GoingAway, "Client is dead.", false);
                         }
                     }
 
@@ -862,7 +850,7 @@ public class DConnectServerNanoHttpd extends DConnectServer {
         for (NanoWebSocket socket : mWebSockets) {
             if (sessionKey.equals(socket.mSessionKey)) {
                 try {
-                    socket.close(CloseCode.GoingAway, "User disconnect");
+                    socket.close(NanoWSD.WebSocketFrame.CloseCode.GoingAway, "User disconnect", false);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -873,6 +861,6 @@ public class DConnectServerNanoHttpd extends DConnectServer {
 
     @Override
     public String getVersion() {
-        return VERESION;
+        return VERSION;
     }
 }

@@ -14,16 +14,20 @@ import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceClient;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceEventListener;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceManager;
 import org.deviceconnect.android.deviceplugin.theta.profile.ThetaMediaStreamRecordingProfile;
+import org.deviceconnect.android.deviceplugin.theta.profile.ThetaOmnidirectionalImageProfile;
 import org.deviceconnect.android.deviceplugin.theta.profile.ThetaSystemProfile;
 import org.deviceconnect.android.deviceplugin.theta.service.ThetaImageService;
 import org.deviceconnect.android.deviceplugin.theta.service.ThetaService;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.event.cache.MemoryCacheController;
 import org.deviceconnect.android.message.DConnectMessageService;
+import org.deviceconnect.android.profile.OmnidirectionalImageProfile;
 import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.android.provider.FileManager;
 import org.deviceconnect.android.service.DConnectService;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
 
 /**
@@ -142,6 +146,17 @@ public class ThetaDeviceService extends DConnectMessageService
 
         if (mThetaMediaStreamRecording != null) {
             mThetaMediaStreamRecording.forcedStopRecording();
+        }
+
+        List<ThetaOmnidirectionalImageProfile> omnidirectionalImageProfiles = new ArrayList<>();
+        for (DConnectService service : getServiceProvider().getServiceList()) {
+            ThetaOmnidirectionalImageProfile profile = (ThetaOmnidirectionalImageProfile) service.getProfile(OmnidirectionalImageProfile.PROFILE_NAME);
+            if (profile != null && !omnidirectionalImageProfiles.contains(profile)) {
+                omnidirectionalImageProfiles.add(profile);
+            }
+        }
+        for (ThetaOmnidirectionalImageProfile profile : omnidirectionalImageProfiles) {
+            profile.forceStopPreview();
         }
     }
 

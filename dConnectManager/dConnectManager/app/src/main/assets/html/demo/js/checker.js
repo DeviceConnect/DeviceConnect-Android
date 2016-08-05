@@ -2,7 +2,7 @@
 var main = (function(parent, global) {
 
     function init() {
-        util.init(function(json) {
+        util.init(function(name, json) {
             createSupportApis(json);
         });
     }
@@ -87,6 +87,7 @@ var main = (function(parent, global) {
         console.log('xtype:' + xType)
 
         if (xType == 'event') {
+            // TODO
             var uri = "http://localhost:4035" + path.toLowerCase() + "?" + createBody(nav).join('&') + "&sessionKey=" + util.getSessionKey();
             console.log(uri);
 
@@ -297,7 +298,6 @@ var main = (function(parent, global) {
     }
 
     function createSupportApis(json) {
-        console.log(json);
         var profile = util.getProfile();
         if (json.supportApis) {
             document.getElementById('main').innerHTML = createSupportPath(json.supportApis[profile].paths);

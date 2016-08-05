@@ -1,13 +1,16 @@
 
 var main = (function(parent, global) {
     function init() {
-        util.init(function(json) {
+        util.init(function(name, json) {
+            setServiceInfo(name, util.getServiceId());
             createProfileList(json.supports);
-
-            document.getElementById('serviceInfo').innerHTML = createServiceInfo('HOST', util.getServiceId());
         });
     }
     parent.init = init;
+
+    function setServiceInfo(name, serviceId) {
+        document.getElementById('serviceInfo').innerHTML = createServiceInfo(name, serviceId);
+    }
 
     function createProfileCell(url, content) {
         var data = {

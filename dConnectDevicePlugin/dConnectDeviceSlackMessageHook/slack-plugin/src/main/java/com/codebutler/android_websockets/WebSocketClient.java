@@ -172,6 +172,10 @@ public class WebSocketClient {
         }
     }
 
+    public void ping(String message) {
+        sendFrame(mParser.frame(message, 9, -1));
+    }
+
     public void send(String data) {
         sendFrame(mParser.frame(data));
     }

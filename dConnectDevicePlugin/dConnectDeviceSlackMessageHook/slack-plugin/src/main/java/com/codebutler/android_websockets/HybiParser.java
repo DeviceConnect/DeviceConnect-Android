@@ -181,11 +181,11 @@ public class HybiParser {
         return frame(data, OP_BINARY, -1);
     }
 
-    private byte[] frame(byte[] data, int opcode, int errorCode)  {
+    public byte[] frame(byte[] data, int opcode, int errorCode)  {
         return frame((Object)data, opcode, errorCode);
     }
 
-    private byte[] frame(String data, int opcode, int errorCode) {
+    public byte[] frame(String data, int opcode, int errorCode) {
         return frame((Object)data, opcode, errorCode);
     }
 

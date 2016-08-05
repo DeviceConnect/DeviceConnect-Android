@@ -69,6 +69,8 @@ public class SlackManager {
     /** 接続状態 */
     private int connectState = CONNECT_STATE_NONE; // 0:None 1:Disconnected 2:Disconnecting 3:Connecting 4:Connected
 
+    /** WebSocketのKeepAlive時間 */
+    private static final int KEEPALIVE_SPAN = 5000;
 
     /** SlackManagerの基底Exception */
     public abstract class SlackManagerException extends Exception {}
@@ -455,6 +457,23 @@ public class SlackManager {
     //region WebSocket
 
     /**
+     * KeepAlive処理
+     * @param handler Handler
+     */
+    private void keepAlive(final Handler handler) {
+        // keepalive
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                webSocket.ping("ping");
+                if (connectState == CONNECT_STATE_CONNECTED) {
+                    handler.postDelayed(this, KEEPALIVE_SPAN);
+                }
+            }
+        }, KEEPALIVE_SPAN);
+    }
+
+    /**
      * WebSocket接続
      * @param uri 接続先
      */
@@ -474,6 +493,8 @@ public class SlackManager {
                         }
                     });
                 }
+                // KeepAlive
+                keepAlive(handler);
             }
 
             @Override

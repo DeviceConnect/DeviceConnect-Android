@@ -12,16 +12,23 @@ import android.app.AlertDialog;
 import android.app.AlertDialog.Builder;
 import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Parcelable;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import org.deviceconnect.android.deviceplugin.sphero.R;
 import org.deviceconnect.android.deviceplugin.sphero.data.SpheroParcelable;
@@ -29,6 +36,7 @@ import org.deviceconnect.android.deviceplugin.sphero.setting.SettingActivity;
 import org.deviceconnect.android.deviceplugin.sphero.setting.SettingActivity.DeviceControlListener;
 import org.deviceconnect.android.deviceplugin.sphero.setting.widget.DeviceListAdapter;
 import org.deviceconnect.android.deviceplugin.sphero.setting.widget.DeviceListAdapter.OnConnectButtonClickListener;
+import org.deviceconnect.android.deviceplugin.sphero.util.BleUtils;
 
 import java.util.List;
 
@@ -59,14 +67,39 @@ public class DeviceSelectionPageFragment extends Fragment implements DeviceContr
      */
     private int mSearchingVisibility = -1;
     /**
-     * Is Thread Running.
+     * スレッドが定期的に動いているか.
      */
     private boolean mIsThreadRunning = false;
     /**
      * Thread Handler.
      */
-    private Handler mThreadHandler = new Handler();
-
+    private final Handler mThreadHandler = new Handler();
+    private final Handler mReceiverHandler = new Handler();
+    private TextView mEmptyView;
+    private ListView mListView;
+    private View mProgressZone;
+    /**
+     * BluetoothのON/OFF時の挙動.
+     */
+    private final BroadcastReceiver mSensorReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            if (BluetoothAdapter.ACTION_STATE_CHANGED.equals(action)) {
+                int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, -1);
+                if (state == BluetoothAdapter.STATE_ON ){
+                    addFooterView();
+                    if (BleUtils.isBLEPermission(getActivity())) {
+                        startDiscoveryTimer();
+                    }
+                } else if (state == BluetoothAdapter.STATE_OFF) {
+                    addFooterView();
+                    mIsThreadRunning = false;
+                    stopDiscovery();
+                }
+            }
+        }
+    };
     @Override
     public void onAttach(final Activity activity) {
         super.onAttach(activity);
@@ -83,20 +116,19 @@ public class DeviceSelectionPageFragment extends Fragment implements DeviceContr
             final Bundle savedInstanceState) {
 
         View root = inflater.inflate(R.layout.setting_device_list, null);
-        View emptyView = root.findViewById(R.id.device_list_empty);
-        ListView listView = (ListView) root.findViewById(R.id.device_list_view);
-        listView.setAdapter(mAdapter);
-        listView.setEmptyView(emptyView);
-        listView.setItemsCanFocus(true);
-
-        View progressZone = root.findViewById(R.id.progress_zone);
-        if (savedInstanceState != null) {
-            mSearchingVisibility = savedInstanceState.getInt(KEY_PROGRESS_VISIBILITY);
-        }
-
-        if (mSearchingVisibility == -1 || mAdapter.getCount() != 0) {
-            progressZone.setVisibility(View.GONE);
-        }
+        mEmptyView = (TextView) root.findViewById(R.id.device_list_empty);
+        mListView = (ListView) root.findViewById(R.id.device_list_view);
+        mListView.setAdapter(mAdapter);
+        mListView.setItemsCanFocus(true);
+        mProgressZone = root.findViewById(R.id.progress_zone);
+//        if (savedInstanceState != null) {
+//            mSearchingVisibility = savedInstanceState.getInt(KEY_PROGRESS_VISIBILITY);
+//        }
+//
+//        if (mSearchingVisibility == -1 || mAdapter.getCount() != 0) {
+//            mProgressZone.setVisibility(View.GONE);
+//        }
+//
         
         return root;
     }
@@ -105,20 +137,21 @@ public class DeviceSelectionPageFragment extends Fragment implements DeviceContr
     public void onSaveInstanceState(final Bundle outState) {
         super.onSaveInstanceState(outState);
         
-        View root = getView();
-        if (root != null) {
-            View progressZone = root.findViewById(R.id.progress_zone);
-            outState.putInt(KEY_PROGRESS_VISIBILITY, progressZone.getVisibility());
-        }
+//        View root = getView();
+//        if (root != null) {
+//            View progressZone = root.findViewById(R.id.progress_zone);
+//            outState.putInt(KEY_PROGRESS_VISIBILITY, progressZone.getVisibility());
+//        }
     }
-    
+
     @Override
-    public void onCreate(final Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    public void onResume() {
+        super.onResume();
+        registerBluetoothFilter();
 
         startDiscoveryTimer();
+        addFooterView();
     }
-
 
     @Override
     public void onConnectedDevices(final List<Parcelable> devices) {
@@ -240,6 +273,7 @@ public class DeviceSelectionPageFragment extends Fragment implements DeviceContr
     @Override
     public void onDestroy() {
         super.onDestroy();
+        unregisterBluetoothFilter();
         mIsThreadRunning = false;
         stopDiscovery();
     }
@@ -295,6 +329,9 @@ public class DeviceSelectionPageFragment extends Fragment implements DeviceContr
     }
 
     private void startDiscoveryTimer() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !BleUtils.isBLEPermission(getActivity())) {
+            return;
+        }
         if (mIsThreadRunning) {
             return;
         }
@@ -327,4 +364,36 @@ public class DeviceSelectionPageFragment extends Fragment implements DeviceContr
         }).start();
     }
 
+    private void registerBluetoothFilter() {
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
+        getActivity().registerReceiver(mSensorReceiver, filter, null, mReceiverHandler);
+    }
+
+    private void unregisterBluetoothFilter() {
+        getActivity().unregisterReceiver(mSensorReceiver);
+    }
+
+
+    private void addFooterView() {
+        getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+Log.d("TEST", "addFooterView");
+                if (!BleUtils.isBLEPermission(getActivity())) {
+                    mEmptyView.setText(R.string.sphero_setting_dialog_error_permission);
+                    mListView.setEmptyView(mEmptyView);
+                    mProgressZone.setVisibility(View.GONE);
+                } else if (!BleUtils.isEnabled(getActivity())) {
+                    mProgressZone.setVisibility(View.GONE);
+                    mEmptyView.setText(R.string.sphero_setting_dialog_disable_bluetooth);
+                    mListView.setEmptyView(mEmptyView);
+                } else if (BleUtils.isEnabled(getActivity())) {
+                    mEmptyView.setText(R.string.no_devices);
+                    mListView.setEmptyView(mEmptyView);
+                    mProgressZone.setVisibility(View.VISIBLE);
+                }
+            }
+        });
+    }
 }

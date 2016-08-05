@@ -114,6 +114,7 @@ public class SettingActivity extends DConnectSettingPageFragmentActivity {
         filter.addAction(ACTION_ADD_CONNECTED_DEVICE);
         filter.addAction(ACTION_CONNECTED);
         filter.addAction(ACTION_DISCONNECTED);
+        filter.addAction(ACTION_ADD_FOUNDED_DEVICE);
 
         mReceiver = new ServiceReceiver();
         lbm.registerReceiver(mReceiver, filter);

@@ -35,6 +35,15 @@
     <!-- Button -->
     <string name="sphero_setting_btn_setting">Bluetooth の設定</string>
 	<string name="sphero_setting_btn_search">Sphero の再検索</string>
-    
-    
+
+    <string name="bluetooth_settings_ble_detail">Android 6.0からBLEをスキャンするには、位置情報のパーミッションが必要になりました。\nこのプラグインを使用するためには、以下のパーミッションを許可してください。\n許可を取り消すには、アプリの設定画面から行うことができます。</string>
+    <string name="bluetooth_settings_ble_permission">位置情報の許可</string>
+    <string name="bluetooth_settings_ble_permission_on">取得済み</string>
+    <string name="bluetooth_settings_ble_permission_off">取得</string>
+
+
+    <!--ERROR -->
+    <string name="sphero_setting_dialog_error_permission">BLE検索するためのパーミッションが許可されていないために検索できません。\nBluetooth設定画面から位置情報の許可を取得してください。</string>
+    <string name="sphero_setting_dialog_disable_bluetooth">Bluetoothが無効になっているために検索できません。\nBluetooth設定画面からBluetoothを有効に設定してください。</string>
+
 </resources>

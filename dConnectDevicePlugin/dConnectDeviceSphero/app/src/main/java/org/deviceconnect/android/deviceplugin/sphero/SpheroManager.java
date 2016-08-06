@@ -38,9 +38,15 @@ import org.deviceconnect.android.profile.DeviceOrientationProfile;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 
 /**
@@ -62,17 +68,40 @@ public final class SpheroManager implements DeviceInfo.DeviceSensorListener, Dev
     /**
      * 切断のリトライ回数.
      */
-    private static final int DISCONNECTION_RETRY_NUM = 30;
+    private static final int DISCONNECTION_RETRY_NUM = 50;
 
     /**
      * 切断のリトライ遅延.
      */
     private static final int DISCONNECTION_RETRY_DELAY = 1000;
+    /**
+     * Spheroを見失った際のリトライ回数.
+     */
+    private static final int SEARCH_RETRY_NUM = 10;
 
     /**
      * 1G = {@value} .
      */
     private static final double G = 9.81;
+    /**
+     * ScheduledExecutorServiceインスタンス.
+     */
+    private ScheduledExecutorService mExecutor = Executors.newSingleThreadScheduledExecutor();
+
+    /**
+     * Spheroが見つからなくなったことを検知するためのタイマー.
+     */
+    private ScheduledFuture<?> mScanTimerFuture;
+
+    /**
+     * 初回実行時間.
+     */
+    private static final long SCAN_FIRST_WAIT_PERIOD = 1000;
+
+    /**
+     * 次回実行時.
+     */
+    private static final long SCAN_WAIT_PERIOD = 5 * 1000;
 
     /**
      * 検知したデバイス一覧.
@@ -88,6 +117,11 @@ public final class SpheroManager implements DeviceInfo.DeviceSensorListener, Dev
      * 検知されたデバイスの一覧. まだ未接続で、検知されただけの状態の一覧.
      */
     private List<Robot> mFoundDevices = Collections.synchronizedList(new ArrayList<Robot>());
+
+    /**
+     * 見つからなくなったデバイスを管理するオブジェクト.
+     */
+    private Map<String, Integer> mCounting = new HashMap<String, Integer>();
 
     /**
      * デバイス検知リスナー.
@@ -157,7 +191,7 @@ public final class SpheroManager implements DeviceInfo.DeviceSensorListener, Dev
      * タイムアウト.
      */
     private int mConnectingTimeoutCount;
-
+    private boolean mScanning = false;
     /**
      * 接続中のフラグリスト.
      */
@@ -295,7 +329,7 @@ public final class SpheroManager implements DeviceInfo.DeviceSensorListener, Dev
         if (id == null) {
             return;
         }
-        DeviceInfo removed = mDevices.remove(id);
+        DeviceInfo removed = mDevices.get(id);
         if (removed != null) {
             final ConvenienceRobot sphero = removed.getDevice();
             for (int i = 0; i < DISCONNECTION_RETRY_NUM; i++) {
@@ -343,7 +377,7 @@ public final class SpheroManager implements DeviceInfo.DeviceSensorListener, Dev
             discoveryAgent.connect(connected);
             do {
                 try {
-                    Thread.sleep(DISCONNECTION_RETRY_DELAY * 3);
+                    Thread.sleep(DISCONNECTION_RETRY_DELAY);
                 } catch (InterruptedException e) {
                     continue;
                 }
@@ -714,7 +748,6 @@ public final class SpheroManager implements DeviceInfo.DeviceSensorListener, Dev
                         if (BuildConfig.DEBUG) {
                             Log.d("TEST", "online");
                         }
-
                         mConnectingFlags.remove(robot.getIdentifier());
                         SpheroManager.this.onConnected(cRobot);
                     }
@@ -723,6 +756,8 @@ public final class SpheroManager implements DeviceInfo.DeviceSensorListener, Dev
                     if (BuildConfig.DEBUG) {
                         Log.d("TEST", "connecting");
                     }
+                    mCounting.put(robot.getIdentifier(), 1);
+                    scanSphero(true);
                     mFoundDevices.add(robot);
                     if (mDiscoveryListener != null) {
                         mDiscoveryListener.onDeviceFound(cRobot);
@@ -811,6 +846,52 @@ public final class SpheroManager implements DeviceInfo.DeviceSensorListener, Dev
                     mService.sendEvent(event, e.getAccessToken());
                 }
             }
+        }
+    }
+
+    /**
+     *
+     * @param enable
+     */
+    public synchronized void scanSphero(final boolean enable) {
+        if (enable) {
+            if (mScanning || mScanTimerFuture != null) {
+                // scan have already started.
+                return;
+            }
+            mScanning = true;
+            mScanTimerFuture = mExecutor.scheduleAtFixedRate(new Runnable() {
+                @Override
+                public void run() {
+                    for (String serviceId : mCounting.keySet()) {
+                        Integer count = mCounting.get(serviceId);
+                        count++;
+                        mCounting.put(serviceId, count);
+                        if (count >= SEARCH_RETRY_NUM) {
+                            DeviceInfo info = mDevices.get(serviceId);
+                            ConvenienceRobot robot = info.getDevice();
+                            mDiscoveryListener.onDeviceLost(robot);
+                            mCounting.remove(serviceId);
+                            if (mCounting.size() == 0) {
+                                cancelScanTimer();
+                            }
+                        }
+                    }
+                }
+            }, SCAN_FIRST_WAIT_PERIOD, SCAN_WAIT_PERIOD, TimeUnit.MILLISECONDS);
+        } else {
+            mScanning = false;
+            cancelScanTimer();
+        }
+    }
+
+    /**
+     * タイマーを止める.
+     */
+    private synchronized void cancelScanTimer() {
+        if (mScanTimerFuture != null) {
+            mScanTimerFuture.cancel(true);
+            mScanTimerFuture = null;
         }
     }
 }

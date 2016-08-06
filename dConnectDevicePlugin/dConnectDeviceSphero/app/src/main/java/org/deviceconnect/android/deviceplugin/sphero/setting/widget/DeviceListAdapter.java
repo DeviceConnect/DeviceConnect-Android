@@ -7,6 +7,7 @@
 package org.deviceconnect.android.deviceplugin.sphero.setting.widget;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -75,10 +76,13 @@ public class DeviceListAdapter extends ArrayAdapter<SpheroParcelable> implements
             Button connBtn = (Button) view.findViewById(R.id.connect);
             connBtn.setOnClickListener(this);
             connBtn.setTag(position);
-            if (device.isConnected()) {
+            if (device.isConnected() == SpheroParcelable.SpheroState.Connected) {
                 connBtn.setText(R.string.state_off);
-            } else {
+            } else if (device.isConnected() == SpheroParcelable.SpheroState.Disconnected
+                    || device.isConnected() == SpheroParcelable.SpheroState.Remember) {
                 connBtn.setText(R.string.state_on);
+            } else if (device.isConnected() == SpheroParcelable.SpheroState.Delete){
+                connBtn.setText(R.string.state_remove);
             }
         }
         

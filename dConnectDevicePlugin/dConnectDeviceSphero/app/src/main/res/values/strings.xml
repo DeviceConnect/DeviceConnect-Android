@@ -18,6 +18,7 @@
     <string name="message_searching">Sphero を検索中&#8230;</string>
 
     <!-- LIST ITEM -->
+    <string name="state_remove">削除</string>
     <string name="state_on">接続</string>
     <string name="state_off">接続解除</string>
     <string name="no_devices">見つかりません。</string>

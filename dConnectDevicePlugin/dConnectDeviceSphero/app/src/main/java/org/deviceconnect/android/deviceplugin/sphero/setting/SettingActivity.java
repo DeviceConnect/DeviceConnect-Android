@@ -63,9 +63,13 @@ public class SettingActivity extends DConnectSettingPageFragmentActivity {
      */
     public static final String ACTION_CONNECTED = ACTION_NAMESPACE + ".ACTION_CONNECTED";
     /**
-     * デバイスを削除するアクション.
+     * デバイスを切断するアクション.
      */
     public static final String ACTION_DISCONNECTED = ACTION_NAMESPACE + ".ACTION_DISCONNECTED";
+    /**
+     * デバイスを削除するアクション.
+     */
+    public static final String ACTION_DELETED = ACTION_NAMESPACE + ".ACTION_DELETED";
 
     /**
      * Extraキー : {@value} .
@@ -115,6 +119,7 @@ public class SettingActivity extends DConnectSettingPageFragmentActivity {
         filter.addAction(ACTION_CONNECTED);
         filter.addAction(ACTION_DISCONNECTED);
         filter.addAction(ACTION_ADD_FOUNDED_DEVICE);
+        filter.addAction(ACTION_DELETED);
 
         mReceiver = new ServiceReceiver();
         lbm.registerReceiver(mReceiver, filter);
@@ -194,7 +199,19 @@ public class SettingActivity extends DConnectSettingPageFragmentActivity {
         i.putExtra(SpheroDeviceService.EXTRA_ID, serviceId);
         LocalBroadcastManager.getInstance(this).sendBroadcast(i);
     }
-    
+
+
+    /**
+     * Spheroを削除するブロードキャストを投げる.
+     * @param serviceId サービスID
+     */
+    public void sendDeleteSpheroBroadcast(final String serviceId) {
+        Intent i = new Intent(this, SpheroDeviceService.class);
+        i.setAction(SpheroDeviceService.ACTION_DELETE_DEVICE);
+        i.putExtra(SpheroDeviceService.EXTRA_ID, serviceId);
+        LocalBroadcastManager.getInstance(this).sendBroadcast(i);
+    }
+
     /**
      * 接続解除のブロードキャストを投げる.
      * 
@@ -251,6 +268,9 @@ public class SettingActivity extends DConnectSettingPageFragmentActivity {
             } else if (action.equals(ACTION_DISCONNECTED)) {
                 SpheroParcelable sd = (SpheroParcelable) intent.getParcelableExtra(EXTRA_DEVICE);
                 mListener.get().onDeviceDisconnected(sd);
+            } else if (action.equals(ACTION_DELETED)) {
+                SpheroParcelable sd = (SpheroParcelable) intent.getParcelableExtra(EXTRA_DEVICE);
+                mListener.get().onDeviceDeleted(sd);
             }
         }
     }
@@ -300,10 +320,16 @@ public class SettingActivity extends DConnectSettingPageFragmentActivity {
          */
         void onDeviceConnected(SpheroParcelable device);
         /**
-         * デバイスが接続された場合に呼び出される.
+         * デバイスが切断された場合に呼び出される.
          *
          * @param device デバイス
          */
         void onDeviceDisconnected(SpheroParcelable device);
+        /**
+         * デバイスが削除された場合に呼び出される.
+         *
+         * @param device デバイス
+         */
+        void onDeviceDeleted(SpheroParcelable device);
     }
 }

@@ -9,6 +9,19 @@ import android.os.Parcelable;
  * @author NTT DOCOMO, INC.
  */
 public class SpheroParcelable implements Parcelable{
+    /**Spheroの状態. */
+    public enum SpheroState {
+        /** 接続. */
+        Connected,
+        /** 見つかっている. */
+        Disconnected,
+        /** 認識しているがBluetooth検索時に見つからない. */
+        Remember,
+        /** 削除時. */
+        Delete,
+        /** エラー時. */
+        Error;
+    }
     /**
      * Sphero id.
      */
@@ -22,9 +35,9 @@ public class SpheroParcelable implements Parcelable{
     /**
      * Sphero connected.
      */
-    private boolean mIsConnected;
+    private SpheroState mIsConnected;
 
-    public SpheroParcelable(final String spheroId, final String spheroName, final boolean isConnected) {
+    public SpheroParcelable(final String spheroId, final String spheroName, final SpheroState isConnected) {
         setSpheroId(spheroId);
         setSpheroName(spheroName);
         setConnected(isConnected);
@@ -33,7 +46,7 @@ public class SpheroParcelable implements Parcelable{
     protected SpheroParcelable(Parcel in) {
         setSpheroId(in.readString());
         setSpheroName(in.readString());
-        setConnected(in.readByte() != 0);
+        setConnected(SpheroState.valueOf(in.readString()));
     }
 
     public static final Creator<SpheroParcelable> CREATOR = new Creator<SpheroParcelable>() {
@@ -57,14 +70,14 @@ public class SpheroParcelable implements Parcelable{
     public void writeToParcel(Parcel parcel, int i) {
         parcel.writeString(getSpheroId());
         parcel.writeString(getSpheroName());
-        parcel.writeByte((byte) (isConnected() ? 1 : 0));
+        parcel.writeString(isConnected().name());
     }
 
     public String getSpheroId() {
         return mSpheroId;
     }
 
-    public void setSpheroId(String mSpheroId) {
+    public void setSpheroId(final String mSpheroId) {
         this.mSpheroId = mSpheroId;
     }
 
@@ -76,11 +89,11 @@ public class SpheroParcelable implements Parcelable{
         this.mSpheroName = mSpheroName;
     }
 
-    public boolean isConnected() {
+    public SpheroState isConnected() {
         return mIsConnected;
     }
 
-    public void setConnected(boolean mIsConnected) {
+    public void setConnected(final SpheroState mIsConnected) {
         this.mIsConnected = mIsConnected;
     }
 }

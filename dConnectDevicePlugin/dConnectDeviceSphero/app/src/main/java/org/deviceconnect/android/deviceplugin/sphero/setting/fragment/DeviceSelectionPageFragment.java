@@ -184,13 +184,16 @@ public class DeviceSelectionPageFragment extends Fragment implements DeviceContr
         }
         if (!isExist) {
             mAdapter.add(device);
+        } else {
+            mAdapter.changeConnectionState(device);
         }
         startDiscoveryTimer();
     }
 
     @Override
     public void onDeviceLost(final SpheroParcelable device) {
-        mAdapter.remove(device);
+        //削除できる状態にする
+        mAdapter.changeConnectionState(device);
         startDiscoveryTimer();
 
         if (mIndView != null && mIndView.isShowing()) {
@@ -229,7 +232,6 @@ public class DeviceSelectionPageFragment extends Fragment implements DeviceContr
 
             return;
         }
-        device.setConnected(true);
         mAdapter.changeConnectionState(device);
         startDiscoveryTimer();
 
@@ -253,8 +255,28 @@ public class DeviceSelectionPageFragment extends Fragment implements DeviceContr
 
             return;
         }
-        device.setConnected(false);
         mAdapter.changeConnectionState(device);
+        startDiscoveryTimer();
+    }
+
+    @Override
+    public void onDeviceDeleted(SpheroParcelable device) {
+        if (device == null) {
+            AlertDialog.Builder builder = new Builder(getActivity());
+            builder.setTitle(R.string.title_error);
+            builder.setMessage(R.string.message_disconn_error);
+            builder.setPositiveButton(R.string.btn_close, new OnClickListener() {
+                @Override
+                public void onClick(final DialogInterface dialog, final int which) {
+                    dialog.dismiss();
+                }
+            });
+            AlertDialog dialog = builder.create();
+            dialog.show();
+
+            return;
+        }
+        mAdapter.remove(device);
         startDiscoveryTimer();
     }
 
@@ -287,19 +309,23 @@ public class DeviceSelectionPageFragment extends Fragment implements DeviceContr
         }
         mIsThreadRunning = false;
         stopDiscovery();
-        if (device.isConnected()) {
+        if (device.isConnected() == SpheroParcelable.SpheroState.Connected) {
             ((SettingActivity) activity).sendDisonnectBroadcast(device.getSpheroId());
             if (mAdapter.getCount() == 0) {
                 // 現在検知している場合は一旦検知をやめ、新たに検知を開始する.
                 startDiscoveryTimer();
             }
-        } else {
+        } else if (device.isConnected() == SpheroParcelable.SpheroState.Remember
+                || device.isConnected() == SpheroParcelable.SpheroState.Disconnected) {
             mIndView = new ProgressDialog(activity);
             mIndView.setMessage(activity.getString(R.string.connecting));
             mIndView.setProgressStyle(ProgressDialog.STYLE_SPINNER);
             mIndView.setCancelable(false);
             mIndView.show();
             ((SettingActivity) activity).sendConnectBroadcast(device.getSpheroId());
+        } else if (device.isConnected() == SpheroParcelable.SpheroState.Delete){
+            ((SettingActivity) activity).sendDeleteSpheroBroadcast(device.getSpheroId());
+
         }
     }
 
@@ -379,7 +405,6 @@ public class DeviceSelectionPageFragment extends Fragment implements DeviceContr
         getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
-Log.d("TEST", "addFooterView");
                 if (!BleUtils.isBLEPermission(getActivity())) {
                     mEmptyView.setText(R.string.sphero_setting_dialog_error_permission);
                     mListView.setEmptyView(mEmptyView);

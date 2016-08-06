@@ -20,6 +20,7 @@ import org.deviceconnect.android.deviceplugin.sphero.SpheroManager.DeviceDiscove
 import org.deviceconnect.android.deviceplugin.sphero.data.DeviceInfo;
 import org.deviceconnect.android.deviceplugin.sphero.data.SpheroParcelable;
 import org.deviceconnect.android.deviceplugin.sphero.profile.SpheroProfile;
+import org.deviceconnect.android.deviceplugin.sphero.profile.SpheroServiceDiscoveryProfile;
 import org.deviceconnect.android.deviceplugin.sphero.profile.SpheroSystemProfile;
 import org.deviceconnect.android.deviceplugin.sphero.service.SpheroService;
 import org.deviceconnect.android.deviceplugin.sphero.setting.SettingActivity;
@@ -73,6 +74,10 @@ public class SpheroDeviceService extends DConnectMessageService implements Devic
      * 見つかっているが、接続されていないデバイス取得アクション.
      */
     public static final String ACTION_GET_FOUND = ACTION_NAMESPACE + ".GET_FOUND";
+    /**
+     * デバイス削除アクション.
+     */
+    public static final String ACTION_DELETE_DEVICE = ACTION_NAMESPACE + ".DELETE_DEVICE";
 
     /**
      * Extraキー : {@value} .
@@ -99,6 +104,7 @@ public class SpheroDeviceService extends DConnectMessageService implements Devic
         filter.addAction(ACTION_START_DISCOVERY);
         filter.addAction(ACTION_STOP_DISCOVERY);
         filter.addAction(ACTION_GET_FOUND);
+        filter.addAction(ACTION_DELETE_DEVICE);
 
         mReceiver = new BroadcastReceiver() {
             @Override
@@ -107,6 +113,7 @@ public class SpheroDeviceService extends DConnectMessageService implements Devic
             }
         };
         lbm.registerReceiver(mReceiver, filter);
+        addProfile(new SpheroServiceDiscoveryProfile(getServiceProvider()));
     }
 
     @Override
@@ -141,15 +148,15 @@ public class SpheroDeviceService extends DConnectMessageService implements Devic
                                 DConnectService service = new SpheroService(info);
                                 getServiceProvider().addService(service);
 
-                                sendDevice(SettingActivity.ACTION_CONNECTED, device);
+                                sendDevice(SettingActivity.ACTION_CONNECTED, device, SpheroParcelable.SpheroState.Connected);
                             } else {
-                                sendDevice(SettingActivity.ACTION_CONNECTED, null);
+                                sendDevice(SettingActivity.ACTION_CONNECTED, null, SpheroParcelable.SpheroState.Error);
                             }
                         } else {
                             if (BuildConfig.DEBUG) {
                                 Log.d("TEST", "************ failed to connect **********");
                             }
-                            sendDevice(SettingActivity.ACTION_CONNECTED, null);                            
+                            sendDevice(SettingActivity.ACTION_CONNECTED, null, SpheroParcelable.SpheroState.Error);
                         }
                     }
                 }).start();
@@ -163,7 +170,7 @@ public class SpheroDeviceService extends DConnectMessageService implements Devic
 
                 SpheroManager.INSTANCE.disconnect(id);
                 if (info != null) {
-                    sendDevice(SettingActivity.ACTION_DISCONNECTED, info.getDevice());
+                    sendDevice(SettingActivity.ACTION_DISCONNECTED, info.getDevice(), SpheroParcelable.SpheroState.Disconnected);
                 }
             } else if (action.equals(ACTION_GET_CONNECTED)) {
                 Collection<DeviceInfo> devices = SpheroManager.INSTANCE.getConnectedDevices();
@@ -177,7 +184,7 @@ public class SpheroDeviceService extends DConnectMessageService implements Devic
                     }
                     devs.add(new SpheroParcelable(info.getDevice().getRobot().getIdentifier(),
                             info.getDevice().getRobot().getName(),
-                            info.getDevice().getRobot().isOnline()));
+                            SpheroParcelable.SpheroState.Remember));
                 }
                 res.putParcelableArrayListExtra(SettingActivity.EXTRA_DEVICES, devs);
                 LocalBroadcastManager.getInstance(this).sendBroadcast(res);
@@ -197,10 +204,20 @@ public class SpheroDeviceService extends DConnectMessageService implements Devic
                     }
                     devs.add(new SpheroParcelable(device.getIdentifier(),
                             device.getName(),
-                            device.isOnline()));
+                            SpheroParcelable.SpheroState.Delete));
                 }
                 res.putParcelableArrayListExtra(SettingActivity.EXTRA_DEVICES, devs);
                 LocalBroadcastManager.getInstance(this).sendBroadcast(res);
+            } else if (action.equals(ACTION_DELETE_DEVICE)) {
+                String id = intent.getStringExtra(EXTRA_ID);
+                Robot device = SpheroManager.INSTANCE.getNotConnectedDevice(id);
+
+                DConnectService service = getServiceProvider().getService(id);
+                if (service != null) {
+                    service.setOnline(false);
+                    getServiceProvider().removeService(id);
+                    sendDevice(SettingActivity.ACTION_DELETED, new ConvenienceRobot(device), SpheroParcelable.SpheroState.Delete);
+                }
             } else {
                 return super.onStartCommand(intent, flags, startId);
             }
@@ -227,17 +244,17 @@ public class SpheroDeviceService extends DConnectMessageService implements Devic
 
     @Override
     public void onDeviceFound(ConvenienceRobot sphero) {
-        sendDevice(SettingActivity.ACTION_ADD_DEVICE, sphero);
+        sendDevice(SettingActivity.ACTION_ADD_DEVICE, sphero, SpheroParcelable.SpheroState.Remember);
     }
 
     @Override
     public void onDeviceLost(ConvenienceRobot sphero) {
-        sendDevice(SettingActivity.ACTION_REMOVE_DEVICE, sphero);
+        sendDevice(SettingActivity.ACTION_REMOVE_DEVICE, sphero, SpheroParcelable.SpheroState.Delete);
     }
 
     @Override
     public void onDeviceLostAll() {
-        sendDevice(SettingActivity.ACTION_REMOVE_DEVICE_ALL, null);
+        sendDevice(SettingActivity.ACTION_REMOVE_DEVICE_ALL, null, SpheroParcelable.SpheroState.Delete);
     }
 
 
@@ -313,7 +330,7 @@ public class SpheroDeviceService extends DConnectMessageService implements Devic
      * @param action アクション
      * @param sphero デバイス情報
      */
-    private void sendDevice(final String action, final ConvenienceRobot sphero) {
+    private void sendDevice(final String action, final ConvenienceRobot sphero, final SpheroParcelable.SpheroState state) {
         Intent res = new Intent();
         res.setAction(action);
         SpheroParcelable s = null;
@@ -321,7 +338,8 @@ public class SpheroDeviceService extends DConnectMessageService implements Devic
         if (sphero != null) {
             s = new SpheroParcelable(sphero.getRobot().getIdentifier(),
                     sphero.getRobot().getName(),
-                    sphero.isConnected());
+                    state);
+            Log.d("TEST", "????");
         }
         res.putExtra(SettingActivity.EXTRA_DEVICE, s);
         LocalBroadcastManager.getInstance(this).sendBroadcast(res);

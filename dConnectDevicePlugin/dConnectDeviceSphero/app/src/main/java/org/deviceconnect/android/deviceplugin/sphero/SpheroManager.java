@@ -226,6 +226,7 @@ public final class SpheroManager implements DeviceInfo.DeviceSensorListener, Dev
         }
         try {
             mIsDiscovering = discoveryAgent.startDiscovery(context);
+            scanSphero(true);
         } catch (DiscoveryException e) {
             mIsDiscovering = false;
         }
@@ -866,13 +867,19 @@ public final class SpheroManager implements DeviceInfo.DeviceSensorListener, Dev
                     for (String serviceId : mCounting.keySet()) {
                         Integer count = mCounting.get(serviceId);
                         count++;
+                        if (BuildConfig.DEBUG) {
+                            Log.d("TEST", "count:" + count);
+                        }
                         mCounting.put(serviceId, count);
                         if (count >= SEARCH_RETRY_NUM) {
                             DeviceInfo info = mDevices.get(serviceId);
                             ConvenienceRobot robot = info.getDevice();
-                            mDiscoveryListener.onDeviceLost(robot);
+                            if (mDiscoveryListener != null && !robot.isConnected()) {
+                                mDiscoveryListener.onDeviceLost(robot);
+                            }
                             mCounting.remove(serviceId);
                             if (mCounting.size() == 0) {
+                                mScanning = false;
                                 cancelScanTimer();
                             }
                         }

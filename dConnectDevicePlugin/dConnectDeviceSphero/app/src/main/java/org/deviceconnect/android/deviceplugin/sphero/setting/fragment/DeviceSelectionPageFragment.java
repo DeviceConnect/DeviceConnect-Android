@@ -23,7 +23,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Parcelable;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -106,8 +105,8 @@ public class DeviceSelectionPageFragment extends Fragment implements DeviceContr
         ((SettingActivity) activity).setDeviceControlListener(this);
         mAdapter = new DeviceListAdapter(getActivity());
         mAdapter.setOnConnectButtonClickListener(this);
-        ((SettingActivity) activity).sendGetFoundedDevicesBroadcast();
         ((SettingActivity) activity).sendGetConnectedDevicesBroadcast();
+        ((SettingActivity) activity).sendGetFoundedDevicesBroadcast();
     }
 
     @SuppressLint("InflateParams")
@@ -160,7 +159,14 @@ public class DeviceSelectionPageFragment extends Fragment implements DeviceContr
         } else {
             for (Parcelable device : devices) {
                 if (device instanceof SpheroParcelable) {
-                    mAdapter.add((SpheroParcelable) device);
+                    for (int i = 0; i < mAdapter.getCount(); i++) {
+                        SpheroParcelable s = mAdapter.getItem(i);
+                        if (!s.getSpheroId().equals(((SpheroParcelable) device).getSpheroId())) {
+                            mAdapter.add((SpheroParcelable) device);
+                        } else {
+                            mAdapter.changeConnectionState((SpheroParcelable) device);
+                        }
+                    }
                 }
             }
         }
@@ -168,7 +174,6 @@ public class DeviceSelectionPageFragment extends Fragment implements DeviceContr
 
     @Override
     public void onDeviceFound(final SpheroParcelable device) {
-
         View root = getView();
         if (root != null) {
             View progressZone = root.findViewById(R.id.progress_zone);

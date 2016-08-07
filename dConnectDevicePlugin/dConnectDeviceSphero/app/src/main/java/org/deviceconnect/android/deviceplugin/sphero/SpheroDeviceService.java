@@ -190,6 +190,7 @@ public class SpheroDeviceService extends DConnectMessageService implements Devic
                 LocalBroadcastManager.getInstance(this).sendBroadcast(res);
             } else if (action.equals(ACTION_GET_FOUND)) {
                 List<Robot> devices = SpheroManager.INSTANCE.getFoundDevices();
+                Collection<DeviceInfo> connectedDevices = SpheroManager.INSTANCE.getConnectedDevices();
                 Intent res = new Intent();
                 res.setAction(SettingActivity.ACTION_ADD_FOUNDED_DEVICE);
                 ArrayList<SpheroParcelable> devs = new ArrayList<SpheroParcelable>();
@@ -202,9 +203,18 @@ public class SpheroDeviceService extends DConnectMessageService implements Devic
                             getServiceProvider().addService(service);
                         }
                     }
-                    devs.add(new SpheroParcelable(device.getIdentifier(),
-                            device.getName(),
-                            SpheroParcelable.SpheroState.Delete));
+                    for (DeviceInfo dInfo : connectedDevices) {
+                        if (dInfo.getDevice().getRobot().getIdentifier().equals(device.getIdentifier())
+                                && device.isOnline()) {
+                            devs.add(new SpheroParcelable(device.getIdentifier(),
+                                    device.getName(),
+                                    SpheroParcelable.SpheroState.Connected));
+                        } else {
+                            devs.add(new SpheroParcelable(device.getIdentifier(),
+                                    device.getName(),
+                                    SpheroParcelable.SpheroState.Delete));
+                        }
+                    }
                 }
                 res.putParcelableArrayListExtra(SettingActivity.EXTRA_DEVICES, devs);
                 LocalBroadcastManager.getInstance(this).sendBroadcast(res);
@@ -339,7 +349,6 @@ public class SpheroDeviceService extends DConnectMessageService implements Devic
             s = new SpheroParcelable(sphero.getRobot().getIdentifier(),
                     sphero.getRobot().getName(),
                     state);
-            Log.d("TEST", "????");
         }
         res.putExtra(SettingActivity.EXTRA_DEVICE, s);
         LocalBroadcastManager.getInstance(this).sendBroadcast(res);

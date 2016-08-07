@@ -16,6 +16,7 @@ import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.hitoe.data.HitoeDevice;
 import org.deviceconnect.android.deviceplugin.hitoe.data.HitoeManager;
+import org.deviceconnect.android.deviceplugin.hitoe.profile.HitoeServiceDiscoveryProfile;
 import org.deviceconnect.android.deviceplugin.hitoe.profile.HitoeSystemProfile;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.event.cache.MemoryCacheController;
@@ -112,6 +113,7 @@ public class HitoeDeviceService extends DConnectMessageService {
         EventManager.INSTANCE.setController(new MemoryCacheController());
         getManager().addHitoeConnectionListener(mOnHitoeConnectionListener);
         registerBluetoothFilter();
+        addProfile(new HitoeServiceDiscoveryProfile(getServiceProvider()));
         HitoeManager mgr =  getManager();
         if (mgr != null) {
             List<HitoeDevice> devices = mgr.getRegisterDevices();
@@ -139,14 +141,11 @@ public class HitoeDeviceService extends DConnectMessageService {
     @Override
     protected void onManagerUninstalled() {
         if (BuildConfig.DEBUG) {
-            Log.d(TAG, "start-onManagerUninstalled");
+            Log.d(TAG, "onManagerUninstalled");
         }
         getManager().stop();
         EventManager.INSTANCE.removeAll();
         removeAllServices();
-        if (BuildConfig.DEBUG) {
-            Log.d(TAG, "end-onManagerUninstalled");
-        }
 
     }
 

@@ -1,15 +1,31 @@
-[
-    {
-        "name": "Service Information API",
-        "type": "one-shot",
-        "method": "GET",
-        "path": "/gotapi/serviceInformation",
-        "requestParams": [
-            {
-                "name": "serviceId",
-                "type": "string",
-                "mandatory": true
+{
+    "swagger": "2.0",
+    "info": {
+        "title": "ServiceInformation Profile",
+        "version": "2.0.0",
+        "description": ""
+    },
+    "consumes": [],
+    "paths": {
+        "/": {
+            "get": {
+                "x-type": "one-shot",
+                "summary": "",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "formData",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
             }
-        ]
+        }
     }
-]
+}

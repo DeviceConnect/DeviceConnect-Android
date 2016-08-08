@@ -1,16 +1,22 @@
+/*
+ DConnectApi.java
+ Copyright (c) 2016 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.profile.api;
 
 
 import android.content.Intent;
 
 import org.deviceconnect.android.profile.spec.DConnectApiSpec;
-import org.deviceconnect.android.profile.spec.DConnectApiSpecConstants;
+import org.deviceconnect.android.profile.spec.DConnectSpecConstants;
 
 /**
  * Device Connect APIクラス.
  * @author NTT DOCOMO, INC.
  */
-public abstract class DConnectApi implements DConnectApiSpecConstants {
+public abstract class DConnectApi implements DConnectSpecConstants {
 
     /**
      * {@link DConnectApi}の子クラスで実装されるAPI仕様.

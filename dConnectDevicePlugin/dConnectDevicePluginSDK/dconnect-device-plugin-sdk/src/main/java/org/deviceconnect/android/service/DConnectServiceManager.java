@@ -1,14 +1,19 @@
+/*
+ DConnectServiceManager.java
+ Copyright (c) 2016 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.service;
 
 
 import android.content.Context;
-import android.util.Log;
 
 import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.android.profile.api.DConnectApi;
 import org.deviceconnect.android.profile.spec.DConnectApiSpec;
-import org.deviceconnect.android.profile.spec.DConnectApiSpecList;
-import org.deviceconnect.message.DConnectMessage;
+import org.deviceconnect.android.profile.spec.DConnectPluginSpec;
+import org.deviceconnect.android.profile.spec.DConnectProfileSpec;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -16,9 +21,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Device Connect APIサービス管理インターフェースのデフォルト実装.
+ * @author NTT DOCOMO, INC.
+ */
 public class DConnectServiceManager implements DConnectServiceProvider {
 
-    private DConnectApiSpecList mApiSpecList;
+    private DConnectPluginSpec mPluginSpec;
 
     private Context mContext;
 
@@ -30,8 +39,8 @@ public class DConnectServiceManager implements DConnectServiceProvider {
         return mContext;
     }
 
-    public void setApiSpecList(final DConnectApiSpecList apiSpecList) {
-        mApiSpecList = apiSpecList;
+    public void setPluginSpec(final DConnectPluginSpec pluginSpec) {
+        mPluginSpec = pluginSpec;
     }
 
     private final Map<String, DConnectService> mDConnectServices
@@ -39,12 +48,18 @@ public class DConnectServiceManager implements DConnectServiceProvider {
 
     @Override
     public void addService(final DConnectService service) {
-        if (mApiSpecList != null) {
+        service.setContext(mContext);
+        if (mPluginSpec != null) {
             for (DConnectProfile profile : service.getProfileList()) {
-                profile.setApiSpecList(mApiSpecList);
+                DConnectProfileSpec profileSpec =
+                    mPluginSpec.findProfileSpec(profile.getProfileName().toLowerCase());
+                if (profileSpec == null) {
+                    continue;
+                }
+                profile.setProfileSpec(profileSpec);
                 for (DConnectApi api : profile.getApiList()) {
-                    String path = createPath(profile.getProfileName(), api);
-                    DConnectApiSpec spec = mApiSpecList.findApiSpec(api.getMethod().getName(), path);
+                    String path = createPath(api);
+                    DConnectApiSpec spec = profileSpec.findApiSpec(path, api.getMethod());
                     if (spec != null) {
                         api.setApiSpec(spec);
                     }
@@ -57,28 +72,29 @@ public class DConnectServiceManager implements DConnectServiceProvider {
         mDConnectServices.put(service.getId(), service);
     }
 
-    private String createPath(final String profileName, final DConnectApi api) {
+    private String createPath(final DConnectApi api) {
         String interfaceName = api.getInterface();
         String attributeName = api.getAttribute();
         StringBuffer path = new StringBuffer();
         path.append("/");
-        path.append(DConnectMessage.DEFAULT_API);
-        path.append("/");
-        path.append(profileName);
         if (interfaceName != null) {
-            path.append("/");
             path.append(interfaceName);
+            path.append("/");
         }
         if (attributeName != null) {
-            path.append("/");
             path.append(attributeName);
         }
         return path.toString();
     }
 
     @Override
-    public void removeService(final DConnectService service) {
-        mDConnectServices.remove(service.getId());
+    public boolean removeService(final DConnectService service) {
+        return removeService(service.getId()) != null;
+    }
+
+    @Override
+    public DConnectService removeService(final String serviceId) {
+        return mDConnectServices.remove(serviceId);
     }
 
     @Override
@@ -88,8 +104,6 @@ public class DConnectServiceManager implements DConnectServiceProvider {
 
     @Override
     public List<DConnectService> getServiceList() {
-        Log.d("AAA", "getServiceList: " + mDConnectServices.size());
-
         List<DConnectService> list = new ArrayList<DConnectService>();
         list.addAll(mDConnectServices.values());
         return list;

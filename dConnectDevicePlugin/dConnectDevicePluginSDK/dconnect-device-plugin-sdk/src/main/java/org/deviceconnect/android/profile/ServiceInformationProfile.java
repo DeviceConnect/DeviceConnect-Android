@@ -14,12 +14,10 @@ import android.os.Bundle;
 
 import org.deviceconnect.android.profile.api.DConnectApi;
 import org.deviceconnect.android.profile.api.GetApi;
-import org.deviceconnect.android.profile.spec.DConnectApiSpec;
-import org.deviceconnect.android.profile.spec.DConnectRequestParamSpec;
-import org.deviceconnect.android.profile.spec.IntegerRequestParamSpec;
-import org.deviceconnect.android.profile.spec.NumberRequestParamSpec;
-import org.deviceconnect.android.profile.spec.StringRequestParamSpec;
+import org.deviceconnect.android.profile.spec.DConnectProfileSpec;
+import org.deviceconnect.android.profile.spec.DConnectSpecConstants;
 import org.deviceconnect.message.DConnectMessage;
+import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 import org.deviceconnect.profile.ServiceInformationProfileConstants;
 
 import java.util.ArrayList;
@@ -41,6 +39,8 @@ public class ServiceInformationProfile extends DConnectProfile implements Servic
      */
     public static final String SETTING_PAGE_PARAMS = "org.deviceconnect.profile.system.setting_params";
 
+    private static final String KEY_PATHS = "paths";
+
     /**
      * Service Information API.
      */
@@ -48,30 +48,7 @@ public class ServiceInformationProfile extends DConnectProfile implements Servic
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            String serviceId = getService().getId();
-
-            // connect
-            Bundle connect = new Bundle();
-            setWifiState(connect, getWifiState(serviceId));
-            setBluetoothState(connect, getBluetoothState(serviceId));
-            setNFCState(connect, getNFCState(serviceId));
-            setBLEState(connect, getBLEState(serviceId));
-            setConnect(response, connect);
-
-            // version
-            setVersion(response, getCurrentVersionName());
-
-            // supports, supportApis
-            List<DConnectProfile> profileList = getService().getProfileList();
-            String[] profileNames = new String[profileList.size()];
-            int i = 0;
-            for (DConnectProfile profile : profileList) {
-                profileNames[i++] = profile.getProfileName();
-            }
-            setSupports(response, profileNames);
-            setSupportApis(response, profileList);
-
-            setResult(response, DConnectMessage.RESULT_OK);
+            appendServiceInformation(response);
             return true;
         }
     };
@@ -86,6 +63,47 @@ public class ServiceInformationProfile extends DConnectProfile implements Servic
     @Override
     public final String getProfileName() {
         return PROFILE_NAME;
+    }
+
+    protected void appendServiceInformation(final Intent response) {
+        // connect
+        Bundle connect = new Bundle();
+        String networkType = getService().getNetworkType();
+        boolean isOnline = getService().isOnline();
+        switch (ServiceDiscoveryProfileConstants.NetworkType.getInstance(networkType)) {
+            case WIFI:
+                setWifiState(connect, isOnline);
+                break;
+            case BLUETOOTH:
+                setBluetoothState(connect, isOnline);
+                break;
+            case BLE:
+                setBLEState(connect, isOnline);
+                break;
+            case NFC:
+                setNFCState(connect, isOnline);
+                break;
+            default:
+                break;
+        }
+        setConnect(response, connect);
+
+        // TODO: getXXXStateメソッドを削除する。
+
+        // version
+        setVersion(response, getCurrentVersionName());
+
+        // supports, supportApis
+        List<DConnectProfile> profileList = getService().getProfileList();
+        String[] profileNames = new String[profileList.size()];
+        int i = 0;
+        for (DConnectProfile profile : profileList) {
+            profileNames[i++] = profile.getProfileName();
+        }
+        setSupports(response, profileNames);
+        setSupportApis(response, profileList);
+
+        setResult(response, DConnectMessage.RESULT_OK);
     }
 
     /**
@@ -187,121 +205,44 @@ public class ServiceInformationProfile extends DConnectProfile implements Servic
 
     public static void setSupportApis(final Intent response, final List<DConnectProfile> profileList) {
         Bundle supportApisBundle = new Bundle();
-        for (DConnectProfile profile : profileList) {
-            String key = profile.getProfileName();
-            Bundle[] supportApis = createSupportApis(profile);
-            supportApisBundle.putParcelableArray(key, supportApis);
+        for (final DConnectProfile profile : profileList) {
+            DConnectProfileSpec profileSpec = profile.getProfileSpec();
+            if (profileSpec != null) {
+                Bundle bundle = createSupportApisBundle(profileSpec, profile);
+                supportApisBundle.putBundle(profile.getProfileName(), bundle);
+            }
         }
         response.putExtra(PARAM_SUPPORT_APIS, supportApisBundle);
     }
 
-    public static Bundle[] createSupportApis(final DConnectProfile profile) {
-        List<Bundle> supports = new ArrayList<Bundle>();
-        for (DConnectApi api : profile.getApiList()) {
-            Bundle support = new Bundle();
-            DConnectApiSpec spec = api.getApiSpec();
-            if (spec != null) {
-                setSupportApi(support, spec);
+    private static Bundle createSupportApisBundle(final DConnectProfileSpec profileSpec,
+                                                  final DConnectProfile profile) {
+        Bundle tmpBundle = new Bundle(profileSpec.toBundle());
+        Bundle pathsObj = tmpBundle.getBundle(KEY_PATHS);
+        if (pathsObj == null) {
+            return tmpBundle;
+        }
+        List<String> pathNames = new ArrayList<String>(pathsObj.keySet());
+        for (String pathName : pathNames) {
+            Bundle pathObj = pathsObj.getBundle(pathName);
+            if (pathObj == null) {
+                continue;
             }
-            supports.add(support);
-        }
-        return supports.toArray(new Bundle[supports.size()]);
-    }
-
-    public static void setSupportApi(final Bundle api, final DConnectApiSpec spec) {
-        setSupportApiName(api, spec.getName());
-        setSupportApiMethod(api, spec.getMethod().getName());
-        setSupportApiPath(api, spec.getPath());
-        setSupportApiParams(api, spec.getRequestParamList());
-    }
-
-    public static void setSupportApiName(final Bundle api, final String name) {
-        api.putString(PARAM_NAME, name);
-    }
-
-    public static void setSupportApiMethod(final Bundle api, final String method) {
-        api.putString(PARAM_METHOD, method);
-    }
-
-    public static void setSupportApiPath(final Bundle api, final String path) {
-        api.putString(PARAM_PATH, path);
-    }
-
-    public static void setSupportApiParams(final Bundle api, final DConnectRequestParamSpec[] paramSpecs) {
-        ArrayList<Bundle> params = new ArrayList<Bundle>();
-        for (DConnectRequestParamSpec paramSpec : paramSpecs) {
-            Bundle param = new Bundle();
-            setRequestParam(param, paramSpec);
-            params.add(param);
-        }
-        api.putParcelableArrayList(PARAM_REQUEST_PARAMS, params);
-    }
-
-    public static void setRequestParam(final Bundle param, final DConnectRequestParamSpec paramSpec) {
-        param.putString(PARAM_NAME, paramSpec.getName());
-        param.putString(PARAM_TYPE, paramSpec.getType().getName());
-        param.putBoolean(PARAM_MANDATORY, paramSpec.isMandatory());
-
-        if (paramSpec instanceof IntegerRequestParamSpec) {
-            IntegerRequestParamSpec intParamSpec = (IntegerRequestParamSpec) paramSpec;
-            param.putString(PARAM_FORMAT, intParamSpec.getFormat().getName());
-            if (intParamSpec.getEnumList() != null) {
-                ArrayList<Bundle> enums = new ArrayList<Bundle>();
-                for (DConnectRequestParamSpec.Enum<Long> e : intParamSpec.getEnumList()) {
-                    Bundle b = new Bundle();
-                    b.putString(PARAM_NAME, e.getName());
-                    b.putLong(PARAM_VALUE, e.getValue());
-                    enums.add(b);
+            for (DConnectSpecConstants.Method method : DConnectSpecConstants.Method.values()) {
+                String methodName = method.getName().toLowerCase();
+                Bundle methodObj = pathObj.getBundle(methodName);
+                if (methodObj == null) {
+                    continue;
                 }
-                param.putParcelableArrayList(PARAM_ENUM, enums);
-            }
-            if (intParamSpec.getMaxValue() != null) {
-                param.putLong(PARAM_MAX_VALUE, intParamSpec.getMaxValue());
-            }
-            if (intParamSpec.getMinValue() != null) {
-                param.putLong(PARAM_MIN_VALUE, intParamSpec.getMinValue());
-            }
-            if (intParamSpec.getExclusiveMaxValue() != null) {
-                param.putLong(PARAM_EXCLUSIVE_MAX_VALUE, intParamSpec.getExclusiveMaxValue());
-            }
-            if (intParamSpec.getExclusiveMinValue() != null) {
-                param.putLong(PARAM_EXCLUSIVE_MIN_VALUE, intParamSpec.getExclusiveMinValue());
-            }
-        } else if (paramSpec instanceof NumberRequestParamSpec) {
-            NumberRequestParamSpec numParamSpec = (NumberRequestParamSpec) paramSpec;
-            param.putString(PARAM_FORMAT, numParamSpec.getFormat().getName());
-            if (numParamSpec.getMaxValue() != null) {
-                param.putDouble(PARAM_MAX_VALUE, numParamSpec.getMaxValue());
-            }
-            if (numParamSpec.getMinValue() != null) {
-                param.putDouble(PARAM_MIN_VALUE, numParamSpec.getMinValue());
-            }
-            if (numParamSpec.getExclusiveMaxValue() != null) {
-                param.putDouble(PARAM_EXCLUSIVE_MAX_VALUE, numParamSpec.getExclusiveMaxValue());
-            }
-            if (numParamSpec.getExclusiveMinValue() != null) {
-                param.putDouble(PARAM_EXCLUSIVE_MIN_VALUE, numParamSpec.getExclusiveMinValue());
-            }
-        } else if (paramSpec instanceof StringRequestParamSpec) {
-            StringRequestParamSpec strParamSpec = (StringRequestParamSpec) paramSpec;
-            param.putString(PARAM_FORMAT, strParamSpec.getFormat().getName());
-            if (strParamSpec.getEnumList() != null) {
-                ArrayList<Bundle> enums = new ArrayList<Bundle>();
-                for (DConnectRequestParamSpec.Enum<String> e : strParamSpec.getEnumList()) {
-                    Bundle b = new Bundle();
-                    b.putString(PARAM_NAME, e.getName());
-                    b.putString(PARAM_VALUE, e.getValue());
-                    enums.add(b);
+                if (!profile.hasApi(pathName, method)) {
+                    pathObj.remove(methodName);
                 }
-                param.putParcelableArrayList(PARAM_ENUM, enums);
             }
-            if (strParamSpec.getMaxLength() != null) {
-                param.putLong(PARAM_MAX_LENGTH, strParamSpec.getMaxLength());
-            }
-            if (strParamSpec.getMinLength() != null) {
-                param.putLong(PARAM_MIN_LENGTH, strParamSpec.getMinLength());
+            if (pathObj.size() == 0) {
+                pathsObj.remove(pathName);
             }
         }
+        return tmpBundle;
     }
 
     /**

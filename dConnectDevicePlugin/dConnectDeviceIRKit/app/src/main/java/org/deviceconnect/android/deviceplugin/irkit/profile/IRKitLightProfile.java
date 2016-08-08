@@ -9,17 +9,21 @@ package org.deviceconnect.android.deviceplugin.irkit.profile;
 import android.content.Intent;
 import android.os.Bundle;
 
-import org.deviceconnect.android.deviceplugin.irkit.IRKitDeviceService;
 import org.deviceconnect.android.deviceplugin.irkit.data.IRKitDBHelper;
 import org.deviceconnect.android.deviceplugin.irkit.data.VirtualProfileData;
+import org.deviceconnect.android.deviceplugin.irkit.service.VirtualService;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.LightProfile;
+import org.deviceconnect.android.profile.api.DConnectApi;
+import org.deviceconnect.android.profile.api.DeleteApi;
+import org.deviceconnect.android.profile.api.GetApi;
+import org.deviceconnect.android.profile.api.PostApi;
 import org.deviceconnect.message.DConnectMessage;
 
 import java.util.List;
 
 /**
- * Lightプロファイル.
+ * 仮想デバイスのLightプロファイル.
  * @author NTT DOCOMO, INC.
  */
 public class IRKitLightProfile extends LightProfile {
@@ -34,37 +38,47 @@ public class IRKitLightProfile extends LightProfile {
      */
     private static final String LIGHT_NAME = "照明";
 
-    @Override
-    protected boolean onGetLight(final Intent request, final Intent response, final String serviceId) {
-        IRKitDBHelper helper = new IRKitDBHelper(getContext());
-        List<VirtualProfileData> requests = helper.getVirtualProfiles(serviceId, "Light");
-        if (requests.size() == 0) {
-            MessageUtils.setNotSupportAttributeError(response);
+    public IRKitLightProfile() {
+        addApi(mGetLightApi);
+        addApi(mPostLightApi);
+        addApi(mDeleteLightApi);
+    }
+
+    private final DConnectApi mGetLightApi = new GetApi() {
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            IRKitDBHelper helper = new IRKitDBHelper(getContext());
+            List<VirtualProfileData> requests =
+                helper.getVirtualProfiles(getServiceID(request), "Light");
+            if (requests.size() == 0) {
+                MessageUtils.setNotSupportAttributeError(response);
+                return true;
+            }
+
+            Bundle[] lights = new Bundle[1];
+            lights[0] = new Bundle();
+            lights[0].putString(PARAM_LIGHT_ID, LIGHT_ID);
+            lights[0].putString(PARAM_NAME, LIGHT_NAME);
+            lights[0].putBoolean(PARAM_ON, false);
+            response.putExtra(PARAM_LIGHTS, lights);
+            setResult(response, DConnectMessage.RESULT_OK);
             return true;
         }
+    };
 
-        Bundle[] lights = new Bundle[1];
-        lights[0] = new Bundle();
-        lights[0].putString(PARAM_LIGHT_ID, LIGHT_ID);
-        lights[0].putString(PARAM_NAME, LIGHT_NAME);
-        lights[0].putBoolean(PARAM_ON, false);
-        response.putExtra(PARAM_LIGHTS, lights);
-        setResult(response, DConnectMessage.RESULT_OK);
-        return true;
-    }
+    private final DConnectApi mPostLightApi = new PostApi() {
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            return sendLightRequest(getServiceID(request), getLightId(request), "POST", response);
+        }
+    };
 
-    @Override
-    protected boolean onPostLight(final Intent request, final Intent response, final String serviceId,
-                                  final String lightId, final Integer color, final Double brightness,
-                                  final long[] flashing) {
-        return sendLightRequest(serviceId, lightId, "POST", response);
-    }
-
-    @Override
-    protected boolean onDeleteLight(final Intent request, final Intent response, final String serviceId,
-                                    final String lightId) {
-        return sendLightRequest(serviceId, lightId, "DELETE", response);
-    }
+    private final DConnectApi mDeleteLightApi = new DeleteApi() {
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            return sendLightRequest(getServiceID(request), getLightId(request), "DELETE", response);
+        }
+    };
 
     /**
      * ライト用の赤外線を送信する.
@@ -90,11 +104,10 @@ public class IRKitLightProfile extends LightProfile {
 
         for (VirtualProfileData req : requests) {
             String uri = req.getUri();
-            if (req.getUri().equals(uri)
+            if (req.getUri().equalsIgnoreCase(uri)
                     && req.getMethod().equals(method)
                     && req.getIr() != null) {
-                final IRKitDeviceService service = (IRKitDeviceService) getContext();
-                return service.sendIR(serviceId, req.getIr(), response);
+                return ((VirtualService) getService()).sendIR(req.getIr(), response);
             } else {
                 MessageUtils.setInvalidRequestParameterError(response, "IR is not registered for that request");
             }

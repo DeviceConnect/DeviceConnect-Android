@@ -321,6 +321,29 @@ public final class SpheroManager implements DeviceInfo.DeviceSensorListener, Dev
         return null;
     }
 
+
+    /**
+     * 未接続の端末一覧から一致するものを削除する.
+     *
+     * @param serviceId サービスID
+     * @return デバイス。無い場合はnull。
+     */
+    public synchronized Robot removeNotConnectedDevice(final String serviceId) {
+        if (mFoundDevices == null) {
+            return null;
+        }
+
+        for (int i = 0; i < mFoundDevices.size(); i++) {
+            if (mFoundDevices.get(i).getIdentifier().equals(serviceId)) {
+                mCounting.remove(serviceId);
+                mDevices.remove(serviceId);
+                return mFoundDevices.remove(i);
+            }
+        }
+
+        return null;
+    }
+
     /**
      * 指定されたIDのSpheroを接続解除する.
      *
@@ -330,7 +353,7 @@ public final class SpheroManager implements DeviceInfo.DeviceSensorListener, Dev
         if (id == null) {
             return;
         }
-        DeviceInfo removed = mDevices.get(id);
+        DeviceInfo removed = mDevices.remove(id);
         if (removed != null) {
             final ConvenienceRobot sphero = removed.getDevice();
             for (int i = 0; i < DISCONNECTION_RETRY_NUM; i++) {
@@ -689,7 +712,9 @@ public final class SpheroManager implements DeviceInfo.DeviceSensorListener, Dev
         if (BuildConfig.DEBUG) {
             Log.d("TEST", "connected device : " + sphero.getRobot().getIdentifier());
         }
-        mDevices.put(sphero.getRobot().getIdentifier(), info);
+        if (!mDevices.contains(sphero.getRobot().getIdentifier())) {
+            mDevices.put(sphero.getRobot().getIdentifier(), info);
+        }
     }
 
     /**
@@ -759,7 +784,9 @@ public final class SpheroManager implements DeviceInfo.DeviceSensorListener, Dev
                     }
                     mCounting.put(robot.getIdentifier(), 1);
                     scanSphero(true);
-                    mFoundDevices.add(robot);
+                    if (getNotConnectedDevice(robot.getIdentifier()) == null) {
+                        mFoundDevices.add(robot);
+                    }
                     if (mDiscoveryListener != null) {
                         mDiscoveryListener.onDeviceFound(cRobot);
                     }
@@ -872,12 +899,13 @@ public final class SpheroManager implements DeviceInfo.DeviceSensorListener, Dev
                         }
                         mCounting.put(serviceId, count);
                         if (count >= SEARCH_RETRY_NUM) {
-                            DeviceInfo info = mDevices.get(serviceId);
-                            ConvenienceRobot robot = info.getDevice();
-                            if (mDiscoveryListener != null && !robot.isConnected()) {
-                                mDiscoveryListener.onDeviceLost(robot);
+                            Robot info = getNotConnectedDevice(serviceId);
+                            if (mDiscoveryListener != null
+                                    && info != null
+                                    && !info.isConnected()) {
+                                mDiscoveryListener.onDeviceLost(new ConvenienceRobot(info));
                             }
-                            mCounting.remove(serviceId);
+                            mCounting.put(serviceId, 0);
                             if (mCounting.size() == 0) {
                                 mScanning = false;
                                 cancelScanTimer();

@@ -105,7 +105,6 @@ public class DeviceSelectionPageFragment extends Fragment implements DeviceContr
         ((SettingActivity) activity).setDeviceControlListener(this);
         mAdapter = new DeviceListAdapter(getActivity());
         mAdapter.setOnConnectButtonClickListener(this);
-        ((SettingActivity) activity).sendGetConnectedDevicesBroadcast();
         ((SettingActivity) activity).sendGetFoundedDevicesBroadcast();
     }
 
@@ -120,27 +119,7 @@ public class DeviceSelectionPageFragment extends Fragment implements DeviceContr
         mListView.setAdapter(mAdapter);
         mListView.setItemsCanFocus(true);
         mProgressZone = root.findViewById(R.id.progress_zone);
-//        if (savedInstanceState != null) {
-//            mSearchingVisibility = savedInstanceState.getInt(KEY_PROGRESS_VISIBILITY);
-//        }
-//
-//        if (mSearchingVisibility == -1 || mAdapter.getCount() != 0) {
-//            mProgressZone.setVisibility(View.GONE);
-//        }
-//
-        
         return root;
-    }
-
-    @Override
-    public void onSaveInstanceState(final Bundle outState) {
-        super.onSaveInstanceState(outState);
-        
-//        View root = getView();
-//        if (root != null) {
-//            View progressZone = root.findViewById(R.id.progress_zone);
-//            outState.putInt(KEY_PROGRESS_VISIBILITY, progressZone.getVisibility());
-//        }
     }
 
     @Override

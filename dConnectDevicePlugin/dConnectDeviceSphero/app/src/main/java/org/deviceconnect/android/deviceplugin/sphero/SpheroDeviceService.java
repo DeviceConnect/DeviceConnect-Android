@@ -190,30 +190,28 @@ public class SpheroDeviceService extends DConnectMessageService implements Devic
                 LocalBroadcastManager.getInstance(this).sendBroadcast(res);
             } else if (action.equals(ACTION_GET_FOUND)) {
                 List<Robot> devices = SpheroManager.INSTANCE.getFoundDevices();
-                Collection<DeviceInfo> connectedDevices = SpheroManager.INSTANCE.getConnectedDevices();
                 Intent res = new Intent();
                 res.setAction(SettingActivity.ACTION_ADD_FOUNDED_DEVICE);
                 ArrayList<SpheroParcelable> devs = new ArrayList<SpheroParcelable>();
                 for (Robot device : devices) {
                     DConnectService service = getServiceProvider().getService(device.getIdentifier());
+                    DeviceInfo info = SpheroManager.INSTANCE.getDevice(device.getIdentifier());
                     if (service == null) {
-                        DeviceInfo info = SpheroManager.INSTANCE.getDevice(device.getIdentifier());
                         if (info != null) {
                             service = new SpheroService(info);
                             getServiceProvider().addService(service);
                         }
                     }
-                    for (DeviceInfo dInfo : connectedDevices) {
-                        if (dInfo.getDevice().getRobot().getIdentifier().equals(device.getIdentifier())
-                                && device.isOnline()) {
-                            devs.add(new SpheroParcelable(device.getIdentifier(),
-                                    device.getName(),
-                                    SpheroParcelable.SpheroState.Connected));
-                        } else {
-                            devs.add(new SpheroParcelable(device.getIdentifier(),
-                                    device.getName(),
-                                    SpheroParcelable.SpheroState.Delete));
-                        }
+                    if (info != null
+                            && info.getDevice().getRobot().getIdentifier().equals(device.getIdentifier())
+                            && device.isOnline()) {
+                        devs.add(new SpheroParcelable(device.getIdentifier(),
+                                device.getName(),
+                                SpheroParcelable.SpheroState.Connected));
+                    } else {
+                        devs.add(new SpheroParcelable(device.getIdentifier(),
+                                device.getName(),
+                                SpheroParcelable.SpheroState.Delete));
                     }
                 }
                 res.putParcelableArrayListExtra(SettingActivity.EXTRA_DEVICES, devs);
@@ -224,7 +222,7 @@ public class SpheroDeviceService extends DConnectMessageService implements Devic
 
                 DConnectService service = getServiceProvider().getService(id);
                 if (service != null) {
-                    service.setOnline(false);
+                    SpheroManager.INSTANCE.removeNotConnectedDevice(id);
                     getServiceProvider().removeService(id);
                     sendDevice(SettingActivity.ACTION_DELETED, new ConvenienceRobot(device), SpheroParcelable.SpheroState.Delete);
                 }

@@ -176,6 +176,11 @@
     <string name="activity_service_list_offline_positive">設定を開く</string>
     <string name="activity_service_list_offline_negative">閉じる</string>
 
+    <string name="activity_websocket_delete_title">WebSocket削除確認</string>
+    <string name="activity_websocket_delete_message">WebSocketを閉じて良いでしょうか？</string>
+    <string name="activity_websocket_delete_positive">はい</string>
+    <string name="activity_websocket_delete_negative">いいえ</string>
+
     <!-- =================     WebViewActivity     ================= -->
     <string name="webview_js_alert_positive_btn">はい</string>
     <string name="webview_js_alert_negative_btn">いいえ</string>

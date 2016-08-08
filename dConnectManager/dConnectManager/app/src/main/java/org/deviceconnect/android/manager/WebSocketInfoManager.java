@@ -17,9 +17,15 @@ public class WebSocketInfoManager {
     private Context mContext;
     private DevicePluginManager mDevicePluginManager;
 
+    private OnWebSocketEventListener mOnWebSocketEventListener;
+
     public WebSocketInfoManager(final Context context) {
         mContext = context;
         mDevicePluginManager = ((DConnectApplication) mContext).getDevicePluginManager();
+    }
+
+    public void setOnWebSocketEventListener(final OnWebSocketEventListener onWebSocketEventListener) {
+        mOnWebSocketEventListener = onWebSocketEventListener;
     }
 
     public void addWebSocketInfo(final String eventKey, final String uri) {
@@ -34,6 +40,10 @@ public class WebSocketInfoManager {
         WebSocketInfo info = mWebSocketInfoMap.remove(eventKey);
         if (info != null) {
             notifyDisconnectWebSocket(info.getEventKey());
+
+            if (mOnWebSocketEventListener != null) {
+                mOnWebSocketEventListener.onDisconnect(eventKey);
+            }
         }
     }
 
@@ -56,5 +66,9 @@ public class WebSocketInfoManager {
             request.putExtra(IntentDConnectMessage.EXTRA_SESSION_KEY, sessionKey + DConnectMessageService.SEPARATOR + serviceId);
             mContext.sendBroadcast(request);
         }
+    }
+
+    public interface OnWebSocketEventListener {
+        void onDisconnect(String sessionKey);
     }
 }

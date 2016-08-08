@@ -16,7 +16,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Base64;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.webkit.JavascriptInterface;
@@ -110,6 +109,22 @@ public class WebViewActivity extends Activity {
 
             mWebView.loadUrl(url);
         }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (mWebView != null) {
+            mWebView.resumeTimers();
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        if (mWebView != null) {
+            mWebView.pauseTimers();
+        }
+        super.onPause();
     }
 
     @Override

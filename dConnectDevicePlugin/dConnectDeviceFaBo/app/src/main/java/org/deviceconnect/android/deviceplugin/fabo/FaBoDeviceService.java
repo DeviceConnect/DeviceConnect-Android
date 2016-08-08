@@ -40,6 +40,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.logging.Logger;
 
 /**
  * 本デバイスプラグインのプロファイルをDeviceConnectに登録するサービス.
@@ -49,6 +50,9 @@ public class FaBoDeviceService extends DConnectMessageService {
 
     /** Tag. */
     private final static String TAG = "FABO_PLUGIN_SERVICE";
+
+    /** ロガー. */
+    private final Logger mLogger = Logger.getLogger("fabo.dplugin");
 
     /** USB Port. */
     private static UsbSerialPort mSerialPort = null;
@@ -120,6 +124,66 @@ public class FaBoDeviceService extends DConnectMessageService {
 
         // FaBoサービスを登録.
         getServiceProvider().addService(new FaBoService());
+    }
+
+    @Override
+    protected void onManagerUninstalled() {
+        // Managerアンインストール検知時の処理。
+        if (BuildConfig.DEBUG) {
+            mLogger.info("Plug-in : onManagerUninstalled");
+        }
+    }
+
+    @Override
+    protected void onManagerTerminated() {
+        // Manager正常終了通知受信時の処理。
+        if (BuildConfig.DEBUG) {
+            mLogger.info("Plug-in : onManagerTerminated");
+        }
+    }
+
+    @Override
+    protected void onManagerEventTransmitDisconnected(String sessionKey) {
+        // ManagerのEvent送信経路切断通知受信時の処理。
+        if (BuildConfig.DEBUG) {
+            mLogger.info("Plug-in : onManagerEventTransmitDisconnected");
+        }
+        if (sessionKey != null) {
+            EventManager.INSTANCE.removeEvents(sessionKey);
+            List<Event> events = EventManager.INSTANCE.getEventList(FaBoGPIOProfile.PROFILE_NAME,
+                    FaBoGPIOProfile.ATTRIBUTE_ON_CHANGE);
+            for (Event event : events) {
+                if (event.getSessionKey().equals(sessionKey)) {
+                    String serviceId = event.getServiceId();
+                    Iterator serviceIds = mServiceIdStore.iterator();
+                    while(serviceIds.hasNext()){
+                        String tmpServiceId = (String)serviceIds.next();
+                        if(tmpServiceId.equals(serviceId)) serviceIds.remove();
+                    }
+                }
+            }
+        } else {
+            resetPluginResource();
+        }
+    }
+
+    @Override
+    protected void onDevicePluginReset() {
+        // Device Plug-inへのReset要求受信時の処理。
+        if (BuildConfig.DEBUG) {
+            mLogger.info("Plug-in : onDevicePluginReset");
+        }
+        resetPluginResource();
+    }
+
+    /**
+     * リソースリセット処理.
+     */
+    private void resetPluginResource() {
+        /** 全イベント削除. */
+        EventManager.INSTANCE.removeAll();
+        /** serviceId保持テーブル リセット. */
+        mServiceIdStore.clear();
     }
 
     /**

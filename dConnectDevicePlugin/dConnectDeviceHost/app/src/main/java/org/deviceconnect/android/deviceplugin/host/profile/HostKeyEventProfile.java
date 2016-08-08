@@ -247,4 +247,22 @@ public class HostKeyEventProfile extends KeyEventProfile {
         ActivityManager activityMgr = (ActivityManager) getContext().getSystemService(Service.ACTIVITY_SERVICE);
         return activityMgr.getRunningTasks(1).get(0).topActivity.getClassName();
     }
+
+    /**
+     * Check set KeyEvent event manage flag.
+     *
+     * @return  set flag is true, otherwise false.
+     */
+    private boolean isSetKeyEventManageFlag() {
+        return sFlagKeyEventEventManage != 0;
+    }
+
+    /**
+     * Reset KeyEvent profile.
+     */
+    public void resetKeyEventProfile() {
+        if (isSetKeyEventManageFlag()) {
+            resetKeyEventEventFlag(FLAG_ON_DOWN | FLAG_ON_UP);
+        }
+    }
 }

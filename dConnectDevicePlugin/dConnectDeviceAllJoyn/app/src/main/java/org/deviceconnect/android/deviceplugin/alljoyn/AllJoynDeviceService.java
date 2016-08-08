@@ -28,6 +28,30 @@ public class AllJoynDeviceService extends DConnectMessageService
     }
 
     @Override
+    protected void onManagerUninstalled() {
+        // Managerアンインストール検知時の処理
+        if (BuildConfig.DEBUG) {
+            Log.i(getClass().getSimpleName(),"Plug-in : onManagerUninstalled");
+        }
+    }
+
+    @Override
+    protected void onManagerTerminated() {
+        // Manager正常終了通知受信時の処理
+        if (BuildConfig.DEBUG) {
+            Log.i(getClass().getSimpleName(),"Plug-in : onManagerTerminated");
+        }
+    }
+
+    @Override
+    protected void onDevicePluginReset() {
+        // Device Plug-inへのReset要求受信時の処理
+        if (BuildConfig.DEBUG) {
+            Log.i(getClass().getSimpleName(),"Plug-in : onDevicePluginReset");
+        }
+    }
+
+    @Override
     protected SystemProfile getSystemProfile() {
         return new AllJoynSystemProfile();
     }

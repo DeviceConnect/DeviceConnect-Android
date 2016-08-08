@@ -15,7 +15,6 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.ResultReceiver;
 import android.provider.Settings;
-import android.text.TextUtils;
 
 import org.deviceconnect.android.activity.IntentHandlerActivity;
 import org.deviceconnect.android.deviceplugin.theta.ThetaDeviceService;
@@ -383,4 +382,20 @@ public class ThetaOmnidirectionalImageProfile extends OmnidirectionalImageProfil
         return param;
     }
 
+    public void forceStopPreview() {
+        /** プレビュー停止処理 */
+        mExecutor.execute(new Runnable() {
+            @Override
+            public void run() {
+                for (Map.Entry<String, Viewer> entry : mViewers.entrySet()) {
+                    Viewer viewer = entry.getValue();
+                    if (viewer != null) {
+                        viewer.stop();
+                        mServer.stopMedia(viewer.getId());
+                        mViewers.remove(viewer.getId());
+                    }
+                }
+            }
+        });
+    }
 }

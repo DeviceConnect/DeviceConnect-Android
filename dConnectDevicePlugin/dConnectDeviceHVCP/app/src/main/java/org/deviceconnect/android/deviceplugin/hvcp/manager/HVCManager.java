@@ -41,7 +41,7 @@ public enum HVCManager {
     INSTANCE;
 
     /** TAG. */
-    private static final String TAG = "AAA";
+    private static final String TAG = "HVCManager";
     /** Okao Execute Command. */
     private static final String OKAO_EXECUTE = "FE040300FF0102";
 
@@ -566,6 +566,19 @@ public enum HVCManager {
         removeEventList(serviceId, camera);
     }
 
+    /**
+     * Remove all event listener.
+     */
+    public void removeAllEventListener() {
+        for (String key : mServices.keySet()) {
+            HVCCameraInfo camera = mServices.get(key);
+            camera.setBodyEvent(null);
+            camera.setFaceEvent(null);
+            camera.setFaceRecognizeEvent(null);
+            camera.setHandEvent(null);
+            mEventList.remove(camera.getID());
+        }
+    }
 
     /**
      * Start USB binary read thread.

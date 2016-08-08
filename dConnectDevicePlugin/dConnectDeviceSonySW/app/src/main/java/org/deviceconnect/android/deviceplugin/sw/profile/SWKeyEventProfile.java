@@ -229,4 +229,12 @@ public class SWKeyEventProfile extends KeyEventProfile {
     private void sendToHostApp(final Intent request) {
         ((SWService) getService()).sendRequest(request);
     }
+
+    /**
+     * Release KeyEvent.
+     */
+    public void releaseKeyEvent() {
+        sFlagKeyEventEventManage = 0;
+        clearKeyEventScreen();
+    }
 }

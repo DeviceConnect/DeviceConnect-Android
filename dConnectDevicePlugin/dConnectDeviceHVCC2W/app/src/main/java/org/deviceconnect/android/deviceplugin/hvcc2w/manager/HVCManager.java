@@ -63,7 +63,7 @@ public enum HVCManager {
 
 
     /** TAG. */
-    private static final String TAG = "ABC";
+    private static final String TAG = "HVCManager";
     /** Based request URL of the Web API. */
     private static final String HVC_SERVICE_URL = "https://developer.hvc.omron.com/c2w";
 
@@ -424,6 +424,19 @@ public enum HVCManager {
         removeEventList(serviceId, camera);
     }
 
+    /**
+     * Remove all event listener.
+     */
+    public void removeAllEventListener() {
+        for (String key : mServices.keySet()) {
+            HVCCameraInfo camera = mServices.get(key);
+            camera.setBodyEvent(null);
+            camera.setFaceEvent(null);
+            camera.setFaceRecognizeEvent(null);
+            camera.setHandEvent(null);
+            mEventList.remove(camera.getID());
+        }
+    }
 
     /**
      * Start Event Timer.

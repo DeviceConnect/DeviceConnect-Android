@@ -92,8 +92,55 @@ public class HvcDeviceService extends DConnectMessageService {
         addProfile(new HvcServiceDiscoveryProfile(getServiceProvider()));
         addProfile(new HvcHumanDetectProfile());
         
-        // start timeout judget timer.
+        // start timeout judge timer.
         startTimeoutJudgeTimer();
+    }
+
+    @Override
+    protected void onManagerUninstalled() {
+        // Managerアンインストール検知時の処理。
+        if (DEBUG) {
+            Log.i(TAG, "Plug-in : onManagerUninstalled");
+        }
+        resetPluginResource();
+    }
+
+    @Override
+    protected void onManagerTerminated() {
+        // Manager正常終了通知受信時の処理。
+        if (DEBUG) {
+            Log.i(TAG, "Plug-in : onManagerTerminated");
+        }
+    }
+
+    @Override
+    protected void onManagerEventTransmitDisconnected(String sessionKey) {
+        // ManagerのEvent送信経路切断通知受信時の処理。
+        if (DEBUG) {
+            Log.i(TAG, "Plug-in : onManagerEventTransmitDisconnected");
+        }
+        if (sessionKey != null) {
+            unregisterDetectionEventByMatchedSessionKey(sessionKey);
+        } else {
+            removeAllDetectEvent();
+        }
+    }
+
+    @Override
+    protected void onDevicePluginReset() {
+        // Device Plug-inへのReset要求受信時の処理。
+        if (DEBUG) {
+            Log.i(TAG, "Plug-in : onDevicePluginReset");
+        }
+        resetPluginResource();
+    }
+
+    /**
+     * リソースリセット処理.
+     */
+    private void resetPluginResource() {
+        /** 全イベント削除. */
+        removeAllDetectEvent();
     }
 
     @Override
@@ -270,6 +317,52 @@ public class HvcDeviceService extends DConnectMessageService {
         response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
         response.putExtra(DConnectMessage.EXTRA_VALUE, "Unregister OnDetection event");
         sendResponse(response);
+    }
+
+    /**
+     * Human Detect Profile unregister detection event by matched sessionKey.
+     * @param sessionKey sessionKey
+     */
+    private void unregisterDetectionEventByMatchedSessionKey(final String sessionKey) {
+        for (HvcCommManager commManager : mHvcCommManagerArray) {
+            commManager.removeDetectEvent(sessionKey);
+            HumanDetectKind kind;
+            for (int i = 0; i < 3; i++) {
+                switch (i) {
+                    case 0:
+                        kind = HumanDetectKind.BODY;
+                        break;
+                    case 1:
+                        kind = HumanDetectKind.FACE;
+                        break;
+                    case 2:
+                    default:
+                        kind = HumanDetectKind.HAND;
+                        break;
+                }
+                Long interval = commManager.getEventInterval(kind, sessionKey);
+                if (interval != null) {
+                    stopIntervalTimer(interval);
+                }
+            }
+        }
+    }
+
+    /**
+     * remove all detect event.
+     */
+    private void removeAllDetectEvent() {
+        for (HvcCommManager commManager : mHvcCommManagerArray) {
+            /** 全イベント解除 */
+            commManager.removeAllDetectEvent();
+            /** 全インターバルタイマー削除 */
+            int count = mIntervalTimerInfoArray.size();
+            for (int index = (count - 1); index >= 0; index--) {
+                HvcTimerInfo timerInfo = mIntervalTimerInfoArray.get(index);
+                timerInfo.stopTimer();
+                mIntervalTimerInfoArray.remove(index);
+            }
+        }
     }
 
     /**

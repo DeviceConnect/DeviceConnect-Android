@@ -359,7 +359,7 @@ public class MixedReplaceMediaServer {
         /**
          * Queue that holds the media.
          */
-        private final BlockingQueue<byte[]> mMediaQueue = new ArrayBlockingQueue<byte[]>(MAX_MEDIA_CACHE);
+        private final BlockingQueue<byte[]> mMediaQueue = new ArrayBlockingQueue<>(MAX_MEDIA_CACHE);
         
         /**
          * Constructor.
@@ -465,12 +465,11 @@ public class MixedReplaceMediaServer {
          * @throws IOException if an error occurs while sending media data.
          */
         private void sendMedia(final byte[] media) throws IOException {
-            StringBuilder sb = new StringBuilder();
-            sb.append("--" + mBoundary + "\r\n");
-            sb.append("Content-type: " + mContentType + "\r\n");
-            sb.append("Content-Length: " + media.length + "\r\n");
-            sb.append("\r\n");
-            mStream.write(sb.toString().getBytes());
+            String sb = ("--" + mBoundary + "\r\n") +
+                    "Content-type: " + mContentType + "\r\n" +
+                    "Content-Length: " + media.length + "\r\n" +
+                    "\r\n";
+            mStream.write(sb.getBytes());
             mStream.write(media);
             mStream.write("\r\n\r\n".getBytes());
             mStream.flush();
@@ -585,19 +584,17 @@ public class MixedReplaceMediaServer {
      * @return http header
      */
     private String generateHttpHeader() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("HTTP/1.0 200 OK\r\n");
-        sb.append("Server: " + mServerName + "\r\n");
-        sb.append("Connection: close\r\n");
-        sb.append("Max-Age: 0\r\n");
-        sb.append("Expires: 0\r\n");
-        sb.append("Cache-Control: no-store, no-cache, must-revalidate, pre-check=0, post-check=0, max-age=0\r\n");
-        sb.append("Pragma: no-cache\r\n");
-        sb.append("Content-Type: multipart/x-mixed-replace; ");
-        sb.append("boundary=" + mBoundary + "\r\n");
-        sb.append("\r\n");
-        sb.append("--" + mBoundary + "\r\n");
-        return sb.toString();
+        return "HTTP/1.0 200 OK\r\n" +
+                "Server: " + mServerName + "\r\n" +
+                "Connection: close\r\n" +
+                "Max-Age: 0\r\n" +
+                "Expires: 0\r\n" +
+                "Cache-Control: no-store, no-cache, must-revalidate, pre-check=0, post-check=0, max-age=0\r\n" +
+                "Pragma: no-cache\r\n" +
+                "Content-Type: multipart/x-mixed-replace; " +
+                "boundary=" + mBoundary + "\r\n" +
+                "\r\n" +
+                "--" + mBoundary + "\r\n";
     }
     
     /**
@@ -630,11 +627,9 @@ public class MixedReplaceMediaServer {
      * @return http header
      */
     private String generateErrorHeader(final String status) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("HTTP/1.0 " + status + " OK\r\n");
-        sb.append("Server: " + mServerName + "\r\n");
-        sb.append("Connection: close\r\n");
-        sb.append("\r\n");
-        return sb.toString();
+        return ("HTTP/1.0 " + status + " OK\r\n") +
+                "Server: " + mServerName + "\r\n" +
+                "Connection: close\r\n" +
+                "\r\n";
     }
 }

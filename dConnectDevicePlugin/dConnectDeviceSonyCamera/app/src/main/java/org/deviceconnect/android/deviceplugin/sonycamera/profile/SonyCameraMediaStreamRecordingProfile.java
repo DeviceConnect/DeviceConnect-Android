@@ -49,7 +49,7 @@ public class SonyCameraMediaStreamRecordingProfile extends MediaStreamRecordingP
         public boolean onRequest(final Intent request, final Intent response) {
             String sessionKey = getSessionKey(request);
             if (sessionKey == null) {
-                MessageUtils.setInvalidRequestParameterError(response, "Not found sessionKey:" + sessionKey);
+                MessageUtils.setInvalidRequestParameterError(response, "Not found sessionKey");
             } else {
                 EventError error = EventManager.INSTANCE.addEvent(request);
                 if (error == EventError.NONE) {

@@ -408,6 +408,14 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
         }
     }
 
+    public synchronized void stopPreviewAllUVCDevice() {
+        List<UVCDevice> deviceList = mDeviceMgr.getDeviceList();
+        for (UVCDevice device : deviceList) {
+            device.stopPreview();
+            stopMediaServer(device.getId());
+        }
+    }
+
     private static class PreviewContext {
 
         Integer mWidth;

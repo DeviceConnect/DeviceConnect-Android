@@ -19,7 +19,7 @@ public class SWProvider<T extends Service> extends DConnectMessageServiceProvide
     @SuppressWarnings("unchecked")
     @Override
     protected Class<Service> getServiceClass() {
-        Class<? extends Service> clazz = (Class<? extends Service>) SWService.class;
+        Class<? extends Service> clazz = (Class<? extends Service>) SWDeviceService.class;
         return (Class<Service>) clazz;
     }
 

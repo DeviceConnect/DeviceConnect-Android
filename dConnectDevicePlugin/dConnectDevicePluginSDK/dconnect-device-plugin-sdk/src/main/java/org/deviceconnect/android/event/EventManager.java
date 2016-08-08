@@ -6,14 +6,14 @@
  */
 package org.deviceconnect.android.event;
 
-import java.util.List;
+import android.content.ComponentName;
+import android.content.Intent;
 
 import org.deviceconnect.android.event.cache.EventCacheController;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.message.DConnectMessage;
 
-import android.content.ComponentName;
-import android.content.Intent;
+import java.util.List;
 
 /**
  * イベント管理クラス. イベントの登録、解除、送信などはこのクラスを通すことで一元管理される。
@@ -165,7 +165,11 @@ public enum EventManager {
     public List<Event> getEventList(final String serviceId, final String profile, 
             final String inter, final String attribute) {
         checkState();
-        return mController.getEvents(serviceId, profile, inter, attribute);
+        // XXXX パスの大文字小文字を無視
+        return mController.getEvents(serviceId,
+            profile != null ? profile.toLowerCase() : null,
+            inter != null ? inter.toLowerCase() : null,
+            attribute != null ? attribute.toLowerCase() : null);
     }
     
     /**

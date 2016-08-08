@@ -10,6 +10,7 @@ import android.app.AlertDialog;
 import android.app.Fragment;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
@@ -28,6 +29,7 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import org.deviceconnect.android.deviceplugin.irkit.IRKitDeviceService;
 import org.deviceconnect.android.deviceplugin.irkit.R;
 import org.deviceconnect.android.deviceplugin.irkit.data.IRKitDBHelper;
 import org.deviceconnect.android.deviceplugin.irkit.data.VirtualDeviceData;
@@ -275,7 +277,11 @@ public class IRKitVirtualDeviceFragment extends Fragment
         boolean isRemoved = false;
         for (int i = 0; i < mIsRemoves.size(); i++) {
             if (mIsRemoves.get(i).booleanValue()) {
-                isRemoved = mDBHelper.removeVirtualDevice(mVirtuals.get(i));
+                VirtualDeviceData device = mVirtuals.get(i);
+                isRemoved = mDBHelper.removeVirtualDevice(device);
+                if (isRemoved) {
+                    sendEventOnRemoved(device);
+                }
             }
         }
         if (isRemoved) {
@@ -287,6 +293,14 @@ public class IRKitVirtualDeviceFragment extends Fragment
                     getString(R.string.remove_virtual_device_title),
                     getString(R.string.remove_virtual_device_failure));
         }
+    }
+
+    private void sendEventOnRemoved(final VirtualDeviceData device) {
+        Intent intent = new Intent();
+        intent.setClass(getActivity(), IRKitDeviceService.class);
+        intent.setAction(IRKitDeviceService.ACTION_VIRTUAL_DEVICE_REMOVED);
+        intent.putExtra(IRKitDeviceService.EXTRA_VIRTUAL_DEVICE_ID, device.getServiceId());
+        getActivity().startService(intent);
     }
 
     /**

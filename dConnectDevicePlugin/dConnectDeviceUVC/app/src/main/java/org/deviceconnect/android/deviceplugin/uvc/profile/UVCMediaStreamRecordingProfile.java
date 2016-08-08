@@ -19,6 +19,10 @@ import org.deviceconnect.android.deviceplugin.uvc.UVCDeviceManager;
 import org.deviceconnect.android.deviceplugin.uvc.utils.MixedReplaceMediaServer;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.MediaStreamRecordingProfile;
+import org.deviceconnect.android.profile.api.DConnectApi;
+import org.deviceconnect.android.profile.api.DeleteApi;
+import org.deviceconnect.android.profile.api.GetApi;
+import org.deviceconnect.android.profile.api.PutApi;
 import org.deviceconnect.message.DConnectMessage;
 
 import java.io.ByteArrayOutputStream;
@@ -52,60 +56,6 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
     private final UVCDeviceManager mDeviceMgr;
 
     private final Map<String, PreviewContext> mContexts = new HashMap<String, PreviewContext>();
-
-    private final RequestParam[] mPreviewParams = {
-        new RequestParam(PARAM_TARGET, RequestParam.Type.STRING, true, new RequestParam.Range() {
-            @Override
-            boolean check(final String target) {
-                return RECORDER_ID.equals(target);
-            }
-        })
-    };
-
-    private final RequestParam[] mOptionsPutParams = {
-        new RequestParam(PARAM_TARGET, RequestParam.Type.STRING, true, new RequestParam.Range() {
-            @Override
-            boolean check(final String target) {
-                return RECORDER_ID.equals(target);
-            }
-        }),
-        new RequestParam(PARAM_IMAGE_WIDTH, RequestParam.Type.INT, true, new RequestParam.Range() {
-            @Override
-            boolean check(final int width) {
-                return width > 0;
-            }
-        }),
-        new RequestParam(PARAM_IMAGE_HEIGHT, RequestParam.Type.INT, true, new RequestParam.Range() {
-            @Override
-            boolean check(final int height) {
-                return height > 0;
-            }
-        }),
-        new RequestParam(PARAM_PREVIEW_WIDTH, RequestParam.Type.INT, true, new RequestParam.Range() {
-            @Override
-            boolean check(final int width) {
-                return width > 0;
-            }
-        }),
-        new RequestParam(PARAM_PREVIEW_HEIGHT, RequestParam.Type.INT, true, new RequestParam.Range() {
-            @Override
-            boolean check(final int height) {
-                return height > 0;
-            }
-        }),
-        new RequestParam(PARAM_PREVIEW_MAX_FRAME_RATE, RequestParam.Type.DOUBLE, true, new RequestParam.Range() {
-            @Override
-            boolean check(final double maxFrameRate) {
-                return maxFrameRate > 0.0d;
-            }
-        }),
-        new RequestParam(PARAM_MIME_TYPE, RequestParam.Type.STRING, false, new RequestParam.Range() {
-            @Override
-            boolean check(final String mimeType) {
-                return RECORDER_MIME_TYPE_MJPEG.equals(mimeType);
-            }
-        }),
-    };
 
     private final UVCDeviceManager.PreviewListener mPreviewListener
         = new UVCDeviceManager.PreviewListener() {
@@ -147,37 +97,256 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
 
     private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
 
+    private final DConnectApi mGetMediaRecorderApi = new GetApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_MEDIARECORDER;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            mExecutor.execute(new Runnable() {
+                @Override
+                public void run() {
+                    UVCDevice device = mDeviceMgr.getDevice(getServiceID(request));
+                    if (device == null) {
+                        MessageUtils.setNotFoundServiceError(response);
+                        sendResponse(response);
+                        return;
+                    }
+                    if (!device.isInitialized()) {
+                        MessageUtils.setIllegalDeviceStateError(response,
+                            "UVC device is not permitted by user: " + device.getName());
+                        sendResponse(response);
+                        return;
+                    }
+
+                    setMediaRecorders(response, device);
+                    setResult(response, DConnectMessage.RESULT_OK);
+                    sendResponse(response);
+                }
+            });
+            return false;
+        }
+    };
+
+    private final DConnectApi mGetOptionsApi = new GetApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_OPTIONS;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            mExecutor.execute(new Runnable() {
+                @Override
+                public void run() {
+                    UVCDevice device = mDeviceMgr.getDevice(getServiceID(request));
+                    if (device == null) {
+                        MessageUtils.setNotFoundServiceError(response);
+                        sendResponse(response);
+                        return;
+                    }
+                    String target = getTarget(request);
+                    if (target != null && !RECORDER_ID.equals(target)) {
+                        MessageUtils.setInvalidRequestParameterError(response,
+                            "No such target: " + target);
+                        sendResponse(response);
+                        return;
+                    }
+                    if (!device.isOpen()) {
+                        if (!mDeviceMgr.connectDevice(device)) {
+                            MessageUtils.setIllegalDeviceStateError(response, "Failed to open UVC device: " + device.getId());
+                            sendResponse(response);
+                            return;
+                        }
+                    }
+                    if (!device.canPreview()) {
+                        MessageUtils.setNotSupportAttributeError(response, "UVC device does not support MJPEG format: " + device.getId());
+                        sendResponse(response);
+                        return;
+                    }
+
+                    setOptions(response, device);
+                    setResult(response, DConnectMessage.RESULT_OK);
+                    sendResponse(response);
+                }
+            });
+            return false;
+        }
+    };
+
+    private final DConnectApi mPutOptionsApi = new PutApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_OPTIONS;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            mExecutor.execute(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        String serviceId = getServiceID(request);
+                        Integer imageWidth = getImageWidth(request);
+                        Integer imageHeight = getImageHeight(request);
+                        Integer previewWidth = getPreviewWidth(request);
+                        Integer previewHeight = getPreviewHeight(request);
+                        Double previewMaxFrameRate = getPreviewMaxFrameRate(request);
+
+                        UVCDevice device = mDeviceMgr.getDevice(serviceId);
+                        if (device == null) {
+                            MessageUtils.setNotFoundServiceError(response);
+                            return;
+                        }
+                        if (imageWidth != null && imageHeight == null) {
+                            MessageUtils.setNotFoundServiceError(response,
+                                "imageHeight must not be null if imageWidth is not null.");
+                            return;
+                        }
+                        if (imageWidth == null && imageHeight != null) {
+                            MessageUtils.setNotFoundServiceError(response,
+                                "imageWidth must not be null if imageHeight is not null.");
+                            return;
+                        }
+                        if (previewWidth != null && previewHeight == null) {
+                            MessageUtils.setNotFoundServiceError(response,
+                                "previewHeight must not be null if previewWidth is not null.");
+                            return;
+                        }
+                        if (previewWidth == null && previewHeight != null) {
+                            MessageUtils.setNotFoundServiceError(response,
+                                "previewWidth must not be null if previewHeight is not null.");
+                            return;
+                        }
+                        if (!device.isOpen()) {
+                            if (!mDeviceMgr.connectDevice(device)) {
+                                MessageUtils.setIllegalDeviceStateError(response, "Failed to open UVC device: " + device.getId());
+                                return;
+                            }
+                        }
+                        if (!device.canPreview()) {
+                            MessageUtils.setNotSupportAttributeError(response, "UVC device does not support MJPEG format: " + device.getId());
+                            return;
+                        }
+
+                        if (previewWidth != null && previewHeight != null) {
+                            if (device.setPreviewSize(previewWidth, previewHeight)) {
+                                setResult(response, DConnectMessage.RESULT_OK);
+                            } else {
+                                MessageUtils.setUnknownError(response, "Failed to change preview size: "
+                                    + imageWidth + " x " + imageHeight);
+                                return;
+                            }
+                        }
+                        if (previewMaxFrameRate != null) {
+                            device.setPreviewFrameRate(previewMaxFrameRate);
+                        }
+                    } finally {
+                        sendResponse(response);
+                    }
+                }
+            });
+            return false;
+        }
+    };
+
+    private final DConnectApi mPutPreviewApi = new PutApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_PREVIEW;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            mExecutor.execute(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        UVCDevice device = mDeviceMgr.getDevice(getServiceID(request));
+                        if (device == null) {
+                            MessageUtils.setNotFoundServiceError(response);
+                            return;
+                        }
+                        if (!device.isOpen()) {
+                            if (!mDeviceMgr.connectDevice(device)) {
+                                MessageUtils.setIllegalDeviceStateError(response, "Failed to open UVC device: " + device.getId());
+                                return;
+                            }
+                        }
+                        if (!device.canPreview()) {
+                            MessageUtils.setNotSupportAttributeError(response, "UVC device does not support MJPEG format: " + device.getId());
+                            return;
+                        }
+                        if (device.startPreview()) {
+                            PreviewContext context = startMediaServer(device.getId());
+                            if (context.mServer.getUrl() == null) {
+                                MessageUtils.setIllegalServerStateError(response, "Failed to start UVC preview server.");
+                                return;
+                            }
+                            context.mWidth = device.getPreviewWidth();
+                            context.mHeight = device.getPreviewHeight();
+
+                            setResult(response, DConnectMessage.RESULT_OK);
+                            setUri(response, context.mServer.getUrl());
+                        } else {
+                            MessageUtils.setIllegalDeviceStateError(response, "Failed to start the preview of UVC device: " + device.getId());
+                        }
+                    } finally {
+                        sendResponse(response);
+                    }
+                }
+            });
+            return false;
+        }
+    };
+
+    private final DConnectApi mDeletePreviewApi = new DeleteApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_PREVIEW;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            mExecutor.execute(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        UVCDevice device = mDeviceMgr.getDevice(getServiceID(request));
+                        if (device == null) {
+                            MessageUtils.setNotFoundServiceError(response);
+                            return;
+                        }
+
+                        device.stopPreview();
+                        stopMediaServer(device.getId());
+                        setResult(response, DConnectMessage.RESULT_OK);
+                    } finally {
+                        sendResponse(response);
+                    }
+                }
+            });
+            return false;
+        }
+    };
+
     public UVCMediaStreamRecordingProfile(final UVCDeviceManager deviceMgr) {
         mDeviceMgr = deviceMgr;
         mDeviceMgr.addPreviewListener(mPreviewListener);
         mDeviceMgr.addConnectionListener(mConnectionListener);
-    }
 
-    @Override
-    protected boolean onGetMediaRecorder(final Intent request, final Intent response,
-                                         final String serviceId) {
-        mExecutor.execute(new Runnable() {
-            @Override
-            public void run() {
-                UVCDevice device = mDeviceMgr.getDevice(serviceId);
-                if (device == null) {
-                    MessageUtils.setNotFoundServiceError(response);
-                    sendResponse(response);
-                    return;
-                }
-                if (!device.isInitialized()) {
-                    MessageUtils.setIllegalDeviceStateError(response,
-                        "UVC device is not permitted by user: " + device.getName());
-                    sendResponse(response);
-                    return;
-                }
-
-                setMediaRecorders(response, device);
-                setResult(response, DConnectMessage.RESULT_OK);
-                sendResponse(response);
-            }
-        });
-        return false;
+        addApi(mGetMediaRecorderApi);
+        addApi(mGetOptionsApi);
+        addApi(mPutOptionsApi);
+        addApi(mPutPreviewApi);
+        addApi(mDeletePreviewApi);
     }
 
     private static void setMediaRecorders(final Intent response, final UVCDevice device) {
@@ -200,45 +369,6 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
         setRecorderConfig(recorder, RECORDER_CONFIG);
     }
 
-    @Override
-    protected boolean onGetOptions(final Intent request, final Intent response,
-                                   final String serviceId, final String target) {
-        mExecutor.execute(new Runnable() {
-            @Override
-            public void run() {
-                UVCDevice device = mDeviceMgr.getDevice(serviceId);
-                if (device == null) {
-                    MessageUtils.setNotFoundServiceError(response);
-                    sendResponse(response);
-                    return;
-                }
-                if (target != null && !RECORDER_ID.equals(target)) {
-                    MessageUtils.setInvalidRequestParameterError(response,
-                        "No such target: " + target);
-                    sendResponse(response);
-                    return;
-                }
-                if (!device.isOpen()) {
-                    if (!mDeviceMgr.connectDevice(device)) {
-                        MessageUtils.setIllegalDeviceStateError(response, "Failed to open UVC device: " + device.getId());
-                        sendResponse(response);
-                        return;
-                    }
-                }
-                if (!device.canPreview()) {
-                    MessageUtils.setNotSupportAttributeError(response, "UVC device does not support MJPEG format: " + device.getId());
-                    sendResponse(response);
-                    return;
-                }
-
-                setOptions(response, device);
-                setResult(response, DConnectMessage.RESULT_OK);
-                sendResponse(response);
-            }
-        });
-        return false;
-    }
-
     private static void setOptions(final Intent response, final UVCDevice device) {
         List<UVCDevice.PreviewOption> options = device.getPreviewOptions();
         if (options != null && options.size() > 0) {
@@ -255,158 +385,6 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
 
         // mimeType
         setMIMEType(response, RECORDER_MIME_TYPE_LIST);
-    }
-
-    @Override
-    protected boolean onPutOptions(final Intent request, final Intent response,
-                                   final String serviceId, final String target,
-                                   final Integer imageWidth, final Integer imageHeight,
-                                   final Integer previewWidth, final Integer previewHeight,
-                                   final Double previewMaxFrameRate, final String mimeType) {
-        mExecutor.execute(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    UVCDevice device = mDeviceMgr.getDevice(serviceId);
-                    if (device == null) {
-                        MessageUtils.setNotFoundServiceError(response);
-                        return;
-                    }
-                    if (!checkParams(mOptionsPutParams, request, response)) {
-                        return;
-                    }
-                    if (imageWidth != null && imageHeight == null) {
-                        MessageUtils.setNotFoundServiceError(response,
-                            "imageHeight must not be null if imageWidth is not null.");
-                        return;
-                    }
-                    if (imageWidth == null && imageHeight != null) {
-                        MessageUtils.setNotFoundServiceError(response,
-                            "imageWidth must not be null if imageHeight is not null.");
-                        return;
-                    }
-                    if (previewWidth != null && previewHeight == null) {
-                        MessageUtils.setNotFoundServiceError(response,
-                            "previewHeight must not be null if previewWidth is not null.");
-                        return;
-                    }
-                    if (previewWidth == null && previewHeight != null) {
-                        MessageUtils.setNotFoundServiceError(response,
-                            "previewWidth must not be null if previewHeight is not null.");
-                        return;
-                    }
-                    if (!device.isOpen()) {
-                        if (!mDeviceMgr.connectDevice(device)) {
-                            MessageUtils.setIllegalDeviceStateError(response, "Failed to open UVC device: " + device.getId());
-                            return;
-                        }
-                    }
-                    if (!device.canPreview()) {
-                        MessageUtils.setNotSupportAttributeError(response, "UVC device does not support MJPEG format: " + device.getId());
-                        return;
-                    }
-
-                    if (previewWidth != null && previewHeight != null) {
-                        if (device.setPreviewSize(previewWidth, previewHeight)) {
-                            setResult(response, DConnectMessage.RESULT_OK);
-                        } else {
-                            MessageUtils.setUnknownError(response, "Failed to change preview size: "
-                                + imageWidth + " x " + imageHeight);
-                            return;
-                        }
-                    }
-                    if (previewMaxFrameRate != null) {
-                        device.setPreviewFrameRate(previewMaxFrameRate);
-                    }
-                } finally {
-                    sendResponse(response);
-                }
-            }
-        });
-        return false;
-    }
-
-    private boolean checkParams(final RequestParam[] definitions, final Intent request, final Intent response) {
-        for (RequestParam definition : definitions) {
-            if (!definition.check(request, response)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    @Override
-    protected boolean onPutPreview(final Intent request, final Intent response,
-                                   final String serviceId, final String target) {
-        mExecutor.execute(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    UVCDevice device = mDeviceMgr.getDevice(serviceId);
-                    if (device == null) {
-                        MessageUtils.setNotFoundServiceError(response);
-                        return;
-                    }
-                    if (!checkParams(mPreviewParams, request, response)) {
-                        return;
-                    }
-                    if (!device.isOpen()) {
-                        if (!mDeviceMgr.connectDevice(device)) {
-                            MessageUtils.setIllegalDeviceStateError(response, "Failed to open UVC device: " + device.getId());
-                            return;
-                        }
-                    }
-                    if (!device.canPreview()) {
-                        MessageUtils.setNotSupportAttributeError(response, "UVC device does not support MJPEG format: " + device.getId());
-                        return;
-                    }
-                    if (device.startPreview()) {
-                        PreviewContext context = startMediaServer(device.getId());
-                        if (context.mServer.getUrl() == null) {
-                            MessageUtils.setIllegalServerStateError(response, "Failed to start UVC preview server.");
-                            return;
-                        }
-                        context.mWidth = device.getPreviewWidth();
-                        context.mHeight = device.getPreviewHeight();
-
-                        setResult(response, DConnectMessage.RESULT_OK);
-                        setUri(response, context.mServer.getUrl());
-                    } else {
-                        MessageUtils.setIllegalDeviceStateError(response, "Failed to start the preview of UVC device: " + device.getId());
-                    }
-                } finally {
-                    sendResponse(response);
-                }
-            }
-        });
-        return false;
-    }
-
-    @Override
-    protected boolean onDeletePreview(final Intent request, final Intent response,
-                                      final String serviceId, final String target) {
-        mExecutor.execute(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    UVCDevice device = mDeviceMgr.getDevice(serviceId);
-                    if (device == null) {
-                        MessageUtils.setNotFoundServiceError(response);
-                        return;
-                    }
-                    if (!checkParams(mPreviewParams, request, response)) {
-                        return;
-                    }
-
-                    device.stopPreview();
-                    stopMediaServer(device.getId());
-                    setResult(response, DConnectMessage.RESULT_OK);
-                } finally {
-                    sendResponse(response);
-                }
-            }
-        });
-        return false;
     }
 
     private synchronized PreviewContext startMediaServer(final String id) {
@@ -430,47 +408,11 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
         }
     }
 
-    private static boolean checkTypeInteger(final Intent request, final Intent response,
-                                            final String paramName) {
-        if (!request.hasExtra(paramName)) {
-            return true;
-        }
-        Object param = request.getExtras().get(paramName);
-        if (param instanceof Integer) {
-            return true;
-        } else if (param instanceof String) {
-            try {
-                Integer.parseInt((String) param);
-                return true;
-            } catch (NumberFormatException e) {
-                MessageUtils.setInvalidRequestParameterError(response, paramName + " is invalid format: " + param);
-                return false;
-            }
-        } else {
-            MessageUtils.setInvalidRequestParameterError(response, paramName + " is invalid type: " + param);
-            return false;
-        }
-    }
-
-    private static boolean checkTypeFloat(final Intent request, final Intent response,
-                                          final String paramName) {
-        if (!request.hasExtra(paramName)) {
-            return true;
-        }
-        Object param = request.getExtras().get(paramName);
-        if (param instanceof Float) {
-            return true;
-        } else if (param instanceof String) {
-            try {
-                Float.parseFloat((String) param);
-                return true;
-            } catch (NumberFormatException e) {
-                MessageUtils.setInvalidRequestParameterError(response, paramName + " is invalid format: " + param);
-                return false;
-            }
-        } else {
-            MessageUtils.setInvalidRequestParameterError(response, paramName + " is invalid type: " + param);
-            return false;
+    public synchronized void stopPreviewAllUVCDevice() {
+        List<UVCDevice> deviceList = mDeviceMgr.getDeviceList();
+        for (UVCDevice device : deviceList) {
+            device.stopPreview();
+            stopMediaServer(device.getId());
         }
     }
 

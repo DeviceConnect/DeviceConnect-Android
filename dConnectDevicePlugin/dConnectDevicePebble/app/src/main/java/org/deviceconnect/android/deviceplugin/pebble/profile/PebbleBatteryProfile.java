@@ -20,6 +20,10 @@ import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.BatteryProfile;
+import org.deviceconnect.android.profile.api.DConnectApi;
+import org.deviceconnect.android.profile.api.DeleteApi;
+import org.deviceconnect.android.profile.api.GetApi;
+import org.deviceconnect.android.profile.api.PutApi;
 import org.deviceconnect.message.DConnectMessage;
 
 import java.util.List;
@@ -33,44 +37,14 @@ import java.util.List;
 public class PebbleBatteryProfile extends BatteryProfile {
     /** パーセント値にする時の定数. */
     private static final double TO_PERCENT = 100.0;
+
     /** sessionKeyが設定されていないときのエラーメッセージ. */
     private static final String ERROR_MESSAGE = "sessionKey must be specified.";
-    /**
-     * コンストラクタ.
-     * @param service Pebble デバイスサービス
-     */
-    public PebbleBatteryProfile(final PebbleDeviceService service) {
-        service.getPebbleManager().addEventListener(PebbleManager.PROFILE_BATTERY, new OnReceivedEventListener() {
-            @Override
-            public void onReceivedEvent(final PebbleDictionary dic) {
-                Long attribute = dic.getInteger(PebbleManager.KEY_ATTRIBUTE);
-                if (attribute == null) {
-                    return;
-                }
 
-                switch (attribute.intValue()) {
-                case PebbleManager.BATTERY_ATTRIBUTE_ON_BATTERY_CHANGE:
-                    sendOnBatteryChange(dic);
-                    break;
-                case PebbleManager.BATTERY_ATTRIBUTE_ON_CHARGING_CHANGE:
-                    sendOnChargingChange(dic);
-                    break;
-                default:
-                    break;
-                }
-            }
-        });
-    }
+    private final DConnectApi mGetAllApi = new GetApi() {
 
-    @Override
-    protected boolean onGetAll(final Intent request, final Intent response, final String serviceId) {
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-            return true;
-        } else if (!PebbleUtil.checkServiceId(serviceId)) {
-            MessageUtils.setNotFoundServiceError(response);
-            return true;
-        } else {
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
             PebbleManager mgr = ((PebbleDeviceService) getContext()).getPebbleManager();
             PebbleDictionary dic = new PebbleDictionary();
             dic.addInt8(PebbleManager.KEY_PROFILE, (byte) PebbleManager.PROFILE_BATTERY);
@@ -100,17 +74,16 @@ public class PebbleBatteryProfile extends BatteryProfile {
             // レスポンスを非同期で返却するので、falseを返す
             return false;
         }
-    }
+    };
 
-    @Override
-    protected boolean onGetLevel(final Intent request, final Intent response, final String serviceId) {
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-            return true;
-        } else if (!PebbleUtil.checkServiceId(serviceId)) {
-            MessageUtils.setNotFoundServiceError(response);
-            return true;
-        } else {
+    private final DConnectApi mGetLevelApi = new GetApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_LEVEL;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
             PebbleManager mgr = ((PebbleDeviceService) getContext()).getPebbleManager();
             PebbleDictionary dic = new PebbleDictionary();
             dic.addInt8(PebbleManager.KEY_PROFILE, (byte) PebbleManager.PROFILE_BATTERY);
@@ -137,17 +110,16 @@ public class PebbleBatteryProfile extends BatteryProfile {
             // レスポンスを非同期で返却するので、falseを返す
             return false;
         }
-    }
+    };
 
-    @Override
-    protected boolean onGetCharging(final Intent request, final Intent response, final String serviceId) {
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-            return true;
-        } else if (!PebbleUtil.checkServiceId(serviceId)) {
-            MessageUtils.setNotFoundServiceError(response);
-            return true;
-        } else {
+    private final DConnectApi mGetChargingApi = new GetApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_CHARGING;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
             PebbleManager mgr = ((PebbleDeviceService) getContext()).getPebbleManager();
             PebbleDictionary dic = new PebbleDictionary();
             dic.addInt8(PebbleManager.KEY_PROFILE, (byte) PebbleManager.PROFILE_BATTERY);
@@ -174,160 +146,199 @@ public class PebbleBatteryProfile extends BatteryProfile {
             // レスポンスを非同期で返却するので、falseを返す
             return false;
         }
-    }
+    };
 
-    @Override
-    protected boolean onPutOnBatteryChange(final Intent request, final Intent response, 
-            final String serviceId, final String sessionKey) {
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-            return true;
-        } else if (!PebbleUtil.checkServiceId(serviceId)) {
-            MessageUtils.setNotFoundServiceError(response);
-           return true;
-        } else if (sessionKey == null) {
-            MessageUtils.setInvalidRequestParameterError(response, ERROR_MESSAGE);
-            return true;
-        } else {
-            PebbleManager mgr = ((PebbleDeviceService) getContext()).getPebbleManager();
-            PebbleDictionary dic = new PebbleDictionary();
-            dic.addInt8(PebbleManager.KEY_PROFILE, (byte) PebbleManager.PROFILE_BATTERY);
-            dic.addInt8(PebbleManager.KEY_ATTRIBUTE, (byte) PebbleManager.BATTERY_ATTRIBUTE_ON_BATTERY_CHANGE);
-            dic.addInt8(PebbleManager.KEY_ACTION, (byte) PebbleManager.ACTION_PUT);
-            mgr.sendCommandToPebble(dic, new OnSendCommandListener() {
-                @Override
-                public void onReceivedData(final PebbleDictionary dic) {
-                    if (dic == null) {
-                        MessageUtils.setUnknownError(response);
-                    } else {
-                       EventError error = EventManager.INSTANCE.addEvent(request);
-                        if (error == EventError.NONE) {
-                            setResult(response, DConnectMessage.RESULT_OK);
-                        } else if (error == EventError.INVALID_PARAMETER) {
-                            MessageUtils.setInvalidRequestParameterError(response);
-                        } else {
-                            MessageUtils.setUnknownError(response);
-                        }
-                    }
-                    sendResponse(response);
-                }
-            });
-            // レスポンスを非同期で返却するので、falseを返す
-            return false;
+    private final DConnectApi mPutOnBatteryChangeApi = new PutApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_BATTERY_CHANGE;
         }
-    }
 
-    @Override
-    protected boolean onPutOnChargingChange(final Intent request, final Intent response, 
-            final String serviceId, final String sessionKey) {
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-            return true;
-        } else if (!PebbleUtil.checkServiceId(serviceId)) {
-            MessageUtils.setNotFoundServiceError(response);
-            return true;
-        } else if (sessionKey == null) {
-            MessageUtils.setInvalidRequestParameterError(response, ERROR_MESSAGE);
-            return true;
-        } else {
-            PebbleManager mgr = ((PebbleDeviceService) getContext()).getPebbleManager();
-            PebbleDictionary dic = new PebbleDictionary();
-            dic.addInt8(PebbleManager.KEY_PROFILE, (byte) PebbleManager.PROFILE_BATTERY);
-            dic.addInt8(PebbleManager.KEY_ATTRIBUTE, (byte) PebbleManager.BATTERY_ATTRIBUTE_ON_CHARGING_CHANGE);
-            dic.addInt8(PebbleManager.KEY_ACTION, (byte) PebbleManager.ACTION_PUT);
-            mgr.sendCommandToPebble(dic, new OnSendCommandListener() {
-                @Override
-                public void onReceivedData(final PebbleDictionary dic) {
-                    if (dic == null) {
-                        MessageUtils.setUnknownError(response);
-                    } else {
-                       EventError error = EventManager.INSTANCE.addEvent(request);
-                        if (error == EventError.NONE) {
-                            setResult(response, DConnectMessage.RESULT_OK);
-                        } else if (error == EventError.INVALID_PARAMETER) {
-                            MessageUtils.setInvalidRequestParameterError(response);
-                        } else {
-                            MessageUtils.setUnknownError(response);
-                        }
-                    }
-                    sendResponse(response);
-                }
-            });
-            // レスポンスを非同期で返却するので、falseを返す
-            return false;
-        }
-    }
-
-    @Override
-    protected boolean onDeleteOnBatteryChange(final Intent request, final Intent response,
-                          final String serviceId, final String sessionKey) {
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-            return true;
-        } else if (!PebbleUtil.checkServiceId(serviceId)) {
-            MessageUtils.setNotFoundServiceError(response);
-            return true;
-        } else if (sessionKey == null) {
-            MessageUtils.setInvalidRequestParameterError(response, ERROR_MESSAGE);
-            return true;
-        } else {
-            PebbleManager mgr = ((PebbleDeviceService) getContext()).getPebbleManager();
-            PebbleDictionary dic = new PebbleDictionary();
-            dic.addInt8(PebbleManager.KEY_PROFILE, (byte) PebbleManager.PROFILE_BATTERY);
-            dic.addInt8(PebbleManager.KEY_ATTRIBUTE, (byte) PebbleManager.BATTERY_ATTRIBUTE_ON_BATTERY_CHANGE);
-            dic.addInt8(PebbleManager.KEY_ACTION, (byte) PebbleManager.ACTION_DELETE);
-            mgr.sendCommandToPebble(dic, new OnSendCommandListener() {
-                @Override
-                public void onReceivedData(final PebbleDictionary dic) {
-                    // do nothing.
-                }
-            });
-            EventError error = EventManager.INSTANCE.removeEvent(request);
-            if (error == EventError.NONE) {
-                setResult(response, DConnectMessage.RESULT_OK);
-            } else if (error == EventError.INVALID_PARAMETER) {
-                MessageUtils.setInvalidRequestParameterError(response);
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String sessionKey = getSessionKey(request);
+            if (sessionKey == null) {
+                MessageUtils.setInvalidRequestParameterError(response, ERROR_MESSAGE);
+                return true;
             } else {
-                MessageUtils.setUnknownError(response);
+                PebbleManager mgr = ((PebbleDeviceService) getContext()).getPebbleManager();
+                PebbleDictionary dic = new PebbleDictionary();
+                dic.addInt8(PebbleManager.KEY_PROFILE, (byte) PebbleManager.PROFILE_BATTERY);
+                dic.addInt8(PebbleManager.KEY_ATTRIBUTE, (byte) PebbleManager.BATTERY_ATTRIBUTE_ON_BATTERY_CHANGE);
+                dic.addInt8(PebbleManager.KEY_ACTION, (byte) PebbleManager.ACTION_PUT);
+                mgr.sendCommandToPebble(dic, new OnSendCommandListener() {
+                    @Override
+                    public void onReceivedData(final PebbleDictionary dic) {
+                        if (dic == null) {
+                            MessageUtils.setUnknownError(response);
+                        } else {
+                            EventError error = EventManager.INSTANCE.addEvent(request);
+                            if (error == EventError.NONE) {
+                                setResult(response, DConnectMessage.RESULT_OK);
+                            } else if (error == EventError.INVALID_PARAMETER) {
+                                MessageUtils.setInvalidRequestParameterError(response);
+                            } else {
+                                MessageUtils.setUnknownError(response);
+                            }
+                        }
+                        sendResponse(response);
+                    }
+                });
+                // レスポンスを非同期で返却するので、falseを返す
+                return false;
             }
-            return true;
         }
-    }
+    };
 
-    @Override
-    protected boolean onDeleteOnChargingChange(final Intent request, final Intent response, 
-            final String serviceId, final String sessionKey) {
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-            return true;
-        } else if (!PebbleUtil.checkServiceId(serviceId)) {
-            MessageUtils.setNotFoundServiceError(response);
-            return true;
-        } else if (sessionKey == null) {
-            MessageUtils.setInvalidRequestParameterError(response, ERROR_MESSAGE);
-            return true;
-        } else {
-            PebbleManager mgr = ((PebbleDeviceService) getContext()).getPebbleManager();
-            PebbleDictionary dic = new PebbleDictionary();
-            dic.addInt8(PebbleManager.KEY_PROFILE, (byte) PebbleManager.PROFILE_BATTERY);
-            dic.addInt8(PebbleManager.KEY_ATTRIBUTE, (byte) PebbleManager.BATTERY_ATTRIBUTE_ON_CHARGING_CHANGE);
-            dic.addInt8(PebbleManager.KEY_ACTION, (byte) PebbleManager.ACTION_DELETE);
-            mgr.sendCommandToPebble(dic, new OnSendCommandListener() {
-                @Override
-                public void onReceivedData(final PebbleDictionary dic) {
-                    // do nothing.
-                }
-            });
-            EventError error = EventManager.INSTANCE.removeEvent(request);
-            if (error == EventError.NONE) {
-                setResult(response, DConnectMessage.RESULT_OK);
-            } else if (error == EventError.INVALID_PARAMETER) {
-                MessageUtils.setInvalidRequestParameterError(response);
-            } else {
-                MessageUtils.setUnknownError(response);
-            }
-            return true;
+    private final DConnectApi mPutOnChagingChangeApi = new PutApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_CHARGING_CHANGE;
         }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String sessionKey = getSessionKey(request);
+            if (sessionKey == null) {
+                MessageUtils.setInvalidRequestParameterError(response, ERROR_MESSAGE);
+                return true;
+            } else {
+                PebbleManager mgr = ((PebbleDeviceService) getContext()).getPebbleManager();
+                PebbleDictionary dic = new PebbleDictionary();
+                dic.addInt8(PebbleManager.KEY_PROFILE, (byte) PebbleManager.PROFILE_BATTERY);
+                dic.addInt8(PebbleManager.KEY_ATTRIBUTE, (byte) PebbleManager.BATTERY_ATTRIBUTE_ON_CHARGING_CHANGE);
+                dic.addInt8(PebbleManager.KEY_ACTION, (byte) PebbleManager.ACTION_PUT);
+                mgr.sendCommandToPebble(dic, new OnSendCommandListener() {
+                    @Override
+                    public void onReceivedData(final PebbleDictionary dic) {
+                        if (dic == null) {
+                            MessageUtils.setUnknownError(response);
+                        } else {
+                            EventError error = EventManager.INSTANCE.addEvent(request);
+                            if (error == EventError.NONE) {
+                                setResult(response, DConnectMessage.RESULT_OK);
+                            } else if (error == EventError.INVALID_PARAMETER) {
+                                MessageUtils.setInvalidRequestParameterError(response);
+                            } else {
+                                MessageUtils.setUnknownError(response);
+                            }
+                        }
+                        sendResponse(response);
+                    }
+                });
+                // レスポンスを非同期で返却するので、falseを返す
+                return false;
+            }
+        }
+    };
+
+    private final DConnectApi mDeleteOnBatteryChangeApi = new DeleteApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_BATTERY_CHANGE;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String sessionKey = getSessionKey(request);
+            if (sessionKey == null) {
+                MessageUtils.setInvalidRequestParameterError(response, ERROR_MESSAGE);
+                return true;
+            } else {
+                PebbleManager mgr = ((PebbleDeviceService) getContext()).getPebbleManager();
+                PebbleDictionary dic = new PebbleDictionary();
+                dic.addInt8(PebbleManager.KEY_PROFILE, (byte) PebbleManager.PROFILE_BATTERY);
+                dic.addInt8(PebbleManager.KEY_ATTRIBUTE, (byte) PebbleManager.BATTERY_ATTRIBUTE_ON_BATTERY_CHANGE);
+                dic.addInt8(PebbleManager.KEY_ACTION, (byte) PebbleManager.ACTION_DELETE);
+                mgr.sendCommandToPebble(dic, new OnSendCommandListener() {
+                    @Override
+                    public void onReceivedData(final PebbleDictionary dic) {
+                        // do nothing.
+                    }
+                });
+                EventError error = EventManager.INSTANCE.removeEvent(request);
+                if (error == EventError.NONE) {
+                    setResult(response, DConnectMessage.RESULT_OK);
+                } else if (error == EventError.INVALID_PARAMETER) {
+                    MessageUtils.setInvalidRequestParameterError(response);
+                } else {
+                    MessageUtils.setUnknownError(response);
+                }
+                return true;
+            }
+        }
+    };
+
+    private final DConnectApi mDeleteOnChargingChangeApi = new DeleteApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_CHARGING_CHANGE;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String sessionKey = getSessionKey(request);
+            if (sessionKey == null) {
+                MessageUtils.setInvalidRequestParameterError(response, ERROR_MESSAGE);
+                return true;
+            } else {
+                PebbleManager mgr = ((PebbleDeviceService) getContext()).getPebbleManager();
+                PebbleDictionary dic = new PebbleDictionary();
+                dic.addInt8(PebbleManager.KEY_PROFILE, (byte) PebbleManager.PROFILE_BATTERY);
+                dic.addInt8(PebbleManager.KEY_ATTRIBUTE, (byte) PebbleManager.BATTERY_ATTRIBUTE_ON_CHARGING_CHANGE);
+                dic.addInt8(PebbleManager.KEY_ACTION, (byte) PebbleManager.ACTION_DELETE);
+                mgr.sendCommandToPebble(dic, new OnSendCommandListener() {
+                    @Override
+                    public void onReceivedData(final PebbleDictionary dic) {
+                        // do nothing.
+                    }
+                });
+                EventError error = EventManager.INSTANCE.removeEvent(request);
+                if (error == EventError.NONE) {
+                    setResult(response, DConnectMessage.RESULT_OK);
+                } else if (error == EventError.INVALID_PARAMETER) {
+                    MessageUtils.setInvalidRequestParameterError(response);
+                } else {
+                    MessageUtils.setUnknownError(response);
+                }
+                return true;
+            }
+        }
+    };
+
+    /**
+     * コンストラクタ.
+     * @param service Pebble デバイスサービス
+     */
+    public PebbleBatteryProfile(final PebbleDeviceService service) {
+        service.getPebbleManager().addEventListener(PebbleManager.PROFILE_BATTERY, new OnReceivedEventListener() {
+            @Override
+            public void onReceivedEvent(final PebbleDictionary dic) {
+                Long attribute = dic.getInteger(PebbleManager.KEY_ATTRIBUTE);
+                if (attribute == null) {
+                    return;
+                }
+
+                switch (attribute.intValue()) {
+                case PebbleManager.BATTERY_ATTRIBUTE_ON_BATTERY_CHANGE:
+                    sendOnBatteryChange(dic);
+                    break;
+                case PebbleManager.BATTERY_ATTRIBUTE_ON_CHARGING_CHANGE:
+                    sendOnChargingChange(dic);
+                    break;
+                default:
+                    break;
+                }
+            }
+        });
+
+        addApi(mGetAllApi);
+        addApi(mGetLevelApi);
+        addApi(mGetChargingApi);
+        addApi(mPutOnBatteryChangeApi);
+        addApi(mPutOnChagingChangeApi);
+        addApi(mDeleteOnBatteryChangeApi);
+        addApi(mDeleteOnChargingChangeApi);
     }
 
     /**

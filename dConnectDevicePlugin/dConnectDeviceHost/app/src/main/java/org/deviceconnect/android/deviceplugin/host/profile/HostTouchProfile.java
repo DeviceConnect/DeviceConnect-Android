@@ -6,8 +6,11 @@
  */
 package org.deviceconnect.android.deviceplugin.host.profile;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import android.app.ActivityManager;
+import android.app.Service;
+import android.content.Intent;
+import android.os.Bundle;
+import android.support.v4.content.LocalBroadcastManager;
 
 import org.deviceconnect.android.deviceplugin.host.HostDeviceService;
 import org.deviceconnect.android.deviceplugin.host.activity.TouchProfileActivity;
@@ -15,14 +18,12 @@ import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.TouchProfile;
+import org.deviceconnect.android.profile.api.DConnectApi;
+import org.deviceconnect.android.profile.api.DeleteApi;
+import org.deviceconnect.android.profile.api.GetApi;
+import org.deviceconnect.android.profile.api.PutApi;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
-
-import android.app.ActivityManager;
-import android.app.Service;
-import android.content.Intent;
-import android.os.Bundle;
-import android.support.v4.content.LocalBroadcastManager;
 
 /**
  * Touch Profile.
@@ -53,14 +54,15 @@ public class HostTouchProfile extends TouchProfile {
     public static final String ACTION_FINISH_TOUCH_ACTIVITY =
             "org.deviceconnect.android.deviceplugin.host.touch.FINISH";
 
-    @Override
-    protected boolean onGetOnTouch(final Intent request, final Intent response, final String serviceId) {
+    private final DConnectApi mGetOnTouchApi = new GetApi() {
 
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_TOUCH;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
             Bundle touches = ((HostDeviceService) getContext()).getTouchCache(TouchProfile.ATTRIBUTE_ON_TOUCH);
             if (touches == null) {
                 response.putExtra(TouchProfile.PARAM_TOUCH, "");
@@ -68,18 +70,19 @@ public class HostTouchProfile extends TouchProfile {
                 response.putExtra(TouchProfile.PARAM_TOUCH, touches);
             }
             setResult(response, IntentDConnectMessage.RESULT_OK);
+            return true;
         }
-        return true;
-    }
+    };
 
-    @Override
-    protected boolean onGetOnTouchStart(final Intent request, final Intent response, final String serviceId) {
+    private final DConnectApi mGetOnTouchStartApi = new GetApi() {
 
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_TOUCH_START;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
             Bundle touches = ((HostDeviceService) getContext()).getTouchCache(TouchProfile.ATTRIBUTE_ON_TOUCH_START);
             if (touches == null) {
                 response.putExtra(TouchProfile.PARAM_TOUCH, "");
@@ -87,18 +90,19 @@ public class HostTouchProfile extends TouchProfile {
                 response.putExtra(TouchProfile.PARAM_TOUCH, touches);
             }
             setResult(response, IntentDConnectMessage.RESULT_OK);
+            return true;
         }
-        return true;
-    }
+    };
 
-    @Override
-    protected boolean onGetOnTouchEnd(final Intent request, final Intent response, final String serviceId) {
+    private final DConnectApi mGetOnTouchEndApi = new GetApi() {
 
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_TOUCH_END;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
             Bundle touches = ((HostDeviceService) getContext()).getTouchCache(TouchProfile.ATTRIBUTE_ON_TOUCH_END);
             if (touches == null) {
                 response.putExtra(TouchProfile.PARAM_TOUCH, "");
@@ -106,18 +110,19 @@ public class HostTouchProfile extends TouchProfile {
                 response.putExtra(TouchProfile.PARAM_TOUCH, touches);
             }
             setResult(response, IntentDConnectMessage.RESULT_OK);
+            return true;
         }
-        return true;
-    }
+    };
 
-    @Override
-    protected boolean onGetOnDoubleTap(final Intent request, final Intent response, final String serviceId) {
+    private final DConnectApi mGetOnDoubleTapApi = new GetApi() {
 
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_DOUBLE_TAP;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
             Bundle touches = ((HostDeviceService) getContext()).getTouchCache(TouchProfile.ATTRIBUTE_ON_DOUBLE_TAP);
             if (touches == null) {
                 response.putExtra(TouchProfile.PARAM_TOUCH, "");
@@ -125,18 +130,19 @@ public class HostTouchProfile extends TouchProfile {
                 response.putExtra(TouchProfile.PARAM_TOUCH, touches);
             }
             setResult(response, IntentDConnectMessage.RESULT_OK);
+            return true;
         }
-        return true;
-    }
+    };
 
-    @Override
-    protected boolean onGetOnTouchMove(final Intent request, final Intent response, final String serviceId) {
+    private final DConnectApi mGetOnTouchMoveApi = new GetApi() {
 
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_TOUCH_MOVE;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
             Bundle touches = ((HostDeviceService) getContext()).getTouchCache(TouchProfile.ATTRIBUTE_ON_TOUCH_MOVE);
             if (touches == null) {
                 response.putExtra(TouchProfile.PARAM_TOUCH, "");
@@ -144,18 +150,19 @@ public class HostTouchProfile extends TouchProfile {
                 response.putExtra(TouchProfile.PARAM_TOUCH, touches);
             }
             setResult(response, IntentDConnectMessage.RESULT_OK);
+            return true;
         }
-        return true;
-    }
+    };
 
-    @Override
-    protected boolean onGetOnTouchCancel(final Intent request, final Intent response, final String serviceId) {
+    private final DConnectApi mGetOnTouchCancelApi = new GetApi() {
 
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_TOUCH_CANCEL;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
             Bundle touches = ((HostDeviceService) getContext()).getTouchCache(TouchProfile.ATTRIBUTE_ON_TOUCH_CANCEL);
             if (touches == null) {
                 response.putExtra(TouchProfile.PARAM_TOUCH, "");
@@ -163,20 +170,20 @@ public class HostTouchProfile extends TouchProfile {
                 response.putExtra(TouchProfile.PARAM_TOUCH, touches);
             }
             setResult(response, IntentDConnectMessage.RESULT_OK);
+            return true;
         }
-        return true;
-    }
+    };
 
-    @Override
-    protected boolean onPutOnTouch(final Intent request, final Intent response, final String serviceId,
-            final String sessionKey) {
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else if (sessionKey == null) {
-            createEmptySessionKey(response);
-        } else {
+    private final DConnectApi mPutOnTouchApi = new PutApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_TOUCH;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String serviceId = getServiceID(request);
             // Event registration.
             EventError error = EventManager.INSTANCE.addEvent(request);
             if (error == EventError.NONE) {
@@ -186,20 +193,20 @@ public class HostTouchProfile extends TouchProfile {
             } else {
                 MessageUtils.setError(response, ERROR_PROCESSING_ERROR, "Can not register event.");
             }
+            return true;
         }
-        return true;
-    }
+    };
 
-    @Override
-    protected boolean onPutOnTouchStart(final Intent request, final Intent response, final String serviceId,
-            final String sessionKey) {
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else if (sessionKey == null) {
-            createEmptySessionKey(response);
-        } else {
+    private final DConnectApi mPutOnTouchStartApi = new PutApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_TOUCH_START;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String serviceId = getServiceID(request);
             // Event registration.
             EventError error = EventManager.INSTANCE.addEvent(request);
             if (error == EventError.NONE) {
@@ -209,20 +216,20 @@ public class HostTouchProfile extends TouchProfile {
             } else {
                 MessageUtils.setError(response, ERROR_PROCESSING_ERROR, "Can not register event.");
             }
+            return true;
         }
-        return true;
-    }
+    };
 
-    @Override
-    protected boolean onPutOnTouchEnd(final Intent request, final Intent response, final String serviceId,
-            final String sessionKey) {
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else if (sessionKey == null) {
-            createEmptySessionKey(response);
-        } else {
+    private final DConnectApi mPutOnTouchEndApi = new PutApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_TOUCH_END;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String serviceId = getServiceID(request);
             // Event registration.
             EventError error = EventManager.INSTANCE.addEvent(request);
             if (error == EventError.NONE) {
@@ -232,20 +239,20 @@ public class HostTouchProfile extends TouchProfile {
             } else {
                 MessageUtils.setError(response, ERROR_PROCESSING_ERROR, "Can not register event.");
             }
+            return true;
         }
-        return true;
-    }
+    };
 
-    @Override
-    protected boolean onPutOnDoubleTap(final Intent request, final Intent response, final String serviceId,
-            final String sessionKey) {
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else if (sessionKey == null) {
-            createEmptySessionKey(response);
-        } else {
+    private final DConnectApi mPutOnDoubleTapApi = new PutApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_DOUBLE_TAP;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String serviceId = getServiceID(request);
             // Event registration.
             EventError error = EventManager.INSTANCE.addEvent(request);
             if (error == EventError.NONE) {
@@ -255,20 +262,20 @@ public class HostTouchProfile extends TouchProfile {
             } else {
                 MessageUtils.setError(response, ERROR_PROCESSING_ERROR, "Can not register event.");
             }
+            return true;
         }
-        return true;
-    }
+    };
 
-    @Override
-    protected boolean onPutOnTouchMove(final Intent request, final Intent response, final String serviceId,
-            final String sessionKey) {
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else if (sessionKey == null) {
-            createEmptySessionKey(response);
-        } else {
+    private final DConnectApi mPutOnTouchMoveApi = new PutApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_TOUCH_MOVE;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String serviceId = getServiceID(request);
             // Event registration.
             EventError error = EventManager.INSTANCE.addEvent(request);
             if (error == EventError.NONE) {
@@ -278,20 +285,20 @@ public class HostTouchProfile extends TouchProfile {
             } else {
                 MessageUtils.setError(response, ERROR_PROCESSING_ERROR, "Can not register event.");
             }
+            return true;
         }
-        return true;
-    }
+    };
 
-    @Override
-    protected boolean onPutOnTouchCancel(final Intent request, final Intent response, final String serviceId,
-            final String sessionKey) {
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else if (sessionKey == null) {
-            createEmptySessionKey(response);
-        } else {
+    private final DConnectApi mPutOnTouchCancelApi = new PutApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_TOUCH_CANCEL;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String serviceId = getServiceID(request);
             // Event registration.
             EventError error = EventManager.INSTANCE.addEvent(request);
             if (error == EventError.NONE) {
@@ -301,20 +308,19 @@ public class HostTouchProfile extends TouchProfile {
             } else {
                 MessageUtils.setError(response, ERROR_PROCESSING_ERROR, "Can not register event.");
             }
+            return true;
         }
-        return true;
-    }
+    };
 
-    @Override
-    protected boolean onDeleteOnTouch(final Intent request, final Intent response, final String serviceId,
-            final String sessionKey) {
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else if (sessionKey == null) {
-            createEmptySessionKey(response);
-        } else {
+    private final DConnectApi mDeleteOnTouchApi = new DeleteApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_TOUCH;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
             // Event release.
             EventError error = EventManager.INSTANCE.removeEvent(request);
             if (error == EventError.NONE) {
@@ -323,20 +329,19 @@ public class HostTouchProfile extends TouchProfile {
             } else {
                 MessageUtils.setError(response, ERROR_PROCESSING_ERROR, "Can not unregister event.");
             }
+            return true;
         }
-        return true;
-    }
+    };
 
-    @Override
-    protected boolean onDeleteOnTouchStart(final Intent request, final Intent response, final String serviceId,
-            final String sessionKey) {
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else if (sessionKey == null) {
-            createEmptySessionKey(response);
-        } else {
+    private final DConnectApi mDeleteOnTouchStartApi = new DeleteApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_TOUCH_START;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
             // Event release.
             EventError error = EventManager.INSTANCE.removeEvent(request);
             if (error == EventError.NONE) {
@@ -345,20 +350,19 @@ public class HostTouchProfile extends TouchProfile {
             } else {
                 MessageUtils.setError(response, ERROR_PROCESSING_ERROR, "Can not unregister event.");
             }
+            return true;
         }
-        return true;
-    }
+    };
 
-    @Override
-    protected boolean onDeleteOnTouchEnd(final Intent request, final Intent response, final String serviceId,
-            final String sessionKey) {
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else if (sessionKey == null) {
-            createEmptySessionKey(response);
-        } else {
+    private final DConnectApi mDeleteOnTouchEndApi = new DeleteApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_TOUCH_END;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
             // Event release.
             EventError error = EventManager.INSTANCE.removeEvent(request);
             if (error == EventError.NONE) {
@@ -367,20 +371,19 @@ public class HostTouchProfile extends TouchProfile {
             } else {
                 MessageUtils.setError(response, ERROR_PROCESSING_ERROR, "Can not unregister event.");
             }
+            return true;
         }
-        return true;
-    }
+    };
 
-    @Override
-    protected boolean onDeleteOnDoubleTap(final Intent request, final Intent response, final String serviceId,
-            final String sessionKey) {
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else if (sessionKey == null) {
-            createEmptySessionKey(response);
-        } else {
+    private final DConnectApi mDeleteOnDoubleTap = new DeleteApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_DOUBLE_TAP;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
             // Event release.
             EventError error = EventManager.INSTANCE.removeEvent(request);
             if (error == EventError.NONE) {
@@ -389,20 +392,19 @@ public class HostTouchProfile extends TouchProfile {
             } else {
                 MessageUtils.setError(response, ERROR_PROCESSING_ERROR, "Can not unregister event.");
             }
+            return true;
         }
-        return true;
-    }
+    };
 
-    @Override
-    protected boolean onDeleteOnTouchMove(final Intent request, final Intent response, final String serviceId,
-            final String sessionKey) {
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else if (sessionKey == null) {
-            createEmptySessionKey(response);
-        } else {
+    private final DConnectApi mDeleteOnTouchMove = new DeleteApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_TOUCH_MOVE;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
             // Event release.
             EventError error = EventManager.INSTANCE.removeEvent(request);
             if (error == EventError.NONE) {
@@ -411,20 +413,19 @@ public class HostTouchProfile extends TouchProfile {
             } else {
                 MessageUtils.setError(response, ERROR_PROCESSING_ERROR, "Can not unregister event.");
             }
+            return true;
         }
-        return true;
-    }
+    };
 
-    @Override
-    protected boolean onDeleteOnTouchCancel(final Intent request, final Intent response, final String serviceId,
-            final String sessionKey) {
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else if (sessionKey == null) {
-            createEmptySessionKey(response);
-        } else {
+    private final DConnectApi mDeleteOnTouchCancel = new DeleteApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_TOUCH_CANCEL;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
             // Event release.
             EventError error = EventManager.INSTANCE.removeEvent(request);
             if (error == EventError.NONE) {
@@ -433,8 +434,29 @@ public class HostTouchProfile extends TouchProfile {
             } else {
                 MessageUtils.setError(response, ERROR_PROCESSING_ERROR, "Can not unregister event.");
             }
+            return true;
         }
-        return true;
+    };
+
+    public HostTouchProfile() {
+        addApi(mGetOnTouchApi);
+        addApi(mGetOnTouchStartApi);
+        addApi(mGetOnTouchEndApi);
+        addApi(mGetOnDoubleTapApi);
+        addApi(mGetOnTouchMoveApi);
+        addApi(mGetOnTouchCancelApi);
+        addApi(mPutOnTouchApi);
+        addApi(mPutOnTouchStartApi);
+        addApi(mPutOnTouchEndApi);
+        addApi(mPutOnDoubleTapApi);
+        addApi(mPutOnTouchMoveApi);
+        addApi(mPutOnTouchCancelApi);
+        addApi(mDeleteOnTouchApi);
+        addApi(mDeleteOnTouchStartApi);
+        addApi(mDeleteOnTouchEndApi);
+        addApi(mDeleteOnDoubleTap);
+        addApi(mDeleteOnTouchMove);
+        addApi(mDeleteOnTouchCancel);
     }
 
     /**
@@ -493,54 +515,31 @@ public class HostTouchProfile extends TouchProfile {
     }
 
     /**
-     * Check serviceID.
-     * 
-     * @param serviceId service ID.
-     * @return If <code>serviceId</code> is equal to test for serviceId, true.
-     *         Otherwise false.
-     */
-    private boolean checkServiceId(final String serviceId) {
-        String regex = HostServiceDiscoveryProfile.SERVICE_ID;
-        Pattern mPattern = Pattern.compile(regex);
-        Matcher match = mPattern.matcher(serviceId);
-        return match.find();
-    }
-
-    /**
-     * Creates an error of "serviceId is empty".
-     * 
-     * @param response Intent to store the response.
-     */
-    private void createEmptyServiceId(final Intent response) {
-        MessageUtils.setEmptyServiceIdError(response);
-    }
-
-    /**
-     * Creates an error of "sessionKey is empty".
-     * 
-     * @param response Intent to store the response.
-     */
-    private void createEmptySessionKey(final Intent response) {
-        MessageUtils.setError(response, ERROR_PROCESSING_ERROR, "SessionKey not found");
-    }
-
-    /**
-     * Creates an error of "service not found".
-     * 
-     * @param response Intent to store the response.
-     */
-    private void createNotFoundService(final Intent response) {
-        MessageUtils.setNotFoundServiceError(response);
-    }
-
-    /**
      * Get the class name of the Activity being displayed at the top of the screen.
      * 
      * @return class name.
      */
     private String getClassnameOfTopActivity() {
-        ActivityManager activitMgr = (ActivityManager) getContext().getSystemService(Service.ACTIVITY_SERVICE);
-        String className = activitMgr.getRunningTasks(1).get(0).topActivity.getClassName();
-        return className;
+        ActivityManager activityMgr = (ActivityManager) getContext().getSystemService(Service.ACTIVITY_SERVICE);
+        return activityMgr.getRunningTasks(1).get(0).topActivity.getClassName();
+    }
+
+    /**
+     * Check set Touch event manage flag.
+     *
+     * @return  set flag is true, otherwise false.
+     */
+    private boolean isSetTouchEventManageFlag() {
+        return sFlagTouchEventManage != 0;
+    }
+
+    /**
+     * Reset Touch profile.
+     */
+    public void resetTouchProfile() {
+        if (isSetTouchEventManageFlag()) {
+            resetTouchEventFlag(FLAG_ON_TOUCH | FLAG_ON_TOUCH_START | FLAG_ON_TOUCH_END
+                    | FLAG_ON_DOUBLE_TAP | FLAG_ON_TOUCH_MOVE | FLAG_ON_TOUCH_CANCEL);
+        }
     }
 }

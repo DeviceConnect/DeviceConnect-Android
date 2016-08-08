@@ -16,6 +16,10 @@ import org.deviceconnect.android.deviceplugin.fplug.fplug.FPLUGRequestCallback;
 import org.deviceconnect.android.deviceplugin.fplug.fplug.FPLUGResponse;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.LightProfile;
+import org.deviceconnect.android.profile.api.DConnectApi;
+import org.deviceconnect.android.profile.api.DeleteApi;
+import org.deviceconnect.android.profile.api.GetApi;
+import org.deviceconnect.android.profile.api.PostApi;
 import org.deviceconnect.message.DConnectMessage;
 
 import java.util.ArrayList;
@@ -32,63 +36,103 @@ public class FPLUGLightProfile extends LightProfile {
 
     private Map<String, FlashingExecutor> mFlashingMap = new HashMap<String, FlashingExecutor>();
 
-    @Override
-    protected boolean onGetLight(final Intent request, final Intent response, final String serviceId) {
-        if (serviceId == null || serviceId.length() == 0) {
-            MessageUtils.setEmptyServiceIdError(response);
+    private final DConnectApi mGetLightApi = new GetApi() {
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String serviceId = getServiceID(request);
+
+            FPLUGApplication app = ((FPLUGApplication) getContext().getApplicationContext());
+            List<FPLUGController> fplugs = app.getConnectedController();
+            FPLUGController fplug = app.getConnectedController(serviceId);
+            if (fplugs == null) {
+                MessageUtils.setNotFoundServiceError(response, "Not found fplug: " + serviceId);
+                return true;
+            }
+
+            Bundle lightParam = new Bundle();
+            setLightId(lightParam, fplug.getAddress());
+            setName(lightParam, "F-PLUG LED");
+            setConfig(lightParam, "");
+            setOn(lightParam, false);//f-plug's status can not be take. So always OFF.
+            List<Bundle> lightParams = new ArrayList<>();
+            lightParams.add(lightParam);
+            setLights(response, lightParams);
+
+            sendResultOK(response);
             return true;
         }
 
-        FPLUGApplication app = ((FPLUGApplication) getContext().getApplicationContext());
-        List<FPLUGController> fplugs = app.getConnectedController();
-        FPLUGController fplug = app.getConnectedController(serviceId);
-        if (fplugs == null) {
-            MessageUtils.setNotFoundServiceError(response, "Not found fplug: " + serviceId);
-            return true;
-        }
+    };
 
-        Bundle lightParam = new Bundle();
-        setLightId(lightParam, fplug.getAddress());
-        setName(lightParam, "F-PLUG LED");
-        setConfig(lightParam, "");
-        setOn(lightParam, false);//f-plug's status can not be take. So always OFF.
-        List<Bundle> lightParams = new ArrayList<>();
-        lightParams.add(lightParam);
-        setLights(response, lightParams);
+    private final DConnectApi mPostLightApi = new PostApi() {
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String serviceId = getServiceID(request);
+            String lightId = getLightId(request);
+            long[] flashing = getFlashing(request);
 
-        sendResultOK(response);
-        return true;
-    }
+            FPLUGApplication app = ((FPLUGApplication) getContext().getApplicationContext());
+            FPLUGController controller;
+            if (lightId == null) {
+                controller = app.getConnectedController(serviceId);
+            } else if (lightId.length() != 0) {
+                controller = app.getConnectedController(lightId);
+            } else {
+                MessageUtils.setInvalidRequestParameterError(response, "lightId is not specified.");
+                return true;
+            }
+            if (controller == null) {
+                MessageUtils.setInvalidRequestParameterError(response, "Not found fplug: " + lightId);
+                return true;
+            }
+            if (flashing != null) {
+                flashing(controller, flashing);//do not check result of flashing
+                setResult(response, DConnectMessage.RESULT_OK);
+                return true;
+            } else {
+                controller.requestLEDControl(true, new FPLUGRequestCallback() {
+                    @Override
+                    public void onSuccess(final FPLUGResponse fResponse) {
+                        sendResultOK(response);
+                    }
 
-    @Override
-    protected boolean onPostLight(final Intent request, final Intent response, final String serviceId,
-                                  final String lightId, final Integer color, final Double brightness,
-                                  final long[] flashing) {
-        if (serviceId == null || serviceId.length() == 0) {
-            MessageUtils.setEmptyServiceIdError(response);
-            return true;
-        }
+                    @Override
+                    public void onError(final String message) {
+                        sendResultError(response);
+                    }
 
-        FPLUGApplication app = ((FPLUGApplication) getContext().getApplicationContext());
-        FPLUGController controller;
-        if (lightId == null) {
-            controller = app.getConnectedController(serviceId);
-        } else if (lightId.length() != 0) {
-            controller = app.getConnectedController(lightId);
-        } else {
-            MessageUtils.setInvalidRequestParameterError(response, "lightId is not specified.");
-            return true;
+                    @Override
+                    public void onTimeout() {
+                        sendResultTimeout(response);
+                    }
+                });
+                return false;
+            }
         }
-        if (controller == null) {
-            MessageUtils.setInvalidRequestParameterError(response, "Not found fplug: " + lightId);
-            return true;
-        }
-        if (flashing != null) {
-            flashing(controller, flashing);//do not check result of flashing
-            setResult(response, DConnectMessage.RESULT_OK);
-            return true;
-        } else {
-            controller.requestLEDControl(true, new FPLUGRequestCallback() {
+    };
+
+    private final DConnectApi mDeleteLightApi = new DeleteApi() {
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String serviceId = getServiceID(request);
+            String lightId = getLightId(request);
+
+            FPLUGApplication app = ((FPLUGApplication) getContext().getApplicationContext());
+            FPLUGController controller;
+            if (lightId == null) {
+                controller = app.getConnectedController(serviceId);
+            } else if (lightId.length() != 0) {
+                controller = app.getConnectedController(lightId);
+            } else {
+                MessageUtils.setInvalidRequestParameterError(response, "lightId is not specified.");
+                return true;
+            }
+            if (controller == null) {
+                MessageUtils.setInvalidRequestParameterError(response, "Not found fplug: " + lightId);
+                return true;
+            }
+            controller.requestLEDControl(false, new FPLUGRequestCallback() {
                 @Override
                 public void onSuccess(final FPLUGResponse fResponse) {
                     sendResultOK(response);
@@ -106,47 +150,12 @@ public class FPLUGLightProfile extends LightProfile {
             });
             return false;
         }
-    }
+    };
 
-    @Override
-    protected boolean onDeleteLight(final Intent request, final Intent response, final String serviceId,
-                                    final String lightId) {
-        if (serviceId == null || serviceId.length() == 0) {
-            MessageUtils.setEmptyServiceIdError(response);
-            return true;
-        }
-
-        FPLUGApplication app = ((FPLUGApplication) getContext().getApplicationContext());
-        FPLUGController controller;
-        if (lightId == null) {
-            controller = app.getConnectedController(serviceId);
-        } else if (lightId.length() != 0) {
-            controller = app.getConnectedController(lightId);
-        } else {
-            MessageUtils.setInvalidRequestParameterError(response, "lightId is not specified.");
-            return true;
-        }
-        if (controller == null) {
-            MessageUtils.setInvalidRequestParameterError(response, "Not found fplug: " + lightId);
-            return true;
-        }
-        controller.requestLEDControl(false, new FPLUGRequestCallback() {
-            @Override
-            public void onSuccess(final FPLUGResponse fResponse) {
-                sendResultOK(response);
-            }
-
-            @Override
-            public void onError(final String message) {
-                sendResultError(response);
-            }
-
-            @Override
-            public void onTimeout() {
-                sendResultTimeout(response);
-            }
-        });
-        return false;
+    public FPLUGLightProfile() {
+        addApi(mGetLightApi);
+        addApi(mPostLightApi);
+        addApi(mDeleteLightApi);
     }
 
     private void flashing(final FPLUGController controller, long[] flashing) {

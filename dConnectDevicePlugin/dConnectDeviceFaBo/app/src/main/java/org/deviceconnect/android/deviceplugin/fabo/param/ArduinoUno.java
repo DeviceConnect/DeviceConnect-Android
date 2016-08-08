@@ -80,4 +80,59 @@ public class ArduinoUno {
     public final static int PIN_NO_A3 =  17;
     public final static int PIN_NO_A4 =  18;
     public final static int PIN_NO_A5 =  19;
+
+    /**
+     * ピン情報の構造体.
+     */
+    public enum Pin {
+
+        PIN_D0(PIN_NO_D0, PORT_D0, BIT_D0, "0", "D0"),
+        PIN_D1(PIN_NO_D1, PORT_D1, BIT_D1, "1", "D1"),
+        PIN_D2(PIN_NO_D2, PORT_D2, BIT_D2, "2", "D2"),
+        PIN_D3(PIN_NO_D3, PORT_D3, BIT_D3, "3", "D3"),
+        PIN_D4(PIN_NO_D4, PORT_D4, BIT_D4, "4", "D4"),
+        PIN_D5(PIN_NO_D5, PORT_D5, BIT_D5, "5", "D5"),
+        PIN_D6(PIN_NO_D6, PORT_D6, BIT_D6, "6", "D6"),
+        PIN_D7(PIN_NO_D7, PORT_D7, BIT_D7, "7", "D7"),
+        PIN_D8(PIN_NO_D8, PORT_D8, BIT_D8, "8", "D8"),
+        PIN_D9(PIN_NO_D9, PORT_D9, BIT_D9, "9", "D9"),
+        PIN_D10(PIN_NO_D10, PORT_D10, BIT_D10, "10", "D10"),
+        PIN_D11(PIN_NO_D11, PORT_D11, BIT_D11, "11", "D11"),
+        PIN_D12(PIN_NO_D12, PORT_D12, BIT_D12, "12", "D12"),
+        PIN_D13(PIN_NO_D13, PORT_D13, BIT_D13, "13", "D13"),
+        PIN_A0(PIN_NO_A0, PORT_A0, BIT_A0, "14", "A0"),
+        PIN_A1(PIN_NO_A1, PORT_A1, BIT_A1, "15", "A1"),
+        PIN_A2(PIN_NO_A2, PORT_A2, BIT_A2, "16", "A2"),
+        PIN_A3(PIN_NO_A3, PORT_A3, BIT_A3, "17", "A3"),
+        PIN_A4(PIN_NO_A4, PORT_A4, BIT_A4, "18", "A4"),
+        PIN_A5(PIN_NO_A5, PORT_A5, BIT_A5, "19", "A5");
+
+        final int mPinNumber;
+        final int mPort;
+        final int mBit;
+        final String[] mPinNames;
+
+        Pin(final int pinNumber, final int port, final int bit, final String... pinNames) {
+            mPinNumber = pinNumber;
+            mPort = port;
+            mBit = bit;
+            mPinNames = pinNames;
+        }
+
+        public int getPinNumber() {
+            return mPinNumber;
+        }
+
+        public int getPort() {
+            return mPort;
+        }
+
+        public int getBit() {
+            return mBit;
+        }
+
+        public String[] getPinNames() {
+            return mPinNames;
+        }
+    }
 }

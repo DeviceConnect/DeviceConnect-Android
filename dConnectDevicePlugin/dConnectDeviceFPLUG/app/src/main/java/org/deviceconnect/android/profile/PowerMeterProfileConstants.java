@@ -18,18 +18,18 @@ public interface PowerMeterProfileConstants extends DConnectProfileConstants {
     /**
      * profile name.
      */
-    String PROFILE_NAME = "powermeter";
+    String PROFILE_NAME = "powerMeter";
 
     /**
      * attribute : {@value} .
      */
-    String ATTR_INTEGRATEDPOWERVALUE = "integratedpowervalue";
+    String ATTR_INTEGRATEDPOWERVALUE = "integratedPowerValue";
 
 
     /**
      * attribute : {@value} .
      */
-    String ATTR_INSTANTANEOUSPOWERVALUE = "instantaneouspowervalue";
+    String ATTR_INSTANTANEOUSPOWERVALUE = "instantaneousPowerValue";
 
     /**
      * parameter : {@value} .

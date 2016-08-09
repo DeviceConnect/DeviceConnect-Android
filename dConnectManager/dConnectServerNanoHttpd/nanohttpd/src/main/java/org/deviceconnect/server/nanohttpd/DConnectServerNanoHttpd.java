@@ -29,9 +29,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;
 import java.security.GeneralSecurityException;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -75,9 +73,6 @@ public class DConnectServerNanoHttpd extends DConnectServer {
 
     /** Firewall. */
     private Firewall mFirewall;
-
-    /** WebSocketの一覧. */
-    private List<NanoWebSocket> mWebSockets = new ArrayList<>();
 
     /**
      * Keep-Aliveの状態定数.
@@ -217,14 +212,12 @@ public class DConnectServerNanoHttpd extends DConnectServer {
             return;
         }
 
-        for (NanoWebSocket socket : mWebSockets) {
-            if (sessionKey.equals(socket.mSessionKey)) {
-                try {
-                    socket.close(NanoWSD.WebSocketFrame.CloseCode.GoingAway, "User disconnect", false);
-                } catch (IOException e) {
-                    mLogger.warning("Exception in the DConnectServerNanoHttpd#disconnectWebSocket() method. " + e.toString());
-                }
-                return;
+        DConnectWebSocket webSocket = mSockets.get(sessionKey);
+        if (webSocket != null && webSocket instanceof NanoWSD.WebSocket) {
+            try {
+                ((NanoWebSocket) webSocket).close(NanoWSD.WebSocketFrame.CloseCode.NormalClosure, "Disconnected by the user.", false);
+            } catch (IOException e) {
+                mLogger.warning("Exception in the DConnectServerNanoHttpd#shutdown() method. " + e.toString());
             }
         }
     }
@@ -758,7 +751,6 @@ public class DConnectServerNanoHttpd extends DConnectServer {
                         }
                         mListener.onWebSocketConnected(origin + getHandshakeRequest().getUri(), mSessionKey);
                     }
-                    mWebSockets.add(this);
                 }
             } catch (JSONException e) {
                 mLogger.warning("Exception in the NanoWebSocket#onMessage() method." + e.toString());
@@ -778,7 +770,6 @@ public class DConnectServerNanoHttpd extends DConnectServer {
             if (mServer != null) {
                 mServer.countdownWebSocket();
             }
-            mWebSockets.remove(this);
 
             mKeepAliveTimer.cancel();
         }

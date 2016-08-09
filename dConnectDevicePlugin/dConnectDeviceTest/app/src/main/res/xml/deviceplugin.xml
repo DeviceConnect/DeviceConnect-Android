@@ -124,7 +124,7 @@
         <name lang="en">Unique Profile (for test)</name>
         <description lang="en">Accesses to uniqure profile. (for test)</description>
     </profile>
-    <profile name="json_test" expireperiod="86400000">
+    <profile name="jsonTest" expireperiod="86400000">
         <name lang="ja">JSON (テスト用)</name>
         <description lang="ja">テスト用JSONを提供する (テスト用)</description>
         <name lang="en">JSON Test (for test)</name>
@@ -136,6 +136,6 @@
         <name lang="en">Dummy Profile(for test)</name>
         <description lang="en">Dummy profile which is not implemented. (for test)</description>
     </profile>
-    <profile name="not_localized_profile" expireperiod="86400000"></profile>
+    <profile name="notLocalizedProfile" expireperiod="86400000"></profile>
 
 </deviceplugin-provider>

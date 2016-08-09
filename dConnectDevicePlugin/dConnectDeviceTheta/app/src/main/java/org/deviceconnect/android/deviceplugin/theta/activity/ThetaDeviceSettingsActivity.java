@@ -12,6 +12,7 @@ import android.support.v4.app.FragmentManager;
 
 import org.deviceconnect.android.deviceplugin.theta.ThetaDeviceApplication;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaDevice;
+import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceManager;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceModel;
 import org.deviceconnect.android.deviceplugin.theta.fragment.ConfirmationFragment;
 import org.deviceconnect.android.deviceplugin.theta.fragment.MovieModeFragment;
@@ -69,6 +70,12 @@ public class ThetaDeviceSettingsActivity extends DConnectSettingPageFragmentActi
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        getDeviceManager().checkConnectedDevice();
+    }
+
+    @Override
     protected void onPause() {
         ThetaDevice device = getConnectedDevice();
         if (device != null) {
@@ -77,9 +84,13 @@ public class ThetaDeviceSettingsActivity extends DConnectSettingPageFragmentActi
         super.onPause();
     }
 
-    private ThetaDevice getConnectedDevice() {
+    private ThetaDeviceManager getDeviceManager() {
         ThetaDeviceApplication app = (ThetaDeviceApplication) getApplication();
-        return app.getDeviceManager().getConnectedDevice();
+        return app.getDeviceManager();
+    }
+
+    private ThetaDevice getConnectedDevice() {
+        return getDeviceManager().getConnectedDevice();
     }
 
     public ThetaDeviceModel getSelectedModel() {

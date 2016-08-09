@@ -9,6 +9,6 @@ import android.content.Intent;
  */
 public interface MessageConverter {
 
-    boolean convert(Intent message);
+    void convert(Intent message);
 
 }

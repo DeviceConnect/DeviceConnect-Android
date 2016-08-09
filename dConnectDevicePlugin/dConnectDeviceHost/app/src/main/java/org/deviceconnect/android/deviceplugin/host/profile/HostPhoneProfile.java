@@ -15,6 +15,10 @@ import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.PhoneProfile;
+import org.deviceconnect.android.profile.api.DConnectApi;
+import org.deviceconnect.android.profile.api.DeleteApi;
+import org.deviceconnect.android.profile.api.PostApi;
+import org.deviceconnect.android.profile.api.PutApi;
 import org.deviceconnect.message.DConnectMessage;
 
 import android.Manifest;
@@ -39,40 +43,145 @@ public class HostPhoneProfile extends PhoneProfile {
      */
     private static final int MAX_PHONE_NUMBER_SIZE = 13;
 
-    @Override
-    protected boolean onPostCall(final Intent request, final Intent response, final String serviceId,
-            final String phoneNumber) {
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else {
+    private final DConnectApi mPostCallApi = new PostApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_CALL;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            final String phoneNumber = getPhoneNumber(request);
             if (phoneNumber != null) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                     PermissionUtility.requestPermissions(getContext(), new Handler(Looper.getMainLooper()),
-                            new String[] { Manifest.permission.CALL_PHONE },
-                            new PermissionUtility.PermissionRequestCallback() {
-                                @Override
-                                public void onSuccess() {
-                                    onPostCallInternal(request, response, phoneNumber);
-                                    sendResponse(response);
-                                }
+                        new String[] { Manifest.permission.CALL_PHONE },
+                        new PermissionUtility.PermissionRequestCallback() {
+                            @Override
+                            public void onSuccess() {
+                                onPostCallInternal(request, response, phoneNumber);
+                                sendResponse(response);
+                            }
 
-                                @Override
-                                public void onFail(@NonNull String deniedPermission) {
-                                    MessageUtils.setIllegalServerStateError(response,
-                                            "CALL_PHONE permission not granted.");
-                                    sendResponse(response);
-                                }
-                            });
+                            @Override
+                            public void onFail(@NonNull String deniedPermission) {
+                                MessageUtils.setIllegalServerStateError(response,
+                                    "CALL_PHONE permission not granted.");
+                                sendResponse(response);
+                            }
+                        });
                     return false;
                 }
                 onPostCallInternal(request, response, phoneNumber);
             } else {
                 MessageUtils.setInvalidRequestParameterError(response, "phoneNumber is invalid.");
             }
+            return true;
         }
-        return true;
+    };
+
+    private final DConnectApi mPutSetApi = new PutApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_SET;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            PhoneMode mode = getMode(request);
+
+            // AudioManager
+            AudioManager mAudioManager = (AudioManager) getContext().getSystemService(Context.AUDIO_SERVICE);
+
+            if (mode.equals(PhoneMode.SILENT)) {
+                mAudioManager.setRingerMode(AudioManager.RINGER_MODE_SILENT);
+                setResult(response, DConnectMessage.RESULT_OK);
+            } else if (mode.equals(PhoneMode.SOUND)) {
+                mAudioManager.setRingerMode(AudioManager.RINGER_MODE_NORMAL);
+                setResult(response, DConnectMessage.RESULT_OK);
+            } else if (mode.equals(PhoneMode.MANNER)) {
+                mAudioManager.setRingerMode(AudioManager.RINGER_MODE_VIBRATE);
+                setResult(response, DConnectMessage.RESULT_OK);
+            } else if (mode.equals(PhoneMode.UNKNOWN)) {
+                MessageUtils.setInvalidRequestParameterError(response, "mode is invalid.");
+            }
+            return true;
+        }
+    };
+
+    private final DConnectApi mPutOnConnectApi = new PutApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_CONNECT;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String serviceId = getServiceID(request);
+            EventError error = EventManager.INSTANCE.addEvent(request);
+            if (error == EventError.NONE) {
+                ((HostDeviceService) getContext()).setServiceId(serviceId);
+                setResult(response, DConnectMessage.RESULT_OK);
+            } else {
+                switch (error) {
+                    case FAILED:
+                        MessageUtils.setUnknownError(response, "Do not unregister event.");
+                        break;
+                    case INVALID_PARAMETER:
+                        MessageUtils.setInvalidRequestParameterError(response);
+                        break;
+                    case NOT_FOUND:
+                        MessageUtils.setUnknownError(response, "Event not found.");
+                        break;
+                    default:
+                        MessageUtils.setUnknownError(response);
+                        break;
+                }
+            }
+            return true;
+        }
+    };
+
+    private final DConnectApi mDeleteOnConnectApi = new DeleteApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_CONNECT;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            EventError error = EventManager.INSTANCE.removeEvent(request);
+            if (error == EventError.NONE) {
+                setResult(response, DConnectMessage.RESULT_OK);
+            } else {
+                switch (error) {
+                    case FAILED:
+                        MessageUtils.setUnknownError(response, "Do not unregister event.");
+                        break;
+                    case INVALID_PARAMETER:
+                        MessageUtils.setInvalidRequestParameterError(response);
+                        break;
+                    case NOT_FOUND:
+                        MessageUtils.setUnknownError(response, "Event not found.");
+                        break;
+                    default:
+                        MessageUtils.setUnknownError(response);
+                        break;
+                }
+            }
+            return true;
+        }
+    };
+
+    public HostPhoneProfile() {
+        addApi(mPostCallApi);
+        addApi(mPutSetApi);
+        addApi(mPutOnConnectApi);
+        addApi(mDeleteOnConnectApi);
     }
 
     private void onPostCallInternal(final Intent request, final Intent response, final String phoneNumber) {
@@ -94,143 +203,6 @@ public class HostPhoneProfile extends PhoneProfile {
         } catch (Throwable throwable) {
             MessageUtils.setUnknownError(response, "Failed to make a phone call.");
         }
-    }
-
-    @Override
-    protected boolean onPutSet(final Intent request, final Intent response, final String serviceId,
-            final PhoneMode mode) {
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else {
-            // AudioManager
-            AudioManager mAudioManager = (AudioManager) getContext().getSystemService(Context.AUDIO_SERVICE);
-
-            if (mode.equals(PhoneMode.SILENT)) {
-                mAudioManager.setRingerMode(AudioManager.RINGER_MODE_SILENT);
-                setResult(response, DConnectMessage.RESULT_OK);
-            } else if (mode.equals(PhoneMode.SOUND)) {
-                mAudioManager.setRingerMode(AudioManager.RINGER_MODE_NORMAL);
-                setResult(response, DConnectMessage.RESULT_OK);
-            } else if (mode.equals(PhoneMode.MANNER)) {
-                mAudioManager.setRingerMode(AudioManager.RINGER_MODE_VIBRATE);
-                setResult(response, DConnectMessage.RESULT_OK);
-            } else if (mode.equals(PhoneMode.UNKNOWN)) {
-                MessageUtils.setInvalidRequestParameterError(response, "mode is invalid.");
-            }
-        }
-        return true;
-    }
-
-    @Override
-    protected boolean onPutOnConnect(final Intent request, final Intent response, final String serviceId,
-            final String sessionKey) {
-
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else if (sessionKey == null) {
-            createEmptySessionKey(response);
-        } else {
-            EventError error = EventManager.INSTANCE.addEvent(request);
-            if (error == EventError.NONE) {
-                ((HostDeviceService) getContext()).setServiceId(serviceId);
-                setResult(response, DConnectMessage.RESULT_OK);
-            } else {
-                switch (error) {
-                case FAILED:
-                    MessageUtils.setUnknownError(response, "Do not unregister event.");
-                    break;
-                case INVALID_PARAMETER:
-                    MessageUtils.setInvalidRequestParameterError(response);
-                    break;
-                case NOT_FOUND:
-                    MessageUtils.setUnknownError(response, "Event not found.");
-                    break;
-                default:
-                    MessageUtils.setUnknownError(response);
-                    break;
-                }
-            }
-        }
-        return true;
-    }
-
-    @Override
-    protected boolean onDeleteOnConnect(final Intent request, final Intent response, final String serviceId,
-            final String sessionKey) {
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else if (sessionKey == null) {
-            createEmptySessionKey(response);
-        } else {
-            EventError error = EventManager.INSTANCE.removeEvent(request);
-            if (error == EventError.NONE) {
-                setResult(response, DConnectMessage.RESULT_OK);
-            } else {
-                switch (error) {
-                case FAILED:
-                    MessageUtils.setUnknownError(response, "Do not unregister event.");
-                    break;
-                case INVALID_PARAMETER:
-                    MessageUtils.setInvalidRequestParameterError(response);
-                    break;
-                case NOT_FOUND:
-                    MessageUtils.setUnknownError(response, "Event not found.");
-                    break;
-                default:
-                    MessageUtils.setUnknownError(response);
-                    break;
-                }
-            }
-        }
-
-        return true;
-    }
-
-    /**
-     * サービスIDをチェックする.
-     * 
-     * @param serviceId サービスID
-     * @return <code>serviceId</code>がテスト用サービスIDに等しい場合はtrue、そうでない場合はfalse
-     */
-    private boolean checkServiceId(final String serviceId) {
-        String regex = HostServiceDiscoveryProfile.SERVICE_ID;
-        Pattern mPattern = Pattern.compile(regex);
-        Matcher match = mPattern.matcher(serviceId);
-
-        return match.find();
-    }
-
-    /**
-     * サービスIDが空の場合のエラーを作成する.
-     * 
-     * @param response レスポンスを格納するIntent
-     */
-    private void createEmptyServiceId(final Intent response) {
-        MessageUtils.setEmptyServiceIdError(response);
-    }
-
-    /**
-     * デバイスが発見できなかった場合のエラーを作成する.
-     * 
-     * @param response レスポンスを格納するIntent
-     */
-    private void createNotFoundService(final Intent response) {
-        MessageUtils.setNotFoundServiceError(response);
-    }
-
-    /**
-     * セッションキーが空の場合のエラーを作成する.
-     * 
-     * @param response レスポンスを格納するIntent
-     */
-    private void createEmptySessionKey(final Intent response) {
-        MessageUtils.setInvalidRequestParameterError(response, "SessionKey not found");
     }
 
     /**

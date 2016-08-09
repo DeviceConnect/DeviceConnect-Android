@@ -30,7 +30,7 @@ import javax.net.SocketFactory;
 
 class ThetaM15 extends AbstractThetaDevice {
 
-    private static final String ID = "theta";
+    private static final String ID_PREFIX = "theta-m15-";
 
     private static final String HOST = "192.168.1.1";
 
@@ -61,8 +61,8 @@ class ThetaM15 extends AbstractThetaDevice {
 
     private Recorder mRecorder;
 
-    ThetaM15(final Context context, final String name) {
-        super(name);
+    ThetaM15(final Context context, final String ssId) {
+        super(ssId);
         mSocketFactory = getWifiSocketFactory(context);
     }
 
@@ -110,7 +110,7 @@ class ThetaM15 extends AbstractThetaDevice {
 
     @Override
     public String getId() {
-        return ID;
+        return ID_PREFIX + mSSID;
     }
 
     @Override

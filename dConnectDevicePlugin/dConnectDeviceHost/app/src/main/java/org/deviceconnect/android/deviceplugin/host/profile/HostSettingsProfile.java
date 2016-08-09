@@ -15,6 +15,9 @@ import java.util.regex.Pattern;
 import org.deviceconnect.android.activity.IntentHandlerActivity;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.SettingsProfile;
+import org.deviceconnect.android.profile.api.DConnectApi;
+import org.deviceconnect.android.profile.api.GetApi;
+import org.deviceconnect.android.profile.api.PutApi;
 import org.deviceconnect.message.DConnectMessage;
 
 import android.content.Context;
@@ -44,14 +47,22 @@ public class HostSettingsProfile extends SettingsProfile {
     private SimpleDateFormat mDateFormat = new SimpleDateFormat("yyyy'-'MM'-'dd' 'kk':'mm':'ss'+0900'",
             Locale.getDefault());
 
-    @Override
-    protected boolean onGetSoundVolume(final Intent request, final Intent response, final String serviceId,
-            final VolumeKind kind) {
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else {
+    private final DConnectApi mGetSoundVolumeApi = new GetApi() {
+
+        @Override
+        public String getInterface() {
+            return INTERFACE_SOUND;
+        }
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_VOLUME;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            VolumeKind kind = getVolumeKind(request);
+
             AudioManager manager = (AudioManager) getContext().getSystemService(Context.AUDIO_SERVICE);
 
             double volume = 0.0;
@@ -86,68 +97,88 @@ public class HostSettingsProfile extends SettingsProfile {
             } else {
                 MessageUtils.setInvalidRequestParameterError(response, "type is invalid.");
             }
+            return true;
         }
-        return true;
-    }
+    };
 
-    @Override
-    protected boolean onGetDate(final Intent request, final Intent response, final String serviceId) {
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else {
+    private final DConnectApi mGetDateApi = new GetApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_DATE;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
             setDate(response, mDateFormat.format(new Date()));
             setResult(response, DConnectMessage.RESULT_OK);
+            return true;
         }
-        return true;
-    }
+    };
 
-    @Override
-    protected boolean onGetDisplayLight(final Intent request, final Intent response, final String serviceId) {
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else {
+    private final DConnectApi mGetDisplayLightApi = new GetApi() {
+
+        @Override
+        public String getInterface() {
+            return INTERFACE_DISPLAY;
+        }
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_LIGHT;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
             // 自動調整ボタンが有効な場合 0が変える
             // 端末画面の明るさを取得(0～255)
             double level = Settings.System.getInt(getContext().getContentResolver(), Settings.System.SCREEN_BRIGHTNESS,
-                    0);
+                0);
             double maxLevel = MAX_LIGHT_LEVEL;
             setLightLevel(response, level / maxLevel);
             setResult(response, DConnectMessage.RESULT_OK);
+            return true;
         }
-        return true;
-    }
+    };
 
-    @Override
-    protected boolean onGetDisplaySleep(final Intent request, final Intent response, final String serviceId) {
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else {
+    private final DConnectApi mGetDisplaySleepApi = new GetApi() {
+
+        @Override
+        public String getInterface() {
+            return INTERFACE_DISPLAY;
+        }
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_SLEEP;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
             int timeout = Settings.System.getInt(getContext().getContentResolver(), Settings.System.SCREEN_OFF_TIMEOUT,
-                    0);
+                0);
             setTime(response, timeout);
             setResult(response, DConnectMessage.RESULT_OK);
+            return true;
         }
-        return true;
-    }
+    };
 
-    @Override
-    protected boolean onPutSoundVolume(final Intent request, final Intent response, final String serviceId,
-            final VolumeKind kind, final Double level) {
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else {
-            if (level == null || level < 0.0 || level > 1.0) {
-                MessageUtils.setInvalidRequestParameterError(response, "level is invalid.");
-                return true;
-            }
+    private final DConnectApi mPutSoundVolumeApi = new PutApi() {
+
+        @Override
+        public String getInterface() {
+            return INTERFACE_SOUND;
+        }
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_VOLUME;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            VolumeKind kind = getVolumeKind(request);
+            Double level = getVolumeLevel(request);
 
             AudioManager manager = (AudioManager) getContext().getSystemService(Context.AUDIO_SERVICE);
             double maxVolume = 1;
@@ -176,44 +207,97 @@ public class HostSettingsProfile extends SettingsProfile {
             } else {
                 MessageUtils.setInvalidRequestParameterError(response, "type is invalid.");
             }
+            return true;
         }
-        return true;
-    }
+    };
 
-    @Override
-    protected boolean onPutDisplayLight(final Intent request, final Intent response, final String serviceId,
-            final Double level) {
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else {
+    private final DConnectApi mPutDisplayLightApi = new PutApi() {
+
+        @Override
+        public String getInterface() {
+            return INTERFACE_DISPLAY;
+        }
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_LIGHT;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            final String serviceId = getServiceID(request);
+            final Double level = getLightLevel(request);
+
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 if (Settings.System.canWrite(getContext())) {
                     onPutDisplayLightInternal(request, response, serviceId, level);
                 } else {
                     Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS,
-                            Uri.parse("package:" + getContext().getPackageName()));
+                        Uri.parse("package:" + getContext().getPackageName()));
                     IntentHandlerActivity.startActivityForResult(getContext(), intent,
-                            new ResultReceiver(new Handler(Looper.getMainLooper())) {
-                                @Override
-                                protected void onReceiveResult(final int resultCode, final Bundle resultData) {
-                                    if (Settings.System.canWrite(getContext())) {
-                                        onPutDisplayLightInternal(request, response, serviceId, level);
-                                    } else {
-                                        MessageUtils.setIllegalServerStateError(response,
-                                                "WRITE_SETTINGS permisson not granted");
-                                    }
-                                    sendResponse(response);
+                        new ResultReceiver(new Handler(Looper.getMainLooper())) {
+                            @Override
+                            protected void onReceiveResult(final int resultCode, final Bundle resultData) {
+                                if (Settings.System.canWrite(getContext())) {
+                                    onPutDisplayLightInternal(request, response, serviceId, level);
+                                } else {
+                                    MessageUtils.setIllegalServerStateError(response,
+                                        "WRITE_SETTINGS permisson not granted");
                                 }
-                            });
+                                sendResponse(response);
+                            }
+                        });
                     return false;
                 }
             } else {
                 onPutDisplayLightInternal(request, response, serviceId, level);
             }
+            return true;
         }
-        return true;
+    };
+
+    private final DConnectApi mPutDisplaySleepApi = new PutApi() {
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            final String serviceId = getServiceID(request);
+            final Integer time = getTime(request);
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                if (Settings.System.canWrite(getContext())) {
+                    onPutDisplaySleepInternal(request, response, serviceId, time);
+                } else {
+                    Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS,
+                        Uri.parse("package:" + getContext().getPackageName()));
+                    IntentHandlerActivity.startActivityForResult(getContext(), intent,
+                        new ResultReceiver(new Handler(Looper.getMainLooper())) {
+                            @Override
+                            protected void onReceiveResult(final int resultCode, final Bundle resultData) {
+                                if (Settings.System.canWrite(getContext())) {
+                                    onPutDisplaySleepInternal(request, response, serviceId, time);
+                                } else {
+                                    MessageUtils.setIllegalServerStateError(response,
+                                        "WRITE_SETTINGS permisson not granted");
+                                }
+                                sendResponse(response);
+                            }
+                        });
+                    return false;
+                }
+            } else {
+                onPutDisplaySleepInternal(request, response, serviceId, time);
+            }
+            return true;
+        }
+    };
+
+    public HostSettingsProfile() {
+        addApi(mGetSoundVolumeApi);
+        addApi(mGetDateApi);
+        addApi(mGetDisplayLightApi);
+        addApi(mGetDisplaySleepApi);
+        addApi(mPutSoundVolumeApi);
+        addApi(mPutDisplayLightApi);
+        addApi(mPutDisplaySleepApi);
     }
 
     private void onPutDisplayLightInternal(final Intent request, final Intent response, final String serviceId,
@@ -225,42 +309,6 @@ public class HostSettingsProfile extends SettingsProfile {
         Settings.System.putInt(getContext().getContentResolver(), Settings.System.SCREEN_BRIGHTNESS,
                 (int) (MAX_LIGHT_LEVEL * level));
         setResult(response, DConnectMessage.RESULT_OK);
-    }
-
-    @Override
-    protected boolean onPutDisplaySleep(final Intent request, final Intent response, final String serviceId,
-            final Integer time) {
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                if (Settings.System.canWrite(getContext())) {
-                    onPutDisplaySleepInternal(request, response, serviceId, time);
-                } else {
-                    Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS,
-                            Uri.parse("package:" + getContext().getPackageName()));
-                    IntentHandlerActivity.startActivityForResult(getContext(), intent,
-                            new ResultReceiver(new Handler(Looper.getMainLooper())) {
-                                @Override
-                                protected void onReceiveResult(final int resultCode, final Bundle resultData) {
-                                    if (Settings.System.canWrite(getContext())) {
-                                        onPutDisplaySleepInternal(request, response, serviceId, time);
-                                    } else {
-                                        MessageUtils.setIllegalServerStateError(response,
-                                                "WRITE_SETTINGS permisson not granted");
-                                    }
-                                    sendResponse(response);
-                                }
-                            });
-                    return false;
-                }
-            } else {
-                onPutDisplaySleepInternal(request, response, serviceId, time);
-            }
-        }
-        return true;
     }
 
     private void onPutDisplaySleepInternal(final Intent request, final Intent response, final String serviceId,
@@ -276,34 +324,4 @@ public class HostSettingsProfile extends SettingsProfile {
         }
     }
 
-    /**
-     * サービスIDをチェックする.
-     * 
-     * @param serviceId サービスID
-     * @return <code>serviceId</code>がテスト用サービスIDに等しい場合はtrue、そうでない場合はfalse
-     */
-    private boolean checkServiceId(final String serviceId) {
-        String regex = HostServiceDiscoveryProfile.SERVICE_ID;
-        Pattern mPattern = Pattern.compile(regex);
-        Matcher match = mPattern.matcher(serviceId);
-        return match.find();
-    }
-
-    /**
-     * サービスIDが空の場合のエラーを作成する.
-     * 
-     * @param response レスポンスを格納するIntent
-     */
-    private void createEmptyServiceId(final Intent response) {
-        MessageUtils.setEmptyServiceIdError(response);
-    }
-
-    /**
-     * デバイスが発見できなかった場合のエラーを作成する.
-     * 
-     * @param response レスポンスを格納するIntent
-     */
-    private void createNotFoundService(final Intent response) {
-        MessageUtils.setNotFoundServiceError(response);
-    }
 }

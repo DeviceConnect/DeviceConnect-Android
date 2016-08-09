@@ -6,8 +6,11 @@
  */
 package org.deviceconnect.android.deviceplugin.host.profile;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import android.app.ActivityManager;
+import android.app.Service;
+import android.content.Intent;
+import android.os.Bundle;
+import android.support.v4.content.LocalBroadcastManager;
 
 import org.deviceconnect.android.deviceplugin.host.HostDeviceService;
 import org.deviceconnect.android.deviceplugin.host.activity.KeyEventProfileActivity;
@@ -15,14 +18,12 @@ import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.KeyEventProfile;
+import org.deviceconnect.android.profile.api.DConnectApi;
+import org.deviceconnect.android.profile.api.DeleteApi;
+import org.deviceconnect.android.profile.api.GetApi;
+import org.deviceconnect.android.profile.api.PutApi;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
-
-import android.app.ActivityManager;
-import android.app.Service;
-import android.content.Intent;
-import android.os.Bundle;
-import android.support.v4.content.LocalBroadcastManager;
 
 /**
  * Key Event Profile.
@@ -45,54 +46,36 @@ public class HostKeyEventProfile extends KeyEventProfile {
     public static final String ACTION_FINISH_KEYEVENT_ACTIVITY =
             "org.deviceconnect.android.deviceplugin.host.keyevent.FINISH";
 
-    @Override
-    protected boolean onGetOnDown(final Intent request, final Intent response, final String serviceId) {
+    private final DConnectApi mGetOnDownApi = new GetApi() {
 
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else {
-            Bundle keyevent = ((HostDeviceService) getContext()).getKeyEventCache(KeyEventProfile.ATTRIBUTE_ON_DOWN);
-            if (keyevent == null) {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_DOWN;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            Bundle keyEvent = ((HostDeviceService) getContext()).getKeyEventCache(KeyEventProfile.ATTRIBUTE_ON_DOWN);
+            if (keyEvent == null) {
                 response.putExtra(KeyEventProfile.PARAM_KEYEVENT, "");
             } else {
-                response.putExtra(KeyEventProfile.PARAM_KEYEVENT, keyevent);
+                response.putExtra(KeyEventProfile.PARAM_KEYEVENT, keyEvent);
             }
             setResult(response, IntentDConnectMessage.RESULT_OK);
+            return true;
         }
-        return true;
-    }
+    };
 
-    @Override
-    protected boolean onGetOnUp(final Intent request, final Intent response, final String serviceId) {
+    private final DConnectApi mPutOnDownApi = new PutApi() {
 
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else {
-            Bundle keyevent = ((HostDeviceService) getContext()).getKeyEventCache(KeyEventProfile.ATTRIBUTE_ON_UP);
-            if (keyevent == null) {
-                response.putExtra(KeyEventProfile.PARAM_KEYEVENT, "");
-            } else {
-                response.putExtra(KeyEventProfile.PARAM_KEYEVENT, keyevent);
-            }
-            setResult(response, IntentDConnectMessage.RESULT_OK);
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_DOWN;
         }
-        return true;
-    }
 
-    @Override
-    protected boolean onPutOnDown(final Intent request, final Intent response, final String serviceId,
-            final String sessionKey) {
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else if (sessionKey == null) {
-            createEmptySessionKey(response);
-        } else {
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String serviceId = getServiceID(request);
             // Event registration.
             EventError error = EventManager.INSTANCE.addEvent(request);
             if (error == EventError.NONE) {
@@ -102,20 +85,61 @@ public class HostKeyEventProfile extends KeyEventProfile {
             } else {
                 MessageUtils.setError(response, ERROR_PROCESSING_ERROR, "Can not register event.");
             }
+            return true;
         }
-        return true;
-    }
+    };
 
-    @Override
-    protected boolean onPutOnUp(final Intent request, final Intent response, final String serviceId,
-            final String sessionKey) {
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else if (sessionKey == null) {
-            createEmptySessionKey(response);
-        } else {
+    private final DConnectApi mDeleteOnDownApi = new DeleteApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_DOWN;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            // Event release.
+            EventError error = EventManager.INSTANCE.removeEvent(request);
+            if (error == EventError.NONE) {
+                resetKeyEventEventFlag(FLAG_ON_DOWN);
+                setResult(response, DConnectMessage.RESULT_OK);
+            } else {
+                MessageUtils.setError(response, ERROR_PROCESSING_ERROR, "Can not unregister event.");
+            }
+            return true;
+        }
+    };
+
+    private final DConnectApi mGetOnUpApi = new GetApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_UP;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            Bundle keyEvent = ((HostDeviceService) getContext()).getKeyEventCache(KeyEventProfile.ATTRIBUTE_ON_UP);
+            if (keyEvent == null) {
+                response.putExtra(KeyEventProfile.PARAM_KEYEVENT, "");
+            } else {
+                response.putExtra(KeyEventProfile.PARAM_KEYEVENT, keyEvent);
+            }
+            setResult(response, IntentDConnectMessage.RESULT_OK);
+            return true;
+        }
+    };
+
+    private final DConnectApi mPutOnUpApi = new PutApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_UP;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String serviceId = getServiceID(request);
             // Event registration.
             EventError error = EventManager.INSTANCE.addEvent(request);
             if (error == EventError.NONE) {
@@ -125,42 +149,19 @@ public class HostKeyEventProfile extends KeyEventProfile {
             } else {
                 MessageUtils.setError(response, ERROR_PROCESSING_ERROR, "Can not register event.");
             }
+            return true;
         }
-        return true;
-    }
+    };
 
-    @Override
-    protected boolean onDeleteOnDown(final Intent request, final Intent response, final String serviceId,
-            final String sessionKey) {
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else if (sessionKey == null) {
-            createEmptySessionKey(response);
-        } else {
-            // Event release.
-            EventError error = EventManager.INSTANCE.removeEvent(request);
-            if (error == EventError.NONE) {
-                resetKeyEventEventFlag(FLAG_ON_DOWN);
-                setResult(response, DConnectMessage.RESULT_OK);
-            } else {
-                MessageUtils.setError(response, ERROR_PROCESSING_ERROR, "Can not unregister event.");
-            }
+    private final DConnectApi mDeleteOnUpApi = new DeleteApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_UP;
         }
-        return true;
-    }
 
-    @Override
-    protected boolean onDeleteOnUp(final Intent request, final Intent response, final String serviceId,
-            final String sessionKey) {
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else if (sessionKey == null) {
-            createEmptySessionKey(response);
-        } else {
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
             // Event release.
             EventError error = EventManager.INSTANCE.removeEvent(request);
             if (error == EventError.NONE) {
@@ -169,8 +170,17 @@ public class HostKeyEventProfile extends KeyEventProfile {
             } else {
                 MessageUtils.setError(response, ERROR_PROCESSING_ERROR, "Can not unregister event.");
             }
+            return true;
         }
-        return true;
+    };
+
+    public HostKeyEventProfile() {
+        addApi(mGetOnDownApi);
+        addApi(mPutOnDownApi);
+        addApi(mDeleteOnDownApi);
+        addApi(mGetOnUpApi);
+        addApi(mPutOnUpApi);
+        addApi(mDeleteOnUpApi);
     }
 
     /**
@@ -229,54 +239,30 @@ public class HostKeyEventProfile extends KeyEventProfile {
     }
 
     /**
-     * Check deviceID.
-     * 
-     * @param serviceId service ID.
-     * @return If <code>serviceId</code> is equal to test for deviceId, true.
-     *         Otherwise false.
-     */
-    private boolean checkServiceId(final String serviceId) {
-        String regex = HostServiceDiscoveryProfile.SERVICE_ID;
-        Pattern mPattern = Pattern.compile(regex);
-        Matcher match = mPattern.matcher(serviceId);
-        return match.find();
-    }
-
-    /**
-     * Creates an error of "serviceId is empty".
-     * 
-     * @param response Intent to store the response.
-     */
-    private void createEmptyServiceId(final Intent response) {
-        MessageUtils.setEmptyServiceIdError(response);
-    }
-
-    /**
-     * Creates an error of "sessionKey is empty".
-     * 
-     * @param response Intent to store the response.
-     */
-    private void createEmptySessionKey(final Intent response) {
-        MessageUtils.setError(response, ERROR_PROCESSING_ERROR, "SessionKey not found");
-    }
-
-    /**
-     * Creates an error of "service not found".
-     * 
-     * @param response Intent to store the response.
-     */
-    private void createNotFoundService(final Intent response) {
-        MessageUtils.setNotFoundServiceError(response);
-    }
-
-    /**
      * Get the class name of the Activity being displayed at the top of the screen.
      * 
      * @return class name.
      */
     private String getClassnameOfTopActivity() {
-        ActivityManager activitMgr = (ActivityManager) getContext().getSystemService(Service.ACTIVITY_SERVICE);
-        String className = activitMgr.getRunningTasks(1).get(0).topActivity.getClassName();
-        return className;
+        ActivityManager activityMgr = (ActivityManager) getContext().getSystemService(Service.ACTIVITY_SERVICE);
+        return activityMgr.getRunningTasks(1).get(0).topActivity.getClassName();
+    }
+
+    /**
+     * Check set KeyEvent event manage flag.
+     *
+     * @return  set flag is true, otherwise false.
+     */
+    private boolean isSetKeyEventManageFlag() {
+        return sFlagKeyEventEventManage != 0;
+    }
+
+    /**
+     * Reset KeyEvent profile.
+     */
+    public void resetKeyEventProfile() {
+        if (isSetKeyEventManageFlag()) {
+            resetKeyEventEventFlag(FLAG_ON_DOWN | FLAG_ON_UP);
+        }
     }
 }

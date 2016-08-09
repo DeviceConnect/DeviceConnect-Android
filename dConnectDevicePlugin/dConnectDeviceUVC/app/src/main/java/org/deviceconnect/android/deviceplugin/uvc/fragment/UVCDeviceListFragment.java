@@ -78,7 +78,7 @@ public class UVCDeviceListFragment extends Fragment {
                              final Bundle savedInstanceState) {
         mDeviceAdapter = new DeviceAdapter(getActivity(), createDeviceContainers());
 
-        mFooterView = inflater.inflate(R.layout.item_uvc_searching, null);
+        mFooterView = inflater.inflate(R.layout.item_uvc_error, null);
 
         View rootView = inflater.inflate(R.layout.fragment_uvc_device_list, null);
         mListView = (ListView) rootView.findViewById(R.id.device_list_view);
@@ -127,7 +127,7 @@ public class UVCDeviceListFragment extends Fragment {
                     mListView.removeFooterView(mFooterView);
                 }
                 if (mgr.getDeviceList().size() == 0) {
-                    mFooterView = inflater.inflate(R.layout.item_uvc_searching, null);
+                    mFooterView = inflater.inflate(R.layout.item_uvc_error, null);
                     mListView.addFooterView(mFooterView);
                 }
             }

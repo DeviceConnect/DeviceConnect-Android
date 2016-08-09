@@ -10,6 +10,7 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.AssetManager;
+import android.os.Binder;
 import android.os.Bundle;
 import android.os.IBinder;
 
@@ -104,7 +105,7 @@ public abstract class DConnectMessageService extends Service implements DConnect
      */
     protected abstract SystemProfile getSystemProfile();
 
-    protected final DConnectServiceProvider getServiceProvider() {
+    public final DConnectServiceProvider getServiceProvider() {
         return mServiceProvider;
     }
 
@@ -117,6 +118,8 @@ public abstract class DConnectMessageService extends Service implements DConnect
     }
 
     private DConnectPluginSpec mPluginSpec;
+
+    private final IBinder mLocalBinder = new LocalBinder();
 
     @Override
     public void onCreate() {
@@ -188,7 +191,7 @@ public abstract class DConnectMessageService extends Service implements DConnect
 
     @Override
     public IBinder onBind(final Intent intent) {
-        return null;
+        return mLocalBinder;
     }
 
     @Override
@@ -525,5 +528,13 @@ public abstract class DConnectMessageService extends Service implements DConnect
      */
     protected void onDevicePluginReset() {
         mLogger.info("SDK : onDevicePluginReset");
+    }
+
+    public class LocalBinder extends Binder {
+
+        public DConnectMessageService getMessageService() {
+            return DConnectMessageService.this;
+        }
+
     }
 }

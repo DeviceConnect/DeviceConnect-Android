@@ -48,4 +48,7 @@
     <string name="expire_period_date_format">有効期限 %1$s</string>
 
     <string name="image_description"></string>
+
+    <string name="device_connect_service_default_name">不明なデバイス</string>
+    <string name="button_remove_device_connect_service">削除</string>
 </resources>

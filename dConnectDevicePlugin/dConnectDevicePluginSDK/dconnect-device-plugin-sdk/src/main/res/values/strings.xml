@@ -49,4 +49,7 @@
     <string name="expire_period_date_format">Expiration date: %1$s</string>
 
     <string name="image_description"></string>
+
+    <string name="device_connect_service_default_name">Unknown Device</string>
+    <string name="button_remove_device_connect_service">Remove</string>
 </resources>

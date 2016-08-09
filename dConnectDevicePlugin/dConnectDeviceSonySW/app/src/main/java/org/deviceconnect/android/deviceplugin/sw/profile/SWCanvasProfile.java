@@ -23,7 +23,6 @@ import org.deviceconnect.android.profile.CanvasProfile;
 import org.deviceconnect.android.profile.api.DConnectApi;
 import org.deviceconnect.android.profile.api.PostApi;
 import org.deviceconnect.android.profile.util.CanvasProfileUtils;
-import org.deviceconnect.android.service.DConnectService;
 import org.deviceconnect.message.DConnectMessage;
 
 import java.io.ByteArrayOutputStream;
@@ -47,7 +46,6 @@ public class SWCanvasProfile extends CanvasProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            final DConnectService service = getService();
             final byte[] data = getData(request);
             final double x = getX(request);
             final double y = getY(request);

@@ -38,6 +38,7 @@ import org.deviceconnect.android.manager.DevicePluginManager;
 import org.deviceconnect.android.manager.IDConnectService;
 import org.deviceconnect.android.manager.IDConnectWebService;
 import org.deviceconnect.android.manager.R;
+import org.deviceconnect.android.manager.keepalive.KeepAliveManager;
 import org.deviceconnect.android.manager.setting.OpenSourceLicenseFragment.OpenSourceSoftware;
 import org.deviceconnect.android.manager.util.DConnectUtil;
 import org.deviceconnect.android.observer.DConnectObservationService;
@@ -245,6 +246,8 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
                 switchDConnectServer((Boolean) newValue);
             } else if (getString(R.string.key_settings_web_server_on_off).equals(key)) {
                 switchWebServer((Boolean) newValue);
+            } else if (getString(R.string.key_settings_event_keep_alive_on_off).equals(key)) {
+                switchEventKeepAlive((Boolean) newValue);
             }
         } else if (preference instanceof CheckBoxPreference) {
             if (getString(R.string.key_settings_dconn_observer_on_off).equals(key)) {
@@ -403,6 +406,18 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
             intent.setAction(DConnectObservationService.ACTION_STOP);
         }
         getActivity().sendBroadcast(intent);
+    }
+
+    /**
+     * KeepAlive機能の有効・無効を設定する.
+     * @param checked trueの場合は有効、falseの場合は無効
+     */
+    private void switchEventKeepAlive(final boolean checked) {
+        if (checked) {
+            KeepAliveManager.getInstance().enableKeepAlive();
+        } else {
+            KeepAliveManager.getInstance().disableKeepAlive();
+        }
     }
 
     /**
@@ -763,6 +778,9 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
         SwitchPreference webPreferences = (SwitchPreference) getPreferenceScreen()
             .findPreference(getString(R.string.key_settings_web_server_on_off));
         webPreferences.setOnPreferenceChangeListener(this);
+        SwitchPreference eventKeepAlive = (SwitchPreference) getPreferenceScreen()
+                .findPreference(getString(R.string.key_settings_event_keep_alive_on_off));
+        eventKeepAlive.setOnPreferenceChangeListener(this);
     }
 
 }

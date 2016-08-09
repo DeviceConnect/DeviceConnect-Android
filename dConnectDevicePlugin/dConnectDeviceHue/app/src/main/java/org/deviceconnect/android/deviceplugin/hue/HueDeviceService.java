@@ -35,7 +35,6 @@ public class HueDeviceService extends DConnectMessageService {
     @Override
     public void onCreate() {
         super.onCreate();
-        android.os.Debug.waitForDebugger();
 
         //hue SDKの初期化
         PHHueSDK hueSDK = PHHueSDK.getInstance();

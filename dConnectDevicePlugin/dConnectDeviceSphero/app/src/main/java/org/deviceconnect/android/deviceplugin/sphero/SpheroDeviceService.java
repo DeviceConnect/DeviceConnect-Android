@@ -202,12 +202,18 @@ public class SpheroDeviceService extends DConnectMessageService implements Devic
                             getServiceProvider().addService(service);
                         }
                     }
-                    if (info != null
+                    if ((info != null
                             && info.getDevice().getRobot().getIdentifier().equals(device.getIdentifier())
-                            && device.isOnline()) {
+                            && device.isOnline())
+                            || (info == null && device.isOnline())) {
                         devs.add(new SpheroParcelable(device.getIdentifier(),
                                 device.getName(),
                                 SpheroParcelable.SpheroState.Connected));
+                    } else if (info == null && device.isOnline()) {
+                            devs.add(new SpheroParcelable(device.getIdentifier(),
+                                    device.getName(),
+                                    SpheroParcelable.SpheroState.Connected));
+
                     } else {
                         devs.add(new SpheroParcelable(device.getIdentifier(),
                                 device.getName(),

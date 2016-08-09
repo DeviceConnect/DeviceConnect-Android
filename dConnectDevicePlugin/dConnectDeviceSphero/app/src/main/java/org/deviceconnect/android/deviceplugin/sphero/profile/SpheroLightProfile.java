@@ -9,6 +9,7 @@ package org.deviceconnect.android.deviceplugin.sphero.profile;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.text.TextUtils;
 
 import org.deviceconnect.android.deviceplugin.sphero.SpheroManager;
 import org.deviceconnect.android.deviceplugin.sphero.data.DeviceInfo;
@@ -124,6 +125,11 @@ public class SpheroLightProfile extends LightProfile {
             Integer color = getColor(request);
             Double brightness = getBrightness(request);
             long[] flashing = getFlashing(request);
+            String name = getName(request);
+            if (TextUtils.isEmpty(name)) {
+                MessageUtils.setInvalidRequestParameterError(response);
+                return true;
+            }
             return changeLight(response, serviceId, lightId, color, brightness, flashing);
         }
     };

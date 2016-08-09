@@ -18,6 +18,7 @@ import org.deviceconnect.android.compat.MessageConverter;
 import org.deviceconnect.android.manager.compat.CompatibleRequestConverter;
 import org.deviceconnect.android.manager.compat.ServiceDiscoveryConverter;
 import org.deviceconnect.android.manager.compat.ServiceInformationConverter;
+import org.deviceconnect.android.manager.keepalive.KeepAlive;
 import org.deviceconnect.android.manager.keepalive.KeepAliveManager;
 import org.deviceconnect.android.manager.util.DConnectUtil;
 import org.deviceconnect.android.profile.DConnectProfile;
@@ -103,7 +104,10 @@ public class DConnectService extends DConnectMessageService {
             if (status.equals("RESPONSE")) {
                 String serviceId = intent.getStringExtra("serviceId");
                 if (serviceId != null) {
-                    KeepAliveManager.getInstance().getKeepAlive(serviceId).setResponseFlag();
+                    KeepAlive keepAlive = KeepAliveManager.getInstance().getKeepAlive(serviceId);
+                    if (keepAlive != null) {
+                        keepAlive.setResponseFlag();
+                    }
                 }
             } else if (status.equals("DISCONNECT")) {
                 String sessionKey = intent.getStringExtra(IntentDConnectMessage.EXTRA_SESSION_KEY);

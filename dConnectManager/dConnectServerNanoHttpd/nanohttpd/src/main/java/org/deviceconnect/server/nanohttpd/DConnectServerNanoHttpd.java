@@ -14,6 +14,7 @@ import org.deviceconnect.server.DConnectServerError;
 import org.deviceconnect.server.http.HttpRequest;
 import org.deviceconnect.server.http.HttpResponse;
 import org.deviceconnect.server.nanohttpd.logger.AndroidHandler;
+import org.deviceconnect.server.nanohttpd.security.Firewall;
 import org.deviceconnect.server.nanohttpd.util.KeyStoreManager;
 import org.deviceconnect.server.websocket.DConnectWebSocket;
 import org.json.JSONException;
@@ -26,6 +27,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.Socket;
 import java.security.GeneralSecurityException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -74,6 +76,9 @@ public class DConnectServerNanoHttpd extends DConnectServer {
 
     /** コンテキストオブジェクト. */
     private Context mContext;
+
+    /** Firewall. */
+    private Firewall mFirewall;
 
     private List<NanoWebSocket> mWebSockets = new ArrayList<>();
 
@@ -264,9 +269,17 @@ public class DConnectServerNanoHttpd extends DConnectServer {
          */
         public NanoServer(final String hostname, final int port) {
             super(hostname, port);
-//            Firewall firewall = new Firewall(mConfig.getIPWhiteList());
-//            setFirewall(firewall);
+            mFirewall = new Firewall(mConfig.getIPWhiteList());
             mWebSocketCount = 0;
+        }
+
+        @Override
+        protected ClientHandler createClientHandler(final Socket finalAccept, final InputStream inputStream) {
+            ClientHandler clientHandler = super.createClientHandler(finalAccept, inputStream);
+            if (mFirewall != null && !mFirewall.isWhiteIP(finalAccept.getInetAddress().getHostAddress())) {
+                clientHandler.close();
+            }
+            return clientHandler;
         }
 
         @Override

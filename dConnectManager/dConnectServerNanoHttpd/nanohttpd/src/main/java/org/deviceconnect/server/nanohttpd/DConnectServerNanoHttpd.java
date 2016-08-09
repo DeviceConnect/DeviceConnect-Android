@@ -29,7 +29,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;
 import java.security.GeneralSecurityException;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -71,15 +70,13 @@ public class DConnectServerNanoHttpd extends DConnectServer {
     /** サーバーオブジェクト. */
     private NanoServer mServer;
 
-    /** キーストア管理用. */
-    private KeyStoreManager mKeyStoreManager;
-
     /** コンテキストオブジェクト. */
     private Context mContext;
 
     /** Firewall. */
     private Firewall mFirewall;
 
+    /** WebSocketの一覧. */
     private List<NanoWebSocket> mWebSockets = new ArrayList<>();
 
     /**
@@ -214,6 +211,29 @@ public class DConnectServerNanoHttpd extends DConnectServer {
         return mServer != null && mServer.isAlive();
     }
 
+    @Override
+    public void disconnectWebSocket(final String sessionKey) {
+        if (sessionKey == null) {
+            return;
+        }
+
+        for (NanoWebSocket socket : mWebSockets) {
+            if (sessionKey.equals(socket.mSessionKey)) {
+                try {
+                    socket.close(NanoWSD.WebSocketFrame.CloseCode.GoingAway, "User disconnect", false);
+                } catch (IOException e) {
+                    mLogger.warning("Exception in the DConnectServerNanoHttpd#disconnectWebSocket() method. " + e.toString());
+                }
+                return;
+            }
+        }
+    }
+
+    @Override
+    public String getVersion() {
+        return VERSION;
+    }
+
     /**
      * 証明書を読み込みFactoryクラスを生成する.
      * 
@@ -222,16 +242,16 @@ public class DConnectServerNanoHttpd extends DConnectServer {
     private SSLServerSocketFactory createServerSocketFactory() {
         SSLServerSocketFactory retval = null;
         do {
-            mKeyStoreManager = new KeyStoreManager();
+            KeyStoreManager storeManager = new KeyStoreManager();
             try {
-                mKeyStoreManager.initialize(mContext, false);
+                storeManager.initialize(mContext, false);
             } catch (GeneralSecurityException e) {
                 mLogger.warning("Exception in the DConnectServerNanoHttpd#createServerSocketFactory() method. "
                         + e.toString());
                 break;
             }
 
-            retval = mKeyStoreManager.getServerSocketFactory();
+            retval = storeManager.getServerSocketFactory();
         } while (false);
         return retval;
     }
@@ -284,25 +304,10 @@ public class DConnectServerNanoHttpd extends DConnectServer {
 
         @Override
         public Response serve(final IHTTPSession session) {
-            NanoHTTPD.Response nanoRes;
+            Response nanoRes;
             do {
-
                 if (isWebsocketRequested(session)) {
-
-                    if (!countupWebSocket()) {
-                        nanoRes = newFixedLengthResponse(Status.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT,
-                                "Server can't create more connections.");
-                        break;
-                    }
-
-                    // WebSocketを開く処理&レスポンスはNanoWSDに任せ、セッションキーが送られてから
-                    // 独自のセッション管理を行う。
-                    nanoRes = parseWebSocketRequest(session);
-                    if (nanoRes.getStatus() != Status.SWITCH_PROTOCOL) {
-                        // 不正なWebSocketのリクエストの場合はカウントを取り消す
-                        countdownWebSocket();
-                    }
-
+                    nanoRes = parseOpenWebSocket(session);
                     break;
                 }
 
@@ -313,9 +318,9 @@ public class DConnectServerNanoHttpd extends DConnectServer {
                     }
                 }
 
-                nanoRes = newFixedLengthResponse("");
-                HttpRequest req = createRequest(session, nanoRes);
-                if (req == null) {
+                HttpRequest req = new HttpRequest();
+                nanoRes = createRequest(session, req);
+                if (nanoRes != null) {
                     // Device Connect 用のリクエストが生成できない場合は何かしらのエラー、または別対応が入るので
                     // dConnectManagerへの通知はしない。
                     break;
@@ -323,33 +328,38 @@ public class DConnectServerNanoHttpd extends DConnectServer {
 
                 HttpResponse res = new HttpResponse();
                 if (mListener != null && mListener.onReceivedHttpRequest(req, res)) {
-                    ByteArrayInputStream stream;
-
-                    if (res.getBody() != null) {
-                        stream = new ByteArrayInputStream(res.getBody());
-                    } else {
-                        stream = new ByteArrayInputStream(new byte[0]);
-                    }
-
-                    nanoRes = newFixedLengthResponse(getStatus(res.getCode()), res.getContentType(), stream, res.getBody().length);
-
-                    Map<String, String> headers = res.getHeaders();
-                    for (Entry<String, String> head : headers.entrySet()) {
-                        nanoRes.addHeader(head.getKey(), head.getValue());
-                    }
+                    nanoRes = newFixedLengthResponse(res);
                 } else {
                     nanoRes = super.serve(session);
                 }
-
             } while (false);
 
+            addCORSHeaders(session.getHeaders(), nanoRes);
+
+            return nanoRes;
+        }
+
+        @Override
+        protected WebSocket openWebSocket(final IHTTPSession handshake) {
+            // ここでコネクション数制限をかけてnullを返しても、呼び出しもとで
+            // nullチェックをしていないため、更に上位の場所で制限をかける。
+            return new NanoWebSocket(handshake);
+        }
+
+        /**
+         * レスポンスにCORSヘッダーを追加します.
+         * @param queryHeaders リクエストデータにあるヘッダー一覧
+         * @param nanoRes CORSヘッダーを格納するレスポンスデータ
+         * @return CORSヘッダーを格納したレスポンスデータ
+         */
+        private Response addCORSHeaders(final Map<String, String> queryHeaders, final Response nanoRes) {
             nanoRes.addHeader("Access-Control-Allow-Origin", "*");
 
             // クロスドメインでアクセスする際にプリフライトリクエストで使用するHTTPヘッダを送信される。
             // このヘッダを受けた場合、Access-Control-Allow-Headersでそれらを許可する必要がある。
             // また、X-Requested-WithというヘッダーでXMLHttpRequestが使えるかの問い合わせがくる場合が
             // あるため、XMLHttpRequestを許可しておく。
-            String requestHeaders = session.getHeaders().get("access-control-request-headers");
+            String requestHeaders = queryHeaders.get("access-control-request-headers");
             if (requestHeaders != null) {
                 requestHeaders = "XMLHttpRequest, " + requestHeaders;
             } else {
@@ -361,70 +371,64 @@ public class DConnectServerNanoHttpd extends DConnectServer {
         }
 
         /**
-         * リクエストがWebSocket用かどうか判断する.
-         * NanoWSDの当メソッドはFireFoxのリクエストに対応していないため、オーバーライドして修正する。
-         * 
-         * @param session リクエスト情報
-         * @return リクエストがWebSocket用かどうか
-         * @see fi.iki.elonen.NanoWSD#isWebsocketRequested(fi.iki.elonen.NanoHTTPD.IHTTPSession)
+         * WebSocketへの昇格処理を行う.
+         * @param session リクエストデータ
+         * @return レスポンスデータ
          */
-        @Override
-        protected boolean isWebsocketRequested(final IHTTPSession session) {
-            // FireFox では Connection : keep-alive, Upgrade とリクエストがくるので
-            // Upgradeを含んでいればOKと見なす。
-            Map<String, String> headers = session.getHeaders();
-            String conValue = HEADER_CONNECTION_VALUE.toLowerCase(Locale.ENGLISH);
-            String headValue = headers.get(HEADER_CONNECTION);
-            if (headValue == null) {
-                return false;
-            }
-            headValue = headValue.toLowerCase(Locale.ENGLISH);
+        private Response parseOpenWebSocket(IHTTPSession session) {
+            Response nanoRes;
 
-            return ((HEADER_UPGRADE_VALUE.equalsIgnoreCase(headers.get(HEADER_UPGRADE))) && headValue.contains(conValue));
+            if (!countupWebSocket()) {
+                nanoRes = newFixedLengthResponse(Status.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT,
+                        "Server can't create more connections.");
+                return nanoRes;
+            }
+
+            // WebSocketを開く処理&レスポンスはNanoWSDに任せ、セッションキーが送られてから
+            // 独自のセッション管理を行う。
+            nanoRes = super.serve(session);
+
+            if (nanoRes.getStatus() != Status.SWITCH_PROTOCOL) {
+                // 不正なWebSocketのリクエストの場合はカウントを取り消す
+                countdownWebSocket();
+            }
+
+            return nanoRes;
         }
 
         /**
-         * WebSocket用のリクエストを解析する. NanoWSDのserveメソッドではハンドシェイク処理に不具合があり、FireFoxからの
-         * リクエストを正しく処理できないため、オーバーライドして修正する。
-         * 
-         * @param session リクエスト情報。
-         * @return レスポンス。
+         * HttpResponseからNanoHTTPD.Responseに変換する.
+         * @param res HttResponse
+         * @return 変換されたNanoHTTPD.Response
          */
-        private Response parseWebSocketRequest(final IHTTPSession session) {
-            Map<String, String> headers = session.getHeaders();
+        private Response newFixedLengthResponse(final HttpResponse res) {
+            Response nanoRes;ByteArrayInputStream stream;
+            int length;
 
-            if (!HEADER_WEBSOCKET_VERSION_VALUE.equalsIgnoreCase(headers.get(HEADER_WEBSOCKET_VERSION))) {
-                return newFixedLengthResponse(Response.Status.BAD_REQUEST, NanoHTTPD.MIME_PLAINTEXT, "Invalid Websocket-Version "
-                        + headers.get(HEADER_WEBSOCKET_VERSION));
-            }
-            if (!headers.containsKey(HEADER_WEBSOCKET_KEY)) {
-                return newFixedLengthResponse(Response.Status.BAD_REQUEST, NanoHTTPD.MIME_PLAINTEXT, "Missing Websocket-Key");
+            if (res.getBody() != null) {
+                stream = new ByteArrayInputStream(res.getBody());
+                length = res.getBody().length;
+            } else {
+                stream = new ByteArrayInputStream(new byte[0]);
+                length = 0;
             }
 
-            WebSocket webSocket = openWebSocket(session);
+            nanoRes = newFixedLengthResponse(getStatus(res.getCode()), res.getContentType(), stream, length);
 
-            try {
-                webSocket.getHandshakeResponse().addHeader(HEADER_WEBSOCKET_ACCEPT,
-                        makeAcceptKey(headers.get(HEADER_WEBSOCKET_KEY)));
-            } catch (NoSuchAlgorithmException e) {
-                return newFixedLengthResponse(Response.Status.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT,
-                        "The SHA-1 Algorithm required for websockets is not available on the server.");
+            Map<String, String> headers = res.getHeaders();
+            for (Entry<String, String> head : headers.entrySet()) {
+                nanoRes.addHeader(head.getKey(), head.getValue());
             }
-            if (headers.containsKey(HEADER_WEBSOCKET_PROTOCOL)) {
-                webSocket.getHandshakeResponse().addHeader(HEADER_WEBSOCKET_PROTOCOL,
-                        headers.get(HEADER_WEBSOCKET_PROTOCOL).split(",")[0]);
-            }
-            return webSocket.getHandshakeResponse();
+            return nanoRes;
         }
 
         /**
          * HttpRequest.StatusCodeをNanoHTTPD.Statusに変換する.
-         * 
+         *
          * @param code ステータスコード
          * @return ステータスコード
          */
         private Status getStatus(final HttpResponse.StatusCode code) {
-
             int codeNum = code.getCode();
 
             for (Status status : Status.values()) {
@@ -434,13 +438,6 @@ public class DConnectServerNanoHttpd extends DConnectServer {
             }
             // NanoHTTPDで対応していない物は全てエラーとして扱う
             return Status.INTERNAL_ERROR;
-        }
-
-        @Override
-        protected WebSocket openWebSocket(final IHTTPSession handshake) {
-            // ここでコネクション数制限をかけてnullを返しても、呼び出しもとで
-            // nullチェックをしていないため、更に上位の場所で制限をかける。
-            return new NanoWebSocket(handshake);
         }
 
         /**
@@ -548,12 +545,10 @@ public class DConnectServerNanoHttpd extends DConnectServer {
          * IHTTPSessionからHttpRequestを生成する.
          * 
          * @param session リクエストデータ
-         * @param res 
-         *            NanoHTTPD用のレスポンスデータ。Device Connect へのリクエストが生成できない場合は当メソッドで適切なレスポンス値を設定する
-         *            。
+         * @param req リクエストデータ
          * @return Device Connect 用リクエストデータ。Device Connect へリクエストを渡さない場合はnullを返す。
          */
-        private HttpRequest createRequest(final IHTTPSession session, final NanoHTTPD.Response res) {
+        private Response createRequest(final IHTTPSession session, final HttpRequest req) {
             String method = null;
             switch (session.getMethod()) {
             case GET:
@@ -570,28 +565,21 @@ public class DConnectServerNanoHttpd extends DConnectServer {
                 break;
             case OPTIONS:
                 // クロスドメイン対応としてOPTIONSがきたらDevice Connect で対応しているメソッドを返す
-                res.setStatus(Status.OK);
-                res.setMimeType(MIME_PLAINTEXT);
-                res.addHeader("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE");
                 // Device Connect 対応外のメソッドだがエラーにはしないのでここで処理を終了。
-                return null;
+                Response res = newFixedLengthResponse(Status.OK, NanoHTTPD.MIME_PLAINTEXT, "");
+                res.addHeader("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE");
+                return res;
             default:
                 mLogger.warning("This http method is not treated by Device Connect  : " + session.getMethod());
                 break;
             }
 
             if (method == null) {
-                res.setStatus(Status.NOT_IMPLEMENTED);
-                res.setMimeType(MIME_PLAINTEXT);
-                res.setData(new ByteArrayInputStream("Not allowed HTTP method.".getBytes()));
-                return null;
+                return newFixedLengthResponse(Status.NOT_IMPLEMENTED, NanoHTTPD.MIME_PLAINTEXT, "Not allowed HTTP method.");
             }
 
             if (!session.getHeaders().containsKey("host")) {
-                res.setStatus(Status.BAD_REQUEST);
-                res.setMimeType(MIME_PLAINTEXT);
-                res.setData(new ByteArrayInputStream("Bad Request.".getBytes()));
-                return null;
+                return newFixedLengthResponse(Status.BAD_REQUEST, NanoHTTPD.MIME_PLAINTEXT, "Bad Request.");
             }
 
             String http = mConfig.isSsl() ? "https://" : "http://";
@@ -600,13 +588,12 @@ public class DConnectServerNanoHttpd extends DConnectServer {
                 uri += "?" + session.getQueryParameterString();
             }
 
-            HttpRequest req = new HttpRequest();
             req.setBody(parseBody(session));
             req.setMethod(method);
             req.setUri(uri);
             req.setHeaders(session.getHeaders());
 
-            return req;
+            return null;
         }
 
         /**
@@ -799,6 +786,7 @@ public class DConnectServerNanoHttpd extends DConnectServer {
         @Override
         protected void onException(final IOException e) {
             mLogger.warning("Exception in the NanoWebSocket#onException() method. " + e.toString());
+            e.printStackTrace();
         }
 
         /**
@@ -856,24 +844,5 @@ public class DConnectServerNanoHttpd extends DConnectServer {
                 }
             }
         }
-    }
-
-    @Override
-    public void disconnectWebSocket(final String sessionKey) {
-        for (NanoWebSocket socket : mWebSockets) {
-            if (sessionKey.equals(socket.mSessionKey)) {
-                try {
-                    socket.close(NanoWSD.WebSocketFrame.CloseCode.GoingAway, "User disconnect", false);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                return;
-            }
-        }
-    }
-
-    @Override
-    public String getVersion() {
-        return VERSION;
     }
 }

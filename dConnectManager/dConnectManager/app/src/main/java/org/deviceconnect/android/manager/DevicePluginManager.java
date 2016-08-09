@@ -57,8 +57,6 @@ public class DevicePluginManager {
 
     /** イベントリスナー. */
     private DevicePluginEventListener mEventListener;
-    /** アプリケーションクラスインスタンス. */
-    private DConnectApplication mApp;
 
     /**
      * コンストラクタ.
@@ -68,7 +66,6 @@ public class DevicePluginManager {
     public DevicePluginManager(final Context context, final String domain) {
         this.mContext = context;
         setDConnectDomain(domain);
-        mApp = (DConnectApplication) DConnectApplication.getInstance().getApplicationContext();
     }
     /**
      * イベントリスナーを設定する.
@@ -358,15 +355,11 @@ public class DevicePluginManager {
     public void appendPluginIdToSessionKey(final Intent request, final DevicePlugin plugin) {
         String sessionKey = request.getStringExtra(DConnectMessage.EXTRA_SESSION_KEY);
         if (plugin != null && sessionKey != null) {
-            String beforeSessionKey = sessionKey;
             sessionKey = sessionKey + DConnectMessageService.SEPARATOR + plugin.getServiceId();
             ComponentName receiver = (ComponentName) request.getExtras().get(DConnectMessage.EXTRA_RECEIVER);
             if (receiver != null) {
                 sessionKey = sessionKey + DConnectMessageService.SEPARATOR_SESSION 
                         + receiver.flattenToString();
-            }
-            if (!plugin.getServiceId().equals(beforeSessionKey)) {
-                mApp.setDevicePluginIdentifyKey(sessionKey, plugin.getServiceId());
             }
             request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, sessionKey);
         }

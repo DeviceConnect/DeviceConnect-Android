@@ -680,21 +680,6 @@ public class DConnectServerNanoHttpd extends DConnectServer {
         }
 
         @Override
-        public void sendEvent(final String event) {
-            try {
-                send(event);
-            } catch (IOException e) {
-                mLogger.warning("Exception in the NanoWebSocket#sendEvent() method. " + e.toString());
-                if (mListener != null) {
-                    mListener.onError(DConnectServerError.SEND_EVENT_FAILED);
-                    if (mSessionKey != null) {
-                        mListener.onWebSocketDisconnected(mSessionKey);
-                    }
-                }
-            }
-        }
-
-        @Override
         protected void onPong(final NanoWSD.WebSocketFrame pongFrame) {
             synchronized (mKeepAliveTask) {
                 if (mKeepAliveTask.getState() == KeepAliveState.WAITING_PONG) {
@@ -758,6 +743,21 @@ public class DConnectServerNanoHttpd extends DConnectServer {
         protected void onException(final IOException e) {
             mLogger.warning("Exception in the NanoWebSocket#onException() method. " + e.toString());
             e.printStackTrace();
+        }
+
+        @Override
+        public void sendEvent(final String event) {
+            try {
+                send(event);
+            } catch (IOException e) {
+                mLogger.warning("Exception in the NanoWebSocket#sendEvent() method. " + e.toString());
+                if (mListener != null) {
+                    mListener.onError(DConnectServerError.SEND_EVENT_FAILED);
+                    if (mSessionKey != null) {
+                        mListener.onWebSocketDisconnected(mSessionKey);
+                    }
+                }
+            }
         }
 
         /**

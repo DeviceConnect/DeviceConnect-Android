@@ -29,7 +29,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;
 import java.security.GeneralSecurityException;
-import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -62,9 +61,6 @@ public class DConnectServerNanoHttpd extends DConnectServer {
     /** WebSocketのKeepAlive処理のインターバル. */
     private static final int WEBSOCKET_KEEP_ALIVE_INTERVAL = 3000;
 
-    /** 対応するMIME_TYPE群. */
-    private static final Map<String, String> MIME_TYPES;
-
     /** サーバーオブジェクト. */
     private NanoServer mServer;
 
@@ -87,24 +83,6 @@ public class DConnectServerNanoHttpd extends DConnectServer {
         /** pong受信完了状態. */
         GOT_PONG,
     }
-
-    static {
-        MIME_TYPES = new HashMap<>();
-        MIME_TYPES.put("css", "text/css");
-        MIME_TYPES.put("htm", "text/html");
-        MIME_TYPES.put("html", "text/html");
-        MIME_TYPES.put("txt", "text/plain");
-        MIME_TYPES.put("jpg", "image/jpeg");
-        MIME_TYPES.put("jpeg", "image/jpeg");
-        MIME_TYPES.put("png", "image/png");
-        MIME_TYPES.put("js", "application/javascript");
-        // ローカルサーバ使用時にapkをダウンロードするのに必要
-        MIME_TYPES.put("apk", "application/vnd.android.package-archive");
-        // lighttpdには指定していないが使いそうなものなので入れておく
-        MIME_TYPES.put("gif", "image/gif");
-        MIME_TYPES.put("zip", "application/octet-stream");
-    }
-
     /**
      * 設定値を元にサーバーを構築します.
      * 
@@ -282,8 +260,10 @@ public class DConnectServerNanoHttpd extends DConnectServer {
          */
         public NanoServer(final String hostname, final int port) {
             super(hostname, port);
+
             mFirewall = new Firewall(mConfig.getIPWhiteList());
-            mWebSocketCount = 0;
+
+            mimeTypes();
         }
 
         @Override

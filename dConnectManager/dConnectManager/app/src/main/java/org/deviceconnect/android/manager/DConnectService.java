@@ -37,6 +37,9 @@ import java.util.concurrent.Executors;
  * @author NTT DOCOMO, INC.
  */
 public class DConnectService extends DConnectMessageService {
+    public static final String ACTION_DISCONNECT_WEB_SOCKET = "disconnect.WebSocket";
+    public static final String EXTRA_SESSION_KEY = "sessionKey";
+
     /** 内部用: 通信タイプを定義する. */
     public static final String EXTRA_INNER_TYPE = "_type";
     /** 通信タイプがHTTPであることを示す定数. */
@@ -57,7 +60,6 @@ public class DConnectService extends DConnectMessageService {
     private ExecutorService mEventSender = Executors.newSingleThreadExecutor();
 
     private MessageConverter[] mRequestConverters;
-
     private MessageConverter[] mResponseConverters;
 
     @Override
@@ -80,6 +82,21 @@ public class DConnectService extends DConnectMessageService {
             new ServiceDiscoveryConverter(),
             new ServiceInformationConverter()
         };
+    }
+
+    @Override
+    public int onStartCommand(final Intent intent, final int flags, final int startId) {
+        if (intent != null) {
+            String action = intent.getAction();
+            if (ACTION_DISCONNECT_WEB_SOCKET.equals(action)) {
+                String sessionKey = intent.getStringExtra(EXTRA_SESSION_KEY);
+                if (sessionKey != null) {
+                    mRESTfulServer.disconnectWebSocket(sessionKey);
+                }
+                return START_STICKY;
+            }
+        }
+        return super.onStartCommand(intent, flags, startId);
     }
 
     @Override
@@ -139,7 +156,7 @@ public class DConnectService extends DConnectMessageService {
             public void run() {
                 mSettings.load(getApplicationContext());
 
-                mWebServerListener = new DConnectServerEventListenerImpl(getApplicationContext());
+                mWebServerListener = new DConnectServerEventListenerImpl(DConnectService.this);
                 mWebServerListener.setFileManager(mFileMgr);
 
                 DConnectServerConfig.Builder builder = new DConnectServerConfig.Builder();

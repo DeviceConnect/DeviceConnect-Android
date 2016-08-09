@@ -17,7 +17,7 @@ import org.deviceconnect.android.manager.DevicePlugin;
 import org.deviceconnect.android.manager.DevicePluginManager;
 import org.deviceconnect.android.manager.request.DConnectRequest;
 import org.deviceconnect.android.manager.request.RemoveEventsRequest;
-import org.deviceconnect.android.manager.setting.KeywordDialogAcitivty;
+import org.deviceconnect.android.manager.setting.KeywordDialogActivity;
 import org.deviceconnect.android.manager.setting.SettingActivity;
 import org.deviceconnect.android.manager.util.DConnectUtil;
 import org.deviceconnect.android.message.MessageUtils;
@@ -134,7 +134,7 @@ public class DConnectSystemProfile extends SystemProfile {
                     mRequestCode = UUID.randomUUID().hashCode();
 
                     // キーワード表示用のダイアログを表示
-                    Intent intent = new Intent(getContext(), KeywordDialogAcitivty.class);
+                    Intent intent = new Intent(getContext(), KeywordDialogActivity.class);
                     intent.putExtra(IntentDConnectMessage.EXTRA_REQUEST_CODE, mRequestCode);
                     intent.setFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION | Intent.FLAG_ACTIVITY_MULTIPLE_TASK
                             | Intent.FLAG_ACTIVITY_NEW_TASK);

@@ -16,6 +16,7 @@ import org.apache.james.mime4j.parser.AbstractContentHandler;
 import org.apache.james.mime4j.parser.MimeStreamParser;
 import org.apache.james.mime4j.stream.BodyDescriptor;
 import org.apache.james.mime4j.stream.Field;
+import org.deviceconnect.android.manager.keepalive.KeepAliveManager;
 import org.deviceconnect.android.manager.profile.DConnectFilesProfile;
 import org.deviceconnect.android.manager.util.DConnectUtil;
 import org.deviceconnect.android.provider.FileManager;
@@ -173,6 +174,7 @@ public class DConnectServerEventListenerImpl implements
                 request.putExtra("pluginId", serviceId);
                 request.putExtra(IntentDConnectMessage.EXTRA_SESSION_KEY, matchSessionKey);
                 mContext.sendBroadcast(request);
+                KeepAliveManager.getInstance().removeManagementTable(plugin);
             }
         }
         mApp.removeDevicePluginIdentifyKey(matchSessionKey);

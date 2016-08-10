@@ -1,11 +1,13 @@
 package org.deviceconnect.android.activity;
 
 
+import android.app.ActionBar;
 import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.view.LayoutInflater;
@@ -26,7 +28,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
+/**
+ * Device Connect Service List Window.
+ *
+ * @author NTT DOCOMO, INC.
+ */
 public abstract class DConnectServiceListActivity extends Activity {
+
+    /**
+     * デフォルトのタイトル文字列.
+     */
+    public static final String DEFAULT_TITLE = "CLOSE";
 
     private DConnectServiceProvider mProvider;
 
@@ -40,21 +52,26 @@ public abstract class DConnectServiceListActivity extends Activity {
         @Override
         public void onServiceConnected(final ComponentName name, final IBinder service) {
             info("onServiceConnected: " + name);
-            synchronized (mLock) {
-                mProvider = ((DConnectMessageService.LocalBinder) service).getMessageService()
-                    .getServiceProvider();
-                mProvider.addServiceListener(mServiceListener);
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    synchronized (mLock) {
+                        mProvider = ((DConnectMessageService.LocalBinder) service).getMessageService()
+                            .getServiceProvider();
+                        mProvider.addServiceListener(mServiceListener);
 
-                List<ServiceContainer> containers = new ArrayList<ServiceContainer>();
-                for (DConnectService entity : mProvider.getServiceList()) {
-                    containers.add(new ServiceContainer(entity));
+                        List<ServiceContainer> containers = new ArrayList<ServiceContainer>();
+                        for (DConnectService entity : mProvider.getServiceList()) {
+                            containers.add(new ServiceContainer(entity));
+                        }
+                        mListAdapter = new ServiceListAdapter(DConnectServiceListActivity.this, containers);
+                        mListView.setAdapter(mListAdapter);
+                        mListView.setItemsCanFocus(true);
+
+                        mIsBound = true;
+                    }
                 }
-                mListAdapter = new ServiceListAdapter(DConnectServiceListActivity.this, containers);
-                mListView.setAdapter(mListAdapter);
-                mListView.setItemsCanFocus(true);
-
-                mIsBound = true;
-            }
+            });
         }
 
         @Override
@@ -68,22 +85,32 @@ public abstract class DConnectServiceListActivity extends Activity {
         @Override
         public void onServiceAdded(final DConnectService service) {
             info("onServiceAdded: " + service.getId());
-            synchronized (mLock) {
-                if (mIsBound) {
-                    mListAdapter.add(new ServiceContainer(service));
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    synchronized (mLock) {
+                        if (mIsBound) {
+                            mListAdapter.add(new ServiceContainer(service));
+                        }
+                    }
                 }
-            }
+            });
         }
 
         @Override
         public void onServiceRemoved(final DConnectService service) {
             info("onServiceRemoved: " + service.getId());
-            synchronized (mLock) {
-                ServiceContainer container = mListAdapter.getServiceContainer(service.getId());
-                if (container != null) {
-                    mListAdapter.remove(container);
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    synchronized (mLock) {
+                        ServiceContainer container = mListAdapter.getServiceContainer(service.getId());
+                        if (container != null) {
+                            mListAdapter.remove(container);
+                        }
+                    }
                 }
-            }
+            });
         }
 
         @Override
@@ -99,19 +126,32 @@ public abstract class DConnectServiceListActivity extends Activity {
 
     private Button mNewServiceButton;
 
+    private Class<? extends Activity> mManualActivity;
+
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_service_list);
+        getActionBar().setDisplayHomeAsUpEnabled(true);
+        getActionBar().setDisplayOptions(0, ActionBar.DISPLAY_SHOW_HOME);
+        getActionBar().setTitle(DEFAULT_TITLE);
 
         mListView = (ListView) findViewById(R.id.device_connect_service_list_view);
-        mNewServiceButton = (Button) findViewById(R.id.device_connect_service_list_button_new_service);
-        mNewServiceButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(final View v) {
-                onServiceRegistration();
-            }
-        });
+
+        mManualActivity = getSettingManualActivityClass();
+        if (mManualActivity != null) {
+            mNewServiceButton = (Button) findViewById(R.id.device_connect_service_list_button_new_service);
+            mNewServiceButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(final View v) {
+                    Intent intent = new Intent(getApplicationContext(), mManualActivity);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(intent);
+                }
+            });
+        } else {
+            mNewServiceButton.setVisibility(View.GONE);
+        }
     }
 
     @Override
@@ -137,7 +177,23 @@ public abstract class DConnectServiceListActivity extends Activity {
 
     protected abstract Class<? extends DConnectMessageService> getMessageServiceClass();
 
-    protected void onServiceRegistration() {}
+    protected abstract Class<? extends Activity> getSettingManualActivityClass();
+
+    protected boolean canRemove(final String serviceId) {
+        return true;
+    }
+
+    protected boolean dispatchServiceRemoval(final String serviceId) {
+        return false;
+    }
+
+    protected void removeService(final String serviceId) {
+        mProvider.removeService(serviceId);
+    }
+
+    protected DConnectService getService(final String serviceId) {
+        return mProvider.getService(serviceId);
+    }
 
     private void info(final String message) {
         mLogger.info(message);
@@ -180,6 +236,8 @@ public abstract class DConnectServiceListActivity extends Activity {
 
             final ServiceContainer service = getItem(position);
 
+            convertView.setBackgroundColor(service.isOnline() ? Color.WHITE : Color.GRAY);
+
             TextView nameView = (TextView) convertView.findViewById(R.id.service_name);
             nameView.setText(service.getName());
 
@@ -189,10 +247,13 @@ public abstract class DConnectServiceListActivity extends Activity {
                 public void onClick(final View v) {
                     ServiceContainer container = getItem(position);
                     if (container != null) {
-                        mProvider.removeService(container.getId());
+                        if (!dispatchServiceRemoval(container.getId())) {
+                            mProvider.removeService(container.getId());
+                        }
                     }
                 }
             });
+            btnRemoveService.setVisibility(canRemove(service.getId()) ? View.VISIBLE : View.INVISIBLE);
 
             return convertView;
         }

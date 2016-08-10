@@ -49,6 +49,8 @@
 
     <string name="image_description"></string>
 
+    <string name="activity_service_list_title">サービス一覧</string>
+    <string name="activity_service_list_button_service_registration">追加</string>
     <string name="device_connect_service_default_name">不明なデバイス</string>
     <string name="button_remove_device_connect_service">削除</string>
 </resources>

@@ -8,6 +8,7 @@ package org.deviceconnect.android.deviceplugin.linking.linking;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.util.Log;
@@ -18,6 +19,8 @@ public final class LinkingUtil {
 
     private static final String TAG = "LinkingPlugin";
 
+    public static final int LINKING_APP_VERSION = 20152;
+
     public static final String EXTRA_APP_NAME = ".sda.extra.APP_NAME";
     public static final String EXTRA_DEVICE_ID = ".sda.extra.DEVICE_ID";
     public static final String EXTRA_DEVICE_UID = ".sda.extra.DEVICE_UID";
@@ -26,6 +29,7 @@ public final class LinkingUtil {
     public static final String ACTION_SENSOR_DATA = "com.nttdocomo.android.smartdeviceagent.action.SENSOR_DATA";
     public static final String ACTION_SENSOR_STOP = "com.nttdocomo.android.smartdeviceagent.action.STOP_SENSOR";
     public static final String ACTION_START_SENSOR = "com.nttdocomo.android.smartdeviceagent.action.START_SENSOR";
+    public static final String ACTION_START_SENSOR_RESULT = "com.nttdocomo.android.smartdeviceagent.action.START_SENSOR_RESULT";
 
     public static final Uri URI_DEVICES = Uri.parse("content://com.nttdocomo.android.smartdeviceagent/devices");
 
@@ -233,6 +237,18 @@ public final class LinkingUtil {
             }
         }
         return false;
+    }
+
+    public static int getVersionCode(final Context context) {
+        PackageManager pm = context.getPackageManager();
+        int versionCode = 0;
+        try{
+            PackageInfo packageInfo = pm.getPackageInfo(PACKAGE_NAME, 0);
+            versionCode = packageInfo.versionCode;
+        }catch(PackageManager.NameNotFoundException e){
+            e.printStackTrace();
+        }
+        return versionCode;
     }
 
     public static int byteToShort(final byte[] buf) {

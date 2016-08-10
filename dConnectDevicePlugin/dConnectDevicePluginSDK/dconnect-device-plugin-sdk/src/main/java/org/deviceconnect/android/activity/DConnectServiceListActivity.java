@@ -3,8 +3,10 @@ package org.deviceconnect.android.activity;
 
 import android.app.ActionBar;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.graphics.Color;
@@ -195,6 +197,32 @@ public abstract class DConnectServiceListActivity extends Activity {
         return mProvider.getService(serviceId);
     }
 
+    private void showRemovalConfirmation(final DConnectService service) {
+        int messageId = service.isOnline() ?
+            R.string.dialog_message_online_service_removal_confirmation :
+            R.string.dialog_message_offline_service_removal_confirmation;
+        String message = getString(messageId).replace("{name}", service.getName());
+
+        new AlertDialog.Builder(this)
+            .setMessage(message)
+            .setCancelable(false)
+            .setPositiveButton(R.string.dialog_button_service_removal_ok,
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(final DialogInterface dialog, final int which) {
+                        removeService(service.getId());
+                    }
+                })
+            .setNegativeButton(R.string.dialog_button_service_removal_cancel,
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(final DialogInterface dialog, final int which) {
+                        // NOP.
+                    }
+                })
+            .create().show();
+    }
+
     private void info(final String message) {
         mLogger.info(message);
     }
@@ -248,7 +276,7 @@ public abstract class DConnectServiceListActivity extends Activity {
                     ServiceContainer container = getItem(position);
                     if (container != null) {
                         if (!dispatchServiceRemoval(container.getId())) {
-                            mProvider.removeService(container.getId());
+                            showRemovalConfirmation(getService(container.getId()));
                         }
                     }
                 }
@@ -268,4 +296,5 @@ public abstract class DConnectServiceListActivity extends Activity {
             return null;
         }
     }
+
 }

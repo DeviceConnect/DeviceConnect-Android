@@ -53,4 +53,8 @@
     <string name="activity_service_list_button_service_registration">追加</string>
     <string name="device_connect_service_default_name">不明なデバイス</string>
     <string name="button_remove_device_connect_service">削除</string>
+    <string name="dialog_message_online_service_removal_confirmation">{name} を削除しますか？\n\n削除すると、操作対象のデバイスとの接続も解除されます。</string>
+    <string name="dialog_message_offline_service_removal_confirmation">{name} を削除しますか？</string>
+    <string name="dialog_button_service_removal_ok">OK</string>
+    <string name="dialog_button_service_removal_cancel">Cancel</string>
 </resources>

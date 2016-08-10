@@ -1,9 +1,6 @@
 package org.deviceconnect.android.deviceplugin.linking.linking;
 
 import android.content.Context;
-import android.content.Intent;
-import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
 
 import com.nttdocomo.android.sdaiflib.DeviceInfo;
@@ -12,7 +9,6 @@ import com.nttdocomo.android.sdaiflib.GetDeviceInformation;
 import com.nttdocomo.android.sdaiflib.SendNotification;
 
 import org.deviceconnect.android.deviceplugin.linking.BuildConfig;
-import org.deviceconnect.android.deviceplugin.linking.LinkingApplication;
 import org.deviceconnect.android.deviceplugin.linking.R;
 import org.deviceconnect.android.deviceplugin.linking.util.PreferenceUtil;
 
@@ -29,10 +25,6 @@ public class LinkingDeviceManager {
     private LinkingNotifyRange mNotifyRange;
     private LinkingNotifyNotification mNotifyKey;
     private LinkingNotifySensor mNotifySensor;
-
-    private List<Intent> mRequestSensorType = new ArrayList<>();
-
-    private Handler mHandler = new Handler(Looper.getMainLooper());
 
     public LinkingDeviceManager(final Context context) {
         mContext = context;
@@ -52,7 +44,6 @@ public class LinkingDeviceManager {
         mNotifyKey.release();
         mNotifySensor.release();
         mNotifyConnect.release();
-        mRequestSensorType.clear();
     }
 
     public List<LinkingDevice> getDevices() {
@@ -77,43 +68,6 @@ public class LinkingDeviceManager {
             }
         }
         return devices;
-    }
-
-    public synchronized void startConfirmActivity(final Intent request) {
-        if (BuildConfig.DEBUG) {
-            Log.d(TAG, "AAAAAAAAAAAA startConfirmActivity " + mRequestSensorType.size());
-        }
-
-        mRequestSensorType.add(request);
-
-        LinkingApplication app = (LinkingApplication) mContext;
-        if (mRequestSensorType.size() == 1 || !app.isStartedConfirmActivity()) {
-            mHandler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    mContext.startActivity(request);
-                }
-            }, 500);
-        }
-    }
-
-    public synchronized void onConfirmActivityResult(final Intent request) {
-        if (BuildConfig.DEBUG) {
-            Log.d(TAG, "AAAAAAAAAAAA onConfirmActivityResult");
-        }
-
-        if (mRequestSensorType.size() > 0) {
-            mRequestSensorType.remove(0);
-        }
-
-        if (mRequestSensorType.size() > 0) {
-            mHandler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    mContext.startActivity(mRequestSensorType.get(0));
-                }
-            }, 500);
-        }
     }
 
     public LinkingDevice findDeviceByDeviceId(final int deviceId, final int uniqueId) {

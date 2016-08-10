@@ -306,23 +306,19 @@ class LinkingNotifySensor {
             Log.i(TAG, "LinkingNotifySensor#startSensor: " + address);
         }
 
-        Intent intent = new Intent(mContext, ConfirmActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        intent.putExtra(LinkingUtil.EXTRA_BD_ADDRESS, address);
-        intent.putExtra(LinkingUtil.EXTRA_SENSOR_INTERVAL, interval);
-        intent.putExtra(LinkingUtil.EXTRA_SENSOR_DURATION, -1);
-        intent.putExtra(LinkingUtil.EXTRA_X_THRESHOLD, 0.0F);
-        intent.putExtra(LinkingUtil.EXTRA_Y_THRESHOLD, 0.0F);
-        intent.putExtra(LinkingUtil.EXTRA_Z_THRESHOLD, 0.0F);
-        intent.putExtra(ConfirmActivity.EXTRA_REQUEST_SENSOR_TYPE, types);
-        try {
-            mLinkingDeviceManager.startConfirmActivity(intent);
-            countUpSensor(address, types.length);
-        } catch (ActivityNotFoundException e) {
-            if (BuildConfig.DEBUG) {
-                e.printStackTrace();
-            }
+        Intent intent = new Intent(mContext.getPackageName() + ".sda.action.START_SENSOR");
+        intent.setComponent(new ComponentName(LinkingUtil.PACKAGE_NAME, LinkingUtil.RECEIVER_NAME));
+        intent.putExtra(mContext.getPackageName() + ".sda.extra.BD_ADDRESS", address);
+        intent.putExtra(mContext.getPackageName() + ".sda.extra.SENSOR_INTERVAL", interval);
+        intent.putExtra(mContext.getPackageName() + ".sda.extra.SENSOR_DURATION", -1);
+        intent.putExtra(mContext.getPackageName() + ".sda.extra.X_THRESHOLD", 0.0F);
+        intent.putExtra(mContext.getPackageName() + ".sda.extra.Y_THRESHOLD", 0.0F);
+        intent.putExtra(mContext.getPackageName() + ".sda.extra.Z_THRESHOLD", 0.0F);
+
+        for (int i = 0; i < types.length; i++) {
+            start(intent, types[i]);
         }
+        countUpSensor(address, types.length);
     }
 
     private void stopSensors(final LinkingDevice device) {
@@ -395,7 +391,15 @@ class LinkingNotifySensor {
             }
             return;
         }
-        mNotifySensor = new NotifySensorData(mContext, new ControlSensorData.SensorDataInterface() {
+        mNotifySensor = new NotifySensorData(mContext, new ControlSensorData.SensorRequestInterface() {
+            @Override
+            public void onStartSensorResult(final String bd, final int type, int resultCode) {
+                if (BuildConfig.DEBUG) {
+                    LinkingUtil.Result result = LinkingUtil.Result.valueOf(resultCode);
+                    Log.e(TAG, "onStartSensorResult: " + bd + " " + type + " " + result);
+                }
+            }
+        }, new ControlSensorData.SensorDataInterface() {
             private final LinkingSensorData mSensorData = new LinkingSensorData();
             @Override
             public synchronized void onSensorData(final String bd, final int type,
@@ -518,5 +522,13 @@ class LinkingNotifySensor {
         for (LinkingDeviceManager.OnTemperatureListener listener : mTemperatureMap.get(device)) {
             listener.onTemperature(device, temperature);
         }
+    }
+
+    private void start(Intent request, int type) {
+        Intent intent = new Intent(mContext.getPackageName() + ".sda.action.START_SENSOR");
+        intent.setComponent(new ComponentName(LinkingUtil.PACKAGE_NAME, LinkingUtil.RECEIVER_NAME));
+        intent.putExtras(request.getExtras());
+        intent.putExtra(mContext.getPackageName() + ".sda.extra.SENSOR_TYPE", type);
+        mContext.sendBroadcast(intent);
     }
 }

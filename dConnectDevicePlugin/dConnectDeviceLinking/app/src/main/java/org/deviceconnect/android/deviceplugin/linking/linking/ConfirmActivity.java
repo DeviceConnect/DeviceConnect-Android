@@ -99,13 +99,13 @@ public class ConfirmActivity extends Activity {
 
     private void finishConfirmActivity() {
 
-        Intent intent = getIntent();
-        if (intent != null) {
-            LinkingDeviceManager mgr = getLinkingDeviceManager();
-            if (mgr != null) {
-                mgr.onConfirmActivityResult(intent);
-            }
-        }
+//        Intent intent = getIntent();
+//        if (intent != null) {
+//            LinkingDeviceManager mgr = getLinkingDeviceManager();
+//            if (mgr != null) {
+//                mgr.onConfirmActivityResult(intent);
+//            }
+//        }
 
         finish();
     }

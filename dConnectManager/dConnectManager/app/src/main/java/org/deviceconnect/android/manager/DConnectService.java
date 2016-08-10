@@ -68,11 +68,6 @@ public class DConnectService extends DConnectMessageService {
     }
 
     @Override
-    public boolean onUnbind(final Intent intent) {
-        return super.onUnbind(intent);
-    }
-
-    @Override
     public void onCreate() {
         super.onCreate();
         mRequestConverters = new MessageConverter[] {

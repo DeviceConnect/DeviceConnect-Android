@@ -158,15 +158,6 @@ public class DConnectServerEventListenerImpl implements DConnectServerEventListe
         if (BuildConfig.DEBUG) {
             mLogger.info("onResetEventSessionKey: sessionKey :" + sessionKey);
         }
-
-//        String matchSessionKey = mApp.getIdentifySessionKey(sessionKey);
-//        if (matchSessionKey != null) {
-//            mApp.removeDevicePluginIdentifyKey(matchSessionKey);
-//        } else {
-//            if (BuildConfig.DEBUG) {
-//                mLogger.info(" Didn't find the corresponding device plug-in to the sessionKey.");
-//            }
-//        }
     }
 
     @Override
@@ -212,13 +203,13 @@ public class DConnectServerEventListenerImpl implements DConnectServerEventListe
 
         // プロファイルが存在しない場合にはエラー
         if (profile == null) {
-                try {
-                    setEmptyProfile(response);
-                } catch (UnsupportedEncodingException e) {
-                    setErrorResponse(response);
-                } catch (JSONException e) {
-                    setErrorResponse(response);
-                }
+            try {
+                setEmptyProfile(response);
+            } catch (UnsupportedEncodingException e) {
+                setErrorResponse(response);
+            } catch (JSONException e) {
+                setErrorResponse(response);
+            }
             return true;
         }
 
@@ -384,7 +375,7 @@ public class DConnectServerEventListenerImpl implements DConnectServerEventListe
      * @return マルチパートが入っている場合はtrue,それ以外はfalse
      */
     private boolean hasMultipart(final String contentType) {
-        return contentType != null && contentType.indexOf("multipart/form-data") != -1;
+        return contentType != null && contentType.contains("multipart/form-data");
     }
 
     /**
@@ -393,7 +384,7 @@ public class DConnectServerEventListenerImpl implements DConnectServerEventListe
      * @return エンコードされている場合はtrue、それ以外はfalse
      */
     private boolean isUrlEncoded(final String contentType) {
-        return contentType != null && contentType.indexOf("application/x-www-form-urlencoded") != -1;
+        return contentType != null && contentType.contains("application/x-www-form-urlencoded");
     }
 
     /**

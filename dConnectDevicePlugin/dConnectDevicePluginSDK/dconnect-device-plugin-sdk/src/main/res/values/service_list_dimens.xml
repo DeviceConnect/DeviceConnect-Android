@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <!-- サービス一覧画面 -->
-    <dimen name="service_list_text_size_title">20sp</dimen>
-</resources>

@@ -1,4 +1,4 @@
-package org.deviceconnect.android.activity;
+package org.deviceconnect.android.ui.activity;
 
 
 import android.app.ActionBar;
@@ -9,10 +9,10 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
@@ -134,9 +134,13 @@ public abstract class DConnectServiceListActivity extends Activity {
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_service_list);
-        getActionBar().setDisplayHomeAsUpEnabled(true);
-        getActionBar().setDisplayOptions(0, ActionBar.DISPLAY_SHOW_HOME);
-        getActionBar().setTitle(DEFAULT_TITLE);
+
+        ActionBar actionBar = getActionBar();
+        if (actionBar != null) {
+            actionBar.setDisplayHomeAsUpEnabled(true);
+            actionBar.setDisplayOptions(0, ActionBar.DISPLAY_SHOW_HOME);
+            actionBar.setTitle(R.string.activity_service_list_title);
+        }
 
         mListView = (ListView) findViewById(R.id.device_connect_service_list_view);
 
@@ -175,6 +179,15 @@ public abstract class DConnectServiceListActivity extends Activity {
             mListAdapter = null;
             mIsBound = false;
         }
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(final MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            finish();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     protected abstract Class<? extends DConnectMessageService> getMessageServiceClass();
@@ -264,7 +277,14 @@ public abstract class DConnectServiceListActivity extends Activity {
 
             final ServiceContainer service = getItem(position);
 
-            convertView.setBackgroundColor(service.isOnline() ? Color.WHITE : Color.GRAY);
+            convertView.setBackgroundResource(service.isOnline() ?
+                R.color.service_list_item_background_online :
+                R.color.service_list_item_background_offline);
+
+            TextView statusView = (TextView) convertView.findViewById(R.id.service_online_status);
+            statusView.setText(service.isOnline() ?
+                R.string.device_connect_service_is_online :
+                R.string.device_connect_service_is_offline);
 
             TextView nameView = (TextView) convertView.findViewById(R.id.service_name);
             nameView.setText(service.getName());

@@ -10,6 +10,7 @@
             res/values-vXX/styles.xml, while customizations related to
             backward-compatibility can go here.
         -->
+        <item name="android:actionBarStyle">@style/DefaultActionBarTheme</item>
     </style>
 
     <!-- Application theme. -->
@@ -45,6 +46,10 @@
         <item name="android:windowNoTitle">true</item>
         <item name="android:windowIsFloating">true</item>
         <item name="android:backgroundDimEnabled">false</item>
+    </style>
+
+    <style name="DefaultActionBarTheme" parent="@android:style/Widget.Holo.Light.ActionBar.Solid.Inverse">
+        <item name="android:background">@color/device_connect_default_color</item>
     </style>
 
 </resources>

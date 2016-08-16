@@ -51,13 +51,15 @@
 
     <string name="activity_service_list_title">サービス一覧</string>
     <string name="activity_setting_page_title">サービス追加手順</string>
-    <string name="activity_service_list_button_service_registration">追加</string>
+    <string name="activity_service_list_button_add_service">追加</string>
+    <string name="activity_service_list_button_remove_service">削除</string>
+    <string name="activity_service_list_button_cancel">キャンセル</string>
     <string name="device_connect_service_default_name">不明なデバイス</string>
     <string name="device_connect_service_is_online">オンライン</string>
     <string name="device_connect_service_is_offline">オフライン</string>
     <string name="button_remove_device_connect_service">削除</string>
-    <string name="dialog_message_online_service_removal_confirmation">{name} を削除しますか？\n\n削除すると、操作対象のデバイスとの接続も解除されます。</string>
-    <string name="dialog_message_offline_service_removal_confirmation">{name} を削除しますか？</string>
+    <string name="dialog_title_service_removal_confirmation">確認</string>
+    <string name="dialog_message_service_removal_confirmation">選択したサービスを削除しますか？</string>
     <string name="dialog_button_service_removal_ok">OK</string>
     <string name="dialog_button_service_removal_cancel">キャンセル</string>
 </resources>

@@ -24,7 +24,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author NTT DOCOMO, INC.
  */
 public abstract class IRKitAbstractSettingActivity extends FragmentActivity implements
-DConnectPageCreater<Fragment> {
+    DConnectPageCreater<Fragment> {
 
     /**
      * ID値のMAX.

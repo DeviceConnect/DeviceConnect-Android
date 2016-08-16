@@ -6,12 +6,6 @@
  */
 package org.deviceconnect.android.deviceplugin.pebble.setting;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.List;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
@@ -27,8 +21,16 @@ import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.Toast;
+
 import org.deviceconnect.android.deviceplugin.pebble.R;
 import org.deviceconnect.android.ui.activity.DConnectSettingPageFragmentActivity;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Pebbleの設定画面.
@@ -46,11 +48,18 @@ public class PebbleSettingActivity extends DConnectSettingPageFragmentActivity {
     /**
      * フラグメント一覧.
      */
-    private List<Fragment> mFragments = new ArrayList<Fragment>();
+    private List<BaseFragment> mFragments = new ArrayList<BaseFragment>();
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (mFragments.size() == 0) {
+            mFragments.add(new BluetoothActivationFragment());
+            mFragments.add(new BluetoothSettingPromptFragment());
+            mFragments.add(new AppInstrallationFragmentA());
+            mFragments.add(new AppInstrallationFragmentP());
+            mFragments.add(new SettingFinishFragment());
+        }
     }
 
     @Override
@@ -60,13 +69,6 @@ public class PebbleSettingActivity extends DConnectSettingPageFragmentActivity {
 
     @Override
     public Fragment createPage(final int position) {
-        if (mFragments.size() == 0) {
-            mFragments.add(new BluetoothActivationFragment());
-            mFragments.add(new BluetoothSettingPromptFragment());
-            mFragments.add(new AppInstrallationFragmentA());
-            mFragments.add(new AppInstrallationFragmentP());
-            mFragments.add(new SettingFinishFragment());
-        }
         return mFragments.get(position);
     }
 
@@ -78,11 +80,18 @@ public class PebbleSettingActivity extends DConnectSettingPageFragmentActivity {
         getViewPager().setCurrentItem(position, true);
     }
 
+    @Override
+    public CharSequence getPageTitle(final int position) {
+        return getString(getResources().getIdentifier("page0" + (position + 1), "string",
+            getPackageName()));
+    }
+
     /**
      * BaseFragment クラス.
      *
      */
-    public static class BaseFragment extends Fragment {
+    public static abstract class BaseFragment extends Fragment {
+
     }
 
     /**

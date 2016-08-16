@@ -24,6 +24,11 @@
         <!-- Settings Activity -->
         <!-- ============================================================== -->
         <activity
+            android:name=".activity.HeartRateServiceListActivity"
+            android:label="@string/app_name"
+            android:exported="false">
+        </activity>
+        <activity
             android:name=".activity.HeartRateDeviceSettingsActivity"
             android:label="@string/app_name"
             android:exported="false">

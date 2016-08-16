@@ -48,4 +48,16 @@
     <string name="expire_period_date_format">有効期限 %1$s</string>
 
     <string name="image_description"></string>
+
+    <string name="activity_service_list_title">サービス一覧</string>
+    <string name="activity_setting_page_title">サービス追加手順</string>
+    <string name="activity_service_list_button_service_registration">追加</string>
+    <string name="device_connect_service_default_name">不明なデバイス</string>
+    <string name="device_connect_service_is_online">オンライン</string>
+    <string name="device_connect_service_is_offline">オフライン</string>
+    <string name="button_remove_device_connect_service">削除</string>
+    <string name="dialog_message_online_service_removal_confirmation">{name} を削除しますか？\n\n削除すると、操作対象のデバイスとの接続も解除されます。</string>
+    <string name="dialog_message_offline_service_removal_confirmation">{name} を削除しますか？</string>
+    <string name="dialog_button_service_removal_ok">OK</string>
+    <string name="dialog_button_service_removal_cancel">キャンセル</string>
 </resources>

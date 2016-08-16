@@ -49,4 +49,16 @@
     <string name="expire_period_date_format">Expiration date: %1$s</string>
 
     <string name="image_description"></string>
+
+    <string name="activity_service_list_title">Services</string>
+    <string name="activity_setting_page_title">Manual</string>
+    <string name="activity_service_list_button_service_registration">Add new service</string>
+    <string name="device_connect_service_default_name">Unknown Device</string>
+    <string name="device_connect_service_is_online">Online</string>
+    <string name="device_connect_service_is_offline">Offline</string>
+    <string name="button_remove_device_connect_service">Remove</string>
+    <string name="dialog_message_online_service_removal_confirmation">{name} will be removed. OK?\n\nIf so, the connection with the target device will be disconnected.</string>
+    <string name="dialog_message_offline_service_removal_confirmation">{name} will be removed. OK?</string>
+    <string name="dialog_button_service_removal_ok">OK</string>
+    <string name="dialog_button_service_removal_cancel">Cancel</string>
 </resources>

@@ -11,15 +11,6 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <TextView
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:background="@color/title_background"
-            android:gravity="center"
-            android:text="@string/heart_rate_setting_title"
-            android:textColor="@color/title_text"
-            android:textSize="@dimen/text_size_title"/>
-
         <ListView
             android:id="@+id/device_list_view"
             android:layout_width="fill_parent"

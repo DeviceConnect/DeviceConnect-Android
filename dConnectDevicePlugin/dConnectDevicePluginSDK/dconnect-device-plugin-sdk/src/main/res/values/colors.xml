@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="device_connect_default_color">#00a0e9</color>
+    <color name="service_list_title_text">#ffffff</color>
+    <color name="service_list_item_background_online">#ffffff</color>
+    <color name="service_list_item_background_offline">#cccccc</color>
+</resources>

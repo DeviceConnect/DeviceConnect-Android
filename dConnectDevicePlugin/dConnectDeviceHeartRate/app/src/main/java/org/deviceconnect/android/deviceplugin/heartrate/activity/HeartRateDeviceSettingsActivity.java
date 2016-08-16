@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 
 import org.deviceconnect.android.deviceplugin.heartrate.HeartRateApplication;
+import org.deviceconnect.android.deviceplugin.heartrate.R;
 import org.deviceconnect.android.deviceplugin.heartrate.fragment.BluetoothSettingsFragment;
 import org.deviceconnect.android.deviceplugin.heartrate.fragment.HeartRateDeviceSettingsFragment;
 import org.deviceconnect.android.deviceplugin.heartrate.fragment.MioAlphaInstructionsFragment;
@@ -45,6 +46,19 @@ public class HeartRateDeviceSettingsActivity extends DConnectSettingPageFragment
             return new BluetoothSettingsFragment();
         } else {
             return new HeartRateDeviceSettingsFragment();
+        }
+    }
+
+    @Override
+    public CharSequence getPageTitle(final int position) {
+        if (position == 0) {
+            return getString(R.string.summary_title);
+        } else if (position == 1) {
+            return getString(R.string.mio_alpha_title);
+        } else if (position == 2) {
+            return getString(R.string.bluetooth_settings_title);
+        } else {
+            return getString(R.string.heart_rate_setting_title);
         }
     }
 }

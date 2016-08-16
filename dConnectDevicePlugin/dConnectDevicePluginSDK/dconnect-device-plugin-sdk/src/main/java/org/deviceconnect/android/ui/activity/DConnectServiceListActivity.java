@@ -144,9 +144,9 @@ public abstract class DConnectServiceListActivity extends Activity {
 
         mListView = (ListView) findViewById(R.id.device_connect_service_list_view);
 
+        mNewServiceButton = (Button) findViewById(R.id.device_connect_service_list_button_new_service);
         mManualActivity = getSettingManualActivityClass();
         if (mManualActivity != null) {
-            mNewServiceButton = (Button) findViewById(R.id.device_connect_service_list_button_new_service);
             mNewServiceButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(final View v) {

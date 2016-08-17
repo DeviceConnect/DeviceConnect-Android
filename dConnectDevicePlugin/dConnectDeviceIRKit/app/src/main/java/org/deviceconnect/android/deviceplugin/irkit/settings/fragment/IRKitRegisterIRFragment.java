@@ -25,7 +25,7 @@ import org.deviceconnect.android.deviceplugin.irkit.IRKitManager;
 import org.deviceconnect.android.deviceplugin.irkit.R;
 import org.deviceconnect.android.deviceplugin.irkit.data.IRKitDBHelper;
 import org.deviceconnect.android.deviceplugin.irkit.data.VirtualProfileData;
-import org.deviceconnect.android.deviceplugin.irkit.settings.activity.IRKitDeviceListActivity;
+import org.deviceconnect.android.deviceplugin.irkit.settings.activity.IRKitVirtualDeviceListActivity;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -55,8 +55,6 @@ public class IRKitRegisterIRFragment extends Fragment  {
 
         mDBHelper = new IRKitDBHelper(getActivity());
         View rootView = inflater.inflate(R.layout.fragment_register_ir, null);
-        TextView titleView = (TextView) rootView.findViewById(R.id.text_view_number);
-        titleView.setText(getString(R.string.edit_profile, mProfile.getProfile()));
         TextView apiView = (TextView) rootView.findViewById(R.id.api_name);
         apiView.setText(mProfile.getName());
         final Button registerIR = (Button) rootView.findViewById(R.id.register_ir);
@@ -149,8 +147,8 @@ public class IRKitRegisterIRFragment extends Fragment  {
      * @return IRKitデバイスリスト
      */
     private List<IRKitDevice> getIRKitDevices() {
-        IRKitDeviceListActivity activity =
-                (IRKitDeviceListActivity) getActivity();
+        IRKitVirtualDeviceListActivity activity =
+                (IRKitVirtualDeviceListActivity) getActivity();
         IRKitApplication application =
                 (IRKitApplication) activity.getApplication();
         return application.getIRKitDevices();

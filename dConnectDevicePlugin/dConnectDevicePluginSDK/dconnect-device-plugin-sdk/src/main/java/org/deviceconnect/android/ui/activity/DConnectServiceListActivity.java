@@ -15,7 +15,6 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -34,6 +33,7 @@ import org.deviceconnect.android.service.DConnectService;
 import org.deviceconnect.android.service.DConnectServiceListener;
 import org.deviceconnect.android.service.DConnectServiceProvider;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -44,7 +44,8 @@ import java.util.logging.Logger;
  *
  * @author NTT DOCOMO, INC.
  */
-public abstract class DConnectServiceListActivity extends FragmentActivity {
+public abstract class DConnectServiceListActivity extends FragmentActivity
+    implements DConnectServiceListener{
 
     private DConnectServiceProvider mProvider;
 
@@ -61,6 +62,7 @@ public abstract class DConnectServiceListActivity extends FragmentActivity {
                 public void run() {
                     mProvider = ((DConnectMessageService.LocalBinder) service).getMessageService()
                         .getServiceProvider();
+                    mProvider.addServiceListener(DConnectServiceListActivity.this);
                     mIsBound = true;
 
                     showServiceViewer();
@@ -72,8 +74,17 @@ public abstract class DConnectServiceListActivity extends FragmentActivity {
         public void onServiceDisconnected(final ComponentName name) {
             info("onServiceDisconnected: " + name);
             mIsBound = false;
+            mProvider.removeServiceListener(DConnectServiceListActivity.this);
         }
     };
+
+    private final OnClickServiceListener mOnClickServiceListener =
+        new OnClickServiceListener() {
+            @Override
+            public void onClickService(final ServiceContainer service) {
+                onItemClick(getService(service.getId()));
+            }
+        };
 
     private Class<? extends Activity> mManualActivity;
 
@@ -119,17 +130,16 @@ public abstract class DConnectServiceListActivity extends FragmentActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    protected boolean enablesItemClick() {
+        return false;
+    }
+
+    protected void onItemClick(final DConnectService service) {
+    }
+
     protected abstract Class<? extends DConnectMessageService> getMessageServiceClass();
 
     protected abstract Class<? extends Activity> getSettingManualActivityClass();
-
-    protected boolean canRemove(final String serviceId) {
-        return true;
-    }
-
-    protected boolean dispatchServiceRemoval(final String serviceId) {
-        return false;
-    }
 
     protected void removeService(final String serviceId) {
         mProvider.removeService(serviceId);
@@ -139,11 +149,25 @@ public abstract class DConnectServiceListActivity extends FragmentActivity {
         return mProvider.getService(serviceId);
     }
 
+    protected ListItemFilter getListItemFilter() {
+        return null;
+    }
+
+    private boolean doFilter(final DConnectService service) {
+        ListItemFilter filter = getListItemFilter();
+        if (filter == null) {
+            return true;
+        }
+        return filter.doFilter(service);
+    }
+
     private List<ServiceContainer> getServiceContainers() {
         List<ServiceContainer> containers = new ArrayList<ServiceContainer>();
         if (mProvider != null) {
             for (DConnectService entity : mProvider.getServiceList()) {
-                containers.add(new ServiceContainer(entity));
+                if (doFilter(entity)) {
+                    containers.add(new ServiceContainer(entity));
+                }
             }
         }
         return containers;
@@ -158,7 +182,10 @@ public abstract class DConnectServiceListActivity extends FragmentActivity {
     private void showServiceViewer() {
         FragmentManager mgr = getSupportFragmentManager();
         FragmentTransaction transaction = mgr.beginTransaction();
-        Fragment fragment = new ViewerFragment();
+        ViewerFragment fragment = new ViewerFragment();
+        if (enablesItemClick()) {
+            fragment.mOnClickServiceListener = mOnClickServiceListener;
+        }
         transaction.replace(R.id.fragment_container, fragment);
         transaction.commit();
     }
@@ -173,6 +200,69 @@ public abstract class DConnectServiceListActivity extends FragmentActivity {
 
     private void info(final String message) {
         mLogger.info(message);
+    }
+
+    @Override
+    public void onServiceAdded(final DConnectService service) {
+        if (!doFilter(service)) {
+            return;
+        }
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                FragmentManager mgr = getSupportFragmentManager();
+                List<Fragment> fragments = mgr.getFragments();
+                if (fragments != null) {
+                    for (Fragment f : fragments) {
+                        if (f instanceof AbstractViewerFragment) {
+                            ((AbstractViewerFragment) f).onServiceAdded(service);
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    @Override
+    public void onServiceRemoved(final DConnectService service) {
+        if (!doFilter(service)) {
+            return;
+        }
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                FragmentManager mgr = getSupportFragmentManager();
+                List<Fragment> fragments = mgr.getFragments();
+                if (fragments != null) {
+                    for (Fragment f : fragments) {
+                        if (f instanceof AbstractViewerFragment) {
+                            ((AbstractViewerFragment) f).onServiceRemoved(service);
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    @Override
+    public void onStatusChange(final DConnectService service) {
+        if (!doFilter(service)) {
+            return;
+        }
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                FragmentManager mgr = getSupportFragmentManager();
+                List<Fragment> fragments = mgr.getFragments();
+                if (fragments != null) {
+                    for (Fragment f : fragments) {
+                        if (f instanceof AbstractViewerFragment) {
+                            ((AbstractViewerFragment) f).onStatusChange(service);
+                        }
+                    }
+                }
+            }
+        });
     }
 
     private static class ServiceContainer {
@@ -208,7 +298,7 @@ public abstract class DConnectServiceListActivity extends FragmentActivity {
         }
     }
 
-    public static abstract class AbstractViewerFragment extends Fragment implements DConnectServiceListener {
+    public static abstract class AbstractViewerFragment extends Fragment {
 
         protected ServiceListAdapter mListAdapter;
 
@@ -229,72 +319,41 @@ public abstract class DConnectServiceListActivity extends FragmentActivity {
             super.onActivityCreated(savedInstanceState);
             DConnectServiceListActivity activity = (DConnectServiceListActivity) getActivity();
             mProvider = activity.mProvider;
-            mProvider.addServiceListener(this);
         }
 
         @Override
         public void onDestroyView() {
             super.onDestroyView();
-            mProvider.removeServiceListener(this);
-            mProvider = null;
         }
 
-        @Override
         public void onServiceAdded(final DConnectService service) {
-            Activity activity = getActivity();
-            if (activity == null) {
-                return;
-            }
-            activity.runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    synchronized (mLock) {
-                        mListAdapter.add(new ServiceContainer(service));
-                    }
-                }
-            });
+            mListAdapter.add(new ServiceContainer(service));
         }
 
-        @Override
         public void onServiceRemoved(final DConnectService service) {
-            Activity activity = getActivity();
-            if (activity == null) {
-                return;
-            }
-            activity.runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    synchronized (mLock) {
-                        ServiceContainer container = mListAdapter.getServiceContainer(service.getId());
-                        if (container != null) {
-                            mListAdapter.remove(container);
-                        }
-                    }
+            synchronized (mLock) {
+                ServiceContainer container = mListAdapter.getServiceContainer(service.getId());
+                if (container != null) {
+                    mListAdapter.remove(container);
                 }
-            });
+            }
         }
 
-        @Override
         public void onStatusChange(final DConnectService service) {
-            Activity activity = getActivity();
-            if (activity == null) {
-                return;
-            }
-            activity.runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    synchronized (mLock) {
-                        ServiceContainer container = mListAdapter.getServiceContainer(service.getId());
-                        if (container != null) {
-                            mListAdapter.onStatusChange(service);
-                        }
-                    }
+            synchronized (mLock) {
+                ServiceContainer container = mListAdapter.getServiceContainer(service.getId());
+                if (container != null) {
+                    mListAdapter.onStatusChange(service);
                 }
-            });
+            }
         }
     }
 
     public static class ViewerFragment extends AbstractViewerFragment {
+
+        public static final String TAG = "viewer";
+
+        private OnClickServiceListener mOnClickServiceListener;
 
         @Override
         public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
@@ -311,7 +370,10 @@ public abstract class DConnectServiceListActivity extends FragmentActivity {
                 @Override
                 public void onItemClick(final AdapterView<?> parent, final View view,
                                         final int position, final long id) {
-                    Log.d("AAA", "AAA");
+                    ServiceContainer service = (ServiceContainer) view.getTag();
+                    if (service != null && mOnClickServiceListener != null) {
+                        mOnClickServiceListener.onClickService(service);
+                    }
                 }
             });
 
@@ -334,10 +396,17 @@ public abstract class DConnectServiceListActivity extends FragmentActivity {
             return root;
         }
 
+        @Override
+        public void onDestroy() {
+            super.onDestroyView();
+            mOnClickServiceListener = null;
+        }
     }
 
     public static class RemoverFragment extends AbstractViewerFragment
         implements OnCheckServiceListener {
+
+        public static final String TAG = "remover";
 
         private Button mRemoveServiceButton;
 
@@ -429,6 +498,7 @@ public abstract class DConnectServiceListActivity extends FragmentActivity {
                 convertView = mInflater.inflate(R.layout.item_device_connect_service, null);
             }
             final ServiceContainer service = getItem(position);
+            convertView.setTag(service);
 
             convertView.setBackgroundResource(service.isOnline() ?
                 R.color.service_list_item_background_online :
@@ -514,9 +584,21 @@ public abstract class DConnectServiceListActivity extends FragmentActivity {
         }
     }
 
+    private interface OnClickServiceListener extends Serializable {
+
+        void onClickService(ServiceContainer service);
+
+    }
+
     private interface OnCheckServiceListener {
 
         void onCheckStateChange(ServiceContainer checkedService, boolean isChecked);
+
+    }
+
+    public interface ListItemFilter {
+
+        boolean doFilter(DConnectService service);
 
     }
 }

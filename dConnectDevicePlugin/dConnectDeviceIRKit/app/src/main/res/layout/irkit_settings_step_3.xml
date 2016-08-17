@@ -5,16 +5,6 @@
     android:layout_gravity="center_horizontal"
     android:orientation="vertical" >
 
-    <TextView
-        android:id="@+id/text_view_number"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="#00a0e9"
-        android:gravity="center"
-        android:text="@string/page03"
-        android:textColor="#ffffff"
-        android:textSize="20sp" />
-
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent" >

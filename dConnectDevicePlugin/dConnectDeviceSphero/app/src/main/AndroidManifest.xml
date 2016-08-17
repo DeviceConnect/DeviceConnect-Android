@@ -23,6 +23,11 @@
             <meta-data
                 android:name="org.deviceconnect.android.deviceplugin"
                 android:resource="@xml/deviceplugin"/>
+            <intent-filter>
+                <!-- uninstall notification -->
+                <action android:name="android.intent.action.PACKAGE_FULLY_REMOVED"/>
+                <data android:scheme="package"/>
+            </intent-filter>
         </receiver>
 
         <service

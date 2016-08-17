@@ -15,7 +15,7 @@ import org.deviceconnect.android.ui.activity.DConnectServiceListActivity;
 
 
 /**
- * SonyCameraサービス一覧.
+ * SonyCameraサービス一覧画面.
  *
  * @author NTT DOCOMO, INC.
  */

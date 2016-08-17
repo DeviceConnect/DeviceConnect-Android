@@ -300,6 +300,12 @@ public abstract class DConnectServiceListActivity extends FragmentActivity
 
     public static abstract class AbstractViewerFragment extends Fragment {
 
+        protected ListView mListView;
+
+        protected View mNoServiceView;
+
+        protected Button mRemoveServiceButton;
+
         protected ServiceListAdapter mListAdapter;
 
         protected DConnectServiceProvider mProvider;
@@ -336,6 +342,7 @@ public abstract class DConnectServiceListActivity extends FragmentActivity
                 if (container != null) {
                     mListAdapter.remove(container);
                 }
+                toggleView();
             }
         }
 
@@ -345,13 +352,25 @@ public abstract class DConnectServiceListActivity extends FragmentActivity
                 if (container != null) {
                     mListAdapter.onStatusChange(service);
                 }
+                toggleView();
+            }
+        }
+
+        protected void toggleView() {
+            int serviceCount = mListAdapter.getCount();
+            if (serviceCount > 0) {
+                mListView.setVisibility(View.VISIBLE);
+                mNoServiceView.setVisibility(View.GONE);
+                mRemoveServiceButton.setEnabled(true);
+            } else {
+                mListView.setVisibility(View.GONE);
+                mNoServiceView.setVisibility(View.VISIBLE);
+                mRemoveServiceButton.setEnabled(false);
             }
         }
     }
 
     public static class ViewerFragment extends AbstractViewerFragment {
-
-        public static final String TAG = "viewer";
 
         private OnClickServiceListener mOnClickServiceListener;
 
@@ -362,11 +381,11 @@ public abstract class DConnectServiceListActivity extends FragmentActivity
 
             mListAdapter = new ServiceListAdapter(getContext(), getServiceContainers(), false);
 
-            ListView listView = (ListView) root.findViewById(R.id.device_connect_service_list_view);
-            listView.setAdapter(mListAdapter);
-            listView.setItemsCanFocus(true);
-            listView.setClickable(true);
-            listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            mListView = (ListView) root.findViewById(R.id.device_connect_service_list_view);
+            mListView.setAdapter(mListAdapter);
+            mListView.setItemsCanFocus(true);
+            mListView.setClickable(true);
+            mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 @Override
                 public void onItemClick(final AdapterView<?> parent, final View view,
                                         final int position, final long id) {
@@ -377,6 +396,8 @@ public abstract class DConnectServiceListActivity extends FragmentActivity
                 }
             });
 
+            mNoServiceView = root.findViewById(R.id.device_connect_service_list_message_no_service);
+
             Button newServiceButton = (Button) root.findViewById(R.id.device_connect_service_list_button_add_service);
             newServiceButton.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -385,14 +406,15 @@ public abstract class DConnectServiceListActivity extends FragmentActivity
                 }
             });
 
-            Button removeServiceButton = (Button) root.findViewById(R.id.device_connect_service_list_button_remove_service);
-            removeServiceButton.setOnClickListener(new View.OnClickListener() {
+            mRemoveServiceButton = (Button) root.findViewById(R.id.device_connect_service_list_button_remove_service);
+            mRemoveServiceButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(final View v) {
                     ((DConnectServiceListActivity) getActivity()).showServiceRemover();
                 }
             });
 
+            toggleView();
             return root;
         }
 
@@ -406,10 +428,6 @@ public abstract class DConnectServiceListActivity extends FragmentActivity
     public static class RemoverFragment extends AbstractViewerFragment
         implements OnCheckServiceListener {
 
-        public static final String TAG = "remover";
-
-        private Button mRemoveServiceButton;
-
         @Override
         public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
                                  final Bundle savedInstanceState) {
@@ -418,8 +436,8 @@ public abstract class DConnectServiceListActivity extends FragmentActivity
             mListAdapter = new ServiceListAdapter(getContext(), getServiceContainers(), true);
             mListAdapter.mOnCheckServiceListener = this;
 
-            ListView listView = (ListView) root.findViewById(R.id.device_connect_service_list_view);
-            listView.setAdapter(mListAdapter);
+            mListView = (ListView) root.findViewById(R.id.device_connect_service_list_view);
+            mListView.setAdapter(mListAdapter);
 
             Button cancelButton = (Button) root.findViewById(R.id.device_connect_service_list_button_cancel);
             cancelButton.setOnClickListener(new View.OnClickListener() {
@@ -428,6 +446,8 @@ public abstract class DConnectServiceListActivity extends FragmentActivity
                     ((DConnectServiceListActivity) getActivity()).showServiceViewer();
                 }
             });
+
+            mNoServiceView = root.findViewById(R.id.device_connect_service_list_message_no_service);
 
             mRemoveServiceButton = (Button) root.findViewById(R.id.device_connect_service_list_button_remove_service);
             mRemoveServiceButton.setClickable(false);
@@ -469,7 +489,6 @@ public abstract class DConnectServiceListActivity extends FragmentActivity
         @Override
         public void onCheckStateChange(final ServiceContainer checkedService, final boolean isChecked) {
             boolean hasCheckedService = mListAdapter.getCheckedServiceList().size() > 0;
-            mRemoveServiceButton.setClickable(hasCheckedService);
             mRemoveServiceButton.setEnabled(hasCheckedService);
         }
     }

@@ -54,6 +54,8 @@
     <string name="activity_service_list_button_add_service">追加</string>
     <string name="activity_service_list_button_remove_service">削除</string>
     <string name="activity_service_list_button_cancel">キャンセル</string>
+    <string name="activity_service_list_button_done">完了</string>
+    <string name="activity_service_list_message_no_service">サービスが登録されていません</string>
     <string name="device_connect_service_default_name">不明なデバイス</string>
     <string name="device_connect_service_is_online">オンライン</string>
     <string name="device_connect_service_is_offline">オフライン</string>

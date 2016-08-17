@@ -55,6 +55,8 @@
     <string name="activity_service_list_button_add_service">Add</string>
     <string name="activity_service_list_button_remove_service">Remove</string>
     <string name="activity_service_list_button_cancel">Cancel</string>
+    <string name="activity_service_list_button_done">Done</string>
+    <string name="activity_service_list_message_no_service">No Services.</string>
     <string name="device_connect_service_default_name">Unknown Device</string>
     <string name="device_connect_service_is_online">Online</string>
     <string name="device_connect_service_is_offline">Offline</string>

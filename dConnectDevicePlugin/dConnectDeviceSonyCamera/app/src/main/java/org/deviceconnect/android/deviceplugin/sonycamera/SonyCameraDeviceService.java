@@ -179,9 +179,6 @@ public class SonyCameraDeviceService extends DConnectMessageService {
         // ファイル管理クラスの作成
         mFileMgr = new FileManager(this);
 
-        DConnectService service = new SonyCameraService();
-        getServiceProvider().addService(service);
-
         WifiManager wifiMgr = (WifiManager) getSystemService(Context.WIFI_SERVICE);
         WifiInfo wifiInfo = wifiMgr.getConnectionInfo();
         if (DConnectUtil.checkSSID(wifiInfo.getSSID())) {
@@ -866,10 +863,12 @@ public class SonyCameraDeviceService extends DConnectMessageService {
 
     private void setOnline(final WifiInfo wifiInfo) {
         DConnectService service = getServiceProvider().getService(SERVICE_ID);
-        if (service != null) {
-            service.setOnline(true);
-            service.setConfig(wifiInfo.getSSID());
+        if (service == null) {
+            service = new SonyCameraService();
+            getServiceProvider().addService(service);
         }
+        service.setOnline(true);
+        service.setConfig(wifiInfo.getSSID());
     }
 
     private void setOffline() {

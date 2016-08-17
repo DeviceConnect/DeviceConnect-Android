@@ -497,6 +497,7 @@ public abstract class DConnectServiceListActivity extends FragmentActivity
             if (convertView == null) {
                 convertView = mInflater.inflate(R.layout.item_device_connect_service, null);
             }
+
             final ServiceContainer service = getItem(position);
             convertView.setTag(service);
 
@@ -514,7 +515,7 @@ public abstract class DConnectServiceListActivity extends FragmentActivity
 
             CheckBox checkBox =
                 (CheckBox) convertView.findViewById(R.id.device_connect_service_removal_checkbox);
-            checkBox.setVisibility(mHasCheckbox ? View.VISIBLE : View.GONE);
+            checkBox.setVisibility(mHasCheckbox && !service.isOnline() ? View.VISIBLE : View.GONE);
             if (!service.isOnline()) {
                 checkBox.setEnabled(true);
                 checkBox.setClickable(true);

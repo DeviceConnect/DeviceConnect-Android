@@ -25,10 +25,11 @@
 
         <TextView
             android:id="@+id/service_online_status"
-            android:text="@string/device_connect_service_default_name"
+            android:text="@string/device_connect_service_is_offline"
             android:textSize="12sp"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="12sp"/>
 
     </LinearLayout>
 

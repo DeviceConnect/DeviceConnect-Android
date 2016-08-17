@@ -40,7 +40,7 @@ public class PairingFragment extends Fragment {
         View root = inflater.inflate(R.layout.setting_pairing, null);
         
         final ImageView image = (ImageView) root.findViewById(R.id.animView);
-        image.setBackgroundResource(R.anim.sphero_light);
+        image.setBackgroundResource(R.drawable.sphero_light);
         
         Button button = (Button) root.findViewById(R.id.btnSetting);
         button.setOnClickListener(new OnClickListener() {

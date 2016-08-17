@@ -10,7 +10,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 
-import org.deviceconnect.android.deviceplugin.sphero.setting.SettingActivity;
+import org.deviceconnect.android.deviceplugin.sphero.setting.SpheroServiceListActivity;
 import org.deviceconnect.android.profile.SystemProfile;
 
 /**
@@ -21,6 +21,6 @@ public class SpheroSystemProfile extends SystemProfile {
 
     @Override
     protected Class<? extends Activity> getSettingPageActivity(final Intent request, final Bundle param) {
-        return SettingActivity.class;
+        return SpheroServiceListActivity.class;
     }
 }

@@ -393,7 +393,7 @@ public final class SpheroManager implements DeviceInfo.DeviceSensorListener, Dev
                 }
             }
         }
-            ConvenienceRobot cRobot = null;
+        ConvenienceRobot cRobot = null;
 
         if (connected != null) {
             mConnectingFlags.put(connected.getIdentifier(), true);
@@ -422,7 +422,7 @@ public final class SpheroManager implements DeviceInfo.DeviceSensorListener, Dev
             } while (mConnectingTimeoutCount < DISCONNECTION_RETRY_NUM);
 
         }
-        return (cRobot != null && cRobot.isConnected());
+        return (cRobot != null);
 
     }
 

@@ -16,6 +16,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
 
 import org.deviceconnect.android.deviceplugin.sphero.BuildConfig;
+import org.deviceconnect.android.deviceplugin.sphero.R;
 import org.deviceconnect.android.deviceplugin.sphero.SpheroDeviceService;
 import org.deviceconnect.android.deviceplugin.sphero.data.SpheroParcelable;
 import org.deviceconnect.android.deviceplugin.sphero.setting.fragment.DeviceSelectionPageFragment;
@@ -105,7 +106,14 @@ public class SettingActivity extends DConnectSettingPageFragmentActivity {
         PairingFragment.class,
         DeviceSelectionPageFragment.class,
     };
-    
+    /**
+     * ページのタイトルリスト.
+     */
+    private static final int[] PAGE_TITLES = {
+            R.string.page_1,
+            R.string.page_2,
+            R.string.page_3
+    };
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -149,7 +157,10 @@ public class SettingActivity extends DConnectSettingPageFragmentActivity {
         
         return page;
     }
-    
+    @Override
+    public CharSequence getPageTitle(final int position) {
+        return getString(PAGE_TITLES[position]);
+    }
     /**
      * 指定されたアクションを投げる.
      * 

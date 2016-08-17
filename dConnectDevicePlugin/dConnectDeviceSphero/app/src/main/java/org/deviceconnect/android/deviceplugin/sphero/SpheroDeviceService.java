@@ -6,10 +6,12 @@
  */
 package org.deviceconnect.android.deviceplugin.sphero;
 
+import android.bluetooth.BluetoothAdapter;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Handler;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
@@ -30,6 +32,7 @@ import org.deviceconnect.android.event.cache.MemoryCacheController;
 import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.android.service.DConnectService;
+import org.deviceconnect.android.service.DConnectServiceListener;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -39,7 +42,8 @@ import java.util.List;
  * Spheroデバイスプラグイン.
  * @author NTT DOCOMO, INC.
  */
-public class SpheroDeviceService extends DConnectMessageService implements DeviceDiscoveryListener {
+public class SpheroDeviceService extends DConnectMessageService implements DeviceDiscoveryListener,
+        DConnectServiceListener  {
 
     /** TAG. */
     private static final String TAG = SpheroDeviceService.class.getSimpleName();
@@ -88,6 +92,34 @@ public class SpheroDeviceService extends DConnectMessageService implements Devic
      * レシーバー.
      */
     private BroadcastReceiver mReceiver;
+    /**
+     * Received a event that Bluetooth has been changed.
+     */
+    private final BroadcastReceiver mSensorReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            if (BluetoothAdapter.ACTION_STATE_CHANGED.equals(action)) {
+                int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, -1);
+                Collection<DeviceInfo> devices = SpheroManager.INSTANCE.getConnectedDevices();
+                for (DeviceInfo info : devices) {
+                    DConnectService service = getServiceProvider().getService(info.getDevice().getRobot().getIdentifier());
+                    if (service != null) {
+                        if (state == BluetoothAdapter.STATE_ON) {
+                            connectingSphero(service.getId());
+                        } else if (state == BluetoothAdapter.STATE_OFF) {
+                            service.setOnline(false);
+                        }
+                    }
+                }
+            }
+        }
+    };
+
+    /**
+     * Instance of handler.
+     */
+    private final Handler mHandler = new Handler();
 
     @Override
     public void onCreate() {
@@ -113,7 +145,10 @@ public class SpheroDeviceService extends DConnectMessageService implements Devic
             }
         };
         lbm.registerReceiver(mReceiver, filter);
+        registerBluetoothFilter();
         addProfile(new SpheroServiceDiscoveryProfile(getServiceProvider()));
+        getServiceProvider().addServiceListener(this);
+
     }
 
     @Override
@@ -129,55 +164,17 @@ public class SpheroDeviceService extends DConnectMessageService implements Devic
                 SpheroManager.INSTANCE.stopDiscovery();
             } else if (action.equals(ACTION_CONNECT)) {
                 final String id = intent.getStringExtra(EXTRA_ID);
-                new Thread(new Runnable() {
-
-                    @Override
-                    public void run() {
-                        if (SpheroManager.INSTANCE.connect(id)) {
-                            if (BuildConfig.DEBUG) {
-                                Log.d("TEST", "************ connected **********");
-                            }
-                            DeviceInfo info = SpheroManager.INSTANCE.getDevice(id);
-                            ConvenienceRobot device;
-                            if (info == null) {
-                                device = null;
-                            } else {
-                                device = info.getDevice();
-                            }
-                            if (device != null) {
-                                DConnectService service = new SpheroService(info);
-                                getServiceProvider().addService(service);
-
-                                sendDevice(SettingActivity.ACTION_CONNECTED, device, SpheroParcelable.SpheroState.Connected);
-                            } else {
-                                sendDevice(SettingActivity.ACTION_CONNECTED, null, SpheroParcelable.SpheroState.Error);
-                            }
-                        } else {
-                            if (BuildConfig.DEBUG) {
-                                Log.d("TEST", "************ failed to connect **********");
-                            }
-                            sendDevice(SettingActivity.ACTION_CONNECTED, null, SpheroParcelable.SpheroState.Error);
-                        }
-                    }
-                }).start();
+                connectingSphero(id);
             } else if (action.equals(ACTION_DISCONNECT)) {
                 String id = intent.getStringExtra(EXTRA_ID);
-                DeviceInfo info = SpheroManager.INSTANCE.getDevice(id);
-                DConnectService service = getServiceProvider().getService(id);
-                if (service != null) {
-                    service.setOnline(false);
-                }
-
-                SpheroManager.INSTANCE.disconnect(id);
-                if (info != null) {
-                    sendDevice(SettingActivity.ACTION_DISCONNECTED, info.getDevice(), SpheroParcelable.SpheroState.Disconnected);
-                }
+                disconnectingSphero(id);
             } else if (action.equals(ACTION_GET_CONNECTED)) {
                 Collection<DeviceInfo> devices = SpheroManager.INSTANCE.getConnectedDevices();
                 Intent res = new Intent();
                 res.setAction(SettingActivity.ACTION_ADD_CONNECTED_DEVICE);
                 ArrayList<SpheroParcelable> devs = new ArrayList<SpheroParcelable>();
                 for (DeviceInfo info : devices) {
+
                     DConnectService service = getServiceProvider().getService(info.getDevice().getRobot().getIdentifier());
                     if (service != null) {
                         service.setOnline(true);
@@ -240,6 +237,62 @@ public class SpheroDeviceService extends DConnectMessageService implements Devic
         return START_STICKY;
     }
 
+    private void disconnectingSphero(String id) {
+        DeviceInfo info = SpheroManager.INSTANCE.getDevice(id);
+        DConnectService service = getServiceProvider().getService(id);
+        if (service != null) {
+            service.setOnline(false);
+        }
+
+        SpheroManager.INSTANCE.disconnect(id);
+        if (info != null) {
+            sendDevice(SettingActivity.ACTION_DISCONNECTED, info.getDevice(), SpheroParcelable.SpheroState.Disconnected);
+        }
+    }
+
+    /**
+     * Spheroと接続処理を行う.
+     * @param id SpheroのID
+     */
+    private void connectingSphero(final String id) {
+        Log.d("TEST", "connectingdddd");
+        new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                if (SpheroManager.INSTANCE.connect(id)) {
+                    if (BuildConfig.DEBUG) {
+                        Log.d("TEST", "************ connected **********");
+                    }
+                    DeviceInfo info = SpheroManager.INSTANCE.getDevice(id);
+                    ConvenienceRobot device;
+                    if (info == null) {
+                        device = null;
+                    } else {
+                        device = info.getDevice();
+                    }
+                    if (device != null) {
+                        DConnectService service = getServiceProvider().getService(info.getDevice().getRobot().getIdentifier());
+                        if (service == null) {
+                            service = new SpheroService(info);
+                        }
+                        service.setOnline(true);
+                        getServiceProvider().addService(service);
+
+                        sendDevice(SettingActivity.ACTION_CONNECTED, device, SpheroParcelable.SpheroState.Connected);
+                    } else {
+                        sendDevice(SettingActivity.ACTION_CONNECTED, null, SpheroParcelable.SpheroState.Error);
+                    }
+                } else {
+                    if (BuildConfig.DEBUG) {
+                        Log.d("TEST", "************ failed to connect **********");
+                    }
+                    sendDevice(SettingActivity.ACTION_CONNECTED, null, SpheroParcelable.SpheroState.Error);
+                }
+            }
+        }).start();
+    }
+
     @Override
     protected SystemProfile getSystemProfile() {
         return new SpheroSystemProfile();
@@ -252,6 +305,8 @@ public class SpheroDeviceService extends DConnectMessageService implements Devic
         super.onDestroy();
         LocalBroadcastManager lbm = LocalBroadcastManager.getInstance(this);
         lbm.unregisterReceiver(mReceiver);
+        unregisterBluetoothFilter();
+        getServiceProvider().removeServiceListener(this);
         SpheroManager.INSTANCE.shutdown();
     }
 
@@ -307,6 +362,31 @@ public class SpheroDeviceService extends DConnectMessageService implements Devic
 
     }
 
+    @Override
+    public void onServiceAdded(DConnectService service) {
+        if (BuildConfig.DEBUG) {
+            Log.d("TEST", "onServiceAdded: " + service.getName());
+        }
+    }
+
+    @Override
+    public void onServiceRemoved(final DConnectService service) {
+        if (BuildConfig.DEBUG) {
+            Log.d("TEST", "onServiceRemoved: " + service.getName());
+        }
+        SpheroManager.INSTANCE.disconnect(service.getId());
+        SpheroManager.INSTANCE.removeNotConnectedDevice(service.getId());
+        EventManager.INSTANCE.removeAll();
+        resetSpheroEvents();
+    }
+
+    @Override
+    public void onStatusChange(DConnectService service) {
+        if (BuildConfig.DEBUG) {
+            Log.d("TEST", "onStatusChange: " + service.getName());
+        }
+
+    }
 
     @Override
     protected void onDevicePluginReset() {
@@ -357,4 +437,19 @@ public class SpheroDeviceService extends DConnectMessageService implements Devic
         res.putExtra(SettingActivity.EXTRA_DEVICE, s);
         LocalBroadcastManager.getInstance(this).sendBroadcast(res);
     }
+    /**
+     * Bluetoothイベントの登録.
+     */
+    private void registerBluetoothFilter() {
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
+        registerReceiver(mSensorReceiver, filter, null, mHandler);
+    }
+    /**
+     * Bluetoothイベントの解除.
+     */
+    private void unregisterBluetoothFilter() {
+        unregisterReceiver(mSensorReceiver);
+    }
+
 }

@@ -13,7 +13,7 @@ import android.os.Bundle;
 import com.getpebble.android.kit.util.PebbleDictionary;
 
 import org.deviceconnect.android.deviceplugin.pebble.PebbleDeviceService;
-import org.deviceconnect.android.deviceplugin.pebble.setting.PebbleSettingActivity;
+import org.deviceconnect.android.deviceplugin.pebble.setting.PebbleServiceListActivity;
 import org.deviceconnect.android.deviceplugin.pebble.util.PebbleManager;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
@@ -73,7 +73,7 @@ public class PebbleSystemProfile extends SystemProfile {
 
     @Override
     protected Class<? extends Activity> getSettingPageActivity(final Intent request, final Bundle param) {
-        return PebbleSettingActivity.class;
+        return PebbleServiceListActivity.class;
     }
 
     /**

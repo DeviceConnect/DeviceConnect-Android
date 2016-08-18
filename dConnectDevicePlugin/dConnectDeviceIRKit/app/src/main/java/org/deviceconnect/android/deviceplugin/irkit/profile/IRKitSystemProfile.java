@@ -10,7 +10,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 
-import org.deviceconnect.android.deviceplugin.irkit.settings.activity.IRKitDeviceListActivity;
+import org.deviceconnect.android.deviceplugin.irkit.settings.activity.IRKitServiceListActivity;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.SystemProfile;
@@ -30,7 +30,7 @@ public class IRKitSystemProfile extends SystemProfile {
 
     @Override
     protected Class<? extends Activity> getSettingPageActivity(final Intent request, final Bundle param) {
-        return IRKitDeviceListActivity.class;
+        return IRKitServiceListActivity.class;
     }
 
     private final DConnectApi mDeleteEventsApi = new DeleteApi() {

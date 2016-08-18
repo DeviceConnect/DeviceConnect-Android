@@ -52,13 +52,17 @@
 
     <string name="activity_service_list_title">Services</string>
     <string name="activity_setting_page_title">Manual</string>
-    <string name="activity_service_list_button_service_registration">Add new service</string>
+    <string name="activity_service_list_button_add_service">Add</string>
+    <string name="activity_service_list_button_remove_service">Remove</string>
+    <string name="activity_service_list_button_cancel">Cancel</string>
+    <string name="activity_service_list_button_done">Done</string>
+    <string name="activity_service_list_message_no_service">No Services.</string>
     <string name="device_connect_service_default_name">Unknown Device</string>
     <string name="device_connect_service_is_online">Online</string>
     <string name="device_connect_service_is_offline">Offline</string>
     <string name="button_remove_device_connect_service">Remove</string>
-    <string name="dialog_message_online_service_removal_confirmation">{name} will be removed. OK?\n\nIf so, the connection with the target device will be disconnected.</string>
-    <string name="dialog_message_offline_service_removal_confirmation">{name} will be removed. OK?</string>
+    <string name="dialog_title_service_removal_confirmation">Confirmation</string>
+    <string name="dialog_message_service_removal_confirmation">Selected services will be removed. OK?</string>
     <string name="dialog_button_service_removal_ok">OK</string>
     <string name="dialog_button_service_removal_cancel">Cancel</string>
 </resources>

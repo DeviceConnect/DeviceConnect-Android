@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 
+import org.deviceconnect.android.deviceplugin.theta.R;
 import org.deviceconnect.android.deviceplugin.theta.ThetaDeviceApplication;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaDevice;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceManager;
@@ -43,6 +44,13 @@ public class ThetaDeviceSettingsActivity extends DConnectSettingPageFragmentActi
         new ConfirmationFragment()
     };
 
+    private final int[] mTitles = {
+        R.string.summary_title,
+        R.string.photo_mode_title,
+        R.string.movie_mode_title,
+        R.string.confirmation_title
+    };
+
     private ThetaDeviceModel mSelectedModel = ThetaDeviceModel.THETA_S;
 
     @Override
@@ -53,6 +61,11 @@ public class ThetaDeviceSettingsActivity extends DConnectSettingPageFragmentActi
     @Override
     public Fragment createPage(int position) {
         return mFragments[position];
+    }
+
+    @Override
+    public CharSequence getPageTitle(final int position) {
+        return getString(mTitles[position]);
     }
 
     @Override

@@ -25,22 +25,20 @@
 
         <TextView
             android:id="@+id/service_online_status"
-            android:text="@string/device_connect_service_default_name"
+            android:text="@string/device_connect_service_is_offline"
             android:textSize="12sp"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="12sp"/>
 
     </LinearLayout>
 
-    <Button
-        android:id="@+id/btn_remove_service"
+    <CheckBox
+        android:id="@+id/device_connect_service_removal_checkbox"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:background="@drawable/service_list_button_red"
-        android:layout_margin="8dp"
-        android:text="@string/button_remove_device_connect_service"
-        android:layout_centerInParent="true"
+        android:layout_centerVertical="true"
         android:layout_alignParentRight="true"
-        android:textColor="#FFFFFF"/>
+        android:layout_marginRight="8sp"/>
 
 </RelativeLayout>

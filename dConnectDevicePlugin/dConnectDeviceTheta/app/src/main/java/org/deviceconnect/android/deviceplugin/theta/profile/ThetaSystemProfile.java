@@ -10,7 +10,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 
-import org.deviceconnect.android.deviceplugin.theta.activity.ThetaDeviceSettingsActivity;
+import org.deviceconnect.android.deviceplugin.theta.activity.ThetaServiceListActivity;
 import org.deviceconnect.android.profile.SystemProfile;
 
 /**
@@ -22,7 +22,7 @@ public class ThetaSystemProfile extends SystemProfile {
 
     @Override
     protected Class<? extends Activity> getSettingPageActivity(Intent request, Bundle param) {
-        return ThetaDeviceSettingsActivity.class;
+        return ThetaServiceListActivity.class;
     }
 
 }

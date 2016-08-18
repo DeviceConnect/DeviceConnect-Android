@@ -31,13 +31,15 @@ import java.util.logging.Logger;
 
 /**
  * HVC setting activity.
+ *
+ * @author NTT DOCOMO, INC.
  */
 public class HvcSettingStepsActivity extends DConnectSettingPageFragmentActivity {
     
     /**
      * Page count.
      */
-    private static final int TUTORIAL_PAGE_NNMBER = 3;
+    private static final int TUTORIAL_PAGE_NUMBER = 3;
     
     /**
      * Logger name.
@@ -47,19 +49,16 @@ public class HvcSettingStepsActivity extends DConnectSettingPageFragmentActivity
     /** フラグメント一覧. */
     private List<Fragment> mFragments = new ArrayList<Fragment>();
 
-    @Override
-    protected void onCreate(final Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-    }
-    
-    @Override
-    protected void onSaveInstanceState(final Bundle outState) {
-
-    }
+    /** 各フラグメントのタイトル. */
+    private final int[] mTitles = {
+        R.string.setting_step1_title,
+        R.string.setting_step2_title,
+        R.string.setting_step3_title
+    };
 
     @Override
     public int getPageCount() {
-        return TUTORIAL_PAGE_NNMBER;
+        return TUTORIAL_PAGE_NUMBER;
     }
 
     @Override
@@ -77,12 +76,10 @@ public class HvcSettingStepsActivity extends DConnectSettingPageFragmentActivity
         }
         return mFragments.get(position);
     }
-    /**
-     * チュートリアルページの取得.
-     * @param position position
-     */
-    public void setCurrentPage(final int position) {
-        getViewPager().setCurrentItem(position, true);
+
+    @Override
+    public CharSequence getPageTitle(final int position) {
+        return getString(mTitles[position]);
     }
 
     /**

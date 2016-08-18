@@ -20,6 +20,8 @@ import org.deviceconnect.android.deviceplugin.hue.activity.fragment.HueFragment0
 
 /**
  * Hueデバイスプラグインの設定画面.
+ *
+ * @author NTT DOCOMO, INC.
  */
 public class HueMainActivity extends FragmentActivity {
 
@@ -29,7 +31,6 @@ public class HueMainActivity extends FragmentActivity {
         setContentView(R.layout.activity_main);
         getActionBar().setDisplayHomeAsUpEnabled(true);
         getActionBar().setDisplayOptions(0, ActionBar.DISPLAY_SHOW_HOME);
-        getActionBar().setTitle("CLOSE");
         
         // FragmentManagerを生成.
         FragmentManager manager = getSupportFragmentManager();

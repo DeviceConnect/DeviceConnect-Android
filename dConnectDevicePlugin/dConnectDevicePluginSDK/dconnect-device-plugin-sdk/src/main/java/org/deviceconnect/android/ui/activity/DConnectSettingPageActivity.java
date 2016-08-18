@@ -38,10 +38,13 @@ public abstract class DConnectSettingPageActivity extends Activity implements DC
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mViewPager = new ViewPager(this);
-        DConnectPagerAdapter adapter = new DConnectPagerAdapter(this);
-        mViewPager.setAdapter(adapter);
-        setContentView(mViewPager);
+        setContentView(R.layout.activity_setting_page);
+
+        mViewPager = (ViewPager) findViewById(R.id.setting_pager);
+        mViewPager.setAdapter(new DConnectPagerAdapter(this));
+
+        View tabStrip = mViewPager.findViewById(R.id.setting_pager_tab);
+        tabStrip.setVisibility(showsPageTitle() ? View.VISIBLE : View.GONE);
 
         if (getActionBar() != null) {
             getActionBar().setDisplayHomeAsUpEnabled(true);
@@ -59,6 +62,15 @@ public abstract class DConnectSettingPageActivity extends Activity implements DC
         }
         
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public CharSequence getPageTitle(final int position) {
+        return null;
+    }
+
+    protected boolean showsPageTitle() {
+        return true;
     }
 
     /**

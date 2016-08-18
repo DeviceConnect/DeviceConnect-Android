@@ -12,6 +12,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.view.ViewPager;
 import android.view.MenuItem;
+import android.view.View;
 
 import org.deviceconnect.android.R;
 import org.deviceconnect.android.ui.adapter.DConnectFragmentPagerAdapter;
@@ -42,9 +43,10 @@ public abstract class DConnectSettingPageFragmentActivity extends FragmentActivi
         setContentView(R.layout.activity_setting_page);
 
         mViewPager = (ViewPager) findViewById(R.id.setting_pager);
-        DConnectFragmentPagerAdapter adapter = new DConnectFragmentPagerAdapter(getSupportFragmentManager(), this);
-        mViewPager.setAdapter(adapter);
+        mViewPager.setAdapter(new DConnectFragmentPagerAdapter(getSupportFragmentManager(), this));
 
+        View tabStrip = mViewPager.findViewById(R.id.setting_pager_tab);
+        tabStrip.setVisibility(showsPageTitle() ? View.VISIBLE : View.GONE);
 
         if (getActionBar() != null) {
             getActionBar().setDisplayHomeAsUpEnabled(true);
@@ -67,6 +69,10 @@ public abstract class DConnectSettingPageFragmentActivity extends FragmentActivi
     @Override
     public CharSequence getPageTitle(final int position) {
         return null;
+    }
+
+    protected boolean showsPageTitle() {
+        return true;
     }
 
     /**

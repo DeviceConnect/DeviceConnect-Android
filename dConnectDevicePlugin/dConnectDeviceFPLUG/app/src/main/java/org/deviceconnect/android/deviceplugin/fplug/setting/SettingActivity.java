@@ -11,6 +11,7 @@ import android.support.v4.app.Fragment;
 
 import org.deviceconnect.android.deviceplugin.fplug.BuildConfig;
 import org.deviceconnect.android.deviceplugin.fplug.FPLUGApplication;
+import org.deviceconnect.android.deviceplugin.fplug.R;
 import org.deviceconnect.android.deviceplugin.fplug.setting.fragment.FPLUGConnectFragment;
 import org.deviceconnect.android.deviceplugin.fplug.setting.fragment.FPLUGControllerFragment;
 import org.deviceconnect.android.deviceplugin.fplug.setting.fragment.FPLUGImageFragment;
@@ -26,10 +27,17 @@ public class SettingActivity extends DConnectSettingPageFragmentActivity {
 
     @SuppressWarnings("rawtypes")
     private static final Class[] PAGES = {
-            FPLUGImageFragment.class,
-            FPLUGPairingFragment.class,
-            FPLUGConnectFragment.class,
-            FPLUGControllerFragment.class,
+        FPLUGImageFragment.class,
+        FPLUGPairingFragment.class,
+        FPLUGConnectFragment.class,
+        FPLUGControllerFragment.class,
+    };
+
+    private static final int[] TITLES = {
+        R.string.setting_show_image_title,
+        R.string.setting_pairing_title,
+        R.string.setting_connect_title,
+        R.string.setting_controller_title
     };
 
     private FPLUGControllerFragment mControllFragment;
@@ -64,6 +72,11 @@ public class SettingActivity extends DConnectSettingPageFragmentActivity {
             page = null;
         }
         return page;
+    }
+
+    @Override
+    public CharSequence getPageTitle(final int position) {
+        return getString(TITLES[position]);
     }
 
     public void showControllerPage(String selectedFPlugAddress) {

@@ -6,10 +6,6 @@
  */
 package org.deviceconnect.android.deviceplugin.sw.setting;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.logging.Logger;
-
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
@@ -28,11 +24,16 @@ import android.widget.TextView;
 
 import org.deviceconnect.android.deviceplugin.sw.R;
 import org.deviceconnect.android.deviceplugin.sw.SWConstants;
-
 import org.deviceconnect.android.ui.activity.DConnectSettingPageFragmentActivity;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Logger;
 
 /**
  * SWデバイスプラグインの設定手順説明画面.
+ *
+ * @author NTT DOCOMO, INC.
  */
 public class SWSettingStepsActivity extends DConnectSettingPageFragmentActivity {
 
@@ -48,6 +49,14 @@ public class SWSettingStepsActivity extends DConnectSettingPageFragmentActivity 
 
     /** フラグメント一覧. */
     private List<Fragment> mFragments = new ArrayList<Fragment>();
+
+    /** 各フラグメントのタイトル */
+    private final int[] mTitles = {
+        R.string.index1,
+        R.string.index2,
+        R.string.index3,
+        R.string.index4
+    };
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -93,12 +102,10 @@ public class SWSettingStepsActivity extends DConnectSettingPageFragmentActivity 
         }
         return mFragments.get(position);
     }
-    /**
-     * チュートリアルページの取得.
-     * @param position position
-     */
-    public void setCurrentPage(final int position) {
-        getViewPager().setCurrentItem(position, true);
+
+    @Override
+    public CharSequence getPageTitle(final int position) {
+        return getString(mTitles[position]);
     }
 
     /**

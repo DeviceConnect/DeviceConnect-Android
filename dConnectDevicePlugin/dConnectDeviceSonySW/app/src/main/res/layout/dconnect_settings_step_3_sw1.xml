@@ -10,16 +10,6 @@
         android:orientation="vertical"
         android:padding="0sp" >
 
-        <TextView
-            android:id="@+id/textViewNumber"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="#e4007f"
-        	android:textColor="#ffffff"
-            android:gravity="center"
-            android:text="@string/index3"
-            android:textSize="20dip" />
-
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

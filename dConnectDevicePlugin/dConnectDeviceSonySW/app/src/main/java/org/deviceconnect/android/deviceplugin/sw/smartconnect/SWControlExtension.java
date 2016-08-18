@@ -35,31 +35,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package org.deviceconnect.android.deviceplugin.sw.smartconnect;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
-
-import org.deviceconnect.android.deviceplugin.sw.BuildConfig;
-import org.deviceconnect.android.deviceplugin.sw.R;
-import org.deviceconnect.android.deviceplugin.sw.SWApplication;
-import org.deviceconnect.android.deviceplugin.sw.SWConstants;
-import org.deviceconnect.android.deviceplugin.sw.profile.SWUtil;
-import org.deviceconnect.android.event.Event;
-import org.deviceconnect.android.event.EventManager;
-import org.deviceconnect.android.localoauth.CheckAccessTokenResult;
-import org.deviceconnect.android.localoauth.LocalOAuth2Main;
-import org.deviceconnect.android.profile.DeviceOrientationProfile;
-import org.deviceconnect.android.profile.TouchProfile;
-import org.deviceconnect.android.profile.KeyEventProfile;
-import org.deviceconnect.message.DConnectMessage;
-import org.deviceconnect.profile.AuthorizationProfileConstants;
-import org.deviceconnect.profile.DeviceOrientationProfileConstants;
-import org.deviceconnect.profile.KeyEventProfileConstants;
-import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
-import org.deviceconnect.profile.SystemProfileConstants;
-import org.deviceconnect.profile.TouchProfileConstants;
-
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
@@ -87,6 +62,31 @@ import com.sonyericsson.extras.liveware.extension.util.sensor.AccessorySensorEve
 import com.sonyericsson.extras.liveware.extension.util.sensor.AccessorySensorEventListener;
 import com.sonyericsson.extras.liveware.extension.util.sensor.AccessorySensorException;
 import com.sonyericsson.extras.liveware.extension.util.sensor.AccessorySensorManager;
+
+import org.deviceconnect.android.deviceplugin.sw.BuildConfig;
+import org.deviceconnect.android.deviceplugin.sw.R;
+import org.deviceconnect.android.deviceplugin.sw.SWApplication;
+import org.deviceconnect.android.deviceplugin.sw.SWConstants;
+import org.deviceconnect.android.deviceplugin.sw.profile.SWUtil;
+import org.deviceconnect.android.event.Event;
+import org.deviceconnect.android.event.EventManager;
+import org.deviceconnect.android.localoauth.CheckAccessTokenResult;
+import org.deviceconnect.android.localoauth.LocalOAuth2Main;
+import org.deviceconnect.android.profile.DeviceOrientationProfile;
+import org.deviceconnect.android.profile.KeyEventProfile;
+import org.deviceconnect.android.profile.TouchProfile;
+import org.deviceconnect.message.DConnectMessage;
+import org.deviceconnect.profile.AuthorizationProfileConstants;
+import org.deviceconnect.profile.DeviceOrientationProfileConstants;
+import org.deviceconnect.profile.KeyEventProfileConstants;
+import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
+import org.deviceconnect.profile.SystemProfileConstants;
+import org.deviceconnect.profile.TouchProfileConstants;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 
 /**
  * Sony SmartWatch Control Extension.
@@ -304,10 +304,14 @@ class SWControlExtension extends ControlExtension {
 
         // Start listening for sensor updates.
         register();
+
+        notifyInternalEvent(SWConstants.ACTION_CONNECTED);
     }
 
     @Override
     public void onPause() {
+        notifyInternalEvent(SWConstants.ACTION_DISCONNECTED);
+
         unregister();
     }
 
@@ -781,4 +785,11 @@ class SWControlExtension extends ControlExtension {
         intent.setPackage(SWUtil.toHostAppPackageName(deviceName));
         mContext.sendBroadcast(intent, Registration.HOSTAPP_PERMISSION);
     }
+
+    private void notifyInternalEvent(final String action) {
+        Intent intent = new Intent(action);
+        intent.putExtra(SWConstants.EXTRA_SERVICE_ID, findServiceId(getDeviceName()));
+        mContext.sendBroadcast(intent);
+    }
+
 }

@@ -333,7 +333,12 @@ public abstract class DConnectServiceListActivity extends FragmentActivity
         }
 
         public void onServiceAdded(final DConnectService service) {
-            mListAdapter.add(new ServiceContainer(service));
+            ServiceContainer container = mListAdapter.getServiceContainer(service.getId());
+            if (container == null) {
+                mListAdapter.add(new ServiceContainer(service));
+            } else {
+                onStatusChange(service);
+            }
         }
 
         public void onServiceRemoved(final DConnectService service) {

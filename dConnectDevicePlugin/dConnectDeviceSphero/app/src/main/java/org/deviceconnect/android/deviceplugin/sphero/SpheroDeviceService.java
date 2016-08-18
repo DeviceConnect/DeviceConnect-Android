@@ -255,7 +255,6 @@ public class SpheroDeviceService extends DConnectMessageService implements Devic
      * @param id SpheroのID
      */
     private void connectingSphero(final String id) {
-        Log.d("TEST", "connectingdddd");
         new Thread(new Runnable() {
 
             @Override
@@ -275,10 +274,9 @@ public class SpheroDeviceService extends DConnectMessageService implements Devic
                         DConnectService service = getServiceProvider().getService(info.getDevice().getRobot().getIdentifier());
                         if (service == null) {
                             service = new SpheroService(info);
+                            getServiceProvider().addService(service);
                         }
                         service.setOnline(true);
-                        getServiceProvider().addService(service);
-
                         sendDevice(SettingActivity.ACTION_CONNECTED, device, SpheroParcelable.SpheroState.Connected);
                     } else {
                         sendDevice(SettingActivity.ACTION_CONNECTED, null, SpheroParcelable.SpheroState.Error);

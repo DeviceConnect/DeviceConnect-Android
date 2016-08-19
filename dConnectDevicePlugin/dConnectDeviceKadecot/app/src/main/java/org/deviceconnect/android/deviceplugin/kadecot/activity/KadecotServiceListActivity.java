@@ -28,9 +28,4 @@ public class KadecotServiceListActivity extends DConnectServiceListActivity {
     protected Class<? extends Activity> getSettingManualActivityClass() {
         return KadecotDeviceSettingsActivity.class;
     }
-
-    @Override
-    protected void onBindService(final DConnectMessageService.LocalBinder service) {
-        ((KadecotDeviceService.KadecotLocalBinder) service).search();
-    }
 }

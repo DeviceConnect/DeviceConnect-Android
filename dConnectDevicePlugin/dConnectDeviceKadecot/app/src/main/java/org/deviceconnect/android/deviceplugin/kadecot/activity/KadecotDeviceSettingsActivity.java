@@ -6,10 +6,8 @@
  */
 package org.deviceconnect.android.deviceplugin.kadecot.activity;
 
-import android.os.Bundle;
 import android.support.v4.app.Fragment;
 
-import org.deviceconnect.android.deviceplugin.kadecot.R;
 import org.deviceconnect.android.deviceplugin.kadecot.fragment.FinishFragment;
 import org.deviceconnect.android.deviceplugin.kadecot.fragment.KadecotCheckServerFragment;
 import org.deviceconnect.android.deviceplugin.kadecot.fragment.KadecotInstallFragment;
@@ -30,14 +28,6 @@ public class KadecotDeviceSettingsActivity extends DConnectSettingPageFragmentAc
         new KadecotCheckServerFragment(),
         new FinishFragment()
     };
-
-    @Override
-    protected void onCreate(final Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        if (getActionBar() != null) {
-            getActionBar().setTitle(R.string.setting_activity_title);
-        }
-    }
 
     @Override
     public int getPageCount() {

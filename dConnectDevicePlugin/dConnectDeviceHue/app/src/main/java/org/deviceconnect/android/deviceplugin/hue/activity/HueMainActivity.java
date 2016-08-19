@@ -31,6 +31,7 @@ public class HueMainActivity extends FragmentActivity {
         setContentView(R.layout.activity_main);
         getActionBar().setDisplayHomeAsUpEnabled(true);
         getActionBar().setDisplayOptions(0, ActionBar.DISPLAY_SHOW_HOME);
+        getActionBar().setTitle(R.string.activity_setting_page_title);
         
         // FragmentManagerを生成.
         FragmentManager manager = getSupportFragmentManager();

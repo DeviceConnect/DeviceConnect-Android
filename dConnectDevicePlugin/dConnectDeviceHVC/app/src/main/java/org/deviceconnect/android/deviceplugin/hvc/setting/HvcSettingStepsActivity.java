@@ -49,13 +49,6 @@ public class HvcSettingStepsActivity extends DConnectSettingPageFragmentActivity
     /** フラグメント一覧. */
     private List<Fragment> mFragments = new ArrayList<Fragment>();
 
-    /** 各フラグメントのタイトル. */
-    private final int[] mTitles = {
-        R.string.setting_step1_title,
-        R.string.setting_step2_title,
-        R.string.setting_step3_title
-    };
-
     @Override
     public int getPageCount() {
         return TUTORIAL_PAGE_NUMBER;
@@ -75,11 +68,6 @@ public class HvcSettingStepsActivity extends DConnectSettingPageFragmentActivity
             mFragments.add(f3);
         }
         return mFragments.get(position);
-    }
-
-    @Override
-    public CharSequence getPageTitle(final int position) {
-        return getString(mTitles[position]);
     }
 
     /**

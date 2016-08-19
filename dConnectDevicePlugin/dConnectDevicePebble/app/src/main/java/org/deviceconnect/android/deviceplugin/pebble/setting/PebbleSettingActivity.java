@@ -73,20 +73,6 @@ public class PebbleSettingActivity extends DConnectSettingPageFragmentActivity {
     }
 
     /**
-     * カレントページをセットする.
-     * @param position Page Position
-     */
-    public void setCurrentPage(final int position) {
-        getViewPager().setCurrentItem(position, true);
-    }
-
-    @Override
-    public CharSequence getPageTitle(final int position) {
-        return getString(getResources().getIdentifier("page0" + (position + 1), "string",
-            getPackageName()));
-    }
-
-    /**
      * BaseFragment クラス.
      *
      */

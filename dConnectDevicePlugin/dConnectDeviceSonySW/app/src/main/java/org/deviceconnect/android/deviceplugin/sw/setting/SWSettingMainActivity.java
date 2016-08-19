@@ -60,11 +60,6 @@ public class SWSettingMainActivity extends DConnectSettingPageActivity {
         return mView;
     }
 
-    @Override
-    protected boolean showsPageTitle() {
-        return false;
-    }
-
     /**
      * 指定した機種の設定画面を表示する.
      *

@@ -7,7 +7,6 @@
         android:layout_height="wrap_content"
         android:text="@string/alljoyn_settings_master_textViewDesc_text"
         android:id="@+id/textViewDesc"
-        android:layout_below="@+id/textViewTopBar"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="35dp"
         android:layout_marginLeft="30dp"

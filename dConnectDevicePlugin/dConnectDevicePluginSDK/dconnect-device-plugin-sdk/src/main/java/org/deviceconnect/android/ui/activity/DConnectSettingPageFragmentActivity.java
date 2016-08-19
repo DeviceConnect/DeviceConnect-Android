@@ -12,7 +12,6 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.view.ViewPager;
 import android.view.MenuItem;
-import android.view.View;
 
 import org.deviceconnect.android.R;
 import org.deviceconnect.android.ui.adapter.DConnectFragmentPagerAdapter;
@@ -45,9 +44,6 @@ public abstract class DConnectSettingPageFragmentActivity extends FragmentActivi
         mViewPager = (ViewPager) findViewById(R.id.setting_pager);
         mViewPager.setAdapter(new DConnectFragmentPagerAdapter(getSupportFragmentManager(), this));
 
-        View tabStrip = mViewPager.findViewById(R.id.setting_pager_tab);
-        tabStrip.setVisibility(showsPageTitle() ? View.VISIBLE : View.GONE);
-
         if (getActionBar() != null) {
             getActionBar().setDisplayHomeAsUpEnabled(true);
             getActionBar().setDisplayOptions(0, ActionBar.DISPLAY_SHOW_HOME);
@@ -64,15 +60,6 @@ public abstract class DConnectSettingPageFragmentActivity extends FragmentActivi
         }
         
         return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    public CharSequence getPageTitle(final int position) {
-        return null;
-    }
-
-    protected boolean showsPageTitle() {
-        return true;
     }
 
     /**

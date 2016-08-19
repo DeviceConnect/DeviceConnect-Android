@@ -50,14 +50,6 @@ public class SWSettingStepsActivity extends DConnectSettingPageFragmentActivity 
     /** フラグメント一覧. */
     private List<Fragment> mFragments = new ArrayList<Fragment>();
 
-    /** 各フラグメントのタイトル */
-    private final int[] mTitles = {
-        R.string.index1,
-        R.string.index2,
-        R.string.index3,
-        R.string.index4
-    };
-
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -101,11 +93,6 @@ public class SWSettingStepsActivity extends DConnectSettingPageFragmentActivity 
             mFragments.add(f4);
         }
         return mFragments.get(position);
-    }
-
-    @Override
-    public CharSequence getPageTitle(final int position) {
-        return getString(mTitles[position]);
     }
 
     /**

@@ -4,17 +4,17 @@
     android:layout_height="match_parent"
     android:orientation="vertical" >
 
-    <!--<TextView-->
-        <!--android:layout_width="match_parent"-->
-        <!--android:layout_height="wrap_content"-->
-        <!--android:background="@color/background_title"-->
-        <!--android:gravity="center"-->
-        <!--android:paddingBottom="@dimen/margin_title"-->
-        <!--android:paddingTop="@dimen/margin_title"-->
-        <!--android:text="@string/page_3"-->
-        <!--android:textColor="@color/text_light"-->
-        <!--android:textSize="@dimen/text_title" />-->
-
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/text_light"
+        android:gravity="center"
+        android:paddingBottom="@dimen/margin_title"
+        android:paddingTop="@dimen/margin_title"
+        android:text="@string/page_3"
+        android:textColor="@color/background_title"
+        android:textSize="@dimen/text_title" />
+    <View style="@style/horizontalLine" />
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

@@ -11,7 +11,6 @@ import android.support.v4.app.Fragment;
 import android.support.v4.view.ViewPager;
 import android.support.v4.view.ViewPager.OnPageChangeListener;
 
-import org.deviceconnect.android.deviceplugin.sonycamera.R;
 import org.deviceconnect.android.ui.activity.DConnectSettingPageFragmentActivity;
 
 /**
@@ -29,13 +28,6 @@ public class SonyCameraSettingActivity extends DConnectSettingPageFragmentActivi
         new SonyCameraPreparationFragment(),
         new SonyCameraTurnOnFragment(),
         new SonyCameraConnectingFragment()
-    };
-
-    /** 各フラグメントのタイトル. */
-    private final int[] mTitles = {
-        R.string.index1,
-        R.string.index2,
-        R.string.index3,
     };
 
     @Override
@@ -86,8 +78,4 @@ public class SonyCameraSettingActivity extends DConnectSettingPageFragmentActivi
         return mFragments[position];
     }
 
-    @Override
-    public CharSequence getPageTitle(final int position) {
-        return getString(mTitles[position]);
-    }
 }

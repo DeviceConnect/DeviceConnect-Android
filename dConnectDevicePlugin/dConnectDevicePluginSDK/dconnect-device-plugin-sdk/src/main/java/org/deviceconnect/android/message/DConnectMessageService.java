@@ -21,6 +21,8 @@ import org.deviceconnect.android.compat.MessageConverter;
 import org.deviceconnect.android.compat.ServiceDiscoveryRequestConverter;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
+import org.deviceconnect.android.event.cache.EventCacheController;
+import org.deviceconnect.android.event.cache.MemoryCacheController;
 import org.deviceconnect.android.localoauth.CheckAccessTokenResult;
 import org.deviceconnect.android.localoauth.DevicePluginXmlProfile;
 import org.deviceconnect.android.localoauth.DevicePluginXmlUtil;
@@ -105,6 +107,20 @@ public abstract class DConnectMessageService extends Service implements DConnect
      */
     protected abstract SystemProfile getSystemProfile();
 
+    /**
+     * EventCacheControllerのインスタンスを返す.
+     *
+     * <p>
+     * デフォルトではMemoryCacheControllerを使用する.
+     * 変更したい場合は本メソッドをオーバーライドすること.
+     * </p>
+     *
+     * @return EventCacheControllerのインスタンス
+     */
+    protected EventCacheController getEventCacheController() {
+        return new MemoryCacheController();
+    }
+
     public final DConnectServiceProvider getServiceProvider() {
         return mServiceProvider;
     }
@@ -124,6 +140,7 @@ public abstract class DConnectMessageService extends Service implements DConnect
     @Override
     public void onCreate() {
         super.onCreate();
+        EventManager.INSTANCE.setController(getEventCacheController());
 
         mPluginSpec = loadPluginSpec();
 

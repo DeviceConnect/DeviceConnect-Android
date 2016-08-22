@@ -168,11 +168,6 @@ public class IRKitSettingActivity extends IRKitAbstractSettingActivity {
     }
 
     @Override
-    public CharSequence getPageTitle(final int position) {
-        return getString(PAGE_TITLES[position]);
-    }
-
-    @Override
     public int getPageCount() {
         return PAGE_COUNT;
     }

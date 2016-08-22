@@ -8,7 +8,6 @@ package org.deviceconnect.android.deviceplugin.uvc.activity;
 
 import android.support.v4.app.Fragment;
 
-import org.deviceconnect.android.deviceplugin.uvc.R;
 import org.deviceconnect.android.deviceplugin.uvc.fragment.UVCDeviceInstructionFragment;
 import org.deviceconnect.android.deviceplugin.uvc.fragment.UVCDeviceListFragment;
 import org.deviceconnect.android.ui.activity.DConnectSettingPageFragmentActivity;
@@ -30,12 +29,4 @@ public class UVCDeviceSettingsActivity extends DConnectSettingPageFragmentActivi
         }
     }
 
-    @Override
-    public CharSequence getPageTitle(final int position) {
-        if (position == 0) {
-            return getString(R.string.uvc_settings_title_uvc_device_instruction);
-        } else {
-            return getString(R.string.uvc_settings_title_uvc_device_list);
-        }
-    }
 }

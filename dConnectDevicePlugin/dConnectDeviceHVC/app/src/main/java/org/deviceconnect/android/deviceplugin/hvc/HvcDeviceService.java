@@ -23,8 +23,6 @@ import org.deviceconnect.android.deviceplugin.hvc.profile.HvcHumanDetectProfile;
 import org.deviceconnect.android.deviceplugin.hvc.profile.HvcServiceDiscoveryProfile;
 import org.deviceconnect.android.deviceplugin.hvc.profile.HvcSystemProfile;
 import org.deviceconnect.android.deviceplugin.hvc.service.HvcService;
-import org.deviceconnect.android.event.EventManager;
-import org.deviceconnect.android.event.cache.MemoryCacheController;
 import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.SystemProfile;
@@ -79,14 +77,10 @@ public class HvcDeviceService extends DConnectMessageService {
     
     @Override
     public void onCreate() {
-
         super.onCreate();
 
         // start HVC device search.
         startSearchHvcDevice();
-
-        // Initialize EventManager
-        EventManager.INSTANCE.setController(new MemoryCacheController());
 
         // add supported profiles
         addProfile(new HvcServiceDiscoveryProfile(getServiceProvider()));
@@ -162,6 +156,8 @@ public class HvcDeviceService extends DConnectMessageService {
                 // Bluetooth ON -> OFF
                 // stop scan process.
                 stopSearchHvcDevice();
+
+                turnOff(getServiceProvider().getServiceList());
             } else if (state == BluetoothAdapter.STATE_ON) {
                 // Bluetooth OFF -> ON
                 // start scan process.
@@ -469,28 +465,56 @@ public class HvcDeviceService extends DConnectMessageService {
             mDetector.setListener(new BleDeviceDiscoveryListener() {
 
                 @Override
-                public void onDiscovery(final List<BluetoothDevice> devices) {
+                public void onDiscovery(final List<BluetoothDevice> currentDevices) {
                     // remove duplicate data or non HVC data.
-                    removeDuplicateOrNonHvcData(devices);
-                    // store.
+                    removeDuplicateOrNonHvcData(currentDevices);
+
                     synchronized (mCacheDeviceList) {
                         mCacheDeviceList.clear();
-                        mCacheDeviceList.addAll(devices);
+                        mCacheDeviceList.addAll(currentDevices);
                     }
 
-                    for (BluetoothDevice device : devices) {
-                        DConnectService service = getServiceProvider().getService(device.getAddress());
-                        if (service == null) {
-                            service = new HvcService(device);
-                            service.setOnline(true);
-                            getServiceProvider().addService(service);
-                        }
-                    }
+                    turnOn(currentDevices);
+                    turnOff(findLostServices(currentDevices));
                 }
             });
         }
     }
 
+    private List<DConnectService> findLostServices(final List<BluetoothDevice> currentList) {
+        List<DConnectService> lostServices = new ArrayList<DConnectService>();
+        for (DConnectService cached : getServiceProvider().getServiceList()) {
+            boolean isFound = false;
+            check:
+            for (BluetoothDevice current : currentList) {
+                if (cached.getId().equals(HvcService.createServiceId(current))) {
+                    isFound = true;
+                    break check;
+                }
+            }
+            if (!isFound) {
+                lostServices.add(cached);
+            }
+        }
+        return lostServices;
+    }
+
+    private void turnOn(final List<BluetoothDevice> devices) {
+        for (BluetoothDevice device : devices) {
+            DConnectService service = getServiceProvider().getService(device.getAddress());
+            if (service == null) {
+                service = new HvcService(device);
+                getServiceProvider().addService(service);
+            }
+            service.setOnline(true);
+        }
+    }
+
+    private void turnOff(final List<DConnectService> services) {
+        for (DConnectService service : services) {
+            service.setOnline(false);
+        }
+    }
 
     /**
      * retry process in new thread.

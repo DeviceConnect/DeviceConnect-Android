@@ -23,14 +23,6 @@ public interface DConnectPageCreater<T> {
     int getPageCount();
 
     /**
-     * 画面のタイトルを返す.
-     *
-     * @param position 画面番号
-     * @return ページのタイトル
-     */
-    CharSequence getPageTitle(int position);
-
-    /**
      * 一画面用のビューを作成する.
      * 
      * @param position 画面番号

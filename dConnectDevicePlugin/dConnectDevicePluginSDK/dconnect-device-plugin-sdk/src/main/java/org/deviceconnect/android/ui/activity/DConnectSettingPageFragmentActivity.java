@@ -42,9 +42,7 @@ public abstract class DConnectSettingPageFragmentActivity extends FragmentActivi
         setContentView(R.layout.activity_setting_page);
 
         mViewPager = (ViewPager) findViewById(R.id.setting_pager);
-        DConnectFragmentPagerAdapter adapter = new DConnectFragmentPagerAdapter(getSupportFragmentManager(), this);
-        mViewPager.setAdapter(adapter);
-
+        mViewPager.setAdapter(new DConnectFragmentPagerAdapter(getSupportFragmentManager(), this));
 
         if (getActionBar() != null) {
             getActionBar().setDisplayHomeAsUpEnabled(true);
@@ -62,11 +60,6 @@ public abstract class DConnectSettingPageFragmentActivity extends FragmentActivi
         }
         
         return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    public CharSequence getPageTitle(final int position) {
-        return null;
     }
 
     /**

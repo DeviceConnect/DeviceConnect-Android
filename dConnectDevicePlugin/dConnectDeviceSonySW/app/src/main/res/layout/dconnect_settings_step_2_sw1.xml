@@ -14,11 +14,14 @@
             android:id="@+id/textViewNumber"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="#e4007f"
-        	android:textColor="#ffffff"
+            android:padding="8sp"
+            android:background="@color/sw1_title_background"
+            android:textColor="@color/sw1_title_text"
             android:gravity="center"
             android:text="@string/index2"
-            android:textSize="20dip" />
+            android:textSize="16sp" />
+
+        <View style="@style/horizontalLine.sw1" />
 
         <LinearLayout
             android:layout_width="match_parent"

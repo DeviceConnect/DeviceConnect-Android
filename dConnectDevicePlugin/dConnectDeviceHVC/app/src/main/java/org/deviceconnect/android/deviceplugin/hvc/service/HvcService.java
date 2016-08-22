@@ -19,7 +19,7 @@ public class HvcService extends DConnectService {
         addProfile(new HvcHumanDetectProfile());
     }
 
-    private static String createServiceId(final BluetoothDevice foundDevice) {
+    public static String createServiceId(final BluetoothDevice foundDevice) {
         String address = foundDevice.getAddress();
         return address.replace(":", "").toLowerCase(Locale.ENGLISH);
     }

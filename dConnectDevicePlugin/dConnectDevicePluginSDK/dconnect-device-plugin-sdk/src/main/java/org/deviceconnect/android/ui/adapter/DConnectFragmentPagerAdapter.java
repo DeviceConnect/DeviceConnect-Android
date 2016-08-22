@@ -43,8 +43,4 @@ public class DConnectFragmentPagerAdapter extends FragmentPagerAdapter {
         return mCreater.getPageCount();
     }
 
-    @Override
-    public CharSequence getPageTitle(final int position) {
-        return mCreater.getPageTitle(position);
-    }
 }

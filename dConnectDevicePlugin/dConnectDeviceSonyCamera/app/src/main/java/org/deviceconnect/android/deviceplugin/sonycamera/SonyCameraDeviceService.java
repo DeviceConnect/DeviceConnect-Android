@@ -286,6 +286,7 @@ public class SonyCameraDeviceService extends DConnectMessageService {
 
         String action = intent.getAction();
         if (WifiManager.WIFI_STATE_CHANGED_ACTION.equals(action)) {
+            mLogger.info("Received: WIFI_STATE_CHANGED_ACTION");
             int state = intent.getIntExtra(WifiManager.EXTRA_WIFI_STATE, WifiManager.WIFI_STATE_UNKNOWN);
             if (state == WifiManager.WIFI_STATE_ENABLED) {
                 WifiManager wifiMgr = (WifiManager) getSystemService(Context.WIFI_SERVICE);
@@ -300,14 +301,19 @@ public class SonyCameraDeviceService extends DConnectMessageService {
             }
             return START_STICKY;
         } else if (WifiManager.NETWORK_STATE_CHANGED_ACTION.equals(action)) {
-            ConnectivityManager cm = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
-            WifiManager wifiMgr = (WifiManager) getSystemService(Context.WIFI_SERVICE);
-            NetworkInfo ni = cm.getActiveNetworkInfo();
+            mLogger.info("Received: NETWORK_STATE_CHANGED_ACTION");
+            NetworkInfo ni = intent.getParcelableExtra(WifiManager.EXTRA_NETWORK_INFO);
             if (ni != null) {
                 NetworkInfo.State state = ni.getState();
                 int type = ni.getType();
+                mLogger.info("Active network: type = " + ni.getTypeName()
+                    + ", connected = " + ni.isConnected()
+                    + ", available = " + ni.isAvailable()
+                    + ", state = " + ni.getDetailedState());
                 if (ni.isConnected() && state == NetworkInfo.State.CONNECTED && type == ConnectivityManager.TYPE_WIFI) {
-                    WifiInfo wifiInfo = wifiMgr.getConnectionInfo();
+                    WifiInfo wifiInfo = intent.getParcelableExtra(WifiManager.EXTRA_WIFI_INFO);
+                    mLogger.info("Active Wi-Fi: SSID = " + wifiInfo.getSSID()
+                        + ", supplicantState = " + wifiInfo.getSupplicantState());
                     if (DConnectUtil.checkSSID(wifiInfo.getSSID())) {
                         if (!wifiInfo.getSSID().equals(mSSID)) {
                             connectSonyCamera();
@@ -316,6 +322,8 @@ public class SonyCameraDeviceService extends DConnectMessageService {
                         deleteSonyCameraSDK();
                     }
                 }
+            } else {
+                mLogger.info("No active network. ");
             }
             return START_STICKY;
         }
@@ -926,7 +934,7 @@ public class SonyCameraDeviceService extends DConnectMessageService {
 
             @Override
             public void onErrorFinished() {
-                mLogger.warning("Error occurred in SsdpClient#serarch.");
+                mLogger.warning("Error occurred in SsdpClient#search.");
             }
         });
     }

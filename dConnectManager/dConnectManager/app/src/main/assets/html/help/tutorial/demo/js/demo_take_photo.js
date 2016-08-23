@@ -114,9 +114,7 @@ var demoTakePhoto = (function(parent, global) {
         }
         var uri = builder.build();
         dConnect.put(uri, null, null, function(json) {
-            var myUri = json.uri;
-            myUri = myUri.replace('localhost', "192.168.1.82");
-            refreshImg(myUri, 'preview');
+            refreshImg(json.uri, 'preview');
         }, function(errorCode, errorMessage) {
             util.showAlert("プレビュー開始に失敗しました。", errorCode, errorMessage);
         });

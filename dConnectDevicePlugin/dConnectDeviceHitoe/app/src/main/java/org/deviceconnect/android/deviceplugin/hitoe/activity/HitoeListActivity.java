@@ -42,7 +42,7 @@ public abstract class HitoeListActivity extends FragmentActivity {
     /**
      * デフォルトのタイトル文字列.
      */
-    public static final String DEFAULT_TITLE = "CLOSE";
+    public static final String DEFAULT_TITLE = "サービス一覧";
 
     /**
      * Adapter.
@@ -99,6 +99,7 @@ public abstract class HitoeListActivity extends FragmentActivity {
         mFooterView = inflater.inflate(R.layout.item_hitoe_searching, null);
         if (getActionBar() != null) {
             getActionBar().setDisplayHomeAsUpEnabled(true);
+
             getActionBar().setDisplayOptions(0, ActionBar.DISPLAY_SHOW_HOME);
             getActionBar().setTitle(DEFAULT_TITLE);
         }

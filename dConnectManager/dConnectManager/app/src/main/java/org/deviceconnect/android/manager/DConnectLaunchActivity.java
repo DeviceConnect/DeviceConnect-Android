@@ -53,22 +53,31 @@ public class DConnectLaunchActivity extends Activity {
      */
     protected final Logger mLogger = Logger.getLogger("dconnect.manager");
 
+    private DConnectSettings mSettings = DConnectSettings.getInstance();
+
     private Runnable mBehavior;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mHmacManager = new HmacManager(this);
+        mSettings.load(this);
         processRequest(getIntent());
+    }
+
+    private boolean allowExternalStartAndStop() {
+        return mSettings.allowExternalStartAndStop();
     }
 
     private void processRequest(final Intent intent) {
         if (intent != null && isSchemeForLaunch(intent.getScheme())) {
+            updateHMACKey(intent);
+
             Uri uri = intent.getData();
             String host = uri.getHost();
             String path = uri.getPath();
             if ("start".equals(host)) {
-                if ("/".equals(path) || "/activity".equals(path)) {
+                if (!allowExternalStartAndStop() || "/".equals(path) || "/activity".equals(path)) {
                     displayActivity();
                 } else if ("/server".equals(path)) {
                     hideActivity();
@@ -81,7 +90,7 @@ public class DConnectLaunchActivity extends Activity {
                     };
                 }
             } else if ("stop".equals(host)) {
-                if ("/".equals(path) || "/activity".equals(path)) {
+                if (!allowExternalStartAndStop() || "/".equals(path) || "/activity".equals(path)) {
                     displayActivity();
                 } else if ("/server".equals(path)) {
                     hideActivity();
@@ -94,7 +103,6 @@ public class DConnectLaunchActivity extends Activity {
                     };
                 }
             }
-            updateHMACKey(intent);
             bindManagerService();
         }
     }

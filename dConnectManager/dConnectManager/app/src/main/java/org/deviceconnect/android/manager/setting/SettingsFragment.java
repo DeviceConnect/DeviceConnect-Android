@@ -89,7 +89,9 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
     /** LocalOAuth設定チェックボックス. */
     private CheckBoxPreference mCheckBoxOauthPreferences;
     /** 外部IP設定チェックボックス. */
-    private CheckBoxPreference mCheckBoxExternalPreferences;
+    private CheckBoxPreference mCheckBoxExternalIpPreferences;
+    /** 外部起動/終了設定チェックボックス. */
+    private CheckBoxPreference mCheckBoxExternalStartAndStartPreferences;
     /** オリジン不要フラグ設定チェックボックス. */
     private CheckBoxPreference mCheckBoxRequireOriginPreferences;
     /** Originブロック設定チェックボックス. */
@@ -163,8 +165,12 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
                 .findPreference(getString(R.string.key_settings_dconn_local_oauth));
 
         // グローバル設定のON/OFF
-        mCheckBoxExternalPreferences = (CheckBoxPreference) getPreferenceScreen()
+        mCheckBoxExternalIpPreferences = (CheckBoxPreference) getPreferenceScreen()
                 .findPreference(getString(R.string.key_settings_dconn_allow_external_ip));
+
+        // 外部起動/終了設定のON/OFF
+        mCheckBoxExternalStartAndStartPreferences = (CheckBoxPreference) getPreferenceScreen()
+            .findPreference(getString(R.string.key_settings_dconn_allow_external_start_and_stop));
 
         // Origin不要フラグ設定のON/OFF
         mCheckBoxRequireOriginPreferences = (CheckBoxPreference) getPreferenceScreen()
@@ -483,7 +489,7 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
         mCheckBoxSslPreferences.setEnabled(enabled);
         mEditPortPreferences.setEnabled(enabled);
         mCheckBoxOauthPreferences.setEnabled(enabled);
-        mCheckBoxExternalPreferences.setEnabled(enabled);
+        mCheckBoxExternalIpPreferences.setEnabled(enabled);
         mCheckBoxRequireOriginPreferences.setEnabled(enabled);
         mCheckBoxOriginBlockingPreferences.setEnabled(enabled);
     }
@@ -767,7 +773,8 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
         editKeywordPreferences.setOnPreferenceChangeListener(this);
         mEditPortPreferences.setOnPreferenceChangeListener(this);
         mCheckBoxOauthPreferences.setOnPreferenceChangeListener(this);
-        mCheckBoxExternalPreferences.setOnPreferenceChangeListener(this);
+        mCheckBoxExternalIpPreferences.setOnPreferenceChangeListener(this);
+        mCheckBoxExternalStartAndStartPreferences.setOnPreferenceChangeListener(this);
         mCheckBoxRequireOriginPreferences.setOnPreferenceChangeListener(this);
         mCheckBoxOriginBlockingPreferences.setOnPreferenceChangeListener(this);
         mObserverPreferences.setOnPreferenceChangeListener(this);

@@ -7,9 +7,6 @@ http://opensource.org/licenses/mit-license.php
 
 package org.deviceconnect.android.deviceplugin.sonycamera.activity;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import android.support.v4.app.Fragment;
 import android.support.v4.view.ViewPager;
 import android.support.v4.view.ViewPager.OnPageChangeListener;
@@ -27,7 +24,11 @@ public class SonyCameraSettingActivity extends DConnectSettingPageFragmentActivi
     private static final int PAGE_COUNTER = 3;
 
     /** フラグメント一覧. */
-    private List<SonyCameraBaseFragment> mFragments = new ArrayList<SonyCameraBaseFragment>();
+    private SonyCameraBaseFragment[] mFragments = {
+        new SonyCameraPreparationFragment(),
+        new SonyCameraTurnOnFragment(),
+        new SonyCameraConnectingFragment()
+    };
 
     @Override
     protected void onResume() {
@@ -74,13 +75,7 @@ public class SonyCameraSettingActivity extends DConnectSettingPageFragmentActivi
 
     @Override
     public Fragment createPage(final int position) {
-        if (mFragments.size() == 0) {
-            mFragments.add(new SonyCameraPreparationFragment());
-            mFragments.add(new SonyCameraTurnOnFragment());
-            mFragments.add(new SonyCameraConnectingFragment());
-        }
-
-        SonyCameraBaseFragment fragment = mFragments.get(position);
-        return fragment;
+        return mFragments[position];
     }
+
 }

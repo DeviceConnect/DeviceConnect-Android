@@ -10,6 +10,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 
 import com.getpebble.android.kit.PebbleKit;
+import com.getpebble.android.kit.util.PebbleDictionary;
 
 import org.deviceconnect.android.deviceplugin.pebble.profile.PebbleSystemProfile;
 import org.deviceconnect.android.deviceplugin.pebble.service.PebbleService;
@@ -21,12 +22,16 @@ import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.android.service.DConnectService;
 
 import java.util.Set;
+import java.util.logging.Logger;
 
 /**
  * Pebbleデバイスプロバイダ.
  * @author NTT DOCOMO, INC.
  */
 public class PebbleDeviceService extends DConnectMessageService {
+    /** ロガー. */
+    private final Logger mLogger = Logger.getLogger("pebble.dplugin");
+
     /**
      * Pebbleとのインターフェースを管理するクラス.
      */
@@ -66,13 +71,13 @@ public class PebbleDeviceService extends DConnectMessageService {
                         for (BluetoothDevice device : adapter.getBondedDevices()) {
                             if (device.getAddress().equalsIgnoreCase(macAddress)) {
                                 service = new PebbleService(device, PebbleDeviceService.this);
-                                service.setOnline(true);
                                 getServiceProvider().addService(service);
                                 break;
                             }
                         }
                     }
                 }
+                service.setOnline(true);
             }
 
             @Override
@@ -91,6 +96,94 @@ public class PebbleDeviceService extends DConnectMessageService {
         // Pebbleの後始末を行う
         mPebbleManager.destory();
         super.onDestroy();
+    }
+
+    @Override
+    protected void onManagerUninstalled() {
+        // Managerアンインストール検知時の処理。
+        if (BuildConfig.DEBUG) {
+            mLogger.info("Plug-in : onManagerUninstalled");
+        }
+    }
+
+    @Override
+    protected void onManagerTerminated() {
+        // Manager正常終了通知受信時の処理。
+        if (BuildConfig.DEBUG) {
+            mLogger.info("Plug-in : onManagerTerminated");
+        }
+    }
+
+    @Override
+    protected void onManagerEventTransmitDisconnected(String sessionKey) {
+        // ManagerのEvent送信経路切断通知受信時の処理。
+        if (BuildConfig.DEBUG) {
+            mLogger.info("Plug-in : onManagerEventTransmitDisconnected");
+        }
+        if (sessionKey != null) {
+            EventManager.INSTANCE.removeEvents(sessionKey);
+        } else {
+            EventManager.INSTANCE.removeAll();
+        }
+    }
+
+    @Override
+    protected void onDevicePluginReset() {
+        // Device Plug-inへのReset要求受信時の処理。
+        if (BuildConfig.DEBUG) {
+            mLogger.info("Plug-in : onDevicePluginReset");
+        }
+        resetPluginResource();
+    }
+
+    /**
+     * リソースリセット処理.
+     */
+    private void resetPluginResource() {
+        /** 全イベント削除. */
+        EventManager.INSTANCE.removeAll();
+
+        /** Pebble バッテリー関連 イベント解放. */
+        sendDeleteEventToPebble(PebbleManager.PROFILE_BATTERY,
+                PebbleManager.BATTERY_ATTRIBUTE_ON_BATTERY_CHANGE);
+
+        sendDeleteEventToPebble(PebbleManager.PROFILE_BATTERY,
+                PebbleManager.BATTERY_ATTRIBUTE_ON_CHARGING_CHANGE);
+
+        /** Pebble DeviceOrientation イベント解放. */
+        sendDeleteEventToPebble(PebbleManager.PROFILE_DEVICE_ORIENTATION,
+                PebbleManager.DEVICE_ORIENTATION_ATTRIBUTE_ON_DEVICE_ORIENTATION);
+
+        /** Pebble KeyEvent イベント解放. */
+        sendDeleteEventToPebble(PebbleManager.PROFILE_KEY_EVENT,
+                PebbleManager.KEY_EVENT_ATTRIBUTE_ON_DOWN);
+
+        sendDeleteEventToPebble(PebbleManager.PROFILE_KEY_EVENT,
+                PebbleManager.KEY_EVENT_ATTRIBUTE_ON_UP);
+
+        /** System イベント解放. */
+        sendDeleteEventToPebble(PebbleManager.PROFILE_SYSTEM,
+                PebbleManager.SYSTEM_ATTRIBUTE_EVENTS);
+    }
+
+    /**
+     * PebbleへEvent停止コマンドを送信する.
+     * @param profile プロファイル.
+     * @param attribute 属性.
+     */
+    private void sendDeleteEventToPebble(final int profile, final int attribute) {
+        if (mPebbleManager != null) {
+            PebbleDictionary dic = new PebbleDictionary();
+            dic.addInt8(PebbleManager.KEY_PROFILE, (byte) profile);
+            dic.addInt8(PebbleManager.KEY_ATTRIBUTE, (byte) attribute);
+            dic.addInt8(PebbleManager.KEY_ACTION, (byte) PebbleManager.ACTION_DELETE);
+            mPebbleManager.sendCommandToPebble(dic, new PebbleManager.OnSendCommandListener() {
+                @Override
+                public void onReceivedData(final PebbleDictionary dic) {
+                    // do nothing.
+                }
+            });
+        }
     }
 
     @Override
@@ -125,7 +218,7 @@ public class PebbleDeviceService extends DConnectMessageService {
         if (bondedDevices.size() > 0) {
             for (BluetoothDevice device : bondedDevices) {
                 String deviceName = device.getName();
-                if (deviceName.indexOf("Pebble") != -1) {
+                if (deviceName.contains("Pebble")) {
                     return PebbleService.createServiceId(device);
                 }
             }

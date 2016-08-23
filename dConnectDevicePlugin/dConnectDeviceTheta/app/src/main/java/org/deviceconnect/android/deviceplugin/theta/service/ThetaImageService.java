@@ -19,6 +19,7 @@ public class ThetaImageService extends DConnectService {
 
     public ThetaImageService(final HeadTracker headTracker) {
         super(SERVICE_ID);
+        setOnline(true);
         setName(SERVICE_NAME);
         addProfile(new ThetaOmnidirectionalImageProfile(headTracker));
     }

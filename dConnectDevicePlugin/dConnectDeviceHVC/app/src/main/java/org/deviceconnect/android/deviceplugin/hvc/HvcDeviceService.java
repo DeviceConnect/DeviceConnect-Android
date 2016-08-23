@@ -23,8 +23,6 @@ import org.deviceconnect.android.deviceplugin.hvc.profile.HvcHumanDetectProfile;
 import org.deviceconnect.android.deviceplugin.hvc.profile.HvcServiceDiscoveryProfile;
 import org.deviceconnect.android.deviceplugin.hvc.profile.HvcSystemProfile;
 import org.deviceconnect.android.deviceplugin.hvc.service.HvcService;
-import org.deviceconnect.android.event.EventManager;
-import org.deviceconnect.android.event.cache.MemoryCacheController;
 import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.SystemProfile;
@@ -79,21 +77,64 @@ public class HvcDeviceService extends DConnectMessageService {
     
     @Override
     public void onCreate() {
-
         super.onCreate();
 
         // start HVC device search.
         startSearchHvcDevice();
 
-        // Initialize EventManager
-        EventManager.INSTANCE.setController(new MemoryCacheController());
-
         // add supported profiles
         addProfile(new HvcServiceDiscoveryProfile(getServiceProvider()));
         addProfile(new HvcHumanDetectProfile());
         
-        // start timeout judget timer.
+        // start timeout judge timer.
         startTimeoutJudgeTimer();
+    }
+
+    @Override
+    protected void onManagerUninstalled() {
+        // Managerアンインストール検知時の処理。
+        if (DEBUG) {
+            Log.i(TAG, "Plug-in : onManagerUninstalled");
+        }
+        resetPluginResource();
+    }
+
+    @Override
+    protected void onManagerTerminated() {
+        // Manager正常終了通知受信時の処理。
+        if (DEBUG) {
+            Log.i(TAG, "Plug-in : onManagerTerminated");
+        }
+    }
+
+    @Override
+    protected void onManagerEventTransmitDisconnected(String sessionKey) {
+        // ManagerのEvent送信経路切断通知受信時の処理。
+        if (DEBUG) {
+            Log.i(TAG, "Plug-in : onManagerEventTransmitDisconnected");
+        }
+        if (sessionKey != null) {
+            unregisterDetectionEventByMatchedSessionKey(sessionKey);
+        } else {
+            removeAllDetectEvent();
+        }
+    }
+
+    @Override
+    protected void onDevicePluginReset() {
+        // Device Plug-inへのReset要求受信時の処理。
+        if (DEBUG) {
+            Log.i(TAG, "Plug-in : onDevicePluginReset");
+        }
+        resetPluginResource();
+    }
+
+    /**
+     * リソースリセット処理.
+     */
+    private void resetPluginResource() {
+        /** 全イベント削除. */
+        removeAllDetectEvent();
     }
 
     @Override
@@ -115,6 +156,8 @@ public class HvcDeviceService extends DConnectMessageService {
                 // Bluetooth ON -> OFF
                 // stop scan process.
                 stopSearchHvcDevice();
+
+                turnOff(getServiceProvider().getServiceList());
             } else if (state == BluetoothAdapter.STATE_ON) {
                 // Bluetooth OFF -> ON
                 // start scan process.
@@ -273,6 +316,52 @@ public class HvcDeviceService extends DConnectMessageService {
     }
 
     /**
+     * Human Detect Profile unregister detection event by matched sessionKey.
+     * @param sessionKey sessionKey
+     */
+    private void unregisterDetectionEventByMatchedSessionKey(final String sessionKey) {
+        for (HvcCommManager commManager : mHvcCommManagerArray) {
+            commManager.removeDetectEvent(sessionKey);
+            HumanDetectKind kind;
+            for (int i = 0; i < 3; i++) {
+                switch (i) {
+                    case 0:
+                        kind = HumanDetectKind.BODY;
+                        break;
+                    case 1:
+                        kind = HumanDetectKind.FACE;
+                        break;
+                    case 2:
+                    default:
+                        kind = HumanDetectKind.HAND;
+                        break;
+                }
+                Long interval = commManager.getEventInterval(kind, sessionKey);
+                if (interval != null) {
+                    stopIntervalTimer(interval);
+                }
+            }
+        }
+    }
+
+    /**
+     * remove all detect event.
+     */
+    private void removeAllDetectEvent() {
+        for (HvcCommManager commManager : mHvcCommManagerArray) {
+            /** 全イベント解除 */
+            commManager.removeAllDetectEvent();
+            /** 全インターバルタイマー削除 */
+            int count = mIntervalTimerInfoArray.size();
+            for (int index = (count - 1); index >= 0; index--) {
+                HvcTimerInfo timerInfo = mIntervalTimerInfoArray.get(index);
+                timerInfo.stopTimer();
+                mIntervalTimerInfoArray.remove(index);
+            }
+        }
+    }
+
+    /**
      * Human Detect Profile get detection.<br>
      * 
      * @param detectKind detectKind
@@ -376,28 +465,56 @@ public class HvcDeviceService extends DConnectMessageService {
             mDetector.setListener(new BleDeviceDiscoveryListener() {
 
                 @Override
-                public void onDiscovery(final List<BluetoothDevice> devices) {
+                public void onDiscovery(final List<BluetoothDevice> currentDevices) {
                     // remove duplicate data or non HVC data.
-                    removeDuplicateOrNonHvcData(devices);
-                    // store.
+                    removeDuplicateOrNonHvcData(currentDevices);
+
                     synchronized (mCacheDeviceList) {
                         mCacheDeviceList.clear();
-                        mCacheDeviceList.addAll(devices);
+                        mCacheDeviceList.addAll(currentDevices);
                     }
 
-                    for (BluetoothDevice device : devices) {
-                        DConnectService service = getServiceProvider().getService(device.getAddress());
-                        if (service == null) {
-                            service = new HvcService(device);
-                            service.setOnline(true);
-                            getServiceProvider().addService(service);
-                        }
-                    }
+                    turnOn(currentDevices);
+                    turnOff(findLostServices(currentDevices));
                 }
             });
         }
     }
 
+    private List<DConnectService> findLostServices(final List<BluetoothDevice> currentList) {
+        List<DConnectService> lostServices = new ArrayList<DConnectService>();
+        for (DConnectService cached : getServiceProvider().getServiceList()) {
+            boolean isFound = false;
+            check:
+            for (BluetoothDevice current : currentList) {
+                if (cached.getId().equals(HvcService.createServiceId(current))) {
+                    isFound = true;
+                    break check;
+                }
+            }
+            if (!isFound) {
+                lostServices.add(cached);
+            }
+        }
+        return lostServices;
+    }
+
+    private void turnOn(final List<BluetoothDevice> devices) {
+        for (BluetoothDevice device : devices) {
+            DConnectService service = getServiceProvider().getService(device.getAddress());
+            if (service == null) {
+                service = new HvcService(device);
+                getServiceProvider().addService(service);
+            }
+            service.setOnline(true);
+        }
+    }
+
+    private void turnOff(final List<DConnectService> services) {
+        for (DConnectService service : services) {
+            service.setOnline(false);
+        }
+    }
 
     /**
      * retry process in new thread.

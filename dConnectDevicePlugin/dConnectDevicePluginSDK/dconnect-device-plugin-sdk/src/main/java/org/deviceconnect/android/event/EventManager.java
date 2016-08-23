@@ -77,9 +77,10 @@ public enum EventManager {
         Event event = new Event();
         event.setSessionKey(sessionKey);
         event.setAccessToken(accessToken);
-        event.setProfile(profile);
-        event.setInterface(inter);
-        event.setAttribute(attribute);
+        // XXXX パスの大文字小文字を無視
+        event.setProfile(profile != null ? profile.toLowerCase() : null);
+        event.setInterface(inter != null ? inter.toLowerCase() : null);
+        event.setAttribute(attribute != null ? attribute.toLowerCase() : null);
         event.setServiceId(serviceId);
         if (name != null) {
             event.setReceiverName(name.flattenToString());

@@ -124,6 +124,16 @@ public class DConnectProfileSpec implements DConnectSpecConstants {
          */
         public Builder addApiSpec(final String path, final Method method,
                                final DConnectApiSpec apiSpec) {
+            String[] names = path.split("/");
+            if (names.length == 2) {
+                if (!names[1].equals("")) {
+                    apiSpec.setAttributeName(names[1]);
+                }
+            } else if (names.length == 3) {
+                apiSpec.setInterfaceName(names[1]);
+                apiSpec.setAttributeName(names[2]);
+            }
+
             String pathKey = path.toLowerCase();
             Map<Method, DConnectApiSpec> apiSpecs = mAllApiSpecs.get(pathKey);
             if (apiSpecs == null) {

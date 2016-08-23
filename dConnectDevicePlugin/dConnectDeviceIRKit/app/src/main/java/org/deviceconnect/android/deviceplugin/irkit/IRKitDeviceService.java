@@ -25,6 +25,7 @@ import org.deviceconnect.android.service.DConnectService;
 
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Logger;
 
 /**
  * IRKitデバイスプラグインサービス.
@@ -66,16 +67,20 @@ public class IRKitDeviceService extends DConnectMessageService implements Detect
     /** DB Helper. */
     private IRKitDBHelper mDBHelper;
 
+    /** ロガー. */
+    private final Logger mLogger = Logger.getLogger("irkit.dplugin");
+
     @Override
     public void onCreate() {
         super.onCreate();
+        EventManager.INSTANCE.setController(new MemoryCacheController());
+
         mDBHelper = new IRKitDBHelper(getContext());
         for (VirtualDeviceData device : mDBHelper.getVirtualDevices(null)) {
             getServiceProvider().addService(new VirtualService(device, mDBHelper,
                 getServiceProvider()));
         }
 
-        EventManager.INSTANCE.setController(new MemoryCacheController());
         IRKitApplication app = (IRKitApplication) getApplication();
         app.setIRKitDevices(mDevices);
         IRKitManager.INSTANCE.init(this);
@@ -141,6 +146,30 @@ public class IRKitDeviceService extends DConnectMessageService implements Detect
         // 参照をきっておく
         IRKitManager.INSTANCE.setDetectionListener(null);
         LocalOAuth2Main.destroy();
+    }
+
+    @Override
+    protected void onManagerUninstalled() {
+        // Managerアンインストール検知時の処理。
+        if (BuildConfig.DEBUG) {
+            mLogger.info("Plug-in : onManagerUninstalled");
+        }
+    }
+
+    @Override
+    protected void onManagerTerminated() {
+        // Manager正常終了通知受信時の処理。
+        if (BuildConfig.DEBUG) {
+            mLogger.info("Plug-in : onManagerTerminated");
+        }
+    }
+
+    @Override
+    protected void onDevicePluginReset() {
+        // Device Plug-inへのReset要求受信時の処理。
+        if (BuildConfig.DEBUG) {
+            mLogger.info("Plug-in : onDevicePluginReset");
+        }
     }
 
     /**

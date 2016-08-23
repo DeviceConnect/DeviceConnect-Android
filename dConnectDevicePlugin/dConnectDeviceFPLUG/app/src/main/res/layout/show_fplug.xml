@@ -8,11 +8,14 @@
         android:id="@+id/textViewNumber"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:padding="8sp"
         android:background="@color/setting_header_color"
         android:gravity="center"
         android:text="@string/setting_show_image_title"
         android:textColor="@color/setting_header_text_color"
-        android:textSize="20sp" />
+        android:textSize="16sp" />
+
+    <View style="@style/horizontalLine" />
 
     <ScrollView
         android:layout_width="match_parent"

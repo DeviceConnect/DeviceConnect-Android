@@ -30,6 +30,7 @@ import org.deviceconnect.message.DConnectMessage;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Logger;
 
 import jp.co.omron.hvcw.OkaoResult;
 import jp.co.omron.hvcw.ResultAge;
@@ -53,6 +54,8 @@ public class HVCC2WDeviceService extends DConnectMessageService
         implements HVCCameraInfo.OnBodyEventListener, HVCCameraInfo.OnHandEventListener,
         HVCCameraInfo.OnFaceEventListener {
 
+    /** ロガー. */
+    private final Logger mLogger = Logger.getLogger("hvcc2w.dplugin");
 
     @Override
     public void onCreate() {
@@ -67,6 +70,62 @@ public class HVCC2WDeviceService extends DConnectMessageService
     @Override
     public void onDestroy() {
         super.onDestroy();
+    }
+
+    @Override
+    protected void onManagerUninstalled() {
+        // Managerアンインストール検知時の処理。
+        if (BuildConfig.DEBUG) {
+            mLogger.info("Plug-in : onManagerUninstalled");
+        }
+    }
+
+    @Override
+    protected void onManagerTerminated() {
+        // Manager正常終了通知受信時の処理。
+        if (BuildConfig.DEBUG) {
+            mLogger.info("Plug-in : onManagerTerminated");
+        }
+    }
+
+    @Override
+    protected void onManagerEventTransmitDisconnected(String sessionKey) {
+        // ManagerのEvent送信経路切断通知受信時の処理。
+        if (BuildConfig.DEBUG) {
+            mLogger.info("Plug-in : onManagerEventTransmitDisconnected");
+        }
+        if (sessionKey != null) {
+            if (EventManager.INSTANCE.removeEvents(sessionKey)) {
+                String[] param = sessionKey.split(".", -1);
+                if (param[1] != null) { /** param[1] : pluginID (serviceId) */
+                    HVCManager.INSTANCE.removeBodyDetectEventListener(param[1]);
+                    HVCManager.INSTANCE.removeHandDetectEventListener(param[1]);
+                    HVCManager.INSTANCE.removeFaceDetectEventListener(param[1]);
+                    HVCManager.INSTANCE.removeFaceRecognizeEventListener(param[1]);
+                }
+            }
+        } else {
+            EventManager.INSTANCE.removeAll();
+            HVCManager.INSTANCE.removeAllEventListener();
+        }
+    }
+
+    @Override
+    protected void onDevicePluginReset() {
+        // Device Plug-inへのReset要求受信時の処理。
+        if (BuildConfig.DEBUG) {
+            mLogger.info("Plug-in : onDevicePluginReset");
+        }
+        resetPluginResource();
+    }
+
+    /**
+     * リソースリセット処理.
+     */
+    private void resetPluginResource() {
+        /** 全イベント削除. */
+        EventManager.INSTANCE.removeAll();
+        HVCManager.INSTANCE.removeAllEventListener();
     }
 
     @Override
@@ -323,7 +382,7 @@ public class HVCC2WDeviceService extends DConnectMessageService
      */
     private void makeBodyDetectResultResponse(final Intent response, final OkaoResult result) {
 
-        List<Bundle> bodyDetects = new LinkedList<Bundle>();
+        List<Bundle> bodyDetects = new LinkedList<>();
         ResultBodies r = result.getResultBodies();
         ResultDetection[] bodies = r.getResultDetection();
         int count = result.getResultBodies().getCount();
@@ -355,7 +414,7 @@ public class HVCC2WDeviceService extends DConnectMessageService
      */
     private void makeHandDetectResultResponse(final Intent response, final OkaoResult result) {
 
-        List<Bundle> handDetects = new LinkedList<Bundle>();
+        List<Bundle> handDetects = new LinkedList<>();
         ResultHands hands = result.getResultHands();
         ResultDetection[] h = hands.getResultDetection();
         int count = result.getResultHands().getCount();
@@ -389,7 +448,7 @@ public class HVCC2WDeviceService extends DConnectMessageService
     private void makeFaceDetectResultResponse(final Intent response, final OkaoResult result, final List<String> options) {
         ResultFaces results = result.getResultFaces();
         ResultFace[] f = results.getResultFace();
-        List<Bundle> faceDetects = new LinkedList<Bundle>();
+        List<Bundle> faceDetects = new LinkedList<>();
         int count = result.getResultFaces().getCount();
 
         for (int i = 0; i < count; i++) {
@@ -469,7 +528,7 @@ public class HVCC2WDeviceService extends DConnectMessageService
                 // expression.
                 Bundle expressionResult = new Bundle();
                 HumanDetectProfile.setParamExpression(expressionResult,
-                        HVCManager.INSTANCE.convertToNormalizeExpression(index));
+                        HVCManager.convertToNormalizeExpression(index));
                 HumanDetectProfile.setParamConfidence(expressionResult,
                         (double) score / (double) HVCManager.EXPRESSION_SCORE_MAX);
 

@@ -61,13 +61,13 @@ public class PebbleKeyEventProfile extends KeyEventProfile {
      */
     public Bundle getKeyEventCache(final String attr) {
         long lCurrentTime = System.currentTimeMillis();
-        if (attr.equals(KeyEventProfile.ATTRIBUTE_ON_DOWN)) {
+        if (attr.equalsIgnoreCase(KeyEventProfile.ATTRIBUTE_ON_DOWN)) {
             if (lCurrentTime - mOnDownCacheTime <= CACHE_RETENTION_TIME) {
                 return mOnDownCache;
             } else {
                 return null;
             }
-        } else if (attr.equals(KeyEventProfile.ATTRIBUTE_ON_UP)) {
+        } else if (attr.equalsIgnoreCase(KeyEventProfile.ATTRIBUTE_ON_UP)) {
             if (lCurrentTime - mOnUpCacheTime <= CACHE_RETENTION_TIME) {
                 return mOnUpCache;
             } else {
@@ -86,10 +86,10 @@ public class PebbleKeyEventProfile extends KeyEventProfile {
      */
     public void setKeyEventCache(final String attr, final Bundle keyeventData) {
         long lCurrentTime = System.currentTimeMillis();
-        if (attr.equals(KeyEventProfile.ATTRIBUTE_ON_DOWN)) {
+        if (attr.equalsIgnoreCase(KeyEventProfile.ATTRIBUTE_ON_DOWN)) {
             mOnDownCache = keyeventData;
             mOnDownCacheTime = lCurrentTime;
-        } else if (attr.equals(KeyEventProfile.ATTRIBUTE_ON_UP)) {
+        } else if (attr.equalsIgnoreCase(KeyEventProfile.ATTRIBUTE_ON_UP)) {
             mOnUpCache = keyeventData;
             mOnUpCacheTime = lCurrentTime;
         }

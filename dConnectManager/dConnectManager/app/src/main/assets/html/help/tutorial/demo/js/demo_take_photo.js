@@ -167,9 +167,7 @@ var demoTakePhoto = (function(parent, global) {
         }
         var uri = builder.build();
         dConnect.post(uri, null, null, function(json) {
-            var myUri = json.uri;
-            myUri = myUri.replace('localhost', "192.168.1.82");
-            addPhoto(myUri);
+            addPhoto(json.uri);
         }, function(errorCode, errorMessage) {
             util.showAlert("撮影に失敗しました。", errorCode, errorMessage);
         });

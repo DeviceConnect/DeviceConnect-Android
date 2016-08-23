@@ -93,6 +93,10 @@ public class DConnectService extends DConnectMessageService {
 
     @Override
     public int onStartCommand(final Intent intent, final int flags, final int startId) {
+        if (intent == null) {
+            mLogger.warning("intent is null.");
+            return START_STICKY;
+        }
         String action = intent.getAction();
         if (action == null) {
             mLogger.warning("action is null.");

@@ -21,30 +21,54 @@
             android:name="org.deviceconnect.android.manager.DConnectLaunchActivity"
             android:excludeFromRecents="true"
             android:label="@string/app_name"
-            android:launchMode="singleTop">
+            android:launchMode="singleTop"
+            android:taskAffinity="@string/affinity_launcher_activity"
+            android:theme="@style/AppTheme.Translucent">
+
             <intent-filter>
                 <action android:name="android.intent.action.VIEW"/>
-
                 <category android:name="android.intent.category.DEFAULT"/>
                 <category android:name="android.intent.category.BROWSABLE"/>
 
-                <data
-                    android:host="start"
-                    android:path="/"
-                    android:scheme="gotapi"/>
-            </intent-filter>
+                <!-- gotapiスキーム -->
+                <data android:scheme="gotapi"
+                      android:host="start"
+                      android:path="/" />
+                <data android:scheme="gotapi"
+                      android:host="start"
+                      android:path="/activity" />
+                <data android:scheme="gotapi"
+                      android:host="start"
+                      android:path="/server" />
+                <data android:scheme="gotapi"
+                      android:host="stop"
+                      android:path="/" />
+                <data android:scheme="gotapi"
+                      android:host="stop"
+                      android:path="/activity" />
+                <data android:scheme="gotapi"
+                      android:host="stop"
+                      android:path="/server" />
 
-            <!-- 旧バージョンのURLスキーム -->
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW"/>
-
-                <category android:name="android.intent.category.DEFAULT"/>
-                <category android:name="android.intent.category.BROWSABLE"/>
-
-                <data
-                    android:host="start"
-                    android:path="/"
-                    android:scheme="dconnect"/>
+                <!-- dconnectスキーム -->
+                <data android:scheme="dconnect"
+                      android:host="start"
+                      android:path="/" />
+                <data android:scheme="dconnect"
+                      android:host="start"
+                      android:path="/activity" />
+                <data android:scheme="dconnect"
+                      android:host="start"
+                      android:path="/server" />
+                <data android:scheme="dconnect"
+                      android:host="stop"
+                      android:path="/" />
+                <data android:scheme="dconnect"
+                      android:host="stop"
+                      android:path="/activity" />
+                <data android:scheme="dconnect"
+                      android:host="stop"
+                      android:path="/server" />
             </intent-filter>
         </activity>
 

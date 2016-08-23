@@ -49,6 +49,8 @@ public class WebViewActivity extends Activity {
 
     private WebView mWebView;
 
+    private boolean mPauseFlag;
+
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -117,6 +119,7 @@ public class WebViewActivity extends Activity {
         if (mWebView != null) {
             mWebView.resumeTimers();
         }
+        mPauseFlag = false;
     }
 
     @Override
@@ -124,7 +127,16 @@ public class WebViewActivity extends Activity {
         if (mWebView != null) {
             mWebView.pauseTimers();
         }
+        mPauseFlag = true;
         super.onPause();
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (mWebView != null) {
+            mWebView.destroy();
+        }
+        super.onDestroy();
     }
 
     @Override
@@ -202,12 +214,12 @@ public class WebViewActivity extends Activity {
             byte[] b = stream.toByteArray();
             String encodedString = Base64.encodeToString(b, Base64.DEFAULT);
             mWebView.loadUrl("javascript:chooseImgResult(" + encodedString + ")");
-        }else{
+        } else {
             super.onActivityResult(requestCode,resultCode, data);
         }
     }
 
-    public static String getPath(final Context context, final Uri uri) {
+    private static String getPath(final Context context, final Uri uri) {
         if ("file".equalsIgnoreCase(uri.getScheme())) {
             return uri.getPath();
         }
@@ -243,7 +255,10 @@ public class WebViewActivity extends Activity {
 
     private final WebChromeClient mChromeClient = new WebChromeClient() {
         @Override
-        public boolean onJsAlert(WebView view, String url, String message, final JsResult result) {
+        public boolean onJsAlert(final WebView view, final String url, final String message, final JsResult result) {
+            if (mPauseFlag) {
+                return super.onJsAlert(view, url, message, result);
+            }
             AlertDialog.Builder builder = new AlertDialog.Builder(WebViewActivity.this);
             builder.setTitle(R.string.app_name)
                     .setMessage(message)
@@ -266,7 +281,10 @@ public class WebViewActivity extends Activity {
         }
 
         @Override
-        public boolean onJsConfirm(WebView view, String url, String message, final JsResult result) {
+        public boolean onJsConfirm(final WebView view, final String url, final String message, final JsResult result) {
+            if (mPauseFlag) {
+                return super.onJsConfirm(view, url, message, result);
+            }
             final boolean[] flag = new boolean[1];
             AlertDialog.Builder builder = new AlertDialog.Builder(WebViewActivity.this);
             builder.setTitle(R.string.app_name)
@@ -302,7 +320,10 @@ public class WebViewActivity extends Activity {
         }
 
         @Override
-        public boolean onJsPrompt(WebView view, String url, String message, String defaultValue, final JsPromptResult result) {
+        public boolean onJsPrompt(final WebView view, final String url, final String message, final String defaultValue, final JsPromptResult result) {
+            if (mPauseFlag) {
+                return super.onJsPrompt(view, url, message, defaultValue, result);
+            }
             final EditText editText = new EditText(WebViewActivity.this);
             final boolean[] flag = new boolean[1];
             AlertDialog.Builder builder = new AlertDialog.Builder(WebViewActivity.this);
@@ -357,26 +378,26 @@ public class WebViewActivity extends Activity {
     };
 
     private class JavaScriptInterface {
-        SharedPreferences mPref;
+        private SharedPreferences mPref;
 
         JavaScriptInterface() {
             mPref = getSharedPreferences("__cookie.dat", Context.MODE_PRIVATE);
         }
 
         @JavascriptInterface
-        public void setCookie(String name, String value) {
+        public void setCookie(final String name, final String value) {
             SharedPreferences.Editor editor = mPref.edit();
             editor.putString(name, value);
             editor.commit();
         }
 
         @JavascriptInterface
-        public String getCookie(String name) {
+        public String getCookie(final String name) {
             return mPref.getString(name, null);
         }
 
         @JavascriptInterface
-        public void deleteCookie(String name) {
+        public void deleteCookie(final String name) {
             SharedPreferences.Editor editor = mPref.edit();
             editor.remove(name);
             editor.commit();

@@ -25,6 +25,7 @@ import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.android.service.DConnectService;
+import org.deviceconnect.android.service.DConnectServiceListener;
 import org.deviceconnect.android.service.DConnectServiceProvider;
 
 import java.util.List;
@@ -34,7 +35,9 @@ import java.util.logging.Logger;
  * This service provide Health Profile.
  * @author NTT DOCOMO, INC.
  */
-public class HeartRateDeviceService extends DConnectMessageService {
+public class HeartRateDeviceService extends DConnectMessageService
+    implements DConnectServiceListener {
+
     /** Logger. */
     private final Logger mLogger = Logger.getLogger("heartrate.dplugin");
 
@@ -121,6 +124,8 @@ public class HeartRateDeviceService extends DConnectMessageService {
         addProfile(new HeartRateServiceDiscoveryProfile(getServiceProvider()));
         mHeartRateProfile = new HeartRateHealthProfile(app.getHeartRateManager());
 
+        getServiceProvider().addServiceListener(this);
+
         registerBluetoothFilter();
     }
 
@@ -128,9 +133,34 @@ public class HeartRateDeviceService extends DConnectMessageService {
     public void onDestroy() {
         super.onDestroy();
         unregisterBluetoothFilter();
+        getServiceProvider().removeServiceListener(this);
         getManager().removeOnHeartRateDiscoveryListener(mOnDiscoveryListener);
         getManager().stop();
         mLogger.fine("HeartRateDeviceService end.");
+    }
+
+    @Override
+    public void onServiceAdded(final DConnectService service) {
+        if (BuildConfig.DEBUG) {
+            mLogger.info("onServiceAdded: " + service.getName());
+        }
+        // NOP.
+    }
+
+    @Override
+    public void onServiceRemoved(final DConnectService service) {
+        if (BuildConfig.DEBUG) {
+            mLogger.info("onServiceRemoved: " + service.getName());
+        }
+        getManager().disconnectBleDevice(service.getId());
+    }
+
+    @Override
+    public void onStatusChange(final DConnectService service) {
+        if (BuildConfig.DEBUG) {
+            mLogger.info("onStatusChange: " + service.getName());
+        }
+        // NOP.
     }
 
     @Override

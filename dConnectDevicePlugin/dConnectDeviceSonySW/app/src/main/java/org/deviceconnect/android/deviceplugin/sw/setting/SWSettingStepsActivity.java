@@ -6,10 +6,6 @@
  */
 package org.deviceconnect.android.deviceplugin.sw.setting;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.logging.Logger;
-
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
@@ -28,11 +24,16 @@ import android.widget.TextView;
 
 import org.deviceconnect.android.deviceplugin.sw.R;
 import org.deviceconnect.android.deviceplugin.sw.SWConstants;
-
 import org.deviceconnect.android.ui.activity.DConnectSettingPageFragmentActivity;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Logger;
 
 /**
  * SWデバイスプラグインの設定手順説明画面.
+ *
+ * @author NTT DOCOMO, INC.
  */
 public class SWSettingStepsActivity extends DConnectSettingPageFragmentActivity {
 
@@ -92,13 +93,6 @@ public class SWSettingStepsActivity extends DConnectSettingPageFragmentActivity 
             mFragments.add(f4);
         }
         return mFragments.get(position);
-    }
-    /**
-     * チュートリアルページの取得.
-     * @param position position
-     */
-    public void setCurrentPage(final int position) {
-        getViewPager().setCurrentItem(position, true);
     }
 
     /**

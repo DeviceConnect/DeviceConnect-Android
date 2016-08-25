@@ -9,9 +9,16 @@ package org.deviceconnect.android.profile;
 import android.content.Intent;
 import android.os.Bundle;
 
+import org.deviceconnect.android.event.Event;
+import org.deviceconnect.android.event.EventError;
+import org.deviceconnect.android.event.EventManager;
+import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.api.DConnectApi;
+import org.deviceconnect.android.profile.api.DeleteApi;
 import org.deviceconnect.android.profile.api.GetApi;
+import org.deviceconnect.android.profile.api.PutApi;
 import org.deviceconnect.android.service.DConnectService;
+import org.deviceconnect.android.service.DConnectServiceListener;
 import org.deviceconnect.android.service.DConnectServiceProvider;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
@@ -28,7 +35,7 @@ import java.util.List;
  * @author NTT DOCOMO, INC.
  */
 public class ServiceDiscoveryProfile extends DConnectProfile implements
-        ServiceDiscoveryProfileConstants {
+        ServiceDiscoveryProfileConstants, DConnectServiceListener {
 
     /**
      * プロファイルプロバイダー.
@@ -47,13 +54,72 @@ public class ServiceDiscoveryProfile extends DConnectProfile implements
     };
 
     /**
+     * Status Change Event API (PUT).
+     */
+    private final DConnectApi mPutStatusChangeApi = new PutApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_SERVICE_CHANGE;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            EventError error = EventManager.INSTANCE.addEvent(request);
+            switch (error) {
+                case NONE:
+                    setResult(response, DConnectMessage.RESULT_OK);
+                    break;
+                case INVALID_PARAMETER:
+                    MessageUtils.setInvalidRequestParameterError(response);
+                    break;
+                default:
+                    MessageUtils.setUnknownError(response);
+                    break;
+            }
+            return true;
+        }
+    };
+
+    /**
+     * Status Change Event API (DELETE).
+     */
+    private final DConnectApi mDeleteStatusChangeApi = new DeleteApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_SERVICE_CHANGE;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            EventError error = EventManager.INSTANCE.removeEvent(request);
+            switch (error) {
+                case NONE:
+                    setResult(response, DConnectMessage.RESULT_OK);
+                    break;
+                case INVALID_PARAMETER:
+                    MessageUtils.setInvalidRequestParameterError(response);
+                    break;
+                default:
+                    MessageUtils.setUnknownError(response);
+                    break;
+            }
+            return true;
+        }
+    };
+
+    /**
      * 指定されたサービスプロバイダーをもつSystemプロファイルを生成する.
      * 
      * @param provider サービスプロバイダー
      */
     public ServiceDiscoveryProfile(final DConnectServiceProvider provider) {
-        this.mProvider = provider;
+        mProvider = provider;
+        if (mProvider != null) {
+            mProvider.addServiceListener(this);
+        }
         addApi(mServiceDiscoveryApi);
+        addApi(mPutStatusChangeApi);
+        addApi(mDeleteStatusChangeApi);
     }
 
     /**
@@ -70,23 +136,62 @@ public class ServiceDiscoveryProfile extends DConnectProfile implements
         return PROFILE_NAME;
     }
 
+    @Override
+    public void onServiceAdded(final DConnectService service) {
+        sendStatusChangeEvent(service, true);
+    }
+
+    @Override
+    public void onServiceRemoved(final DConnectService service) {
+        sendStatusChangeEvent(service, false);
+    }
+
+    @Override
+    public void onStatusChange(final DConnectService service) {
+        sendStatusChangeEvent(service, true);
+    }
+
+    private void sendStatusChangeEvent(final DConnectService service, final boolean exists) {
+        List<Event> events = EventManager.INSTANCE.getEventList(
+            PROFILE_NAME,
+            ATTRIBUTE_ON_SERVICE_CHANGE
+        );
+        if (events.size() == 0) {
+            return;
+        }
+
+        Bundle eventBundle = new Bundle();
+        Bundle networkServiceBundle = createServiceBundle(service);
+        setState(networkServiceBundle, exists);
+        eventBundle.putParcelable(PARAM_NETWORK_SERVICE, networkServiceBundle);
+        // NOTE: Service DiscoveryプロファイルのリクエストにはサービスIDが付加されないので、
+        // イベントマネージャのイベント管理テーブルにも保存されない。
+        // よって、イベント送信時に、下記のようにサービスIDを明示的に設定する必要がある。
+        eventBundle.putString(PARAM_SERVICE_ID, service.getId());
+        for (Event event : events) {
+            sendEvent(event, eventBundle);
+        }
+    }
+
+    private Bundle createServiceBundle(final DConnectService service) {
+        Bundle serviceBundle = new Bundle();
+        setId(serviceBundle, service.getId());
+        setName(serviceBundle, service.getName());
+        setType(serviceBundle, service.getNetworkType());
+        setOnline(serviceBundle, service.isOnline());
+        setConfig(serviceBundle, service.getConfig());
+        setScopes(serviceBundle, service);
+        return serviceBundle;
+    }
+
     protected void appendServiceList(final Intent response) {
         List<Bundle> serviceBundles = new ArrayList<Bundle>();
         for (DConnectService service : mProvider.getServiceList()) {
-            Bundle serviceBundle = new Bundle();
-            setId(serviceBundle, service.getId());
-            setName(serviceBundle, service.getName());
-            setType(serviceBundle, service.getNetworkType());
-            setOnline(serviceBundle, service.isOnline());
-            setConfig(serviceBundle, service.getConfig());
-            setScopes(serviceBundle, service);
-            serviceBundles.add(serviceBundle);
+            serviceBundles.add(createServiceBundle(service));
         }
         setServices(response, serviceBundles);
         setResult(response, DConnectMessage.RESULT_OK);
     }
-
-    // TODO Status Change Event APIの実装.
 
     // ------------------------------------
     // レスポンスセッターメソッド群

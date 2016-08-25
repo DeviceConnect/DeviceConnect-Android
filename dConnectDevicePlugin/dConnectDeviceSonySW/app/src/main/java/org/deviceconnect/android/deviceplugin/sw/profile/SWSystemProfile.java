@@ -10,7 +10,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 
-import org.deviceconnect.android.deviceplugin.sw.setting.SWSettingMainActivity;
+import org.deviceconnect.android.deviceplugin.sw.setting.SWServiceListActivity;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.SystemProfile;
@@ -51,7 +51,7 @@ public class SWSystemProfile extends SystemProfile {
 
     @Override
     protected Class<? extends Activity> getSettingPageActivity(final Intent request, final Bundle param) {
-        return SWSettingMainActivity.class;
+        return SWServiceListActivity.class;
     }
 
 }

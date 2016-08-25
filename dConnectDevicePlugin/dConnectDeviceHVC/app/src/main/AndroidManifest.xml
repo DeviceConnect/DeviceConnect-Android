@@ -25,6 +25,10 @@
         android:theme="@style/AppTheme">
 
         <activity
+            android:name=".setting.HvcServiceListActivity"
+            android:exported="false"/>
+
+        <activity
             android:name=".setting.HvcSettingStepsActivity"
             android:exported="false"/>
 

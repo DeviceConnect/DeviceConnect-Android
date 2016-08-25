@@ -4,6 +4,7 @@ var demoTakePhoto = (function(parent, global) {
     var mMediaRecorders;
     var mImageSizes;
     var mPreviewSizes;
+    var mPreviewFlag;
 
     function init() {
         util.init(function(service) {
@@ -70,7 +71,7 @@ var demoTakePhoto = (function(parent, global) {
     function createOptions() {
         var minWidth = 10000000;
         var imageSizes = document.recorder.imageSize;
-        for (var i = 0; i < mMediaRecorders.length; i++) {
+        for (var i = 0; i < mImageSizes.length; i++) {
             var option = document.createElement('option');
             option.setAttribute('value', i);
             option.innerHTML = mImageSizes[i].width + "x" + mImageSizes[i].height;
@@ -85,7 +86,7 @@ var demoTakePhoto = (function(parent, global) {
 
         minWidth = 10000000;
         var previewSizes = document.recorder.previewSize;
-        for (var i = 0; i < mMediaRecorders.length; i++) {
+        for (var i = 0; i < mPreviewSizes.length; i++) {
             var option = document.createElement('option');
             option.setAttribute('value', i);
             option.innerHTML = mPreviewSizes[i].width + "x" + mPreviewSizes[i].height;
@@ -97,8 +98,6 @@ var demoTakePhoto = (function(parent, global) {
 
             previewSizes.appendChild(option);
         }
-
-        startPreview();
     }
 
     function startPreview() {
@@ -172,6 +171,18 @@ var demoTakePhoto = (function(parent, global) {
     }
     parent.onTakePhoto = onTakePhoto;
 
+    function onStartPreview() {
+        startPreview();
+        mPreviewFlag = true;
+    }
+    parent.onStartPreview = onStartPreview;
+
+    function onStopPreview() {
+        mPreviewFlag = false;
+        stopPreview(null);
+    }
+    parent.onStopPreview = onStopPreview;
+
     function onChangeTarget() {
         var target = document.recorder.target.value;
         getCameraOption(target);
@@ -206,7 +217,9 @@ var demoTakePhoto = (function(parent, global) {
             builder.addParameter('mimeType', "image/png");
             var uri = builder.build();
             dConnect.put(uri, null, null, function(json) {
-                startPreview();
+                if (mPreviewFlag) {
+                    startPreview();
+                }
             }, function(errorCode, errorMessage) {
                 util.showAlert("設定に失敗しました。", errorCode, errorMessage);
             });

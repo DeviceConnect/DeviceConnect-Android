@@ -286,7 +286,6 @@ public class DeviceSelectionPageFragment extends Fragment implements DeviceContr
 
     @Override
     public void onClicked(final int position, final SpheroParcelable device) {
-
         Activity activity = getActivity();
         if (activity == null) {
             return;
@@ -309,7 +308,6 @@ public class DeviceSelectionPageFragment extends Fragment implements DeviceContr
             ((SettingActivity) activity).sendConnectBroadcast(device.getSpheroId());
         } else if (device.isConnected() == SpheroParcelable.SpheroState.Delete){
             ((SettingActivity) activity).sendDeleteSpheroBroadcast(device.getSpheroId());
-
         }
     }
 

@@ -316,6 +316,8 @@ public class SpheroDeviceService extends DConnectMessageService implements Devic
 
     @Override
     public void onDeviceLost(ConvenienceRobot sphero) {
+        disconnectingSphero(sphero.getRobot().getIdentifier());
+
         sendDevice(SettingActivity.ACTION_REMOVE_DEVICE, sphero, SpheroParcelable.SpheroState.Delete);
     }
 

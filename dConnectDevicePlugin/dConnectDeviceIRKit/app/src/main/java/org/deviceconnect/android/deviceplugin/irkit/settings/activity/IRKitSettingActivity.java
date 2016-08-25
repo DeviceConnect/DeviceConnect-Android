@@ -15,6 +15,7 @@ import android.support.v4.view.ViewPager.OnPageChangeListener;
 import org.deviceconnect.android.deviceplugin.irkit.BuildConfig;
 import org.deviceconnect.android.deviceplugin.irkit.IRKitManager;
 import org.deviceconnect.android.deviceplugin.irkit.IRKitManager.WiFiSecurityType;
+import org.deviceconnect.android.deviceplugin.irkit.R;
 import org.deviceconnect.android.deviceplugin.irkit.settings.fragment.IRKitAccessPointSettingFragment;
 import org.deviceconnect.android.deviceplugin.irkit.settings.fragment.IRKitBaseFragment;
 import org.deviceconnect.android.deviceplugin.irkit.settings.fragment.IRKitEndingFragment;
@@ -87,6 +88,13 @@ public class IRKitSettingActivity extends IRKitAbstractSettingActivity {
         IRKitAccessPointSettingFragment.class,
         IRKitWiFiSelectionFragment.class, 
         IRKitEndingFragment.class, 
+    };
+
+    private static final int[] PAGE_TITLES = {
+        R.string.page01,
+        R.string.page02,
+        R.string.page03,
+        R.string.page04
     };
 
     @Override

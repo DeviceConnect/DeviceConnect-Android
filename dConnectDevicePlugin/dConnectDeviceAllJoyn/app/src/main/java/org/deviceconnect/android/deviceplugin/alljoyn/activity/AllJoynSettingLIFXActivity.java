@@ -26,7 +26,7 @@ public class AllJoynSettingLIFXActivity extends Activity {
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
             actionBar.setDisplayOptions(0, ActionBar.DISPLAY_SHOW_HOME);
-            actionBar.setTitle("CLOSE");
+            actionBar.setTitle(getString(R.string.alljoyn_settings_lifx_01_textViewTopBar_text));
         }
 
         findViewById(R.id.imageView).setOnClickListener(new View.OnClickListener() {

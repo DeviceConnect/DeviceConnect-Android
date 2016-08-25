@@ -45,7 +45,6 @@ import org.deviceconnect.android.deviceplugin.host.profile.HostMediaStreamingRec
 import org.deviceconnect.android.deviceplugin.host.profile.HostNotificationProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostPhoneProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostProximityProfile;
-import org.deviceconnect.android.deviceplugin.host.profile.HostServiceDiscoveryProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostSettingsProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostSystemProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostTouchProfile;
@@ -60,10 +59,9 @@ import org.deviceconnect.android.event.cache.MemoryCacheController;
 import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.MediaPlayerProfile;
-import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
-import org.deviceconnect.android.profile.ServiceInformationProfile;
 import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.android.provider.FileManager;
+import org.deviceconnect.android.service.DConnectService;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.profile.PhoneProfileConstants.CallState;
 
@@ -84,6 +82,12 @@ import java.util.logging.Logger;
  */
 @SuppressWarnings("deprecation")
 public class HostDeviceService extends DConnectMessageService {
+
+    /* サービスID. */
+    public static final String SERVICE_ID = "Host";
+
+    /* サービス名. */
+    public static final String SERVICE_NAME = "Host";
 
     /** ロガー. */
     private final Logger mLogger = Logger.getLogger("host.dplugin");
@@ -130,6 +134,12 @@ public class HostDeviceService extends DConnectMessageService {
     /** HostDeviceAudioRecorder. */
     private HostDeviceVideoRecorder mDefaultVideoRecorder;
 
+    /** HostKeyEventProfile instance. */
+    private HostKeyEventProfile mHostKeyEventProfile;
+
+    /** HostMediaStreamingRecordingProfile instance. */
+    private HostMediaStreamingRecordingProfile mHostMediaStreamingRecordingProfile;
+
     @Override
     public void onCreate() {
 
@@ -147,22 +157,27 @@ public class HostDeviceService extends DConnectMessageService {
 
         createRecorders(mFileMgr);
 
-        // add supported profiles
-        addProfile(new HostConnectProfile(BluetoothAdapter.getDefaultAdapter()));
-        addProfile(new HostNotificationProfile());
-        addProfile(new HostDeviceOrientationProfile());
-        addProfile(new HostBatteryProfile());
-        addProfile(new HostMediaStreamingRecordingProfile(mRecorderMgr));
-        addProfile(new HostPhoneProfile());
-        addProfile(new HostSettingsProfile());
-        addProfile(new HostMediaPlayerProfile());
-        addProfile(new HostFileProfile(mFileMgr));
-        addProfile(new HostFileDescriptorProfile(mFileDataManager));
-        addProfile(new HostVibrationProfile());
-        addProfile(new HostProximityProfile());
-        addProfile(new HostCanvasProfile());
-        addProfile(new HostTouchProfile());
-        addProfile(new HostKeyEventProfile());
+        DConnectService hostService = new DConnectService(SERVICE_ID);
+        hostService.setName(SERVICE_NAME);
+        hostService.setOnline(true);
+        hostService.addProfile(new HostBatteryProfile());
+        hostService.addProfile(new HostCanvasProfile());
+        hostService.addProfile(new HostConnectProfile(BluetoothAdapter.getDefaultAdapter()));
+        hostService.addProfile(new HostDeviceOrientationProfile());
+        hostService.addProfile(new HostFileDescriptorProfile(mFileDataManager));
+        hostService.addProfile(new HostFileProfile(mFileMgr));
+        mHostKeyEventProfile = new HostKeyEventProfile();
+        hostService.addProfile(mHostKeyEventProfile);
+        hostService.addProfile(new HostMediaPlayerProfile());
+        mHostMediaStreamingRecordingProfile = new HostMediaStreamingRecordingProfile(mRecorderMgr);
+        hostService.addProfile(mHostMediaStreamingRecordingProfile);
+        hostService.addProfile(new HostNotificationProfile());
+        hostService.addProfile(new HostPhoneProfile());
+        hostService.addProfile(new HostProximityProfile());
+        hostService.addProfile(new HostSettingsProfile());
+        hostService.addProfile(new HostTouchProfile());
+        hostService.addProfile(new HostVibrationProfile());
+        getServiceProvider().addService(hostService);
 
         // バッテリー関連の処理と値の保持
         mHostBatteryManager = new HostBatteryManager();
@@ -185,8 +200,8 @@ public class HostDeviceService extends DConnectMessageService {
     }
 
     private void createRecorders(final FileManager fileMgr) {
-        List<HostDevicePhotoRecorder> photoRecorders = new ArrayList<HostDevicePhotoRecorder>();
-        List<HostDeviceVideoRecorder> videoRecorders = new ArrayList<HostDeviceVideoRecorder>();
+        List<HostDevicePhotoRecorder> photoRecorders = new ArrayList<>();
+        List<HostDeviceVideoRecorder> videoRecorders = new ArrayList<>();
         for (int cameraId = 0; cameraId < Camera.getNumberOfCameras(); cameraId++) {
             Camera.CameraInfo cameraInfo = new Camera.CameraInfo();
             Camera.getCameraInfo(cameraId, cameraInfo);
@@ -213,7 +228,7 @@ public class HostDeviceService extends DConnectMessageService {
             mDefaultVideoRecorder = videoRecorders.get(0);
         }
 
-        List<HostDeviceRecorder> recorders = new ArrayList<HostDeviceRecorder>();
+        List<HostDeviceRecorder> recorders = new ArrayList<>();
         recorders.addAll(photoRecorders);
         recorders.addAll(videoRecorders);
         recorders.add(new HostDeviceAudioRecorder(this));
@@ -295,6 +310,72 @@ public class HostDeviceService extends DConnectMessageService {
 
         mRecorderMgr.stop();
         mFileDataManager.stopTimer();
+    }
+
+    @Override
+    protected void onManagerUninstalled() {
+        // Managerアンインストール検知時の処理。
+        if (BuildConfig.DEBUG) {
+            mLogger.info("Plug-in : onManagerUninstalled");
+        }
+    }
+
+    @Override
+    protected void onManagerTerminated() {
+        // Manager正常終了通知受信時の処理。
+        if (BuildConfig.DEBUG) {
+            mLogger.info("Plug-in : onManagerTerminated");
+        }
+    }
+
+    @Override
+    protected void onManagerEventTransmitDisconnected(String sessionKey) {
+        // ManagerのEvent送信経路切断通知受信時の処理。
+        if (BuildConfig.DEBUG) {
+            mLogger.info("Plug-in : onManagerEventTransmitDisconnected");
+        }
+        if (sessionKey != null) {
+            EventManager.INSTANCE.removeEvents(sessionKey);
+        } else {
+            EventManager.INSTANCE.removeAll();
+        }
+    }
+
+    @Override
+    protected void onDevicePluginReset() {
+        // Device Plug-inへのReset要求受信時の処理。
+        if (BuildConfig.DEBUG) {
+            mLogger.info("Plug-in : onDevicePluginReset");
+        }
+        resetPluginResource();
+    }
+
+    /**
+     * リソースリセット処理.
+     */
+    private void resetPluginResource() {
+        /** 全イベント削除. */
+        EventManager.INSTANCE.removeAll();
+
+        /** バッテリー関連イベントリスナー解除. */
+        unregisterBatteryChargeBroadcastReceiver();
+        unregisterBatteryConnectBroadcastReceiver();
+
+        /** FileDescriptorProfile リセット */
+        // TODO:ファイル管理機能の実装検討必要。
+
+        /** KeyEventProfile リセット */
+        mHostKeyEventProfile.resetKeyEventProfile();
+
+        /** MediaPlayerProfile 状態変化イベント通知フラグクリア. */
+        mOnStatusChangeEventFlag = false;
+        if (mMediaPlayer != null) {
+            stopMedia(null);
+        }
+
+        /** MediaStreamingRecorder リセット. */
+        mHostMediaStreamingRecordingProfile.forcedStopRecording();
+        mHostMediaStreamingRecordingProfile.forcedStopPreview();
     }
 
     /** HostDeviceRecorderManager. */
@@ -420,7 +501,11 @@ public class HostDeviceService extends DConnectMessageService {
      * Unregister broadcast receiver for battery charge event.
      */
     public void unregisterBatteryChargeBroadcastReceiver() {
-        unregisterReceiver(mBatteryChargeBR);
+        try {
+            unregisterReceiver(mBatteryChargeBR);
+        } catch (Exception e) {
+            // Nop
+        }
     }
 
     /**
@@ -434,7 +519,11 @@ public class HostDeviceService extends DConnectMessageService {
      * Unregister broadcast receiver for battery connect event.
      */
     public void unregisterBatteryConnectBroadcastReceiver() {
-        unregisterReceiver(mBatteryConnectBR);
+        try {
+            unregisterReceiver(mBatteryConnectBR);
+        } catch (Exception e) {
+            // Nop
+        }
     }
 
     /**
@@ -498,17 +587,6 @@ public class HostDeviceService extends DConnectMessageService {
     @Override
     protected SystemProfile getSystemProfile() {
         return new HostSystemProfile();
-    }
-
-    @Override
-    protected ServiceInformationProfile getServiceInformationProfile() {
-        return new ServiceInformationProfile(this) {
-        };
-    }
-
-    @Override
-    protected ServiceDiscoveryProfile getServiceDiscoveryProfile() {
-        return new HostServiceDiscoveryProfile(this);
     }
 
     /**
@@ -707,11 +785,8 @@ public class HostDeviceService extends DConnectMessageService {
                     mMediaPlayer = null;
                 }
                 mMediaPlayer = new MediaPlayer();
-                FileInputStream fis = null;
-                FileDescriptor mFd = null;
-
-                fis = new FileInputStream(mMyCurrentFilePath);
-                mFd = fis.getFD();
+                FileInputStream fis = new FileInputStream(mMyCurrentFilePath);
+                FileDescriptor mFd = fis.getFD();
 
                 mMediaPlayer.setDataSource(mFd);
                 mMediaPlayer.prepare();
@@ -727,19 +802,7 @@ public class HostDeviceService extends DConnectMessageService {
                     sendOnStatusChangeEvent("media");
                     sendResponse(response);
                 }
-            } catch (IllegalArgumentException e) {
-                if (response != null) {
-                    response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.EXTRA_ERROR_CODE);
-                    response.putExtra(DConnectMessage.EXTRA_VALUE, "can't not mount:" + filePath);
-                    sendResponse(response);
-                }
-            } catch (IllegalStateException e) {
-                if (response != null) {
-                    response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.EXTRA_ERROR_CODE);
-                    response.putExtra(DConnectMessage.EXTRA_VALUE, "can't not mount:" + filePath);
-                    sendResponse(response);
-                }
-            } catch (IOException e) {
+            } catch (IllegalArgumentException | IllegalStateException | IOException e) {
                 if (response != null) {
                     response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.EXTRA_ERROR_CODE);
                     response.putExtra(DConnectMessage.EXTRA_VALUE, "can't not mount:" + filePath);
@@ -794,12 +857,8 @@ public class HostDeviceService extends DConnectMessageService {
 
             AudioManager manager = (AudioManager) this.getContext().getSystemService(Context.AUDIO_SERVICE);
 
-            double maxVolume = 1;
-            double mVolume = 0;
-
-            mVolume = manager.getStreamVolume(AudioManager.STREAM_MUSIC);
-            maxVolume = manager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
-
+            double maxVolume = manager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+            double mVolume = manager.getStreamVolume(AudioManager.STREAM_MUSIC);
             double mVolumeValue = mVolume / maxVolume;
 
             for (int i = 0; i < events.size(); i++) {
@@ -833,7 +892,9 @@ public class HostDeviceService extends DConnectMessageService {
             c.close();
             return filename;
         } else {
-            c.close();
+            if (c != null) {
+                c.close();
+            }
             return null;
         }
     }
@@ -887,11 +948,7 @@ public class HostDeviceService extends DConnectMessageService {
                 }
                 mMediaPlayer.start();
                 mMediaStatus = MEDIA_PLAYER_PLAY;
-            } catch (IOException e) {
-                if (BuildConfig.DEBUG) {
-                    e.printStackTrace();
-                }
-            } catch (IllegalStateException e) {
+            } catch (IOException | IllegalStateException e) {
                 if (BuildConfig.DEBUG) {
                     e.printStackTrace();
                 }
@@ -1002,17 +1059,21 @@ public class HostDeviceService extends DConnectMessageService {
             if (intent.getAction().equals(VideoConst.SEND_VIDEOPLAYER_TO_HOSTDP)) {
                 String mVideoAction = intent.getStringExtra(VideoConst.EXTRA_NAME);
 
-                if (mVideoAction.equals(VideoConst.EXTRA_VALUE_VIDEO_PLAYER_PLAY_POS)) {
-                    mMyCurrentMediaPosition = intent.getIntExtra("pos", 0);
-                    mResponse.putExtra("pos", mMyCurrentMediaPosition / UNIT_SEC);
-                    mResponse.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
-                    sendResponse(mResponse);
-                } else if (mVideoAction.equals(VideoConst.EXTRA_VALUE_VIDEO_PLAYER_STOP)) {
-                    unregisterReceiver(mMediaPlayerVideoBR);
-                } else if (mVideoAction.equals(VideoConst.EXTRA_VALUE_VIDEO_PLAYER_PLAY_COMPLETION)) {
-                    mMediaStatus = MEDIA_PLAYER_COMPLETE;
-                    sendOnStatusChangeEvent("complete");
-                    unregisterReceiver(mMediaPlayerVideoBR);
+                switch (mVideoAction) {
+                    case VideoConst.EXTRA_VALUE_VIDEO_PLAYER_PLAY_POS:
+                        mMyCurrentMediaPosition = intent.getIntExtra("pos", 0);
+                        mResponse.putExtra("pos", mMyCurrentMediaPosition / UNIT_SEC);
+                        mResponse.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
+                        sendResponse(mResponse);
+                        break;
+                    case VideoConst.EXTRA_VALUE_VIDEO_PLAYER_STOP:
+                        unregisterReceiver(mMediaPlayerVideoBR);
+                        break;
+                    case VideoConst.EXTRA_VALUE_VIDEO_PLAYER_PLAY_COMPLETION:
+                        mMediaStatus = MEDIA_PLAYER_COMPLETE;
+                        sendOnStatusChangeEvent("complete");
+                        unregisterReceiver(mMediaPlayerVideoBR);
+                        break;
                 }
             }
         }
@@ -1066,16 +1127,20 @@ public class HostDeviceService extends DConnectMessageService {
                     e.printStackTrace();
                 }
             }
-            response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
-            sendResponse(response);
+            if (response != null) {
+                response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
+                sendResponse(response);
+            }
         } else if (mSetMediaType == MEDIA_TYPE_VIDEO) {
             mMediaStatus = MEDIA_PLAYER_STOP;
             Intent mIntent = new Intent(VideoConst.SEND_HOSTDP_TO_VIDEOPLAYER);
             mIntent.putExtra(VideoConst.EXTRA_NAME, VideoConst.EXTRA_VALUE_VIDEO_PLAYER_STOP);
             getContext().sendBroadcast(mIntent);
             sendOnStatusChangeEvent("stop");
-            response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
-            sendResponse(response);
+            if (response != null) {
+                response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
+                sendResponse(response);
+            }
         }
     }
 
@@ -1220,8 +1285,7 @@ public class HostDeviceService extends DConnectMessageService {
      */
     private String getClassnameOfTopActivity() {
         ActivityManager mActivityManager = (ActivityManager) getContext().getSystemService(Service.ACTIVITY_SERVICE);
-        String mClassName = mActivityManager.getRunningTasks(1).get(0).topActivity.getClassName();
-        return mClassName;
+        return mActivityManager.getRunningTasks(1).get(0).topActivity.getClassName();
     }
 
     /**

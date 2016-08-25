@@ -58,8 +58,8 @@ public final class DConnectUtil {
         }
         String id = ssid.replace("\"", "");
         if (id.startsWith(WIFI_PREFIX)) {
-            for (int i = 0; i < CAMERA_SUFFIX.length; i++) {
-                if (id.indexOf(CAMERA_SUFFIX[i]) > 0) {
+            for (String aCAMERA_SUFFIX : CAMERA_SUFFIX) {
+                if (id.indexOf(aCAMERA_SUFFIX) > 0) {
                     return true;
                 }
             }

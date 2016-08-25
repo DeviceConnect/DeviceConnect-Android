@@ -78,7 +78,6 @@ public class ThetaDeviceApplication extends Application {
 
         Context context = getApplicationContext();
         mDeviceMgr = new ThetaDeviceManager(context);
-        mDeviceMgr.checkConnectedDevice();
         mHeadTracker = new HeadTrackerWrapper(new DefaultHeadTracker(context));
         mSphericalViewApi = new SphericalViewApi(context);
     }

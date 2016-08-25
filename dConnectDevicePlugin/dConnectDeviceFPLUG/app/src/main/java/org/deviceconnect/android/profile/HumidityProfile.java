@@ -8,8 +8,6 @@ package org.deviceconnect.android.profile;
 
 import android.content.Intent;
 
-import org.deviceconnect.android.message.MessageUtils;
-
 /**
  * Humidity profile.
  *
@@ -20,12 +18,6 @@ public class HumidityProfile extends DConnectProfile implements HumidityProfileC
     @Override
     public String getProfileName() {
         return PROFILE_NAME;
-    }
-
-    @Override
-    protected boolean onGetRequest(Intent request, Intent response) {
-        MessageUtils.setNotSupportAttributeError(response);
-        return true;
     }
 
     public static void setHumidity(Intent response, double humidity) {

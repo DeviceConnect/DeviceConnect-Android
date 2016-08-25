@@ -722,8 +722,16 @@ public class DConnectServerNanoHttpd extends DConnectServer {
                 mLogger.warning("Exception in the NanoWebSocket#sendEvent() method. " + e.toString());
                 if (mListener != null) {
                     mListener.onError(DConnectServerError.SEND_EVENT_FAILED);
+                    if (mSessionKey != null) {
+                        mListener.onWebSocketDisconnected(mSessionKey);
+                    }
                 }
             }
+        }
+
+        @Override
+        public void disconnectWebSocket() {
+            closeWebSocket();
         }
 
         @Override
@@ -761,8 +769,7 @@ public class DConnectServerNanoHttpd extends DConnectServer {
             }
         }
 
-        @Override
-        protected void onClose(final CloseCode code, final String reason, final boolean initiatedByRemote) {
+        private void closeWebSocket() {
             if (mSessionKey != null) {
                 mSockets.remove(mSessionKey);
                 mLogger.fine("WebSocket closed. Session Key : " + mSessionKey);
@@ -773,6 +780,11 @@ public class DConnectServerNanoHttpd extends DConnectServer {
             }
 
             mKeepAliveTimer.cancel();
+        }
+
+        @Override
+        protected void onClose(final CloseCode code, final String reason, final boolean initiatedByRemote) {
+            closeWebSocket();
         }
 
         @Override
@@ -832,6 +844,9 @@ public class DConnectServerNanoHttpd extends DConnectServer {
                 } catch (IOException e) {
                     // 例外が発生したらタスクを終了し、タイムアウトに任せる
                     cancel();
+                    if (mSessionKey != null) {
+                        mListener.onWebSocketDisconnected(mSessionKey);
+                    }
                 }
             }
         }

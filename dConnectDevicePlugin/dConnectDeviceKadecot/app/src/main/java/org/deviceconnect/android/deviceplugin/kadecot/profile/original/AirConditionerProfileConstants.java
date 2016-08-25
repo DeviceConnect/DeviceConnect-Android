@@ -21,42 +21,42 @@ public interface AirConditionerProfileConstants extends DConnectProfileConstants
     /**
      * Profile name: {@value} .
      */
-    String PROFILE_NAME = "airconditioner";
+    String PROFILE_NAME = "airConditioner";
 
     /**
      * Attribute: {@value} .
      */
-    String ATTRIBUTE_AIR_CONDITIONER = "airconditioner";
+    String ATTRIBUTE_AIR_CONDITIONER = "airConditioner";
 
     /**
      * Attribute: {@value} .
      */
-    String ATTRIBUTE_OPERATION_POWER_SAVING = "operationpowersaving";
+    String ATTRIBUTE_OPERATION_POWER_SAVING = "operationPowerSaving";
 
     /**
      * Attribute: {@value} .
      */
-    String ATTRIBUTE_OPERATION_MODE_SETTING = "operationmodesetting";
+    String ATTRIBUTE_OPERATION_MODE_SETTING = "operationModeSetting";
 
     /**
      * Attribute: {@value} .
      */
-    String ATTRIBUTE_ROOM_TEMPERATURE = "roomtemperature";
+    String ATTRIBUTE_ROOM_TEMPERATURE = "roomTemperature";
 
     /**
      * Attribute: {@value} .
      */
-    String ATTRIBUTE_TEMPERATURE_VALUE = "temperaturevalue";
+    String ATTRIBUTE_TEMPERATURE_VALUE = "temperatureValue";
 
     /**
      * Attribute: {@value} .
      */
-    String ATTRIBUTE_AIR_FLOW_VALUE = "airflowvalue";
+    String ATTRIBUTE_AIR_FLOW_VALUE = "airFlowValue";
 
     /**
      * Attribute: {@value} .
      */
-    String ATTRIBUTE_ENL_PROPERTY = "enlproperty";
+    String ATTRIBUTE_ENL_PROPERTY = "enlProperty";
 
     /**
      * Path: {@value} .

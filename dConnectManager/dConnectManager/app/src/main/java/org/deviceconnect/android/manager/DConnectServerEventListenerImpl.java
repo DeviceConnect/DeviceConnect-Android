@@ -16,6 +16,7 @@ import org.apache.james.mime4j.parser.AbstractContentHandler;
 import org.apache.james.mime4j.parser.MimeStreamParser;
 import org.apache.james.mime4j.stream.BodyDescriptor;
 import org.apache.james.mime4j.stream.Field;
+import org.deviceconnect.android.manager.keepalive.KeepAliveManager;
 import org.deviceconnect.android.manager.profile.DConnectFilesProfile;
 import org.deviceconnect.android.manager.util.DConnectUtil;
 import org.deviceconnect.android.provider.FileManager;
@@ -89,12 +90,16 @@ public class DConnectServerEventListenerImpl implements
     /** ロックオブジェクト. */
     private final Object mLockObj = new Object();
 
+    /** アプリケーションクラスインスタンス. */
+    private DConnectApplication mApp;
+
     /**
      * コンストラクタ.
      * @param context このクラスが属するコンテキスト
      */
     public DConnectServerEventListenerImpl(final Context context) {
         mContext = context;
+        mApp = (DConnectApplication) DConnectApplication.getInstance().getApplicationContext();
     }
 
     /**
@@ -130,6 +135,66 @@ public class DConnectServerEventListenerImpl implements
     @Override
     public void onServerLaunched() {
         mLogger.info("HttpServer was started.");
+    }
+
+    /**
+     * WebSocketのセッションが切断された時に呼び出されます.
+     *
+     * @param sessionKey 切断されたセッションのsessionKey
+     */
+    @Override
+    public void onWebSocketDisconnected(final String sessionKey) {
+        if (BuildConfig.DEBUG) {
+            mLogger.info("sessionKey :" + sessionKey);
+        }
+        String matchSessionKey = mApp.getIdentifySessionKey(sessionKey);
+        if (matchSessionKey == null) {
+            if (BuildConfig.DEBUG) {
+                mLogger.info(" Didn't find the corresponding device plug-in to the sessionKey.");
+            }
+            return;
+        }
+        String matchServiceId = mApp.getDevicePluginIdentifyKey(matchSessionKey);
+        if (matchServiceId == null) {
+            if (BuildConfig.DEBUG) {
+                mLogger.info(" Didn't find the corresponding device plug-in to the sessionKey.");
+            }
+            return;
+        }
+
+        DevicePluginManager mgr = new DevicePluginManager(mContext, null);
+        mgr.createDevicePluginList();
+        List<DevicePlugin> plugins = mgr.getDevicePlugins();
+        for (DevicePlugin plugin : plugins) {
+            String serviceId = plugin.getServiceId();
+            if (serviceId != null && serviceId.equals(matchServiceId)) {
+                Intent request = new Intent();
+                request.setComponent(plugin.getComponentName());
+                request.setAction(IntentDConnectMessage.ACTION_EVENT_TRANSMIT_DISCONNECT);
+                request.putExtra("pluginId", serviceId);
+                request.putExtra(IntentDConnectMessage.EXTRA_SESSION_KEY, matchSessionKey);
+                mContext.sendBroadcast(request);
+                KeepAliveManager.getInstance().removeManagementTable(plugin);
+            }
+        }
+        mApp.removeDevicePluginIdentifyKey(matchSessionKey);
+    }
+
+    /**
+     * WebSocketのsessionKeyがリセットされた時に呼び出されます.
+     *
+     * @param sessionKey リセットされたsessionKey
+     */
+    @Override
+    public void onResetEventSessionKey(String sessionKey) {
+        String matchSessionKey = mApp.getIdentifySessionKey(sessionKey);
+        if (matchSessionKey != null) {
+            mApp.removeDevicePluginIdentifyKey(matchSessionKey);
+        } else {
+            if (BuildConfig.DEBUG) {
+                mLogger.info(" Didn't find the corresponding device plug-in to the sessionKey.");
+            }
+        }
     }
 
     @Override

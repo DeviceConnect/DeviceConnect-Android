@@ -61,6 +61,9 @@
     <string name="activity_settings_yes">はい</string>
     <string name="activity_settings_no">いいえ</string>
     <string name="activity_settings_close">閉じる</string>
+    <string name="activity_settings_manager_terminate">全デバイスプラグインへManager終了通知</string>
+    <string name="activity_settings_manager_terminate_title">デバイスプラグインへManager終了通知中</string>
+    <string name="activity_settings_manager_terminate_message">処理中</string>
 
     <string name="activity_settings_web_server_settings">Webサーバ設定</string>
     <string name="activity_settings_web_server">Webサーバ</string>
@@ -72,6 +75,7 @@
     <string name="activity_settings_web_server_warning_positive">はい</string>
     <string name="activity_settings_web_server_warning_negative">いいえ</string>
 
+    <string name="activity_settings_event_keep_alive_settings">イベント Keep Alive 設定</string>
     <!-- ================= SharedPreferences ================= -->
 
     <string name="key_settings_about_appinfo">settings_about_appinfo</string>
@@ -97,6 +101,7 @@
     <string name="key_settings_web_server_host">key_settings_web_server_host</string>
     <string name="key_settings_web_server_port">key_settings_web_server_port</string>
     <string name="key_settings_web_server_document_root_path">key_settings_web_server_document_root_path</string>
+    <string name="key_settings_event_keep_alive_on_off">key_settings_event_keep_alive_on_off</string>
 
     <!-- ================= WhitelistActivity ================= -->
     <string name="activity_whitelist_title">Originホワイトリスト</string>

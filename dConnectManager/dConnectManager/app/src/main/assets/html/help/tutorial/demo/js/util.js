@@ -54,7 +54,7 @@ var util = (function(parent, global) {
             'system',
             'battery',
             'deviceorientation',
-            'mediastream_recording',
+            'mediastreamrecording',
             'vibration');
         dConnect.authorization(scopes, 'ヘルプ',
             function(clientId, accessToken) {

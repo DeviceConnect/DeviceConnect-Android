@@ -101,8 +101,7 @@ public class IRKitServiceListActivity extends DConnectServiceListActivity {
         mAutoConnectTimerFuture = mExecutor.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
-                Intent i = new Intent(IRKitServiceListActivity.this, IRKitDeviceService.class);
-                i.setAction(IRKitDeviceService.ACTION_RESTART_DETECTION_IRKIT);
+                Intent i = new Intent(IRKitDeviceService.ACTION_RESTART_DETECTION_IRKIT);
                 LocalBroadcastManager.getInstance(IRKitServiceListActivity.this).sendBroadcast(i);
             }
         }, CHK_FIRST_WAIT_PERIOD, CHK_WAIT_PERIOD, TimeUnit.MILLISECONDS);

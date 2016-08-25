@@ -6,8 +6,12 @@
  */
 package org.deviceconnect.android.deviceplugin.irkit;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.net.wifi.WifiManager;
+import android.support.v4.content.LocalBroadcastManager;
 
 import org.deviceconnect.android.deviceplugin.irkit.IRKitManager.DetectionListener;
 import org.deviceconnect.android.deviceplugin.irkit.data.IRKitDBHelper;
@@ -70,6 +74,46 @@ public class IRKitDeviceService extends DConnectMessageService implements Detect
     /** ロガー. */
     private final Logger mLogger = Logger.getLogger("irkit.dplugin");
 
+    /** 内部的なブロードキャストレシーバー. */
+    private final BroadcastReceiver mLocalBroadcastReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(final Context context, final Intent intent) {
+            if (intent == null || intent.getAction() == null) {
+                return;
+            }
+            String action = intent.getAction();
+            if (ACTION_RESTART_DETECTION_IRKIT.equals(action)) {
+                if (WiFiUtil.isOnWiFi(IRKitDeviceService.this)) {
+                    restartDetection();
+                } else {
+                    stopDetection();
+                }
+            } else if (ACTION_VIRTUAL_DEVICE_ADDED.equals(action)) {
+                String id = intent.getStringExtra(EXTRA_VIRTUAL_DEVICE_ID);
+                if (id != null) {
+                    DConnectService service = getServiceProvider().getService(id);
+                    if (service == null) {
+                        List<VirtualDeviceData> devices = mDBHelper.getVirtualDevices(id);
+                        if (devices.size() > 0) {
+                            VirtualDeviceData device = devices.get(0);
+                            service = new VirtualService(device, mDBHelper,
+                                getServiceProvider());
+                            getServiceProvider().addService(service);
+                        }
+                    }
+                }
+            } else if (ACTION_VIRTUAL_DEVICE_REMOVED.equals(action)) {
+                String id = intent.getStringExtra(EXTRA_VIRTUAL_DEVICE_ID);
+                if (id != null) {
+                    DConnectService service = getServiceProvider().getService(id);
+                    if (service != null) {
+                        getServiceProvider().removeService(service);
+                    }
+                }
+            }
+        }
+    };
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -90,6 +134,12 @@ public class IRKitDeviceService extends DConnectMessageService implements Detect
         }
 
         mCurrentSSID = WiFiUtil.getCurrentSSID(this);
+
+        IntentFilter localFilter = new IntentFilter();
+        localFilter.addAction(ACTION_RESTART_DETECTION_IRKIT);
+        localFilter.addAction(ACTION_VIRTUAL_DEVICE_ADDED);
+        localFilter.addAction(ACTION_VIRTUAL_DEVICE_REMOVED);
+        LocalBroadcastManager.getInstance(this).registerReceiver(mLocalBroadcastReceiver, localFilter);
     }
 
     @Override
@@ -101,37 +151,6 @@ public class IRKitDeviceService extends DConnectMessageService implements Detect
                     stopDetection();
                 } else if (WiFiUtil.isOnWiFi(this) && WiFiUtil.isChangedSSID(this, mCurrentSSID)) {
                     restartDetection();
-                }
-                return START_STICKY;
-            } else if (ACTION_RESTART_DETECTION_IRKIT.equals(action)) {
-                if (WiFiUtil.isOnWiFi(this)) {
-                    restartDetection();
-                } else {
-                    stopDetection();
-                }
-                return START_STICKY;
-            } else if (ACTION_VIRTUAL_DEVICE_ADDED.equals(action)) {
-                String id = intent.getStringExtra(EXTRA_VIRTUAL_DEVICE_ID);
-                if (id != null) {
-                    DConnectService service = getServiceProvider().getService(id);
-                    if (service == null) {
-                        List<VirtualDeviceData> devices = mDBHelper.getVirtualDevices(id);
-                        if (devices.size() > 0) {
-                            VirtualDeviceData device = devices.get(0);
-                            service = new VirtualService(device, mDBHelper,
-                                getServiceProvider());
-                            getServiceProvider().addService(service);
-                        }
-                    }
-                }
-                return START_STICKY;
-            } else if (ACTION_VIRTUAL_DEVICE_REMOVED.equals(action)) {
-                String id = intent.getStringExtra(EXTRA_VIRTUAL_DEVICE_ID);
-                if (id != null) {
-                    DConnectService service = getServiceProvider().getService(id);
-                    if (service != null) {
-                        getServiceProvider().removeService(service);
-                    }
                 }
                 return START_STICKY;
             }

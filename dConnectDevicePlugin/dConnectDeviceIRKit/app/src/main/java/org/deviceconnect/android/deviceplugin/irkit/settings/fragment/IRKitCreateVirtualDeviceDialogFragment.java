@@ -14,6 +14,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.content.LocalBroadcastManager;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
@@ -155,11 +156,13 @@ public class IRKitCreateVirtualDeviceDialogFragment extends DialogFragment {
     }
 
     private void sendEventOnAdded(final VirtualDeviceData device) {
-        Intent intent = new Intent();
-        intent.setClass(getActivity(), IRKitDeviceService.class);
-        intent.setAction(IRKitDeviceService.ACTION_VIRTUAL_DEVICE_ADDED);
+        Activity activity = getActivity();
+        if (activity == null) {
+            return;
+        }
+        Intent intent = new Intent(IRKitDeviceService.ACTION_VIRTUAL_DEVICE_ADDED);
         intent.putExtra(IRKitDeviceService.EXTRA_VIRTUAL_DEVICE_ID, device.getServiceId());
-        getActivity().startService(intent);
+        LocalBroadcastManager.getInstance(activity).sendBroadcast(intent);
     }
 
     /**

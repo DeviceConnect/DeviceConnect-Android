@@ -164,7 +164,7 @@ public abstract class DConnectMessageService extends Service
         mLocalOAuth = new DConnectLocalOAuth(this);
 
         // デバイスプラグイン管理クラスの作成
-        mPluginMgr = new DevicePluginManager(this, LOCALHOST_DCONNECT);
+        mPluginMgr = new DevicePluginManager((DConnectApplication) getApplication(), LOCALHOST_DCONNECT);
         mPluginMgr.setEventListener(this);
 
         // プロファイルの追加

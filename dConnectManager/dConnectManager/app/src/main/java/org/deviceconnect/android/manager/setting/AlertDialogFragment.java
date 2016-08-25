@@ -97,7 +97,11 @@ public class AlertDialogFragment extends DialogFragment {
                     new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(final DialogInterface dialog, final int which) {
-                            ((OnAlertDialogListener) getActivity()).onPositiveButton(getArguments().getString(KEY_TAG));
+                            try {
+                                ((OnAlertDialogListener) getActivity()).onPositiveButton(getArguments().getString(KEY_TAG));
+                            } catch (Exception e) {
+                                return;
+                            }
                         }
                     });
         }
@@ -106,7 +110,11 @@ public class AlertDialogFragment extends DialogFragment {
                     new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(final DialogInterface dialog, final int which) {
-                            ((OnAlertDialogListener) getActivity()).onNegativeButton(getArguments().getString(KEY_TAG));
+                            try {
+                                ((OnAlertDialogListener) getActivity()).onNegativeButton(getArguments().getString(KEY_TAG));
+                            } catch (Exception e) {
+                                return;
+                            }
                         }
                     });
         }
@@ -115,7 +123,11 @@ public class AlertDialogFragment extends DialogFragment {
 
     @Override
     public void onCancel(final DialogInterface dialog) {
-        ((OnAlertDialogListener) getActivity()).onNegativeButton(getArguments().getString(KEY_TAG));
+        try {
+            ((OnAlertDialogListener) getActivity()).onNegativeButton(getArguments().getString(KEY_TAG));
+        } catch (Exception e) {
+            return;
+        }
     }
 
     /**

@@ -8,6 +8,8 @@ package org.deviceconnect.android.manager;
 
 import android.app.Application;
 
+import org.deviceconnect.android.manager.keepalive.KeepAliveManager;
+
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -17,25 +19,53 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author NTT DOCOMO, INC.
  */
 public class DConnectApplication extends Application {
+    /** ドメイン名. */
+    private static final String DCONNECT_DOMAIN = ".deviceconnect.org";
 
     /** デバイスプラグインに紐付くイベント判断用キー格納領域 */
     private final Map<String, String> mEventKeys = new ConcurrentHashMap<>();
 
-    /** インスタンス */
-    private static DConnectApplication sInstance;
+    /** ローカルのドメイン名. */
+    private static final String LOCALHOST_DCONNECT = "localhost" + DCONNECT_DOMAIN;
+
+    /** WebSocket管理クラス. */
+    private WebSocketInfoManager mWebSocketInfoManager;
+
+    /** デバイスプラグイン管理クラス. */
+    private DevicePluginManager mDevicePluginManager;
+
+    /** KeepAlive管理クラス. */
+    private KeepAliveManager mKeepAliveManager;
 
     @Override
     public void onCreate() {
         super.onCreate();
-        sInstance = this;
+
+        mDevicePluginManager = new DevicePluginManager(this, LOCALHOST_DCONNECT);
+        mDevicePluginManager.createDevicePluginList();
+
+        mWebSocketInfoManager = new WebSocketInfoManager(this);
+
+        mKeepAliveManager = new KeepAliveManager(this);
     }
 
-    /**
-     * Applicationインスタンス取得.
-     * @return インスタンス
-     */
-    public static synchronized DConnectApplication getInstance() {
-        return sInstance;
+    @Override
+    public void onTerminate() {
+        mWebSocketInfoManager = null;
+        mDevicePluginManager = null;
+        super.onTerminate();
+    }
+
+    public WebSocketInfoManager getWebSocketInfoManager() {
+        return mWebSocketInfoManager;
+    }
+
+    public DevicePluginManager getDevicePluginManager() {
+        return mDevicePluginManager;
+    }
+
+    public KeepAliveManager getKeepAliveManager() {
+        return mKeepAliveManager;
     }
 
     /**

@@ -6,13 +6,13 @@
  */
 package org.deviceconnect.android.manager.keepalive;
 
+import android.content.ComponentName;
+import android.content.Intent;
+
 import org.deviceconnect.android.manager.DConnectApplication;
 import org.deviceconnect.android.manager.DConnectBroadcastReceiver;
 import org.deviceconnect.android.manager.DevicePlugin;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
-
-import android.content.ComponentName;
-import android.content.Intent;
 
 import java.util.LinkedList;
 import java.util.Timer;
@@ -37,17 +37,13 @@ public class KeepAliveManager {
     /** 定期処理中フラグ. */
     private Boolean mRunningPeriodicProcess = false;
 
-    /** コンストラクター. */
-    private KeepAliveManager() {
-        mApp = (DConnectApplication) DConnectApplication.getInstance().getApplicationContext();
-    }
-
-    public static synchronized KeepAliveManager getInstance()
-    {
-        if (sInstance == null) {
-            sInstance = new KeepAliveManager();
-        }
-        return sInstance;
+    /**
+     * コンストラクター.
+     *
+     * @param app DConnectApplicationのインスタンス
+     */
+    public KeepAliveManager(final DConnectApplication app) {
+        mApp = app;
     }
 
     /**

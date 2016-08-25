@@ -19,7 +19,6 @@ import org.deviceconnect.android.manager.compat.CompatibleRequestConverter;
 import org.deviceconnect.android.manager.compat.ServiceDiscoveryConverter;
 import org.deviceconnect.android.manager.compat.ServiceInformationConverter;
 import org.deviceconnect.android.manager.keepalive.KeepAlive;
-import org.deviceconnect.android.manager.keepalive.KeepAliveManager;
 import org.deviceconnect.android.manager.util.DConnectUtil;
 import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.message.DConnectMessage;
@@ -40,6 +39,9 @@ import java.util.concurrent.Executors;
  * @author NTT DOCOMO, INC.
  */
 public class DConnectService extends DConnectMessageService {
+    public static final String ACTION_DISCONNECT_WEB_SOCKET = "disconnect.WebSocket";
+    public static final String EXTRA_SESSION_KEY = "sessionKey";
+
     /** 内部用: 通信タイプを定義する. */
     public static final String EXTRA_INNER_TYPE = "_type";
     /** 通信タイプがHTTPであることを示す定数. */
@@ -60,17 +62,11 @@ public class DConnectService extends DConnectMessageService {
     private ExecutorService mEventSender = Executors.newSingleThreadExecutor();
 
     private MessageConverter[] mRequestConverters;
-
     private MessageConverter[] mResponseConverters;
 
     @Override
     public IBinder onBind(final Intent intent) {
         return (IBinder) mBinder;
-    }
-
-    @Override
-    public boolean onUnbind(final Intent intent) {
-        return super.onUnbind(intent);
     }
 
     @Override
@@ -103,12 +99,20 @@ public class DConnectService extends DConnectMessageService {
             return START_STICKY;
         }
 
+        if (ACTION_DISCONNECT_WEB_SOCKET.equals(action)) {
+            String sessionKey = intent.getStringExtra(EXTRA_SESSION_KEY);
+            if (sessionKey != null) {
+                mRESTfulServer.disconnectWebSocket(sessionKey);
+            }
+            return START_STICKY;
+        }
+
         if (IntentDConnectMessage.ACTION_KEEPALIVE.equals(action)) {
             String status = intent.getStringExtra(IntentDConnectMessage.EXTRA_KEEPALIVE_STATUS);
             if (status.equals("RESPONSE")) {
                 String serviceId = intent.getStringExtra("serviceId");
                 if (serviceId != null) {
-                    KeepAlive keepAlive = KeepAliveManager.getInstance().getKeepAlive(serviceId);
+                    KeepAlive keepAlive = ((DConnectApplication) getApplication()).getKeepAliveManager().getKeepAlive(serviceId);
                     if (keepAlive != null) {
                         keepAlive.setResponseFlag();
                     }
@@ -194,7 +198,7 @@ public class DConnectService extends DConnectMessageService {
             public void run() {
                 mSettings.load(getApplicationContext());
 
-                mWebServerListener = new DConnectServerEventListenerImpl(getApplicationContext());
+                mWebServerListener = new DConnectServerEventListenerImpl(DConnectService.this);
                 mWebServerListener.setFileManager(mFileMgr);
 
                 DConnectServerConfig.Builder builder = new DConnectServerConfig.Builder();

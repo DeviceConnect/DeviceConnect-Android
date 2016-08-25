@@ -29,6 +29,7 @@ import android.widget.TextView;
 import org.deviceconnect.android.localoauth.DevicePluginXmlProfile;
 import org.deviceconnect.android.localoauth.DevicePluginXmlProfileLocale;
 import org.deviceconnect.android.localoauth.DevicePluginXmlUtil;
+import org.deviceconnect.android.manager.DConnectApplication;
 import org.deviceconnect.android.manager.DevicePlugin;
 import org.deviceconnect.android.manager.DevicePluginManager;
 import org.deviceconnect.android.manager.R;
@@ -167,7 +168,8 @@ public class DevicePluginInfoFragment extends Fragment {
      * Open device plug-in's settings.
      */
     private void openSettings() {
-        DevicePluginManager mgr = new DevicePluginManager(getActivity(), null);
+        DevicePluginManager mgr
+            = new DevicePluginManager((DConnectApplication) getActivity().getApplication(), null);
         mgr.createDevicePluginList();
         List<DevicePlugin> plugins = mgr.getDevicePlugins();
         for (DevicePlugin plugin : plugins) {
@@ -205,7 +207,8 @@ public class DevicePluginInfoFragment extends Fragment {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                DevicePluginManager mgr = new DevicePluginManager(getActivity(), null);
+                DevicePluginManager mgr
+                    = new DevicePluginManager((DConnectApplication) getActivity().getApplication(), null);
                 mgr.createDevicePluginList();
                 List<DevicePlugin> plugins = mgr.getDevicePlugins();
                 for (DevicePlugin plugin : plugins) {

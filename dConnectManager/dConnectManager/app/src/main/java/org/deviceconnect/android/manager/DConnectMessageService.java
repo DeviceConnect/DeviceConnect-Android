@@ -637,7 +637,9 @@ public abstract class DConnectMessageService extends Service
     protected synchronized void stopDConnect() {
         mRunningFlag = false;
 
-        mRequestManager.shutdown();
+        if (mRequestManager != null) {
+            mRequestManager.shutdown();
+        }
         hideNotification();
     }
 

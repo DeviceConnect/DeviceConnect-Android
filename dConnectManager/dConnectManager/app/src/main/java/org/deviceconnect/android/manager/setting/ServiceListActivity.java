@@ -178,6 +178,15 @@ public class ServiceListActivity extends Activity implements AlertDialogFragment
 
     }
 
+    private void setEnableSearchButton(final boolean running) {
+        Button btn = (Button) findViewById(R.id.activity_service_list_search_button);
+        if (btn != null) {
+            if (mDConnectService != null) {
+                btn.setEnabled(running);
+            }
+        }
+    }
+
     private boolean hasDevicePlugins() {
         return mDevicePluginManager.getDevicePlugins().size() > 0;
     }
@@ -298,6 +307,7 @@ public class ServiceListActivity extends Activity implements AlertDialogFragment
                     }
                 });
             }
+            setEnableSearchButton(checked);
         } catch (RemoteException e) {
             if (DEBUG) {
                 Log.e(TAG, "", e);
@@ -446,6 +456,7 @@ public class ServiceListActivity extends Activity implements AlertDialogFragment
                         if (mDConnectService.isRunning()) {
                             reload();
                         }
+                        setEnableSearchButton(mDConnectService.isRunning());
                     } catch (RemoteException e) {
                         if (DEBUG) {
                             Log.e(TAG, "", e);

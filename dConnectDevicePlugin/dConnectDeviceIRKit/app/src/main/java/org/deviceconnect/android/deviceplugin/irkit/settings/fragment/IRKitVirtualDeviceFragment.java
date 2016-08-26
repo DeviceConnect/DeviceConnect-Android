@@ -6,6 +6,7 @@
  */
 package org.deviceconnect.android.deviceplugin.irkit.settings.fragment;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Fragment;
 import android.content.Context;
@@ -13,6 +14,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.support.v4.content.LocalBroadcastManager;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -291,11 +293,13 @@ public class IRKitVirtualDeviceFragment extends Fragment
     }
 
     private void sendEventOnRemoved(final VirtualDeviceData device) {
-        Intent intent = new Intent();
-        intent.setClass(getActivity(), IRKitDeviceService.class);
-        intent.setAction(IRKitDeviceService.ACTION_VIRTUAL_DEVICE_REMOVED);
+        Activity activity = getActivity();
+        if (activity == null) {
+            return;
+        }
+        Intent intent = new Intent(IRKitDeviceService.ACTION_VIRTUAL_DEVICE_REMOVED);
         intent.putExtra(IRKitDeviceService.EXTRA_VIRTUAL_DEVICE_ID, device.getServiceId());
-        getActivity().startService(intent);
+        LocalBroadcastManager.getInstance(activity).sendBroadcast(intent);
     }
 
     /**

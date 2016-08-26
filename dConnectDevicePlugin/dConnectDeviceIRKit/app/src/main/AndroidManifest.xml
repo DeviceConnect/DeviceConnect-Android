@@ -49,18 +49,21 @@
         <activity
             android:name=".settings.activity.IRKitServiceListActivity"
             android:exported="false"
+            android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/app_name">
         </activity>
 
         <activity
             android:name=".settings.activity.IRKitSettingActivity"
             android:exported="false"
+            android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/app_name">
         </activity>
 
         <activity
             android:name=".settings.activity.IRKitVirtualDeviceListActivity"
             android:exported="false"
+            android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/app_name">
         </activity>
 

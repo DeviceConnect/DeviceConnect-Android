@@ -101,22 +101,26 @@ public abstract class DConnectServiceListActivity extends FragmentActivity
         }
 
         mManualActivity = getSettingManualActivityClass();
+
+        bindMessageService();
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
+    protected void onDestroy() {
+        super.onDestroy();
+        unbindMessageService();
+    }
+
+    private void bindMessageService() {
         if (!mIsBound) {
             Intent intent = new Intent(getApplicationContext(), getMessageServiceClass());
-            getApplicationContext().bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+            bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
         }
     }
 
-    @Override
-    protected void onPause() {
-        super.onPause();
+    private void unbindMessageService() {
         if (mIsBound) {
-            getApplicationContext().unbindService(mConnection);
+            unbindService(mConnection);
             mIsBound = false;
         }
     }

@@ -4,7 +4,7 @@
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
  */
-package org.deviceconnect.android.deviceplugin.uvc;
+package org.deviceconnect.android.deviceplugin.uvc.core;
 
 
 import android.hardware.usb.UsbDevice;

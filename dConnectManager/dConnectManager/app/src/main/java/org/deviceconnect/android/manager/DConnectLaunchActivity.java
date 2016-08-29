@@ -43,6 +43,18 @@ public class DConnectLaunchActivity extends Activity {
      */
     private static final String[] SCHEMES_LAUNCH = {"dconnect", "gotapi"};
 
+    private static final String HOST_START = "start";
+
+    private static final String HOST_STOP = "stop";
+
+    private static final String PATH_ROOT = "/";
+
+    private static final String PATH_ACTIVITY = PATH_ROOT + "activity";
+
+    private static final String PATH_SERVER = PATH_ROOT + "server";
+
+    private static final int RESULT_ERROR = Activity.RESULT_FIRST_USER;
+
     /**
      * The HMAC manager.
      */
@@ -76,28 +88,38 @@ public class DConnectLaunchActivity extends Activity {
             Uri uri = intent.getData();
             String host = uri.getHost();
             String path = uri.getPath();
-            if ("start".equals(host)) {
-                if (!allowExternalStartAndStop() || "/".equals(path) || "/activity".equals(path)) {
+            if (HOST_START.equals(host)) {
+                if (!allowExternalStartAndStop() || PATH_ROOT.equals(path) || PATH_ACTIVITY.equals(path)) {
                     displayActivity();
-                } else if ("/server".equals(path)) {
+                } else if (PATH_SERVER.equals(path)) {
                     hideActivity();
                     mBehavior = new Runnable() {
                         @Override
                         public void run() {
                             startManager();
+                            onActivityResult(0, RESULT_OK, null);
                             finish();
                         }
                     };
                 }
-            } else if ("stop".equals(host)) {
-                if (!allowExternalStartAndStop() || "/".equals(path) || "/activity".equals(path)) {
+            } else if (HOST_STOP.equals(host)) {
+                if (!allowExternalStartAndStop() || PATH_ROOT.equals(path) || PATH_ACTIVITY.equals(path)) {
                     displayActivity();
-                } else if ("/server".equals(path)) {
+                } else if (PATH_SERVER.equals(path)) {
                     hideActivity();
                     mBehavior = new Runnable() {
                         @Override
                         public void run() {
-                            stopManager();
+                            boolean canStop = !existsConnectedWebSocket();
+                            int result;
+                            if (canStop) {
+                                stopManager();
+                                result = RESULT_OK;
+                            } else {
+                                mLogger.warning("Cannot stop Device Connect Manager automatically.");
+                                result = RESULT_ERROR;
+                            }
+                            onActivityResult(0, result, null);
                             finish();
                         }
                     };
@@ -116,6 +138,7 @@ public class DConnectLaunchActivity extends Activity {
     protected void onPause() {
         super.onPause();
         unbindService(mServiceConnection);
+        onActivityResult(0, RESULT_CANCELED, null);
         finish();
     }
 
@@ -198,6 +221,7 @@ public class DConnectLaunchActivity extends Activity {
         cancelButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View v) {
+                onActivityResult(0, RESULT_OK, null);
                 finish();
             }
         });
@@ -205,6 +229,11 @@ public class DConnectLaunchActivity extends Activity {
 
     private void hideActivity() {
         requestWindowFeature(Window.FEATURE_NO_TITLE);
+    }
+
+    private boolean existsConnectedWebSocket() {
+        WebSocketInfoManager mgr = ((DConnectApplication) getApplication()).getWebSocketInfoManager();
+        return mgr.getWebSocketInfos().size() > 0;
     }
 
     /**
@@ -225,6 +254,7 @@ public class DConnectLaunchActivity extends Activity {
                 @Override
                 public void onClick(final View v) {
                     stopManager();
+                    onActivityResult(0, RESULT_OK, null);
                     finish();
                 }
             });
@@ -235,6 +265,7 @@ public class DConnectLaunchActivity extends Activity {
                 @Override
                 public void onClick(final View v) {
                     startManager();
+                    onActivityResult(0, RESULT_OK, null);
                     finish();
                 }
             });

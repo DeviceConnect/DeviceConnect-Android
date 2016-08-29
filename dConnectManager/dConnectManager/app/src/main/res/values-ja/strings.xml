@@ -5,7 +5,6 @@
     <string name="description"></string>
 
     <!-- ================= DConnectLaunchActivity ================= -->
-    <string name="affinity_launcher_activity">.launcher</string>
     <string name="activity_launch_button_launch">Launch</string>
     <string name="activity_launch_button_stop">Stop</string>
     <string name="activity_launch_button_cancel">Cancel</string>

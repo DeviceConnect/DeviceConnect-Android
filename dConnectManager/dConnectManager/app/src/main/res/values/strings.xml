@@ -5,7 +5,7 @@
     <string name="description"></string>
 
     <!-- ================= DConnectLaunchActivity ================= -->
-    <string name="affinity_launcher_activity">.launcher</string>
+    <string name="affinity_launcher_activity" translatable="false">.launcher</string>
     <string name="activity_launch_button_launch">Launch</string>
     <string name="activity_launch_button_stop">Stop</string>
     <string name="activity_launch_button_cancel">Cancel</string>
@@ -172,6 +172,25 @@
     <string name="activity_service_list_search">Search of service</string>
     <string name="activity_service_menu_settings">Settings</string>
     <string name="activity_service_menu_help">Help</string>
+    <string name="activity_service_list_service_discovery">デバイスを検索中</string>
+    <string name="activity_service_list_checkbox">次回からこの画面を表示しない。</string>
+    <string name="activity_service_list_guide_1">Device Connect Managerを起動することができます。</string>
+    <string name="activity_service_list_guide_2">Device Connect Managerの設定を行うことができます。</string>
+    <string name="activity_service_list_guide_next">次へ</string>
+    <string name="activity_service_list_guide_end">閉じる</string>
+    <string name="activity_service_list_no_service">デバイスが接続されていません。\nプラグインから設定を行ってください。</string>
+    <string name="activity_service_list_no_plugin_title">プラグイン確認</string>
+    <string name="activity_service_list_no_plugin_message">プラグインが入っていないと、このDevice Connect Managerは使用できません。\nHOSTプラグインなどをインストールしてください。</string>
+    <string name="activity_service_list_no_plugin_positive">はい</string>
+    <string name="activity_service_list_offline_title">デバイス起動</string>
+    <string name="activity_service_list_offline_message">%1sは、接続されていません。\nデバイスプラグインの設定を確認してください。</string>
+    <string name="activity_service_list_offline_positive">設定を開く</string>
+    <string name="activity_service_list_offline_negative">閉じる</string>
+
+    <string name="activity_websocket_delete_title">WebSocket削除確認</string>
+    <string name="activity_websocket_delete_message">WebSocketを閉じて良いでしょうか？</string>
+    <string name="activity_websocket_delete_positive">はい</string>
+    <string name="activity_websocket_delete_negative">いいえ</string>
 
     <!-- ================= Chrome for Android ================= -->
     <string name="chrome_bookmark_provider_url">content://com.android.chrome.browser/bookmarks</string>

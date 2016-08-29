@@ -168,10 +168,8 @@ public class DevicePluginInfoFragment extends Fragment {
      * Open device plug-in's settings.
      */
     private void openSettings() {
-        DevicePluginManager mgr
-            = new DevicePluginManager((DConnectApplication) getActivity().getApplication(), null);
-        mgr.createDevicePluginList();
-        List<DevicePlugin> plugins = mgr.getDevicePlugins();
+        DConnectApplication app = (DConnectApplication) getActivity().getApplication();
+        List<DevicePlugin> plugins = app.getDevicePluginManager().getDevicePlugins();
         for (DevicePlugin plugin : plugins) {
             if (mPackageName.equals(plugin.getPackageName())
                     && plugin.getServiceId() != null) {
@@ -207,10 +205,8 @@ public class DevicePluginInfoFragment extends Fragment {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                DevicePluginManager mgr
-                    = new DevicePluginManager((DConnectApplication) getActivity().getApplication(), null);
-                mgr.createDevicePluginList();
-                List<DevicePlugin> plugins = mgr.getDevicePlugins();
+                DConnectApplication app = (DConnectApplication) getActivity().getApplication();
+                List<DevicePlugin> plugins = app.getDevicePluginManager().getDevicePlugins();
                 for (DevicePlugin plugin : plugins) {
                     if (mPackageName.equals(plugin.getPackageName())
                             && plugin.getStartServiceClassName() != null

@@ -61,6 +61,7 @@ public class ServiceDiscovery extends Authorization {
                 switch (DConnectMessage.ErrorCode.getInstance(code)) {
                     case AUTHORIZATION:
                     case EXPIRED_ACCESS_TOKEN:
+                    case NOT_FOUND_CLIENT_ID:
                         clearAccessToken();
                         return parseServiceList(executeServiceDiscovery(getAccessToken()));
                     default:

@@ -56,6 +56,10 @@ public class DConnectApplication extends Application {
         super.onTerminate();
     }
 
+    public void updateDevicePluginList() {
+        mDevicePluginManager.createDevicePluginList();
+    }
+
     public WebSocketInfoManager getWebSocketInfoManager() {
         return mWebSocketInfoManager;
     }

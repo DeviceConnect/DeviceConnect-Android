@@ -103,3 +103,23 @@ img.photo {
     margin: 12px;
 }
 
+table.settings {
+    text-align: center;
+    margin-right: auto;
+    margin-left: auto
+    border-spacing: 12px;
+}
+
+td.name {
+    text-align: right;
+}
+
+td.value {
+    text-align: left;
+}
+
+td.value select {
+}
+
+span.label {
+}

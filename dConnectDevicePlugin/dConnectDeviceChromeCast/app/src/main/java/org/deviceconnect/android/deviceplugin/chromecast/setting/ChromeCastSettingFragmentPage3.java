@@ -6,9 +6,6 @@
  */
 package org.deviceconnect.android.deviceplugin.chromecast.setting;
 
-import org.deviceconnect.android.deviceplugin.chromecast.BuildConfig;
-import org.deviceconnect.android.deviceplugin.chromecast.R;
-
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -19,12 +16,21 @@ import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.MediaRouteButton;
+import android.support.v7.media.MediaRouteSelector;
+import android.support.v7.media.MediaRouter;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.View.OnClickListener;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout.LayoutParams;
+
+import com.google.android.gms.cast.CastDevice;
+import com.google.android.gms.cast.CastMediaControlIntent;
+
+import org.deviceconnect.android.deviceplugin.chromecast.BuildConfig;
+import org.deviceconnect.android.deviceplugin.chromecast.R;
 
 /**
  * チュートリアル画面.
@@ -42,7 +48,13 @@ public class ChromeCastSettingFragmentPage3 extends Fragment {
     private int mBadgeWidth = 0;
     /** バッジの縦サイズ. */
     private int mBadgeHeight = 0;
-    
+    private MediaRouter mMediaRouter;
+    private MediaRouteSelector mMediaRouteSelector;
+    private MediaRouter.Callback mMediaRouterCallback;
+    private MediaRouteButton mMediaRouteButton;
+    private CastDevice mSelectedDevice;
+    private int mRouteCount = 0;
+
     /**
      * Chromecast App (Google) のインストール状態を調べる.
      * 
@@ -118,7 +130,52 @@ public class ChromeCastSettingFragmentPage3 extends Fragment {
                 wifi.setWifiEnabled(true);
             }
         });
+        mMediaRouter = MediaRouter.getInstance(getActivity());
+        // Create a MediaRouteSelector for the type of routes your app supports
+        mMediaRouteSelector = new MediaRouteSelector.Builder()
+                .addControlCategory(
+                        CastMediaControlIntent.categoryForCast(getResources()
+                                .getString(R.string.application_id))).build();
+        // Create a MediaRouter callback for discovery events
+        mMediaRouterCallback = new MyMediaRouterCallback();
+
+        // Set the MediaRouteButton selector for device discovery.
+        mMediaRouteButton = (MediaRouteButton) rootView.findViewById(R.id.media_route_button);
+        mMediaRouteButton.setRouteSelector(mMediaRouteSelector);
+        // Add the callback to start device discovery
+        mMediaRouter.addCallback(mMediaRouteSelector, mMediaRouterCallback,
+                MediaRouter.CALLBACK_FLAG_REQUEST_DISCOVERY);
 
         return rootView;
+    }
+
+    private class MyMediaRouterCallback extends MediaRouter.Callback {
+        @Override
+        public void onRouteAdded(MediaRouter router, MediaRouter.RouteInfo route) {
+            if (++mRouteCount == 1) {
+                // Show the button when a device is discovered.
+                mMediaRouteButton.setVisibility(View.VISIBLE);
+            }
+        }
+
+        @Override
+        public void onRouteRemoved(MediaRouter router, MediaRouter.RouteInfo route) {
+            if (--mRouteCount == 0) {
+                // Hide the button if there are no devices discovered.
+                mMediaRouteButton.setVisibility(View.GONE);
+            }
+        }
+
+        @Override
+        public void onRouteSelected(MediaRouter router, MediaRouter.RouteInfo info) {
+            // Handle route selection.
+            mSelectedDevice = CastDevice.getFromBundle(info.getExtras());
+
+        }
+
+        @Override
+        public void onRouteUnselected(MediaRouter router, MediaRouter.RouteInfo info) {
+            mSelectedDevice = null;
+        }
     }
 }

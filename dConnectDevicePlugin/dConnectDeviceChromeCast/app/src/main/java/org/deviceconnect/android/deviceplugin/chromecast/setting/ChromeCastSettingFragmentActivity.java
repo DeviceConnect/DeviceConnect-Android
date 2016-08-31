@@ -6,9 +6,11 @@
  */
 package org.deviceconnect.android.deviceplugin.chromecast.setting;
 
-import java.util.ArrayList;
 import android.support.v4.app.Fragment;
+
 import org.deviceconnect.android.ui.activity.DConnectSettingPageFragmentActivity;
+
+import java.util.ArrayList;
 
 /**
  * チュートリアル画面（ステップ）.

@@ -196,10 +196,10 @@ public class ChromeCastApplication implements
                     }
                 }
             };
-            
+
             Cast.CastOptions.Builder apiOptionsBuilder = 
                     Cast.CastOptions.builder(mSelectedDevice, mCastListener);
-            mApiClient = new GoogleApiClient.Builder(this.mContext)
+            mApiClient = new GoogleApiClient.Builder(mContext)
                     .addApi(Cast.API, apiOptionsBuilder.build())
                     .addConnectionCallbacks(this)
                     .addOnConnectionFailedListener(this)

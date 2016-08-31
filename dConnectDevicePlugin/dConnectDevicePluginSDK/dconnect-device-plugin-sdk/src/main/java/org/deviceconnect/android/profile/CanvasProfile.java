@@ -10,12 +10,6 @@ import android.content.Intent;
 
 import org.deviceconnect.profile.CanvasProfileConstants;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-
 /**
  * Canvas プロファイル.
  *
@@ -210,48 +204,6 @@ public abstract class CanvasProfile extends DConnectProfile implements CanvasPro
             // nothing.
             return true;
         }
-    }
-
-    protected byte[] getData(String uri) {
-        HttpURLConnection connection = null;
-        InputStream inputStream = null;
-        byte[] data = null;
-        try {
-            URL url = new URL(uri);
-            connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestMethod("GET");
-            connection.connect();
-            inputStream = connection.getInputStream();
-            data = readAll(inputStream);
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            if (connection != null) {
-                connection.disconnect();
-            }
-            try {
-                if (inputStream != null) {
-                    inputStream.close();
-                }
-            } catch (IOException exception) {
-                exception.printStackTrace();
-            }
-        }
-
-        return data;
-    }
-
-    private byte[] readAll(InputStream inputStream) throws IOException {
-        ByteArrayOutputStream bout = new ByteArrayOutputStream();
-        byte[] buffer = new byte[1024];
-        while (true) {
-            int len = inputStream.read(buffer);
-            if (len < 0) {
-                break;
-            }
-            bout.write(buffer, 0, len);
-        }
-        return bout.toByteArray();
     }
 
 }

@@ -18,9 +18,11 @@ import org.deviceconnect.android.compat.MessageConverter;
 import org.deviceconnect.android.manager.compat.CompatibleRequestConverter;
 import org.deviceconnect.android.manager.compat.ServiceDiscoveryConverter;
 import org.deviceconnect.android.manager.compat.ServiceInformationConverter;
+import org.deviceconnect.android.manager.keepalive.KeepAlive;
 import org.deviceconnect.android.manager.util.DConnectUtil;
 import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.message.DConnectMessage;
+import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 import org.deviceconnect.server.DConnectServer;
 import org.deviceconnect.server.DConnectServerConfig;
 import org.deviceconnect.server.nanohttpd.DConnectServerNanoHttpd;
@@ -71,33 +73,59 @@ public class DConnectService extends DConnectMessageService {
     public void onCreate() {
         super.onCreate();
         mRequestConverters = new MessageConverter[] {
-            new CompatibleRequestConverter(mPluginMgr)
+                new CompatibleRequestConverter(mPluginMgr)
         };
         mResponseConverters = new MessageConverter[] {
-            new ServiceDiscoveryConverter(),
-            new ServiceInformationConverter()
+                new ServiceDiscoveryConverter(),
+                new ServiceInformationConverter()
         };
-    }
-
-    @Override
-    public int onStartCommand(final Intent intent, final int flags, final int startId) {
-        if (intent != null) {
-            String action = intent.getAction();
-            if (ACTION_DISCONNECT_WEB_SOCKET.equals(action)) {
-                String sessionKey = intent.getStringExtra(EXTRA_SESSION_KEY);
-                if (sessionKey != null) {
-                    mRESTfulServer.disconnectWebSocket(sessionKey);
-                }
-                return START_STICKY;
-            }
-        }
-        return super.onStartCommand(intent, flags, startId);
     }
 
     @Override
     public void onDestroy() {
         stopRESTfulServer();
         super.onDestroy();
+    }
+
+    @Override
+    public int onStartCommand(final Intent intent, final int flags, final int startId) {
+        if (intent == null) {
+            mLogger.warning("intent is null.");
+            return START_STICKY;
+        }
+        String action = intent.getAction();
+        if (action == null) {
+            mLogger.warning("action is null.");
+            return START_STICKY;
+        }
+
+        if (ACTION_DISCONNECT_WEB_SOCKET.equals(action)) {
+            String sessionKey = intent.getStringExtra(EXTRA_SESSION_KEY);
+            if (sessionKey != null) {
+                mRESTfulServer.disconnectWebSocket(sessionKey);
+            }
+            return START_STICKY;
+        }
+
+        if (IntentDConnectMessage.ACTION_KEEPALIVE.equals(action)) {
+            String status = intent.getStringExtra(IntentDConnectMessage.EXTRA_KEEPALIVE_STATUS);
+            if (status.equals("RESPONSE")) {
+                String serviceId = intent.getStringExtra("serviceId");
+                if (serviceId != null) {
+                    KeepAlive keepAlive = ((DConnectApplication) getApplication()).getKeepAliveManager().getKeepAlive(serviceId);
+                    if (keepAlive != null) {
+                        keepAlive.setResponseFlag();
+                    }
+                }
+            } else if (status.equals("DISCONNECT")) {
+                String sessionKey = intent.getStringExtra(IntentDConnectMessage.EXTRA_SESSION_KEY);
+                if (sessionKey != null) {
+                    sendDisconnectWebSocket(sessionKey);
+                }
+            }
+            return START_STICKY;
+        }
+        return super.onStartCommand(intent, flags, startId);
     }
 
     @Override
@@ -114,31 +142,50 @@ public class DConnectService extends DConnectMessageService {
     public void sendEvent(final String receiver, final Intent event) {
         if (receiver == null || receiver.length() <= 0) {
             final String key = event.getStringExtra(DConnectMessage.EXTRA_SESSION_KEY);
-                mEventSender.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (key != null && mRESTfulServer != null && mRESTfulServer.isRunning()) {
-                            try {
-                                if (BuildConfig.DEBUG) {
-                                    mLogger.info(String.format("sendEvent: %s extra: %s", key, event.getExtras()));
-                                }
-                                JSONObject root = new JSONObject();
-                                DConnectUtil.convertBundleToJSON(root, event.getExtras());
+            mEventSender.execute(new Runnable() {
+                @Override
+                public void run() {
+                    if (key != null && mRESTfulServer != null && mRESTfulServer.isRunning()) {
+                        try {
+                            if (BuildConfig.DEBUG) {
+                                mLogger.info(String.format("sendEvent: %s extra: %s", key, event.getExtras()));
+                            }
+                            JSONObject root = new JSONObject();
+                            DConnectUtil.convertBundleToJSON(root, event.getExtras());
 
-                                mRESTfulServer.sendEvent(key, root.toString());
-                            } catch (JSONException e) {
-                                mLogger.warning("JSONException in sendEvent: " + e.toString());
-                            } catch (IOException e) {
-                                mLogger.warning("IOException in sendEvent: " + e.toString());
-                                if (mWebServerListener != null) {
-                                    mWebServerListener.onWebSocketDisconnected(key);
-                                }
+                            mRESTfulServer.sendEvent(key, root.toString());
+                        } catch (JSONException e) {
+                            mLogger.warning("JSONException in sendEvent: " + e.toString());
+                        } catch (IOException e) {
+                            mLogger.warning("IOException in sendEvent: " + e.toString());
+                            if (mWebServerListener != null) {
+                                mWebServerListener.onWebSocketDisconnected(key);
                             }
                         }
                     }
-                });
+                }
+            });
         } else {
             super.sendEvent(receiver, event);
+        }
+    }
+
+    /**
+     * 該当セッションキーを持つWebSocket切断要求を送る.
+     * @param sessionKey セッションキー.
+     */
+    public void sendDisconnectWebSocket(final String sessionKey) {
+        if (sessionKey != null) {
+            mEventSender.execute(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        mRESTfulServer.disconnectionWebSocket(sessionKey);
+                    } catch (IOException e) {
+                        mLogger.warning("IOException in disconnectWebSocket: " + e.toString());
+                    }
+                }
+            });
         }
     }
 

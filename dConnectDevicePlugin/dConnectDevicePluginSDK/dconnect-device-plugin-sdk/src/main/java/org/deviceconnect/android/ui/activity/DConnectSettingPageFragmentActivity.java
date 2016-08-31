@@ -13,10 +13,9 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.view.ViewPager;
 import android.view.MenuItem;
 
+import org.deviceconnect.android.R;
 import org.deviceconnect.android.ui.adapter.DConnectFragmentPagerAdapter;
 import org.deviceconnect.android.ui.adapter.DConnectPageCreater;
-
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * デバイスプラグイン設定画面用 ベースフラグメントアクティビティ.
@@ -24,21 +23,11 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public abstract class DConnectSettingPageFragmentActivity extends FragmentActivity implements
         DConnectPageCreater<Fragment> {
-
-    /**
-     * ID値のMAX.
-     */
-    private static final int MAX_VALUE = 0x00FFFFFF;
     
     /**
      * ページ用のビューページャー.
      */
     private ViewPager mViewPager;
-    
-    /** 
-     * デフォルトのタイトル文字列.
-     */
-    public static final String DEFAULT_TITLE = "CLOSE";
 
     /**
      * ViewPagerを持つレイアウトを自動的に設定する.
@@ -50,37 +39,15 @@ public abstract class DConnectSettingPageFragmentActivity extends FragmentActivi
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mViewPager = new ViewPager(this);
-        mViewPager.setId(generateViewId());
-        DConnectFragmentPagerAdapter adapter = new DConnectFragmentPagerAdapter(getSupportFragmentManager(), this);
-        mViewPager.setAdapter(adapter);
-        setContentView(mViewPager);
+        setContentView(R.layout.activity_setting_page);
+
+        mViewPager = (ViewPager) findViewById(R.id.setting_pager);
+        mViewPager.setAdapter(new DConnectFragmentPagerAdapter(getSupportFragmentManager(), this));
 
         if (getActionBar() != null) {
             getActionBar().setDisplayHomeAsUpEnabled(true);
             getActionBar().setDisplayOptions(0, ActionBar.DISPLAY_SHOW_HOME);
-            getActionBar().setTitle(DEFAULT_TITLE);
-        }
-    }
-
-    /**
-     * ViewPagerのIDを生成する. IDが無いとリソースIDが無いといわれエラーになってしまうため対処。
-     * View.generateViewId()はAPI17からなので同等の機能を実装。
-     * 
-     * @return リソースID
-     */
-    private int generateViewId() {
-        AtomicInteger sNextGeneratedId = new AtomicInteger(1);
-
-        for (;;) {
-            final int result = sNextGeneratedId.get();
-            int newValue = result + 1;
-            if (newValue > MAX_VALUE) {
-                newValue = 1;
-            }
-            if (sNextGeneratedId.compareAndSet(result, newValue)) {
-                return result;
-            }
+            getActionBar().setTitle(R.string.activity_setting_page_title);
         }
     }
 
@@ -94,7 +61,7 @@ public abstract class DConnectSettingPageFragmentActivity extends FragmentActivi
         
         return super.onOptionsItemSelected(item);
     }
-    
+
     /**
      * ViewPagerを取得する.
      * 

@@ -104,4 +104,18 @@ public interface SWConstants {
      * 加速度取得用デフォルトインターバル. 単位はミリ秒.
      */
     long DEFAULT_SENSOR_INTERVAL = 1000;
+    /**
+     * SW側へリクエストを送信できる状態になったことを通知するアクション名.
+     */
+    String ACTION_CONNECTED
+        = "org.deviceconnect.android.deviceplugin.sw.smartconnect.action.CONNECTED";
+    /**
+     * SW側へリクエストを送信できなくなったことを通知するアクション名.
+     */
+    String ACTION_DISCONNECTED
+        = "org.deviceconnect.android.deviceplugin.sw.smartconnect.action.DISCONNECTED";
+    /**
+     * エクストラ: サービスID
+     */
+    String EXTRA_SERVICE_ID = "serviceId";
 }

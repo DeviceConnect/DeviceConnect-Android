@@ -106,6 +106,14 @@
             android:key="@string/key_settings_web_server_document_root_path"
             android:title="@string/activity_settings_web_server_document_root" />
     </PreferenceCategory>
+    <PreferenceCategory android:title="@string/activity_settings_event_keep_alive_settings" >
+        <org.deviceconnect.android.manager.setting.SwitchPreference
+            android:key="@string/key_settings_event_keep_alive_on_off"
+            android:defaultValue="true"
+            android:summaryOff="@string/activity_settings_dconnect_disabled"
+            android:summaryOn="@string/activity_settings_dconnect_enabled"
+            android:title="@string/activity_settings_event_keep_alive_settings" />
+    </PreferenceCategory>
     <PreferenceCategory android:title="@string/activity_settings_about" >
         <PreferenceScreen
             android:key="@string/key_settings_open_source_licenses"

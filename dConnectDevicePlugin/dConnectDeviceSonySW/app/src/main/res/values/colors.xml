@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="sw1_title_background">#ffffff</color>
+    <color name="sw1_title_text">#e4007f</color>
+    <color name="sw2_title_background">#ffffff</color>
+    <color name="sw2_title_text">#00a0e9</color>
+</resources>

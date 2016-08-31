@@ -11,6 +11,7 @@ import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.view.KeyEvent;
 import android.view.MenuItem;
@@ -18,7 +19,6 @@ import android.view.MenuItem;
 import org.deviceconnect.android.deviceplugin.irkit.IRKitApplication;
 import org.deviceconnect.android.deviceplugin.irkit.R;
 import org.deviceconnect.android.deviceplugin.irkit.data.VirtualProfileData;
-import org.deviceconnect.android.deviceplugin.irkit.settings.fragment.IRKitDeviceListFragment;
 import org.deviceconnect.android.deviceplugin.irkit.settings.fragment.IRKitRegisterIRFragment;
 import org.deviceconnect.android.deviceplugin.irkit.settings.fragment.IRKitVirtualDeviceFragment;
 import org.deviceconnect.android.deviceplugin.irkit.settings.fragment.IRKitVirtualProfileListFragment;
@@ -28,45 +28,57 @@ import org.deviceconnect.android.deviceplugin.irkit.settings.fragment.IRKitVirtu
  * 
  * @author NTT DOCOMO, INC.
  */
-public class IRKitDeviceListActivity extends Activity {
+public class IRKitVirtualDeviceListActivity extends Activity
+    implements FragmentManager.OnBackStackChangedListener {
 
     /**
-     * トップページ.
+     * エクストラ: 対象のサービスID.
      */
-    public static final int TOP_PAGE = 0;
+    public static final String EXTRA_SERVICE_ID = "serviceId";
 
     /**
      * Virtual Device 管理ページ.
      */
-    public static final int MANAGE_VIRTUAL_DEVICE_PAGE = 1;
+    public static final int MANAGE_VIRTUAL_DEVICE_PAGE = 0;
 
     /**
      * Virtual Profile 管理ページ.
      */
-    public static final int MANAGE_VIRTUAL_PROFILE_PAGE = 2;
+    public static final int MANAGE_VIRTUAL_PROFILE_PAGE = 1;
 
     /**
      * Ir 登録ページ.
      */
-    public static final int REGISTER_IR_PAGE = 3;
+    public static final int REGISTER_IR_PAGE = 2;
 
     /**
      * 今表示されているページ番号
      */
-    private int currentPage = 0;
+    private int currentPage = MANAGE_VIRTUAL_DEVICE_PAGE;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (null == savedInstanceState) {
-            startApp(TOP_PAGE, null);
+            String serviceId = getIntent().getStringExtra(EXTRA_SERVICE_ID);
+            startApp(currentPage, serviceId);
+            setTitleForPage(currentPage);
+
+            getFragmentManager().addOnBackStackChangedListener(this);
         }
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
+
+        getFragmentManager().removeOnBackStackChangedListener(this);
         getIRKitApplication().removeAllListViewPostion();
+    }
+
+    @Override
+    public void onBackStackChanged() {
+        setTitleForPage(currentPage);
     }
 
     @Override
@@ -74,13 +86,9 @@ public class IRKitDeviceListActivity extends Activity {
         switch (currentPage) {
             case REGISTER_IR_PAGE:
             case MANAGE_VIRTUAL_PROFILE_PAGE:
-            case MANAGE_VIRTUAL_DEVICE_PAGE:
                 FragmentManager fm = getFragmentManager();
                 fm.popBackStack();
                 currentPage--;
-                if (currentPage == TOP_PAGE) {
-                    getActionBar().setTitle("CLOSE");
-                }
                 break;
             default:
                 finish();
@@ -88,6 +96,11 @@ public class IRKitDeviceListActivity extends Activity {
         }
         return true;
     }
+    @Override
+    public void onConfigurationChanged(final Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+    }
+
     @Override
     public boolean dispatchKeyEvent(final KeyEvent event) {
         if (event.getAction() == KeyEvent.ACTION_DOWN) {
@@ -100,9 +113,6 @@ public class IRKitDeviceListActivity extends Activity {
                         return false;
                     } else {
                         currentPage--;
-                        if (currentPage == TOP_PAGE) {
-                            getActionBar().setTitle("CLOSE");
-                        }
                     }
                     break;
                 default:
@@ -111,6 +121,25 @@ public class IRKitDeviceListActivity extends Activity {
         }
         return super.dispatchKeyEvent(event);
     }
+
+    private void setTitleForPage(final int pageId) {
+        int resId;
+        switch (pageId) {
+            case MANAGE_VIRTUAL_DEVICE_PAGE:
+                resId = R.string.virtual_device_list;
+                break;
+            case MANAGE_VIRTUAL_PROFILE_PAGE:
+                resId = R.string.ir_registration;
+                break;
+            case REGISTER_IR_PAGE:
+                resId = R.string.ir_registration;
+                break;
+            default:
+                return;
+        }
+        getActionBar().setTitle(resId);
+    }
+
     /**
      * ページを遷移する.
      * @param pageId pageId
@@ -122,21 +151,12 @@ public class IRKitDeviceListActivity extends Activity {
         getActionBar().setDisplayHomeAsUpEnabled(true);
         getActionBar().setDisplayOptions(0, ActionBar.DISPLAY_SHOW_HOME);
         if (pageId == MANAGE_VIRTUAL_PROFILE_PAGE) {
-            getActionBar().setTitle("一覧");
-
             IRKitVirtualProfileListFragment f = new IRKitVirtualProfileListFragment();
             f.setServiceId(serviceId);
             moveFragment(f);
         } else if (pageId == MANAGE_VIRTUAL_DEVICE_PAGE) {
-            getActionBar().setTitle("一覧");
-
             IRKitVirtualDeviceFragment f = new IRKitVirtualDeviceFragment();
             f.setServiceId(serviceId);
-            moveFragment(f);
-        } else if (pageId == TOP_PAGE) {
-            getActionBar().setTitle("CLOSE");
-
-            IRKitDeviceListFragment f = new IRKitDeviceListFragment();
             moveFragment(f);
         }
     }
@@ -150,12 +170,10 @@ public class IRKitDeviceListActivity extends Activity {
         setTitle(R.string.activity_devicelist_title);
         getActionBar().setDisplayHomeAsUpEnabled(true);
         getActionBar().setDisplayOptions(0, ActionBar.DISPLAY_SHOW_HOME);
-        getActionBar().setTitle("一覧");
 
         IRKitRegisterIRFragment f = new IRKitRegisterIRFragment();
         f.setProfile(virtualProfile);
         moveFragment(f);
-
     }
 
     /**
@@ -169,7 +187,6 @@ public class IRKitDeviceListActivity extends Activity {
         t.replace(android.R.id.content, f);
         t.addToBackStack(null);
         t.commit();
-
     }
 
     /**

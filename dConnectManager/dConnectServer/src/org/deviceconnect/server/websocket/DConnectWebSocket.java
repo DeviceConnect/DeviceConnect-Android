@@ -19,5 +19,9 @@ public interface DConnectWebSocket {
 	 * @param event イベントメッセージ
 	 */
 	void sendEvent(String event);
-	
+
+	/**
+	 * WebSocketを切断させます.
+	 */
+	void disconnectWebSocket();
 }

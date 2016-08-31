@@ -4,7 +4,7 @@
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
  */
-package org.deviceconnect.android.deviceplugin.uvc;
+package org.deviceconnect.android.deviceplugin.uvc.core;
 
 
 import android.content.Context;
@@ -13,6 +13,8 @@ import android.os.Build;
 
 import com.serenegiant.usb.DeviceFilter;
 import com.serenegiant.usb.USBMonitor;
+
+import org.deviceconnect.android.deviceplugin.uvc.R;
 
 import java.util.ArrayList;
 import java.util.Iterator;

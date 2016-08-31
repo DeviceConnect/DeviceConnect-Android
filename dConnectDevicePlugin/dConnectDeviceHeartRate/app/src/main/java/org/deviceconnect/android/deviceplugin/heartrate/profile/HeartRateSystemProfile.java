@@ -10,7 +10,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 
-import org.deviceconnect.android.deviceplugin.heartrate.activity.HeartRateDeviceSettingsActivity;
+import org.deviceconnect.android.deviceplugin.heartrate.activity.HeartRateServiceListActivity;
 import org.deviceconnect.android.profile.SystemProfile;
 
 /**
@@ -20,6 +20,6 @@ import org.deviceconnect.android.profile.SystemProfile;
 public class HeartRateSystemProfile extends SystemProfile {
     @Override
     protected Class<? extends Activity> getSettingPageActivity(final Intent request, final Bundle param) {
-        return HeartRateDeviceSettingsActivity.class;
+        return HeartRateServiceListActivity.class;
     }
 }

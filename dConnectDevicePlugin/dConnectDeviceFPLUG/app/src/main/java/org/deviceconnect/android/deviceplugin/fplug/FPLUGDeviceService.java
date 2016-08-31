@@ -6,6 +6,8 @@
  */
 package org.deviceconnect.android.deviceplugin.fplug;
 
+import android.util.Log;
+
 import org.deviceconnect.android.deviceplugin.fplug.fplug.FPLUGController;
 import org.deviceconnect.android.deviceplugin.fplug.profile.FPLUGSystemProfile;
 import org.deviceconnect.android.deviceplugin.fplug.service.FPLUGService;
@@ -14,8 +16,6 @@ import org.deviceconnect.android.event.cache.MemoryCacheController;
 import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.android.service.DConnectService;
-
-import android.util.Log;
 
 /**
  * F-PLUG device plug-in.
@@ -65,15 +65,12 @@ public class FPLUGDeviceService extends DConnectMessageService
 
     @Override
     public void onAdded(final FPLUGController controller) {
-        getServiceProvider().addService(new FPLUGService(controller.getAddress()));
+        addService(controller);
     }
 
     @Override
     public void onConnected(final FPLUGController controller) {
-        DConnectService service = getServiceProvider().getService(controller.getAddress());
-        if (service != null) {
-            service.setOnline(true);
-        }
+        getService(controller).setOnline(true);
     }
 
     @Override
@@ -82,5 +79,19 @@ public class FPLUGDeviceService extends DConnectMessageService
         if (service != null) {
             service.setOnline(false);
         }
+    }
+
+    private DConnectService addService(final FPLUGController controller) {
+        DConnectService service = new FPLUGService(controller.getAddress());
+        getServiceProvider().addService(service);
+        return service;
+    }
+
+    private DConnectService getService(final FPLUGController controller) {
+        DConnectService service = getServiceProvider().getService(controller.getAddress());
+        if (service == null) {
+            service = addService(controller);
+        }
+        return service;
     }
 }

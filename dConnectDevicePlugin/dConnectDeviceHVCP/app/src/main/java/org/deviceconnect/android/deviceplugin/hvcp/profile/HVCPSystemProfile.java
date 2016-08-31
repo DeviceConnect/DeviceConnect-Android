@@ -10,7 +10,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 
-import org.deviceconnect.android.deviceplugin.hvcp.setting.SettingActivity;
+import org.deviceconnect.android.deviceplugin.hvcp.setting.HVCPServiceListActivity;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.SystemProfile;
@@ -31,7 +31,7 @@ public class HVCPSystemProfile extends SystemProfile {
 
     @Override
     protected Class<? extends Activity> getSettingPageActivity(Intent request, Bundle param) {
-        return SettingActivity.class;
+        return HVCPServiceListActivity.class;
     }
 
     private final DConnectApi mDeleteEventsApi = new DeleteApi() {

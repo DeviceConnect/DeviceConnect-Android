@@ -61,6 +61,11 @@ public class DConnectLaunchActivity extends Activity {
     private HmacManager mHmacManager;
 
     /**
+     * DConnectServiceを操作するクラス.
+     */
+    private IDConnectService mDConnectService;
+
+    /**
      * The logger.
      */
     protected final Logger mLogger = Logger.getLogger("dconnect.manager");
@@ -72,6 +77,9 @@ public class DConnectLaunchActivity extends Activity {
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        requestWindowFeature(Window.FEATURE_ACTION_BAR);
+        getActionBar().hide();
+
         mHmacManager = new HmacManager(this);
         mSettings.load(this);
         processRequest(getIntent());
@@ -90,9 +98,21 @@ public class DConnectLaunchActivity extends Activity {
             String path = uri.getPath();
             if (HOST_START.equals(host)) {
                 if (!allowExternalStartAndStop() || PATH_ROOT.equals(path) || PATH_ACTIVITY.equals(path)) {
-                    displayActivity();
+                    mBehavior = new Runnable() {
+                        @Override
+                        public void run() {
+                            try {
+                                if (!mDConnectService.isRunning()) {
+                                    displayActivity();
+                                } else {
+                                    finish();
+                                }
+                            } catch (RemoteException e) {
+                                finish();
+                            }
+                        }
+                    };
                 } else if (PATH_SERVER.equals(path)) {
-                    hideActivity();
                     mBehavior = new Runnable() {
                         @Override
                         public void run() {
@@ -104,9 +124,21 @@ public class DConnectLaunchActivity extends Activity {
                 }
             } else if (HOST_STOP.equals(host)) {
                 if (!allowExternalStartAndStop() || PATH_ROOT.equals(path) || PATH_ACTIVITY.equals(path)) {
-                    displayActivity();
+                    mBehavior = new Runnable() {
+                        @Override
+                        public void run() {
+                            try {
+                                if (mDConnectService.isRunning()) {
+                                    displayActivity();
+                                } else {
+                                    finish();
+                                }
+                            } catch (RemoteException e) {
+                                finish();
+                            }
+                        }
+                    };
                 } else if (PATH_SERVER.equals(path)) {
-                    hideActivity();
                     mBehavior = new Runnable() {
                         @Override
                         public void run() {
@@ -137,7 +169,6 @@ public class DConnectLaunchActivity extends Activity {
     @Override
     protected void onPause() {
         super.onPause();
-        unbindService(mServiceConnection);
         onActivityResult(0, RESULT_CANCELED, null);
         finish();
     }
@@ -212,6 +243,7 @@ public class DConnectLaunchActivity extends Activity {
     }
 
     private void displayActivity() {
+        getActionBar().show();
         setContentView(R.layout.activity_dconnect_launcher);
         setTheme(R.style.AppTheme);
         View root = findViewById(R.id.launcher_root);
@@ -225,10 +257,12 @@ public class DConnectLaunchActivity extends Activity {
                 finish();
             }
         });
-    }
 
-    private void hideActivity() {
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
+        try {
+            toggleButton(mDConnectService.isRunning());
+        } catch (RemoteException e) {
+            mLogger.warning("Failed to get service");
+        }
     }
 
     private boolean existsConnectedWebSocket() {
@@ -291,11 +325,6 @@ public class DConnectLaunchActivity extends Activity {
     }
 
     /**
-     * DConnectServiceを操作するクラス.
-     */
-    private IDConnectService mDConnectService;
-
-    /**
      * DConnectServiceと接続するためのクラス.
      */
     private final ServiceConnection mServiceConnection = new ServiceConnection() {
@@ -305,12 +334,6 @@ public class DConnectLaunchActivity extends Activity {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    try {
-                        boolean running = mDConnectService.isRunning();
-                        toggleButton(running);
-                    } catch (RemoteException e) {
-                        mLogger.warning("Failed to get service");
-                    }
                     if (mBehavior != null) {
                         mBehavior.run();
                     }

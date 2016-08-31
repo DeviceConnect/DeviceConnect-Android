@@ -8,6 +8,8 @@ package org.deviceconnect.android.manager;
 
 import android.app.Application;
 
+import org.deviceconnect.android.manager.keepalive.KeepAliveManager;
+
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -17,25 +19,57 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author NTT DOCOMO, INC.
  */
 public class DConnectApplication extends Application {
+    /** ドメイン名. */
+    private static final String DCONNECT_DOMAIN = ".deviceconnect.org";
 
     /** デバイスプラグインに紐付くイベント判断用キー格納領域 */
     private final Map<String, String> mEventKeys = new ConcurrentHashMap<>();
 
-    /** インスタンス */
-    private static DConnectApplication sInstance;
+    /** ローカルのドメイン名. */
+    private static final String LOCALHOST_DCONNECT = "localhost" + DCONNECT_DOMAIN;
+
+    /** WebSocket管理クラス. */
+    private WebSocketInfoManager mWebSocketInfoManager;
+
+    /** デバイスプラグイン管理クラス. */
+    private DevicePluginManager mDevicePluginManager;
+
+    /** KeepAlive管理クラス. */
+    private KeepAliveManager mKeepAliveManager;
 
     @Override
     public void onCreate() {
         super.onCreate();
-        sInstance = this;
+
+        mDevicePluginManager = new DevicePluginManager(this, LOCALHOST_DCONNECT);
+        mDevicePluginManager.createDevicePluginList();
+
+        mWebSocketInfoManager = new WebSocketInfoManager(this);
+
+        mKeepAliveManager = new KeepAliveManager(this);
     }
 
-    /**
-     * Applicationインスタンス取得.
-     * @return インスタンス
-     */
-    public static synchronized DConnectApplication getInstance() {
-        return sInstance;
+    @Override
+    public void onTerminate() {
+        mWebSocketInfoManager = null;
+        mDevicePluginManager = null;
+        super.onTerminate();
+    }
+
+    public void updateDevicePluginList() {
+        mDevicePluginManager.createDevicePluginList();
+    }
+
+    public WebSocketInfoManager getWebSocketInfoManager() {
+        return mWebSocketInfoManager;
+    }
+
+    public DevicePluginManager getDevicePluginManager() {
+        return mDevicePluginManager;
+    }
+
+    public KeepAliveManager getKeepAliveManager() {
+        return mKeepAliveManager;
     }
 
     /**
@@ -45,19 +79,6 @@ public class DConnectApplication extends Application {
      */
     public void setDevicePluginIdentifyKey(final String identifyKey, final String serviceId) {
         mEventKeys.put(identifyKey, serviceId);
-    }
-
-    /**
-     * セッションキーに紐付いているデバイスプラグインIDを取得する.
-     * @param identifyKey セッションキー
-     * @return プラグインID、該当無しの場合はnull
-     */
-    public String getDevicePluginIdentifyKey(final String identifyKey) {
-        if (mEventKeys.containsKey(identifyKey)) {
-            return mEventKeys.get(identifyKey);
-        } else {
-            return null;
-        }
     }
 
     /**
@@ -72,23 +93,6 @@ public class DConnectApplication extends Application {
         } else {
             return false;
         }
-    }
-
-    /**
-     * Map登録されているKey取得.
-     * @param sessionKey セッションキー
-     * @return Map登録されているKey, 存在しない場合はnull.
-     */
-    public String getIdentifySessionKey(final String sessionKey) {
-        String matchKey = null;
-        for (Map.Entry<String, String> entry : mEventKeys.entrySet()) {
-            String key = entry.getKey();
-            if (key.startsWith(sessionKey)) {
-                matchKey = key;
-                break;
-            }
-        }
-        return matchKey;
     }
 
     /**

@@ -29,6 +29,7 @@ import android.widget.TextView;
 import org.deviceconnect.android.localoauth.DevicePluginXmlProfile;
 import org.deviceconnect.android.localoauth.DevicePluginXmlProfileLocale;
 import org.deviceconnect.android.localoauth.DevicePluginXmlUtil;
+import org.deviceconnect.android.manager.DConnectApplication;
 import org.deviceconnect.android.manager.DevicePlugin;
 import org.deviceconnect.android.manager.DevicePluginManager;
 import org.deviceconnect.android.manager.R;
@@ -167,9 +168,8 @@ public class DevicePluginInfoFragment extends Fragment {
      * Open device plug-in's settings.
      */
     private void openSettings() {
-        DevicePluginManager mgr = new DevicePluginManager(getActivity(), null);
-        mgr.createDevicePluginList();
-        List<DevicePlugin> plugins = mgr.getDevicePlugins();
+        DConnectApplication app = (DConnectApplication) getActivity().getApplication();
+        List<DevicePlugin> plugins = app.getDevicePluginManager().getDevicePlugins();
         for (DevicePlugin plugin : plugins) {
             if (mPackageName.equals(plugin.getPackageName())
                     && plugin.getServiceId() != null) {
@@ -205,9 +205,8 @@ public class DevicePluginInfoFragment extends Fragment {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                DevicePluginManager mgr = new DevicePluginManager(getActivity(), null);
-                mgr.createDevicePluginList();
-                List<DevicePlugin> plugins = mgr.getDevicePlugins();
+                DConnectApplication app = (DConnectApplication) getActivity().getApplication();
+                List<DevicePlugin> plugins = app.getDevicePluginManager().getDevicePlugins();
                 for (DevicePlugin plugin : plugins) {
                     if (mPackageName.equals(plugin.getPackageName())
                             && plugin.getStartServiceClassName() != null

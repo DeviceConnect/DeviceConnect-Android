@@ -11,6 +11,9 @@ import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.graphics.ColorMatrix;
+import android.graphics.ColorMatrixColorFilter;
+import android.graphics.drawable.Drawable;
 import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -190,5 +193,14 @@ public final class DConnectUtil {
             }
             return result;
         }
+    }
+
+    public static Drawable convertToGrayScale(final Drawable drawable) {
+        Drawable clone = drawable.getConstantState().newDrawable().mutate();
+        ColorMatrix matrix = new ColorMatrix();
+        matrix.setSaturation(0.2f);
+        ColorMatrixColorFilter filter = new ColorMatrixColorFilter(matrix);
+        clone.setColorFilter(filter);
+        return clone;
     }
 }

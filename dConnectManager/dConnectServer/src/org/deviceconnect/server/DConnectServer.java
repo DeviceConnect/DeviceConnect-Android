@@ -89,6 +89,12 @@ public abstract class DConnectServer {
     public abstract String getVersion();
 
     /**
+     * WebSocketを切断する.
+     * @param sessionKey セッションキー
+     */
+    public abstract void disconnectWebSocket(String sessionKey);
+
+    /**
      * イベントリスナーを設定します.
      * 
      * @param listener リスナーオブジェクト

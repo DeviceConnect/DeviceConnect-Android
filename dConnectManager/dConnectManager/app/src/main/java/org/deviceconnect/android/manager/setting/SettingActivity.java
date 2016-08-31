@@ -6,6 +6,7 @@
  */
 package org.deviceconnect.android.manager.setting;
 
+import android.app.ActionBar;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
@@ -26,8 +27,12 @@ public class SettingActivity extends Activity implements AlertDialogFragment.OnA
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        getActionBar().setDisplayHomeAsUpEnabled(false);
         setContentView(R.layout.activity_dconnect_settings);
+
+        ActionBar actionBar = getActionBar();
+        if (actionBar != null) {
+            actionBar.setDisplayHomeAsUpEnabled(true);
+        }
 
         Intent i1 = new Intent();
         i1.setClass(this, DConnectService.class);

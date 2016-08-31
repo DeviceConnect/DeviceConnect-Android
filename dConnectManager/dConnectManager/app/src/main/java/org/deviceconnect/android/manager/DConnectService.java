@@ -73,11 +73,11 @@ public class DConnectService extends DConnectMessageService {
     public void onCreate() {
         super.onCreate();
         mRequestConverters = new MessageConverter[] {
-            new CompatibleRequestConverter(mPluginMgr)
+                new CompatibleRequestConverter(mPluginMgr)
         };
         mResponseConverters = new MessageConverter[] {
-            new ServiceDiscoveryConverter(),
-            new ServiceInformationConverter()
+                new ServiceDiscoveryConverter(),
+                new ServiceInformationConverter()
         };
     }
 
@@ -142,29 +142,29 @@ public class DConnectService extends DConnectMessageService {
     public void sendEvent(final String receiver, final Intent event) {
         if (receiver == null || receiver.length() <= 0) {
             final String key = event.getStringExtra(DConnectMessage.EXTRA_SESSION_KEY);
-                mEventSender.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (key != null && mRESTfulServer != null && mRESTfulServer.isRunning()) {
-                            try {
-                                if (BuildConfig.DEBUG) {
-                                    mLogger.info(String.format("sendEvent: %s extra: %s", key, event.getExtras()));
-                                }
-                                JSONObject root = new JSONObject();
-                                DConnectUtil.convertBundleToJSON(root, event.getExtras());
+            mEventSender.execute(new Runnable() {
+                @Override
+                public void run() {
+                    if (key != null && mRESTfulServer != null && mRESTfulServer.isRunning()) {
+                        try {
+                            if (BuildConfig.DEBUG) {
+                                mLogger.info(String.format("sendEvent: %s extra: %s", key, event.getExtras()));
+                            }
+                            JSONObject root = new JSONObject();
+                            DConnectUtil.convertBundleToJSON(root, event.getExtras());
 
-                                mRESTfulServer.sendEvent(key, root.toString());
-                            } catch (JSONException e) {
-                                mLogger.warning("JSONException in sendEvent: " + e.toString());
-                            } catch (IOException e) {
-                                mLogger.warning("IOException in sendEvent: " + e.toString());
-                                if (mWebServerListener != null) {
-                                    mWebServerListener.onWebSocketDisconnected(key);
-                                }
+                            mRESTfulServer.sendEvent(key, root.toString());
+                        } catch (JSONException e) {
+                            mLogger.warning("JSONException in sendEvent: " + e.toString());
+                        } catch (IOException e) {
+                            mLogger.warning("IOException in sendEvent: " + e.toString());
+                            if (mWebServerListener != null) {
+                                mWebServerListener.onWebSocketDisconnected(key);
                             }
                         }
                     }
-                });
+                }
+            });
         } else {
             super.sendEvent(receiver, event);
         }

@@ -14,8 +14,8 @@ import android.os.Bundle;
 
 import com.serenegiant.usb.UVCCamera;
 
-import org.deviceconnect.android.deviceplugin.uvc.UVCDevice;
-import org.deviceconnect.android.deviceplugin.uvc.UVCDeviceManager;
+import org.deviceconnect.android.deviceplugin.uvc.core.UVCDevice;
+import org.deviceconnect.android.deviceplugin.uvc.core.UVCDeviceManager;
 import org.deviceconnect.android.deviceplugin.uvc.utils.MixedReplaceMediaServer;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.MediaStreamRecordingProfile;

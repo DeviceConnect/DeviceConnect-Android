@@ -6,6 +6,7 @@
     -->
     <style name="AppBaseTheme" parent="android:Theme.Holo.Light">
         <!-- API 11 theme customizations can go here. -->
+        <item name="android:actionBarStyle">@style/DefaultActionBarTheme</item>
     </style>
 
 </resources>

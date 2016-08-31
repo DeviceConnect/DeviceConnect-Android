@@ -71,13 +71,13 @@ public class PebbleDeviceService extends DConnectMessageService {
                         for (BluetoothDevice device : adapter.getBondedDevices()) {
                             if (device.getAddress().equalsIgnoreCase(macAddress)) {
                                 service = new PebbleService(device, PebbleDeviceService.this);
-                                service.setOnline(true);
                                 getServiceProvider().addService(service);
                                 break;
                             }
                         }
                     }
                 }
+                service.setOnline(true);
             }
 
             @Override

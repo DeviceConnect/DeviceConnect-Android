@@ -301,9 +301,9 @@ public class DevicePluginManager {
 
     /**
      * サービスIDにDevice Connect Managerのドメイン名を追加する.
-     * 
+     *
      * サービスIDがnullのときには、サービスIDは無視します。
-     * 
+     *
      * @param plugin デバイスプラグイン
      * @param serviceId サービスID
      * @return Device Connect Managerのドメインなどが追加されたサービスID
@@ -312,14 +312,14 @@ public class DevicePluginManager {
         if (serviceId == null) {
             return plugin.getServiceId() + DConnectMessageService.SEPARATOR + mDConnectDomain;
         } else {
-            return serviceId + DConnectMessageService.SEPARATOR + plugin.getServiceId() 
+            return serviceId + DConnectMessageService.SEPARATOR + plugin.getServiceId()
                     + DConnectMessageService.SEPARATOR + mDConnectDomain;
         }
     }
 
     /**
      * リクエストに含まれるセッションキーを変換する.
-     * 
+     *
      * セッションキーにデバイスプラグインIDとreceiverを追加する。
      * 下記のように、分解できるようになっている。
      * 【セッションキー.デバイスプラグインID@receiver】
@@ -334,7 +334,7 @@ public class DevicePluginManager {
             sessionKey = sessionKey + DConnectMessageService.SEPARATOR + plugins.get(0).getServiceId();
             ComponentName receiver = (ComponentName) request.getExtras().get(DConnectMessage.EXTRA_RECEIVER);
             if (receiver != null) {
-                sessionKey = sessionKey + DConnectMessageService.SEPARATOR_SESSION 
+                sessionKey = sessionKey + DConnectMessageService.SEPARATOR_SESSION
                         + receiver.flattenToString();
             }
             request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, sessionKey);
@@ -343,7 +343,7 @@ public class DevicePluginManager {
 
     /**
      * リクエストに含まれるセッションキーを変換する.
-     * 
+     *
      * セッションキーにデバイスプラグインIDとreceiverを追加する。
      * 下記のように、分解できるようになっている。
      * 【セッションキー.デバイスプラグインID@receiver】
@@ -358,7 +358,7 @@ public class DevicePluginManager {
             sessionKey = sessionKey + DConnectMessageService.SEPARATOR + plugin.getServiceId();
             ComponentName receiver = (ComponentName) request.getExtras().get(DConnectMessage.EXTRA_RECEIVER);
             if (receiver != null) {
-                sessionKey = sessionKey + DConnectMessageService.SEPARATOR_SESSION 
+                sessionKey = sessionKey + DConnectMessageService.SEPARATOR_SESSION
                         + receiver.flattenToString();
             }
             if (!plugin.getServiceId().equals(beforeSessionKey)) {
@@ -473,30 +473,30 @@ public class DevicePluginManager {
 
     /**
      * xml/deviceplugin.xmlの解析を行う.
-     * 
+     *
      * @param xpp xmlパーサ
      * @throws XmlPullParserException xmlの解析に失敗した場合に発生
      * @throws IOException xmlの読み込みに失敗した場合
      * @return プロファイル一覧
      */
-    private List<String> parseDevicePluginXML(final XmlResourceParser xpp) 
+    private List<String> parseDevicePluginXML(final XmlResourceParser xpp)
             throws XmlPullParserException, IOException {
         ArrayList<String> list = new ArrayList<String>();
         int eventType = xpp.getEventType();
         while (eventType != XmlPullParser.END_DOCUMENT) {
             final String name = xpp.getName();
             switch (eventType) {
-            case XmlPullParser.START_DOCUMENT:
-                break;
-            case XmlPullParser.START_TAG:
-                if (name.equals("profile")) {
-                    list.add(xpp.getAttributeValue(null, "name"));
-                }
-                break;
-            case XmlPullParser.END_TAG:
-                break;
-            default:
-                break;
+                case XmlPullParser.START_DOCUMENT:
+                    break;
+                case XmlPullParser.START_TAG:
+                    if (name.equals("profile")) {
+                        list.add(xpp.getAttributeValue(null, "name"));
+                    }
+                    break;
+                case XmlPullParser.END_TAG:
+                    break;
+                default:
+                    break;
             }
             eventType = xpp.next();
         }

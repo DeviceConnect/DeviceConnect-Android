@@ -106,7 +106,7 @@ public class DConnectServerEventListenerImpl implements DConnectServerEventListe
 
     /**
      * Device Connect Managerからレスポンスを受け取る.
-     * 
+     *
      * @param intent レスポンス
      */
     public void onResponse(final Intent intent) {
@@ -162,7 +162,7 @@ public class DConnectServerEventListenerImpl implements DConnectServerEventListe
 
     @Override
     public boolean onReceivedHttpRequest(final HttpRequest request,
-            final HttpResponse response) {
+                                         final HttpResponse response) {
         final int requestCode = UUID.randomUUID().hashCode();
         Uri uri = Uri.parse(request.getUri());
         List<String> segments = uri.getPathSegments();
@@ -345,9 +345,9 @@ public class DConnectServerEventListenerImpl implements DConnectServerEventListe
         sb.append("{");
         sb.append("\"" + DConnectMessage.EXTRA_RESULT +  "\":"
                 + DConnectMessage.RESULT_ERROR + ",");
-        sb.append("\"" + DConnectMessage.EXTRA_ERROR_CODE + "\": " 
+        sb.append("\"" + DConnectMessage.EXTRA_ERROR_CODE + "\": "
                 + DConnectMessage.ErrorCode.UNKNOWN.getCode() + ",");
-        sb.append("\"" + DConnectMessage.EXTRA_ERROR_MESSAGE + "\":\"" 
+        sb.append("\"" + DConnectMessage.EXTRA_ERROR_MESSAGE + "\":\""
                 + DConnectMessage.ErrorCode.UNKNOWN.toString() + "\"");
         sb.append("}");
         response.setContentType(CONTENT_TYPE_JSON);
@@ -411,7 +411,7 @@ public class DConnectServerEventListenerImpl implements DConnectServerEventListe
 
     /**
      * HTTPリクエストヘッダからWebアプリのオリジンを取得する.
-     * 
+     *
      * @param headers HTTPリクエストヘッダ
      * @return Webアプリのオリジン
      */
@@ -431,7 +431,7 @@ public class DConnectServerEventListenerImpl implements DConnectServerEventListe
 
     /**
      * HTTPリクエストヘッダからAndroidネイティブアプリのオリジンを取得する.
-     * 
+     *
      * @param headers HTTPリクエストヘッダ
      * @return Androidネイティブアプリのオリジン
      */
@@ -482,13 +482,13 @@ public class DConnectServerEventListenerImpl implements DConnectServerEventListe
 
     /**
      * マルチパートを解析する.
-     * 
+     *
      * 許容するマルチパートのデータは1個まで。
-     * 
+     *
      * @see <a
      *      href="http://www.w3.org/TR/html401/interact/forms.html#h-17.13.4.2">
      *      http://www.w3.org/TR/html401/interact/forms.html#h-17.13.4.2</a>
-     * 
+     *
      * @param request Httpリクエスト
      * @param intent 変換したデータを格納するIntent
      */
@@ -607,7 +607,7 @@ public class DConnectServerEventListenerImpl implements DConnectServerEventListe
      * @throws UnsupportedEncodingException 文字列のエンコードに失敗した場合
      */
     private void convertResponse(final HttpResponse response, final String prof,
-            final String att, final Intent resp) throws JSONException, UnsupportedEncodingException {
+                                 final String att, final Intent resp) throws JSONException, UnsupportedEncodingException {
         if (DConnectFilesProfile.PROFILE_NAME.equals(prof)) {
             byte[] data = resp.getByteArrayExtra(DConnectFilesProfile.PARAM_DATA);
             if (data == null) {

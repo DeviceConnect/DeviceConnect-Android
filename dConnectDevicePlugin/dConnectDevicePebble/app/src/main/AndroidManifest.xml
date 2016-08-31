@@ -19,7 +19,13 @@
         android:label="@string/app_name"
         android:theme="@style/AppTheme">
         <activity
-            android:name="org.deviceconnect.android.deviceplugin.pebble.setting.PebbleSettingActivity"
+            android:name=".setting.PebbleServiceListActivity"
+            android:exported="false"
+            android:label="@string/app_name"
+            android:screenOrientation="portrait">
+        </activity>
+        <activity
+            android:name=".setting.PebbleSettingActivity"
             android:exported="false"
             android:label="@string/app_name"
             android:screenOrientation="portrait">

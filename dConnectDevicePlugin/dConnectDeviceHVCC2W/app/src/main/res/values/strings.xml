@@ -66,4 +66,8 @@
 
     <string name="loading_face_recognize_register">顔認証データ\n登録中...</string>
     <string name="loading_face_recognize_unregister">顔認証データ\n削除中...</string>
+
+    <string name="key_settings_dconn_client_id">settings_client_id</string>
+    <string name="key_settings_dconn_access_token">settings_access_token</string>
+
 </resources>

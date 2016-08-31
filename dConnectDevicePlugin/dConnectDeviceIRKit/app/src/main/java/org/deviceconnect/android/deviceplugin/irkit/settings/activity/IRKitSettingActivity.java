@@ -7,6 +7,7 @@
 package org.deviceconnect.android.deviceplugin.irkit.settings.activity;
 
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -15,6 +16,7 @@ import android.support.v4.view.ViewPager.OnPageChangeListener;
 import org.deviceconnect.android.deviceplugin.irkit.BuildConfig;
 import org.deviceconnect.android.deviceplugin.irkit.IRKitManager;
 import org.deviceconnect.android.deviceplugin.irkit.IRKitManager.WiFiSecurityType;
+import org.deviceconnect.android.deviceplugin.irkit.R;
 import org.deviceconnect.android.deviceplugin.irkit.settings.fragment.IRKitAccessPointSettingFragment;
 import org.deviceconnect.android.deviceplugin.irkit.settings.fragment.IRKitBaseFragment;
 import org.deviceconnect.android.deviceplugin.irkit.settings.fragment.IRKitEndingFragment;
@@ -87,6 +89,13 @@ public class IRKitSettingActivity extends IRKitAbstractSettingActivity {
         IRKitAccessPointSettingFragment.class,
         IRKitWiFiSelectionFragment.class, 
         IRKitEndingFragment.class, 
+    };
+
+    private static final int[] PAGE_TITLES = {
+        R.string.page01,
+        R.string.page02,
+        R.string.page03,
+        R.string.page04
     };
 
     @Override
@@ -218,6 +227,10 @@ public class IRKitSettingActivity extends IRKitAbstractSettingActivity {
         if (f != null && f instanceof IRKitBaseFragment) {
             ((IRKitBaseFragment) f).onEnterBackground();
         }
+    }
+    @Override
+    public void onConfigurationChanged(final Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
     }
 
     /**

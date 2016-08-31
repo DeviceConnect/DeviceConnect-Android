@@ -82,19 +82,6 @@ public class DConnectApplication extends Application {
     }
 
     /**
-     * セッションキーに紐付いているデバイスプラグインIDを取得する.
-     * @param identifyKey セッションキー
-     * @return プラグインID、該当無しの場合はnull
-     */
-    public String getDevicePluginIdentifyKey(final String identifyKey) {
-        if (mEventKeys.containsKey(identifyKey)) {
-            return mEventKeys.get(identifyKey);
-        } else {
-            return null;
-        }
-    }
-
-    /**
      * セッションキーに紐付いているデバイスプラグインIDを削除する.
      * @param identifyKey セッションキー
      * @return 削除成功でtrue, 該当無しの場合はfalse
@@ -106,23 +93,6 @@ public class DConnectApplication extends Application {
         } else {
             return false;
         }
-    }
-
-    /**
-     * Map登録されているKey取得.
-     * @param sessionKey セッションキー
-     * @return Map登録されているKey, 存在しない場合はnull.
-     */
-    public String getIdentifySessionKey(final String sessionKey) {
-        String matchKey = null;
-        for (Map.Entry<String, String> entry : mEventKeys.entrySet()) {
-            String key = entry.getKey();
-            if (key.startsWith(sessionKey)) {
-                matchKey = key;
-                break;
-            }
-        }
-        return matchKey;
     }
 
     /**

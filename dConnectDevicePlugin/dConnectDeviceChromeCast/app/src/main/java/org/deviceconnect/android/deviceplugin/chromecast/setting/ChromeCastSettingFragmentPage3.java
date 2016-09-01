@@ -13,7 +13,6 @@ import android.content.pm.PackageManager.NameNotFoundException;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
-import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.MediaRouteButton;
@@ -121,15 +120,15 @@ public class ChromeCastSettingFragmentPage3 extends Fragment {
         mBadgeHeight = image.getHeight();
         image.recycle();
         
-        button = (Button) rootView.findViewById(R.id.buttonChromecastSettingWifiRestart);
-        button.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(final View v) {
-                WifiManager wifi = (WifiManager) getActivity().getSystemService(Context.WIFI_SERVICE);
-                wifi.setWifiEnabled(false);
-                wifi.setWifiEnabled(true);
-            }
-        });
+//        button = (Button) rootView.findViewById(R.id.buttonChromecastSettingWifiRestart);
+//        button.setOnClickListener(new OnClickListener() {
+//            @Override
+//            public void onClick(final View v) {
+//                WifiManager wifi = (WifiManager) getActivity().getSystemService(Context.WIFI_SERVICE);
+//                wifi.setWifiEnabled(false);
+//                wifi.setWifiEnabled(true);
+//            }
+//        });
         mMediaRouter = MediaRouter.getInstance(getActivity());
         // Create a MediaRouteSelector for the type of routes your app supports
         mMediaRouteSelector = new MediaRouteSelector.Builder()

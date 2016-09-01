@@ -24,7 +24,7 @@ public class ChromeCastDeviceService extends DConnectService {
         addProfile(new ChromeCastMediaPlayerProfile());
     }
     private String getDeviceName(final String name) {
-        return getContext().getResources().getString(R.string.device_name, name);
+        return String.format("Chromecast (%1$s)", name);
     }
 
 }

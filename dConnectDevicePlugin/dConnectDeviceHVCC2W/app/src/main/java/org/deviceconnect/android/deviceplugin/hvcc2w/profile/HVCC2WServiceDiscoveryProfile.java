@@ -122,10 +122,6 @@ public class HVCC2WServiceDiscoveryProfile extends ServiceDiscoveryProfile {
     private boolean isNetwork(){
         ConnectivityManager cm =  (ConnectivityManager) getContext().getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo info = cm.getActiveNetworkInfo();
-        if (info != null){
-            return info.isConnected();
-        } else {
-            return false;
-        }
+        return info != null && info.isConnected();
     }
 }

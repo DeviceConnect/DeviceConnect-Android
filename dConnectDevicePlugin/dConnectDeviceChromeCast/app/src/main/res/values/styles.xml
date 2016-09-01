@@ -17,8 +17,8 @@
     <style name="AppTheme" parent="AppBaseTheme">
         <!-- All customizations that are NOT specific to a particular API-level can go here. -->
     </style>
-    <style name="AppCompatCustom" parent="Theme.AppCompat.NoActionBar" >
-
+    <style name="AppCompatCustom" parent="Theme.AppCompat.Light" >
+        <item name="android:textColorPrimary">#FFFFFF</item>
     </style>
 
     <style name="BaseStyle">

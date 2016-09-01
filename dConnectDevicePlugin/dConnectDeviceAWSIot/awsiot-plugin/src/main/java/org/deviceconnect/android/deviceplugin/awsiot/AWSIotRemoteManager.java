@@ -108,9 +108,11 @@ public class AWSIotRemoteManager extends AWSIotCore {
                 mManagerList = parseDeviceShadow(result);
 
                 // TODO 全部に対してsubcribeして良いのか
-                for (RemoteDeviceConnectManager remote : mManagerList) {
-                    mIot.subscribe(remote.getResponseTopic());
-                    mIot.subscribe(remote.getEventTopic());
+                if (mManagerList != null) {
+                    for (RemoteDeviceConnectManager remote : mManagerList) {
+                        mIot.subscribe(remote.getResponseTopic());
+                        mIot.subscribe(remote.getEventTopic());
+                    }
                 }
             }
 

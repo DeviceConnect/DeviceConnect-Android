@@ -31,7 +31,7 @@ android {
         minSdkVersion 14
         targetSdkVersion 23
     }
-
+    useLibrary 'org.apache.http.legacy'
     packagingOptions {
         exclude 'META-INF/DEPENDENCIES'
         exclude 'META-INF/LICENSE'

@@ -1,0 +1,71 @@
+package org.deviceconnect.android.deviceplugin.awsiot.local.setting;
+
+import android.app.Activity;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
+import android.widget.TextView;
+
+import com.amazonaws.regions.Regions;
+
+import org.deviceconnect.android.deviceplugin.awsiot.local.AWSIotLocalManager;
+import org.deviceconnect.android.deviceplugin.awsiot.local.R;
+
+public class AWSIotTestActivity extends Activity {
+
+    private AWSIotLocalManager mAWSIoTLocalManager;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_test);
+
+        Button connectBtn = (Button) findViewById(R.id.aws_connect);
+        if (connectBtn != null) {
+            connectBtn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    startAWSIoT();
+                }
+            });
+        }
+
+        Button sendBtn = (Button) findViewById(R.id.aws_send);
+        if (sendBtn != null) {
+            sendBtn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+
+                }
+            });
+        }
+
+        Button p2pBtn = (Button) findViewById(R.id.aws_p2p);
+        if (p2pBtn != null) {
+            p2pBtn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                }
+            });
+        }
+    }
+
+    private void startAWSIoT() {
+        mAWSIoTLocalManager = new AWSIotLocalManager(this, "nobu", "test");
+        mAWSIoTLocalManager.connectAWSIoT("ACCESS_KEY", "SECRET_KEY", Regions.AP_NORTHEAST_1);
+    }
+
+    public void log(final String message) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                TextView tv = (TextView) findViewById(R.id.text_view);
+                if (tv != null) {
+                    String text = tv.getText().toString();
+                    text = message + "\n" + text;
+                    tv.setText(text);
+                }
+            }
+        });
+    }
+}

@@ -339,7 +339,7 @@ public abstract class DConnectMessageService extends Service implements DConnect
         }
     }
 
-    private boolean executeRequest(final String profileName, final Intent request,
+    protected boolean executeRequest(final String profileName, final Intent request,
                                    final Intent response) {
         DConnectProfile profile = getProfile(profileName);
         if (profile == null) {

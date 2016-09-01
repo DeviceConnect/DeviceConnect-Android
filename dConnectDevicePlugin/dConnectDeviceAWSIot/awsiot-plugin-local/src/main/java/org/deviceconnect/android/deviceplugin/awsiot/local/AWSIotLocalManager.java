@@ -94,7 +94,7 @@ public class AWSIotLocalManager extends AWSIotCore {
                 }
 
                 List<RemoteDeviceConnectManager> list = parseDeviceShadow(result);
-                if (!list.contains(mRemoteManager)) {
+                if (list != null && !list.contains(mRemoteManager)) {
                     updateDeviceShadow(mRemoteManager);
                 }
             }

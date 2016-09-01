@@ -48,7 +48,7 @@ public class SlackMessageHookSettingActivity extends Activity {
         if (getActionBar() != null && !launchAsApp) {
             getActionBar().setDisplayHomeAsUpEnabled(true);
             getActionBar().setDisplayOptions(0, ActionBar.DISPLAY_SHOW_HOME);
-            getActionBar().setTitle(DConnectSettingPageActivity.DEFAULT_TITLE);
+            getActionBar().setTitle(R.string.slack_settings);
         }
         // アクセストークンチェック
         boolean needsConnect = Utils.getOnlineStatus(this);

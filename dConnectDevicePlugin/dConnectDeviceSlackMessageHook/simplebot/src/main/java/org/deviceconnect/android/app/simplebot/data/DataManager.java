@@ -359,7 +359,6 @@ public class DataManager {
         data.api = "mediaStreamRecording/takePhoto [POST]";
         data.method = "POST";
         data.accept = "撮影します、しばらくお待ちください。";
-        data.acceptUri = "https://sdl-stickershop.line.naver.jp/products/0/0/1/1027426/android/stickers/1173138.png";
         data.success = "撮影しました。";
         data.successUri = "{$uri}";
         upsert(db, data);

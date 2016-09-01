@@ -132,15 +132,7 @@ public class ChromeCastSettingFragmentPage3 extends Fragment {
         mBadgeHeight = image.getHeight();
         image.recycle();
 
-//        button = (Button) rootView.findViewById(R.id.buttonChromecastSettingWifiRestart);
-//        button.setOnClickListener(new OnClickListener() {
-//            @Override
-//            public void onClick(final View v) {
-//                WifiManager wifi = (WifiManager) getActivity().getSystemService(Context.WIFI_SERVICE);
-//                wifi.setWifiEnabled(false);
-//                wifi.setWifiEnabled(true);
-//            }
-//        });
+
         mMediaRouter = MediaRouter.getInstance(getActivity());
         // Create a MediaRouteSelector for the type of routes your app supports
         mMediaRouteSelector = new MediaRouteSelector.Builder()
@@ -158,7 +150,6 @@ public class ChromeCastSettingFragmentPage3 extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-
         // Add the callback to start device discovery
         mMediaRouter.addCallback(mMediaRouteSelector, mMediaRouterCallback,
                 MediaRouter.CALLBACK_FLAG_REQUEST_DISCOVERY);
@@ -193,8 +184,9 @@ public class ChromeCastSettingFragmentPage3 extends Fragment {
         public void onRouteSelected(MediaRouter router, MediaRouter.RouteInfo info) {
             Log.d("TEST", "onRouteSelected");
             // Handle route selection.
-            mSelectedDevice = CastDevice.getFromBundle(info.getExtras());
-
+//            mSelectedDevice = CastDevice.getFromBundle(info.getExtras());
+//            getChromeCastApplication().setSelectedDevice(mSelectedDevice);
+//            getChromeCastApplication().connect();
         }
 
         @Override
@@ -203,4 +195,5 @@ public class ChromeCastSettingFragmentPage3 extends Fragment {
             mSelectedDevice = null;
         }
     }
+
 }

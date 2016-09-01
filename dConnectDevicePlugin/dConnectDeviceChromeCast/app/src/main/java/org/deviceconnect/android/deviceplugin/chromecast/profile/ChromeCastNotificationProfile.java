@@ -58,6 +58,10 @@ public class ChromeCastNotificationProfile extends NotificationProfile implement
 
     private final DConnectApi mPostNotificationApi = new PostApi() {
         @Override
+        public String getAttribute() {
+            return ATTRIBUTE_NOTIFY;
+        }
+        @Override
         public boolean onRequest(final Intent request, final Intent response) {
             final String serviceId = getServiceID(request);
             final String body = NotificationProfile.getBody(request);
@@ -111,6 +115,10 @@ public class ChromeCastNotificationProfile extends NotificationProfile implement
     };
 
     private final DConnectApi mDeleteNotificationApi = new DeleteApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_NOTIFY;
+        }
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
             final String serviceId = getServiceID(request);

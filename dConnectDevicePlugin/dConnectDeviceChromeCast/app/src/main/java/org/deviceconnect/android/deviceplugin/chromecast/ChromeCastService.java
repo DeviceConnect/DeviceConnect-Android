@@ -17,7 +17,7 @@ import com.google.android.gms.cast.MediaStatus;
 import com.google.android.gms.cast.RemoteMediaPlayer.MediaChannelResult;
 import com.google.android.gms.common.api.Status;
 
-import org.deviceconnect.android.deviceplugin.chromecast.core.ChromeCastApplication;
+import org.deviceconnect.android.deviceplugin.chromecast.core.ChromeCastController;
 import org.deviceconnect.android.deviceplugin.chromecast.core.ChromeCastDiscovery;
 import org.deviceconnect.android.deviceplugin.chromecast.core.ChromeCastHttpServer;
 import org.deviceconnect.android.deviceplugin.chromecast.core.ChromeCastMediaPlayer;
@@ -49,7 +49,7 @@ public class ChromeCastService extends DConnectMessageService implements
         ChromeCastDiscovery.Callbacks,
         ChromeCastMediaPlayer.Callbacks,
         ChromeCastMessage.Callbacks,
-        ChromeCastApplication.Result {
+        ChromeCastController.Result {
     /**
      * Chromecastのサーバポート.
      */
@@ -58,7 +58,7 @@ public class ChromeCastService extends DConnectMessageService implements
     /** Chromecast Discovery. */
     private ChromeCastDiscovery mDiscovery;
     /** Chromecast Application. */
-    private ChromeCastApplication mApplication;
+    private ChromeCastController mApplication;
     /** Chromecast MediaPlayer. */
     private ChromeCastMediaPlayer mMediaPlayer;
     /** Chromecast Message. */
@@ -110,7 +110,7 @@ public class ChromeCastService extends DConnectMessageService implements
         mDiscovery = new ChromeCastDiscovery(this, appId);
         mDiscovery.setCallbacks(this);
         mDiscovery.registerEvent();
-        mApplication = new ChromeCastApplication(this, appId);
+        mApplication = new ChromeCastController(this, appId);
         mApplication.setResult(this);
         mMediaPlayer = new ChromeCastMediaPlayer(mApplication);
         mMediaPlayer.setCallbacks(this);
@@ -214,7 +214,7 @@ public class ChromeCastService extends DConnectMessageService implements
      * ChromeCastApplicationを返す.
      * @return  ChromeCastApplication
      */
-    public ChromeCastApplication getChromeCastApplication() {
+    public ChromeCastController getChromeCastApplication() {
         return mApplication;
      }
     /**

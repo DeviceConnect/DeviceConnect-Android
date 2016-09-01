@@ -23,18 +23,18 @@ import org.deviceconnect.android.deviceplugin.chromecast.BuildConfig;
 import java.util.ArrayList;
 
 /**
- * Chromecast Application クラス.
+ * Chromecast Controller クラス.
  * <p>
  * アプリケーションIDに対応したReceiverアプリのコントロール
  * </p>
  * @author NTT DOCOMO, INC.
  */
-public class ChromeCastApplication implements
+public class ChromeCastController implements
     GoogleApiClient.ConnectionCallbacks,
     GoogleApiClient.OnConnectionFailedListener {
     
     /** 出力するログのタグ名. */
-    private static final String TAG = ChromeCastApplication.class.getSimpleName();
+    private static final String TAG = ChromeCastController.class.getSimpleName();
     /** 選択したデバイスの情報. */
     private CastDevice mSelectedDevice;
     /** GoogleAPIClient. */
@@ -85,7 +85,7 @@ public class ChromeCastApplication implements
      * @param context  コンテキスト
      * @param appId    ReceiverアプリのアプリケーションID
      */
-    public ChromeCastApplication(final Context context, final String appId) {
+    public ChromeCastController(final Context context, final String appId) {
         this.mContext = context;
         this.mAppId = appId;
         this.mSelectedDevice = null;
@@ -283,9 +283,9 @@ public class ChromeCastApplication implements
                         mApiClient.disconnect();
                         mApiClient = null;
                         
-                        if (isReconnect) {
-                            connect();
-                        }
+//                        if (isReconnect) {
+//                            connect();
+//                        }
                     } else {
                         if (BuildConfig.DEBUG) {
                             Log.d(TAG, "stopApplication$onResult: Fail");

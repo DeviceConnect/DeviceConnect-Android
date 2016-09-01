@@ -216,7 +216,7 @@ public class ChromeCastDiscovery {
 
             if (info.getDescription() != null) {
                 CastDevice device = CastDevice.getFromBundle(info.getExtras());
-                if (device != null && device.isOnLocalNetwork()) {  //TODO 付近の端末対応
+                if (device != null) {
                     mRouteInfos.add(info);
                     mRouteNames.add(info.getName());
                     if (BuildConfig.DEBUG) {

@@ -30,10 +30,10 @@ import java.util.Locale;
  * </p>
  * @author NTT DOCOMO, INC.
  */
-public class ChromeCastMediaPlayer implements ChromeCastApplication.Callbacks {
+public class ChromeCastMediaPlayer implements ChromeCastController.Callbacks {
 
     /** Chromecast Application. */
-    private ChromeCastApplication mApplication;
+    private ChromeCastController mApplication;
     /** RemoteMediaPlayer. */
     private RemoteMediaPlayer mRemoteMediaPlayer;
     /** Chromecastの再生状態を受け取るコールバック. */
@@ -77,7 +77,7 @@ public class ChromeCastMediaPlayer implements ChromeCastApplication.Callbacks {
      * 
      * @param application ChromeCastApplication
      */
-    public ChromeCastMediaPlayer(final ChromeCastApplication application) {
+    public ChromeCastMediaPlayer(final ChromeCastController application) {
         this.mApplication = application;
         this.mApplication.addCallbacks(this);
     }

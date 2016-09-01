@@ -6,13 +6,14 @@
  */
 package org.deviceconnect.android.deviceplugin.chromecast.setting;
 
-import org.deviceconnect.android.deviceplugin.chromecast.R;
-
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
+import org.deviceconnect.android.deviceplugin.chromecast.R;
 
 /**
  * チュートリアル画面.
@@ -28,6 +29,17 @@ public class ChromeCastSettingFragmentPage2 extends Fragment {
     public View onCreateView(final LayoutInflater inflater,
             final ViewGroup container, final Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.chromecast_settings_step_2, container, false);
+        Toolbar toolbar = (Toolbar) root.findViewById(R.id.toolbar);
+        toolbar.setTitle(getString(R.string.activity_setting_page_title));
+
+        toolbar.setNavigationIcon(R.drawable.ic_close_light);
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                getActivity().finish();
+            }
+        });
+
         return root;
     }
 }

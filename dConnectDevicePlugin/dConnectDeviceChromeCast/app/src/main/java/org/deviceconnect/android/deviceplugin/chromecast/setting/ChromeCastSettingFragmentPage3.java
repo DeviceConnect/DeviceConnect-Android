@@ -18,6 +18,8 @@ import android.support.v4.app.Fragment;
 import android.support.v7.app.MediaRouteButton;
 import android.support.v7.media.MediaRouteSelector;
 import android.support.v7.media.MediaRouter;
+import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -100,6 +102,16 @@ public class ChromeCastSettingFragmentPage3 extends Fragment {
     public View onCreateView(final LayoutInflater inflater,
             final ViewGroup container, final Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.chromecast_settings_step_3, container, false);
+        Toolbar toolbar = (Toolbar) rootView.findViewById(R.id.toolbar);
+        toolbar.setTitle(getString(R.string.activity_setting_page_title));
+
+        toolbar.setNavigationIcon(R.drawable.ic_close_light);
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                getActivity().finish();
+            }
+        });
 
         Button button = (Button) rootView.findViewById(R.id.buttonChromecastSettingApp);
         button.setOnClickListener(new OnClickListener() {
@@ -119,7 +131,7 @@ public class ChromeCastSettingFragmentPage3 extends Fragment {
         mBadgeWidth = image.getWidth();
         mBadgeHeight = image.getHeight();
         image.recycle();
-        
+
 //        button = (Button) rootView.findViewById(R.id.buttonChromecastSettingWifiRestart);
 //        button.setOnClickListener(new OnClickListener() {
 //            @Override
@@ -141,16 +153,27 @@ public class ChromeCastSettingFragmentPage3 extends Fragment {
         // Set the MediaRouteButton selector for device discovery.
         mMediaRouteButton = (MediaRouteButton) rootView.findViewById(R.id.media_route_button);
         mMediaRouteButton.setRouteSelector(mMediaRouteSelector);
+        return rootView;
+    }
+    @Override
+    public void onResume() {
+        super.onResume();
+
         // Add the callback to start device discovery
         mMediaRouter.addCallback(mMediaRouteSelector, mMediaRouterCallback,
                 MediaRouter.CALLBACK_FLAG_REQUEST_DISCOVERY);
-
-        return rootView;
     }
 
+    @Override
+    public void onPause() {
+        // Remove the callback to stop device discovery
+        mMediaRouter.removeCallback(mMediaRouterCallback);
+        super.onPause();
+    }
     private class MyMediaRouterCallback extends MediaRouter.Callback {
         @Override
         public void onRouteAdded(MediaRouter router, MediaRouter.RouteInfo route) {
+            Log.d("TEST", "onRouteAdded");
             if (++mRouteCount == 1) {
                 // Show the button when a device is discovered.
                 mMediaRouteButton.setVisibility(View.VISIBLE);
@@ -159,6 +182,7 @@ public class ChromeCastSettingFragmentPage3 extends Fragment {
 
         @Override
         public void onRouteRemoved(MediaRouter router, MediaRouter.RouteInfo route) {
+            Log.d("TEST", "onRouteRemoved");
             if (--mRouteCount == 0) {
                 // Hide the button if there are no devices discovered.
                 mMediaRouteButton.setVisibility(View.GONE);
@@ -167,6 +191,7 @@ public class ChromeCastSettingFragmentPage3 extends Fragment {
 
         @Override
         public void onRouteSelected(MediaRouter router, MediaRouter.RouteInfo info) {
+            Log.d("TEST", "onRouteSelected");
             // Handle route selection.
             mSelectedDevice = CastDevice.getFromBundle(info.getExtras());
 
@@ -174,6 +199,7 @@ public class ChromeCastSettingFragmentPage3 extends Fragment {
 
         @Override
         public void onRouteUnselected(MediaRouter router, MediaRouter.RouteInfo info) {
+            Log.d("TEST", "onRouteUnselected: info=" + info);
             mSelectedDevice = null;
         }
     }

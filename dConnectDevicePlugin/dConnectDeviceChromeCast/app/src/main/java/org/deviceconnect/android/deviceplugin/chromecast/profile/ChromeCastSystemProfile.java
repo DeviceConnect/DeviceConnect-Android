@@ -10,7 +10,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 
-import org.deviceconnect.android.deviceplugin.chromecast.setting.ChromeCastSettingFragmentActivity;
+import org.deviceconnect.android.deviceplugin.chromecast.setting.ChromeCastServiceListActivity;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.SystemProfile;
@@ -32,7 +32,7 @@ public class ChromeCastSystemProfile extends SystemProfile {
 
     @Override
     protected Class<? extends Activity> getSettingPageActivity(final Intent request, final Bundle param) {
-        return ChromeCastSettingFragmentActivity.class;
+        return ChromeCastServiceListActivity.class;
     }
 
     private final DConnectApi mDeleteEventsApi = new DeleteApi() {

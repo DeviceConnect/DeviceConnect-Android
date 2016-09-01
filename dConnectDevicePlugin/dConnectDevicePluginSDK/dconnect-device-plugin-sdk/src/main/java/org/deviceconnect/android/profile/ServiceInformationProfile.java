@@ -14,12 +14,13 @@ import android.os.Bundle;
 
 import org.deviceconnect.android.profile.api.DConnectApi;
 import org.deviceconnect.android.profile.api.GetApi;
-import org.deviceconnect.android.profile.spec.DConnectApiSpecFilter;
 import org.deviceconnect.android.profile.spec.DConnectProfileSpec;
+import org.deviceconnect.android.profile.spec.DConnectSpecConstants;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 import org.deviceconnect.profile.ServiceInformationProfileConstants;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -38,6 +39,8 @@ public class ServiceInformationProfile extends DConnectProfile implements Servic
      */
     public static final String SETTING_PAGE_PARAMS = "org.deviceconnect.profile.system.setting_params";
 
+    private static final String KEY_PATHS = "paths";
+
     /**
      * Service Information API.
      */
@@ -45,44 +48,7 @@ public class ServiceInformationProfile extends DConnectProfile implements Servic
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            // connect
-            Bundle connect = new Bundle();
-            String networkType = getService().getNetworkType();
-            boolean isOnline = getService().isOnline();
-            switch (ServiceDiscoveryProfileConstants.NetworkType.getInstance(networkType)) {
-                case WIFI:
-                    setWifiState(connect, isOnline);
-                    break;
-                case BLUETOOTH:
-                    setBluetoothState(connect, isOnline);
-                    break;
-                case BLE:
-                    setBLEState(connect, isOnline);
-                    break;
-                case NFC:
-                    setNFCState(connect, isOnline);
-                    break;
-                default:
-                    break;
-            }
-            setConnect(response, connect);
-
-            // TODO: getXXXStateメソッドを削除する。
-
-            // version
-            setVersion(response, getCurrentVersionName());
-
-            // supports, supportApis
-            List<DConnectProfile> profileList = getService().getProfileList();
-            String[] profileNames = new String[profileList.size()];
-            int i = 0;
-            for (DConnectProfile profile : profileList) {
-                profileNames[i++] = profile.getProfileName();
-            }
-            setSupports(response, profileNames);
-            setSupportApis(response, profileList);
-
-            setResult(response, DConnectMessage.RESULT_OK);
+            appendServiceInformation(response);
             return true;
         }
     };
@@ -97,6 +63,47 @@ public class ServiceInformationProfile extends DConnectProfile implements Servic
     @Override
     public final String getProfileName() {
         return PROFILE_NAME;
+    }
+
+    protected void appendServiceInformation(final Intent response) {
+        // connect
+        Bundle connect = new Bundle();
+        String networkType = getService().getNetworkType();
+        boolean isOnline = getService().isOnline();
+        switch (ServiceDiscoveryProfileConstants.NetworkType.getInstance(networkType)) {
+            case WIFI:
+                setWifiState(connect, isOnline);
+                break;
+            case BLUETOOTH:
+                setBluetoothState(connect, isOnline);
+                break;
+            case BLE:
+                setBLEState(connect, isOnline);
+                break;
+            case NFC:
+                setNFCState(connect, isOnline);
+                break;
+            default:
+                break;
+        }
+        setConnect(response, connect);
+
+        // TODO: getXXXStateメソッドを削除する。
+
+        // version
+        setVersion(response, getCurrentVersionName());
+
+        // supports, supportApis
+        List<DConnectProfile> profileList = getService().getProfileList();
+        String[] profileNames = new String[profileList.size()];
+        int i = 0;
+        for (DConnectProfile profile : profileList) {
+            profileNames[i++] = profile.getProfileName();
+        }
+        setSupports(response, profileNames);
+        setSupportApis(response, profileList);
+
+        setResult(response, DConnectMessage.RESULT_OK);
     }
 
     /**
@@ -201,16 +208,41 @@ public class ServiceInformationProfile extends DConnectProfile implements Servic
         for (final DConnectProfile profile : profileList) {
             DConnectProfileSpec profileSpec = profile.getProfileSpec();
             if (profileSpec != null) {
-                Bundle bundle = profileSpec.toBundle(new DConnectApiSpecFilter() {
-                    @Override
-                    public boolean filter(final String path, final Method method) {
-                        return profile.hasApi(path, method);
-                    }
-                });
+                Bundle bundle = createSupportApisBundle(profileSpec, profile);
                 supportApisBundle.putBundle(profile.getProfileName(), bundle);
             }
         }
         response.putExtra(PARAM_SUPPORT_APIS, supportApisBundle);
+    }
+
+    private static Bundle createSupportApisBundle(final DConnectProfileSpec profileSpec,
+                                                  final DConnectProfile profile) {
+        Bundle tmpBundle = new Bundle(profileSpec.toBundle());
+        Bundle pathsObj = tmpBundle.getBundle(KEY_PATHS);
+        if (pathsObj == null) {
+            return tmpBundle;
+        }
+        List<String> pathNames = new ArrayList<String>(pathsObj.keySet());
+        for (String pathName : pathNames) {
+            Bundle pathObj = pathsObj.getBundle(pathName);
+            if (pathObj == null) {
+                continue;
+            }
+            for (DConnectSpecConstants.Method method : DConnectSpecConstants.Method.values()) {
+                String methodName = method.getName().toLowerCase();
+                Bundle methodObj = pathObj.getBundle(methodName);
+                if (methodObj == null) {
+                    continue;
+                }
+                if (!profile.hasApi(pathName, method)) {
+                    pathObj.remove(methodName);
+                }
+            }
+            if (pathObj.size() == 0) {
+                pathsObj.remove(pathName);
+            }
+        }
+        return tmpBundle;
     }
 
     /**

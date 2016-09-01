@@ -26,6 +26,8 @@ import org.deviceconnect.profile.DConnectProfileConstants;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -67,6 +69,17 @@ public abstract class DConnectProfile implements DConnectProfileConstants,
      */
     protected final Map<ApiIdentifier, DConnectApi> mApis
         = new HashMap<ApiIdentifier, DConnectApi>();
+
+    protected boolean isEqual(final String s1, final String s2) {
+        if (s1 == null && s2 == null) {
+            return true;
+        }
+        if (s1 != null) {
+            return s1.equalsIgnoreCase(s2);
+        } else {
+            return s2.equalsIgnoreCase(s1);
+        }
+    }
 
     /**
      * プロファイルに設定されているDevice Connect API実装のリストを返す.
@@ -809,6 +822,47 @@ public abstract class DConnectProfile implements DConnectProfileConstants,
                 }
             }
         }
+    }
+
+    protected byte[] getData(String uri) {
+        HttpURLConnection connection = null;
+        InputStream inputStream = null;
+        byte[] data = null;
+        try {
+            URL url = new URL(uri);
+            connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("GET");
+            connection.connect();
+            inputStream = connection.getInputStream();
+            data = readAll(inputStream);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (connection != null) {
+                connection.disconnect();
+            }
+            try {
+                if (inputStream != null) {
+                    inputStream.close();
+                }
+            } catch (IOException exception) {
+                exception.printStackTrace();
+            }
+        }
+        return data;
+    }
+
+    private byte[] readAll(InputStream inputStream) throws IOException {
+        ByteArrayOutputStream bout = new ByteArrayOutputStream();
+        byte[] buffer = new byte[1024];
+        while (true) {
+            int len = inputStream.read(buffer);
+            if (len < 0) {
+                break;
+            }
+            bout.write(buffer, 0, len);
+        }
+        return bout.toByteArray();
     }
 
     private static class ApiIdentifier {

@@ -22,7 +22,6 @@ public class SonyCameraPreparationFragment extends SonyCameraBaseFragment {
     @Override
     public View onCreateView(final LayoutInflater inflater,
             final ViewGroup container, final Bundle savedInstanceState) {
-        View root = inflater.inflate(R.layout.fragment_preparation, container, false);
-        return root;
+        return inflater.inflate(R.layout.fragment_preparation, container, false);
     }
 }

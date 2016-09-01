@@ -23,7 +23,7 @@
                         "type": "string"
                     },
                     {
-                        "name": "fileName",
+                        "name": "path",
                         "in": "formData",
                         "required": true,
                         "type": "string"
@@ -31,7 +31,7 @@
                     {
                         "name": "mimeType",
                         "in": "formData",
-                        "required": true,
+                        "required": false,
                         "type": "string"
                     },
                     {

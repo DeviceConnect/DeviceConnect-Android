@@ -6,15 +6,18 @@
  */
 package org.deviceconnect.android.deviceplugin.sphero.profile;
 
-import org.deviceconnect.android.deviceplugin.sphero.SpheroManager;
-import org.deviceconnect.android.deviceplugin.sphero.data.DeviceInfo;
-
 import android.content.Intent;
 import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.sphero.BuildConfig;
+import org.deviceconnect.android.deviceplugin.sphero.SpheroManager;
+import org.deviceconnect.android.deviceplugin.sphero.data.DeviceInfo;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.DConnectProfile;
+import org.deviceconnect.android.profile.api.DConnectApi;
+import org.deviceconnect.android.profile.api.DeleteApi;
+import org.deviceconnect.android.profile.api.PostApi;
+import org.deviceconnect.android.profile.api.PutApi;
 import org.deviceconnect.message.DConnectMessage;
 
 /**
@@ -26,7 +29,7 @@ public class SpheroDriveControllerProfile extends DConnectProfile {
     /**
      * プロファイル名.
      */
-    public static final String PROFILE_NAME = "drive_controller";
+    public static final String PROFILE_NAME = "driveController";
 
     /**
      * アトリビュート : {@value} .
@@ -53,17 +56,28 @@ public class SpheroDriveControllerProfile extends DConnectProfile {
      */
     public static final String PARAM_SPEED = "speed";
 
-    
+    public SpheroDriveControllerProfile() {
+        addApi(mPutRotateApi);
+        addApi(mDeleteStopApi);
+        addApi(mPostMoveApi);
+    }
+
+
+
     @Override
     public String getProfileName() {
         return PROFILE_NAME;
     }
 
-    @Override
-    protected boolean onPutRequest(final Intent request, final Intent response) {
-        
-        String attribute = getAttribute(request);
-        if (ATTRIBUTE_ROTATE.equals(attribute)) {
+    private final DConnectApi mPutRotateApi = new PutApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ROTATE;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
             String serviceId = getServiceID(request);
             DeviceInfo info = SpheroManager.INSTANCE.getDevice(serviceId);
 
@@ -80,18 +94,19 @@ public class SpheroDriveControllerProfile extends DConnectProfile {
             } else {
                 MessageUtils.setNotFoundServiceError(response);
             }
-        } else {
-            MessageUtils.setUnknownAttributeError(response);
+            return true;
         }
-        
-        return true;
-    }
+    };
 
-    @Override
-    protected boolean onDeleteRequest(final Intent request, final Intent response) {
+    private final DConnectApi mDeleteStopApi = new DeleteApi() {
 
-        String attribute = getAttribute(request);
-        if (ATTRIBUTE_STOP.equals(attribute)) {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_STOP;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
             String serviceId = getServiceID(request);
             DeviceInfo info = SpheroManager.INSTANCE.getDevice(serviceId);
 
@@ -103,18 +118,20 @@ public class SpheroDriveControllerProfile extends DConnectProfile {
             } else {
                 MessageUtils.setNotFoundServiceError(response);
             }
-        } else {
-            MessageUtils.setUnknownAttributeError(response);
+
+            return true;
+        }
+    };
+
+    private final DConnectApi mPostMoveApi = new PostApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_MOVE;
         }
 
-        return true;
-    }
-
-    @Override
-    protected boolean onPostRequest(final Intent request, final Intent response) {
-
-        String attribute = getAttribute(request);
-        if (ATTRIBUTE_MOVE.equals(attribute)) {
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
             String serviceId = getServiceID(request);
             DeviceInfo info = SpheroManager.INSTANCE.getDevice(serviceId);
 
@@ -136,11 +153,8 @@ public class SpheroDriveControllerProfile extends DConnectProfile {
             } else {
                 MessageUtils.setNotFoundServiceError(response);
             }
-        } else {
-            MessageUtils.setUnknownAttributeError(response);
+            return true;
         }
-
-        return true;
-    }
+    };
 
 }

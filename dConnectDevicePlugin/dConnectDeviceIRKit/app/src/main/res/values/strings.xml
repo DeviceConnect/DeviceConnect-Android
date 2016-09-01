@@ -6,6 +6,8 @@
     <string name="column_ssid">SSID</string>
     <string name="column_password">パスワード</string>
     <string name="separater">:</string>
+    <string name="virtual_device_list">仮想デバイス一覧</string>
+    <string name="setting_page_title">サービス追加手順</string>
     <string name="page01">[1/4] IRKitの起動</string>
     <string name="page02">[2/4] Wi-Fiの設定</string>
     <string name="page03">[3/4] IRKitとの接続</string>
@@ -73,6 +75,7 @@
 
     <string name="dialog_ok">OK</string>
 
+    <string name="ir_registration">赤外線設定</string>
     <string name="edit_profile">%1$sプロファイルの編集</string>
 
     <string name="menu_close">CLOSE</string>

@@ -26,10 +26,10 @@ public class SettingActivity extends DConnectSettingPageFragmentActivity {
 
     @SuppressWarnings("rawtypes")
     private static final Class[] PAGES = {
-            FPLUGImageFragment.class,
-            FPLUGPairingFragment.class,
-            FPLUGConnectFragment.class,
-            FPLUGControllerFragment.class,
+        FPLUGImageFragment.class,
+        FPLUGPairingFragment.class,
+        FPLUGConnectFragment.class,
+        FPLUGControllerFragment.class,
     };
 
     private FPLUGControllerFragment mControllFragment;

@@ -10,7 +10,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 
-import org.deviceconnect.android.deviceplugin.uvc.activity.UVCDeviceSettingsActivity;
+import org.deviceconnect.android.deviceplugin.uvc.activity.UVCServiceListActivity;
 import org.deviceconnect.android.profile.SystemProfile;
 
 /**
@@ -23,7 +23,7 @@ public class UVCSystemProfile extends SystemProfile {
     @Override
     protected Class<? extends Activity> getSettingPageActivity(final Intent request,
                                                                final Bundle param) {
-        return UVCDeviceSettingsActivity.class;
+        return UVCServiceListActivity.class;
     }
 
 }

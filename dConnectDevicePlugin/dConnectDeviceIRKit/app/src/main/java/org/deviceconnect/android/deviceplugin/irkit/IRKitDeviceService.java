@@ -6,38 +6,30 @@
  */
 package org.deviceconnect.android.deviceplugin.irkit;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.net.wifi.WifiManager;
-import android.os.Bundle;
-import android.util.Log;
+import android.support.v4.content.LocalBroadcastManager;
 
 import org.deviceconnect.android.deviceplugin.irkit.IRKitManager.DetectionListener;
 import org.deviceconnect.android.deviceplugin.irkit.data.IRKitDBHelper;
 import org.deviceconnect.android.deviceplugin.irkit.data.VirtualDeviceData;
-import org.deviceconnect.android.deviceplugin.irkit.data.VirtualProfileData;
 import org.deviceconnect.android.deviceplugin.irkit.network.WiFiUtil;
-import org.deviceconnect.android.deviceplugin.irkit.profile.IRKitLightProfile;
-import org.deviceconnect.android.deviceplugin.irkit.profile.IRKitRmeoteControllerProfile;
-import org.deviceconnect.android.deviceplugin.irkit.profile.IRKitServceDiscoveryProfile;
-import org.deviceconnect.android.deviceplugin.irkit.profile.IRKitServiceInformationProfile;
 import org.deviceconnect.android.deviceplugin.irkit.profile.IRKitSystemProfile;
-import org.deviceconnect.android.deviceplugin.irkit.profile.IRKitTVProfile;
-import org.deviceconnect.android.event.Event;
+import org.deviceconnect.android.deviceplugin.irkit.service.IRKitService;
+import org.deviceconnect.android.deviceplugin.irkit.service.VirtualService;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.event.cache.MemoryCacheController;
 import org.deviceconnect.android.localoauth.LocalOAuth2Main;
 import org.deviceconnect.android.message.DConnectMessageService;
-import org.deviceconnect.android.message.MessageUtils;
-import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
-import org.deviceconnect.android.profile.ServiceInformationProfile;
 import org.deviceconnect.android.profile.SystemProfile;
-import org.deviceconnect.message.DConnectMessage;
-import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
-import org.deviceconnect.profile.ServiceDiscoveryProfileConstants.NetworkType;
+import org.deviceconnect.android.service.DConnectService;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Logger;
 
 /**
  * IRKitデバイスプラグインサービス.
@@ -51,9 +43,25 @@ public class IRKitDeviceService extends DConnectMessageService implements Detect
     public static final String ACTION_RESTART_DETECTION_IRKIT = "action.ACTION_RESTART_DETECTION_IRKIT";
 
     /**
+     * 仮想デバイスの追加を通知するアクションを定義.
+     */
+    public static final String ACTION_VIRTUAL_DEVICE_ADDED = "action.ACTION_VIRTUAL_DEVICE_ADDED";
+
+    /**
+     * 仮想デバイスの削除を通知するアクションを定義.
+     */
+    public static final String ACTION_VIRTUAL_DEVICE_REMOVED = "action.ACTION_VIRTUAL_DEVICE_REMOVED";
+
+    /**
+     * 仮想デバイスのIDを取得するためのキー.
+     */
+    public static final String EXTRA_VIRTUAL_DEVICE_ID = "extra.EXTRA_VIRTUAL_DEVICE_ID";
+
+    /**
      * 検知したデバイス群.
      */
-    private ConcurrentHashMap<String, IRKitDevice> mDevices;
+    private final ConcurrentHashMap<String, IRKitDevice> mDevices
+        = new ConcurrentHashMap<String, IRKitDevice>();
 
     /**
      * 現在のSSID.
@@ -63,12 +71,60 @@ public class IRKitDeviceService extends DConnectMessageService implements Detect
     /** DB Helper. */
     private IRKitDBHelper mDBHelper;
 
+    /** ロガー. */
+    private final Logger mLogger = Logger.getLogger("irkit.dplugin");
+
+    /** 内部的なブロードキャストレシーバー. */
+    private final BroadcastReceiver mLocalBroadcastReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(final Context context, final Intent intent) {
+            if (intent == null || intent.getAction() == null) {
+                return;
+            }
+            String action = intent.getAction();
+            if (ACTION_RESTART_DETECTION_IRKIT.equals(action)) {
+                if (WiFiUtil.isOnWiFi(IRKitDeviceService.this)) {
+                    restartDetection();
+                } else {
+                    stopDetection();
+                }
+            } else if (ACTION_VIRTUAL_DEVICE_ADDED.equals(action)) {
+                String id = intent.getStringExtra(EXTRA_VIRTUAL_DEVICE_ID);
+                if (id != null) {
+                    DConnectService service = getServiceProvider().getService(id);
+                    if (service == null) {
+                        List<VirtualDeviceData> devices = mDBHelper.getVirtualDevices(id);
+                        if (devices.size() > 0) {
+                            VirtualDeviceData device = devices.get(0);
+                            service = new VirtualService(device, mDBHelper,
+                                getServiceProvider());
+                            getServiceProvider().addService(service);
+                        }
+                    }
+                }
+            } else if (ACTION_VIRTUAL_DEVICE_REMOVED.equals(action)) {
+                String id = intent.getStringExtra(EXTRA_VIRTUAL_DEVICE_ID);
+                if (id != null) {
+                    DConnectService service = getServiceProvider().getService(id);
+                    if (service != null) {
+                        getServiceProvider().removeService(service);
+                    }
+                }
+            }
+        }
+    };
+
     @Override
     public void onCreate() {
         super.onCreate();
-        mDBHelper = new IRKitDBHelper(getContext());
         EventManager.INSTANCE.setController(new MemoryCacheController());
-        mDevices = new ConcurrentHashMap<String, IRKitDevice>();
+
+        mDBHelper = new IRKitDBHelper(getContext());
+        for (VirtualDeviceData device : mDBHelper.getVirtualDevices(null)) {
+            getServiceProvider().addService(new VirtualService(device, mDBHelper,
+                getServiceProvider()));
+        }
+
         IRKitApplication app = (IRKitApplication) getApplication();
         app.setIRKitDevices(mDevices);
         IRKitManager.INSTANCE.init(this);
@@ -77,13 +133,13 @@ public class IRKitDeviceService extends DConnectMessageService implements Detect
             startDetection();
         }
 
-        // 追加するプロファイル
-        addProfile(new IRKitRmeoteControllerProfile());
-        // Virtual Device用プロファイル
-        addProfile(new IRKitLightProfile());
-        addProfile(new IRKitTVProfile());
-
         mCurrentSSID = WiFiUtil.getCurrentSSID(this);
+
+        IntentFilter localFilter = new IntentFilter();
+        localFilter.addAction(ACTION_RESTART_DETECTION_IRKIT);
+        localFilter.addAction(ACTION_VIRTUAL_DEVICE_ADDED);
+        localFilter.addAction(ACTION_VIRTUAL_DEVICE_REMOVED);
+        LocalBroadcastManager.getInstance(this).registerReceiver(mLocalBroadcastReceiver, localFilter);
     }
 
     @Override
@@ -95,13 +151,6 @@ public class IRKitDeviceService extends DConnectMessageService implements Detect
                     stopDetection();
                 } else if (WiFiUtil.isOnWiFi(this) && WiFiUtil.isChangedSSID(this, mCurrentSSID)) {
                     restartDetection();
-                }
-                return START_STICKY;
-            } else if (ACTION_RESTART_DETECTION_IRKIT.equals(action)) {
-                if (WiFiUtil.isOnWiFi(this)) {
-                    restartDetection();
-                } else {
-                    stopDetection();
                 }
                 return START_STICKY;
             }
@@ -118,6 +167,30 @@ public class IRKitDeviceService extends DConnectMessageService implements Detect
         LocalOAuth2Main.destroy();
     }
 
+    @Override
+    protected void onManagerUninstalled() {
+        // Managerアンインストール検知時の処理。
+        if (BuildConfig.DEBUG) {
+            mLogger.info("Plug-in : onManagerUninstalled");
+        }
+    }
+
+    @Override
+    protected void onManagerTerminated() {
+        // Manager正常終了通知受信時の処理。
+        if (BuildConfig.DEBUG) {
+            mLogger.info("Plug-in : onManagerTerminated");
+        }
+    }
+
+    @Override
+    protected void onDevicePluginReset() {
+        // Device Plug-inへのReset要求受信時の処理。
+        if (BuildConfig.DEBUG) {
+            mLogger.info("Plug-in : onDevicePluginReset");
+        }
+    }
+
     /**
      * サービスIDからIRKitのデバイスを取得する.
      * 
@@ -128,129 +201,44 @@ public class IRKitDeviceService extends DConnectMessageService implements Detect
         return mDevices.get(serviceId);
     }
 
-    /**
-     * Service Discoveryのリクエストを用意する.
-     * 
-     * @param response レスポンスオブジェクト
-     */
-    public void prepareServiceDiscoveryResponse(final Intent response) {
-        synchronized (mDevices) {
-
-            List<Bundle> services = new ArrayList<Bundle>();
-            int index = 0;
-            for (IRKitDevice device : mDevices.values()) {
-                Bundle service = createService(device, true);
-                services.add(service);
-                if (BuildConfig.DEBUG) {
-                    Log.d("IRKit", "prepareServiceDiscoveryResponse service=" + service);
-                }
-                List<VirtualDeviceData> virtuals = mDBHelper.getVirtualDevices(null);
-                if (virtuals.size() > 0) {
-                    for (VirtualDeviceData virtual : virtuals) {
-
-                        if (virtual.getServiceId().indexOf(device.getName()) != -1
-                                && isIRExist(virtual.getServiceId())) {
-                            Bundle virtualService = new Bundle();
-                            ServiceDiscoveryProfile.setId(virtualService, virtual.getServiceId());
-                            ServiceDiscoveryProfile.setName(virtualService, virtual.getDeviceName());
-                            ServiceDiscoveryProfile.setType(virtualService, NetworkType.WIFI);
-                            ServiceDiscoveryProfile.setState(virtualService, true);
-                            ServiceDiscoveryProfile.setOnline(virtualService, true);
-                            if (virtual.getCategoryName().equals("ライト")) {
-                                ArrayList<String> scopes = new ArrayList<String>();
-                                for (String profile : IRKitServiceInformationProfile.LIGHT_PROFILES) {
-                                    scopes.add(profile);
-                                }
-                                virtualService.putStringArray(ServiceDiscoveryProfileConstants.PARAM_SCOPES,
-                                        scopes.toArray(new String[scopes.size()]));
-                            } else {
-                                ArrayList<String> scopes = new ArrayList<String>();
-                                for (String profile : IRKitServiceInformationProfile.TV_PROFILES) {
-                                    scopes.add(profile);
-                                }
-                                virtualService.putStringArray(ServiceDiscoveryProfileConstants.PARAM_SCOPES,
-                                        scopes.toArray(new String[scopes.size()]));
-                            }
-                            ServiceDiscoveryProfile.setConfig(virtualService, "Virtual Device");
-                            services.add(virtualService);
-                        }
-                    }
-                }
-            }
-            ServiceDiscoveryProfile.setServices(response, services);
-            ServiceDiscoveryProfile.setResult(response, DConnectMessage.RESULT_OK);
-        }
-    }
-
     @Override
     protected SystemProfile getSystemProfile() {
         return new IRKitSystemProfile();
     }
 
     @Override
-    protected ServiceInformationProfile getServiceInformationProfile() {
-        return new IRKitServiceInformationProfile(this);
-    }
-
-    @Override
-    protected ServiceDiscoveryProfile getServiceDiscoveryProfile() {
-        return new IRKitServceDiscoveryProfile(this);
-    }
-
-    @Override
     public void onFoundDevice(final IRKitDevice device) {
-        sendDeviceDetectionEvent(device, true);
+        updateDeviceList(device, true);
+
+        DConnectService service = getServiceProvider().getService(device.getName());
+        if (service == null) {
+            service = new IRKitService(device);
+            getServiceProvider().addService(service);
+        }
+        service.setOnline(true);
     }
 
     @Override
     public void onLostDevice(final IRKitDevice device) {
-        sendDeviceDetectionEvent(device, false);
-    }
+        updateDeviceList(device, false);
 
-    /**
-     * 赤外線を送信する.
-     * @param serviceId サービスID
-     * @param message 赤外線
-     * @param response レスポンス
-     * @return true:同期 false:非同期
-     */
-    public boolean sendIR(final String serviceId, final String message,
-                          final Intent response) {
-        boolean send = true;
-        String[] ids = serviceId.split("\\.");
-        IRKitDevice device = mDevices.get(ids[0]);
-        if (message != null) {
-            send = false;
-            IRKitManager.INSTANCE.sendMessage(device.getIp(), message, new IRKitManager.PostMessageCallback() {
-                @Override
-                public void onPostMessage(boolean result) {
-                    if (result) {
-                        response.putExtra(DConnectMessage.EXTRA_RESULT,  DConnectMessage.RESULT_OK);
-                    } else {
-                        MessageUtils.setUnknownError(response);
-                    }
-                    sendResponse(response);
-                }
-            });
+        DConnectService service = getServiceProvider().getService(device.getName());
+        if (service != null) {
+            service.setOnline(false);
         }
-        return send;
     }
 
 
     /**
-     * デバイスの検知イベントを送信する.
+     * デバイスリストを更新する.
      * 
      * @param device デバイス
      * @param isOnline trueなら発見、falseなら消失を意味する
      */
-    private void sendDeviceDetectionEvent(final IRKitDevice device, final boolean isOnline) {
-
-        boolean hit = false;
+    private void updateDeviceList(final IRKitDevice device, final boolean isOnline) {
         synchronized (mDevices) {
-
             IRKitDevice d = mDevices.get(device.getName());
             if (d != null) {
-                hit = true;
                 if (!isOnline) {
                     mDevices.remove(device.getName());
                 }
@@ -261,60 +249,6 @@ public class IRKitDeviceService extends DConnectMessageService implements Detect
 
         IRKitApplication app = (IRKitApplication) getApplication();
         app.setIRKitDevices(mDevices);
-        if ((!hit && isOnline) || (hit && !isOnline)) {
-            Bundle service = createService(device, isOnline);
-
-            List<Event> events = EventManager.INSTANCE.getEventList(ServiceDiscoveryProfile.PROFILE_NAME,
-                    ServiceDiscoveryProfile.ATTRIBUTE_ON_SERVICE_CHANGE);
-
-            for (Event e : events) {
-                Intent message = EventManager.createEventMessage(e);
-                ServiceDiscoveryProfile.setNetworkService(message, service);
-                sendEvent(message, e.getAccessToken());
-            }
-        }
-
-    }
-
-    /**
-     * 一つでも赤外線が登録されているかをチェックする.
-     * @param serviceId サービスID
-     * @return true:登録されている, false:登録されていない
-     */
-    private boolean isIRExist(final String serviceId) {
-        List<VirtualProfileData> requests = mDBHelper.getVirtualProfiles(serviceId, null);
-        for (VirtualProfileData request : requests) {
-            if (request.getIr() != null && request.getIr().indexOf("{\"format\":\"raw\",") != -1) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-
-
-    /**
-     * IRKitのデバイス情報からServiceを生成する.
-     * 
-     * @param device デバイス情報
-     * @param online オンライン状態
-     * @return サービス
-     */
-    private Bundle createService(final IRKitDevice device, final boolean online) {
-        Bundle service = new Bundle();
-        ServiceDiscoveryProfile.setId(service, device.getName());
-        ServiceDiscoveryProfile.setName(service, device.getName());
-        ServiceDiscoveryProfile.setType(service, NetworkType.WIFI);
-        ServiceDiscoveryProfile.setState(service, online);
-        ServiceDiscoveryProfile.setOnline(service, online);
-        ArrayList<String> scopes = new ArrayList<String>();
-        for (String profile : IRKitServiceInformationProfile.IRKIT_PROFILES) {
-            scopes.add(profile);
-        }
-        service.putStringArray(ServiceDiscoveryProfileConstants.PARAM_SCOPES,
-                scopes.toArray(new String[scopes.size()]));
-
-        return service;
     }
 
     /**

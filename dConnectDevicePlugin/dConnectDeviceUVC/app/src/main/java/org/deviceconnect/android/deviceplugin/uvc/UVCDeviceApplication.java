@@ -8,6 +8,7 @@ package org.deviceconnect.android.deviceplugin.uvc;
 
 import android.app.Application;
 
+import org.deviceconnect.android.deviceplugin.uvc.core.UVCDeviceManager;
 import org.deviceconnect.android.logger.AndroidHandler;
 
 import java.util.logging.Level;

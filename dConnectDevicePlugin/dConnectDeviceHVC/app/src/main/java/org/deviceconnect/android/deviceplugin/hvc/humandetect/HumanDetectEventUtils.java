@@ -58,4 +58,19 @@ public final class HumanDetectEventUtils {
         }
     }
 
+    /**
+     * remove event data by sessionKey.
+     * @param eventArray event array
+     * @param sessionKey session key
+     */
+    public static void remove(final List<HumanDetectEvent> eventArray, final String sessionKey) {
+        int count = eventArray.size();
+        for (int index = (count - 1); index >= 0; index--) {
+            HumanDetectEvent event = eventArray.get(index);
+            if (sessionKey.equals(event.getSessionKey())) {
+                eventArray.remove(index);
+            }
+        }
+    }
+
 }

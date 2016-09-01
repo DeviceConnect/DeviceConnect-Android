@@ -23,6 +23,9 @@
                 <action android:name="org.deviceconnect.action.PUT" />
                 <action android:name="org.deviceconnect.action.POST" />
                 <action android:name="org.deviceconnect.action.DELETE" />
+                <!-- uninstall notification -->
+                <action android:name="android.intent.action.PACKAGE_FULLY_REMOVED"/>
+                <data android:scheme="package"/>
             </intent-filter>
         </receiver>
 
@@ -31,7 +34,7 @@
             android:exported="false" >
         </service>
 
-        <!-- 再起動用のServcie. -->
+        <!-- 再起動用のService. -->
         <service
             android:name="org.deviceconnect.android.message.DConnectLaunchService"
             android:exported="true" >

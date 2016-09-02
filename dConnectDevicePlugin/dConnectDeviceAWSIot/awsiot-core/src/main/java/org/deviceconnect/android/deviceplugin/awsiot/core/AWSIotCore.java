@@ -1,5 +1,6 @@
 package org.deviceconnect.android.deviceplugin.awsiot.core;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -20,7 +21,10 @@ public class AWSIotCore {
 
     public List<RemoteDeviceConnectManager> parseDeviceShadow(final String message) {
         // TODO Shadowを解析して、RemoteDeviceConnectを追加する
-        return null;
+
+        List<RemoteDeviceConnectManager> managers = new ArrayList<>();
+        managers.add(new RemoteDeviceConnectManager("nobu", "abc"));
+        return managers;
     }
 
     public void updateDeviceShadow(final RemoteDeviceConnectManager remote) {

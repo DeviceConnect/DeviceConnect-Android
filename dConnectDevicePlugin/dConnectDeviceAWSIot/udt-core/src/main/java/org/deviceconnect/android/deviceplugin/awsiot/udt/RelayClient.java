@@ -51,6 +51,14 @@ public class RelayClient {
         mSocketTask.sendData(data);
     }
 
+    public void sendData(final byte[] data, final int length) throws IOException {
+        mSocketTask.sendData(data, length);
+    }
+
+    public void sendData(final byte[] data, final int offset, final int length) throws IOException {
+        mSocketTask.sendData(data, offset, length);
+    }
+
     public void close() throws IOException {
         if (DEBUG) {
             Log.i(TAG, "RelayClient#close()");

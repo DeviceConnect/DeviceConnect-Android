@@ -11,7 +11,7 @@ import java.net.Socket;
 class SocketTask {
 
     private static final boolean DEBUG = BuildConfig.DEBUG;
-    private static final String TAG = "ABC";
+    private static final String TAG = "P2P";
 
     private static final byte[] HEADER = {
             0x01, 0x02, 0x03, 0x04
@@ -45,18 +45,36 @@ class SocketTask {
     }
 
     public void sendData(final byte[] data) throws IOException {
-        intToByte(data.length, mSendBuffer, 0);
+        sendData(data, data.length);
+    }
+
+    public void sendData(final byte[] data, final int length) throws IOException {
+        sendData(data, 0, length);
+    }
+
+    public void sendData(final byte[] data, final int offset, final int length) throws IOException {
+        if (offset < 0) {
+            throw new IllegalArgumentException("offset is negative.");
+        }
+        if (length < 0) {
+            throw new IllegalArgumentException("length is negative.");
+        }
+        if (data.length < offset + length) {
+            throw new IllegalArgumentException("offset or length is invalid.");
+        }
+
+        intToByte(length, mSendBuffer, 0);
         mSocket.getOutputStream().write(HEADER);
         mSocket.getOutputStream().write(mSendBuffer);
-        int offset = 0;
-        int length;
-        while (offset < data.length) {
-            length = data.length - offset;
-            if (length > BUFFER_SIZE) {
-                length = BUFFER_SIZE;
+        int _offset = offset;
+        int _length;
+        while (_offset < offset + length) {
+            _length = offset + length - _offset;
+            if (_length > BUFFER_SIZE) {
+                _length = BUFFER_SIZE;
             }
-            mSocket.getOutputStream().write(data, offset, length);
-            offset += length;
+            mSocket.getOutputStream().write(data, _offset, _length);
+            _offset += _length;
         }
     }
 

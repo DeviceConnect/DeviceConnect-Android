@@ -36,11 +36,32 @@ public class RemoteDeviceConnectManager {
 
     @Override
     public String toString() {
-        return "{\nname:" + mName + "\n" + "topic: {\n"
-                + "request:" + getRequestTopic() + "\n"
-                + "response:" + getRequestTopic() + "\n"
-                + "event:" + getRequestTopic() + "\n"
-                + "}"
-                + "}";
+        return "{name: " + mName + ", uuid: " + mServiceId +" }";
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == this) {
+            return true;
+        }
+
+        if (o == null) {
+            return false;
+        }
+
+        if (!(o instanceof RemoteDeviceConnectManager)) {
+            return false;
+        }
+
+        RemoteDeviceConnectManager obj = (RemoteDeviceConnectManager) o;
+        return obj.mServiceId.equals(mServiceId) && obj.mName.equals(mName);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = 17;
+        result = 31 * result + mName.hashCode();
+        result = 31 * result + mServiceId.hashCode();
+        return result;
     }
 }

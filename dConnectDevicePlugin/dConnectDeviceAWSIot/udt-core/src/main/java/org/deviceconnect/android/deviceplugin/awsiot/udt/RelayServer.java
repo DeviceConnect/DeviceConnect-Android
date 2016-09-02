@@ -71,6 +71,18 @@ public class RelayServer {
         }
     }
 
+    public void sendData(final byte[] data,final int length) throws IOException {
+        for (SocketTask task : mSockets) {
+            task.sendData(data, length);
+        }
+    }
+
+    public void sendData(final byte[] data, final int offset, final int length) throws IOException {
+        for (SocketTask task : mSockets) {
+            task.sendData(data, offset, length);
+        }
+    }
+
     public void close() throws IOException {
         if (DEBUG) {
             Log.i(TAG, "RelayServer#close()");

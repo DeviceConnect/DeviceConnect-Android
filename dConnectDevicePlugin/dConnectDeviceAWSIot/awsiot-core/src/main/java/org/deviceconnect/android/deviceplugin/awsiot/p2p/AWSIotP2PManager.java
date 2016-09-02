@@ -10,6 +10,10 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+import java.util.TimeZone;
 
 public class AWSIotP2PManager {
 
@@ -32,42 +36,18 @@ public class AWSIotP2PManager {
         return new P2PConnection();
     }
 
-    protected String createSignaling(final Context context, final int connectionId, final String address, final int port) {
-        try {
-            JSONObject json = new JSONObject();
-            json.put(KEY_CONNECTION_ID, connectionId);
-
-            JSONObject global = new JSONObject();
-            global.put(KEY_ADDRESS, address);
-            global.put(KEY_PORT, port);
-            json.put(KEY_GLOBAL, global);
-
-            JSONObject local = new JSONObject();
-            local.put(KEY_ADDRESS, getIPAddress(context));
-            local.put(KEY_PORT, port);
-            json.put(KEY_LOCAL, local);
-
-            return json.toString();
-        } catch (JSONException e) {
-            if (DEBUG) {
-                Log.e(TAG, "", e);
-            }
-        }
-        return null;
-    }
-
-    protected P2PConnection parseSignal(final String signal) {
+    protected P2PConnection createP2PConnection(final String signal, final P2PConnection.OnP2PConnectionListener listener) {
         if (DEBUG) {
-            Log.i(TAG, "parseSignal: " + signal);
+            Log.i(TAG, "createP2PConnection: " + signal);
         }
 
         try {
             JSONObject json = new JSONObject(signal);
-            int connectionId = json.getInt(AWSIotP2PManager.KEY_CONNECTION_ID);
             JSONObject global = json.getJSONObject(AWSIotP2PManager.KEY_GLOBAL);
             JSONObject local = json.getJSONObject(AWSIotP2PManager.KEY_LOCAL);
 
             P2PConnection connection = createP2PConnection();
+            connection.setOnP2PConnectionListener(listener);
 
             String address = global.getString(AWSIotP2PManager.KEY_ADDRESS);
             int port = global.getInt(AWSIotP2PManager.KEY_PORT);
@@ -99,6 +79,57 @@ public class AWSIotP2PManager {
             }
             return null;
         }
+    }
+
+    protected String createSignaling(final Context context, final int connectionId, final String address, final int port) {
+        try {
+            JSONObject json = new JSONObject();
+            json.put(KEY_CONNECTION_ID, connectionId);
+
+            JSONObject global = new JSONObject();
+            global.put(KEY_ADDRESS, address);
+            global.put(KEY_PORT, port);
+            json.put(KEY_GLOBAL, global);
+
+            JSONObject local = new JSONObject();
+            local.put(KEY_ADDRESS, getIPAddress(context));
+            local.put(KEY_PORT, port);
+            json.put(KEY_LOCAL, local);
+
+            return json.toString();
+        } catch (JSONException e) {
+            if (DEBUG) {
+                Log.e(TAG, "", e);
+            }
+        }
+        return null;
+    }
+
+    protected int getConnectionId(final String signal) {
+        try {
+            JSONObject json = new JSONObject(signal);
+            return json.getInt(AWSIotP2PManager.KEY_CONNECTION_ID);
+        } catch (JSONException e) {
+            return -1;
+        }
+    }
+
+    protected String generateInternalServerError() {
+        return generateErrorHeader("500", "<html><head><title>500 - Error</title></head><body>500 - Error</body></html>");
+    }
+
+    private String generateErrorHeader(final String status, final String body) {
+        SimpleDateFormat gmtFrmt = new SimpleDateFormat("E, d MMM yyyy HH:mm:ss 'GMT'", Locale.US);
+        gmtFrmt.setTimeZone(TimeZone.getTimeZone("GMT"));
+        StringBuilder sb = new StringBuilder();
+        sb.append("HTTP/1.1 " + status + " OK\r\n");
+        sb.append("Server: Server\r\n");
+        sb.append("Content-length: "+ body.getBytes().length + "\r\n");
+        sb.append("Date: " + gmtFrmt.format(new Date()) + "\r\n");
+        sb.append("Connection: close\r\n");
+        sb.append("\r\n");
+        sb.append(body);
+        return sb.toString();
     }
 
     private static String getIPAddress(final Context context) {

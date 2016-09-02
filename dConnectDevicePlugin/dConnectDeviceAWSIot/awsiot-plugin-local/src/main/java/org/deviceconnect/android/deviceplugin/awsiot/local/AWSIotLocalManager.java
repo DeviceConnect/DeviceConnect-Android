@@ -18,7 +18,7 @@ import java.util.Map;
 public class AWSIotLocalManager extends AWSIotCore {
 
     private static final boolean DEBUG = true;
-    private static final String TAG = "ABC";
+    private static final String TAG = "AWS-Local";
 
     private AWSIotWebClientManager mAWSIotWebClientManager;
 

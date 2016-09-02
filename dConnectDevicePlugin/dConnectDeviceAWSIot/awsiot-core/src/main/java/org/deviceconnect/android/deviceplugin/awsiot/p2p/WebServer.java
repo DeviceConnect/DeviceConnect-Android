@@ -11,29 +11,29 @@ import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class WebServer extends AWSIotP2PManager {
 
     private static final boolean DEBUG = true;
-    private static final String TAG = "ABC";
+    private static final String TAG = "AWS";
 
-    private static final int MAX_CLIENT_SIZE = 1;
+    private static final int MAX_CLIENT_SIZE = 8;
     private String mPath = UUID.randomUUID().toString();
-    private int mPort = -1;
     private boolean mStopFlag;
     private ServerSocket mServerSocket;
-    private ServerRunnable mServerRunnable;
+    private ConcurrentHashMap<Integer, ServerRunnable> mServerRunnableMap = new ConcurrentHashMap<>();
 
     private final ExecutorService mExecutor = Executors.newFixedThreadPool(MAX_CLIENT_SIZE);
 
-    private P2PConnection mP2PConnection;
     private String mDestAddress;
     private Context mContext;
 
@@ -68,14 +68,14 @@ public class WebServer extends AWSIotP2PManager {
                 mStopFlag = false;
                 try {
                     while (!mStopFlag) {
-                        mServerRunnable = new ServerRunnable(mServerSocket.accept());
+                        ServerRunnable run = new ServerRunnable(mServerSocket.accept());
                         synchronized (WebServer.this) {
-                            mExecutor.execute(mServerRunnable);
+                            mExecutor.execute(run);
                         }
                     }
                 } catch (IOException e) {
                     if (DEBUG) {
-                        Log.w(TAG, "", e);
+                        Log.w(TAG, "WebServer#start", e);
                     }
                 } finally {
                     stop();
@@ -83,35 +83,6 @@ public class WebServer extends AWSIotP2PManager {
             }
         });
         return getUrl();
-    }
-
-    @Override
-    protected P2PConnection createP2PConnection() {
-        P2PConnection connection = new P2PConnection();
-        connection.setOnP2PConnectionListener(mServerRunnable.mOnP2PConnectionListener);
-        return connection;
-    }
-
-    @Override
-    public void onReceivedSignaling(final String signaling) {
-        if (DEBUG) {
-            Log.i(TAG, "WebServer#onReceivedSignaling:" + signaling);
-        }
-
-        if (mP2PConnection != null) {
-            try {
-                mP2PConnection.close();
-            } catch (IOException e) {
-                if (DEBUG) {
-                    Log.w(TAG, "", e);
-                }
-            }
-        }
-
-        mP2PConnection = parseSignal(signaling);
-        if (mP2PConnection == null) {
-            sendFailedToConnect();
-        }
     }
 
     public void stop() {
@@ -134,80 +105,203 @@ public class WebServer extends AWSIotP2PManager {
         mPath = null;
     }
 
+    @Override
+    public void onReceivedSignaling(final String signaling) {
+        if (DEBUG) {
+            Log.i(TAG, "WebServer#onReceivedSignaling:" + signaling);
+        }
+
+        ServerRunnable run = mServerRunnableMap.get(getConnectionId(signaling));
+        if (run != null) {
+            run.onReceivedSignaling(signaling);
+        }
+    }
+
+    private ServerSocket openServerSocket() throws IOException {
+        for (int i = 9000; i < 10000; i++) {
+            try {
+                return new ServerSocket(i);
+            } catch (IOException e) {
+                if (DEBUG) {
+                    Log.w(TAG, "already use port=" + i);
+                }
+            }
+        }
+        throw new IOException("Cannot open server socket.");
+    }
+
+    private byte[] decodeHeader(final byte[] buf, final int len) throws IOException {
+        BufferedReader in = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(buf, 0, len)));
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(out));
+
+        String line;
+        while ((line = in.readLine()) != null) {
+            if (line.toLowerCase().startsWith("host")) {
+                writer.write("Host: " + mDestAddress);
+            } else {
+                writer.write(line);
+            }
+            writer.write("\r\n");
+            writer.flush();
+        }
+        return out.toByteArray();
+    }
+
     private class ServerRunnable implements Runnable {
         private static final int BUF_SIZE = 1024 * 8;
         private Socket mSocket;
         private boolean mStopFlag;
-        private ByteArrayOutputStream out = new ByteArrayOutputStream();
+        private P2PConnection mP2PConnection;
+        private int mConnectionId;
 
         public ServerRunnable(final Socket socket) {
+            mConnectionId = P2PConnection.generateConnectionId();
             mSocket = socket;
         }
 
         private void connectP2P() {
             try {
-                mP2PConnection = new P2PConnection();
+                mP2PConnection = new P2PConnection(mConnectionId);
                 mP2PConnection.setOnP2PConnectionListener(mOnP2PConnectionListener);
                 mP2PConnection.open();
             } catch (IOException e) {
                 if (DEBUG) {
-                    Log.w(TAG, "Failed to open P2PConnection.", e);
-                }
-                if (mP2PConnection != null) {
-                    try {
-                        mP2PConnection.close();
-                    } catch (IOException e1) {
-                        if (DEBUG) {
-                            Log.w(TAG, "", e);
-                        }
-                    }
+                    Log.w(TAG, "ServerRunnable#connectP2P");
                 }
             }
         }
 
-        private void readHttpRequest() throws IOException {
+        private void onReceivedSignaling(final String signaling) {
             if (DEBUG) {
-                Log.d(TAG, "readHttpRequest: " + mSocket);
+                Log.i(TAG, "ServerRunnable#onReceivedSignaling");
             }
-            mP2PConnection.sendData(decodeHeader(out.toByteArray(), out.size()));
+
+            if (mP2PConnection != null) {
+                try {
+                    mP2PConnection.close();
+                } catch (IOException e) {
+                    if (DEBUG) {
+                        Log.w(TAG, "ServerRunnable#onReceivedSignaling", e);
+                    }
+                }
+            }
+
+            mP2PConnection = createP2PConnection(signaling, mOnP2PConnectionListener);
+            if (mP2PConnection == null) {
+                sendFailedToConnect();
+                mStopFlag = true;
+            }
+        }
+
+        private void relayHttpRequest() {
+            final byte[] buf = new byte[BUF_SIZE];
+            int headerSize = 0;
+            int readLength = 0;
+            int read;
+
+            try {
+                InputStream in = mSocket.getInputStream();
+                read = in.read(buf, 0, BUF_SIZE);
+                if (read == -1) {
+                    // error
+                    return;
+                }
+
+                while (read > 0) {
+                    readLength += read;
+                    headerSize = findHeaderEnd(buf, readLength);
+                    if (headerSize > 0) {
+                        break;
+                    }
+                    read = in.read(buf, readLength, BUF_SIZE - readLength);
+                }
+
+                mP2PConnection.sendData(decodeHeader(buf, headerSize));
+                mP2PConnection.sendData(buf, headerSize, readLength - headerSize);
+
+                while (!mStopFlag && (read = in.read(buf)) != -1) {
+                    mP2PConnection.sendData(buf, 0, read);
+                }
+            } catch (Exception e) {
+                if (DEBUG) {
+                    Log.w(TAG, "ServerRunnable#relayHttpRequest", e);
+                }
+            }
+        }
+
+        private int findHeaderEnd(final byte[] buf, final int rlen) {
+            int splitbyte = 0;
+            while (splitbyte + 1 < rlen) {
+
+                // RFC2616
+                if (buf[splitbyte] == '\r' && buf[splitbyte + 1] == '\n' &&
+                        splitbyte + 3 < rlen && buf[splitbyte + 2] == '\r' &&
+                        buf[splitbyte + 3] == '\n') {
+                    return splitbyte + 4;
+                }
+
+                // tolerance
+                if (buf[splitbyte] == '\n' && buf[splitbyte + 1] == '\n') {
+                    return splitbyte + 2;
+                }
+                splitbyte++;
+            }
+            return 0;
+        }
+
+        private void sendFailedToConnect() {
+            try {
+                mSocket.getOutputStream().write(generateInternalServerError().getBytes());
+                mSocket.getOutputStream().flush();
+            } catch (IOException e) {
+                if (DEBUG) {
+                    Log.w(TAG, "", e);
+                }
+            }
         }
 
         @Override
         public void run() {
             if (DEBUG) {
-                Log.i(TAG, "WebServer accept. Socket=" + mSocket);
+                Log.i(TAG, "ServerRunnable Start. Socket=" + mSocket);
             }
-
-            Executors.newSingleThreadExecutor().submit(new Runnable() {
-                @Override
-                public void run() {
-                    connectP2P();
-                }
-            });
+            mServerRunnableMap.put(mConnectionId, this);
 
             try {
-                int len;
-                byte[] buf = new byte[BUF_SIZE];
-                while (!mStopFlag) {
-                    // TODO HTTP Requestが大きい時に問題がある。
-                    len = mSocket.getInputStream().read(buf);
-                    out.write(buf, 0, len);
+                connectP2P();
+
+                while (!mStopFlag && !mSocket.isClosed()) {
+                    Thread.sleep(1000);
                 }
             } catch (Exception e) {
                 if (DEBUG) {
-                    Log.w(TAG, "", e);
+                    Log.w(TAG, "ServerRunnable#run", e);
                 }
-            }
-
-            if (DEBUG) {
-                Log.i(TAG, "END");
-            }
-
-            try {
-                mP2PConnection.close();
-            } catch (IOException e) {
+                sendFailedToConnect();
+            } finally {
                 if (DEBUG) {
-                    Log.w(TAG, "", e);
+                    Log.i(TAG, "ServerRunnable End. Socket=" + mSocket);
+                }
+                mServerRunnableMap.remove(mConnectionId);
+
+                if (mP2PConnection != null) {
+                    try {
+                        mP2PConnection.close();
+                    } catch (IOException e) {
+                        if (DEBUG) {
+                            Log.w(TAG, "", e);
+                        }
+                    }
+                }
+
+                if (mSocket != null) {
+                    try {
+                        mSocket.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         }
@@ -218,6 +312,7 @@ public class WebServer extends AWSIotP2PManager {
                 if (DEBUG) {
                     Log.d(TAG, "WebServer#onRetrievedAddress=" + address + ":" + port);
                 }
+
                 onNotifySignaling(createSignaling(mContext, mP2PConnection.getConnectionId(), address, port));
             }
 
@@ -227,19 +322,19 @@ public class WebServer extends AWSIotP2PManager {
                     Log.i(TAG, "WebServer#onConnected: " + address + ":" +  port);
                 }
 
-                try {
-                    readHttpRequest();
-                } catch (IOException e) {
-                    if (DEBUG) {
-                        Log.e(TAG, "WebServer#onConnected", e);
+                Executors.newSingleThreadExecutor().submit(new Runnable() {
+                    @Override
+                    public void run() {
+                        relayHttpRequest();
                     }
-                }
+                });
             }
 
             @Override
             public void onReceivedData(final byte[] data, final String address, final int port) {
                 if (DEBUG) {
-                    Log.i(TAG, "WebServer#onReceivedData: " + address + ":" + port);
+                    Log.i(TAG, "WebServer#onReceivedData: " + address + ":" + port + " " + data.length);
+//                    Log.i(TAG, "WebServer#onReceivedData: " + new String(data).replace("\r\n", ""));
                 }
 
                 try {
@@ -273,6 +368,8 @@ public class WebServer extends AWSIotP2PManager {
                     Log.i(TAG, "WebServer#onTimeout:");
                 }
 
+                sendFailedToConnect();
+
                 try {
                     mSocket.close();
                 } catch (IOException e) {
@@ -283,77 +380,5 @@ public class WebServer extends AWSIotP2PManager {
                 mStopFlag = true;
             }
         };
-    }
-
-    private ServerSocket openServerSocket() throws IOException {
-        if (mPort != -1) {
-            return new ServerSocket(mPort);
-        } else {
-            for (int i = 9000; i < 10000; i++) {
-                try {
-                    return new ServerSocket(i);
-                } catch (IOException e) {
-                    if (DEBUG) {
-                        Log.w(TAG, "already use port=" + i);
-                    }
-                }
-            }
-            throw new IOException("Cannot open server socket.");
-        }
-    }
-
-    private byte[] decodeHeader(final byte[] buf, final int len) throws IOException {
-        BufferedReader in = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(buf, 0, len)));
-
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(out));
-
-        String line;
-        while ((line = in.readLine()) != null) {
-            if (line.toLowerCase().startsWith("host")) {
-                writer.write("Host: " + mDestAddress);
-                if (DEBUG) {
-                    Log.i(TAG, "Convert " + line + " to " + mDestAddress);
-                }
-            } else {
-                writer.write(line);
-            }
-            writer.write("\r\n");
-            writer.flush();
-        }
-        return out.toByteArray();
-    }
-
-    private void sendFailedToConnect() {
-        if (mServerRunnable != null) {
-            try {
-                mServerRunnable.mSocket.getOutputStream().write(generateServiceUnavailable().getBytes());
-            } catch (IOException e) {
-                if (DEBUG) {
-                    Log.w(TAG, "", e);
-                }
-            }
-        }
-    }
-
-    private String generateBadRequest() {
-        return generateErrorHeader("400");
-    }
-
-    private String generateInternalServerError() {
-        return generateErrorHeader("500");
-    }
-
-    private String generateServiceUnavailable() {
-        return generateErrorHeader("503");
-    }
-
-    private String generateErrorHeader(final String status) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("HTTP/1.0 " + status + " OK\r\n");
-        sb.append("Server: Server\r\n");
-        sb.append("Connection: close\r\n");
-        sb.append("\r\n");
-        return sb.toString();
     }
 }

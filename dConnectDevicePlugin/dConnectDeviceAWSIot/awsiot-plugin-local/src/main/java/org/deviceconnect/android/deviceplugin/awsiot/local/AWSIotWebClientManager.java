@@ -12,16 +12,16 @@ import java.util.List;
 public class AWSIotWebClientManager {
 
     private static final boolean DEBUG = true;
-    private static final String TAG = "ABC";
+    private static final String TAG = "AWS-Local";
 
     private List<WebClient> mWebClientList = new ArrayList<>();
 
-    private AWSIotLocalManager mIot;
+    private AWSIotLocalManager mLocalManager;
     private Context mContext;
 
-    public AWSIotWebClientManager(final Context context, final AWSIotLocalManager ctl) {
+    public AWSIotWebClientManager(final Context context, final AWSIotLocalManager manager) {
         mContext = context;
-        mIot = ctl;
+        mLocalManager = manager;
     }
 
     public void destroy() {
@@ -40,10 +40,13 @@ public class AWSIotWebClientManager {
         WebClient webClient = new WebClient(mContext) {
             @Override
             public void onNotifySignaling(final String signaling) {
-                mIot.publish(remote, mIot.createP2P(signaling));
+                mLocalManager.publish(remote, mLocalManager.createP2P(signaling));
             }
             @Override
             public void onDisconnected(final WebClient webClient) {
+                if (DEBUG) {
+                    Log.i(TAG, "AWSIotWebClientManager#onDisconnected: " + webClient);
+                }
                 mWebClientList.remove(webClient);
             }
         };

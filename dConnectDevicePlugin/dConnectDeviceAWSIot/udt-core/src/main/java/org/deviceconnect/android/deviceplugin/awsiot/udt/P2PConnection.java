@@ -45,6 +45,10 @@ public class P2PConnection {
         return mConnectionId;
     }
 
+    public void setConnectionId(int connectionId) {
+        mConnectionId = connectionId;
+    }
+
     public void setOnP2PConnectionListener(final OnP2PConnectionListener listener) {
         mOnP2PConnectionListener = listener;
     }
@@ -101,6 +105,24 @@ public class P2PConnection {
         }
     }
 
+    public void sendData(final byte[] data, final int length) throws IOException {
+        if (mRelayClient != null) {
+            mRelayClient.sendData(data, length);
+        }
+        if (mRelayServer != null) {
+            mRelayServer.sendData(data, length);
+        }
+    }
+
+    public void sendData(final byte[] data, final int offset, final int length) throws IOException {
+        if (mRelayClient != null) {
+            mRelayClient.sendData(data, offset, length);
+        }
+        if (mRelayServer != null) {
+            mRelayServer.sendData(data, offset, length);
+        }
+    }
+
     public void close() throws IOException {
         if (DEBUG) {
             Log.i(TAG, "P2PConnection#close");
@@ -123,12 +145,15 @@ public class P2PConnection {
                     Log.w(TAG, "P2PConnection Timeout. connectionId=" + mConnectionId);
                 }
 
+                if (mOnP2PConnectionListener != null) {
+                    mOnP2PConnectionListener.onTimeout();
+                }
+
                 try {
                     close();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                mOnP2PConnectionListener.onTimeout();
             }
         }, 30, TimeUnit.SECONDS);
     }

@@ -378,8 +378,15 @@ public class ChromeCastService extends DConnectMessageService implements
         if (app == null) {
             return;
         }
+
         CastDevice currentDevice = app.getController().getSelectedDevice();
         if (currentDevice != null) {
+            DConnectService castService = getServiceProvider().getService(currentDevice.getFriendlyName());
+            if (castService == null) {
+                castService = new ChromeCastDeviceService(currentDevice.getFriendlyName());
+                getServiceProvider().addService(castService);
+            }
+            castService.setOnline(true);
             if (!currentDevice.getDeviceId().equals(selectedDevice.getDeviceId())) {
                 app.getController().setSelectedDevice(selectedDevice);
                 app.getController().reconnect();
@@ -387,6 +394,12 @@ public class ChromeCastService extends DConnectMessageService implements
                 app.getController().connect();
             }
         } else {
+            DConnectService castService = getServiceProvider().getService(selectedDevice.getFriendlyName());
+            if (castService == null) {
+                castService = new ChromeCastDeviceService(selectedDevice.getFriendlyName());
+                getServiceProvider().addService(castService);
+            }
+            castService.setOnline(true);
             app.getController().setSelectedDevice(selectedDevice);
             app.getController().connect();
         }
@@ -398,7 +411,13 @@ public class ChromeCastService extends DConnectMessageService implements
         if (app == null) {
             return;
         }
-        app.getController().reconnect();
+        CastDevice currentDevice = app.getController().getSelectedDevice();
+        DConnectService castService = getServiceProvider().getService(currentDevice.getFriendlyName());
+        if (castService != null) {
+            castService.setOnline(false);
+        }
+
+        app.getController().teardown();
     }
 
 
@@ -425,6 +444,11 @@ public class ChromeCastService extends DConnectMessageService implements
         }
 
         if (app.getDiscovery().getSelectedDevice() != null) {
+            if (app.getController().getGoogleApiClient() == null) {
+                // Request in connection queuing
+                mAsyncResponse.add(callback);
+                return;
+            }
             if (app.getDiscovery().getSelectedDevice().getFriendlyName().equals(serviceId)
                     && !app.getController().getGoogleApiClient().isConnecting()) {
                 app.getController().connect();

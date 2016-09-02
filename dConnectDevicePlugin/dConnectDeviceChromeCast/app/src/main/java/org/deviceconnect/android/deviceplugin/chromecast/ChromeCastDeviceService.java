@@ -13,15 +13,20 @@ import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
  */
 public class ChromeCastDeviceService extends DConnectService {
 
+    private ChromeCastMediaPlayerProfile mMediaPlayerProfile;
 
     public ChromeCastDeviceService(final String ip) {
         super(ip);
         setName(getDeviceName(ip));
         setNetworkType(ServiceDiscoveryProfileConstants.NetworkType.WIFI);
-
+        mMediaPlayerProfile = new ChromeCastMediaPlayerProfile();
         addProfile(new ChromeCastCanvasProfile());
         addProfile(new ChromeCastNotificationProfile());
-        addProfile(new ChromeCastMediaPlayerProfile());
+        addProfile(mMediaPlayerProfile);
+    }
+
+    public ChromeCastMediaPlayerProfile getMediaPlayerProfile() {
+        return mMediaPlayerProfile;
     }
     private String getDeviceName(final String name) {
         return String.format("Chromecast (%1$s)", name);

@@ -282,7 +282,7 @@ public class ChromeCastController implements
                         }
                         mApiClient.disconnect();
                         mApiClient = null;
-                        
+                        //再接続はしない
 //                        if (isReconnect) {
 //                            connect();
 //                        }

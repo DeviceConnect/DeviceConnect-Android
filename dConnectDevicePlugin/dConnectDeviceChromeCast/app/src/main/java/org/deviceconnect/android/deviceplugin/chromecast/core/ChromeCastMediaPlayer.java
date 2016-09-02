@@ -32,8 +32,8 @@ import java.util.Locale;
  */
 public class ChromeCastMediaPlayer implements ChromeCastController.Callbacks {
 
-    /** Chromecast Application. */
-    private ChromeCastController mApplication;
+    /** Chromecast Controller. */
+    private ChromeCastController mController;
     /** RemoteMediaPlayer. */
     private RemoteMediaPlayer mRemoteMediaPlayer;
     /** Chromecastの再生状態を受け取るコールバック. */
@@ -75,11 +75,11 @@ public class ChromeCastMediaPlayer implements ChromeCastController.Callbacks {
     /**
      * コンストラクタ.
      * 
-     * @param application ChromeCastApplication
+     * @param controller ChromeCastApplication
      */
-    public ChromeCastMediaPlayer(final ChromeCastController application) {
-        this.mApplication = application;
-        this.mApplication.addCallbacks(this);
+    public ChromeCastMediaPlayer(final ChromeCastController controller) {
+        mController = controller;
+        mController.addCallbacks(this);
     }
 
     /**
@@ -87,7 +87,7 @@ public class ChromeCastMediaPlayer implements ChromeCastController.Callbacks {
      * @return デバイスが有効か否か（有効: true, 無効: false）
      */
     public boolean isDeviceEnable() {
-        return (mApplication.getGoogleApiClient() != null);
+        return (mController.getGoogleApiClient() != null);
     }
 
     @Override
@@ -114,7 +114,7 @@ public class ChromeCastMediaPlayer implements ChromeCastController.Callbacks {
                 });
 
         try {
-            Cast.CastApi.setMessageReceivedCallbacks(mApplication.getGoogleApiClient(),
+            Cast.CastApi.setMessageReceivedCallbacks(mController.getGoogleApiClient(),
                     mRemoteMediaPlayer.getNamespace(), mRemoteMediaPlayer);
         } catch (IOException e) {
             if (BuildConfig.DEBUG) {
@@ -127,7 +127,7 @@ public class ChromeCastMediaPlayer implements ChromeCastController.Callbacks {
     public void onDetach() {
         if (mRemoteMediaPlayer != null) {
             try {
-                Cast.CastApi.removeMessageReceivedCallbacks(mApplication.getGoogleApiClient(),
+                Cast.CastApi.removeMessageReceivedCallbacks(mController.getGoogleApiClient(),
                         mRemoteMediaPlayer.getNamespace());
             } catch (IOException e) {
                 if (BuildConfig.DEBUG) {
@@ -160,7 +160,7 @@ public class ChromeCastMediaPlayer implements ChromeCastController.Callbacks {
                 .setMetadata(mediaMetadata).build();
         if (mRemoteMediaPlayer != null) {
             mRemoteMediaPlayer
-                .load(mApplication.getGoogleApiClient(), mediaInfo, false)
+                .load(mController.getGoogleApiClient(), mediaInfo, false)
                 .setResultCallback(
                         new ResultCallback<RemoteMediaPlayer.MediaChannelResult>() {
                             @Override
@@ -187,7 +187,7 @@ public class ChromeCastMediaPlayer implements ChromeCastController.Callbacks {
             mediaInfo = mRemoteMediaPlayer.getMediaInfo();
         }
         if (mRemoteMediaPlayer != null) {
-            mRemoteMediaPlayer.load(mApplication.getGoogleApiClient(), mediaInfo, true).setResultCallback(
+            mRemoteMediaPlayer.load(mController.getGoogleApiClient(), mediaInfo, true).setResultCallback(
                 new ResultCallback<RemoteMediaPlayer.MediaChannelResult>() {
                     @Override
                     public void onResult(final MediaChannelResult result) {
@@ -204,7 +204,7 @@ public class ChromeCastMediaPlayer implements ChromeCastController.Callbacks {
      */
     public void resume(final Intent response) {
         if (mRemoteMediaPlayer != null) {
-            mRemoteMediaPlayer.play(mApplication.getGoogleApiClient()).setResultCallback(
+            mRemoteMediaPlayer.play(mController.getGoogleApiClient()).setResultCallback(
                     new ResultCallback<RemoteMediaPlayer.MediaChannelResult>() {
                         @Override
                         public void onResult(final MediaChannelResult result) {
@@ -222,7 +222,7 @@ public class ChromeCastMediaPlayer implements ChromeCastController.Callbacks {
      */
     public void stop(final Intent response) {
         if (mRemoteMediaPlayer != null) {
-            mRemoteMediaPlayer.stop(mApplication.getGoogleApiClient()).setResultCallback(
+            mRemoteMediaPlayer.stop(mController.getGoogleApiClient()).setResultCallback(
                     new ResultCallback<RemoteMediaPlayer.MediaChannelResult>() {
                         @Override
                         public void onResult(final MediaChannelResult result) {
@@ -240,7 +240,7 @@ public class ChromeCastMediaPlayer implements ChromeCastController.Callbacks {
      */
     public void pause(final Intent response) {
         if (mRemoteMediaPlayer != null) {
-            mRemoteMediaPlayer.pause(mApplication.getGoogleApiClient()).setResultCallback(
+            mRemoteMediaPlayer.pause(mController.getGoogleApiClient()).setResultCallback(
                     new ResultCallback<RemoteMediaPlayer.MediaChannelResult>() {
                         @Override
                         public void onResult(final MediaChannelResult result) {
@@ -260,7 +260,7 @@ public class ChromeCastMediaPlayer implements ChromeCastController.Callbacks {
     public void setMute(final Intent response, final boolean mute) {
         if (mRemoteMediaPlayer != null) {
             mRemoteMediaPlayer
-                .setStreamMute(mApplication.getGoogleApiClient(), mute)
+                .setStreamMute(mController.getGoogleApiClient(), mute)
                 .setResultCallback(
                         new ResultCallback<RemoteMediaPlayer.MediaChannelResult>() {
                             @Override
@@ -298,7 +298,7 @@ public class ChromeCastMediaPlayer implements ChromeCastController.Callbacks {
     public void setVolume(final Intent response, final double volume) {
         if (mRemoteMediaPlayer != null) {
             mRemoteMediaPlayer
-                .setStreamVolume(mApplication.getGoogleApiClient(), volume)
+                .setStreamVolume(mController.getGoogleApiClient(), volume)
                 .setResultCallback(
                         new ResultCallback<RemoteMediaPlayer.MediaChannelResult>() {
                             @Override
@@ -333,7 +333,7 @@ public class ChromeCastMediaPlayer implements ChromeCastController.Callbacks {
     public void setSeek(final Intent response, final long pos) {
         if (mRemoteMediaPlayer != null) {
             mRemoteMediaPlayer
-                .seek(mApplication.getGoogleApiClient(), pos)
+                .seek(mController.getGoogleApiClient(), pos)
                 .setResultCallback(
                         new ResultCallback<RemoteMediaPlayer.MediaChannelResult>() {
                             @Override

@@ -106,7 +106,7 @@ public class ChromeCastDiscovery {
                 }
                 synchronized (this) {
                     CastDevice device = CastDevice.getFromBundle(info.getExtras());
-                    if (device != null && device.isOnLocalNetwork()) {
+                    if (device != null) {
                         mRouteInfos.add(info);
                         mRouteNames.add(info.getName());
                     }
@@ -185,6 +185,13 @@ public class ChromeCastDiscovery {
 
             }
         };
+    }
+
+    /**
+     * MediaRouteSelector.
+     */
+    public MediaRouteSelector getMediaRouteSelector() {
+        return mMediaRouteSelector;
     }
 
     /**

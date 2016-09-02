@@ -17,9 +17,7 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.MediaRouteButton;
 import android.support.v7.media.MediaRouteSelector;
-import android.support.v7.media.MediaRouter;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -27,11 +25,10 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout.LayoutParams;
 
-import com.google.android.gms.cast.CastDevice;
-import com.google.android.gms.cast.CastMediaControlIntent;
-
 import org.deviceconnect.android.deviceplugin.chromecast.BuildConfig;
+import org.deviceconnect.android.deviceplugin.chromecast.ChromeCastApplication;
 import org.deviceconnect.android.deviceplugin.chromecast.R;
+import org.deviceconnect.android.deviceplugin.chromecast.core.ChromeCastDiscovery;
 
 /**
  * チュートリアル画面.
@@ -49,11 +46,11 @@ public class ChromeCastSettingFragmentPage3 extends Fragment {
     private int mBadgeWidth = 0;
     /** バッジの縦サイズ. */
     private int mBadgeHeight = 0;
-    private MediaRouter mMediaRouter;
-    private MediaRouteSelector mMediaRouteSelector;
-    private MediaRouter.Callback mMediaRouterCallback;
+    /** ChromeCast接続用Button. */
     private MediaRouteButton mMediaRouteButton;
-    private CastDevice mSelectedDevice;
+    /** ChromeCastを管理するApplication. */
+    private ChromeCastApplication mApp;
+
     private int mRouteCount = 0;
 
     /**
@@ -131,69 +128,36 @@ public class ChromeCastSettingFragmentPage3 extends Fragment {
         mBadgeWidth = image.getWidth();
         mBadgeHeight = image.getHeight();
         image.recycle();
-
-
-        mMediaRouter = MediaRouter.getInstance(getActivity());
-        // Create a MediaRouteSelector for the type of routes your app supports
-        mMediaRouteSelector = new MediaRouteSelector.Builder()
-                .addControlCategory(
-                        CastMediaControlIntent.categoryForCast(getResources()
-                                .getString(R.string.application_id))).build();
-        // Create a MediaRouter callback for discovery events
-        mMediaRouterCallback = new MyMediaRouterCallback();
-
-        // Set the MediaRouteButton selector for device discovery.
         mMediaRouteButton = (MediaRouteButton) rootView.findViewById(R.id.media_route_button);
-        mMediaRouteButton.setRouteSelector(mMediaRouteSelector);
+        mApp = (ChromeCastApplication) getActivity().getApplication();
+        if (mApp != null) {
+            mApp.initialize();
+            MediaRouteSelector selector = mApp.getDiscovery().getMediaRouteSelector();
+            mMediaRouteButton.setRouteSelector(selector);
+        }
+
         return rootView;
     }
     @Override
     public void onResume() {
         super.onResume();
-        // Add the callback to start device discovery
-        mMediaRouter.addCallback(mMediaRouteSelector, mMediaRouterCallback,
-                MediaRouter.CALLBACK_FLAG_REQUEST_DISCOVERY);
+        if (mApp != null) {
+            ChromeCastDiscovery disocovery = mApp.getDiscovery();
+            if (disocovery != null) {
+                disocovery.registerEvent();
+            }
+        }
     }
 
     @Override
     public void onPause() {
-        // Remove the callback to stop device discovery
-        mMediaRouter.removeCallback(mMediaRouterCallback);
+        if (mApp != null) {
+            ChromeCastDiscovery disocovery = mApp.getDiscovery();
+            if (disocovery != null) {
+                disocovery.unregisterEvent();
+            }
+        }
         super.onPause();
-    }
-    private class MyMediaRouterCallback extends MediaRouter.Callback {
-        @Override
-        public void onRouteAdded(MediaRouter router, MediaRouter.RouteInfo route) {
-            Log.d("TEST", "onRouteAdded");
-            if (++mRouteCount == 1) {
-                // Show the button when a device is discovered.
-                mMediaRouteButton.setVisibility(View.VISIBLE);
-            }
-        }
-
-        @Override
-        public void onRouteRemoved(MediaRouter router, MediaRouter.RouteInfo route) {
-            Log.d("TEST", "onRouteRemoved");
-            if (--mRouteCount == 0) {
-                // Hide the button if there are no devices discovered.
-                mMediaRouteButton.setVisibility(View.GONE);
-            }
-        }
-
-        @Override
-        public void onRouteSelected(MediaRouter router, MediaRouter.RouteInfo info) {
-            Log.d("TEST", "onRouteSelected");
-            // Handle route selection.
-//            mSelectedDevice = CastDevice.getFromBundle(info.getExtras());
-//            getChromeCastApplication().setSelectedDevice(mSelectedDevice);
-//            getChromeCastApplication().connect();
-        }
-
-        @Override
-        public void onRouteUnselected(MediaRouter router, MediaRouter.RouteInfo info) {
-            Log.d("TEST", "onRouteUnselected: info=" + info);
-            mSelectedDevice = null;
-        }
     }
 
 }

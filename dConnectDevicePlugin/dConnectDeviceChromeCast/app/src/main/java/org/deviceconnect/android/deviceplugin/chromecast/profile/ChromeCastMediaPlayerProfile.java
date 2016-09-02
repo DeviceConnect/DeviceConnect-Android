@@ -6,16 +6,22 @@
  */
 package org.deviceconnect.android.deviceplugin.chromecast.profile;
 
+import android.Manifest;
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.provider.MediaStore;
+import android.support.annotation.NonNull;
 
 import com.google.android.gms.cast.MediaStatus;
 
+import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.chromecast.ChromeCastService;
 import org.deviceconnect.android.deviceplugin.chromecast.core.ChromeCastHttpServer;
 import org.deviceconnect.android.deviceplugin.chromecast.core.ChromeCastMediaPlayer;
@@ -169,7 +175,7 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
      * サービスからChromeCastMediaPlayerを取得する.
      * @return  ChromeCastMediaPlayer
      */
-    private ChromeCastMediaPlayer getChromeCastApplication() {
+    private ChromeCastMediaPlayer getChromeCastMediaPlayer() {
         return ((ChromeCastService) getContext()).getChromeCastMediaPlayer();
     }
 
@@ -216,11 +222,13 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
 
                         @Override
                         public void onResponse() {
-                            ChromeCastMediaPlayer app = getChromeCastApplication();
+                            ChromeCastMediaPlayer app = getChromeCastMediaPlayer();
                             if (!isDeviceEnable(response, app)) {
                                 sendResponse(response);
                                 return;
                             }
+                            app.setSeek(response, 0);
+
                             MediaStatus status = getMediaStatus(response, app);
                             if (status == null) {
                                 sendResponse(response);
@@ -257,7 +265,7 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
 
                 @Override
                 public void onResponse() {
-                    ChromeCastMediaPlayer app = getChromeCastApplication();
+                    ChromeCastMediaPlayer app = getChromeCastMediaPlayer();
                     if (!isDeviceEnable(response, app)) {
                         sendResponse(response);
                         return;
@@ -298,7 +306,7 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
 
                 @Override
                 public void onResponse() {
-                    ChromeCastMediaPlayer app = getChromeCastApplication();
+                    ChromeCastMediaPlayer app = getChromeCastMediaPlayer();
                     if (!isDeviceEnable(response, app)) {
                         sendResponse(response);
                         return;
@@ -340,7 +348,7 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
 
                 @Override
                 public void onResponse() {
-                    ChromeCastMediaPlayer app = getChromeCastApplication();
+                    ChromeCastMediaPlayer app = getChromeCastMediaPlayer();
                     if (!isDeviceEnable(response, app)) {
                         sendResponse(response);
                         return;
@@ -378,7 +386,7 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
 
             @Override
             public void onResponse() {
-                ChromeCastMediaPlayer app = getChromeCastApplication();
+                ChromeCastMediaPlayer app = getChromeCastMediaPlayer();
                 if (!isDeviceEnable(response, app))	{
                     sendResponse(response);
                     return;
@@ -430,7 +438,7 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
 
                 @Override
                 public void onResponse() {
-                    ChromeCastMediaPlayer app = getChromeCastApplication();
+                    ChromeCastMediaPlayer app = getChromeCastMediaPlayer();
                     if (!isDeviceEnable(response, app)) {
                         sendResponse(response);
                         return;
@@ -471,7 +479,7 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
 
                         @Override
                         public void onResponse() {
-                            ChromeCastMediaPlayer app = getChromeCastApplication();
+                            ChromeCastMediaPlayer app = getChromeCastMediaPlayer();
                             if (!isDeviceEnable(response, app)) {
                                 sendResponse(response);
                                 return;
@@ -510,7 +518,7 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
 
                         @Override
                         public void onResponse() {
-                            ChromeCastMediaPlayer app = getChromeCastApplication();
+                            ChromeCastMediaPlayer app = getChromeCastMediaPlayer();
                             if (!isDeviceEnable(response, app)) {
                                 sendResponse(response);
                                 return;
@@ -549,7 +557,7 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
 
                 @Override
                 public void onResponse() {
-                    ChromeCastMediaPlayer app = getChromeCastApplication();
+                    ChromeCastMediaPlayer app = getChromeCastMediaPlayer();
                     if (!isDeviceEnable(response, app)) {
                         sendResponse(response);
                         return;
@@ -593,7 +601,7 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
 
                         @Override
                         public void onResponse() {
-                            ChromeCastMediaPlayer app = getChromeCastApplication();
+                            ChromeCastMediaPlayer app = getChromeCastMediaPlayer();
                             if (!isDeviceEnable(response, app)) {
                                 sendResponse(response);
                                 return;
@@ -635,7 +643,7 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
 
                         @Override
                         public void onResponse() {
-                            ChromeCastMediaPlayer app = getChromeCastApplication();
+                            ChromeCastMediaPlayer app = getChromeCastMediaPlayer();
                             if (!isDeviceEnable(response, app)) {
                                 sendResponse(response);
                                 return;
@@ -655,9 +663,8 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
             return false;
         }
     };
-//    @Override
-//    protected boolean onGetMedia(final Intent request, final Intent response,
-//            final String serviceId, final String mediaId) {
+
+
     private final DConnectApi mGetMediaApi = new GetApi() {
         @Override
         public String getAttribute() {
@@ -779,7 +786,7 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
                                 return;
                             }
 
-                            ChromeCastMediaPlayer app = getChromeCastApplication();
+                            ChromeCastMediaPlayer app = getChromeCastMediaPlayer();
                             if (!isDeviceEnable(response, app)) {
                                 sendResponse(response);
                                 return;
@@ -985,8 +992,25 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
         } else {
             orderBy = "title asc";
         }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            final String filt = filter;
+            final String order = orderBy;
+            PermissionUtility.requestPermissions(getContext(), new Handler(Looper.getMainLooper()),
+                    new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                    new PermissionUtility.PermissionRequestCallback() {
+                        @Override
+                        public void onSuccess() {
 
-        listupMedia(mediaType, list, filter, orderBy);
+                            listupMedia(mediaType, list, filt, order);
+                        }
+
+                        @Override
+                        public void onFail(@NonNull String deniedPermission) {
+                        }
+                    });
+        } else {
+            listupMedia(mediaType, list, filter, orderBy);
+        }
     }
 
     /**
@@ -1202,6 +1226,7 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
             return false;
         }
     };
+
 
     /**
      * パラメータ比較クラス.

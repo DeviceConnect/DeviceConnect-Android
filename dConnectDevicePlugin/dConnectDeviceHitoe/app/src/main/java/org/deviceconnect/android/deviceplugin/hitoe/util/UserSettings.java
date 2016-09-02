@@ -20,6 +20,8 @@ public class UserSettings {
     private static final String PREF_NAME = "hitoe_setting_pref";
     /** Key of next on. */
     private static final String KEY_HITOE_ON_NEXT = "next_on";
+    /** Key of warning message. */
+    private static final String KEY_WARNING_MESSAGE = "warning_message";
 
     /** SharedPreferences' instance. */
     private SharedPreferences mPref;
@@ -44,6 +46,14 @@ public class UserSettings {
     }
 
     /**
+     * Get the Warning message flag.
+     * @return true:next show false:next not show
+     */
+    public boolean isWarningMessage() {
+        return mPref.getBoolean(KEY_WARNING_MESSAGE, false);
+    }
+
+    /**
      * Register the Next state.
      * @param state true:next show false:next not show
      */
@@ -53,4 +63,13 @@ public class UserSettings {
         mEditor.commit();
     }
 
+    /**
+     * Register the Warning Message flag.
+     * @param state true:next show false:next not show
+     */
+    public void setWarningMessage(final boolean state) {
+        mEditor = mPref.edit();
+        mEditor.putBoolean(KEY_WARNING_MESSAGE, state);
+        mEditor.commit();
+    }
 }

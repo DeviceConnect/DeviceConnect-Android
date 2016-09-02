@@ -70,6 +70,7 @@ public class HitoeDeviceListActivity extends HitoeListActivity implements
         IntentFilter filter = new IntentFilter();
         filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
         registerReceiver(mSensorReceiver, filter, null, mHandler);
+        DefaultDialogFragment.showHitoeWarningMessageDialog(this);
     }
 
     @Override

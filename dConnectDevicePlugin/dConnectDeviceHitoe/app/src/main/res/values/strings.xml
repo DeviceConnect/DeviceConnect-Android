@@ -79,4 +79,6 @@
     <string name="speed">歩行速度</string>
     <string name="distance">歩行距離</string>
     <string name="balance">左右バランス</string>
+    <string name="warning_title">警告</string>
+    <string name="warning_connections">すでに接続されているデバイスがある場合に、新たにデバイスが接続しようとした場合は、新たに接続したデバイスと接続しなおされます。\nその時、すでに接続されているデバイスとは接続が切断されますので、ご注意ください。</string>
 </resources>

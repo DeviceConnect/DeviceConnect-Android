@@ -17,6 +17,8 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.CheckBox;
+import android.widget.ImageView;
+import android.widget.TextView;
 
 import org.deviceconnect.android.deviceplugin.hitoe.R;
 import org.deviceconnect.android.deviceplugin.hitoe.util.UserSettings;
@@ -100,6 +102,10 @@ public class DefaultDialogFragment extends DialogFragment {
         LayoutInflater inflater = (LayoutInflater) activity.getSystemService(
                 Context.LAYOUT_INFLATER_SERVICE);
         final View layout = inflater.inflate(R.layout.dialog_hitoe_on, null);
+        ImageView explain = (ImageView) layout.findViewById(R.id.hitoe_explain);
+        TextView message = (TextView) layout.findViewById(R.id.explain_message);
+        message.setText(R.string.dialog_message_lunch_hitoe);
+        explain.setVisibility(View.VISIBLE);
         new AlertDialog.Builder(activity)
                 .setView(layout)
                 .setTitle(activity.getString(R.string.dialog_title_lunch_hitoe))
@@ -137,4 +143,35 @@ public class DefaultDialogFragment extends DialogFragment {
     }
 
 
+    /**
+     * Show Hitoe warning message dialog.
+     * @param activity activity
+     */
+    public static void showHitoeWarningMessageDialog(final Activity activity) {
+        if (activity == null) {
+            return;
+        }
+        final UserSettings userSettings = new UserSettings(activity);
+        if (userSettings.isWarningMessage()) {
+            return;
+        }
+        LayoutInflater inflater = (LayoutInflater) activity.getSystemService(
+                Context.LAYOUT_INFLATER_SERVICE);
+        final View layout = inflater.inflate(R.layout.dialog_hitoe_on, null);
+        ImageView explain = (ImageView) layout.findViewById(R.id.hitoe_explain);
+        TextView message = (TextView) layout.findViewById(R.id.explain_message);
+        message.setText(R.string.warning_connections);
+        explain.setVisibility(View.GONE);
+        new AlertDialog.Builder(activity)
+                .setView(layout)
+                .setTitle(activity.getString(R.string.warning_title))
+                .setNeutralButton(R.string.ok, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(final DialogInterface dialogInterface, final int i) {
+                        CheckBox nextState = (CheckBox) layout.findViewById(R.id.chceck_next);
+                        userSettings.setWarningMessage(nextState.isChecked());
+                    }
+                })
+                .show();
+    }
 }

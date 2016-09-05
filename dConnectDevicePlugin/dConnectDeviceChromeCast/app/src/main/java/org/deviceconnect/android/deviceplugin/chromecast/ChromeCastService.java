@@ -101,7 +101,7 @@ public class ChromeCastService extends DConnectMessageService implements
         int portCount = 0;
         while (portCount < 500) { // Portを決定する
             try {
-                mServer = new ChromeCastHttpServer("0.0.0.0", SERVER_PORT + portCount);
+                mServer = new ChromeCastHttpServer(this, "0.0.0.0", SERVER_PORT + portCount);
                 mServer.start();
                 break;
             } catch (IOException e) {

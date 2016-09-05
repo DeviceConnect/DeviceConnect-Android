@@ -876,8 +876,12 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
                     .getColumnIndex(MediaStore.Video.Media.MIME_TYPE)));
             setTitle(bundle, cursor.getString(cursor
                     .getColumnIndex(MediaStore.Video.Media.TITLE)));
-            setDuration(bundle, cursor.getInt(cursor
-                    .getColumnIndex(MediaStore.Video.Media.DURATION)));
+            int duration = cursor.getInt(cursor
+                    .getColumnIndex(MediaStore.Video.Media.DURATION));
+            if (duration < 0) {
+                duration = 0;
+            }
+            setDuration(bundle, duration);
             Bundle creator = new Bundle();
             setCreator(creator, cursor.getString(cursor
                     .getColumnIndex(MediaStore.Video.Media.ARTIST)));
@@ -891,8 +895,12 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
                     .getColumnIndex(MediaStore.Audio.Media.MIME_TYPE)));
             setTitle(bundle, cursor.getString(cursor
                     .getColumnIndex(MediaStore.Audio.Media.TITLE)));
-            setDuration(bundle, cursor.getInt(cursor
-                    .getColumnIndex(MediaStore.Audio.Media.DURATION)));
+            int duration = cursor.getInt(cursor
+                    .getColumnIndex(MediaStore.Video.Media.DURATION));
+            if (duration < 0) {
+                duration = 0;
+            }
+            setDuration(bundle, duration);
             Bundle creator = new Bundle();
             setCreator(creator, cursor.getString(cursor
                     .getColumnIndex(MediaStore.Audio.Media.ARTIST)));

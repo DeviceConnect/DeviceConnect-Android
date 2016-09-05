@@ -57,6 +57,7 @@ public class ChromeCastCanvasProfile extends CanvasProfile implements ChromeCast
     private final Logger mLogger = Logger.getLogger("chromecast.dplugin");
 
 
+
     public ChromeCastCanvasProfile() {
         addApi(mPostDrawImageApi);
         addApi(mDeleteDrawImageApi);
@@ -108,6 +109,7 @@ public class ChromeCastCanvasProfile extends CanvasProfile implements ChromeCast
                         } else {
                             path = uri;
                         }
+
                         mLogger.info("Exposed image: URL=" + path);
                         if (path == null) {
                             MessageUtils.setUnknownError(response, "The host device is not in local network.");
@@ -238,4 +240,6 @@ public class ChromeCastCanvasProfile extends CanvasProfile implements ChromeCast
         }
         return true;
     }
+
+
 }

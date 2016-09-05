@@ -6,6 +6,12 @@
  */
 package org.deviceconnect.android.deviceplugin.chromecast.core;
 
+import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+
+import org.deviceconnect.android.deviceplugin.chromecast.BuildConfig;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -22,8 +28,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import org.deviceconnect.android.deviceplugin.chromecast.BuildConfig;
-
 import fi.iki.elonen.NanoHTTPD;
 
 /**
@@ -39,21 +43,26 @@ public class ChromeCastHttpServer extends NanoHTTPD {
 
     /** Local IP Address prefix.  */
     private static final String PREFIX_LOCAL_IP = "192.168.";
-
+    enum NetworkStatus
+    {
+        OFF, WIFI, MOBILE, WIMAX, BLUETOOTH, ETHERNET;
+    }
     /** Logger. */
     private final Logger mLogger = Logger.getLogger("chromecast.dplugin");
 
     /** The List of media files. */
     private final List<MediaFile> mFileList = new ArrayList<MediaFile>();
 
+    private Context mContext;
     /**
      * コンストラクタ.
      * 
      * @param host ipアドレス
      * @param port ポート番号
      */
-    public ChromeCastHttpServer(final String host, final int port) {
+    public ChromeCastHttpServer(final Context context, final String host, final int port) {
         super(host, port);
+        mContext = context;
     }
 
     /**
@@ -201,8 +210,37 @@ public class ChromeCastHttpServer extends NanoHTTPD {
                     mLogger.info("Searching IP Address: Address=" + ipStr
                         + " isLoopback=" + ip.isLoopbackAddress()
                         + " isSiteLocal=" + ip.isSiteLocalAddress());
+                    NetworkStatus status = NetworkStatus.OFF;
 
-                    if (ipStr.startsWith(PREFIX_LOCAL_IP)) {
+                    NetworkInfo info = ((ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE)).getActiveNetworkInfo();
+
+                    if ( info != null )
+                    {
+                        if ( info.isConnected() )
+                        {
+                            switch ( info.getType() )
+                            {
+                                case ConnectivityManager.TYPE_WIFI: // Wifi
+                                    status = NetworkStatus.WIFI;
+                                    break;
+                                case ConnectivityManager.TYPE_MOBILE_DUN: // Mobile 3G
+                                case ConnectivityManager.TYPE_MOBILE_HIPRI:
+                                case ConnectivityManager.TYPE_MOBILE_MMS:
+                                case ConnectivityManager.TYPE_MOBILE_SUPL:
+                                case ConnectivityManager.TYPE_MOBILE:
+                                    status = NetworkStatus.MOBILE;
+                                    break;
+                                case ConnectivityManager.TYPE_BLUETOOTH: // Bluetooth
+                                    status = NetworkStatus.BLUETOOTH;
+                                    break;
+                                case ConnectivityManager.TYPE_ETHERNET:  // Ethernet
+                                    status = NetworkStatus.ETHERNET;
+                                    break;
+                            }
+                        }
+                    }
+                    if (status == NetworkStatus.WIFI
+                            || status == NetworkStatus.ETHERNET) {
                         localAddresses.addFirst(ip);
                     }
                 }

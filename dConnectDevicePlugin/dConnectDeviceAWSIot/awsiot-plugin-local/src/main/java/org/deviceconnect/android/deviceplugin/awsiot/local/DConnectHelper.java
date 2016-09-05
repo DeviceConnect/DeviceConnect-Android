@@ -81,7 +81,6 @@ public class DConnectHelper {
     }
 
     public void sendRequest(final String request, final FinishCallback callback) {
-        int requestCode = 0;
         try {
             String method = null;
 
@@ -107,13 +106,12 @@ public class DConnectHelper {
                 if (key.equals("profile")) {
                     builder.setProfile(jsonObject.getString(key));
                 } else if (key.equals("interface")) {
-                    builder.setProfile(jsonObject.getString(key));
+                    builder.setInterface(jsonObject.getString(key));
                 } else if (key.equals("attribute")) {
-                    builder.setProfile(jsonObject.getString(key));
+                    builder.setAttribute(jsonObject.getString(key));
                 } else if (key.equals("method")) {
                     method = parseMethod(jsonObject);
                 } else if (key.equals("requestCode")) {
-                    requestCode = jsonObject.getInt(key);
                 } else if (key.equals("origin")) {
                 } else if (key.equals("accessToken")) {
                 } else if (key.equals("_type")) {

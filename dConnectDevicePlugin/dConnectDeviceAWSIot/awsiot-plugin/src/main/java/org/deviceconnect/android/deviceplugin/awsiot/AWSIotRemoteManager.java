@@ -212,6 +212,11 @@ public class AWSIotRemoteManager extends AWSIotCore {
             Log.i(TAG, "@@@@@@@@@ AWSIotRemoteManager#sendRequest");
         }
 
+        if (existAWSFlag(request)) {
+            MessageUtils.setUnknownError(response);
+            return true;
+        }
+
         int requestCode = generateRequestCode();
         publish(remote, createRequest(requestCode, AWSIotRemoteUtil.intentToJson(request)));
         mResponseMap.put(requestCode, response);
@@ -221,6 +226,11 @@ public class AWSIotRemoteManager extends AWSIotCore {
     public boolean sendServiceDiscovery(final Intent request, final Intent response) {
         if (DEBUG) {
             Log.i(TAG, "@@@@@@@@@ AWSIotRemoteManager#sendServiceDiscovery");
+        }
+
+        if (existAWSFlag(request)) {
+            MessageUtils.setUnknownError(response);
+            return true;
         }
 
         int requestCode = generateRequestCode();
@@ -241,6 +251,10 @@ public class AWSIotRemoteManager extends AWSIotCore {
 
     private void sendResponse(final Intent intent) {
         ((DConnectMessageService) mContext).sendResponse(intent);
+    }
+
+    private boolean existAWSFlag(final Intent intent) {
+        return intent.getExtras().getBoolean("awsflag", false);
     }
 
     private void parseMQTT(final RemoteDeviceConnectManager remote, final String message) {

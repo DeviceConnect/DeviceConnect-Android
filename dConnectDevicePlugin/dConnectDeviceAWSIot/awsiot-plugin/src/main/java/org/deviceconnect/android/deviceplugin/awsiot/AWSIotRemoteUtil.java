@@ -100,6 +100,14 @@ public final class AWSIotRemoteUtil {
             try {
                 if (key.equals("serviceId")) {
                     jsonObject.put(key, AWSIotRemoteUtil.getServiceId(extras.getString(key)));
+                } else if (key.equals("origin")) {
+                } else if (key.equals("accessToken")) {
+                } else if (key.equals("_type")) {
+                } else if (key.equals("_app_type")) {
+                } else if (key.equals("receiver")) {
+                } else if (key.equals("version")) {
+                } else if (key.equals("api")) {
+                } else if (key.equals("product")) {
                 } else {
                     jsonObject.put(key, extras.get(key));
                 }

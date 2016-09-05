@@ -31,7 +31,6 @@ import org.deviceconnect.android.localoauth.DevicePluginXmlProfileLocale;
 import org.deviceconnect.android.localoauth.DevicePluginXmlUtil;
 import org.deviceconnect.android.manager.DConnectApplication;
 import org.deviceconnect.android.manager.DevicePlugin;
-import org.deviceconnect.android.manager.DevicePluginManager;
 import org.deviceconnect.android.manager.R;
 import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
@@ -215,9 +214,7 @@ public class DevicePluginInfoFragment extends Fragment {
                         break;
                     }
                 }
-                if (dialog.isResumed()) {
-                    dialog.dismiss();
-                }
+                dialog.dismiss();
             }
         }).start();
     }

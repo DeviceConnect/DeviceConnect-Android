@@ -239,8 +239,9 @@ public class ChromeCastHttpServer extends NanoHTTPD {
                             }
                         }
                     }
-                    if (status == NetworkStatus.WIFI
-                            || status == NetworkStatus.ETHERNET) {
+                    // ipv6を除外
+                    if (ipStr.indexOf("::") == -1 && (status == NetworkStatus.WIFI
+                            || status == NetworkStatus.ETHERNET)) {
                         localAddresses.addFirst(ip);
                     }
                 }

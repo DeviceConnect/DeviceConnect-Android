@@ -149,11 +149,6 @@ public class AWSIotLocalManager extends AWSIotCore {
                     return;
                 }
 
-                if ("test".equals(message)) {
-                    publish(mRemoteManager, "########");
-                    return;
-                }
-
                 parseMQTT(mRemoteManager, message);
             }
         });

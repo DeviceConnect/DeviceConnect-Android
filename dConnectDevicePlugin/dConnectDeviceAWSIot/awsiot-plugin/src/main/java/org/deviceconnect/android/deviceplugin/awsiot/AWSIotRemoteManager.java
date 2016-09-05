@@ -292,9 +292,9 @@ public class AWSIotRemoteManager extends AWSIotCore {
                     sendResponse(response);
                 }
             } else {
-                Log.e("ABC", "Not found response. requestCode=" + requestCode);
+                Log.e(TAG, "Not found response. requestCode=" + requestCode);
                 for (Integer req : mResponseMap.keySet()) {
-                    Log.e("ABC", req + "::: " + mResponseMap.get(req));
+                    Log.e(TAG, req + "::: " + mResponseMap.get(req));
                 }
             }
         } catch (JSONException e) {

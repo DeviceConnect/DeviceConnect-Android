@@ -309,6 +309,7 @@ public class AWSIotController {
                         mMqttManager = new AWSIotMqttManager(clientId, endpoint);
                         mMqttManager.setKeepAlive(60);
                         mMqttManager.setConnectionStabilityTime(60);
+                        mMqttManager.setReconnectRetryLimits(1, 5);
                         mMqttManager.setAutoReconnect(true);
                         connectMQTT();
                         return;

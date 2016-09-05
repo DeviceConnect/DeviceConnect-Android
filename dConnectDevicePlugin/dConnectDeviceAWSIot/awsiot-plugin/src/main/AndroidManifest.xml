@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="org.deviceconnect.android.deviceplugin.local">
+    package="org.deviceconnect.android.deviceplugin.awsiot.remote">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -24,41 +24,33 @@
         </activity>
 
         <!-- Device Connect Example Device Plugin Provider. -->
-        <!--<receiver android:name="org.deviceconnect.android.deviceplugin.awsiot.AWSIotDeviceProvider"-->
-            <!--android:exported="true">-->
-            <!--<meta-data-->
-                <!--android:name="org.deviceconnect.android.deviceplugin"-->
-                <!--android:resource="@xml/deviceplugin" />-->
+        <receiver android:name="org.deviceconnect.android.deviceplugin.awsiot.AWSIotDeviceProvider"
+            android:exported="true">
+            <meta-data
+                android:name="org.deviceconnect.android.deviceplugin"
+                android:resource="@xml/deviceplugin" />
 
-            <!--<intent-filter>-->
-                <!--<action android:name="org.deviceconnect.action.GET" />-->
-                <!--<action android:name="org.deviceconnect.action.PUT" />-->
-                <!--<action android:name="org.deviceconnect.action.POST" />-->
-                <!--<action android:name="org.deviceconnect.action.DELETE" />-->
-            <!--</intent-filter>-->
-        <!--</receiver>-->
+            <intent-filter>
+                <action android:name="org.deviceconnect.action.GET" />
+                <action android:name="org.deviceconnect.action.PUT" />
+                <action android:name="org.deviceconnect.action.POST" />
+                <action android:name="org.deviceconnect.action.DELETE" />
+            </intent-filter>
+        </receiver>
 
-        <!--<service-->
-            <!--android:name="org.deviceconnect.android.deviceplugin.awsiot.AWSIotDeviceService"-->
-            <!--android:exported="false" >-->
-        <!--</service>-->
+        <service
+            android:name="org.deviceconnect.android.deviceplugin.awsiot.AWSIotDeviceService"
+            android:exported="false" >
+        </service>
 
-        <!--&lt;!&ndash; 再起動用のServcie. &ndash;&gt;-->
-        <!--<service-->
-            <!--android:name="org.deviceconnect.android.message.DConnectLaunchService"-->
-            <!--android:exported="true" >-->
-            <!--<meta-data-->
-                <!--android:name="org.deviceconnect.android.deviceplugin"-->
-                <!--android:value="enable" />-->
-        <!--</service>-->
 
-        <!--<activity-->
-            <!--android:name="org.deviceconnect.android.deviceplugin.awsiot.setting.AWSIotSettingActivity"-->
-            <!--android:label="@string/app_name"-->
-            <!--android:configChanges="orientation|screenSize"-->
-            <!--android:launchMode="singleInstance">-->
+        <activity
+            android:name="org.deviceconnect.android.deviceplugin.awsiot.setting.AWSIotSettingActivity"
+            android:label="@string/app_name"
+            android:configChanges="orientation|screenSize"
+            android:launchMode="singleInstance">
 
-        <!--</activity>-->
+        </activity>
 
     </application>
 

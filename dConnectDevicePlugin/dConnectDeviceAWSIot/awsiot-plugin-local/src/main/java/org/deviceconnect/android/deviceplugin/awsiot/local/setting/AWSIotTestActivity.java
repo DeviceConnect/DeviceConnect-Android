@@ -51,8 +51,29 @@ public class AWSIotTestActivity extends Activity {
     }
 
     private void startAWSIoT() {
-        mAWSIoTLocalManager = new AWSIotLocalManager(this, "nobu", "test");
+        mAWSIoTLocalManager = new AWSIotLocalManager(this, "abc", "test");
         mAWSIoTLocalManager.connectAWSIoT("ACCESS_KEY", "SECRET_KEY", Regions.AP_NORTHEAST_1);
+        mAWSIoTLocalManager.setOnEventListener(new AWSIotLocalManager.OnEventListener() {
+            @Override
+            public void onConnected() {
+                log("connected");
+            }
+
+            @Override
+            public void onDisconnected() {
+                log("onDisconnected");
+            }
+
+            @Override
+            public void onReconnecting() {
+                log("onReconnecting");
+            }
+
+            @Override
+            public void onReceivedMessage(String topic, String message) {
+                log("topic: " + topic + " message=" + message);
+            }
+        });
     }
 
     public void log(final String message) {

@@ -18,7 +18,7 @@ import java.util.TimeZone;
 public class AWSIotP2PManager {
 
     private static final boolean DEBUG = BuildConfig.DEBUG;
-    private static final String TAG = "ABC";
+    private static final String TAG = "AWS";
 
     public static final String KEY_CONNECTION_ID = "connectionId";
     public static final String KEY_GLOBAL = "global";

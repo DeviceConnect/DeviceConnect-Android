@@ -9,20 +9,15 @@ package org.deviceconnect.android.deviceplugin.awsiot.local;
 import android.os.AsyncTask;
 import android.util.Log;
 
-import org.apache.http.HttpHost;
+import org.deviceconnect.android.deviceplugin.awsiot.util.HttpUtil;
+import org.deviceconnect.android.profile.AuthorizationProfile;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.utils.URIBuilder;
+import org.json.JSONException;
+import org.json.JSONObject;
 
-import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLEncoder;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 /**
@@ -30,256 +25,253 @@ import java.util.Map;
  */
 public class DConnectHelper {
 
-    //region Declaration
-    //---------------------------------------------------------------------------------------
-
     /** シングルトンなManagerのインスタンス */
     public static final DConnectHelper INSTANCE = new DConnectHelper();
 
     /** デバッグタグ */
     private static final String TAG = "DConnectHelper";
 
-    /** 接続先情報 */
-    private HttpHost targetHost = new HttpHost("localhost", 4035, "http");
-    /**  */
-    private String origin;
-
-//    /** イベントハンドラー */
-//    private EventHandler eventHandler = null;
-
     /** 処理完了コールバック */
-    public interface FinishCallback<Result> {
+    public interface FinishCallback {
         /**
          * 処理が完了した時に呼ばれます.
-         * @param result 結果
+         * @param response レスポンス
          * @param error エラー
          */
-        void onFinish(Result result, Exception error);
+        void onFinish(String response, Exception error);
     }
+
+    private Map<String, String> mDefaultHeader = new HashMap<>();
+    private AuthInfo mAuthInfo;
 
     /**
      * 認証情報
      */
     public static class AuthInfo {
-        public String clientId;
-        public String accessToken;
-        public AuthInfo(String clientId, String accessToken) {
-            this.clientId = clientId;
-            this.accessToken = accessToken;
+        public String mClientId;
+        public String mAccessToken;
+
+        public AuthInfo(final String clientId, final String accessToken) {
+            mClientId = clientId;
+            mAccessToken = accessToken;
         }
+
+        public String getClientId() {
+            return mClientId;
+        }
+
+        public String getAccessToken() {
+            return mAccessToken;
+        }
+
         @Override
         public String toString() {
-            return "AuthInfo{" + "clientId='" + clientId + '\'' + ", accessToken='" + accessToken + '\'' + '}';
+            return "AuthInfo{" + "mClientId='" + mClientId + '\'' + ", mAccessToken='" + mAccessToken + '\'' + '}';
         }
     }
 
-    //endregion
-    //---------------------------------------------------------------------------------------
-    //region Methods
+    private DConnectHelper() {
+        mDefaultHeader.put(DConnectMessage.HEADER_GOTAPI_ORIGIN, "http://localhost");
+    }
 
+    private String parseMethod(final JSONObject jsonObject) throws JSONException {
+        String method = jsonObject.getString("method");
+        method = method.replace("org.deviceconnect.action.", "");
+        return method.toLowerCase();
+    }
 
-    /**
-     * リクエスト送信
-     * @param method Method
-     * @param path Path
-     * @param serviceId ServiceID
-     * @param accessToken AccessToken
-     * @param params パラメータ
-     * @param callback Callback
-     */
-    public void sendRequest(String method, String path, String serviceId, String accessToken, Map<String, String> params, final FinishCallback<String> callback) {
-        if (BuildConfig.DEBUG) Log.d(TAG, "sendRequest");
-        // 接続情報
-        ConnectionParam connectionParam = new ConnectionParam(
-                targetHost,
-                method,
-                path,
-                origin
-        );
-        // パラメータ
-        if (params == null) {
-            params = new HashMap<>();
+    public void sendRequest(final String request, final FinishCallback callback) {
+        int requestCode = 0;
+        try {
+            String method = null;
+
+            URIBuilder builder = new URIBuilder();
+            builder.setScheme("http");
+            builder.setHost("localhost");
+            builder.setPort(4035);
+
+            Map<String, String> body = new HashMap<>();
+
+            // TODO
+            body.put("awsflg", "true");
+
+            // TODO
+            if (mAuthInfo != null) {
+                body.put(DConnectMessage.EXTRA_ACCESS_TOKEN, mAuthInfo.getAccessToken());
+            }
+
+            JSONObject jsonObject = new JSONObject(request);
+            Iterator<String> it = jsonObject.keys();
+            while (it.hasNext()) {
+                String key = it.next();
+                if (key.equals("profile")) {
+                    builder.setProfile(jsonObject.getString(key));
+                } else if (key.equals("interface")) {
+                    builder.setProfile(jsonObject.getString(key));
+                } else if (key.equals("attribute")) {
+                    builder.setProfile(jsonObject.getString(key));
+                } else if (key.equals("method")) {
+                    method = parseMethod(jsonObject);
+                } else if (key.equals("requestCode")) {
+                    requestCode = jsonObject.getInt(key);
+                } else if (key.equals("origin")) {
+                } else if (key.equals("accessToken")) {
+                } else if (key.equals("_type")) {
+                } else if (key.equals("_app_type")) {
+                } else if (key.equals("receiver")) {
+                } else if (key.equals("version")) {
+                } else if (key.equals("api")) {
+                } else if (key.equals("product")) {
+                } else {
+                    body.put(key, jsonObject.getString(key));
+                }
+            }
+
+            DConnectHelper.INSTANCE.sendRequest(method, builder.toString(), body, callback);
+        } catch (JSONException e) {
+            if (callback != null) {
+                callback.onFinish(null, e);
+            }
         }
-        if (accessToken != null) {
-            params.put(DConnectMessage.EXTRA_ACCESS_TOKEN, accessToken);
-        }
-        if (serviceId != null) {
-            params.put(DConnectMessage.EXTRA_SERVICE_ID, serviceId);
-        }
-        // 接続
-        new HttpTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, new TaskParam(connectionParam, params) {
+    }
+
+    private void sendRequest(final String method, final String uri, final Map<String, String> body, final FinishCallback callback) {
+        new HttpTask(method, uri, mDefaultHeader, body) {
             @Override
-            public void callBack(String message) {
+            protected void onPostExecute(final String message) {
                 if (callback != null) {
                     callback.onFinish(message, null);
                 }
             }
-        });
+        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 
-
-    //endregion
-    //---------------------------------------------------------------------------------------
-    //region Tasks
-
-    /**
-     * 接続情報
-     */
-    private class ConnectionParam {
-        public HttpHost host;
-        public String profileName;
-        public String attributeName;
-        public String origin;
-        public String method;
-        public String path;
-        public ConnectionParam(HttpHost host, String method, String path, String origin) {
-            this.host = host;
-            this.method = method;
-            this.path = path;
-            this.origin = origin;
+    private String toBody(final Map<String, String> body) {
+        String data = "";
+        for (String key : body.keySet()) {
+            if (data.length() > 0) {
+                data += "&";
+            }
+            data += (key + "=" + body.get(key));
         }
+        return data;
     }
 
-    /**
-     * Task用パラメータ
-     */
-    private class TaskParam {
-        /** 接続情報 */
-        public ConnectionParam connection;
-        /** その他パラメータ */
-        public Map<String, String> params;
-        /** コールバック */
-        public void callBack(String message) {}
+    private class HttpTask extends AsyncTask<Void, Void, String> {
+        public String mMethod;
+        public String mUri;
+        public Map<String, String> mHeaders;
+        public Map<String, String> mBody;
 
-        public TaskParam(ConnectionParam url, Map<String, String > params) {
-            this.connection = url;
-            this.params = params;
+        public HttpTask(final String method, final String uri, final Map<String, String> headers, final Map<String, String> body) {
+            mMethod = method;
+            mUri = uri;
+            mHeaders = headers;
+            mBody = body;
         }
-    }
 
-    /**
-     * Http用Task
-     */
-    private class HttpTask extends AsyncTask<TaskParam, Void, String> {
+        private String executeRequest() {
+            Log.d(TAG, "method=" + mMethod);
+            Log.d(TAG, "Uri=" + mUri);
+            Log.d(TAG, "Body=" + toBody(mBody));
 
-        /** パラメータ */
-        TaskParam param = null;
+            byte[] resp = null;
+            if ("get".equals(mMethod)) {
+                resp = HttpUtil.get(mUri + "?" + toBody(mBody), mHeaders);
+            } else if ("post".equals(mMethod)) {
+                resp = HttpUtil.post(mUri, mHeaders, mBody);
+            } else if ("put".equals(mMethod)) {
+                resp = HttpUtil.put(mUri, mHeaders, mBody);
+            } else if ("delete".equals(mMethod)) {
+                resp = HttpUtil.delete(mUri + "?" + toBody(mBody), mHeaders);
+            }
+            return (resp != null) ? new String(resp) : null;
+        }
 
-        /**
-         * Background処理.
-         *
-         * @param params Params
-         */
-        @Override
-        protected String doInBackground(TaskParam... params) {
+        private String executeAccessToken(final String clientId) {
+            // TODO scopeを検討
+            URIBuilder builder = new URIBuilder();
+            builder.setScheme("http");
+            builder.setHost("localhost");
+            builder.setPort(4035);
+            builder.setProfile(AuthorizationProfile.PROFILE_NAME);
+            builder.setAttribute(AuthorizationProfile.ATTRIBUTE_ACCESS_TOKEN);
+            builder.addParameter(AuthorizationProfile.PARAM_CLIENT_ID, clientId);
+            builder.addParameter(AuthorizationProfile.PARAM_SCOPE, "serviceDiscovery,vibration,serviceInformation");
+            builder.addParameter(AuthorizationProfile.PARAM_APPLICATION_NAME, "aws");
 
-            param = params[0];
-//            DConnectMessage message = new DConnectResponseMessage(DConnectMessage.RESULT_ERROR);
-            String message = null;
+            byte[] a = HttpUtil.get(builder.toString(), mHeaders);
+            if (a == null) {
+                return null;
+            }
 
-            HttpURLConnection con = null;
-            InputStream stream = null;
-
+            String response = new String(a);
             try {
-                // URI作成
-                URIBuilder builder = new URIBuilder();
-                ConnectionParam connectionParam = param.connection;
-                builder.setScheme(connectionParam.host.getSchemeName());
-                builder.setHost(connectionParam.host.getHostName());
-                builder.setPort(connectionParam.host.getPort());
-                if (connectionParam.path == null) {
-                    builder.setProfile(connectionParam.profileName);
-                    builder.setAttribute(connectionParam.attributeName);
-                } else {
-                    builder.setPath(connectionParam.path);
+                JSONObject jsonObject = new JSONObject(response);
+                int result = jsonObject.getInt("result");
+                if (result == 0) {
+                    String accessToken = jsonObject.getString("accessToken");
+                    mAuthInfo = new AuthInfo(clientId, accessToken);
+                    mBody.put("accessToken", accessToken);
+                    return executeRequest();
                 }
-                // Query作成
-                StringBuilder query = new StringBuilder();
-                boolean isQuery = connectionParam.method.equals("GET") ||
-                        connectionParam.method.equals("DELETE");
-                if (isQuery) {
-                    // GET/DELETEはQueryをURIに付加
-                    for (String key: param.params.keySet()) {
-                        builder.addParameter(key, param.params.get(key));
-                    }
-                } else {
-                    // 他はQueryをBodyに
-                    for (String key: param.params.keySet()) {
-                        if (query.length() > 0) {
-                            query.append("&");
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            return response;
+        }
+
+        private String executeGrant() {
+            URIBuilder builder = new URIBuilder();
+            builder.setScheme("http");
+            builder.setHost("localhost");
+            builder.setPort(4035);
+            builder.setProfile(AuthorizationProfile.PROFILE_NAME);
+            builder.setAttribute(AuthorizationProfile.ATTRIBUTE_GRANT);
+
+            byte[] a = HttpUtil.get(builder.toString(), mHeaders);
+            if (a == null) {
+                return null;
+            }
+
+            String response = new String(a);
+            try {
+                JSONObject jsonObject = new JSONObject(response);
+                int result = jsonObject.getInt("result");
+                if (result == 0) {
+                    String clientId = jsonObject.getString("clientId");
+                    return executeAccessToken(clientId);
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            return response;
+        }
+
+        @Override
+        protected String doInBackground(final Void... params) {
+            String response = executeRequest();
+            if (response != null) {
+                try {
+                    JSONObject jsonObject = new JSONObject(response);
+                    int result = jsonObject.getInt("result");
+                    if (result == DConnectMessage.RESULT_ERROR) {
+                        DConnectMessage.ErrorCode errorCode = DConnectMessage.ErrorCode.getInstance(jsonObject.getInt("errorCode"));
+                        switch (errorCode) {
+                            case AUTHORIZATION:
+                            case EXPIRED_ACCESS_TOKEN:
+                            case EMPTY_ACCESS_TOKEN:
+                            case SCOPE:
+                            case NOT_FOUND_CLIENT_ID:
+                                response = executeGrant();
+                                break;
                         }
-                        query.append(key);
-                        query.append("=");
-                        query.append(URLEncoder.encode(param.params.get(key), "UTF-8"));
                     }
-                }
-                URL url = builder.build().toURL();
-                if (BuildConfig.DEBUG) Log.d(TAG, url.toString());
-
-                // 接続
-                con = (HttpURLConnection)url.openConnection();
-                con.setRequestMethod(connectionParam.method);
-                con.setInstanceFollowRedirects(false);
-
-                // Origin
-                if (connectionParam.origin != null) {
-                    con.setRequestProperty(DConnectMessage.HEADER_GOTAPI_ORIGIN, connectionParam.origin);
-                }
-
-                if (!isQuery) {
-                    // POSTなどはQueryをBodyに
-                    con.setRequestProperty("Content-Type",
-                            "application/x-www-form-urlencoded");
-                    con.setDoOutput(true);
-                    BufferedOutputStream bo = new BufferedOutputStream(con.getOutputStream());
-                    DataOutputStream wr = new DataOutputStream(bo);
-                    wr.writeBytes (query.toString());
-                    wr.flush ();
-                    wr.close ();
-                    if (BuildConfig.DEBUG) Log.d(TAG, query.toString());
-                }
-
-                // 接続
-                con.connect();
-
-                // レスポンス取得
-                stream = con.getInputStream();
-                BufferedReader streamReader = new BufferedReader(new InputStreamReader(stream, "UTF-8"));
-                StringBuilder responseStrBuilder = new StringBuilder();
-                String inputStr;
-                while ((inputStr = streamReader.readLine()) != null)
-                    responseStrBuilder.append(inputStr);
-                if (con.getResponseCode() == 200) {
-//                    message = new BasicDConnectMessage(responseStrBuilder.toString());
-                    message = responseStrBuilder.toString();
-                } else {
-                    Log.e(TAG, "Invalid response code:" + con.getResponseCode());
-                }
-            } catch (Exception e) {
-                Log.e(TAG, "Error on HttpConnection", e);
-            } finally {
-                if (stream != null) {
-                    try {
-                        stream.close();
-                    } catch (IOException e) {
-                        Log.e(TAG, "stream close error", e);
-                    }
-                }
-                if (con != null) {
-                    con.disconnect();
+                } catch (JSONException e) {
+                    e.printStackTrace();
                 }
             }
-//            if (BuildConfig.DEBUG) Log.d(TAG, message.toString());
-            return message;
-        }
-
-        @Override
-        protected void onPostExecute(String message) {
-            param.callBack(message);
+            return response;
         }
     }
-
-    //endregion
-    //---------------------------------------------------------------------------------------
-
 }

@@ -3,4 +3,5 @@
     <profile name="serviceDiscovery" />
     <profile name="serviceInformation" />
     <profile name="system" />
+    <profile name="vibration" />
 </deviceplugin-provider>

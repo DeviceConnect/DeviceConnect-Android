@@ -3,7 +3,6 @@ package org.deviceconnect.android.deviceplugin.awsiot.p2p;
 import android.content.Context;
 import android.util.Log;
 
-import org.deviceconnect.android.deviceplugin.awsiot.core.BuildConfig;
 import org.deviceconnect.android.deviceplugin.awsiot.udt.P2PConnection;
 
 import java.io.BufferedReader;
@@ -16,6 +15,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -30,7 +30,7 @@ public class WebServer extends AWSIotP2PManager {
     private String mPath = UUID.randomUUID().toString();
     private boolean mStopFlag;
     private ServerSocket mServerSocket;
-    private ConcurrentHashMap<Integer, ServerRunnable> mServerRunnableMap = new ConcurrentHashMap<>();
+    private Map<Integer, ServerRunnable> mServerRunnableMap = new ConcurrentHashMap<>();
 
     private final ExecutorService mExecutor = Executors.newFixedThreadPool(MAX_CLIENT_SIZE);
 
@@ -68,10 +68,7 @@ public class WebServer extends AWSIotP2PManager {
                 mStopFlag = false;
                 try {
                     while (!mStopFlag) {
-                        ServerRunnable run = new ServerRunnable(mServerSocket.accept());
-                        synchronized (WebServer.this) {
-                            mExecutor.execute(run);
-                        }
+                        mExecutor.execute(new ServerRunnable(mServerSocket.accept()));
                     }
                 } catch (IOException e) {
                     if (DEBUG) {
@@ -97,7 +94,7 @@ public class WebServer extends AWSIotP2PManager {
                 mServerSocket.close();
                 mServerSocket = null;
             } catch (IOException e) {
-                if (BuildConfig.DEBUG) {
+                if (DEBUG) {
                     Log.w(TAG, "", e);
                 }
             }
@@ -284,15 +281,14 @@ public class WebServer extends AWSIotP2PManager {
                 if (DEBUG) {
                     Log.i(TAG, "ServerRunnable End. Socket=" + mSocket);
                 }
+
                 mServerRunnableMap.remove(mConnectionId);
 
                 if (mP2PConnection != null) {
                     try {
                         mP2PConnection.close();
                     } catch (IOException e) {
-                        if (DEBUG) {
-                            Log.w(TAG, "", e);
-                        }
+                        e.printStackTrace();
                     }
                 }
 

@@ -17,7 +17,7 @@ import java.util.concurrent.Executors;
 public class WebClient extends AWSIotP2PManager {
 
     private static final boolean DEBUG = true;
-    private static final String TAG = "ABC";
+    private static final String TAG = "AWS";
 
     private static final int BUF_SIZE = 1024 * 8;
 

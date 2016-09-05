@@ -10,7 +10,7 @@ import com.amazonaws.regions.Regions;
 
 import org.deviceconnect.android.deviceplugin.awsiot.AWSIotRemoteManager;
 import org.deviceconnect.android.deviceplugin.awsiot.core.RemoteDeviceConnectManager;
-import org.deviceconnect.android.deviceplugin.local.R;
+import org.deviceconnect.android.deviceplugin.awsiot.remote.R;
 
 public class AWSIotTestActivity extends Activity {
     private RemoteDeviceConnectManager mRemoteManager;
@@ -21,7 +21,7 @@ public class AWSIotTestActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_test);
 
-        mRemoteManager = new RemoteDeviceConnectManager("nobu", "abc");
+        mRemoteManager = new RemoteDeviceConnectManager("abc", "test");
 
         Button connectBtn = (Button) findViewById(R.id.aws_connect);
         if (connectBtn != null) {
@@ -38,7 +38,7 @@ public class AWSIotTestActivity extends Activity {
             sendBtn.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-
+                    mAWSIotRemoteManager.publish(mRemoteManager, "test");
                 }
             });
         }
@@ -57,10 +57,31 @@ public class AWSIotTestActivity extends Activity {
     private void startAWSIoT() {
         mAWSIotRemoteManager = new AWSIotRemoteManager(this);
         mAWSIotRemoteManager.connectAWSIoT("ACCESS_KEY", "SECRET_KEY", Regions.AP_NORTHEAST_1);
+        mAWSIotRemoteManager.setOnEventListener(new AWSIotRemoteManager.OnEventListener() {
+            @Override
+            public void onConnected() {
+                log("onConnected");
+            }
+
+            @Override
+            public void onReconnecting() {
+                log("onReconnecting");
+            }
+
+            @Override
+            public void onDisconnected() {
+                log("onDisconnected");
+            }
+
+            @Override
+            public void onReceivedMessage(String topic, String message) {
+                log("topic: " + topic + " message=" + message);
+            }
+        });
     }
 
     private void connectP2P() {
-        mAWSIotRemoteManager.createWebServer(mRemoteManager, "localhost:4035");
+        mAWSIotRemoteManager.createWebServer(mRemoteManager, "localhost:9000");
     }
 
     public void log(final String message) {

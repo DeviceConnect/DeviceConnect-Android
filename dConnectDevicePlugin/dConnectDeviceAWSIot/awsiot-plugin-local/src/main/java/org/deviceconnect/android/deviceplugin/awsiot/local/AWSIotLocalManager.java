@@ -11,9 +11,7 @@ import org.deviceconnect.android.deviceplugin.awsiot.core.RemoteDeviceConnectMan
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class AWSIotLocalManager extends AWSIotCore {
 
@@ -24,6 +22,8 @@ public class AWSIotLocalManager extends AWSIotCore {
 
     private RemoteDeviceConnectManager mRemoteManager;
     private Context mContext;
+
+    private OnEventListener mOnEventListener;
 
     public AWSIotLocalManager(final Context context, final String name, final String id) {
         mContext = context;
@@ -47,6 +47,10 @@ public class AWSIotLocalManager extends AWSIotCore {
             mIot.disconnect();
             mIot = null;
         }
+    }
+
+    public void setOnEventListener(OnEventListener listener) {
+        mOnEventListener = listener;
     }
 
     public void connectAWSIoT(final String accessKey, final String secretKey, final Regions region) {
@@ -76,6 +80,24 @@ public class AWSIotLocalManager extends AWSIotCore {
                 }
                 mIot.subscribe(mRemoteManager.getRequestTopic());
                 getDeviceShadow();
+
+                if (mOnEventListener != null) {
+                    mOnEventListener.onConnected();
+                }
+            }
+
+            @Override
+            public void onReconnecting() {
+                if (mOnEventListener != null) {
+                    mOnEventListener.onReconnecting();
+                }
+            }
+
+            @Override
+            public void onDisconnected() {
+                if (mOnEventListener != null) {
+                    mOnEventListener.onDisconnected();
+                }
             }
 
             @Override
@@ -115,11 +137,20 @@ public class AWSIotLocalManager extends AWSIotCore {
                     return;
                 }
 
+                if (mOnEventListener != null) {
+                    mOnEventListener.onReceivedMessage(topic, message);
+                }
+
                 if (!topic.equals(mRemoteManager.getRequestTopic())) {
                     if (DEBUG) {
                         Log.e(TAG, "Not found the RemoteDeviceConnectManager. topic=" + topic);
                     }
                     // TODO エラー処理を追加
+                    return;
+                }
+
+                if ("test".equals(message)) {
+                    publish(mRemoteManager, "########");
                     return;
                 }
 
@@ -137,9 +168,10 @@ public class AWSIotLocalManager extends AWSIotCore {
     private void parseMQTT(final RemoteDeviceConnectManager remote, final String message) {
         try {
             JSONObject json = new JSONObject(message);
+            int requestCode = json.optInt("requestCode");
             JSONObject request = json.optJSONObject(KEY_REQUEST);
             if (request != null) {
-                executeDeviceConnectRequest(remote, request.toString());
+                executeDeviceConnectRequest(remote, requestCode, request.toString());
             }
             JSONObject p2p = json.optJSONObject(KEY_P2P);
             if (p2p != null) {
@@ -152,34 +184,26 @@ public class AWSIotLocalManager extends AWSIotCore {
         }
     }
 
-    private void executeDeviceConnectRequest(final RemoteDeviceConnectManager remote, final String request) {
-        try {
-            JSONObject jsonObject = new JSONObject(request);
-
-            String profile = jsonObject.getString("profile");
-            String method = jsonObject.getString("method");
-            method = method.replace("org.deviceconnect.action.", "");
-            String path = "/gotapi/" + profile;
-            if (jsonObject.has("attribute")) {
-                path += "/" + jsonObject.getString("attribute");
-            }
-            String serviceId = null;
-            if (jsonObject.has("serviceId")) {
-                serviceId = jsonObject.getString("serviceId");
-                serviceId = serviceId.replace(remote.getName() + ".", "");
-            }
-            final int requestCode = jsonObject.getInt("requestCode");
-
-            Map<String, String> param = new HashMap<>();
-            param.put("awsflg", "true");
-            DConnectHelper.INSTANCE.sendRequest(method, path, serviceId, null, param, new DConnectHelper.FinishCallback<String>() {
-                @Override
-                public void onFinish(final String str, final Exception error) {
-                    publish(remote, createResponse(requestCode, str));
-                }
-            });
-        } catch (JSONException e) {
-            publish(remote, "{}");
+    private void executeDeviceConnectRequest(final RemoteDeviceConnectManager remote, final int requestCode, final String request) {
+        if (DEBUG) {
+            Log.i(TAG, "executeDeviceConnectRequest: request=" + request);
         }
+
+        DConnectHelper.INSTANCE.sendRequest(request, new DConnectHelper.FinishCallback() {
+            @Override
+            public void onFinish(final String response, final Exception error) {
+                if (DEBUG) {
+                    Log.d(TAG, "executeDeviceConnectRequest: requestCode=" + requestCode + " response=" + response);
+                }
+                publish(remote, createResponse(requestCode, response));
+            }
+        });
+    }
+
+    public interface OnEventListener {
+        void onConnected();
+        void onReconnecting();
+        void onDisconnected();
+        void onReceivedMessage(String topic, String message);
     }
 }

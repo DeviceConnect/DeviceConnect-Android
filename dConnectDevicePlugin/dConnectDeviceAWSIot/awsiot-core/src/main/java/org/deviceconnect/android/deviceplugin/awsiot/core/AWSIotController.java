@@ -8,6 +8,7 @@ import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.internal.StaticCredentialsProvider;
 import com.amazonaws.mobileconnectors.iot.AWSIotMqttClientStatusCallback;
 import com.amazonaws.mobileconnectors.iot.AWSIotMqttManager;
+import com.amazonaws.mobileconnectors.iot.AWSIotMqttMessageDeliveryCallback;
 import com.amazonaws.mobileconnectors.iot.AWSIotMqttNewMessageCallback;
 import com.amazonaws.mobileconnectors.iot.AWSIotMqttQos;
 import com.amazonaws.regions.Region;
@@ -80,6 +81,9 @@ public class AWSIotController {
          */
         void onConnected(Exception err);
 
+        void onReconnecting();
+        void onDisconnected();
+
         /**
          * Shadow取得
          *
@@ -135,6 +139,10 @@ public class AWSIotController {
         }
 
         // TODO 切断処理
+
+        if (mMqttManager != null) {
+            mMqttManager.disconnect();
+        }
     }
 
     /**
@@ -297,7 +305,11 @@ public class AWSIotController {
                         String endpoint = json.getString("endpointAddress");
                         mIotDataClient.setEndpoint(endpoint);
                         String clientId = UUID.randomUUID().toString();
+                        // TODO AWS IoTの設定
                         mMqttManager = new AWSIotMqttManager(clientId, endpoint);
+                        mMqttManager.setKeepAlive(60);
+                        mMqttManager.setConnectionStabilityTime(60);
+                        mMqttManager.setAutoReconnect(true);
                         connectMQTT();
                         return;
                     } else {
@@ -466,7 +478,8 @@ public class AWSIotController {
                             Log.e(TAG, "MQTT Error", throwable);
                         }
                     }
-                    if (status == AWSIotMqttClientStatus.Connected) {
+                    if (status == AWSIotMqttClientStatus.Connecting) {
+                    } else if (status == AWSIotMqttClientStatus.Connected) {
                         // 接続済みとする
                         if (!mIsConnected) {
                             mIsConnected = true;
@@ -474,6 +487,15 @@ public class AWSIotController {
                                 mEventListener.onConnected(null);
                             }
                         }
+                    } else if (status == AWSIotMqttClientStatus.Reconnecting) {
+                        if (mEventListener != null) {
+                            mEventListener.onReconnecting();
+                        }
+                    } else if (status == AWSIotMqttClientStatus.ConnectionLost) {
+                        if (mEventListener != null) {
+                            mEventListener.onDisconnected();
+                        }
+                    } else {
                     }
                 }
             });
@@ -538,8 +560,14 @@ public class AWSIotController {
         if (mMqttManager == null) {
             return;
         }
+
         try {
-            mMqttManager.publishString(msg, topic, AWSIotMqttQos.QOS0);
+            mMqttManager.publishString(msg, topic, AWSIotMqttQos.QOS0, new AWSIotMqttMessageDeliveryCallback() {
+                @Override
+                public void statusChanged(MessageDeliveryStatus status, Object userData) {
+                    Log.e("ABC", "MessageDeliveryStatus: " + status);
+                }
+            }, null);
         } catch (Exception e) {
             if (DEBUG) {
                 Log.e(TAG, "Publish error.", e);

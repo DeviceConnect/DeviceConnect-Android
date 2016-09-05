@@ -12,7 +12,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 
-import org.deviceconnect.android.deviceplugin.local.R;
+import org.deviceconnect.android.deviceplugin.awsiot.remote.R;
 import org.deviceconnect.android.ui.activity.DConnectSettingPageActivity;
 
 /**

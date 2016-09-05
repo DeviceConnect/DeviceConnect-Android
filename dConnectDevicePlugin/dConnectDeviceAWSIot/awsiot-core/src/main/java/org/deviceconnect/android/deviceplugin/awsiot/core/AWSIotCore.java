@@ -23,7 +23,7 @@ public class AWSIotCore {
         // TODO Shadowを解析して、RemoteDeviceConnectを追加する
 
         List<RemoteDeviceConnectManager> managers = new ArrayList<>();
-        managers.add(new RemoteDeviceConnectManager("nobu", "abc"));
+        managers.add(new RemoteDeviceConnectManager("abc", "test"));
         return managers;
     }
 

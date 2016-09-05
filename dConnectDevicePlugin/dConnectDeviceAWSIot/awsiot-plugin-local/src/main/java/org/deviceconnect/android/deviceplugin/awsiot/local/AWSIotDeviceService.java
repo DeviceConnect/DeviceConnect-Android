@@ -16,7 +16,6 @@ import org.deviceconnect.android.deviceplugin.awsiot.core.AWSIotPrefUtil;
 public class AWSIotDeviceService extends Service {
 
     private AWSIotLocalManager mAWSIoTLocalManager;
-    private AWSIotPrefUtil mAWSIotPrefUtil;
 
     @Nullable
     @Override
@@ -27,8 +26,6 @@ public class AWSIotDeviceService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-
-        mAWSIotPrefUtil = new AWSIotPrefUtil(this);
 
         // TODO AWSIotの開始タイミングを検討すること。
         startAWSIot();
@@ -52,9 +49,11 @@ public class AWSIotDeviceService extends Service {
             return;
         }
 
-        mAWSIoTLocalManager = new AWSIotLocalManager(this, "nobu", "test");
-        mAWSIoTLocalManager.connectAWSIoT(mAWSIotPrefUtil.getAccessKey(),
-                mAWSIotPrefUtil.getSecretKey(), mAWSIotPrefUtil.getRegions());
+        AWSIotPrefUtil pref = new AWSIotPrefUtil(this);
+
+        mAWSIoTLocalManager = new AWSIotLocalManager(this, "abc", "test");
+        mAWSIoTLocalManager.connectAWSIoT(pref.getAccessKey(),
+                pref.getSecretKey(), pref.getRegions());
     }
 
     private void stopAWSIot() {

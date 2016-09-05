@@ -11,7 +11,7 @@ import java.util.Map;
 
 public class AWSIotWebServerManager {
     private static final boolean DEBUG = true;
-    private static final String TAG = "ABC";
+    private static final String TAG = "AWS-Remote";
 
     private Map<RemoteDeviceConnectManager, WebServer> mWebServerList = new HashMap<>();
 
@@ -47,6 +47,13 @@ public class AWSIotWebServerManager {
 
         if (DEBUG) {
             Log.i(TAG, "url=" + url);
+        }
+    }
+
+    public void deleteWebServer(final RemoteDeviceConnectManager remote) {
+        WebServer webServer = mWebServerList.remove(remote);
+        if (webServer != null) {
+            webServer.stop();
         }
     }
 

@@ -31,6 +31,7 @@ public class AWSIotLocalManager extends AWSIotCore {
         mContext = context;
         mRemoteManager = new RemoteDeviceConnectManager(name, id);
 
+        // TODO WebSocket
         mAWSIotWebSocketClient = new AWSIotWebSocketClient("http://localhost:4035/websocket", mSessionKey) {
             @Override
             public void onMessage(final String message) {

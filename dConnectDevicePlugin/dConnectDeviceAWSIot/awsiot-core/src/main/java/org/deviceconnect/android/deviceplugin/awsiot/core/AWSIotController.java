@@ -313,7 +313,7 @@ public class AWSIotController {
                         String clientId = UUID.randomUUID().toString();
                         // TODO AWS IoTの設定
                         mMqttManager = new AWSIotMqttManager(clientId, endpoint);
-                        mMqttManager.setKeepAlive(10);
+                        mMqttManager.setKeepAlive(120);
                         mMqttManager.setConnectionStabilityTime(180);
                         mMqttManager.setReconnectRetryLimits(1, 5);
                         mMqttManager.setAutoReconnect(true);

@@ -29,6 +29,10 @@ public final class AWSIotRemoteUtil {
                     if (callback != null) {
                         jsonObject.put(key, callback.convertServiceId(extras.getString(key)));
                     }
+                } else if (key.equals("uri")) {
+                    if (callback != null) {
+                        jsonObject.put(key, callback.convertUri(extras.getString(key)));
+                    }
                 } else if (key.equals("origin")) {
                 } else if (key.equals("accessToken")) {
                 } else if (key.equals("_type")) {
@@ -110,6 +114,7 @@ public final class AWSIotRemoteUtil {
 
     public interface ConversionIntentCallback {
         String convertServiceId(String id);
+        String convertUri(String uri);
     }
 
     public interface ConversionJsonCallback {

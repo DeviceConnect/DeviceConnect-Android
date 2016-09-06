@@ -6,6 +6,7 @@
  */
 package org.deviceconnect.android.deviceplugin.awsiot.local;
 
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.util.Log;
 
@@ -16,8 +17,10 @@ import org.deviceconnect.utils.URIBuilder;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -36,6 +39,49 @@ public class DConnectHelper {
     private Map<String, String> mDefaultHeader = new HashMap<>();
     private AuthInfo mAuthInfo;
     private String mSessionKey;
+
+
+    private List<String> mScopes =  new ArrayList<String>() {
+        {
+            add("servicediscovery");
+            add("serviceinformation");
+            add("system");
+            add("battery");
+            add("connect");
+            add("deviceorientation");
+            add("filedescriptor");
+            add("file");
+            add("mediaplayer");
+            add("mediastreamrecording");
+            add("notification");
+            add("phone");
+            add("proximity");
+            add("settings");
+            add("vibration");
+            add("light");
+            add("remotecontroller");
+            add("drivecontroller");
+            add("mhealth");
+            add("sphero");
+            add("dice");
+            add("temperature");
+            add("camera");
+            add("canvas");
+            add("health");
+            add("touch");
+            add("humandetect");
+            add("keyevent");
+            add("omnidirectionalimage");
+            add("tv");
+            add("powermeter");
+            add("humidity");
+            add("illuminance");
+            add("videochat");
+            add("airconditioner");
+            add("atmosphericpressure");
+            add("gpio");
+        }
+    };
 
     private DConnectHelper() {
         mDefaultHeader.put(DConnectMessage.HEADER_GOTAPI_ORIGIN, "http://localhost");
@@ -136,6 +182,17 @@ public class DConnectHelper {
         return data;
     }
 
+    private String toScope() {
+        String data = "";
+        for (String scope : mScopes) {
+            if (data.length() > 0) {
+                data += ",";
+            }
+            data += scope;
+        }
+        return data;
+    }
+
     private class HttpTask extends AsyncTask<Void, Void, String> {
         public String mMethod;
         public String mUri;
@@ -170,6 +227,12 @@ public class DConnectHelper {
         }
 
         private String executeAccessToken(final String clientId) {
+
+            String profile = getProfile();
+            if (profile != null) {
+                mScopes.add(profile);
+            }
+
             // TODO scopeを検討
             URIBuilder builder = new URIBuilder();
             builder.setScheme("http");
@@ -178,7 +241,7 @@ public class DConnectHelper {
             builder.setProfile(AuthorizationProfile.PROFILE_NAME);
             builder.setAttribute(AuthorizationProfile.ATTRIBUTE_ACCESS_TOKEN);
             builder.addParameter(AuthorizationProfile.PARAM_CLIENT_ID, clientId);
-            builder.addParameter(AuthorizationProfile.PARAM_SCOPE, "serviceDiscovery,vibration,serviceInformation,deviceorientation");
+            builder.addParameter(AuthorizationProfile.PARAM_SCOPE, toScope());
             builder.addParameter(AuthorizationProfile.PARAM_APPLICATION_NAME, "aws");
 
             byte[] data = HttpUtil.get(builder.toString(), mHeaders);
@@ -229,6 +292,15 @@ public class DConnectHelper {
             return response;
         }
 
+        private String getProfile() {
+            Uri uri = Uri.parse(mUri);
+            List<String> paths = uri.getPathSegments();
+            if (paths.size() > 1) {
+                return paths.get(1);
+            }
+            return null;
+        }
+
         @Override
         protected String doInBackground(final Void... params) {
             String response = executeRequest();
@@ -239,11 +311,12 @@ public class DConnectHelper {
                     if (result == DConnectMessage.RESULT_ERROR) {
                         DConnectMessage.ErrorCode errorCode = DConnectMessage.ErrorCode.getInstance(jsonObject.getInt("errorCode"));
                         switch (errorCode) {
+                            case SCOPE:
                             case AUTHORIZATION:
                             case EXPIRED_ACCESS_TOKEN:
                             case EMPTY_ACCESS_TOKEN:
-                            case SCOPE:
                             case NOT_FOUND_CLIENT_ID:
+
                                 String resp = executeGrant();
                                 if (resp != null) {
                                     response = resp;
@@ -281,7 +354,7 @@ public class DConnectHelper {
 
         @Override
         public String toString() {
-            return "AuthInfo{" + "mClientId='" + mClientId + '\'' + ", mAccessToken='" + mAccessToken + '\'' + '}';
+            return "AuthInfo{" + "mClientId=" + mClientId + ", mAccessToken=" + mAccessToken + "}";
         }
     }
 

@@ -1,6 +1,7 @@
 package org.deviceconnect.android.deviceplugin.awsiot.local.setting;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -8,6 +9,7 @@ import android.widget.TextView;
 
 import com.amazonaws.regions.Regions;
 
+import org.deviceconnect.android.deviceplugin.awsiot.local.AWSIotDeviceService;
 import org.deviceconnect.android.deviceplugin.awsiot.local.AWSIotLocalManager;
 import org.deviceconnect.android.deviceplugin.awsiot.local.R;
 
@@ -35,7 +37,10 @@ public class AWSIotTestActivity extends Activity {
             sendBtn.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-
+                    Intent intent = new Intent();
+                    intent.setClass(AWSIotTestActivity.this, AWSIotDeviceService.class);
+                    intent.setAction(AWSIotDeviceService.ACTION_START);
+                    startService(intent);
                 }
             });
         }
@@ -45,6 +50,10 @@ public class AWSIotTestActivity extends Activity {
             p2pBtn.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    Intent intent = new Intent();
+                    intent.setClass(AWSIotTestActivity.this, AWSIotDeviceService.class);
+                    intent.setAction(AWSIotDeviceService.ACTION_STOP);
+                    startService(intent);
                 }
             });
         }

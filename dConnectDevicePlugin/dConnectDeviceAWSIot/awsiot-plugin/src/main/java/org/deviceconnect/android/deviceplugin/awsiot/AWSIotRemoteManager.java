@@ -11,9 +11,12 @@ import com.amazonaws.regions.Regions;
 import org.deviceconnect.android.deviceplugin.awsiot.core.AWSIotController;
 import org.deviceconnect.android.deviceplugin.awsiot.core.AWSIotCore;
 import org.deviceconnect.android.deviceplugin.awsiot.core.RemoteDeviceConnectManager;
+import org.deviceconnect.android.event.Event;
+import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.DConnectProfile;
+import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -31,12 +34,14 @@ public class AWSIotRemoteManager extends AWSIotCore {
     private Context mContext;
 
     private AWSIotWebServerManager mAWSIotWebServerManager;
+    private AWSIotDeviceManager mAWSIotDeviceManager;
     private Map<Integer, Intent> mResponseMap = new HashMap<>();
 
     private OnEventListener mOnEventListener;
 
     public AWSIotRemoteManager(final Context context) {
         mContext = context;
+        mAWSIotDeviceManager = new AWSIotDeviceManager();
     }
 
     public void setOnEventListener(OnEventListener listener) {
@@ -179,7 +184,7 @@ public class AWSIotRemoteManager extends AWSIotCore {
     }
 
     public boolean sendRequest(final Intent request, final Intent response) {
-        RemoteDeviceConnectManager remote = findManagerById(DConnectProfile.getServiceID(request));
+        RemoteDeviceConnectManager remote = mAWSIotDeviceManager.findManagerById(DConnectProfile.getServiceID(request));
         if (remote == null) {
             MessageUtils.setNotFoundServiceError(response);
             return true;
@@ -194,10 +199,22 @@ public class AWSIotRemoteManager extends AWSIotCore {
             return true;
         }
 
+        String action = request.getAction();
+        if (IntentDConnectMessage.ACTION_PUT.equals(action)) {
+            EventManager.INSTANCE.addEvent(request);
+        } else if (IntentDConnectMessage.ACTION_DELETE.equals(action)) {
+            EventManager.INSTANCE.removeEvent(request);
+        }
+
         String message = AWSIotRemoteUtil.intentToJson(request, new AWSIotRemoteUtil.ConversionIntentCallback() {
             @Override
             public String convertServiceId(final String id) {
-                return getServiceId(id);
+                return mAWSIotDeviceManager.getServiceId(id);
+            }
+
+            @Override
+            public String convertUri(final String uri) {
+                return uri;
             }
         });
 
@@ -248,14 +265,6 @@ public class AWSIotRemoteManager extends AWSIotCore {
         return intent.getExtras().getBoolean("awsflag", false);
     }
 
-    private RemoteDeviceConnectManager findManagerById(final String serviceId) {
-        for (TempDevice t : mDeviceList) {
-            if (serviceId.equals(t.mId)) {
-                return t.mRemote;
-            }
-        }
-        return null;    }
-
     private RemoteDeviceConnectManager parseTopic(final String topic) {
         for (RemoteDeviceConnectManager remote : mManagerList) {
             if (remote.getResponseTopic().equals(topic)) {
@@ -300,7 +309,7 @@ public class AWSIotRemoteManager extends AWSIotCore {
                     AWSIotRemoteUtil.jsonToIntent(responseObj, b, new AWSIotRemoteUtil.ConversionJsonCallback() {
                         @Override
                         public String convertServiceId(final String id) {
-                            return generateServiceId(remote, id);
+                            return mAWSIotDeviceManager.generateServiceId(remote, id);
                         }
 
                         @Override
@@ -342,45 +351,40 @@ public class AWSIotRemoteManager extends AWSIotCore {
             String profile = jsonObject.optString("profile");
             String inter = jsonObject.optString("interface");
             String attribute = jsonObject.optString("attribute");
-            String serviceId = jsonObject.optString("serviceId");
-            String sessionKey = jsonObject.optString("sessionKey");
+            String serviceId = mAWSIotDeviceManager.generateServiceId(remote, jsonObject.optString("serviceId"));
 
-            // TODO json->intent 変換
+            List<Event> events = EventManager.INSTANCE.getEventList(serviceId, profile, inter, attribute);
+            for (Event event : events) {
+                Intent intent = EventManager.createEventMessage(event);
+
+                String sessionKey = intent.getStringExtra("sessionKey");
+
+                // TODO json->intent 変換をちゃんと検討すること。
+                Bundle b = new Bundle();
+                AWSIotRemoteUtil.jsonToIntent(jsonObject, b, new AWSIotRemoteUtil.ConversionJsonCallback() {
+                    @Override
+                    public String convertServiceId(final String id) {
+                        return mAWSIotDeviceManager.generateServiceId(remote, id);
+                    }
+
+                    @Override
+                    public String convertName(final String name) {
+                        return remote.getName() + " " + name;
+                    }
+
+                    @Override
+                    public String convertUri(final String uri) {
+                        return uri;
+                    }
+                });
+                intent.putExtras(b);
+                intent.putExtra("sessionKey", sessionKey);
+
+                sendEvent(intent, event.getAccessToken());
+            }
         } catch (JSONException e) {
             e.printStackTrace();
         }
-    }
-
-    private List<TempDevice> mDeviceList = new ArrayList<>();
-
-    private class TempDevice {
-        RemoteDeviceConnectManager mRemote;
-        String mServiceId;
-        String mId;
-    }
-
-    private String generateServiceId(final RemoteDeviceConnectManager remote, final String serviceId) {
-        for (TempDevice t : mDeviceList) {
-            if (remote.equals(t.mRemote) && serviceId.equals(t.mServiceId)) {
-                return t.mId;
-            }
-        }
-
-        TempDevice t = new TempDevice();
-        t.mRemote = remote;
-        t.mServiceId = serviceId;
-        t.mId = AWSIotUtil.md5(remote.getServiceId() + serviceId);
-        mDeviceList.add(t);
-        return t.mId;
-    }
-
-    private String getServiceId(final String serviceId) {
-        for (TempDevice t : mDeviceList) {
-            if (serviceId.equals(t.mId)) {
-                return t.mServiceId;
-            }
-        }
-        return null;
     }
 
     public interface OnEventListener {

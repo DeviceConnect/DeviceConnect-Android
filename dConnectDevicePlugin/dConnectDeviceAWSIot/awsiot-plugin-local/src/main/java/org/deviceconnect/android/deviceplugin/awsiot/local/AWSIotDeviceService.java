@@ -11,8 +11,6 @@ import android.content.Intent;
 import android.os.IBinder;
 import android.util.Log;
 
-import com.amazonaws.regions.Regions;
-
 import org.deviceconnect.android.deviceplugin.awsiot.core.AWSIotPrefUtil;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -62,7 +60,6 @@ public class AWSIotDeviceService extends Service {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                // TODO
                 DConnectHelper.INSTANCE.sendRequest("GET", "http://localhost:4035/gotapi/availability", callback);
             }
         }).start();
@@ -106,16 +103,18 @@ public class AWSIotDeviceService extends Service {
         });
     }
 
-    private void startAWSIot(final String name, final String uuid) {
-        // TODO
-        AWSIotPrefUtil pref = new AWSIotPrefUtil(this);
+    private synchronized void startAWSIot(final String name, final String uuid) {
+        if (mAWSIoTLocalManager != null) {
+            mAWSIoTLocalManager.disconnect();
+        }
 
+        AWSIotPrefUtil pref = new AWSIotPrefUtil(this);
         mAWSIoTLocalManager = new AWSIotLocalManager(this, name, uuid);
         mAWSIoTLocalManager.connectAWSIoT(pref.getAccessKey(),
                 pref.getSecretKey(), pref.getRegions());
     }
 
-    private void stopAWSIot() {
+    private synchronized void stopAWSIot() {
         if (mAWSIoTLocalManager != null) {
             mAWSIoTLocalManager.disconnect();
             mAWSIoTLocalManager = null;

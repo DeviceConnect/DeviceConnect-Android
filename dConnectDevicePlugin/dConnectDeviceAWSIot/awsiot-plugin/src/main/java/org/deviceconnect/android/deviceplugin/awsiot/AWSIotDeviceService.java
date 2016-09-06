@@ -70,9 +70,11 @@ public class AWSIotDeviceService extends DConnectMessageService {
     }
 
     private void startAWSIot() {
-        // TODO
-        AWSIotPrefUtil pref = new AWSIotPrefUtil(this);
+        if (mAWSIotRemoteManager != null) {
+            mAWSIotRemoteManager.disconnect();
+        }
 
+        AWSIotPrefUtil pref = new AWSIotPrefUtil(this);
         mAWSIotRemoteManager = new AWSIotRemoteManager(this);
         mAWSIotRemoteManager.connectAWSIoT(pref.getAccessKey(),
                 pref.getSecretKey(), pref.getRegions());

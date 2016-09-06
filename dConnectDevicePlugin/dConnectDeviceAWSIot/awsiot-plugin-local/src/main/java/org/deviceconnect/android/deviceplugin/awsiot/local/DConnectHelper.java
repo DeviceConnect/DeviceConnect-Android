@@ -122,6 +122,10 @@ public class DConnectHelper {
     }
 
     private String toBody(final Map<String, String> body) {
+        if (body == null) {
+            return "";
+        }
+
         String data = "";
         for (String key : body.keySet()) {
             if (data.length() > 0) {
@@ -139,7 +143,7 @@ public class DConnectHelper {
         public Map<String, String> mBody;
 
         public HttpTask(final String method, final String uri, final Map<String, String> headers, final Map<String, String> body) {
-            mMethod = method;
+            mMethod = method.toLowerCase();
             mUri = uri;
             mHeaders = headers;
             mBody = body;

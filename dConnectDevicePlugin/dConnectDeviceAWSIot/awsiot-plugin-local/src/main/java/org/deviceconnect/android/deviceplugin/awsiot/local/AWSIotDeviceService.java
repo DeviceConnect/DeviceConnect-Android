@@ -9,6 +9,7 @@ package org.deviceconnect.android.deviceplugin.awsiot.local;
 import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
+import android.util.Log;
 
 import com.amazonaws.regions.Regions;
 
@@ -16,7 +17,11 @@ import org.deviceconnect.android.deviceplugin.awsiot.core.AWSIotPrefUtil;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.UUID;
+
 public class AWSIotDeviceService extends Service {
+
+    private static final String TAG = "AWS-Local";
 
     public static final String ACTION_START = "org.deviceconnect.android.deviceplugin.awsiot.local.ACTION_START";
     public static final String ACTION_STOP = "org.deviceconnect.android.deviceplugin.awsiot.local.ACTION_STOP";
@@ -54,23 +59,48 @@ public class AWSIotDeviceService extends Service {
     }
 
     private void availability(final DConnectHelper.FinishCallback callback) {
-        DConnectHelper.INSTANCE.sendRequest("GET", "http://localhost:4035/gotapi/availability", callback);
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                // TODO
+                DConnectHelper.INSTANCE.sendRequest("GET", "http://localhost:4035/gotapi/availability", callback);
+            }
+        }).start();
     }
 
     private void startAWSIot() {
         availability(new DConnectHelper.FinishCallback() {
             @Override
             public void onFinish(final String response, final Exception error) {
+                if (response == null) {
+                    return;
+                }
+
                 try {
                     JSONObject jsonObject = new JSONObject(response);
                     int result = jsonObject.getInt("result");
                     if (result == 0) {
-                        String name = jsonObject.getString("name");
-                        String uuid = jsonObject.getString("uuid");
+                        String name = jsonObject.optString("name");
+                        String uuid = jsonObject.optString("uuid");
+                        if (name == null || uuid == null) {
+                            AWSIotPrefUtil pref = new AWSIotPrefUtil(AWSIotDeviceService.this);
+                            name = pref.getManagerName();
+                            uuid = pref.getManagerUuid();
+                            if (name == null || uuid == null) {
+                                // TODO 古いManager場合の処理
+                                name = "TEST";
+                                uuid = UUID.randomUUID().toString();
+                                pref.setManagerName(name);
+                                pref.setManagerUuid(uuid);
+                            }
+                        }
+
                         startAWSIot(name, uuid);
+                    } else {
+                        // TODO Managerが起動していない場合の処理
                     }
                 } catch (JSONException e) {
-                    e.printStackTrace();
+                    Log.e(TAG, "", e);
                 }
             }
         });

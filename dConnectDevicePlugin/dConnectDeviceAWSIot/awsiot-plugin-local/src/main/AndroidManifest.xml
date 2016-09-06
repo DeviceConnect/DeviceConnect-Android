@@ -23,10 +23,10 @@
             </intent-filter>
         </activity>
 
-        <!--<service-->
-            <!--android:name="org.deviceconnect.android.deviceplugin.awsiot.local.AWSIotDeviceService"-->
-            <!--android:exported="false" >-->
-        <!--</service>-->
+        <service
+            android:name="org.deviceconnect.android.deviceplugin.awsiot.local.AWSIotDeviceService"
+            android:exported="false" >
+        </service>
 
     </application>
 </manifest>

@@ -11,6 +11,9 @@ public class AWSIotPrefUtil extends PreferenceUtil {
     public static final String KEY_SECRET_KEY = "awsSecretKey";
     public static final String KEY_REGIONS = "awsRegions";
 
+    public static final String KEY_MANAGER_NAME = "awsManagerName";
+    public static final String KEY_MANAGER_UUID = "awsManagerUuid";
+
     public AWSIotPrefUtil(final Context context) {
         super(context);
     }
@@ -41,5 +44,21 @@ public class AWSIotPrefUtil extends PreferenceUtil {
             return Regions.fromName(regions);
         }
         return null;
+    }
+
+    public void setManagerName(final String name) {
+        putValue(KEY_MANAGER_NAME, name);
+    }
+
+    public String getManagerName() {
+        return getString(KEY_MANAGER_NAME);
+    }
+
+    public void setManagerUuid(final String uuid) {
+        putValue(KEY_MANAGER_UUID, uuid);
+    }
+
+    public String getManagerUuid() {
+        return getString(KEY_MANAGER_UUID);
     }
 }

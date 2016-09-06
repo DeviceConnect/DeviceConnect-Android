@@ -475,6 +475,10 @@ public class AWSIotController {
             Log.i(TAG, "connectMQTT");
         }
 
+        if (mMqttManager == null) {
+            return;
+        }
+
         try {
             mMqttManager.connect(mCredentialsProvider, new AWSIotMqttClientStatusCallback() {
                 @Override
@@ -525,6 +529,10 @@ public class AWSIotController {
             Log.d(TAG, "********* subscribe: " + topic);
         }
 
+        if (mMqttManager == null) {
+            return;
+        }
+
         mMqttManager.subscribeToTopic(topic, AWSIotMqttQos.QOS0,
                 new AWSIotMqttNewMessageCallback() {
                     @Override
@@ -550,7 +558,18 @@ public class AWSIotController {
         if (DEBUG) {
             Log.d(TAG, "********* unsubscribe: " + topic);
         }
-        mMqttManager.unsubscribeTopic(topic);
+
+        if (mMqttManager == null) {
+            return;
+        }
+
+        try {
+            mMqttManager.unsubscribeTopic(topic);
+        } catch (Exception e) {
+            if (DEBUG) {
+                Log.e(TAG, "unsubscribe error.", e);
+            }
+        }
     }
 
     /**

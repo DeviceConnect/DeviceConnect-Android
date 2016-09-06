@@ -3,7 +3,6 @@ package org.deviceconnect.android.deviceplugin.awsiot.local;
 import android.content.Context;
 import android.util.Log;
 
-import org.deviceconnect.android.deviceplugin.awsiot.core.RemoteDeviceConnectManager;
 import org.deviceconnect.android.deviceplugin.awsiot.p2p.WebClient;
 
 import java.util.ArrayList;
@@ -31,16 +30,16 @@ public class AWSIotWebClientManager {
         mWebClientList.clear();
     }
 
-    public void onReceivedSignaling(final RemoteDeviceConnectManager remote, final String message) {
+    public void onReceivedSignaling(final String message) {
         if (DEBUG) {
-            Log.i(TAG, "AWSIotWebClientManager#onReceivedSignaling:" + remote);
+            Log.i(TAG, "AWSIotWebClientManager#onReceivedSignaling:");
             Log.i(TAG, "message=" + message);
         }
 
         WebClient webClient = new WebClient(mContext) {
             @Override
             public void onNotifySignaling(final String signaling) {
-                mLocalManager.publish(remote, mLocalManager.createP2P(signaling));
+                mLocalManager.publish(mLocalManager.createP2P(signaling));
             }
             @Override
             public void onDisconnected(final WebClient webClient) {

@@ -81,7 +81,6 @@ public class AWSIotTestActivity extends Activity {
     }
 
     private void connectP2P() {
-        mAWSIotRemoteManager.createWebServer(mRemoteManager, "localhost:9000");
     }
 
     public void log(final String message) {

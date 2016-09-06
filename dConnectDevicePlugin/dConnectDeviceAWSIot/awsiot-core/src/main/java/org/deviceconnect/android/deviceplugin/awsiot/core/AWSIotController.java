@@ -75,17 +75,24 @@ public class AWSIotController {
     public interface EventListener {
 
         /**
-         * 接続完了
+         * 接続完了.
          *
          * @param err エラー
          */
         void onConnected(Exception err);
 
+        /**
+         * 再接続中.
+         */
         void onReconnecting();
+
+        /**
+         * 切断完了.
+         */
         void onDisconnected();
 
         /**
-         * Shadow取得
+         * Shadow取得.
          *
          * @param thingName thing名
          * @param result    result
@@ -94,7 +101,7 @@ public class AWSIotController {
         void onReceivedShadow(String thingName, String result, Exception err);
 
         /**
-         * メッセージ受信
+         * メッセージ受信.
          *
          * @param topic   Topic名
          * @param message メッセージ
@@ -102,7 +109,6 @@ public class AWSIotController {
          */
         void onReceivedMessage(String topic, String message, Exception err);
     }
-
 
     /**
      * イベントリスナーを設定
@@ -246,7 +252,7 @@ public class AWSIotController {
      * @param keys 値
      * @return json
      */
-    public JSONObject makeJson(final HashMap<String, Object> keys) {
+    private JSONObject makeJson(final HashMap<String, Object> keys) {
         JSONObject jsonRoot = new JSONObject();
         JSONObject jsonState = new JSONObject();
         JSONObject jsonReported = new JSONObject();
@@ -307,8 +313,8 @@ public class AWSIotController {
                         String clientId = UUID.randomUUID().toString();
                         // TODO AWS IoTの設定
                         mMqttManager = new AWSIotMqttManager(clientId, endpoint);
-                        mMqttManager.setKeepAlive(60);
-                        mMqttManager.setConnectionStabilityTime(60);
+                        mMqttManager.setKeepAlive(10);
+                        mMqttManager.setConnectionStabilityTime(180);
                         mMqttManager.setReconnectRetryLimits(1, 5);
                         mMqttManager.setAutoReconnect(true);
                         connectMQTT();
@@ -566,7 +572,7 @@ public class AWSIotController {
             mMqttManager.publishString(msg, topic, AWSIotMqttQos.QOS0, new AWSIotMqttMessageDeliveryCallback() {
                 @Override
                 public void statusChanged(MessageDeliveryStatus status, Object userData) {
-                    Log.e("ABC", "MessageDeliveryStatus: " + status);
+                    Log.e(TAG, "AWSIotController#publish: MessageDeliveryStatus=" + status);
                 }
             }, null);
         } catch (Exception e) {

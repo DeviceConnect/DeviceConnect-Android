@@ -27,7 +27,7 @@ public class WebServer extends AWSIotP2PManager {
     private static final String TAG = "AWS";
 
     private static final int MAX_CLIENT_SIZE = 8;
-    private String mPath = UUID.randomUUID().toString();
+    private String mPath = "/" + UUID.randomUUID().toString();
     private boolean mStopFlag;
     private ServerSocket mServerSocket;
     private Map<Integer, ServerRunnable> mServerRunnableMap = new ConcurrentHashMap<>();
@@ -42,11 +42,15 @@ public class WebServer extends AWSIotP2PManager {
         mDestAddress = address;
     }
 
+    public void setPath(String path) {
+        mPath = path;
+    }
+
     public String getUrl() {
         if (mServerSocket == null || mPath == null) {
             return null;
         }
-        return "http://localhost:" + mServerSocket.getLocalPort() + "/" + mPath;
+        return "http://localhost:" + mServerSocket.getLocalPort() + mPath;
     }
 
     public synchronized String start() {

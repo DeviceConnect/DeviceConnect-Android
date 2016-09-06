@@ -25,59 +25,24 @@ import java.util.Map;
  */
 public class DConnectHelper {
 
-    /** シングルトンなManagerのインスタンス */
-    public static final DConnectHelper INSTANCE = new DConnectHelper();
-
-    /** デバッグタグ */
+    /** デバッグフラグ. */
+    private static final boolean DEBUG = true;
+    /** デバッグタグ. */
     private static final String TAG = "DConnectHelper";
 
-    /** 処理完了コールバック */
-    public interface FinishCallback {
-        /**
-         * 処理が完了した時に呼ばれます.
-         * @param response レスポンス
-         * @param error エラー
-         */
-        void onFinish(String response, Exception error);
-    }
+    /** シングルトンなManagerのインスタンス. */
+    public static final DConnectHelper INSTANCE = new DConnectHelper();
 
     private Map<String, String> mDefaultHeader = new HashMap<>();
     private AuthInfo mAuthInfo;
-
-    /**
-     * 認証情報
-     */
-    public static class AuthInfo {
-        public String mClientId;
-        public String mAccessToken;
-
-        public AuthInfo(final String clientId, final String accessToken) {
-            mClientId = clientId;
-            mAccessToken = accessToken;
-        }
-
-        public String getClientId() {
-            return mClientId;
-        }
-
-        public String getAccessToken() {
-            return mAccessToken;
-        }
-
-        @Override
-        public String toString() {
-            return "AuthInfo{" + "mClientId='" + mClientId + '\'' + ", mAccessToken='" + mAccessToken + '\'' + '}';
-        }
-    }
+    private String mSessionKey;
 
     private DConnectHelper() {
         mDefaultHeader.put(DConnectMessage.HEADER_GOTAPI_ORIGIN, "http://localhost");
     }
 
-    private String parseMethod(final JSONObject jsonObject) throws JSONException {
-        String method = jsonObject.getString("method");
-        method = method.replace("org.deviceconnect.action.", "");
-        return method.toLowerCase();
+    public void setSessionKey(final String sessionKey) {
+        mSessionKey = sessionKey;
     }
 
     public void sendRequest(final String request, final FinishCallback callback) {
@@ -111,6 +76,8 @@ public class DConnectHelper {
                     builder.setAttribute(jsonObject.getString(key));
                 } else if (key.equals("method")) {
                     method = parseMethod(jsonObject);
+                } else if (key.equals("sessionKey")) {
+                    body.put(key, mSessionKey);
                 } else if (key.equals("requestCode")) {
                 } else if (key.equals("origin")) {
                 } else if (key.equals("accessToken")) {
@@ -125,12 +92,16 @@ public class DConnectHelper {
                 }
             }
 
-            DConnectHelper.INSTANCE.sendRequest(method, builder.toString(), body, callback);
+            sendRequest(method, builder.toString(), body, callback);
         } catch (JSONException e) {
             if (callback != null) {
                 callback.onFinish(null, e);
             }
         }
+    }
+
+    public void sendRequest(final String method, final String uri, final FinishCallback callback) {
+        sendRequest(method, uri, null, callback);
     }
 
     private void sendRequest(final String method, final String uri, final Map<String, String> body, final FinishCallback callback) {
@@ -142,6 +113,12 @@ public class DConnectHelper {
                 }
             }
         }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+    }
+
+    private String parseMethod(final JSONObject jsonObject) throws JSONException {
+        String method = jsonObject.getString("method");
+        method = method.replace("org.deviceconnect.action.", "");
+        return method.toLowerCase();
     }
 
     private String toBody(final Map<String, String> body) {
@@ -169,9 +146,11 @@ public class DConnectHelper {
         }
 
         private String executeRequest() {
-            Log.d(TAG, "method=" + mMethod);
-            Log.d(TAG, "Uri=" + mUri);
-            Log.d(TAG, "Body=" + toBody(mBody));
+            if (DEBUG) {
+                Log.d(TAG, "method=" + mMethod);
+                Log.d(TAG, "Uri=" + mUri);
+                Log.d(TAG, "Body=" + toBody(mBody));
+            }
 
             byte[] resp = null;
             if ("get".equals(mMethod)) {
@@ -195,15 +174,15 @@ public class DConnectHelper {
             builder.setProfile(AuthorizationProfile.PROFILE_NAME);
             builder.setAttribute(AuthorizationProfile.ATTRIBUTE_ACCESS_TOKEN);
             builder.addParameter(AuthorizationProfile.PARAM_CLIENT_ID, clientId);
-            builder.addParameter(AuthorizationProfile.PARAM_SCOPE, "serviceDiscovery,vibration,serviceInformation");
+            builder.addParameter(AuthorizationProfile.PARAM_SCOPE, "serviceDiscovery,vibration,serviceInformation,deviceorientation");
             builder.addParameter(AuthorizationProfile.PARAM_APPLICATION_NAME, "aws");
 
-            byte[] a = HttpUtil.get(builder.toString(), mHeaders);
-            if (a == null) {
+            byte[] data = HttpUtil.get(builder.toString(), mHeaders);
+            if (data == null) {
                 return null;
             }
 
-            String response = new String(a);
+            String response = new String(data);
             try {
                 JSONObject jsonObject = new JSONObject(response);
                 int result = jsonObject.getInt("result");
@@ -227,12 +206,12 @@ public class DConnectHelper {
             builder.setProfile(AuthorizationProfile.PROFILE_NAME);
             builder.setAttribute(AuthorizationProfile.ATTRIBUTE_GRANT);
 
-            byte[] a = HttpUtil.get(builder.toString(), mHeaders);
-            if (a == null) {
+            byte[] data = HttpUtil.get(builder.toString(), mHeaders);
+            if (data == null) {
                 return null;
             }
 
-            String response = new String(a);
+            String response = new String(data);
             try {
                 JSONObject jsonObject = new JSONObject(response);
                 int result = jsonObject.getInt("result");
@@ -261,7 +240,10 @@ public class DConnectHelper {
                             case EMPTY_ACCESS_TOKEN:
                             case SCOPE:
                             case NOT_FOUND_CLIENT_ID:
-                                response = executeGrant();
+                                String resp = executeGrant();
+                                if (resp != null) {
+                                    response = resp;
+                                }
                                 break;
                         }
                     }
@@ -271,5 +253,41 @@ public class DConnectHelper {
             }
             return response;
         }
+    }
+
+    /**
+     * 認証情報
+     */
+    public static class AuthInfo {
+        public String mClientId;
+        public String mAccessToken;
+
+        public AuthInfo(final String clientId, final String accessToken) {
+            mClientId = clientId;
+            mAccessToken = accessToken;
+        }
+
+        public String getClientId() {
+            return mClientId;
+        }
+
+        public String getAccessToken() {
+            return mAccessToken;
+        }
+
+        @Override
+        public String toString() {
+            return "AuthInfo{" + "mClientId='" + mClientId + '\'' + ", mAccessToken='" + mAccessToken + '\'' + '}';
+        }
+    }
+
+    /** 処理完了コールバック */
+    public interface FinishCallback {
+        /**
+         * 処理が完了した時に呼ばれます.
+         * @param response レスポンス
+         * @param error エラー
+         */
+        void onFinish(String response, Exception error);
     }
 }

@@ -30,7 +30,7 @@ public class AWSIotWebServerManager {
         mWebServerList.clear();
     }
 
-    public void createWebServer(final RemoteDeviceConnectManager remote, final String address) {
+    public String createWebServer(final RemoteDeviceConnectManager remote, final String address, final String path) {
         if (DEBUG) {
             Log.i(TAG, "createWebServer: " + remote);
         }
@@ -42,12 +42,15 @@ public class AWSIotWebServerManager {
                 mIot.publish(remote, mIot.createP2P(signaling));
             }
         };
+        webServer.setPath(path);
         String url = webServer.start();
         mWebServerList.put(remote, webServer);
 
         if (DEBUG) {
             Log.i(TAG, "url=" + url);
         }
+
+        return url;
     }
 
     public void deleteWebServer(final RemoteDeviceConnectManager remote) {

@@ -12,27 +12,44 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.List;
+import java.util.UUID;
 
 public class AWSIotLocalManager extends AWSIotCore {
 
     private static final boolean DEBUG = true;
     private static final String TAG = "AWS-Local";
 
-    private AWSIotWebClientManager mAWSIotWebClientManager;
-
     private RemoteDeviceConnectManager mRemoteManager;
+    private AWSIotWebClientManager mAWSIotWebClientManager;
+    private AWSIotWebSocketClient mAWSIotWebSocketClient;
+    private OnEventListener mOnEventListener;
     private Context mContext;
 
-    private OnEventListener mOnEventListener;
+    private String mSessionKey = UUID.randomUUID().toString();
 
     public AWSIotLocalManager(final Context context, final String name, final String id) {
         mContext = context;
         mRemoteManager = new RemoteDeviceConnectManager(name, id);
+
+        mAWSIotWebSocketClient = new AWSIotWebSocketClient("http://localhost:4035/websocket", mSessionKey) {
+            @Override
+            public void onMessage(final String message) {
+                publishEvent(message);
+            }
+        };
+        mAWSIotWebSocketClient.connect();
+
+        DConnectHelper.INSTANCE.setSessionKey(mSessionKey);
     }
 
-    public void destroy() {
+    public void disconnect() {
         if (DEBUG) {
-            Log.i(TAG, "AWSIotLocalManager#destroy");
+            Log.i(TAG, "AWSIotLocalManager#disconnect");
+        }
+
+        if (mAWSIotWebSocketClient != null) {
+            mAWSIotWebSocketClient.close();
+            mAWSIotWebSocketClient = null;
         }
 
         if (mAWSIotWebClientManager != null) {
@@ -49,7 +66,7 @@ public class AWSIotLocalManager extends AWSIotCore {
         }
     }
 
-    public void setOnEventListener(OnEventListener listener) {
+    public void setOnEventListener(final OnEventListener listener) {
         mOnEventListener = listener;
     }
 
@@ -79,7 +96,6 @@ public class AWSIotLocalManager extends AWSIotCore {
                     return;
                 }
                 mIot.subscribe(mRemoteManager.getRequestTopic());
-                getDeviceShadow();
 
                 if (mOnEventListener != null) {
                     mOnEventListener.onConnected();
@@ -149,28 +165,32 @@ public class AWSIotLocalManager extends AWSIotCore {
                     return;
                 }
 
-                parseMQTT(mRemoteManager, message);
+                parseMQTT(message);
             }
         });
         mIot.connect(accessKey, secretKey, region);
         mAWSIotWebClientManager = new AWSIotWebClientManager(mContext, this);
     }
 
-    public void publish(final RemoteDeviceConnectManager remote, final String message) {
-        mIot.publish(remote.getResponseTopic(), message);
+    public void publish(final String message) {
+        mIot.publish(mRemoteManager.getResponseTopic(), message);
     }
 
-    private void parseMQTT(final RemoteDeviceConnectManager remote, final String message) {
+    public void publishEvent(final String message) {
+        mIot.publish(mRemoteManager.getEventTopic(), message);
+    }
+
+    private void parseMQTT(final String message) {
         try {
             JSONObject json = new JSONObject(message);
             int requestCode = json.optInt("requestCode");
             JSONObject request = json.optJSONObject(KEY_REQUEST);
             if (request != null) {
-                executeDeviceConnectRequest(remote, requestCode, request.toString());
+                executeDeviceConnectRequest(requestCode, request.toString());
             }
             JSONObject p2p = json.optJSONObject(KEY_P2P);
             if (p2p != null) {
-                mAWSIotWebClientManager.onReceivedSignaling(remote, p2p.toString());
+                mAWSIotWebClientManager.onReceivedSignaling(p2p.toString());
             }
         } catch (JSONException e) {
             if (DEBUG) {
@@ -179,7 +199,7 @@ public class AWSIotLocalManager extends AWSIotCore {
         }
     }
 
-    private void executeDeviceConnectRequest(final RemoteDeviceConnectManager remote, final int requestCode, final String request) {
+    private void executeDeviceConnectRequest(final int requestCode, final String request) {
         if (DEBUG) {
             Log.i(TAG, "executeDeviceConnectRequest: request=" + request);
         }
@@ -190,7 +210,7 @@ public class AWSIotLocalManager extends AWSIotCore {
                 if (DEBUG) {
                     Log.d(TAG, "executeDeviceConnectRequest: requestCode=" + requestCode + " response=" + response);
                 }
-                publish(remote, createResponse(requestCode, response));
+                publish(createResponse(requestCode, response));
             }
         });
     }

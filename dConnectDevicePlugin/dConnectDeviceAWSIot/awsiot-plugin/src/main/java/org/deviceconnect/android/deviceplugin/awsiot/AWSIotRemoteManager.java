@@ -2,6 +2,7 @@ package org.deviceconnect.android.deviceplugin.awsiot;
 
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 
@@ -42,9 +43,9 @@ public class AWSIotRemoteManager extends AWSIotCore {
         mOnEventListener = listener;
     }
 
-    public void destroy() {
+    public void disconnect() {
         if (DEBUG) {
-            Log.i(TAG, "AWSIotRemoteManager#destroy");
+            Log.i(TAG, "AWSIotRemoteManager#disconnect");
         }
 
         if (mAWSIotWebServerManager != null) {
@@ -126,7 +127,7 @@ public class AWSIotRemoteManager extends AWSIotCore {
                 }
                 mManagerList = parseDeviceShadow(result);
 
-                // TODO 全部に対してsubcribeして良いのか
+                // TODO 全部に対してsubscribeして良いのか
                 if (mManagerList != null) {
                     for (RemoteDeviceConnectManager remote : mManagerList) {
                         mIot.subscribe(remote.getResponseTopic());
@@ -145,7 +146,7 @@ public class AWSIotRemoteManager extends AWSIotCore {
 
                 if (err != null) {
                     if (DEBUG) {
-                        Log.w(TAG, "", err);
+                        Log.w(TAG, "ASWIotRemoteManager#onReceivedMessage", err);
                     }
                     return;
                 }
@@ -161,44 +162,20 @@ public class AWSIotRemoteManager extends AWSIotCore {
                     }
                     return;
                 }
-                parseMQTT(remote, message);
+
+                if (topic.endsWith(RemoteDeviceConnectManager.EVENT)) {
+                    onReceivedDeviceConnectEvent(remote, message);
+                } else if (topic.endsWith(RemoteDeviceConnectManager.RESPONSE)) {
+                    parseMQTT(remote, message);
+                } else {
+                    if (DEBUG) {
+                        Log.w(TAG, "Unknown topic. topic=" + topic);
+                    }
+                }
             }
         });
         mIot.connect(accessKey, secretKey, region);
         mAWSIotWebServerManager = new AWSIotWebServerManager(mContext, this);
-    }
-
-    /**
-     * リモート先のDevice Connect ManagerにMQTT経由でリクエストを送信します.
-     * @param request リクエスト
-     * @param response レスポンス
-     * @return 同期フラグ
-     */
-    public boolean sendRequestToRemoteDeviceConnectManager2(final Intent request, final Intent response) {
-        if (DEBUG) {
-            Log.i(TAG, "AWSIotRemoteManager#sendRequest:");
-        }
-
-        RemoteDeviceConnectManager remote = findManagerById(DConnectProfile.getServiceID(request));
-        if (remote == null) {
-            MessageUtils.setNotFoundServiceError(response);
-            return true;
-        }
-
-        DConnectHelper.sendRequest(request, new DConnectHelper.Callback() {
-            @Override
-            public void onCallback(final byte[] data) {
-                if (data == null) {
-                    Log.e("ABC", "aaaaa = " + data);
-                } else {
-                    Log.e("ABC", "aaaaa = " + new String(data));
-                }
-                MessageUtils.setNotFoundServiceError(response);
-                sendResponse(response);
-            }
-        });
-
-        return false;
     }
 
     public boolean sendRequest(final Intent request, final Intent response) {
@@ -217,8 +194,15 @@ public class AWSIotRemoteManager extends AWSIotCore {
             return true;
         }
 
+        String message = AWSIotRemoteUtil.intentToJson(request, new AWSIotRemoteUtil.ConversionIntentCallback() {
+            @Override
+            public String convertServiceId(final String id) {
+                return getServiceId(id);
+            }
+        });
+
         int requestCode = generateRequestCode();
-        publish(remote, createRequest(requestCode, AWSIotRemoteUtil.intentToJson(request)));
+        publish(remote, createRequest(requestCode, message));
         mResponseMap.put(requestCode, response);
         return false;
     }
@@ -233,16 +217,19 @@ public class AWSIotRemoteManager extends AWSIotCore {
             return true;
         }
 
+        String message = AWSIotRemoteUtil.intentToJson(request, null);
+
+        // TODO 複数に送った場合には、まーじする必要が有る
         int requestCode = generateRequestCode();
         for (RemoteDeviceConnectManager remote : mManagerList) {
-            publish(remote, createRequest(requestCode, AWSIotRemoteUtil.intentToJson(request)));
+            publish(remote, createRequest(requestCode, message));
         }
         mResponseMap.put(requestCode, response);
         return false;
     }
 
-    public void createWebServer(final RemoteDeviceConnectManager remote, final String address) {
-        mAWSIotWebServerManager.createWebServer(remote, address);
+    public String createWebServer(final RemoteDeviceConnectManager remote, final String address, final String path) {
+        return mAWSIotWebServerManager.createWebServer(remote, address, path);
     }
 
     public void publish(final RemoteDeviceConnectManager remote, final String message) {
@@ -253,8 +240,32 @@ public class AWSIotRemoteManager extends AWSIotCore {
         ((DConnectMessageService) mContext).sendResponse(intent);
     }
 
+    private void sendEvent(final Intent event, final String accessToken) {
+        ((DConnectMessageService) mContext).sendEvent(event, accessToken);
+    }
+
     private boolean existAWSFlag(final Intent intent) {
         return intent.getExtras().getBoolean("awsflag", false);
+    }
+
+    private RemoteDeviceConnectManager findManagerById(final String serviceId) {
+        for (TempDevice t : mDeviceList) {
+            if (serviceId.equals(t.mId)) {
+                return t.mRemote;
+            }
+        }
+        return null;    }
+
+    private RemoteDeviceConnectManager parseTopic(final String topic) {
+        for (RemoteDeviceConnectManager remote : mManagerList) {
+            if (remote.getResponseTopic().equals(topic)) {
+                return remote;
+            }
+            if (remote.getEventTopic().equals(topic)) {
+                return remote;
+            }
+        }
+        return null;
     }
 
     private void parseMQTT(final RemoteDeviceConnectManager remote, final String message) {
@@ -275,36 +286,37 @@ public class AWSIotRemoteManager extends AWSIotCore {
         }
     }
 
-    private RemoteDeviceConnectManager findManagerById(final String serviceId) {
-        return AWSIotRemoteUtil.getRemoteId(serviceId);
-    }
-
-    private RemoteDeviceConnectManager parseTopic(final String topic) {
-        for (RemoteDeviceConnectManager remote : mManagerList) {
-            if (remote.getResponseTopic().equals(topic)) {
-                return remote;
-            }
-        }
-        return null;
-    }
-
     private void onReceivedDeviceConnectResponse(final RemoteDeviceConnectManager remote, final String message) {
         try {
             JSONObject jsonObject = new JSONObject(message);
             Integer requestCode = jsonObject.getInt("requestCode");
             Intent response = mResponseMap.get(requestCode);
             if (response != null) {
-                // jsonからintentを作成して送信
                 JSONObject responseObj = jsonObject.optJSONObject("response");
                 if (responseObj == null) {
                     MessageUtils.setUnknownError(response);
-                    sendResponse(response);
                 } else {
                     Bundle b = new Bundle();
-                    AWSIotRemoteUtil.jsonToIntent(remote, responseObj, b);
+                    AWSIotRemoteUtil.jsonToIntent(responseObj, b, new AWSIotRemoteUtil.ConversionJsonCallback() {
+                        @Override
+                        public String convertServiceId(final String id) {
+                            return generateServiceId(remote, id);
+                        }
+
+                        @Override
+                        public String convertName(final String name) {
+                            return remote.getName() + " " + name;
+                        }
+
+                        @Override
+                        public String convertUri(final String uri) {
+                            Uri u = Uri.parse(uri);
+                            return createWebServer(remote, u.getAuthority(), u.getPath() + "?" + u.getEncodedQuery());
+                        }
+                    });
                     response.putExtras(b);
-                    sendResponse(response);
                 }
+                sendResponse(response);
             } else {
                 Log.e(TAG, "Not found response. requestCode=" + requestCode);
                 for (Integer req : mResponseMap.keySet()) {
@@ -312,8 +324,63 @@ public class AWSIotRemoteManager extends AWSIotCore {
                 }
             }
         } catch (JSONException e) {
+            if (DEBUG) {
+                Log.e(TAG, "", e);
+            }
+        }
+    }
+
+    private void onReceivedDeviceConnectEvent(final RemoteDeviceConnectManager remote, final String message) {
+        if (DEBUG) {
+            Log.d(TAG, "onReceivedDeviceConnectEvent: " + remote);
+            Log.d(TAG, "message=" + message);
+        }
+
+        try {
+            JSONObject jsonObject = new JSONObject(message);
+
+            String profile = jsonObject.optString("profile");
+            String inter = jsonObject.optString("interface");
+            String attribute = jsonObject.optString("attribute");
+            String serviceId = jsonObject.optString("serviceId");
+            String sessionKey = jsonObject.optString("sessionKey");
+
+            // TODO json->intent 変換
+        } catch (JSONException e) {
             e.printStackTrace();
         }
+    }
+
+    private List<TempDevice> mDeviceList = new ArrayList<>();
+
+    private class TempDevice {
+        RemoteDeviceConnectManager mRemote;
+        String mServiceId;
+        String mId;
+    }
+
+    private String generateServiceId(final RemoteDeviceConnectManager remote, final String serviceId) {
+        for (TempDevice t : mDeviceList) {
+            if (remote.equals(t.mRemote) && serviceId.equals(t.mServiceId)) {
+                return t.mId;
+            }
+        }
+
+        TempDevice t = new TempDevice();
+        t.mRemote = remote;
+        t.mServiceId = serviceId;
+        t.mId = AWSIotUtil.md5(remote.getServiceId() + serviceId);
+        mDeviceList.add(t);
+        return t.mId;
+    }
+
+    private String getServiceId(final String serviceId) {
+        for (TempDevice t : mDeviceList) {
+            if (serviceId.equals(t.mId)) {
+                return t.mServiceId;
+            }
+        }
+        return null;
     }
 
     public interface OnEventListener {

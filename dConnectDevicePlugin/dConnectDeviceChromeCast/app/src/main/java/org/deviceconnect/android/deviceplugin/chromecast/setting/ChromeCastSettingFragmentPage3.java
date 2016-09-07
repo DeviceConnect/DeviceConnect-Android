@@ -15,9 +15,6 @@ import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v7.app.MediaRouteButton;
-import android.support.v7.media.MediaRouteSelector;
-import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -26,9 +23,7 @@ import android.widget.Button;
 import android.widget.LinearLayout.LayoutParams;
 
 import org.deviceconnect.android.deviceplugin.chromecast.BuildConfig;
-import org.deviceconnect.android.deviceplugin.chromecast.ChromeCastApplication;
 import org.deviceconnect.android.deviceplugin.chromecast.R;
-import org.deviceconnect.android.deviceplugin.chromecast.core.ChromeCastDiscovery;
 
 /**
  * チュートリアル画面.
@@ -46,12 +41,7 @@ public class ChromeCastSettingFragmentPage3 extends Fragment {
     private int mBadgeWidth = 0;
     /** バッジの縦サイズ. */
     private int mBadgeHeight = 0;
-    /** ChromeCast接続用Button. */
-    private MediaRouteButton mMediaRouteButton;
-    /** ChromeCastを管理するApplication. */
-    private ChromeCastApplication mApp;
 
-    private int mRouteCount = 0;
 
     /**
      * Chromecast App (Google) のインストール状態を調べる.
@@ -99,17 +89,6 @@ public class ChromeCastSettingFragmentPage3 extends Fragment {
     public View onCreateView(final LayoutInflater inflater,
             final ViewGroup container, final Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.chromecast_settings_step_3, container, false);
-        Toolbar toolbar = (Toolbar) rootView.findViewById(R.id.toolbar);
-        toolbar.setTitle(getString(R.string.activity_setting_page_title));
-
-        toolbar.setNavigationIcon(R.drawable.ic_close_light);
-        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                getActivity().finish();
-            }
-        });
-
         Button button = (Button) rootView.findViewById(R.id.buttonChromecastSettingApp);
         button.setOnClickListener(new OnClickListener() {
             @Override
@@ -128,36 +107,8 @@ public class ChromeCastSettingFragmentPage3 extends Fragment {
         mBadgeWidth = image.getWidth();
         mBadgeHeight = image.getHeight();
         image.recycle();
-        mMediaRouteButton = (MediaRouteButton) rootView.findViewById(R.id.media_route_button);
-        mApp = (ChromeCastApplication) getActivity().getApplication();
-        if (mApp != null) {
-            mApp.initialize();
-            MediaRouteSelector selector = mApp.getDiscovery().getMediaRouteSelector();
-            mMediaRouteButton.setRouteSelector(selector);
-        }
 
         return rootView;
-    }
-    @Override
-    public void onResume() {
-        super.onResume();
-        if (mApp != null) {
-            ChromeCastDiscovery disocovery = mApp.getDiscovery();
-            if (disocovery != null) {
-                disocovery.registerEvent();
-            }
-        }
-    }
-
-    @Override
-    public void onPause() {
-        if (mApp != null) {
-            ChromeCastDiscovery disocovery = mApp.getDiscovery();
-            if (disocovery != null) {
-                disocovery.unregisterEvent();
-            }
-        }
-        super.onPause();
     }
 
 }

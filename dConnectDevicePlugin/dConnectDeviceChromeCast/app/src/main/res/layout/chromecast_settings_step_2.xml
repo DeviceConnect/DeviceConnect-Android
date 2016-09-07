@@ -8,12 +8,6 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
         android:orientation="vertical" >
-        <android.support.v7.widget.Toolbar
-            android:id="@+id/toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:title="@string/activity_setting_page_title"
-            android:background="@color/device_connect_default_color"/>
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

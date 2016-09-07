@@ -48,5 +48,4 @@ public class ChromeCastServiceListActivity extends DConnectServiceListActivity {
     protected Class<? extends Activity> getSettingManualActivityClass() {
         return ChromeCastSettingFragmentActivity.class;
     }
-
 }

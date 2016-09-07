@@ -76,7 +76,7 @@ public class WebServer extends AWSIotP2PManager {
                     }
                 } catch (IOException e) {
                     if (DEBUG) {
-                        Log.w(TAG, "WebServer#start", e);
+                        Log.w(TAG, "WebServer#start: " + e.getMessage());
                     }
                 } finally {
                     stop();
@@ -116,6 +116,12 @@ public class WebServer extends AWSIotP2PManager {
         if (run != null) {
             run.onReceivedSignaling(signaling);
         }
+    }
+
+    protected void onConnected() {
+    }
+
+    protected void onDisconnected() {
     }
 
     private ServerSocket openServerSocket() throws IOException {
@@ -270,6 +276,8 @@ public class WebServer extends AWSIotP2PManager {
             }
             mServerRunnableMap.put(mConnectionId, this);
 
+            onConnected();
+
             try {
                 connectP2P();
 
@@ -303,6 +311,8 @@ public class WebServer extends AWSIotP2PManager {
                         e.printStackTrace();
                     }
                 }
+
+                onDisconnected();
             }
         }
 

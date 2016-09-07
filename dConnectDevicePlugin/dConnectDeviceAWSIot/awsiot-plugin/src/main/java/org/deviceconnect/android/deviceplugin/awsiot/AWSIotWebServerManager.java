@@ -6,14 +6,14 @@ import android.util.Log;
 import org.deviceconnect.android.deviceplugin.awsiot.core.RemoteDeviceConnectManager;
 import org.deviceconnect.android.deviceplugin.awsiot.p2p.WebServer;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class AWSIotWebServerManager {
     private static final boolean DEBUG = true;
     private static final String TAG = "AWS-Remote";
 
-    private Map<RemoteDeviceConnectManager, WebServer> mWebServerList = new HashMap<>();
+    private Map<RemoteDeviceConnectManager, WebServer> mWebServerList = new ConcurrentHashMap<>();
 
     private AWSIotRemoteManager mIot;
     private Context mContext;
@@ -41,10 +41,25 @@ public class AWSIotWebServerManager {
             public void onNotifySignaling(final String signaling) {
                 mIot.publish(remote, mIot.createP2P(signaling));
             }
+            @Override
+            protected void onConnected() {
+                if (DEBUG) {
+                    Log.i(TAG, "WebServer#onConnected");
+                }
+            }
+            @Override
+            protected void onDisconnected() {
+                if (DEBUG) {
+                    Log.i(TAG, "WebServer#onDisconnected");
+                }
+                mWebServerList.remove(remote);
+            }
         };
         webServer.setPath(path);
         String url = webServer.start();
-        mWebServerList.put(remote, webServer);
+        if (url != null) {
+            mWebServerList.put(remote, webServer);
+        }
 
         if (DEBUG) {
             Log.i(TAG, "url=" + url);

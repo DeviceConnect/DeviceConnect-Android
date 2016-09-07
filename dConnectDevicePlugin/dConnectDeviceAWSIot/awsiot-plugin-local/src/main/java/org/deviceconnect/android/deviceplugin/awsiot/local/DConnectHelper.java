@@ -121,7 +121,7 @@ public class DConnectHelper {
                     builder.setInterface(jsonObject.getString(key));
                 } else if (key.equals("attribute")) {
                     builder.setAttribute(jsonObject.getString(key));
-                } else if (key.equals("method")) {
+                } else if (key.equals("action")) {
                     method = parseMethod(jsonObject);
                 } else if (key.equals("sessionKey")) {
                     body.put(key, mSessionKey);
@@ -166,7 +166,7 @@ public class DConnectHelper {
     }
 
     private String parseMethod(final JSONObject jsonObject) throws JSONException {
-        String method = jsonObject.getString("method");
+        String method = jsonObject.getString("action");
         method = method.replace("org.deviceconnect.action.", "");
         return method.toLowerCase();
     }

@@ -316,12 +316,12 @@ public class AWSIotController {
                         mMqttManager.setKeepAlive(120);
                         mMqttManager.setConnectionStabilityTime(180);
                         mMqttManager.setReconnectRetryLimits(1, 5);
+                        mMqttManager.setMaxAutoReconnectAttepts(-1);
                         mMqttManager.setAutoReconnect(true);
                         connectMQTT();
                         return;
                     } else {
-                        // TODO: エラー種類
-                        exception = new Exception();
+                        exception = new Exception("Not found endpointAddress.");
                     }
                 } catch (JSONException e) {
                     exception = e;

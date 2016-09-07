@@ -31,7 +31,7 @@ public class AWSIotLocalManager extends AWSIotCore {
         mContext = context;
         mRemoteManager = new RemoteDeviceConnectManager(name, id);
 
-        // TODO WebSocket
+        // TODO WebSocketの起動タイミングを検討
         mAWSIotWebSocketClient = new AWSIotWebSocketClient("http://localhost:4035/websocket", mSessionKey) {
             @Override
             public void onMessage(final String message) {
@@ -72,15 +72,16 @@ public class AWSIotLocalManager extends AWSIotCore {
     }
 
     public void connectAWSIoT(final String accessKey, final String secretKey, final Regions region) {
+
+        if (accessKey == null || secretKey == null || region == null) {
+            throw new RuntimeException("AccessKey or SecretKey has not been set.");
+        }
+
         if (mIot != null) {
             if (DEBUG) {
                 Log.w(TAG, "mIoT is already running.");
             }
             return;
-        }
-
-        if (accessKey == null || secretKey == null || region == null) {
-            throw new RuntimeException("");
         }
 
         mIot = new AWSIotController();
@@ -150,7 +151,6 @@ public class AWSIotLocalManager extends AWSIotCore {
                     if (DEBUG) {
                         Log.w(TAG, "", err);
                     }
-                    // TODO エラー処理を追加
                     return;
                 }
 
@@ -162,7 +162,6 @@ public class AWSIotLocalManager extends AWSIotCore {
                     if (DEBUG) {
                         Log.e(TAG, "Not found the RemoteDeviceConnectManager. topic=" + topic);
                     }
-                    // TODO エラー処理を追加
                     return;
                 }
 
@@ -187,7 +186,7 @@ public class AWSIotLocalManager extends AWSIotCore {
             int requestCode = json.optInt("requestCode");
             JSONObject request = json.optJSONObject(KEY_REQUEST);
             if (request != null) {
-                executeDeviceConnectRequest(requestCode, request.toString());
+                onReceivedDeviceConnectRequest(requestCode, request.toString());
             }
             JSONObject p2p = json.optJSONObject(KEY_P2P);
             if (p2p != null) {
@@ -200,16 +199,16 @@ public class AWSIotLocalManager extends AWSIotCore {
         }
     }
 
-    private void executeDeviceConnectRequest(final int requestCode, final String request) {
+    private void onReceivedDeviceConnectRequest(final int requestCode, final String request) {
         if (DEBUG) {
-            Log.i(TAG, "executeDeviceConnectRequest: request=" + request);
+            Log.i(TAG, "onReceivedDeviceConnectRequest: request=" + request);
         }
 
         DConnectHelper.INSTANCE.sendRequest(request, new DConnectHelper.FinishCallback() {
             @Override
             public void onFinish(final String response, final Exception error) {
                 if (DEBUG) {
-                    Log.d(TAG, "executeDeviceConnectRequest: requestCode=" + requestCode + " response=" + response);
+                    Log.d(TAG, "onReceivedDeviceConnectRequest: requestCode=" + requestCode + " response=" + response);
                 }
                 publish(createResponse(requestCode, response));
             }

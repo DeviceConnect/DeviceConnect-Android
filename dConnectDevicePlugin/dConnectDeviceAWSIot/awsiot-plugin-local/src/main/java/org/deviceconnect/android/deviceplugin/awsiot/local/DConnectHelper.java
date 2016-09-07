@@ -40,7 +40,6 @@ public class DConnectHelper {
     private AuthInfo mAuthInfo;
     private String mSessionKey;
 
-
     private List<String> mScopes =  new ArrayList<String>() {
         {
             add("servicediscovery");
@@ -114,7 +113,9 @@ public class DConnectHelper {
             Iterator<String> it = jsonObject.keys();
             while (it.hasNext()) {
                 String key = it.next();
-                if (key.equals("profile")) {
+                if (key.equals("api")) {
+                    builder.setApi(jsonObject.getString(key));
+                } else if (key.equals("profile")) {
                     builder.setProfile(jsonObject.getString(key));
                 } else if (key.equals("interface")) {
                     builder.setInterface(jsonObject.getString(key));
@@ -131,7 +132,6 @@ public class DConnectHelper {
                 } else if (key.equals("_app_type")) {
                 } else if (key.equals("receiver")) {
                 } else if (key.equals("version")) {
-                } else if (key.equals("api")) {
                 } else if (key.equals("product")) {
                 } else {
                     body.put(key, jsonObject.getString(key));
@@ -141,7 +141,7 @@ public class DConnectHelper {
             sendRequest(method, builder.toString(), body, callback);
         } catch (JSONException e) {
             if (callback != null) {
-                callback.onFinish(null, e);
+                callback.onFinish(errorMessage(), e);
             }
         }
     }
@@ -155,7 +155,11 @@ public class DConnectHelper {
             @Override
             protected void onPostExecute(final String message) {
                 if (callback != null) {
-                    callback.onFinish(message, null);
+                    if (message == null) {
+                        callback.onFinish(errorMessage(), null);
+                    } else {
+                        callback.onFinish(message, null);
+                    }
                 }
             }
         }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
@@ -165,6 +169,18 @@ public class DConnectHelper {
         String method = jsonObject.getString("method");
         method = method.replace("org.deviceconnect.action.", "");
         return method.toLowerCase();
+    }
+
+    private String errorMessage() {
+        try {
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("result", 1);
+            jsonObject.put("errorCode", 1);
+            jsonObject.put("errorMessage", "");
+            return jsonObject.toString();
+        } catch (JSONException e) {
+            return null;
+        }
     }
 
     private String toBody(final Map<String, String> body) {
@@ -233,7 +249,6 @@ public class DConnectHelper {
                 mScopes.add(profile);
             }
 
-            // TODO scopeを検討
             URIBuilder builder = new URIBuilder();
             builder.setScheme("http");
             builder.setHost("localhost");
@@ -316,7 +331,6 @@ public class DConnectHelper {
                             case EXPIRED_ACCESS_TOKEN:
                             case EMPTY_ACCESS_TOKEN:
                             case NOT_FOUND_CLIENT_ID:
-
                                 String resp = executeGrant();
                                 if (resp != null) {
                                     response = resp;
@@ -342,10 +356,6 @@ public class DConnectHelper {
         public AuthInfo(final String clientId, final String accessToken) {
             mClientId = clientId;
             mAccessToken = accessToken;
-        }
-
-        public String getClientId() {
-            return mClientId;
         }
 
         public String getAccessToken() {

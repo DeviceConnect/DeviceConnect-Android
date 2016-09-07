@@ -1,7 +1,7 @@
 package org.deviceconnect.android.deviceplugin.awsiot.core;
 
 public class RemoteDeviceConnectManager {
-    public static final String DEVICE_CONNECT = "dconnect/";
+    public static final String DEVICE_CONNECT = "deviceconnect/";
     public static final String REQUEST = "/request";
     public static final String RESPONSE = "/response";
     public static final String EVENT = "/event";

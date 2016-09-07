@@ -14,9 +14,14 @@ import java.util.List;
 
 public final class AWSIotRemoteUtil {
 
-    public static final String EXTRA_METHOD = "method";
+    public static final String EXTRA_METHOD = "action";
 
     private AWSIotRemoteUtil() {
+    }
+
+    private static String parseMethod(String method) throws JSONException {
+        method = method.replace("org.deviceconnect.action.", "");
+        return method.toLowerCase();
     }
 
     public static String intentToJson(final Intent request, final ConversionIntentCallback callback) throws RuntimeException {
@@ -33,13 +38,12 @@ public final class AWSIotRemoteUtil {
                     if (callback != null) {
                         jsonObject.put(key, callback.convertUri(extras.getString(key)));
                     }
-                } else if (key.equals("origin")) {
                 } else if (key.equals("accessToken")) {
+                } else if (key.equals("requestCode")) {
                 } else if (key.equals("_type")) {
                 } else if (key.equals("_app_type")) {
                 } else if (key.equals("receiver")) {
                 } else if (key.equals("version")) {
-                } else if (key.equals("api")) {
                 } else if (key.equals("product")) {
                 } else {
                     jsonObject.put(key, extras.get(key));
@@ -50,7 +54,7 @@ public final class AWSIotRemoteUtil {
         }
 
         try {
-            jsonObject.put(EXTRA_METHOD, request.getAction());
+            jsonObject.put(EXTRA_METHOD, parseMethod(request.getAction()));
         } catch (JSONException e) {
             throw new RuntimeException(e);
         }

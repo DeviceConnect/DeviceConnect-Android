@@ -21,8 +21,8 @@ abstract class EventProtocol {
 
     static EventProtocol getInstance(final DConnectMessageService context,
                                      final Intent request) {
-        final String appType = request.getStringExtra(DConnectService.EXTRA_INNER_APP_TYPE);
-        if (DConnectService.INNER_APP_TYPE_WEB.equals(appType)) {
+        final String appType = request.getStringExtra(DConnectService.EXTRA_INNER_TYPE);
+        if (DConnectService.INNER_TYPE_HTTP.equals(appType)) {
             return new EventProtocol(context) {
                 @Override
                 protected EventSession createSession(final Intent request,

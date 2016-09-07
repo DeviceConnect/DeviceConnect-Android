@@ -28,8 +28,9 @@ public class WebSocketInfoManager {
         mOnWebSocketEventListener = onWebSocketEventListener;
     }
 
-    public void addWebSocketInfo(final String eventKey, final String uri) {
+    public void addWebSocketInfo(final String eventKey, final String uri, final String webSocketId) {
         WebSocketInfo info = new WebSocketInfo();
+        info.setId(webSocketId);
         info.setUri(uri);
         info.setEventKey(eventKey);
         info.setConnectTime(System.currentTimeMillis());

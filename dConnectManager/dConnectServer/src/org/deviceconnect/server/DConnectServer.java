@@ -35,9 +35,6 @@ public abstract class DConnectServer {
     /** サーバー設定情報. */
     protected DConnectServerConfig mConfig;
 
-    /** WebSocket受信時に送られてくるパラメータのキー : セッションキー. */
-    protected static final String WEBSOCKET_PARAM_KEY_SESSION_KEY = "sessionKey";
-
     /** デバッグフラグ. */
     private static final boolean DEBUG = false;
 
@@ -90,9 +87,9 @@ public abstract class DConnectServer {
 
     /**
      * WebSocketを切断する.
-     * @param sessionKey セッションキー
+     * @param webSocketId WebSocketを特定するためのID
      */
-    public abstract void disconnectWebSocket(String sessionKey);
+    public abstract void disconnectWebSocket(String webSocketId);
 
     /**
      * イベントリスナーを設定します.
@@ -106,41 +103,22 @@ public abstract class DConnectServer {
     /**
      * 指定されたセッションキーを持つクライアントにWebSocketを通じてイベントメッセージを送る.
      * 
-     * @param sessionKey クライアントを特定するためのセッションキー
+     * @param webSocketId WebSocketを特定するためのID
      * @param event 送信するイベントメッセージ
      * 
      * @throws IOException セッションが見つからない場合スローされる
      */
-    public void sendEvent(final String sessionKey, final String event) throws IOException {
+    public void sendEvent(final String webSocketId, final String event) throws IOException {
         if (!isRunning()) {
             throw new RuntimeException("DConnectServer is not running.");
         }
 
-        DConnectWebSocket socket = mSockets.get(sessionKey);
+        DConnectWebSocket socket = mSockets.get(webSocketId);
         if (socket == null) {
-            throw new IOException("Cannot found session's socket.");
+            throw new IOException("Cannot found socket: id = " + webSocketId);
         }
 
         socket.sendEvent(event);
     }
 
-    /**
-     * 指定されたセッションキーを持つクライアントのWebSocket切断要求を行う.
-     *
-     * @param sessionKey クライアントを特定するためのセッションキー.
-     *
-     * @throws IOException セッションが見つからない場合スローされる.
-     */
-    public void disconnectionWebSocket(final String sessionKey) throws IOException {
-        if (!isRunning()) {
-            throw new RuntimeException("DConnectServer is not running.");
-        }
-
-        DConnectWebSocket socket = mSockets.get(sessionKey);
-        if (socket == null) {
-            throw new IOException("Cannot found session's socket.");
-        }
-
-        socket.disconnectWebSocket();
-    }
 }

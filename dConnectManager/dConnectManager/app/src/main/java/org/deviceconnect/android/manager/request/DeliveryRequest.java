@@ -9,6 +9,7 @@ package org.deviceconnect.android.manager.request;
 import android.content.Intent;
 
 import org.deviceconnect.android.manager.BuildConfig;
+import org.deviceconnect.android.manager.event.EventHandler;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
@@ -21,6 +22,9 @@ import java.util.logging.Logger;
 public class DeliveryRequest extends LocalOAuthRequest {
     /** ロガー. */
     private final Logger mLogger = Logger.getLogger("dconnect.manager");
+
+    /** イベントハンドラー. */
+    protected EventHandler mEventHandler;
 
     /**
      * 実際の命令を行う.
@@ -45,7 +49,10 @@ public class DeliveryRequest extends LocalOAuthRequest {
         request.putExtra(IntentDConnectMessage.EXTRA_REQUEST_CODE, mRequestCode);
         if (accessToken != null) {
             request.putExtra(DConnectMessage.EXTRA_ACCESS_TOKEN, accessToken);
+        } else {
+            request.removeExtra(DConnectMessage.EXTRA_ACCESS_TOKEN);
         }
+        mEventHandler.onRequest(request, mDevicePlugin);
         mContext.sendBroadcast(request);
 
         if (mResponse == null) {
@@ -84,6 +91,10 @@ public class DeliveryRequest extends LocalOAuthRequest {
             restartDevicePlugin();
             sendTimeout();
         }
+    }
+
+    public void setEventHandler(final EventHandler eventHandler) {
+        mEventHandler = eventHandler;
     }
 
     /**

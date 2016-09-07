@@ -16,6 +16,8 @@ import org.apache.james.mime4j.parser.AbstractContentHandler;
 import org.apache.james.mime4j.parser.MimeStreamParser;
 import org.apache.james.mime4j.stream.BodyDescriptor;
 import org.apache.james.mime4j.stream.Field;
+import org.deviceconnect.android.localoauth.ClientPackageInfo;
+import org.deviceconnect.android.localoauth.LocalOAuth2Main;
 import org.deviceconnect.android.manager.profile.DConnectFilesProfile;
 import org.deviceconnect.android.manager.util.DConnectUtil;
 import org.deviceconnect.android.provider.FileManager;
@@ -27,8 +29,10 @@ import org.deviceconnect.server.DConnectServerEventListener;
 import org.deviceconnect.server.http.HttpRequest;
 import org.deviceconnect.server.http.HttpResponse;
 import org.deviceconnect.server.http.HttpResponse.StatusCode;
+import org.deviceconnect.server.websocket.DConnectWebSocket;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.restlet.ext.oauth.PackageInfoOAuth;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -132,25 +136,139 @@ public class DConnectServerEventListenerImpl implements DConnectServerEventListe
     }
 
     @Override
-    public void onWebSocketConnected(final String uri, final String sessionKey) {
+    public void onWebSocketConnected(final DConnectWebSocket webSocket) {
         if (BuildConfig.DEBUG) {
-            mLogger.info("onWebSocketConnected: sessionKey :" + sessionKey);
+            mLogger.info("onWebSocketConnected: id = " + webSocket.getId());
         }
-
-        DConnectService service = (DConnectService) mContext;
-        DConnectApplication app = (DConnectApplication) service.getApplication();
-        app.getWebSocketInfoManager().addWebSocketInfo(sessionKey, uri);
     }
 
     @Override
-    public void onWebSocketDisconnected(final String sessionKey) {
+    public void onWebSocketDisconnected(final String webSocketId) {
         if (BuildConfig.DEBUG) {
-            mLogger.info("onWebSocketDisconnected: sessionKey :" + sessionKey);
+            mLogger.info("onWebSocketDisconnected: id = " + webSocketId);
         }
 
         DConnectService service = (DConnectService) mContext;
         DConnectApplication app = (DConnectApplication) service.getApplication();
-        app.getWebSocketInfoManager().removeWebSocketInfo(sessionKey);
+        WebSocketInfo disconnected = null;
+        for (WebSocketInfo info : app.getWebSocketInfoManager().getWebSocketInfos()) {
+            if (info.getId().equals(webSocketId)) {
+                disconnected = info;
+                break;
+            }
+        }
+        if (disconnected != null) {
+            app.getWebSocketInfoManager().removeWebSocketInfo(disconnected.getEventKey());
+        }
+    }
+
+    @Override
+    public void onWebSocketMessage(final DConnectWebSocket webSocket, final String message) {
+        try {
+            mLogger.info("onWebSocketMessage: message = " + message);
+
+            JSONObject json = new JSONObject(message);
+            String uri = webSocket.getUri();
+            String origin = webSocket.getClientOrigin();
+            String eventKey;
+            if (uri.equalsIgnoreCase("/gotapi/websocket")) { // MEMO パスの大文字小文字を無視
+                String accessToken = json.optString(DConnectMessage.EXTRA_ACCESS_TOKEN);
+                if (accessToken == null) {
+                    mLogger.warning("onWebSocketMessage: accessToken is not specified");
+                    sendError(webSocket, 1, "accessToken is not specified.");
+                    return;
+                }
+                if (requiresOrigin()) {
+                    if (origin == null) {
+                        sendError(webSocket, 2, "origin is not specified.");
+                        return;
+                    }
+                    if (usesLocalOAuth() && !isValidAccessToken(accessToken, origin)) {
+                        sendError(webSocket, 3, "accessToken is invalid.");
+                        return;
+                    }
+                } else {
+                    if (origin == null) {
+                        origin = DConnectService.ANONYMOUS_ORIGIN;
+                    }
+                }
+                eventKey = md5(origin);
+                // NOTE: 既存のイベントセッションを保持する.
+                if (getWebSocketInfoManager().getWebSocketInfo(eventKey) != null) {
+//                    webSocket.sendEvent(error(4, "already established."));
+//                    webSocket.disconnectWebSocket();
+                    return;
+                }
+                sendSuccess(webSocket);
+            } else {
+                if (origin == null) {
+                    origin = DConnectService.ANONYMOUS_ORIGIN;
+                }
+                eventKey = json.optString(DConnectMessage.EXTRA_SESSION_KEY);
+                // NOTE: 既存のイベントセッションを破棄する.
+                if (getWebSocketInfoManager().getWebSocketInfo(eventKey) != null) {
+                    ((DConnectService) mContext).sendDisconnectWebSocket(eventKey);
+                }
+            }
+            if (eventKey == null) {
+                mLogger.warning("onWebSocketMessage: Failed to generate eventKey: uri = " + uri +  ", origin = " + origin);
+                return;
+            }
+
+            getWebSocketInfoManager().addWebSocketInfo(eventKey, origin + uri, webSocket.getId());
+        } catch (JSONException e) {
+            mLogger.warning("onWebSocketMessage: Failed to parse message as JSON object: " + message);
+        }
+    }
+
+    private boolean requiresOrigin() {
+        return ((DConnectService) mContext).requiresOrigin();
+    }
+
+    private boolean usesLocalOAuth() {
+        return ((DConnectService) mContext).usesLocalOAuth();
+    }
+
+    private WebSocketInfoManager getWebSocketInfoManager() {
+        DConnectApplication app = (DConnectApplication) ((DConnectService) mContext).getApplication();
+        return app.getWebSocketInfoManager();
+    }
+
+    private String md5(final String s) {
+        try {
+            return DConnectUtil.toMD5(s);
+        } catch (Exception e) {
+            // NOP.
+        }
+        return null;
+    }
+
+    private void sendSuccess(final DConnectWebSocket webSocket) throws JSONException {
+        JSONObject message = new JSONObject();
+        message.put("result", 0);
+        webSocket.sendEvent(message.toString());
+    }
+
+    private void sendError(final DConnectWebSocket webSocket,
+                             final int errorCode,
+                             final String errorMessage) throws JSONException {
+        JSONObject message = new JSONObject();
+        message.put("result", 1);
+        message.put("errorCode", errorCode);
+        message.put("errorMessage", errorMessage);
+        webSocket.sendEvent(message.toString());
+    }
+
+    private boolean isValidAccessToken(final String accessToken, final String origin) {
+        ClientPackageInfo client = LocalOAuth2Main.findClientPackageInfoByAccessToken(accessToken);
+        if (client == null) {
+            return false;
+        }
+        PackageInfoOAuth oauth = client.getPackageInfo();
+        if (oauth == null) {
+            return false;
+        }
+        return oauth.getPackageName().equals(origin);
     }
 
     @Override

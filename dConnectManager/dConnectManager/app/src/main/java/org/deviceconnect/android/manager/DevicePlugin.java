@@ -161,7 +161,6 @@ public class DevicePlugin {
     public VersionName getPluginSdkVersionName() {
         return mPluginSdkVersionName;
     }
-
     
     @Override
     public String toString() {

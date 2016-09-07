@@ -12,20 +12,18 @@ import android.content.ComponentName;
 import android.content.Intent;
 import android.content.res.AssetManager;
 import android.os.Build;
-import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import android.text.TextUtils;
 
-import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.event.cache.MemoryCacheController;
 import org.deviceconnect.android.localoauth.CheckAccessTokenResult;
 import org.deviceconnect.android.localoauth.ClientPackageInfo;
 import org.deviceconnect.android.localoauth.LocalOAuth2Main;
 import org.deviceconnect.android.logger.AndroidHandler;
-import org.deviceconnect.android.manager.DConnectLocalOAuth.OAuthData;
 import org.deviceconnect.android.manager.DevicePluginManager.DevicePluginEventListener;
+import org.deviceconnect.android.manager.event.EventHandler;
 import org.deviceconnect.android.manager.hmac.HmacManager;
 import org.deviceconnect.android.manager.policy.OriginValidator;
 import org.deviceconnect.android.manager.profile.AuthorizationProfile;
@@ -43,7 +41,6 @@ import org.deviceconnect.android.manager.util.DConnectUtil;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.android.profile.DConnectProfileProvider;
-import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.android.profile.spec.DConnectProfileSpec;
 import org.deviceconnect.android.profile.spec.parser.DConnectProfileSpecJsonParser;
 import org.deviceconnect.android.profile.spec.parser.DConnectProfileSpecJsonParserFactory;
@@ -128,6 +125,8 @@ public abstract class DConnectMessageService extends Service
     /** サーバの起動状態. */
     protected boolean mRunningFlag;
 
+    private EventHandler mEventHandler;
+
     @Override
     public IBinder onBind(final Intent intent) {
         return null;
@@ -167,6 +166,9 @@ public abstract class DConnectMessageService extends Service
         mPluginMgr = new DevicePluginManager((DConnectApplication) getApplication(), LOCALHOST_DCONNECT);
         mPluginMgr.setEventListener(this);
 
+        // イベントハンドラーの初期化
+        mEventHandler = new EventHandler(this);
+
         // プロファイルの追加
         addProfile(new AuthorizationProfile());
         addProfile(new DConnectAvailabilityProfile());
@@ -176,7 +178,7 @@ public abstract class DConnectMessageService extends Service
 
         // dConnect Managerで処理せず、登録されたデバイスプラグインに処理させるプロファイル
         setDeliveryProfile(new DConnectDeliveryProfile(mPluginMgr, mLocalOAuth,
-                mSettings.requireOrigin()));
+                mEventHandler, mSettings.requireOrigin()));
 
         loadProfileSpecs();
     }
@@ -339,68 +341,7 @@ public abstract class DConnectMessageService extends Service
      * @param event イベント用Intent
      */
     private void onEventReceive(final Intent event) {
-        String sessionKey = event.getStringExtra(DConnectMessage.EXTRA_SESSION_KEY);
-        String serviceId = event.getStringExtra(DConnectMessage.EXTRA_SERVICE_ID);
-        String profile = event.getStringExtra(DConnectMessage.EXTRA_PROFILE);
-        String inter = event.getStringExtra(DConnectMessage.EXTRA_INTERFACE);
-        String attribute = event.getStringExtra(DConnectMessage.EXTRA_ATTRIBUTE);
-
-        if (BuildConfig.DEBUG) {
-            mLogger.info(String.format("onEventReceive: [sessionKey: %s serviceId: %s profile: %s inter: %s attribute: %s]",
-                    sessionKey, serviceId, profile, inter, attribute));
-        }
-
-        if (sessionKey != null) {
-            // セッションキーからreceiverを取得する
-            String receiver = null;
-            int index = sessionKey.indexOf(SEPARATOR_SESSION);
-            if (index > 0) {
-                receiver = sessionKey.substring(index + 1);
-                sessionKey = sessionKey.substring(0, index);
-            }
-            // ここでセッションキーをデバイスプラグインIDを取得
-            String pluginId = convertSessionKey2PluginId(sessionKey);
-            String key = convertSessionKey2Key(sessionKey);
-            DevicePlugin plugin = mPluginMgr.getDevicePlugin(pluginId);
-            if (plugin == null) {
-                mLogger.warning("plugin is null.");
-                return;
-            }
-            event.putExtra(DConnectMessage.EXTRA_SESSION_KEY, key);
-
-            // Local OAuthの仕様で、デバイスを発見するごとにclientIdを作成して、
-            // アクセストークンを取得する作業を行う。
-            if (ServiceDiscoveryProfileConstants.PROFILE_NAME.equals(profile)
-                    || ServiceDiscoveryProfileConstants.ATTRIBUTE_ON_SERVICE_CHANGE.equals(attribute)) {
-
-                // network service discoveryの場合には、networkServiceのオブジェクトの中にデータが含まれる
-                Bundle service = event.getParcelableExtra(
-                        ServiceDiscoveryProfile.PARAM_NETWORK_SERVICE);
-                String id = service.getString(ServiceDiscoveryProfile.PARAM_ID);
-                String did = mPluginMgr.appendServiceId(plugin, id);
-
-                // サービスIDを変更
-                replaceServiceId(event, plugin);
-
-                OAuthData oauth = mLocalOAuth.getOAuthData(did);
-                if (oauth == null) {
-                    createClientOfDevicePlugin(plugin, did, event);
-                } else {
-                    // 送信先のセッションを取得
-                    List<Event> evts = EventManager.INSTANCE.getEventList(profile, attribute);
-                    for (int i = 0; i < evts.size(); i++) {
-                        Event evt = evts.get(i);
-                        event.putExtra(DConnectMessage.EXTRA_SESSION_KEY, evt.getSessionKey());
-                        sendEvent(evt.getReceiverName(), event);
-                    }
-                }
-            } else {
-                replaceServiceId(event, plugin);
-                sendEvent(receiver, event);
-            }
-        } else {
-            mLogger.warning("onEventReceive: sessionKey is null.");
-        }
+        mEventHandler.onEvent(event);
     }
 
     /**
@@ -430,33 +371,6 @@ public abstract class DConnectMessageService extends Service
      */
     private boolean isDeliveryRequest(final Intent request) {
         return DConnectSystemProfile.isWakeUpRequest(request);
-    }
-
-    /**
-     * セッションキーからプラグインIDに変換する.
-     *
-     * @param sessionKey セッションキー
-     * @return プラグインID
-     */
-    private String convertSessionKey2PluginId(final String sessionKey) {
-        int index = sessionKey.lastIndexOf(SEPARATOR);
-        if (index > 0) {
-            return sessionKey.substring(index + 1);
-        }
-        return sessionKey;
-    }
-
-    /**
-     * デバイスプラグインからのセッションキーから前半分のクライアントのセッションキーに変換する.
-     * @param sessionKey セッションキー
-     * @return クライアント用のセッションキー
-     */
-    private String convertSessionKey2Key(final String sessionKey) {
-        int index = sessionKey.lastIndexOf(SEPARATOR);
-        if (index > 0) {
-            return sessionKey.substring(0, index);
-        }
-        return sessionKey;
     }
 
     /**
@@ -802,5 +716,13 @@ public abstract class DConnectMessageService extends Service
         Intent targetIntent = new Intent(event);
         targetIntent.setComponent(ComponentName.unflattenFromString(receiver));
         sendBroadcast(targetIntent);
+    }
+
+    public boolean requiresOrigin() {
+        return mSettings.requireOrigin();
+    }
+
+    public boolean usesLocalOAuth() {
+        return mSettings.isUseALocalOAuth();
     }
 }

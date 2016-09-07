@@ -211,7 +211,7 @@ public enum EventManager {
         message.putExtra(DConnectMessage.EXTRA_PROFILE, event.getProfile());
         message.putExtra(DConnectMessage.EXTRA_INTERFACE, event.getInterface());
         message.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, event.getAttribute());
-        message.putExtra(DConnectMessage.EXTRA_SESSION_KEY, event.getSessionKey());
+        message.putExtra(DConnectMessage.EXTRA_ACCESS_TOKEN, event.getAccessToken());
         ComponentName cn = ComponentName.unflattenFromString(event.getReceiverName());
         message.setComponent(cn);
         return message;

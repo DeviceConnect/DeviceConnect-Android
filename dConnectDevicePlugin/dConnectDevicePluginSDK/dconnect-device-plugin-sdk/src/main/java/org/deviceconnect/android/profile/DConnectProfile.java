@@ -13,12 +13,14 @@ import android.net.Uri;
 import android.os.Bundle;
 
 import org.deviceconnect.android.event.Event;
+import org.deviceconnect.android.localoauth.ClientPackageInfo;
+import org.deviceconnect.android.localoauth.LocalOAuth2Main;
 import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.api.DConnectApi;
 import org.deviceconnect.android.profile.spec.DConnectApiSpec;
-import org.deviceconnect.android.profile.spec.DConnectSpecConstants;
 import org.deviceconnect.android.profile.spec.DConnectProfileSpec;
+import org.deviceconnect.android.profile.spec.DConnectSpecConstants;
 import org.deviceconnect.android.service.DConnectService;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.profile.DConnectProfileConstants;
@@ -209,9 +211,14 @@ public abstract class DConnectProfile implements DConnectProfileConstants,
         DConnectApi api = findApi(request);
         if (api != null) {
             DConnectApiSpec spec = api.getApiSpec();
-            if (spec != null && !spec.validate(request)) {
-                MessageUtils.setInvalidRequestParameterError(response);
-                return true;
+            if (spec != null) {
+                if (!spec.validate(request)) {
+                    MessageUtils.setInvalidRequestParameterError(response);
+                    return true;
+                }
+                if (spec.getType() == Type.EVENT) {
+                    onEventRequest(request);
+                }
             }
             return api.onRequest(request, response);
         } else {
@@ -226,6 +233,26 @@ public abstract class DConnectProfile implements DConnectProfileConstants,
             }
             return true;
         }
+    }
+
+    private void onEventRequest(final Intent request) {
+        String sessionKey;
+        if (isUseLocalOAuth()) {
+            String accessToken = request.getStringExtra(DConnectMessage.EXTRA_ACCESS_TOKEN);
+            sessionKey = findClientId(accessToken);
+        } else {
+            sessionKey = "";
+        }
+        request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, sessionKey);
+    }
+
+    private boolean isUseLocalOAuth() {
+        return ((DConnectMessageService) getContext()).isUseLocalOAuth();
+    }
+
+    private String findClientId(final String accessToken) {
+        ClientPackageInfo info = LocalOAuth2Main.findClientPackageInfoByAccessToken(accessToken);
+        return info.getClientId();
     }
 
     /**

@@ -21,7 +21,6 @@ import org.deviceconnect.android.manager.compat.ServiceInformationConverter;
 import org.deviceconnect.android.manager.keepalive.KeepAlive;
 import org.deviceconnect.android.manager.util.DConnectUtil;
 import org.deviceconnect.android.profile.DConnectProfile;
-import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 import org.deviceconnect.server.DConnectServer;
 import org.deviceconnect.server.DConnectServerConfig;
@@ -41,6 +40,7 @@ import java.util.concurrent.Executors;
 public class DConnectService extends DConnectMessageService {
     public static final String ACTION_DISCONNECT_WEB_SOCKET = "disconnect.WebSocket";
     public static final String EXTRA_SESSION_KEY = "sessionKey";
+    public static final String ANONYMOUS_ORIGIN = "<anonymous>";
 
     /** 内部用: 通信タイプを定義する. */
     public static final String EXTRA_INNER_TYPE = "_type";
@@ -141,11 +141,17 @@ public class DConnectService extends DConnectMessageService {
     @Override
     public void sendEvent(final String receiver, final Intent event) {
         if (receiver == null || receiver.length() <= 0) {
-            final String key = event.getStringExtra(DConnectMessage.EXTRA_SESSION_KEY);
+            final String key = event.getStringExtra(IntentDConnectMessage.EXTRA_SESSION_KEY);
             mEventSender.execute(new Runnable() {
                 @Override
                 public void run() {
                     if (key != null && mRESTfulServer != null && mRESTfulServer.isRunning()) {
+                        WebSocketInfo info = getWebSocketInfo(key);
+                        if (info == null) {
+                            mLogger.warning("sendEvent: webSocket is not found: key = " + key);
+                            return;
+                        }
+
                         try {
                             if (BuildConfig.DEBUG) {
                                 mLogger.info(String.format("sendEvent: %s extra: %s", key, event.getExtras()));
@@ -153,13 +159,13 @@ public class DConnectService extends DConnectMessageService {
                             JSONObject root = new JSONObject();
                             DConnectUtil.convertBundleToJSON(root, event.getExtras());
 
-                            mRESTfulServer.sendEvent(key, root.toString());
+                            mRESTfulServer.sendEvent(info.getId(), root.toString());
                         } catch (JSONException e) {
                             mLogger.warning("JSONException in sendEvent: " + e.toString());
                         } catch (IOException e) {
                             mLogger.warning("IOException in sendEvent: " + e.toString());
                             if (mWebServerListener != null) {
-                                mWebServerListener.onWebSocketDisconnected(key);
+                                mWebServerListener.onWebSocketDisconnected(info.getId());
                             }
                         }
                     }
@@ -179,14 +185,19 @@ public class DConnectService extends DConnectMessageService {
             mEventSender.execute(new Runnable() {
                 @Override
                 public void run() {
-                    try {
-                        mRESTfulServer.disconnectionWebSocket(sessionKey);
-                    } catch (IOException e) {
-                        mLogger.warning("IOException in disconnectWebSocket: " + e.toString());
+                    WebSocketInfo info = getWebSocketInfo(sessionKey);
+                    if (info != null) {
+                        mRESTfulServer.disconnectWebSocket(info.getId());
+                    } else {
+                        mLogger.warning("sendDisconnectWebSocket: WebSocketInfo is not found: key = " + sessionKey);
                     }
                 }
             });
         }
+    }
+
+    private WebSocketInfo getWebSocketInfo(final String sessionKey) {
+        return ((DConnectApplication) getApplication()).getWebSocketInfoManager().getWebSocketInfo(sessionKey);
     }
 
     /**

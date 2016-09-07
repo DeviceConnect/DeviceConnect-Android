@@ -157,10 +157,7 @@ public abstract class LocalOAuthRequest extends DConnectRequest {
         request.putExtra(DConnectMessage.EXTRA_PROFILE, AuthorizationProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, ATTRIBUTE_CREATE_CLIENT);
         request.putExtra(DConnectProfileConstants.PARAM_SERVICE_ID, serviceId);
-        String origin = mRequest.getStringExtra(IntentDConnectMessage.EXTRA_ORIGIN);
-        if (!mRequireOrigin && origin == null && getContext() != null) {
-            origin = getContext().getPackageName();
-        }
+        String origin = getRequestOrigin(mRequest);
         request.putExtra(AuthorizationProfileConstants.PARAM_PACKAGE, origin);
 
         // デバイスプラグインに送信
@@ -330,6 +327,7 @@ public abstract class LocalOAuthRequest extends DConnectRequest {
     protected void executeRequest() {
         String profile = mRequest.getStringExtra(DConnectMessage.EXTRA_PROFILE);
         String serviceId = mRequest.getStringExtra(DConnectMessage.EXTRA_SERVICE_ID);
+        String origin = getRequestOrigin(mRequest);
 
         if (mUseAccessToken && !isIgnoredPluginProfile(profile)) {
             String accessToken = getAccessToken(serviceId);
@@ -347,6 +345,7 @@ public abstract class LocalOAuthRequest extends DConnectRequest {
                 };
                 request.setContext(getContext());
                 request.setServiceId(serviceId);
+                request.setOrigin(origin);
                 // OAuthの認証だけは、シングルスレッドで動作させないとおかしな挙動が発生
                 mRequestMgr.addRequestOnSingleThread(request);
 
@@ -366,6 +365,14 @@ public abstract class LocalOAuthRequest extends DConnectRequest {
         } else {
             executeRequest(null);
         }
+    }
+
+    private String getRequestOrigin(final Intent request) {
+        String origin = request.getStringExtra(IntentDConnectMessage.EXTRA_ORIGIN);
+        if (!mRequireOrigin && origin == null && getContext() != null) {
+            origin = getContext().getPackageName();
+        }
+        return origin;
     }
 
     /**
@@ -440,8 +447,17 @@ public abstract class LocalOAuthRequest extends DConnectRequest {
     private abstract class OAuthRequest extends DConnectRequest {
         /** ロックオブジェクト. */
         protected final Object mLockObj = new Object();
+        /** 送信元のオリジン. */
+        protected String mOrigin;
         /** 送信先のサービスID. */
         protected String mServiceId;
+        /**
+         * オリジンを設定する.
+         * @param origin オリジン
+         */
+        public void setOrigin(final String origin) {
+            mOrigin = origin;
+        }
         /**
          * サービスIDを設定する.
          * @param id サービスID

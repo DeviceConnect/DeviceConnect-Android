@@ -96,6 +96,13 @@ public class ChromeCastCanvasProfile extends CanvasProfile implements ChromeCast
                         sendResponse(response);
                         return;
                     }
+                    if (mimeType != null && !mimeType.contains("image")) {
+                        MessageUtils.setInvalidRequestParameterError(response,
+                                "Unsupported mimeType: " + mimeType);
+                        sendResponse(response);
+                        return;
+                    }
+
                     if (uri != null && !URLUtil.isHttpsUrl(uri) && !URLUtil.isHttpUrl(uri)) {
                         MessageUtils.setInvalidRequestParameterError(response, "uri is not invalid.");
                         sendResponse(response);

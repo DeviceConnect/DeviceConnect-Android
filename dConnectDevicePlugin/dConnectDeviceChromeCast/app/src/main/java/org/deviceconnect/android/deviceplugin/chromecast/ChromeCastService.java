@@ -412,6 +412,9 @@ public class ChromeCastService extends DConnectMessageService implements
             return;
         }
         CastDevice currentDevice = app.getController().getSelectedDevice();
+        if (currentDevice == null) {
+            return;
+        }
         DConnectService castService = getServiceProvider().getService(currentDevice.getFriendlyName());
         if (castService != null) {
             castService.setOnline(false);
@@ -440,13 +443,14 @@ public class ChromeCastService extends DConnectMessageService implements
                                                final Callback callback) {
         ChromeCastApplication app = (ChromeCastApplication) getApplication();
         if (app == null) {
+            callback.onResponse();
             return;
         }
 
         if (app.getDiscovery().getSelectedDevice() != null) {
             if (app.getController().getGoogleApiClient() == null) {
                 // Request in connection queuing
-                mAsyncResponse.add(callback);
+                callback.onResponse();
                 return;
             }
             if (app.getDiscovery().getSelectedDevice().getFriendlyName().equals(serviceId)

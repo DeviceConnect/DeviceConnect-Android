@@ -232,7 +232,7 @@ public class ChromeCastController implements
      */
     private void launchApplication() {
         if (mApiClient != null && mApiClient.isConnected()) {
-            Cast.CastApi.launchApplication(mApiClient, mAppId, false)
+            Cast.CastApi.launchApplication(mApiClient, mAppId)
                 .setResultCallback(new ResultCallback<Cast.ApplicationConnectionResult>() {
                     @Override
                     public void onResult(final ApplicationConnectionResult result) {
@@ -280,6 +280,7 @@ public class ChromeCastController implements
                         for (int i = 0; i < mCallbacks.size(); i++) {
                             mCallbacks.get(i).onDetach();
                         }
+
                         mApiClient.disconnect();
                         mApiClient = null;
                         //再接続はしない

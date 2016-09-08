@@ -1,47 +1,47 @@
-package org.deviceconnect.android.deviceplugin.awsiot;
+package org.deviceconnect.android.deviceplugin.awsiot.local;
 
 import android.content.Context;
 import android.util.Log;
 
-import org.deviceconnect.android.deviceplugin.awsiot.core.RemoteDeviceConnectManager;
 import org.deviceconnect.android.deviceplugin.awsiot.p2p.WebServer;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class AWSIotWebServerManager {
     private static final boolean DEBUG = true;
-    private static final String TAG = "AWS-Remote";
+    private static final String TAG = "AWS-Local";
 
-    private final Map<RemoteDeviceConnectManager, WebServer> mWebServerList = new ConcurrentHashMap<>();
+    private final List<WebServer> mWebServerList = Collections.synchronizedList(new ArrayList<WebServer>());
 
-    private AWSIotRemoteManager mIot;
+    private AWSIotLocalManager mIot;
     private Context mContext;
 
-    public AWSIotWebServerManager(final Context context, final AWSIotRemoteManager ctl) {
+    public AWSIotWebServerManager(final Context context, final AWSIotLocalManager ctl) {
         mContext = context;
         mIot = ctl;
     }
 
     public void destroy() {
         synchronized (mWebServerList) {
-            for (Map.Entry<RemoteDeviceConnectManager, WebServer> e : mWebServerList.entrySet()) {
-                e.getValue().stop();
+            for (WebServer server : mWebServerList) {
+                server.stop();
             }
         }
         mWebServerList.clear();
     }
 
-    public String createWebServer(final RemoteDeviceConnectManager remote, final String address, final String path) {
+    public String createWebServer(final String address, final String path) {
         if (DEBUG) {
-            Log.i(TAG, "createWebServer: " + remote);
+            Log.i(TAG, "createWebServer: address=" + address + " path=" + path);
         }
 
         // TODO WebServerをどのタイミングで止めるか検討
         WebServer webServer = new WebServer(mContext, address) {
             @Override
             public void onNotifySignaling(final String signaling) {
-                mIot.publish(remote, mIot.createRemoteP2P(signaling));
+                mIot.publish(mIot.createLocalP2P(signaling));
             }
             @Override
             protected void onConnected() {
@@ -54,13 +54,13 @@ public class AWSIotWebServerManager {
                 if (DEBUG) {
                     Log.i(TAG, "WebServer#onDisconnected");
                 }
-                mWebServerList.remove(remote);
+                mWebServerList.remove(this);
             }
         };
         webServer.setPath(path);
         String url = webServer.start();
         if (url != null) {
-            mWebServerList.put(remote, webServer);
+            mWebServerList.add(webServer);
         }
 
         if (DEBUG) {
@@ -70,10 +70,13 @@ public class AWSIotWebServerManager {
         return url;
     }
 
-    public void onReceivedSignaling(final RemoteDeviceConnectManager remote, final String message) {
-        WebServer webServer = mWebServerList.get(remote);
-        if (webServer != null) {
-            webServer.onReceivedSignaling(message);
+    public void onReceivedSignaling(final String message) {
+        synchronized (mWebServerList) {
+            for (WebServer server : mWebServerList) {
+                if (server.hasConnectionId(message)) {
+                    server.onReceivedSignaling(message);
+                }
+            }
         }
     }
 }

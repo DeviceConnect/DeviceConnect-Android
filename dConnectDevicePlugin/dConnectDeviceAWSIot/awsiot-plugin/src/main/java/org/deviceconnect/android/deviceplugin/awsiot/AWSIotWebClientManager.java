@@ -1,8 +1,9 @@
-package org.deviceconnect.android.deviceplugin.awsiot.local;
+package org.deviceconnect.android.deviceplugin.awsiot;
 
 import android.content.Context;
 import android.util.Log;
 
+import org.deviceconnect.android.deviceplugin.awsiot.core.RemoteDeviceConnectManager;
 import org.deviceconnect.android.deviceplugin.awsiot.p2p.WebClient;
 
 import java.util.ArrayList;
@@ -10,18 +11,17 @@ import java.util.Collections;
 import java.util.List;
 
 public class AWSIotWebClientManager {
-
     private static final boolean DEBUG = true;
-    private static final String TAG = "AWS-Local";
+    private static final String TAG = "AWS-Remote";
 
     private final List<WebClient> mWebClientList = Collections.synchronizedList(new ArrayList<WebClient>());
 
-    private AWSIotLocalManager mLocalManager;
+    private AWSIotRemoteManager mManager;
     private Context mContext;
 
-    public AWSIotWebClientManager(final Context context, final AWSIotLocalManager manager) {
+    public AWSIotWebClientManager(final Context context, final AWSIotRemoteManager manager) {
         mContext = context;
-        mLocalManager = manager;
+        mManager = manager;
     }
 
     public void destroy() {
@@ -33,16 +33,16 @@ public class AWSIotWebClientManager {
         mWebClientList.clear();
     }
 
-    public void onReceivedSignaling(final String message) {
+    public void onReceivedSignaling(final RemoteDeviceConnectManager remote, final String message) {
         if (DEBUG) {
-            Log.i(TAG, "AWSIotWebClientManager#onReceivedSignaling:");
+            Log.i(TAG, "AWSIotWebClientManager#onReceivedSignaling: " + remote);
             Log.i(TAG, "message=" + message);
         }
 
         WebClient webClient = new WebClient(mContext) {
             @Override
             public void onNotifySignaling(final String signaling) {
-                mLocalManager.publish(mLocalManager.createRemoteP2P(signaling));
+                mManager.publish(remote, mManager.createLocalP2P(signaling));
             }
             @Override
             public void onDisconnected(final WebClient webClient) {

@@ -118,6 +118,10 @@ public class WebServer extends AWSIotP2PManager {
         }
     }
 
+    public boolean hasConnectionId(final String signaling) {
+        return mServerRunnableMap.get(getConnectionId(signaling))  != null;
+    }
+
     protected void onConnected() {
     }
 
@@ -208,6 +212,10 @@ public class WebServer extends AWSIotP2PManager {
             int readLength = 0;
             int read;
 
+            if (DEBUG) {
+                Log.e(TAG, "WebServer#relayHttpRequest");
+            }
+
             try {
                 InputStream in = mSocket.getInputStream();
                 read = in.read(buf, 0, BUF_SIZE);
@@ -224,7 +232,7 @@ public class WebServer extends AWSIotP2PManager {
                     }
                     read = in.read(buf, readLength, BUF_SIZE - readLength);
                 }
-
+                Log.e("ABC", "A " + new String(buf).replace("\r\n", " "));
                 mP2PConnection.sendData(decodeHeader(buf, headerSize));
                 mP2PConnection.sendData(buf, headerSize, readLength - headerSize);
 

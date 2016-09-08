@@ -36,10 +36,9 @@ public class DConnectHelper {
     /** シングルトンなManagerのインスタンス. */
     public static final DConnectHelper INSTANCE = new DConnectHelper();
 
-    private Map<String, String> mDefaultHeader = new HashMap<>();
     private AuthInfo mAuthInfo;
-    private String mSessionKey;
 
+    private Map<String, String> mDefaultHeader = new HashMap<>();
     private List<String> mScopes =  new ArrayList<String>() {
         {
             add("servicediscovery");
@@ -86,11 +85,7 @@ public class DConnectHelper {
         mDefaultHeader.put(DConnectMessage.HEADER_GOTAPI_ORIGIN, "http://localhost");
     }
 
-    public void setSessionKey(final String sessionKey) {
-        mSessionKey = sessionKey;
-    }
-
-    public void sendRequest(final String request, final FinishCallback callback) {
+    public void sendRequest(final String request, final ConversionCallback conversionCallback, final FinishCallback callback) {
         try {
             String method = null;
 
@@ -124,7 +119,17 @@ public class DConnectHelper {
                 } else if (key.equals("action")) {
                     method = parseMethod(jsonObject);
                 } else if (key.equals("sessionKey")) {
-                    body.put(key, mSessionKey);
+                    if (conversionCallback != null) {
+                        body.put(key, conversionCallback.convertSessionKey(jsonObject.getString(key)));
+                    } else {
+                        body.put(key, jsonObject.getString(key));
+                    }
+                } else if (key.equals("uri")) {
+                    if (conversionCallback != null) {
+                        body.put(key, conversionCallback.convertUri(jsonObject.getString(key)));
+                    } else {
+                        body.put(key, jsonObject.getString(key));
+                    }
                 } else if (key.equals("requestCode")) {
                 } else if (key.equals("origin")) {
                 } else if (key.equals("accessToken")) {
@@ -366,6 +371,11 @@ public class DConnectHelper {
         public String toString() {
             return "AuthInfo{" + "mClientId=" + mClientId + ", mAccessToken=" + mAccessToken + "}";
         }
+    }
+
+    public interface ConversionCallback {
+        String convertUri(String uri);
+        String convertSessionKey(String sessionKey);
     }
 
     /** 処理完了コールバック */

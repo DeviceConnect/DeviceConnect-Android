@@ -180,7 +180,7 @@ public final class HttpUtil {
             }
         }
 
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         HttpURLConnection conn = null;
         try {
             conn = (HttpURLConnection) new URL(uri).openConnection();
@@ -232,7 +232,7 @@ public final class HttpUtil {
                 int len;
                 byte[] buf = new byte[BUF_SIZE];
                 while ((len = in.read(buf)) > 0) {
-                    baos.write(buf, 0, len);
+                    outputStream.write(buf, 0, len);
                 }
                 in.close();
             } else {
@@ -261,7 +261,7 @@ public final class HttpUtil {
                 conn.disconnect();
             }
         }
-        return baos.toByteArray();
+        return outputStream.toByteArray();
     }
 
     /**

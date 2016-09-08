@@ -1,6 +1,7 @@
 package org.deviceconnect.android.deviceplugin.awsiot.local;
 
 import android.content.Context;
+import android.net.Uri;
 import android.util.Log;
 
 import com.amazonaws.regions.Regions;
@@ -21,6 +22,7 @@ public class AWSIotLocalManager extends AWSIotCore {
 
     private RemoteDeviceConnectManager mRemoteManager;
     private AWSIotWebClientManager mAWSIotWebClientManager;
+    private AWSIotWebServerManager mAWSIotWebServerManager;
     private AWSIotWebSocketClient mAWSIotWebSocketClient;
     private OnEventListener mOnEventListener;
     private Context mContext;
@@ -30,17 +32,6 @@ public class AWSIotLocalManager extends AWSIotCore {
     public AWSIotLocalManager(final Context context, final String name, final String id) {
         mContext = context;
         mRemoteManager = new RemoteDeviceConnectManager(name, id);
-
-        // TODO WebSocketの起動タイミングを検討
-        mAWSIotWebSocketClient = new AWSIotWebSocketClient("http://localhost:4035/websocket", mSessionKey) {
-            @Override
-            public void onMessage(final String message) {
-                publishEvent(message);
-            }
-        };
-        mAWSIotWebSocketClient.connect();
-
-        DConnectHelper.INSTANCE.setSessionKey(mSessionKey);
     }
 
     public void disconnect() {
@@ -56,6 +47,11 @@ public class AWSIotLocalManager extends AWSIotCore {
         if (mAWSIotWebClientManager != null) {
             mAWSIotWebClientManager.destroy();
             mAWSIotWebClientManager = null;
+        }
+
+        if (mAWSIotWebServerManager != null) {
+            mAWSIotWebServerManager.destroy();
+            mAWSIotWebServerManager = null;
         }
 
         if (mIot != null) {
@@ -169,7 +165,17 @@ public class AWSIotLocalManager extends AWSIotCore {
             }
         });
         mIot.connect(accessKey, secretKey, region);
+
         mAWSIotWebClientManager = new AWSIotWebClientManager(mContext, this);
+        mAWSIotWebServerManager = new AWSIotWebServerManager(mContext, this);
+
+        mAWSIotWebSocketClient = new AWSIotWebSocketClient("http://localhost:4035/websocket", mSessionKey) {
+            @Override
+            public void onMessage(final String message) {
+                publishEvent(message);
+            }
+        };
+        mAWSIotWebSocketClient.connect();
     }
 
     public void publish(final String message) {
@@ -188,9 +194,13 @@ public class AWSIotLocalManager extends AWSIotCore {
             if (request != null) {
                 onReceivedDeviceConnectRequest(requestCode, request.toString());
             }
-            JSONObject p2p = json.optJSONObject(KEY_P2P);
+            JSONObject p2p = json.optJSONObject(KEY_P2P_REMOTE);
             if (p2p != null) {
                 mAWSIotWebClientManager.onReceivedSignaling(p2p.toString());
+            }
+            JSONObject p2pa = json.optJSONObject(KEY_P2P_LOCAL);
+            if (p2pa != null) {
+                mAWSIotWebServerManager.onReceivedSignaling(p2pa.toString());
             }
         } catch (JSONException e) {
             if (DEBUG) {
@@ -204,7 +214,21 @@ public class AWSIotLocalManager extends AWSIotCore {
             Log.i(TAG, "onReceivedDeviceConnectRequest: request=" + request);
         }
 
-        DConnectHelper.INSTANCE.sendRequest(request, new DConnectHelper.FinishCallback() {
+        DConnectHelper.INSTANCE.sendRequest(request, new DConnectHelper.ConversionCallback() {
+            @Override
+            public String convertUri(final String uri) {
+                Uri u = Uri.parse(uri);
+                if (u.getHost().equals("localhost") || u.getHost().equals("127.0.0.1")) {
+                    return mAWSIotWebServerManager.createWebServer(u.getAuthority(), u.getEncodedPath() + "?" + u.getEncodedQuery());
+                } else {
+                    return uri;
+                }
+            }
+            @Override
+            public String convertSessionKey(final String sessionKey) {
+                return mSessionKey;
+            }
+        }, new DConnectHelper.FinishCallback() {
             @Override
             public void onFinish(final String response, final Exception error) {
                 if (DEBUG) {

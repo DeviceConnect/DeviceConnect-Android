@@ -11,7 +11,8 @@ public class AWSIotCore {
     public static final String KEY_REQUEST_CODE = "requestCode";
     public static final String KEY_REQUEST = "request";
     public static final String KEY_RESPONSE = "response";
-    public static final String KEY_P2P = "p2p";
+    public static final String KEY_P2P_REMOTE = "p2p_remote";
+    public static final String KEY_P2P_LOCAL = "p2p_local";
 
     protected AWSIotController mIot;
 
@@ -24,6 +25,7 @@ public class AWSIotCore {
 
         List<RemoteDeviceConnectManager> managers = new ArrayList<>();
         managers.add(new RemoteDeviceConnectManager("abc", "test"));
+//        managers.add(new RemoteDeviceConnectManager("5807D0DF-1D5F-4D8E-9779-A9417C5CA1D0", "test"));
         return managers;
     }
 
@@ -43,12 +45,20 @@ public class AWSIotCore {
         return "{\"" + KEY_RESPONSE + "\":" + response + ",\"" + KEY_REQUEST_CODE + "\":" + requestCode + "}";
     }
 
-    public String createP2P(final String p2p) {
-        return createP2P(generateRequestCode(), p2p);
+    public String createRemoteP2P(final String p2p) {
+        return createRemoteP2P(generateRequestCode(), p2p);
     }
 
-    public String createP2P(final int requestCode, final String p2p) {
-        return "{\"" + KEY_P2P + "\":" + p2p + ",\"" + KEY_REQUEST_CODE + "\":" + requestCode + "}";
+    public String createRemoteP2P(final int requestCode, final String p2p) {
+        return "{\"" + KEY_P2P_REMOTE + "\":" + p2p + ",\"" + KEY_REQUEST_CODE + "\":" + requestCode + "}";
+    }
+
+    public String createLocalP2P(final String p2p) {
+        return createLocalP2P(generateRequestCode(), p2p);
+    }
+
+    public String createLocalP2P(final int requestCode, final String p2p) {
+        return "{\"" + KEY_P2P_LOCAL + "\":" + p2p + ",\"" + KEY_REQUEST_CODE + "\":" + requestCode + "}";
     }
 
     protected int generateRequestCode() {

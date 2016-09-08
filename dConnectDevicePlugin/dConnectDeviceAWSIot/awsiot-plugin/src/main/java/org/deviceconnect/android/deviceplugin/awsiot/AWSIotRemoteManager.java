@@ -11,6 +11,7 @@ import com.amazonaws.regions.Regions;
 import org.deviceconnect.android.deviceplugin.awsiot.core.AWSIotController;
 import org.deviceconnect.android.deviceplugin.awsiot.core.AWSIotCore;
 import org.deviceconnect.android.deviceplugin.awsiot.core.RemoteDeviceConnectManager;
+import org.deviceconnect.android.deviceplugin.awsiot.p2p.WebClient;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.DConnectMessageService;
@@ -34,6 +35,7 @@ public class AWSIotRemoteManager extends AWSIotCore {
     private Context mContext;
 
     private AWSIotWebServerManager mAWSIotWebServerManager;
+    private AWSIotWebClientManager mAWSIotWebClientManager;
     private AWSIotDeviceManager mAWSIotDeviceManager;
     private Map<Integer, Intent> mResponseMap = new HashMap<>();
 
@@ -56,6 +58,11 @@ public class AWSIotRemoteManager extends AWSIotCore {
         if (mAWSIotWebServerManager != null) {
             mAWSIotWebServerManager.destroy();
             mAWSIotWebServerManager = null;
+        }
+
+        if (mAWSIotWebClientManager != null) {
+            mAWSIotWebClientManager.destroy();
+            mAWSIotWebClientManager = null;
         }
 
         if (mIot != null) {
@@ -181,6 +188,7 @@ public class AWSIotRemoteManager extends AWSIotCore {
         });
         mIot.connect(accessKey, secretKey, region);
         mAWSIotWebServerManager = new AWSIotWebServerManager(mContext, this);
+        mAWSIotWebClientManager = new AWSIotWebClientManager(mContext, this);
     }
 
     public boolean sendRequest(final Intent request, final Intent response) {
@@ -214,7 +222,11 @@ public class AWSIotRemoteManager extends AWSIotCore {
 
             @Override
             public String convertUri(final String uri) {
-                return uri;
+                if (uri.startsWith("content://")) {
+                    return "http://localhost" + WebClient.PATH_CONTENT_PROVIDER + "?" + uri;
+                } else {
+                    return uri;
+                }
             }
         });
 
@@ -284,9 +296,13 @@ public class AWSIotRemoteManager extends AWSIotCore {
             if (response != null) {
                 onReceivedDeviceConnectResponse(remote, message);
             }
-            JSONObject p2p = json.optJSONObject(KEY_P2P);
+            JSONObject p2p = json.optJSONObject(KEY_P2P_REMOTE);
             if (p2p != null) {
                 mAWSIotWebServerManager.onReceivedSignaling(remote, p2p.toString());
+            }
+            JSONObject p2pa = json.optJSONObject(KEY_P2P_LOCAL);
+            if (p2pa != null) {
+                mAWSIotWebClientManager.onReceivedSignaling(remote, p2pa.toString());
             }
         } catch (Exception e) {
             if (DEBUG) {

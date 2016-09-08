@@ -20,8 +20,8 @@ import de.javawi.jstun.util.UtilityException;
 
 public class StunClient {
 
-    private static final boolean DEBUG = BuildConfig.DEBUG;
-    private static final String TAG = "STUN";
+    private static final boolean DEBUG = false;
+    private static final String TAG = "UDT";
 
     private String mStunServer = "stun1.l.google.com";
     private int mPort = 19302;

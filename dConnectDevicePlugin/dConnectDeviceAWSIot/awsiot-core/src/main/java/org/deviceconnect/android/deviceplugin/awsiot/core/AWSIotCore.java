@@ -6,13 +6,15 @@ import java.util.UUID;
 
 public class AWSIotCore {
 
-    public static final String KEY_DCONNECT_SHADOW_NAME = "dconnect";
+    public static final String KEY_DCONNECT_SHADOW_NAME = "DeviceConnect";
 
     public static final String KEY_REQUEST_CODE = "requestCode";
     public static final String KEY_REQUEST = "request";
     public static final String KEY_RESPONSE = "response";
     public static final String KEY_P2P_REMOTE = "p2p_remote";
     public static final String KEY_P2P_LOCAL = "p2p_local";
+
+    public static final String PARAM_SELF_FLAG = "_selfOnly";
 
     protected AWSIotController mIot;
 
@@ -31,10 +33,6 @@ public class AWSIotCore {
 
     public void updateDeviceShadow(final RemoteDeviceConnectManager remote) {
         // TODO Remoteが登録されていない場合は追加すること
-    }
-
-    public String createRequest(final String request) {
-        return createRequest(generateRequestCode(), request);
     }
 
     public String createRequest(final int requestCode, final String request) {

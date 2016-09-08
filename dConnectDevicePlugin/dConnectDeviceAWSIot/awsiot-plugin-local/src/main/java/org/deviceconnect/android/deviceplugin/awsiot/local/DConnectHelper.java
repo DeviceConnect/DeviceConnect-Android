@@ -10,6 +10,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.util.Log;
 
+import org.deviceconnect.android.deviceplugin.awsiot.core.AWSIotCore;
 import org.deviceconnect.android.deviceplugin.awsiot.util.HttpUtil;
 import org.deviceconnect.android.profile.AuthorizationProfile;
 import org.deviceconnect.message.DConnectMessage;
@@ -95,11 +96,7 @@ public class DConnectHelper {
             builder.setPort(4035);
 
             Map<String, String> body = new HashMap<>();
-
-            // TODO
-            body.put("awsflg", "true");
-
-            // TODO
+            body.put(AWSIotCore.PARAM_SELF_FLAG, "true");
             if (mAuthInfo != null) {
                 body.put(DConnectMessage.EXTRA_ACCESS_TOKEN, mAuthInfo.getAccessToken());
             }
@@ -352,7 +349,7 @@ public class DConnectHelper {
     }
 
     /**
-     * 認証情報
+     * 認証情報.
      */
     public static class AuthInfo {
         public String mClientId;

@@ -10,8 +10,8 @@ import java.net.Socket;
 
 class SocketTask {
 
-    private static final boolean DEBUG = BuildConfig.DEBUG;
-    private static final String TAG = "P2P";
+    private static final boolean DEBUG = false;
+    private static final String TAG = "UDT";
 
     private static final byte[] HEADER = {
             0x01, 0x02, 0x03, 0x04

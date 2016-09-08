@@ -127,8 +127,7 @@ public class AWSIotRemoteManager extends AWSIotCore {
             public void onReceivedShadow(final String thingName, final String result, final Exception err) {
                 if (DEBUG) {
                     Log.d(TAG, "AWSIoTRemoteManager#onReceivedShadow");
-                    Log.d(TAG, "thingName=" + thingName);
-                    Log.d(TAG, "result=" + result);
+                    Log.d(TAG, "thingName=" + thingName + " result=" + result);
                 }
 
                 if (err != null) {
@@ -152,8 +151,7 @@ public class AWSIotRemoteManager extends AWSIotCore {
             public void onReceivedMessage(final String topic, final String message, final Exception err) {
                 if (DEBUG) {
                     Log.d(TAG, "AWSIoTRemoteManager#onReceivedMessage");
-                    Log.d(TAG, "topic=" + topic);
-                    Log.d(TAG, "message=" + message);
+                    Log.d(TAG, "topic=" + topic + " message=" + message);
                 }
 
                 if (err != null) {
@@ -200,11 +198,6 @@ public class AWSIotRemoteManager extends AWSIotCore {
 
         if (DEBUG) {
             Log.i(TAG, "@@@@@@@@@ AWSIotRemoteManager#sendRequest");
-        }
-
-        if (existAWSFlag(request)) {
-            MessageUtils.setUnknownError(response);
-            return true;
         }
 
         String action = request.getAction();
@@ -274,7 +267,7 @@ public class AWSIotRemoteManager extends AWSIotCore {
     }
 
     private boolean existAWSFlag(final Intent intent) {
-        return intent.getExtras().getBoolean("awsflag", false);
+        return intent.getExtras().getBoolean(AWSIotCore.PARAM_SELF_FLAG, false);
     }
 
     private RemoteDeviceConnectManager parseTopic(final String topic) {
@@ -342,15 +335,10 @@ public class AWSIotRemoteManager extends AWSIotCore {
                     response.putExtras(b);
                 }
                 sendResponse(response);
-            } else {
-                Log.e(TAG, "Not found response. requestCode=" + requestCode);
-                for (Integer req : mResponseMap.keySet()) {
-                    Log.e(TAG, req + "::: " + mResponseMap.get(req));
-                }
             }
         } catch (JSONException e) {
             if (DEBUG) {
-                Log.e(TAG, "", e);
+                Log.e(TAG, "onReceivedDeviceConnectResponse", e);
             }
         }
     }
@@ -399,7 +387,9 @@ public class AWSIotRemoteManager extends AWSIotCore {
                 sendEvent(intent, event.getAccessToken());
             }
         } catch (JSONException e) {
-            e.printStackTrace();
+            if (DEBUG) {
+                Log.e(TAG, "onReceivedDeviceConnectEvent", e);
+            }
         }
     }
 

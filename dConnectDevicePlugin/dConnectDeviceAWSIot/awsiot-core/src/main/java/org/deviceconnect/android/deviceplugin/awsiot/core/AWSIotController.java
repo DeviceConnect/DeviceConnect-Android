@@ -275,12 +275,6 @@ public class AWSIotController {
      * Endpoint取得Task
      */
     private class DescribeEndpointTask extends AsyncTask<Void, Void, AsyncTaskResult<String>> {
-        /**
-         * バックグラウンド処理.
-         *
-         * @param voids voids
-         * @return 結果
-         */
         @Override
         protected AsyncTaskResult<String> doInBackground(final Void... voids) {
             try {
@@ -295,11 +289,6 @@ public class AWSIotController {
             }
         }
 
-        /**
-         * 実行結果.
-         *
-         * @param result 結果
-         */
         @Override
         protected void onPostExecute(final AsyncTaskResult<String> result) {
             Exception exception;
@@ -354,12 +343,6 @@ public class AWSIotController {
             thingName = name;
         }
 
-        /**
-         * バックグラウンド処理.
-         *
-         * @param voids voids
-         * @return 結果
-         */
         @Override
         protected AsyncTaskResult<String> doInBackground(final Void... voids) {
             try {
@@ -373,15 +356,10 @@ public class AWSIotController {
                 if (DEBUG) {
                     Log.e(TAG, "Error on GetShadowTask", e);
                 }
-                return new AsyncTaskResult<>(e);
+                return new AsyncTaskResult<>("");
             }
         }
 
-        /**
-         * 実行結果.
-         *
-         * @param result 結果
-         */
         @Override
         protected void onPostExecute(final AsyncTaskResult<String> result) {
             if (mEventListener != null) {
@@ -422,12 +400,6 @@ public class AWSIotController {
             updateState = state;
         }
 
-        /**
-         * バックグラウンド処理.
-         *
-         * @param voids voids
-         * @return 結果
-         */
         @Override
         protected AsyncTaskResult<String> doInBackground(final Void... voids) {
             try {
@@ -451,11 +423,6 @@ public class AWSIotController {
             }
         }
 
-        /**
-         * 実行結果.
-         *
-         * @param result 結果
-         */
         @Override
         protected void onPostExecute(final AsyncTaskResult<String> result) {
             if (result.getError() == null) {

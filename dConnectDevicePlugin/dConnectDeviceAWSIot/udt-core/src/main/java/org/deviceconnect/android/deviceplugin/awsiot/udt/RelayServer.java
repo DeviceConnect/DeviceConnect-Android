@@ -13,8 +13,8 @@ import java.util.concurrent.Executors;
 
 public class RelayServer {
 
-    private static final boolean DEBUG = BuildConfig.DEBUG;
-    private static final String TAG = "ABC";
+    private static final boolean DEBUG = true;
+    private static final String TAG = "UDT";
 
     private NetServerSocketUDT mAcceptorSocket;
     private List<SocketTask> mSockets = new ArrayList<>();

@@ -12,8 +12,8 @@ import java.util.concurrent.Executors;
 
 public class RelayClient {
 
-    private static final boolean DEBUG = BuildConfig.DEBUG;
-    private static final String TAG = "ABC";
+    private static final boolean DEBUG = false;
+    private static final String TAG = "UDT";
 
     private OnRelayClientListener mOnRelayClientListener;
     private NetSocketUDT mSocket;

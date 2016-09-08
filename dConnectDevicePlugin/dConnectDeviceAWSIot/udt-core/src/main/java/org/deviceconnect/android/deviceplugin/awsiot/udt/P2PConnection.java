@@ -16,8 +16,8 @@ public class P2PConnection {
         AndroidLoaderUDT.load();
     }
 
-    private static final boolean DEBUG = true;
-    private static final String TAG = "ABC";
+    private static final boolean DEBUG = false;
+    private static final String TAG = "UDT";
 
     private ScheduledExecutorService mScheduler = Executors.newSingleThreadScheduledExecutor();
     private ScheduledFuture<?> mTimeoutFuture;

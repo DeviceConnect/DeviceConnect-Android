@@ -232,7 +232,7 @@ public class WebServer extends AWSIotP2PManager {
                     }
                     read = in.read(buf, readLength, BUF_SIZE - readLength);
                 }
-                Log.e("ABC", "A " + new String(buf).replace("\r\n", " "));
+
                 mP2PConnection.sendData(decodeHeader(buf, headerSize));
                 mP2PConnection.sendData(buf, headerSize, readLength - headerSize);
 

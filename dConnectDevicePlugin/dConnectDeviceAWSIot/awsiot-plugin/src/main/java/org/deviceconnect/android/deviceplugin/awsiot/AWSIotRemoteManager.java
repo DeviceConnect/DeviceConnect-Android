@@ -215,6 +215,7 @@ public class AWSIotRemoteManager extends AWSIotCore {
 
             @Override
             public String convertUri(final String uri) {
+                // TODO 他のスキーマがある場合には追加
                 if (uri.startsWith("content://")) {
                     return "http://localhost" + WebClient.PATH_CONTENT_PROVIDER + "?" + uri;
                 } else {

@@ -195,8 +195,8 @@ public class DConnectServerEventListenerImpl implements DConnectServerEventListe
                 eventKey = md5(origin);
                 // NOTE: 既存のイベントセッションを保持する.
                 if (getWebSocketInfoManager().getWebSocketInfo(eventKey) != null) {
-//                    webSocket.sendEvent(error(4, "already established."));
-//                    webSocket.disconnectWebSocket();
+                    sendError(webSocket, 4, "already established.");
+                    webSocket.disconnectWebSocket();
                     return;
                 }
                 sendSuccess(webSocket);

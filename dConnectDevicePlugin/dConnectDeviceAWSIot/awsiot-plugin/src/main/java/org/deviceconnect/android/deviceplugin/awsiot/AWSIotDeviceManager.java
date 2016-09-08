@@ -1,6 +1,7 @@
 package org.deviceconnect.android.deviceplugin.awsiot;
 
 import org.deviceconnect.android.deviceplugin.awsiot.core.RemoteDeviceConnectManager;
+import org.deviceconnect.android.deviceplugin.awsiot.util.AWSIotUtil;
 
 import java.util.ArrayList;
 import java.util.List;

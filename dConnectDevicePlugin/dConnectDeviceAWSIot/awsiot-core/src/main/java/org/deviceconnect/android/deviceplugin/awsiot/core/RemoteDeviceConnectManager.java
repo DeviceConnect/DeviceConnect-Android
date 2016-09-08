@@ -23,15 +23,15 @@ public class RemoteDeviceConnectManager {
     }
 
     public String getRequestTopic() {
-        return DEVICE_CONNECT + mName + REQUEST;
+        return DEVICE_CONNECT + mServiceId + REQUEST;
     }
 
     public String getResponseTopic() {
-        return DEVICE_CONNECT + mName + RESPONSE;
+        return DEVICE_CONNECT + mServiceId + RESPONSE;
     }
 
     public String getEventTopic() {
-        return DEVICE_CONNECT + mName + EVENT;
+        return DEVICE_CONNECT + mServiceId + EVENT;
     }
 
     @Override

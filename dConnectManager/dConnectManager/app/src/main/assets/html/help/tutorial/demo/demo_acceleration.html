@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no">
+    <link rel="stylesheet" href="../../css/main.css" type="text/css" />
+    <script type="text/javascript" src="js/dconnectsdk-2.0.0.js"></script>
+    <script type="text/javascript" src="js/util.js"></script>
+    <script type="text/javascript" src="js/queue.js"></script>
+    <script type="text/javascript" src="js/demo_acceleration.js"></script>
+    <title>加速度センサー</title>
+</head>
+<body onload="demoAcceleration.init()">
+    <div class="heading">加速度センサー</div>
+    <div style="text-align:center;margin:12px;">
+        <canvas id="graph" width="380" height="200" style="border: solid 1px #000000;"></canvas>
+    </div>
+    <div style="text-align:center;">
+        <button onclick="demoAcceleration.registerEvent()">開始</button>
+        <button onclick="demoAcceleration.unregisterEvent()">停止</button>
+    </div>
+</body>
+</html>

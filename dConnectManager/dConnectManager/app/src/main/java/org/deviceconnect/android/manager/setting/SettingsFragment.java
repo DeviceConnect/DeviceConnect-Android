@@ -9,9 +9,6 @@ package org.deviceconnect.android.manager.setting;
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningServiceInfo;
-import android.app.Dialog;
-import android.app.DialogFragment;
-import android.app.ProgressDialog;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -31,10 +28,10 @@ import android.preference.Preference;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceScreen;
 import android.preference.SwitchPreference;
+import android.view.MenuItem;
 
 import org.deviceconnect.android.manager.BuildConfig;
-import org.deviceconnect.android.manager.DevicePlugin;
-import org.deviceconnect.android.manager.DevicePluginManager;
+import org.deviceconnect.android.manager.DConnectApplication;
 import org.deviceconnect.android.manager.IDConnectService;
 import org.deviceconnect.android.manager.IDConnectWebService;
 import org.deviceconnect.android.manager.R;
@@ -43,7 +40,6 @@ import org.deviceconnect.android.manager.setting.OpenSourceLicenseFragment.OpenS
 import org.deviceconnect.android.manager.util.DConnectUtil;
 import org.deviceconnect.android.observer.DConnectObservationService;
 import org.deviceconnect.android.observer.receiver.ObserverReceiver;
-import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -89,7 +85,9 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
     /** LocalOAuth設定チェックボックス. */
     private CheckBoxPreference mCheckBoxOauthPreferences;
     /** 外部IP設定チェックボックス. */
-    private CheckBoxPreference mCheckBoxExternalPreferences;
+    private CheckBoxPreference mCheckBoxExternalIpPreferences;
+    /** 外部起動/終了設定チェックボックス. */
+    private CheckBoxPreference mCheckBoxExternalStartAndStartPreferences;
     /** オリジン不要フラグ設定チェックボックス. */
     private CheckBoxPreference mCheckBoxRequireOriginPreferences;
     /** Originブロック設定チェックボックス. */
@@ -103,6 +101,7 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
     public void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         addPreferencesFromResource(R.xml.settings);
+        setHasOptionsMenu(true);
 
         // オープソースのリストを準備
         mOpenSourceList = new ArrayList<>();
@@ -163,8 +162,12 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
                 .findPreference(getString(R.string.key_settings_dconn_local_oauth));
 
         // グローバル設定のON/OFF
-        mCheckBoxExternalPreferences = (CheckBoxPreference) getPreferenceScreen()
+        mCheckBoxExternalIpPreferences = (CheckBoxPreference) getPreferenceScreen()
                 .findPreference(getString(R.string.key_settings_dconn_allow_external_ip));
+
+        // 外部起動/終了設定のON/OFF
+        mCheckBoxExternalStartAndStartPreferences = (CheckBoxPreference) getPreferenceScreen()
+            .findPreference(getString(R.string.key_settings_dconn_allow_external_start_and_stop));
 
         // Origin不要フラグ設定のON/OFF
         mCheckBoxRequireOriginPreferences = (CheckBoxPreference) getPreferenceScreen()
@@ -219,6 +222,15 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
         Intent intent2 = new Intent(IDConnectWebService.class.getName());
         intent2.setPackage(getActivity().getPackageName());
         getActivity().bindService(intent2, mWebServiceConnection, Context.BIND_AUTO_CREATE);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(final MenuItem item) {
+        if (android.R.id.home == item.getItemId()) {
+            getActivity().finish();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     @Override
@@ -413,10 +425,15 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
      * @param checked trueの場合は有効、falseの場合は無効
      */
     private void switchEventKeepAlive(final boolean checked) {
+        Activity activity = getActivity();
+        if (activity == null) {
+            return;
+        }
+        KeepAliveManager mgr = ((DConnectApplication) activity.getApplication()).getKeepAliveManager();
         if (checked) {
-            KeepAliveManager.getInstance().enableKeepAlive();
+            mgr.enableKeepAlive();
         } else {
-            KeepAliveManager.getInstance().disableKeepAlive();
+            mgr.disableKeepAlive();
         }
     }
 
@@ -483,7 +500,7 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
         mCheckBoxSslPreferences.setEnabled(enabled);
         mEditPortPreferences.setEnabled(enabled);
         mCheckBoxOauthPreferences.setEnabled(enabled);
-        mCheckBoxExternalPreferences.setEnabled(enabled);
+        mCheckBoxExternalIpPreferences.setEnabled(enabled);
         mCheckBoxRequireOriginPreferences.setEnabled(enabled);
         mCheckBoxOriginBlockingPreferences.setEnabled(enabled);
     }
@@ -544,112 +561,14 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
      * Start all device plugins.
      */
     private void restartDevicePlugins() {
-        final StartingDialogFragment dialog = new StartingDialogFragment();
-        dialog.show(getFragmentManager(), null);
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                DevicePluginManager mgr = new DevicePluginManager(getActivity(), null);
-                mgr.createDevicePluginList();
-                List<DevicePlugin> plugins = mgr.getDevicePlugins();
-                for (DevicePlugin plugin : plugins) {
-                    if (plugin.getStartServiceClassName() != null
-                            && plugin.getServiceId() != null) {
-                        restartDevicePlugin(plugin);
-                    }
-                }
-                if (dialog.isResumed()) {
-                    dialog.dismiss();
-                }
-            }
-        }).start();
-    }
-
-    /**
-     * Start a device plugin.
-     * 
-     * @param plugin device plugin to be started
-     */
-    private void restartDevicePlugin(final DevicePlugin plugin) {
-        Intent request = new Intent();
-        request.setComponent(plugin.getComponentName());
-        request.setAction(IntentDConnectMessage.ACTION_DEVICEPLUGIN_RESET);
-        request.putExtra("pluginId", plugin.getServiceId());
-        getActivity().sendBroadcast(request);
-    }
-
-    /**
-     * Show a dialog of restart a device plugin.
-     */
-    public static class StartingDialogFragment extends DialogFragment {
-        @Override
-        public Dialog onCreateDialog(final Bundle savedInstanceState) {
-            String title = getString(R.string.activity_settings_restart_device_plugin_title);
-            String msg = getString(R.string.activity_settings_restart_device_plugin_message);
-            ProgressDialog progressDialog = new ProgressDialog(getActivity());
-            progressDialog.setTitle(title);
-            progressDialog.setMessage(msg);
-            progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-            setCancelable(false);
-            return progressDialog;
-        }
-
-        @Override
-        public void onPause() {
-            dismiss();
-            super.onPause();
-        }
+        RestartingDialogFragment.show(getActivity());
     }
 
     /**
      * Manager termination notification to all device plug-ins.
      */
     private void notifyManagerTerminate() {
-        final ManagerTerminationFragment dialog = new ManagerTerminationFragment();
-        dialog.show(getFragmentManager(), null);
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                DevicePluginManager mgr = new DevicePluginManager(getActivity(), null);
-                mgr.createDevicePluginList();
-                List<DevicePlugin> plugins = mgr.getDevicePlugins();
-                for (DevicePlugin plugin : plugins) {
-                    if (plugin.getServiceId() != null) {
-                        Intent request = new Intent();
-                        request.setComponent(plugin.getComponentName());
-                        request.setAction(IntentDConnectMessage.ACTION_MANAGER_TERMINATED);
-                        request.putExtra("pluginId", plugin.getServiceId());
-                        getActivity().sendBroadcast(request);
-                    }
-                }
-                if (dialog.isResumed()) {
-                    dialog.dismiss();
-                }
-            }
-        }).start();
-    }
-
-    /**
-     * Show a dialog of manager termination processing.
-     */
-    public  static class ManagerTerminationFragment extends DialogFragment {
-        @Override
-        public Dialog onCreateDialog(final Bundle savedInstanceState) {
-            String title = getString(R.string.activity_settings_manager_terminate_title);
-            String msg = getString(R.string.activity_settings_manager_terminate_message);
-            ProgressDialog progressDialog = new ProgressDialog(getActivity());
-            progressDialog.setTitle(title);
-            progressDialog.setMessage(msg);
-            progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-            setCancelable(false);
-            return progressDialog;
-        }
-
-        @Override
-        public void onPause() {
-            dismiss();
-            super.onPause();
-        }
+        ManagerTerminationFragment.show(getActivity());
     }
 
     /**
@@ -767,7 +686,8 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
         editKeywordPreferences.setOnPreferenceChangeListener(this);
         mEditPortPreferences.setOnPreferenceChangeListener(this);
         mCheckBoxOauthPreferences.setOnPreferenceChangeListener(this);
-        mCheckBoxExternalPreferences.setOnPreferenceChangeListener(this);
+        mCheckBoxExternalIpPreferences.setOnPreferenceChangeListener(this);
+        mCheckBoxExternalStartAndStartPreferences.setOnPreferenceChangeListener(this);
         mCheckBoxRequireOriginPreferences.setOnPreferenceChangeListener(this);
         mCheckBoxOriginBlockingPreferences.setOnPreferenceChangeListener(this);
         mObserverPreferences.setOnPreferenceChangeListener(this);

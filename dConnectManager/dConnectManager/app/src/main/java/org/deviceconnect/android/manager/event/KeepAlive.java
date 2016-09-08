@@ -4,7 +4,7 @@
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
  */
-package org.deviceconnect.android.manager.keepalive;
+package org.deviceconnect.android.manager.event;
 
 import org.deviceconnect.android.manager.DevicePlugin;
 
@@ -12,7 +12,7 @@ import org.deviceconnect.android.manager.DevicePlugin;
  * Keep Alive.
  * @author NTT DOCOMO, INC.
  */
-public class KeepAlive {
+class KeepAlive {
     /** デバイスプラグイン */
     private DevicePlugin mPlugin;
     /** イベントカウンター. */

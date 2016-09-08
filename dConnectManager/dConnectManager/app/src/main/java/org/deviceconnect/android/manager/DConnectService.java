@@ -18,7 +18,7 @@ import org.deviceconnect.android.compat.MessageConverter;
 import org.deviceconnect.android.manager.compat.CompatibleRequestConverter;
 import org.deviceconnect.android.manager.compat.ServiceDiscoveryConverter;
 import org.deviceconnect.android.manager.compat.ServiceInformationConverter;
-import org.deviceconnect.android.manager.keepalive.KeepAlive;
+import org.deviceconnect.android.manager.event.EventHandler;
 import org.deviceconnect.android.manager.util.DConnectUtil;
 import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
@@ -39,7 +39,9 @@ import java.util.concurrent.Executors;
  */
 public class DConnectService extends DConnectMessageService {
     public static final String ACTION_DISCONNECT_WEB_SOCKET = "disconnect.WebSocket";
+    public static final String ACTION_SETTINGS_KEEP_ALIVE = "settings.KeepAlive";
     public static final String EXTRA_SESSION_KEY = "sessionKey";
+    public static final String EXTRA_KEEP_ALIVE_ENABLED = "enabled";
     public static final String ANONYMOUS_ORIGIN = "<anonymous>";
 
     /** 内部用: 通信タイプを定義する. */
@@ -107,22 +109,16 @@ public class DConnectService extends DConnectMessageService {
             return START_STICKY;
         }
 
-        if (IntentDConnectMessage.ACTION_KEEPALIVE.equals(action)) {
-            String status = intent.getStringExtra(IntentDConnectMessage.EXTRA_KEEPALIVE_STATUS);
-            if (status.equals("RESPONSE")) {
-                String serviceId = intent.getStringExtra("serviceId");
-                if (serviceId != null) {
-                    KeepAlive keepAlive = ((DConnectApplication) getApplication()).getKeepAliveManager().getKeepAlive(serviceId);
-                    if (keepAlive != null) {
-                        keepAlive.setResponseFlag();
-                    }
-                }
-            } else if (status.equals("DISCONNECT")) {
-                String sessionKey = intent.getStringExtra(IntentDConnectMessage.EXTRA_SESSION_KEY);
-                if (sessionKey != null) {
-                    sendDisconnectWebSocket(sessionKey);
-                }
+        if (ACTION_SETTINGS_KEEP_ALIVE.equals(action)) {
+            if (intent.getBooleanExtra(EXTRA_KEEP_ALIVE_ENABLED, true)) {
+                mEventHandler.enableKeepAlive();
+            } else {
+                mEventHandler.disableKeepAlive();
             }
+            return START_STICKY;
+        }
+        if (IntentDConnectMessage.ACTION_KEEPALIVE.equals(action)) {
+            mEventHandler.onKeepAliveCommand(intent);
             return START_STICKY;
         }
         return super.onStartCommand(intent, flags, startId);
@@ -377,4 +373,8 @@ public class DConnectService extends DConnectMessageService {
         return result;
     }
 
+    @Override
+    protected EventHandler getEventHandler() {
+        return new EventHandler(this);
+    }
 }

@@ -352,26 +352,11 @@ public class DevicePluginManager {
     public void appendPluginIdToSessionKey(final Intent request, final DevicePlugin plugin) {
         String sessionKey = request.getStringExtra(DConnectMessage.EXTRA_SESSION_KEY);
         if (plugin != null && sessionKey != null) {
-            String beforeSessionKey = sessionKey;
             sessionKey = sessionKey + DConnectMessageService.SEPARATOR + plugin.getServiceId();
             ComponentName receiver = (ComponentName) request.getExtras().get(DConnectMessage.EXTRA_RECEIVER);
             if (receiver != null) {
                 sessionKey = sessionKey + DConnectMessageService.SEPARATOR_SESSION
                         + receiver.flattenToString();
-            }
-            if (!plugin.getServiceId().equals(beforeSessionKey)) {
-                VersionName version = plugin.getPluginSdkVersionName();
-                VersionName match = VersionName.parse("1.1.0");
-                if (IntentDConnectMessage.ACTION_PUT.equals(request.getAction())) {
-                    mApp.setDevicePluginIdentifyKey(sessionKey, plugin.getServiceId());
-                    if (!(version.compareTo(match) == -1)) {
-                        mApp.getKeepAliveManager().setManagementTable(plugin);
-                    }
-                } else if (IntentDConnectMessage.ACTION_DELETE.equals(request.getAction())) {
-                    if (!(version.compareTo(match) == -1)) {
-                        mApp.getKeepAliveManager().removeManagementTable(plugin);
-                    }
-                }
             }
             request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, sessionKey);
         }

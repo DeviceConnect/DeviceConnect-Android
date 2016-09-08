@@ -868,7 +868,7 @@ public class DConnectServerNanoHttpd extends DConnectServer {
     @Override
     public void disconnectWebSocket(final String webSocketId) {
         for (NanoWebSocket socket : mWebSockets) {
-            if (webSocketId.equals(socket.mId)) {
+            if (webSocketId.equals(socket.getId())) {
                 try {
                     socket.close(CloseCode.GoingAway, "User disconnect");
                 } catch (IOException e) {

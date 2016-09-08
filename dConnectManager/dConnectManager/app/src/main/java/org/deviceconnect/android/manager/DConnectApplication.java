@@ -8,8 +8,6 @@ package org.deviceconnect.android.manager;
 
 import android.app.Application;
 
-import org.deviceconnect.android.manager.keepalive.KeepAliveManager;
-
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -34,9 +32,6 @@ public class DConnectApplication extends Application {
     /** デバイスプラグイン管理クラス. */
     private DevicePluginManager mDevicePluginManager;
 
-    /** KeepAlive管理クラス. */
-    private KeepAliveManager mKeepAliveManager;
-
     @Override
     public void onCreate() {
         super.onCreate();
@@ -45,8 +40,6 @@ public class DConnectApplication extends Application {
         mDevicePluginManager.createDevicePluginList();
 
         mWebSocketInfoManager = new WebSocketInfoManager(this);
-
-        mKeepAliveManager = new KeepAliveManager(this);
     }
 
     @Override
@@ -66,10 +59,6 @@ public class DConnectApplication extends Application {
 
     public DevicePluginManager getDevicePluginManager() {
         return mDevicePluginManager;
-    }
-
-    public KeepAliveManager getKeepAliveManager() {
-        return mKeepAliveManager;
     }
 
     /**

@@ -125,7 +125,8 @@ public abstract class DConnectMessageService extends Service
     /** サーバの起動状態. */
     protected boolean mRunningFlag;
 
-    private EventHandler mEventHandler;
+    /** イベントハンドラー. */
+    protected EventHandler mEventHandler;
 
     @Override
     public IBinder onBind(final Intent intent) {
@@ -167,7 +168,7 @@ public abstract class DConnectMessageService extends Service
         mPluginMgr.setEventListener(this);
 
         // イベントハンドラーの初期化
-        mEventHandler = new EventHandler(this);
+        mEventHandler = getEventHandler();
 
         // プロファイルの追加
         addProfile(new AuthorizationProfile());
@@ -725,4 +726,6 @@ public abstract class DConnectMessageService extends Service
     public boolean usesLocalOAuth() {
         return mSettings.isUseALocalOAuth();
     }
+
+    protected abstract EventHandler getEventHandler();
 }

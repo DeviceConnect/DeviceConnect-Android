@@ -227,7 +227,6 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
                                 sendResponse(response);
                                 return;
                             }
-                            app.setSeek(response, 0);
 
                             MediaStatus status = getMediaStatus(response, app);
                             if (status == null) {

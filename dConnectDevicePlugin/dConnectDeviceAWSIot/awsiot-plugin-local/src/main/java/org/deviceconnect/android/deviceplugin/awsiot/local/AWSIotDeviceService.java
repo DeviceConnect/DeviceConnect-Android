@@ -33,6 +33,7 @@ public class AWSIotDeviceService extends Service {
 
     @Override
     public void onCreate() {
+        android.os.Debug.waitForDebugger();
         super.onCreate();
     }
 
@@ -77,20 +78,22 @@ public class AWSIotDeviceService extends Service {
                     JSONObject jsonObject = new JSONObject(response);
                     int result = jsonObject.getInt("result");
                     if (result == 0) {
+                        AWSIotPrefUtil pref = new AWSIotPrefUtil(AWSIotDeviceService.this);
                         String name = jsonObject.optString("name");
                         String uuid = jsonObject.optString("uuid");
                         if (name == null || uuid == null) {
-                            AWSIotPrefUtil pref = new AWSIotPrefUtil(AWSIotDeviceService.this);
-                            name = pref.getManagerName();
-                            uuid = pref.getManagerUuid();
-                            if (name == null || uuid == null) {
-                                // TODO 古いManager場合の処理
-                                name = "TEST";
+                            // TODO 古いManager場合の処理
+                            String prefName = pref.getManagerName();
+                            name = "TEST";
+                            if (prefName.matches(name)) {
+                                uuid = pref.getManagerUuid();
+                            }
+                            if (uuid == null) {
                                 uuid = UUID.randomUUID().toString();
-                                pref.setManagerName(name);
-                                pref.setManagerUuid(uuid);
                             }
                         }
+                        pref.setManagerName(name);
+                        pref.setManagerUuid(uuid);
 
                         startAWSIot(name, uuid);
                     } else {

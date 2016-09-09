@@ -11,8 +11,16 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
+import android.view.MenuItem;
 
+import org.deviceconnect.android.deviceplugin.awsiot.AWSIotDeviceApplication;
+import org.deviceconnect.android.deviceplugin.awsiot.AWSIotRemoteManager;
+import org.deviceconnect.android.deviceplugin.awsiot.core.AWSIotPrefUtil;
 import org.deviceconnect.android.deviceplugin.awsiot.remote.R;
+import org.deviceconnect.android.deviceplugin.awsiot.setting.fragment.AWSIotLoginFragment;
 import org.deviceconnect.android.ui.activity.DConnectSettingPageActivity;
 
 /**
@@ -20,20 +28,47 @@ import org.deviceconnect.android.ui.activity.DConnectSettingPageActivity;
  *
  * @author NTT DOCOMO, INC.
  */
-public class AWSIotSettingActivity extends Activity {
+public class AWSIotSettingActivity extends FragmentActivity {
+    private AWSIotRemoteManager mAWSIotRemoteManager;
+    private AWSIotPrefUtil mPrefUtil;
 
     @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
-        setTheme(android.R.style.Theme_Holo_Light_DarkActionBar);
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        final boolean launchAsApp = Intent.ACTION_MAIN.equals(getIntent().getAction());
+    protected void onCreate(final Bundle saveInstanceState) {
+        super.onCreate(saveInstanceState);
+        mPrefUtil = new AWSIotPrefUtil(this);
+        mAWSIotRemoteManager = new AWSIotRemoteManager(this);
 
-        // CLOSEボタン作成
-        if (getActionBar() != null && !launchAsApp) {
-            getActionBar().setDisplayHomeAsUpEnabled(true);
-            getActionBar().setDisplayOptions(0, ActionBar.DISPLAY_SHOW_HOME);
-            getActionBar().setTitle(DConnectSettingPageActivity.DEFAULT_TITLE);
+        AWSIotDeviceApplication app = (AWSIotDeviceApplication) getApplication();
+        app.initialize();
+        setContentView(R.layout.activity_main);
+        ActionBar ab = getActionBar();
+        ab.setDisplayHomeAsUpEnabled(true);
+        ab.setDisplayOptions(0, ActionBar.DISPLAY_SHOW_HOME);
+        ab.setTitle("CLOSE");
+
+        FragmentManager manager = getSupportFragmentManager();
+        AWSIotLoginFragment mFragment = new AWSIotLoginFragment();
+        FragmentTransaction transaction = manager.beginTransaction();
+        transaction.add(R.id.container, mFragment, "AWSIotLoginFragment");
+        transaction.commit();
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(final MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                finish();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
         }
+    }
+
+    public AWSIotRemoteManager getAWSIotRemoteManager() {
+        return mAWSIotRemoteManager;
+    }
+
+    public AWSIotPrefUtil getPrefUtil() {
+        return mPrefUtil;
     }
 }

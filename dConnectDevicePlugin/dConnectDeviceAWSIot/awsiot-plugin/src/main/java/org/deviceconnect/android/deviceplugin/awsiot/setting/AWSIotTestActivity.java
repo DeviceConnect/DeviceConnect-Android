@@ -59,7 +59,7 @@ public class AWSIotTestActivity extends Activity {
         mAWSIotRemoteManager.connectAWSIoT("ACCESS_KEY", "SECRET_KEY", Regions.AP_NORTHEAST_1);
         mAWSIotRemoteManager.setOnEventListener(new AWSIotRemoteManager.OnEventListener() {
             @Override
-            public void onConnected() {
+            public void onConnected(Exception err) {
                 log("onConnected");
             }
 

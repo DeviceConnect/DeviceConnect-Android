@@ -10,6 +10,7 @@ import com.amazonaws.regions.Regions;
 
 import org.deviceconnect.android.deviceplugin.awsiot.core.AWSIotController;
 import org.deviceconnect.android.deviceplugin.awsiot.core.AWSIotCore;
+import org.deviceconnect.android.deviceplugin.awsiot.core.AWSIotDBHelper;
 import org.deviceconnect.android.deviceplugin.awsiot.core.RemoteDeviceConnectManager;
 import org.deviceconnect.android.deviceplugin.awsiot.p2p.WebClient;
 import org.deviceconnect.android.event.Event;
@@ -41,9 +42,13 @@ public class AWSIotRemoteManager extends AWSIotCore {
 
     private OnEventListener mOnEventListener;
 
+    /** Instance of {@link AWSIotDBHelper}. */
+    private AWSIotDBHelper mDBHelper;
+
     public AWSIotRemoteManager(final Context context) {
         mContext = context;
         mAWSIotDeviceManager = new AWSIotDeviceManager();
+        mDBHelper = new AWSIotDBHelper(mContext);
     }
 
     public void setOnEventListener(OnEventListener listener) {
@@ -100,12 +105,15 @@ public class AWSIotRemoteManager extends AWSIotCore {
                     if (DEBUG) {
                         Log.w(TAG, "AWSIoTRemoteManager#onConnected", err);
                     }
+                    if (mOnEventListener != null) {
+                        mOnEventListener.onConnected(err);
+                    }
                     return;
                 }
                 getDeviceShadow();
 
                 if (mOnEventListener != null) {
-                    mOnEventListener.onConnected();
+                    mOnEventListener.onConnected(null);
                 }
             }
 
@@ -136,7 +144,7 @@ public class AWSIotRemoteManager extends AWSIotCore {
                     }
                     return;
                 }
-                mManagerList = parseDeviceShadow(result);
+                mManagerList = parseDeviceShadow(mContext, result);
 
                 // TODO 全部に対してsubscribeして良いのか
                 if (mManagerList != null) {
@@ -257,6 +265,18 @@ public class AWSIotRemoteManager extends AWSIotCore {
 
     public void publish(final RemoteDeviceConnectManager remote, final String message) {
         mIot.publish(remote.getRequestTopic(), message);
+    }
+
+    public boolean isConnected() {
+        return mIot.isConnected();
+    }
+
+    public String getAWSIotEndPoint() {
+        return mIot.getAWSIotEndPoint();
+    }
+
+    public void updateShadow(final String name, final String key, final Object value) {
+        mIot.updateShadow(name, key, value);
     }
 
     private void sendResponse(final Intent intent) {
@@ -394,8 +414,48 @@ public class AWSIotRemoteManager extends AWSIotCore {
         }
     }
 
+    /**
+     * database操作関連
+     */
+    /**
+     * Update Subscribe flag.
+     * @param id Manager Id.
+     * @param flag subscribe flag.
+     * @return true(Success) / false(Failed).
+     */
+    public boolean updateSubscribeFlag(final String id, final boolean flag) {
+        boolean result = false;
+        RemoteDeviceConnectManager manager = findRegisteredManagerById(id);
+        if (manager != null) {
+            int index = mManagerList.indexOf(manager);
+            manager.setSubscribeFlag(flag);
+            mDBHelper.updateManager(manager);
+            mManagerList.set(index, manager);
+            result = true;
+        }
+        return result;
+    }
+
+    /**
+     * Find the {@link RemoteDeviceConnectManager} from id.
+     *
+     * @param id id of Manager
+     * @return {@link RemoteDeviceConnectManager}, or null
+     */
+    private RemoteDeviceConnectManager findRegisteredManagerById(final String id) {
+        synchronized (mManagerList) {
+            for (RemoteDeviceConnectManager d : mManagerList) {
+                if (d.getServiceId().equalsIgnoreCase(id)) {
+                    return d;
+                }
+            }
+        }
+        return null;
+    }
+
+
     public interface OnEventListener {
-        void onConnected();
+        void onConnected(Exception err);
         void onReconnecting();
         void onDisconnected();
         void onReceivedMessage(String topic, String message);

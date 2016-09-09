@@ -8,10 +8,12 @@ public class RemoteDeviceConnectManager {
 
     private String mName;
     private String mServiceId;
+    private boolean mSubscribeFlag;
 
     public RemoteDeviceConnectManager(final String name, final String id) {
         mName = name;
         mServiceId = id;
+        mSubscribeFlag = false;
     }
 
     public String getServiceId() {
@@ -20,6 +22,18 @@ public class RemoteDeviceConnectManager {
 
     public String getName() {
         return mName;
+    }
+
+    public void setName(final String name) {
+        mName = name;
+    }
+
+    public boolean isSubscribe() {
+        return mSubscribeFlag;
+    }
+
+    public void setSubscribeFlag(final boolean flag) {
+        mSubscribeFlag = flag;
     }
 
     public String getRequestTopic() {
@@ -36,7 +50,7 @@ public class RemoteDeviceConnectManager {
 
     @Override
     public String toString() {
-        return "{name: " + mName + ", uuid: " + mServiceId +" }";
+        return "{name: " + mName + ", uuid: " + mServiceId + ", subscribe: " + mSubscribeFlag + " }";
     }
 
     @Override

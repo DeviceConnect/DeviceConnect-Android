@@ -65,6 +65,11 @@ public class AWSIotController {
     private boolean mIsConnected = false;
 
     /**
+     * endpoint情報
+     */
+    private String mAWSIotEndPoint = "Not Connected";
+
+    /**
      * イベントリスナー
      */
     private EventListener mEventListener;
@@ -217,7 +222,7 @@ public class AWSIotController {
 
         UpdateShadowTask updateShadowTask = new UpdateShadowTask();
         updateShadowTask.setThingName(name);
-        String state = "{\"state\":{\"desired\":null}}";
+        String state = "{\"state\":{\"reported\":null}}";
         updateShadowTask.setState(state);
         updateShadowTask.execute();
     }
@@ -235,7 +240,7 @@ public class AWSIotController {
         JSONObject jsonDesired = new JSONObject();
         try {
             jsonDesired.put(key, value);
-            jsonState.put("desired", jsonDesired);
+            jsonState.put("reported", jsonDesired);
             jsonRoot.put("state", jsonState);
         } catch (JSONException e) {
             if (DEBUG) {
@@ -260,7 +265,7 @@ public class AWSIotController {
             for (Map.Entry<String, Object> entry : keys.entrySet()) {
                 jsonReported.put(entry.getKey(), entry.getValue());
             }
-            jsonState.put("desired", jsonReported);
+            jsonState.put("reported", jsonReported);
             jsonRoot.put("state", jsonState);
         } catch (JSONException e) {
             if (DEBUG) {
@@ -298,6 +303,7 @@ public class AWSIotController {
                     json = new JSONObject(result.getResult());
                     if (json.has("endpointAddress")) {
                         String endpoint = json.getString("endpointAddress");
+                        mAWSIotEndPoint = endpoint;
                         mIotDataClient.setEndpoint(endpoint);
                         String clientId = UUID.randomUUID().toString();
                         // TODO AWS IoTの設定
@@ -567,5 +573,25 @@ public class AWSIotController {
             }
             // TODO: エラー処理
         }
+    }
+
+    /**
+     * 接続状態を返す.
+     * @return true(接続中) / false(切断中)
+     */
+    public Boolean isConnected() {
+        return mIsConnected;
+    }
+
+    /**
+     * 接続状態をリセット.
+     */
+    public void resetConnected() {
+        mIsConnected = false;
+    }
+
+    /** endpoint情報取得関数 */
+    public String getAWSIotEndPoint() {
+        return mAWSIotEndPoint;
     }
 }

@@ -1,3 +1,38 @@
 <resources>
     <string name="app_name">AWSIot Plugin</string>
+    <string name="settings_page_1_title">AWS IoT ログイン画面</string>
+    <string name="awsiot_id">Access Key ID</string>
+    <string name="awsiot_password">Secret Access Key ID</string>
+    <string name="awsiot_login">ログイン</string>
+    <string name="settings_page_2_title">Device Connect Manager 管理</string>
+    <string name="settings_page_4_title">デバイス認証</string>
+    <string name="settings_page_3_title">AWS IoT 設定</string>
+    <string name="sync_time">同期周期</string>
+    <string name="sync_time_second">秒</string>
+    <string name="awsiot_info_title">AWS IoT 情報</string>
+    <string name="awsiot_mqtt_endpoint"><u>MQTT endpoint</u></string>
+    <string name="awsiot_request_topic"><u>Request Topic</u></string>
+    <string name="awsiot_response_topic"><u>Response Topic</u></string>
+    <string name="awsiot_event_topic"><u>Event Topic</u></string>
+    <string name="settings_device_auth">認可</string>
+    <string name="settings_awsiot_sync_button">AWS IoT と同期</string>
+    <string name="awsiot_during_login">ログイン中</string>
+    <string name="awsiot_region">リージョン</string>
+    <string name="duringLogin">ログイン中</string>
+    <string name="setting_btn_off">オフ</string>
+    <string name="setting_btn_on">オン</string>
+    <string name="manager_list_update">更新中</string>
+    <string name="menu_awsiot_info">AWS IoT 設定</string>
+    <string name="menu_device_auth">デバイス認証</string>
+    <string name="menu_logout">ログアウト</string>
+    <string name="default_manager_name">ManagerName</string>
+    <string-array name="region_array">
+        <item>us-east-1</item>
+        <item>us-west-2</item>
+        <item>ap-southeast-1</item>
+        <item>ap-southeast-2</item>
+        <item>ap-northeast-1</item>
+        <item>eu-central-1</item>
+        <item>eu-west-1</item>
+    </string-array>
 </resources>

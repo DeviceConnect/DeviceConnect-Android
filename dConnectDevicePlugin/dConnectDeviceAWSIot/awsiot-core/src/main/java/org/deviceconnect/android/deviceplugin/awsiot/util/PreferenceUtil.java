@@ -41,4 +41,8 @@ public class PreferenceUtil {
     public String getString(final String key) {
         return mPreferences.getString(key, null);
     }
+
+    public boolean getBoolean(final String key) {
+        return mPreferences.getBoolean(key, false);
+    }
 }

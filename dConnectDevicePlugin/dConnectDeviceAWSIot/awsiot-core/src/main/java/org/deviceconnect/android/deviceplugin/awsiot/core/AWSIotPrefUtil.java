@@ -13,6 +13,7 @@ public class AWSIotPrefUtil extends PreferenceUtil {
 
     public static final String KEY_MANAGER_NAME = "awsManagerName";
     public static final String KEY_MANAGER_UUID = "awsManagerUuid";
+    public static final String KEY_MANAGER_REGISTER = "awsManagerRegister";
 
     public AWSIotPrefUtil(final Context context) {
         super(context);
@@ -60,5 +61,14 @@ public class AWSIotPrefUtil extends PreferenceUtil {
 
     public String getManagerUuid() {
         return getString(KEY_MANAGER_UUID);
+    }
+
+    public void setManagerRegister(final boolean regist) {
+        putValue(KEY_MANAGER_REGISTER, regist);
+    }
+
+    public boolean getManagerRegister()
+    {
+        return getBoolean(KEY_MANAGER_REGISTER);
     }
 }

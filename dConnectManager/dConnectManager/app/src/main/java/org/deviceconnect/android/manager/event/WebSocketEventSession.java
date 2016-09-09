@@ -7,7 +7,7 @@ import org.deviceconnect.android.manager.DConnectService;
 
 import java.io.IOException;
 
-public class WebSocketEventSession extends EventSession {
+class WebSocketEventSession extends EventSession {
     @Override
     public void sendEvent(final Intent event) throws IOException {
         DConnectService service = (DConnectService) getContext();

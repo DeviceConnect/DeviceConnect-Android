@@ -6,15 +6,15 @@
  */
 package org.deviceconnect.android.manager.request;
 
-import java.util.UUID;
-import java.util.logging.Logger;
+import android.content.Intent;
 
 import org.deviceconnect.android.manager.DevicePlugin;
+import org.deviceconnect.android.manager.event.EventProtocol;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
-import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 
-import android.content.Intent;
+import java.util.UUID;
+import java.util.logging.Logger;
 
 /**
  * Network Service Discovery Status Change Event 登録用リクエスト.
@@ -33,23 +33,12 @@ public class RegisterNetworkServiceDiscovery extends DConnectRequest {
     /** リクエストコード. */
     private int mRequestCode;
 
-    /** セッションキー. */
-    private String mSessionKey;
-
     /**
      * 送信先のデバイスプラグインを設定する.
      * @param plugin デバイスプラグイン
      */
     public void setDestination(final DevicePlugin plugin) {
         mDevicePlugin = plugin;
-    }
-
-    /**
-     * セッションキーを設定する.
-     * @param sessionKey セッションキー
-     */
-    public void setSessionKey(final String sessionKey) {
-        mSessionKey = sessionKey;
     }
 
     @Override
@@ -71,16 +60,9 @@ public class RegisterNetworkServiceDiscovery extends DConnectRequest {
         mRequestCode = UUID.randomUUID().hashCode();
 
         // リクエストを作成
-        mRequest = new Intent(IntentDConnectMessage.ACTION_PUT);
-        mRequest.putExtra(DConnectMessage.EXTRA_PROFILE,
-                ServiceDiscoveryProfileConstants.PROFILE_NAME);
-        mRequest.putExtra(DConnectMessage.EXTRA_ATTRIBUTE,
-                ServiceDiscoveryProfileConstants.ATTRIBUTE_ON_SERVICE_CHANGE);
-        mRequest.putExtra(DConnectMessage.EXTRA_SESSION_KEY, mSessionKey);
-
-        Intent request = createRequestMessage(mRequest, mDevicePlugin);
+        Intent request = EventProtocol.createRegistrationRequestForServiceChange(mContext, mDevicePlugin);
         request.putExtra(IntentDConnectMessage.EXTRA_REQUEST_CODE, mRequestCode);
-        request.setComponent(mDevicePlugin.getComponentName());
+        mRequest = request;
 
         // リクエスト送信
         mContext.sendBroadcast(request);

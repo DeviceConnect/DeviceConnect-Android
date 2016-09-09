@@ -34,7 +34,6 @@ import org.deviceconnect.android.manager.profile.DConnectServiceDiscoveryProfile
 import org.deviceconnect.android.manager.profile.DConnectSystemProfile;
 import org.deviceconnect.android.manager.request.DConnectRequest;
 import org.deviceconnect.android.manager.request.DConnectRequestManager;
-import org.deviceconnect.android.manager.request.DiscoveryDeviceRequest;
 import org.deviceconnect.android.manager.request.RegisterNetworkServiceDiscovery;
 import org.deviceconnect.android.manager.setting.SettingActivity;
 import org.deviceconnect.android.manager.util.DConnectUtil;
@@ -47,7 +46,6 @@ import org.deviceconnect.android.profile.spec.parser.DConnectProfileSpecJsonPars
 import org.deviceconnect.android.provider.FileManager;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
-import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -169,6 +167,8 @@ public abstract class DConnectMessageService extends Service
 
         // イベントハンドラーの初期化
         mEventHandler = getEventHandler();
+        mEventHandler.setLocalOAuth(mLocalOAuth);
+        mEventHandler.setPluginManager(mPluginMgr);
 
         // プロファイルの追加
         addProfile(new AuthorizationProfile());
@@ -493,7 +493,6 @@ public abstract class DConnectMessageService extends Service
     public void onDeviceFound(final DevicePlugin plugin) {
         RegisterNetworkServiceDiscovery req = new RegisterNetworkServiceDiscovery();
         req.setContext(this);
-        req.setSessionKey(plugin.getServiceId());
         req.setDestination(plugin);
         req.setDevicePluginManager(mPluginMgr);
         addRequest(req);
@@ -572,22 +571,6 @@ public abstract class DConnectMessageService extends Service
     }
 
     /**
-     * イベント用メッセージのサービスIDを置換する.
-     * <br>
-     *
-     * デバイスプラグインから送られてくるサービスIDは、デバイスプラグインの中でIDになっている。
-     * dConnect ManagerでデバイスプラグインのIDをサービスIDに付加することでDNSっぽい動きを実現する。
-     *
-     * @param event イベントメッセージ用Intent
-     * @param plugin 送信元のデバイスプラグイン
-     */
-    private void replaceServiceId(final Intent event, final DevicePlugin plugin) {
-        String serviceId = event.getStringExtra(IntentDConnectMessage.EXTRA_SERVICE_ID);
-        event.putExtra(IntentDConnectMessage.EXTRA_SERVICE_ID,
-                mPluginMgr.appendServiceId(plugin, serviceId));
-    }
-
-    /**
      * サービスをフォアグランドに設定する。
      */
     protected void showNotification() {
@@ -611,31 +594,6 @@ public abstract class DConnectMessageService extends Service
      */
     protected void hideNotification() {
         stopForeground(true);
-    }
-
-    /**
-     * デバイスプラグインのクライアントを作成する.
-     * @param plugin クライアントを作成するデバイスプラグイン
-     * @param serviceId サービスID
-     * @param event 送信するイベント
-     */
-    private void createClientOfDevicePlugin(final DevicePlugin plugin, final String serviceId, final Intent event) {
-        Intent intent = new Intent(IntentDConnectMessage.ACTION_GET);
-        intent.setComponent(plugin.getComponentName());
-        intent.putExtra(DConnectMessage.EXTRA_PROFILE,
-                ServiceDiscoveryProfileConstants.PROFILE_NAME);
-        intent.putExtra(DConnectMessage.EXTRA_SERVICE_ID, serviceId);
-
-        DiscoveryDeviceRequest request = new DiscoveryDeviceRequest();
-        request.setContext(this);
-        request.setLocalOAuth(mLocalOAuth);
-        request.setUseAccessToken(true);
-        request.setRequireOrigin(true);
-        request.setDestination(plugin);
-        request.setRequest(intent);
-        request.setEvent(event);
-        request.setDevicePluginManager(mPluginMgr);
-        addRequest(request);
     }
 
     /**
@@ -725,6 +683,15 @@ public abstract class DConnectMessageService extends Service
 
     public boolean usesLocalOAuth() {
         return mSettings.isUseALocalOAuth();
+    }
+
+    public boolean isIgnoredProfile(final String profileName) {
+        for (String name : DConnectLocalOAuth.IGNORE_PROFILES) {
+            if (name.equalsIgnoreCase(profileName)) { // MEMO パスの大文字小文字を無視
+                return true;
+            }
+        }
+        return false;
     }
 
     protected abstract EventHandler getEventHandler();

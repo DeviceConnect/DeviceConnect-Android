@@ -6,7 +6,7 @@ import android.content.Intent;
 
 import java.io.IOException;
 
-public abstract class EventSession {
+abstract class EventSession {
 
     private Context mContext;
     private String mReceiverId;

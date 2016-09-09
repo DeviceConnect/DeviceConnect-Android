@@ -2,15 +2,24 @@ package org.deviceconnect.android.manager.event;
 
 
 import android.content.Intent;
+import android.os.Bundle;
 
+import org.deviceconnect.android.event.Event;
+import org.deviceconnect.android.event.EventManager;
+import org.deviceconnect.android.manager.DConnectLocalOAuth;
 import org.deviceconnect.android.manager.DConnectService;
 import org.deviceconnect.android.manager.DevicePlugin;
+import org.deviceconnect.android.manager.DevicePluginManager;
+import org.deviceconnect.android.manager.request.DiscoveryDeviceRequest;
 import org.deviceconnect.android.manager.util.VersionName;
 import org.deviceconnect.android.profile.DConnectProfile;
+import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
+import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.logging.Logger;
 
 public class EventHandler {
@@ -23,10 +32,22 @@ public class EventHandler {
 
     private final KeepAliveManager mKeepAliveManager;
 
+    private DConnectLocalOAuth mLocalOAuth;
+
+    private DevicePluginManager mPluginManager;
+
     public EventHandler(final DConnectService context) {
         mTable = new EventSessionTable();
         mContext = context;
         mKeepAliveManager = new KeepAliveManager(context, mTable);
+    }
+
+    public void setLocalOAuth(final DConnectLocalOAuth localOAuth) {
+        mLocalOAuth = localOAuth;
+    }
+
+    public void setPluginManager(final DevicePluginManager pluginManager) {
+        mPluginManager = pluginManager;
     }
 
     public void onRequest(final Intent request, final DevicePlugin dest) {
@@ -70,11 +91,18 @@ public class EventHandler {
     }
 
     public void onEvent(final Intent event) {
+        if (isServiceChangeEvent(event)) {
+            onServiceChangeEvent(event);
+            return;
+        }
+
         String pluginAccessToken = event.getStringExtra(DConnectMessage.EXTRA_ACCESS_TOKEN);
         String serviceId = DConnectProfile.getServiceID(event);
         String profileName = DConnectProfile.getProfile(event);
         String interfaceName = DConnectProfile.getInterface(event);
         String attributeName = DConnectProfile.getAttribute(event);
+
+        EventSession targetSession = null;
         if (pluginAccessToken != null) {
             for (EventSession session : mTable.getAll()) {
                 if (isSameName(pluginAccessToken, session.getAccessToken()) &&
@@ -82,13 +110,8 @@ public class EventHandler {
                     isSameName(profileName, session.getProfileName()) &&
                     isSameName(interfaceName, session.getInterfaceName()) &&
                     isSameName(attributeName, session.getAttributeName())) {
-                    try {
-                        event.putExtra(IntentDConnectMessage.EXTRA_SESSION_KEY, session.getReceiverId());
-                        session.sendEvent(event);
-                    } catch (IOException e) {
-                        error("Failed to send event.");
-                    }
-                    return;
+                    targetSession = session;
+                    break;
                 }
             }
         } else {
@@ -103,17 +126,116 @@ public class EventHandler {
                         isSameName(profileName, session.getProfileName()) &&
                         isSameName(interfaceName, session.getInterfaceName()) &&
                         isSameName(attributeName, session.getAttributeName())) {
-                        try {
-                            event.putExtra(IntentDConnectMessage.EXTRA_SESSION_KEY, session.getReceiverId());
-                            session.sendEvent(event);
-                        } catch (IOException e) {
-                            error("Failed to send event.");
-                        }
-                        return;
+                        targetSession = session;
+                        break;
                     }
                 }
             }
         }
+        if (targetSession != null) {
+            try {
+                event.putExtra(IntentDConnectMessage.EXTRA_SESSION_KEY, targetSession.getReceiverId());
+                targetSession.sendEvent(event);
+            } catch (IOException e) {
+                error("Failed to send event.");
+            }
+        }
+    }
+
+    private boolean isServiceChangeEvent(final Intent event) {
+        String profileName = DConnectProfile.getProfile(event);
+        String attributeName = DConnectProfile.getAttribute(event);
+        // MEMO パスの大文字小文字を無視
+        return ServiceDiscoveryProfile.PROFILE_NAME.equalsIgnoreCase(profileName)
+            && ServiceDiscoveryProfile.ATTRIBUTE_ON_SERVICE_CHANGE.equalsIgnoreCase(attributeName);
+    }
+
+    private void onServiceChangeEvent(final Intent event) {
+        DevicePlugin plugin = findPluginForServiceChange(event);
+        if (plugin == null) {
+            warn("onServiceChangeEvent: plugin is not found");
+            return;
+        }
+
+        // network service discoveryの場合には、networkServiceのオブジェクトの中にデータが含まれる
+        Bundle service = event.getParcelableExtra(ServiceDiscoveryProfile.PARAM_NETWORK_SERVICE);
+        String id = service.getString(ServiceDiscoveryProfile.PARAM_ID);
+        String did = mPluginManager.appendServiceId(plugin, id);
+
+        // サービスIDを変更
+        replaceServiceId(event, plugin);
+
+        DConnectLocalOAuth.OAuthData oauth = mLocalOAuth.getOAuthData(did);
+        if (oauth == null) {
+            createClientOfDevicePlugin(plugin, did, event);
+        } else {
+            // 送信先のセッションを取得
+            List<Event> evts = EventManager.INSTANCE.getEventList(
+                ServiceDiscoveryProfile.PROFILE_NAME,
+                ServiceDiscoveryProfile.ATTRIBUTE_ON_SERVICE_CHANGE);
+            for (int i = 0; i < evts.size(); i++) {
+                Event evt = evts.get(i);
+                event.putExtra(DConnectMessage.EXTRA_SESSION_KEY, evt.getSessionKey());
+                mContext.sendEvent(evt.getReceiverName(), event);
+            }
+        }
+    }
+
+    private DevicePlugin findPluginForServiceChange(final Intent event) {
+        String pluginAccessToken = DConnectProfile.getAccessToken(event);
+        if (pluginAccessToken != null) {
+            String pluginId = pluginAccessToken;
+            return mPluginManager.getDevicePlugin(pluginId);
+        } else {
+            String sessionKey = DConnectProfile.getSessionKey(event);
+            if (sessionKey != null) {
+                String pluginId = EventProtocol.convertSessionKey2PluginId(sessionKey);
+                return mPluginManager.getDevicePlugin(pluginId);
+            }
+        }
+        return null;
+    }
+
+    /**
+     * デバイスプラグインのクライアントを作成する.
+     * @param plugin クライアントを作成するデバイスプラグイン
+     * @param serviceId サービスID
+     * @param event 送信するイベント
+     */
+    private void createClientOfDevicePlugin(final DevicePlugin plugin, final String serviceId, final Intent event) {
+        Intent intent = new Intent(IntentDConnectMessage.ACTION_GET);
+        intent.setComponent(plugin.getComponentName());
+        intent.putExtra(DConnectMessage.EXTRA_PROFILE,
+            ServiceDiscoveryProfileConstants.PROFILE_NAME);
+        intent.putExtra(DConnectMessage.EXTRA_SERVICE_ID, serviceId);
+        intent.putExtra(IntentDConnectMessage.EXTRA_ORIGIN, mContext.getPackageName());
+
+        DiscoveryDeviceRequest request = new DiscoveryDeviceRequest();
+        request.setContext(mContext);
+        request.setLocalOAuth(mLocalOAuth);
+        request.setUseAccessToken(true);
+        request.setRequireOrigin(true);
+        request.setDestination(plugin);
+        request.setRequest(intent);
+        request.setEvent(event);
+        request.setDevicePluginManager(mPluginManager);
+        mContext.addRequest(request);
+    }
+
+    /**
+     * イベント用メッセージのサービスIDを置換する.
+     * <br>
+     *
+     * デバイスプラグインから送られてくるサービスIDは、デバイスプラグインの中でIDになっている。
+     * dConnect ManagerでデバイスプラグインのIDをサービスIDに付加することでDNSっぽい動きを実現する。
+     *
+     * @param event イベントメッセージ用Intent
+     * @param plugin 送信元のデバイスプラグイン
+     */
+    private void replaceServiceId(final Intent event, final DevicePlugin plugin) {
+        String serviceId = event.getStringExtra(IntentDConnectMessage.EXTRA_SERVICE_ID);
+        event.putExtra(IntentDConnectMessage.EXTRA_SERVICE_ID,
+            mPluginManager.appendServiceId(plugin, serviceId));
     }
 
     public void enableKeepAlive() {

@@ -2,22 +2,25 @@ package org.deviceconnect.android.manager.event;
 
 
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
 
+import org.deviceconnect.android.manager.DConnectBroadcastReceiver;
 import org.deviceconnect.android.manager.DConnectMessageService;
 import org.deviceconnect.android.manager.DConnectService;
 import org.deviceconnect.android.manager.DevicePlugin;
 import org.deviceconnect.android.manager.util.DConnectUtil;
 import org.deviceconnect.android.manager.util.VersionName;
 import org.deviceconnect.android.profile.DConnectProfile;
+import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
-import java.util.UUID;
-
-abstract class EventProtocol {
+public abstract class EventProtocol {
 
     private static final VersionName V100 = VersionName.parse("1.0.0");
+
+    private static final VersionName V110 = VersionName.parse("1.1.0");
 
     static EventProtocol getInstance(final DConnectMessageService context,
                                      final Intent request) {
@@ -82,7 +85,7 @@ abstract class EventProtocol {
     }
 
     boolean removeSession(final EventSessionTable table, final Intent request, final DevicePlugin plugin) {
-        String receiverId = createReceiverId(request);
+        String receiverId = createReceiverId(mMessageService, request);
         if (receiverId == null) {
             return false;
         }
@@ -103,10 +106,10 @@ abstract class EventProtocol {
     boolean addSession(final EventSessionTable table, final Intent request, final DevicePlugin plugin) {
         String accessToken = request.getStringExtra(DConnectMessage.EXTRA_ACCESS_TOKEN);
         if (accessToken == null) {
-            DConnectProfile.setAccessToken(request, UUID.randomUUID().toString());
+            DConnectProfile.setAccessToken(request, plugin.getServiceId());
         }
 
-        String receiverId = createReceiverId(request);
+        String receiverId = createReceiverId(mMessageService, request);
         if (receiverId == null) {
             return false;
         }
@@ -119,7 +122,7 @@ abstract class EventProtocol {
         return true;
     }
 
-    private String createSessionKeyForPlugin(final EventSession session) {
+    public static String createSessionKeyForPlugin(final EventSession session) {
         StringBuilder result = new StringBuilder();
         result.append(session.getReceiverId())
             .append(DConnectMessageService.SEPARATOR)
@@ -135,9 +138,10 @@ abstract class EventProtocol {
                                                   final String receiverId,
                                                   final String pluginId);
 
-    private String createReceiverId(final Intent request) {
+    public static String createReceiverId(final DConnectMessageService messageService,
+                                          final Intent request) {
         String origin;
-        if (getOrigin(request) == null && !mMessageService.requiresOrigin()) {
+        if (getOrigin(request) == null && !messageService.requiresOrigin()) {
             origin = DConnectService.ANONYMOUS_ORIGIN;
         } else {
             origin = getOrigin(request);
@@ -222,5 +226,59 @@ abstract class EventProtocol {
             return sessionKey.substring(0, index);
         }
         return sessionKey;
+    }
+
+    public static Intent createRegistrationRequestForServiceChange(final Context context,
+                                                                   final DevicePlugin plugin) {
+        String profileName = ServiceDiscoveryProfile.PROFILE_NAME;
+        String attributeName = ServiceDiscoveryProfile.ATTRIBUTE_ON_SERVICE_CHANGE;
+        Intent request = createRegistrationRequest(context,
+            plugin,
+            profileName,
+            null,
+            attributeName);
+        if (plugin.getPluginSdkVersionName().compareTo(V110) >= 0) {
+            // NOTE: イベントハンドラーがあとでプラグインを特定するための情報
+            request.putExtra(DConnectMessage.EXTRA_ACCESS_TOKEN, plugin.getServiceId());
+        }
+        return request;
+    }
+
+    public static Intent createRegistrationRequest(final Context context,
+                                            final DevicePlugin plugin,
+                                            final String profileName,
+                                            final String interfaceName,
+                                            final String attributeName) {
+        return createEventRequest(context, IntentDConnectMessage.ACTION_PUT,
+            plugin, profileName, interfaceName, attributeName);
+    }
+
+    public static Intent createUnregistrationRequest(final Context context,
+                                                   final DevicePlugin plugin,
+                                                   final String profileName,
+                                                   final String interfaceName,
+                                                   final String attributeName) {
+        return createEventRequest(context, IntentDConnectMessage.ACTION_DELETE,
+            plugin, profileName, interfaceName, attributeName);
+    }
+
+    private static Intent createEventRequest(final Context context,
+                                      final String action,
+                                      final DevicePlugin plugin,
+                                      final String profileName,
+                                      final String interfaceName,
+                                      final String attributeName) {
+        Intent request = new Intent(action);
+        request.setFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES);
+        request.setComponent(plugin.getComponentName());
+        request.putExtra(DConnectMessage.EXTRA_PROFILE, profileName);
+        request.putExtra(DConnectMessage.EXTRA_INTERFACE, interfaceName);
+        request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, attributeName);
+        request.putExtra(DConnectMessage.EXTRA_RECEIVER,
+            new ComponentName(context, DConnectBroadcastReceiver.class));
+        if (plugin.getPluginSdkVersionName().compareTo(V100) == 0) {
+            request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, plugin.getServiceId());
+        }
+        return request;
     }
 }

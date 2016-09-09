@@ -6,7 +6,7 @@ import android.content.Intent;
 
 import java.io.IOException;
 
-public class IntentEventSession extends EventSession {
+class IntentEventSession extends EventSession {
 
     private ComponentName mBroadcastReceiver;
 

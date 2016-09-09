@@ -6,7 +6,7 @@ import org.deviceconnect.android.manager.DevicePlugin;
 import java.util.ArrayList;
 import java.util.List;
 
-public class EventSessionTable {
+class EventSessionTable {
 
     private final List<EventSession> mEventSessions = new ArrayList<>();
 

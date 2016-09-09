@@ -6,16 +6,16 @@
  */
 package org.deviceconnect.android.deviceplugin.awsiot;
 
+import android.net.Uri;
+import android.os.AsyncTask;
+import android.util.Log;
+
 import org.deviceconnect.android.deviceplugin.awsiot.util.HttpUtil;
 import org.deviceconnect.android.profile.AuthorizationProfile;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.utils.URIBuilder;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import android.net.Uri;
-import android.os.AsyncTask;
-import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -147,7 +147,7 @@ public class DConnectLocalHelper {
     }
 
     public void sendRequest(final String method, final String uri, final FinishCallback callback) {
-        sendRequest(method, uri, null, callback);
+        sendRequest(method, uri, new HashMap<String, String>(), callback);
     }
 
     private void sendRequest(final String method, final String uri, final Map<String, String> body, final FinishCallback callback) {

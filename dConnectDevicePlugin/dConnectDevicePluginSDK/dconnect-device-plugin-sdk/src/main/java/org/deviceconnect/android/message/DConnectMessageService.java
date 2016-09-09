@@ -33,6 +33,7 @@ import org.deviceconnect.android.profile.DConnectProfileProvider;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.android.profile.spec.DConnectPluginSpec;
+import org.deviceconnect.android.profile.spec.DConnectProfileSpec;
 import org.deviceconnect.android.service.DConnectService;
 import org.deviceconnect.android.service.DConnectServiceManager;
 import org.deviceconnect.android.service.DConnectServiceProvider;
@@ -406,7 +407,11 @@ public abstract class DConnectMessageService extends Service implements DConnect
         }
         String profileName = profile.getProfileName().toLowerCase();
         profile.setContext(this);
-        profile.setProfileSpec(mPluginSpec.findProfileSpec(profileName));
+        DConnectProfileSpec profileSpec = mPluginSpec.findProfileSpec(profileName);
+        if (profileSpec != null) {
+            profile.setProfileSpec(profileSpec);
+        }
+
         //XXXX パスの大文字小文字の無視
         mProfileMap.put(profileName, profile);
     }
@@ -516,6 +521,15 @@ public abstract class DConnectMessageService extends Service implements DConnect
      */
     public boolean isUseLocalOAuth() {
         return mUseLocalOAuth;
+    }
+
+    public boolean isIgnoredProfile(final String profileName) {
+        for (String name : IGNORE_PROFILES) {
+            if (name.equalsIgnoreCase(profileName)) { // MEMO パスの大文字小文字を無視
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

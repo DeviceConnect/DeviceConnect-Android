@@ -235,19 +235,28 @@ public abstract class DConnectProfile implements DConnectProfileConstants,
         }
     }
 
-    private void onEventRequest(final Intent request) {
+    protected void onEventRequest(final Intent request) {
         String sessionKey;
+        String profileName = request.getStringExtra(DConnectMessage.EXTRA_PROFILE);
+        String accessToken = request.getStringExtra(DConnectMessage.EXTRA_ACCESS_TOKEN);
         if (isUseLocalOAuth()) {
-            String accessToken = request.getStringExtra(DConnectMessage.EXTRA_ACCESS_TOKEN);
-            sessionKey = findClientId(accessToken);
+            if (!isIgnoredProfile(profileName)) {
+                sessionKey = findClientId(accessToken);
+            } else {
+                sessionKey = accessToken;
+            }
         } else {
             sessionKey = "";
         }
         request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, sessionKey);
     }
 
-    private boolean isUseLocalOAuth() {
+    protected boolean isUseLocalOAuth() {
         return ((DConnectMessageService) getContext()).isUseLocalOAuth();
+    }
+
+    protected boolean isIgnoredProfile(final String profileName) {
+        return ((DConnectMessageService) getContext()).isIgnoredProfile(profileName);
     }
 
     private String findClientId(final String accessToken) {
@@ -297,6 +306,28 @@ public abstract class DConnectProfile implements DConnectProfileConstants,
      */
     public void setProfileSpec(final DConnectProfileSpec profileSpec) {
         mProfileSpec = profileSpec;
+        for (DConnectApi api : getApiList()) {
+            String path = createPath(api);
+            DConnectApiSpec spec = profileSpec.findApiSpec(path, api.getMethod());
+            if (spec != null) {
+                api.setApiSpec(spec);
+            }
+        }
+    }
+
+    private String createPath(final DConnectApi api) {
+        String interfaceName = api.getInterface();
+        String attributeName = api.getAttribute();
+        StringBuffer path = new StringBuffer();
+        path.append("/");
+        if (interfaceName != null) {
+            path.append(interfaceName);
+            path.append("/");
+        }
+        if (attributeName != null) {
+            path.append(attributeName);
+        }
+        return path.toString();
     }
 
     /**

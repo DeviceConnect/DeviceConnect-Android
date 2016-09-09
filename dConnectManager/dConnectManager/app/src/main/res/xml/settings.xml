@@ -7,6 +7,11 @@
             android:summaryOff="@string/activity_settings_dconnect_disabled"
             android:summaryOn="@string/activity_settings_dconnect_enabled"
             android:title="@string/app_name" />
+        <EditTextPreference
+            android:defaultValue="@string/activity_settings_default_keyword"
+            android:key="@string/key_settings_dconn_name"
+            android:summary="@string/activity_settings_default_keyword"
+            android:title="@string/activity_settings_name" />
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/activity_settings_device_plugin" >
         <PreferenceScreen
@@ -134,7 +139,11 @@
         <PreferenceScreen
             android:key="@string/key_settings_about_appinfo"
             android:summary="@string/activity_settings_app_infomation_summary"
-            android:title="@string/app_name" />
+            android:title="@string/activity_settings_app_infomation_summary" />
+        <PreferenceScreen
+            android:key="@string/key_settings_dconn_uuid"
+            android:summary="@string/activity_settings_default_keyword"
+            android:title="@string/activity_settings_uuid" />
     </PreferenceCategory>
 
 </PreferenceScreen>

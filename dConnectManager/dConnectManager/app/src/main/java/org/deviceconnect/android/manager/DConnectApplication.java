@@ -7,8 +7,11 @@
 package org.deviceconnect.android.manager;
 
 import android.app.Application;
+import android.content.Context;
+import android.content.SharedPreferences;
 
 import org.deviceconnect.android.manager.keepalive.KeepAliveManager;
+import org.deviceconnect.android.manager.util.DConnectUtil;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -40,6 +43,8 @@ public class DConnectApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+
+        initialize();
 
         mDevicePluginManager = new DevicePluginManager(this, LOCALHOST_DCONNECT);
         mDevicePluginManager.createDevicePluginList();
@@ -112,4 +117,21 @@ public class DConnectApplication extends Application {
         return matchKey;
     }
 
+    private void initialize() {
+        SharedPreferences sp = getSharedPreferences(getPackageName() + "_preferences", Context.MODE_PRIVATE);
+
+        String name = sp.getString(getString(R.string.key_settings_dconn_name), null);
+        if (name == null) {
+            SharedPreferences.Editor editor = sp.edit();
+            editor.putString(getString(R.string.key_settings_dconn_name), DConnectUtil.createName());
+            editor.apply();
+        }
+
+        String uuid = sp.getString(getString(R.string.key_settings_dconn_uuid), null);
+        if (uuid == null) {
+            SharedPreferences.Editor editor = sp.edit();
+            editor.putString(getString(R.string.key_settings_dconn_uuid), DConnectUtil.createUuid());
+            editor.apply();
+        }
+    }
 }

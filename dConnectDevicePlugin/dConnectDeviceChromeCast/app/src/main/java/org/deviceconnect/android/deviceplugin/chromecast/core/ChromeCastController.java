@@ -269,6 +269,7 @@ public class ChromeCastController implements
     private void stopApplication(final boolean isReconnect) {
         
         if (mApiClient != null && mApiClient.isConnected()) {
+            Cast.CastApi.leaveApplication(mApiClient);
             Cast.CastApi.stopApplication(mApiClient).setResultCallback(new ResultCallback<Status>() {
                 @Override
                 public void onResult(final Status result) {

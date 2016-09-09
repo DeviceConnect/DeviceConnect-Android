@@ -62,11 +62,6 @@ public class ChromeCastServiceDiscoveryProfile extends ServiceDiscoveryProfile {
                         }
                     }
                 }
-                castService.setOnline(true);
-            }
-            // 消失したデバイスについてはオフライン状態とみなす.
-            for (DConnectService service : disappeared) {
-                service.setOnline(false);
             }
 
             // レスポンス作成.

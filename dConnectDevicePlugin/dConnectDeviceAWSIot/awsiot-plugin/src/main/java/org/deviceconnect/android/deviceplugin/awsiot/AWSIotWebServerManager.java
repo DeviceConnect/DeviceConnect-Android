@@ -5,6 +5,7 @@ import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.awsiot.core.RemoteDeviceConnectManager;
 import org.deviceconnect.android.deviceplugin.awsiot.p2p.WebServer;
+import org.deviceconnect.android.deviceplugin.awsiot.util.AWSIotUtil;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -41,7 +42,7 @@ public class AWSIotWebServerManager {
         WebServer webServer = new WebServer(mContext, address) {
             @Override
             public void onNotifySignaling(final String signaling) {
-                mIot.publish(remote, mIot.createRemoteP2P(signaling));
+                mIot.publish(remote, AWSIotUtil.createRemoteP2P(signaling));
             }
             @Override
             protected void onConnected() {

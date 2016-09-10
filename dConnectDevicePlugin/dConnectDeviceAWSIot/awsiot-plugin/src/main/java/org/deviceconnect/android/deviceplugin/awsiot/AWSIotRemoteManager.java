@@ -7,9 +7,9 @@ import android.os.Bundle;
 import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.awsiot.core.AWSIotController;
-import org.deviceconnect.android.deviceplugin.awsiot.core.AWSIotCore;
 import org.deviceconnect.android.deviceplugin.awsiot.core.RemoteDeviceConnectManager;
 import org.deviceconnect.android.deviceplugin.awsiot.p2p.WebClient;
+import org.deviceconnect.android.deviceplugin.awsiot.util.AWSIotUtil;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.DConnectMessageService;
@@ -24,7 +24,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class AWSIotRemoteManager extends AWSIotCore {
+public class AWSIotRemoteManager {
 
     private static final boolean DEBUG = true;
     private static final String TAG = "AWS-Remote";
@@ -39,10 +39,16 @@ public class AWSIotRemoteManager extends AWSIotCore {
 
     private OnEventListener mOnEventListener;
 
+    private AWSIotController mIot;
+
     public AWSIotRemoteManager(final Context context, final AWSIotController controller) {
         mContext = context;
         mIot = controller;
         mAWSIotDeviceManager = new AWSIotDeviceManager();
+    }
+
+    public AWSIotController getAWSIotController() {
+        return mIot;
     }
 
     public void setOnEventListener(OnEventListener listener) {
@@ -61,10 +67,10 @@ public class AWSIotRemoteManager extends AWSIotCore {
             mIot.connectMQTT(new AWSIotController.ConnectCallback() {
                 @Override
                 public void onConnected(final Exception err) {
-                    mIot.getShadow(KEY_DCONNECT_SHADOW_NAME, new AWSIotController.GetShadowCallback() {
+                    mIot.getShadow(AWSIotUtil.KEY_DCONNECT_SHADOW_NAME, new AWSIotController.GetShadowCallback() {
                         @Override
                         public void onReceivedShadow(final String thingName, final String result, final Exception err) {
-                            mManagerList = parseDeviceShadow(mContext, result);
+                            mManagerList = AWSIotUtil.parseDeviceShadow(mContext, result);
                             subscribeTopic();
                         }
                     });
@@ -133,8 +139,8 @@ public class AWSIotRemoteManager extends AWSIotCore {
             }
         });
 
-        int requestCode = generateRequestCode();
-        publish(remote, createRequest(requestCode, message));
+        int requestCode = AWSIotUtil.generateRequestCode();
+        publish(remote, AWSIotUtil.createRequest(requestCode, message));
         mResponseMap.put(requestCode, response);
         return false;
     }
@@ -157,9 +163,9 @@ public class AWSIotRemoteManager extends AWSIotCore {
         String message = AWSIotRemoteUtil.intentToJson(request, null);
 
         // TODO 複数に送った場合には、まーじする必要が有る
-        int requestCode = generateRequestCode();
+        int requestCode = AWSIotUtil.generateRequestCode();
         for (RemoteDeviceConnectManager remote : mManagerList) {
-            publish(remote, createRequest(requestCode, message));
+            publish(remote, AWSIotUtil.createRequest(requestCode, message));
         }
         mResponseMap.put(requestCode, response);
         return false;
@@ -200,7 +206,7 @@ public class AWSIotRemoteManager extends AWSIotCore {
     }
 
     private boolean existAWSFlag(final Intent intent) {
-        Object o = intent.getExtras().get(AWSIotCore.PARAM_SELF_FLAG);
+        Object o = intent.getExtras().get(AWSIotUtil.PARAM_SELF_FLAG);
         if (o instanceof String) {
             return "true".equals(o);
         } else if (o instanceof Boolean) {
@@ -225,15 +231,15 @@ public class AWSIotRemoteManager extends AWSIotCore {
     private void parseMQTT(final RemoteDeviceConnectManager remote, final String message) {
         try {
             JSONObject json = new JSONObject(message);
-            JSONObject response = json.optJSONObject(KEY_RESPONSE);
+            JSONObject response = json.optJSONObject(AWSIotUtil.KEY_RESPONSE);
             if (response != null) {
                 onReceivedDeviceConnectResponse(remote, message);
             }
-            JSONObject p2p = json.optJSONObject(KEY_P2P_REMOTE);
+            JSONObject p2p = json.optJSONObject(AWSIotUtil.KEY_P2P_REMOTE);
             if (p2p != null) {
                 mAWSIotWebServerManager.onReceivedSignaling(remote, p2p.toString());
             }
-            JSONObject p2pa = json.optJSONObject(KEY_P2P_LOCAL);
+            JSONObject p2pa = json.optJSONObject(AWSIotUtil.KEY_P2P_LOCAL);
             if (p2pa != null) {
                 mAWSIotWebClientManager.onReceivedSignaling(remote, p2pa.toString());
             }

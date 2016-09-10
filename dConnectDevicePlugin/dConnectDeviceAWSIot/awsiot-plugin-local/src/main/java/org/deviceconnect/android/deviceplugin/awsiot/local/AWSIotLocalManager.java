@@ -5,14 +5,14 @@ import android.net.Uri;
 import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.awsiot.core.AWSIotController;
-import org.deviceconnect.android.deviceplugin.awsiot.core.AWSIotCore;
 import org.deviceconnect.android.deviceplugin.awsiot.core.RemoteDeviceConnectManager;
+import org.deviceconnect.android.deviceplugin.awsiot.util.AWSIotUtil;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.UUID;
 
-public class AWSIotLocalManager extends AWSIotCore {
+public class AWSIotLocalManager {
 
     private static final boolean DEBUG = true;
     private static final String TAG = "AWS-Local";
@@ -26,10 +26,16 @@ public class AWSIotLocalManager extends AWSIotCore {
 
     private String mSessionKey = UUID.randomUUID().toString();
 
+    private AWSIotController mIot;
+
     public AWSIotLocalManager(final Context context, final AWSIotController controller, final RemoteDeviceConnectManager remote) {
         mContext = context;
         mIot = controller;
         mRemoteManager = remote;
+    }
+
+    public AWSIotController getAWSIotController() {
+        return mIot;
     }
 
     public void disconnect() {
@@ -96,15 +102,15 @@ public class AWSIotLocalManager extends AWSIotCore {
         try {
             JSONObject json = new JSONObject(message);
             int requestCode = json.optInt("requestCode");
-            JSONObject request = json.optJSONObject(KEY_REQUEST);
+            JSONObject request = json.optJSONObject(AWSIotUtil.KEY_REQUEST);
             if (request != null) {
                 onReceivedDeviceConnectRequest(requestCode, request.toString());
             }
-            JSONObject p2p = json.optJSONObject(KEY_P2P_REMOTE);
+            JSONObject p2p = json.optJSONObject(AWSIotUtil.KEY_P2P_REMOTE);
             if (p2p != null) {
                 mAWSIotWebClientManager.onReceivedSignaling(p2p.toString());
             }
-            JSONObject p2pa = json.optJSONObject(KEY_P2P_LOCAL);
+            JSONObject p2pa = json.optJSONObject(AWSIotUtil.KEY_P2P_LOCAL);
             if (p2pa != null) {
                 mAWSIotWebServerManager.onReceivedSignaling(p2pa.toString());
             }
@@ -140,7 +146,7 @@ public class AWSIotLocalManager extends AWSIotCore {
                 if (DEBUG) {
                     Log.d(TAG, "onReceivedDeviceConnectRequest: requestCode=" + requestCode + " response=" + response);
                 }
-                publish(createResponse(requestCode, response));
+                publish(AWSIotUtil.createResponse(requestCode, response));
             }
         });
     }

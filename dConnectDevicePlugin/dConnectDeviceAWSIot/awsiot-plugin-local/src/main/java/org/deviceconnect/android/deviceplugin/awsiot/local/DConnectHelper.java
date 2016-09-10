@@ -6,17 +6,17 @@
  */
 package org.deviceconnect.android.deviceplugin.awsiot.local;
 
-import org.deviceconnect.android.deviceplugin.awsiot.core.AWSIotCore;
+import android.net.Uri;
+import android.os.AsyncTask;
+import android.util.Log;
+
+import org.deviceconnect.android.deviceplugin.awsiot.util.AWSIotUtil;
 import org.deviceconnect.android.deviceplugin.awsiot.util.HttpUtil;
 import org.deviceconnect.android.profile.AuthorizationProfile;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.utils.URIBuilder;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import android.net.Uri;
-import android.os.AsyncTask;
-import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -96,7 +96,7 @@ public class DConnectHelper {
             builder.setPort(4035);
 
             Map<String, String> body = new HashMap<>();
-            body.put(AWSIotCore.PARAM_SELF_FLAG, "true");
+            body.put(AWSIotUtil.PARAM_SELF_FLAG, "true");
             if (mAuthInfo != null) {
                 body.put(DConnectMessage.EXTRA_ACCESS_TOKEN, mAuthInfo.getAccessToken());
             }

@@ -22,11 +22,11 @@ import android.widget.Switch;
 import android.widget.TextView;
 
 import org.deviceconnect.android.deviceplugin.awsiot.core.AWSIotController;
-import org.deviceconnect.android.deviceplugin.awsiot.core.AWSIotCore;
 import org.deviceconnect.android.deviceplugin.awsiot.core.AWSIotPrefUtil;
 import org.deviceconnect.android.deviceplugin.awsiot.local.AWSIotLocalDeviceService;
 import org.deviceconnect.android.deviceplugin.awsiot.remote.R;
 import org.deviceconnect.android.deviceplugin.awsiot.setting.AWSIotSettingActivity;
+import org.deviceconnect.android.deviceplugin.awsiot.util.AWSIotUtil;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -123,7 +123,7 @@ public class AWSIotInformationFragment extends Fragment {
             managerData.put("online", online);
             managerData.put("timeStamp", System.currentTimeMillis());
 
-            mAWSIotController.updateShadow(AWSIotCore.KEY_DCONNECT_SHADOW_NAME, prefUtil.getManagerUuid(), managerData, new AWSIotController.UpdateShadowCallback() {
+            mAWSIotController.updateShadow(AWSIotUtil.KEY_DCONNECT_SHADOW_NAME, prefUtil.getManagerUuid(), managerData, new AWSIotController.UpdateShadowCallback() {
                 @Override
                 public void onUpdateShadow(final String result, final Exception err) {
                 }

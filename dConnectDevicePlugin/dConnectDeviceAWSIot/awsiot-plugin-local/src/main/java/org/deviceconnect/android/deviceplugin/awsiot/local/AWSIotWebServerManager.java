@@ -4,6 +4,7 @@ import android.content.Context;
 import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.awsiot.p2p.WebServer;
+import org.deviceconnect.android.deviceplugin.awsiot.util.AWSIotUtil;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -41,7 +42,7 @@ public class AWSIotWebServerManager {
         WebServer webServer = new WebServer(mContext, address) {
             @Override
             public void onNotifySignaling(final String signaling) {
-                mIot.publish(mIot.createLocalP2P(signaling));
+                mIot.publish(AWSIotUtil.createLocalP2P(signaling));
             }
             @Override
             protected void onConnected() {

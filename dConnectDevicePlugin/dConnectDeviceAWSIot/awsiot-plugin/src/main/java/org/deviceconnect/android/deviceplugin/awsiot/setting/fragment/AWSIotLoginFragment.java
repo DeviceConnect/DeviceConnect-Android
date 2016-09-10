@@ -10,10 +10,8 @@ package org.deviceconnect.android.deviceplugin.awsiot.setting.fragment;
 
 import com.amazonaws.regions.Regions;
 
-import org.deviceconnect.android.deviceplugin.awsiot.AWSIotDeviceService;
 import org.deviceconnect.android.deviceplugin.awsiot.AWSIotRemoteManager;
 import org.deviceconnect.android.deviceplugin.awsiot.AWSIotDeviceApplication;
-import org.deviceconnect.android.deviceplugin.awsiot.core.AWSIotController;
 import org.deviceconnect.android.deviceplugin.awsiot.core.AWSIotPrefUtil;
 import org.deviceconnect.android.deviceplugin.awsiot.remote.R;
 import org.deviceconnect.android.deviceplugin.awsiot.setting.AWSIotSettingActivity;
@@ -44,8 +42,6 @@ import android.widget.Toast;
  */
 public class AWSIotLoginFragment extends Fragment {
 
-    /** Application Instance. */
-    private AWSIotDeviceApplication mApp;
     /** AWSIoTController. */
     private AWSIotRemoteManager mIot;
     /** Login button. */
@@ -65,10 +61,6 @@ public class AWSIotLoginFragment extends Fragment {
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
                              final Bundle savedInstanceState) {
         setHasOptionsMenu(false);
-//        mIot = ((AWSIotDeviceService) getContext()).getAWSIotRemoteManager();
-//        mPrefUtil = ((AWSIotDeviceService) getContext()).getPrefUtil();
-//        mIot = new AWSIotRemoteManager(getContext());
-//        mPrefUtil = new AWSIotPrefUtil(getContext());
         mIot = ((AWSIotSettingActivity) getContext()).getAWSIotRemoteManager();
         mPrefUtil = ((AWSIotSettingActivity) getContext()).getPrefUtil();
 
@@ -210,13 +202,6 @@ public class AWSIotLoginFragment extends Fragment {
         });
 */
 
-//        if (mIot.isConnected()) {
-//            FragmentManager manager = getActivity().getSupportFragmentManager();
-//            AWSIotManagerListFragment fragment = new AWSIotManagerListFragment();
-//            FragmentTransaction transaction = manager.beginTransaction();
-//            transaction.replace(R.id.container, fragment);
-//            transaction.commit();
-//        }
         return rootView;
     }
 

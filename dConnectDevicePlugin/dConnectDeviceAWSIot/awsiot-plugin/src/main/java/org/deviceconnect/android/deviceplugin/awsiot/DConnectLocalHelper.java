@@ -150,7 +150,7 @@ public class DConnectLocalHelper {
         sendRequest(method, uri, new HashMap<String, String>(), callback);
     }
 
-    private void sendRequest(final String method, final String uri, final Map<String, String> body, final FinishCallback callback) {
+    public void sendRequest(final String method, final String uri, final Map<String, String> body, final FinishCallback callback) {
         new HttpTask(method, uri, mDefaultHeader, body) {
             @Override
             protected void onPostExecute(final String message) {
@@ -270,8 +270,6 @@ public class DConnectLocalHelper {
                 int result = jsonObject.getInt("result");
                 if (result == 0) {
                     String accessToken = jsonObject.getString("accessToken");
-                    Log.d("ABC", "json : " + jsonObject.toString());
-                    Log.d("ABC", "accessToken : " + accessToken);
                     mAuthInfo = new AuthInfo(clientId, accessToken);
                     mBody.put("accessToken", accessToken);
                     return executeRequest();

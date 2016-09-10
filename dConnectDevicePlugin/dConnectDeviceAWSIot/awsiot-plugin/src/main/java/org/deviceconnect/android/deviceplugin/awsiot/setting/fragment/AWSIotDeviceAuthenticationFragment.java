@@ -7,40 +7,39 @@
 package org.deviceconnect.android.deviceplugin.awsiot.setting.fragment;
 
 
-import org.deviceconnect.android.deviceplugin.awsiot.AWSIotDeviceApplication;
 import org.deviceconnect.android.deviceplugin.awsiot.DConnectLocalHelper;
-import org.deviceconnect.android.deviceplugin.awsiot.core.AWSIotController;
-import org.deviceconnect.android.deviceplugin.awsiot.core.AWSIotPrefUtil;
 import org.deviceconnect.android.deviceplugin.awsiot.core.LocalDevice;
 import org.deviceconnect.android.deviceplugin.awsiot.remote.R;
-import org.deviceconnect.android.deviceplugin.awsiot.setting.AWSIotSettingActivity;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
 
 /**
  * AWS IoT Settings Fragment Page 4.
@@ -48,12 +47,6 @@ import java.util.UUID;
  * @author NTT DOCOMO, INC.
  */
 public class AWSIotDeviceAuthenticationFragment extends Fragment {
-    /** Application Instance. */
-    private AWSIotDeviceApplication mApp;
-    /** AWSIoTController. */
-    private AWSIotController mIot;
-    /** Device list view. */
-    private ListView mListView;
     /** Local Device Infomation Adapter */
     private LocalDeviceAdapter mDeviceAdapter;
 
@@ -61,6 +54,15 @@ public class AWSIotDeviceAuthenticationFragment extends Fragment {
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
                              final Bundle savedInstanceState) {
         setHasOptionsMenu(true);
+
+        View rootView = inflater.inflate(R.layout.settings_device_authentication, null);
+
+        /* Device list view. */
+        ListView listView = (ListView) rootView.findViewById(R.id.device_list_view);
+        List<LocalDevice> devices = new ArrayList<>();
+        mDeviceAdapter = new LocalDeviceAdapter(getActivity(), devices);
+        listView.setAdapter(mDeviceAdapter);
+        listView.setItemsCanFocus(true);
 
         serviceDiscovery(new DConnectLocalHelper.FinishCallback() {
             @Override
@@ -72,36 +74,26 @@ public class AWSIotDeviceAuthenticationFragment extends Fragment {
                 try {
                     JSONObject jsonObject = new JSONObject(response);
                     int result = jsonObject.getInt("result");
-                    Log.d("ABC", "result : " + result);
                     if (result == 0) {
-                        Log.d("ABC", "json : " + jsonObject);
-
+                        mDeviceAdapter.clear();
+                        mDeviceAdapter.addAll(createLocalDevices(response));
+                        mDeviceAdapter.notifyDataSetInvalidated();
                     } else {
                         // TODO Managerが起動していない場合の処理
                     }
+                    DeviceListUpdateDialogFragment dialog = (DeviceListUpdateDialogFragment) getFragmentManager().findFragmentByTag("DeviceListDialog");
+                    if (dialog != null) {
+                        dialog.dismiss();
+                    }
+
                 } catch (JSONException e) {
 //                    Log.e(TAG, "", e);
                 }
             }
         });
 
-
-        AWSIotSettingActivity activity = (AWSIotSettingActivity) getActivity();
-        mApp = (AWSIotDeviceApplication) activity.getApplication();
-
-        View rootView = inflater.inflate(R.layout.settings_device_authentication, null);
-
-        // TODO:Adapter登録
-        mListView = (ListView) rootView.findViewById(R.id.device_list_view);
-        List<LocalDevice> informations = new ArrayList<>();
-        // for test
-        {
-            String dummy = "dummy";
-            informations.addAll(createLocalDeviceInfomations(dummy));
-        }
-        mDeviceAdapter = new LocalDeviceAdapter(getActivity(), informations);
-        mListView.setAdapter(mDeviceAdapter);
-        mListView.setItemsCanFocus(true);
+        DeviceListUpdateDialogFragment dialog = new DeviceListUpdateDialogFragment();
+        dialog.show(getFragmentManager(),"DeviceListDialog");
 
         return rootView;
     }
@@ -113,24 +105,28 @@ public class AWSIotDeviceAuthenticationFragment extends Fragment {
         menu.clear();
     }
 
-    private List<LocalDevice> createLocalDeviceInfomations(final String data) {
-        List<LocalDevice> informations = new ArrayList<>();
+    private List<LocalDevice> createLocalDevices(final String data) {
+        List<LocalDevice> devices = new ArrayList<>();
         // TODO:JSON解析、Id, Device名取得。
-        //for test
-        informations.add(createLocalDeviceInformation("1", "HOST", false));
-        informations.add(createLocalDeviceInformation("2", "HUE A", false));
-        informations.add(createLocalDeviceInformation("3", "HUE B", true));
-        informations.add(createLocalDeviceInformation("4", "HUE C", false));
+        try {
+            JSONObject jsonObject = new JSONObject(data);
+            int result = jsonObject.getInt("result");
+            if (result == 0) {
+                JSONArray services = jsonObject.optJSONArray("services");
+                for (int i = 0; i < services.length(); i++) {
+                    JSONObject service = services.getJSONObject(i);
+                    String id = service.getString("id");
+                    String name = service.getString("name");
+                    devices.add(new LocalDevice(id, name));
+                }
+            } else {
+                // TODO Managerが起動していない場合の処理
+            }
+        } catch (JSONException e) {
+//                    Log.e(TAG, "", e);
+        }
 
-        return informations;
-    }
-
-    private LocalDevice createLocalDeviceInformation(final String id, final String name, final Boolean authentication) {
-        LocalDevice info = new LocalDevice();
-        info.setServiceId(id);
-        info.setDeviceName(name);
-        info.setAuthenticationFlag(authentication);
-        return info;
+        return devices;
     }
 
     private class LocalDeviceAdapter extends ArrayAdapter<LocalDevice> {
@@ -159,23 +155,71 @@ public class AWSIotDeviceAuthenticationFragment extends Fragment {
                 public void onClick(View v) {
                     SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getActivity());
                     Button btn = (Button) v.findViewById(R.id.btn_auth_device);
-                    if (!device.isAuthentication()) {
-                        // TODO: Service Information 発行
+                    serviceInformation(device.getServiceId(), new DConnectLocalHelper.FinishCallback() {
+                        @Override
+                        public void onFinish(String response, Exception error) {
+                            if (response == null) {
+                                return;
+                            }
 
-                        // preference変更処理(flag = true)
-                        sp.edit().putBoolean(device.getServiceId(), true).apply();
-                        device.setAuthenticationFlag(true);
-                        // ボタン変更
-                        btn.setBackgroundResource(R.drawable.button_gray);
-                        btn.setEnabled(false);
-                    }
+                            try {
+                                JSONObject jsonObject = new JSONObject(response);
+                                int result = jsonObject.getInt("result");
+                                if (result == 0) {
+                                    final String LF = System.getProperty("line.separator");
+                                    StringBuilder sb = new StringBuilder();
+                                    sb.append("Support Profile:").append(LF);
+
+                                    JSONArray supports = jsonObject.optJSONArray("supports");
+                                    for (int i = 0; i < supports.length(); i++) {
+                                        String support = supports.get(i).toString();
+                                        sb.append("・").append(support).append(LF);
+                                    }
+                                    AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+                                    builder.setTitle(device.getDeviceName())
+                                            .setMessage(sb)
+                                            .setPositiveButton("はい", new DialogInterface.OnClickListener() {
+                                                @Override
+                                                public void onClick(DialogInterface dialog, int which) {
+                                                    // No Operation.
+                                                }
+                                            });
+                                    builder.show();
+                                } else {
+                                    // TODO Managerが起動していない場合の処理
+                                }
+
+                            } catch (JSONException e) {
+
+                            }
+                        }
+                    });
                 }
             });
-//            if (device.isAuthentication()) {
-//                btn.setBackgroundResource(R.drawable.button_gray);
-//                btn.setEnabled(false);
-//            }
             return convertView;
+        }
+    }
+
+    /**
+     * Show a dialog of device list update.
+     */
+    public static class DeviceListUpdateDialogFragment extends DialogFragment {
+        @NonNull
+        @Override
+        public Dialog onCreateDialog(final Bundle savedInstanceState) {
+            String msg = getString(R.string.manager_list_update);
+            ProgressDialog progressDialog = new ProgressDialog(getActivity());
+            progressDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+            progressDialog.setMessage(msg);
+            progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+            setCancelable(false);
+            return progressDialog;
+        }
+
+        @Override
+        public void onPause() {
+            dismiss();
+            super.onPause();
         }
     }
 
@@ -184,6 +228,17 @@ public class AWSIotDeviceAuthenticationFragment extends Fragment {
             @Override
             public void run() {
                 DConnectLocalHelper.INSTANCE.sendRequest("GET", "http://localhost:4035/gotapi/servicediscovery", callback);
+            }
+        }).start();
+    }
+
+    private void serviceInformation(final String serviceId, final DConnectLocalHelper.FinishCallback callback) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Map<String, String> param = new HashMap<>();
+                param.put("serviceId", serviceId);
+                DConnectLocalHelper.INSTANCE.sendRequest("GET", "http://localhost:4035/gotapi/serviceinformation", param, callback);
             }
         }).start();
     }

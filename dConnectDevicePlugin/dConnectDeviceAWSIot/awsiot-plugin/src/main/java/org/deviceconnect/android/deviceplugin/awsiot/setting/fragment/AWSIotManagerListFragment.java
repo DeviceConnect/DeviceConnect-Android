@@ -31,13 +31,13 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import org.deviceconnect.android.deviceplugin.awsiot.core.AWSIotController;
-import org.deviceconnect.android.deviceplugin.awsiot.core.AWSIotCore;
 import org.deviceconnect.android.deviceplugin.awsiot.core.AWSIotDBHelper;
 import org.deviceconnect.android.deviceplugin.awsiot.core.AWSIotPrefUtil;
 import org.deviceconnect.android.deviceplugin.awsiot.core.RemoteDeviceConnectManager;
 import org.deviceconnect.android.deviceplugin.awsiot.local.DConnectHelper;
 import org.deviceconnect.android.deviceplugin.awsiot.remote.R;
 import org.deviceconnect.android.deviceplugin.awsiot.setting.AWSIotSettingActivity;
+import org.deviceconnect.android.deviceplugin.awsiot.util.AWSIotUtil;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -145,10 +145,10 @@ public class AWSIotManagerListFragment extends Fragment {
     }
 
     private void getManagerList() {
-        getAWSIotController().getShadow(AWSIotCore.KEY_DCONNECT_SHADOW_NAME, new AWSIotController.GetShadowCallback() {
+        getAWSIotController().getShadow(AWSIotUtil.KEY_DCONNECT_SHADOW_NAME, new AWSIotController.GetShadowCallback() {
             @Override
             public void onReceivedShadow(final String thingName, final String result, final Exception err) {
-                mManagerList = AWSIotCore.parseDeviceShadow(getActivity(), result);
+                mManagerList = AWSIotUtil.parseDeviceShadow(getActivity(), result);
                 mManagerAdapter.clear();
                 mManagerAdapter.addAll(mManagerList);
                 mManagerAdapter.notifyDataSetInvalidated();

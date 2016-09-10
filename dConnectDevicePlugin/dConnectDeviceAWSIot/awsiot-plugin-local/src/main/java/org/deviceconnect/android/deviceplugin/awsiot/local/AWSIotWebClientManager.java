@@ -4,6 +4,7 @@ import android.content.Context;
 import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.awsiot.p2p.WebClient;
+import org.deviceconnect.android.deviceplugin.awsiot.util.AWSIotUtil;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -42,7 +43,7 @@ public class AWSIotWebClientManager {
         WebClient webClient = new WebClient(mContext) {
             @Override
             public void onNotifySignaling(final String signaling) {
-                mLocalManager.publish(mLocalManager.createRemoteP2P(signaling));
+                mLocalManager.publish(AWSIotUtil.createRemoteP2P(signaling));
             }
             @Override
             public void onDisconnected(final WebClient webClient) {

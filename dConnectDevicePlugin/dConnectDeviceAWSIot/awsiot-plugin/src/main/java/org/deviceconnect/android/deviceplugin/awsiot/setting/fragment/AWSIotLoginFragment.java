@@ -78,6 +78,10 @@ public class AWSIotLoginFragment extends Fragment {
                 }
             }
         });
+        String accessKey = mPrefUtil.getAccessKey();
+        if (accessKey != null) {
+            mAccessKey.setText(accessKey);
+        }
 
         mSecretKey = (EditText) rootView.findViewById(R.id.input_awsiot_password);
         mSecretKey.setOnFocusChangeListener(new View.OnFocusChangeListener() {
@@ -88,11 +92,23 @@ public class AWSIotLoginFragment extends Fragment {
                 }
             }
         });
+        String secretKey = mPrefUtil.getSecretKey();
+        if (secretKey != null) {
+            mSecretKey.setText(secretKey);
+        }
 
         String[] regionList = getResources().getStringArray(R.array.region_array);
         ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(), R.layout.region, regionList);
         mRegion = (Spinner) rootView.findViewById(R.id.spn_region);
         mRegion.setAdapter(adapter);
+        String regions = mPrefUtil.getRegions().getName();
+        if (regions != null) {
+            for (int i = 0; i < regionList.length; i++) {
+                if (regionList[i].matches(regions)) {
+                    mRegion.setSelection(i);
+                }
+            }
+        }
 
         mLogin = (Button) rootView.findViewById(R.id.login);
         mLogin.setOnClickListener(new View.OnClickListener() {

@@ -40,7 +40,7 @@
                     android:layout_height="wrap_content"
                     android:textColor="@color/text_black"
                     android:inputType=""
-                    android:background="@drawable/border_edit"/>
+                    android:background="@drawable/border"/>
 
             <TextView
                     android:layout_width="wrap_content"
@@ -57,7 +57,7 @@
                     android:layout_height="wrap_content"
                     android:textColor="@color/text_black"
                     android:inputType="textPassword"
-                    android:background="@drawable/border_edit"/>
+                    android:background="@drawable/border"/>
 
             <TextView
                     android:layout_width="wrap_content"
@@ -72,7 +72,7 @@
                     android:id="@+id/spn_region"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:background="@drawable/border_edit"
+                    android:background="@drawable/border"
                     >
             </Spinner>
 

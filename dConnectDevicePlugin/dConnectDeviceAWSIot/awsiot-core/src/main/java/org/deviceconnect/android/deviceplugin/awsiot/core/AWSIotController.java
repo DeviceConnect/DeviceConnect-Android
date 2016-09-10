@@ -105,7 +105,7 @@ public class AWSIotController {
         new DescribeEndpointTask() {
             @Override
             protected void onPostExecute(final AsyncTaskResult<String> result) {
-                Exception exception = null;
+                Exception exception;
                 if (result.getError() == null) {
                     JSONObject json;
                     try {
@@ -268,7 +268,7 @@ public class AWSIotController {
     private class GetShadowTask extends AsyncTask<Void, Void, AsyncTaskResult<String>> {
 
         /**
-         * Thing名
+         * Thing名.
          */
         private final String thingName;
 

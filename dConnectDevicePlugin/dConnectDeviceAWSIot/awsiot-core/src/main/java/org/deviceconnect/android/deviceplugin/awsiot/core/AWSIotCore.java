@@ -43,9 +43,12 @@ public class AWSIotCore {
             Iterator<String> ids = obj.keys();
             while (ids.hasNext()) {
                 String id = ids.next();
+
+                // 自分自身のUUIDの場合にはリストに含めいない
                 if (id.equals(myUuid)) {
                     continue;
                 }
+
                 JSONObject manager = obj.getJSONObject(id);
                 Boolean online = manager.getBoolean("online");
                 String name = manager.getString("name");
@@ -60,7 +63,6 @@ public class AWSIotCore {
                 RemoteDeviceConnectManager findInfo = dbHelper.findManagerById(id);
                 if (findInfo != null) {
                     mLogger.info("DB update: ");
-                    // DB更新
                     findInfo.setName(name);
                     dbHelper.updateManager(findInfo);
                 } else {
@@ -68,7 +70,6 @@ public class AWSIotCore {
                     findInfo = new RemoteDeviceConnectManager(name, id);
                     dbHelper.addManager(findInfo);
                 }
-                // listへ登録。
                 managers.add(findInfo);
             }
         } catch (JSONException e) {
@@ -79,10 +80,6 @@ public class AWSIotCore {
 
     public AWSIotController getAWSIotController() {
         return mIot;
-    }
-
-    public void updateDeviceShadow(final RemoteDeviceConnectManager remote) {
-        // TODO Remoteが登録されていない場合は追加すること
     }
 
     public String createRequest(final int requestCode, final String request) {

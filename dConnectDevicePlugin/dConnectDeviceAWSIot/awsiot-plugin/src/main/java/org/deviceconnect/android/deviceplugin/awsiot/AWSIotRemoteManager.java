@@ -178,16 +178,20 @@ public class AWSIotRemoteManager extends AWSIotCore {
     }
 
     private void subscribeTopic() {
-        for (RemoteDeviceConnectManager remote : mManagerList) {
-            mIot.subscribe(remote.getResponseTopic(), mMessageCallback);
-            mIot.subscribe(remote.getEventTopic(), mMessageCallback);
+        if (mManagerList != null) {
+            for (RemoteDeviceConnectManager remote : mManagerList) {
+                mIot.subscribe(remote.getResponseTopic(), mMessageCallback);
+                mIot.subscribe(remote.getEventTopic(), mMessageCallback);
+            }
         }
     }
 
     private void unsubscribeTopic() {
-        for (RemoteDeviceConnectManager remote : mManagerList) {
-            mIot.unsubscribe(remote.getResponseTopic());
-            mIot.unsubscribe(remote.getEventTopic());
+        if (mManagerList != null) {
+            for (RemoteDeviceConnectManager remote : mManagerList) {
+                mIot.unsubscribe(remote.getResponseTopic());
+                mIot.unsubscribe(remote.getEventTopic());
+            }
         }
     }
 

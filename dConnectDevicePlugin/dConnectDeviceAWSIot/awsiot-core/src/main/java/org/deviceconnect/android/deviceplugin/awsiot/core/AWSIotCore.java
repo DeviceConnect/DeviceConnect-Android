@@ -1,9 +1,9 @@
 package org.deviceconnect.android.deviceplugin.awsiot.core;
 
+import android.content.Context;
+
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import android.content.Context;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -27,13 +27,12 @@ public class AWSIotCore {
 
     protected AWSIotController mIot;
 
-    public void getDeviceShadow() {
-        mIot.getShadow(KEY_DCONNECT_SHADOW_NAME);
-    }
-
     public List<RemoteDeviceConnectManager> parseDeviceShadow(final Context context, final String message) {
         List<RemoteDeviceConnectManager> managers = new ArrayList<>();
         AWSIotDBHelper dbHelper = new AWSIotDBHelper(context);
+
+        AWSIotPrefUtil util = new AWSIotPrefUtil(context);
+        String myUuid = util.getManagerUuid();
 
         // JSON解析、Id, Manager名取得。
         try {
@@ -44,6 +43,9 @@ public class AWSIotCore {
             Iterator<String> ids = obj.keys();
             while (ids.hasNext()) {
                 String id = ids.next();
+                if (id.equals(myUuid)) {
+                    continue;
+                }
                 JSONObject manager = obj.getJSONObject(id);
                 Boolean online = manager.getBoolean("online");
                 String name = manager.getString("name");
@@ -72,10 +74,11 @@ public class AWSIotCore {
         } catch (JSONException e) {
             e.printStackTrace();
         }
-
-//        managers.add(new RemoteDeviceConnectManager("abc", "test"));
-//        managers.add(new RemoteDeviceConnectManager("5807D0DF-1D5F-4D8E-9779-A9417C5CA1D0", "test"));
         return managers;
+    }
+
+    public AWSIotController getAWSIotController() {
+        return mIot;
     }
 
     public void updateDeviceShadow(final RemoteDeviceConnectManager remote) {

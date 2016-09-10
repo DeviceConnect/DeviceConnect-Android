@@ -7,9 +7,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
-import com.amazonaws.regions.Regions;
-
-import org.deviceconnect.android.deviceplugin.awsiot.local.AWSIotDeviceService;
+import org.deviceconnect.android.deviceplugin.awsiot.local.AWSIotLocalDeviceService;
 import org.deviceconnect.android.deviceplugin.awsiot.local.AWSIotLocalManager;
 import org.deviceconnect.android.deviceplugin.awsiot.local.R;
 
@@ -38,8 +36,8 @@ public class AWSIotTestActivity extends Activity {
                 @Override
                 public void onClick(View v) {
                     Intent intent = new Intent();
-                    intent.setClass(AWSIotTestActivity.this, AWSIotDeviceService.class);
-                    intent.setAction(AWSIotDeviceService.ACTION_START);
+                    intent.setClass(AWSIotTestActivity.this, AWSIotLocalDeviceService.class);
+                    intent.setAction(AWSIotLocalDeviceService.ACTION_START);
                     startService(intent);
                 }
             });
@@ -51,8 +49,8 @@ public class AWSIotTestActivity extends Activity {
                 @Override
                 public void onClick(View v) {
                     Intent intent = new Intent();
-                    intent.setClass(AWSIotTestActivity.this, AWSIotDeviceService.class);
-                    intent.setAction(AWSIotDeviceService.ACTION_STOP);
+                    intent.setClass(AWSIotTestActivity.this, AWSIotLocalDeviceService.class);
+                    intent.setAction(AWSIotLocalDeviceService.ACTION_STOP);
                     startService(intent);
                 }
             });
@@ -60,29 +58,29 @@ public class AWSIotTestActivity extends Activity {
     }
 
     private void startAWSIoT() {
-        mAWSIoTLocalManager = new AWSIotLocalManager(this, "abc", "test");
-        mAWSIoTLocalManager.connectAWSIoT("ACCESS_KEY", "SECRET_KEY", Regions.AP_NORTHEAST_1);
-        mAWSIoTLocalManager.setOnEventListener(new AWSIotLocalManager.OnEventListener() {
-            @Override
-            public void onConnected() {
-                log("connected");
-            }
-
-            @Override
-            public void onDisconnected() {
-                log("onDisconnected");
-            }
-
-            @Override
-            public void onReconnecting() {
-                log("onReconnecting");
-            }
-
-            @Override
-            public void onReceivedMessage(String topic, String message) {
-                log("topic: " + topic + " message=" + message);
-            }
-        });
+//        mAWSIoTLocalManager = new AWSIotLocalManager(this, "abc", "test");
+//        mAWSIoTLocalManager.connectAWSIoT("ACCESS_KEY", "SECRET_KEY", Regions.AP_NORTHEAST_1);
+//        mAWSIoTLocalManager.setOnEventListener(new AWSIotLocalManager.OnEventListener() {
+//            @Override
+//            public void onConnected() {
+//                log("connected");
+//            }
+//
+//            @Override
+//            public void onDisconnected() {
+//                log("onDisconnected");
+//            }
+//
+//            @Override
+//            public void onReconnecting() {
+//                log("onReconnecting");
+//            }
+//
+//            @Override
+//            public void onReceivedMessage(String topic, String message) {
+//                log("topic: " + topic + " message=" + message);
+//            }
+//        });
     }
 
     public void log(final String message) {

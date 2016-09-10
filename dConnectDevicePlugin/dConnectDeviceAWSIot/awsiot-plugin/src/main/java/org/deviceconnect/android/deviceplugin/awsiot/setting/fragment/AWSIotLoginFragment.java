@@ -8,18 +8,9 @@
 package org.deviceconnect.android.deviceplugin.awsiot.setting.fragment;
 
 
-import com.amazonaws.regions.Regions;
-
-import org.deviceconnect.android.deviceplugin.awsiot.AWSIotDeviceService;
-import org.deviceconnect.android.deviceplugin.awsiot.AWSIotRemoteManager;
-import org.deviceconnect.android.deviceplugin.awsiot.AWSIotDeviceApplication;
-import org.deviceconnect.android.deviceplugin.awsiot.core.AWSIotController;
-import org.deviceconnect.android.deviceplugin.awsiot.core.AWSIotPrefUtil;
-import org.deviceconnect.android.deviceplugin.awsiot.remote.R;
-import org.deviceconnect.android.deviceplugin.awsiot.setting.AWSIotSettingActivity;
-
 import android.app.Dialog;
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
@@ -37,6 +28,15 @@ import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import com.amazonaws.regions.Regions;
+
+import org.deviceconnect.android.deviceplugin.awsiot.AWSIotDeviceService;
+import org.deviceconnect.android.deviceplugin.awsiot.core.AWSIotController;
+import org.deviceconnect.android.deviceplugin.awsiot.core.AWSIotPrefUtil;
+import org.deviceconnect.android.deviceplugin.awsiot.local.AWSIotLocalDeviceService;
+import org.deviceconnect.android.deviceplugin.awsiot.remote.R;
+import org.deviceconnect.android.deviceplugin.awsiot.setting.AWSIotSettingActivity;
+
 /**
  * AWS IoT Settings Fragment Page 1.
  *
@@ -44,10 +44,6 @@ import android.widget.Toast;
  */
 public class AWSIotLoginFragment extends Fragment {
 
-    /** Application Instance. */
-    private AWSIotDeviceApplication mApp;
-    /** AWSIoTController. */
-    private AWSIotRemoteManager mIot;
     /** Login button. */
     private Button mLogin;
     /** Help button. */
@@ -59,22 +55,21 @@ public class AWSIotLoginFragment extends Fragment {
     /** Region select Spinner. */
     private Spinner mRegion;
     /** AWSIotPrefUtil instance. */
-    AWSIotPrefUtil mPrefUtil;
+    private AWSIotPrefUtil mPrefUtil;
+    private AWSIotController mAWSIotController;
+
 
     @Override
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
                              final Bundle savedInstanceState) {
         setHasOptionsMenu(false);
-//        mIot = ((AWSIotDeviceService) getContext()).getAWSIotRemoteManager();
-//        mPrefUtil = ((AWSIotDeviceService) getContext()).getPrefUtil();
-//        mIot = new AWSIotRemoteManager(getContext());
-//        mPrefUtil = new AWSIotPrefUtil(getContext());
-        mIot = ((AWSIotSettingActivity) getContext()).getAWSIotRemoteManager();
+
+        mAWSIotController = ((AWSIotSettingActivity) getActivity()).getAWSIotController();
+
         mPrefUtil = ((AWSIotSettingActivity) getContext()).getPrefUtil();
 
         View rootView = inflater.inflate(R.layout.settings_login, null);
         mAccessKey = (EditText) rootView.findViewById(R.id.input_awsiot_id);
-
         mAccessKey.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
@@ -95,7 +90,7 @@ public class AWSIotLoginFragment extends Fragment {
         });
 
         String[] regionList = getResources().getStringArray(R.array.region_array);
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(getContext(), R.layout.region, regionList);
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(), R.layout.region, regionList);
         mRegion = (Spinner) rootView.findViewById(R.id.spn_region);
         mRegion.setAdapter(adapter);
 
@@ -151,12 +146,12 @@ public class AWSIotLoginFragment extends Fragment {
                 Log.d("ABC", "selsectRegion: " + selectRegion);
                 Log.d("ABC", "region       : " + regions);
 
-                // リスナー登録
-                // AWSIotのイベントリスナー設定
-                mIot.setOnEventListener(null);
-                mIot.setOnEventListener(new AWSIotRemoteManager.OnEventListener() {
+                DuringLoginDialogFragment dialog = new DuringLoginDialogFragment();
+                dialog.show(getFragmentManager(),"DuringDialog");
+
+                mAWSIotController.connect(accessKey, secretKey, regions, new AWSIotController.ConnectCallback() {
                     @Override
-                    public void onConnected(Exception err) {
+                    public void onConnected(final Exception err) {
                         DuringLoginDialogFragment dialog = (DuringLoginDialogFragment) getFragmentManager().findFragmentByTag("DuringDialog");
                         if (dialog != null) {
                             dialog.dismiss();
@@ -173,30 +168,10 @@ public class AWSIotLoginFragment extends Fragment {
                         FragmentTransaction transaction = manager.beginTransaction();
                         transaction.replace(R.id.container, fragment);
                         transaction.commit();
-                    }
 
-                    @Override
-                    public void onReconnecting() {
-                        // No Operation.
-                    }
-
-                    @Override
-                    public void onDisconnected() {
-                        // No Operation.
-                    }
-
-                    @Override
-                    public void onReceivedMessage(String topic, String message) {
-                        // No Operation.
+                        startAWSIot();
                     }
                 });
-
-//                mIot.connectAWSIoT(accessKey, secretKey, regions);
-                // for test
-                //mIot.connectAWSIoT( ACCESS KEY, SECRET KEY, Regions.AP_NORTHEAST_1);
-
-                DuringLoginDialogFragment dialog = new DuringLoginDialogFragment();
-                dialog.show(getFragmentManager(),"DuringDialog");
             }
         });
 
@@ -218,6 +193,20 @@ public class AWSIotLoginFragment extends Fragment {
 //            transaction.commit();
 //        }
         return rootView;
+    }
+
+    private void startAWSIot() {
+        Intent intent = new Intent();
+        intent.setClass(getActivity(), AWSIotDeviceService.class);
+        intent.setAction(AWSIotDeviceService.ACTION_CONNECT_MQTT);
+        getActivity().startService(intent);
+
+        if (mPrefUtil.getManagerRegister()) {
+            Intent intent2 = new Intent();
+            intent2.setClass(getActivity(), AWSIotLocalDeviceService.class);
+            intent2.setAction(AWSIotLocalDeviceService.ACTION_START);
+            getActivity().startService(intent2);
+        }
     }
 
     /**

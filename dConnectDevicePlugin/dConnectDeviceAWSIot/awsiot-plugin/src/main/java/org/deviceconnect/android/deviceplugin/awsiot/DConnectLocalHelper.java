@@ -10,6 +10,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.util.Log;
 
+import org.deviceconnect.android.deviceplugin.awsiot.core.AWSIotCore;
 import org.deviceconnect.android.deviceplugin.awsiot.util.HttpUtil;
 import org.deviceconnect.android.profile.AuthorizationProfile;
 import org.deviceconnect.message.DConnectMessage;
@@ -100,12 +101,8 @@ public class DConnectLocalHelper {
             builder.setPort(4035);
 
             Map<String, String> body = new HashMap<>();
-
-            // TODO
-            body.put("awsflg", "true");
-
-            // TODO
-            if (mAuthInfo != null) {
+            body.put(AWSIotCore.PARAM_SELF_FLAG, "true");
+            if (mAuthInfo != null && mAuthInfo.getAccessToken() != null) {
                 body.put(DConnectMessage.EXTRA_ACCESS_TOKEN, mAuthInfo.getAccessToken());
             }
 
@@ -148,6 +145,14 @@ public class DConnectLocalHelper {
 
     public void sendRequest(final String method, final String uri, final FinishCallback callback) {
         sendRequest(method, uri, new HashMap<String, String>(), callback);
+    }
+
+    public void availability(final DConnectLocalHelper.FinishCallback callback) {
+        DConnectLocalHelper.INSTANCE.sendRequest("GET", "http://localhost:4035/gotapi/availability", callback);
+    }
+
+    public void serviceDiscovery(final DConnectLocalHelper.FinishCallback callback) {
+        DConnectLocalHelper.INSTANCE.sendRequest("GET", "http://localhost:4035/gotapi/servicediscovery", callback);
     }
 
     private void sendRequest(final String method, final String uri, final Map<String, String> body, final FinishCallback callback) {
@@ -270,8 +275,6 @@ public class DConnectLocalHelper {
                 int result = jsonObject.getInt("result");
                 if (result == 0) {
                     String accessToken = jsonObject.getString("accessToken");
-                    Log.d("ABC", "json : " + jsonObject.toString());
-                    Log.d("ABC", "accessToken : " + accessToken);
                     mAuthInfo = new AuthInfo(clientId, accessToken);
                     mBody.put("accessToken", accessToken);
                     return executeRequest();

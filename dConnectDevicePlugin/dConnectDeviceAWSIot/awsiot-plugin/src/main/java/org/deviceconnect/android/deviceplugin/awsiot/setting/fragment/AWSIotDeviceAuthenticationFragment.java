@@ -7,22 +7,11 @@
 package org.deviceconnect.android.deviceplugin.awsiot.setting.fragment;
 
 
-import org.deviceconnect.android.deviceplugin.awsiot.AWSIotDeviceApplication;
-import org.deviceconnect.android.deviceplugin.awsiot.DConnectLocalHelper;
-import org.deviceconnect.android.deviceplugin.awsiot.core.AWSIotController;
-import org.deviceconnect.android.deviceplugin.awsiot.core.AWSIotPrefUtil;
-import org.deviceconnect.android.deviceplugin.awsiot.core.LocalDevice;
-import org.deviceconnect.android.deviceplugin.awsiot.remote.R;
-import org.deviceconnect.android.deviceplugin.awsiot.setting.AWSIotSettingActivity;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.preference.PreferenceManager;
-import android.support.annotation.NonNull;
-import android.support.v4.app.Fragment;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
+import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -34,13 +23,15 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import org.deviceconnect.android.deviceplugin.awsiot.DConnectLocalHelper;
+import org.deviceconnect.android.deviceplugin.awsiot.core.LocalDevice;
+import org.deviceconnect.android.deviceplugin.awsiot.remote.R;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
 
 /**
  * AWS IoT Settings Fragment Page 4.
@@ -48,13 +39,10 @@ import java.util.UUID;
  * @author NTT DOCOMO, INC.
  */
 public class AWSIotDeviceAuthenticationFragment extends Fragment {
-    /** Application Instance. */
-    private AWSIotDeviceApplication mApp;
-    /** AWSIoTController. */
-    private AWSIotController mIot;
     /** Device list view. */
     private ListView mListView;
-    /** Local Device Infomation Adapter */
+
+    /** Local Device Information Adapter */
     private LocalDeviceAdapter mDeviceAdapter;
 
     @Override
@@ -62,46 +50,14 @@ public class AWSIotDeviceAuthenticationFragment extends Fragment {
                              final Bundle savedInstanceState) {
         setHasOptionsMenu(true);
 
-        serviceDiscovery(new DConnectLocalHelper.FinishCallback() {
-            @Override
-            public void onFinish(final String response, final Exception error) {
-                if (response == null) {
-                    return;
-                }
-
-                try {
-                    JSONObject jsonObject = new JSONObject(response);
-                    int result = jsonObject.getInt("result");
-                    Log.d("ABC", "result : " + result);
-                    if (result == 0) {
-                        Log.d("ABC", "json : " + jsonObject);
-
-                    } else {
-                        // TODO Managerが起動していない場合の処理
-                    }
-                } catch (JSONException e) {
-//                    Log.e(TAG, "", e);
-                }
-            }
-        });
-
-
-        AWSIotSettingActivity activity = (AWSIotSettingActivity) getActivity();
-        mApp = (AWSIotDeviceApplication) activity.getApplication();
-
         View rootView = inflater.inflate(R.layout.settings_device_authentication, null);
 
-        // TODO:Adapter登録
         mListView = (ListView) rootView.findViewById(R.id.device_list_view);
-        List<LocalDevice> informations = new ArrayList<>();
-        // for test
-        {
-            String dummy = "dummy";
-            informations.addAll(createLocalDeviceInfomations(dummy));
-        }
-        mDeviceAdapter = new LocalDeviceAdapter(getActivity(), informations);
+        mDeviceAdapter = new LocalDeviceAdapter(getActivity(), new ArrayList<LocalDevice>());
         mListView.setAdapter(mDeviceAdapter);
         mListView.setItemsCanFocus(true);
+
+        getDeviceList();
 
         return rootView;
     }
@@ -111,26 +67,6 @@ public class AWSIotDeviceAuthenticationFragment extends Fragment {
         inflater.inflate(R.menu.menu, menu);
         super.onCreateOptionsMenu(menu, inflater);
         menu.clear();
-    }
-
-    private List<LocalDevice> createLocalDeviceInfomations(final String data) {
-        List<LocalDevice> informations = new ArrayList<>();
-        // TODO:JSON解析、Id, Device名取得。
-        //for test
-        informations.add(createLocalDeviceInformation("1", "HOST", false));
-        informations.add(createLocalDeviceInformation("2", "HUE A", false));
-        informations.add(createLocalDeviceInformation("3", "HUE B", true));
-        informations.add(createLocalDeviceInformation("4", "HUE C", false));
-
-        return informations;
-    }
-
-    private LocalDevice createLocalDeviceInformation(final String id, final String name, final Boolean authentication) {
-        LocalDevice info = new LocalDevice();
-        info.setServiceId(id);
-        info.setDeviceName(name);
-        info.setAuthenticationFlag(authentication);
-        return info;
     }
 
     private class LocalDeviceAdapter extends ArrayAdapter<LocalDevice> {
@@ -165,6 +101,7 @@ public class AWSIotDeviceAuthenticationFragment extends Fragment {
                         // preference変更処理(flag = true)
                         sp.edit().putBoolean(device.getServiceId(), true).apply();
                         device.setAuthenticationFlag(true);
+
                         // ボタン変更
                         btn.setBackgroundResource(R.drawable.button_gray);
                         btn.setEnabled(false);
@@ -179,13 +116,36 @@ public class AWSIotDeviceAuthenticationFragment extends Fragment {
         }
     }
 
-    private void serviceDiscovery(final DConnectLocalHelper.FinishCallback callback) {
-        new Thread(new Runnable() {
+    private void getDeviceList() {
+        DConnectLocalHelper.INSTANCE.serviceDiscovery(new DConnectLocalHelper.FinishCallback() {
             @Override
-            public void run() {
-                DConnectLocalHelper.INSTANCE.sendRequest("GET", "http://localhost:4035/gotapi/servicediscovery", callback);
-            }
-        }).start();
-    }
+            public void onFinish(final String response, final Exception error) {
+                if (response == null) {
+                    return;
+                }
 
+                List<LocalDevice> services = new ArrayList<>();
+                try {
+                    JSONObject jsonObject = new JSONObject(response);
+                    int result = jsonObject.getInt("result");
+                    if (result == 0) {
+                        JSONArray array = jsonObject.getJSONArray("services");
+                        for (int i = 0; i < array.length(); i++) {
+                            JSONObject o = array.getJSONObject(i);
+                            LocalDevice service = new LocalDevice();
+                            service.setServiceId(o.getString("id"));
+                            service.setDeviceName(o.getString("name"));
+                            services.add(service);
+                        }
+                    }
+                } catch (JSONException e) {
+                    Log.e("AWS", "", e);
+                }
+
+                mDeviceAdapter.clear();
+                mDeviceAdapter.addAll(services);
+                mDeviceAdapter.notifyDataSetInvalidated();
+            }
+        });
+    }
 }

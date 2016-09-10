@@ -5,13 +5,7 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
-    <application
-        android:allowBackup="true"
-        android:icon="@drawable/dconnect_icon"
-        android:label="@string/app_name"
-        android:supportsRtl="true"
-        android:theme="@android:style/Theme.Black.NoTitleBar">
-
+    <application>
         <activity
             android:name=".setting.AWSIotTestActivity"
             android:label="@string/app_name"
@@ -24,7 +18,7 @@
         </activity>
 
         <service
-            android:name="org.deviceconnect.android.deviceplugin.awsiot.local.AWSIotDeviceService"
+            android:name=".AWSIotLocalDeviceService"
             android:exported="false" >
         </service>
 

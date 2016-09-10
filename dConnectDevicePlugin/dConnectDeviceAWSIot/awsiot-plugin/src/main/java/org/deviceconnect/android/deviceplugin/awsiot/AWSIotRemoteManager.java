@@ -6,11 +6,8 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 
-import com.amazonaws.regions.Regions;
-
 import org.deviceconnect.android.deviceplugin.awsiot.core.AWSIotController;
 import org.deviceconnect.android.deviceplugin.awsiot.core.AWSIotCore;
-import org.deviceconnect.android.deviceplugin.awsiot.core.AWSIotDBHelper;
 import org.deviceconnect.android.deviceplugin.awsiot.core.RemoteDeviceConnectManager;
 import org.deviceconnect.android.deviceplugin.awsiot.p2p.WebClient;
 import org.deviceconnect.android.event.Event;
@@ -32,7 +29,7 @@ public class AWSIotRemoteManager extends AWSIotCore {
     private static final boolean DEBUG = true;
     private static final String TAG = "AWS-Remote";
 
-    protected List<RemoteDeviceConnectManager> mManagerList = new ArrayList<>();
+    private List<RemoteDeviceConnectManager> mManagerList = new ArrayList<>();
     private Context mContext;
 
     private AWSIotWebServerManager mAWSIotWebServerManager;
@@ -42,17 +39,42 @@ public class AWSIotRemoteManager extends AWSIotCore {
 
     private OnEventListener mOnEventListener;
 
-    /** Instance of {@link AWSIotDBHelper}. */
-    private AWSIotDBHelper mDBHelper;
-
-    public AWSIotRemoteManager(final Context context) {
+    public AWSIotRemoteManager(final Context context, final AWSIotController controller) {
         mContext = context;
+        mIot = controller;
         mAWSIotDeviceManager = new AWSIotDeviceManager();
-        mDBHelper = new AWSIotDBHelper(mContext);
     }
 
     public void setOnEventListener(OnEventListener listener) {
         mOnEventListener = listener;
+    }
+
+    public void connect() {
+        if (mAWSIotWebServerManager == null) {
+            mAWSIotWebServerManager = new AWSIotWebServerManager(mContext, this);
+        }
+        if (mAWSIotWebClientManager == null) {
+            mAWSIotWebClientManager = new AWSIotWebClientManager(mContext, this);
+        }
+
+        if (mIot.isConnected()) {
+            mIot.connectMQTT(new AWSIotController.ConnectCallback() {
+                @Override
+                public void onConnected(final Exception err) {
+                    mIot.getShadow(KEY_DCONNECT_SHADOW_NAME, new AWSIotController.GetShadowCallback() {
+                        @Override
+                        public void onReceivedShadow(final String thingName, final String result, final Exception err) {
+                            if (err != null) {
+                                mManagerList = null;
+                            } else {
+                                mManagerList = parseDeviceShadow(mContext, result);
+                            }
+                            subscribeTopic();
+                        }
+                    });
+                }
+            });
+        }
     }
 
     public void disconnect() {
@@ -71,133 +93,16 @@ public class AWSIotRemoteManager extends AWSIotCore {
         }
 
         if (mIot != null) {
-            for (RemoteDeviceConnectManager remote : mManagerList) {
-                mIot.unsubscribe(remote.getResponseTopic());
-                mIot.unsubscribe(remote.getEventTopic());
-            }
-
-            mIot.disconnect();
-            mIot = null;
+            unsubscribeTopic();
         }
-    }
-
-    public List<RemoteDeviceConnectManager> getRemoteManagerList() {
-        return mManagerList;
-    }
-
-    public void connectAWSIoT(final String accessKey, final String secretKey, final Regions region) {
-        if (mIot != null) {
-            if (DEBUG) {
-                Log.w(TAG, "mIoT is already running.");
-            }
-            return;
-        }
-
-        mIot = new AWSIotController();
-        mIot.setEventListener(new AWSIotController.EventListener() {
-            @Override
-            public void onConnected(final Exception err) {
-                if (DEBUG) {
-                    Log.d(TAG, "AWSIoTLocalManager#onConnected");
-                }
-
-                if (err != null) {
-                    if (DEBUG) {
-                        Log.w(TAG, "AWSIoTRemoteManager#onConnected", err);
-                    }
-                    if (mOnEventListener != null) {
-                        mOnEventListener.onConnected(err);
-                    }
-                    return;
-                }
-                getDeviceShadow();
-
-                if (mOnEventListener != null) {
-                    mOnEventListener.onConnected(null);
-                }
-            }
-
-            @Override
-            public void onReconnecting() {
-                if (mOnEventListener != null) {
-                    mOnEventListener.onReconnecting();
-                }
-            }
-
-            @Override
-            public void onDisconnected() {
-                if (mOnEventListener != null) {
-                    mOnEventListener.onDisconnected();
-                }
-            }
-
-            @Override
-            public void onReceivedShadow(final String thingName, final String result, final Exception err) {
-                if (DEBUG) {
-                    Log.d(TAG, "AWSIoTRemoteManager#onReceivedShadow");
-                    Log.d(TAG, "thingName=" + thingName + " result=" + result);
-                }
-
-                if (err != null) {
-                    if (DEBUG) {
-                        Log.w(TAG, "AWSIoTRemoteManager#onReceivedShadow", err);
-                    }
-                    return;
-                }
-                mManagerList = parseDeviceShadow(mContext, result);
-
-                // TODO 全部に対してsubscribeして良いのか
-                if (mManagerList != null) {
-                    for (RemoteDeviceConnectManager remote : mManagerList) {
-                        mIot.subscribe(remote.getResponseTopic());
-                        mIot.subscribe(remote.getEventTopic());
-                    }
-                }
-            }
-
-            @Override
-            public void onReceivedMessage(final String topic, final String message, final Exception err) {
-                if (DEBUG) {
-                    Log.d(TAG, "AWSIoTRemoteManager#onReceivedMessage");
-                    Log.d(TAG, "topic=" + topic + " message=" + message);
-                }
-
-                if (err != null) {
-                    if (DEBUG) {
-                        Log.w(TAG, "ASWIotRemoteManager#onReceivedMessage", err);
-                    }
-                    return;
-                }
-
-                if (mOnEventListener != null) {
-                    mOnEventListener.onReceivedMessage(topic, message);
-                }
-
-                RemoteDeviceConnectManager remote = parseTopic(topic);
-                if (remote == null) {
-                    if (DEBUG) {
-                        Log.e(TAG, "Not found the RemoteDeviceConnectManager. topic=" + topic);
-                    }
-                    return;
-                }
-
-                if (topic.endsWith(RemoteDeviceConnectManager.EVENT)) {
-                    onReceivedDeviceConnectEvent(remote, message);
-                } else if (topic.endsWith(RemoteDeviceConnectManager.RESPONSE)) {
-                    parseMQTT(remote, message);
-                } else {
-                    if (DEBUG) {
-                        Log.w(TAG, "Unknown topic. topic=" + topic);
-                    }
-                }
-            }
-        });
-        mIot.connect(accessKey, secretKey, region);
-        mAWSIotWebServerManager = new AWSIotWebServerManager(mContext, this);
-        mAWSIotWebClientManager = new AWSIotWebClientManager(mContext, this);
     }
 
     public boolean sendRequest(final Intent request, final Intent response) {
+        if (!mIot.isConnected()) {
+            MessageUtils.setUnknownError(response);
+            return true;
+        }
+
         RemoteDeviceConnectManager remote = mAWSIotDeviceManager.findManagerById(DConnectProfile.getServiceID(request));
         if (remote == null) {
             MessageUtils.setNotFoundServiceError(response);
@@ -243,6 +148,11 @@ public class AWSIotRemoteManager extends AWSIotCore {
             Log.i(TAG, "@@@@@@@@@ AWSIotRemoteManager#sendServiceDiscovery");
         }
 
+        if (!mIot.isConnected()) {
+            MessageUtils.setUnknownError(response);
+            return true;
+        }
+
         if (existAWSFlag(request)) {
             MessageUtils.setUnknownError(response);
             return true;
@@ -259,24 +169,26 @@ public class AWSIotRemoteManager extends AWSIotCore {
         return false;
     }
 
-    public String createWebServer(final RemoteDeviceConnectManager remote, final String address, final String path) {
-        return mAWSIotWebServerManager.createWebServer(remote, address, path);
-    }
-
     public void publish(final RemoteDeviceConnectManager remote, final String message) {
         mIot.publish(remote.getRequestTopic(), message);
     }
 
-    public boolean isConnected() {
-        return mIot.isConnected();
+    private String createWebServer(final RemoteDeviceConnectManager remote, final String address, final String path) {
+        return mAWSIotWebServerManager.createWebServer(remote, address, path);
     }
 
-    public String getAWSIotEndPoint() {
-        return mIot.getAWSIotEndPoint();
+    private void subscribeTopic() {
+        for (RemoteDeviceConnectManager remote : mManagerList) {
+            mIot.subscribe(remote.getResponseTopic(), mMessageCallback);
+            mIot.subscribe(remote.getEventTopic(), mMessageCallback);
+        }
     }
 
-    public void updateShadow(final String name, final String key, final Object value) {
-        mIot.updateShadow(name, key, value);
+    private void unsubscribeTopic() {
+        for (RemoteDeviceConnectManager remote : mManagerList) {
+            mIot.unsubscribe(remote.getResponseTopic());
+            mIot.unsubscribe(remote.getEventTopic());
+        }
     }
 
     private void sendResponse(final Intent intent) {
@@ -288,7 +200,14 @@ public class AWSIotRemoteManager extends AWSIotCore {
     }
 
     private boolean existAWSFlag(final Intent intent) {
-        return intent.getExtras().getBoolean(AWSIotCore.PARAM_SELF_FLAG, false);
+        Object o = intent.getExtras().get(AWSIotCore.PARAM_SELF_FLAG);
+        if (o instanceof String) {
+            return "true".equals(o);
+        } else if (o instanceof Boolean) {
+            return (Boolean) o;
+        } else {
+            return false;
+        }
     }
 
     private RemoteDeviceConnectManager parseTopic(final String topic) {
@@ -414,45 +333,37 @@ public class AWSIotRemoteManager extends AWSIotCore {
         }
     }
 
-    /**
-     * database操作関連
-     */
-    /**
-     * Update Subscribe flag.
-     * @param id Manager Id.
-     * @param flag subscribe flag.
-     * @return true(Success) / false(Failed).
-     */
-    public boolean updateSubscribeFlag(final String id, final boolean flag) {
-        boolean result = false;
-        RemoteDeviceConnectManager manager = findRegisteredManagerById(id);
-        if (manager != null) {
-            int index = mManagerList.indexOf(manager);
-            manager.setSubscribeFlag(flag);
-            mDBHelper.updateManager(manager);
-            mManagerList.set(index, manager);
-            result = true;
-        }
-        return result;
-    }
+    private final AWSIotController.MessageCallback mMessageCallback = new AWSIotController.MessageCallback() {
+        @Override
+        public void onReceivedMessage(final String topic, final String message, final Exception err) {
+            if (err != null) {
+                Log.e(TAG, "", err);
+                return;
+            }
 
-    /**
-     * Find the {@link RemoteDeviceConnectManager} from id.
-     *
-     * @param id id of Manager
-     * @return {@link RemoteDeviceConnectManager}, or null
-     */
-    private RemoteDeviceConnectManager findRegisteredManagerById(final String id) {
-        synchronized (mManagerList) {
-            for (RemoteDeviceConnectManager d : mManagerList) {
-                if (d.getServiceId().equalsIgnoreCase(id)) {
-                    return d;
+            if (mOnEventListener != null) {
+                mOnEventListener.onReceivedMessage(topic, message);
+            }
+
+            RemoteDeviceConnectManager remote = parseTopic(topic);
+            if (remote == null) {
+                if (DEBUG) {
+                    Log.e(TAG, "Not found the RemoteDeviceConnectManager. topic=" + topic);
+                }
+                return;
+            }
+
+            if (topic.endsWith(RemoteDeviceConnectManager.EVENT)) {
+                onReceivedDeviceConnectEvent(remote, message);
+            } else if (topic.endsWith(RemoteDeviceConnectManager.RESPONSE)) {
+                parseMQTT(remote, message);
+            } else {
+                if (DEBUG) {
+                    Log.w(TAG, "Unknown topic. topic=" + topic);
                 }
             }
         }
-        return null;
-    }
-
+    };
 
     public interface OnEventListener {
         void onConnected(Exception err);

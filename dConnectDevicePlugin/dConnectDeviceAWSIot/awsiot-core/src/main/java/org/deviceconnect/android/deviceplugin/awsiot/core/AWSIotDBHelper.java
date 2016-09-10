@@ -6,8 +6,6 @@
  */
 package org.deviceconnect.android.deviceplugin.awsiot.core;
 
-import org.deviceconnect.android.deviceplugin.awsiot.core.RemoteDeviceConnectManager;
-
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -20,14 +18,19 @@ import java.util.List;
 
 /**
  * This class manage a database.
+ *
  * @author NTT DOCOMO, INC.
  */
 public class AWSIotDBHelper {
 
-    /** データベース名. */
+    /**
+     * データベース名.
+     */
     private static final String DB_NAME = "awsiot.db";
 
-    /** データベースバージョン. */
+    /**
+     * データベースバージョン.
+     */
     private static final int DB_VERSION = 1;
     private static final String TBL_NAME = "manager_tbl";
 
@@ -44,6 +47,7 @@ public class AWSIotDBHelper {
 
     /**
      * Add the manager in the database.
+     *
      * @param manager RemoteDeviceConnectManager
      * @return the number of rows added
      */
@@ -64,6 +68,7 @@ public class AWSIotDBHelper {
 
     /**
      * Update the manager in the database.
+     *
      * @param manager RemoteDeviceConnectManager
      * @return the number of rows updated
      */
@@ -88,7 +93,7 @@ public class AWSIotDBHelper {
 
     public synchronized RemoteDeviceConnectManager findManagerById(final String id) {
         RemoteDeviceConnectManager manager;
-        String SQL_SELECT = "SELECT * FROM "+ TBL_NAME + " WHERE "
+        String SQL_SELECT = "SELECT * FROM " + TBL_NAME + " WHERE "
                 + COL_SERVICE_ID + "=? " + ";";
         String[] whereArgs = {
                 id
@@ -97,8 +102,9 @@ public class AWSIotDBHelper {
         SQLiteDatabase db = mDBHelper.getReadableDatabase();
         Cursor cursor = db.rawQuery(SQL_SELECT, whereArgs);
         if (cursor.moveToFirst()) {
-            manager = new RemoteDeviceConnectManager(cursor.getString(cursor.getColumnIndex(COL_SERVICE_ID)),
-                            cursor.getString(cursor.getColumnIndex(COL_NAME)));
+            manager = new RemoteDeviceConnectManager(
+                    cursor.getString(cursor.getColumnIndex(COL_NAME)),
+                    cursor.getString(cursor.getColumnIndex(COL_SERVICE_ID)));
             manager.setSubscribeFlag(cursor.getInt(cursor.getColumnIndex(COL_SUBSCRIBE_FLAG)) == 1);
             cursor.close();
             db.close();
@@ -112,6 +118,7 @@ public class AWSIotDBHelper {
 
     /**
      * Delete the manager in the database.
+     *
      * @param manager RemoteDeviceConnectManager
      * @return the number of rows deleted, 0 otherwise
      */
@@ -146,6 +153,7 @@ public class AWSIotDBHelper {
 
     /**
      * Get a list of information in the database.
+     *
      * @return a list of information
      */
     public synchronized List<RemoteDeviceConnectManager> getManagers() {
@@ -159,8 +167,9 @@ public class AWSIotDBHelper {
         boolean next = cursor.moveToFirst();
         while (next) {
             RemoteDeviceConnectManager manager =
-                    new RemoteDeviceConnectManager(cursor.getString(cursor.getColumnIndex(COL_SERVICE_ID)),
-                            cursor.getString(cursor.getColumnIndex(COL_NAME)));
+                    new RemoteDeviceConnectManager(
+                            cursor.getString(cursor.getColumnIndex(COL_NAME)),
+                            cursor.getString(cursor.getColumnIndex(COL_SERVICE_ID)));
             manager.setSubscribeFlag(cursor.getInt(cursor.getColumnIndex(COL_SUBSCRIBE_FLAG)) == 1);
             managers.add(manager);
             next = cursor.moveToNext();

@@ -109,34 +109,10 @@ public class AWSIotLoginFragment extends Fragment {
                     Toast.makeText(getContext(), "Secret Keyを入力して下さい。", Toast.LENGTH_LONG).show();
                     return;
                 }
+
                 String selectRegion = (String) mRegion.getSelectedItem();
-                Regions regions;
-                switch (selectRegion) {
-                    case "us-east-1":
-                        regions = Regions.US_EAST_1;
-                        break;
-                    case "us-west-2":
-                        regions = Regions.US_WEST_2;
-                        break;
-                    case "ap-southeast-1":
-                        regions = Regions.AP_SOUTHEAST_1;
-                        break;
-                    case "ap-southeast-2":
-                        regions = Regions.AP_SOUTHEAST_2;
-                        break;
-                    case "ap-northeast-1":
-                        regions = Regions.AP_NORTHEAST_1;
-                        break;
-                    case "eu-central-1":
-                        regions = Regions.EU_CENTRAL_1;
-                        break;
-                    case "eu-west-1":
-                        regions = Regions.EU_WEST_1;
-                        break;
-                    default:
-                        Toast.makeText(getContext(), "リージョンを設定して下さい。", Toast.LENGTH_LONG).show();
-                        return;
-                }
+                Regions regions = Regions.fromName(selectRegion);
+
                 mPrefUtil.setAccessKey(accessKey);
                 mPrefUtil.setSecretKey(secretKey);
                 mPrefUtil.setRegions(regions);

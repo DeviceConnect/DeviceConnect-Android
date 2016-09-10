@@ -18,6 +18,7 @@ import org.deviceconnect.android.deviceplugin.awsiot.core.AWSIotDeviceApplicatio
 import org.deviceconnect.android.deviceplugin.awsiot.core.AWSIotPrefUtil;
 import org.deviceconnect.android.deviceplugin.awsiot.remote.R;
 import org.deviceconnect.android.deviceplugin.awsiot.setting.fragment.AWSIotLoginFragment;
+import org.deviceconnect.android.deviceplugin.awsiot.setting.fragment.AWSIotManagerListFragment;
 
 /**
  * 設定用Activity.
@@ -30,9 +31,9 @@ public class AWSIotSettingActivity extends FragmentActivity {
     @Override
     protected void onCreate(final Bundle saveInstanceState) {
         super.onCreate(saveInstanceState);
+
         mPrefUtil = new AWSIotPrefUtil(this);
 
-        AWSIotDeviceApplication app = (AWSIotDeviceApplication) getApplication();
         setContentView(R.layout.activity_main);
         ActionBar ab = getActionBar();
         if (ab != null) {
@@ -41,11 +42,20 @@ public class AWSIotSettingActivity extends FragmentActivity {
             ab.setTitle("CLOSE");
         }
 
-        FragmentManager manager = getSupportFragmentManager();
-        AWSIotLoginFragment mFragment = new AWSIotLoginFragment();
-        FragmentTransaction transaction = manager.beginTransaction();
-        transaction.add(R.id.container, mFragment, "AWSIotLoginFragment");
-        transaction.commit();
+        AWSIotController controller = getAWSIotController();
+        if (controller.isConnected()) {
+            FragmentManager manager = getSupportFragmentManager();
+            AWSIotManagerListFragment fragment = new AWSIotManagerListFragment();
+            FragmentTransaction transaction = manager.beginTransaction();
+            transaction.add(R.id.container, fragment, "AWSIotLoginFragment");
+            transaction.commit();
+        } else {
+            FragmentManager manager = getSupportFragmentManager();
+            AWSIotLoginFragment fragment = new AWSIotLoginFragment();
+            FragmentTransaction transaction = manager.beginTransaction();
+            transaction.add(R.id.container, fragment, "AWSIotLoginFragment");
+            transaction.commit();
+        }
     }
 
     @Override

@@ -1,9 +1,9 @@
 package org.deviceconnect.android.deviceplugin.awsiot.core;
 
+import android.content.Context;
+
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import android.content.Context;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -27,13 +27,16 @@ public class AWSIotCore {
 
     protected AWSIotController mIot;
 
-    public void getDeviceShadow() {
-        mIot.getShadow(KEY_DCONNECT_SHADOW_NAME);
-    }
+    public static List<RemoteDeviceConnectManager> parseDeviceShadow(final Context context, final String message) {
+        if (context == null || message == null) {
+            return new ArrayList<>();
+        }
 
-    public List<RemoteDeviceConnectManager> parseDeviceShadow(final Context context, final String message) {
         List<RemoteDeviceConnectManager> managers = new ArrayList<>();
         AWSIotDBHelper dbHelper = new AWSIotDBHelper(context);
+
+        AWSIotPrefUtil util = new AWSIotPrefUtil(context);
+        String myUuid = util.getManagerUuid();
 
         // JSON解析、Id, Manager名取得。
         try {
@@ -44,42 +47,36 @@ public class AWSIotCore {
             Iterator<String> ids = obj.keys();
             while (ids.hasNext()) {
                 String id = ids.next();
+
+                // 自分自身のUUIDの場合にはリストに含めいない
+                if (id.equals(myUuid)) {
+                    continue;
+                }
+
                 JSONObject manager = obj.getJSONObject(id);
                 Boolean online = manager.getBoolean("online");
                 String name = manager.getString("name");
                 Double timeStamp = manager.getDouble("timeStamp");
 
-                mLogger.info("id       : " + id);
-                mLogger.info("online   : " + online);
-                mLogger.info("name     : " + name);
-                mLogger.info("timeStamp: " + timeStamp);
-
                 // DB登録チェック
                 RemoteDeviceConnectManager findInfo = dbHelper.findManagerById(id);
                 if (findInfo != null) {
-                    mLogger.info("DB update: ");
-                    // DB更新
                     findInfo.setName(name);
                     dbHelper.updateManager(findInfo);
                 } else {
-                    mLogger.info("DB register: ");
                     findInfo = new RemoteDeviceConnectManager(name, id);
                     dbHelper.addManager(findInfo);
                 }
-                // listへ登録。
                 managers.add(findInfo);
             }
         } catch (JSONException e) {
             e.printStackTrace();
         }
-
-//        managers.add(new RemoteDeviceConnectManager("abc", "test"));
-//        managers.add(new RemoteDeviceConnectManager("5807D0DF-1D5F-4D8E-9779-A9417C5CA1D0", "test"));
         return managers;
     }
 
-    public void updateDeviceShadow(final RemoteDeviceConnectManager remote) {
-        // TODO Remoteが登録されていない場合は追加すること
+    public AWSIotController getAWSIotController() {
+        return mIot;
     }
 
     public String createRequest(final int requestCode, final String request) {

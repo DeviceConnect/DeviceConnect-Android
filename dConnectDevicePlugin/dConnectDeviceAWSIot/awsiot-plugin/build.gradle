@@ -31,5 +31,5 @@ android {
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile project(':dconnect-device-plugin-sdk')
-    compile project(':awsiot-core')
+    compile project(':awsiot-plugin-local')
 }

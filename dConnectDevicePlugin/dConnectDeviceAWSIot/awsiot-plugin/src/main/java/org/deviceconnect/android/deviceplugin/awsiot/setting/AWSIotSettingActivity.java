@@ -7,21 +7,18 @@
 package org.deviceconnect.android.deviceplugin.awsiot.setting;
 
 import android.app.ActionBar;
-import android.app.Activity;
-import android.content.Intent;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.view.MenuItem;
 
-import org.deviceconnect.android.deviceplugin.awsiot.AWSIotDeviceApplication;
-import org.deviceconnect.android.deviceplugin.awsiot.AWSIotRemoteManager;
+import org.deviceconnect.android.deviceplugin.awsiot.core.AWSIotController;
+import org.deviceconnect.android.deviceplugin.awsiot.core.AWSIotDeviceApplication;
 import org.deviceconnect.android.deviceplugin.awsiot.core.AWSIotPrefUtil;
 import org.deviceconnect.android.deviceplugin.awsiot.remote.R;
 import org.deviceconnect.android.deviceplugin.awsiot.setting.fragment.AWSIotLoginFragment;
-import org.deviceconnect.android.ui.activity.DConnectSettingPageActivity;
+import org.deviceconnect.android.deviceplugin.awsiot.setting.fragment.AWSIotManagerListFragment;
 
 /**
  * 設定用Activity.
@@ -29,28 +26,36 @@ import org.deviceconnect.android.ui.activity.DConnectSettingPageActivity;
  * @author NTT DOCOMO, INC.
  */
 public class AWSIotSettingActivity extends FragmentActivity {
-    private AWSIotRemoteManager mAWSIotRemoteManager;
     private AWSIotPrefUtil mPrefUtil;
 
     @Override
     protected void onCreate(final Bundle saveInstanceState) {
         super.onCreate(saveInstanceState);
-        mPrefUtil = new AWSIotPrefUtil(this);
-        mAWSIotRemoteManager = new AWSIotRemoteManager(this);
 
-        AWSIotDeviceApplication app = (AWSIotDeviceApplication) getApplication();
-        app.initialize();
+        mPrefUtil = new AWSIotPrefUtil(this);
+
         setContentView(R.layout.activity_main);
         ActionBar ab = getActionBar();
-        ab.setDisplayHomeAsUpEnabled(true);
-        ab.setDisplayOptions(0, ActionBar.DISPLAY_SHOW_HOME);
-        ab.setTitle("CLOSE");
+        if (ab != null) {
+            ab.setDisplayHomeAsUpEnabled(true);
+            ab.setDisplayOptions(0, ActionBar.DISPLAY_SHOW_HOME);
+            ab.setTitle("CLOSE");
+        }
 
-        FragmentManager manager = getSupportFragmentManager();
-        AWSIotLoginFragment mFragment = new AWSIotLoginFragment();
-        FragmentTransaction transaction = manager.beginTransaction();
-        transaction.add(R.id.container, mFragment, "AWSIotLoginFragment");
-        transaction.commit();
+        AWSIotController controller = getAWSIotController();
+        if (controller.isConnected()) {
+            FragmentManager manager = getSupportFragmentManager();
+            AWSIotManagerListFragment fragment = new AWSIotManagerListFragment();
+            FragmentTransaction transaction = manager.beginTransaction();
+            transaction.add(R.id.container, fragment, "AWSIotLoginFragment");
+            transaction.commit();
+        } else {
+            FragmentManager manager = getSupportFragmentManager();
+            AWSIotLoginFragment fragment = new AWSIotLoginFragment();
+            FragmentTransaction transaction = manager.beginTransaction();
+            transaction.add(R.id.container, fragment, "AWSIotLoginFragment");
+            transaction.commit();
+        }
     }
 
     @Override
@@ -64,8 +69,8 @@ public class AWSIotSettingActivity extends FragmentActivity {
         }
     }
 
-    public AWSIotRemoteManager getAWSIotRemoteManager() {
-        return mAWSIotRemoteManager;
+    public AWSIotController getAWSIotController() {
+        return ((AWSIotDeviceApplication) getApplication()).getAWSIotController();
     }
 
     public AWSIotPrefUtil getPrefUtil() {

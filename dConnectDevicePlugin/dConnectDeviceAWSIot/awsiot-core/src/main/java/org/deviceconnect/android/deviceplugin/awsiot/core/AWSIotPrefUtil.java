@@ -14,6 +14,7 @@ public class AWSIotPrefUtil extends PreferenceUtil {
     public static final String KEY_MANAGER_NAME = "awsManagerName";
     public static final String KEY_MANAGER_UUID = "awsManagerUuid";
     public static final String KEY_MANAGER_REGISTER = "awsManagerRegister";
+    public static final String KEY_SYNC_TIME = "awsSyncTime";
 
     public AWSIotPrefUtil(final Context context) {
         super(context);
@@ -70,5 +71,13 @@ public class AWSIotPrefUtil extends PreferenceUtil {
     public boolean getManagerRegister()
     {
         return getBoolean(KEY_MANAGER_REGISTER);
+    }
+
+    public long getSyncTime() {
+        return getLong(KEY_SYNC_TIME);
+    }
+
+    public void setSyncTime(final long syncTime) {
+        putValue(KEY_SYNC_TIME, syncTime);
     }
 }

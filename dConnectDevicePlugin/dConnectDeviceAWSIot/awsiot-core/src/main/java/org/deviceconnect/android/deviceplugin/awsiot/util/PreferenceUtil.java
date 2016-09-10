@@ -45,4 +45,8 @@ public class PreferenceUtil {
     public boolean getBoolean(final String key) {
         return mPreferences.getBoolean(key, false);
     }
+
+    public long getLong(final String key) {
+        return mPreferences.getLong(key, 0);
+    }
 }

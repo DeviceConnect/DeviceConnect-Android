@@ -39,6 +39,8 @@ public class AWSIotController {
     private static final boolean DEBUG = true;
     private static final String TAG = "AWS";
 
+    private static final String END_POINT_ADDRESS = "endpointAddress";
+
     /**
      * AWSIoTのClient
      */
@@ -69,59 +71,20 @@ public class AWSIotController {
      */
     private String mAWSIotEndPoint = "Not Connected";
 
-    /**
-     * イベントリスナー
-     */
-    private EventListener mEventListener;
-
-    /**
-     * イベントリスナー
-     */
-    public interface EventListener {
-
-        /**
-         * 接続完了.
-         *
-         * @param err エラー
-         */
+    public interface ConnectCallback {
         void onConnected(Exception err);
-
-        /**
-         * 再接続中.
-         */
-        void onReconnecting();
-
-        /**
-         * 切断完了.
-         */
-        void onDisconnected();
-
-        /**
-         * Shadow取得.
-         *
-         * @param thingName thing名
-         * @param result    result
-         * @param err       エラー
-         */
-        void onReceivedShadow(String thingName, String result, Exception err);
-
-        /**
-         * メッセージ受信.
-         *
-         * @param topic   Topic名
-         * @param message メッセージ
-         * @param err     エラー
-         */
-        void onReceivedMessage(String topic, String message, Exception err);
     }
 
-    /**
-     * イベントリスナーを設定
-     *
-     * @param listener リスナー
-     */
-    public void setEventListener(final EventListener listener) {
-        mEventListener = listener;
+    public interface GetShadowCallback {
+        void onReceivedShadow(String thingName, String result, Exception err);
+    }
+
+    public interface UpdateShadowCallback {
+        void onUpdateShadow(String result, Exception err);
+    }
+
+    public interface MessageCallback {
+        void onReceivedMessage(String topic, String message, Exception err);
     }
 
     /**
@@ -131,9 +94,7 @@ public class AWSIotController {
      * @param secretKey シークレットキー
      * @param region    リージョン
      */
-    public void connect(final String accessKey, final String secretKey, final Regions region) {
-        mIsConnected = false;
-
+    public void connect(final String accessKey, final String secretKey, final Regions region, final ConnectCallback callback) {
         BasicAWSCredentials credentials = new BasicAWSCredentials(accessKey, secretKey);
         mCredentialsProvider = new StaticCredentialsProvider(credentials);
 
@@ -141,7 +102,32 @@ public class AWSIotController {
         mIotClient.setRegion(Region.getRegion(region));
         mIotDataClient = new AWSIotDataClient(mCredentialsProvider);
 
-        new DescribeEndpointTask().execute();
+        new DescribeEndpointTask() {
+            @Override
+            protected void onPostExecute(final AsyncTaskResult<String> result) {
+                Exception exception;
+                if (result.getError() == null) {
+                    JSONObject json;
+                    try {
+                        json = new JSONObject(result.getResult());
+                        if (json.has(END_POINT_ADDRESS)) {
+                            String endpoint = json.getString(END_POINT_ADDRESS);
+                            mAWSIotEndPoint = endpoint;
+                            mIotDataClient.setEndpoint(endpoint);
+                            connectMQTT(callback);
+                            return;
+                        } else {
+                            exception = new Exception("Not found endpointAddress.");
+                        }
+                    } catch (JSONException e) {
+                        exception = e;
+                    }
+                } else {
+                    exception = result.getError();
+                }
+                callback.onConnected(exception);
+            }
+        }.execute();
     }
 
     public void disconnect() {
@@ -149,64 +135,51 @@ public class AWSIotController {
             Log.i(TAG, "AWSIotController#disconnect");
         }
 
-        // TODO 切断処理
+        mAWSIotEndPoint = null;
+        mIotClient = null;
+        mIotDataClient = null;
+        mCredentialsProvider = null;
 
-        if (mMqttManager != null) {
-            mMqttManager.disconnect();
-        }
+        disconnectMQTT();
     }
 
-    /**
-     * Shadowの取得.
-     *
-     * @param name Shadow名
-     */
-    public void getShadow(final String name) {
-        if (!mIsConnected) {
-            if (mEventListener != null) {
-                // TODO: エラー種類
-                mEventListener.onReceivedShadow(name, null, new Exception());
+    public void getShadow(final String name, final GetShadowCallback callback) {
+        if (callback == null) {
+            throw new NullPointerException("callback is null.");
+        }
+
+        if (mAWSIotEndPoint == null) {
+            callback.onReceivedShadow(name, null, new RuntimeException("No Connect to the AWS IoT Server."));
+            return;
+        }
+
+        GetShadowTask task = new GetShadowTask(name) {
+            @Override
+            protected void onPostExecute(final AsyncTaskResult<String> result) {
+                callback.onReceivedShadow(name, result.getResult(), result.getError());
             }
-            return;
-        }
-        GetShadowTask getStatusShadowTask = new GetShadowTask(name);
-        getStatusShadowTask.execute();
+        };
+        task.execute();
     }
 
-    /**
-     * Shadowの更新.
-     *
-     * @param name  Shadow名
-     * @param key   キー
-     * @param value 値
-     */
-    public void updateShadow(final String name, final String key, final Object value) {
-        if (!mIsConnected) {
+    public void updateShadow(final String name, final String key, final Object value, final UpdateShadowCallback callback) {
+        if (callback == null) {
+            throw new NullPointerException("callback is null.");
+        }
+
+        if (mAWSIotEndPoint == null) {
+            callback.onUpdateShadow(null, new RuntimeException("No Connect to the AWS IoT Server."));
             return;
         }
 
-        UpdateShadowTask updateShadowTask = new UpdateShadowTask();
+        UpdateShadowTask updateShadowTask = new UpdateShadowTask() {
+            @Override
+            protected void onPostExecute(final AsyncTaskResult<String> result) {
+                callback.onUpdateShadow(result.getResult(), result.getError());
+            }
+        };
         updateShadowTask.setThingName(name);
-        String state = makeJson(key, value).toString();
-        updateShadowTask.setState(state);
-        updateShadowTask.execute();
-    }
-
-    /**
-     * Shadowの更新.
-     *
-     * @param name Shadow名
-     * @param keys 値
-     */
-    public void updateShadow(final String name, final HashMap<String, Object> keys) {
-        if (!mIsConnected) {
-            return;
-        }
-
-        UpdateShadowTask updateShadowTask = new UpdateShadowTask();
-        updateShadowTask.setThingName(name);
-        String state = makeJson(keys).toString();
-        updateShadowTask.setState(state);
+        updateShadowTask.setState(makeJson(key, value).toString());
         updateShadowTask.execute();
     }
 
@@ -216,14 +189,9 @@ public class AWSIotController {
      * @param name Shadow名
      */
     public void clearShadow(final String name) {
-        if (!mIsConnected) {
-            return;
-        }
-
         UpdateShadowTask updateShadowTask = new UpdateShadowTask();
         updateShadowTask.setThingName(name);
-        String state = "{\"state\":{\"reported\":null}}";
-        updateShadowTask.setState(state);
+        updateShadowTask.setState("{\"state\":{\"reported\":null}}");
         updateShadowTask.execute();
     }
 
@@ -293,41 +261,6 @@ public class AWSIotController {
                 return new AsyncTaskResult<>(e);
             }
         }
-
-        @Override
-        protected void onPostExecute(final AsyncTaskResult<String> result) {
-            Exception exception;
-            if (result.getError() == null) {
-                JSONObject json;
-                try {
-                    json = new JSONObject(result.getResult());
-                    if (json.has("endpointAddress")) {
-                        String endpoint = json.getString("endpointAddress");
-                        mAWSIotEndPoint = endpoint;
-                        mIotDataClient.setEndpoint(endpoint);
-                        String clientId = UUID.randomUUID().toString();
-                        // TODO AWS IoTの設定
-                        mMqttManager = new AWSIotMqttManager(clientId, endpoint);
-                        mMqttManager.setKeepAlive(120);
-                        mMqttManager.setConnectionStabilityTime(180);
-                        mMqttManager.setReconnectRetryLimits(1, 5);
-                        mMqttManager.setMaxAutoReconnectAttepts(-1);
-                        mMqttManager.setAutoReconnect(true);
-                        connectMQTT();
-                        return;
-                    } else {
-                        exception = new Exception("Not found endpointAddress.");
-                    }
-                } catch (JSONException e) {
-                    exception = e;
-                }
-            } else {
-                exception = result.getError();
-            }
-            if (mEventListener != null) {
-                mEventListener.onConnected(exception);
-            }
-        }
     }
 
     /**
@@ -336,7 +269,7 @@ public class AWSIotController {
     private class GetShadowTask extends AsyncTask<Void, Void, AsyncTaskResult<String>> {
 
         /**
-         * Thing名
+         * Thing名.
          */
         private final String thingName;
 
@@ -363,13 +296,6 @@ public class AWSIotController {
                     Log.e(TAG, "Error on GetShadowTask", e);
                 }
                 return new AsyncTaskResult<>("");
-            }
-        }
-
-        @Override
-        protected void onPostExecute(final AsyncTaskResult<String> result) {
-            if (mEventListener != null) {
-                mEventListener.onReceivedShadow(thingName, result.getResult(), result.getError());
             }
         }
     }
@@ -428,34 +354,35 @@ public class AWSIotController {
                 return new AsyncTaskResult<>(e);
             }
         }
-
-        @Override
-        protected void onPostExecute(final AsyncTaskResult<String> result) {
-            if (result.getError() == null) {
-                if (DEBUG) {
-                    Log.d(TAG, result.getResult());
-                }
-                // TODO: callback
-            }
-        }
     }
 
     /**
      * MQTTへの接続.
      */
-    public void connectMQTT() {
+    public void connectMQTT(final ConnectCallback callback) {
         if (DEBUG) {
             Log.i(TAG, "connectMQTT");
         }
 
-        if (mMqttManager == null) {
+        if (mMqttManager != null) {
+            if (callback != null) {
+                callback.onConnected(null);
+            }
             return;
         }
+
+        String clientId = UUID.randomUUID().toString();
+        mMqttManager = new AWSIotMqttManager(clientId, mAWSIotEndPoint);
+        mMqttManager.setKeepAlive(120);
+        mMqttManager.setConnectionStabilityTime(180);
+        mMqttManager.setReconnectRetryLimits(1, 5);
+        mMqttManager.setMaxAutoReconnectAttepts(-1);
+        mMqttManager.setAutoReconnect(true);
 
         try {
             mMqttManager.connect(mCredentialsProvider, new AWSIotMqttClientStatusCallback() {
                 @Override
-                public void onStatusChanged(AWSIotMqttClientStatus status, Throwable throwable) {
+                public void onStatusChanged(final AWSIotMqttClientStatus status, final Throwable throwable) {
                     if (DEBUG) {
                         Log.d(TAG, "MQTT Status = " + String.valueOf(status));
                         if (throwable != null) {
@@ -467,18 +394,12 @@ public class AWSIotController {
                         // 接続済みとする
                         if (!mIsConnected) {
                             mIsConnected = true;
-                            if (mEventListener != null) {
-                                mEventListener.onConnected(null);
+                            if (callback != null) {
+                                callback.onConnected(null);
                             }
                         }
                     } else if (status == AWSIotMqttClientStatus.Reconnecting) {
-                        if (mEventListener != null) {
-                            mEventListener.onReconnecting();
-                        }
                     } else if (status == AWSIotMqttClientStatus.ConnectionLost) {
-                        if (mEventListener != null) {
-                            mEventListener.onDisconnected();
-                        }
                     } else {
                     }
                 }
@@ -490,14 +411,15 @@ public class AWSIotController {
         }
     }
 
-    /**
-     * MQTTのTopicを購読する.
-     * <p>
-     * 登録時のTopicのフォーマットは<a href="http://docs.aws.amazon.com/iot/latest/developerguide/thing-shadow-mqtt.html">Device Shadow MQTT Pub/Sub Messages</a>を参照。
-     * </p>
-     * @param topic topicのURI
-     */
-    public void subscribe(final String topic) {
+    public void disconnectMQTT() {
+        if (mMqttManager != null) {
+            mMqttManager.disconnect();
+            mMqttManager = null;
+        }
+        mIsConnected = false;
+    }
+
+    public void subscribe(final String topic, final MessageCallback callback) {
         if (DEBUG) {
             Log.d(TAG, "********* subscribe: " + topic);
         }
@@ -511,17 +433,9 @@ public class AWSIotController {
                     @Override
                     public void onMessageArrived(final String topic, final byte[] data) {
                         try {
-                            String message = new String(data, "UTF-8");
-                            if (mEventListener != null) {
-                                mEventListener.onReceivedMessage(topic, message, null);
-                            }
+                            callback.onReceivedMessage(topic, new String(data, "UTF-8"), null);
                         } catch (UnsupportedEncodingException e) {
-                            if (DEBUG) {
-                                Log.e(TAG, "Message encoding error.", e);
-                            }
-                            if (mEventListener != null) {
-                                mEventListener.onReceivedMessage(topic, null, e);
-                            }
+                            callback.onReceivedMessage(topic, null, e);
                         }
                     }
                 });
@@ -564,7 +478,9 @@ public class AWSIotController {
             mMqttManager.publishString(msg, topic, AWSIotMqttQos.QOS0, new AWSIotMqttMessageDeliveryCallback() {
                 @Override
                 public void statusChanged(MessageDeliveryStatus status, Object userData) {
-                    Log.e(TAG, "AWSIotController#publish: MessageDeliveryStatus=" + status);
+                    if (DEBUG) {
+                        Log.i(TAG, "AWSIotController#publish: MessageDeliveryStatus=" + status);
+                    }
                 }
             }, null);
         } catch (Exception e) {

@@ -6,8 +6,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
-import com.amazonaws.regions.Regions;
-
 import org.deviceconnect.android.deviceplugin.awsiot.AWSIotRemoteManager;
 import org.deviceconnect.android.deviceplugin.awsiot.core.RemoteDeviceConnectManager;
 import org.deviceconnect.android.deviceplugin.awsiot.remote.R;
@@ -55,29 +53,29 @@ public class AWSIotTestActivity extends Activity {
     }
 
     private void startAWSIoT() {
-        mAWSIotRemoteManager = new AWSIotRemoteManager(this);
-        mAWSIotRemoteManager.connectAWSIoT("ACCESS_KEY", "SECRET_KEY", Regions.AP_NORTHEAST_1);
-        mAWSIotRemoteManager.setOnEventListener(new AWSIotRemoteManager.OnEventListener() {
-            @Override
-            public void onConnected(Exception err) {
-                log("onConnected");
-            }
-
-            @Override
-            public void onReconnecting() {
-                log("onReconnecting");
-            }
-
-            @Override
-            public void onDisconnected() {
-                log("onDisconnected");
-            }
-
-            @Override
-            public void onReceivedMessage(String topic, String message) {
-                log("topic: " + topic + " message=" + message);
-            }
-        });
+//        mAWSIotRemoteManager = new AWSIotRemoteManager(this);
+//        mAWSIotRemoteManager.connectAWSIoT("ACCESS_KEY", "SECRET_KEY", Regions.AP_NORTHEAST_1);
+//        mAWSIotRemoteManager.setOnEventListener(new AWSIotRemoteManager.OnEventListener() {
+//            @Override
+//            public void onConnected(Exception err) {
+//                log("onConnected");
+//            }
+//
+//            @Override
+//            public void onReconnecting() {
+//                log("onReconnecting");
+//            }
+//
+//            @Override
+//            public void onDisconnected() {
+//                log("onDisconnected");
+//            }
+//
+//            @Override
+//            public void onReceivedMessage(String topic, String message) {
+//                log("topic: " + topic + " message=" + message);
+//            }
+//        });
     }
 
     private void connectP2P() {

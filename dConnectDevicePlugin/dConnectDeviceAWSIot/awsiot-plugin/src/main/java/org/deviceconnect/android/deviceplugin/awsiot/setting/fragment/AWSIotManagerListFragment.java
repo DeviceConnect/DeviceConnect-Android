@@ -74,6 +74,9 @@ public class AWSIotManagerListFragment extends Fragment {
 
         mDBHelper = new AWSIotDBHelper(getActivity());
 
+        ManagerListUpdateDialogFragment dialog = new ManagerListUpdateDialogFragment();
+        dialog.show(getFragmentManager(),"ManagerListDialog");
+
         availability();
 
         List<RemoteDeviceConnectManager> managers = new ArrayList<>();
@@ -145,6 +148,9 @@ public class AWSIotManagerListFragment extends Fragment {
     }
 
     private void getManagerList() {
+        ManagerListUpdateDialogFragment dialog = new ManagerListUpdateDialogFragment();
+        dialog.show(getFragmentManager(),"ManagerListDialog");
+
         getAWSIotController().getShadow(AWSIotUtil.KEY_DCONNECT_SHADOW_NAME, new AWSIotController.GetShadowCallback() {
             @Override
             public void onReceivedShadow(final String thingName, final String result, final Exception err) {
@@ -152,6 +158,10 @@ public class AWSIotManagerListFragment extends Fragment {
                 mManagerAdapter.clear();
                 mManagerAdapter.addAll(mManagerList);
                 mManagerAdapter.notifyDataSetInvalidated();
+                ManagerListUpdateDialogFragment dialog = (ManagerListUpdateDialogFragment) getFragmentManager().findFragmentByTag("ManagerListDialog");
+                if (dialog != null) {
+                    dialog.dismiss();
+                }
             }
         });
     }
@@ -246,7 +256,11 @@ public class AWSIotManagerListFragment extends Fragment {
         DConnectHelper.INSTANCE.availability(new DConnectHelper.FinishCallback() {
             @Override
             public void onFinish(String response, Exception error) {
+                ManagerListUpdateDialogFragment dialog = (ManagerListUpdateDialogFragment) getFragmentManager().findFragmentByTag("ManagerListDialog");
                 if (response == null) {
+                    if (dialog != null) {
+                        dialog.dismiss();
+                    }
                     return;
                 }
 
@@ -274,6 +288,9 @@ public class AWSIotManagerListFragment extends Fragment {
                     }
                 } catch (JSONException e) {
                     Log.e(TAG, "", e);
+                }
+                if (dialog != null) {
+                    dialog.dismiss();
                 }
             }
         });

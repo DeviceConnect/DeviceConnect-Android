@@ -17,8 +17,15 @@ public class LocalDevice {
     /** デバイス名称. */
     private String mDeviceName;
 
-    /** 認可フラグ. */
-    private Boolean mAuthenticationFlag;
+    /**
+     * コンストラクター.
+     * @param serviceId サービスID.
+     * @param deviceName デバイス名称.
+     */
+    public LocalDevice(final String serviceId, final String deviceName) {
+        mServiceId = serviceId;
+        mDeviceName = deviceName;
+    }
 
     /**
      * サービスIDを取得する.
@@ -50,21 +57,5 @@ public class LocalDevice {
      */
     public void setDeviceName(final String name) {
         mDeviceName = name;
-    }
-
-    /**
-     * 認可済みか判定.
-     * @return true(認可中) / false(非認可).
-     */
-    public Boolean isAuthentication() {
-        return mAuthenticationFlag;
-    }
-
-    /**
-     * 認可フラグを設定する.
-     * @param flag true(認可) / false(非認可).
-     */
-    public void setAuthenticationFlag(final Boolean flag) {
-        mAuthenticationFlag = flag;
     }
 }

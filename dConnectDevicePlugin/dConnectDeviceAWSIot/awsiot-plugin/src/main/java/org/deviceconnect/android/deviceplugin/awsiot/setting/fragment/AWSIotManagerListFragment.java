@@ -30,10 +30,12 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import org.deviceconnect.android.deviceplugin.awsiot.DConnectLocalHelper;
-import org.deviceconnect.android.deviceplugin.awsiot.core.AWSIotManager;
+import org.deviceconnect.android.deviceplugin.awsiot.core.AWSIotController;
+import org.deviceconnect.android.deviceplugin.awsiot.core.AWSIotCore;
+import org.deviceconnect.android.deviceplugin.awsiot.core.AWSIotDBHelper;
 import org.deviceconnect.android.deviceplugin.awsiot.core.AWSIotPrefUtil;
 import org.deviceconnect.android.deviceplugin.awsiot.core.RemoteDeviceConnectManager;
+import org.deviceconnect.android.deviceplugin.awsiot.local.DConnectHelper;
 import org.deviceconnect.android.deviceplugin.awsiot.remote.R;
 import org.deviceconnect.android.deviceplugin.awsiot.setting.AWSIotSettingActivity;
 import org.json.JSONException;
@@ -56,22 +58,27 @@ public class AWSIotManagerListFragment extends Fragment {
     /** Adapter. */
     private ManagerAdapter mManagerAdapter;
 
-    /** 遠隔にあるDeviceConnectManagerを管理するクラス. */
-    private AWSIotManager mAWSIotManager;
+    /** Instance of {@link AWSIotDBHelper}. */
+    private AWSIotDBHelper mDBHelper;
+
+    /**
+     * 遠隔にあるDevice Connect Managerのリスト.
+     * TODO AWSIotDeviceApplicationで管理した方が良いかもしれない。
+     */
+    private List<RemoteDeviceConnectManager> mManagerList = new ArrayList<>();
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         setHasOptionsMenu(true);
 
-        availability();
+        mDBHelper = new AWSIotDBHelper(getActivity());
 
-        mAWSIotManager = new AWSIotManager(getActivity(), ((AWSIotSettingActivity) getActivity()).getAWSIotController());
+        availability();
 
         List<RemoteDeviceConnectManager> managers = new ArrayList<>();
         mManagerAdapter = new ManagerAdapter(getActivity(), managers);
         View rootView = inflater.inflate(R.layout.settings_manager_list, null);
-        /* Manager list view. */
         ListView listView = (ListView) rootView.findViewById(R.id.manager_list_view);
         listView.setAdapter(mManagerAdapter);
 
@@ -124,7 +131,7 @@ public class AWSIotManagerListFragment extends Fragment {
             case R.id.menu_logout:
                 // ログイン画面へ遷移
 
-                mAWSIotManager.getAWSIotController().disconnect();
+                getAWSIotController().disconnect();
 
                 AWSIotLoginFragment loginFragment = new AWSIotLoginFragment();
                 transaction.replace(R.id.container, loginFragment);
@@ -138,14 +145,13 @@ public class AWSIotManagerListFragment extends Fragment {
     }
 
     private void getManagerList() {
-        mAWSIotManager.getShadow(new AWSIotManager.GetShadowCallback() {
+        getAWSIotController().getShadow(AWSIotCore.KEY_DCONNECT_SHADOW_NAME, new AWSIotController.GetShadowCallback() {
             @Override
-            public void onReceivedShadow(final List<RemoteDeviceConnectManager> list) {
-                if (list != null) {
-                    mManagerAdapter.clear();
-                    mManagerAdapter.addAll(list);
-                    mManagerAdapter.notifyDataSetInvalidated();
-                }
+            public void onReceivedShadow(final String thingName, final String result, final Exception err) {
+                mManagerList = AWSIotCore.parseDeviceShadow(getActivity(), result);
+                mManagerAdapter.clear();
+                mManagerAdapter.addAll(mManagerList);
+                mManagerAdapter.notifyDataSetInvalidated();
             }
         });
     }
@@ -206,14 +212,14 @@ public class AWSIotManagerListFragment extends Fragment {
                     Button btn = (Button) v.findViewById(R.id.manager_btn_onoff);
                     if (manager.isSubscribe()) {
                         // DB変更処理(flag = false)
-                        mAWSIotManager.updateSubscribeFlag(manager.getServiceId(), false);
+                        updateSubscribeFlag(manager.getServiceId(), false);
                         manager.setSubscribeFlag(false);
                         // ボタン変更
                         btn.setBackgroundResource(R.drawable.button_gray);
                         btn.setText(R.string.setting_btn_off);
                     } else {
                         // DB変更処理(flag = true)
-                        mAWSIotManager.updateSubscribeFlag(manager.getServiceId(), true);
+                        updateSubscribeFlag(manager.getServiceId(), true);
                         manager.setSubscribeFlag(true);
                         // ボタン変更
                         btn.setBackgroundResource(R.drawable.button_blue);
@@ -232,8 +238,12 @@ public class AWSIotManagerListFragment extends Fragment {
         }
     }
 
+    private AWSIotController getAWSIotController() {
+        return ((AWSIotSettingActivity) getActivity()).getAWSIotController();
+    }
+
     private void availability() {
-        DConnectLocalHelper.INSTANCE.availability(new DConnectLocalHelper.FinishCallback() {
+        DConnectHelper.INSTANCE.availability(new DConnectHelper.FinishCallback() {
             @Override
             public void onFinish(String response, Exception error) {
                 if (response == null) {
@@ -248,7 +258,6 @@ public class AWSIotManagerListFragment extends Fragment {
                         String name = jsonObject.optString("name");
                         String uuid = jsonObject.optString("uuid");
                         if (name == null || uuid == null) {
-                            // TODO 古いManager場合の処理
                             String prefName = pref.getManagerName();
                             name = "TEST";
                             if (prefName.matches(name)) {
@@ -291,5 +300,41 @@ public class AWSIotManagerListFragment extends Fragment {
             dismiss();
             super.onPause();
         }
+    }
+
+    /**
+     * Update Subscribe flag.
+     * @param id Manager Id.
+     * @param flag subscribe flag.
+     * @return true(Success) / false(Failed).
+     */
+    public boolean updateSubscribeFlag(final String id, final boolean flag) {
+        boolean result = false;
+        RemoteDeviceConnectManager manager = findRegisteredManagerById(id);
+        if (manager != null) {
+            int index = mManagerList.indexOf(manager);
+            manager.setSubscribeFlag(flag);
+            mDBHelper.updateManager(manager);
+            mManagerList.set(index, manager);
+            result = true;
+        }
+        return result;
+    }
+
+    /**
+     * Find the {@link RemoteDeviceConnectManager} from id.
+     *
+     * @param id id of Manager
+     * @return {@link RemoteDeviceConnectManager}, or null
+     */
+    private RemoteDeviceConnectManager findRegisteredManagerById(final String id) {
+        synchronized (mManagerList) {
+            for (RemoteDeviceConnectManager d : mManagerList) {
+                if (d.getServiceId().equalsIgnoreCase(id)) {
+                    return d;
+                }
+            }
+        }
+        return null;
     }
 }

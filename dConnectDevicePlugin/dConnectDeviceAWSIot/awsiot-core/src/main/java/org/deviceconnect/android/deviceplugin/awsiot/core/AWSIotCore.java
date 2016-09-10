@@ -27,7 +27,11 @@ public class AWSIotCore {
 
     protected AWSIotController mIot;
 
-    public List<RemoteDeviceConnectManager> parseDeviceShadow(final Context context, final String message) {
+    public static List<RemoteDeviceConnectManager> parseDeviceShadow(final Context context, final String message) {
+        if (context == null || message == null) {
+            return new ArrayList<>();
+        }
+
         List<RemoteDeviceConnectManager> managers = new ArrayList<>();
         AWSIotDBHelper dbHelper = new AWSIotDBHelper(context);
 
@@ -54,19 +58,12 @@ public class AWSIotCore {
                 String name = manager.getString("name");
                 Double timeStamp = manager.getDouble("timeStamp");
 
-                mLogger.info("id       : " + id);
-                mLogger.info("online   : " + online);
-                mLogger.info("name     : " + name);
-                mLogger.info("timeStamp: " + timeStamp);
-
                 // DB登録チェック
                 RemoteDeviceConnectManager findInfo = dbHelper.findManagerById(id);
                 if (findInfo != null) {
-                    mLogger.info("DB update: ");
                     findInfo.setName(name);
                     dbHelper.updateManager(findInfo);
                 } else {
-                    mLogger.info("DB register: ");
                     findInfo = new RemoteDeviceConnectManager(name, id);
                     dbHelper.addManager(findInfo);
                 }

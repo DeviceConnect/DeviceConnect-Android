@@ -23,8 +23,8 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import org.deviceconnect.android.deviceplugin.awsiot.DConnectLocalHelper;
 import org.deviceconnect.android.deviceplugin.awsiot.core.LocalDevice;
+import org.deviceconnect.android.deviceplugin.awsiot.local.DConnectHelper;
 import org.deviceconnect.android.deviceplugin.awsiot.remote.R;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -117,7 +117,7 @@ public class AWSIotDeviceAuthenticationFragment extends Fragment {
     }
 
     private void getDeviceList() {
-        DConnectLocalHelper.INSTANCE.serviceDiscovery(new DConnectLocalHelper.FinishCallback() {
+        DConnectHelper.INSTANCE.serviceDiscovery(new DConnectHelper.FinishCallback() {
             @Override
             public void onFinish(final String response, final Exception error) {
                 if (response == null) {

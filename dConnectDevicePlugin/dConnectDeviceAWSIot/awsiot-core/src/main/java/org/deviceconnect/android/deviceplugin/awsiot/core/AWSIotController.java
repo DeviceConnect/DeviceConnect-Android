@@ -138,6 +138,7 @@ public class AWSIotController {
         mAWSIotEndPoint = null;
         mIotClient = null;
         mIotDataClient = null;
+        mCredentialsProvider = null;
 
         disconnectMQTT();
     }

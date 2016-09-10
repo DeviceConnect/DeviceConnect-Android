@@ -149,7 +149,15 @@ public class DConnectHelper {
     }
 
     public void sendRequest(final String method, final String uri, final FinishCallback callback) {
-        sendRequest(method, uri, null, callback);
+        sendRequest(method, uri, new HashMap<String, String>(), callback);
+    }
+
+    public void availability(final FinishCallback callback) {
+        sendRequest("GET", "http://localhost:4035/gotapi/availability", callback);
+    }
+
+    public void serviceDiscovery(final FinishCallback callback) {
+        sendRequest("GET", "http://localhost:4035/gotapi/servicediscovery", callback);
     }
 
     private void sendRequest(final String method, final String uri, final Map<String, String> body, final FinishCallback callback) {

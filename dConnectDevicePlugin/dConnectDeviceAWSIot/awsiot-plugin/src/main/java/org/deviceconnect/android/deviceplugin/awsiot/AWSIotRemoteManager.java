@@ -64,11 +64,7 @@ public class AWSIotRemoteManager extends AWSIotCore {
                     mIot.getShadow(KEY_DCONNECT_SHADOW_NAME, new AWSIotController.GetShadowCallback() {
                         @Override
                         public void onReceivedShadow(final String thingName, final String result, final Exception err) {
-                            if (err != null) {
-                                mManagerList = null;
-                            } else {
-                                mManagerList = parseDeviceShadow(mContext, result);
-                            }
+                            mManagerList = parseDeviceShadow(mContext, result);
                             subscribeTopic();
                         }
                     });

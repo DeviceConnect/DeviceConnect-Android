@@ -46,6 +46,10 @@ import java.util.List;
 public class AWSIotDeviceAuthenticationFragment extends Fragment {
     /** Local Device Infomation Adapter */
     private LocalDeviceAdapter mDeviceAdapter;
+    /** Service Discovery call flag. */
+    private boolean mServiceDiscoveryCall = false;
+    /** Service Information call flag. */
+    private boolean mServiceInformationCall = false;
 
     @Override
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
@@ -65,6 +69,7 @@ public class AWSIotDeviceAuthenticationFragment extends Fragment {
 
         DeviceListUpdateDialogFragment dialog = new DeviceListUpdateDialogFragment();
         dialog.show(getFragmentManager(),"DeviceListDialog");
+        mServiceDiscoveryCall = true;
 
         return rootView;
     }
@@ -74,6 +79,27 @@ public class AWSIotDeviceAuthenticationFragment extends Fragment {
         inflater.inflate(R.menu.menu, menu);
         super.onCreateOptionsMenu(menu, inflater);
         menu.clear();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (mServiceDiscoveryCall) {
+            DeviceListUpdateDialogFragment dialog = (DeviceListUpdateDialogFragment) getFragmentManager().findFragmentByTag("DeviceListDialog");
+            if (dialog != null) {
+                dialog.dismiss();
+            }
+            dialog = new DeviceListUpdateDialogFragment();
+            dialog.show(getFragmentManager(),"DeviceListDialog");
+        }
+        if (mServiceInformationCall) {
+            DeviceListUpdateDialogFragment dialog = (DeviceListUpdateDialogFragment) getFragmentManager().findFragmentByTag("ServiceInformationDialog");
+            if (dialog != null) {
+                dialog.dismiss();
+            }
+            dialog = new DeviceListUpdateDialogFragment();
+            dialog.show(getFragmentManager(),"ServiceInformationDialog");
+        }
     }
 
     private class LocalDeviceAdapter extends ArrayAdapter<LocalDevice> {
@@ -135,6 +161,11 @@ public class AWSIotDeviceAuthenticationFragment extends Fragment {
             @Override
             public void onFinish(final String response, final Exception error) {
                 if (response == null) {
+                    DeviceListUpdateDialogFragment dialog = (DeviceListUpdateDialogFragment) getFragmentManager().findFragmentByTag("DeviceListDialog");
+                    if (dialog != null) {
+                        dialog.dismiss();
+                    }
+                    mServiceDiscoveryCall = false;
                     return;
                 }
 
@@ -157,15 +188,30 @@ public class AWSIotDeviceAuthenticationFragment extends Fragment {
                 mDeviceAdapter.clear();
                 mDeviceAdapter.addAll(services);
                 mDeviceAdapter.notifyDataSetInvalidated();
+
+                DeviceListUpdateDialogFragment dialog = (DeviceListUpdateDialogFragment) getFragmentManager().findFragmentByTag("DeviceListDialog");
+                if (dialog != null) {
+                    dialog.dismiss();
+                }
+                mServiceDiscoveryCall = false;
             }
         });
     }
 
     private void getServiceInformation(final LocalDevice device) {
+        DeviceListUpdateDialogFragment dialog = new DeviceListUpdateDialogFragment();
+        dialog.show(getFragmentManager(),"ServiceInformationDialog");
+        mServiceInformationCall = true;
+
         DConnectHelper.INSTANCE.serviceInformation(device.getServiceId(), new DConnectHelper.FinishCallback() {
             @Override
             public void onFinish(final String response, final Exception error) {
                 if (response == null) {
+                    DeviceListUpdateDialogFragment dialog = (DeviceListUpdateDialogFragment) getFragmentManager().findFragmentByTag("ServiceInformationDialog");
+                    if (dialog != null) {
+                        dialog.dismiss();
+                    }
+                    mServiceInformationCall = false;
                     return;
                 }
 
@@ -196,6 +242,12 @@ public class AWSIotDeviceAuthenticationFragment extends Fragment {
                 } catch (JSONException e) {
                     Log.e("AWS", "", e);
                 }
+
+                DeviceListUpdateDialogFragment dialog = (DeviceListUpdateDialogFragment) getFragmentManager().findFragmentByTag("ServiceInformationDialog");
+                if (dialog != null) {
+                    dialog.dismiss();
+                }
+                mServiceInformationCall = false;
             }
         });
     }

@@ -28,7 +28,7 @@ import android.view.Window;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
-import android.widget.TextView;
+import android.widget.Switch;
 
 import org.deviceconnect.android.deviceplugin.awsiot.core.AWSIotController;
 import org.deviceconnect.android.deviceplugin.awsiot.core.AWSIotDBHelper;
@@ -86,6 +86,7 @@ public class AWSIotManagerListFragment extends Fragment {
         listView.setAdapter(mManagerAdapter);
 
         Button btn = (Button) rootView.findViewById(R.id.button_awsiot_sync);
+        btn.setAllCaps(false);
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -183,11 +184,8 @@ public class AWSIotManagerListFragment extends Fragment {
             final RemoteDeviceConnectManager manager = getItem(position);
             String name = manager.getName();
 
-            TextView nameView = (TextView) convertView.findViewById(R.id.manager_name);
-            nameView.setText(name);
-
-/*
             Switch sw = (Switch) convertView.findViewById(R.id.manager_switch_onoff);
+            sw.setText(name);
             if (manager.isSubscribe()) {
                 sw.setChecked(true);
             } else {
@@ -199,14 +197,14 @@ public class AWSIotManagerListFragment extends Fragment {
                 public void onClick(final View v) {
                     if (manager.isSubscribe()) {
                         // DB変更処理(flag = false)
-                        mApp.getRemoteDCMManager().updateSubscribeFlag(manager.getId(), false);
+                        updateSubscribeFlag(manager.getServiceId(), false);
                         manager.setSubscribeFlag(false);
                         // ボタン変更
                         Switch sw = (Switch) v.findViewById(R.id.manager_switch_onoff);
                         sw.setChecked(false);
                     } else {
                         // DB変更処理(flag = true)
-                        mApp.getRemoteDCMManager().updateSubscribeFlag(manager.getId(), true);
+                        updateSubscribeFlag(manager.getServiceId(), true);
                         manager.setSubscribeFlag(true);
                         // ボタン変更
                         Switch sw = (Switch) v.findViewById(R.id.manager_switch_onoff);
@@ -214,36 +212,7 @@ public class AWSIotManagerListFragment extends Fragment {
                     }
                 }
             });
-*/
-            Button btn = (Button) convertView.findViewById(R.id.manager_btn_onoff);
-            btn.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Button btn = (Button) v.findViewById(R.id.manager_btn_onoff);
-                    if (manager.isSubscribe()) {
-                        // DB変更処理(flag = false)
-                        updateSubscribeFlag(manager.getServiceId(), false);
-                        manager.setSubscribeFlag(false);
-                        // ボタン変更
-                        btn.setBackgroundResource(R.drawable.button_gray);
-                        btn.setText(R.string.setting_btn_off);
-                    } else {
-                        // DB変更処理(flag = true)
-                        updateSubscribeFlag(manager.getServiceId(), true);
-                        manager.setSubscribeFlag(true);
-                        // ボタン変更
-                        btn.setBackgroundResource(R.drawable.button_blue);
-                        btn.setText(R.string.setting_btn_on);
-                    }
-                }
-            });
-            if (manager.isSubscribe()) {
-                btn.setText(R.string.setting_btn_on);
-                btn.setBackgroundResource(R.drawable.button_blue);
-            } else {
-                btn.setBackgroundResource(R.drawable.button_gray);
-                btn.setText(R.string.setting_btn_off);
-            }
+
             return convertView;
         }
     }

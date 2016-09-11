@@ -12,31 +12,18 @@
             android:layout_width="fill_parent"
             android:layout_height="wrap_content">
 
-        <TextView
-                android:id="@+id/manager_name"
-                android:text=""
-                android:textSize="@dimen/text_description"
-                android:textStyle="bold"
+        <Switch
+                android:layout_width="fill_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/manager_switch_onoff"
+                android:visibility="visible"
+                android:enabled="true"
+                android:clickable="true"
+                android:text="@string/default_manager_name"
+                android:textSize="24dp"
                 android:textColor="@color/text_black"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"/>
+                />
 
     </LinearLayout>
-
-    <Button
-            android:id="@+id/manager_btn_onoff"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="@drawable/button_blue"
-            android:layout_margin="8dp"
-            android:text="@string/setting_btn_off"
-            android:layout_centerInParent="true"
-            android:layout_alignParentRight="true"
-            android:textColor="#FFFFFF"
-            android:paddingTop="6dp"
-            android:paddingBottom="6dp"
-            android:paddingLeft="12dp"
-            android:paddingRight="12dp"/>
 
 </RelativeLayout>

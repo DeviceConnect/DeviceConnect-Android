@@ -26,6 +26,7 @@
     <string name="menu_device_auth">デバイス認証</string>
     <string name="menu_logout">ログアウト</string>
     <string name="default_manager_name">ManagerName</string>
+    <string name="setting_help">AWS IoT Device Plug-in help page.</string>
     <string-array name="region_array">
         <item>us-east-1</item>
         <item>us-west-2</item>

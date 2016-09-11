@@ -6,11 +6,11 @@
  */
 package org.deviceconnect.android.deviceplugin.awsiot.setting;
 
-import android.app.ActionBar;
 import android.os.Bundle;
-import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.AppCompatActivity;
 import android.view.MenuItem;
 
 import org.deviceconnect.android.deviceplugin.awsiot.core.AWSIotController;
@@ -25,7 +25,7 @@ import org.deviceconnect.android.deviceplugin.awsiot.setting.fragment.AWSIotMana
  *
  * @author NTT DOCOMO, INC.
  */
-public class AWSIotSettingActivity extends FragmentActivity {
+public class AWSIotSettingActivity extends AppCompatActivity {
     private AWSIotPrefUtil mPrefUtil;
 
     @Override
@@ -35,7 +35,9 @@ public class AWSIotSettingActivity extends FragmentActivity {
         mPrefUtil = new AWSIotPrefUtil(this);
 
         setContentView(R.layout.activity_main);
-        ActionBar ab = getActionBar();
+
+        // TODO: Material Design ActionBar 要調査
+        ActionBar ab = getSupportActionBar();
         if (ab != null) {
             ab.setDisplayHomeAsUpEnabled(true);
             ab.setDisplayOptions(0, ActionBar.DISPLAY_SHOW_HOME);

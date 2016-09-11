@@ -10,7 +10,7 @@
         android:icon="@drawable/dconnect_icon"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme">
+        android:theme="@style/Theme.AppCompat.Light">
 
         <receiver
             android:name="org.deviceconnect.android.deviceplugin.awsiot.AWSIotDeviceProvider"

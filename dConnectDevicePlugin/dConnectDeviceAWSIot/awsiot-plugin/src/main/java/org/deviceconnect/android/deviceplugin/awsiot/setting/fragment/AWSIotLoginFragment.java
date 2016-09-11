@@ -12,6 +12,8 @@ import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -44,10 +46,6 @@ import org.deviceconnect.android.deviceplugin.awsiot.setting.AWSIotSettingActivi
  */
 public class AWSIotLoginFragment extends Fragment {
 
-    /** Login button. */
-    private Button mLogin;
-    /** Help button. */
-//    private FloatingActionButton mFabHelp;
     /** Access Key EditText. */
     private EditText mAccessKey;
     /** Secret Key EditText. */
@@ -56,6 +54,7 @@ public class AWSIotLoginFragment extends Fragment {
     private Spinner mRegion;
     /** AWSIotPrefUtil instance. */
     private AWSIotPrefUtil mPrefUtil;
+    /** AWSIotController instance. */
     private AWSIotController mAWSIotController;
 
 
@@ -98,7 +97,7 @@ public class AWSIotLoginFragment extends Fragment {
         }
 
         String[] regionList = getResources().getStringArray(R.array.region_array);
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(), R.layout.region, regionList);
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(), R.layout.item_region, regionList);
         mRegion = (Spinner) rootView.findViewById(R.id.spn_region);
         mRegion.setAdapter(adapter);
         String regions = mPrefUtil.getRegions().getName();
@@ -110,8 +109,9 @@ public class AWSIotLoginFragment extends Fragment {
             }
         }
 
-        mLogin = (Button) rootView.findViewById(R.id.login);
-        mLogin.setOnClickListener(new View.OnClickListener() {
+        /* Login button. */
+        Button login = (Button) rootView.findViewById(R.id.login);
+        login.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 // TODO:AWS IoT ログイン処理
@@ -167,15 +167,19 @@ public class AWSIotLoginFragment extends Fragment {
             }
         });
 
-/*
-        mFabHelp = (FloatingActionButton) root.findViewById(R.id.fab_help);
-        mFabHelp.setOnClickListener(new View.OnClickListener() {
+        /* Help button. */
+        FloatingActionButton fabHelp = (FloatingActionButton) rootView.findViewById(R.id.fab_help);
+        fabHelp.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                // TODO:ヘルプページ表示
+                FragmentManager manager = getActivity().getSupportFragmentManager();
+                FragmentTransaction transaction = manager.beginTransaction();
+                AWSIotHelpFragment help = new AWSIotHelpFragment();
+                transaction.add(R.id.container, help);
+                transaction.addToBackStack("LoginPage");
+                transaction.commit();
             }
         });
-*/
 
         return rootView;
     }
@@ -206,6 +210,7 @@ public class AWSIotLoginFragment extends Fragment {
      * Show a dialog of AWSIoT Login.
      */
     public static class DuringLoginDialogFragment extends DialogFragment {
+        @NonNull
         @Override
         public Dialog onCreateDialog(final Bundle savedInstanceState) {
             String msg = getString(R.string.duringLogin);

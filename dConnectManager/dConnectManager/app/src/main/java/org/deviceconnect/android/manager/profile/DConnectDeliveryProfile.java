@@ -79,15 +79,17 @@ public class DConnectDeliveryProfile extends DConnectProfile {
         } else {
             List<DevicePlugin> plugins = mDevicePluginManager.getDevicePlugins(serviceId);
             if (plugins != null && plugins.size() > 0) {
+                DevicePlugin plugin = plugins.get(0);
+                mEventHandler.onRequest(request, plugin);
+
                 DeliveryRequest req = new DeliveryRequest();
                 req.setContext(getContext());
-                req.setEventHandler(mEventHandler);
                 req.setLocalOAuth(mLocalOAuth);
                 req.setUseAccessToken(isUseLocalOAuth(profileName));
                 req.setRequireOrigin(mRequireOrigin);
                 req.setRequest(request);
                 req.setDevicePluginManager(mDevicePluginManager);
-                req.setDestination(plugins.get(0));
+                req.setDestination(plugin);
                 ((DConnectMessageService) getContext()).addRequest(req);
             } else {
                 sendNotFoundService(request, response);

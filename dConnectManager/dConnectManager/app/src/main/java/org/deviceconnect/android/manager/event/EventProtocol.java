@@ -9,6 +9,7 @@ import org.deviceconnect.android.manager.DConnectBroadcastReceiver;
 import org.deviceconnect.android.manager.DConnectMessageService;
 import org.deviceconnect.android.manager.DConnectService;
 import org.deviceconnect.android.manager.DevicePlugin;
+import org.deviceconnect.android.manager.DevicePluginManager;
 import org.deviceconnect.android.manager.util.DConnectUtil;
 import org.deviceconnect.android.manager.util.VersionName;
 import org.deviceconnect.android.profile.DConnectProfile;
@@ -29,10 +30,10 @@ public abstract class EventProtocol {
             return new EventProtocol(context) {
                 @Override
                 protected EventSession createSession(final Intent request,
+                                                     final String serviceId,
                                                      final String receiverId,
                                                      final String pluginId) {
                     final String accessToken = DConnectProfile.getAccessToken(request);
-                    final String serviceId = DConnectProfile.getServiceID(request);
                     final String profileName = DConnectProfile.getProfile(request);
                     final String interfaceName = DConnectProfile.getInterface(request);
                     final String attributeName = DConnectProfile.getAttribute(request);
@@ -53,10 +54,10 @@ public abstract class EventProtocol {
             return new EventProtocol(context) {
                 @Override
                 protected EventSession createSession(final Intent request,
+                                                     final String serviceId,
                                                      final String receiverId,
                                                      final String pluginId) {
                     final String accessToken = DConnectProfile.getAccessToken(request);
-                    final String serviceId = DConnectProfile.getServiceID(request);
                     final String profileName = DConnectProfile.getProfile(request);
                     final String interfaceName = DConnectProfile.getInterface(request);
                     final String attributeName = DConnectProfile.getAttribute(request);
@@ -85,11 +86,12 @@ public abstract class EventProtocol {
     }
 
     boolean removeSession(final EventSessionTable table, final Intent request, final DevicePlugin plugin) {
+        String serviceId = DevicePluginManager.splitServiceId(plugin, DConnectProfile.getServiceID(request));
         String receiverId = createReceiverId(mMessageService, request);
         if (receiverId == null) {
             return false;
         }
-        EventSession query = createSession(request, receiverId, plugin.getServiceId());
+        EventSession query = createSession(request, serviceId, receiverId, plugin.getServiceId());
         for (EventSession session : table.getAll()) {
             if (isSameSession(query, session)) {
                 table.remove(session);
@@ -109,11 +111,12 @@ public abstract class EventProtocol {
             DConnectProfile.setAccessToken(request, plugin.getServiceId());
         }
 
+        String serviceId = DevicePluginManager.splitServiceId(plugin, DConnectProfile.getServiceID(request));
         String receiverId = createReceiverId(mMessageService, request);
         if (receiverId == null) {
             return false;
         }
-        EventSession session = createSession(request, receiverId, plugin.getServiceId());
+        EventSession session = createSession(request, serviceId, receiverId, plugin.getServiceId());
         table.add(session);
 
         if (plugin.getPluginSdkVersionName().compareTo(V100) == 0) {
@@ -135,6 +138,7 @@ public abstract class EventProtocol {
     }
 
     protected abstract EventSession createSession(final Intent request,
+                                                  final String serviceId,
                                                   final String receiverId,
                                                   final String pluginId);
 
@@ -150,7 +154,7 @@ public abstract class EventProtocol {
         final String receiverId;
         final String sessionKey = DConnectProfile.getSessionKey(request);
         if (sessionKey != null) {
-            receiverId = convertSessionKey2Key(sessionKey);
+            receiverId = sessionKey;
         } else {
             receiverId = md5(origin);
         }

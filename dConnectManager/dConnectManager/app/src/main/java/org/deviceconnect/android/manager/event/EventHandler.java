@@ -51,6 +51,17 @@ public class EventHandler {
     }
 
     public void onRequest(final Intent request, final DevicePlugin dest) {
+        String serviceId = DConnectProfile.getServiceID(request);
+        if (serviceId == null) {
+            return;
+        }
+        String accessToken = getAccessToken(serviceId);
+        if (accessToken != null) {
+            request.putExtra(DConnectMessage.EXTRA_ACCESS_TOKEN, accessToken);
+        } else {
+            request.removeExtra(DConnectMessage.EXTRA_ACCESS_TOKEN);
+        }
+
         if (isRegistrationRequest(request)) {
             onRegistrationRequest(request, dest);
         } else if (isUnregistrationRequest(request)) {
@@ -82,6 +93,14 @@ public class EventHandler {
         if (isSupportedKeepAlive(dest)) {
             mKeepAliveManager.removeManagementTable(dest);
         }
+    }
+
+    private String getAccessToken(final String serviceId) {
+        DConnectLocalOAuth.OAuthData oauth = mLocalOAuth.getOAuthData(serviceId);
+        if (oauth != null) {
+            return mLocalOAuth.getAccessToken(oauth.getId());
+        }
+        return null;
     }
 
     private boolean isSupportedKeepAlive(final DevicePlugin plugin) {

@@ -75,7 +75,7 @@ public class AWSIotManagerListFragment extends Fragment {
         mDBHelper = new AWSIotDBHelper(getActivity());
 
         ManagerListUpdateDialogFragment dialog = new ManagerListUpdateDialogFragment();
-        dialog.show(getFragmentManager(),"ManagerListDialog");
+        dialog.show(getFragmentManager(),"AvailabilityDialog");
 
         availability();
 
@@ -225,7 +225,7 @@ public class AWSIotManagerListFragment extends Fragment {
         DConnectHelper.INSTANCE.availability(new DConnectHelper.FinishCallback() {
             @Override
             public void onFinish(String response, Exception error) {
-                ManagerListUpdateDialogFragment dialog = (ManagerListUpdateDialogFragment) getFragmentManager().findFragmentByTag("ManagerListDialog");
+                ManagerListUpdateDialogFragment dialog = (ManagerListUpdateDialogFragment) getFragmentManager().findFragmentByTag("AvailabilityDialog");
                 if (response == null) {
                     if (dialog != null) {
                         dialog.dismiss();

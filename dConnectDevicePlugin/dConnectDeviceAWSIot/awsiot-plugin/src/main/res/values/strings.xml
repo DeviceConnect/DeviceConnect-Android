@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">AWSIot Plugin</string>
+    <string name="app_name">AWS IoT (Device Connect Device Plug-in)</string>
     <string name="settings_page_1_title">AWS IoT ログイン画面</string>
     <string name="awsiot_id">Access Key ID</string>
     <string name="awsiot_password">Secret Access Key ID</string>

@@ -100,10 +100,11 @@ public class AWSIotLoginFragment extends Fragment {
         ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(), R.layout.item_region, regionList);
         mRegion = (Spinner) rootView.findViewById(R.id.spn_region);
         mRegion.setAdapter(adapter);
-        String regions = mPrefUtil.getRegions().getName();
+        Regions regions = mPrefUtil.getRegions();
         if (regions != null) {
+            String region = regions.getName();
             for (int i = 0; i < regionList.length; i++) {
-                if (regionList[i].matches(regions)) {
+                if (regionList[i].matches(region)) {
                     mRegion.setSelection(i);
                 }
             }

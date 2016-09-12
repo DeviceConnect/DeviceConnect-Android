@@ -44,7 +44,7 @@ import java.util.List;
  * @author NTT DOCOMO, INC.
  */
 public class AWSIotDeviceAuthenticationFragment extends Fragment {
-    /** Local Device Infomation Adapter */
+    /** Local Device Information Adapter */
     private LocalDeviceAdapter mDeviceAdapter;
     /** Service Discovery call flag. */
     private boolean mServiceDiscoveryCall = false;
@@ -65,11 +65,9 @@ public class AWSIotDeviceAuthenticationFragment extends Fragment {
         listView.setAdapter(mDeviceAdapter);
         listView.setItemsCanFocus(true);
 
+        mServiceDiscoveryCall = true;
         getDeviceList();
 
-        DeviceListUpdateDialogFragment dialog = new DeviceListUpdateDialogFragment();
-        dialog.show(getFragmentManager(),"DeviceListDialog");
-        mServiceDiscoveryCall = true;
 
         return rootView;
     }
@@ -189,11 +187,11 @@ public class AWSIotDeviceAuthenticationFragment extends Fragment {
                 mDeviceAdapter.addAll(services);
                 mDeviceAdapter.notifyDataSetInvalidated();
 
+                mServiceDiscoveryCall = false;
                 DeviceListUpdateDialogFragment dialog = (DeviceListUpdateDialogFragment) getFragmentManager().findFragmentByTag("DeviceListDialog");
                 if (dialog != null) {
                     dialog.dismiss();
                 }
-                mServiceDiscoveryCall = false;
             }
         });
     }

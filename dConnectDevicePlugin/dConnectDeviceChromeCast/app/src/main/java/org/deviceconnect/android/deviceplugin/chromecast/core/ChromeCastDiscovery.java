@@ -150,7 +150,7 @@ public class ChromeCastDiscovery {
                     Log.d(TAG, "MediaRouter.Callback$onRouteUnselected: " + info.toString());
                 }
                 mCallbacks.onCastDeviceUnselected();
-                mSelectedDevice = null;
+//                mSelectedDevice = null;
             }
 
             @Override

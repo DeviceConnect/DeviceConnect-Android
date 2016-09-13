@@ -49,6 +49,7 @@ public abstract class DConnectSettingCompatPageFragmentActivity extends AppCompa
         Toolbar toolbar = new Toolbar(this);
         toolbar.setTitle(org.deviceconnect.android.deviceplugin.chromecast.R.string.activity_setting_page_title);
         toolbar.setBackgroundColor(Color.parseColor("#00a0e9"));
+        toolbar.setTitleTextColor(Color.parseColor("#FFFFFF"));
         addContentView(toolbar, new Toolbar.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         toolbar.setNavigationIcon(org.deviceconnect.android.deviceplugin.chromecast.R.drawable.ic_close_light);
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {

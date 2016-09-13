@@ -408,6 +408,7 @@ public class ChromeCastService extends DConnectMessageService implements
     @Override
     public void onCastDeviceUnselected() {
         ChromeCastApplication app = (ChromeCastApplication) getApplication();
+
         if (app == null) {
             return;
         }

@@ -26,6 +26,7 @@ public class ChromeCastServiceListActivity extends DConnectServiceListActivity {
 
         Toolbar toolbar = new Toolbar(this);
         toolbar.setTitle(R.string.activity_service_list_title);
+        toolbar.setTitleTextColor(Color.parseColor("#FFFFFF"));
         toolbar.setBackgroundColor(Color.parseColor("#00a0e9"));
         addContentView(toolbar, new Toolbar.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         toolbar.setNavigationIcon(R.drawable.ic_close_light);

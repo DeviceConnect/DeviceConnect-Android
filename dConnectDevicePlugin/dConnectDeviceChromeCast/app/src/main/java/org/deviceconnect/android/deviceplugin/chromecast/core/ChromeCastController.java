@@ -23,18 +23,18 @@ import org.deviceconnect.android.deviceplugin.chromecast.BuildConfig;
 import java.util.ArrayList;
 
 /**
- * Chromecast Application クラス.
+ * Chromecast Controller クラス.
  * <p>
  * アプリケーションIDに対応したReceiverアプリのコントロール
  * </p>
  * @author NTT DOCOMO, INC.
  */
-public class ChromeCastApplication implements
+public class ChromeCastController implements
     GoogleApiClient.ConnectionCallbacks,
     GoogleApiClient.OnConnectionFailedListener {
     
     /** 出力するログのタグ名. */
-    private static final String TAG = ChromeCastApplication.class.getSimpleName();
+    private static final String TAG = ChromeCastController.class.getSimpleName();
     /** 選択したデバイスの情報. */
     private CastDevice mSelectedDevice;
     /** GoogleAPIClient. */
@@ -85,7 +85,7 @@ public class ChromeCastApplication implements
      * @param context  コンテキスト
      * @param appId    ReceiverアプリのアプリケーションID
      */
-    public ChromeCastApplication(final Context context, final String appId) {
+    public ChromeCastController(final Context context, final String appId) {
         this.mContext = context;
         this.mAppId = appId;
         this.mSelectedDevice = null;
@@ -196,10 +196,10 @@ public class ChromeCastApplication implements
                     }
                 }
             };
-            
+
             Cast.CastOptions.Builder apiOptionsBuilder = 
                     Cast.CastOptions.builder(mSelectedDevice, mCastListener);
-            mApiClient = new GoogleApiClient.Builder(this.mContext)
+            mApiClient = new GoogleApiClient.Builder(mContext)
                     .addApi(Cast.API, apiOptionsBuilder.build())
                     .addConnectionCallbacks(this)
                     .addOnConnectionFailedListener(this)
@@ -232,7 +232,7 @@ public class ChromeCastApplication implements
      */
     private void launchApplication() {
         if (mApiClient != null && mApiClient.isConnected()) {
-            Cast.CastApi.launchApplication(mApiClient, mAppId, false)
+            Cast.CastApi.launchApplication(mApiClient, mAppId)
                 .setResultCallback(new ResultCallback<Cast.ApplicationConnectionResult>() {
                     @Override
                     public void onResult(final ApplicationConnectionResult result) {
@@ -269,23 +269,25 @@ public class ChromeCastApplication implements
     private void stopApplication(final boolean isReconnect) {
         
         if (mApiClient != null && mApiClient.isConnected()) {
-            Cast.CastApi.stopApplication(mApiClient).setResultCallback(new ResultCallback<Status>() {
+            Cast.CastApi.stopApplication(mApiClient);
+            Cast.CastApi.leaveApplication(mApiClient).setResultCallback(new ResultCallback<Status>() {
                 @Override
                 public void onResult(final Status result) {
                     if (result.getStatus().isSuccess()) {
                         if (BuildConfig.DEBUG) {
                             Log.d(TAG, "stopApplication$onResult: Success");
                         }
-                        
+
                         for (int i = 0; i < mCallbacks.size(); i++) {
                             mCallbacks.get(i).onDetach();
                         }
+
                         mApiClient.disconnect();
                         mApiClient = null;
-                        
-                        if (isReconnect) {
-                            connect();
-                        }
+                        //再接続はしない
+//                        if (isReconnect) {
+//                            connect();
+//                        }
                     } else {
                         if (BuildConfig.DEBUG) {
                             Log.d(TAG, "stopApplication$onResult: Fail");

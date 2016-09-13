@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFF"
+    android:orientation="vertical">
+
+    <Button
+        android:id="@+id/fragment_linking_app"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerInParent="true"
+        android:layout_margin="12dp"
+        android:background="@drawable/button_blue"
+        android:text="@string/fragment_help_linking_app"
+        android:textColor="#FFF"
+        android:textSize="18sp"/>
+
+    <android.support.v4.view.ViewPager
+        android:id="@+id/viewPager"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@id/fragment_linking_app"/>
+
+    <Button
+        android:id="@+id/fragment_linking_help_next"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:layout_alignParentRight="true"
+        android:layout_centerInParent="true"
+        android:layout_margin="8dp"
+        android:background="@drawable/button_circle"
+        android:text="＞"
+        android:textColor="#FFF"
+        android:textSize="32sp"/>
+
+    <Button
+        android:id="@+id/fragment_linking_help_pre"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:layout_alignParentLeft="true"
+        android:layout_centerInParent="true"
+        android:layout_margin="8dp"
+        android:background="@drawable/button_circle"
+        android:text="＜"
+        android:textColor="#FFF"
+        android:textSize="32sp"/>
+</RelativeLayout>

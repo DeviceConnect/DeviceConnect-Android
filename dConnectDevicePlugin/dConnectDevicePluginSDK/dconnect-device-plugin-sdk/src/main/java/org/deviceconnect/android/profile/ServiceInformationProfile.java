@@ -6,11 +6,8 @@
  */
 package org.deviceconnect.android.profile;
 
-import android.content.Intent;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
-import android.content.pm.PackageManager.NameNotFoundException;
-import android.os.Bundle;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.deviceconnect.android.profile.api.DConnectApi;
 import org.deviceconnect.android.profile.api.GetApi;
@@ -20,8 +17,11 @@ import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 import org.deviceconnect.profile.ServiceInformationProfileConstants;
 
-import java.util.ArrayList;
-import java.util.List;
+import android.content.Intent;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.PackageManager.NameNotFoundException;
+import android.os.Bundle;
 
 /**
  * Service Information プロファイル.
@@ -166,6 +166,7 @@ public class ServiceInformationProfile extends DConnectProfile implements Servic
         return ConnectState.NONE;
     }
 
+
     // ------------------------------------
     // レスポンスセッターメソッド群
     // ------------------------------------
@@ -196,8 +197,6 @@ public class ServiceInformationProfile extends DConnectProfile implements Servic
      * 
      * @param response レスポンスパラメータ
      * @param supports サポートしているI/F一覧
-     * @deprecated
-     * @see #setSupportApis(Intent, List)
      */
     public static void setSupports(final Intent response, final List<String> supports) {
         setSupports(response, supports.toArray(new String[supports.size()]));
@@ -244,7 +243,6 @@ public class ServiceInformationProfile extends DConnectProfile implements Servic
         }
         return tmpBundle;
     }
-
     /**
      * レスポンスにデバイスの接続状態を設定する.
      * 

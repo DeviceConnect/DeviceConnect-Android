@@ -1,39 +1,143 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="linking_app_name">Linking (Device Connect Device Plug-in)</string>
 
-    <string name="app_name">Linking (Device Connect Device Plug-in)</string>
+    <string name="activity_linking_ok">OK</string>
+    <string name="activity_linking_cancel">Cancel</string>
 
-    <string name="ok">OK</string>
-    <string name="cancel">Cancel</string>
-    <string name="success">成功</string>
-    <string name="failed">失敗</string>
-    <string name="get_failed">取得失敗</string>
-    <string name="timeout">タイムアウト</string>
-    <string name="get">取得</string>
-    <string name="on">ON</string>
-    <string name="off">OFF</string>
-    <string name="led">LED</string>
-    <string name="not_selected">未選択</string>
-    <string name="pattern_list">パターンリスト</string>
-    <string name="device_not_selected">デバイスが選択されていません。</string>
-    <string name="device_not_connected">デバイスは接続されていません。</string>
-    <string name="device_not_found">デバイスが見つかりません。</string>
+    <string name="activity_linking_confirm_title">ConfirmActivity</string>
 
-    <string name="setting_title1">[1/3]Linkingアプリでの設定</string>
-    <string name="install_and_launch">Linkingアプリのダウンロードとインストール、実行をおこないます。</string>
-    <string name="introduction1">1) Google PlayからLinkingアプリをインストールして、アプリの指示に従い対応デバイスと端末を接続してください。</string>
-    <string name="introduction2">2) DeviceConnectで利用したいLinkingデバイスの設定画面にて、Linking(Device Connect Device Plug-in)の通知設定をONにしてください。</string>
-    <string name="introduction3">3) 設定のLEDのパターンは、点灯するいずれかのものを選択してください。Light ON APIにてそのパターンで点灯します。</string>
-    <string name="introduction4">4) 接続および設定が完了できたなら、次のページに進み手続きを続けてください。</string>
-    <string name="launch_linking">Linkingアプリを起動</string>
+    <string name="activity_setting_tab_paring">ペアリング</string>
+    <string name="activity_setting_tab_beacon">ビーコン</string>
+    <string name="activity_setting_menu">Linkingアプリ誘導</string>
+    <string name="activity_setting_menu_app_inform">アプリ情報</string>
+    <string name="activity_setting_refresh_devices">Linkingデバイスの更新</string>
 
-    <string name="setting_title2">[2/3]Linkingデバイスの検出</string>
-    <string name="tap_discovery">Linkingデバイスの検索をタップしてください。</string>
-    <string name="discovery_devices">Linkingデバイスの検索</string>
-    <string name="device_list_description">青色のデバイスは接続中のデバイスになります。\nデバイスを選択すると、そのデバイスに関する設定を行うことができます。</string>
+    <string name="fragment_beacon_list_scan_title">ビーコンスキャン</string>
+    <string name="fragment_beacon_list_scan_start">開始</string>
+    <string name="fragment_beacon_list_scan_stop">停止</string>
+    <string name="fragment_beacon_list_warning">ペアリング済みかつ接続済みのLinkingデバイスは、ビーコンとして利用できません。</string>
+    <string name="fragment_beacon_error_title">エラー</string>
+    <string name="fragment_beacon_error_message">近くに%1$sが存在しないか、Linkingアプリでペアリング設定されている可能性があります。</string>
+    <string name="fragment_beacon_error_message_not_start_beacon_scan">ビーコンスキャンが開始されていません。\nビーコンスキャンの開始ボタンを押下してください。</string>
+    <string name="fragment_beacon_error_positive">Linkingアプリ誘導</string>
+    <string name="fragment_beacon_error_negative">閉じる</string>
 
-    <string name="setting_title3">[3/3]Linkingデバイス操作画面</string>
-    <string name="device_name">Linkingデバイス名 : </string>
-    <string name="light_off_pattern">LED Off Pattern</string>
-    <string name="light_off_description">LEDがOFFになるパターンを指定してください。</string>
+    <string name="fragment_device_guidance">Linkingデバイスの設定がされていません。\nこのアプリを使用するには、Linkingアプリの設定が必要になります。</string>
+    <string name="fragment_device_discovery">デバイスを更新しています</string>
+    <string name="fragment_device_linking_app">Linkingアプリ誘導</string>
+    <string name="fragment_device_status_online">Status: Online</string>
+    <string name="fragment_device_status_offline">Status: Offline</string>
+    <string name="fragment_device_error_title">エラー</string>
+    <string name="fragment_device_error_message">%1$sが接続されていません。\nLinkingアプリのペアリング設定を確認してください。</string>
+    <string name="fragment_device_error_disconnect">%1$sの接続が切れました。</string>
+    <string name="fragment_device_error_positive">Linkingアプリ誘導</string>
+    <string name="fragment_device_error_negative">閉じる</string>
 
+    <string name="fragment_help_linking_app">Linkingアプリを起動</string>
+    <string name="fragment_help_1_text1">デバイスの検索ボタンを押下して、本アプリで使用したいLinkingデバイスを接続します。\n\n※Android 6 以上対象\nパーミッションの許可を求められる場合がありますので、指定に従い設定を行ってください。</string>
+    <string name="fragment_help_1_text2">このボタンを押下して、デバイスの検索を行います。</string>
+    <string name="fragment_help_2_text1">デバイスの検索で発見したLinkingデバイスを選択して、接続を行います。\nLinkingデバイスを選択すると利用許諾のダイアログが表示されますので、問題がなければOKを押下して接続を進めてください。\n\n接続したいLinkingデバイスが発見できない場合には、Linkingデバイスの電源などが入っているか確認してください。</string>
+    <string name="fragment_help_2_text2">接続したいLinkingデバイスを選択します。</string>
+    <string name="fragment_help_3_text1">デバイスに接続が完了した時に、完了ダイアログが表示されますので、OKを押下して、デバイス詳細画面を開いてください。</string>
+    <string name="fragment_help_3_text2">OKを押下して、デバイス詳細画面を開きます。</string>
+    <string name="fragment_help_4_text1">本アプリで利用したいLinkingデバイスの設定画面にてLinking(Device Connect Device Plug-in)の通知設定をONにしてください。\n\nこの設定をONにしないと本アプリでLinkingデバイスからの通知を受けることができません。\n\nLinking(Device Connect Device Plug-in)を押下することで詳細設定画面へ遷移します。</string>
+    <string name="fragment_help_4_text2">Linking(Device Connect Device Plug-in)の通知設定をONにします。</string>
+    <string name="fragment_help_5_text1">詳細では、LEDやバイブレーションなどのLinkingデバイスのデフォルト設定を行います。\nここで設定した値がデフォルトとしてLinkingデバイスプラグインでは使用されます。</string>
+    <string name="fragment_help_5_text2">LEDやバイブレーションなどの設定を行います。</string>
+    <string name="fragment_help_6_text1">ビーコンモードとして使用する場合には、Linkingアプリでビーコンを受信をONにしてください。\n\nまた、ペアリングされたデバイスの利用設定に登録されているLinkingデバイスは、設定がONになっているとビーコンモードとしては使用することができませんので、ご注意ください。</string>
+    <string name="fragment_help_6_text2">ONになっているとビーコンを受信することができません。</string>
+    <string name="fragment_help_7_text1">ペアリングされたデバイスの利用設定の中から設定したいLinkingデバイスを押下して、デバイス詳細設定画面に遷移します。\n\nLinkingデバイスがONになっていないとデバイス詳細設定画面に遷移できませんので、ご注意ください。</string>
+    <string name="fragment_help_7_text2">設定したいLinkingデバイスがONになっていることを確認します。</string>
+
+    <string name="activity_linking_induction_text_1">本アプリで、Linkingデバイスを操作するためには、Linkingアプリで設定を行う必要があります。\n\nLinkingデバイスに接続されていない場合には、以下の説明を参照してください。</string>
+    <string name="activity_linking_induction_connect">Linkingデバイスの接続</string>
+    <string name="activity_linking_induction_text_2">すでにLinkingデバイスと接続されている場合には、以下の説明を参照してください。</string>
+    <string name="activity_linking_induction_help">Linkingデバイスの設定</string>
+    <string name="activity_linking_induction_text_not_install">本アプリで、Linkingデバイスを操作するためには、Linkingアプリが必要になります。\n\nGoogle PlayからLinkingアプリをインストールして、アプリの指示に従い対応デバイスと端末を接続してください。</string>
+    <string name="activity_linking_induction_1">1)</string>
+    <string name="activity_linking_induction_2">2)</string>
+    <string name="activity_linking_induction_3">3)</string>
+    <string name="activity_linking_induction_4">4)</string>
+    <string name="activity_linking_induction_text">本アプリで、Linkingデバイスを操作するためには、Linkingアプリで以下の設定を行う必要があります。</string>
+    <string name="activity_linking_induction_text1">Linkingアプリを起動し、アプリの指示に従い対応デバイスと端末を接続してください。</string>
+    <string name="activity_linking_induction_text2">Device Connectで利用したいLinkingデバイスの設定画面にて、Linking(Device Connect Device Plug-in)の通知設定をONにしてください。</string>
+    <string name="activity_linking_induction_text3">設定のLEDのパターンは、点灯するいずれかのものを選択してください。Light ON APIにてそのパターンで点灯します。</string>
+    <string name="activity_linking_induction_text4">設定のバイブレーションのパターンは、振動するいずれかのものを選択してください。Vibration APIにてそのパターンで振動します。</string>
+
+    <string name="activity_device_title">Linkingデバイス確認</string>
+    <string name="activity_device_name">Linkingデバイス名 : </string>
+    <string name="activity_device_light_off_pattern">LED Off Pattern</string>
+    <string name="activity_device_light_off_description">LEDがOFFになるパターンを指定してください。</string>
+    <string name="activity_device_vibration_off_pattern">Vibration Off Pattern</string>
+    <string name="activity_device_vibration_off_description">バイブレーションがOFFになるパターンを指定してください。</string>
+    <string name="activity_device_not_selected">未選択</string>
+    <string name="activity_device_led">LED</string>
+    <string name="activity_device_on">ON</string>
+    <string name="activity_device_off">OFF</string>
+    <string name="activity_device_vibration">バイブレーション</string>
+    <string name="activity_device_sensor">センサー</string>
+    <string name="activity_device_gyro">ジャイロ</string>
+    <string name="activity_device_acceleration">加速度</string>
+    <string name="activity_device_orientation">方位</string>
+    <string name="activity_device_button_id">ボタンID</string>
+    <string name="activity_device_register_sensor">登録</string>
+    <string name="activity_device_unregister_sensor">解除</string>
+    <string name="activity_device_proximity">Proximity</string>
+    <string name="activity_device_proximity_range">Range</string>
+    <string name="activity_device_proximity_immediate">近く</string>
+    <string name="activity_device_proximity_near">やや近く</string>
+    <string name="activity_device_proximity_far">遠く</string>
+    <string name="activity_device_proximity_unknown">不明</string>
+    <string name="activity_device_pattern_list">パターンリスト</string>
+    <string name="activity_device_not_support_led">このデバイスはLEDをサポートしていません。</string>
+    <string name="activity_device_not_support_vibration">このデバイスはバイブレーションをサポートしていません。</string>
+    <string name="activity_device_not_support_sensor">このデバイスはセンサーをサポートしていません。</string>
+    <string name="activity_device_sensor_value">x:%1$f\ny:%2$f\nz:%3$f\ntime:%4$d</string>
+
+    <string name="activity_beacon_title">Linkingビーコン確認</string>
+    <string name="activity_beacon_vendor_id">VendorID</string>
+    <string name="activity_beacon_extra_id">ExtraID</string>
+    <string name="activity_beacon_version">Version</string>
+    <string name="activity_beacon_status">Status</string>
+    <string name="activity_beacon_time_stamp">タイムスタンプ</string>
+    <string name="activity_beacon_battery_low">ロウバッテリー</string>
+    <string name="activity_beacon_battery_level">バッテリーレベル</string>
+    <string name="activity_beacon_atmospheric_pressure">気圧</string>
+    <string name="activity_beacon_temperature">気温</string>
+    <string name="activity_beacon_humidity">湿度</string>
+    <string name="activity_beacon_distance">距離</string>
+    <string name="activity_beacon_raw_data">RawData</string>
+    <string name="activity_beacon_button">ボタン</string>
+    <string name="activity_beacon_menu">削除</string>
+    <string name="activity_beacon_clear_button">クリア</string>
+    <string name="activity_beacon_unit_percent">%1$.2f%%</string>
+    <string name="activity_beacon_unit_hectopascal">%1$.2fhPa</string>
+    <string name="activity_beacon_unit_c">%1$.2f℃</string>
+    <string name="activity_beacon_unit_centimeter">cm</string>
+    <string name="activity_beacon_distance_close">近い</string>
+    <string name="activity_beacon_distance_little_close">やや近い</string>
+    <string name="activity_beacon_distance_far">遠い</string>
+    <string name="activity_beacon_delete_dialog_title">ビーコンの削除</string>
+    <string name="activity_beacon_delete_dialog_message">%1$sを削除しても良いでしょうか？</string>
+    <string name="activity_beacon_delete_dialog_positive">はい</string>
+    <string name="activity_beacon_delete_dialog_negative">いいえ</string>
+
+    <string name="activity_app_info_name">アプリケーション名</string>
+    <string name="activity_app_info_version">バージョン</string>
+
+    <string name="linking_beacon_display_name">Linking:ビーコン(%1$d)</string>
+
+    <string name="linking_notification_profile_type_default">通知</string>
+    <string name="linking_notification_profile_type_phone">着信通知</string>
+    <string name="linking_notification_profile_type_mail">メール通知</string>
+    <string name="linking_notification_profile_type_sms">SMS通知</string>
+    <string name="linking_notification_profile_type_event">イベント通知</string>
+    <string name="linking_notification_profile_body">通知が来ています。</string>
+
+    <string name="linking_beacon_scan_detail_timeout">ビーコンスキャン要求のタイムアウト</string>
+    <string name="linking_beacon_scan_detail_meta_data_none">呼び出し元アプリにて、機器通知対応の宣言が定義されていない</string>
+    <string name="linking_beacon_scan_detail_bt_disabled">端末のBluetooth設定がOFF</string>
+    <string name="linking_beacon_scan_detail_sda_disabled">Linkingアプリのビーコン設定がOFF</string>
+    <string name="linking_beacon_scan_detail_permission_denied">Linkingアプリにてビーコンスキャンに必要なPermissionが未許諾</string>
 </resources>

@@ -78,7 +78,7 @@ public class HitoeBatteryProfile extends BatteryProfile {
                 MessageUtils.setNotFoundServiceError(response);
                 return true;
             }
-            double level = (double) (data.getDevice().getBatteryLevel());
+            double level = (double) (data.getDevice().getBatteryLevel() + 1) / 4;
             if (level < 0) {
                 MessageUtils.setUnknownError(response, "Battery level is unknown.");
             } else {

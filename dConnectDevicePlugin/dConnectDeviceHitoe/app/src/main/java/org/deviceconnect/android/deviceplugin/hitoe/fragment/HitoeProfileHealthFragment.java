@@ -78,7 +78,7 @@ public class HitoeProfileHealthFragment extends Fragment  implements HitoeSchedu
             mCurrentDevice = manager.getHitoeDeviceForServiceId(serviceId);
             if (mCurrentDevice != null) {
                 String[] profiles = getResources().getStringArray(R.array.support_profiles);
-                title.setText(profiles[2] + getString(R.string.title_control));
+                title.setText(profiles[0] + getString(R.string.title_control));
             }
         }
 

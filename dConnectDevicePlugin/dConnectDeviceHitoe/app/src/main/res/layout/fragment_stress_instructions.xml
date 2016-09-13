@@ -17,10 +17,11 @@
             android:gravity="center"
             android:textColor="@color/title_background"
             android:textSize="@dimen/text_size_title"
-            android:layout_marginBottom="200dp"
             />
 
-        <View style="@style/horizontalLine" />
+        <View style="@style/horizontalLine"
+            android:layout_marginBottom="200dp"
+            />
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

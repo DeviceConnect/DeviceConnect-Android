@@ -36,6 +36,7 @@ public class AWSIotRemoteManager {
     private AWSIotWebClientManager mAWSIotWebClientManager;
     private AWSIotDeviceManager mAWSIotDeviceManager;
     private Map<Integer, Intent> mResponseMap = new HashMap<>();
+    private Map<Integer, Boolean> mExchangeMap = new HashMap<>();
 
     private OnEventListener mOnEventListener;
 
@@ -142,6 +143,8 @@ public class AWSIotRemoteManager {
         int requestCode = AWSIotUtil.generateRequestCode();
         publish(remote, AWSIotUtil.createRequest(requestCode, message));
         mResponseMap.put(requestCode, response);
+        boolean exchange = request.getStringExtra("profile").matches("servicediscovery");
+        mExchangeMap.put(requestCode, exchange);
         return false;
     }
 
@@ -168,6 +171,7 @@ public class AWSIotRemoteManager {
             publish(remote, AWSIotUtil.createRequest(requestCode, message));
         }
         mResponseMap.put(requestCode, response);
+        mExchangeMap.put(requestCode, true);
         return false;
     }
 
@@ -255,13 +259,14 @@ public class AWSIotRemoteManager {
             JSONObject jsonObject = new JSONObject(message);
             Integer requestCode = jsonObject.getInt("requestCode");
             Intent response = mResponseMap.get(requestCode);
+            boolean exchange = mExchangeMap.get(requestCode);
             if (response != null) {
                 JSONObject responseObj = jsonObject.optJSONObject("response");
                 if (responseObj == null) {
                     MessageUtils.setUnknownError(response);
                 } else {
                     Bundle b = new Bundle();
-                    AWSIotRemoteUtil.jsonToIntent(responseObj, b, new AWSIotRemoteUtil.ConversionJsonCallback() {
+                    AWSIotRemoteUtil.jsonToIntent(exchange, responseObj, b, new AWSIotRemoteUtil.ConversionJsonCallback() {
                         @Override
                         public String convertServiceId(final String id) {
                             return mAWSIotDeviceManager.generateServiceId(remote, id);
@@ -311,7 +316,7 @@ public class AWSIotRemoteManager {
 
                 // TODO json->intent 変換をちゃんと検討すること。
                 Bundle b = new Bundle();
-                AWSIotRemoteUtil.jsonToIntent(jsonObject, b, new AWSIotRemoteUtil.ConversionJsonCallback() {
+                AWSIotRemoteUtil.jsonToIntent(true, jsonObject, b, new AWSIotRemoteUtil.ConversionJsonCallback() {
                     @Override
                     public String convertServiceId(final String id) {
                         return mAWSIotDeviceManager.generateServiceId(remote, id);

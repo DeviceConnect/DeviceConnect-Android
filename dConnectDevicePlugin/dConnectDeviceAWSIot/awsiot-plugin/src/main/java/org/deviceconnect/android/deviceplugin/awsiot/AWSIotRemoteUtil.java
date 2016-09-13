@@ -62,7 +62,7 @@ public final class AWSIotRemoteUtil {
         return jsonObject.toString();
     }
 
-    public static void jsonToIntent(final JSONObject jsonObject, final Bundle response, final ConversionJsonCallback callback) throws JSONException {
+    public static void jsonToIntent(final boolean exchange, final JSONObject jsonObject, final Bundle response, final ConversionJsonCallback callback) throws JSONException {
         Iterator<?> jsonKeys = jsonObject.keys();
         while (jsonKeys.hasNext()) {
             String key = (String) jsonKeys.next();
@@ -72,11 +72,11 @@ public final class AWSIotRemoteUtil {
 
             Object obj = jsonObject.get(key);
             if (obj instanceof String) {
-                if (key.equals("id")) {
+                if (exchange && key.equals("id")) {
                     response.putString(key, callback.convertServiceId((String) obj));
-                } else if (key.equals("name")) {
+                } else if (exchange && key.equals("name")) {
                     response.putString(key, callback.convertName((String) obj));
-                } else if (key.equals("uri")) {
+                } else if (exchange && key.equals("uri")) {
                     response.putString(key, callback.convertUri((String) obj));
                 } else {
                     response.putString(key, (String) obj);
@@ -89,7 +89,7 @@ public final class AWSIotRemoteUtil {
                 response.putBoolean(key, (Boolean) obj);
             } else if (obj instanceof JSONObject) {
                 Bundle b = new Bundle();
-                jsonToIntent((JSONObject) obj, b, callback);
+                jsonToIntent(exchange, (JSONObject) obj, b, callback);
                 response.putBundle(key, b);
             } else if (obj instanceof JSONArray) {
                 List outArray = new ArrayList();
@@ -99,7 +99,7 @@ public final class AWSIotRemoteUtil {
                     if (ooo instanceof JSONObject) {
                         JSONObject obj2 = (JSONObject) ooo;
                         Bundle b = new Bundle();
-                        jsonToIntent(obj2, b, callback);
+                        jsonToIntent(exchange, obj2, b, callback);
                         outArray.add(b);
                     } else {
                         outArray.add(ooo);

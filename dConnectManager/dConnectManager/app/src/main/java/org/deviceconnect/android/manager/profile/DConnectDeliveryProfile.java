@@ -13,7 +13,7 @@ import org.deviceconnect.android.manager.DConnectMessageService;
 import org.deviceconnect.android.manager.DConnectService;
 import org.deviceconnect.android.manager.DevicePlugin;
 import org.deviceconnect.android.manager.DevicePluginManager;
-import org.deviceconnect.android.manager.event.EventHandler;
+import org.deviceconnect.android.manager.event.EventBroker;
 import org.deviceconnect.android.manager.request.DeliveryRequest;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.DConnectProfile;
@@ -33,7 +33,7 @@ public class DConnectDeliveryProfile extends DConnectProfile {
     private final DConnectLocalOAuth mLocalOAuth;
 
     /** イベントハンドラー. */
-    private final EventHandler mEventHandler;
+    private final EventBroker mEventBroker;
 
     /** オリジン有効フラグ. */
     private final boolean mRequireOrigin;
@@ -42,14 +42,14 @@ public class DConnectDeliveryProfile extends DConnectProfile {
      * コンストラクタ.
      * @param mgr デバイスプラグイン管理クラス
      * @param auth LocalOAuth管理クラス
-     * @param eventHandler イベントハンドラー
+     * @param eventBroker イベントハンドラー
      * @param requireOrigin オリジン有効フラグ
      */
     public DConnectDeliveryProfile(final DevicePluginManager mgr, final DConnectLocalOAuth auth,
-                                   final EventHandler eventHandler, final boolean requireOrigin) {
+                                   final EventBroker eventBroker, final boolean requireOrigin) {
         mDevicePluginManager = mgr;
         mLocalOAuth = auth;
-        mEventHandler = eventHandler;
+        mEventBroker = eventBroker;
         mRequireOrigin = requireOrigin;
     }
 
@@ -80,7 +80,7 @@ public class DConnectDeliveryProfile extends DConnectProfile {
             List<DevicePlugin> plugins = mDevicePluginManager.getDevicePlugins(serviceId);
             if (plugins != null && plugins.size() > 0) {
                 DevicePlugin plugin = plugins.get(0);
-                mEventHandler.onRequest(request, plugin);
+                mEventBroker.onRequest(request, plugin);
 
                 DeliveryRequest req = new DeliveryRequest();
                 req.setContext(getContext());

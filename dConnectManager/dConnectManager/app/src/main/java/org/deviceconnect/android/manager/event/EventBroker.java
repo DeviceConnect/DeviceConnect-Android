@@ -7,11 +7,10 @@ import android.os.Bundle;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.manager.DConnectLocalOAuth;
-import org.deviceconnect.android.manager.DConnectService;
+import org.deviceconnect.android.manager.DConnectMessageService;
 import org.deviceconnect.android.manager.DevicePlugin;
 import org.deviceconnect.android.manager.DevicePluginManager;
 import org.deviceconnect.android.manager.request.DiscoveryDeviceRequest;
-import org.deviceconnect.android.manager.util.VersionName;
 import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.message.DConnectMessage;
@@ -22,32 +21,32 @@ import java.io.IOException;
 import java.util.List;
 import java.util.logging.Logger;
 
-public class EventHandler {
+public class EventBroker {
 
     private final Logger mLogger = Logger.getLogger("dconnect.manager");
 
     private final EventSessionTable mTable;
 
-    private final DConnectService mContext;
-
-    private final KeepAliveManager mKeepAliveManager;
+    private final DConnectMessageService mContext;
 
     private DConnectLocalOAuth mLocalOAuth;
 
     private DevicePluginManager mPluginManager;
 
-    public EventHandler(final DConnectService context) {
-        mTable = new EventSessionTable();
+    private RegistrationListener mListener;
+
+    public EventBroker(final DConnectMessageService context,
+                       final EventSessionTable table,
+                       final DConnectLocalOAuth localOAuth,
+                       final DevicePluginManager pluginManager) {
+        mTable = table;
         mContext = context;
-        mKeepAliveManager = new KeepAliveManager(context, mTable);
-    }
-
-    public void setLocalOAuth(final DConnectLocalOAuth localOAuth) {
         mLocalOAuth = localOAuth;
+        mPluginManager = pluginManager;
     }
 
-    public void setPluginManager(final DevicePluginManager pluginManager) {
-        mPluginManager = pluginManager;
+    public void setRegistrationListener(final RegistrationListener listener) {
+        mListener = listener;
     }
 
     public void onRequest(final Intent request, final DevicePlugin dest) {
@@ -77,8 +76,8 @@ public class EventHandler {
         }
         protocol.addSession(mTable, request, dest);
 
-        if (isSupportedKeepAlive(dest)) {
-            mKeepAliveManager.setManagementTable(dest);
+        if (mListener != null) {
+            mListener.onPutEventSession(request, dest);
         }
     }
 
@@ -90,8 +89,8 @@ public class EventHandler {
         }
         protocol.removeSession(mTable, request, dest);
 
-        if (isSupportedKeepAlive(dest)) {
-            mKeepAliveManager.removeManagementTable(dest);
+        if (mListener != null) {
+            mListener.onDeleteEventSession(request, dest);
         }
     }
 
@@ -101,12 +100,6 @@ public class EventHandler {
             return mLocalOAuth.getAccessToken(oauth.getId());
         }
         return null;
-    }
-
-    private boolean isSupportedKeepAlive(final DevicePlugin plugin) {
-        VersionName version = plugin.getPluginSdkVersionName();
-        VersionName match = VersionName.parse("1.1.0");
-        return !(version.compareTo(match) == -1);
     }
 
     public void onEvent(final Intent event) {
@@ -203,8 +196,7 @@ public class EventHandler {
     private DevicePlugin findPluginForServiceChange(final Intent event) {
         String pluginAccessToken = DConnectProfile.getAccessToken(event);
         if (pluginAccessToken != null) {
-            String pluginId = pluginAccessToken;
-            return mPluginManager.getDevicePlugin(pluginId);
+            return mPluginManager.getDevicePlugin(pluginAccessToken);
         } else {
             String sessionKey = DConnectProfile.getSessionKey(event);
             if (sessionKey != null) {
@@ -257,32 +249,6 @@ public class EventHandler {
             mPluginManager.appendServiceId(plugin, serviceId));
     }
 
-    public void enableKeepAlive() {
-        mKeepAliveManager.enableKeepAlive();
-    }
-
-    public void disableKeepAlive() {
-        mKeepAliveManager.disableKeepAlive();
-    }
-
-    public void onKeepAliveCommand(final Intent intent) {
-        String status = intent.getStringExtra(IntentDConnectMessage.EXTRA_KEEPALIVE_STATUS);
-        if (status.equals("RESPONSE")) {
-            String serviceId = intent.getStringExtra("serviceId");
-            if (serviceId != null) {
-                KeepAlive keepAlive = mKeepAliveManager.getKeepAlive(serviceId);
-                if (keepAlive != null) {
-                    keepAlive.setResponseFlag();
-                }
-            }
-        } else if (status.equals("DISCONNECT")) {
-            String sessionKey = intent.getStringExtra(IntentDConnectMessage.EXTRA_SESSION_KEY);
-            if (sessionKey != null) {
-                mContext.sendDisconnectWebSocket(sessionKey);
-            }
-        }
-    }
-
     private boolean isSameName(final String a, final  String b) {
         if (a == null && b == null) {
             return true;
@@ -310,5 +276,10 @@ public class EventHandler {
 
     private void error(final String message) {
         mLogger.severe(message);
+    }
+
+    public interface RegistrationListener {
+        void onPutEventSession(final Intent request, final DevicePlugin plugin);
+        void onDeleteEventSession(final Intent request, final DevicePlugin plugin);
     }
 }

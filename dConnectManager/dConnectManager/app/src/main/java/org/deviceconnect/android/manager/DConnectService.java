@@ -18,8 +18,11 @@ import org.deviceconnect.android.compat.MessageConverter;
 import org.deviceconnect.android.manager.compat.CompatibleRequestConverter;
 import org.deviceconnect.android.manager.compat.ServiceDiscoveryConverter;
 import org.deviceconnect.android.manager.compat.ServiceInformationConverter;
-import org.deviceconnect.android.manager.event.EventHandler;
+import org.deviceconnect.android.manager.event.EventBroker;
+import org.deviceconnect.android.manager.event.KeepAlive;
+import org.deviceconnect.android.manager.event.KeepAliveManager;
 import org.deviceconnect.android.manager.util.DConnectUtil;
+import org.deviceconnect.android.manager.util.VersionName;
 import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 import org.deviceconnect.server.DConnectServer;
@@ -63,6 +66,9 @@ public class DConnectService extends DConnectMessageService {
     /** イベント送信スレッド. */
     private ExecutorService mEventSender = Executors.newSingleThreadExecutor();
 
+    /** イベントKeep Alive管理クラス. */
+    private KeepAliveManager mKeepAliveManager;
+
     private MessageConverter[] mRequestConverters;
     private MessageConverter[] mResponseConverters;
 
@@ -74,6 +80,22 @@ public class DConnectService extends DConnectMessageService {
     @Override
     public void onCreate() {
         super.onCreate();
+        mKeepAliveManager = new KeepAliveManager(this, mEventSessionTable);
+        mEventBroker.setRegistrationListener(new EventBroker.RegistrationListener() {
+            @Override
+            public void onPutEventSession(final Intent request, final DevicePlugin plugin) {
+                if (isSupportedKeepAlive(plugin)) {
+                    mKeepAliveManager.setManagementTable(plugin);
+                }
+            }
+
+            @Override
+            public void onDeleteEventSession(final Intent request, final DevicePlugin plugin) {
+                if (isSupportedKeepAlive(plugin)) {
+                    mKeepAliveManager.removeManagementTable(plugin);
+                }
+            }
+        });
         mRequestConverters = new MessageConverter[] {
                 new CompatibleRequestConverter(mPluginMgr)
         };
@@ -111,17 +133,41 @@ public class DConnectService extends DConnectMessageService {
 
         if (ACTION_SETTINGS_KEEP_ALIVE.equals(action)) {
             if (intent.getBooleanExtra(EXTRA_KEEP_ALIVE_ENABLED, true)) {
-                mEventHandler.enableKeepAlive();
+                mKeepAliveManager.enableKeepAlive();
             } else {
-                mEventHandler.disableKeepAlive();
+                mKeepAliveManager.disableKeepAlive();
             }
             return START_STICKY;
         }
         if (IntentDConnectMessage.ACTION_KEEPALIVE.equals(action)) {
-            mEventHandler.onKeepAliveCommand(intent);
+            onKeepAliveCommand(intent);
             return START_STICKY;
         }
         return super.onStartCommand(intent, flags, startId);
+    }
+
+    private void onKeepAliveCommand(final Intent intent) {
+        String status = intent.getStringExtra(IntentDConnectMessage.EXTRA_KEEPALIVE_STATUS);
+        if (status.equals("RESPONSE")) {
+            String serviceId = intent.getStringExtra("serviceId");
+            if (serviceId != null) {
+                KeepAlive keepAlive = mKeepAliveManager.getKeepAlive(serviceId);
+                if (keepAlive != null) {
+                    keepAlive.setResponseFlag();
+                }
+            }
+        } else if (status.equals("DISCONNECT")) {
+            String sessionKey = intent.getStringExtra(IntentDConnectMessage.EXTRA_SESSION_KEY);
+            if (sessionKey != null) {
+                sendDisconnectWebSocket(sessionKey);
+            }
+        }
+    }
+
+    private boolean isSupportedKeepAlive(final DevicePlugin plugin) {
+        VersionName version = plugin.getPluginSdkVersionName();
+        VersionName match = VersionName.parse("1.1.0");
+        return !(version.compareTo(match) == -1);
     }
 
     @Override
@@ -371,10 +417,5 @@ public class DConnectService extends DConnectMessageService {
             converter.convert(result);
         }
         return result;
-    }
-
-    @Override
-    protected EventHandler getEventHandler() {
-        return new EventHandler(this);
     }
 }

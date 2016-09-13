@@ -23,7 +23,7 @@ import java.util.regex.Pattern;
  * Keep Alive Manager.
  * @author NTT DOCOMO, INC.
  */
-class KeepAliveManager {
+public class KeepAliveManager {
     /** コンテキスト. */
     private final Context mContext;
     /** イベントセッション管理テーブル. */

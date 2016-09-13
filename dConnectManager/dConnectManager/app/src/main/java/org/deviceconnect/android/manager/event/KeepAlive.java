@@ -12,7 +12,7 @@ import org.deviceconnect.android.manager.DevicePlugin;
  * Keep Alive.
  * @author NTT DOCOMO, INC.
  */
-class KeepAlive {
+public class KeepAlive {
     /** デバイスプラグイン */
     private DevicePlugin mPlugin;
     /** イベントカウンター. */

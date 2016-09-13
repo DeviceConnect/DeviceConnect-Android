@@ -23,7 +23,8 @@ import org.deviceconnect.android.localoauth.ClientPackageInfo;
 import org.deviceconnect.android.localoauth.LocalOAuth2Main;
 import org.deviceconnect.android.logger.AndroidHandler;
 import org.deviceconnect.android.manager.DevicePluginManager.DevicePluginEventListener;
-import org.deviceconnect.android.manager.event.EventHandler;
+import org.deviceconnect.android.manager.event.EventBroker;
+import org.deviceconnect.android.manager.event.EventSessionTable;
 import org.deviceconnect.android.manager.hmac.HmacManager;
 import org.deviceconnect.android.manager.policy.OriginValidator;
 import org.deviceconnect.android.manager.profile.AuthorizationProfile;
@@ -123,8 +124,11 @@ public abstract class DConnectMessageService extends Service
     /** サーバの起動状態. */
     protected boolean mRunningFlag;
 
-    /** イベントハンドラー. */
-    protected EventHandler mEventHandler;
+    /** イベントセッション管理テーブル. */
+    protected final EventSessionTable mEventSessionTable = new EventSessionTable();
+
+    /** イベントブローカー. */
+    protected EventBroker mEventBroker;
 
     @Override
     public IBinder onBind(final Intent intent) {
@@ -166,9 +170,7 @@ public abstract class DConnectMessageService extends Service
         mPluginMgr.setEventListener(this);
 
         // イベントハンドラーの初期化
-        mEventHandler = getEventHandler();
-        mEventHandler.setLocalOAuth(mLocalOAuth);
-        mEventHandler.setPluginManager(mPluginMgr);
+        mEventBroker = new EventBroker(this, mEventSessionTable, mLocalOAuth, mPluginMgr);
 
         // プロファイルの追加
         addProfile(new AuthorizationProfile());
@@ -179,7 +181,7 @@ public abstract class DConnectMessageService extends Service
 
         // dConnect Managerで処理せず、登録されたデバイスプラグインに処理させるプロファイル
         setDeliveryProfile(new DConnectDeliveryProfile(mPluginMgr, mLocalOAuth,
-                mEventHandler, mSettings.requireOrigin()));
+            mEventBroker, mSettings.requireOrigin()));
 
         loadProfileSpecs();
     }
@@ -342,7 +344,7 @@ public abstract class DConnectMessageService extends Service
      * @param event イベント用Intent
      */
     private void onEventReceive(final Intent event) {
-        mEventHandler.onEvent(event);
+        mEventBroker.onEvent(event);
     }
 
     /**
@@ -693,6 +695,4 @@ public abstract class DConnectMessageService extends Service
         }
         return false;
     }
-
-    protected abstract EventHandler getEventHandler();
 }

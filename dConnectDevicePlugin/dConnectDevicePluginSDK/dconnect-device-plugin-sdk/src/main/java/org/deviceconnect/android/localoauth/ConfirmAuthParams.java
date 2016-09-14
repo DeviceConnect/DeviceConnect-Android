@@ -74,8 +74,11 @@ public class ConfirmAuthParams {
     /** スコープ名. */
     private String[] mScope;
 
-    /** デバイスプラグイン用の承認確認画面か.　 */
+    /** デバイスプラグイン用の承認確認画面であることを示すフラグ. */
     private boolean mIsForDevicePlugin;
+
+    /** Device Connect Managerに対してユーザーが設定しているキーワード. */
+    private String mKeyword;
 
     /**
      * コンストラクタ.
@@ -87,6 +90,7 @@ public class ConfirmAuthParams {
         mServiceId = null;
         mScope = null;
         mIsForDevicePlugin = true;
+        mKeyword = null;
     }
 
     /**
@@ -102,6 +106,7 @@ public class ConfirmAuthParams {
         this.mServiceId = builder.mServiceId;
         this.mScope = builder.mScope;
         this.mIsForDevicePlugin = builder.mIsForDevicePlugin;
+        this.mKeyword = builder.mKeyword;
     }
 
     /**
@@ -213,6 +218,22 @@ public class ConfirmAuthParams {
     }
 
     /**
+     * キーワードを取得.
+     * @return キーワード
+     */
+    public String getKeyword() {
+        return mKeyword;
+    }
+
+    /**
+     * キーワードを設定.
+     * @param keyword キーワード
+     */
+    public void setKeyword(final String keyword) {
+        mKeyword = keyword;
+    }
+
+    /**
      * ConfirmAuthParamsのビルダークラス.
      */
     public static final class Builder {
@@ -232,8 +253,11 @@ public class ConfirmAuthParams {
         /** スコープ. */
         private String[] mScope;
 
-        /** デバイスプラグイン用の承認確認画面か.　 */
+        /** デバイスプラグイン用の承認確認画面であることを示すフラグ. */
         private boolean mIsForDevicePlugin;
+
+        /** Device Connect Managerに対してユーザーが設定しているキーワード. */
+        private String mKeyword;
 
         /**
          * ConfirmAuthParamsのインスタンスを設定された設定値で生成する.
@@ -243,13 +267,17 @@ public class ConfirmAuthParams {
         public ConfirmAuthParams build() {
 
             if (mContext == null) {
-                throw new IllegalArgumentException("mCcontext must be not null.");
+                throw new IllegalArgumentException("context must be not null.");
             } else if (mApplicationName == null) {
-                throw new IllegalArgumentException("mApplicationName must be not null.");
+                throw new IllegalArgumentException("applicationName must be not null.");
             } else if (mClientId == null) {
-                throw new IllegalArgumentException("mClientId must be not null.");
+                throw new IllegalArgumentException("clientId must be not null.");
             } else if (mScope == null) {
-                throw new IllegalArgumentException("mScopes must be not null.");
+                throw new IllegalArgumentException("scopes must be not null.");
+            } else {
+                if (!mIsForDevicePlugin && mKeyword == null) {
+                    throw new IllegalArgumentException("keyword must be not null.");
+                }
             }
 
             return new ConfirmAuthParams(this);
@@ -306,12 +334,22 @@ public class ConfirmAuthParams {
         }
 
         /**
-         * デバイスプラグイン用の承認確認画面か.
+         * デバイスプラグイン用の承認確認画面であることを示すフラグを設定する.
          * @param isForDevicePlugin デバイスプラグイン用の承認確認画面ならtrueを、アプリ用ならfalseを設定する。
          * @return ビルダー。
          */
         public Builder isForDevicePlugin(final boolean isForDevicePlugin) {
             mIsForDevicePlugin = isForDevicePlugin;
+            return this;
+        }
+
+        /**
+         * キーワードを設定する.
+         * @param keyword キーワード
+         * @return ビルダー。
+         */
+        public Builder keyword(final String keyword) {
+            mKeyword = keyword;
             return this;
         }
     }

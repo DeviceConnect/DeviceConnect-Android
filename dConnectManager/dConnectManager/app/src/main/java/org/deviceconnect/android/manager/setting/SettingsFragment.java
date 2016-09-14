@@ -32,6 +32,7 @@ import android.view.MenuItem;
 
 import org.deviceconnect.android.manager.BuildConfig;
 import org.deviceconnect.android.manager.DConnectApplication;
+import org.deviceconnect.android.manager.DConnectSettings;
 import org.deviceconnect.android.manager.IDConnectService;
 import org.deviceconnect.android.manager.IDConnectWebService;
 import org.deviceconnect.android.manager.R;
@@ -118,8 +119,8 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
         }
 
         SharedPreferences sp = getPreferenceManager().getSharedPreferences();
-        String keyword = sp.getString(getString(R.string.key_settings_dconn_keyword), null);
-        if (keyword == null || keyword.length() <= 0) {
+        String keyword = sp.getString(getString(R.string.key_settings_dconn_keyword), DConnectSettings.DEFAULT_KEYWORD);
+        if (keyword.length() <= 0) {
             keyword = DConnectUtil.createKeyword();
         }
 

@@ -40,6 +40,12 @@ public class ConfirmAuthActivity extends Activity {
     /** EXTRA: アプリケーション名(例: "SW2デバイスプラグイン", "Twitterイベントプラグイン"). */
     public static final String EXTRA_APPLICATIONNAME = "application_name";
 
+    /** EXTRA: パッケージ名. */
+    public static final String EXTRA_PACKAGE_NAME = "package_name";
+
+    /** EXTRA: キーワード. */
+    public static final String EXTRA_KEYWORD = "keyword";
+
     /** EXTRA: スコープ(例: "file", "notification", "vibration"). */
     public static final String EXTRA_SCOPES = "scopes";
 

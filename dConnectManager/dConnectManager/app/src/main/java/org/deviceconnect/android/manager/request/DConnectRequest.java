@@ -6,6 +6,10 @@
  */
 package org.deviceconnect.android.manager.request;
 
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+
 import org.deviceconnect.android.manager.DConnectBroadcastReceiver;
 import org.deviceconnect.android.manager.DConnectMessageService;
 import org.deviceconnect.android.manager.DevicePlugin;
@@ -13,10 +17,6 @@ import org.deviceconnect.android.manager.DevicePluginManager;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
-
-import android.content.ComponentName;
-import android.content.Context;
-import android.content.Intent;
 
 /**
  * DConnectリクエスト.

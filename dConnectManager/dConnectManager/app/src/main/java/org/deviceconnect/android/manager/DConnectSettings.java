@@ -10,6 +10,8 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Environment;
 
+import org.deviceconnect.android.manager.util.DConnectUtil;
+
 import java.io.File;
 
 /**
@@ -25,6 +27,8 @@ public final class DConnectSettings {
     public static final int DEFALUT_WEB_PORT = 8080;
     /** デフォルトのインターバルを定義. */
     public static final int DEFAULT_INTERVAL = 1000 * 60 * 5;
+    /** デフォルトのキーワード. */
+    public static final String DEFAULT_KEYWORD = DConnectUtil.createKeyword();
     /** ポート番号. */
     private int mPort = DEFAULT_PORT;
     /** ホスト名. */
@@ -56,6 +60,9 @@ public final class DConnectSettings {
     private String mWebHost = DEFAULT_HOST;
     /** Webサーバのポート番号. */
     private int mWebPort = DEFALUT_WEB_PORT;
+
+    /** キーワード. */
+    private String mKeyword;
 
     /** このクラスの唯一のインスタンス. */
     private static DConnectSettings sInstance;
@@ -100,6 +107,7 @@ public final class DConnectSettings {
         setRequireOrigin(sp.getBoolean(context.getString(R.string.key_settings_dconn_require_origin), true));
         setBlockingOrigin(sp
                 .getBoolean(context.getString(R.string.key_settings_dconn_whitelist_origin_blocking), false));
+        setKeyword(sp.getString(context.getString(R.string.key_settings_dconn_keyword), DEFAULT_KEYWORD));
         try {
             setObservationInterval(Integer.parseInt(sp.getString(
                     context.getString(R.string.key_settings_dconn_observation_interval),
@@ -325,5 +333,21 @@ public final class DConnectSettings {
      */
     public void setObservationInterval(final int interval) {
         mObservationInterval = interval;
+    }
+
+    /**
+     * キーワードを取得する.
+     * @return キーワード
+     */
+    public String getKeyword() {
+        return mKeyword;
+    }
+
+    /**
+     * キーワードを設定する.
+     * @param keyword キーワード
+     */
+    public void setKeyword(final String keyword) {
+        mKeyword = keyword;
     }
 }

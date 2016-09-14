@@ -76,7 +76,7 @@ public final class AWSIotRemoteUtil {
                     response.putString(key, callback.convertServiceId((String) obj));
                 } else if (exchange && key.equals("name")) {
                     response.putString(key, callback.convertName((String) obj));
-                } else if (exchange && key.equals("uri")) {
+                } else if (key.equals("uri")) {
                     response.putString(key, callback.convertUri((String) obj));
                 } else {
                     response.putString(key, (String) obj);

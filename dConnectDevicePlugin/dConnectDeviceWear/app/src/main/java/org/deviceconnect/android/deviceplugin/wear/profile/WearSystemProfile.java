@@ -6,12 +6,12 @@
  */
 package org.deviceconnect.android.deviceplugin.wear.profile;
 
-import org.deviceconnect.android.deviceplugin.wear.setting.WearSettingActivity;
-import org.deviceconnect.android.profile.SystemProfile;
-
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+
+import org.deviceconnect.android.deviceplugin.wear.setting.WearServiceListActivity;
+import org.deviceconnect.android.profile.SystemProfile;
 
 /**
  * System Profile.
@@ -22,6 +22,6 @@ public class WearSystemProfile extends SystemProfile {
 
     @Override
     protected Class<? extends Activity> getSettingPageActivity(final Intent request, final Bundle param) {
-        return WearSettingActivity.class;
+        return WearServiceListActivity.class;
     }
 }

@@ -14,11 +14,13 @@
             android:id="@+id/textViewNumber"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="#00a0e9"
-        	android:textColor="#ffffff"
+            android:background="#ffffff"
+            android:textColor="#00a0e9"
             android:gravity="center"
             android:text="Android Wearの設定"
             android:textSize="20dip" />
+
+        <View style="@style/horizontalLine" />
 
         <LinearLayout
             android:layout_width="match_parent"

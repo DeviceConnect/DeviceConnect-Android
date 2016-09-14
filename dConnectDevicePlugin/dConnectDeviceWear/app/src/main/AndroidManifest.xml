@@ -4,10 +4,6 @@
     android:versionCode="1"
     android:versionName="2.0.0">
 
-    <uses-sdk
-        android:minSdkVersion="14"
-        android:targetSdkVersion="19"/>
-
     <uses-permission android:name="android.permission.BLUETOOTH"/>
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
     <uses-permission android:name="android.permission.VIBRATE"/>
@@ -34,11 +30,15 @@
             android:value="@integer/google_play_services_version"/>
 
         <activity
-            android:name="org.deviceconnect.android.deviceplugin.wear.setting.WearSettingActivity"
+            android:name=".setting.WearServiceListActivity"
+            android:exported="false"/>
+
+        <activity
+            android:name=".setting.WearSettingActivity"
             android:exported="false"/>
 
         <receiver
-            android:name="org.deviceconnect.android.deviceplugin.wear.WearDeviceProvider"
+            android:name=".WearDeviceProvider"
             android:enabled="true"
             android:exported="true">
             <meta-data
@@ -54,7 +54,7 @@
         </receiver>
 
         <service
-            android:name="org.deviceconnect.android.deviceplugin.wear.WearDeviceService"
+            android:name=".WearDeviceService"
             android:exported="false">
         </service>
     </application>

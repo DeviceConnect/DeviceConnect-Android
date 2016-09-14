@@ -22,6 +22,10 @@ import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.KeyEventProfile;
+import org.deviceconnect.android.profile.api.DConnectApi;
+import org.deviceconnect.android.profile.api.DeleteApi;
+import org.deviceconnect.android.profile.api.GetApi;
+import org.deviceconnect.android.profile.api.PutApi;
 import org.deviceconnect.message.DConnectMessage;
 
 import java.util.List;
@@ -110,15 +114,22 @@ public class WearKeyEventProfile extends KeyEventProfile {
      */
     public WearKeyEventProfile(final WearManager mgr) {
         mgr.addMessageEventListener(WearConst.WEAR_TO_DEVICE_KEYEVENT_DATA, mListener);
+        addApi(mGetOnDown);
+        addApi(mGetOnUp);
+        addApi(mPutOnDown);
+        addApi(mPutOnUp);
+        addApi(mDeleteOnDown);
+        addApi(mDeleteOnUp);
     }
 
-    @Override
-    protected boolean onGetOnDown(final Intent request, final Intent response, final String serviceId) {
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-        } else if (!WearUtils.checkServiceId(serviceId)) {
-            MessageUtils.setNotFoundServiceError(response);
-        } else {
+    private final DConnectApi mGetOnDown = new GetApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_DOWN;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
             Bundle keyevent = getKeyEventCache(KeyEventProfile.ATTRIBUTE_ON_DOWN);
             if (keyevent == null) {
                 response.putExtra(KeyEventProfile.PARAM_KEYEVENT, "");
@@ -126,131 +137,120 @@ public class WearKeyEventProfile extends KeyEventProfile {
                 response.putExtra(KeyEventProfile.PARAM_KEYEVENT, keyevent);
             }
             setResult(response, DConnectMessage.RESULT_OK);
+            return true;
         }
-        return true;
-    }
+    };
 
-    @Override
-    protected boolean onGetOnUp(final Intent request, final Intent response, final String serviceId) {
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-        } else if (!WearUtils.checkServiceId(serviceId)) {
-            MessageUtils.setNotFoundServiceError(response);
-        } else {
-            Bundle keyevent = getKeyEventCache(KeyEventProfile.ATTRIBUTE_ON_UP);
-            if (keyevent == null) {
+    private final DConnectApi mGetOnUp = new GetApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_UP;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            Bundle keyEvent = getKeyEventCache(KeyEventProfile.ATTRIBUTE_ON_UP);
+            if (keyEvent == null) {
                 response.putExtra(KeyEventProfile.PARAM_KEYEVENT, "");
             } else {
-                response.putExtra(KeyEventProfile.PARAM_KEYEVENT, keyevent);
+                response.putExtra(KeyEventProfile.PARAM_KEYEVENT, keyEvent);
             }
             setResult(response, DConnectMessage.RESULT_OK);
+            return true;
         }
-        return true;
-    }
+    };
 
-    @Override
-    protected boolean onPutOnDown(final Intent request, final Intent response, final String serviceId,
-            final String sessionKey) {
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-            return true;
-        } else if (!WearUtils.checkServiceId(serviceId)) {
-            MessageUtils.setNotFoundServiceError(response);
-            return true;
-        } else if (sessionKey == null) {
-            MessageUtils.setInvalidRequestParameterError(response);
-            return true;
-        } else {
-            String nodeId = WearUtils.getNodeId(serviceId);
+    private final DConnectApi mPutOnDown = new PutApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_DOWN;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String nodeId = WearUtils.getNodeId(getServiceID(request));
             getManager().sendMessageToWear(nodeId, WearConst.DEVICE_TO_WEAR_KEYEVENT_ONDOWN_REGISTER, "",
-                    new OnMessageResultListener() {
-                        @Override
-                        public void onResult(final SendMessageResult result) {
-                            if (result.getStatus().isSuccess()) {
-                                EventError error = EventManager.INSTANCE.addEvent(request);
-                                if (error == EventError.NONE) {
-                                    setResult(response, DConnectMessage.RESULT_OK);
-                                } else {
-                                    setResult(response, DConnectMessage.RESULT_ERROR);
-                                }
+                new OnMessageResultListener() {
+                    @Override
+                    public void onResult(final SendMessageResult result) {
+                        if (result.getStatus().isSuccess()) {
+                            EventError error = EventManager.INSTANCE.addEvent(request);
+                            if (error == EventError.NONE) {
+                                setResult(response, DConnectMessage.RESULT_OK);
                             } else {
-                                MessageUtils.setIllegalDeviceStateError(response);
+                                setResult(response, DConnectMessage.RESULT_ERROR);
                             }
-                            sendResponse(response);
-                        }
-
-                        @Override
-                        public void onError() {
+                        } else {
                             MessageUtils.setIllegalDeviceStateError(response);
-                            sendResponse(response);
                         }
-                    });
+                        sendResponse(response);
+                    }
+
+                    @Override
+                    public void onError() {
+                        MessageUtils.setIllegalDeviceStateError(response);
+                        sendResponse(response);
+                    }
+                });
             return false;
         }
-    }
+    };
 
-    @Override
-    protected boolean onPutOnUp(final Intent request, final Intent response, final String serviceId,
-            final String sessionKey) {
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-            return true;
-        } else if (!WearUtils.checkServiceId(serviceId)) {
-            MessageUtils.setNotFoundServiceError(response);
-            return true;
-        } else if (sessionKey == null) {
-            MessageUtils.setInvalidRequestParameterError(response);
-            return true;
-        } else {
-            String nodeId = WearUtils.getNodeId(serviceId);
+    private final DConnectApi mPutOnUp = new PutApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_UP;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String nodeId = WearUtils.getNodeId(getServiceID(request));
             getManager().sendMessageToWear(nodeId, WearConst.DEVICE_TO_WEAR_KEYEVENT_ONUP_REGISTER, "",
-                    new OnMessageResultListener() {
-                        @Override
-                        public void onResult(final SendMessageResult result) {
-                            if (result.getStatus().isSuccess()) {
-                                EventError error = EventManager.INSTANCE.addEvent(request);
-                                if (error == EventError.NONE) {
-                                    setResult(response, DConnectMessage.RESULT_OK);
-                                } else {
-                                    setResult(response, DConnectMessage.RESULT_ERROR);
-                                }
+                new OnMessageResultListener() {
+                    @Override
+                    public void onResult(final SendMessageResult result) {
+                        if (result.getStatus().isSuccess()) {
+                            EventError error = EventManager.INSTANCE.addEvent(request);
+                            if (error == EventError.NONE) {
+                                setResult(response, DConnectMessage.RESULT_OK);
                             } else {
-                                MessageUtils.setIllegalDeviceStateError(response);
+                                setResult(response, DConnectMessage.RESULT_ERROR);
                             }
-                            sendResponse(response);
-                        }
-
-                        @Override
-                        public void onError() {
+                        } else {
                             MessageUtils.setIllegalDeviceStateError(response);
-                            sendResponse(response);
                         }
-                    });
+                        sendResponse(response);
+                    }
+
+                    @Override
+                    public void onError() {
+                        MessageUtils.setIllegalDeviceStateError(response);
+                        sendResponse(response);
+                    }
+                });
             return false;
         }
-    }
+    };
 
-    @Override
-    protected boolean onDeleteOnDown(final Intent request, final Intent response, final String serviceId,
-            final String sessionKey) {
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-        } else if (!WearUtils.checkServiceId(serviceId)) {
-            MessageUtils.setNotFoundServiceError(response);
-        } else if (sessionKey == null) {
-            MessageUtils.setInvalidRequestParameterError(response);
-        } else {
-            String nodeId = WearUtils.getNodeId(serviceId);
+    private final DConnectApi mDeleteOnDown = new DeleteApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_DOWN;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String nodeId = WearUtils.getNodeId(getServiceID(request));
             getManager().sendMessageToWear(nodeId, WearConst.DEVICE_TO_WEAR_KEYEVENT_ONDOWN_UNREGISTER, "",
-                    new OnMessageResultListener() {
-                        @Override
-                        public void onResult(final SendMessageResult result) {
-                        }
+                new OnMessageResultListener() {
+                    @Override
+                    public void onResult(final SendMessageResult result) {
+                    }
 
-                        @Override
-                        public void onError() {
-                        }
-                    });
+                    @Override
+                    public void onError() {
+                    }
+                });
 
             // Event release.
             EventError error = EventManager.INSTANCE.removeEvent(request);
@@ -259,31 +259,29 @@ public class WearKeyEventProfile extends KeyEventProfile {
             } else {
                 setResult(response, DConnectMessage.RESULT_ERROR);
             }
+            return true;
         }
-        return true;
-    }
+    };
 
-    @Override
-    protected boolean onDeleteOnUp(final Intent request, final Intent response, final String serviceId,
-            final String sessionKey) {
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-        } else if (!WearUtils.checkServiceId(serviceId)) {
-            MessageUtils.setNotFoundServiceError(response);
-        } else if (sessionKey == null) {
-            MessageUtils.setInvalidRequestParameterError(response);
-        } else {
-            String nodeId = WearUtils.getNodeId(serviceId);
+    private final DConnectApi mDeleteOnUp = new DeleteApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_UP;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String nodeId = WearUtils.getNodeId(getServiceID(request));
             getManager().sendMessageToWear(nodeId, WearConst.DEVICE_TO_WEAR_KEYEVENT_ONUP_UNREGISTER, "",
-                    new OnMessageResultListener() {
-                        @Override
-                        public void onResult(final SendMessageResult result) {
-                        }
+                new OnMessageResultListener() {
+                    @Override
+                    public void onResult(final SendMessageResult result) {
+                    }
 
-                        @Override
-                        public void onError() {
-                        }
-                    });
+                    @Override
+                    public void onError() {
+                    }
+                });
 
             // Event release.
             EventError error = EventManager.INSTANCE.removeEvent(request);
@@ -292,9 +290,9 @@ public class WearKeyEventProfile extends KeyEventProfile {
             } else {
                 setResult(response, DConnectMessage.RESULT_ERROR);
             }
+            return true;
         }
-        return true;
-    }
+    };
 
     /**
      * Send a message to the registration event.

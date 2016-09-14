@@ -22,6 +22,10 @@ import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.TouchProfile;
+import org.deviceconnect.android.profile.api.DConnectApi;
+import org.deviceconnect.android.profile.api.DeleteApi;
+import org.deviceconnect.android.profile.api.GetApi;
+import org.deviceconnect.android.profile.api.PutApi;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
@@ -76,7 +80,7 @@ public class WearTouchProfile extends TouchProfile {
     
     /** Touch profile cache retention time (mSec). */
     static final long CACHE_RETENTION_TIME = 10000;
-    
+
     /**
      * Get Touch cache data.
      * 
@@ -171,16 +175,34 @@ public class WearTouchProfile extends TouchProfile {
      */
     public WearTouchProfile(final WearManager mgr) {
         mgr.addMessageEventListener(WearConst.WEAR_TO_DEVICE_TOUCH_DATA, mListener);
+        addApi(mGetOnTouch);
+        addApi(mGetOnTouchStart);
+        addApi(mGetOnTouchEnd);
+        addApi(mGetOnDoubleTap);
+        addApi(mGetOnTouchMove);
+        addApi(mGetOnTouchCancel);
+        addApi(mPutOnTouch);
+        addApi(mPutOnTouchStart);
+        addApi(mPutOnTouchEnd);
+        addApi(mPutOnDoubleTap);
+        addApi(mPutOnTouchMove);
+        addApi(mPutOnTouchCancel);
+        addApi(mDeleteOnTouch);
+        addApi(mDeleteOnTouchStart);
+        addApi(mDeleteOnTouchEnd);
+        addApi(mDeleteOnDoubleTap);
+        addApi(mDeleteOnTouchMove);
+        addApi(mDeleteOnTouchCancel);
     }
 
-    @Override
-    protected boolean onGetOnTouch(final Intent request, final Intent response, final String serviceId) {
+    private final DConnectApi mGetOnTouch = new GetApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_TOUCH;
+        }
 
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-        } else if (!WearUtils.checkServiceId(serviceId)) {
-            MessageUtils.setNotFoundServiceError(response);
-        } else {
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
             Bundle touches = getTouchCache(TouchProfile.ATTRIBUTE_ON_TOUCH);
             if (touches == null) {
                 response.putExtra(TouchProfile.PARAM_TOUCH, "");
@@ -188,18 +210,18 @@ public class WearTouchProfile extends TouchProfile {
                 response.putExtra(TouchProfile.PARAM_TOUCH, touches);
             }
             setResult(response, IntentDConnectMessage.RESULT_OK);
+            return true;
         }
-        return true;
-    }
+    };
 
-    @Override
-    protected boolean onGetOnTouchStart(final Intent request, final Intent response, final String serviceId) {
+    private final DConnectApi mGetOnTouchStart = new GetApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_TOUCH_START;
+        }
 
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-        } else if (!WearUtils.checkServiceId(serviceId)) {
-            MessageUtils.setNotFoundServiceError(response);
-        } else {
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
             Bundle touches = getTouchCache(TouchProfile.ATTRIBUTE_ON_TOUCH_START);
             if (touches == null) {
                 response.putExtra(TouchProfile.PARAM_TOUCH, "");
@@ -207,18 +229,18 @@ public class WearTouchProfile extends TouchProfile {
                 response.putExtra(TouchProfile.PARAM_TOUCH, touches);
             }
             setResult(response, IntentDConnectMessage.RESULT_OK);
+            return true;
         }
-        return true;
-    }
+    };
 
-    @Override
-    protected boolean onGetOnTouchEnd(final Intent request, final Intent response, final String serviceId) {
+    private final DConnectApi mGetOnTouchEnd = new GetApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_TOUCH_END;
+        }
 
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-        } else if (!WearUtils.checkServiceId(serviceId)) {
-            MessageUtils.setNotFoundServiceError(response);
-        } else {
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
             Bundle touches = getTouchCache(TouchProfile.ATTRIBUTE_ON_TOUCH_END);
             if (touches == null) {
                 response.putExtra(TouchProfile.PARAM_TOUCH, "");
@@ -226,18 +248,18 @@ public class WearTouchProfile extends TouchProfile {
                 response.putExtra(TouchProfile.PARAM_TOUCH, touches);
             }
             setResult(response, IntentDConnectMessage.RESULT_OK);
+            return true;
         }
-        return true;
-    }
+    };
 
-    @Override
-    protected boolean onGetOnDoubleTap(final Intent request, final Intent response, final String serviceId) {
+    private final DConnectApi mGetOnDoubleTap = new GetApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_DOUBLE_TAP;
+        }
 
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-        } else if (!WearUtils.checkServiceId(serviceId)) {
-            MessageUtils.setNotFoundServiceError(response);
-        } else {
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
             Bundle touches = getTouchCache(TouchProfile.ATTRIBUTE_ON_DOUBLE_TAP);
             if (touches == null) {
                 response.putExtra(TouchProfile.PARAM_TOUCH, "");
@@ -245,18 +267,18 @@ public class WearTouchProfile extends TouchProfile {
                 response.putExtra(TouchProfile.PARAM_TOUCH, touches);
             }
             setResult(response, IntentDConnectMessage.RESULT_OK);
+            return true;
         }
-        return true;
-    }
+    };
 
-    @Override
-    protected boolean onGetOnTouchMove(final Intent request, final Intent response, final String serviceId) {
+    private final DConnectApi mGetOnTouchMove = new GetApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_TOUCH_MOVE;
+        }
 
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-        } else if (!WearUtils.checkServiceId(serviceId)) {
-            MessageUtils.setNotFoundServiceError(response);
-        } else {
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
             Bundle touches = getTouchCache(TouchProfile.ATTRIBUTE_ON_TOUCH_MOVE);
             if (touches == null) {
                 response.putExtra(TouchProfile.PARAM_TOUCH, "");
@@ -264,18 +286,18 @@ public class WearTouchProfile extends TouchProfile {
                 response.putExtra(TouchProfile.PARAM_TOUCH, touches);
             }
             setResult(response, IntentDConnectMessage.RESULT_OK);
+            return true;
         }
-        return true;
-    }
+    };
 
-    @Override
-    protected boolean onGetOnTouchCancel(final Intent request, final Intent response, final String serviceId) {
+    private final DConnectApi mGetOnTouchCancel = new GetApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_TOUCH_CANCEL;
+        }
 
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-        } else if (!WearUtils.checkServiceId(serviceId)) {
-            MessageUtils.setNotFoundServiceError(response);
-        } else {
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
             Bundle touches = getTouchCache(TouchProfile.ATTRIBUTE_ON_TOUCH_CANCEL);
             if (touches == null) {
                 response.putExtra(TouchProfile.PARAM_TOUCH, "");
@@ -283,284 +305,252 @@ public class WearTouchProfile extends TouchProfile {
                 response.putExtra(TouchProfile.PARAM_TOUCH, touches);
             }
             setResult(response, IntentDConnectMessage.RESULT_OK);
+            return true;
         }
-        return true;
-    }
+    };
 
-    @Override
-    protected boolean onPutOnTouch(final Intent request, final Intent response, final String serviceId,
-            final String sessionKey) {
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-            return true;
-        } else if (!WearUtils.checkServiceId(serviceId)) {
-            MessageUtils.setNotFoundServiceError(response);
-            return true;
-        } else if (sessionKey == null) {
-            MessageUtils.setInvalidRequestParameterError(response);
-            return true;
-        } else {
-            String nodeId = WearUtils.getNodeId(serviceId);
+    private final DConnectApi mPutOnTouch = new PutApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_TOUCH;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String nodeId = WearUtils.getNodeId(getServiceID(request));
 
             getManager().sendMessageToWear(nodeId,
-                    WearConst.DEVICE_TO_WEAR_TOUCH_ONTOUCH_REGISTER,
-                    "", new OnMessageResultListener() {
-                @Override
-                public void onResult(final SendMessageResult result) {
-                    if (result.getStatus().isSuccess()) {
-                        // Event registration.
-                        EventError error = EventManager.INSTANCE.addEvent(request);
-                        if (error == EventError.NONE) {
-                            setResult(response, DConnectMessage.RESULT_OK);
+                WearConst.DEVICE_TO_WEAR_TOUCH_ONTOUCH_REGISTER,
+                "", new OnMessageResultListener() {
+                    @Override
+                    public void onResult(final SendMessageResult result) {
+                        if (result.getStatus().isSuccess()) {
+                            // Event registration.
+                            EventError error = EventManager.INSTANCE.addEvent(request);
+                            if (error == EventError.NONE) {
+                                setResult(response, DConnectMessage.RESULT_OK);
+                            } else {
+                                setResult(response, DConnectMessage.RESULT_ERROR);
+                            }
                         } else {
-                            setResult(response, DConnectMessage.RESULT_ERROR);
+                            MessageUtils.setIllegalDeviceStateError(response);
                         }
-                    } else {
-                        MessageUtils.setIllegalDeviceStateError(response);
+                        sendResponse(response);
                     }
-                    sendResponse(response);
-                }
-                @Override
-                public void onError() {
-                    MessageUtils.setIllegalDeviceStateError(response);
-                    sendResponse(response);
-                }
-            });
+                    @Override
+                    public void onError() {
+                        MessageUtils.setIllegalDeviceStateError(response);
+                        sendResponse(response);
+                    }
+                });
             return false;
         }
-    }
+    };
 
-    @Override
-    protected boolean onPutOnTouchStart(final Intent request, final Intent response, final String serviceId,
-            final String sessionKey) {
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-            return true;
-        } else if (!WearUtils.checkServiceId(serviceId)) {
-            MessageUtils.setNotFoundServiceError(response);
-            return true;
-        } else if (sessionKey == null) {
-            MessageUtils.setInvalidRequestParameterError(response);
-            return true;
-        } else {
-            String nodeId = WearUtils.getNodeId(serviceId);
+    private final DConnectApi mPutOnTouchStart = new PutApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_TOUCH_START;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String nodeId = WearUtils.getNodeId(getServiceID(request));
             getManager().sendMessageToWear(nodeId,
-                    WearConst.DEVICE_TO_WEAR_TOUCH_ONTOUCHSTART_REGISTER,
-                    "", new OnMessageResultListener() {
-                @Override
-                public void onResult(final SendMessageResult result) {
-                    if (result.getStatus().isSuccess()) {
-                        // Event registration.
-                        EventError error = EventManager.INSTANCE.addEvent(request);
-                        if (error == EventError.NONE) {
-                            setResult(response, DConnectMessage.RESULT_OK);
+                WearConst.DEVICE_TO_WEAR_TOUCH_ONTOUCHSTART_REGISTER,
+                "", new OnMessageResultListener() {
+                    @Override
+                    public void onResult(final SendMessageResult result) {
+                        if (result.getStatus().isSuccess()) {
+                            // Event registration.
+                            EventError error = EventManager.INSTANCE.addEvent(request);
+                            if (error == EventError.NONE) {
+                                setResult(response, DConnectMessage.RESULT_OK);
+                            } else {
+                                setResult(response, DConnectMessage.RESULT_ERROR);
+                            }
                         } else {
-                            setResult(response, DConnectMessage.RESULT_ERROR);
+                            MessageUtils.setIllegalDeviceStateError(response);
                         }
-                    } else {
-                        MessageUtils.setIllegalDeviceStateError(response);
+                        sendResponse(response);
                     }
-                    sendResponse(response);
-                }
-                @Override
-                public void onError() {
-                    MessageUtils.setIllegalDeviceStateError(response);
-                    sendResponse(response);
-                }
-            });
+                    @Override
+                    public void onError() {
+                        MessageUtils.setIllegalDeviceStateError(response);
+                        sendResponse(response);
+                    }
+                });
             return false;
         }
-    }
+    };
 
-    @Override
-    protected boolean onPutOnTouchEnd(final Intent request, final Intent response, final String serviceId,
-            final String sessionKey) {
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-            return true;
-        } else if (!WearUtils.checkServiceId(serviceId)) {
-            MessageUtils.setNotFoundServiceError(response);
-            return true;
-        } else if (sessionKey == null) {
-            MessageUtils.setInvalidRequestParameterError(response);
-            return true;
-        } else {
-            String nodeId = WearUtils.getNodeId(serviceId);
+    private final DConnectApi mPutOnTouchEnd = new PutApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_TOUCH_END;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String nodeId = WearUtils.getNodeId(getServiceID(request));
             getManager().sendMessageToWear(nodeId,
-                    WearConst.DEVICE_TO_WEAR_TOUCH_ONTOUCHEND_REGISTER,
-                    "", new OnMessageResultListener() {
-                @Override
-                public void onResult(final SendMessageResult result) {
-                    if (result.getStatus().isSuccess()) {
-                        // Event registration.
-                        EventError error = EventManager.INSTANCE.addEvent(request);
-                        if (error == EventError.NONE) {
-                            setResult(response, DConnectMessage.RESULT_OK);
+                WearConst.DEVICE_TO_WEAR_TOUCH_ONTOUCHEND_REGISTER,
+                "", new OnMessageResultListener() {
+                    @Override
+                    public void onResult(final SendMessageResult result) {
+                        if (result.getStatus().isSuccess()) {
+                            // Event registration.
+                            EventError error = EventManager.INSTANCE.addEvent(request);
+                            if (error == EventError.NONE) {
+                                setResult(response, DConnectMessage.RESULT_OK);
+                            } else {
+                                setResult(response, DConnectMessage.RESULT_ERROR);
+                            }
                         } else {
-                            setResult(response, DConnectMessage.RESULT_ERROR);
+                            MessageUtils.setIllegalDeviceStateError(response);
                         }
-                    } else {
-                        MessageUtils.setIllegalDeviceStateError(response);
+                        sendResponse(response);
                     }
-                    sendResponse(response);
-                }
-                @Override
-                public void onError() {
-                    MessageUtils.setIllegalDeviceStateError(response);
-                    sendResponse(response);
-                }
-            });
+                    @Override
+                    public void onError() {
+                        MessageUtils.setIllegalDeviceStateError(response);
+                        sendResponse(response);
+                    }
+                });
             return false;
         }
-    }
+    };
 
-    @Override
-    protected boolean onPutOnDoubleTap(final Intent request, final Intent response, final String serviceId,
-            final String sessionKey) {
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-            return true;
-        } else if (!WearUtils.checkServiceId(serviceId)) {
-            MessageUtils.setNotFoundServiceError(response);
-            return true;
-        } else if (sessionKey == null) {
-            MessageUtils.setInvalidRequestParameterError(response);
-            return true;
-        } else {
-            String nodeId = WearUtils.getNodeId(serviceId);
+    private final DConnectApi mPutOnDoubleTap = new PutApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_DOUBLE_TAP;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String nodeId = WearUtils.getNodeId(getServiceID(request));
             getManager().sendMessageToWear(nodeId,
-                    WearConst.DEVICE_TO_WEAR_TOUCH_ONDOUBLETAP_REGISTER,
-                    "", new OnMessageResultListener() {
-                @Override
-                public void onResult(final SendMessageResult result) {
-                    if (result.getStatus().isSuccess()) {
-                        // Event registration.
-                        EventError error = EventManager.INSTANCE.addEvent(request);
-                        if (error == EventError.NONE) {
-                            setResult(response, DConnectMessage.RESULT_OK);
+                WearConst.DEVICE_TO_WEAR_TOUCH_ONDOUBLETAP_REGISTER,
+                "", new OnMessageResultListener() {
+                    @Override
+                    public void onResult(final SendMessageResult result) {
+                        if (result.getStatus().isSuccess()) {
+                            // Event registration.
+                            EventError error = EventManager.INSTANCE.addEvent(request);
+                            if (error == EventError.NONE) {
+                                setResult(response, DConnectMessage.RESULT_OK);
+                            } else {
+                                setResult(response, DConnectMessage.RESULT_ERROR);
+                            }
                         } else {
-                            setResult(response, DConnectMessage.RESULT_ERROR);
+                            MessageUtils.setIllegalDeviceStateError(response);
                         }
-                    } else {
-                        MessageUtils.setIllegalDeviceStateError(response);
+                        sendResponse(response);
                     }
-                    sendResponse(response);
-                }
-                @Override
-                public void onError() {
-                    MessageUtils.setIllegalDeviceStateError(response);
-                    sendResponse(response);
-                }
-            });
+                    @Override
+                    public void onError() {
+                        MessageUtils.setIllegalDeviceStateError(response);
+                        sendResponse(response);
+                    }
+                });
             return false;
         }
-    }
+    };
 
-    @Override
-    protected boolean onPutOnTouchMove(final Intent request, final Intent response, final String serviceId,
-            final String sessionKey) {
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-            return true;
-        } else if (!WearUtils.checkServiceId(serviceId)) {
-            MessageUtils.setNotFoundServiceError(response);
-            return true;
-        } else if (sessionKey == null) {
-            MessageUtils.setInvalidRequestParameterError(response);
-            return true;
-        } else {
-            String nodeId = WearUtils.getNodeId(serviceId);
+    private final DConnectApi mPutOnTouchMove = new PutApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_TOUCH_MOVE;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String nodeId = WearUtils.getNodeId(getServiceID(request));
             getManager().sendMessageToWear(nodeId,
-                    WearConst.DEVICE_TO_WEAR_TOUCH_ONTOUCHMOVE_REGISTER,
-                    "", new OnMessageResultListener() {
-                @Override
-                public void onResult(final SendMessageResult result) {
-                    if (result.getStatus().isSuccess()) {
-                        // Event registration.
-                        EventError error = EventManager.INSTANCE.addEvent(request);
-                        if (error == EventError.NONE) {
-                            setResult(response, DConnectMessage.RESULT_OK);
+                WearConst.DEVICE_TO_WEAR_TOUCH_ONTOUCHMOVE_REGISTER,
+                "", new OnMessageResultListener() {
+                    @Override
+                    public void onResult(final SendMessageResult result) {
+                        if (result.getStatus().isSuccess()) {
+                            // Event registration.
+                            EventError error = EventManager.INSTANCE.addEvent(request);
+                            if (error == EventError.NONE) {
+                                setResult(response, DConnectMessage.RESULT_OK);
+                            } else {
+                                setResult(response, DConnectMessage.RESULT_ERROR);
+                            }
                         } else {
-                            setResult(response, DConnectMessage.RESULT_ERROR);
+                            MessageUtils.setIllegalDeviceStateError(response);
                         }
-                    } else {
-                        MessageUtils.setIllegalDeviceStateError(response);
+                        sendResponse(response);
                     }
-                    sendResponse(response);
-                }
-                @Override
-                public void onError() {
-                    MessageUtils.setIllegalDeviceStateError(response);
-                    sendResponse(response);
-                }
-            });
+                    @Override
+                    public void onError() {
+                        MessageUtils.setIllegalDeviceStateError(response);
+                        sendResponse(response);
+                    }
+                });
             return false;
         }
-    }
+    };
 
-    @Override
-    protected boolean onPutOnTouchCancel(final Intent request, final Intent response, final String serviceId,
-            final String sessionKey) {
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-            return true;
-        } else if (!WearUtils.checkServiceId(serviceId)) {
-            MessageUtils.setNotFoundServiceError(response);
-            return true;
-        } else if (sessionKey == null) {
-            MessageUtils.setInvalidRequestParameterError(response);
-            return true;
-        } else {
-            String nodeId = WearUtils.getNodeId(serviceId);
+    private final DConnectApi mPutOnTouchCancel = new PutApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_TOUCH_CANCEL;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String nodeId = WearUtils.getNodeId(getServiceID(request));
             getManager().sendMessageToWear(nodeId,
-                    WearConst.DEVICE_TO_WEAR_TOUCH_ONTOUCHCANCEL_REGISTER,
-                    "", new OnMessageResultListener() {
-                @Override
-                public void onResult(final SendMessageResult result) {
-                    if (result.getStatus().isSuccess()) {
-                        // Event registration.
-                        EventError error = EventManager.INSTANCE.addEvent(request);
-                        if (error == EventError.NONE) {
-                            setResult(response, DConnectMessage.RESULT_OK);
+                WearConst.DEVICE_TO_WEAR_TOUCH_ONTOUCHCANCEL_REGISTER,
+                "", new OnMessageResultListener() {
+                    @Override
+                    public void onResult(final SendMessageResult result) {
+                        if (result.getStatus().isSuccess()) {
+                            // Event registration.
+                            EventError error = EventManager.INSTANCE.addEvent(request);
+                            if (error == EventError.NONE) {
+                                setResult(response, DConnectMessage.RESULT_OK);
+                            } else {
+                                setResult(response, DConnectMessage.RESULT_ERROR);
+                            }
                         } else {
-                            setResult(response, DConnectMessage.RESULT_ERROR);
+                            MessageUtils.setIllegalDeviceStateError(response);
                         }
-                    } else {
-                        MessageUtils.setIllegalDeviceStateError(response);
+                        sendResponse(response);
                     }
-                    sendResponse(response);
-                }
-                @Override
-                public void onError() {
-                    MessageUtils.setIllegalDeviceStateError(response);
-                    sendResponse(response);
-                }
-            });
+                    @Override
+                    public void onError() {
+                        MessageUtils.setIllegalDeviceStateError(response);
+                        sendResponse(response);
+                    }
+                });
             return false;
         }
-    }
+    };
 
-    @Override
-    protected boolean onDeleteOnTouch(final Intent request, final Intent response, final String serviceId,
-            final String sessionKey) {
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-        } else if (!WearUtils.checkServiceId(serviceId)) {
-            MessageUtils.setNotFoundServiceError(response);
-        } else if (sessionKey == null) {
-            MessageUtils.setInvalidRequestParameterError(response);
-        } else {
-            String nodeId = WearUtils.getNodeId(serviceId);
-            getManager().sendMessageToWear(nodeId, 
-                    WearConst.DEVICE_TO_WEAR_TOUCH_ONTOUCH_UNREGISTER,
-                    "", new OnMessageResultListener() {
-                @Override
-                public void onResult(final SendMessageResult result) {
-                }
-                @Override
-                public void onError() {
-                }
-            });
+    private final DConnectApi mDeleteOnTouch = new DeleteApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_TOUCH;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String nodeId = WearUtils.getNodeId(getServiceID(request));
+            getManager().sendMessageToWear(nodeId,
+                WearConst.DEVICE_TO_WEAR_TOUCH_ONTOUCH_UNREGISTER,
+                "", new OnMessageResultListener() {
+                    @Override
+                    public void onResult(final SendMessageResult result) {
+                    }
+                    @Override
+                    public void onError() {
+                    }
+                });
 
             // Event release.
             EventError error = EventManager.INSTANCE.removeEvent(request);
@@ -569,31 +559,29 @@ public class WearTouchProfile extends TouchProfile {
             } else {
                 setResult(response, DConnectMessage.RESULT_ERROR);
             }
+            return true;
         }
-        return true;
-    }
+    };
 
-    @Override
-    protected boolean onDeleteOnTouchStart(final Intent request, final Intent response, final String serviceId,
-            final String sessionKey) {
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-        } else if (!WearUtils.checkServiceId(serviceId)) {
-            MessageUtils.setNotFoundServiceError(response);
-        } else if (sessionKey == null) {
-            MessageUtils.setInvalidRequestParameterError(response);
-        } else {
-            String nodeId = WearUtils.getNodeId(serviceId);
-            getManager().sendMessageToWear(nodeId, 
-                    WearConst.DEVICE_TO_WEAR_TOUCH_ONTOUCHSTART_UNREGISTER,
-                    "", new OnMessageResultListener() {
-                @Override
-                public void onResult(final SendMessageResult result) {
-                }
-                @Override
-                public void onError() {
-                }
-            });
+    private final DConnectApi mDeleteOnTouchStart = new DeleteApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_TOUCH_START;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String nodeId = WearUtils.getNodeId(getServiceID(request));
+            getManager().sendMessageToWear(nodeId,
+                WearConst.DEVICE_TO_WEAR_TOUCH_ONTOUCHSTART_UNREGISTER,
+                "", new OnMessageResultListener() {
+                    @Override
+                    public void onResult(final SendMessageResult result) {
+                    }
+                    @Override
+                    public void onError() {
+                    }
+                });
 
             // Event release.
             EventError error = EventManager.INSTANCE.removeEvent(request);
@@ -602,31 +590,29 @@ public class WearTouchProfile extends TouchProfile {
             } else {
                 setResult(response, DConnectMessage.RESULT_ERROR);
             }
+            return true;
         }
-        return true;
-    }
+    };
 
-    @Override
-    protected boolean onDeleteOnTouchEnd(final Intent request, final Intent response, final String serviceId,
-            final String sessionKey) {
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-        } else if (!WearUtils.checkServiceId(serviceId)) {
-            MessageUtils.setNotFoundServiceError(response);
-        } else if (sessionKey == null) {
-            MessageUtils.setInvalidRequestParameterError(response);
-        } else {
-            String nodeId = WearUtils.getNodeId(serviceId);
-            getManager().sendMessageToWear(nodeId, 
-                    WearConst.DEVICE_TO_WEAR_TOUCH_ONTOUCHEND_UNREGISTER,
-                    "", new OnMessageResultListener() {
-                @Override
-                public void onResult(final SendMessageResult result) {
-                }
-                @Override
-                public void onError() {
-                }
-            });
+    private final DConnectApi mDeleteOnTouchEnd = new DeleteApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_TOUCH_END;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String nodeId = WearUtils.getNodeId(getServiceID(request));
+            getManager().sendMessageToWear(nodeId,
+                WearConst.DEVICE_TO_WEAR_TOUCH_ONTOUCHEND_UNREGISTER,
+                "", new OnMessageResultListener() {
+                    @Override
+                    public void onResult(final SendMessageResult result) {
+                    }
+                    @Override
+                    public void onError() {
+                    }
+                });
 
             // Event release.
             EventError error = EventManager.INSTANCE.removeEvent(request);
@@ -635,31 +621,29 @@ public class WearTouchProfile extends TouchProfile {
             } else {
                 setResult(response, DConnectMessage.RESULT_ERROR);
             }
+            return true;
         }
-        return true;
-    }
+    };
 
-    @Override
-    protected boolean onDeleteOnDoubleTap(final Intent request, final Intent response, final String serviceId,
-            final String sessionKey) {
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-        } else if (!WearUtils.checkServiceId(serviceId)) {
-            MessageUtils.setNotFoundServiceError(response);
-        } else if (sessionKey == null) {
-            MessageUtils.setInvalidRequestParameterError(response);
-        } else {
-            String nodeId = WearUtils.getNodeId(serviceId);
-            getManager().sendMessageToWear(nodeId, 
-                    WearConst.DEVICE_TO_WEAR_TOUCH_ONDOUBLETAP_UNREGISTER,
-                    "", new OnMessageResultListener() {
-                @Override
-                public void onResult(final SendMessageResult result) {
-                }
-                @Override
-                public void onError() {
-                }
-            });
+    private final DConnectApi mDeleteOnDoubleTap = new DeleteApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_DOUBLE_TAP;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String nodeId = WearUtils.getNodeId(getServiceID(request));
+            getManager().sendMessageToWear(nodeId,
+                WearConst.DEVICE_TO_WEAR_TOUCH_ONDOUBLETAP_UNREGISTER,
+                "", new OnMessageResultListener() {
+                    @Override
+                    public void onResult(final SendMessageResult result) {
+                    }
+                    @Override
+                    public void onError() {
+                    }
+                });
 
             // Event release.
             EventError error = EventManager.INSTANCE.removeEvent(request);
@@ -668,31 +652,29 @@ public class WearTouchProfile extends TouchProfile {
             } else {
                 setResult(response, DConnectMessage.RESULT_ERROR);
             }
+            return true;
         }
-        return true;
-    }
+    };
 
-    @Override
-    protected boolean onDeleteOnTouchMove(final Intent request, final Intent response, final String serviceId,
-            final String sessionKey) {
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-        } else if (!WearUtils.checkServiceId(serviceId)) {
-            MessageUtils.setNotFoundServiceError(response);
-        } else if (sessionKey == null) {
-            MessageUtils.setInvalidRequestParameterError(response);
-        } else {
-            String nodeId = WearUtils.getNodeId(serviceId);
-            getManager().sendMessageToWear(nodeId, 
-                    WearConst.DEVICE_TO_WEAR_TOUCH_ONTOUCHMOVE_UNREGISTER,
-                    "", new OnMessageResultListener() {
-                @Override
-                public void onResult(final SendMessageResult result) {
-                }
-                @Override
-                public void onError() {
-                }
-            });
+    private final DConnectApi mDeleteOnTouchMove = new DeleteApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_TOUCH_MOVE;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String nodeId = WearUtils.getNodeId(getServiceID(request));
+            getManager().sendMessageToWear(nodeId,
+                WearConst.DEVICE_TO_WEAR_TOUCH_ONTOUCHMOVE_UNREGISTER,
+                "", new OnMessageResultListener() {
+                    @Override
+                    public void onResult(final SendMessageResult result) {
+                    }
+                    @Override
+                    public void onError() {
+                    }
+                });
 
             // Event release.
             EventError error = EventManager.INSTANCE.removeEvent(request);
@@ -701,31 +683,29 @@ public class WearTouchProfile extends TouchProfile {
             } else {
                 setResult(response, DConnectMessage.RESULT_ERROR);
             }
+            return true;
         }
-        return true;
-    }
+    };
 
-    @Override
-    protected boolean onDeleteOnTouchCancel(final Intent request, final Intent response, final String serviceId,
-            final String sessionKey) {
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-        } else if (!WearUtils.checkServiceId(serviceId)) {
-            MessageUtils.setNotFoundServiceError(response);
-        } else if (sessionKey == null) {
-            MessageUtils.setInvalidRequestParameterError(response);
-        } else {
-            String nodeId = WearUtils.getNodeId(serviceId);
-            getManager().sendMessageToWear(nodeId, 
-                    WearConst.DEVICE_TO_WEAR_TOUCH_ONTOUCHCANCEL_UNREGISTER,
-                    "", new OnMessageResultListener() {
-                @Override
-                public void onResult(final SendMessageResult result) {
-                }
-                @Override
-                public void onError() {
-                }
-            });
+    private final DConnectApi mDeleteOnTouchCancel = new DeleteApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_TOUCH_CANCEL;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String nodeId = WearUtils.getNodeId(getServiceID(request));
+            getManager().sendMessageToWear(nodeId,
+                WearConst.DEVICE_TO_WEAR_TOUCH_ONTOUCHCANCEL_UNREGISTER,
+                "", new OnMessageResultListener() {
+                    @Override
+                    public void onResult(final SendMessageResult result) {
+                    }
+                    @Override
+                    public void onError() {
+                    }
+                });
 
             // Event release.
             EventError error = EventManager.INSTANCE.removeEvent(request);
@@ -734,9 +714,9 @@ public class WearTouchProfile extends TouchProfile {
             } else {
                 setResult(response, DConnectMessage.RESULT_ERROR);
             }
+            return true;
         }
-        return true;
-    }
+    };
 
     /**
      * Send a message to the registration event.

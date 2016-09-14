@@ -11,14 +11,16 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 
 import com.google.android.gms.wearable.DataApi.DataItemResult;
-import com.google.android.gms.wearable.MessageApi.SendMessageResult;
+import com.google.android.gms.wearable.MessageApi;
 
 import org.deviceconnect.android.deviceplugin.wear.WearDeviceService;
 import org.deviceconnect.android.deviceplugin.wear.WearManager;
 import org.deviceconnect.android.deviceplugin.wear.WearManager.OnDataItemResultListener;
-import org.deviceconnect.android.deviceplugin.wear.WearManager.OnMessageResultListener;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.CanvasProfile;
+import org.deviceconnect.android.profile.api.DConnectApi;
+import org.deviceconnect.android.profile.api.DeleteApi;
+import org.deviceconnect.android.profile.api.PostApi;
 import org.deviceconnect.message.DConnectMessage;
 
 import java.io.ByteArrayOutputStream;
@@ -39,34 +41,45 @@ public class WearCanvasProfile extends CanvasProfile {
 
     private ExecutorService mImageService = Executors.newSingleThreadExecutor();
 
-    @Override
-    protected boolean onPostDrawImage(final Intent request, final Intent response,
-                                      final String serviceId, final String mimeType, final byte[] data, final String uri,
-                                      final double x, final double y, final String mode) {
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-            return true;
-        }
-        if (data == null) {
-            mImageService.execute(new Runnable() {
-                @Override
-                public void run() {
-                    byte[] result = getData(uri);
-                    if (result == null) {
-                        MessageUtils.setInvalidRequestParameterError(response, "could not get image from uri.");
-                        sendResponse(response);
-                        return;
-                    }
-                    if (drawImage(response, result, x, y, mode)) {
-                        sendResponse(response);
-                    }
-                }
-            });
-            return false;
-        } else {
-            return drawImage(response, data, x, y, mode);
-        }
+    public WearCanvasProfile() {
+        addApi(mPostDrawImage);
+        addApi(mDeleteDrawImage);
     }
+
+    private DConnectApi mPostDrawImage = new PostApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_DRAW_IMAGE;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            final byte[] data = getData(request);
+            final double x = getX(request);
+            final double y = getY(request);
+            final String mode = getMode(request);
+            if (data == null) {
+                mImageService.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        String uri = getURI(request);
+                        byte[] result = getData(uri);
+                        if (result == null) {
+                            MessageUtils.setInvalidRequestParameterError(response, "could not get image from uri.");
+                            sendResponse(response);
+                            return;
+                        }
+                        if (drawImage(response, result, x, y, mode)) {
+                            sendResponse(response);
+                        }
+                    }
+                });
+                return false;
+            } else {
+                return drawImage(response, data, x, y, mode);
+            }
+        }
+    };
 
     private boolean drawImage(final Intent response, byte[] data, double x, double y, String mode) {
         if (data.length > LIMIT_DATA_SIZE) {
@@ -112,38 +125,36 @@ public class WearCanvasProfile extends CanvasProfile {
         return false;
     }
 
-    @Override
-    protected boolean onDeleteDrawImage(final Intent request, final Intent response,
-                                        final String serviceId) {
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-            return true;
-        } else if (!WearUtils.checkServiceId(serviceId)) {
-            MessageUtils.setNotFoundServiceError(response);
-            return true;
-        } else {
-            String nodeId = WearUtils.getNodeId(serviceId);
-            getManager().sendMessageToWear(nodeId, WearConst.DEVICE_TO_WEAR_CANCAS_DELETE_IMAGE,
-                    "", new OnMessageResultListener() {
-                        @Override
-                        public void onResult(final SendMessageResult result) {
-                            if (result.getStatus().isSuccess()) {
-                                setResult(response, DConnectMessage.RESULT_OK);
-                            } else {
-                                MessageUtils.setIllegalDeviceStateError(response);
-                            }
-                            sendResponse(response);
-                        }
+    private final DConnectApi mDeleteDrawImage = new DeleteApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_DRAW_IMAGE;
+        }
 
-                        @Override
-                        public void onError() {
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String nodeId = WearUtils.getNodeId(getServiceID(request));
+            getManager().sendMessageToWear(nodeId, WearConst.DEVICE_TO_WEAR_CANCAS_DELETE_IMAGE,
+                "", new WearManager.OnMessageResultListener() {
+                    @Override
+                    public void onResult(final MessageApi.SendMessageResult result) {
+                        if (result.getStatus().isSuccess()) {
+                            setResult(response, DConnectMessage.RESULT_OK);
+                        } else {
                             MessageUtils.setIllegalDeviceStateError(response);
-                            sendResponse(response);
                         }
-                    });
+                        sendResponse(response);
+                    }
+
+                    @Override
+                    public void onError() {
+                        MessageUtils.setIllegalDeviceStateError(response);
+                        sendResponse(response);
+                    }
+                });
             return false;
         }
-    }
+    };
 
     /**
      * データを画像に変換します.

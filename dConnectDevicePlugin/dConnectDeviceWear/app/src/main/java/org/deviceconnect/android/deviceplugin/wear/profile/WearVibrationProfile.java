@@ -15,6 +15,9 @@ import org.deviceconnect.android.deviceplugin.wear.WearManager;
 import org.deviceconnect.android.deviceplugin.wear.WearManager.OnMessageResultListener;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.VibrationProfile;
+import org.deviceconnect.android.profile.api.DConnectApi;
+import org.deviceconnect.android.profile.api.DeleteApi;
+import org.deviceconnect.android.profile.api.PutApi;
 import org.deviceconnect.message.DConnectMessage;
 
 /**
@@ -24,68 +27,71 @@ import org.deviceconnect.message.DConnectMessage;
  */
 public class WearVibrationProfile extends VibrationProfile {
 
-    @Override
-    protected boolean onPutVibrate(final Intent request, final Intent response,
-            final String serviceId, final long[] pattern) {
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-            return true;
-        } else if (!WearUtils.checkServiceId(serviceId)) {
-            MessageUtils.setNotFoundServiceError(response);
-            return true;
-        } else {
-            String nodeId = WearUtils.getNodeId(serviceId);
-            getManager().sendMessageToWear(nodeId, WearConst.DEVICE_TO_WEAR_VIBRATION_RUN,
-                    convertPatternToString(pattern), new OnMessageResultListener() {
-                @Override
-                public void onResult(final SendMessageResult result) {
-                    if (result.getStatus().isSuccess()) {
-                        setResult(response, DConnectMessage.RESULT_OK);
-                    } else {
-                        MessageUtils.setIllegalDeviceStateError(response);
-                    }
-                    sendResponse(response);
-                }
-                @Override
-                public void onError() {
-                    MessageUtils.setIllegalDeviceStateError(response);
-                    sendResponse(response);
-                }
-            });
-            return false;
-        }
+    public WearVibrationProfile() {
+        addApi(mPutVibrate);
+        addApi(mDeleteVibrate);
     }
 
-    @Override
-    protected boolean onDeleteVibrate(final Intent request, final Intent response, final String serviceId) {
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-            return true;
-        } else if (!WearUtils.checkServiceId(serviceId)) {
-            MessageUtils.setNotFoundServiceError(response);
-            return true;
-        } else {
-            String nodeId = WearUtils.getNodeId(serviceId);
-            getManager().sendMessageToWear(nodeId, WearConst.DEVICE_TO_WEAR_VIBRATION_DEL,
-                    "", new OnMessageResultListener() {
-                @Override
-                public void onResult(final SendMessageResult result) {
-                    if (result.getStatus().isSuccess()) {
-                        setResult(response, DConnectMessage.RESULT_OK);
-                    } else {
-                        MessageUtils.setIllegalDeviceStateError(response);
-                    }
-                    sendResponse(response);
-                }
-                @Override
-                public void onError() {
-                    MessageUtils.setIllegalDeviceStateError(response);
-                    sendResponse(response);
-                }
-            });
+    private final DConnectApi mPutVibrate = new PutApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_VIBRATE;
         }
-        return false;
-    }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String pattern = getPattern(request);
+            String nodeId = WearUtils.getNodeId(getServiceID(request));
+            getManager().sendMessageToWear(nodeId, WearConst.DEVICE_TO_WEAR_VIBRATION_RUN,
+                convertPatternToString(parsePattern(pattern)), new OnMessageResultListener() {
+                    @Override
+                    public void onResult(final SendMessageResult result) {
+                        if (result.getStatus().isSuccess()) {
+                            setResult(response, DConnectMessage.RESULT_OK);
+                        } else {
+                            MessageUtils.setIllegalDeviceStateError(response);
+                        }
+                        sendResponse(response);
+                    }
+                    @Override
+                    public void onError() {
+                        MessageUtils.setIllegalDeviceStateError(response);
+                        sendResponse(response);
+                    }
+                });
+            return false;
+        }
+    };
+
+    private final DConnectApi mDeleteVibrate = new DeleteApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_VIBRATE;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String nodeId = WearUtils.getNodeId(getServiceID(request));
+            getManager().sendMessageToWear(nodeId, WearConst.DEVICE_TO_WEAR_VIBRATION_DEL,
+                "", new OnMessageResultListener() {
+                    @Override
+                    public void onResult(final SendMessageResult result) {
+                        if (result.getStatus().isSuccess()) {
+                            setResult(response, DConnectMessage.RESULT_OK);
+                        } else {
+                            MessageUtils.setIllegalDeviceStateError(response);
+                        }
+                        sendResponse(response);
+                    }
+                    @Override
+                    public void onError() {
+                        MessageUtils.setIllegalDeviceStateError(response);
+                        sendResponse(response);
+                    }
+                });
+            return false;
+        }
+    };
 
     /**
      * バイブレーションのパターンを文字列に変換する.

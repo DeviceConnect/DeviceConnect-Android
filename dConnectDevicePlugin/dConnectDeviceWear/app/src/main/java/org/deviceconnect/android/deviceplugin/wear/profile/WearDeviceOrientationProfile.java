@@ -20,6 +20,10 @@ import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.DeviceOrientationProfile;
+import org.deviceconnect.android.profile.api.DConnectApi;
+import org.deviceconnect.android.profile.api.DeleteApi;
+import org.deviceconnect.android.profile.api.GetApi;
+import org.deviceconnect.android.profile.api.PutApi;
 import org.deviceconnect.message.DConnectMessage;
 
 import java.util.ArrayList;
@@ -65,20 +69,21 @@ public class WearDeviceOrientationProfile extends DeviceOrientationProfile {
                 sendMessageToEvent(nodeId, message);
             }
         });
+        addApi(mGetOnDeviceOrientation);
+        addApi(mPutOnDeviceOrientation);
+        addApi(mDeleteOnDeviceOrientation);
     }
 
-    @Override
-    protected boolean onGetOnDeviceOrientation(final Intent request, final Intent response, 
-            final String serviceId) {
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-            return true;
-        } else if (!WearUtils.checkServiceId(serviceId)) {
-            MessageUtils.setNotFoundServiceError(response);
-            return true;
-        } else {
+    private final DConnectApi mGetOnDeviceOrientation = new GetApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_DEVICE_ORIENTATION;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
             final WearDeviceService service = (WearDeviceService) getContext();
-            String nodeId = WearUtils.getNodeId(serviceId);
+            String nodeId = WearUtils.getNodeId(getServiceID(request));
             final OnMessageEventListener l = new OnMessageEventListener() {
                 @Override
                 public void onEvent(final String nodeId, final String message) {
@@ -95,79 +100,72 @@ public class WearDeviceOrientationProfile extends DeviceOrientationProfile {
             addListener(l);
 
             getManager().sendMessageToWear(nodeId,
-                    WearConst.DEVICE_TO_WEAR_DEIVCEORIENTATION_REGISTER,
-                    "", new OnMessageResultListener() {
-                @Override
-                public void onResult(final SendMessageResult result) {
-                    if (!result.getStatus().isSuccess()) {
+                WearConst.DEVICE_TO_WEAR_DEIVCEORIENTATION_REGISTER,
+                "", new OnMessageResultListener() {
+                    @Override
+                    public void onResult(final SendMessageResult result) {
+                        if (!result.getStatus().isSuccess()) {
+                            removeListener(l);
+                            MessageUtils.setIllegalDeviceStateError(response);
+                            service.sendResponse(response);
+                        }
+                    }
+                    @Override
+                    public void onError() {
                         removeListener(l);
                         MessageUtils.setIllegalDeviceStateError(response);
                         service.sendResponse(response);
                     }
-                }
-                @Override
-                public void onError() {
-                    removeListener(l);
-                    MessageUtils.setIllegalDeviceStateError(response);
-                    service.sendResponse(response);
-                }
-            });
+                });
             return false;
         }
-    }
+    };
 
-    @Override
-    protected boolean onPutOnDeviceOrientation(final Intent request, final Intent response,
-            final String serviceId, final String sessionKey) {
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-            return true;
-        } else if (!WearUtils.checkServiceId(serviceId)) {
-            MessageUtils.setNotFoundServiceError(response);
-            return true;
-        } else if (sessionKey == null) {
-            MessageUtils.setInvalidRequestParameterError(response);
-            return true;
-        } else {
-            String nodeId = WearUtils.getNodeId(serviceId);
+    private final DConnectApi mPutOnDeviceOrientation = new PutApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_DEVICE_ORIENTATION;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String nodeId = WearUtils.getNodeId(getServiceID(request));
             getManager().sendMessageToWear(nodeId,
-                    WearConst.DEVICE_TO_WEAR_DEIVCEORIENTATION_REGISTER,
-                    "", new OnMessageResultListener() {
-                @Override
-                public void onResult(final SendMessageResult result) {
-                    if (result.getStatus().isSuccess()) {
-                        EventError error = EventManager.INSTANCE.addEvent(request);
-                        if (error == EventError.NONE) {
-                            setResult(response, DConnectMessage.RESULT_OK);
+                WearConst.DEVICE_TO_WEAR_DEIVCEORIENTATION_REGISTER,
+                "", new OnMessageResultListener() {
+                    @Override
+                    public void onResult(final SendMessageResult result) {
+                        if (result.getStatus().isSuccess()) {
+                            EventError error = EventManager.INSTANCE.addEvent(request);
+                            if (error == EventError.NONE) {
+                                setResult(response, DConnectMessage.RESULT_OK);
+                            } else {
+                                setResult(response, DConnectMessage.RESULT_ERROR);
+                            }
                         } else {
-                            setResult(response, DConnectMessage.RESULT_ERROR);
+                            MessageUtils.setIllegalDeviceStateError(response);
                         }
-                    } else {
-                        MessageUtils.setIllegalDeviceStateError(response);
+                        sendResponse(response);
                     }
-                    sendResponse(response);
-                }
-                @Override
-                public void onError() {
-                    MessageUtils.setIllegalDeviceStateError(response);
-                    sendResponse(response);
-                }
-            });
+                    @Override
+                    public void onError() {
+                        MessageUtils.setIllegalDeviceStateError(response);
+                        sendResponse(response);
+                    }
+                });
             return false;
         }
-    }
+    };
 
-    @Override
-    protected boolean onDeleteOnDeviceOrientation(final Intent request, final Intent response, final String serviceId,
-            final String sessionKey) {
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-        } else if (!WearUtils.checkServiceId(serviceId)) {
-            MessageUtils.setNotFoundServiceError(response);
-        } else if (sessionKey == null) {
-            MessageUtils.setInvalidRequestParameterError(response);
-        } else {
-            String nodeId = WearUtils.getNodeId(serviceId);
+    private final DConnectApi mDeleteOnDeviceOrientation = new DeleteApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_DEVICE_ORIENTATION;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String nodeId = WearUtils.getNodeId(getServiceID(request));
             stopSensor(nodeId);
 
             // Event release.
@@ -177,9 +175,9 @@ public class WearDeviceOrientationProfile extends DeviceOrientationProfile {
             } else {
                 setResult(response, DConnectMessage.RESULT_ERROR);
             }
+            return true;
         }
-        return true;
-    }
+    };
 
     /**
      * イベントの配送先の空状態を取得する.

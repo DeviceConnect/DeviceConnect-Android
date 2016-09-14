@@ -21,10 +21,13 @@ import com.google.android.gms.wearable.Wearable;
 
 import org.deviceconnect.android.deviceplugin.wear.profile.WearConst;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.logging.Logger;
 
 /**
  * Android Wearを管理するクラス.
@@ -32,6 +35,8 @@ import java.util.concurrent.Executors;
  * @author NTT DOCOMO, INC.
  */
 public class WearManager implements ConnectionCallbacks, OnConnectionFailedListener {
+
+    private final Logger mLogger = Logger.getLogger("dconnect.wear");
 
     /**
      * Google Play Service.
@@ -41,7 +46,7 @@ public class WearManager implements ConnectionCallbacks, OnConnectionFailedListe
     /**
      * コンテキスト.
      */
-    private Context mContext;
+    private final Context mContext;
 
     /**
      * スレッド管理用クラス.
@@ -49,10 +54,20 @@ public class WearManager implements ConnectionCallbacks, OnConnectionFailedListe
     private final ExecutorService mExecutorService = Executors.newSingleThreadExecutor();
 
     /**
-     * イベントリスナー一覧.
+     * メッセージイベントリスナー一覧.
      */
-    private Map<String, OnMessageEventListener> mListeners
+    private final Map<String, OnMessageEventListener> mOnMessageEventListeners
             = new HashMap<String, OnMessageEventListener>();
+
+    /**
+     * ノード検知リスナー一覧.
+     */
+    private final List<NodeEventListener> mNodeEventListeners = new ArrayList<NodeEventListener>();
+
+    /**
+     * ノード情報のキャッシュ.
+     */
+    private final Map<String, Node> mNodeCache = new HashMap<String, Node>();
 
     /**
      * コンストラクタ.
@@ -61,7 +76,6 @@ public class WearManager implements ConnectionCallbacks, OnConnectionFailedListe
      */
     public WearManager(final Context context) {
         mContext = context;
-        init();
     }
 
     @Override
@@ -71,7 +85,26 @@ public class WearManager implements ConnectionCallbacks, OnConnectionFailedListe
 
     @Override
     public void onConnected(final Bundle bundle) {
+        setNodeListener();
         setMessageListener();
+        getNodes(new OnNodeResultListener() {
+            @Override
+            public void onResult(final NodeApi.GetConnectedNodesResult result) {
+                List<Node> nodes = result.getNodes();
+                if (nodes != null) {
+                    synchronized (mNodeCache) {
+                        for (Node node : nodes) {
+                            if (!mNodeCache.containsKey(node.getId())) {
+                                mNodeCache.put(node.getId(), node);
+                                mLogger.info("getNodes: name = " + node.getDisplayName()
+                                    + ", id = " + node.getId());
+                                notifyOnNodeConnected(node);
+                            }
+                        }
+                    }
+                }
+            }
+        });
     }
 
     @Override
@@ -97,11 +130,14 @@ public class WearManager implements ConnectionCallbacks, OnConnectionFailedListe
     /**
      * 後始末処理を行う.
      */
-    public void destory() {
+    public void destroy() {
         mExecutorService.shutdown();
         if (mGoogleApiClient != null) {
             mGoogleApiClient.disconnect();
         }
+        mNodeEventListeners.clear();
+        mOnMessageEventListeners.clear();
+        mNodeCache.clear();
     }
 
     /**
@@ -117,13 +153,58 @@ public class WearManager implements ConnectionCallbacks, OnConnectionFailedListe
     }
 
     /**
-     * イベントリスナーを追加する.
+     * メッセージイベントリスナーを追加する.
      *
      * @param path     パス
      * @param listener リスナー
      */
     public void addMessageEventListener(final String path, final OnMessageEventListener listener) {
-        mListeners.put(path, listener);
+        mOnMessageEventListeners.put(path, listener);
+    }
+
+    /**
+     * ノード検知リスナーを追加する.
+     */
+    public void addNodeListener(final NodeEventListener listener) {
+        synchronized (mNodeEventListeners) {
+            mNodeEventListeners.add(listener);
+        }
+    }
+
+    private void setNodeListener() {
+        Wearable.NodeApi.addListener(mGoogleApiClient, new NodeApi.NodeListener() {
+            @Override
+            public void onPeerConnected(final Node node) {
+                mLogger.info("onPeerConnected: name = " + node.getDisplayName()
+                    + ", id = " + node.getId());
+                mNodeCache.put(node.getId(), node);
+                notifyOnNodeConnected(node);
+            }
+
+            @Override
+            public void onPeerDisconnected(final Node node) {
+                mLogger.info("onPeerDisconnected: name = " + node.getDisplayName()
+                    + ", id = " + node.getId());
+                mNodeCache.remove(node.getId());
+                notifyOnNodeDisconnected(node);
+            }
+        });
+    }
+
+    private void notifyOnNodeConnected(final Node node) {
+        synchronized (mNodeEventListeners) {
+            for (NodeEventListener listener : mNodeEventListeners) {
+                listener.onNodeConnected(node);
+            }
+        }
+    }
+
+    private void notifyOnNodeDisconnected(final Node node) {
+        synchronized (mNodeEventListeners) {
+            for (NodeEventListener listener : mNodeEventListeners) {
+                listener.onNodeDisconnected(node);
+            }
+        }
     }
 
     /**
@@ -136,7 +217,7 @@ public class WearManager implements ConnectionCallbacks, OnConnectionFailedListe
                 final String data = new String(messageEvent.getData());
                 final String path = messageEvent.getPath();
                 final String nodeId = messageEvent.getSourceNodeId();
-                OnMessageEventListener listener = mListeners.get(path);
+                OnMessageEventListener listener = mOnMessageEventListeners.get(path);
                 if (listener != null) {
                     listener.onEvent(nodeId, data);
                 }
@@ -268,6 +349,25 @@ public class WearManager implements ConnectionCallbacks, OnConnectionFailedListe
     }
 
     /**
+     * ノード検知イベントリスナー.
+     */
+    public interface NodeEventListener {
+
+        /**
+         * ノードとの接続イベント.
+         * @param node ノード
+         */
+        void onNodeConnected(Node node);
+
+        /**
+         * ノードとの接続の切断イベント.
+         * @param node ノード
+         */
+        void onNodeDisconnected(Node node);
+
+    }
+
+    /**
      * Nodeの検索結果を通知するリスナー.
      */
     public interface OnNodeResultListener {
@@ -278,13 +378,9 @@ public class WearManager implements ConnectionCallbacks, OnConnectionFailedListe
          */
         void onResult(NodeApi.GetConnectedNodesResult result);
 
-        /**
-         * エラーが発生したことを通知する.
-         */
-        void onError();
     }
 
-    /**
+        /**
      * メッセージ送信の結果を通知するリスナー.
      */
     public interface OnMessageResultListener {

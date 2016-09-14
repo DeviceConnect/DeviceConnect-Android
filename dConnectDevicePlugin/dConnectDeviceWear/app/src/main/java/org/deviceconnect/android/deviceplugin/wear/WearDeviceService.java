@@ -8,22 +8,18 @@ package org.deviceconnect.android.deviceplugin.wear;
 
 import android.content.Intent;
 
-import org.deviceconnect.android.deviceplugin.wear.profile.WearCanvasProfile;
+import com.google.android.gms.wearable.Node;
+
 import org.deviceconnect.android.deviceplugin.wear.profile.WearConst;
-import org.deviceconnect.android.deviceplugin.wear.profile.WearDeviceOrientationProfile;
-import org.deviceconnect.android.deviceplugin.wear.profile.WearKeyEventProfile;
 import org.deviceconnect.android.deviceplugin.wear.profile.WearNotificationProfile;
-import org.deviceconnect.android.deviceplugin.wear.profile.WearServiceDiscoveryProfile;
 import org.deviceconnect.android.deviceplugin.wear.profile.WearSystemProfile;
-import org.deviceconnect.android.deviceplugin.wear.profile.WearTouchProfile;
-import org.deviceconnect.android.deviceplugin.wear.profile.WearVibrationProfile;
+import org.deviceconnect.android.deviceplugin.wear.profile.WearUtils;
+import org.deviceconnect.android.deviceplugin.wear.service.WearService;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
-import org.deviceconnect.android.event.cache.MemoryCacheController;
 import org.deviceconnect.android.message.DConnectMessageService;
-import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
-import org.deviceconnect.android.profile.ServiceInformationProfile;
 import org.deviceconnect.android.profile.SystemProfile;
+import org.deviceconnect.android.service.DConnectService;
 
 import java.util.List;
 
@@ -32,7 +28,7 @@ import java.util.List;
  *
  * @author NTT DOCOMO, INC.
  */
-public class WearDeviceService extends DConnectMessageService {
+public class WearDeviceService extends DConnectMessageService implements WearManager.NodeEventListener {
 
     /**
      * Android Wearとの通信を管理するクラス.
@@ -44,19 +40,8 @@ public class WearDeviceService extends DConnectMessageService {
         super.onCreate();
 
         mWearManager = new WearManager(this);
+        mWearManager.addNodeListener(this);
         mWearManager.init();
-
-        // initialize of the EventManager
-        EventManager.INSTANCE.setController(new MemoryCacheController());
-
-        // add supported profiles
-        addProfile(new WearNotificationProfile());
-        addProfile(new WearVibrationProfile());
-        addProfile(new WearDeviceOrientationProfile(mWearManager));
-        addProfile(new WearCanvasProfile());
-        addProfile(new WearTouchProfile(mWearManager));
-        addProfile(new WearKeyEventProfile(mWearManager));
-
     }
 
     @Override
@@ -96,7 +81,7 @@ public class WearDeviceService extends DConnectMessageService {
     public void onDestroy() {
         super.onDestroy();
         if (mWearManager != null) {
-            mWearManager.destory();
+            mWearManager.destroy();
             mWearManager = null;
         }
     }
@@ -107,13 +92,21 @@ public class WearDeviceService extends DConnectMessageService {
     }
 
     @Override
-    protected ServiceInformationProfile getServiceInformationProfile() {
-        return new ServiceInformationProfile(this) { };
+    public void onNodeConnected(final Node node) {
+        DConnectService service = WearService.getInstance(node, mWearManager);
+        service.setOnline(true);
+        getServiceProvider().addService(service);
     }
 
     @Override
-    protected ServiceDiscoveryProfile getServiceDiscoveryProfile() {
-        return new WearServiceDiscoveryProfile(this);
+    public void onNodeDisconnected(final Node node) {
+        String serviceId = WearUtils.createServiceId(node.getId());
+        DConnectService service = getServiceProvider().getService(serviceId);
+        if (service != null) {
+            service.setOnline(false);
+        } else {
+            getServiceProvider().addService(WearService.getInstance(node, mWearManager));
+        }
     }
 
     /**

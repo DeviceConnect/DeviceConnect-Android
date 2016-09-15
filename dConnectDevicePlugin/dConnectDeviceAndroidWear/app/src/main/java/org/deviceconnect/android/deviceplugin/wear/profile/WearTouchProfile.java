@@ -89,37 +89,37 @@ public class WearTouchProfile extends TouchProfile {
      */
     public Bundle getTouchCache(final String attr) {
         long lCurrentTime = System.currentTimeMillis();
-        if (attr.equals(ATTRIBUTE_ON_TOUCH)) {
+        if (attr.equalsIgnoreCase(ATTRIBUTE_ON_TOUCH)) {
             if (lCurrentTime - mOnTouchCacheTime <= CACHE_RETENTION_TIME) {
                 return mOnTouchCache;
             } else {
                 return null;
             }
-        } else if (attr.equals(ATTRIBUTE_ON_TOUCH_START)) {
+        } else if (attr.equalsIgnoreCase(ATTRIBUTE_ON_TOUCH_START)) {
             if (lCurrentTime - mOnTouchStartCacheTime <= CACHE_RETENTION_TIME) {
                 return mOnTouchStartCache;
             } else {
                 return null;
             }
-        } else if (attr.equals(ATTRIBUTE_ON_TOUCH_END)) {
+        } else if (attr.equalsIgnoreCase(ATTRIBUTE_ON_TOUCH_END)) {
             if (lCurrentTime - mOnTouchEndCacheTime <= CACHE_RETENTION_TIME) {
                 return mOnTouchEndCache;
             } else {
                 return null;
             }
-        } else if (attr.equals(ATTRIBUTE_ON_DOUBLE_TAP)) {
+        } else if (attr.equalsIgnoreCase(ATTRIBUTE_ON_DOUBLE_TAP)) {
             if (lCurrentTime - mOnDoubleTapCacheTime <= CACHE_RETENTION_TIME) {
                 return mOnDoubleTapCache;
             } else {
                 return null;
             }
-        } else if (attr.equals(ATTRIBUTE_ON_TOUCH_MOVE)) {
+        } else if (attr.equalsIgnoreCase(ATTRIBUTE_ON_TOUCH_MOVE)) {
             if (lCurrentTime - mOnTouchMoveCacheTime <= CACHE_RETENTION_TIME) {
                 return mOnTouchMoveCache;
             } else {
                 return null;
             }
-        } else if (attr.equals(ATTRIBUTE_ON_TOUCH_CANCEL)) {
+        } else if (attr.equalsIgnoreCase(ATTRIBUTE_ON_TOUCH_CANCEL)) {
             if (lCurrentTime - mOnTouchCancelCacheTime <= CACHE_RETENTION_TIME) {
                 return mOnTouchCancelCache;
             } else {
@@ -138,22 +138,22 @@ public class WearTouchProfile extends TouchProfile {
      */
     public void setTouchCache(final String attr, final Bundle touchData) {
         long lCurrentTime = System.currentTimeMillis();
-        if (attr.equals(ATTRIBUTE_ON_TOUCH)) {
+        if (attr.equalsIgnoreCase(ATTRIBUTE_ON_TOUCH)) {
             mOnTouchCache = touchData;
             mOnTouchCacheTime = lCurrentTime;
-        } else if (attr.equals(ATTRIBUTE_ON_TOUCH_START)) {
+        } else if (attr.equalsIgnoreCase(ATTRIBUTE_ON_TOUCH_START)) {
             mOnTouchStartCache = touchData;
             mOnTouchStartCacheTime = lCurrentTime;
-        } else if (attr.equals(ATTRIBUTE_ON_TOUCH_END)) {
+        } else if (attr.equalsIgnoreCase(ATTRIBUTE_ON_TOUCH_END)) {
             mOnTouchEndCache = touchData;
             mOnTouchEndCacheTime = lCurrentTime;
-        } else if (attr.equals(ATTRIBUTE_ON_DOUBLE_TAP)) {
+        } else if (attr.equalsIgnoreCase(ATTRIBUTE_ON_DOUBLE_TAP)) {
             mOnDoubleTapCache = touchData;
             mOnDoubleTapCacheTime = lCurrentTime;
-        } else if (attr.equals(ATTRIBUTE_ON_TOUCH_MOVE)) {
+        } else if (attr.equalsIgnoreCase(ATTRIBUTE_ON_TOUCH_MOVE)) {
             mOnTouchMoveCache = touchData;
             mOnTouchMoveCacheTime = lCurrentTime;
-        } else if (attr.equals(ATTRIBUTE_ON_TOUCH_CANCEL)) {
+        } else if (attr.equalsIgnoreCase(ATTRIBUTE_ON_TOUCH_CANCEL)) {
             mOnTouchCancelCache = touchData;
             mOnTouchCancelCacheTime = lCurrentTime;
         }

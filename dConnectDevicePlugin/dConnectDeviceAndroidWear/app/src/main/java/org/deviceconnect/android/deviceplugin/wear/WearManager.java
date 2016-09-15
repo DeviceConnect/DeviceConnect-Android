@@ -10,7 +10,6 @@ import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListe
 import com.google.android.gms.common.api.PendingResult;
 import com.google.android.gms.wearable.Asset;
 import com.google.android.gms.wearable.DataApi;
-import com.google.android.gms.wearable.DataApi.DataItemResult;
 import com.google.android.gms.wearable.MessageApi;
 import com.google.android.gms.wearable.MessageEvent;
 import com.google.android.gms.wearable.Node;
@@ -217,6 +216,7 @@ public class WearManager implements ConnectionCallbacks, OnConnectionFailedListe
                 final String data = new String(messageEvent.getData());
                 final String path = messageEvent.getPath();
                 final String nodeId = messageEvent.getSourceNodeId();
+                mLogger.info("onMessageReceived: path = " + path);
                 OnMessageEventListener listener = mOnMessageEventListeners.get(path);
                 if (listener != null) {
                     listener.onEvent(nodeId, data);
@@ -279,19 +279,21 @@ public class WearManager implements ConnectionCallbacks, OnConnectionFailedListe
     /**
      * PutDataRequestを作成する.
      *
+     * @param nodeId   ノードID
+     * @param requestId リクエストID
      * @param data requestに格納する画像
      * @param x    x座標
      * @param y    y座標
      * @param mode 描画モード
      * @return PutDataRequestのインスタンス
      */
-    private PutDataRequest createPutDataRequest(final byte[] data,
+    private PutDataRequest createPutDataRequest(final String nodeId, final String requestId, final byte[] data,
                                                 final int x, final int y, final int mode) {
         Asset asset = Asset.createFromBytes(data);
         if (asset == null) {
             return null;
         }
-        PutDataMapRequest dataMap = PutDataMapRequest.create(WearConst.PATH_CANVAS);
+        PutDataMapRequest dataMap = PutDataMapRequest.create(WearConst.PATH_CANVAS + "/" + nodeId + "/" + requestId);
         dataMap.getDataMap().putAsset(WearConst.PARAM_BITMAP, asset);
         dataMap.getDataMap().putInt(WearConst.PARAM_X, x);
         dataMap.getDataMap().putInt(WearConst.PARAM_Y, y);
@@ -305,26 +307,30 @@ public class WearManager implements ConnectionCallbacks, OnConnectionFailedListe
     /**
      * 画像データを送信する.
      *
+     * @param nodeId   ノードID
+     * @param requestId リクエストID
      * @param data     画像データ
      * @param x        x座標
      * @param y        y座標
      * @param mode     描画モード
      * @param listener 送信結果を通知するリスナー
      */
-    public void sendImageData(final byte[] data, final int x, final int y,
+    public void sendImageData(final String nodeId, final String requestId,
+                              final byte[] data, final int x, final int y,
                               final int mode, final OnDataItemResultListener listener) {
+        // リクエストIDとともに画像送信
         sendMessageToWear(new Runnable() {
             @Override
             public void run() {
-                final PutDataRequest request = createPutDataRequest(data, x, y, mode);
+                final PutDataRequest request = createPutDataRequest(nodeId, requestId, data, x, y, mode);
                 if (request == null) {
                     if (listener != null) {
                         listener.onError();
                     }
                 } else {
                     PendingResult<DataApi.DataItemResult> pendingResult = Wearable.DataApi
-                            .putDataItem(mGoogleApiClient, request);
-                    DataItemResult result = pendingResult.await();
+                        .putDataItem(mGoogleApiClient, request);
+                    DataApi.DataItemResult result = pendingResult.await();
                     if (result != null) {
                         if (listener != null) {
                             listener.onResult(result);
@@ -346,6 +352,25 @@ public class WearManager implements ConnectionCallbacks, OnConnectionFailedListe
      */
     private void sendMessageToWear(final Runnable run) {
         mExecutorService.execute(run);
+    }
+
+    public void getLocalNodeId(final OnLocalNodeListener listener) {
+        sendMessageToWear(new Runnable() {
+            @Override
+            public void run() {
+                PendingResult<NodeApi.GetLocalNodeResult> pendingResult = Wearable.NodeApi.getLocalNode(mGoogleApiClient);
+                NodeApi.GetLocalNodeResult result = pendingResult.await();
+                if (result.getStatus().isSuccess()) {
+                    if (listener != null) {
+                        listener.onResult(result);
+                    }
+                } else {
+                    if (listener != null) {
+                        listener.onError();
+                    }
+                }
+            }
+        });
     }
 
     /**
@@ -380,7 +405,14 @@ public class WearManager implements ConnectionCallbacks, OnConnectionFailedListe
 
     }
 
-        /**
+    public interface OnLocalNodeListener {
+
+        void onResult(NodeApi.GetLocalNodeResult localNode);
+
+        void onError();
+    }
+
+    /**
      * メッセージ送信の結果を通知するリスナー.
      */
     public interface OnMessageResultListener {

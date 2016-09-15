@@ -16,7 +16,9 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.net.Uri;
 import android.os.Vibrator;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -91,7 +93,9 @@ public class DataLayerListenerService extends WearableListenerService implements
         mReceiver = new MyBroadcastReceiver();
         IntentFilter intentFilter = new IntentFilter(WearConst.PARAM_DC_WEAR_KEYEVENT_ACT_TO_SVC);
         intentFilter.addAction(WearConst.PARAM_DC_WEAR_TOUCH_ACT_TO_SVC);
-        getApplicationContext().registerReceiver(mReceiver, intentFilter);
+        intentFilter.addAction(WearConst.PARAM_DC_WEAR_CANVAS_ACT_TO_SVC);
+        intentFilter.addAction(WearConst.ACTION_WEAR_PING_SERVICE);
+        LocalBroadcastManager.getInstance(this).registerReceiver(mReceiver, intentFilter);
     }
 
 
@@ -106,11 +110,15 @@ public class DataLayerListenerService extends WearableListenerService implements
     public void onDataChanged(final DataEventBuffer dataEvents) {
         super.onDataChanged(dataEvents);
         for (DataEvent event : dataEvents) {
+            Uri uri = event.getDataItem().getUri();
             if (event.getType() == DataEvent.TYPE_CHANGED
-                    && event.getDataItem().getUri().getPath().equals(WearConst.PATH_CANVAS)) {
+                    && uri.getPath().startsWith(WearConst.PATH_CANVAS)) {
                 DataMapItem dataMapItem = DataMapItem.fromDataItem(event.getDataItem());
                 DataMap map = dataMapItem.getDataMap();
 
+                List<String> segments = uri.getPathSegments();
+                String nodeId = segments.get(2);
+                String requestId = segments.get(3);
                 Asset profileAsset = map.getAsset(WearConst.PARAM_BITMAP);
                 int x = map.getInt(WearConst.PARAM_X);
                 int y = map.getInt(WearConst.PARAM_Y);
@@ -119,6 +127,8 @@ public class DataLayerListenerService extends WearableListenerService implements
                 Intent intent = new Intent();
                 intent.setClass(this, CanvasActivity.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                intent.putExtra(WearConst.PARAM_SOURCE_ID, nodeId);
+                intent.putExtra(WearConst.PARAM_REQUEST_ID, requestId);
                 intent.putExtra(WearConst.PARAM_BITMAP, profileAsset);
                 intent.putExtra(WearConst.PARAM_X, x);
                 intent.putExtra(WearConst.PARAM_Y, y);
@@ -154,7 +164,7 @@ public class DataLayerListenerService extends WearableListenerService implements
 
             // For service destruction suppression.
             Intent i = new Intent(WearConst.ACTION_WEAR_PING_SERVICE);
-            startService(i);
+            LocalBroadcastManager.getInstance(this).sendBroadcast(i);
         } else if (action.equals(WearConst.DEVICE_TO_WEAR_KEYEVENT_ONDOWN_REGISTER)) {
             if (!mIds.contains(id)) {
                 mIds.add(id);
@@ -456,47 +466,59 @@ public class DataLayerListenerService extends WearableListenerService implements
         public void onReceive(final Context context, final Intent i) {
             String action = i.getAction();
             final String data;
-            final String profile;
+            final String path;
 
             if (action.equals(WearConst.PARAM_DC_WEAR_KEYEVENT_ACT_TO_SVC)) {
                 data = i.getStringExtra(WearConst.PARAM_KEYEVENT_DATA);
-                profile = WearConst.WEAR_TO_DEVICE_KEYEVENT_DATA;
+                path = WearConst.WEAR_TO_DEVICE_KEYEVENT_DATA;
+                sendEvent(path, data);
             } else if (action.equals(WearConst.PARAM_DC_WEAR_TOUCH_ACT_TO_SVC)) {
                 data = i.getStringExtra(WearConst.PARAM_TOUCH_DATA);
-                profile = WearConst.WEAR_TO_DEVICE_TOUCH_DATA;
-            } else {
-                return;
+                path = WearConst.WEAR_TO_DEVICE_TOUCH_DATA;
+                sendEvent(path, data);
+            } else if (action.equals(WearConst.PARAM_DC_WEAR_CANVAS_ACT_TO_SVC)) {
+                String destId = i.getStringExtra(WearConst.PARAM_DESTINATION_ID);
+                String requestId = i.getStringExtra(WearConst.PARAM_REQUEST_ID);
+                String result = i.getStringExtra(WearConst.PARAM_RESULT);
+                data = requestId + "," + result;
+                path = WearConst.WEAR_TO_DEVICE_CANVAS_RESULT;
+                sendMessage(destId, path, data);
             }
+        }
+    }
 
-            // Send message data.
-            mExecutorService.execute(new Runnable() {
-                @Override
-                public void run() {
-                    synchronized (mIds) {
-                        for (String id : mIds) {
-                            GoogleApiClient client = getClient();
-                            if (!client.isConnected()) {
-                                ConnectionResult connectionResult = client.blockingConnect(30, TimeUnit.SECONDS);
-                                if (!connectionResult.isSuccess()) {
-                                    if (BuildConfig.DEBUG) {
-                                        Log.e("WEAR", "Failed to connect google play service.");
-                                    }
-                                    return;
-                                }
-                            }
+    private void sendEvent(final String path, final String data) {
+        synchronized (mIds) {
+            for (String id : mIds) {
+                sendMessage(id, path, data);
+            }
+        }
+    }
 
-                            MessageApi.SendMessageResult result = Wearable.MessageApi.sendMessage(client, id,
-                                    profile, data.getBytes()).await();
-                            if (!result.getStatus().isSuccess()) {
-                                if (BuildConfig.DEBUG) {
-                                    Log.e("WEAR", "Failed to send a sensor event.");
-                                }
-                            }
+    private void sendMessage(final String destinationId, final String path, final String data) {
+        mExecutorService.execute(new Runnable() {
+            @Override
+            public void run() {
+                GoogleApiClient client = getClient();
+                if (!client.isConnected()) {
+                    ConnectionResult connectionResult = client.blockingConnect(30, TimeUnit.SECONDS);
+                    if (!connectionResult.isSuccess()) {
+                        if (BuildConfig.DEBUG) {
+                            Log.e("WEAR", "Failed to connect google play service.");
                         }
+                        return;
                     }
                 }
-            });
-        }
+
+                MessageApi.SendMessageResult result = Wearable.MessageApi.sendMessage(client, destinationId,
+                    path, data.getBytes()).await();
+                if (!result.getStatus().isSuccess()) {
+                    if (BuildConfig.DEBUG) {
+                        Log.e("WEAR", "Failed to send a sensor event.");
+                    }
+                }
+            }
+        });
     }
 
     /**

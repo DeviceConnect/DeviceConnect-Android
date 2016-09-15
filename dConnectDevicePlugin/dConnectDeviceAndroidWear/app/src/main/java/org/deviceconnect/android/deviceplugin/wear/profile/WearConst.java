@@ -129,6 +129,30 @@ public final class WearConst {
      */
     public static final int MODE_FILLS = 2;
 
+    /** Wear to Android. */
+    public static final String WEAR_TO_DEVICE_CANVAS_RESULT = "org.deviceconnect.wear.canvas.result";
+
+    /** リクエストID. */
+    public static final String PARAM_REQUEST_ID = "requestId";
+
+    /** データ変更イベントの送信元(Android端末)を特定するためのID. */
+    public static final String PARAM_SOURCE_ID = "sourceId";
+
+    /** メッセージの送信先(Android端末)を特定するためのID. */
+    public static final String PARAM_DESTINATION_ID = "destinationId";
+
+    /** 成功. */
+    public static final String RESULT_SUCCESS = "success";
+
+    /** エラー: ビットマップサイズが大きすぎる. */
+    public static final String RESULT_ERROR_TOO_LARGE_BITMAP = "errorTooLargeBitmap";
+
+    /** エラー: Android端末との接続に失敗. */
+    public static final String RESULT_ERROR_CONNECTION_FAILURE = "errorConnectionFailure";
+
+    /** エラー: サポートしていない画像形式. */
+    public static final String RESULT_ERROR_NOT_SUPPORTED_FORMAT = "errorNotSupportedFormat";
+
     /** Register Touch (ontouch). */
     public static final String DEVICE_TO_WEAR_TOUCH_ONTOUCH_REGISTER
             = "org.deviceconnect.wear.touch.ontouch.regist";

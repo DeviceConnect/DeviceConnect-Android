@@ -16,6 +16,8 @@ import android.graphics.drawable.BitmapDrawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.PowerManager;
+import android.support.v4.content.LocalBroadcastManager;
+import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageView;
@@ -96,23 +98,40 @@ public class CanvasActivity extends Activity {
             return;
         }
 
-        (new AsyncTask<Void, Bitmap, Bitmap>() {
+        (new AsyncTask<Void, LoadingResult, LoadingResult>() {
             @Override
-            protected Bitmap doInBackground(Void... params) {
+            protected LoadingResult doInBackground(Void... params) {
                 Asset asset = intent.getParcelableExtra(WearConst.PARAM_BITMAP);
                 return loadBitmapFromAsset(asset);
             }
             @Override
-            protected void onPostExecute(Bitmap bitmap) {
+            protected void onPostExecute(LoadingResult result) {
+                String sourceId = intent.getStringExtra(WearConst.PARAM_SOURCE_ID);
+                String requestId = intent.getStringExtra(WearConst.PARAM_REQUEST_ID);
+                sendResultToHost(sourceId, requestId, result.getResultCode());
+
+                Bitmap bitmap = result.getBitmap();
                 if (bitmap == null) {
                     return;
                 }
+
+                Log.d("AAA", "********* Bitmap: size = " + bitmap.getByteCount());
+
                 int x = intent.getIntExtra(WearConst.PARAM_X, 0);
                 int y = intent.getIntExtra(WearConst.PARAM_Y, 0);
                 int mode = intent.getIntExtra(WearConst.PARAM_MODE, 0);
                 setImageBitmap(bitmap, mode, x, y);
             }
         }).execute();
+    }
+
+    private void sendResultToHost(final String destinationId, final String requestId,
+                                  final String resultCode) {
+        Intent result = new Intent(WearConst.PARAM_DC_WEAR_CANVAS_ACT_TO_SVC);
+        result.putExtra(WearConst.PARAM_DESTINATION_ID, destinationId);
+        result.putExtra(WearConst.PARAM_REQUEST_ID, requestId);
+        result.putExtra(WearConst.PARAM_RESULT, resultCode);
+        LocalBroadcastManager.getInstance(this).sendBroadcast(result);
     }
 
     /**
@@ -156,27 +175,41 @@ public class CanvasActivity extends Activity {
     /**
      * Load a bitmap from Asset.
      * @param asset asset
-     * @return bitmap, null on error
+     * @return result of loading
      */
-    private Bitmap loadBitmapFromAsset(final Asset asset) {
+    private LoadingResult loadBitmapFromAsset(final Asset asset) {
+        InputStream in = getInputStream(asset);
+        if (in == null) {
+            return LoadingResult.errorOnConnection();
+        }
+        try {
+            Bitmap bitmap = BitmapFactory.decodeStream(in);
+            if (bitmap == null) {
+                return LoadingResult.errorNotSupportedFormat();
+            }
+            return LoadingResult.success(bitmap);
+        } catch (OutOfMemoryError e) {
+            return LoadingResult.errorTooLargeBitmap();
+        }
+    }
+
+    /**
+     * Get an input stream from Asset.
+     * @param asset input stream of asset
+     * @return input stream, null on error
+     */
+    private InputStream getInputStream(final Asset asset) {
         if (asset == null) {
             return null;
         }
         GoogleApiClient client = getClient();
         ConnectionResult result =
-                client.blockingConnect(TIMEOUT_MS, TimeUnit.MILLISECONDS);
+            client.blockingConnect(TIMEOUT_MS, TimeUnit.MILLISECONDS);
         if (!result.isSuccess()) {
             return null;
         }
         // convert asset into a file descriptor and block until it's ready
-        InputStream assetInputStream = Wearable.DataApi.getFdForAsset(
-                client, asset).await().getInputStream();
-
-        if (assetInputStream == null) {
-            return null;
-        }
-        // decode the stream into a bitmap
-        return BitmapFactory.decodeStream(assetInputStream);
+        return Wearable.DataApi.getFdForAsset(client, asset).await().getInputStream();
     }
 
     /**
@@ -185,5 +218,49 @@ public class CanvasActivity extends Activity {
      */
     private GoogleApiClient getClient() {
         return ((WearApplication) getApplication()).getGoogleApiClient();
+    }
+
+    private static class LoadingResult {
+        private Bitmap mBitmap;
+        private String mResultCode;
+
+        private LoadingResult() {
+        }
+
+        public Bitmap getBitmap() {
+            return mBitmap;
+        }
+
+        public String getResultCode() {
+            return mResultCode;
+        }
+
+        static LoadingResult success(final Bitmap bitmap) {
+            if (bitmap == null) {
+                throw new IllegalArgumentException();
+            }
+            LoadingResult result = new LoadingResult();
+            result.mResultCode = WearConst.RESULT_SUCCESS;
+            result.mBitmap = bitmap;
+            return result;
+        }
+
+        static LoadingResult errorTooLargeBitmap() {
+            LoadingResult result = new LoadingResult();
+            result.mResultCode = WearConst.RESULT_ERROR_TOO_LARGE_BITMAP;
+            return result;
+        }
+
+        static LoadingResult errorOnConnection() {
+            LoadingResult result = new LoadingResult();
+            result.mResultCode = WearConst.RESULT_ERROR_CONNECTION_FAILURE;
+            return result;
+        }
+
+        static LoadingResult errorNotSupportedFormat() {
+            LoadingResult result = new LoadingResult();
+            result.mResultCode = WearConst.RESULT_ERROR_NOT_SUPPORTED_FORMAT;
+            return result;
+        }
     }
 }

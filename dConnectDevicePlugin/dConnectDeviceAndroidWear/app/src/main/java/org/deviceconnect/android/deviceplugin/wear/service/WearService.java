@@ -27,7 +27,7 @@ public class WearService extends DConnectService {
         WearService service = new WearService(WearUtils.createServiceId(nodeId));
         service.setName(WearConst.DEVICE_NAME + "(" + serviceId[0] + ")");
         service.setNetworkType(NetworkType.BLE);
-        service.addProfile(new WearCanvasProfile());
+        service.addProfile(new WearCanvasProfile(mgr));
         service.addProfile(new WearDeviceOrientationProfile(mgr));
         service.addProfile(new WearKeyEventProfile(mgr));
         service.addProfile(new WearNotificationProfile());

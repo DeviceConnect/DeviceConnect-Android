@@ -14,6 +14,7 @@ import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.support.annotation.NonNull;
+import android.support.v4.content.LocalBroadcastManager;
 import android.view.GestureDetector;
 import android.view.GestureDetector.SimpleOnGestureListener;
 import android.view.MotionEvent;
@@ -87,7 +88,7 @@ public class WearTouchProfileActivity extends Activity {
 
         // For service destruction suppression.
         Intent i = new Intent(WearConst.ACTION_WEAR_PING_SERVICE);
-        startService(i);
+        LocalBroadcastManager.getInstance(this).sendBroadcast(i);
     }
 
     @Override
@@ -190,7 +191,7 @@ public class WearTouchProfileActivity extends Activity {
         // Send key event data to service.
         Intent i = new Intent(WearConst.PARAM_DC_WEAR_TOUCH_ACT_TO_SVC);
         i.putExtra(WearConst.PARAM_TOUCH_DATA, new String(data));
-        sendBroadcast(i);
+        LocalBroadcastManager.getInstance(this).sendBroadcast(i);
     }
 
     @Override

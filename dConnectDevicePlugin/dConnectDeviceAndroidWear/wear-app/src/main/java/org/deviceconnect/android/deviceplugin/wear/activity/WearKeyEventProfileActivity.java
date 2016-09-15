@@ -13,6 +13,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.PowerManager;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.wearable.view.WatchViewStub;
 import android.view.MotionEvent;
 import android.view.View;
@@ -174,7 +175,7 @@ public class WearKeyEventProfileActivity extends Activity {
 
         // For service destruction suppression.
         Intent i = new Intent(WearConst.ACTION_WEAR_PING_SERVICE);
-        startService(i);
+        LocalBroadcastManager.getInstance(this).sendBroadcast(i);
     }
 
     @Override
@@ -268,7 +269,7 @@ public class WearKeyEventProfileActivity extends Activity {
         // Send key event data to service.
         Intent i = new Intent(WearConst.PARAM_DC_WEAR_KEYEVENT_ACT_TO_SVC);
         i.putExtra(WearConst.PARAM_KEYEVENT_DATA, data);
-        sendBroadcast(i);
+        LocalBroadcastManager.getInstance(this).sendBroadcast(i);
     }
 
     @Override

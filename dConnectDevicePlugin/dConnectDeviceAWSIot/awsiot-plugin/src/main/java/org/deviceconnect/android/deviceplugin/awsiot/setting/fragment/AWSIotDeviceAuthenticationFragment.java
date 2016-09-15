@@ -175,8 +175,10 @@ public class AWSIotDeviceAuthenticationFragment extends Fragment {
                         JSONArray array = jsonObject.getJSONArray("services");
                         for (int i = 0; i < array.length(); i++) {
                             JSONObject o = array.getJSONObject(i);
-                            LocalDevice service = new LocalDevice(o.getString("id"), o.getString("name"));
-                            services.add(service);
+                            if (!(o.getString("name").startsWith("Manager-"))) {
+                                LocalDevice service = new LocalDevice(o.getString("id"), o.getString("name"));
+                                services.add(service);
+                            }
                         }
                     }
                 } catch (JSONException e) {

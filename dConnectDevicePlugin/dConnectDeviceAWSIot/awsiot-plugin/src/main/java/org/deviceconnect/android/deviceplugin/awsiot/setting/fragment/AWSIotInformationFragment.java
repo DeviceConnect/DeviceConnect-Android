@@ -23,6 +23,7 @@ import android.widget.TextView;
 
 import org.deviceconnect.android.deviceplugin.awsiot.core.AWSIotController;
 import org.deviceconnect.android.deviceplugin.awsiot.core.AWSIotPrefUtil;
+import org.deviceconnect.android.deviceplugin.awsiot.core.RemoteDeviceConnectManager;
 import org.deviceconnect.android.deviceplugin.awsiot.local.AWSIotLocalDeviceService;
 import org.deviceconnect.android.deviceplugin.awsiot.remote.R;
 import org.deviceconnect.android.deviceplugin.awsiot.setting.AWSIotSettingActivity;
@@ -48,12 +49,13 @@ public class AWSIotInformationFragment extends Fragment {
 
         mAWSIotController = activity.getAWSIotController();
         mPrefUtil = new AWSIotPrefUtil(activity);
+        RemoteDeviceConnectManager myManager = new RemoteDeviceConnectManager(
+                mPrefUtil.getManagerName(), mPrefUtil.getManagerUuid());
 
         View rootView = inflater.inflate(R.layout.settings_awsiot_info, null);
 
-        String name = mPrefUtil.getManagerName();
         Switch sw = (Switch) rootView.findViewById(R.id.manager_switch);
-        sw.setText(name);
+        sw.setText(myManager.getName());
         sw.setChecked(mPrefUtil.getManagerRegister());
         sw.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
@@ -86,20 +88,14 @@ public class AWSIotInformationFragment extends Fragment {
         TextView tv = (TextView) rootView.findViewById(R.id.display_awsiot_mqtt_endpoint);
         tv.setText(mAWSIotController.getAWSIotEndPoint());
 
-        // TODO: 表示データ作成方法検討
-        String uuid = mPrefUtil.getManagerUuid();
-        String request = "deviceconnect/" + uuid + "/request";
-        String response = "deviceconnect/" + uuid + "/response";
-        String event = "deviceconnect/" + uuid + "/event";
-
         tv = (TextView) rootView.findViewById(R.id.display_awsiot_request_topic);
-        tv.setText(request);
+        tv.setText(myManager.getRequestTopic());
 
         tv = (TextView) rootView.findViewById(R.id.display_awsiot_response_topic);
-        tv.setText(response);
+        tv.setText(myManager.getResponseTopic());
 
         tv = (TextView) rootView.findViewById(R.id.display_awsiot_event_topic);
-        tv.setText(event);
+        tv.setText(myManager.getEventTopic());
 
         setHasOptionsMenu(true);
         return rootView;

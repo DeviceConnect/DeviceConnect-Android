@@ -718,7 +718,6 @@ public class DConnectServerNanoHttpd extends DConnectServer {
 
             mSockets.put(getId(), this);
             if (mListener != null) {
-                String origin = getClientOrigin();
                 mListener.onWebSocketConnected(this);
             }
             mWebSockets.add(this);

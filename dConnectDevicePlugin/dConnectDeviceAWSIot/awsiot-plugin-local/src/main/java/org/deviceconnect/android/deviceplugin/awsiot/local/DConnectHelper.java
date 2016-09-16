@@ -160,6 +160,12 @@ public class DConnectHelper {
         sendRequest("GET", "http://localhost:4035/gotapi/servicediscovery", callback);
     }
 
+    public void serviceDiscoverySelfOnly(final FinishCallback callback) {
+        Map<String, String> param = new HashMap<>();
+        param.put("_selfOnly", "true");
+        sendRequest("GET", "http://localhost:4035/gotapi/servicediscovery", param, callback);
+    }
+
     public void serviceInformation(final String serviceId, final FinishCallback callback) {
         Map<String, String> param = new HashMap<>();
         param.put("serviceId", serviceId);

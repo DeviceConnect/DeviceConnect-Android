@@ -155,7 +155,7 @@ public class AWSIotDeviceAuthenticationFragment extends Fragment {
     }
 
     private void getDeviceList() {
-        DConnectHelper.INSTANCE.serviceDiscovery(new DConnectHelper.FinishCallback() {
+        DConnectHelper.INSTANCE.serviceDiscoverySelfOnly(new DConnectHelper.FinishCallback() {
             @Override
             public void onFinish(final String response, final Exception error) {
                 if (response == null) {
@@ -175,10 +175,8 @@ public class AWSIotDeviceAuthenticationFragment extends Fragment {
                         JSONArray array = jsonObject.getJSONArray("services");
                         for (int i = 0; i < array.length(); i++) {
                             JSONObject o = array.getJSONObject(i);
-                            if (!(o.getString("name").startsWith("Manager-"))) {
-                                LocalDevice service = new LocalDevice(o.getString("id"), o.getString("name"));
-                                services.add(service);
-                            }
+                            LocalDevice service = new LocalDevice(o.getString("id"), o.getString("name"));
+                            services.add(service);
                         }
                     }
                 } catch (JSONException e) {

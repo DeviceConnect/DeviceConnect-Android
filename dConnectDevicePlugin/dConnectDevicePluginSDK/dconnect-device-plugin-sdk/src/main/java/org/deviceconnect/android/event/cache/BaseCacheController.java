@@ -24,14 +24,9 @@ public abstract class BaseCacheController implements EventCacheController {
      * @return 正常ならtrue、それ以外はfalseを返す
      */
     protected boolean checkParameter(final Event event) {
-        
-        if (event == null
-                || event.getProfile() == null 
-                || event.getSessionKey() == null) {
-            return false;
-        }
-        
-        return true;
+        return event != null
+            && event.getProfile() != null
+            && event.getAccessToken() != null;
     }
 
 }

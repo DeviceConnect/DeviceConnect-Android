@@ -301,6 +301,8 @@ var main = (function(parent, global) {
         var profile = util.getProfile();
         if (json.supportApis) {
             document.getElementById('main').innerHTML = createSupportPath(json.supportApis[profile].paths);
+        } else {
+            alert('古いプラグインのために、このサービスは確認することができません。');
         }
     }
 

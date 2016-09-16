@@ -23,6 +23,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class AWSIotRemoteManager {
 
@@ -37,6 +39,7 @@ public class AWSIotRemoteManager {
     private AWSIotDeviceManager mAWSIotDeviceManager;
     private Map<Integer, Intent> mResponseMap = new HashMap<>();
     private Map<Integer, Boolean> mExchangeMap = new HashMap<>();
+    private ExecutorService mExecutorService = Executors.newSingleThreadExecutor();
 
     private OnEventListener mOnEventListener;
 
@@ -356,7 +359,7 @@ public class AWSIotRemoteManager {
                 mOnEventListener.onReceivedMessage(topic, message);
             }
 
-            RemoteDeviceConnectManager remote = parseTopic(topic);
+            final RemoteDeviceConnectManager remote = parseTopic(topic);
             if (remote == null) {
                 if (DEBUG) {
                     Log.e(TAG, "Not found the RemoteDeviceConnectManager. topic=" + topic);
@@ -364,15 +367,20 @@ public class AWSIotRemoteManager {
                 return;
             }
 
-            if (topic.endsWith(RemoteDeviceConnectManager.EVENT)) {
-                onReceivedDeviceConnectEvent(remote, message);
-            } else if (topic.endsWith(RemoteDeviceConnectManager.RESPONSE)) {
-                parseMQTT(remote, message);
-            } else {
-                if (DEBUG) {
-                    Log.w(TAG, "Unknown topic. topic=" + topic);
+            mExecutorService.submit(new Runnable() {
+                @Override
+                public void run() {
+                    if (topic.endsWith(RemoteDeviceConnectManager.EVENT)) {
+                        onReceivedDeviceConnectEvent(remote, message);
+                    } else if (topic.endsWith(RemoteDeviceConnectManager.RESPONSE)) {
+                        parseMQTT(remote, message);
+                    } else {
+                        if (DEBUG) {
+                            Log.w(TAG, "Unknown topic. topic=" + topic);
+                        }
+                    }
                 }
-            }
+            });
         }
     };
 

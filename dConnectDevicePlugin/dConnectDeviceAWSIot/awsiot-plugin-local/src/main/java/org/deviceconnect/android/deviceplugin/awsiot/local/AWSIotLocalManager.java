@@ -11,6 +11,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class AWSIotLocalManager {
 
@@ -23,6 +25,7 @@ public class AWSIotLocalManager {
     private AWSIotWebSocketClient mAWSIotWebSocketClient;
     private OnEventListener mOnEventListener;
     private Context mContext;
+    private ExecutorService mExecutorService = Executors.newSingleThreadExecutor();
 
     private String mSessionKey = UUID.randomUUID().toString();
 
@@ -178,7 +181,12 @@ public class AWSIotLocalManager {
                 return;
             }
 
-            parseMQTT(message);
+            mExecutorService.submit(new Runnable() {
+                @Override
+                public void run() {
+                    parseMQTT(message);
+                }
+            });
         }
     };
 

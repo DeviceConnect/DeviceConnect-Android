@@ -10,6 +10,7 @@ import org.deviceconnect.android.deviceplugin.awsiot.util.AWSIotUtil;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -37,6 +38,7 @@ public class WebClient extends AWSIotP2PManager {
     private P2PConnection mP2PConnection;
     private ISocketAdapter mSocket;
     private Context mContext;
+    private ByteArrayOutputStream mHttpHeaderData = new ByteArrayOutputStream();
 
     public WebClient(final Context context) {
         mContext = context;
@@ -107,16 +109,14 @@ public class WebClient extends AWSIotP2PManager {
             Log.i(TAG, "WebClient#readHttpHeader: " + new String(data).replace("\r\n", " "));
         }
 
-        mSocket = openSocketFromHttpHeader(data, data.length);
-
+        final ISocketAdapter socket = openSocketFromHttpHeader(data, data.length);
         Executors.newSingleThreadExecutor().submit(new Runnable() {
             @Override
             public void run() {
-                mSocket.r();
+                socket.r();
             }
         });
-
-        return mSocket;
+        return socket;
     }
 
     private ISocketAdapter openSocketFromHttpHeader(final byte[] buf, final int len) throws IOException {
@@ -203,10 +203,13 @@ public class WebClient extends AWSIotP2PManager {
 
             try {
                 if (mSocket == null) {
-                    openSocket(data);
-                }
-
-                if (mSocket != null) {
+                    mHttpHeaderData.write(data);
+                    if (findHeaderEnd(mHttpHeaderData.toByteArray(), mHttpHeaderData.size()) > 0) {
+                        mSocket = openSocket(mHttpHeaderData.toByteArray());
+                        mSocket.w(mHttpHeaderData.toByteArray());
+                        mHttpHeaderData = null;
+                    }
+                } else {
                     mSocket.w(data);
                 }
             } catch (Exception e) {

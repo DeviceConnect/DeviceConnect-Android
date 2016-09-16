@@ -95,7 +95,6 @@ class SocketTask {
                 readHeader(is);
                 int size = readSize(is);
 
-                out.reset();
                 while (size > 0) {
                     if (size < BUFFER_SIZE) {
                         len = is.read(data, 0, size);
@@ -108,11 +107,11 @@ class SocketTask {
 
                     out.write(data, 0, len);
                     size -= len;
-                }
 
-                // TODO データサイズが大きくなると困るので、一度に送るのではなく細かく分けた方が良いかな。
-                if (mListener != null) {
-                    mListener.onReceivedData(out.toByteArray(), address, port);
+                    if (mListener != null) {
+                        mListener.onReceivedData(out.toByteArray(), address, port);
+                    }
+                    out.reset();
                 }
             }
             return true;

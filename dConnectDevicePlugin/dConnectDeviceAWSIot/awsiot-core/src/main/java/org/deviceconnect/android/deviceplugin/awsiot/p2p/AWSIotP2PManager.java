@@ -49,30 +49,12 @@ public class AWSIotP2PManager {
             P2PConnection connection = createP2PConnection();
             connection.setOnP2PConnectionListener(listener);
 
-            String address = global.getString(AWSIotP2PManager.KEY_ADDRESS);
-            int port = global.getInt(AWSIotP2PManager.KEY_PORT);
-            try {
-                connection.connect(address, port);
-            } catch (IOException e) {
-                address = local.getString(AWSIotP2PManager.KEY_ADDRESS);
-                port = local.getInt(AWSIotP2PManager.KEY_PORT);
-                try {
-                    connection.connect(address, port);
-                } catch (IOException e1) {
-                    if (DEBUG) {
-                        Log.w(TAG, "Failed to connect the p2p.", e1);
-                    }
-                    try {
-                        connection.close();
-                    } catch (IOException e2) {
-                        if (DEBUG) {
-                            Log.w(TAG, "", e2);
-                        }
-                    }
-                    return null;
+            for (int i = 0; i < 3; i++) {
+                if (connect(connection, global, local)) {
+                    return connection;
                 }
             }
-            return connection;
+            return null;
         } catch (JSONException e) {
             if (DEBUG) {
                 Log.e(TAG, "Invalid the json.", e);
@@ -80,6 +62,31 @@ public class AWSIotP2PManager {
             return null;
         }
     }
+
+    private boolean connect(final P2PConnection connection, final JSONObject global, final JSONObject local) throws JSONException {
+        String address = global.getString(AWSIotP2PManager.KEY_ADDRESS);
+        int port = global.getInt(AWSIotP2PManager.KEY_PORT);
+        try {
+            connection.connect(address, port);
+        } catch (IOException e) {
+            address = local.getString(AWSIotP2PManager.KEY_ADDRESS);
+            port = local.getInt(AWSIotP2PManager.KEY_PORT);
+            try {
+                connection.connect(address, port);
+            } catch (IOException e1) {
+                try {
+                    connection.close();
+                } catch (IOException e2) {
+                    if (DEBUG) {
+                        Log.w(TAG, "", e2);
+                    }
+                }
+                return false;
+            }
+        }
+        return true;
+    }
+
 
     protected String createSignaling(final Context context, final int connectionId, final String address, final int port) {
         try {
@@ -130,6 +137,27 @@ public class AWSIotP2PManager {
         sb.append("\r\n");
         sb.append(body);
         return sb.toString();
+    }
+
+
+    protected int findHeaderEnd(final byte[] buf, final int rlen) {
+        int splitbyte = 0;
+        while (splitbyte + 1 < rlen) {
+
+            // RFC2616
+            if (buf[splitbyte] == '\r' && buf[splitbyte + 1] == '\n' &&
+                    splitbyte + 3 < rlen && buf[splitbyte + 2] == '\r' &&
+                    buf[splitbyte + 3] == '\n') {
+                return splitbyte + 4;
+            }
+
+            // tolerance
+            if (buf[splitbyte] == '\n' && buf[splitbyte + 1] == '\n') {
+                return splitbyte + 2;
+            }
+            splitbyte++;
+        }
+        return 0;
     }
 
     private static String getIPAddress(final Context context) {

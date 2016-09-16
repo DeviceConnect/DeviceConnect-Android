@@ -246,26 +246,6 @@ public class WebServer extends AWSIotP2PManager {
             }
         }
 
-        private int findHeaderEnd(final byte[] buf, final int rlen) {
-            int splitbyte = 0;
-            while (splitbyte + 1 < rlen) {
-
-                // RFC2616
-                if (buf[splitbyte] == '\r' && buf[splitbyte + 1] == '\n' &&
-                        splitbyte + 3 < rlen && buf[splitbyte + 2] == '\r' &&
-                        buf[splitbyte + 3] == '\n') {
-                    return splitbyte + 4;
-                }
-
-                // tolerance
-                if (buf[splitbyte] == '\n' && buf[splitbyte + 1] == '\n') {
-                    return splitbyte + 2;
-                }
-                splitbyte++;
-            }
-            return 0;
-        }
-
         private void sendFailedToConnect() {
             try {
                 mSocket.getOutputStream().write(generateInternalServerError().getBytes());

@@ -6,10 +6,11 @@
  */
 package org.deviceconnect.android.deviceplugin.sphero.profile;
 
-import java.util.List;
+import android.content.Intent;
+import android.os.Bundle;
 
-import orbotix.robot.base.CollisionDetectedAsyncData;
-import orbotix.robot.sensor.DeviceSensorsData;
+import com.orbotix.async.CollisionDetectedAsyncData;
+import com.orbotix.async.DeviceSensorAsyncMessage;
 
 import org.deviceconnect.android.deviceplugin.sphero.SpheroDeviceService;
 import org.deviceconnect.android.deviceplugin.sphero.SpheroManager;
@@ -21,10 +22,13 @@ import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.DConnectProfile;
+import org.deviceconnect.android.profile.api.DConnectApi;
+import org.deviceconnect.android.profile.api.DeleteApi;
+import org.deviceconnect.android.profile.api.GetApi;
+import org.deviceconnect.android.profile.api.PutApi;
 import org.deviceconnect.message.DConnectMessage;
 
-import android.content.Intent;
-import android.os.Bundle;
+import java.util.List;
 
 /**
  * spheroプロファイル.
@@ -55,17 +59,17 @@ public class SpheroProfile extends DConnectProfile {
     /**
      * 属性 : {@value} .
      */
-    public static final String ATTR_ON_QUATERNION = "onquaternion";
+    public static final String ATTR_ON_QUATERNION = "onQuaternion";
 
     /**
      * 属性 : {@value} .
      */
-    public static final String ATTR_ON_LOCATOR = "onlocator";
+    public static final String ATTR_ON_LOCATOR = "onLocator";
 
     /**
      * 属性 : {@value} .
      */
-    public static final String ATTR_ON_COLLISION = "oncollision";
+    public static final String ATTR_ON_COLLISION = "onCollision";
 
     /**
      * パラメータ : {@value} .
@@ -182,41 +186,45 @@ public class SpheroProfile extends DConnectProfile {
      */
     private static final int TYPE_COL = 3;
 
+    /**
+     * コンストラクタ.
+     */
+    public SpheroProfile() {
+        addApi(mGetOnQuaternionApi);
+        addApi(mGetOnCollisionApi);
+        addApi(mGetOnLocatorApi);
+        addApi(mPutOnQuaternionApi);
+        addApi(mPutOnCollisionApi);
+        addApi(mPutOnLocatorApi);
+        addApi(mDeleteOnQuaternionApi);
+        addApi(mDeleteOnCollisionApi);
+        addApi(mDeleteOnLocatorApi);
+    }
+
+
     @Override
     public String getProfileName() {
         return PROFILE_NAME;
     }
 
-    @Override
-    protected boolean onGetRequest(final Intent request, final Intent response) {
-        boolean result = true;
-        String inter = getInterface(request);
-        String attribute = getAttribute(request);
-        if (INTER_QUATERNION.equals(inter) && ATTR_ON_QUATERNION.equals(attribute)) {
-            result = onGetQuaternion(request, response, getServiceID(request));
-        } else if (INTER_LOCATOR.equals(inter) && ATTR_ON_LOCATOR.equals(attribute)) {
-            result = onGetLocator(request, response, getServiceID(request));
-        } else if (INTER_COLLISION.equals(inter) && ATTR_ON_COLLISION.equals(attribute)) {
-            result = onGetCollision(request, response, getServiceID(request));
-        } else {
-            MessageUtils.setNotSupportAttributeError(response);
-        }
-        return result;
-    }
-
-    @Override
-    protected boolean onPutRequest(final Intent request, final Intent response) {
+    /**
+     * 各イベントの登録を行う.
+     * @param request リクエストパラメータ
+     * @param response レスポンスパラメータ
+     * @return 同期・非同期
+     */
+    private boolean onPutRequest(final Intent request, final Intent response) {
 
         String inter = getInterface(request);
         String attribute = getAttribute(request);
 
         int type = 0;
 
-        if (INTER_QUATERNION.equals(inter) && ATTR_ON_QUATERNION.equals(attribute)) {
+        if (INTER_QUATERNION.equals(inter)) {
             type = TYPE_QUA;
-        } else if (INTER_LOCATOR.equals(inter) && ATTR_ON_LOCATOR.equals(attribute)) {
+        } else if (INTER_LOCATOR.equals(inter)) {
             type = TYPE_LOC;
-        } else if (INTER_COLLISION.equals(inter) && ATTR_ON_COLLISION.equals(attribute)) {
+        } else if (INTER_COLLISION.equals(inter)) {
             type = TYPE_COL;
         } else {
             MessageUtils.setNotSupportAttributeError(response);
@@ -262,19 +270,24 @@ public class SpheroProfile extends DConnectProfile {
         return true;
     }
 
-    @Override
-    protected boolean onDeleteRequest(final Intent request, final Intent response) {
+    /**
+     * 各イベントの解除を行う.
+     * @param request リクエストパラメータ
+     * @param response レスポンスパラメータ
+     * @return 同期・非同期
+     */
+    private boolean onDeleteRequest(final Intent request, final Intent response) {
 
         String inter = getInterface(request);
         String attribute = getAttribute(request);
 
         int type = 0;
 
-        if (INTER_QUATERNION.equals(inter) && ATTR_ON_QUATERNION.equals(attribute)) {
+        if (INTER_QUATERNION.equals(inter)) {
             type = TYPE_QUA;
-        } else if (INTER_LOCATOR.equals(inter) && ATTR_ON_LOCATOR.equals(attribute)) {
+        } else if (INTER_LOCATOR.equals(inter)) {
             type = TYPE_LOC;
-        } else if (INTER_COLLISION.equals(inter) && ATTR_ON_COLLISION.equals(attribute)) {
+        } else if (INTER_COLLISION.equals(inter)) {
             type = TYPE_COL;
         } else {
             MessageUtils.setNotSupportAttributeError(response);
@@ -309,9 +322,9 @@ public class SpheroProfile extends DConnectProfile {
                 break;
             case TYPE_COL:
                 List<Event> events = EventManager.INSTANCE.getEventList(
-                        serviceId, PROFILE_NAME, 
+                        serviceId, PROFILE_NAME,
                         INTER_COLLISION, ATTR_ON_COLLISION);
-                
+
                 if (device != null && events.size() == 0) {
                     SpheroManager.INSTANCE.stopCollision(device);
                 }
@@ -324,6 +337,106 @@ public class SpheroProfile extends DConnectProfile {
         return true;
     }
 
+    private final DConnectApi mPutOnQuaternionApi = new PutApi() {
+        @Override
+        public String getInterface() {
+            return INTER_QUATERNION;
+        }
+
+        @Override
+        public String getAttribute() {
+            return ATTR_ON_QUATERNION;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            return onPutRequest(request, response);
+        }
+    };
+
+    private final DConnectApi mDeleteOnQuaternionApi = new DeleteApi() {
+        @Override
+        public String getInterface() {
+            return INTER_QUATERNION;
+        }
+
+        @Override
+        public String getAttribute() {
+            return ATTR_ON_QUATERNION;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            return onDeleteRequest(request, response);
+        }
+    };
+
+    private final DConnectApi mPutOnLocatorApi = new PutApi() {
+        @Override
+        public String getInterface() {
+            return INTER_LOCATOR;
+        }
+
+        @Override
+        public String getAttribute() {
+            return ATTR_ON_LOCATOR;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            return onPutRequest(request, response);
+        }
+    };
+
+    private final DConnectApi mDeleteOnLocatorApi = new DeleteApi() {
+        @Override
+        public String getInterface() {
+            return INTER_LOCATOR;
+        }
+
+        @Override
+        public String getAttribute() {
+            return ATTR_ON_LOCATOR;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            return onDeleteRequest(request, response);
+        }
+    };
+    private final DConnectApi mPutOnCollisionApi = new PutApi() {
+        @Override
+        public String getInterface() {
+            return INTER_COLLISION;
+        }
+
+        @Override
+        public String getAttribute() {
+            return ATTR_ON_COLLISION;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            return onPutRequest(request, response);
+        }
+    };
+
+    private final DConnectApi mDeleteOnCollisionApi = new DeleteApi() {
+        @Override
+        public String getInterface() {
+            return INTER_COLLISION;
+        }
+
+        @Override
+        public String getAttribute() {
+            return ATTR_ON_COLLISION;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            return onDeleteRequest(request, response);
+        }
+    };
     /**
      * Spheroのクォータニオンを取得する.
      * @param request リクエスト
@@ -331,26 +444,38 @@ public class SpheroProfile extends DConnectProfile {
      * @param serviceId サービスID
      * @return 即座に返却する場合はtrue、それ以外はfalse
      */
-    private boolean onGetQuaternion(final Intent request, final Intent response,
-            final String serviceId) {
-        DeviceInfo device = SpheroManager.INSTANCE.getDevice(serviceId);
-        if (device == null) {
-            MessageUtils.setNotFoundServiceError(response);
-            return true;
+    private final DConnectApi mGetOnQuaternionApi = new GetApi() {
+        @Override
+        public String getInterface() {
+            return INTER_QUATERNION;
+        }
+        @Override
+        public String getAttribute() {
+            return ATTR_ON_QUATERNION;
         }
 
-        SpheroManager.INSTANCE.startSensor(device, new DeviceSensorListener() {
-            @Override
-            public void sensorUpdated(final DeviceInfo info, final DeviceSensorsData data, final long interval) {
-                SpheroDeviceService service = (SpheroDeviceService) getContext();
-                Bundle quaternion = SpheroManager.createQuaternion(data, interval);
-                setResult(response, DConnectMessage.RESULT_OK);
-                response.putExtra(SpheroProfile.PARAM_QUATERNION, quaternion);
-                service.sendResponse(response);
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String serviceId = getServiceID(request);
+            DeviceInfo device = SpheroManager.INSTANCE.getDevice(serviceId);
+            if (device == null) {
+                MessageUtils.setNotFoundServiceError(response);
+                return true;
             }
-        });
-        return false;
-    }
+
+            SpheroManager.INSTANCE.startSensor(device, new DeviceSensorListener() {
+                @Override
+                public void sensorUpdated(final DeviceInfo info, final DeviceSensorAsyncMessage data, final long interval) {
+                    SpheroDeviceService service = (SpheroDeviceService) getContext();
+                    Bundle quaternion = SpheroManager.createQuaternion(data, interval);
+                    setResult(response, DConnectMessage.RESULT_OK);
+                    response.putExtra(SpheroProfile.PARAM_QUATERNION, quaternion);
+                    service.sendResponse(response);
+                }
+            });
+            return false;
+        }
+    };
 
     /**
      * Spheroのlocatorを取得する.
@@ -359,26 +484,39 @@ public class SpheroProfile extends DConnectProfile {
      * @param serviceId サービスID
      * @return 即座に返却する場合はtrue、それ以外はfalse
      */
-    private boolean onGetLocator(final Intent request, final Intent response,
-            final String serviceId) {
-        DeviceInfo device = SpheroManager.INSTANCE.getDevice(serviceId);
-        if (device == null) {
-            MessageUtils.setNotFoundServiceError(response);
-            return true;
+    private final DConnectApi mGetOnLocatorApi = new GetApi() {
+        @Override
+        public String getInterface() {
+            return INTER_LOCATOR;
         }
 
-        SpheroManager.INSTANCE.startSensor(device, new DeviceSensorListener() {
-            @Override
-            public void sensorUpdated(final DeviceInfo info, final DeviceSensorsData data, final long interval) {
-                SpheroDeviceService service = (SpheroDeviceService) getContext();
-                Bundle locator = SpheroManager.createLocator(data);
-                setResult(response, DConnectMessage.RESULT_OK);
-                response.putExtra(SpheroProfile.PARAM_LOCATOR, locator);
-                service.sendResponse(response);
+        @Override
+        public String getAttribute() {
+            return ATTR_ON_LOCATOR;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String serviceId = getServiceID(request);
+            DeviceInfo device = SpheroManager.INSTANCE.getDevice(serviceId);
+            if (device == null) {
+                MessageUtils.setNotFoundServiceError(response);
+                return true;
             }
-        });
-        return false;
-    }
+
+            SpheroManager.INSTANCE.startSensor(device, new DeviceSensorListener() {
+                @Override
+                public void sensorUpdated(final DeviceInfo info, final DeviceSensorAsyncMessage data, final long interval) {
+                    SpheroDeviceService service = (SpheroDeviceService) getContext();
+                    Bundle locator = SpheroManager.createLocator(data);
+                    setResult(response, DConnectMessage.RESULT_OK);
+                    response.putExtra(SpheroProfile.PARAM_LOCATOR, locator);
+                    service.sendResponse(response);
+                }
+            });
+            return false;
+        }
+    };
 
     /**
      * Spheroの衝突を取得する.
@@ -387,23 +525,36 @@ public class SpheroProfile extends DConnectProfile {
      * @param serviceId サービスID
      * @return 即座に返却する場合はtrue、それ以外はfalse
      */
-    private boolean onGetCollision(final Intent request, final Intent response,
-            final String serviceId) {
-        DeviceInfo device = SpheroManager.INSTANCE.getDevice(serviceId);
-        if (device == null) {
-            MessageUtils.setNotFoundServiceError(response);
-            return true;
+    private final DConnectApi mGetOnCollisionApi = new GetApi() {
+        @Override
+        public String getInterface() {
+            return INTER_COLLISION;
         }
-        SpheroManager.INSTANCE.startCollision(device, new DeviceCollisionListener() {
-            @Override
-            public void collisionDetected(final DeviceInfo info, final CollisionDetectedAsyncData data) {
-                SpheroDeviceService service = (SpheroDeviceService) getContext();
-                Bundle collision = SpheroManager.createCollision(data);
-                setResult(response, DConnectMessage.RESULT_OK);
-                response.putExtra(SpheroProfile.PARAM_COLLISION, collision);
-                service.sendResponse(response);
+
+        @Override
+        public String getAttribute() {
+            return ATTR_ON_COLLISION;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String serviceId = getServiceID(request);
+            DeviceInfo device = SpheroManager.INSTANCE.getDevice(serviceId);
+            if (device == null) {
+                MessageUtils.setNotFoundServiceError(response);
+                return true;
             }
-        });
-        return false;
-    }
+            SpheroManager.INSTANCE.startCollision(device, new DeviceCollisionListener() {
+                @Override
+                public void collisionDetected(final DeviceInfo info, final CollisionDetectedAsyncData data) {
+                    SpheroDeviceService service = (SpheroDeviceService) getContext();
+                    Bundle collision = SpheroManager.createCollision(data);
+                    setResult(response, DConnectMessage.RESULT_OK);
+                    response.putExtra(SpheroProfile.PARAM_COLLISION, collision);
+                    service.sendResponse(response);
+                }
+            });
+            return false;
+        }
+    };
 }

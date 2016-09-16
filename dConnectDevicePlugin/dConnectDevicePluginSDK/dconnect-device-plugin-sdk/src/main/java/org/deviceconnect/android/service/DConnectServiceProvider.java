@@ -60,4 +60,16 @@ public interface DConnectServiceProvider {
      * すべてのサービスを削除する.
      */
     void removeAllServices();
+
+    /**
+     * サービスの追加または削除イベントを受信するためのリスナーを追加する.
+     * @param listener リスナー
+     */
+    void addServiceListener(DConnectServiceListener listener);
+
+    /**
+     * サービスの追加または削除イベントを受信するためのリスナーを削除する.
+     * @param listener リスナー
+     */
+    void removeServiceListener(DConnectServiceListener listener);
 }

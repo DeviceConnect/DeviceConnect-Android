@@ -27,7 +27,7 @@ public class WakeupFragment extends Fragment {
             final ViewGroup container, final Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.setting_wakeup, null);
         final ImageView image = (ImageView) root.findViewById(R.id.animView001);
-        image.setBackgroundResource(R.anim.sphero_light);
+        image.setBackgroundResource(R.drawable.sphero_light);
         
         return root;
     }

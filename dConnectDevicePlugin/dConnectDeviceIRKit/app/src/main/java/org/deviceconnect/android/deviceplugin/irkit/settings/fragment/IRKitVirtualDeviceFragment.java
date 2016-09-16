@@ -6,14 +6,15 @@
  */
 package org.deviceconnect.android.deviceplugin.irkit.settings.fragment;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Fragment;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.support.v4.content.LocalBroadcastManager;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -33,7 +34,7 @@ import org.deviceconnect.android.deviceplugin.irkit.IRKitDeviceService;
 import org.deviceconnect.android.deviceplugin.irkit.R;
 import org.deviceconnect.android.deviceplugin.irkit.data.IRKitDBHelper;
 import org.deviceconnect.android.deviceplugin.irkit.data.VirtualDeviceData;
-import org.deviceconnect.android.deviceplugin.irkit.settings.activity.IRKitDeviceListActivity;
+import org.deviceconnect.android.deviceplugin.irkit.settings.activity.IRKitVirtualDeviceListActivity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -150,7 +151,6 @@ public class IRKitVirtualDeviceFragment extends Fragment
 
         final View addLayout = rootView.findViewById(R.id.add_btn);
         final View deleteLayout = rootView.findViewById(R.id.remove_btn);
-        final View headerView = rootView.findViewById(R.id.text_view_number);
         addLayout.setVisibility(View.VISIBLE);
         deleteLayout.setVisibility(View.GONE);
 
@@ -160,7 +160,6 @@ public class IRKitVirtualDeviceFragment extends Fragment
             public void onClick(final View v) {
                 addLayout.setVisibility(View.VISIBLE);
                 deleteLayout.setVisibility(View.GONE);
-                headerView.setBackgroundColor(Color.parseColor("#00a0e9"));
                 mIsRemoved = false;
                 updateVirtualDeviceList();
             }
@@ -180,7 +179,6 @@ public class IRKitVirtualDeviceFragment extends Fragment
                             removeCheckVirtualDevices();
                             addLayout.setVisibility(View.VISIBLE);
                             deleteLayout.setVisibility(View.GONE);
-                            headerView.setBackgroundColor(Color.parseColor("#00a0e9"));
                             mIsRemoved = false;
                             updateVirtualDeviceList();
                         }
@@ -216,7 +214,6 @@ public class IRKitVirtualDeviceFragment extends Fragment
             public void onClick(View view) {
                 addLayout.setVisibility(View.GONE);
                 deleteLayout.setVisibility(View.VISIBLE);
-                headerView.setBackgroundColor(Color.parseColor("#ffb6c1"));
                 mIsRemoved = true;
                 updateVirtualDeviceList();
             }
@@ -232,8 +229,8 @@ public class IRKitVirtualDeviceFragment extends Fragment
                     CheckBox removeCheck = (CheckBox) view.findViewById(R.id.delete_check);
                     removeCheck.setChecked(!removeCheck.isChecked());
                 } else {
-                    IRKitDeviceListActivity activity = (IRKitDeviceListActivity) getActivity();
-                    activity.startApp(IRKitDeviceListActivity.MANAGE_VIRTUAL_PROFILE_PAGE,
+                    IRKitVirtualDeviceListActivity activity = (IRKitVirtualDeviceListActivity) getActivity();
+                    activity.startApp(IRKitVirtualDeviceListActivity.MANAGE_VIRTUAL_PROFILE_PAGE,
                             mVirtuals.get(position).getServiceId());
                 }
             }
@@ -296,11 +293,13 @@ public class IRKitVirtualDeviceFragment extends Fragment
     }
 
     private void sendEventOnRemoved(final VirtualDeviceData device) {
-        Intent intent = new Intent();
-        intent.setClass(getActivity(), IRKitDeviceService.class);
-        intent.setAction(IRKitDeviceService.ACTION_VIRTUAL_DEVICE_REMOVED);
+        Activity activity = getActivity();
+        if (activity == null) {
+            return;
+        }
+        Intent intent = new Intent(IRKitDeviceService.ACTION_VIRTUAL_DEVICE_REMOVED);
         intent.putExtra(IRKitDeviceService.EXTRA_VIRTUAL_DEVICE_ID, device.getServiceId());
-        getActivity().startService(intent);
+        LocalBroadcastManager.getInstance(activity).sendBroadcast(intent);
     }
 
     /**

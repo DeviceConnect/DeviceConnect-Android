@@ -44,6 +44,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -1159,29 +1160,29 @@ public enum IRKitManager {
     private class ServiceRemovingDiscoveryHandler extends Thread {
         
         /** 
-         * インターバル最大値.
+         * インターバル最大値. (ミリ秒)
          */
-        private static final long MAX_INTERVAL = 4096 * 1000; 
+        private static final long MAX_INTERVAL = 512 * 1000;
+
+        /**
+         * インターバルの初期値. (秒)
+         */
+        private static final long INITIAL_INTERVAL = 8;
+
+        /** 
+         * インターバル. (秒)
+         */
+        private long mNextInterval = INITIAL_INTERVAL;
         
         /** 
-         * ロックオブジェクト.
-         */
-        private Object mLock;
-        
-        /** 
-         * カウンタ.
-         */
-        private int mCounter;
-        
-        /** 
-         * インターバル.
-         */
-        private long mNextInterval = 1;
-        
-        /** 
-         * 待ち時間.
+         * 実際の待ち時間. (ミリ秒)
          */
         private long mDelay;
+
+        /**
+         * カウンタ.
+         */
+        private int mCount;
         
         /** 
          * 削除リスト.
@@ -1192,8 +1193,6 @@ public enum IRKitManager {
          * インスタンスの生成.
          */
         public ServiceRemovingDiscoveryHandler() {
-            mNextInterval = 1;
-            mLock = new Object();
         }
         
         /**
@@ -1201,8 +1200,9 @@ public enum IRKitManager {
          */
         public synchronized void refresh() {
             interrupt();
+            mCount = 0;
             mDelay = 0;
-            mNextInterval = 1;
+            mNextInterval = INITIAL_INTERVAL;
         }
         
         @Override
@@ -1222,7 +1222,16 @@ public enum IRKitManager {
                 }
                 
                 synchronized (this) {
-                    mNextInterval <<= 1;
+
+                    // NOTE: 最初の約8分間は一定の短いインターバルで生存確認を行う.
+                    // それ以降は最大値に達するまで生存確認するごとにインターバルを
+                    // 2倍にのばしていく.
+                    if (mCount < 64) {
+                        mCount++;
+                    } else {
+                        mNextInterval <<= 1;
+                    }
+
                     mDelay = (mNextInterval * 1000) - pt;
                     if (mDelay < 0) {
                         mDelay = 0;
@@ -1233,7 +1242,7 @@ public enum IRKitManager {
                 }
                 
                 if (BuildConfig.DEBUG) {
-                    Log.d("IRKit", "start remove checking. " + mDelay);
+                    Log.d("IRKit", "Start remove checking after " + mDelay + " ms.");
                 }
                 
                 try {
@@ -1245,7 +1254,7 @@ public enum IRKitManager {
                     if (BuildConfig.DEBUG) {
                         e.printStackTrace();
                     }
-                    mNextInterval = 1;
+                    mNextInterval = INITIAL_INTERVAL;
                 }
             }
         }
@@ -1257,11 +1266,12 @@ public enum IRKitManager {
          * @return 実行時間
          */
         private long checkConnection() {
-            mCounter = 0;
+            final CountDownLatch lock;
             mRemoveList.clear();
             long start = System.currentTimeMillis();
             synchronized (mServices) {
                 final int max = mServices.size();
+                lock = new CountDownLatch(max);
                 for (final IRKitDevice device : mServices.values()) {
                     checkIfTargetIsIRKit(device.getIp(), new CheckingIRKitCallback() {
                         @Override
@@ -1272,11 +1282,7 @@ public enum IRKitManager {
                                     mRemoveList.add(device);
                                 }
                                 
-                                if (++mCounter == max) {
-                                    synchronized (mLock) {
-                                        mLock.notifyAll();
-                                    }
-                                }
+                                lock.countDown();
                             }
                         }
                     });
@@ -1284,9 +1290,7 @@ public enum IRKitManager {
             }
             
             try {
-                synchronized (mLock) {
-                    mLock.wait();
-                }
+                lock.await();
             } catch (InterruptedException e) {
                 if (BuildConfig.DEBUG) {
                     e.printStackTrace();

@@ -390,8 +390,10 @@ public enum HVCManager {
      */
     public void removeBodyDetectEventListener(final String serviceId) {
         HVCCameraInfo camera = mServices.get(serviceId);
-        camera.setBodyEvent(null);
-        removeEventList(serviceId, camera);
+        if (camera != null) {
+            camera.setBodyEvent(null);
+            removeEventList(serviceId, camera);
+        }
     }
 
     /**
@@ -400,8 +402,10 @@ public enum HVCManager {
      */
     public void removeHandDetectEventListener(final String serviceId) {
         HVCCameraInfo camera = mServices.get(serviceId);
-        camera.setHandEvent(null);
-        removeEventList(serviceId, camera);
+        if (camera != null) {
+            camera.setHandEvent(null);
+            removeEventList(serviceId, camera);
+        }
     }
 
     /**
@@ -410,8 +414,10 @@ public enum HVCManager {
      */
     public void removeFaceDetectEventListener(final String serviceId) {
         HVCCameraInfo camera = mServices.get(serviceId);
-        camera.setFaceEvent(null);
-        removeEventList(serviceId, camera);
+        if (camera != null) {
+            camera.setFaceEvent(null);
+            removeEventList(serviceId, camera);
+        }
     }
 
     /**
@@ -420,8 +426,10 @@ public enum HVCManager {
      */
     public void removeFaceRecognizeEventListener(final String serviceId) {
         HVCCameraInfo camera = mServices.get(serviceId);
-        camera.setFaceRecognizeEvent(null);
-        removeEventList(serviceId, camera);
+        if (camera != null) {
+            camera.setFaceRecognizeEvent(null);
+            removeEventList(serviceId, camera);
+        }
     }
 
     /**
@@ -430,11 +438,13 @@ public enum HVCManager {
     public void removeAllEventListener() {
         for (String key : mServices.keySet()) {
             HVCCameraInfo camera = mServices.get(key);
-            camera.setBodyEvent(null);
-            camera.setFaceEvent(null);
-            camera.setFaceRecognizeEvent(null);
-            camera.setHandEvent(null);
-            mEventList.remove(camera.getID());
+            if (camera != null) {
+                camera.setBodyEvent(null);
+                camera.setFaceEvent(null);
+                camera.setFaceRecognizeEvent(null);
+                camera.setHandEvent(null);
+                mEventList.remove(camera.getID());
+            }
         }
     }
 
@@ -451,6 +461,9 @@ public enum HVCManager {
                     public void run() {
                         for (String key : mServices.keySet()) {
                             HVCCameraInfo camera = mServices.get(key);
+                            if (camera == null) {
+                                return;
+                            }
                             OkaoResult result = HVCManager.INSTANCE.execute();
 
                             if (camera.getBodyEvent() != null) {
@@ -470,6 +483,9 @@ public enum HVCManager {
                     public void run() {
                         for (String key : mServices.keySet()) {
                             HVCCameraInfo camera = mServices.get(key);
+                            if (camera == null) {
+                                return;
+                            }
                             OkaoResult result = HVCManager.INSTANCE.execute();
 
                             if (camera.getHandEvent() != null) {
@@ -488,6 +504,9 @@ public enum HVCManager {
                     public void run() {
                         for (String key : mServices.keySet()) {
                             HVCCameraInfo camera = mServices.get(key);
+                            if (camera == null) {
+                                return;
+                            }
                             OkaoResult result = HVCManager.INSTANCE.execute();
 
                             if (camera.getFaceEvent() != null) {

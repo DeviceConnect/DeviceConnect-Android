@@ -111,7 +111,6 @@ public class VideoRecorderActivity extends Activity implements SurfaceHolder.Cal
     @Override
     protected void onResume() {
         super.onResume();
-
         // レシーバーを登録
         IntentFilter filter = new IntentFilter();
         filter.addAction(VideoConst.SEND_HOSTDP_TO_VIDEO);
@@ -222,6 +221,8 @@ public class VideoRecorderActivity extends Activity implements SurfaceHolder.Cal
 
             mLogger.info("VideoRecorderActivity: width = " + mPictureSize.getWidth()
                 + ", height = " + mPictureSize.getHeight());
+            mCallback.send(Activity.RESULT_OK, null);
+
         } else {
             Bundle data = new Bundle();
             data.putString(VideoConst.EXTRA_CALLBACK_ERROR_MESSAGE, "File name must be specified.");
@@ -239,6 +240,7 @@ public class VideoRecorderActivity extends Activity implements SurfaceHolder.Cal
             Camera.Parameters params = camera.getParameters();
             params.setPictureSize(currentSize.getWidth(), currentSize.getHeight());
             camera.setParameters(params);
+
         }
     }
 
@@ -289,7 +291,12 @@ public class VideoRecorderActivity extends Activity implements SurfaceHolder.Cal
     private void releaseMediaRecorder() {
         if (mMediaRecorder != null) {
             if (mIsReady) {
-                mMediaRecorder.stop();
+                try {
+                    mMediaRecorder.stop();
+                } catch (RuntimeException e) {
+                    // stop failed
+                    mLogger.warning("stop failed");
+                }
             }
             mMediaRecorder.reset();
             mMediaRecorder.release();

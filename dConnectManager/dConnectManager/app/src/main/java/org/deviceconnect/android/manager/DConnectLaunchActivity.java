@@ -19,6 +19,7 @@ import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.Window;
 import android.widget.Button;
 import android.widget.TextView;
 
@@ -42,50 +43,122 @@ public class DConnectLaunchActivity extends Activity {
      */
     private static final String[] SCHEMES_LAUNCH = {"dconnect", "gotapi"};
 
+    private static final String HOST_START = "start";
+
+    private static final String HOST_STOP = "stop";
+
+    private static final String PATH_ROOT = "/";
+
+    private static final String PATH_ACTIVITY = PATH_ROOT + "activity";
+
+    private static final String PATH_SERVER = PATH_ROOT + "server";
+
+    private static final int RESULT_ERROR = Activity.RESULT_FIRST_USER;
+
     /**
      * The HMAC manager.
      */
     private HmacManager mHmacManager;
 
     /**
+     * DConnectServiceを操作するクラス.
+     */
+    private IDConnectService mDConnectService;
+
+    /**
      * The logger.
      */
     protected final Logger mLogger = Logger.getLogger("dconnect.manager");
 
-    /**
-     * The button to launch or stop Device Connect Manager.
-     */
-    private Button mLaunchOrStopButton;
+    private DConnectSettings mSettings = DConnectSettings.getInstance();
 
-    /**
-     * The text view to show a prompt message.
-     */
-    private TextView mMessageView;
+    private Runnable mBehavior;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_dconnect_launcher);
+        requestWindowFeature(Window.FEATURE_ACTION_BAR);
+        getActionBar().hide();
+
         mHmacManager = new HmacManager(this);
-
-        mMessageView = (TextView) findViewById(R.id.text_manager_launcher_message);
-        mLaunchOrStopButton = (Button) findViewById(R.id.button_manager_launcher_launch_or_stop);
-        Button cancelButton = (Button) findViewById(R.id.button_manager_launcher_cancel);
-        cancelButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(final View v) {
-                finish();
-            }
-        });
-
-        Intent i1 = new Intent();
-        i1.setClass(this, DConnectService.class);
-        startService(i1);
+        mSettings.load(this);
+        processRequest(getIntent());
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
+    private boolean allowExternalStartAndStop() {
+        return mSettings.allowExternalStartAndStop();
+    }
+
+    private void processRequest(final Intent intent) {
+        if (intent != null && isSchemeForLaunch(intent.getScheme())) {
+            updateHMACKey(intent);
+
+            Uri uri = intent.getData();
+            String host = uri.getHost();
+            String path = uri.getPath();
+            if (HOST_START.equals(host)) {
+                if (!allowExternalStartAndStop() || PATH_ROOT.equals(path) || PATH_ACTIVITY.equals(path)) {
+                    mBehavior = new Runnable() {
+                        @Override
+                        public void run() {
+                            try {
+                                if (!mDConnectService.isRunning()) {
+                                    displayActivity();
+                                } else {
+                                    finish();
+                                }
+                            } catch (RemoteException e) {
+                                finish();
+                            }
+                        }
+                    };
+                } else if (PATH_SERVER.equals(path)) {
+                    mBehavior = new Runnable() {
+                        @Override
+                        public void run() {
+                            startManager();
+                            onActivityResult(0, RESULT_OK, null);
+                            finish();
+                        }
+                    };
+                }
+            } else if (HOST_STOP.equals(host)) {
+                if (!allowExternalStartAndStop() || PATH_ROOT.equals(path) || PATH_ACTIVITY.equals(path)) {
+                    mBehavior = new Runnable() {
+                        @Override
+                        public void run() {
+                            try {
+                                if (mDConnectService.isRunning()) {
+                                    displayActivity();
+                                } else {
+                                    finish();
+                                }
+                            } catch (RemoteException e) {
+                                finish();
+                            }
+                        }
+                    };
+                } else if (PATH_SERVER.equals(path)) {
+                    mBehavior = new Runnable() {
+                        @Override
+                        public void run() {
+                            boolean canStop = !existsConnectedWebSocket();
+                            int result;
+                            if (canStop) {
+                                stopManager();
+                                result = RESULT_OK;
+                            } else {
+                                mLogger.warning("Cannot stop Device Connect Manager automatically.");
+                                result = RESULT_ERROR;
+                            }
+                            onActivityResult(0, result, null);
+                            finish();
+                        }
+                    };
+                }
+            }
+            bindManagerService();
+        }
     }
 
     @Override
@@ -94,47 +167,10 @@ public class DConnectLaunchActivity extends Activity {
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
-
-        Intent intent = getIntent();
-        if (intent != null && isSchemeForLaunch(intent.getScheme())) {
-            String key = intent.getStringExtra(IntentDConnectMessage.EXTRA_KEY);
-            String origin = intent.getStringExtra(IntentDConnectMessage.EXTRA_ORIGIN);
-            mLogger.info("Requested to update HMAC key from intent: origin=" + origin + ", key=" + key);
-
-            if (key == null || origin == null) {
-                mLogger.warning("Origin or key is missing.");
-                Uri uri = intent.getData();
-                if (uri != null) {
-                    key = uri.getQueryParameter(IntentDConnectMessage.EXTRA_KEY);
-                    origin = uri.getQueryParameter(IntentDConnectMessage.EXTRA_ORIGIN);
-                    mLogger.info("Requested to update HMAC key from URI: origin=" + origin + ", key=" + key);
-                }
-            }
-
-            try {
-                if (origin != null) {
-                    origin = URLDecoder.decode(origin, "UTF-8");
-                    if (key != null && !TextUtils.isEmpty(origin)) {
-                        mHmacManager.updateKey(origin, key);
-                    }
-                }
-            } catch (UnsupportedEncodingException e) {
-                // nothing to do.
-                mLogger.warning("Failed to decode origin=" + origin);
-            }
-        }
-
-        Intent bindIntent = new Intent(IDConnectService.class.getName());
-        bindIntent.setPackage(getPackageName());
-        bindService(bindIntent, mServiceConnection, Context.BIND_AUTO_CREATE);
-    }
-
-    @Override
     protected void onPause() {
-        unbindService(mServiceConnection);
         super.onPause();
+        onActivityResult(0, RESULT_CANCELED, null);
+        finish();
     }
 
     /**
@@ -152,43 +188,118 @@ public class DConnectLaunchActivity extends Activity {
         return false;
     }
 
+    private void updateHMACKey(final Intent intent) {
+        Uri uri = intent.getData();
+        String key = intent.getStringExtra(IntentDConnectMessage.EXTRA_KEY);
+        String origin = intent.getStringExtra(IntentDConnectMessage.EXTRA_ORIGIN);
+        mLogger.info("Requested to update HMAC key from intent: origin=" + origin + ", key=" + key);
+
+        if (key == null || origin == null) {
+            mLogger.warning("Origin or key is missing.");
+            key = uri.getQueryParameter(IntentDConnectMessage.EXTRA_KEY);
+            origin = uri.getQueryParameter(IntentDConnectMessage.EXTRA_ORIGIN);
+            mLogger.info("Requested to update HMAC key from URI: origin=" + origin + ", key=" + key);
+        }
+
+        try {
+            if (origin != null) {
+                origin = URLDecoder.decode(origin, "UTF-8");
+                if (key != null && !TextUtils.isEmpty(origin)) {
+                    mHmacManager.updateKey(origin, key);
+                }
+            }
+        } catch (UnsupportedEncodingException e) {
+            // nothing to do.
+            mLogger.warning("Failed to decode origin=" + origin);
+        }
+    }
+
+    private void bindManagerService() {
+        Intent bindIntent = new Intent(IDConnectService.class.getName());
+        bindIntent.setPackage(getPackageName());
+        bindService(bindIntent, mServiceConnection, Context.BIND_AUTO_CREATE);
+    }
+
+    private void startManager() {
+        if (mDConnectService != null) {
+            try {
+                mDConnectService.start();
+            } catch (RemoteException e) {
+                // do nothing
+                mLogger.warning("Failed to start service");
+            }
+        }
+    }
+
+    private void stopManager() {
+        if (mDConnectService != null) {
+            try {
+                mDConnectService.stop();
+            } catch (RemoteException e) {
+                // do nothing
+                mLogger.warning("Failed to stop service");
+            }
+        }
+    }
+
+    private void displayActivity() {
+        getActionBar().show();
+        setContentView(R.layout.activity_dconnect_launcher);
+        setTheme(R.style.AppTheme);
+        View root = findViewById(R.id.launcher_root);
+        root.setVisibility(View.VISIBLE);
+
+        Button cancelButton = (Button) findViewById(R.id.button_manager_launcher_cancel);
+        cancelButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(final View v) {
+                onActivityResult(0, RESULT_OK, null);
+                finish();
+            }
+        });
+
+        try {
+            toggleButton(mDConnectService.isRunning());
+        } catch (RemoteException e) {
+            mLogger.warning("Failed to get service");
+        }
+    }
+
+    private boolean existsConnectedWebSocket() {
+        WebSocketInfoManager mgr = ((DConnectApplication) getApplication()).getWebSocketInfoManager();
+        return mgr.getWebSocketInfos().size() > 0;
+    }
+
     /**
      * Toggles the text on views.
      *
      * @param isLaunched <code>true</code> if Device Connect Manager is running, otherwise <code>false</code>
      */
     private void toggleButton(final boolean isLaunched) {
+        TextView messageView = (TextView) findViewById(R.id.text_manager_launcher_message);
+        Button launchOrStopButton = (Button) findViewById(R.id.button_manager_launcher_launch_or_stop);
+        if (messageView == null || launchOrStopButton == null) {
+            return;
+        }
         if (isLaunched) {
-            mMessageView.setText(R.string.activity_launch_message_stop);
-            mLaunchOrStopButton.setText(R.string.activity_launch_button_stop);
-            mLaunchOrStopButton.setOnClickListener(new View.OnClickListener() {
+            messageView.setText(R.string.activity_launch_message_stop);
+            launchOrStopButton.setText(R.string.activity_launch_button_stop);
+            launchOrStopButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(final View v) {
-                    if (mDConnectService != null) {
-                        try {
-                            mDConnectService.stop();
-                        } catch (RemoteException e) {
-                            // do nothing
-                            mLogger.warning("Failed to stop service");
-                        }
-                    }
+                    stopManager();
+                    onActivityResult(0, RESULT_OK, null);
                     finish();
                 }
             });
         } else {
-            mMessageView.setText(R.string.activity_launch_message_launch);
-            mLaunchOrStopButton.setText(R.string.activity_launch_button_launch);
-            mLaunchOrStopButton.setOnClickListener(new View.OnClickListener() {
+            messageView.setText(R.string.activity_launch_message_launch);
+            launchOrStopButton.setText(R.string.activity_launch_button_launch);
+            launchOrStopButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(final View v) {
-                    if (mDConnectService != null) {
-                        try {
-                            mDConnectService.start();
-                        } catch (RemoteException e) {
-                            // do nothing
-                            mLogger.warning("Failed to start service");
-                        }
-                    }
+                    startManager();
+                    onActivityResult(0, RESULT_OK, null);
                     finish();
                 }
             });
@@ -214,11 +325,6 @@ public class DConnectLaunchActivity extends Activity {
     }
 
     /**
-     * DConnectServiceを操作するクラス.
-     */
-    private IDConnectService mDConnectService;
-
-    /**
      * DConnectServiceと接続するためのクラス.
      */
     private final ServiceConnection mServiceConnection = new ServiceConnection() {
@@ -228,11 +334,8 @@ public class DConnectLaunchActivity extends Activity {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    try {
-                        boolean running = mDConnectService.isRunning();
-                        toggleButton(running);
-                    } catch (RemoteException e) {
-                        mLogger.warning("Failed to get service");
+                    if (mBehavior != null) {
+                        mBehavior.run();
                     }
                 }
             });

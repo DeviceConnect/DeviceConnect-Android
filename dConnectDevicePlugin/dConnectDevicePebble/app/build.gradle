@@ -13,7 +13,7 @@ configurations {
 dependencies {
     compile fileTree(include: '*.jar', dir: 'libs')
     compile project(':dconnect-device-plugin-sdk')
-    compile 'com.getpebble:pebblekit:2.6.0'
+    compile 'com.getpebble:pebblekit:3.1.0@aar'
 }
 
 android {

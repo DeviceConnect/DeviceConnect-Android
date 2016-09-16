@@ -734,6 +734,11 @@ public class DConnectServerNanoHttpd extends DConnectServer {
         }
 
         @Override
+        public void disconnectWebSocket() {
+            closeWebSocket();
+        }
+
+        @Override
         protected void onPong(final WebSocketFrame pongFrame) {
             synchronized (mKeepAliveTask) {
                 if (mKeepAliveTask.getState() == KeepAliveState.WAITING_PONG) {
@@ -777,8 +782,7 @@ public class DConnectServerNanoHttpd extends DConnectServer {
             }
         }
 
-        @Override
-        protected void onClose(final CloseCode code, final String reason, final boolean initiatedByRemote) {
+        private void closeWebSocket() {
             if (mSessionKey != null) {
                 mSockets.remove(mSessionKey);
                 mLogger.fine("WebSocket closed. Session Key : " + mSessionKey);
@@ -793,6 +797,11 @@ public class DConnectServerNanoHttpd extends DConnectServer {
             mWebSockets.remove(this);
 
             mKeepAliveTimer.cancel();
+        }
+
+        @Override
+        protected void onClose(final CloseCode code, final String reason, final boolean initiatedByRemote) {
+            closeWebSocket();
         }
 
         @Override

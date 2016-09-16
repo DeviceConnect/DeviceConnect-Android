@@ -47,4 +47,5 @@ public class HeartRateDeviceSettingsActivity extends DConnectSettingPageFragment
             return new HeartRateDeviceSettingsFragment();
         }
     }
+
 }

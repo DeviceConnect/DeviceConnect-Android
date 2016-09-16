@@ -36,6 +36,13 @@
             android:exported="false"/>
 
         <activity
+            android:name=".setting.FPLUGServiceListActivity"
+            android:configChanges="orientation|screenSize"
+            android:exported="false"
+            android:label="@string/app_name"
+            android:launchMode="singleInstance"/>
+
+        <activity
             android:name=".setting.SettingActivity"
             android:configChanges="orientation|screenSize"
             android:exported="false"

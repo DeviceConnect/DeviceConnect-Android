@@ -31,9 +31,11 @@ import android.preference.SwitchPreference;
 import android.view.MenuItem;
 
 import org.deviceconnect.android.manager.BuildConfig;
+import org.deviceconnect.android.manager.DConnectApplication;
 import org.deviceconnect.android.manager.IDConnectService;
 import org.deviceconnect.android.manager.IDConnectWebService;
 import org.deviceconnect.android.manager.R;
+import org.deviceconnect.android.manager.keepalive.KeepAliveManager;
 import org.deviceconnect.android.manager.setting.OpenSourceLicenseFragment.OpenSourceSoftware;
 import org.deviceconnect.android.manager.util.DConnectUtil;
 import org.deviceconnect.android.observer.DConnectObservationService;
@@ -42,7 +44,6 @@ import org.deviceconnect.android.observer.receiver.ObserverReceiver;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 /**
  * 設定画面Fragment.
@@ -70,12 +71,6 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
      */
     private static final String TAG_WEB_SERVER = "WebServer";
 
-    /** 乱数の最大値. */
-    private static final int MAX_NUM = 10000;
-    /** キーワードの桁数を定義. */
-    private static final int DIGIT = 4;
-    /** 10進数の定義. */
-    private static final int DECIMAL = 10;
     /** SSL設定チェックボックス. */
     private CheckBoxPreference mCheckBoxSslPreferences;
     /** ポート設定テキストエディッタ. */
@@ -83,7 +78,9 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
     /** LocalOAuth設定チェックボックス. */
     private CheckBoxPreference mCheckBoxOauthPreferences;
     /** 外部IP設定チェックボックス. */
-    private CheckBoxPreference mCheckBoxExternalPreferences;
+    private CheckBoxPreference mCheckBoxExternalIpPreferences;
+    /** 外部起動/終了設定チェックボックス. */
+    private CheckBoxPreference mCheckBoxExternalStartAndStartPreferences;
     /** オリジン不要フラグ設定チェックボックス. */
     private CheckBoxPreference mCheckBoxRequireOriginPreferences;
     /** Originブロック設定チェックボックス. */
@@ -123,11 +120,25 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
         SharedPreferences sp = getPreferenceManager().getSharedPreferences();
         String keyword = sp.getString(getString(R.string.key_settings_dconn_keyword), null);
         if (keyword == null || keyword.length() <= 0) {
-            keyword = createKeyword();
+            keyword = DConnectUtil.createKeyword();
+        }
+
+        String name = sp.getString(getString(R.string.key_settings_dconn_name), null);
+        if (name == null || name.length() <= 0) {
+            name = DConnectUtil.createName();
+        }
+
+        String uuid = sp.getString(getString(R.string.key_settings_dconn_uuid), null);
+        if (uuid == null || uuid.length() <= 0) {
+            uuid = DConnectUtil.createUuid();
         }
 
         EditTextPreference editKeywordPreferences = (EditTextPreference) getPreferenceScreen()
                 .findPreference(getString(R.string.key_settings_dconn_keyword));
+        EditTextPreference editNamePreferences = (EditTextPreference) getPreferenceScreen()
+                .findPreference(getString(R.string.key_settings_dconn_name));
+        PreferenceScreen editUuidPreferences = (PreferenceScreen) getPreferenceScreen()
+                .findPreference(getString(R.string.key_settings_dconn_uuid));
         String docRootPath = sp.getString(getString(R.string.key_settings_web_server_document_root_path), null);
         if (docRootPath == null || docRootPath.length() <= 0) {
             File file = new File(Environment.getExternalStorageDirectory(), getActivity().getPackageName());
@@ -138,6 +149,15 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
         editKeywordPreferences.setDefaultValue(keyword);
         editKeywordPreferences.setText(keyword);
         editKeywordPreferences.shouldCommit();
+
+        editNamePreferences.setSummary(name);
+        editNamePreferences.setDefaultValue(name);
+        editNamePreferences.setText(name);
+        editNamePreferences.shouldCommit();
+
+        editUuidPreferences.setSummary(uuid);
+        editUuidPreferences.setDefaultValue(uuid);
+        editUuidPreferences.shouldCommit();
 
         // SSLのON/OFF
         mCheckBoxSslPreferences = (CheckBoxPreference) getPreferenceScreen()
@@ -158,8 +178,12 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
                 .findPreference(getString(R.string.key_settings_dconn_local_oauth));
 
         // グローバル設定のON/OFF
-        mCheckBoxExternalPreferences = (CheckBoxPreference) getPreferenceScreen()
+        mCheckBoxExternalIpPreferences = (CheckBoxPreference) getPreferenceScreen()
                 .findPreference(getString(R.string.key_settings_dconn_allow_external_ip));
+
+        // 外部起動/終了設定のON/OFF
+        mCheckBoxExternalStartAndStartPreferences = (CheckBoxPreference) getPreferenceScreen()
+            .findPreference(getString(R.string.key_settings_dconn_allow_external_start_and_stop));
 
         // Origin不要フラグ設定のON/OFF
         mCheckBoxRequireOriginPreferences = (CheckBoxPreference) getPreferenceScreen()
@@ -250,6 +274,8 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
                 switchDConnectServer((Boolean) newValue);
             } else if (getString(R.string.key_settings_web_server_on_off).equals(key)) {
                 switchWebServer((Boolean) newValue);
+            } else if (getString(R.string.key_settings_event_keep_alive_on_off).equals(key)) {
+                switchEventKeepAlive((Boolean) newValue);
             }
         } else if (preference instanceof CheckBoxPreference) {
             if (getString(R.string.key_settings_dconn_observer_on_off).equals(key)) {
@@ -411,6 +437,23 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
     }
 
     /**
+     * KeepAlive機能の有効・無効を設定する.
+     * @param checked trueの場合は有効、falseの場合は無効
+     */
+    private void switchEventKeepAlive(final boolean checked) {
+        Activity activity = getActivity();
+        if (activity == null) {
+            return;
+        }
+        KeepAliveManager mgr = ((DConnectApplication) activity.getApplication()).getKeepAliveManager();
+        if (checked) {
+            mgr.enableKeepAlive();
+        } else {
+            mgr.disableKeepAlive();
+        }
+    }
+
+    /**
      * Originの要求ダイアログを表示する.
      * @param checked trueの場合は有効、falseの場合は無効
      */
@@ -473,7 +516,7 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
         mCheckBoxSslPreferences.setEnabled(enabled);
         mEditPortPreferences.setEnabled(enabled);
         mCheckBoxOauthPreferences.setEnabled(enabled);
-        mCheckBoxExternalPreferences.setEnabled(enabled);
+        mCheckBoxExternalIpPreferences.setEnabled(enabled);
         mCheckBoxRequireOriginPreferences.setEnabled(enabled);
         mCheckBoxOriginBlockingPreferences.setEnabled(enabled);
     }
@@ -502,23 +545,6 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
             }
         }
         return false;
-    }
-
-    /**
-     * キーワードを作成する.
-     * 
-     * @return キーワード
-     */
-    private String createKeyword() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("DCONNECT-");
-        int rand = Math.abs(new Random().nextInt() % MAX_NUM);
-        for (int i = 0; i < DIGIT; i++) {
-            int r = rand % DECIMAL;
-            builder.append(r);
-            rand /= DECIMAL;
-        }
-        return builder.toString();
     }
 
     /**
@@ -657,9 +683,13 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
         EditTextPreference editKeywordPreferences = (EditTextPreference) getPreferenceScreen()
             .findPreference(getString(R.string.key_settings_dconn_keyword));
         editKeywordPreferences.setOnPreferenceChangeListener(this);
+        EditTextPreference editNamePreferences = (EditTextPreference) getPreferenceScreen()
+                .findPreference(getString(R.string.key_settings_dconn_name));
+        editNamePreferences.setOnPreferenceChangeListener(this);
         mEditPortPreferences.setOnPreferenceChangeListener(this);
         mCheckBoxOauthPreferences.setOnPreferenceChangeListener(this);
-        mCheckBoxExternalPreferences.setOnPreferenceChangeListener(this);
+        mCheckBoxExternalIpPreferences.setOnPreferenceChangeListener(this);
+        mCheckBoxExternalStartAndStartPreferences.setOnPreferenceChangeListener(this);
         mCheckBoxRequireOriginPreferences.setOnPreferenceChangeListener(this);
         mCheckBoxOriginBlockingPreferences.setOnPreferenceChangeListener(this);
         mObserverPreferences.setOnPreferenceChangeListener(this);
@@ -670,6 +700,9 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
         SwitchPreference webPreferences = (SwitchPreference) getPreferenceScreen()
             .findPreference(getString(R.string.key_settings_web_server_on_off));
         webPreferences.setOnPreferenceChangeListener(this);
+        SwitchPreference eventKeepAlive = (SwitchPreference) getPreferenceScreen()
+                .findPreference(getString(R.string.key_settings_event_keep_alive_on_off));
+        eventKeepAlive.setOnPreferenceChangeListener(this);
     }
 
 }

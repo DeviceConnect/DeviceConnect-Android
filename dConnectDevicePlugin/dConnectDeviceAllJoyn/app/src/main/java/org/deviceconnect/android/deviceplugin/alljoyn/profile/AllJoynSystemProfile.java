@@ -4,7 +4,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 
-import org.deviceconnect.android.deviceplugin.alljoyn.activity.AllJoynSettingActivity;
+import org.deviceconnect.android.deviceplugin.alljoyn.activity.AllJoynServiceListActivity;
 import org.deviceconnect.android.profile.SystemProfile;
 
 /**
@@ -24,6 +24,6 @@ public class AllJoynSystemProfile extends SystemProfile {
      */
     @Override
     protected Class<? extends Activity> getSettingPageActivity(Intent intent, Bundle bundle) {
-        return AllJoynSettingActivity.class;
+        return AllJoynServiceListActivity.class;
     }
 }

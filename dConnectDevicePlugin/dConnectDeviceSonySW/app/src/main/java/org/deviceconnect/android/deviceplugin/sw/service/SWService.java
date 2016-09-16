@@ -3,7 +3,6 @@ package org.deviceconnect.android.deviceplugin.sw.service;
 
 import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
-import android.database.Cursor;
 
 import com.sonyericsson.extras.liveware.aef.control.Control;
 import com.sonyericsson.extras.liveware.aef.registration.Registration;
@@ -47,27 +46,6 @@ public abstract class SWService extends DConnectService {
             + " AND "
             + Registration.DeviceColumns.ACCESSORY_CONNECTED
             + " = 1";
-    }
-
-    @Override
-    public boolean isOnline() {
-        return isConnectedToSmartConnect();
-    }
-
-    private boolean isConnectedToSmartConnect() {
-        Cursor cursor = null;
-        try {
-            String selection = createConnectionStateQuery();
-            cursor = getContext().getContentResolver().query(Registration.Device.URI, null, selection, null, null);
-            if (cursor != null) {
-                return (cursor.getCount() > 0);
-            }
-        } finally {
-            if (cursor != null) {
-                cursor.close();
-            }
-        }
-        return false;
     }
 
     public static String createServiceId(final BluetoothDevice device) {

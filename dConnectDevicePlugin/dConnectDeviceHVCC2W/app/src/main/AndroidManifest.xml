@@ -45,6 +45,14 @@
                 android:name="org.deviceconnect.android.deviceplugin"
                 android:value="enable" />
         </service>
+
+        <activity
+            android:name="org.deviceconnect.android.deviceplugin.hvcc2w.setting.HVCC2WServiceListActivity"
+            android:configChanges="orientation|screenSize"
+            android:exported="false"
+            android:label="@string/app_name"
+            android:launchMode="singleInstance"/>
+
         <activity
             android:name="org.deviceconnect.android.deviceplugin.hvcc2w.setting.SettingActivity"
             android:configChanges="orientation|screenSize"

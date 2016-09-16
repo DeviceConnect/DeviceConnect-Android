@@ -6,8 +6,12 @@
  */
 package org.deviceconnect.android.deviceplugin.irkit;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.net.wifi.WifiManager;
+import android.support.v4.content.LocalBroadcastManager;
 
 import org.deviceconnect.android.deviceplugin.irkit.IRKitManager.DetectionListener;
 import org.deviceconnect.android.deviceplugin.irkit.data.IRKitDBHelper;
@@ -70,45 +74,20 @@ public class IRKitDeviceService extends DConnectMessageService implements Detect
     /** ロガー. */
     private final Logger mLogger = Logger.getLogger("irkit.dplugin");
 
-    @Override
-    public void onCreate() {
-        super.onCreate();
-        mDBHelper = new IRKitDBHelper(getContext());
-        for (VirtualDeviceData device : mDBHelper.getVirtualDevices(null)) {
-            getServiceProvider().addService(new VirtualService(device, mDBHelper,
-                getServiceProvider()));
-        }
-
-        EventManager.INSTANCE.setController(new MemoryCacheController());
-        IRKitApplication app = (IRKitApplication) getApplication();
-        app.setIRKitDevices(mDevices);
-        IRKitManager.INSTANCE.init(this);
-        IRKitManager.INSTANCE.setDetectionListener(this);
-        if (WiFiUtil.isOnWiFi(this)) {
-            startDetection();
-        }
-
-        mCurrentSSID = WiFiUtil.getCurrentSSID(this);
-    }
-
-    @Override
-    public int onStartCommand(final Intent intent, final int flags, final int startId) {
-        if (intent != null) {
+    /** 内部的なブロードキャストレシーバー. */
+    private final BroadcastReceiver mLocalBroadcastReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(final Context context, final Intent intent) {
+            if (intent == null || intent.getAction() == null) {
+                return;
+            }
             String action = intent.getAction();
-            if (WifiManager.NETWORK_STATE_CHANGED_ACTION.equals(action)) {
-                if (!WiFiUtil.isOnWiFi(this) && IRKitManager.INSTANCE.isDetecting()) {
-                    stopDetection();
-                } else if (WiFiUtil.isOnWiFi(this) && WiFiUtil.isChangedSSID(this, mCurrentSSID)) {
-                    restartDetection();
-                }
-                return START_STICKY;
-            } else if (ACTION_RESTART_DETECTION_IRKIT.equals(action)) {
-                if (WiFiUtil.isOnWiFi(this)) {
+            if (ACTION_RESTART_DETECTION_IRKIT.equals(action)) {
+                if (WiFiUtil.isOnWiFi(IRKitDeviceService.this)) {
                     restartDetection();
                 } else {
                     stopDetection();
                 }
-                return START_STICKY;
             } else if (ACTION_VIRTUAL_DEVICE_ADDED.equals(action)) {
                 String id = intent.getStringExtra(EXTRA_VIRTUAL_DEVICE_ID);
                 if (id != null) {
@@ -123,7 +102,6 @@ public class IRKitDeviceService extends DConnectMessageService implements Detect
                         }
                     }
                 }
-                return START_STICKY;
             } else if (ACTION_VIRTUAL_DEVICE_REMOVED.equals(action)) {
                 String id = intent.getStringExtra(EXTRA_VIRTUAL_DEVICE_ID);
                 if (id != null) {
@@ -131,6 +109,48 @@ public class IRKitDeviceService extends DConnectMessageService implements Detect
                     if (service != null) {
                         getServiceProvider().removeService(service);
                     }
+                }
+            }
+        }
+    };
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        EventManager.INSTANCE.setController(new MemoryCacheController());
+
+        mDBHelper = new IRKitDBHelper(getContext());
+        for (VirtualDeviceData device : mDBHelper.getVirtualDevices(null)) {
+            getServiceProvider().addService(new VirtualService(device, mDBHelper,
+                getServiceProvider()));
+        }
+
+        IRKitApplication app = (IRKitApplication) getApplication();
+        app.setIRKitDevices(mDevices);
+        IRKitManager.INSTANCE.init(this);
+        IRKitManager.INSTANCE.setDetectionListener(this);
+        if (WiFiUtil.isOnWiFi(this)) {
+            startDetection();
+        }
+
+        mCurrentSSID = WiFiUtil.getCurrentSSID(this);
+
+        IntentFilter localFilter = new IntentFilter();
+        localFilter.addAction(ACTION_RESTART_DETECTION_IRKIT);
+        localFilter.addAction(ACTION_VIRTUAL_DEVICE_ADDED);
+        localFilter.addAction(ACTION_VIRTUAL_DEVICE_REMOVED);
+        LocalBroadcastManager.getInstance(this).registerReceiver(mLocalBroadcastReceiver, localFilter);
+    }
+
+    @Override
+    public int onStartCommand(final Intent intent, final int flags, final int startId) {
+        if (intent != null) {
+            String action = intent.getAction();
+            if (WifiManager.NETWORK_STATE_CHANGED_ACTION.equals(action)) {
+                if (!WiFiUtil.isOnWiFi(this) && IRKitManager.INSTANCE.isDetecting()) {
+                    stopDetection();
+                } else if (WiFiUtil.isOnWiFi(this) && WiFiUtil.isChangedSSID(this, mCurrentSSID)) {
+                    restartDetection();
                 }
                 return START_STICKY;
             }

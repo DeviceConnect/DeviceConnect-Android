@@ -56,6 +56,16 @@ public class AWSIotLoginFragment extends Fragment {
     private AWSIotPrefUtil mPrefUtil;
     /** AWSIotController instance. */
     private AWSIotController mAWSIotController;
+    /** AWS IoT Regions list. */
+    private final Regions[] regionsList = {
+            Regions.US_EAST_1,
+            Regions.US_WEST_2,
+            Regions.AP_SOUTHEAST_1,
+            Regions.AP_SOUTHEAST_2,
+            Regions.AP_NORTHEAST_1,
+            Regions.EU_CENTRAL_1,
+            Regions.EU_WEST_1
+    };
 
 
     @Override
@@ -102,9 +112,8 @@ public class AWSIotLoginFragment extends Fragment {
         mRegion.setAdapter(adapter);
         Regions regions = mPrefUtil.getRegions();
         if (regions != null) {
-            String region = regions.getName();
-            for (int i = 0; i < regionList.length; i++) {
-                if (regionList[i].matches(region)) {
+            for (int i = 0; i < regionsList.length; i++) {
+                if (regionsList[i] == regions) {
                     mRegion.setSelection(i);
                 }
             }
@@ -127,22 +136,22 @@ public class AWSIotLoginFragment extends Fragment {
                     return;
                 }
 
-                String selectRegion = (String) mRegion.getSelectedItem();
-                Regions regions = Regions.fromName(selectRegion);
+                Regions region = regionsList[(int)mRegion.getSelectedItemId()];
 
                 mPrefUtil.setAccessKey(accessKey);
                 mPrefUtil.setSecretKey(secretKey);
-                mPrefUtil.setRegions(regions);
+                mPrefUtil.setRegions(region);
 
-                Log.d("ABC", "accessKey    : " + accessKey);
-                Log.d("ABC", "secretKey    : " + secretKey);
-                Log.d("ABC", "selsectRegion: " + selectRegion);
-                Log.d("ABC", "region       : " + regions);
+                Log.d("ABC", "accessKey   : " + accessKey);
+                Log.d("ABC", "secretKey   : " + secretKey);
+                Log.d("ABC", "Index       : " + mRegion.getSelectedItemId());
+                Log.d("ABC", "IndexRegion : " + regionsList[(int)mRegion.getSelectedItemId()].toString());
+                Log.d("ABC", "region      : " + region);
 
                 DuringLoginDialogFragment dialog = new DuringLoginDialogFragment();
                 dialog.show(getFragmentManager(),"DuringDialog");
 
-                mAWSIotController.connect(accessKey, secretKey, regions, new AWSIotController.ConnectCallback() {
+                mAWSIotController.connect(accessKey, secretKey, region, new AWSIotController.ConnectCallback() {
                     @Override
                     public void onConnected(final Exception err) {
                         DuringLoginDialogFragment dialog = (DuringLoginDialogFragment) getFragmentManager().findFragmentByTag("DuringDialog");

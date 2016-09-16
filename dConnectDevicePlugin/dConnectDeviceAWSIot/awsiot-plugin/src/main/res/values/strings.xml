@@ -28,12 +28,12 @@
     <string name="default_manager_name">ManagerName</string>
     <string name="setting_help">AWS IoT Device Plug-in help page.</string>
     <string-array name="region_array">
-        <item>us-east-1</item>
-        <item>us-west-2</item>
-        <item>ap-southeast-1</item>
-        <item>ap-southeast-2</item>
-        <item>ap-northeast-1</item>
-        <item>eu-central-1</item>
-        <item>eu-west-1</item>
+        <item>米国東部（バージニア北部）</item>
+        <item>米国西部（オレゴン）</item>
+        <item>アジアパシフィック（シンガポール）</item>
+        <item>アジアパシフィック（シドニー）</item>
+        <item>アジアパシフィック（東京）</item>
+        <item>欧州（フランクフルト）</item>
+        <item>欧州（アイルランド）</item>
     </string-array>
 </resources>

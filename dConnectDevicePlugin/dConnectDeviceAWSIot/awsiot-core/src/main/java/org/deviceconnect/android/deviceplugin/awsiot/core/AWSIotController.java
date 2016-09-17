@@ -373,11 +373,6 @@ public class AWSIotController {
 
         String clientId = UUID.randomUUID().toString();
         mMqttManager = new AWSIotMqttManager(clientId, mAWSIotEndPoint);
-        mMqttManager.setKeepAlive(120);
-        mMqttManager.setConnectionStabilityTime(180);
-        mMqttManager.setReconnectRetryLimits(1, 5);
-        mMqttManager.setMaxAutoReconnectAttepts(-1);
-        mMqttManager.setAutoReconnect(true);
 
         try {
             mMqttManager.connect(mCredentialsProvider, new AWSIotMqttClientStatusCallback() {
@@ -412,6 +407,10 @@ public class AWSIotController {
     }
 
     public void disconnectMQTT() {
+        if (DEBUG) {
+            Log.i(TAG, "AWSIotController#disconnectMQTT");
+        }
+
         if (mMqttManager != null) {
             mMqttManager.disconnect();
             mMqttManager = null;

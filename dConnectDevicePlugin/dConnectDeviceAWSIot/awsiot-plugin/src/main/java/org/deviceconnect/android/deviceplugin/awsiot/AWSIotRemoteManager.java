@@ -15,7 +15,10 @@ import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.DConnectProfile;
+import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
+import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -25,6 +28,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 public class AWSIotRemoteManager {
 
@@ -37,8 +43,8 @@ public class AWSIotRemoteManager {
     private AWSIotWebServerManager mAWSIotWebServerManager;
     private AWSIotWebClientManager mAWSIotWebClientManager;
     private AWSIotDeviceManager mAWSIotDeviceManager;
-    private Map<Integer, Intent> mResponseMap = new HashMap<>();
-    private Map<Integer, Boolean> mExchangeMap = new HashMap<>();
+    private AWSIotRequestManager mRequestManager;
+
     private ExecutorService mExecutorService = Executors.newSingleThreadExecutor();
 
     private OnEventListener mOnEventListener;
@@ -63,8 +69,13 @@ public class AWSIotRemoteManager {
         if (mAWSIotWebServerManager == null) {
             mAWSIotWebServerManager = new AWSIotWebServerManager(mContext, this);
         }
+
         if (mAWSIotWebClientManager == null) {
             mAWSIotWebClientManager = new AWSIotWebClientManager(mContext, this);
+        }
+
+        if (mRequestManager == null) {
+            mRequestManager = new AWSIotRequestManager();
         }
 
         if (mIot.isConnected()) {
@@ -101,6 +112,11 @@ public class AWSIotRemoteManager {
         if (mIot != null) {
             unsubscribeTopic();
         }
+
+        if (mRequestManager != null) {
+            mRequestManager.destroy();
+            mRequestManager = null;
+        }
     }
 
     public boolean sendRequest(final Intent request, final Intent response) {
@@ -116,7 +132,7 @@ public class AWSIotRemoteManager {
         }
 
         if (DEBUG) {
-            Log.i(TAG, "@@@@@@@@@ AWSIotRemoteManager#sendRequest");
+            Log.i(TAG, "@@@@@@@@@ AWSIotRemoteManager#sendRequest: " + DConnectProfile.getProfile(request));
         }
 
         String action = request.getAction();
@@ -145,9 +161,46 @@ public class AWSIotRemoteManager {
 
         int requestCode = AWSIotUtil.generateRequestCode();
         publish(remote, AWSIotUtil.createRequest(requestCode, message));
-        mResponseMap.put(requestCode, response);
-        boolean exchange = request.getStringExtra("profile").matches("servicediscovery");
-        mExchangeMap.put(requestCode, exchange);
+
+        AWSIotRequest aws = new AWSIotRequest() {
+            @Override
+            public void onReceivedMessage(final RemoteDeviceConnectManager remote, final JSONObject responseObj) throws JSONException {
+                if (!mRequestManager.pop(mRequestCode)) {
+                    return;
+                }
+
+                if (responseObj == null) {
+                    MessageUtils.setUnknownError(mResponse);
+                } else {
+                    Bundle b = new Bundle();
+                    AWSIotRemoteUtil.jsonToIntent(responseObj, b, new AWSIotRemoteUtil.ConversionJsonCallback() {
+                        @Override
+                        public String convertServiceId(final String id) {
+                            return id;
+                        }
+
+                        @Override
+                        public String convertName(final String name) {
+                            return name;
+                        }
+
+                        @Override
+                        public String convertUri(final String uri) {
+                            Uri u = Uri.parse(uri);
+                            return createWebServer(remote, u.getAuthority(), u.getPath() + "?" + u.getEncodedQuery());
+                        }
+                    });
+                    mResponse.putExtras(b);
+                }
+                sendResponse(mResponse);
+            }
+        };
+        aws.mRequest = request;
+        aws.mResponse = response;
+        aws.mRequestCode = requestCode;
+        aws.mRequestCount = 1;
+        mRequestManager.put(requestCode, aws);
+
         return false;
     }
 
@@ -168,13 +221,73 @@ public class AWSIotRemoteManager {
 
         String message = AWSIotRemoteUtil.intentToJson(request, null);
 
-        // TODO 複数に送った場合には、まーじする必要が有る
+        int count = 0;
         int requestCode = AWSIotUtil.generateRequestCode();
         for (RemoteDeviceConnectManager remote : mManagerList) {
-            publish(remote, AWSIotUtil.createRequest(requestCode, message));
+            if (remote.isSubscribe() && remote.isOnline()) {
+                publish(remote, AWSIotUtil.createRequest(requestCode, message));
+                count++;
+            }
         }
-        mResponseMap.put(requestCode, response);
-        mExchangeMap.put(requestCode, true);
+
+        if (count == 0) {
+            MessageUtils.setUnknownError(response);
+            return true;
+        }
+
+        AWSIotRequest aws = new AWSIotRequest() {
+            @Override
+            public void onReceivedMessage(final RemoteDeviceConnectManager remote, final JSONObject responseObj) throws JSONException {
+                if (responseObj != null && responseObj.has(ServiceDiscoveryProfile.PARAM_SERVICES)) {
+                    JSONArray array = responseObj.getJSONArray("services");
+                    for (int i = 0; i < array.length(); i++) {
+                        Bundle service = new Bundle();
+                        JSONObject obj = array.getJSONObject(i);
+                        AWSIotRemoteUtil.jsonToIntent(obj, service, new AWSIotRemoteUtil.ConversionJsonCallback() {
+                            @Override
+                            public String convertServiceId(final String id) {
+                                return mAWSIotDeviceManager.generateServiceId(remote, id);
+                            }
+
+                            @Override
+                            public String convertName(final String name) {
+                                return remote.getName() + " " + name;
+                            }
+
+                            @Override
+                            public String convertUri(final String uri) {
+                                Uri u = Uri.parse(uri);
+                                return createWebServer(remote, u.getAuthority(), u.getPath() + "?" + u.getEncodedQuery());
+                            }
+                        });
+                        mServices.add(service);
+                    }
+                }
+
+                if (!mRequestManager.pop(mRequestCode)) {
+                    return;
+                }
+
+                send();
+            }
+
+            @Override
+            public void onTimeout() {
+                send();
+            }
+
+            private void send() {
+                DConnectProfile.setResult(mResponse, DConnectMessage.RESULT_OK);
+                ServiceDiscoveryProfile.setServices(mResponse, mServices);
+                sendResponse(mResponse);
+            }
+        };
+        aws.mRequest = request;
+        aws.mResponse = response;
+        aws.mRequestCode = requestCode;
+        aws.mRequestCount = count;
+        mRequestManager.put(requestCode, aws, 6);
+
         return false;
     }
 
@@ -189,8 +302,10 @@ public class AWSIotRemoteManager {
     private void subscribeTopic() {
         if (mManagerList != null) {
             for (RemoteDeviceConnectManager remote : mManagerList) {
-                mIot.subscribe(remote.getResponseTopic(), mMessageCallback);
-                mIot.subscribe(remote.getEventTopic(), mMessageCallback);
+                if (remote.isSubscribe() && remote.isOnline()) {
+                    mIot.subscribe(remote.getResponseTopic(), mMessageCallback);
+                    mIot.subscribe(remote.getEventTopic(), mMessageCallback);
+                }
             }
         }
     }
@@ -260,36 +375,11 @@ public class AWSIotRemoteManager {
     private void onReceivedDeviceConnectResponse(final RemoteDeviceConnectManager remote, final String message) {
         try {
             JSONObject jsonObject = new JSONObject(message);
-            Integer requestCode = jsonObject.getInt("requestCode");
-            Intent response = mResponseMap.get(requestCode);
-            boolean exchange = mExchangeMap.get(requestCode);
-            if (response != null) {
-                JSONObject responseObj = jsonObject.optJSONObject("response");
-                if (responseObj == null) {
-                    MessageUtils.setUnknownError(response);
-                } else {
-                    Bundle b = new Bundle();
-                    AWSIotRemoteUtil.jsonToIntent(exchange, responseObj, b, new AWSIotRemoteUtil.ConversionJsonCallback() {
-                        @Override
-                        public String convertServiceId(final String id) {
-                            return mAWSIotDeviceManager.generateServiceId(remote, id);
-                        }
-
-                        @Override
-                        public String convertName(final String name) {
-                            return remote.getName() + " " + name;
-                        }
-
-                        @Override
-                        public String convertUri(final String uri) {
-                            Uri u = Uri.parse(uri);
-                            return createWebServer(remote, u.getAuthority(), u.getPath() + "?" + u.getEncodedQuery());
-                        }
-                    });
-                    response.putExtras(b);
-                }
-                sendResponse(response);
+            AWSIotRequest request = mRequestManager.get(jsonObject.getInt("requestCode"));
+            if (request == null) {
+                return;
             }
+            request.onReceivedMessage(remote, jsonObject.optJSONObject("response"));
         } catch (JSONException e) {
             if (DEBUG) {
                 Log.e(TAG, "onReceivedDeviceConnectResponse", e);
@@ -319,7 +409,7 @@ public class AWSIotRemoteManager {
 
                 // TODO json->intent 変換をちゃんと検討すること。
                 Bundle b = new Bundle();
-                AWSIotRemoteUtil.jsonToIntent(true, jsonObject, b, new AWSIotRemoteUtil.ConversionJsonCallback() {
+                AWSIotRemoteUtil.jsonToIntent(jsonObject, b, new AWSIotRemoteUtil.ConversionJsonCallback() {
                     @Override
                     public String convertServiceId(final String id) {
                         return mAWSIotDeviceManager.generateServiceId(remote, id);
@@ -367,6 +457,10 @@ public class AWSIotRemoteManager {
                 return;
             }
 
+            if (DEBUG) {
+                Log.i(TAG, "onReceivedMessage: " + topic + " " + message);
+            }
+
             mExecutorService.submit(new Runnable() {
                 @Override
                 public void run() {
@@ -383,6 +477,81 @@ public class AWSIotRemoteManager {
             });
         }
     };
+
+    private class AWSIotRequestManager {
+        private final Map<Integer, AWSIotRequest> mMap = new HashMap<>();
+        private ScheduledExecutorService mExecutorService = Executors.newScheduledThreadPool(8);
+
+        public void destroy() {
+            mExecutorService.shutdown();
+        }
+
+        public void put(final int requestCode, final AWSIotRequest request, final int timeout, final TimeUnit timeUnit) {
+            mMap.put(requestCode, request);
+            request.mFuture = mExecutorService.schedule(request, timeout, timeUnit);
+        }
+
+        public void put(final int requestCode, final AWSIotRequest request, final int timeout) {
+           put(requestCode, request, timeout, TimeUnit.SECONDS);
+        }
+
+        public void put(final int requestCode, final AWSIotRequest request) {
+            put(requestCode, request, 30, TimeUnit.SECONDS);
+        }
+
+        public AWSIotRequest get(int key) {
+            return mMap.get(key);
+        }
+
+        public void remove(int key) {
+            mMap.remove(key);
+        }
+
+        public boolean pop(int key) {
+            AWSIotRequest request = mMap.get(key);
+            if (request == null) {
+                return false;
+            }
+
+            request.mRequestCount--;
+            if (request.mRequestCount > 0) {
+                return false;
+            }
+            mMap.remove(key);
+            request.cancel();
+            return true;
+        }
+    }
+
+    private class AWSIotRequest implements Runnable {
+        protected int mRequestCode;
+        protected int mRequestCount;
+        protected Intent mRequest;
+        protected Intent mResponse;
+        protected ScheduledFuture mFuture;
+        protected List<Bundle> mServices = new ArrayList<>();
+
+        @Override
+        public void run() {
+            if (DEBUG) {
+                Log.w(TAG, "timeout " + mRequestCode + " " + DConnectProfile.getProfile(mRequest));
+            }
+            mRequestManager.remove(mRequestCode);
+            onTimeout();
+        }
+
+        public void cancel() {
+            mFuture.cancel(true);
+        }
+
+        public void onReceivedMessage(RemoteDeviceConnectManager remote, JSONObject jsonObject) throws JSONException {
+            // do nothing.
+        }
+
+        public void onTimeout() {
+            // do nothing.
+        }
+    }
 
     public interface OnEventListener {
         void onConnected(Exception err);

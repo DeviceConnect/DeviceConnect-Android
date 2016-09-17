@@ -92,6 +92,8 @@ public final class AWSIotUtil {
                     findInfo = new RemoteDeviceConnectManager(name, id);
                     dbHelper.addManager(findInfo);
                 }
+                findInfo.setOnline(online);
+                findInfo.setTimeStamp(timeStamp);
                 managers.add(findInfo);
             }
         } catch (JSONException e) {

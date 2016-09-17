@@ -9,6 +9,8 @@ public class RemoteDeviceConnectManager {
     private String mName;
     private String mServiceId;
     private boolean mSubscribeFlag;
+    private boolean mOnline;
+    private double mTimeStamp;
 
     public RemoteDeviceConnectManager(final String name, final String id) {
         mName = name;
@@ -34,6 +36,22 @@ public class RemoteDeviceConnectManager {
 
     public void setSubscribeFlag(final boolean flag) {
         mSubscribeFlag = flag;
+    }
+
+    public boolean isOnline() {
+        return mOnline;
+    }
+
+    public void setOnline(boolean online) {
+        mOnline = online;
+    }
+
+    public double getTimeStamp() {
+        return mTimeStamp;
+    }
+
+    public void setTimeStamp(double timeStamp) {
+        mTimeStamp = timeStamp;
     }
 
     public String getRequestTopic() {

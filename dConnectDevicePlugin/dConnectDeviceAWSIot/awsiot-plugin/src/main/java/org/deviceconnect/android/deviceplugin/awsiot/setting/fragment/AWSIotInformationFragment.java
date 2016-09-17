@@ -20,6 +20,7 @@ import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.Switch;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.deviceconnect.android.deviceplugin.awsiot.core.AWSIotController;
 import org.deviceconnect.android.deviceplugin.awsiot.core.AWSIotPrefUtil;
@@ -70,7 +71,7 @@ public class AWSIotInformationFragment extends Fragment {
         });
 
         EditText et = (EditText) rootView.findViewById(R.id.input_sync_time);
-        et.setText(String.valueOf(10));
+        et.setText(String.valueOf(mPrefUtil.getSyncTime()));
         et.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -82,6 +83,17 @@ public class AWSIotInformationFragment extends Fragment {
 
             @Override
             public void afterTextChanged(Editable s) {
+                String input = s.toString();
+                if (input.length() != 0) {
+                    try {
+                        long syncTime = Long.valueOf(input);
+                        if (syncTime >= 0) {
+                            mPrefUtil.setSyncTime(syncTime);
+                        }
+                    } catch (NumberFormatException e) {
+                        Toast.makeText(getContext(), "正しい数値を入力して下さい。", Toast.LENGTH_LONG).show();
+                    }
+                }
             }
         });
 

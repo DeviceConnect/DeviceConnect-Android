@@ -2,9 +2,11 @@ package org.deviceconnect.android.deviceplugin.awsiot.local;
 
 import android.content.Context;
 import android.net.Uri;
+import android.os.Handler;
 import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.awsiot.core.AWSIotController;
+import org.deviceconnect.android.deviceplugin.awsiot.core.AWSIotPrefUtil;
 import org.deviceconnect.android.deviceplugin.awsiot.core.RemoteDeviceConnectManager;
 import org.deviceconnect.android.deviceplugin.awsiot.util.AWSIotUtil;
 import org.json.JSONException;
@@ -31,10 +33,18 @@ public class AWSIotLocalManager {
 
     private AWSIotController mIot;
 
+    private AWSIotPrefUtil mPrefUtil;
+    private long mSyncTime = 0;
+    Handler mTimerHandler = new Handler();
+    private String mSendData;
+    private boolean mIsSendWait = false;
+    private boolean mIsTimerEnable = false;
+
     public AWSIotLocalManager(final Context context, final AWSIotController controller, final RemoteDeviceConnectManager remote) {
         mContext = context;
         mIot = controller;
         mRemoteManager = remote;
+        mPrefUtil = new AWSIotPrefUtil(mContext);
     }
 
     public AWSIotController getAWSIotController() {
@@ -90,7 +100,30 @@ public class AWSIotLocalManager {
     }
 
     public void publishEvent(final String message) {
-        mIot.publish(mRemoteManager.getEventTopic(), message);
+        mSyncTime = (mPrefUtil.getSyncTime()) * 1000;
+        if (mSyncTime <= 0) {
+            mIot.publish(mRemoteManager.getEventTopic(), message);
+        } else {
+            mSendData = message;
+            mIsSendWait = true;
+            if (!mIsTimerEnable) {
+                mIsTimerEnable = true;
+                mIot.publish(mRemoteManager.getEventTopic(), mSendData);
+                mIsSendWait = false;
+                mTimerHandler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (mIsSendWait) {
+                            mIot.publish(mRemoteManager.getEventTopic(), mSendData);
+                            mIsSendWait = false;
+                            mTimerHandler.postDelayed(this, mSyncTime);
+                        } else {
+                            mIsTimerEnable = false;
+                        }
+                    }
+                }, mSyncTime);
+            }
+        }
     }
 
     private void subscribeTopic() {

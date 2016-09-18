@@ -7,6 +7,8 @@ import android.os.Bundle;
 import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.awsiot.core.AWSIotController;
+import org.deviceconnect.android.deviceplugin.awsiot.core.AWSIotDeviceApplication;
+import org.deviceconnect.android.deviceplugin.awsiot.core.RDCMListManager;
 import org.deviceconnect.android.deviceplugin.awsiot.core.RemoteDeviceConnectManager;
 import org.deviceconnect.android.deviceplugin.awsiot.p2p.WebClient;
 import org.deviceconnect.android.deviceplugin.awsiot.util.AWSIotUtil;
@@ -51,10 +53,15 @@ public class AWSIotRemoteManager {
 
     private AWSIotController mIot;
 
+    private RDCMListManager mRDCMListManager;
+
     public AWSIotRemoteManager(final Context context, final AWSIotController controller) {
         mContext = context;
         mIot = controller;
         mAWSIotDeviceManager = new AWSIotDeviceManager();
+        AWSIotDeviceApplication app = (AWSIotDeviceApplication) mContext.getApplicationContext();
+        mRDCMListManager = app.getRDCMListManager();
+        mRDCMListManager.setOnEventListener(mUpdateListener);
     }
 
     public AWSIotController getAWSIotController() {
@@ -85,7 +92,8 @@ public class AWSIotRemoteManager {
                     mIot.getShadow(AWSIotUtil.KEY_DCONNECT_SHADOW_NAME, new AWSIotController.GetShadowCallback() {
                         @Override
                         public void onReceivedShadow(final String thingName, final String result, final Exception err) {
-                            mManagerList = AWSIotUtil.parseDeviceShadow(mContext, result);
+                            mRDCMListManager.setRDCMList(AWSIotUtil.parseDeviceShadow(mContext, result));
+                            mManagerList = mRDCMListManager.getRDCMList();
                             subscribeTopic();
                         }
                     });
@@ -436,6 +444,19 @@ public class AWSIotRemoteManager {
             }
         }
     }
+
+    private RDCMListManager.OnEventListener mUpdateListener = new RDCMListManager.OnEventListener() {
+        @Override
+        public void onRDCMListUpdateSubscribe(RemoteDeviceConnectManager manager) {
+            if (manager.isSubscribe() && manager.isOnline()) {
+                mIot.subscribe(manager.getResponseTopic(), mMessageCallback);
+                mIot.subscribe(manager.getEventTopic(), mMessageCallback);
+            } else {
+                mIot.unsubscribe(manager.getResponseTopic());
+                mIot.unsubscribe(manager.getEventTopic());
+            }
+        }
+    };
 
     private final AWSIotController.MessageCallback mMessageCallback = new AWSIotController.MessageCallback() {
         @Override

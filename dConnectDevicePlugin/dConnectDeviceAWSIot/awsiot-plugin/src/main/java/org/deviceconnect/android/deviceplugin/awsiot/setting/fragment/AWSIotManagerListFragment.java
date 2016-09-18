@@ -33,6 +33,7 @@ import android.widget.Switch;
 import org.deviceconnect.android.deviceplugin.awsiot.core.AWSIotController;
 import org.deviceconnect.android.deviceplugin.awsiot.core.AWSIotDeviceApplication;
 import org.deviceconnect.android.deviceplugin.awsiot.core.AWSIotPrefUtil;
+import org.deviceconnect.android.deviceplugin.awsiot.core.RDCMListManager;
 import org.deviceconnect.android.deviceplugin.awsiot.core.RemoteDeviceConnectManager;
 import org.deviceconnect.android.deviceplugin.awsiot.local.DConnectHelper;
 import org.deviceconnect.android.deviceplugin.awsiot.remote.R;
@@ -58,15 +59,17 @@ public class AWSIotManagerListFragment extends Fragment {
     /** Adapter. */
     private ManagerAdapter mManagerAdapter;
 
-    /** Instance of {@link AWSIotDeviceApplication}. */
-    private AWSIotDeviceApplication mApp;
+    /** Instance of {@link RDCMListManager}. */
+    private RDCMListManager mRDCMListManager;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         setHasOptionsMenu(true);
 
-        mApp = (AWSIotDeviceApplication) getContext().getApplicationContext();
+        /* Instance of {@link AWSIotDeviceApplication}. */
+        AWSIotDeviceApplication app = (AWSIotDeviceApplication) getContext().getApplicationContext();
+        mRDCMListManager = app.getRDCMListManager();
 
         ManagerListUpdateDialogFragment dialog = new ManagerListUpdateDialogFragment();
         dialog.show(getFragmentManager(),"AvailabilityDialog");
@@ -149,9 +152,9 @@ public class AWSIotManagerListFragment extends Fragment {
         getAWSIotController().getShadow(AWSIotUtil.KEY_DCONNECT_SHADOW_NAME, new AWSIotController.GetShadowCallback() {
             @Override
             public void onReceivedShadow(final String thingName, final String result, final Exception err) {
-                mApp.setManagerList(AWSIotUtil.parseDeviceShadow(getActivity(), result));
+                mRDCMListManager.setRDCMList(AWSIotUtil.parseDeviceShadow(getActivity(), result));
                 mManagerAdapter.clear();
-                mManagerAdapter.addAll(mApp.getManagerList());
+                mManagerAdapter.addAll(mRDCMListManager.getRDCMList());
                 mManagerAdapter.notifyDataSetInvalidated();
                 ManagerListUpdateDialogFragment dialog = (ManagerListUpdateDialogFragment) getFragmentManager().findFragmentByTag("ManagerListDialog");
                 if (dialog != null) {
@@ -191,14 +194,14 @@ public class AWSIotManagerListFragment extends Fragment {
                 public void onClick(final View v) {
                     if (manager.isSubscribe()) {
                         // DB変更処理(flag = false)
-                        mApp.updateSubscribeFlag(manager.getServiceId(), false);
+                        mRDCMListManager.updateSubscribe(manager.getServiceId(), false);
                         manager.setSubscribeFlag(false);
                         // ボタン変更
                         Switch sw = (Switch) v.findViewById(R.id.manager_switch_onoff);
                         sw.setChecked(false);
                     } else {
                         // DB変更処理(flag = true)
-                        mApp.updateSubscribeFlag(manager.getServiceId(), true);
+                        mRDCMListManager.updateSubscribe(manager.getServiceId(), true);
                         manager.setSubscribeFlag(true);
                         // ボタン変更
                         Switch sw = (Switch) v.findViewById(R.id.manager_switch_onoff);

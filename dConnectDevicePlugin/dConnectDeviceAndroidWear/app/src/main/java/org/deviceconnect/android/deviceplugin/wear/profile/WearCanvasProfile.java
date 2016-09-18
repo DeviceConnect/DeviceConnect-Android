@@ -269,7 +269,7 @@ public class WearCanvasProfile extends CanvasProfile {
         }
 
         public DrawImageResponse await() throws InterruptedException, ResponseTimeoutException {
-            mLock.await(10, TimeUnit.SECONDS);
+            mLock.await(30, TimeUnit.SECONDS);
             if (!hasResponse()) {
                 throw new ResponseTimeoutException();
             }
@@ -282,7 +282,7 @@ public class WearCanvasProfile extends CanvasProfile {
         }
 
         public boolean hasResponse() {
-            return WearConst.RESULT_SUCCESS.equals(mResponse);
+            return mResponse != null;
         }
 
         public String getNodeId() {

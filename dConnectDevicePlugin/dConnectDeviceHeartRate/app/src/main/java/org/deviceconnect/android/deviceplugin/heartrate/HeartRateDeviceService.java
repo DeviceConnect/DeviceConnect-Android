@@ -7,6 +7,7 @@
 package org.deviceconnect.android.deviceplugin.heartrate;
 
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -27,6 +28,7 @@ import org.deviceconnect.android.service.DConnectService;
 import org.deviceconnect.android.service.DConnectServiceListener;
 import org.deviceconnect.android.service.DConnectServiceProvider;
 
+import java.util.List;
 import java.util.logging.Logger;
 
 /**
@@ -86,13 +88,13 @@ public class HeartRateDeviceService extends DConnectMessageService
                 // NOP.
             }
 
-            @Override
-            public void onDisconnected(final BluetoothDevice device) {
-                DConnectService service = getServiceProvider().getService(device.getAddress());
-                if (service != null) {
-                    service.setOnline(false);
-                }
-            }
+//            @Override
+//            public void onDisconnected(final BluetoothDevice device) {
+//                DConnectService service = getServiceProvider().getService(device.getAddress());
+//                if (service != null) {
+//                    service.setOnline(false);
+//                }
+//            }
         };
 
     /**
@@ -116,7 +118,7 @@ public class HeartRateDeviceService extends DConnectMessageService
         HeartRateApplication app = (HeartRateApplication) getApplication();
         app.initialize();
 
-        getManager().addOnHeartRateDiscoveryListener(mOnDiscoveryListener);
+        getManager().setOnHeartRateDiscoveryListener(mOnDiscoveryListener);
 
         addProfile(new HeartRateServiceDiscoveryProfile(getServiceProvider()));
         mHeartRateProfile = new HeartRateHealthProfile(app.getHeartRateManager());
@@ -131,7 +133,7 @@ public class HeartRateDeviceService extends DConnectMessageService
         super.onDestroy();
         unregisterBluetoothFilter();
         getServiceProvider().removeServiceListener(this);
-        getManager().removeOnHeartRateDiscoveryListener(mOnDiscoveryListener);
+        getManager().setOnHeartRateDiscoveryListener(null);
         getManager().stop();
         mLogger.fine("HeartRateDeviceService end.");
     }

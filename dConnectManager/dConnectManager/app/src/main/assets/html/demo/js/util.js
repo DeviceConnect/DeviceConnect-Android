@@ -87,6 +87,7 @@ var util = (function(parent, global) {
                         return;
                     }
                 }
+                alert('指定されたサービスが見つかりません。\n serviceId=' + serviceId);
             });
         });
     }
@@ -133,8 +134,11 @@ var util = (function(parent, global) {
 
     function openWebSocketIfNeeded() {
         if (!dConnect.isConnectedWebSocket()) {
-            dConnect.connectWebSocket(mSessionKey, function(errorCode, errorMessage) {
-                console.log('Failed to open websocket: ' + errorCode + ' - ' + errorMessage);
+            dConnect.connectWebSocket(mSessionKey, function(code, message) {
+                if (code > 0) {
+                    alert('WebSocketが切れました。\n code=' + code + " message=" + message);
+                }
+                console.log('websocket: ' + code + ' - ' + message);
             });
             console.log('WebSocket opened.');
         } else {

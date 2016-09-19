@@ -11,7 +11,7 @@ public class AWSIotPrefUtil extends PreferenceUtil {
     public static final String KEY_SECRET_KEY = "awsSecretKey";
     public static final String KEY_REGIONS = "awsRegions";
 
-    public static final String KEY_MANAGER_CONNECT_FLAG = "awsManagerConnectFlag";
+    public static final String KEY_AWS_LOGIN_FLAG = "awsLoginFlag";
 
     public static final String KEY_MANAGER_NAME = "awsManagerName";
     public static final String KEY_MANAGER_UUID = "awsManagerUuid";
@@ -91,11 +91,11 @@ public class AWSIotPrefUtil extends PreferenceUtil {
         putValue(KEY_SYNC_TIME_SET, true);
     }
 
-    public boolean isManagetConnectFlag() {
-        return getBoolean(KEY_MANAGER_CONNECT_FLAG);
+    public boolean isAWSLoginFlag() {
+        return getBoolean(KEY_AWS_LOGIN_FLAG);
     }
 
-    public void setManagerConnectFlag(final boolean flag) {
-        putValue(KEY_MANAGER_CONNECT_FLAG, flag);
+    public void setAWSLoginFlag(final boolean flag) {
+        putValue(KEY_AWS_LOGIN_FLAG, flag);
     }
 }

@@ -129,10 +129,9 @@ public class AWSIotManagerListFragment extends Fragment {
                 transaction.commit();
                 break;
             case R.id.menu_logout:
+                logoutAWSIot();
+
                 // ログイン画面へ遷移
-
-                getAWSIotController().disconnect();
-
                 AWSIotLoginFragment loginFragment = new AWSIotLoginFragment();
                 transaction.replace(R.id.container, loginFragment);
                 transaction.commit();
@@ -142,6 +141,12 @@ public class AWSIotManagerListFragment extends Fragment {
                 break;
         }
         return ret;
+    }
+
+    private void logoutAWSIot() {
+        AWSIotPrefUtil pref = new AWSIotPrefUtil(getActivity());
+        pref.setAWSLoginFlag(false);
+        getAWSIotController().disconnect();
     }
 
     private void getManagerList() {

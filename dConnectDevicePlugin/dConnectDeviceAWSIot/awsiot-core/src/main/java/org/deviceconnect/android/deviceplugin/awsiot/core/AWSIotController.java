@@ -95,6 +95,15 @@ public class AWSIotController {
      * @param region    リージョン
      */
     public void connect(final String accessKey, final String secretKey, final Regions region, final ConnectCallback callback) {
+
+        if (accessKey == null || secretKey == null || region == null) {
+            if (callback != null) {
+                callback.onConnected(new RuntimeException("Arguments is null."));
+            }
+            return;
+        }
+
+
         BasicAWSCredentials credentials = new BasicAWSCredentials(accessKey, secretKey);
         mCredentialsProvider = new StaticCredentialsProvider(credentials);
 

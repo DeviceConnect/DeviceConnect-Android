@@ -8,6 +8,8 @@ package org.deviceconnect.android.deviceplugin.awsiot.core;
 
 import android.app.Application;
 
+import com.amazonaws.regions.Regions;
+
 /**
  * AWS IoT Device Plugin Application.
  *
@@ -27,6 +29,22 @@ public class AWSIotDeviceApplication extends Application {
 
         mRDCMListManager = new RDCMListManager(getApplicationContext(), mIot);
         mRDCMListManager.startUpdateManagerListTimer();
+
+        // ログインフラグがtrueの場合には自動接続を行う
+        AWSIotPrefUtil pref = new AWSIotPrefUtil(this);
+        if (pref.isAWSLoginFlag()) {
+            String accessKey = pref.getAccessKey();
+            String secretKey = pref.getSecretKey();
+            Regions region = pref.getRegions();
+            mIot.connect(accessKey, secretKey, region, new AWSIotController.ConnectCallback() {
+                @Override
+                public void onConnected(final Exception err) {
+                    if (err == null) {
+                        mRDCMListManager.updateManagerList(null);
+                    }
+                }
+            });
+        }
     }
 
     @Override

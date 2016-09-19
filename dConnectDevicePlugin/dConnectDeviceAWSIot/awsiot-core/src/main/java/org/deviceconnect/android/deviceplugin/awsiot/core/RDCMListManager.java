@@ -67,7 +67,7 @@ public class RDCMListManager {
                     }
                 });
             }
-        }, 0, 5 * 60, TimeUnit.MINUTES);
+        }, 5 * 60, 5 * 60, TimeUnit.MINUTES);
     }
 
     /**

@@ -17,6 +17,9 @@ import com.amazonaws.regions.Regions;
  */
 public class AWSIotDeviceApplication extends Application {
 
+    /** Singleton Instance. */
+    private static AWSIotDeviceApplication sInstance;
+
     /** AWSIotコントローラー */
     private final AWSIotController mIot = new AWSIotController();
 
@@ -26,6 +29,7 @@ public class AWSIotDeviceApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+        sInstance = this;
 
         mRDCMListManager = new RDCMListManager(getApplicationContext(), mIot);
         mRDCMListManager.startUpdateManagerListTimer();
@@ -61,5 +65,9 @@ public class AWSIotDeviceApplication extends Application {
 
     public RDCMListManager getRDCMListManager() {
         return mRDCMListManager;
+    }
+
+    public static synchronized AWSIotDeviceApplication getInstance() {
+        return sInstance;
     }
 }

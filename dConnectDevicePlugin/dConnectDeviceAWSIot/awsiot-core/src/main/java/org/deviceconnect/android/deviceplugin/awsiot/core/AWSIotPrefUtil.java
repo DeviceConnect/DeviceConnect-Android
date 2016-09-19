@@ -20,6 +20,9 @@ public class AWSIotPrefUtil extends PreferenceUtil {
     public static final String KEY_SYNC_TIME_SET = "awsSyncTimeSet";
     public static final long DEFAULT_SYNC_TIME = 10;
 
+    public static final String KEY_AUTH_ACCESS_TOKEN = "awsAuthAccessToken";
+    public static final String KEY_AUTH_CLIENT_ID = "awsAuthClientId";
+
     public AWSIotPrefUtil(final Context context) {
         super(context);
     }
@@ -97,5 +100,21 @@ public class AWSIotPrefUtil extends PreferenceUtil {
 
     public void setAWSLoginFlag(final boolean flag) {
         putValue(KEY_AWS_LOGIN_FLAG, flag);
+    }
+
+    public String getAuthAccessToken() {
+        return getString(KEY_AUTH_ACCESS_TOKEN);
+    }
+
+    public void setAuthAccessToken(final String accessToken) {
+        putValue(KEY_AUTH_ACCESS_TOKEN, accessToken);
+    }
+
+    public String getAuthClientId() {
+        return getString(KEY_AUTH_CLIENT_ID);
+    }
+
+    public void setAuthClientId(final String clientId) {
+        putValue(KEY_AUTH_CLIENT_ID, clientId);
     }
 }

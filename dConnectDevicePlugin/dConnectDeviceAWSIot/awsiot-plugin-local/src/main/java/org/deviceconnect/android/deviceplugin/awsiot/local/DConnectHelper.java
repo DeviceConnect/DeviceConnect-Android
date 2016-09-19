@@ -10,6 +10,8 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.util.Log;
 
+import org.deviceconnect.android.deviceplugin.awsiot.core.AWSIotDeviceApplication;
+import org.deviceconnect.android.deviceplugin.awsiot.core.AWSIotPrefUtil;
 import org.deviceconnect.android.deviceplugin.awsiot.util.AWSIotUtil;
 import org.deviceconnect.android.deviceplugin.awsiot.util.HttpUtil;
 import org.deviceconnect.android.profile.AuthorizationProfile;
@@ -82,8 +84,17 @@ public class DConnectHelper {
         }
     };
 
+    private AWSIotPrefUtil mPrefUtil;
+
     private DConnectHelper() {
-        mDefaultHeader.put(DConnectMessage.HEADER_GOTAPI_ORIGIN, "http://localhost");
+        mDefaultHeader.put(DConnectMessage.HEADER_GOTAPI_ORIGIN, "http://org.deviceconnect.android.deviceplugin.awsiot");
+
+        mPrefUtil = new AWSIotPrefUtil(AWSIotDeviceApplication.getInstance());
+        String accessToken = mPrefUtil.getAuthAccessToken();
+        String clientId = mPrefUtil.getAuthClientId();
+        if (accessToken != null && clientId != null) {
+            mAuthInfo = new AuthInfo(clientId, accessToken);
+        }
     }
 
     public void sendRequest(final String request, final ConversionCallback conversionCallback, final FinishCallback callback) {
@@ -294,6 +305,8 @@ public class DConnectHelper {
                     String accessToken = jsonObject.getString("accessToken");
                     mAuthInfo = new AuthInfo(clientId, accessToken);
                     mBody.put("accessToken", accessToken);
+                    mPrefUtil.setAuthAccessToken(accessToken);
+                    mPrefUtil.setAuthClientId(clientId);
                     return executeRequest();
                 }
             } catch (JSONException e) {

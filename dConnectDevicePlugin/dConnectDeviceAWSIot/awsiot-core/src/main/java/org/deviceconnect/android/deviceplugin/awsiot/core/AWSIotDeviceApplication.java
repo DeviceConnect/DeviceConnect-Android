@@ -24,7 +24,17 @@ public class AWSIotDeviceApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        mRDCMListManager = new RDCMListManager(getApplicationContext());
+
+        mRDCMListManager = new RDCMListManager(getApplicationContext(), mIot);
+        mRDCMListManager.startUpdateManagerListTimer();
+    }
+
+    @Override
+    public void onTerminate() {
+        if (mRDCMListManager != null) {
+            mRDCMListManager.stopUpdateManagerListTimer();
+        }
+        super.onTerminate();
     }
 
     public AWSIotController getAWSIotController() {

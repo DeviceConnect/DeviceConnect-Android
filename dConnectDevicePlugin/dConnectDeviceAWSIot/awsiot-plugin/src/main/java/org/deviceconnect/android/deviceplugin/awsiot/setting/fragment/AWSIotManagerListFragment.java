@@ -38,7 +38,6 @@ import org.deviceconnect.android.deviceplugin.awsiot.core.RemoteDeviceConnectMan
 import org.deviceconnect.android.deviceplugin.awsiot.local.DConnectHelper;
 import org.deviceconnect.android.deviceplugin.awsiot.remote.R;
 import org.deviceconnect.android.deviceplugin.awsiot.setting.AWSIotSettingActivity;
-import org.deviceconnect.android.deviceplugin.awsiot.util.AWSIotUtil;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -149,10 +148,9 @@ public class AWSIotManagerListFragment extends Fragment {
         ManagerListUpdateDialogFragment dialog = new ManagerListUpdateDialogFragment();
         dialog.show(getFragmentManager(),"ManagerListDialog");
 
-        getAWSIotController().getShadow(AWSIotUtil.KEY_DCONNECT_SHADOW_NAME, new AWSIotController.GetShadowCallback() {
+        mRDCMListManager.updateManagerList(new RDCMListManager.UpdateManagerListCallback() {
             @Override
-            public void onReceivedShadow(final String thingName, final String result, final Exception err) {
-                mRDCMListManager.setRDCMList(AWSIotUtil.parseDeviceShadow(getActivity(), result));
+            public void onUpdateManagerList(final List<RemoteDeviceConnectManager> managerList) {
                 mManagerAdapter.clear();
                 mManagerAdapter.addAll(mRDCMListManager.getRDCMList());
                 mManagerAdapter.notifyDataSetInvalidated();

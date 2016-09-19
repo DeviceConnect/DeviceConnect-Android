@@ -39,7 +39,6 @@ public class AWSIotRemoteManager {
     private static final boolean DEBUG = true;
     private static final String TAG = "AWS-Remote";
 
-    private List<RemoteDeviceConnectManager> mManagerList = new ArrayList<>();
     private Context mContext;
 
     private AWSIotWebServerManager mAWSIotWebServerManager;
@@ -89,14 +88,10 @@ public class AWSIotRemoteManager {
             mIot.connectMQTT(new AWSIotController.ConnectCallback() {
                 @Override
                 public void onConnected(final Exception err) {
-                    mIot.getShadow(AWSIotUtil.KEY_DCONNECT_SHADOW_NAME, new AWSIotController.GetShadowCallback() {
-                        @Override
-                        public void onReceivedShadow(final String thingName, final String result, final Exception err) {
-                            mRDCMListManager.setRDCMList(AWSIotUtil.parseDeviceShadow(mContext, result));
-                            mManagerList = mRDCMListManager.getRDCMList();
-                            subscribeTopic();
-                        }
-                    });
+                    if (err != null) {
+                        return;
+                    }
+                    subscribeTopic();
                 }
             });
         }
@@ -227,11 +222,17 @@ public class AWSIotRemoteManager {
             return true;
         }
 
+        List<RemoteDeviceConnectManager> managers = mRDCMListManager.getRDCMList();
+        if (managers == null) {
+            MessageUtils.setUnknownError(response);
+            return true;
+        }
+
         String message = AWSIotRemoteUtil.intentToJson(request, null);
 
         int count = 0;
         int requestCode = AWSIotUtil.generateRequestCode();
-        for (RemoteDeviceConnectManager remote : mManagerList) {
+        for (RemoteDeviceConnectManager remote : managers) {
             if (remote.isSubscribe() && remote.isOnline()) {
                 publish(remote, AWSIotUtil.createRequest(requestCode, message));
                 count++;
@@ -308,8 +309,9 @@ public class AWSIotRemoteManager {
     }
 
     private void subscribeTopic() {
-        if (mManagerList != null) {
-            for (RemoteDeviceConnectManager remote : mManagerList) {
+        List<RemoteDeviceConnectManager> managers = mRDCMListManager.getRDCMList();
+        if (managers != null) {
+            for (RemoteDeviceConnectManager remote : managers) {
                 if (remote.isSubscribe() && remote.isOnline()) {
                     mIot.subscribe(remote.getResponseTopic(), mMessageCallback);
                     mIot.subscribe(remote.getEventTopic(), mMessageCallback);
@@ -319,8 +321,9 @@ public class AWSIotRemoteManager {
     }
 
     private void unsubscribeTopic() {
-        if (mManagerList != null) {
-            for (RemoteDeviceConnectManager remote : mManagerList) {
+        List<RemoteDeviceConnectManager> managers = mRDCMListManager.getRDCMList();
+        if (managers != null) {
+            for (RemoteDeviceConnectManager remote : managers) {
                 mIot.unsubscribe(remote.getResponseTopic());
                 mIot.unsubscribe(remote.getEventTopic());
             }
@@ -347,12 +350,15 @@ public class AWSIotRemoteManager {
     }
 
     private RemoteDeviceConnectManager parseTopic(final String topic) {
-        for (RemoteDeviceConnectManager remote : mManagerList) {
-            if (remote.getResponseTopic().equals(topic)) {
-                return remote;
-            }
-            if (remote.getEventTopic().equals(topic)) {
-                return remote;
+        List<RemoteDeviceConnectManager> managers = mRDCMListManager.getRDCMList();
+        if (managers != null) {
+            for (RemoteDeviceConnectManager remote : managers) {
+                if (remote.getResponseTopic().equals(topic)) {
+                    return remote;
+                }
+                if (remote.getEventTopic().equals(topic)) {
+                    return remote;
+                }
             }
         }
         return null;
@@ -447,7 +453,8 @@ public class AWSIotRemoteManager {
 
     private RDCMListManager.OnEventListener mUpdateListener = new RDCMListManager.OnEventListener() {
         @Override
-        public void onRDCMListUpdateSubscribe(RemoteDeviceConnectManager manager) {
+        public void onRDCMListUpdateSubscribe(final RemoteDeviceConnectManager manager) {
+            Log.e("ABC", "onRDCMListUpdateSubscribe: " + manager.isSubscribe() + " " + manager.getName());
             if (manager.isSubscribe() && manager.isOnline()) {
                 mIot.subscribe(manager.getResponseTopic(), mMessageCallback);
                 mIot.subscribe(manager.getEventTopic(), mMessageCallback);

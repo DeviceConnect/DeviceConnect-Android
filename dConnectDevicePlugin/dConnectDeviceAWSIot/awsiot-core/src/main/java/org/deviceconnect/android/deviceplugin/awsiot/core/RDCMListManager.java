@@ -2,8 +2,14 @@ package org.deviceconnect.android.deviceplugin.awsiot.core;
 
 import android.content.Context;
 
+import org.deviceconnect.android.deviceplugin.awsiot.util.AWSIotUtil;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Remote Device Connect Manager List Manager Class.
@@ -16,17 +22,61 @@ public class RDCMListManager {
     private AWSIotDBHelper mDBHelper;
     /** OnEventListener Instance. */
     private OnEventListener mOnEventListener;
+    private Context mContext;
+    private AWSIotController mAWSIotController;
+
+    private ScheduledExecutorService mExecutorService = Executors.newSingleThreadScheduledExecutor();
+    private ScheduledFuture mFuture;
+
     /** OnEventListener Interface. */
     public interface OnEventListener{
         void onRDCMListUpdateSubscribe(RemoteDeviceConnectManager manager);
+    }
+
+    public interface UpdateManagerListCallback {
+        void onUpdateManagerList(List<RemoteDeviceConnectManager> managerList);
     }
 
     /**
      * Constructor.
      * @param context Context.
      */
-    public RDCMListManager(final Context context) {
+    public RDCMListManager(final Context context, final AWSIotController controller) {
+        mContext = context;
+        mAWSIotController = controller;
         mDBHelper = new AWSIotDBHelper(context);
+    }
+
+    /**
+     * 定期的にManager情報を更新するタイマーを開始します。
+     */
+    public void startUpdateManagerListTimer() {
+        if (mFuture != null) {
+            return;
+        }
+
+        mFuture = mExecutorService.scheduleAtFixedRate(new Runnable() {
+            @Override
+            public void run() {
+                updateManagerList(new UpdateManagerListCallback() {
+                    @Override
+                    public void onUpdateManagerList(final List<RemoteDeviceConnectManager> managerList) {
+                        if (managerList != null) {
+                            // TODO 更新した情報からsubscribeを停止する
+                        }
+                    }
+                });
+            }
+        }, 0, 5 * 60, TimeUnit.MINUTES);
+    }
+
+    /**
+     * 定期的にManager情報を更新するタイマーを停止します。
+     */
+    public void stopUpdateManagerListTimer() {
+        if (mFuture != null) {
+            mFuture.cancel(true);
+        }
     }
 
     /**
@@ -61,20 +111,38 @@ public class RDCMListManager {
      */
     public boolean updateSubscribe(final String id, final boolean flag) {
         boolean result = false;
-        if (mManagerList != null) {
-            RemoteDeviceConnectManager manager = findRegisteredManagerById(id);
-            if (manager != null) {
-                int index = mManagerList.indexOf(manager);
-                manager.setSubscribeFlag(flag);
-                mDBHelper.updateManager(manager);
-                mManagerList.set(index, manager);
-                result = true;
-                if (mOnEventListener != null) {
-                    mOnEventListener.onRDCMListUpdateSubscribe(manager);
-                }
+        RemoteDeviceConnectManager manager = findRegisteredManagerById(id);
+        if (manager != null) {
+            manager.setSubscribeFlag(flag);
+            mDBHelper.updateManager(manager);
+            result = true;
+            if (mOnEventListener != null) {
+                mOnEventListener.onRDCMListUpdateSubscribe(manager);
             }
         }
         return result;
+    }
+
+    /**
+     * Manager情報を更新します。
+     * @param callback 更新完了通知を行うコールバック
+     */
+    public void updateManagerList(final UpdateManagerListCallback callback) {
+        mAWSIotController.getShadow(AWSIotUtil.KEY_DCONNECT_SHADOW_NAME, new AWSIotController.GetShadowCallback() {
+            @Override
+            public void onReceivedShadow(final String thingName, final String result, final Exception err) {
+                if (err != null) {
+                    if (callback != null) {
+                        callback.onUpdateManagerList(null);
+                    }
+                } else {
+                    mManagerList = AWSIotUtil.parseDeviceShadow(mContext, result);
+                    if (callback != null) {
+                        callback.onUpdateManagerList(mManagerList);
+                    }
+                }
+            }
+        });
     }
 
     /**

@@ -10,6 +10,10 @@ import android.app.Application;
 
 import com.amazonaws.regions.Regions;
 
+import org.deviceconnect.android.deviceplugin.awsiot.util.AWSIotUtil;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 /**
  * AWS IoT Device Plugin Application.
  *
@@ -57,6 +61,34 @@ public class AWSIotDeviceApplication extends Application {
             mRDCMListManager.stopUpdateManagerListTimer();
         }
         super.onTerminate();
+    }
+
+    public void updateMyManagerShadow(boolean online) {
+        AWSIotPrefUtil pref = new AWSIotPrefUtil(this);
+        pref.setManagerRegister(online);
+
+        if (mIot.isConnected()) {
+            try {
+                AWSIotPrefUtil prefUtil = new AWSIotPrefUtil(this);
+                if (prefUtil.getManagerName() == null) {
+                    return;
+                }
+
+                JSONObject managerData = new JSONObject();
+                managerData.put("name", prefUtil.getManagerName());
+                managerData.put("online", online);
+                managerData.put("timeStamp", System.currentTimeMillis());
+
+                mIot.updateShadow(AWSIotUtil.KEY_DCONNECT_SHADOW_NAME, prefUtil.getManagerUuid(), managerData, new AWSIotController.UpdateShadowCallback() {
+                    @Override
+                    public void onUpdateShadow(final String result, final Exception err) {
+                    }
+                });
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        } else {
+        }
     }
 
     public AWSIotController getAWSIotController() {

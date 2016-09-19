@@ -91,6 +91,7 @@ public class AWSIotRemoteManager {
                     if (err != null) {
                         return;
                     }
+                    AWSIotDeviceApplication.getInstance().updateMyManagerShadow(true);
                     subscribeTopic();
                 }
             });
@@ -113,6 +114,7 @@ public class AWSIotRemoteManager {
         }
 
         if (mIot != null) {
+            AWSIotDeviceApplication.getInstance().updateMyManagerShadow(false);
             unsubscribeTopic();
         }
 

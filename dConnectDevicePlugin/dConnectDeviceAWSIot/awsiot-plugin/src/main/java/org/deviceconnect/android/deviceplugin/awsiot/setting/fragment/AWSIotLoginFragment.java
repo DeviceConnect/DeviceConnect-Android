@@ -164,6 +164,7 @@ public class AWSIotLoginFragment extends Fragment {
                             return;
                         }
 
+                        mPrefUtil.setAWSLoginFlag(true);
                         // Managerリスト一覧へ遷移
                         FragmentManager manager = getActivity().getSupportFragmentManager();
                         AWSIotManagerListFragment fragment = new AWSIotManagerListFragment();

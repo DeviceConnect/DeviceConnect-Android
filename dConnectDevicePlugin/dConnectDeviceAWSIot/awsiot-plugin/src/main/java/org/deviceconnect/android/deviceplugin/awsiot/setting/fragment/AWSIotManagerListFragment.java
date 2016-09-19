@@ -146,6 +146,7 @@ public class AWSIotManagerListFragment extends Fragment {
     private void logoutAWSIot() {
         AWSIotPrefUtil pref = new AWSIotPrefUtil(getActivity());
         pref.setAWSLoginFlag(false);
+        AWSIotDeviceApplication.getInstance().updateMyManagerShadow(false);
         getAWSIotController().disconnect();
     }
 

@@ -23,14 +23,12 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import org.deviceconnect.android.deviceplugin.awsiot.core.AWSIotController;
+import org.deviceconnect.android.deviceplugin.awsiot.core.AWSIotDeviceApplication;
 import org.deviceconnect.android.deviceplugin.awsiot.core.AWSIotPrefUtil;
 import org.deviceconnect.android.deviceplugin.awsiot.core.RemoteDeviceConnectManager;
 import org.deviceconnect.android.deviceplugin.awsiot.local.AWSIotLocalDeviceService;
 import org.deviceconnect.android.deviceplugin.awsiot.remote.R;
 import org.deviceconnect.android.deviceplugin.awsiot.setting.AWSIotSettingActivity;
-import org.deviceconnect.android.deviceplugin.awsiot.util.AWSIotUtil;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 /**
  * AWS IoT Settings Fragment Page 3.
@@ -39,8 +37,6 @@ import org.json.JSONObject;
  */
 public class AWSIotInformationFragment extends Fragment {
 
-    /** AWSIotRemoteManager. */
-    private AWSIotController mAWSIotController;
     private AWSIotPrefUtil mPrefUtil;
 
     @Override
@@ -48,7 +44,7 @@ public class AWSIotInformationFragment extends Fragment {
                              final Bundle savedInstanceState) {
         AWSIotSettingActivity activity = (AWSIotSettingActivity) getActivity();
 
-        mAWSIotController = activity.getAWSIotController();
+        AWSIotController AWSIotController = activity.getAWSIotController();
         mPrefUtil = new AWSIotPrefUtil(activity);
         RemoteDeviceConnectManager myManager = new RemoteDeviceConnectManager(
                 mPrefUtil.getManagerName(), mPrefUtil.getManagerUuid());
@@ -66,7 +62,7 @@ public class AWSIotInformationFragment extends Fragment {
                 } else {
                     stopAWSIotLocal();
                 }
-                updateShadow(isChecked);
+                AWSIotDeviceApplication.getInstance().updateMyManagerShadow(isChecked);
             }
         });
 
@@ -98,7 +94,7 @@ public class AWSIotInformationFragment extends Fragment {
         });
 
         TextView tv = (TextView) rootView.findViewById(R.id.display_awsiot_mqtt_endpoint);
-        tv.setText(mAWSIotController.getAWSIotEndPoint());
+        tv.setText(AWSIotController.getAWSIotEndPoint());
 
         tv = (TextView) rootView.findViewById(R.id.display_awsiot_request_topic);
         tv.setText(myManager.getRequestTopic());
@@ -118,27 +114,6 @@ public class AWSIotInformationFragment extends Fragment {
         inflater.inflate(R.menu.menu, menu);
         super.onCreateOptionsMenu(menu, inflater);
         menu.clear();
-    }
-
-    private void updateShadow(boolean online) {
-        mPrefUtil.setManagerRegister(online);
-
-        try {
-            AWSIotPrefUtil prefUtil = new AWSIotPrefUtil(getActivity());
-
-            JSONObject managerData = new JSONObject();
-            managerData.put("name", prefUtil.getManagerName());
-            managerData.put("online", online);
-            managerData.put("timeStamp", System.currentTimeMillis());
-
-            mAWSIotController.updateShadow(AWSIotUtil.KEY_DCONNECT_SHADOW_NAME, prefUtil.getManagerUuid(), managerData, new AWSIotController.UpdateShadowCallback() {
-                @Override
-                public void onUpdateShadow(final String result, final Exception err) {
-                }
-            });
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
     }
 
     private void startAWSIotLocal() {

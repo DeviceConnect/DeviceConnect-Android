@@ -6,10 +6,13 @@
  */
 package org.deviceconnect.android.deviceplugin.awsiot;
 
+import com.amazonaws.regions.Regions;
+
 import android.content.Intent;
 
 import org.deviceconnect.android.deviceplugin.awsiot.core.AWSIotController;
 import org.deviceconnect.android.deviceplugin.awsiot.core.AWSIotDeviceApplication;
+import org.deviceconnect.android.deviceplugin.awsiot.core.AWSIotPrefUtil;
 import org.deviceconnect.android.deviceplugin.awsiot.profile.AWSIotServiceDiscoveryProfile;
 import org.deviceconnect.android.deviceplugin.awsiot.profile.AWSIotSystemProfile;
 import org.deviceconnect.android.event.EventManager;
@@ -70,6 +73,22 @@ public class AWSIotDeviceService extends DConnectMessageService {
     protected void onDevicePluginReset() {
         stopAWSIot();
         startAWSIot();
+
+        // ログインフラグがtrueの場合には自動接続を行う
+        AWSIotPrefUtil pref = new AWSIotPrefUtil(this);
+        if (pref.isAWSLoginFlag()) {
+            String accessKey = pref.getAccessKey();
+            String secretKey = pref.getSecretKey();
+            Regions region = pref.getRegions();
+            getAWSIotController().connect(accessKey, secretKey, region, new AWSIotController.ConnectCallback() {
+                @Override
+                public void onConnected(final Exception err) {
+                    if (err == null) {
+                        ((AWSIotDeviceApplication) getApplication()).getRDCMListManager().updateManagerList(null);
+                    }
+                }
+            });
+        }
     }
 
     @Override

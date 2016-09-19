@@ -30,6 +30,7 @@ import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * AWSIotを制御するクラス.
@@ -189,7 +190,14 @@ public class AWSIotController {
         };
         updateShadowTask.setThingName(name);
         updateShadowTask.setState(makeJson(key, value).toString());
+        CountDownLatch latch = new CountDownLatch(1);
+        updateShadowTask.setLatch(latch);
         updateShadowTask.execute();
+        try {
+            latch.await();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -324,12 +332,25 @@ public class AWSIotController {
         private String updateState;
 
         /**
+         * 同期用CountDownLatch インスタンス.
+         */
+        private CountDownLatch mLatch;
+
+        /**
          * Thing名を設定.
          *
          * @param name Thing名
          */
         public void setThingName(final String name) {
             thingName = name;
+        }
+
+        /**
+         * 同期用CountDownLatch インスタンスを設定.
+         * @param latch インスタンス.
+         */
+        public void setLatch(final CountDownLatch latch) {
+            mLatch = latch;
         }
 
         /**
@@ -355,11 +376,13 @@ public class AWSIotController {
                 byte[] bytes = new byte[result.getPayload().remaining()];
                 result.getPayload().get(bytes);
                 String resultString = new String(bytes);
+                mLatch.countDown();
                 return new AsyncTaskResult<>(resultString);
             } catch (Exception e) {
                 if (DEBUG) {
                     Log.e(TAG, "Error on UpdateShadowTask", e);
                 }
+                mLatch.countDown();
                 return new AsyncTaskResult<>(e);
             }
         }

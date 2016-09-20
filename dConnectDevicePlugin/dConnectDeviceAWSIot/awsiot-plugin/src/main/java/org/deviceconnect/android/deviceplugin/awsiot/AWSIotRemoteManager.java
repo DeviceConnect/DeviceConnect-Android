@@ -456,7 +456,6 @@ public class AWSIotRemoteManager {
     private RDCMListManager.OnEventListener mUpdateListener = new RDCMListManager.OnEventListener() {
         @Override
         public void onRDCMListUpdateSubscribe(final RemoteDeviceConnectManager manager) {
-            Log.e("ABC", "onRDCMListUpdateSubscribe: " + manager.isSubscribe() + " " + manager.getName());
             if (manager.isSubscribe() && manager.isOnline()) {
                 mIot.subscribe(manager.getResponseTopic(), mMessageCallback);
                 mIot.subscribe(manager.getEventTopic(), mMessageCallback);

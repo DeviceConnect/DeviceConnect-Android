@@ -62,12 +62,16 @@ public class RDCMListManager {
                     @Override
                     public void onUpdateManagerList(final List<RemoteDeviceConnectManager> managerList) {
                         if (managerList != null) {
-                            // TODO 更新した情報からsubscribeを停止する
+                            if (mOnEventListener != null) {
+                                for (RemoteDeviceConnectManager remote : managerList) {
+                                    mOnEventListener.onRDCMListUpdateSubscribe(remote);
+                                }
+                            }
                         }
                     }
                 });
             }
-        }, 5 * 60, 5 * 60, TimeUnit.MINUTES);
+        }, 5, 5, TimeUnit.MINUTES);
     }
 
     /**

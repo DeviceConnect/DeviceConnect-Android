@@ -41,9 +41,9 @@ final class ClientDao implements ClientSchema {
         String mAccessToken;
 
         /**
-         * セッションキー.
+         * オリジン.
          */
-        String mSessionKey;
+        String mOrigin;
 
         /**
          * レシーバー.
@@ -86,12 +86,12 @@ final class ClientDao implements ClientSchema {
         if (receiver == null) {
             receiver = "";
         }
-        Cursor cursor = db.query(TABLE_NAME, new String[] {_ID}, SESSION_KEY + "=? AND " + RECEIVER + "=?",
-                new String[] {event.getSessionKey(), receiver}, null, null, null);
+        Cursor cursor = db.query(TABLE_NAME, new String[] {_ID}, ORIGIN + "=? AND " + RECEIVER + "=?",
+                new String[] {event.getOrigin(), receiver}, null, null, null);
         if (cursor.getCount() == 0) {
             ContentValues values = new ContentValues();
             values.put(ACCESS_TOKEN, event.getAccessToken());
-            values.put(SESSION_KEY, event.getSessionKey());
+            values.put(ORIGIN, event.getOrigin());
             values.put(RECEIVER, receiver);
             values.put(CREATE_DATE, Utils.getCurreTimestamp().getTime());
             values.put(UPDATE_DATE, Utils.getCurreTimestamp().getTime());
@@ -124,7 +124,7 @@ final class ClientDao implements ClientSchema {
     static Client[] getBySessionKey(final SQLiteDatabase db, final String sessionKey) {
 
         Client[] result = null;
-        Cursor c = db.query(TABLE_NAME, new String[] {_ID, SESSION_KEY, ACCESS_TOKEN, RECEIVER}, SESSION_KEY + "=?", 
+        Cursor c = db.query(TABLE_NAME, new String[] {_ID, ORIGIN, ACCESS_TOKEN, RECEIVER}, ORIGIN + "=?",
                 new String[] {sessionKey}, null, null, null);
         
         if (c.moveToFirst()) {
@@ -134,7 +134,7 @@ final class ClientDao implements ClientSchema {
                 if (c.getColumnIndex(_ID) != -1) {
                     Client data = new Client();
                     data.mId = c.getLong(0);
-                    data.mSessionKey = c.getString(1);
+                    data.mOrigin = c.getString(1);
                     data.mAccessToken = c.getString(2);
                     data.mReceiver = c.getString(3);
                     result[index++] = data;
@@ -156,14 +156,14 @@ final class ClientDao implements ClientSchema {
     static Client getById(final SQLiteDatabase db, final long id) {
 
         Client result = null;
-        Cursor c = db.query(TABLE_NAME, new String[] {_ID, SESSION_KEY, ACCESS_TOKEN, RECEIVER}, 
+        Cursor c = db.query(TABLE_NAME, new String[] {_ID, ORIGIN, ACCESS_TOKEN, RECEIVER},
                 _ID + "=?", new String[] {"" + id}, null, null, null);
 
         if (c.moveToFirst()) {
             result = new Client();
             if (c.getColumnIndex(_ID) != -1) {
                 result.mId = c.getLong(0);
-                result.mSessionKey = c.getString(1);
+                result.mOrigin = c.getString(1);
                 result.mAccessToken = c.getString(2);
                 result.mReceiver = c.getString(3);
             }
@@ -191,7 +191,7 @@ final class ClientDao implements ClientSchema {
         sb.append("SELECT c.");
         sb.append(_ID);
         sb.append(", c.");
-        sb.append(SESSION_KEY);
+        sb.append(ORIGIN);
         sb.append(", c.");
         sb.append(ACCESS_TOKEN);
         sb.append(", c.");
@@ -268,7 +268,7 @@ final class ClientDao implements ClientSchema {
                  if (c.getColumnIndex(_ID) != -1) {
                      Client data = new Client();
                     data.mId = c.getLong(0);
-                    data.mSessionKey = c.getString(1);
+                    data.mOrigin = c.getString(1);
                     data.mAccessToken = c.getString(2);
                     data.mReceiver = c.getString(3);
                     long createTime = c.getLong(4);

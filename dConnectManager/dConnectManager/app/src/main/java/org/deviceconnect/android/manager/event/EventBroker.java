@@ -187,7 +187,6 @@ public class EventBroker {
                 ServiceDiscoveryProfile.ATTRIBUTE_ON_SERVICE_CHANGE);
             for (int i = 0; i < evts.size(); i++) {
                 Event evt = evts.get(i);
-                event.putExtra(DConnectMessage.EXTRA_SESSION_KEY, evt.getSessionKey());
                 mContext.sendEvent(evt.getReceiverName(), event);
             }
         }

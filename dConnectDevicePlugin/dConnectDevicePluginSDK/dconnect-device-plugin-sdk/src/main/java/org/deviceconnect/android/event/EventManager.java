@@ -71,11 +71,11 @@ public enum EventManager {
         String inter = request.getStringExtra(DConnectMessage.EXTRA_INTERFACE);
         String attribute = request.getStringExtra(DConnectMessage.EXTRA_ATTRIBUTE);
         String accessToken = request.getStringExtra(DConnectMessage.EXTRA_ACCESS_TOKEN);
-        String sessionKey = request.getStringExtra(DConnectMessage.EXTRA_SESSION_KEY);
+        String origin = request.getStringExtra("_origin");
         ComponentName name = request.getParcelableExtra(DConnectMessage.EXTRA_RECEIVER);
         
         Event event = new Event();
-        event.setSessionKey(sessionKey);
+        event.setOrigin(origin);
         event.setAccessToken(accessToken);
         // XXXX パスの大文字小文字を無視
         event.setProfile(profile != null ? profile.toLowerCase() : null);

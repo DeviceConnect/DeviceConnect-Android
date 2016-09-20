@@ -241,7 +241,7 @@ final class EventSessionDao implements EventSessionSchema {
         sb.append(prepared);
         sb.append(and);
         sb.append("c.");
-        sb.append(ClientSchema.SESSION_KEY);
+        sb.append(ClientSchema.ORIGIN);
         sb.append(prepared);
         sb.append(and);
         sb.append("c.");
@@ -254,7 +254,7 @@ final class EventSessionDao implements EventSessionSchema {
         String receiver = null2WhiteSpace(event.getReceiverName());
         
         String[] params = {event.getProfile(), inter, attr,
-                serviceId, event.getSessionKey(), receiver};
+                serviceId, event.getOrigin(), receiver};
         Cursor c = db.rawQuery(sb.toString(), params);
         
         if (c.moveToFirst()) {

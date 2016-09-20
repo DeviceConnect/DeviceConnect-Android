@@ -192,7 +192,7 @@ public class DConnectServerEventListenerImpl implements DConnectServerEventListe
                         origin = DConnectService.ANONYMOUS_ORIGIN;
                     }
                 }
-                eventKey = md5(origin);
+                eventKey = origin;
                 // NOTE: 既存のイベントセッションを保持する.
                 if (getWebSocketInfoManager().getWebSocketInfo(eventKey) != null) {
                     sendError(webSocket, 4, "already established.");
@@ -232,15 +232,6 @@ public class DConnectServerEventListenerImpl implements DConnectServerEventListe
     private WebSocketInfoManager getWebSocketInfoManager() {
         DConnectApplication app = (DConnectApplication) ((DConnectService) mContext).getApplication();
         return app.getWebSocketInfoManager();
-    }
-
-    private String md5(final String s) {
-        try {
-            return DConnectUtil.toMD5(s);
-        } catch (Exception e) {
-            // NOP.
-        }
-        return null;
     }
 
     private void sendSuccess(final DConnectWebSocket webSocket) throws JSONException {

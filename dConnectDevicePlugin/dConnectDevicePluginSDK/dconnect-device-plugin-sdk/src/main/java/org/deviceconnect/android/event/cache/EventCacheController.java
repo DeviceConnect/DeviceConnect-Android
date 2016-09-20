@@ -6,10 +6,10 @@
  */
 package org.deviceconnect.android.event.cache;
 
-import java.util.List;
-
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventError;
+
+import java.util.List;
 
 /**
  * イベントデータ操作インターフェース.
@@ -37,12 +37,12 @@ public interface EventCacheController {
     EventError removeEvent(Event event);
     
     /**
-     * 指定されたセッションキーに紐づくイベント情報を全て削除する.
+     * 指定されたオリジンに紐づくイベント情報を全て削除する.
      * 
-     * @param sessionKey セッションキー
+     * @param origin オリジン
      * @return 成功の場合true、その他はfalseを返す
      */
-    boolean removeEvents(String sessionKey);
+    boolean removeEvents(String origin);
     
     /**
      * キャッシュからデータを全て削除する.
@@ -57,12 +57,12 @@ public interface EventCacheController {
      * @param profile プロファイル名
      * @param inter インターフェース名
      * @param attribute 属性名
-     * @param sessionKey セッションキー
+     * @param origin オリジン
      * @param receiver レシーバー名
      * @return イベントデータ。条件に合うものが無い場合はnullを返す。
      */
     Event getEvent(String serviceId, String profile, String inter, 
-            String attribute, String sessionKey, String receiver);
+            String attribute, String origin, String receiver);
     
     /**
      * キャッシュから条件にあうイベントデータの一覧を取得する.

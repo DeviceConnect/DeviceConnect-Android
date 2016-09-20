@@ -105,10 +105,10 @@ public class MemoryCacheController extends BaseCacheController {
             events.put(path, eventList);
         }
         
-        String sessionKey = event.getSessionKey();
+        String origin = event.getOrigin();
         String receiver = getReceiverName(event);
         for (Event e : eventList) {
-            if (e.getSessionKey().equals(sessionKey) && e.getReceiverName().equals(receiver)) {
+            if (e.getOrigin().equals(origin) && e.getReceiverName().equals(receiver)) {
                 // 登録済みの場合はアクセストークンを上書きする
                 e.setAccessToken(event.getAccessToken());
                 e.setUpdateDate(Utils.getCurreTimestamp());
@@ -149,10 +149,10 @@ public class MemoryCacheController extends BaseCacheController {
             return EventError.NOT_FOUND;
         }
         
-        String sessionKey = event.getSessionKey();
+        String origin = event.getOrigin();
         String receiver = getReceiverName(event);
         for (Event e : eventList) {
-            if (e.getSessionKey().equals(sessionKey) && e.getReceiverName().equals(receiver)) {
+            if (e.getOrigin().equals(origin) && e.getReceiverName().equals(receiver)) {
                 eventList.remove(e);
                 if (eventList.size() == 0) {
                     events.remove(path);
@@ -166,7 +166,7 @@ public class MemoryCacheController extends BaseCacheController {
 
     @Override
     public synchronized Event getEvent(final String serviceId, final String profile, final String inter, 
-            final String attribute, final String sessionKey, final String receiver) {
+            final String attribute, final String origin, final String receiver) {
         Event event = null;
         String tmpReceiver = receiver;
         if (tmpReceiver == null) {
@@ -180,7 +180,7 @@ public class MemoryCacheController extends BaseCacheController {
             }
             
             for (Event e : eventList) {
-                if (e.getSessionKey().equals(sessionKey) && e.getReceiverName().equals(tmpReceiver)) {
+                if (e.getOrigin().equals(origin) && e.getReceiverName().equals(tmpReceiver)) {
                     event = e;
                     break;
                 }
@@ -254,9 +254,9 @@ public class MemoryCacheController extends BaseCacheController {
     }
 
     @Override
-    public synchronized boolean removeEvents(final String sessionKey) {
+    public synchronized boolean removeEvents(final String origin) {
         
-        if (sessionKey == null) {
+        if (origin == null) {
             throw new IllegalArgumentException("SessionKey is null.");
         }
         
@@ -264,7 +264,7 @@ public class MemoryCacheController extends BaseCacheController {
             for (Entry<String, List<Event>> events : entry.getValue().entrySet()) {
                 List<Event> removes = new ArrayList<>();
                 for (Event event : events.getValue()) {
-                    if (sessionKey.equals(event.getSessionKey())) {
+                    if (origin.equals(event.getOrigin())) {
                         removes.add(event);
                     }
                 }

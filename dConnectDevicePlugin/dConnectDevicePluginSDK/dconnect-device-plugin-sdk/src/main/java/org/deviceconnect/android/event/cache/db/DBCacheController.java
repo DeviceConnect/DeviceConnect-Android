@@ -6,9 +6,10 @@
  */
 package org.deviceconnect.android.event.cache.db;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.logging.Logger;
+import android.content.Context;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteException;
+import android.database.sqlite.SQLiteOpenHelper;
 
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventError;
@@ -16,10 +17,9 @@ import org.deviceconnect.android.event.cache.BaseCacheController;
 import org.deviceconnect.android.event.cache.db.ClientDao.Client;
 import org.deviceconnect.android.event.cache.db.EventSessionDao.EventSession;
 
-import android.content.Context;
-import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteException;
-import android.database.sqlite.SQLiteOpenHelper;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Logger;
 
 /**
  * イベントデータをデータベースに保存し、キャッシュの操作機能を提供する. 
@@ -179,7 +179,7 @@ public final class DBCacheController extends BaseCacheController {
     
     @Override
     public synchronized Event getEvent(final String serviceId, final String profile, final String inter, 
-            final String attribute, final String sessionKey, final String receiver) {
+            final String attribute, final String origin, final String receiver) {
         
         Event result = null;
         SQLiteDatabase db = null;
@@ -195,10 +195,10 @@ public final class DBCacheController extends BaseCacheController {
             search.setProfile(profile);
             search.setInterface(inter);
             search.setAttribute(attribute);
-            search.setSessionKey(sessionKey);
+            search.setOrigin(origin);
             search.setReceiverName(receiver);
             // checkParameterエラー回避用データの設定
-            search.setAccessToken("dammy");
+            search.setAccessToken("dummy");
             
             if (!checkParameter(search)) {
                 break;
@@ -247,9 +247,9 @@ public final class DBCacheController extends BaseCacheController {
             search.setInterface(inter);
             search.setAttribute(attribute);
             // checkParameterエラー回避用データの設定
-            search.setSessionKey("dammy");
-            search.setAccessToken("dammy");
-            search.setReceiverName("dammy");
+            search.setOrigin("dummy");
+            search.setAccessToken("dummy");
+            search.setReceiverName("dummy");
             
             if (!checkParameter(search)) {
                 break;
@@ -266,7 +266,7 @@ public final class DBCacheController extends BaseCacheController {
                 event.setProfile(profile);
                 event.setInterface(inter);
                 event.setAttribute(attribute);
-                event.setSessionKey(client.mSessionKey);
+                event.setOrigin(client.mOrigin);
                 event.setAccessToken(client.mAccessToken);
                 event.setReceiverName(client.mReceiver);
                 event.setCreateDate(client.mESCreateDate);

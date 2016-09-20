@@ -26,6 +26,7 @@ public interface DConnectProfileConstants {
 
     /**
      * パラメータ: {@value} .
+     * @deprecated
      */
     String PARAM_SESSION_KEY = "sessionKey";
 

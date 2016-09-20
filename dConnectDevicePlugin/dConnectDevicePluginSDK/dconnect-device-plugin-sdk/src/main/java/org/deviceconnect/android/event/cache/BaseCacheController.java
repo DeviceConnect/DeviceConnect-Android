@@ -26,7 +26,7 @@ public abstract class BaseCacheController implements EventCacheController {
     protected boolean checkParameter(final Event event) {
         return event != null
             && event.getProfile() != null
-            && event.getAccessToken() != null;
+            && event.getOrigin() != null;
     }
 
 }

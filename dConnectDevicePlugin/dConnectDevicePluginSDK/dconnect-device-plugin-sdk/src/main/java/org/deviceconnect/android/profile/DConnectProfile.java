@@ -46,6 +46,9 @@ public abstract class DConnectProfile implements DConnectProfileConstants,
     /** バッファサイズを定義. */
     private static final int BUF_SIZE = 4096;
 
+    /** 内部エクストラ: {@value}. */
+    private static final String INNER_EXTRA_ORIGIN = "_origin";
+
     /**
      * コンテキスト.
      */
@@ -236,19 +239,23 @@ public abstract class DConnectProfile implements DConnectProfileConstants,
     }
 
     protected void onEventRequest(final Intent request) {
-        String sessionKey;
+        String origin;
         String profileName = request.getStringExtra(DConnectMessage.EXTRA_PROFILE);
         String accessToken = request.getStringExtra(DConnectMessage.EXTRA_ACCESS_TOKEN);
         if (isUseLocalOAuth()) {
             if (!isIgnoredProfile(profileName)) {
-                sessionKey = findClientId(accessToken);
+                origin = findRequestOrigin(accessToken);
             } else {
-                sessionKey = accessToken;
+                origin = accessToken;
             }
         } else {
-            sessionKey = "";
+            if (accessToken != null) {
+                origin = accessToken;
+            } else {
+                origin = "<anonymous>";
+            }
         }
-        request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, sessionKey);
+        request.putExtra(INNER_EXTRA_ORIGIN, origin);
     }
 
     protected boolean isUseLocalOAuth() {
@@ -259,9 +266,9 @@ public abstract class DConnectProfile implements DConnectProfileConstants,
         return ((DConnectMessageService) getContext()).isIgnoredProfile(profileName);
     }
 
-    private String findClientId(final String accessToken) {
+    private String findRequestOrigin(final String accessToken) {
         ClientPackageInfo info = LocalOAuth2Main.findClientPackageInfoByAccessToken(accessToken);
-        return info.getClientId();
+        return info.getPackageInfo().getPackageName();
     }
 
     /**
@@ -707,14 +714,24 @@ public abstract class DConnectProfile implements DConnectProfileConstants,
     }
 
     /**
+     * リクエストからオリジンを取得する.
+     *
+     * @param request リクエストパラメータ
+     * @return オリジン。無い場合はnullを返す。
+     */
+    public static String getOrigin(final Intent request) {
+        return request.getStringExtra(INNER_EXTRA_ORIGIN);
+    }
+
+    /**
      * リクエストからセッションキーを取得する.
      * 
      * @param request リクエストパラメータ
      * @return セッションキー。無い場合はnullを返す。
+     * @deprecated
      */
     public static String getSessionKey(final Intent request) {
-        String sessionKey = request.getStringExtra(PARAM_SESSION_KEY);
-        return sessionKey;
+        return request.getStringExtra(PARAM_SESSION_KEY);
     }
 
     /**
@@ -722,6 +739,7 @@ public abstract class DConnectProfile implements DConnectProfileConstants,
      * 
      * @param message メッセージパラメータ
      * @param sessionKey セッションキー
+     * @deprecated
      */
     public static void setSessionKey(final Intent message, final String sessionKey) {
         message.putExtra(PARAM_SESSION_KEY, sessionKey);

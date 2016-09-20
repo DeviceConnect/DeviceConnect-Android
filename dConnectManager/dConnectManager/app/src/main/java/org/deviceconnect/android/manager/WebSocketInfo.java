@@ -31,14 +31,6 @@ public class WebSocketInfo {
         mUri = uri;
     }
 
-    public String getOrigin() {
-        return mOrigin;
-    }
-
-    public void setOrigin(final String origin) {
-        mOrigin = origin;
-    }
-
     public long getConnectTime() {
         return mConnectTime;
     }

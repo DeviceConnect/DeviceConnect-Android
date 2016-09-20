@@ -9,6 +9,7 @@ package org.deviceconnect.android.deviceplugin.linking.setting;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.TabLayout;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
@@ -27,13 +28,14 @@ import org.deviceconnect.android.deviceplugin.linking.linking.LinkingDeviceManag
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingUtil;
 import org.deviceconnect.android.deviceplugin.linking.setting.fragment.LinkingBeaconListFragment;
 import org.deviceconnect.android.deviceplugin.linking.setting.fragment.LinkingDeviceListFragment;
+import org.deviceconnect.android.deviceplugin.linking.setting.fragment.dialog.ConfirmationDialogFragment;
 
 /**
  * Activity for setting.
  *
  * @author NTT DOCOMO, INC.
  */
-public class SettingActivity extends AppCompatActivity {
+public class SettingActivity extends AppCompatActivity implements ConfirmationDialogFragment.OnDialogEventListener {
 
     public static final String TAG = "Linking-Plugin";
 
@@ -67,6 +69,10 @@ public class SettingActivity extends AppCompatActivity {
         }
 
         checkArguments(getIntent());
+
+        if (LinkingUtil.getVersionCode(this) < LinkingUtil.LINKING_APP_VERSION) {
+            openUpdateDialog();
+        }
     }
 
     @Override
@@ -89,6 +95,15 @@ public class SettingActivity extends AppCompatActivity {
             transitionAppInform();
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onPositiveClick(final DialogFragment fragment) {
+        LinkingUtil.startGooglePlay(this);
+    }
+
+    @Override
+    public void onNegativeClick(final DialogFragment fragment) {
     }
 
     private void checkArguments(final Intent intent) {
@@ -135,6 +150,16 @@ public class SettingActivity extends AppCompatActivity {
     private LinkingDevice getLinkingDeviceId(final int deviceId, final int deviceUid) {
         LinkingDeviceManager mgr = getLinkingDeviceManager();
         return mgr.findDeviceByDeviceId(deviceId, deviceUid);
+    }
+
+    private void openUpdateDialog() {
+        String title = getString(R.string.activity_setting_update_dialog_title);
+        String message = getString(R.string.activity_setting_update_dialog_message);
+        String positive = getString(R.string.activity_setting_update_dialog_positive);
+        String negative = getString(R.string.activity_setting_update_dialog_negative);
+
+        ConfirmationDialogFragment dialog = ConfirmationDialogFragment.newInstance(title, message, positive, negative);
+        dialog.show(getSupportFragmentManager(), "");
     }
 
     private class MyFragmentPagerAdapter extends FragmentPagerAdapter {

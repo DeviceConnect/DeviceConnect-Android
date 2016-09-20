@@ -29,7 +29,7 @@ import org.deviceconnect.android.deviceplugin.linking.beacon.data.TemperatureDat
 import java.util.ArrayList;
 import java.util.List;
 
-public class LinkingDBAdapter {
+class LinkingDBAdapter {
 
     private static final String TAG = "LinkingDB";
 

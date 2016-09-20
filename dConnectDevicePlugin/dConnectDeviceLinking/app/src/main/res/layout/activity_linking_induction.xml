@@ -12,7 +12,7 @@
         android:layout_alignParentBottom="true"
         android:layout_centerInParent="true"
         android:layout_margin="12dp"
-        android:background="@drawable/button_blue"
+        android:background="@drawable/linking_button_blue"
         android:text="@string/fragment_help_linking_app"
         android:textColor="#FFF"
         android:textSize="18sp"/>
@@ -149,8 +149,34 @@
             android:layout_height="70dp"
             android:layout_gravity="center_horizontal"
             android:layout_margin="16dp"
-            android:background="@drawable/button_google_play"/>
+            android:background="@drawable/linking_button_google_play"/>
 
     </LinearLayout>
 
+    <LinearLayout
+        android:id="@+id/fragment_linking_setting_update_app"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#FFF"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_margin="32dp"
+            android:text="@string/activity_linking_induction_text_update"
+            android:textColor="@color/help_text_color"
+            android:textSize="14sp"/>
+
+        <Button
+            android:id="@+id/fragment_linking_setting_update_btn"
+            android:layout_width="220dp"
+            android:layout_height="70dp"
+            android:layout_gravity="center_horizontal"
+            android:layout_margin="16dp"
+            android:background="@drawable/linking_button_google_play"/>
+
+    </LinearLayout>
 </RelativeLayout>

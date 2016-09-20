@@ -15,6 +15,8 @@ import org.deviceconnect.android.deviceplugin.pebble.util.PebbleManager;
 import org.deviceconnect.android.deviceplugin.pebble.util.PebbleManager.OnSendCommandListener;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.SettingsProfile;
+import org.deviceconnect.android.profile.api.DConnectApi;
+import org.deviceconnect.android.profile.api.GetApi;
 import org.deviceconnect.message.DConnectMessage;
 
 /**
@@ -22,16 +24,16 @@ import org.deviceconnect.message.DConnectMessage;
  * @author NTT DOCOMO, INC.
  */
 public class PebbleSettingProfile extends SettingsProfile {
-    @Override
-    protected boolean onGetDate(final Intent request, final Intent response, 
-            final String serviceId) {
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-            return true;
-        } else if (!PebbleUtil.checkServiceId(serviceId)) {
-            MessageUtils.setNotFoundServiceError(response);
-            return true;
-        } else {
+
+    private final DConnectApi mGetDateApi = new GetApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_DATE;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
             // Pebbleに送信
             PebbleManager mgr = ((PebbleDeviceService) getContext()).getPebbleManager();
             PebbleDictionary dic = new PebbleDictionary();
@@ -57,5 +59,9 @@ public class PebbleSettingProfile extends SettingsProfile {
             });
             return false;
         }
+    };
+
+    public PebbleSettingProfile() {
+        addApi(mGetDateApi);
     }
 }

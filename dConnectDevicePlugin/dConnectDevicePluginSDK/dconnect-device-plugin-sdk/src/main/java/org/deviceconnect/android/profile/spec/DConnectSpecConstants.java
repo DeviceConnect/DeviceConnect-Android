@@ -1,10 +1,25 @@
+/*
+ DConnectSpecConstants.java
+ Copyright (c) 2016 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.profile.spec;
 
 
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
+
+/**
+ * Device Connect APIの仕様を定義する上で必要な定数.
+ *
+ * @author NTT DOCOMO, INC.
+ */
 public interface DConnectSpecConstants {
 
+    /**
+     * APIの種類.
+     */
     enum Type {
 
         ONESHOT("one-shot"),
@@ -31,6 +46,9 @@ public interface DConnectSpecConstants {
         }
     }
 
+    /**
+     * APIのメソッド名.
+     */
     enum Method {
 
         GET("GET"),
@@ -75,6 +93,9 @@ public interface DConnectSpecConstants {
         }
     }
 
+    /**
+     * データの種類.
+     */
     enum DataType {
 
         ARRAY("array"),
@@ -104,6 +125,9 @@ public interface DConnectSpecConstants {
         }
     }
 
+    /**
+     * データのフォーマット指定.
+     */
     enum DataFormat {
 
         INT32("int32"),

@@ -523,4 +523,23 @@ public class HostTouchProfile extends TouchProfile {
         ActivityManager activityMgr = (ActivityManager) getContext().getSystemService(Service.ACTIVITY_SERVICE);
         return activityMgr.getRunningTasks(1).get(0).topActivity.getClassName();
     }
+
+    /**
+     * Check set Touch event manage flag.
+     *
+     * @return  set flag is true, otherwise false.
+     */
+    private boolean isSetTouchEventManageFlag() {
+        return sFlagTouchEventManage != 0;
+    }
+
+    /**
+     * Reset Touch profile.
+     */
+    public void resetTouchProfile() {
+        if (isSetTouchEventManageFlag()) {
+            resetTouchEventFlag(FLAG_ON_TOUCH | FLAG_ON_TOUCH_START | FLAG_ON_TOUCH_END
+                    | FLAG_ON_DOUBLE_TAP | FLAG_ON_TOUCH_MOVE | FLAG_ON_TOUCH_CANCEL);
+        }
+    }
 }

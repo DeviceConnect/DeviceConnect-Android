@@ -591,4 +591,25 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         }
         return false;
     }
+
+    /**
+     * 記録強制停止.
+     */
+    public void forcedStopRecording() {
+        for (HostDeviceRecorder hostRecorder : mRecorderMgr.getRecorders()) {
+            HostDeviceStreamRecorder movie = mRecorderMgr.getStreamRecorder(hostRecorder.getId());
+            if (movie != null && movie.getState() != HostDeviceRecorder.RecorderState.INACTTIVE) {
+                movie.stop();
+            }
+        }
+    }
+
+    public void forcedStopPreview() {
+        for (HostDeviceRecorder hostRecorder : mRecorderMgr.getRecorders()) {
+            HostDevicePreviewServer server = mRecorderMgr.getPreviewServer(hostRecorder.getId());
+            if (server != null) {
+                server.stopWebServer();
+            }
+        }
+    }
 }

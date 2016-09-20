@@ -70,7 +70,7 @@ import java.util.logging.SimpleFormatter;
  * DConnectMessageを受信するサービス.
  * @author NTT DOCOMO, INC.
  */
-public abstract class DConnectMessageService extends Service 
+public abstract class DConnectMessageService extends Service
         implements DConnectProfileProvider, DevicePluginEventListener {
     /** ドメイン名. */
     private static final String DCONNECT_DOMAIN = ".deviceconnect.org";
@@ -164,7 +164,7 @@ public abstract class DConnectMessageService extends Service
         mLocalOAuth = new DConnectLocalOAuth(this);
 
         // デバイスプラグイン管理クラスの作成
-        mPluginMgr = new DevicePluginManager(this, LOCALHOST_DCONNECT);
+        mPluginMgr = new DevicePluginManager((DConnectApplication) getApplication(), LOCALHOST_DCONNECT);
         mPluginMgr.setEventListener(this);
 
         // プロファイルの追加
@@ -256,27 +256,27 @@ public abstract class DConnectMessageService extends Service
         String profileName = request.getStringExtra(DConnectMessage.EXTRA_PROFILE);
         OriginValidator.OriginError error = mOriginValidator.checkOrigin(request);
         switch (error) {
-        case NOT_SPECIFIED:
-            MessageUtils.setInvalidOriginError(response, "Origin is not specified.");
-            sendResponse(request, response);
-            return;
-        case NOT_UNIQUE:
-            MessageUtils.setInvalidOriginError(response, "The specified origin is not unique.");
-            sendResponse(request, response);
-            return;
-        case NOT_ALLOWED:
-            // NOTE: Local OAuth関連のAPIに対する特別措置
-            DConnectProfile profile = getProfile(profileName);
-            if (profile != null && profile instanceof AuthorizationProfile) {
-                ((AuthorizationProfile) profile).onInvalidOrigin(request, response);
-            }
- 
-            MessageUtils.setInvalidOriginError(response, "The specified origin is not allowed.");
-            sendResponse(request, response);
-            return;
-        case NONE:
-        default:
-            break;
+            case NOT_SPECIFIED:
+                MessageUtils.setInvalidOriginError(response, "Origin is not specified.");
+                sendResponse(request, response);
+                return;
+            case NOT_UNIQUE:
+                MessageUtils.setInvalidOriginError(response, "The specified origin is not unique.");
+                sendResponse(request, response);
+                return;
+            case NOT_ALLOWED:
+                // NOTE: Local OAuth関連のAPIに対する特別措置
+                DConnectProfile profile = getProfile(profileName);
+                if (profile != null && profile instanceof AuthorizationProfile) {
+                    ((AuthorizationProfile) profile).onInvalidOrigin(request, response);
+                }
+
+                MessageUtils.setInvalidOriginError(response, "The specified origin is not allowed.");
+                sendResponse(request, response);
+                return;
+            case NONE:
+            default:
+                break;
         }
 
         if (profileName == null) {
@@ -347,7 +347,7 @@ public abstract class DConnectMessageService extends Service
 
         if (BuildConfig.DEBUG) {
             mLogger.info(String.format("onEventReceive: [sessionKey: %s serviceId: %s profile: %s inter: %s attribute: %s]",
-                sessionKey, serviceId, profile, inter, attribute));
+                    sessionKey, serviceId, profile, inter, attribute));
         }
 
         if (sessionKey != null) {
@@ -370,8 +370,8 @@ public abstract class DConnectMessageService extends Service
 
             // Local OAuthの仕様で、デバイスを発見するごとにclientIdを作成して、
             // アクセストークンを取得する作業を行う。
-            if (ServiceDiscoveryProfileConstants.PROFILE_NAME.equals(profile) 
-                || ServiceDiscoveryProfileConstants.ATTRIBUTE_ON_SERVICE_CHANGE.equals(attribute)) {
+            if (ServiceDiscoveryProfileConstants.PROFILE_NAME.equals(profile)
+                    || ServiceDiscoveryProfileConstants.ATTRIBUTE_ON_SERVICE_CHANGE.equals(attribute)) {
 
                 // network service discoveryの場合には、networkServiceのオブジェクトの中にデータが含まれる
                 Bundle service = event.getParcelableExtra(
@@ -495,7 +495,7 @@ public abstract class DConnectMessageService extends Service
     }
 
     private DConnectProfileSpec loadProfileSpec(final String profileName)
-        throws IOException, JSONException {
+            throws IOException, JSONException {
         AssetManager assets = getAssets();
         String path = findProfileSpecPath(assets, profileName);
         if (path == null) {
@@ -503,12 +503,12 @@ public abstract class DConnectMessageService extends Service
         }
         String json = loadFile(assets.open(path));
         DConnectProfileSpecJsonParser parser =
-            DConnectProfileSpecJsonParserFactory.getDefaultFactory().createParser();
+                DConnectProfileSpecJsonParserFactory.getDefaultFactory().createParser();
         return parser.parseJson(new JSONObject(json));
     }
 
     private static String findProfileSpecPath(final AssetManager assets, final String profileName)
-        throws IOException {
+            throws IOException {
         String[] fileNames = assets.list("api");
         if (fileNames == null) {
             return null;
@@ -518,7 +518,7 @@ public abstract class DConnectMessageService extends Service
                 continue;
             }
             String fileName = fileFullName.substring(0,
-                fileFullName.length() - SPEC_FILE_EXTENSION.length());
+                    fileFullName.length() - SPEC_FILE_EXTENSION.length());
             if (fileName.equalsIgnoreCase(profileName)) {
                 return "api/" + fileFullName;
             }
@@ -595,10 +595,10 @@ public abstract class DConnectMessageService extends Service
      * @return dConnectのアクションの場合はtrue, それ以外はfalse
      */
     private boolean checkAction(final String action) {
-        return (action.equals(IntentDConnectMessage.ACTION_GET) 
-             || action.equals(IntentDConnectMessage.ACTION_PUT)
-             || action.equals(IntentDConnectMessage.ACTION_POST) 
-             || action.equals(IntentDConnectMessage.ACTION_DELETE));
+        return (action.equals(IntentDConnectMessage.ACTION_GET)
+                || action.equals(IntentDConnectMessage.ACTION_PUT)
+                || action.equals(IntentDConnectMessage.ACTION_POST)
+                || action.equals(IntentDConnectMessage.ACTION_DELETE));
     }
 
     /**
@@ -637,16 +637,18 @@ public abstract class DConnectMessageService extends Service
     protected synchronized void stopDConnect() {
         mRunningFlag = false;
 
-        mRequestManager.shutdown();
+        if (mRequestManager != null) {
+            mRequestManager.shutdown();
+        }
         hideNotification();
     }
 
     /**
      * 各デバイスプラグインにリクエストを受け渡す.
-     * 
+     *
      * ここで、アクセストークンをリクエストに付加する。
      * また、アクセストークンが存在しない場合には、デバイスプラグインにアクセストークンの取得要求を行う。
-     * 
+     *
      * @param request リクエスト
      * @param response レスポンス
      */
@@ -657,7 +659,7 @@ public abstract class DConnectMessageService extends Service
     /**
      * イベント用メッセージのサービスIDを置換する.
      * <br>
-     * 
+     *
      * デバイスプラグインから送られてくるサービスIDは、デバイスプラグインの中でIDになっている。
      * dConnect ManagerでデバイスプラグインのIDをサービスIDに付加することでDNSっぽい動きを実現する。
      *
@@ -667,7 +669,7 @@ public abstract class DConnectMessageService extends Service
     private void replaceServiceId(final Intent event, final DevicePlugin plugin) {
         String serviceId = event.getStringExtra(IntentDConnectMessage.EXTRA_SERVICE_ID);
         event.putExtra(IntentDConnectMessage.EXTRA_SERVICE_ID,
-            mPluginMgr.appendServiceId(plugin, serviceId));
+                mPluginMgr.appendServiceId(plugin, serviceId));
     }
 
     /**
@@ -766,7 +768,7 @@ public abstract class DConnectMessageService extends Service
 
     /**
      * 指定されたアクセストークンのOriginを取得する.
-     * 
+     *
      * @param accessToken アクセストークン
      * @return Origin
      */

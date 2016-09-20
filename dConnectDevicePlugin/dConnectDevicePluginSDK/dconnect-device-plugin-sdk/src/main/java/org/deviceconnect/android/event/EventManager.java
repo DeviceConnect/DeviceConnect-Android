@@ -77,9 +77,10 @@ public enum EventManager {
         Event event = new Event();
         event.setSessionKey(sessionKey);
         event.setAccessToken(accessToken);
-        event.setProfile(profile);
-        event.setInterface(inter);
-        event.setAttribute(attribute);
+        // XXXX パスの大文字小文字を無視
+        event.setProfile(profile != null ? profile.toLowerCase() : null);
+        event.setInterface(inter != null ? inter.toLowerCase() : null);
+        event.setAttribute(attribute != null ? attribute.toLowerCase() : null);
         event.setServiceId(serviceId);
         if (name != null) {
             event.setReceiverName(name.flattenToString());
@@ -157,6 +158,21 @@ public enum EventManager {
     public void flush() {
         checkState();
         mController.flush();
+    }
+
+    public Event getEvent(final Intent request) {
+        ComponentName receiver = request.getParcelableExtra(DConnectMessage.EXTRA_RECEIVER);
+        String receiverName = receiver != null ? receiver.flattenToString() : null;
+        String profile = request.getStringExtra(DConnectMessage.EXTRA_PROFILE);
+        String inter = request.getStringExtra(DConnectMessage.EXTRA_INTERFACE);
+        String attribute = request.getStringExtra(DConnectMessage.EXTRA_ATTRIBUTE);
+        // XXXX パスの大文字小文字を無視
+        return mController.getEvent(request.getStringExtra(DConnectMessage.EXTRA_SERVICE_ID),
+                profile != null ? profile.toLowerCase() : null,
+                inter != null ? inter.toLowerCase() : null,
+                attribute != null ? attribute.toLowerCase() : null,
+                request.getStringExtra(DConnectMessage.EXTRA_SESSION_KEY),
+                receiverName);
     }
 
     /**

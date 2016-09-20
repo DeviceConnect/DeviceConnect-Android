@@ -22,9 +22,9 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import org.deviceconnect.android.deviceplugin.uvc.R;
-import org.deviceconnect.android.deviceplugin.uvc.UVCDevice;
+import org.deviceconnect.android.deviceplugin.uvc.core.UVCDevice;
 import org.deviceconnect.android.deviceplugin.uvc.UVCDeviceApplication;
-import org.deviceconnect.android.deviceplugin.uvc.UVCDeviceManager;
+import org.deviceconnect.android.deviceplugin.uvc.core.UVCDeviceManager;
 import org.deviceconnect.android.deviceplugin.uvc.fragment.dialog.ErrorDialogFragment;
 import org.deviceconnect.android.deviceplugin.uvc.fragment.dialog.ProgressDialogFragment;
 
@@ -34,8 +34,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
-import static org.deviceconnect.android.deviceplugin.uvc.UVCDeviceManager.ConnectionListener;
-import static org.deviceconnect.android.deviceplugin.uvc.UVCDeviceManager.DiscoveryListener;
+import static org.deviceconnect.android.deviceplugin.uvc.core.UVCDeviceManager.ConnectionListener;
+import static org.deviceconnect.android.deviceplugin.uvc.core.UVCDeviceManager.DiscoveryListener;
 
 public class UVCDeviceListFragment extends Fragment {
     /**
@@ -78,7 +78,7 @@ public class UVCDeviceListFragment extends Fragment {
                              final Bundle savedInstanceState) {
         mDeviceAdapter = new DeviceAdapter(getActivity(), createDeviceContainers());
 
-        mFooterView = inflater.inflate(R.layout.item_uvc_searching, null);
+        mFooterView = inflater.inflate(R.layout.item_uvc_error, null);
 
         View rootView = inflater.inflate(R.layout.fragment_uvc_device_list, null);
         mListView = (ListView) rootView.findViewById(R.id.device_list_view);
@@ -127,7 +127,7 @@ public class UVCDeviceListFragment extends Fragment {
                     mListView.removeFooterView(mFooterView);
                 }
                 if (mgr.getDeviceList().size() == 0) {
-                    mFooterView = inflater.inflate(R.layout.item_uvc_searching, null);
+                    mFooterView = inflater.inflate(R.layout.item_uvc_error, null);
                     mListView.addFooterView(mFooterView);
                 }
             }

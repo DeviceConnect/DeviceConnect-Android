@@ -7,19 +7,18 @@
 package org.deviceconnect.android.deviceplugin.chromecast.profile;
 
 import android.content.Intent;
-import android.os.Bundle;
 
+import org.deviceconnect.android.deviceplugin.chromecast.ChromeCastDeviceService;
 import org.deviceconnect.android.deviceplugin.chromecast.ChromeCastService;
 import org.deviceconnect.android.deviceplugin.chromecast.R;
 import org.deviceconnect.android.deviceplugin.chromecast.core.ChromeCastDiscovery;
-import org.deviceconnect.android.event.EventError;
-import org.deviceconnect.android.event.EventManager;
-import org.deviceconnect.android.message.MessageUtils;
-import org.deviceconnect.android.profile.DConnectProfileProvider;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
-import org.deviceconnect.message.DConnectMessage;
+import org.deviceconnect.android.profile.api.DConnectApi;
+import org.deviceconnect.android.profile.api.GetApi;
+import org.deviceconnect.android.service.DConnectService;
+import org.deviceconnect.android.service.DConnectServiceProvider;
 
-import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -36,64 +35,41 @@ public class ChromeCastServiceDiscoveryProfile extends ServiceDiscoveryProfile {
      * 
      * @param provider プロファイルプロバイダ
      */
-    public ChromeCastServiceDiscoveryProfile(final DConnectProfileProvider provider) {
+    public ChromeCastServiceDiscoveryProfile(final DConnectServiceProvider provider) {
         super(provider);
+        addApi(mServiceDiscoveryApi);
     }
 
-    @Override
-    protected boolean onGetServices(final Intent request, final Intent response) {
-        ChromeCastDiscovery discovery = ((ChromeCastService) getContext()).getChromeCastDiscovery();
-        discovery.registerEvent();
-        List<Bundle> services = new ArrayList<Bundle>();
-        for (int i = 0; i < discovery.getDeviceNames().size(); i++) {
-            Bundle service = new Bundle();
-            setId(service, discovery.getDeviceNames().get(i));
-            setName(service, getDeviceName(discovery.getDeviceNames().get(i)));
-            setType(service, NetworkType.WIFI);
-            setOnline(service, true);
-            setScopes(service, getProfileProvider());
-            services.add(service);
-        }
-        setServices(response, services);
-        setResult(response, DConnectMessage.RESULT_OK);
-        return true;
-    }
+    private final DConnectApi mServiceDiscoveryApi = new GetApi() {
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            ChromeCastDiscovery discovery = ((ChromeCastService) getContext()).getChromeCastDiscovery();
+            discovery.registerEvent();
+            List<DConnectService> disappeared = getServiceProvider().getServiceList();
+            for (int i = 0; i < discovery.getDeviceNames().size(); i++) {
 
-    @Override
-    protected boolean onPutOnServiceChange(final Intent request, final Intent response, 
-                                            final String serviceId, final String sessionKey) {
-        EventError error = EventManager.INSTANCE.addEvent(request);
-        switch (error) {
-        case NONE:
-            setResult(response, DConnectMessage.RESULT_OK);
-            break;
-        case INVALID_PARAMETER:
-            MessageUtils.setInvalidRequestParameterError(response);
-            break;
-        default:
-            MessageUtils.setUnknownError(response);
-            break;
-        }
-        return true;
-    }
+                String name = discovery.getDeviceNames().get(i);
+                DConnectService castService = getServiceProvider().getService(name);
+                if (castService == null) {
+                    castService = new ChromeCastDeviceService(name);
+                    getServiceProvider().addService(castService);
+                } else {
+                    for (Iterator<DConnectService> it = disappeared.iterator(); ; it.hasNext()) {
+                        DConnectService cache = it.next();
+                        if (cache.getId().equals(castService.getId())) {
+                            it.remove();
+                            break;
+                        }
+                    }
+                }
+            }
 
-    @Override
-    protected boolean onDeleteOnServiceChange(final Intent request, final Intent response,
-                                                final String serviceId, final String sessionKey) {
-        EventError error = EventManager.INSTANCE.removeEvent(request);
-        switch (error) {
-        case NONE:
-            setResult(response, DConnectMessage.RESULT_OK);
-            break;
-        case INVALID_PARAMETER:
-            MessageUtils.setInvalidRequestParameterError(response);
-            break;
-        default:
-            MessageUtils.setUnknownError(response);
-            break;
+            // レスポンス作成.
+            appendServiceList(response);
+
+            return true;
         }
-        return true;
-    }
+    };
 
     private String getDeviceName(final String name) {
         return getContext().getResources().getString(R.string.device_name, name);

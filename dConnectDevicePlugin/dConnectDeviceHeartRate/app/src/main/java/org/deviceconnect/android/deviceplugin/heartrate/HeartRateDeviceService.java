@@ -7,7 +7,6 @@
 package org.deviceconnect.android.deviceplugin.heartrate;
 
 import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -25,16 +24,18 @@ import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.android.service.DConnectService;
+import org.deviceconnect.android.service.DConnectServiceListener;
 import org.deviceconnect.android.service.DConnectServiceProvider;
 
-import java.util.List;
 import java.util.logging.Logger;
 
 /**
  * This service provide Health Profile.
  * @author NTT DOCOMO, INC.
  */
-public class HeartRateDeviceService extends DConnectMessageService {
+public class HeartRateDeviceService extends DConnectMessageService
+    implements DConnectServiceListener {
+
     /** Logger. */
     private final Logger mLogger = Logger.getLogger("heartrate.dplugin");
 
@@ -51,7 +52,6 @@ public class HeartRateDeviceService extends DConnectMessageService {
                 int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, -1);
                 if (state == BluetoothAdapter.STATE_ON) {
                     getManager().start();
-                    getManager().addOnHeartRateDiscoveryListener(mOnDiscoveryListener);
                 } else if (state == BluetoothAdapter.STATE_OFF) {
                     getManager().stop();
                 }
@@ -121,6 +121,8 @@ public class HeartRateDeviceService extends DConnectMessageService {
         addProfile(new HeartRateServiceDiscoveryProfile(getServiceProvider()));
         mHeartRateProfile = new HeartRateHealthProfile(app.getHeartRateManager());
 
+        getServiceProvider().addServiceListener(this);
+
         registerBluetoothFilter();
     }
 
@@ -128,9 +130,81 @@ public class HeartRateDeviceService extends DConnectMessageService {
     public void onDestroy() {
         super.onDestroy();
         unregisterBluetoothFilter();
+        getServiceProvider().removeServiceListener(this);
         getManager().removeOnHeartRateDiscoveryListener(mOnDiscoveryListener);
         getManager().stop();
         mLogger.fine("HeartRateDeviceService end.");
+    }
+
+    @Override
+    public void onServiceAdded(final DConnectService service) {
+        if (BuildConfig.DEBUG) {
+            mLogger.info("onServiceAdded: " + service.getName());
+        }
+        // NOP.
+    }
+
+    @Override
+    public void onServiceRemoved(final DConnectService service) {
+        if (BuildConfig.DEBUG) {
+            mLogger.info("onServiceRemoved: " + service.getName());
+        }
+        getManager().disconnectBleDevice(service.getId());
+    }
+
+    @Override
+    public void onStatusChange(final DConnectService service) {
+        if (BuildConfig.DEBUG) {
+            mLogger.info("onStatusChange: " + service.getName());
+        }
+        // NOP.
+    }
+
+    @Override
+    protected void onManagerUninstalled() {
+        // Managerアンインストール検知時の処理。
+        if (BuildConfig.DEBUG) {
+            mLogger.info("Plug-in : onManagerUninstalled");
+        }
+    }
+
+    @Override
+    protected void onManagerTerminated() {
+        // Manager正常終了通知受信時の処理。
+        if (BuildConfig.DEBUG) {
+            mLogger.info("Plug-in : onManagerTerminated");
+        }
+    }
+
+    @Override
+    protected void onManagerEventTransmitDisconnected(String sessionKey) {
+        // ManagerのEvent送信経路切断通知受信時の処理。
+        if (BuildConfig.DEBUG) {
+            mLogger.info("Plug-in : onManagerEventTransmitDisconnected");
+        }
+        if (sessionKey != null) {
+            EventManager.INSTANCE.removeEvents(sessionKey);
+        } else {
+            EventManager.INSTANCE.removeAll();
+        }
+    }
+
+    @Override
+    protected void onDevicePluginReset() {
+        // Device Plug-inへのReset要求受信時の処理。
+        if (BuildConfig.DEBUG) {
+            mLogger.info("Plug-in : onDevicePluginReset");
+        }
+        resetPluginResource();
+    }
+
+    /**
+     * リソースリセット処理.
+     */
+    private void resetPluginResource() {
+        /** 全イベント削除. */
+        EventManager.INSTANCE.removeAll();
+
     }
 
     @Override

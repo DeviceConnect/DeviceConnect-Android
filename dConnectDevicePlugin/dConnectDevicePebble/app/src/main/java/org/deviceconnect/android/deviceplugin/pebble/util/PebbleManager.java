@@ -6,29 +6,6 @@
  */
 package org.deviceconnect.android.deviceplugin.pebble.util;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
-import org.deviceconnect.android.profile.util.CanvasProfileUtils;
-import org.deviceconnect.message.DConnectMessage;
-import org.deviceconnect.profile.BatteryProfileConstants;
-import org.deviceconnect.profile.CanvasProfileConstants.Mode;
-import org.deviceconnect.profile.DeviceOrientationProfileConstants;
-import org.deviceconnect.profile.KeyEventProfileConstants;
-import org.deviceconnect.profile.SettingsProfileConstants;
-import org.deviceconnect.profile.VibrationProfileConstants;
-import org.json.JSONArray;
-import org.json.JSONObject;
-
 import android.app.Notification;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -44,6 +21,29 @@ import android.util.Log;
 import com.getpebble.android.kit.BuildConfig;
 import com.getpebble.android.kit.PebbleKit;
 import com.getpebble.android.kit.util.PebbleDictionary;
+
+import org.deviceconnect.android.profile.util.CanvasProfileUtils;
+import org.deviceconnect.message.DConnectMessage;
+import org.deviceconnect.profile.BatteryProfileConstants;
+import org.deviceconnect.profile.CanvasProfileConstants.Mode;
+import org.deviceconnect.profile.DeviceOrientationProfileConstants;
+import org.deviceconnect.profile.KeyEventProfileConstants;
+import org.deviceconnect.profile.SettingsProfileConstants;
+import org.deviceconnect.profile.VibrationProfileConstants;
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Pebbleとのやり取りを管理するクラス.
@@ -347,8 +347,11 @@ public final class PebbleManager {
     private BroadcastReceiver mConnectHandler = new BroadcastReceiver() {
         @Override
         public void onReceive(final Context context, final Intent intent) {
-            for (OnConnectionStatusListener l : mConnectStatusListeners) {
-                l.onConnect();
+            String macAddress = intent.getStringExtra("address");
+            if (macAddress != null) {
+                for (OnConnectionStatusListener l : mConnectStatusListeners) {
+                    l.onConnect(macAddress);
+                }
             }
         }
     };
@@ -359,8 +362,11 @@ public final class PebbleManager {
     private BroadcastReceiver mDisconnectHandler = new BroadcastReceiver() {
         @Override
         public void onReceive(final Context context, final Intent intent) {
-            for (OnConnectionStatusListener l : mConnectStatusListeners) {
-                l.onDisconnect();
+            String macAddress = intent.getStringExtra("address");
+            if (macAddress != null) {
+                for (OnConnectionStatusListener l : mConnectStatusListeners) {
+                    l.onDisconnect(macAddress);
+                }
             }
         }
     };
@@ -1061,11 +1067,13 @@ public final class PebbleManager {
     public interface OnConnectionStatusListener {
         /**
          * 接続された.
+         * @param macAddress 接続されたPebbleのMACアドレス
          */
-        void onConnect();
+        void onConnect(final String macAddress);
         /**
          * 切断された.
+         * @param macAddress 接続の切断されたPebbleのMACアドレス
          */
-        void onDisconnect();
+        void onDisconnect(final String macAddress);
     }
 }

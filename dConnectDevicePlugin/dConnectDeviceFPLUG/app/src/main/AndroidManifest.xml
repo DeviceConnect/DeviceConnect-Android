@@ -23,12 +23,24 @@
             <meta-data
                 android:name="org.deviceconnect.android.deviceplugin"
                 android:resource="@xml/deviceplugin"/>
+            <intent-filter>
+                <!-- uninstall notification -->
+                <action android:name="android.intent.action.PACKAGE_FULLY_REMOVED"/>
+                <data android:scheme="package"/>
+            </intent-filter>
         </receiver>
 
         <service
             android:name=".FPLUGDeviceService"
             android:enabled="true"
             android:exported="false"/>
+
+        <activity
+            android:name=".setting.FPLUGServiceListActivity"
+            android:configChanges="orientation|screenSize"
+            android:exported="false"
+            android:label="@string/app_name"
+            android:launchMode="singleInstance"/>
 
         <activity
             android:name=".setting.SettingActivity"

@@ -605,4 +605,47 @@ public abstract class ThetaMediaStreamRecordingProfile extends MediaStreamRecord
     private static Integer getHeight(final Intent request) {
         return parseInteger(request, PARAM_HEIGHT);
     }
+
+    public void forcedStopRecording() {
+        /** 動画記録停止処理 */
+        mClient.execute(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    ThetaDevice device = mClient.getCurrentConnectDevice();
+                    ThetaDevice.Recorder recorder = device.getRecorder();
+                    if (recorder != null && recorder.supportsVideoRecording()) {
+                        ThetaDevice.RecorderState state = recorder.getState();
+                        switch (state) {
+                            case RECORDING:
+                                device.stopVideoRecording();
+                                break;
+                            case INACTIVE:
+                            default:
+                                break;
+                        }
+                    }
+                } catch (ThetaDeviceException e) {
+                    // Not operation.
+                }
+
+            }
+        });
+
+        /** プレビュー停止処理 */
+        mClient.execute(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    ThetaDevice device = mClient.getCurrentConnectDevice();
+                    ThetaDevice.Recorder recorder = device.getRecorder();
+                    if (recorder != null && recorder.supportsPreview()) {
+                        stopLivePreview();
+                    }
+                } catch (ThetaDeviceException cause) {
+                    // Not operation.
+                }
+            }
+        });
+    }
 }

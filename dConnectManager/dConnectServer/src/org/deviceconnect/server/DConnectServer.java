@@ -89,6 +89,12 @@ public abstract class DConnectServer {
     public abstract String getVersion();
 
     /**
+     * WebSocketを切断する.
+     * @param sessionKey セッションキー
+     */
+    public abstract void disconnectWebSocket(String sessionKey);
+
+    /**
      * イベントリスナーを設定します.
      * 
      * @param listener リスナーオブジェクト
@@ -116,5 +122,25 @@ public abstract class DConnectServer {
         }
 
         socket.sendEvent(event);
+    }
+
+    /**
+     * 指定されたセッションキーを持つクライアントのWebSocket切断要求を行う.
+     *
+     * @param sessionKey クライアントを特定するためのセッションキー.
+     *
+     * @throws IOException セッションが見つからない場合スローされる.
+     */
+    public void disconnectionWebSocket(final String sessionKey) throws IOException {
+        if (!isRunning()) {
+            throw new RuntimeException("DConnectServer is not running.");
+        }
+
+        DConnectWebSocket socket = mSockets.get(sessionKey);
+        if (socket == null) {
+            throw new IOException("Cannot found session's socket.");
+        }
+
+        socket.disconnectWebSocket();
     }
 }

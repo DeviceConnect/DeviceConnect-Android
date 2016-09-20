@@ -40,6 +40,13 @@ public interface DConnectServerEventListener {
     void onServerLaunched();
 
     /**
+     * WebSocketのセッションが接続された時に呼び出されます。
+     * @param uri 接続されたセッションのuri
+     * @param sessionKey 接続されたセッションのsessionKey
+     */
+    void onWebSocketConnected(String uri, String sessionKey);
+
+    /**
      * WebSocketのセッションが切断された時に呼び出されます.
      * @param sessionKey 切断されたセッションのsessionKey
      */

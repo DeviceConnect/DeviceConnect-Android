@@ -6,7 +6,6 @@
  */
 package org.deviceconnect.android.deviceplugin.sw.profile;
 
-import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -14,13 +13,15 @@ import android.graphics.Bitmap.CompressFormat;
 import android.graphics.BitmapFactory;
 
 import com.sonyericsson.extras.liveware.aef.control.Control;
-import com.sonyericsson.extras.liveware.aef.registration.Registration;
 import com.sonyericsson.extras.liveware.extension.util.registration.DeviceInfoHelper;
 
 import org.deviceconnect.android.deviceplugin.sw.R;
 import org.deviceconnect.android.deviceplugin.sw.SWConstants;
+import org.deviceconnect.android.deviceplugin.sw.service.SWService;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.CanvasProfile;
+import org.deviceconnect.android.profile.api.DConnectApi;
+import org.deviceconnect.android.profile.api.PostApi;
 import org.deviceconnect.android.profile.util.CanvasProfileUtils;
 import org.deviceconnect.message.DConnectMessage;
 
@@ -35,51 +36,54 @@ import java.util.concurrent.Executors;
  */
 public class SWCanvasProfile extends CanvasProfile {
 
-    private ExecutorService mImageService = Executors.newSingleThreadExecutor();
+    private final ExecutorService mImageService = Executors.newSingleThreadExecutor();
+
+    private final DConnectApi mPostDrawImageApi = new PostApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_DRAW_IMAGE;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            final byte[] data = getData(request);
+            final double x = getX(request);
+            final double y = getY(request);
+            final String mode = getMode(request);
+
+            if (data == null) {
+                mImageService.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        String uri = getURI(request);
+                        byte[] result = getData(uri);
+                        if (result == null) {
+                            MessageUtils.setInvalidRequestParameterError(response, "could not get image from uri.");
+                            sendResponse(response);
+                            return;
+                        }
+                        drawImage(response, result, x, y, mode);
+                        sendResponse(response);
+                    }
+                });
+                return false;
+            } else {
+                drawImage(response, data, x, y, mode);
+                return true;
+            }
+        }
+    };
 
     /**
      * コンストラクタ.
      */
     public SWCanvasProfile() {
-
+        addApi(mPostDrawImageApi);
     }
 
-    @Override
-    protected boolean onPostDrawImage(final Intent request, final Intent response, final String serviceId,
-                                      final String mimeType, final byte[] data, final String uri, final double x, final double y, final String mode) {
-        final BluetoothDevice device = SWUtil.findSmartWatch(serviceId);
-        if (device == null) {
-            MessageUtils.setNotFoundServiceError(response, "No device is found: " + serviceId);
-            return true;
-        }
-        if (serviceId == null) {
-            MessageUtils.setInvalidRequestParameterError(response);
-            return true;
-        }
-        if (data == null) {
-            mImageService.execute(new Runnable() {
-                @Override
-                public void run() {
-                    byte[] result = getData(uri);
-                    if (result == null) {
-                        MessageUtils.setInvalidRequestParameterError(response, "could not get image from uri.");
-                        sendResponse(response);
-                        return;
-                    }
-                    drawImage(response, device, result, x, y, mode, serviceId);
-                    sendResponse(response);
-                }
-            });
-            return false;
-        } else {
-            drawImage(response, device, data, x, y, mode, serviceId);
-            return true;
-        }
-    }
-
-    private void drawImage(final Intent response, BluetoothDevice device, byte[] data, double x, double y, String mode, String serviceId) {
-        DisplaySize size = determineDisplaySize(getContext(), SWUtil.toHostAppPackageName(device.getName()));
-        boolean result = showDisplay(data, x, y, mode, size, serviceId, response);
+    private void drawImage(final Intent response, byte[] data, double x, double y, String mode) {
+        DisplaySize size = determineDisplaySize(getContext(), ((SWService) getService()).getHostPackageName());
+        boolean result = showDisplay(data, x, y, mode, size);
         if (!result) {
             /* unknown mode-value. */
             MessageUtils.setInvalidRequestParameterError(response);
@@ -96,13 +100,10 @@ public class SWCanvasProfile extends CanvasProfile {
      * @param y         y座標
      * @param mode      画像描画モード
      * @param size      画面サイズ
-     * @param serviceId サービスID
-     * @param response  レスポンス
      * @return true: success / false: error(unknown mode-value)
      */
     private boolean showDisplay(final byte[] data, final double x, final double y,
-                                final String mode, final DisplaySize size, final String serviceId,
-                                final Intent response) {
+                                final String mode, final DisplaySize size) {
 
         BitmapFactory.Options options = new BitmapFactory.Options();
         options.inMutable = true;
@@ -134,7 +135,7 @@ public class SWCanvasProfile extends CanvasProfile {
 
             Intent intent = new Intent(Control.Intents.CONTROL_DISPLAY_DATA_INTENT);
             intent.putExtra(Control.Intents.EXTRA_DATA, outputStream.toByteArray());
-            sendToHostApp(intent, serviceId);
+            sendToHostApp(intent);
             return true;
         } else {
             return false;
@@ -162,18 +163,8 @@ public class SWCanvasProfile extends CanvasProfile {
         return new DisplaySize(width, height);
     }
 
-    /**
-     * ホストアプリケーションに対してインテントを送信する.
-     *
-     * @param intent    インテント
-     * @param serviceId サービスID
-     */
-    protected void sendToHostApp(final Intent intent, final String serviceId) {
-        BluetoothDevice device = SWUtil.findSmartWatch(serviceId);
-        String deviceName = device.getName();
-        intent.putExtra(Control.Intents.EXTRA_AEA_PACKAGE_NAME, getContext().getPackageName());
-        intent.setPackage(SWUtil.toHostAppPackageName(deviceName));
-        getContext().sendBroadcast(intent, Registration.HOSTAPP_PERMISSION);
+    private void sendToHostApp(final Intent request) {
+        ((SWService) getService()).sendRequest(request);
     }
 }
 

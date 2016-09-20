@@ -9,11 +9,17 @@ package org.deviceconnect.android.deviceplugin.sphero.profile;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.text.TextUtils;
 
 import org.deviceconnect.android.deviceplugin.sphero.SpheroManager;
 import org.deviceconnect.android.deviceplugin.sphero.data.DeviceInfo;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.LightProfile;
+import org.deviceconnect.android.profile.api.DConnectApi;
+import org.deviceconnect.android.profile.api.DeleteApi;
+import org.deviceconnect.android.profile.api.GetApi;
+import org.deviceconnect.android.profile.api.PostApi;
+import org.deviceconnect.android.profile.api.PutApi;
 import org.deviceconnect.message.DConnectMessage;
 
 import java.util.HashMap;
@@ -53,79 +59,112 @@ public class SpheroLightProfile extends LightProfile {
 
     private Map<String, FlashingExecutor> mFlashingMap = new HashMap<String, FlashingExecutor>();
 
-    @Override
-    protected boolean onGetLight(final Intent request, final Intent response, final String serviceId) {
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-            return true;
-        }
 
-        DeviceInfo info = SpheroManager.INSTANCE.getDevice(serviceId);
-        if (info == null) {
-            MessageUtils.setNotFoundServiceError(response);
-            return true;
-        }
-
-        Bundle[] lights = new Bundle[2];
-        synchronized (info) {
-            lights[0] = new Bundle();
-            setLightId(lights[0], COLOR_LED_LIGHT_ID);
-            setName(lights[0], COLOR_LED_LIGHT_NAME);
-            setOn(lights[0], (Color.BLACK != info.getColor()));
-            setConfig(lights[0], "");
-
-            lights[1] = new Bundle();
-            setLightId(lights[1], BACK_LED_LIGHT_ID);
-            setName(lights[1], BACK_LED_LIGHT_NAME);
-            setOn(lights[1], info.getBackBrightness() > 0);
-            setConfig(lights[1], "");
-        }
-        setLights(response, lights);
-        setResult(response, DConnectMessage.RESULT_OK);
-        return true;
+    public SpheroLightProfile() {
+        addApi(mGetLightApi);
+        addApi(mPostLightApi);
+        addApi(mPutLightApi);
+        addApi(mDeleteLightApi);
     }
 
-    @Override
-    protected boolean onPostLight(final Intent request, final Intent response, final String serviceId,
-                                  final String lightId, final Integer color, final Double brightness,
-                                  final long[] flashing) {
-        return changeLight(response, serviceId, lightId, color, brightness, flashing);
-    }
+    private final DConnectApi mGetLightApi = new GetApi() {
 
-    @Override
-    protected boolean onPutLight(final Intent request, final Intent response, final String serviceId,
-                                 final String lightId, final String name, final Integer color,
-                                 final Double brightness, final long[] flashing) {
-        return changeLight(response, serviceId, lightId, color, brightness, flashing);
-    }
-
-    @Override
-    protected boolean onDeleteLight(final Intent request, final Intent response, final String serviceId,
-                                    final String lightId) {
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-            return true;
-        }
-
-        DeviceInfo info = SpheroManager.INSTANCE.getDevice(serviceId);
-        if (info == null) {
-            MessageUtils.setNotFoundServiceError(response);
-            return true;
-        }
-
-        synchronized (info) {
-            if (COLOR_LED_LIGHT_ID.equals(lightId) || lightId == null) {
-                info.setColor(0, 0, 0);
-                setResult(response, DConnectMessage.RESULT_OK);
-            } else if (BACK_LED_LIGHT_ID.equals(lightId)) {
-                info.setBackBrightness(0.0f);
-                setResult(response, DConnectMessage.RESULT_OK);
-            } else {
-                MessageUtils.setInvalidRequestParameterError(response, "lightId is invalid.");
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String serviceId = getServiceID(request);
+            if (serviceId == null) {
+                MessageUtils.setEmptyServiceIdError(response);
+                return true;
             }
+
+            DeviceInfo info = SpheroManager.INSTANCE.getDevice(serviceId);
+            if (info == null) {
+                MessageUtils.setNotFoundServiceError(response);
+                return true;
+            }
+
+            Bundle[] lights = new Bundle[2];
+            synchronized (info) {
+                lights[0] = new Bundle();
+                setLightId(lights[0], COLOR_LED_LIGHT_ID);
+                setName(lights[0], COLOR_LED_LIGHT_NAME);
+                setOn(lights[0], (Color.BLACK != info.getColor()));
+                setConfig(lights[0], "");
+
+                lights[1] = new Bundle();
+                setLightId(lights[1], BACK_LED_LIGHT_ID);
+                setName(lights[1], BACK_LED_LIGHT_NAME);
+                setOn(lights[1], info.getBackBrightness() > 0);
+                setConfig(lights[1], "");
+            }
+            setLights(response, lights);
+            setResult(response, DConnectMessage.RESULT_OK);
+            return true;
         }
-        return true;
-    }
+    };
+
+    private final DConnectApi mPostLightApi = new PostApi() {
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String serviceId = getServiceID(request);
+            String lightId = getLightId(request);
+            Integer color = getColor(request);
+            Double brightness = getBrightness(request);
+            long[] flashing = getFlashing(request);
+            return changeLight(response, serviceId, lightId, color, brightness, flashing);
+        }
+    };
+
+    private final DConnectApi mPutLightApi = new PutApi() {
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String serviceId = getServiceID(request);
+            String lightId = getLightId(request);
+            Integer color = getColor(request);
+            Double brightness = getBrightness(request);
+            long[] flashing = getFlashing(request);
+            String name = getName(request);
+            if (TextUtils.isEmpty(name)) {
+                MessageUtils.setInvalidRequestParameterError(response);
+                return true;
+            }
+            return changeLight(response, serviceId, lightId, color, brightness, flashing);
+        }
+    };
+
+    private final DConnectApi mDeleteLightApi = new DeleteApi() {
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String serviceId = getServiceID(request);
+            String lightId = getLightId(request);
+            if (serviceId == null) {
+                MessageUtils.setEmptyServiceIdError(response);
+                return true;
+            }
+
+            DeviceInfo info = SpheroManager.INSTANCE.getDevice(serviceId);
+            if (info == null) {
+                MessageUtils.setNotFoundServiceError(response);
+                return true;
+            }
+
+            synchronized (info) {
+                if (COLOR_LED_LIGHT_ID.equals(lightId) || lightId == null) {
+                    info.setColor(0, 0, 0);
+                    setResult(response, DConnectMessage.RESULT_OK);
+                } else if (BACK_LED_LIGHT_ID.equals(lightId)) {
+                    info.setBackBrightness(0.0f);
+                    setResult(response, DConnectMessage.RESULT_OK);
+                } else {
+                    MessageUtils.setInvalidRequestParameterError(response, "lightId is invalid.");
+                }
+            }
+            return true;
+        }
+    };
 
     /**
      * Change the color of the light.

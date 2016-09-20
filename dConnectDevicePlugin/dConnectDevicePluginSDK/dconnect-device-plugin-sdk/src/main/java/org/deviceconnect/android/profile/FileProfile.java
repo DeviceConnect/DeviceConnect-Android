@@ -22,27 +22,6 @@ import java.util.List;
  * スマートデバイスに対してのファイル操作機能を提供するAPI.<br>
  * スマートデバイスに対してのファイル操作機能を提供するデバイスプラグインは当クラスを継承し、対応APIを実装すること。 <br>
  * </p>
- * 
- * <h1>各API提供メソッド</h1>
- * <p>
- * File Profile の各APIへのリクエストに対し、以下のコールバックメソッド群が自動的に呼び出される。<br>
- * サブクラスは以下のメソッド群からデバイスプラグインが提供するAPI用のメソッドをオーバーライドし、機能を実装すること。<br>
- * オーバーライドされていない機能は自動的に非対応APIとしてレスポンスを返す。
- * </p>
- * <ul>
- * <li>File Send API [POST] :
- * {@link FileProfile#onPostSend(Intent, Intent, String, String, String, byte[])}</li>
- * <li>Make Directory API [POST] :
- * {@link FileProfile#onPostMkdir(Intent, Intent, String, String)}</li>
- * <li>File Receive API [GET] :
- * {@link FileProfile#onGetReceive(Intent, Intent, String, String)}</li>
- * <li>File List API [GET] :
- * {@link FileProfile#onGetList(Intent, Intent, String, String, String, String, Integer, Integer)}</li>
- * <li>File Remove API [DELETE] :
- * {@link FileProfile#onDeleteRemove(Intent, Intent, String, String)}</li>
- * <li>Remove Directory API [POST] :
- * {@link FileProfile#onDeleteRmdir(Intent, Intent, String, String, boolean)}</li>
- * </ul>
  * @author NTT DOCOMO, INC.
  */
 public abstract class FileProfile extends DConnectProfile implements FileProfileConstants {
@@ -64,6 +43,19 @@ public abstract class FileProfile extends DConnectProfile implements FileProfile
     @Override
     public final String getProfileName() {
         return PROFILE_NAME;
+    }
+
+    @Override
+    public boolean onRequest(final Intent request, final Intent response) {
+        String uri = request.getStringExtra(PARAM_URI);
+        if (uri != null) {
+            if (uri.startsWith("content://")) {
+                byte[] data = getContentData(uri);
+                request.putExtra(PARAM_DATA, data);
+                request.removeExtra(PARAM_URI);
+            }
+        }
+        return super.onRequest(request, response);
     }
 
     // ------------------------------------
@@ -249,6 +241,16 @@ public abstract class FileProfile extends DConnectProfile implements FileProfile
      */
     public static String getPath(final Intent request) {
         return request.getStringExtra(PARAM_PATH);
+    }
+
+    /**
+     * リクエストから画像ファイルのバイナリを取得する.
+     *
+     * @param request リクエストパラメータ
+     * @return 画像ファイルのバイナリ。無い場合はnullを返す。
+     */
+    public static byte[] getData(final Intent request) {
+        return request.getByteArrayExtra(PARAM_DATA);
     }
     
     /**

@@ -1,3 +1,9 @@
+/*
+ DConnectServiceManager.java
+ Copyright (c) 2016 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.service;
 
 
@@ -12,10 +18,16 @@ import org.deviceconnect.android.profile.spec.DConnectProfileSpec;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-public class DConnectServiceManager implements DConnectServiceProvider {
+/**
+ * Device Connect APIサービス管理インターフェースのデフォルト実装.
+ * @author NTT DOCOMO, INC.
+ */
+public class DConnectServiceManager implements DConnectServiceProvider,
+    DConnectService.OnStatusChangeListener {
 
     private DConnectPluginSpec mPluginSpec;
 
@@ -36,8 +48,13 @@ public class DConnectServiceManager implements DConnectServiceProvider {
     private final Map<String, DConnectService> mDConnectServices
         = Collections.synchronizedMap(new HashMap<String, DConnectService>());
 
+    private final List<DConnectServiceListener> mServiceListeners
+        = Collections.synchronizedList(new ArrayList<DConnectServiceListener>());
+
     @Override
     public void addService(final DConnectService service) {
+        service.setOnStatusChangeListener(this);
+        service.setContext(mContext);
         if (mPluginSpec != null) {
             for (DConnectProfile profile : service.getProfileList()) {
                 DConnectProfileSpec profileSpec =
@@ -59,6 +76,8 @@ public class DConnectServiceManager implements DConnectServiceProvider {
             profile.setContext(mContext);
         }
         mDConnectServices.put(service.getId(), service);
+
+        notifyOnServiceAdded(service);
     }
 
     private String createPath(final DConnectApi api) {
@@ -77,8 +96,17 @@ public class DConnectServiceManager implements DConnectServiceProvider {
     }
 
     @Override
-    public void removeService(final DConnectService service) {
-        mDConnectServices.remove(service.getId());
+    public boolean removeService(final DConnectService service) {
+        return removeService(service.getId()) != null;
+    }
+
+    @Override
+    public DConnectService removeService(final String serviceId) {
+        DConnectService removed = mDConnectServices.remove(serviceId);
+        if (removed != null) {
+            notifyOnServiceRemoved(removed);
+        }
+        return removed;
     }
 
     @Override
@@ -101,5 +129,55 @@ public class DConnectServiceManager implements DConnectServiceProvider {
     @Override
     public boolean hasService(final String serviceId) {
         return getService(serviceId) != null;
+    }
+
+    @Override
+    public void addServiceListener(final DConnectServiceListener listener) {
+        synchronized (mServiceListeners) {
+            if (!mServiceListeners.contains(listener)) {
+                mServiceListeners.add(listener);
+            }
+        }
+    }
+
+    @Override
+    public void removeServiceListener(final DConnectServiceListener listener) {
+        synchronized (mServiceListeners) {
+            for (Iterator<DConnectServiceListener> it = mServiceListeners.iterator(); ; it.hasNext()) {
+                if (it.next() == listener) {
+                    it.remove();
+                    break;
+                }
+            }
+        }
+    }
+
+    private void notifyOnServiceAdded(final DConnectService service) {
+        synchronized (mServiceListeners) {
+            for (DConnectServiceListener l : mServiceListeners) {
+                l.onServiceAdded(service);
+            }
+        }
+    }
+
+    private void notifyOnServiceRemoved(final DConnectService service) {
+        synchronized (mServiceListeners) {
+            for (DConnectServiceListener l : mServiceListeners) {
+                l.onServiceRemoved(service);
+            }
+        }
+    }
+
+    private void notifyOnStatusChange(final DConnectService service) {
+        synchronized (mServiceListeners) {
+            for (DConnectServiceListener l : mServiceListeners) {
+                l.onStatusChange(service);
+            }
+        }
+    }
+
+    @Override
+    public void onStatusChange(final DConnectService service) {
+        notifyOnStatusChange(service);
     }
 }

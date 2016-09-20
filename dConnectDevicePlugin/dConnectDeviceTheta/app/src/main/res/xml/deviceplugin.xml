@@ -4,7 +4,7 @@
     <profile name="serviceDiscovery" />
     <profile name="serviceInformation" />
     <profile name="system" />
-    <profile name="mediaStream_Recording" />
+    <profile name="mediaStreamRecording" />
     <profile name="file" />
     <profile name="battery" />
     <profile name="omnidirectionalImage">

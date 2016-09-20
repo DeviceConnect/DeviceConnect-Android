@@ -3,20 +3,34 @@ apply plugin: 'com.android.application'
 android {
     compileSdkVersion 23
     buildToolsVersion '23.0.2'
+
+    def getVersionName = { ->
+        def version
+        if (System.getProperty('os.name').toLowerCase().contains('windows')) {
+            version = ["cmd", "/c", "git describe --tags"].execute().in.text.trim()
+        } else {
+            version = ["sh", "-c", "git describe --tags"].execute().in.text.trim()
+        }
+        version = version.empty ? "2.0.0" : version
+        return "${version}"
+    }
+
     defaultConfig {
         applicationId 'org.deviceconnect.android.deviceplugin.awsiot'
         minSdkVersion 16
         targetSdkVersion 23
         versionCode 1
-        versionName "1.0.0"
+        versionName getVersionName()
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
+
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
     packagingOptions {
         exclude 'META-INF/DEPENDENCIES'
         exclude 'META-INF/LICENSE'
@@ -25,6 +39,7 @@ android {
         exclude 'META-INF/LICENSE.txt'
         exclude 'META-INF/DEPENDENCIES.txt'
     }
+
     productFlavors {
     }
 }

@@ -20,6 +20,10 @@ import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.NotificationProfile;
+import org.deviceconnect.android.profile.api.DConnectApi;
+import org.deviceconnect.android.profile.api.DeleteApi;
+import org.deviceconnect.android.profile.api.PostApi;
+import org.deviceconnect.android.profile.api.PutApi;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
@@ -58,163 +62,151 @@ public class HostNotificationProfile extends NotificationProfile {
     /** ランダムシード. */
     private final Random mRandom = new Random();
 
-    @Override
-    protected boolean onPostNotify(final Intent request, final Intent response, final String serviceId,
-            final NotificationType type, final Direction dir, final String lang, final String body, final String tag,
-            final byte[] iconData) {
+    private final DConnectApi mPostNotifyApi = new PostApi() {
 
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else {
-            if (body == null) {
-                MessageUtils.setInvalidRequestParameterError(response,
-                        "body is invalid.");
-                return true;
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_NOTIFY;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            if (mNotificationStatusReceiver == null) {
+                mNotificationStatusReceiver = new NotificationStatusReceiver();
+                getContext().getApplicationContext().registerReceiver(mNotificationStatusReceiver,
+                    new IntentFilter(ACTON_NOTIFICATION));
+            }
+            String serviceId = getServiceID(request);
+            NotificationType type = getType(request);
+            String body = getBody(request);
+
+            int iconType = 0;
+            String title = "";
+            if (type == NotificationType.PHONE) {
+                iconType = Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP ?
+                    R.drawable.notification_00 : R.drawable.notification_00_post_lollipop;
+                title = "PHONE";
+            } else if (type == NotificationType.MAIL) {
+                iconType = Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP ?
+                    R.drawable.notification_01 : R.drawable.notification_01_post_lollipop;
+                title = "MAIL";
+            } else if (type == NotificationType.SMS) {
+                iconType = Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP ?
+                    R.drawable.notification_02 : R.drawable.notification_02_post_lollipop;
+                title = "SMS";
+            } else if (type == NotificationType.EVENT) {
+                iconType = Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP ?
+                    R.drawable.notification_03 : R.drawable.notification_03_post_lollipop;
+                title = "EVENT";
             } else {
-                if (mNotificationStatusReceiver == null) {
-                    mNotificationStatusReceiver = new NotificationStatusReceiver();
-                    getContext().getApplicationContext().registerReceiver(mNotificationStatusReceiver,
-                            new IntentFilter(ACTON_NOTIFICATION));
-                }
-
-                int iconType = 0;
-                String title = "";
-                if (type == NotificationType.PHONE) {
-                    iconType = Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP ?
-                            R.drawable.notification_00 : R.drawable.notification_00_post_lollipop;
-                    title = "PHONE";
-                } else if (type == NotificationType.MAIL) {
-                    iconType = Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP ?
-                            R.drawable.notification_01 : R.drawable.notification_01_post_lollipop;
-                    title = "MAIL";
-                } else if (type == NotificationType.SMS) {
-                    iconType = Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP ?
-                            R.drawable.notification_02 : R.drawable.notification_02_post_lollipop;
-                    title = "SMS";
-                } else if (type == NotificationType.EVENT) {
-                    iconType = Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP ?
-                            R.drawable.notification_03 : R.drawable.notification_03_post_lollipop;
-                    title = "EVENT";
-                } else {
-                    MessageUtils.setInvalidRequestParameterError(response,
-                            "type is invalid.");
-                    return true;
-                }
-
-                String encodeBody = "";
-                try {
-                    encodeBody = URLDecoder.decode(body, "UTF-8");
-                } catch (UnsupportedEncodingException e) {
-                    MessageUtils.setInvalidRequestParameterError(response,
-                            "body is invalid.");
-                    return true;
-                }
-
-                int notifyId = mRandom.nextInt(RANDOM_SEED);
-                if (Build.MODEL.endsWith("M100")) {
-                    Toast.makeText(getContext(), encodeBody, Toast.LENGTH_SHORT).show();
-                    response.putExtra(NotificationProfile.PARAM_NOTIFICATION_ID, notifyId);
-                    setResult(response, IntentDConnectMessage.RESULT_OK);
-                } else {
-                    // Build intent for notification content
-                    Intent notifyIntent = new Intent(ACTON_NOTIFICATION);
-                    notifyIntent.putExtra("notificationId", notifyId);
-                    notifyIntent.putExtra("serviceId", serviceId);
-
-                    PendingIntent mPendingIntent = PendingIntent.getBroadcast(getContext(),
-                            notifyId, notifyIntent, Intent.FLAG_ACTIVITY_NEW_TASK);
-
-                    Notification notification;
-                    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-                        NotificationCompat.Builder notificationBuilder =
-                                new NotificationCompat.Builder(this.getContext())
-                                        .setSmallIcon(iconType)
-                                        .setContentTitle("" + title)
-                                        .setContentText(encodeBody)
-                                        .setContentIntent(mPendingIntent);
-                        notification = notificationBuilder.build();
-                    } else {
-                        Notification.Builder notificationBuilder =
-                                new Notification.Builder(this.getContext())
-                                        .setSmallIcon(Icon.createWithResource(getContext(), iconType))
-                                        .setContentTitle("" + title)
-                                        .setContentText(encodeBody)
-                                        .setContentIntent(mPendingIntent);
-                        notification = notificationBuilder.build();
-                    }
-
-                    // Get an instance of the NotificationManager service
-                    NotificationManager mNotification = (NotificationManager) getContext()
-                            .getSystemService(Context.NOTIFICATION_SERVICE);
-
-                    // Build the notification and issues it with notification
-                    // manager.
-                    mNotification.notify(notifyId, notification);
-
-                    response.putExtra(NotificationProfile.PARAM_NOTIFICATION_ID, notifyId);
-                    setResult(response, IntentDConnectMessage.RESULT_OK);
-                }
-
-                List<Event> events = EventManager.INSTANCE.getEventList(
-                        serviceId,
-                        HostNotificationProfile.PROFILE_NAME,
-                        null,
-                        HostNotificationProfile.ATTRIBUTE_ON_SHOW);
-                HostDeviceService service = (HostDeviceService) getContext();
-                synchronized (events) {
-                    for (Event event : events) {
-                        Intent intent = EventManager.createEventMessage(event);
-                        setNotificationId(intent, String.valueOf(notifyId));
-                        service.sendEvent(intent, event.getAccessToken());
-                    }
-                }
+                MessageUtils.setInvalidRequestParameterError(response,
+                    "type is invalid.");
                 return true;
             }
-        }
-        return true;
-    }
 
-    /**
-     * デバイスへのノーティフィケーション消去リクエストハンドラー.<br/>
-     * ノーティフィケーションを消去し、その結果をレスポンスパラメータに格納する。
-     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
-     * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
-     * 
-     * @param request リクエストパラメータ
-     * @param response レスポンスパラメータ
-     * @param serviceId サービスID
-     * @param notificationId 通知ID
-     * @return レスポンスパラメータを送信するか否か
-     */
-    protected boolean onDeleteNotify(final Intent request, final Intent response, final String serviceId,
-            final String notificationId) {
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else {
+            String encodeBody = "";
+            try {
+                encodeBody = URLDecoder.decode(body, "UTF-8");
+            } catch (UnsupportedEncodingException e) {
+                MessageUtils.setInvalidRequestParameterError(response,
+                    "body is invalid.");
+                return true;
+            }
+
+            int notifyId = mRandom.nextInt(RANDOM_SEED);
+            if (Build.MODEL.endsWith("M100")) {
+                Toast.makeText(getContext(), encodeBody, Toast.LENGTH_SHORT).show();
+                response.putExtra(NotificationProfile.PARAM_NOTIFICATION_ID, notifyId);
+                setResult(response, IntentDConnectMessage.RESULT_OK);
+            } else {
+                // Build intent for notification content
+                Intent notifyIntent = new Intent(ACTON_NOTIFICATION);
+                notifyIntent.putExtra("notificationId", notifyId);
+                notifyIntent.putExtra("serviceId", serviceId);
+
+                PendingIntent mPendingIntent = PendingIntent.getBroadcast(getContext(),
+                    notifyId, notifyIntent, Intent.FLAG_ACTIVITY_NEW_TASK);
+
+                Notification notification;
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+                    NotificationCompat.Builder notificationBuilder =
+                        new NotificationCompat.Builder(getContext())
+                            .setSmallIcon(iconType)
+                            .setContentTitle("" + title)
+                            .setContentText(encodeBody)
+                            .setContentIntent(mPendingIntent);
+                    notification = notificationBuilder.build();
+                } else {
+                    Notification.Builder notificationBuilder =
+                        new Notification.Builder(getContext())
+                            .setSmallIcon(Icon.createWithResource(getContext(), iconType))
+                            .setContentTitle("" + title)
+                            .setContentText(encodeBody)
+                            .setContentIntent(mPendingIntent);
+                    notification = notificationBuilder.build();
+                }
+
+                // Get an instance of the NotificationManager service
+                NotificationManager mNotification = (NotificationManager) getContext()
+                    .getSystemService(Context.NOTIFICATION_SERVICE);
+
+                // Build the notification and issues it with notification
+                // manager.
+                mNotification.notify(notifyId, notification);
+
+                response.putExtra(NotificationProfile.PARAM_NOTIFICATION_ID, notifyId);
+                setResult(response, IntentDConnectMessage.RESULT_OK);
+            }
+
+            List<Event> events = EventManager.INSTANCE.getEventList(
+                serviceId,
+                HostNotificationProfile.PROFILE_NAME,
+                null,
+                HostNotificationProfile.ATTRIBUTE_ON_SHOW);
+            HostDeviceService service = (HostDeviceService) getContext();
+            synchronized (events) {
+                for (Event event : events) {
+                    Intent intent = EventManager.createEventMessage(event);
+                    setNotificationId(intent, String.valueOf(notifyId));
+                    service.sendEvent(intent, event.getAccessToken());
+                }
+            }
+            return true;
+        }
+    };
+
+    private final DConnectApi mDeleteNotifyApi = new DeleteApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_NOTIFY;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String serviceId = getServiceID(request);
+            String notificationId = getNotificationId(request);
+
             int notifyId = 0;
             try {
                 notifyId = Integer.parseInt(notificationId);
             } catch (NumberFormatException e) {
                 MessageUtils.setInvalidRequestParameterError(response,
-                        "notificationId is invalid.");
+                    "notificationId is invalid.");
                 return true;
             }
 
             NotificationManager mNotificationManager =
-                    (NotificationManager) getContext().getSystemService(
-                       Context.NOTIFICATION_SERVICE);
+                (NotificationManager) getContext().getSystemService(
+                    Context.NOTIFICATION_SERVICE);
             mNotificationManager.cancel(notifyId);
             setResult(response, IntentDConnectMessage.RESULT_OK);
 
             List<Event> events = EventManager.INSTANCE.getEventList(
-                    serviceId,
-                    HostNotificationProfile.PROFILE_NAME,
-                    null,
-                    HostNotificationProfile.ATTRIBUTE_ON_CLOSE);
+                serviceId,
+                HostNotificationProfile.PROFILE_NAME,
+                null,
+                HostNotificationProfile.ATTRIBUTE_ON_CLOSE);
             HostDeviceService service = (HostDeviceService) getContext();
             synchronized (events) {
                 for (Event event : events) {
@@ -223,75 +215,44 @@ public class HostNotificationProfile extends NotificationProfile {
                     service.sendEvent(intent, event.getAccessToken());
                 }
             }
+            return true;
         }
-        return true;
-    }
+    };
 
-    @Override
-    protected boolean onPutOnClick(final Intent request, final Intent response,
-            final String serviceId, final String sessionKey) {
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else if (sessionKey == null) {
-            createEmptySessionKey(response);
-        } else {
+    private final DConnectApi mPutOnClickApi = new PutApi() {
 
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_CLICK;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
             mNotificationStatusReceiver = new NotificationStatusReceiver();
             IntentFilter intentFilter = new IntentFilter(ACTON_NOTIFICATION);
-            this.getContext().registerReceiver(mNotificationStatusReceiver, intentFilter);
+            getContext().registerReceiver(mNotificationStatusReceiver, intentFilter);
 
             // イベントの登録
             EventError error = EventManager.INSTANCE.addEvent(request);
 
             if (error == EventError.NONE) {
                 setResult(response, DConnectMessage.RESULT_OK);
-                return true;
             } else {
                 setResult(response, DConnectMessage.RESULT_ERROR);
-                return true;
             }
-
+            return true;
         }
-        return true;
-    }
+    };
 
-    @Override
-    protected boolean onPutOnClose(final Intent request, final Intent response,
-            final String serviceId, final String sessionKey) {
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else if (sessionKey == null) {
-            createEmptySessionKey(response);
-        } else {
+    private final DConnectApi mPutOnCloseApi = new PutApi() {
 
-            // イベントの登録
-            EventError error = EventManager.INSTANCE.addEvent(request);
-
-            if (error == EventError.NONE) {
-                setResult(response, DConnectMessage.RESULT_OK);
-                return true;
-            } else {
-                setResult(response, DConnectMessage.RESULT_ERROR);
-                return true;
-            }
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_CLOSE;
         }
-        return true;
-    }
 
-    @Override
-    protected boolean onPutOnShow(final Intent request, final Intent response,
-            final String serviceId, final String sessionKey) {
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else if (sessionKey == null) {
-            createEmptySessionKey(response);
-        } else {
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
             // イベントの登録
             EventError error = EventManager.INSTANCE.addEvent(request);
 
@@ -300,157 +261,142 @@ public class HostNotificationProfile extends NotificationProfile {
             } else {
                 setResult(response, DConnectMessage.RESULT_ERROR);
             }
+            return true;
         }
-        return true;
-    }
+    };
 
-    @Override
-    protected boolean onDeleteOnClick(final Intent request,
-            final Intent response, final String serviceId,
-            final String sessionKey) {
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else if (sessionKey == null) {
-            createEmptySessionKey(response);
-        } else {
+    private final DConnectApi mPutOnShowApi = new PutApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_SHOW;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            // イベントの登録
+            EventError error = EventManager.INSTANCE.addEvent(request);
+
+            if (error == EventError.NONE) {
+                setResult(response, DConnectMessage.RESULT_OK);
+            } else {
+                setResult(response, DConnectMessage.RESULT_ERROR);
+            }
+            return true;
+        }
+    };
+
+    private final DConnectApi mDeleteOnClickApi = new DeleteApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_CLICK;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
             // イベントの解除
             EventError error = EventManager.INSTANCE.removeEvent(request);
             if (error == EventError.NONE) {
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
                 switch (error) {
-                case FAILED:
-                    MessageUtils.setUnknownError(response, "Do not unregister event.");
-                    break;
-                case INVALID_PARAMETER:
-                    MessageUtils.setInvalidRequestParameterError(response);
-                    break;
-                case NOT_FOUND:
-                    MessageUtils.setUnknownError(response, "Event not found.");
-                    break;
-                default:
-                    MessageUtils.setUnknownError(response);
-                    break;
+                    case FAILED:
+                        MessageUtils.setUnknownError(response, "Do not unregister event.");
+                        break;
+                    case INVALID_PARAMETER:
+                        MessageUtils.setInvalidRequestParameterError(response);
+                        break;
+                    case NOT_FOUND:
+                        MessageUtils.setUnknownError(response, "Event not found.");
+                        break;
+                    default:
+                        MessageUtils.setUnknownError(response);
+                        break;
                 }
                 setResult(response, DConnectMessage.RESULT_ERROR);
             }
+            return true;
         }
-        return true;
-    }
+    };
 
-    @Override
-    protected boolean onDeleteOnClose(final Intent request,
-            final Intent response, final String serviceId,
-            final String sessionKey) {
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else if (sessionKey == null) {
-            createEmptySessionKey(response);
-        } else {
+    private final DConnectApi mDeleteOnCloseApi = new DeleteApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_CLOSE;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
             // イベントの解除
             EventError error = EventManager.INSTANCE.removeEvent(request);
             if (error == EventError.NONE) {
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
                 switch (error) {
-                case FAILED:
-                    MessageUtils.setUnknownError(response, "Do not unregister event.");
-                    break;
-                case INVALID_PARAMETER:
-                    MessageUtils.setInvalidRequestParameterError(response);
-                    break;
-                case NOT_FOUND:
-                    MessageUtils.setUnknownError(response, "Event not found.");
-                    break;
-                default:
-                    MessageUtils.setUnknownError(response);
-                    break;
+                    case FAILED:
+                        MessageUtils.setUnknownError(response, "Do not unregister event.");
+                        break;
+                    case INVALID_PARAMETER:
+                        MessageUtils.setInvalidRequestParameterError(response);
+                        break;
+                    case NOT_FOUND:
+                        MessageUtils.setUnknownError(response, "Event not found.");
+                        break;
+                    default:
+                        MessageUtils.setUnknownError(response);
+                        break;
                 }
                 setResult(response, DConnectMessage.RESULT_ERROR);
             }
+            return true;
         }
-        return true;
-    }
+    };
 
-    @Override
-    protected boolean onDeleteOnShow(final Intent request,
-            final Intent response, final String serviceId,
-            final String sessionKey) {
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else if (sessionKey == null) {
-            createEmptySessionKey(response);
-        } else {
+    private final DConnectApi mDeleteOnShowApi = new DeleteApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_SHOW;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
             // イベントの解除
             EventError error = EventManager.INSTANCE.removeEvent(request);
             if (error == EventError.NONE) {
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
                 switch (error) {
-                case FAILED:
-                    MessageUtils.setUnknownError(response, "Do not unregister event.");
-                    break;
-                case INVALID_PARAMETER:
-                    MessageUtils.setInvalidRequestParameterError(response);
-                    break;
-                case NOT_FOUND:
-                    MessageUtils.setUnknownError(response, "Event not found.");
-                    break;
-                default:
-                    MessageUtils.setUnknownError(response);
-                    break;
+                    case FAILED:
+                        MessageUtils.setUnknownError(response, "Do not unregister event.");
+                        break;
+                    case INVALID_PARAMETER:
+                        MessageUtils.setInvalidRequestParameterError(response);
+                        break;
+                    case NOT_FOUND:
+                        MessageUtils.setUnknownError(response, "Event not found.");
+                        break;
+                    default:
+                        MessageUtils.setUnknownError(response);
+                        break;
                 }
                 setResult(response, DConnectMessage.RESULT_ERROR);
             }
+            return true;
         }
-        return true;
-    }
+    };
 
-    /**
-     * サービスIDが空の場合のエラーを作成する.
-     * 
-     * @param response レスポンスを格納するIntent
-     */
-    private void createEmptyServiceId(final Intent response) {
-        MessageUtils.setEmptyServiceIdError(response);
-    }
-
-    /**
-     * セッションキーが空の場合のエラーを作成する.
-     * 
-     * @param response レスポンスを格納するIntent
-     */
-    private void createEmptySessionKey(final Intent response) {
-        MessageUtils.setInvalidRequestParameterError(response, "SessionKey not found");
-    }
-
-    /**
-     * デバイスが発見できなかった場合のエラーを作成する.
-     * 
-     * @param response レスポンスを格納するIntent
-     */
-    private void createNotFoundService(final Intent response) {
-        MessageUtils.setNotFoundServiceError(response);
-    }
-
-    /**
-     * サービスIDをチェックする.
-     * 
-     * @param serviceId サービスID
-     * @return <code>serviceId</code>がテスト用サービスIDに等しい場合はtrue、そうでない場合はfalse
-     */
-    private boolean checkServiceId(final String serviceId) {
-        String regex = HostServiceDiscoveryProfile.SERVICE_ID;
-        Pattern mPattern = Pattern.compile(regex);
-        Matcher match = mPattern.matcher(serviceId);
-
-        return match.find();
+    public HostNotificationProfile() {
+        addApi(mPostNotifyApi);
+        addApi(mDeleteNotifyApi);
+        addApi(mPutOnClickApi);
+        addApi(mPutOnCloseApi);
+        addApi(mPutOnShowApi);
+        addApi(mDeleteOnClickApi);
+        addApi(mDeleteOnCloseApi);
+        addApi(mDeleteOnShowApi);
     }
 
     /**

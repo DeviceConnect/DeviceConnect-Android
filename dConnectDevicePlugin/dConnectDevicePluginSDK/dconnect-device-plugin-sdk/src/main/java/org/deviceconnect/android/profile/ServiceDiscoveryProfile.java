@@ -9,7 +9,18 @@ package org.deviceconnect.android.profile;
 import android.content.Intent;
 import android.os.Bundle;
 
+import org.deviceconnect.android.event.Event;
+import org.deviceconnect.android.event.EventError;
+import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.MessageUtils;
+import org.deviceconnect.android.profile.api.DConnectApi;
+import org.deviceconnect.android.profile.api.DeleteApi;
+import org.deviceconnect.android.profile.api.GetApi;
+import org.deviceconnect.android.profile.api.PutApi;
+import org.deviceconnect.android.service.DConnectService;
+import org.deviceconnect.android.service.DConnectServiceListener;
+import org.deviceconnect.android.service.DConnectServiceProvider;
+import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 
 import java.util.ArrayList;
@@ -19,49 +30,104 @@ import java.util.List;
  * Service Discovery プロファイル.
  * 
  * <p>
- * スマートデバイス検索機能を提供するAPI.<br>
- * スマートデバイス検索機能を提供するデバイスプラグインは当クラスを継承し、対応APIを実装すること。 <br>
- * 本クラスでは Found Event と Lost Event は処理しない。デバイスプラグインの任意のタイミングでデバイスの検出、消失の
- * イベントメッセージをDevice Connectに送信する必要がある。
+ * Device Connectサービス検索機能を提供するAPI.<br>
  * </p>
- * 
- * <h1>各API提供メソッド</h1>
- * <p>
- * Service Discovery Profile の各APIへのリクエストに対し、以下のコールバックメソッド群が自動的に呼び出される。<br>
- * サブクラスは以下のメソッド群からデバイスプラグインが提供するAPI用のメソッドをオーバーライドし、機能を実装すること。<br>
- * オーバーライドされていない機能は自動的に非対応APIとしてレスポンスを返す。
- * </p>
- * <ul>
- * <li>Service Discovery API [GET] :
- * {@link ServiceDiscoveryProfile#onGetServices(Intent, Intent)}
- * </li>
- * </ul>
- * 
  * @author NTT DOCOMO, INC.
  */
-public abstract class ServiceDiscoveryProfile extends DConnectProfile implements
-        ServiceDiscoveryProfileConstants {
+public class ServiceDiscoveryProfile extends DConnectProfile implements
+        ServiceDiscoveryProfileConstants, DConnectServiceListener {
 
     /**
      * プロファイルプロバイダー.
      */
-    private final DConnectProfileProvider mProvider;
+    private final DConnectServiceProvider mProvider;
 
     /**
-     * 指定されたプロファイルプロバイダーをもつSystemプロファイルを生成する.
-     * 
-     * @param provider プロファイルプロバイダー
+     * Service Discovery API.
      */
-    public ServiceDiscoveryProfile(final DConnectProfileProvider provider) {
-        this.mProvider = provider;
+    private final DConnectApi mServiceDiscoveryApi = new GetApi() {
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            appendServiceList(response);
+            return true;
+        }
+    };
+
+    /**
+     * Status Change Event API (PUT).
+     */
+    private final DConnectApi mPutStatusChangeApi = new PutApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_SERVICE_CHANGE;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            EventError error = EventManager.INSTANCE.addEvent(request);
+            switch (error) {
+                case NONE:
+                    setResult(response, DConnectMessage.RESULT_OK);
+                    break;
+                case INVALID_PARAMETER:
+                    MessageUtils.setInvalidRequestParameterError(response);
+                    break;
+                default:
+                    MessageUtils.setUnknownError(response);
+                    break;
+            }
+            return true;
+        }
+    };
+
+    /**
+     * Status Change Event API (DELETE).
+     */
+    private final DConnectApi mDeleteStatusChangeApi = new DeleteApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_SERVICE_CHANGE;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            EventError error = EventManager.INSTANCE.removeEvent(request);
+            switch (error) {
+                case NONE:
+                    setResult(response, DConnectMessage.RESULT_OK);
+                    break;
+                case INVALID_PARAMETER:
+                    MessageUtils.setInvalidRequestParameterError(response);
+                    break;
+                default:
+                    MessageUtils.setUnknownError(response);
+                    break;
+            }
+            return true;
+        }
+    };
+
+    /**
+     * 指定されたサービスプロバイダーをもつSystemプロファイルを生成する.
+     * 
+     * @param provider サービスプロバイダー
+     */
+    public ServiceDiscoveryProfile(final DConnectServiceProvider provider) {
+        mProvider = provider;
+        if (mProvider != null) {
+            mProvider.addServiceListener(this);
+        }
+        addApi(mServiceDiscoveryApi);
+        addApi(mPutStatusChangeApi);
+        addApi(mDeleteStatusChangeApi);
     }
 
     /**
-     * プロファイルプロバイダーを取得する.
+     * サービスプロバイダーを取得する.
      * 
-     * @return プロファイルプロバイダー
+     * @return サービスプロバイダー
      */
-    protected DConnectProfileProvider getProfileProvider() {
+    protected DConnectServiceProvider getServiceProvider() {
         return mProvider;
     }
 
@@ -71,115 +137,60 @@ public abstract class ServiceDiscoveryProfile extends DConnectProfile implements
     }
 
     @Override
-    protected boolean onGetRequest(final Intent request, final Intent response) {
-        String inter = getInterface(request);
-        String attribute = getAttribute(request);
-        boolean result = true;
-
-        if (inter == null && attribute == null) {
-            result = onGetServices(request, response);
-        } else {
-            MessageUtils.setUnknownAttributeError(response);
-        }
-
-        return result;
-
-    }
-    
-    @Override
-    protected boolean onPutRequest(final Intent request, final Intent response) {
-        String attribute = getAttribute(request);
-        boolean result = true;
-
-        if (ATTRIBUTE_ON_SERVICE_CHANGE.equalsIgnoreCase(attribute)) {
-            String serviceId = getServiceID(request);
-            String sessionKey = getSessionKey(request);
-            result = onPutOnServiceChange(request, response, serviceId, sessionKey);
-        } else {
-            MessageUtils.setUnknownAttributeError(response);
-        }
-
-        return result;
-        
+    public void onServiceAdded(final DConnectService service) {
+        sendStatusChangeEvent(service, true);
     }
 
     @Override
-    protected boolean onDeleteRequest(final Intent request, final Intent response) {
-        String attribute = getAttribute(request);
-        boolean result = true;
+    public void onServiceRemoved(final DConnectService service) {
+        sendStatusChangeEvent(service, false);
+    }
 
-        if (ATTRIBUTE_ON_SERVICE_CHANGE.equalsIgnoreCase(attribute)) {
-            String serviceId = getServiceID(request);
-            String sessionKey = getSessionKey(request);
-            result = onDeleteOnServiceChange(request, response, serviceId, sessionKey);
-        } else {
-            MessageUtils.setUnknownAttributeError(response);
+    @Override
+    public void onStatusChange(final DConnectService service) {
+        sendStatusChangeEvent(service, true);
+    }
+
+    private void sendStatusChangeEvent(final DConnectService service, final boolean exists) {
+        List<Event> events = EventManager.INSTANCE.getEventList(
+            PROFILE_NAME,
+            ATTRIBUTE_ON_SERVICE_CHANGE
+        );
+        if (events.size() == 0) {
+            return;
         }
 
-        return result;
+        Bundle eventBundle = new Bundle();
+        Bundle networkServiceBundle = createServiceBundle(service);
+        setState(networkServiceBundle, exists);
+        eventBundle.putParcelable(PARAM_NETWORK_SERVICE, networkServiceBundle);
+        // NOTE: Service DiscoveryプロファイルのリクエストにはサービスIDが付加されないので、
+        // イベントマネージャのイベント管理テーブルにも保存されない。
+        // よって、イベント送信時に、下記のようにサービスIDを明示的に設定する必要がある。
+        eventBundle.putString(PARAM_SERVICE_ID, service.getId());
+        for (Event event : events) {
+            sendEvent(event, eventBundle);
+        }
     }
 
-    // ------------------------------------
-    // GET
-    // ------------------------------------
-
-    /**
-     * スマートデバイス一覧取得リクエストハンドラー.<br>
-     * スマートデバイス一覧を提供し、その結果をレスポンスパラメータに格納する。
-     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
-     * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
-     * 
-     * @param request リクエストパラメータ
-     * @param response レスポンスパラメータ
-     * @return レスポンスパラメータを送信するか否か
-     */
-    protected boolean onGetServices(final Intent request, final Intent response) {
-        setUnsupportedError(response);
-        return true;
+    private Bundle createServiceBundle(final DConnectService service) {
+        Bundle serviceBundle = new Bundle();
+        setId(serviceBundle, service.getId());
+        setName(serviceBundle, service.getName());
+        setType(serviceBundle, service.getNetworkType());
+        setOnline(serviceBundle, service.isOnline());
+        setConfig(serviceBundle, service.getConfig());
+        setScopes(serviceBundle, service);
+        return serviceBundle;
     }
 
-    // ------------------------------------
-    // PUT
-    // ------------------------------------
-    
-    /**
-     * onservicechangeイベント登録リクエストハンドラー.<br>
-     * onservicechangeイベントを登録し、その結果をレスポンスパラメータに格納する。
-     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
-     * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
-     * 
-     * @param request リクエストパラメータ
-     * @param response レスポンスパラメータ
-     * @param serviceId サービスID
-     * @param sessionKey セッションキー
-     * @return レスポンスパラメータを送信するか否か
-     */
-    protected boolean onPutOnServiceChange(final Intent request, final Intent response, final String serviceId,
-            final String sessionKey) {
-        setUnsupportedError(response);
-        return true;
-    }
-    
-    // ------------------------------------
-    // DELETE
-    // ------------------------------------
-    
-    /**
-     * onservicechangeイベント解除リクエストハンドラー.<br>
-     * onservicechangeイベントを解除し、その結果をレスポンスパラメータに格納する。
-     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
-     * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
-     * 
-     * @param request リクエストパラメータ
-     * @param response レスポンスパラメータ
-     * @param serviceId サービスID
-     * @param sessionKey セッションキー
-     * @return レスポンスパラメータを送信するか否か
-     */
-    protected boolean onDeleteOnServiceChange(final Intent request, final Intent response, final String serviceId,
-            final String sessionKey) {
-        setUnsupportedError(response);
-        return true;
+    protected void appendServiceList(final Intent response) {
+        List<Bundle> serviceBundles = new ArrayList<Bundle>();
+        for (DConnectService service : mProvider.getServiceList()) {
+            serviceBundles.add(createServiceBundle(service));
+        }
+        setServices(response, serviceBundles);
+        setResult(response, DConnectMessage.RESULT_OK);
     }
 
     // ------------------------------------
@@ -297,12 +308,13 @@ public abstract class ServiceDiscoveryProfile extends DConnectProfile implements
      * 
      * @param service デバイスパラメータ
      */
-    public static void setScopes(final Bundle service, final DConnectProfileProvider provider) {
+    public static void setScopes(final Bundle serviceBundle, final DConnectService service) {
         ArrayList<String> scopes = new ArrayList<String>();
-        for (DConnectProfile profile : provider.getProfileList()) {
+        List<DConnectProfile> profileList = service.getProfileList();
+        for (DConnectProfile profile : profileList) {
             scopes.add(profile.getProfileName());
         }
-        service.putStringArray(PARAM_SCOPES, scopes.toArray(new String[scopes.size()]));
+        serviceBundle.putStringArray(PARAM_SCOPES, scopes.toArray(new String[scopes.size()]));
     }
 
 }

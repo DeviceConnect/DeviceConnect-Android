@@ -1,0 +1,132 @@
+
+div.request_param {
+    margin: 8px;
+}
+
+table.request {
+    width: 98%;
+    margin: 8px;
+    padding: 0px;
+    border-collapse: collapse;
+    border-spacing: 0;
+    border-radius: 6px;
+}
+
+table.request tr {
+    margin: 10px;
+    padding: 0px;
+}
+
+table.request tr td {
+    background-color: #9ECDF9;
+    margin: 0px;
+    padding: 0px;
+}
+
+table.request tr td.left {
+    border-radius: 10px 0 0 10px;
+}
+
+table.request tr td span {
+    margin: 8px;
+    padding: 0px;
+    font-size: xx-small;
+}
+
+table.request tr td div {
+    position: relative;
+    background-color: #FFF;
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+    border: solid 2px #9ECDF9;
+    text-align: center;
+}
+
+table.request tr td div input.text {
+    width: 99%;
+    margin 0px;
+    padding: 10px 0px;
+    border: none;
+}
+
+table.request tr td div select {
+    width: 100%;
+    margin 0px;
+    padding: 10px 0px;
+    border: none;
+}
+
+table.request tr td div input.slider {
+    width: 95%;
+    margin 0px;
+    padding: 5px 0px;
+    border: none;
+}
+
+table.request tr td div span.min {
+    position: absolute;
+    top: 20px;
+    left: 4px;
+    margin: 0px;
+    padding: 0px;
+    font-size: xx-small;
+}
+
+table.request tr td div span.max {
+    position: absolute;
+    top: 20px;
+    right: 4px;
+    margin: 0px;
+    padding: 0px;
+    font-size: xx-small;
+}
+
+div.send_request {
+    text-align: right;
+}
+
+div.send_request button {
+    background-color: #E589D5;
+    margin: 8px;
+    padding: 10px 20px;
+}
+
+div.request {
+    margin: 8px;
+}
+
+div.request div {
+    background-color: #FFFFCC;
+    margin: 0px 8px 8px 8px;
+    padding: 4px;
+    font-size: xx-small;
+    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+    word-break: break-all;
+}
+
+div.response {
+    margin: 8px;
+}
+
+div.response div {
+    background-color: #FFFFCC;
+    margin: 0px 8px 8px 8px;
+    padding: 4px;
+    font-size: xx-small;
+    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+    word-break: break-all;
+}
+
+div.event {
+    margin: 8px;
+}
+
+div.event div {
+    background-color: #FFFFCC;
+    margin: 0px 8px 8px 8px;
+    padding: 4px;
+    font-size: xx-small;
+    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+    word-break: break-all;
+}

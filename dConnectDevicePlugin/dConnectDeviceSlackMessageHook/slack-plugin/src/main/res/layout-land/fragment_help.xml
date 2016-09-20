@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" >
+
+    <TextView
+        android:id="@+id/textHelpTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/background_title"
+        android:gravity="center"
+        android:paddingBottom="@dimen/margin_title"
+        android:paddingTop="@dimen/margin_title"
+        android:text="@string/help"
+        android:textColor="@color/text_light"
+        android:textSize="@dimen/text_title" />
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@android:color/background_light" >
+
+        <TextView
+            android:id="@+id/textHelp"
+            android:padding="20dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/help"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:textColor="@color/text_color"
+            android:layout_gravity="center_horizontal"
+            android:layout_weight="1" />
+
+        <ImageView
+            android:id="@+id/imageHelp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="20dp"
+            android:scaleType="fitCenter"
+            android:layout_gravity="center_horizontal"
+            android:src="@drawable/help01"
+            android:layout_weight="1" />
+
+    </LinearLayout>
+
+</LinearLayout>

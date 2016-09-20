@@ -14,19 +14,15 @@ import android.net.ConnectivityManager;
 import android.os.IBinder;
 import android.os.RemoteException;
 
-import org.deviceconnect.android.compat.LowerCaseConverter;
 import org.deviceconnect.android.compat.MessageConverter;
-import org.deviceconnect.android.manager.compat.NewPathConverter;
-import org.deviceconnect.android.manager.compat.NewScopeConverter;
-import org.deviceconnect.android.manager.compat.OldPathConverter;
+import org.deviceconnect.android.manager.compat.CompatibleRequestConverter;
 import org.deviceconnect.android.manager.compat.ServiceDiscoveryConverter;
 import org.deviceconnect.android.manager.compat.ServiceInformationConverter;
+import org.deviceconnect.android.manager.keepalive.KeepAlive;
 import org.deviceconnect.android.manager.util.DConnectUtil;
-import org.deviceconnect.android.manager.util.VersionName;
 import org.deviceconnect.android.profile.DConnectProfile;
-import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
-import org.deviceconnect.android.profile.ServiceInformationProfile;
 import org.deviceconnect.message.DConnectMessage;
+import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 import org.deviceconnect.server.DConnectServer;
 import org.deviceconnect.server.DConnectServerConfig;
 import org.deviceconnect.server.nanohttpd.DConnectServerNanoHttpd;
@@ -35,7 +31,6 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -44,6 +39,9 @@ import java.util.concurrent.Executors;
  * @author NTT DOCOMO, INC.
  */
 public class DConnectService extends DConnectMessageService {
+    public static final String ACTION_DISCONNECT_WEB_SOCKET = "disconnect.WebSocket";
+    public static final String EXTRA_SESSION_KEY = "sessionKey";
+
     /** 内部用: 通信タイプを定義する. */
     public static final String EXTRA_INNER_TYPE = "_type";
     /** 通信タイプがHTTPであることを示す定数. */
@@ -54,8 +52,6 @@ public class DConnectService extends DConnectMessageService {
     /** 通信相手がWebアプリケーションであることを示す定数. */
     public static final String INNER_APP_TYPE_WEB = "web";
 
-    private static final VersionName OLD_SDK = VersionName.parse("1.0.0");
-
     /** RESTfulサーバ. */
     private DConnectServer mRESTfulServer;
 
@@ -65,19 +61,8 @@ public class DConnectService extends DConnectMessageService {
     /** イベント送信スレッド. */
     private ExecutorService mEventSender = Executors.newSingleThreadExecutor();
 
-    private final MessageConverter[] mNewRequestConverters = {
-        new NewPathConverter(),
-        new NewScopeConverter(),
-        new LowerCaseConverter()
-    };
-
-    private final MessageConverter mOldPathConverter = new OldPathConverter();
-
-    /** サービス一覧に含まれるAPIへのパスを新仕様に統一する. */
-    private final MessageConverter mServiceDiscoveryConverter = new ServiceDiscoveryConverter();
-
-    /** Service Informationに含まれるAPIへのパスを新仕様に統一する. */
-    private final MessageConverter mServiceInformationConverter = new ServiceInformationConverter();
+    private MessageConverter[] mRequestConverters;
+    private MessageConverter[] mResponseConverters;
 
     @Override
     public IBinder onBind(final Intent intent) {
@@ -85,19 +70,62 @@ public class DConnectService extends DConnectMessageService {
     }
 
     @Override
-    public boolean onUnbind(final Intent intent) {
-        return super.onUnbind(intent);
-    }
-
-    @Override
     public void onCreate() {
         super.onCreate();
+        mRequestConverters = new MessageConverter[] {
+                new CompatibleRequestConverter(mPluginMgr)
+        };
+        mResponseConverters = new MessageConverter[] {
+                new ServiceDiscoveryConverter(),
+                new ServiceInformationConverter()
+        };
     }
 
     @Override
     public void onDestroy() {
         stopRESTfulServer();
         super.onDestroy();
+    }
+
+    @Override
+    public int onStartCommand(final Intent intent, final int flags, final int startId) {
+        if (intent == null) {
+            mLogger.warning("intent is null.");
+            return START_STICKY;
+        }
+        String action = intent.getAction();
+        if (action == null) {
+            mLogger.warning("action is null.");
+            return START_STICKY;
+        }
+
+        if (ACTION_DISCONNECT_WEB_SOCKET.equals(action)) {
+            String sessionKey = intent.getStringExtra(EXTRA_SESSION_KEY);
+            if (sessionKey != null) {
+                mRESTfulServer.disconnectWebSocket(sessionKey);
+            }
+            return START_STICKY;
+        }
+
+        if (IntentDConnectMessage.ACTION_KEEPALIVE.equals(action)) {
+            String status = intent.getStringExtra(IntentDConnectMessage.EXTRA_KEEPALIVE_STATUS);
+            if (status.equals("RESPONSE")) {
+                String serviceId = intent.getStringExtra("serviceId");
+                if (serviceId != null) {
+                    KeepAlive keepAlive = ((DConnectApplication) getApplication()).getKeepAliveManager().getKeepAlive(serviceId);
+                    if (keepAlive != null) {
+                        keepAlive.setResponseFlag();
+                    }
+                }
+            } else if (status.equals("DISCONNECT")) {
+                String sessionKey = intent.getStringExtra(IntentDConnectMessage.EXTRA_SESSION_KEY);
+                if (sessionKey != null) {
+                    sendDisconnectWebSocket(sessionKey);
+                }
+            }
+            return START_STICKY;
+        }
+        return super.onStartCommand(intent, flags, startId);
     }
 
     @Override
@@ -114,31 +142,50 @@ public class DConnectService extends DConnectMessageService {
     public void sendEvent(final String receiver, final Intent event) {
         if (receiver == null || receiver.length() <= 0) {
             final String key = event.getStringExtra(DConnectMessage.EXTRA_SESSION_KEY);
-                mEventSender.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (key != null && mRESTfulServer != null && mRESTfulServer.isRunning()) {
-                            try {
-                                if (BuildConfig.DEBUG) {
-                                    mLogger.info(String.format("sendEvent: %s extra: %s", key, event.getExtras()));
-                                }
-                                JSONObject root = new JSONObject();
-                                DConnectUtil.convertBundleToJSON(root, event.getExtras());
+            mEventSender.execute(new Runnable() {
+                @Override
+                public void run() {
+                    if (key != null && mRESTfulServer != null && mRESTfulServer.isRunning()) {
+                        try {
+                            if (BuildConfig.DEBUG) {
+                                mLogger.info(String.format("sendEvent: %s extra: %s", key, event.getExtras()));
+                            }
+                            JSONObject root = new JSONObject();
+                            DConnectUtil.convertBundleToJSON(root, event.getExtras());
 
-                                mRESTfulServer.sendEvent(key, root.toString());
-                            } catch (JSONException e) {
-                                mLogger.warning("JSONException in sendEvent: " + e.toString());
-                            } catch (IOException e) {
-                                mLogger.warning("IOException in sendEvent: " + e.toString());
-                                if (mWebServerListener != null) {
-                                    mWebServerListener.onWebSocketDisconnected(key);
-                                }
+                            mRESTfulServer.sendEvent(key, root.toString());
+                        } catch (JSONException e) {
+                            mLogger.warning("JSONException in sendEvent: " + e.toString());
+                        } catch (IOException e) {
+                            mLogger.warning("IOException in sendEvent: " + e.toString());
+                            if (mWebServerListener != null) {
+                                mWebServerListener.onWebSocketDisconnected(key);
                             }
                         }
                     }
-                });
+                }
+            });
         } else {
             super.sendEvent(receiver, event);
+        }
+    }
+
+    /**
+     * 該当セッションキーを持つWebSocket切断要求を送る.
+     * @param sessionKey セッションキー.
+     */
+    public void sendDisconnectWebSocket(final String sessionKey) {
+        if (sessionKey != null) {
+            mEventSender.execute(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        mRESTfulServer.disconnectionWebSocket(sessionKey);
+                    } catch (IOException e) {
+                        mLogger.warning("IOException in disconnectWebSocket: " + e.toString());
+                    }
+                }
+            });
         }
     }
 
@@ -151,7 +198,7 @@ public class DConnectService extends DConnectMessageService {
             public void run() {
                 mSettings.load(getApplicationContext());
 
-                mWebServerListener = new DConnectServerEventListenerImpl(getApplicationContext());
+                mWebServerListener = new DConnectServerEventListenerImpl(DConnectService.this);
                 mWebServerListener.setFileManager(mFileMgr);
 
                 DConnectServerConfig.Builder builder = new DConnectServerConfig.Builder();
@@ -264,14 +311,6 @@ public class DConnectService extends DConnectMessageService {
     };
 
     @Override
-    public void onRequestReceive(final Intent request) {
-        for (MessageConverter converter : mNewRequestConverters) {
-            converter.convert(request);
-        }
-        super.onRequestReceive(request);
-    }
-
-    @Override
     protected String parseProfileName(final Intent request) {
         String profileName = super.parseProfileName(request);
         if (profileName != null) {
@@ -310,14 +349,9 @@ public class DConnectService extends DConnectMessageService {
     @Override
     protected void sendDeliveryProfile(final Intent request, final Intent response) {
         //XXXX パスの互換性を担保
-        List<DevicePlugin> plugins = mPluginMgr.getDevicePlugins(DConnectProfile.getServiceID(request));
-        if (plugins != null && plugins.size() > 0) {
-            DevicePlugin plugin = plugins.get(0);
-            if (OLD_SDK.equals(plugin.getPluginSdkVersionName())) {
-                mOldPathConverter.convert(request);
-            }
+        for (MessageConverter converter : mRequestConverters) {
+            converter.convert(request);
         }
-
         super.sendDeliveryProfile(request, response);
     }
 
@@ -326,11 +360,8 @@ public class DConnectService extends DConnectMessageService {
         Intent result = super.createResponseIntent(request, response);
 
         //XXXX パスの互換性の担保
-        String profileName = parseProfileName(request);
-        if (ServiceDiscoveryProfile.PROFILE_NAME.equalsIgnoreCase(profileName)) {
-            mServiceDiscoveryConverter.convert(result);
-        } else if (ServiceInformationProfile.PROFILE_NAME.equalsIgnoreCase(profileName)) {
-            mServiceInformationConverter.convert(result);
+        for (MessageConverter converter : mResponseConverters) {
+            converter.convert(result);
         }
         return result;
     }

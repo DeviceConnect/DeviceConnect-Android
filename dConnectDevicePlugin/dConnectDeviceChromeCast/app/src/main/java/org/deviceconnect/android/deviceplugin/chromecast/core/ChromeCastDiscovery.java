@@ -106,7 +106,7 @@ public class ChromeCastDiscovery {
                 }
                 synchronized (this) {
                     CastDevice device = CastDevice.getFromBundle(info.getExtras());
-                    if (device != null && device.isOnLocalNetwork()) {
+                    if (device != null) {
                         mRouteInfos.add(info);
                         mRouteNames.add(info.getName());
                     }
@@ -150,7 +150,7 @@ public class ChromeCastDiscovery {
                     Log.d(TAG, "MediaRouter.Callback$onRouteUnselected: " + info.toString());
                 }
                 mCallbacks.onCastDeviceUnselected();
-                mSelectedDevice = null;
+//                mSelectedDevice = null;
             }
 
             @Override
@@ -188,6 +188,13 @@ public class ChromeCastDiscovery {
     }
 
     /**
+     * MediaRouteSelector.
+     */
+    public MediaRouteSelector getMediaRouteSelector() {
+        return mMediaRouteSelector;
+    }
+
+    /**
      * MediaRouterのイベントを登録する.
      */
     public void registerEvent() {
@@ -216,7 +223,7 @@ public class ChromeCastDiscovery {
 
             if (info.getDescription() != null) {
                 CastDevice device = CastDevice.getFromBundle(info.getExtras());
-                if (device != null && device.isOnLocalNetwork()) {
+                if (device != null) {
                     mRouteInfos.add(info);
                     mRouteNames.add(info.getName());
                     if (BuildConfig.DEBUG) {

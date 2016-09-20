@@ -6,22 +6,24 @@
  */
 package org.deviceconnect.android.deviceplugin.pebble.profile;
 
-import java.util.logging.Logger;
-
-import org.deviceconnect.android.deviceplugin.pebble.PebbleDeviceService;
-import org.deviceconnect.android.deviceplugin.pebble.setting.PebbleSettingActivity;
-import org.deviceconnect.android.deviceplugin.pebble.util.PebbleManager;
-import org.deviceconnect.android.event.EventError;
-import org.deviceconnect.android.event.EventManager;
-import org.deviceconnect.android.message.MessageUtils;
-import org.deviceconnect.android.profile.SystemProfile;
-import org.deviceconnect.message.DConnectMessage;
-
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 
 import com.getpebble.android.kit.util.PebbleDictionary;
+
+import org.deviceconnect.android.deviceplugin.pebble.PebbleDeviceService;
+import org.deviceconnect.android.deviceplugin.pebble.setting.PebbleServiceListActivity;
+import org.deviceconnect.android.deviceplugin.pebble.util.PebbleManager;
+import org.deviceconnect.android.event.EventError;
+import org.deviceconnect.android.event.EventManager;
+import org.deviceconnect.android.message.MessageUtils;
+import org.deviceconnect.android.profile.SystemProfile;
+import org.deviceconnect.android.profile.api.DConnectApi;
+import org.deviceconnect.android.profile.api.DeleteApi;
+import org.deviceconnect.message.DConnectMessage;
+
+import java.util.logging.Logger;
 
 /**
  * Pebbleデバイスプラグイン, System プロファイル.
@@ -30,35 +32,48 @@ import com.getpebble.android.kit.util.PebbleDictionary;
 public class PebbleSystemProfile extends SystemProfile {
     /** debug log. */
     private Logger mLogger = Logger.getLogger("Pebble");
+
     /** sessionKeyが設定されていないときのエラーメッセージ. */
     private static final String ERROR_MESSAGE = "sessionKey must be specified.";
 
-    @Override
-    protected Class<? extends Activity> getSettingPageActivity(final Intent request, final Bundle param) {
-        return PebbleSettingActivity.class;
+    private final DConnectApi mDeleteEventsApi = new DeleteApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_EVENTS;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            mLogger.fine("onDeleteEvents delete /system/events");
+            String sessionKey = getSessionKey(request);
+            if (sessionKey == null) {
+                MessageUtils.setInvalidRequestParameterError(response, ERROR_MESSAGE);
+                return true;
+            }
+            PebbleManager mgr = ((PebbleDeviceService) getContext()).getPebbleManager();
+            mLogger.fine("onDeleteEvents delete system");
+            // PebbleにEVENT解除依頼を送る
+            sendDeleteEvent(PebbleManager.PROFILE_SYSTEM, PebbleManager.SYSTEM_ATTRIBUTE_EVENTS, mgr);
+            // ここでイベントの解除をする
+            EventError error = EventManager.INSTANCE.removeEvent(request);
+            if (error == EventError.NONE) {
+                setResult(response, DConnectMessage.RESULT_OK);
+            } else if (error == EventError.INVALID_PARAMETER) {
+                MessageUtils.setInvalidRequestParameterError(response);
+            } else {
+                MessageUtils.setUnknownError(response);
+            }
+            return true;
+        }
+    };
+
+    public PebbleSystemProfile() {
+        addApi(mDeleteEventsApi);
     }
 
     @Override
-    protected boolean onDeleteEvents(final Intent request, final Intent response, final String sessionKey) {
-        mLogger.fine("onDeleteEvents delete /system/events");
-        if (sessionKey == null) {
-            MessageUtils.setInvalidRequestParameterError(response, ERROR_MESSAGE);
-            return true;
-        } 
-        PebbleManager mgr = ((PebbleDeviceService) getContext()).getPebbleManager();
-        mLogger.fine("onDeleteEvents delete system");
-        // PebbleにEVENT解除依頼を送る
-        sendDeleteEvent(PebbleManager.PROFILE_SYSTEM, PebbleManager.SYSTEM_ATTRIBUTE_EVENTS, mgr); 
-        // ここでイベントの解除をする
-        EventError error = EventManager.INSTANCE.removeEvent(request);
-        if (error == EventError.NONE) {
-            setResult(response, DConnectMessage.RESULT_OK);
-        } else if (error == EventError.INVALID_PARAMETER) {
-            MessageUtils.setInvalidRequestParameterError(response);
-        } else {
-            MessageUtils.setUnknownError(response);
-        }
-        return true;
+    protected Class<? extends Activity> getSettingPageActivity(final Intent request, final Bundle param) {
+        return PebbleServiceListActivity.class;
     }
 
     /**

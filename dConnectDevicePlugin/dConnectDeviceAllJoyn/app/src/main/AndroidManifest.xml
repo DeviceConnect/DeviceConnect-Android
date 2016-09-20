@@ -13,7 +13,15 @@
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:theme="@style/AppTheme">
+        android:theme="@style/Theme.BasicApp.Common">
+
+        <activity
+            android:name=".activity.AllJoynServiceListActivity"
+            android:exported="false"
+            android:label="@string/app_name"
+            android:launchMode="singleTask">
+        </activity>
+
         <activity
             android:name=".activity.AllJoynSettingActivity"
             android:exported="false"
@@ -40,6 +48,10 @@
                 <action android:name="org.deviceconnect.action.DELETE"/>
                 <action android:name="org.deviceconnect.action.RESPONSE"/>
                 <action android:name="org.deviceconnect.action.EVENT"/>
+
+                <!-- uninstall notification -->
+                <action android:name="android.intent.action.PACKAGE_FULLY_REMOVED"/>
+                <data android:scheme="package"/>
             </intent-filter>
         </receiver>
 

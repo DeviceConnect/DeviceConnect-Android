@@ -1,0 +1,83 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "title": "Canvas Profile",
+        "version": "2.0.0",
+        "description": ""
+    },
+    "consumes": [
+        "application/x-www-form-urlencoded",
+        "multipart/form-data"
+    ],
+    "paths": {
+        "/drawImage": {
+            "post" : {
+                "x-type": "one-shot",
+                "summary": "",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "formData",
+                        "type": "string",
+                        "required": true
+                    },
+                    {
+                        "name": "mimeType",
+                        "in": "formData",
+                        "type": "string",
+                        "required": false
+                    },
+                    {
+                        "name": "data",
+                        "in": "formData",
+                        "type": "file",
+                        "required": false
+                    },
+                    {
+                        "name": "x",
+                        "in": "formData",
+                        "type": "integer",
+                        "required": false
+                    },
+                    {
+                        "name": "y",
+                        "in": "formData",
+                        "type": "integer",
+                        "required": false
+                    },
+                    {
+                        "name": "mode",
+                        "in": "formData",
+                        "type": "string",
+                        "required": false,
+                        "enum": ["scales", "fills"]
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            },
+            "delete": {
+                "x-type": "one-shot",
+                "summary": "",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "query",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        }
+    }
+}

@@ -45,189 +45,6 @@ public class ProximityProfile extends DConnectProfile implements ProximityProfil
         return PROFILE_NAME;
     }
 
-    @Override
-    protected boolean onGetRequest(Intent request, Intent response) {
-        String attribute = getAttribute(request);
-        boolean result = true;
-
-        if (attribute == null) {
-            MessageUtils.setUnknownAttributeError(response);
-        } else {
-            String serviceId = getServiceID(request);
-            if (attribute.equalsIgnoreCase(ATTRIBUTE_ON_DEVICE_PROXIMITY)) {
-                result = onGetOnDeviceProximity(request, response, serviceId);
-            } else if (attribute.equalsIgnoreCase(ATTRIBUTE_ON_USER_PROXIMITY)) {
-                result = onGetOnUserProximity(request, response, serviceId);
-            } else {
-                MessageUtils.setUnknownAttributeError(response);
-            }
-        }
-        return result;
-    }
-
-    @Override
-    protected boolean onPutRequest(final Intent request, final Intent response) {
-        String attribute = getAttribute(request);
-        boolean result = true;
-
-        if (attribute == null) {
-            MessageUtils.setUnknownAttributeError(response);
-        } else {
-            
-            String serviceId = getServiceID(request);
-            String sessionKey = getSessionKey(request);
-            
-            if (attribute.equalsIgnoreCase(ATTRIBUTE_ON_DEVICE_PROXIMITY)) {
-                result = onPutOnDeviceProximity(request, response, serviceId, sessionKey);
-            } else if (attribute.equalsIgnoreCase(ATTRIBUTE_ON_USER_PROXIMITY)) {
-                result = onPutOnUserProximity(request, response, serviceId, sessionKey);
-            } else {
-                MessageUtils.setUnknownAttributeError(response);
-            }
-        }
-        return result;
-    }
-
-    @Override
-    protected boolean onDeleteRequest(final Intent request, final Intent response) {
-        String attribute = getAttribute(request);
-        boolean result = true;
-
-        if (attribute == null) {
-            MessageUtils.setUnknownAttributeError(response);
-        } else {
-            
-            String serviceId = getServiceID(request);
-            String sessionKey = getSessionKey(request);
-            
-            if (attribute.equalsIgnoreCase(ATTRIBUTE_ON_DEVICE_PROXIMITY)) {
-                result = onDeleteOnDeviceProximity(request, response, serviceId, sessionKey);
-            } else if (attribute.equalsIgnoreCase(ATTRIBUTE_ON_USER_PROXIMITY)) {
-                result = onDeleteOnUserProximity(request, response, serviceId, sessionKey);
-            } else {
-                MessageUtils.setUnknownAttributeError(response);
-            }
-        }
-
-        return result;
-    }
-
-    // ------------------------------------
-    // GET
-    // ------------------------------------
-
-    /**
-     * ondeviceproximity取得リクエストハンドラー.<br>
-     * ondeviceproximityを実行し、その結果をレスポンスパラメータに格納する。
-     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
-     * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
-     * 
-     * @param request リクエストパラメータ
-     * @param response レスポンスパラメータ
-     * @param serviceId サービスID
-     * @return レスポンスパラメータを送信するか否か
-     */
-    protected boolean onGetOnDeviceProximity(final Intent request, final Intent response, final String serviceId) {
-        setUnsupportedError(response);
-        return true;
-    }
-
-    /**
-     * onuserproximity取得リクエストハンドラー.<br>
-     * onuserproximityを実行し、その結果をレスポンスパラメータに格納する。
-     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
-     * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
-     * 
-     * @param request リクエストパラメータ
-     * @param response レスポンスパラメータ
-     * @param serviceId サービスID
-     * @return レスポンスパラメータを送信するか否か
-     */
-    protected boolean onGetOnUserProximity(final Intent request, final Intent response, final String serviceId) {
-        setUnsupportedError(response);
-        return true;
-    }
-
-    // ------------------------------------
-    // PUT
-    // ------------------------------------
-
-    /**
-     * ondeviceproximityコールバック登録リクエストハンドラー.<br>
-     * ondeviceproximityコールバックを登録し、その結果をレスポンスパラメータに格納する。
-     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
-     * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
-     * 
-     * @param request リクエストパラメータ
-     * @param response レスポンスパラメータ
-     * @param serviceId サービスID
-     * @param sessionKey セッションキー
-     * @return レスポンスパラメータを送信するか否か
-     */
-    protected boolean onPutOnDeviceProximity(final Intent request, final Intent response, final String serviceId,
-            final String sessionKey) {
-        setUnsupportedError(response);
-        return true;
-    }
-
-    /**
-     * onuserproximityコールバック登録リクエストハンドラー.<br>
-     * onuserproximityコールバックを登録し、その結果をレスポンスパラメータに格納する。
-     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
-     * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
-     * 
-     * @param request リクエストパラメータ
-     * @param response レスポンスパラメータ
-     * @param serviceId サービスID
-     * @param sessionKey セッションキー
-     * @return レスポンスパラメータを送信するか否か
-     */
-    protected boolean onPutOnUserProximity(final Intent request, final Intent response, final String serviceId,
-            final String sessionKey) {
-        setUnsupportedError(response);
-        return true;
-    }
-
-    // ------------------------------------
-    // DELETE
-    // ------------------------------------
-
-    /**
-     * ondeviceproximityコールバック解除リクエストハンドラー.<br>
-     * ondeviceproximityコールバックを解除し、その結果をレスポンスパラメータに格納する。
-     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
-     * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
-     * 
-     * @param request リクエストパラメータ
-     * @param response レスポンスパラメータ
-     * @param serviceId サービスID
-     * @param sessionKey セッションキー
-     * @return レスポンスパラメータを送信するか否か
-     */
-    protected boolean onDeleteOnDeviceProximity(final Intent request, final Intent response, final String serviceId,
-            final String sessionKey) {
-        setUnsupportedError(response);
-        return true;
-    }
-
-    /**
-     * onuserproximityコールバック解除リクエストハンドラー.<br>
-     * onuserproximityコールバックを解除し、その結果をレスポンスパラメータに格納する。
-     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
-     * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
-     * 
-     * @param request リクエストパラメータ
-     * @param response レスポンスパラメータ
-     * @param serviceId サービスID
-     * @param sessionKey セッションキー
-     * @return レスポンスパラメータを送信するか否か
-     */
-    protected boolean onDeleteOnUserProximity(final Intent request, final Intent response, final String serviceId,
-            final String sessionKey) {
-        setUnsupportedError(response);
-        return true;
-    }
-
     /**
      * メッセージに近接距離を設定する.
      * 
@@ -286,5 +103,14 @@ public class ProximityProfile extends DConnectProfile implements ProximityProfil
      */
     public static void setNear(final Bundle message, final boolean near) {
         message.putBoolean(PARAM_NEAR, near);
+    }
+
+    /**
+     * メッセージに距離識別子を設定する.
+     * @param message メッセージパラメータ
+     * @param range 近接識別子
+     */
+    public static void setRange(final Bundle message, final Range range) {
+        message.putString(PARAM_RANGE, range.getValue());
     }
 }

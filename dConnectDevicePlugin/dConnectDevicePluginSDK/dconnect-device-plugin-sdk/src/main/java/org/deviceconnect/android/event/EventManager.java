@@ -6,14 +6,14 @@
  */
 package org.deviceconnect.android.event;
 
-import java.util.List;
+import android.content.ComponentName;
+import android.content.Intent;
 
 import org.deviceconnect.android.event.cache.EventCacheController;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.message.DConnectMessage;
 
-import android.content.ComponentName;
-import android.content.Intent;
+import java.util.List;
 
 /**
  * イベント管理クラス. イベントの登録、解除、送信などはこのクラスを通すことで一元管理される。
@@ -77,9 +77,10 @@ public enum EventManager {
         Event event = new Event();
         event.setSessionKey(sessionKey);
         event.setAccessToken(accessToken);
-        event.setProfile(profile);
-        event.setInterface(inter);
-        event.setAttribute(attribute);
+        // XXXX パスの大文字小文字を無視
+        event.setProfile(profile != null ? profile.toLowerCase() : null);
+        event.setInterface(inter != null ? inter.toLowerCase() : null);
+        event.setAttribute(attribute != null ? attribute.toLowerCase() : null);
         event.setServiceId(serviceId);
         if (name != null) {
             event.setReceiverName(name.flattenToString());
@@ -98,7 +99,24 @@ public enum EventManager {
         Event event = createEvent(request);
         return mController.addEvent(event);
     }
-    
+
+    public Event getEvent(final Intent request) {
+        checkState();
+
+        ComponentName receiver = request.getParcelableExtra(DConnectMessage.EXTRA_RECEIVER);
+        String receiverName = receiver != null ? receiver.flattenToString() : null;
+        String profile = request.getStringExtra(DConnectMessage.EXTRA_PROFILE);
+        String inter = request.getStringExtra(DConnectMessage.EXTRA_INTERFACE);
+        String attribute = request.getStringExtra(DConnectMessage.EXTRA_ATTRIBUTE);
+        // XXXX パスの大文字小文字を無視
+        return mController.getEvent(request.getStringExtra(DConnectMessage.EXTRA_SERVICE_ID),
+                profile != null ? profile.toLowerCase() : null,
+                inter != null ? inter.toLowerCase() : null,
+                attribute != null ? attribute.toLowerCase() : null,
+                request.getStringExtra(DConnectMessage.EXTRA_SESSION_KEY),
+                receiverName);
+    }
+
     /**
      * 指定されたイベント解除用のリクエストからイベントデータを解除する.
      * 
@@ -106,10 +124,17 @@ public enum EventManager {
      * @return 処理結果
      */
     public EventError removeEvent(final Intent request) {
-        Event event = createEvent(request);
+        return removeEvent(createEvent(request));
+    }
+
+    public EventError removeEvent(final Event event) {
+        checkState();
+        if (event == null) {
+            throw new IllegalArgumentException("Event is null.");
+        }
         return mController.removeEvent(event);
     }
-    
+
     /**
      * 指定されたセッションキーに紐づくイベント情報を解除する.
      * 
@@ -165,7 +190,11 @@ public enum EventManager {
     public List<Event> getEventList(final String serviceId, final String profile, 
             final String inter, final String attribute) {
         checkState();
-        return mController.getEvents(serviceId, profile, inter, attribute);
+        // XXXX パスの大文字小文字を無視
+        return mController.getEvents(serviceId,
+            profile != null ? profile.toLowerCase() : null,
+            inter != null ? inter.toLowerCase() : null,
+            attribute != null ? attribute.toLowerCase() : null);
     }
     
     /**
@@ -192,7 +221,18 @@ public enum EventManager {
         checkState();
         return getEventList(profile, null, attribute);
     }
-    
+
+    /**
+     * 指定されたAPIに紐づくイベント情報の一覧を取得する.
+     *
+     * @param sessionKey セッションキー
+     * @return イベントの一覧
+     */
+    public List<Event> getEventList(final String sessionKey) {
+        checkState();
+        return mController.getEvents(sessionKey);
+    }
+
     /**
      * イベントデータからイベントメッセージ用のIntentを生成する.
      * 取得したIntentに適宜イベントオブジェクトを設定し送信すること。

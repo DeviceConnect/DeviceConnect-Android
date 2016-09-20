@@ -13,10 +13,12 @@
     <string name="connecting">Sphero に接続中です</string>
     <string name="title_error">エラー</string>
     <string name="message_conn_error">接続に失敗しました</string>
+    <string name="message_disconn_error">切断に失敗しました</string>
     <string name="btn_close">閉じる</string>
     <string name="message_searching">Sphero を検索中&#8230;</string>
 
     <!-- LIST ITEM -->
+    <string name="state_remove">削除</string>
     <string name="state_on">接続</string>
     <string name="state_off">接続解除</string>
     <string name="no_devices">見つかりません。</string>
@@ -34,6 +36,15 @@
     <!-- Button -->
     <string name="sphero_setting_btn_setting">Bluetooth の設定</string>
 	<string name="sphero_setting_btn_search">Sphero の再検索</string>
-    
-    
+
+    <string name="bluetooth_settings_ble_detail">Android 6.0からBLEをスキャンするには、位置情報のパーミッションが必要になりました。\nこのプラグインを使用するためには、以下のパーミッションを許可してください。\n許可を取り消すには、アプリの設定画面から行うことができます。</string>
+    <string name="bluetooth_settings_ble_permission">位置情報の許可</string>
+    <string name="bluetooth_settings_ble_permission_on">取得済み</string>
+    <string name="bluetooth_settings_ble_permission_off">取得</string>
+
+
+    <!--ERROR -->
+    <string name="sphero_setting_dialog_error_permission">BLE検索するためのパーミッションが許可されていないために検索できません。\nBluetooth設定画面から位置情報の許可を取得してください。</string>
+    <string name="sphero_setting_dialog_disable_bluetooth">Bluetoothが無効になっているために検索できません。\nBluetooth設定画面からBluetoothを有効に設定してください。</string>
+
 </resources>

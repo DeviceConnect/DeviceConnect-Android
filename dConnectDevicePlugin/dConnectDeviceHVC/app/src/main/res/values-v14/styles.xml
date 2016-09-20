@@ -3,7 +3,7 @@
     <style name="AppBaseTheme" parent="@android:style/Theme.Holo.Light">
         <item name="android:homeAsUpIndicator">@drawable/ic_ab_back_holo_dark</item>
         <item name="android:actionMenuTextColor">#FFFFFF</item>
-        <item name="android:actionBarStyle">@style/Widget.MyTheme.ActionRed</item>
+        <item name="android:actionBarStyle">@style/DefaultActionBarTheme</item>
         <item name="android:actionOverflowButtonStyle">@android:style/Widget.Holo.ActionButton.Overflow</item>
     </style>
     

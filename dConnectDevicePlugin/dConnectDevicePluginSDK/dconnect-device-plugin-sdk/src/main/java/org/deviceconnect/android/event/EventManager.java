@@ -105,10 +105,14 @@ public enum EventManager {
 
         ComponentName receiver = request.getParcelableExtra(DConnectMessage.EXTRA_RECEIVER);
         String receiverName = receiver != null ? receiver.flattenToString() : null;
+        String profile = request.getStringExtra(DConnectMessage.EXTRA_PROFILE);
+        String inter = request.getStringExtra(DConnectMessage.EXTRA_INTERFACE);
+        String attribute = request.getStringExtra(DConnectMessage.EXTRA_ATTRIBUTE);
+        // XXXX パスの大文字小文字を無視
         return mController.getEvent(request.getStringExtra(DConnectMessage.EXTRA_SERVICE_ID),
-                request.getStringExtra(DConnectMessage.EXTRA_PROFILE),
-                request.getStringExtra(DConnectMessage.EXTRA_INTERFACE),
-                request.getStringExtra(DConnectMessage.EXTRA_ATTRIBUTE),
+                profile != null ? profile.toLowerCase() : null,
+                inter != null ? inter.toLowerCase() : null,
+                attribute != null ? attribute.toLowerCase() : null,
                 request.getStringExtra(DConnectMessage.EXTRA_SESSION_KEY),
                 receiverName);
     }
@@ -158,21 +162,6 @@ public enum EventManager {
     public void flush() {
         checkState();
         mController.flush();
-    }
-
-    public Event getEvent(final Intent request) {
-        ComponentName receiver = request.getParcelableExtra(DConnectMessage.EXTRA_RECEIVER);
-        String receiverName = receiver != null ? receiver.flattenToString() : null;
-        String profile = request.getStringExtra(DConnectMessage.EXTRA_PROFILE);
-        String inter = request.getStringExtra(DConnectMessage.EXTRA_INTERFACE);
-        String attribute = request.getStringExtra(DConnectMessage.EXTRA_ATTRIBUTE);
-        // XXXX パスの大文字小文字を無視
-        return mController.getEvent(request.getStringExtra(DConnectMessage.EXTRA_SERVICE_ID),
-                profile != null ? profile.toLowerCase() : null,
-                inter != null ? inter.toLowerCase() : null,
-                attribute != null ? attribute.toLowerCase() : null,
-                request.getStringExtra(DConnectMessage.EXTRA_SESSION_KEY),
-                receiverName);
     }
 
     /**

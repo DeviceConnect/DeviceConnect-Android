@@ -298,9 +298,17 @@ var main = (function(parent, global) {
     }
 
     function createSupportApis(json) {
-        var profile = util.getProfile();
+        var profile = util.getProfile().toLowerCase();
         if (json.supportApis) {
-            document.getElementById('main').innerHTML = createSupportPath(json.supportApis[profile].paths);
+            for (var p in json.supportApis) {
+                if (profile == p.toLowerCase()) {
+                    document.getElementById('main').innerHTML = createSupportPath(json.supportApis[p].paths);
+                    return;
+                }
+            }
+            alert(profile + 'プロファイルが見つかりません。');
+        } else {
+            alert('古いプラグインのために、このサービスは確認することができません。');
         }
     }
 

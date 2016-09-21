@@ -48,9 +48,9 @@ public class Event implements Serializable {
     private String mAccessToken;
     
     /** 
-     * セッションキー.
+     * オリジン.
      */
-    private String mSessionKey;
+    private String mOrigin;
     
     /**
      * レシーバーのパッケージ名.
@@ -159,21 +159,21 @@ public class Event implements Serializable {
     }
     
     /**
-     * セッションキーを取得する.
+     * オリジンを取得する.
      * 
-     * @return セッションキー
+     * @return オリジン
      */
-    public String getSessionKey() {
-        return mSessionKey;
+    public String getOrigin() {
+        return mOrigin;
     }
     
     /**
-     * セッションキーを設定する.
+     * オリジンを設定する.
      * 
-     * @param sessionKey セッションキー
+     * @param origin オリジン
      */
-    public void setSessionKey(final String sessionKey) {
-        this.mSessionKey = sessionKey;
+    public void setOrigin(final String origin) {
+        this.mOrigin = origin;
     }
     
     /**
@@ -242,7 +242,7 @@ public class Event implements Serializable {
         to.append(", serviceId = ");
         to.append(mServiceId);
         to.append(", sessionKey = ");
-        to.append(mSessionKey);
+        to.append(mOrigin);
         to.append(", receiverName = ");
         to.append(mReceiverName);
         to.append(", accessToken = ");

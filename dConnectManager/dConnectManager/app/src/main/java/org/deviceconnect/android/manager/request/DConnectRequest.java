@@ -6,6 +6,10 @@
  */
 package org.deviceconnect.android.manager.request;
 
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+
 import org.deviceconnect.android.manager.DConnectBroadcastReceiver;
 import org.deviceconnect.android.manager.DConnectMessageService;
 import org.deviceconnect.android.manager.DevicePlugin;
@@ -13,10 +17,6 @@ import org.deviceconnect.android.manager.DevicePluginManager;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
-
-import android.content.ComponentName;
-import android.content.Context;
-import android.content.Intent;
 
 /**
  * DConnectリクエスト.
@@ -138,12 +138,7 @@ public abstract class DConnectRequest {
     protected Intent createRequestMessage(final Intent request, final DevicePlugin plugin) {
         Intent targetIntent = new Intent(request);
         String serviceId = request.getStringExtra(DConnectMessage.EXTRA_SERVICE_ID);
-        String sessionKey = request.getStringExtra(DConnectMessage.EXTRA_SESSION_KEY);
         if (plugin != null) {
-            // serviceIdを書き換えてしまうので、serviceIdよりも先にsessionKeyを変換する
-            if (sessionKey != null) {
-                mPluginMgr.appendPluginIdToSessionKey(targetIntent, plugin);
-            }
             if (serviceId != null) {
                 mPluginMgr.splitPluginIdToServiceId(targetIntent);
             }

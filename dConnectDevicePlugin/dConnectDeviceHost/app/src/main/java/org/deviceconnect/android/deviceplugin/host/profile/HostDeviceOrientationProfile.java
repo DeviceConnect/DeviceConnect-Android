@@ -108,12 +108,11 @@ public class HostDeviceOrientationProfile extends DeviceOrientationProfile imple
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            String sessionKey = getSessionKey(request);
             String serviceId = getServiceID(request);
             // イベントの登録
             EventError error = EventManager.INSTANCE.addEvent(request);
             if (error == EventError.NONE) {
-                registerDeviceOrientationEvent(response, serviceId, sessionKey);
+                registerDeviceOrientationEvent(response, serviceId);
             } else {
                 MessageUtils.setUnknownError(response, "Can not register event.");
             }
@@ -252,11 +251,8 @@ public class HostDeviceOrientationProfile extends DeviceOrientationProfile imple
      *            レスポンス
      * @param serviceId
      *            サービスID
-     * @param sessionKey
-     *            セッションキー
      */
-    private void registerDeviceOrientationEvent(final Intent response,
-            final String serviceId, final String sessionKey) {
+    private void registerDeviceOrientationEvent(final Intent response, final String serviceId) {
 
         mServiceId = serviceId;
         mSensorManager = getSensorManager();

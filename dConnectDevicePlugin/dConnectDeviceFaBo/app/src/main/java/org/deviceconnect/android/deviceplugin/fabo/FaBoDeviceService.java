@@ -143,17 +143,17 @@ public class FaBoDeviceService extends DConnectMessageService {
     }
 
     @Override
-    protected void onManagerEventTransmitDisconnected(String sessionKey) {
+    protected void onManagerEventTransmitDisconnected(final String origin) {
         // ManagerのEvent送信経路切断通知受信時の処理。
         if (BuildConfig.DEBUG) {
             mLogger.info("Plug-in : onManagerEventTransmitDisconnected");
         }
-        if (sessionKey != null) {
-            EventManager.INSTANCE.removeEvents(sessionKey);
+        if (origin != null) {
+            EventManager.INSTANCE.removeEvents(origin);
             List<Event> events = EventManager.INSTANCE.getEventList(FaBoGPIOProfile.PROFILE_NAME,
                     FaBoGPIOProfile.ATTRIBUTE_ON_CHANGE);
             for (Event event : events) {
-                if (event.getSessionKey().equals(sessionKey)) {
+                if (event.getOrigin().equals(origin)) {
                     String serviceId = event.getServiceId();
                     Iterator serviceIds = mServiceIdStore.iterator();
                     while(serviceIds.hasNext()){

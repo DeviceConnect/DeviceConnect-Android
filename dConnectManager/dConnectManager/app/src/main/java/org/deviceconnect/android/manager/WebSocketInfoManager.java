@@ -28,8 +28,9 @@ public class WebSocketInfoManager {
         mOnWebSocketEventListener = onWebSocketEventListener;
     }
 
-    public void addWebSocketInfo(final String eventKey, final String uri) {
+    public void addWebSocketInfo(final String eventKey, final String uri, final String webSocketId) {
         WebSocketInfo info = new WebSocketInfo();
+        info.setId(webSocketId);
         info.setUri(uri);
         info.setEventKey(eventKey);
         info.setConnectTime(System.currentTimeMillis());
@@ -55,7 +56,7 @@ public class WebSocketInfoManager {
         return new ArrayList<>(mWebSocketInfoMap.values());
     }
 
-    private void notifyDisconnectWebSocket(final String sessionKey) {
+    private void notifyDisconnectWebSocket(final String origin) {
         List<DevicePlugin> plugins = mDevicePluginManager.getDevicePlugins();
         for (DevicePlugin plugin : plugins) {
             String serviceId = plugin.getServiceId();
@@ -63,7 +64,7 @@ public class WebSocketInfoManager {
             request.setComponent(plugin.getComponentName());
             request.setAction(IntentDConnectMessage.ACTION_EVENT_TRANSMIT_DISCONNECT);
             request.putExtra("pluginId", serviceId);
-            request.putExtra(IntentDConnectMessage.EXTRA_SESSION_KEY, sessionKey + DConnectMessageService.SEPARATOR + serviceId);
+            request.putExtra(IntentDConnectMessage.EXTRA_ORIGIN, origin);
             mContext.sendBroadcast(request);
         }
     }

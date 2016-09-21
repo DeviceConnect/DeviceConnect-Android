@@ -10,8 +10,6 @@ package org.deviceconnect.android.service;
 import android.content.Context;
 
 import org.deviceconnect.android.profile.DConnectProfile;
-import org.deviceconnect.android.profile.api.DConnectApi;
-import org.deviceconnect.android.profile.spec.DConnectApiSpec;
 import org.deviceconnect.android.profile.spec.DConnectPluginSpec;
 import org.deviceconnect.android.profile.spec.DConnectProfileSpec;
 
@@ -59,16 +57,8 @@ public class DConnectServiceManager implements DConnectServiceProvider,
             for (DConnectProfile profile : service.getProfileList()) {
                 DConnectProfileSpec profileSpec =
                     mPluginSpec.findProfileSpec(profile.getProfileName().toLowerCase());
-                if (profileSpec == null) {
-                    continue;
-                }
-                profile.setProfileSpec(profileSpec);
-                for (DConnectApi api : profile.getApiList()) {
-                    String path = createPath(api);
-                    DConnectApiSpec spec = profileSpec.findApiSpec(path, api.getMethod());
-                    if (spec != null) {
-                        api.setApiSpec(spec);
-                    }
+                if (profileSpec != null) {
+                    profile.setProfileSpec(profileSpec);
                 }
             }
         }
@@ -78,21 +68,6 @@ public class DConnectServiceManager implements DConnectServiceProvider,
         mDConnectServices.put(service.getId(), service);
 
         notifyOnServiceAdded(service);
-    }
-
-    private String createPath(final DConnectApi api) {
-        String interfaceName = api.getInterface();
-        String attributeName = api.getAttribute();
-        StringBuffer path = new StringBuffer();
-        path.append("/");
-        if (interfaceName != null) {
-            path.append(interfaceName);
-            path.append("/");
-        }
-        if (attributeName != null) {
-            path.append(attributeName);
-        }
-        return path.toString();
     }
 
     @Override

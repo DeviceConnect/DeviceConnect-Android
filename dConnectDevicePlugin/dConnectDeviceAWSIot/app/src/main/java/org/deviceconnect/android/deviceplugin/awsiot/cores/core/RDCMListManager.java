@@ -58,6 +58,7 @@ public class RDCMListManager {
         mFuture = mExecutorService.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
+                AWSIotDeviceApplication.getInstance().updateMyManagerShadow(true);
                 updateManagerList(new UpdateManagerListCallback() {
                     @Override
                     public void onUpdateManagerList(final List<RemoteDeviceConnectManager> managerList) {
@@ -71,7 +72,7 @@ public class RDCMListManager {
                     }
                 });
             }
-        }, 5, 5, TimeUnit.MINUTES);
+        }, 15, 5 * 60, TimeUnit.SECONDS);
     }
 
     /**

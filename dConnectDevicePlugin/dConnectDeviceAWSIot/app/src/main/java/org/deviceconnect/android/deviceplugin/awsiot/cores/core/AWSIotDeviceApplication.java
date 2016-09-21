@@ -7,10 +7,12 @@
 package org.deviceconnect.android.deviceplugin.awsiot.cores.core;
 
 import android.app.Application;
+import android.content.Intent;
 
 import com.amazonaws.regions.Regions;
 
 import org.deviceconnect.android.deviceplugin.awsiot.cores.util.AWSIotUtil;
+import org.deviceconnect.android.deviceplugin.awsiot.local.AWSIotLocalDeviceService;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -49,6 +51,13 @@ public class AWSIotDeviceApplication extends Application {
                 public void onConnected(final Exception err) {
                     if (err == null) {
                         mRDCMListManager.updateManagerList(null);
+                        updateMyManagerShadow(true);
+                        if (pref.getManagerRegister()) {
+                            Intent intent = new Intent();
+                            intent.setClass(getApplicationContext(), AWSIotLocalDeviceService.class);
+                            intent.setAction(AWSIotLocalDeviceService.ACTION_START);
+                            getApplicationContext().startService(intent);
+                        }
                     }
                 }
             });

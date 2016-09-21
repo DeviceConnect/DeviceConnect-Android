@@ -1,4 +1,4 @@
-include ':awsiot-plugin', ':awsiot-plugin-local', ':awsiot-core', ':udt-core'
+include ':app', ':udt-core'
 include 'dconnect-sdk-for-android'
 project(':dconnect-sdk-for-android').projectDir = new File('../../dConnectSDK/dConnectSDKForAndroid/dconnect-sdk-for-android')
 include 'dconnect-device-plugin-sdk'

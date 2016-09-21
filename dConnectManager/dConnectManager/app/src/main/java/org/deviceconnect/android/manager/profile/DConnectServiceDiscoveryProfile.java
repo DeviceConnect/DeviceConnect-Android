@@ -12,7 +12,6 @@ import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.manager.DConnectMessageService;
 import org.deviceconnect.android.manager.DevicePluginManager;
-import org.deviceconnect.android.manager.event.EventProtocol;
 import org.deviceconnect.android.manager.request.ServiceDiscoveryRequest;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
@@ -21,7 +20,6 @@ import org.deviceconnect.android.profile.api.DeleteApi;
 import org.deviceconnect.android.profile.api.GetApi;
 import org.deviceconnect.android.profile.api.PutApi;
 import org.deviceconnect.android.service.DConnectServiceProvider;
-import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
 /**
@@ -100,10 +98,4 @@ public class DConnectServiceDiscoveryProfile extends ServiceDiscoveryProfile {
             return true;
         }
     };
-
-    @Override
-    protected void onEventRequest(final Intent request) {
-        String receiverId = EventProtocol.createReceiverId((DConnectMessageService) getContext(), request);
-        request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, receiverId);
-    }
 }

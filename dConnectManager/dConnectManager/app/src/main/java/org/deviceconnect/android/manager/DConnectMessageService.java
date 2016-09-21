@@ -72,6 +72,8 @@ public abstract class DConnectMessageService extends Service
     private static final String DCONNECT_DOMAIN = ".deviceconnect.org";
     /** ローカルのドメイン名. */
     private static final String LOCALHOST_DCONNECT = "localhost" + DCONNECT_DOMAIN;
+    /** 匿名オリジン. */
+    public static final String ANONYMOUS_ORIGIN = "<anonymous>";
 
     /** Notification ID.*/
     private static final int ONGOING_NOTIFICATION_ID = 4035;
@@ -259,7 +261,8 @@ public abstract class DConnectMessageService extends Service
 
         // オリジンの正当性チェック
         String profileName = request.getStringExtra(DConnectMessage.EXTRA_PROFILE);
-        OriginValidator.OriginError error = mOriginValidator.checkOrigin(request);
+        String origin = request.getStringExtra(IntentDConnectMessage.EXTRA_ORIGIN);
+        OriginValidator.OriginError error = mOriginValidator.checkOrigin(origin);
         switch (error) {
             case NOT_SPECIFIED:
                 MessageUtils.setInvalidOriginError(response, "Origin is not specified.");
@@ -280,6 +283,10 @@ public abstract class DConnectMessageService extends Service
                 sendResponse(request, response);
                 return;
             case NONE:
+                if (origin == null && !mSettings.requireOrigin()) {
+                    request.putExtra(IntentDConnectMessage.EXTRA_ORIGIN, ANONYMOUS_ORIGIN);
+                }
+                break;
             default:
                 break;
         }

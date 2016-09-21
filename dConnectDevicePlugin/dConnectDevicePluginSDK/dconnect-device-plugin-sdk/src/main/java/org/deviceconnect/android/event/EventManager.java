@@ -12,6 +12,7 @@ import android.content.Intent;
 import org.deviceconnect.android.event.cache.EventCacheController;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.message.DConnectMessage;
+import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
 import java.util.List;
 
@@ -71,7 +72,7 @@ public enum EventManager {
         String inter = request.getStringExtra(DConnectMessage.EXTRA_INTERFACE);
         String attribute = request.getStringExtra(DConnectMessage.EXTRA_ATTRIBUTE);
         String accessToken = request.getStringExtra(DConnectMessage.EXTRA_ACCESS_TOKEN);
-        String origin = request.getStringExtra("_origin");
+        String origin = request.getStringExtra(IntentDConnectMessage.EXTRA_ORIGIN);
         ComponentName name = request.getParcelableExtra(DConnectMessage.EXTRA_RECEIVER);
         
         Event event = new Event();
@@ -112,14 +113,14 @@ public enum EventManager {
     }
     
     /**
-     * 指定されたセッションキーに紐づくイベント情報を解除する.
+     * 指定されたオリジンに紐づくイベント情報を解除する.
      * 
-     * @param sessionKey セッションキー
+     * @param origin オリジン
      * @return 削除に成功した場合はtrue、その他はfalseを返す。
      */
-    public boolean removeEvents(final String sessionKey) {
+    public boolean removeEvents(final String origin) {
         checkState();
-        return mController.removeEvents(sessionKey);
+        return mController.removeEvents(origin);
     }
     
     /**

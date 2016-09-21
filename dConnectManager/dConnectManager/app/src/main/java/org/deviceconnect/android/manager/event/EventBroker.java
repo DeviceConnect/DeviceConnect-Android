@@ -51,10 +51,11 @@ public class EventBroker {
 
     public void onRequest(final Intent request, final DevicePlugin dest) {
         String serviceId = DConnectProfile.getServiceID(request);
+        String origin = request.getStringExtra(IntentDConnectMessage.EXTRA_ORIGIN);
         if (serviceId == null) {
             return;
         }
-        String accessToken = getAccessToken(serviceId);
+        String accessToken = getAccessToken(origin, serviceId);
         if (accessToken != null) {
             request.putExtra(DConnectMessage.EXTRA_ACCESS_TOKEN, accessToken);
         } else {
@@ -94,8 +95,8 @@ public class EventBroker {
         }
     }
 
-    private String getAccessToken(final String serviceId) {
-        DConnectLocalOAuth.OAuthData oauth = mLocalOAuth.getOAuthData(serviceId);
+    private String getAccessToken(final String origin, final String serviceId) {
+        DConnectLocalOAuth.OAuthData oauth = mLocalOAuth.getOAuthData(origin, serviceId);
         if (oauth != null) {
             return mLocalOAuth.getAccessToken(oauth.getId());
         }
@@ -172,23 +173,17 @@ public class EventBroker {
         // network service discoveryの場合には、networkServiceのオブジェクトの中にデータが含まれる
         Bundle service = event.getParcelableExtra(ServiceDiscoveryProfile.PARAM_NETWORK_SERVICE);
         String id = service.getString(ServiceDiscoveryProfile.PARAM_ID);
-        String did = mPluginManager.appendServiceId(plugin, id);
 
         // サービスIDを変更
         replaceServiceId(event, plugin);
 
-        DConnectLocalOAuth.OAuthData oauth = mLocalOAuth.getOAuthData(did);
-        if (oauth == null) {
-            createClientOfDevicePlugin(plugin, did, event);
-        } else {
-            // 送信先のセッションを取得
-            List<Event> evts = EventManager.INSTANCE.getEventList(
-                ServiceDiscoveryProfile.PROFILE_NAME,
-                ServiceDiscoveryProfile.ATTRIBUTE_ON_SERVICE_CHANGE);
-            for (int i = 0; i < evts.size(); i++) {
-                Event evt = evts.get(i);
-                mContext.sendEvent(evt.getReceiverName(), event);
-            }
+        // 送信先のセッションを取得
+        List<Event> evts = EventManager.INSTANCE.getEventList(
+            ServiceDiscoveryProfile.PROFILE_NAME,
+            ServiceDiscoveryProfile.ATTRIBUTE_ON_SERVICE_CHANGE);
+        for (int i = 0; i < evts.size(); i++) {
+            Event evt = evts.get(i);
+            mContext.sendEvent(evt.getReceiverName(), event);
         }
     }
 

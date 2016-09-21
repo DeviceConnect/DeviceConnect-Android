@@ -250,7 +250,7 @@ public abstract class LocalOAuthRequest extends DConnectRequest {
                 int errorCode = getErrorCode(mResponse);
                 if (errorCode == DConnectMessage.ErrorCode.NOT_FOUND_CLIENT_ID.getCode() 
                         || errorCode == DConnectMessage.ErrorCode.AUTHORIZATION.getCode()) {
-                    mLocalOAuth.deleteOAuthData(serviceId);
+                    mLocalOAuth.deleteOAuthData(getRequestOrigin(mRequest), serviceId);
                 }
                 sendResponse(mResponse);
             }
@@ -330,7 +330,7 @@ public abstract class LocalOAuthRequest extends DConnectRequest {
         String origin = getRequestOrigin(mRequest);
 
         if (mUseAccessToken && !isIgnoredPluginProfile(profile)) {
-            String accessToken = getAccessToken(serviceId);
+            String accessToken = getAccessToken(origin, serviceId);
             if (accessToken != null) {
                 executeRequest(accessToken);
             } else {
@@ -357,7 +357,7 @@ public abstract class LocalOAuthRequest extends DConnectRequest {
                     }
                 }
 
-                accessToken = getAccessToken(serviceId);
+                accessToken = getAccessToken(origin, serviceId);
                 if (accessToken != null) {
                     executeRequest(accessToken);
                 }
@@ -369,8 +369,8 @@ public abstract class LocalOAuthRequest extends DConnectRequest {
 
     private String getRequestOrigin(final Intent request) {
         String origin = request.getStringExtra(IntentDConnectMessage.EXTRA_ORIGIN);
-        if (!mRequireOrigin && origin == null && getContext() != null) {
-            origin = getContext().getPackageName();
+        if (!mRequireOrigin && origin == null) {
+            origin = "<anonymous>";
         }
         return origin;
     }
@@ -378,11 +378,12 @@ public abstract class LocalOAuthRequest extends DConnectRequest {
     /**
      * 指定されたサービスIDに対応するアクセストークンを取得する.
      * アクセストークンが存在しない場合にはnullを返却する。
+     * @param origin リクエスト元のオリジン
      * @param serviceId サービスID
      * @return アクセストークン
      */
-    private String getAccessToken(final String serviceId) {
-        OAuthData oauth = mLocalOAuth.getOAuthData(serviceId);
+    private String getAccessToken(final String origin, final String serviceId) {
+        OAuthData oauth = mLocalOAuth.getOAuthData(origin, serviceId);
         if (oauth != null) {
             return mLocalOAuth.getAccessToken(oauth.getId());
         }
@@ -481,9 +482,8 @@ public abstract class LocalOAuthRequest extends DConnectRequest {
         @Override
         public void run() {
             String clientId = null;
-            String clientSecret = null;
 
-            OAuthData oauth = mLocalOAuth.getOAuthData(mServiceId);
+            OAuthData oauth = mLocalOAuth.getOAuthData(mOrigin, mServiceId);
             if (oauth == null) {
                 ClientData client = executeCreateClient(mServiceId);
                 if (client == null) {
@@ -493,14 +493,12 @@ public abstract class LocalOAuthRequest extends DConnectRequest {
                     return;
                 } else {
                     clientId = client.mClientId;
-                    clientSecret = client.mClientSecret;
                     // クライアントデータを保存
-                    mLocalOAuth.setOAuthData(mServiceId, clientId, clientSecret);
-                    oauth = mLocalOAuth.getOAuthData(mServiceId);
+                    mLocalOAuth.setOAuthData(mOrigin, mServiceId, clientId);
+                    oauth = mLocalOAuth.getOAuthData(mOrigin, mServiceId);
                 }
             } else {
                 clientId = oauth.getClientId();
-                clientSecret = oauth.getClientSecret();
             }
 
             String accessToken = mLocalOAuth.getAccessToken(oauth.getId());

@@ -45,7 +45,6 @@ public class DConnectService extends DConnectMessageService {
     public static final String ACTION_SETTINGS_KEEP_ALIVE = "settings.KeepAlive";
     public static final String EXTRA_SESSION_KEY = "sessionKey";
     public static final String EXTRA_KEEP_ALIVE_ENABLED = "enabled";
-    public static final String ANONYMOUS_ORIGIN = "<anonymous>";
 
     /** 内部用: 通信タイプを定義する. */
     public static final String EXTRA_INNER_TYPE = "_type";

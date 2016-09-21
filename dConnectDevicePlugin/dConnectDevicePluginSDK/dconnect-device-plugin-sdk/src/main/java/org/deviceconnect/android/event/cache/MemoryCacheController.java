@@ -108,7 +108,7 @@ public class MemoryCacheController extends BaseCacheController {
         String origin = event.getOrigin();
         String receiver = getReceiverName(event);
         for (Event e : eventList) {
-            if (e.getOrigin().equals(origin) && e.getReceiverName().equals(receiver)) {
+            if (e.getOrigin().equals(origin) && getReceiverName(e).equals(receiver)) {
                 // 登録済みの場合はアクセストークンを上書きする
                 e.setAccessToken(event.getAccessToken());
                 e.setUpdateDate(Utils.getCurreTimestamp());
@@ -257,7 +257,7 @@ public class MemoryCacheController extends BaseCacheController {
     public synchronized boolean removeEvents(final String origin) {
         
         if (origin == null) {
-            throw new IllegalArgumentException("SessionKey is null.");
+            throw new IllegalArgumentException("origin is null.");
         }
         
         for (Entry<String, Map<String, List<Event>>> entry : mEventMap.entrySet()) {

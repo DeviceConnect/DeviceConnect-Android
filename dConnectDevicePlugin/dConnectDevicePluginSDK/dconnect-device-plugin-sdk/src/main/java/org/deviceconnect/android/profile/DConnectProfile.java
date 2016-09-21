@@ -219,9 +219,6 @@ public abstract class DConnectProfile implements DConnectProfileConstants,
                     MessageUtils.setInvalidRequestParameterError(response);
                     return true;
                 }
-                if (spec.getType() == Type.EVENT) {
-                    onEventRequest(request);
-                }
             }
             return api.onRequest(request, response);
         } else {
@@ -236,26 +233,6 @@ public abstract class DConnectProfile implements DConnectProfileConstants,
             }
             return true;
         }
-    }
-
-    protected void onEventRequest(final Intent request) {
-        String origin;
-        String profileName = request.getStringExtra(DConnectMessage.EXTRA_PROFILE);
-        String accessToken = request.getStringExtra(DConnectMessage.EXTRA_ACCESS_TOKEN);
-        if (isUseLocalOAuth()) {
-            if (!isIgnoredProfile(profileName)) {
-                origin = findRequestOrigin(accessToken);
-            } else {
-                origin = accessToken;
-            }
-        } else {
-            if (accessToken != null) {
-                origin = accessToken;
-            } else {
-                origin = "<anonymous>";
-            }
-        }
-        request.putExtra(INNER_EXTRA_ORIGIN, origin);
     }
 
     protected boolean isUseLocalOAuth() {
@@ -711,16 +688,6 @@ public abstract class DConnectProfile implements DConnectProfileConstants,
     public static int getResult(final Intent response) {
         int result = response.getIntExtra(DConnectMessage.EXTRA_RESULT, -1);
         return result;
-    }
-
-    /**
-     * リクエストからオリジンを取得する.
-     *
-     * @param request リクエストパラメータ
-     * @return オリジン。無い場合はnullを返す。
-     */
-    public static String getOrigin(final Intent request) {
-        return request.getStringExtra(INNER_EXTRA_ORIGIN);
     }
 
     /**

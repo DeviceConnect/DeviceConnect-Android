@@ -54,8 +54,6 @@ public class DeliveryRequest extends LocalOAuthRequest {
         Intent request = createRequestMessage(mRequest, mDevicePlugin);
         request.setComponent(mDevicePlugin.getComponentName());
         request.putExtra(IntentDConnectMessage.EXTRA_REQUEST_CODE, mRequestCode);
-        String sessionKey = DConnectProfile.getSessionKey(request);
-        mLogger.info("sessionKey: " + sessionKey);
         mContext.sendBroadcast(request);
 
         if (mResponse == null) {
@@ -75,8 +73,9 @@ public class DeliveryRequest extends LocalOAuthRequest {
                     // 一致していないので、dConnectManagerのローカルに保存しているclientIdを削除
                     // してから、再度デバイスプラグインにクライアントIDの作成を要求を行う.
                     String serviceId = mRequest.getStringExtra(DConnectMessage.EXTRA_SERVICE_ID);
+                    String origin = mRequest.getStringExtra(IntentDConnectMessage.EXTRA_ORIGIN);
                     if (serviceId != null) {
-                        mLocalOAuth.deleteOAuthData(serviceId);
+                        mLocalOAuth.deleteOAuthData(origin, serviceId);
                     }
                     executeRequest();
                 } else if (mRetryCount < MAX_RETRY_COUNT 

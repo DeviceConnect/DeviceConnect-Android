@@ -20,7 +20,6 @@ import org.deviceconnect.android.manager.request.RemoveEventsRequest;
 import org.deviceconnect.android.manager.setting.KeywordDialogActivity;
 import org.deviceconnect.android.manager.setting.SettingActivity;
 import org.deviceconnect.android.manager.util.DConnectUtil;
-import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.android.profile.DConnectProfileProvider;
 import org.deviceconnect.android.profile.SystemProfile;
@@ -43,10 +42,10 @@ import java.util.UUID;
  */
 public class DConnectSystemProfile extends SystemProfile {
     /** プロファイル管理クラス. */
-    private DConnectProfileProvider mProvider;
+    private final DConnectProfileProvider mProvider;
 
     /** プラグイン管理クラス. */
-    private DevicePluginManager mPluginMgr;
+    private final DevicePluginManager mPluginMgr;
 
     /**
      * コンストラクタ.
@@ -186,20 +185,15 @@ public class DConnectSystemProfile extends SystemProfile {
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
             // dConnectManagerに登録されているイベントを削除
-            String sessionKey = request.getStringExtra(DConnectMessage.EXTRA_SESSION_KEY);
-            if (sessionKey == null) {
-                MessageUtils.setInvalidRequestParameterError(response, "sessionKey is null.");
-                return true;
-            } else {
-                EventManager.INSTANCE.removeEvents(sessionKey);
-                // 各デバイスプラグインにイベントを削除依頼を送る
-                RemoveEventsRequest req = new RemoveEventsRequest();
-                req.setContext(getContext());
-                req.setRequest(request);
-                req.setDevicePluginManager(mPluginMgr);
-                ((DConnectMessageService) getContext()).addRequest(req);
-                return false;
-            }
+            String origin = request.getStringExtra(IntentDConnectMessage.EXTRA_ORIGIN);
+            EventManager.INSTANCE.removeEvents(origin);
+            // 各デバイスプラグインにイベントを削除依頼を送る
+            RemoveEventsRequest req = new RemoveEventsRequest();
+            req.setContext(getContext());
+            req.setRequest(request);
+            req.setDevicePluginManager(mPluginMgr);
+            ((DConnectMessageService) getContext()).addRequest(req);
+            return false;
         }
     };
 

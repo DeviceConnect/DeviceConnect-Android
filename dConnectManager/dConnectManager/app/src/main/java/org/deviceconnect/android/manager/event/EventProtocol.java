@@ -156,7 +156,7 @@ public abstract class EventProtocol {
         if (sessionKey != null) {
             receiverId = sessionKey;
         } else {
-            receiverId = md5(origin);
+            receiverId = origin;
         }
         return receiverId;
     }

@@ -861,7 +861,7 @@ public class SonyCameraDeviceService extends DConnectMessageService {
             intent.putExtra(DConnectMessage.EXTRA_SERVICE_ID, SERVICE_ID);
             intent.putExtra(DConnectMessage.EXTRA_PROFILE, MediaStreamRecordingProfile.PROFILE_NAME);
             intent.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, MediaStreamRecordingProfile.ATTRIBUTE_ON_PHOTO);
-            intent.putExtra(DConnectMessage.EXTRA_SESSION_KEY, evt.getSessionKey());
+            intent.putExtra(DConnectMessage.EXTRA_ACCESS_TOKEN, evt.getAccessToken());
             intent.putExtra(MediaStreamRecordingProfile.PARAM_PHOTO, photo);
 
             sendEvent(intent, evt.getAccessToken());
@@ -972,7 +972,7 @@ public class SonyCameraDeviceService extends DConnectMessageService {
                     ServiceDiscoveryProfile.PROFILE_NAME);
             intent.putExtra(DConnectMessage.EXTRA_ATTRIBUTE,
                     ServiceDiscoveryProfile.ATTRIBUTE_ON_SERVICE_CHANGE);
-            intent.putExtra(DConnectMessage.EXTRA_SESSION_KEY, evt.getSessionKey());
+            intent.putExtra(DConnectMessage.EXTRA_ACCESS_TOKEN, evt.getAccessToken());
             intent.putExtra(ServiceDiscoveryProfile.PARAM_NETWORK_SERVICE, camera);
 
             sendEvent(intent, evt.getAccessToken());

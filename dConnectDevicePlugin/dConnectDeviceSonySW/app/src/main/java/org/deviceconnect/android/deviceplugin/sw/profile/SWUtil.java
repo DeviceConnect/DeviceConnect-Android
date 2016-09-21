@@ -6,16 +6,13 @@
  */
 package org.deviceconnect.android.deviceplugin.sw.profile;
 
-import java.util.Locale;
-import java.util.Set;
-
-import org.deviceconnect.android.deviceplugin.sw.SWConstants;
-import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
-import org.deviceconnect.profile.ServiceDiscoveryProfileConstants.NetworkType;
-
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.os.Bundle;
+
+import org.deviceconnect.android.deviceplugin.sw.SWConstants;
+
+import java.util.Locale;
+import java.util.Set;
 
 /**
  * ユーティリティクラス.
@@ -54,25 +51,6 @@ public final class SWUtil {
             }
         }
         return null;
-    }
-
-    /**
-     * ペアリング済みのSonyWatchのステータスを{@link Bundle}に格納して返却する.
-     * 
-     * @param boundedDevice ペアリング済みデバイス一覧
-     * @return {@link Bundle}インスタンス
-     */
-    public static Bundle toBundle(final BluetoothDevice boundedDevice) {
-
-        String address = boundedDevice.getAddress();
-        String serviceId = address.replace(":", "").toLowerCase(Locale.ENGLISH);
-        Bundle result = new Bundle();
-        result.putString(ServiceDiscoveryProfile.PARAM_ID, serviceId);
-        result.putString(ServiceDiscoveryProfile.PARAM_NAME, boundedDevice.getName());
-        result.putString(ServiceDiscoveryProfile.PARAM_TYPE, NetworkType.BLUETOOTH.getValue());
-        result.putBoolean(ServiceDiscoveryProfile.PARAM_ONLINE, true);
-
-        return result;
     }
 
     /**

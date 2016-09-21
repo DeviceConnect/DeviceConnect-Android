@@ -1,0 +1,331 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFF">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:showDividers="middle"
+        android:divider="@drawable/linking_beacon_divider"
+        android:padding="8dp">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:layout_centerInParent="true"
+                android:layout_margin="16dp"
+                android:text="@string/activity_beacon_vendor_id"
+                android:textColor="@color/help_text_color"/>
+
+            <TextView
+                android:id="@+id/activity_beacon_vendor_id"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:layout_centerInParent="true"
+                android:layout_margin="16dp"
+                android:textColor="@color/help_text_color"/>
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:layout_centerInParent="true"
+                android:layout_margin="16dp"
+                android:text="@string/activity_beacon_extra_id"
+                android:textColor="@color/help_text_color"/>
+
+            <TextView
+                android:id="@+id/activity_beacon_extra_id"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:layout_centerInParent="true"
+                android:layout_margin="16dp"
+                android:textColor="@color/help_text_color"/>
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:layout_centerInParent="true"
+                android:layout_margin="16dp"
+                android:text="@string/activity_beacon_version"
+                android:textColor="@color/help_text_color"/>
+
+            <TextView
+                android:id="@+id/activity_beacon_version"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:layout_centerInParent="true"
+                android:layout_margin="16dp"
+                android:textColor="@color/help_text_color"/>
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:layout_centerInParent="true"
+                android:layout_margin="16dp"
+                android:text="@string/activity_beacon_status"
+                android:textColor="@color/help_text_color"/>
+
+            <TextView
+                android:id="@+id/activity_beacon_status"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:layout_centerInParent="true"
+                android:layout_margin="16dp"
+                android:textColor="@color/help_text_color"/>
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:layout_centerInParent="true"
+                android:layout_margin="16dp"
+                android:text="@string/activity_beacon_time_stamp"
+                android:textColor="@color/help_text_color"/>
+
+            <TextView
+                android:id="@+id/activity_beacon_time_stamp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:layout_centerInParent="true"
+                android:layout_margin="16dp"
+                android:textColor="@color/help_text_color"/>
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:layout_centerInParent="true"
+                android:layout_margin="16dp"
+                android:text="@string/activity_beacon_battery_low"
+                android:textColor="@color/help_text_color"/>
+
+            <TextView
+                android:id="@+id/activity_beacon_battery_low"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:layout_centerInParent="true"
+                android:layout_margin="16dp"
+                android:textColor="@color/help_text_color"/>
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:layout_centerInParent="true"
+                android:layout_margin="16dp"
+                android:text="@string/activity_beacon_battery_level"
+                android:textColor="@color/help_text_color"/>
+
+            <TextView
+                android:id="@+id/activity_beacon_battery_level"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:layout_centerInParent="true"
+                android:layout_margin="16dp"
+                android:textColor="@color/help_text_color"/>
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:layout_centerInParent="true"
+                android:layout_margin="16dp"
+                android:text="@string/activity_beacon_atmospheric_pressure"
+                android:textColor="@color/help_text_color"/>
+
+            <TextView
+                android:id="@+id/activity_beacon_atmospheric_pressure"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:layout_centerInParent="true"
+                android:layout_margin="16dp"
+                android:textColor="@color/help_text_color"/>
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:layout_centerInParent="true"
+                android:layout_margin="16dp"
+                android:text="@string/activity_beacon_temperature"
+                android:textColor="@color/help_text_color"/>
+
+            <TextView
+                android:id="@+id/activity_beacon_temperature"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:layout_centerInParent="true"
+                android:layout_margin="16dp"
+                android:textColor="@color/help_text_color"/>
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:layout_centerInParent="true"
+                android:layout_margin="16dp"
+                android:text="@string/activity_beacon_humidity"
+                android:textColor="@color/help_text_color"/>
+
+            <TextView
+                android:id="@+id/activity_beacon_humidity"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:layout_centerInParent="true"
+                android:layout_margin="16dp"
+                android:textColor="@color/help_text_color"/>
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:layout_centerInParent="true"
+                android:layout_margin="16dp"
+                android:text="@string/activity_beacon_distance"
+                android:textColor="@color/help_text_color"/>
+
+            <TextView
+                android:id="@+id/activity_beacon_distance"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:layout_centerInParent="true"
+                android:layout_margin="16dp"
+                android:textColor="@color/help_text_color"/>
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:layout_centerInParent="true"
+                android:layout_margin="16dp"
+                android:text="@string/activity_beacon_raw_data"
+                android:textColor="@color/help_text_color"/>
+
+            <TextView
+                android:id="@+id/activity_beacon_raw_data"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:layout_centerInParent="true"
+                android:layout_margin="16dp"
+                android:textColor="@color/help_text_color"/>
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:id="@+id/activity_beacon_data_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:layout_centerInParent="true"
+                android:layout_margin="16dp"
+                android:text="@string/activity_beacon_button"
+                android:textColor="@color/help_text_color"/>
+
+            <Button
+                android:id="@+id/activity_beacon_clear_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:layout_centerInParent="true"
+                android:layout_margin="8dp"
+                android:background="@drawable/linking_button_blue"
+                android:paddingLeft="16dp"
+                android:paddingRight="16dp"
+                android:text="@string/activity_beacon_clear_button"
+                android:textColor="#FFF"
+                android:textSize="12sp"/>
+        </RelativeLayout>
+
+        <TextView
+            android:id="@+id/activity_beacon_button_event"
+            android:layout_width="match_parent"
+            android:layout_height="100dp"
+            android:background="@drawable/linking_textview_border"
+            android:ellipsize="end"
+            android:maxLines="5"
+            android:padding="4dp"
+            android:textColor="#000"/>
+    </LinearLayout>
+</ScrollView>

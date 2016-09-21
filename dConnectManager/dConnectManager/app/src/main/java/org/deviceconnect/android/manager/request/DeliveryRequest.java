@@ -9,6 +9,8 @@ package org.deviceconnect.android.manager.request;
 import android.content.Intent;
 
 import org.deviceconnect.android.manager.BuildConfig;
+import org.deviceconnect.android.message.MessageUtils;
+import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
@@ -39,6 +41,15 @@ public class DeliveryRequest extends LocalOAuthRequest {
                     mDevicePlugin.getPackageName(), mRequest.getExtras()));
         }
 
+        // プラグインのサポートしない命令にエラーを返す
+        String profileName = DConnectProfile.getProfile(mRequest);
+        if (profileName != null && !mDevicePlugin.supportsProfile(profileName)) {
+            Intent response = new Intent(IntentDConnectMessage.ACTION_RESPONSE);
+            MessageUtils.setNotSupportProfileError(response);
+            sendResponse(response);
+            return;
+        }
+
         // 命令をデバイスプラグインに送信
         Intent request = createRequestMessage(mRequest, mDevicePlugin);
         request.setComponent(mDevicePlugin.getComponentName());
@@ -65,8 +76,9 @@ public class DeliveryRequest extends LocalOAuthRequest {
                     // 一致していないので、dConnectManagerのローカルに保存しているclientIdを削除
                     // してから、再度デバイスプラグインにクライアントIDの作成を要求を行う.
                     String serviceId = mRequest.getStringExtra(DConnectMessage.EXTRA_SERVICE_ID);
+                    String origin = mRequest.getStringExtra(IntentDConnectMessage.EXTRA_ORIGIN);
                     if (serviceId != null) {
-                        mLocalOAuth.deleteOAuthData(serviceId);
+                        mLocalOAuth.deleteOAuthData(origin, serviceId);
                     }
                     executeRequest();
                 } else if (mRetryCount < MAX_RETRY_COUNT 

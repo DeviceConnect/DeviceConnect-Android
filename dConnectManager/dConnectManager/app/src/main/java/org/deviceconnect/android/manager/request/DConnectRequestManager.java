@@ -6,17 +6,17 @@
  */
 package org.deviceconnect.android.manager.request;
 
+import android.content.Intent;
+import android.util.Log;
+
+import org.deviceconnect.android.manager.BuildConfig;
+import org.deviceconnect.message.intent.message.IntentDConnectMessage;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
-import org.deviceconnect.android.manager.BuildConfig;
-import org.deviceconnect.message.intent.message.IntentDConnectMessage;
-
-import android.content.Intent;
-import android.util.Log;
 
 /**
  * dConnect Managerで処理されるリクエストを管理するクラス.
@@ -71,22 +71,6 @@ public class DConnectRequestManager {
     }
 
     /**
-     * レスポンスを受け付ける.
-     * @param response レスポンス
-     */
-    public void setResponse(final Intent response) {
-        int code = response.getIntExtra(
-                IntentDConnectMessage.EXTRA_REQUEST_CODE, ERROR_CODE);
-        for (int i = 0; i < mRequestList.size(); i++) {
-            DConnectRequest request = mRequestList.get(i);
-            if (request.hasRequestCode(code)) {
-                request.setResponse(response);
-                return;
-            }
-        }
-    }
-
-    /**
      * シングルスレッドで実行するリクエストを追加する.
      * @param request 追加するリクエスト
      */
@@ -112,20 +96,19 @@ public class DConnectRequestManager {
     }
 
     /**
-     * レスポンスに対応するリクエストを取得する.
-     * 対応するリクエストが存在しない場合にはnullを返却する。
+     * レスポンスを受け付ける.
      * @param response レスポンス
-     * @return リクエストIntent
      */
-    public Intent getRequestIntent(final Intent response) {
+    public void setResponse(final Intent response) {
         int code = response.getIntExtra(
                 IntentDConnectMessage.EXTRA_REQUEST_CODE, ERROR_CODE);
-        for (int i = 0; i < mRequestList.size(); i++) {
-            DConnectRequest request = mRequestList.get(i);
-            if (request.hasRequestCode(code)) {
-                return request.getRequest();
+        synchronized (mRequestList) {
+            for (DConnectRequest request : mRequestList) {
+                if (request.hasRequestCode(code)) {
+                    request.setResponse(response);
+                    return;
+                }
             }
         }
-        return null;
     }
 }

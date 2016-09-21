@@ -8,6 +8,8 @@ package org.deviceconnect.android.manager;
 
 import android.content.ComponentName;
 
+import org.deviceconnect.android.manager.util.VersionName;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,6 +30,8 @@ public class DevicePlugin {
     private String mDeviceName;
     /** Class name of service for restart. */
     private String mStartServiceClassName;
+    /* プラグインSDKバージョン名. */
+    private VersionName mPluginSdkVersionName;
     /**
      * サポートしているプロファイルを格納する.
      */
@@ -148,6 +152,26 @@ public class DevicePlugin {
      */
     public List<String> getSupportProfiles() {
         return mSupports;
+    }
+
+    public boolean supportsProfile(final String profileName) {
+        if (mSupports == null) {
+            return false;
+        }
+        for (String support : mSupports) {
+            if (support.equalsIgnoreCase(profileName)) { // MEMO パスの大文字小文字無視
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public void setPluginSdkVersionName(final VersionName pluginSdkVersionName) {
+        mPluginSdkVersionName = pluginSdkVersionName;
+    }
+
+    public VersionName getPluginSdkVersionName() {
+        return mPluginSdkVersionName;
     }
     
     @Override

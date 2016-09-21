@@ -10,8 +10,8 @@ import android.support.v4.app.Fragment;
 
 import org.deviceconnect.android.deviceplugin.kadecot.fragment.FinishFragment;
 import org.deviceconnect.android.deviceplugin.kadecot.fragment.KadecotCheckServerFragment;
-import org.deviceconnect.android.deviceplugin.kadecot.fragment.SummaryFragment;
 import org.deviceconnect.android.deviceplugin.kadecot.fragment.KadecotInstallFragment;
+import org.deviceconnect.android.deviceplugin.kadecot.fragment.SummaryFragment;
 import org.deviceconnect.android.ui.activity.DConnectSettingPageFragmentActivity;
 
 /**

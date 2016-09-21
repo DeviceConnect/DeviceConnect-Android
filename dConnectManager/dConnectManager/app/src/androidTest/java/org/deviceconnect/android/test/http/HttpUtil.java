@@ -28,7 +28,7 @@ public final class HttpUtil {
     /**
      * デバック用タグを定義します.
      */
-    private static final String TAG = "TEST";
+    private static final String TAG = "HttpUtil";
 
     /**
      * バッファサイズを定義します.

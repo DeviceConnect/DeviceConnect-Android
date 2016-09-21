@@ -1,13 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest
     package="org.deviceconnect.android.manager"
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    android:versionCode="1"
-    android:versionName="2.0.0">
-
-    <uses-sdk
-        android:minSdkVersion="14"
-        android:targetSdkVersion="18"/>
+    xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
@@ -19,50 +13,85 @@
         android:allowBackup="true"
         android:icon="@drawable/icon"
         android:label="@string/app_name"
-        android:theme="@style/AppTheme">
+        android:theme="@style/AppTheme"
+        android:name="org.deviceconnect.android.manager.DConnectApplication">
 
         <!-- Device Connect Manager起動用Activity. -->
         <activity
-            android:name="org.deviceconnect.android.manager.DConnectLaunchActivity"
+            android:name=".DConnectLaunchActivity"
             android:excludeFromRecents="true"
             android:label="@string/app_name"
-            android:launchMode="singleTop">
+            android:launchMode="singleInstance"
+            android:taskAffinity="@string/affinity_launcher_activity"
+            android:theme="@style/AppTheme.Translucent">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW"/>
-
                 <category android:name="android.intent.category.DEFAULT"/>
                 <category android:name="android.intent.category.BROWSABLE"/>
 
-                <data
-                    android:host="start"
-                    android:path="/"
-                    android:scheme="gotapi"/>
-            </intent-filter>
+                <!-- gotapiスキーム -->
+                <data android:scheme="gotapi"
+                      android:host="start"
+                      android:path="/" />
+                <data android:scheme="gotapi"
+                      android:host="start"
+                      android:path="/activity" />
+                <data android:scheme="gotapi"
+                      android:host="start"
+                      android:path="/server" />
+                <data android:scheme="gotapi"
+                      android:host="stop"
+                      android:path="/" />
+                <data android:scheme="gotapi"
+                      android:host="stop"
+                      android:path="/activity" />
+                <data android:scheme="gotapi"
+                      android:host="stop"
+                      android:path="/server" />
 
-            <!-- 旧バージョンのURLスキーム -->
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW"/>
-
-                <category android:name="android.intent.category.DEFAULT"/>
-                <category android:name="android.intent.category.BROWSABLE"/>
-
-                <data
-                    android:host="start"
-                    android:path="/"
-                    android:scheme="dconnect"/>
+                <!-- dconnectスキーム -->
+                <data android:scheme="dconnect"
+                      android:host="start"
+                      android:path="/" />
+                <data android:scheme="dconnect"
+                      android:host="start"
+                      android:path="/activity" />
+                <data android:scheme="dconnect"
+                      android:host="start"
+                      android:path="/server" />
+                <data android:scheme="dconnect"
+                      android:host="stop"
+                      android:path="/" />
+                <data android:scheme="dconnect"
+                      android:host="stop"
+                      android:path="/activity" />
+                <data android:scheme="dconnect"
+                      android:host="stop"
+                      android:path="/server" />
             </intent-filter>
         </activity>
 
         <!-- ホワイトリスト管理用Activity. -->
         <activity
-            android:name="org.deviceconnect.android.manager.policy.WhitelistActivity"
+            android:name=".policy.WhitelistActivity"
             android:label="@string/app_name">
         </activity>
 
         <!-- Device Connect Manager設定画面用Activity. -->
         <activity
-            android:name="org.deviceconnect.android.manager.setting.SettingActivity"
+            android:name=".setting.SettingActivity"
             android:label="@string/app_name"
+            android:launchMode="singleTop">
+            <intent-filter>
+                <action android:name="org.deviceconnect.action.setting.MANAGER" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".setting.ServiceListActivity"
+            android:label="@string/app_name"
+            android:configChanges="orientation|screenSize"
             android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
@@ -70,21 +99,20 @@
             </intent-filter>
         </activity>
 
-        <!-- キーワード表示用Activitiy. -->
+        <!-- キーワード表示用Activity. -->
         <activity
-            android:name="org.deviceconnect.android.manager.setting.KeywordDialogAcitivty"
+            android:name=".setting.KeywordDialogActivity"
             android:exported="false"
             android:label="@string/app_name"
             android:theme="@style/AppTheme.Translucent">
         </activity>
 
-        <!-- Device Connect Managerデバック用Activity. -->
+        <!-- キーワード表示用Activity. -->
         <activity
-            android:name="org.deviceconnect.android.manager.setting.ReqResDebugActivity"
-            android:exported="false"
+            android:name=".setting.WebViewActivity"
             android:label="@string/app_name"
-            android:screenOrientation="portrait"
-            android:windowSoftInputMode="adjustPan">
+            android:configChanges="orientation|screenSize"
+            android:launchMode="singleTop">
         </activity>
 
         <!-- 警告画面用Activity. -->
@@ -96,7 +124,7 @@
         </activity>
 
         <!-- 各アプリやデバイスプラグインからのDConnectMessageを受領するためのBroadcastReceiver. -->
-        <receiver android:name="org.deviceconnect.android.manager.DConnectBroadcastReceiver">
+        <receiver android:name=".DConnectBroadcastReceiver">
             <intent-filter>
                 <action android:name="org.deviceconnect.action.GET"/>
                 <action android:name="org.deviceconnect.action.PUT"/>
@@ -108,7 +136,7 @@
         </receiver>
 
         <!-- アプリケーションのインストールやアンインストールといったイベントを受領するためのBroadcastReceiver. -->
-        <receiver android:name="org.deviceconnect.android.manager.receiver.PackageManageReceiver">
+        <receiver android:name=".receiver.PackageManageReceiver">
             <intent-filter>
                 <action android:name="android.intent.action.PACKAGE_ADDED"/>
                 <action android:name="android.intent.action.PACKAGE_REMOVED"/>
@@ -120,7 +148,7 @@
 
         <!-- Device Connect Manager本体のサービス. -->
         <service
-            android:name="org.deviceconnect.android.manager.DConnectService"
+            android:name=".DConnectService"
             android:exported="false">
             <intent-filter>
                 <action android:name="org.deviceconnect.android.manager.IDConnectService"/>
@@ -129,7 +157,7 @@
 
         <!-- Webサーバを管理するサービス -->
         <service
-            android:name="org.deviceconnect.android.manager.DConnectWebService"
+            android:name=".DConnectWebService"
             android:exported="false">
             <intent-filter>
                 <action android:name="org.deviceconnect.android.manager.IDConnectWebService"/>
@@ -148,14 +176,26 @@
 
         <!-- Device Plug-in List Activity. -->
         <activity
-            android:name="org.deviceconnect.android.manager.setting.DevicePluginListActivity"
-            android:exported="false"
+            android:name=".setting.DevicePluginListActivity"
             android:label="@string/app_name">
+            <intent-filter>
+                <action android:name="org.deviceconnect.action.setting.PLUGIN_LIST" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
         </activity>
 
         <!-- Device Plug-in Information Activity. -->
         <activity
-            android:name="org.deviceconnect.android.manager.setting.DevicePluginInfoActivity"
+            android:name=".setting.DevicePluginInfoActivity"
+            android:label="@string/app_name">
+            <intent-filter>
+                <action android:name="org.deviceconnect.action.setting.PLUGIN" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".setting.WebSocketListActivity"
             android:exported="false"
             android:label="@string/app_name">
         </activity>

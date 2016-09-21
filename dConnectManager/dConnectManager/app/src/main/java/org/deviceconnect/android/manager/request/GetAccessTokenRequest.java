@@ -62,8 +62,13 @@ public class GetAccessTokenRequest extends DConnectRequest {
     private void getAccessToken() throws AuthorizationException, UnsupportedEncodingException {
         String serviceId = mRequest.getStringExtra(DConnectMessage.EXTRA_SERVICE_ID);
         String clientId = mRequest.getStringExtra(AuthorizationProfile.PARAM_CLIENT_ID);
-        String[] scopes = parseScopes(mRequest.getStringExtra(AuthorizationProfile.PARAM_SCOPE));
+        String scopeParam = mRequest.getStringExtra(AuthorizationProfile.PARAM_SCOPE);
+        String[] scopes = null;
         String applicationName = mRequest.getStringExtra(AuthorizationProfile.PARAM_APPLICATION_NAME);
+
+        if (scopeParam != null) {
+            scopes = parseScopes(scopeParam.toLowerCase()); // XXXX パスの大文字小文字を無視
+        }
 
         // TODO _typeからアプリorデバイスプラグインかを判別できる？
         ConfirmAuthParams params = new ConfirmAuthParams.Builder().context(mContext).serviceId(serviceId)

@@ -28,7 +28,7 @@ public interface AuthorizationProfileConstants extends DConnectProfileConstants 
     /**
      * 属性: {@value}.
      */
-    String ATTRIBUTE_ACCESS_TOKEN = "accesstoken";
+    String ATTRIBUTE_ACCESS_TOKEN = "accessToken";
 
     /**
      * パス: {@value}.

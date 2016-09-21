@@ -4,13 +4,25 @@ android {
     compileSdkVersion 23
     buildToolsVersion "23.0.1"
 
+    def getVersionName = { ->
+        def version
+        if (System.getProperty('os.name').toLowerCase().contains('windows')) {
+            version = ["cmd", "/c", "git describe --tags"].execute().in.text.trim()
+        } else {
+            version = ["sh", "-c", "git describe --tags"].execute().in.text.trim()
+        }
+        version = version.empty ? "2.0.0" : version
+        return "${version}"
+    }
+
     defaultConfig {
         applicationId "org.deviceconnect.android.deviceplugin.hvcp"
         minSdkVersion 15
         targetSdkVersion 23
         versionCode 1
-        versionName "1.0.0"
+        versionName getVersionName()
     }
+
     signingConfigs {
         releaseConfig {
             storeFile=file(project.properties.storeFile)
@@ -34,7 +46,6 @@ android {
         exclude 'META-INF/LICENSE'
         exclude 'META-INF/NOTICE'
     }
-
 }
 
 repositories {

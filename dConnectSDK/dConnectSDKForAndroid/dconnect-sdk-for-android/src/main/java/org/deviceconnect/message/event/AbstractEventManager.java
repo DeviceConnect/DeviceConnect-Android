@@ -6,13 +6,6 @@
  */
 package org.deviceconnect.message.event;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.Logger;
-
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
@@ -28,6 +21,13 @@ import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.utils.URIBuilder;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Logger;
 
 /**
  * イベント管理の基本機能を提供するクラス.
@@ -300,7 +300,10 @@ public abstract class AbstractEventManager {
     private String getKey(final String profile, final String inter, final String attribute, 
             final String serviceId) {
         String tmpInter = inter != null ? inter : "";
-        return serviceId + "/" + profile + "/" + tmpInter + "/" + attribute;
+        return serviceId
+            + "/" + profile.toLowerCase()
+            + "/" + tmpInter.toLowerCase()
+            + "/" + attribute.toLowerCase();
     }
 
     /**

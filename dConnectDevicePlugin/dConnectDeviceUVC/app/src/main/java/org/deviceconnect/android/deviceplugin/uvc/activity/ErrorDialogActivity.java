@@ -16,7 +16,7 @@ import android.os.Bundle;
 import android.view.Window;
 
 import org.deviceconnect.android.deviceplugin.uvc.R;
-import org.deviceconnect.android.deviceplugin.uvc.UVCDevice;
+import org.deviceconnect.android.deviceplugin.uvc.core.UVCDevice;
 
 public class ErrorDialogActivity extends Activity {
 

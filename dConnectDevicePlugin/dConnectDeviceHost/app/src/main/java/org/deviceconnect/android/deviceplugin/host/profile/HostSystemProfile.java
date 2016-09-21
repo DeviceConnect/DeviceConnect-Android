@@ -6,15 +6,18 @@
  */
 package org.deviceconnect.android.deviceplugin.host.profile;
 
+import android.app.Activity;
+import android.content.Intent;
+import android.os.Bundle;
+
 import org.deviceconnect.android.deviceplugin.host.setting.HostSettingActivity;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.SystemProfile;
+import org.deviceconnect.android.profile.api.DConnectApi;
+import org.deviceconnect.android.profile.api.DeleteApi;
 import org.deviceconnect.message.DConnectMessage;
-
-import android.app.Activity;
-import android.content.Intent;
-import android.os.Bundle;
+import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
 /**
  * ホストデバイスプラグイン, System プロファイル.
@@ -22,6 +25,29 @@ import android.os.Bundle;
  * @author NTT DOCOMO, INC.
  */
 public class HostSystemProfile extends SystemProfile {
+
+    private final DConnectApi mDeleteEventsApi = new DeleteApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_EVENTS;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String origin = request.getStringExtra(IntentDConnectMessage.EXTRA_ORIGIN);
+            if (EventManager.INSTANCE.removeEvents(origin)) {
+                setResult(response, DConnectMessage.RESULT_OK);
+            } else {
+                MessageUtils.setUnknownError(response);
+            }
+            return true;
+        }
+    };
+
+    public HostSystemProfile() {
+        addApi(mDeleteEventsApi);
+    }
 
     /**
      * 設定画面を設定.
@@ -33,19 +59,5 @@ public class HostSystemProfile extends SystemProfile {
      */
     protected Class<? extends Activity> getSettingPageActivity(final Intent request, final Bundle bundle) {
         return HostSettingActivity.class;
-    }
-
-    @Override
-    protected boolean onDeleteEvents(final Intent request, final Intent response, final String sessionKey) {
-
-        if (sessionKey == null || sessionKey.length() == 0) {
-            MessageUtils.setInvalidRequestParameterError(response);
-        } else if (EventManager.INSTANCE.removeEvents(sessionKey)) {
-            setResult(response, DConnectMessage.RESULT_OK);
-        } else {
-            MessageUtils.setUnknownError(response);
-        }
-
-        return true;
     }
 }

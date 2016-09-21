@@ -7,15 +7,17 @@
 package org.deviceconnect.android.manager;
 
 import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.pm.ServiceInfo;
 import android.content.res.XmlResourceParser;
 
+import org.deviceconnect.android.manager.util.DConnectUtil;
+import org.deviceconnect.android.manager.util.VersionName;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 import org.xmlpull.v1.XmlPullParser;
@@ -23,7 +25,6 @@ import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,30 +39,30 @@ import java.util.logging.Logger;
 public class DevicePluginManager {
     /** ロガー. */
     private final Logger mLogger = Logger.getLogger("dconnect.manager");
+    /** デバイスプラグインSDKに格納されるメタタグ名. */
+    private static final String PLUGIN_SDK_META_DATA = "org.deviceconnect.android.deviceplugin.sdk";
     /** デバイスプラグインに格納されるメタタグ名. */
     private static final String PLUGIN_META_DATA = "org.deviceconnect.android.deviceplugin";
     /** 再起動用のサービスを表すメタデータの値. */
     private static final String VALUE_META_DATA = "enable";
-    /** マスクを定義. */
-    private static final int MASK = 0xFF;
     /** デバイスプラグイン一覧. */
     private final Map<String, DevicePlugin> mPlugins = new ConcurrentHashMap<String, DevicePlugin>();
-    /** このクラスが属するコンテスト. */
-    private Context mContext;
     /** dConnectManagerのドメイン名. */
     private String mDConnectDomain;
 
     /** イベントリスナー. */
     private DevicePluginEventListener mEventListener;
+    /** アプリケーションクラスインスタンス. */
+    private final DConnectApplication mApp;
 
     /**
      * コンストラクタ.
-     * @param context このクラスが属するコンテキスト
+     * @param app DConnectApplicationのインスタンス
      * @param domain dConnect Managerのドメイン
      */
-    public DevicePluginManager(final Context context, final String domain) {
-        this.mContext = context;
+    public DevicePluginManager(final DConnectApplication app, final String domain) {
         setDConnectDomain(domain);
+        mApp = app;
     }
     /**
      * イベントリスナーを設定する.
@@ -81,7 +82,7 @@ public class DevicePluginManager {
      * アプリ一覧からデバイスプラグイン一覧を作成する.
      */
     public void createDevicePluginList() {
-        PackageManager pkgMgr = mContext.getPackageManager();
+        PackageManager pkgMgr = mApp.getPackageManager();
         List<PackageInfo> pkgList = pkgMgr.getInstalledPackages(PackageManager.GET_RECEIVERS);
         if (pkgList != null) {
             for (PackageInfo pkg : pkgList) {
@@ -114,7 +115,7 @@ public class DevicePluginManager {
         if (packageName == null) {
             throw new IllegalArgumentException("packageName is null.");
         }
-        PackageManager pkgMgr = mContext.getPackageManager();
+        PackageManager pkgMgr = mApp.getPackageManager();
         try {
             PackageInfo pkg = pkgMgr.getPackageInfo(packageName, PackageManager.GET_RECEIVERS);
             if (pkg != null) {
@@ -138,13 +139,16 @@ public class DevicePluginManager {
      * @param component コンポーネント
      */
     public void checkAndAddDevicePlugin(final ComponentName component, final PackageInfo pkgInfo) {
-        ActivityInfo receiverInfo = null;
+        ApplicationInfo appInfo;
+        ActivityInfo receiverInfo;
         try {
-            PackageManager pkgMgr = mContext.getPackageManager();
+            PackageManager pkgMgr = mApp.getPackageManager();
+            appInfo = pkgMgr.getApplicationInfo(component.getPackageName(), PackageManager.GET_META_DATA);
             receiverInfo = pkgMgr.getReceiverInfo(component, PackageManager.GET_META_DATA);
             if (receiverInfo.metaData != null) {
                 Object value = receiverInfo.metaData.get(PLUGIN_META_DATA);
                 if (value != null) {
+                    VersionName sdkVersionName = getPluginSDKVersion(appInfo);
                     String packageName = receiverInfo.packageName;
                     String className = receiverInfo.name;
                     String versionName = pkgInfo.versionName;
@@ -157,6 +161,7 @@ public class DevicePluginManager {
                     mLogger.info("    PackageName: " + packageName);
                     mLogger.info("    className: " + className);
                     mLogger.info("    versionName: " + versionName);
+                    mLogger.info("    sdkVersionName: " + sdkVersionName);
                     // MEMO 既に同じ名前のデバイスプラグインが存在した場合の処理
                     // 現在は警告を表示し、上書きする.
                     if (mPlugins.containsKey(hash)) {
@@ -171,6 +176,7 @@ public class DevicePluginManager {
                     plugin.setDeviceName(receiverInfo.applicationInfo.loadLabel(pkgMgr).toString());
                     plugin.setStartServiceClassName(startClassName);
                     plugin.setSupportProfiles(checkDevicePluginXML(receiverInfo));
+                    plugin.setPluginSdkVersionName(sdkVersionName);
                     mPlugins.put(hash, plugin);
                     if (mEventListener != null) {
                         mEventListener.onDeviceFound(plugin);
@@ -216,7 +222,7 @@ public class DevicePluginManager {
     public void checkAndRemoveDevicePlugin(final ComponentName component) {
         ActivityInfo receiverInfo = null;
         try {
-            PackageManager pkgMgr = mContext.getPackageManager();
+            PackageManager pkgMgr = mApp.getPackageManager();
             receiverInfo = pkgMgr.getReceiverInfo(component, PackageManager.GET_META_DATA);
             if (receiverInfo.metaData != null) {
                 String value = receiverInfo.metaData.getString(PLUGIN_META_DATA);
@@ -293,9 +299,9 @@ public class DevicePluginManager {
 
     /**
      * サービスIDにDevice Connect Managerのドメイン名を追加する.
-     * 
+     *
      * サービスIDがnullのときには、サービスIDは無視します。
-     * 
+     *
      * @param plugin デバイスプラグイン
      * @param serviceId サービスID
      * @return Device Connect Managerのドメインなどが追加されたサービスID
@@ -304,14 +310,14 @@ public class DevicePluginManager {
         if (serviceId == null) {
             return plugin.getServiceId() + DConnectMessageService.SEPARATOR + mDConnectDomain;
         } else {
-            return serviceId + DConnectMessageService.SEPARATOR + plugin.getServiceId() 
+            return serviceId + DConnectMessageService.SEPARATOR + plugin.getServiceId()
                     + DConnectMessageService.SEPARATOR + mDConnectDomain;
         }
     }
 
     /**
      * リクエストに含まれるセッションキーを変換する.
-     * 
+     *
      * セッションキーにデバイスプラグインIDとreceiverを追加する。
      * 下記のように、分解できるようになっている。
      * 【セッションキー.デバイスプラグインID@receiver】
@@ -326,7 +332,7 @@ public class DevicePluginManager {
             sessionKey = sessionKey + DConnectMessageService.SEPARATOR + plugins.get(0).getServiceId();
             ComponentName receiver = (ComponentName) request.getExtras().get(DConnectMessage.EXTRA_RECEIVER);
             if (receiver != null) {
-                sessionKey = sessionKey + DConnectMessageService.SEPARATOR_SESSION 
+                sessionKey = sessionKey + DConnectMessageService.SEPARATOR_SESSION
                         + receiver.flattenToString();
             }
             request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, sessionKey);
@@ -335,7 +341,7 @@ public class DevicePluginManager {
 
     /**
      * リクエストに含まれるセッションキーを変換する.
-     * 
+     *
      * セッションキーにデバイスプラグインIDとreceiverを追加する。
      * 下記のように、分解できるようになっている。
      * 【セッションキー.デバイスプラグインID@receiver】
@@ -349,7 +355,7 @@ public class DevicePluginManager {
             sessionKey = sessionKey + DConnectMessageService.SEPARATOR + plugin.getServiceId();
             ComponentName receiver = (ComponentName) request.getExtras().get(DConnectMessage.EXTRA_RECEIVER);
             if (receiver != null) {
-                sessionKey = sessionKey + DConnectMessageService.SEPARATOR_SESSION 
+                sessionKey = sessionKey + DConnectMessageService.SEPARATOR_SESSION
                         + receiver.flattenToString();
             }
             request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, sessionKey);
@@ -384,13 +390,60 @@ public class DevicePluginManager {
         return "";
     }
 
+    private VersionName getPluginSDKVersion(final ApplicationInfo info) {
+        VersionName versionName = null;
+        if (info.metaData != null && info.metaData.get(PLUGIN_SDK_META_DATA) != null) {
+            PackageManager pkgMgr = mApp.getPackageManager();
+            XmlResourceParser xpp = info.loadXmlMetaData(pkgMgr, PLUGIN_SDK_META_DATA);
+            try {
+                String str = parsePluginSDKVersionName(xpp);
+                if (str != null) {
+                    versionName = VersionName.parse(str);
+                }
+            } catch (XmlPullParserException e) {
+                // NOP
+            } catch (IOException e) {
+                // NOP
+            }
+        }
+        if (versionName != null) {
+            return versionName;
+        } else {
+            return VersionName.parse("1.0.0");
+        }
+    }
+
+    private String parsePluginSDKVersionName(final XmlResourceParser xpp)
+            throws XmlPullParserException, IOException {
+        String versionName = null;
+        int eventType = xpp.getEventType();
+        while (eventType != XmlPullParser.END_DOCUMENT) {
+            final String name = xpp.getName();
+            switch (eventType) {
+                case XmlPullParser.START_DOCUMENT:
+                    break;
+                case XmlPullParser.START_TAG:
+                    if (name.equals("version")) {
+                        versionName = xpp.nextText();
+                    }
+                    break;
+                case XmlPullParser.END_TAG:
+                    break;
+                default:
+                    break;
+            }
+            eventType = xpp.next();
+        }
+        return versionName;
+    }
+
     /**
      * deviceplugin.xmlの確認を行う.
      * @param info receiverのタグ情報
      * @return プロファイル一覧
      */
     public List<String> checkDevicePluginXML(final ActivityInfo info) {
-        PackageManager pkgMgr = mContext.getPackageManager();
+        PackageManager pkgMgr = mApp.getPackageManager();
         XmlResourceParser xpp = info.loadXmlMetaData(pkgMgr, PLUGIN_META_DATA);
         try {
             return parseDevicePluginXML(xpp);
@@ -403,47 +456,34 @@ public class DevicePluginManager {
 
     /**
      * xml/deviceplugin.xmlの解析を行う.
-     * 
+     *
      * @param xpp xmlパーサ
      * @throws XmlPullParserException xmlの解析に失敗した場合に発生
      * @throws IOException xmlの読み込みに失敗した場合
      * @return プロファイル一覧
      */
-    private List<String> parseDevicePluginXML(final XmlResourceParser xpp) 
+    private List<String> parseDevicePluginXML(final XmlResourceParser xpp)
             throws XmlPullParserException, IOException {
         ArrayList<String> list = new ArrayList<String>();
         int eventType = xpp.getEventType();
         while (eventType != XmlPullParser.END_DOCUMENT) {
             final String name = xpp.getName();
             switch (eventType) {
-            case XmlPullParser.START_DOCUMENT:
-                break;
-            case XmlPullParser.START_TAG:
-                if (name.equals("profile")) {
-                    list.add(xpp.getAttributeValue(null, "name"));
-                }
-                break;
-            case XmlPullParser.END_TAG:
-                break;
-            default:
-                break;
+                case XmlPullParser.START_DOCUMENT:
+                    break;
+                case XmlPullParser.START_TAG:
+                    if (name.equals("profile")) {
+                        list.add(xpp.getAttributeValue(null, "name"));
+                    }
+                    break;
+                case XmlPullParser.END_TAG:
+                    break;
+                default:
+                    break;
             }
             eventType = xpp.next();
         }
         return list;
-    }
-
-    /**
-     * バイト配列を16進数の文字列に変換する.
-     * @param buf 文字列に変換するバイト
-     * @return 文字列
-     */
-    private String hexToString(final byte[] buf) {
-        StringBuilder hexString = new StringBuilder();
-        for (int i = 0; i < buf.length; i++) {
-            hexString.append(Integer.toHexString(MASK & buf[i]));
-        }
-        return hexString.toString();
     }
 
     /**
@@ -454,9 +494,7 @@ public class DevicePluginManager {
      */
     private String md5(final String s) {
         try {
-            MessageDigest digest = java.security.MessageDigest.getInstance("MD5");
-            digest.update(s.getBytes("ASCII"));
-            return hexToString(digest.digest());
+            return DConnectUtil.toMD5(s);
         } catch (UnsupportedEncodingException e) {
             mLogger.warning("Not support Charset.");
         } catch (NoSuchAlgorithmException e) {
@@ -485,7 +523,7 @@ public class DevicePluginManager {
      * @return class name or null if there are no service for start
      */
     private String getStartServiceClassName(final String packageName) {
-        PackageManager pkgMgr = mContext.getPackageManager();
+        PackageManager pkgMgr = mApp.getPackageManager();
         try {
             PackageInfo pkg = pkgMgr.getPackageInfo(packageName, PackageManager.GET_SERVICES);
             ServiceInfo[] slist = pkg.services;

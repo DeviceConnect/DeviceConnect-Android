@@ -21,6 +21,7 @@ Device Connect AndroidはAndroid版のDeviceConnectのプラットフォーム�
 |dConnectDeviceFPLUG|F-PLUGのデバイスプラグイン。|
 |dConnectDeviceFaBo|FaBoのデバイスプラグイン。|
 |dConnectDeviceHeartRate|Mio AlphaなどのHeartRateのデバイスプラグイン。|
+|dConnectDeviceHitoe|Hitoeのデバイスプラグイン。|
 |dConnectDeviceHost|Androidのデバイスプラグイン。|
 |dConnectDeviceHue|Hueのデバイスプラグイン。|
 |dConnectDeviceHVC|HVC-Cのデバイスプラグイン。|
@@ -63,6 +64,7 @@ Device Connect AndroidはAndroid版のDeviceConnectのプラットフォーム�
 * [F-PLUG](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/F-PLUG-Build)
 * [FaBo](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/FaBo-Build)
 * [HeartRate](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/HeartRateDevice-Build)
+* [Hitoe](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Hitoe-Build)
 * [Host](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Host-Build)
 * [Hue](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Hue-Build)
 * [HVC](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/HVCDevice-Build)

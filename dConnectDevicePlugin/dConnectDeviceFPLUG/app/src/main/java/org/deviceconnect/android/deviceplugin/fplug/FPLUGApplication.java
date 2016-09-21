@@ -26,11 +26,13 @@ import java.util.concurrent.TimeUnit;
  *
  * @author NTT DOCOMO, INC.
  */
-public class FPLUGApplication extends Application {
+public class FPLUGApplication extends Application implements FPLUGController.FPLUGConnectionListener {
 
     private static final String TAG = "FPLUGApplication";
 
-    private Map<String, FPLUGController> mControllerMap = new ConcurrentHashMap<>();
+    private final Map<String, FPLUGController> mControllerMap = new ConcurrentHashMap<>();
+
+    private ControllerListener mListener;
 
     private ScheduledExecutorService mConnectionTimer = Executors.newSingleThreadScheduledExecutor();
 
@@ -58,11 +60,36 @@ public class FPLUGApplication extends Application {
         disconnect();
     }
 
+    @Override
+    public synchronized void onConnected(final String address) {
+        FPLUGController controller = mControllerMap.get(address);
+        if (mListener != null && controller != null) {
+            mListener.onConnected(controller);
+        }
+    }
+
+    @Override
+    public synchronized void onDisconnected(final String address) {
+        FPLUGController controller = mControllerMap.get(address);
+        if (mListener != null && controller != null) {
+            mListener.onDisconnected(controller);
+        }
+    }
+
+    @Override
+    public void onConnectionError(final String address, final String message) {
+        // NOP
+    }
+
+    public synchronized void setControllerListener(final ControllerListener listener) {
+        mListener = listener;
+    }
+
     public synchronized void connectFPlug(BluetoothDevice fplug, FPLUGController.FPLUGConnectionListener listener) {
         FPLUGController controller = getFPLUGController(fplug.getAddress());
         if (controller == null) {
             controller = new FPLUGController(fplug);
-            mControllerMap.put(fplug.getAddress(), controller);
+            putController(controller);
         }
         controller.connect(listener);
     }
@@ -122,7 +149,7 @@ public class FPLUGApplication extends Application {
             FPLUGController controller = getFPLUGController(fplug.getAddress());
             if (controller == null) {
                 controller = new FPLUGController(fplug);
-                mControllerMap.put(fplug.getAddress(), controller);
+                putController(controller);
             }
             if (!controller.isConnected()) {
                 controller.connect(null);
@@ -137,4 +164,19 @@ public class FPLUGApplication extends Application {
         mControllerMap.clear();
     }
 
+    private synchronized void putController(final FPLUGController controller) {
+        controller.addConnectionListener(this);
+        mControllerMap.put(controller.getAddress(), controller);
+        if (mListener != null) {
+            mListener.onAdded(controller);
+        }
+    }
+
+    public interface ControllerListener {
+        void onAdded(FPLUGController controller);
+
+        void onConnected(FPLUGController controller);
+
+        void onDisconnected(FPLUGController controller);
+    }
 }

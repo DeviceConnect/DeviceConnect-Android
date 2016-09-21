@@ -6,12 +6,11 @@
  */
 package org.deviceconnect.android.deviceplugin.sphero;
 
-import java.util.logging.Logger;
-
 import android.app.Service;
-import android.util.Log;
 
 import org.deviceconnect.android.message.DConnectMessageServiceProvider;
+
+import java.util.logging.Logger;
 
 /**
  * Sphero用のService.
@@ -34,7 +33,6 @@ public class SpheroDeviceProvider<T extends Service> extends DConnectMessageServ
     @SuppressWarnings("unchecked")
     @Override
     protected Class<Service> getServiceClass() {
-        Log.i(TAG, "getServiceClass()");
         mLogger.entering(this.getClass().getName(), "getServiceClass");
         Class<? extends Service> clazz = (Class<? extends Service>) SpheroDeviceService.class;
 

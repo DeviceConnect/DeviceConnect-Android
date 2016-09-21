@@ -13,15 +13,33 @@ package org.deviceconnect.server.websocket;
  */
 public interface DConnectWebSocket {
 
-	/**
-	 * クライアントにイベントメッセージを送信します.
-	 * 
-	 * @param event イベントメッセージ
-	 */
-	void sendEvent(String event);
+    /**
+     * クライアントにイベントメッセージを送信します.
+     *
+     * @param event イベントメッセージ
+     */
+    void sendEvent(String event);
 
-	/**
-	 * WebSocketを切断させます.
-	 */
-	void disconnectWebSocket();
+    /**
+     * WebSocketを切断させます.
+     */
+    void disconnectWebSocket();
+
+    /**
+     * WebSocket IDを取得します.
+     * @return WebSocket ID
+     */
+    String getId();
+
+    /**
+     * 接続用URIを取得します.
+     * @return 接続用URI
+     */
+    String getUri();
+
+    /**
+     * 接続要求元のオリジンを取得します.
+     * @return
+     */
+    String getClientOrigin();
 }

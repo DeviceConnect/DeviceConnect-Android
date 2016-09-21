@@ -4,12 +4,12 @@
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
  */
-package org.deviceconnect.android.manager.keepalive;
+package org.deviceconnect.android.manager.event;
 
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
 
-import org.deviceconnect.android.manager.DConnectApplication;
 import org.deviceconnect.android.manager.DConnectBroadcastReceiver;
 import org.deviceconnect.android.manager.DevicePlugin;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
@@ -24,10 +24,10 @@ import java.util.regex.Pattern;
  * @author NTT DOCOMO, INC.
  */
 public class KeepAliveManager {
-    /** インスタンス. */
-    private static KeepAliveManager sInstance;
-    /** Applicationインスタンス. */
-    private DConnectApplication mApp;
+    /** コンテキスト. */
+    private final Context mContext;
+    /** イベントセッション管理テーブル. */
+    private final EventSessionTable mEventSessionTable;
     /** イベント Keep Alive 管理テーブル. */
     private final LinkedList<KeepAlive> mManagementList = new LinkedList<>();
     /** 機能有効フラグ 初期起動時は有効. */
@@ -40,10 +40,12 @@ public class KeepAliveManager {
     /**
      * コンストラクター.
      *
-     * @param app DConnectApplicationのインスタンス
+     * @param context コンテキスト
+     * @param table イベントセッション管理テーブル
      */
-    public KeepAliveManager(final DConnectApplication app) {
-        mApp = app;
+    public KeepAliveManager(final Context context, final EventSessionTable table) {
+        mContext = context;
+        mEventSessionTable = table;
     }
 
     /**
@@ -184,9 +186,9 @@ public class KeepAliveManager {
         request.setComponent(plugin.getComponentName());
         request.setAction(IntentDConnectMessage.ACTION_KEEPALIVE);
         request.putExtra(IntentDConnectMessage.EXTRA_KEEPALIVE_STATUS, status);
-        request.putExtra(IntentDConnectMessage.EXTRA_RECEIVER, new ComponentName(mApp.getApplicationContext(), DConnectBroadcastReceiver.class));
+        request.putExtra(IntentDConnectMessage.EXTRA_RECEIVER, new ComponentName(mContext, DConnectBroadcastReceiver.class));
         request.putExtra(IntentDConnectMessage.EXTRA_SERVICE_ID, plugin.getServiceId());
-        mApp.getApplicationContext().sendBroadcast(request);
+        mContext.sendBroadcast(request);
     }
 
     /**
@@ -196,11 +198,11 @@ public class KeepAliveManager {
     private void sendDisconnectWebSeocket(final String sessionKey) {
         String[] key = sessionKey.split(Pattern.quote("."), -1);
         Intent request = new Intent();
-        request.setComponent(new ComponentName(mApp.getApplicationContext(), DConnectBroadcastReceiver.class));
+        request.setComponent(new ComponentName(mContext, DConnectBroadcastReceiver.class));
         request.setAction(IntentDConnectMessage.ACTION_KEEPALIVE);
         request.putExtra(IntentDConnectMessage.EXTRA_KEEPALIVE_STATUS, "DISCONNECT");
         request.putExtra(IntentDConnectMessage.EXTRA_SESSION_KEY, key[0]);
-        mApp.getApplicationContext().sendBroadcast(request);
+        mContext.sendBroadcast(request);
     }
 
     /**
@@ -216,10 +218,9 @@ public class KeepAliveManager {
                     DevicePlugin plugin = data.getPlugin();
                     removeManagementTable(plugin);
                     // 該当プラグインIDに紐付くWebSocketの切断処理
-                    String sessionKey;
-                    while ((sessionKey = mApp.getIdentifySessionKey(plugin))!= null) {
-                        sendDisconnectWebSeocket(sessionKey);
-                        mApp.removeDevicePluginIdentifyKey(sessionKey);
+                    for (EventSession session : mEventSessionTable.findEventSessionsForPlugin(plugin)) {
+                        sendDisconnectWebSeocket(session.getReceiverId());
+                        mEventSessionTable.remove(session);
                     }
                 }
             }

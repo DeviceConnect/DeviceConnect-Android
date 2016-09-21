@@ -18,6 +18,7 @@ import org.deviceconnect.android.deviceplugin.linking.beacon.data.GattData;
 import org.deviceconnect.android.deviceplugin.linking.beacon.data.LinkingBeacon;
 import org.deviceconnect.android.deviceplugin.linking.beacon.service.LinkingBeaconService;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingDeviceManager;
+import org.deviceconnect.android.deviceplugin.linking.LinkingDestroy;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
@@ -32,7 +33,7 @@ import org.deviceconnect.message.DConnectMessage;
 
 import java.util.List;
 
-public class LinkingProximityProfile extends ProximityProfile {
+public class LinkingProximityProfile extends ProximityProfile implements LinkingDestroy {
 
     private static final String TAG = "LinkingPlugIn";
     private static final int TIMEOUT = 30 * 1000;
@@ -175,7 +176,8 @@ public class LinkingProximityProfile extends ProximityProfile {
         }
     };
 
-    public void destroy() {
+    @Override
+    public void onDestroy() {
         if (BuildConfig.DEBUG) {
             Log.i(TAG, "LinkingProximityProfile#destroy: " + getService().getId());
         }
@@ -195,6 +197,10 @@ public class LinkingProximityProfile extends ProximityProfile {
     }
 
     private void notifyProximityEvent(final LinkingBeacon beacon, final GattData gatt) {
+        if (!beacon.equals(getLinkingBeacon())) {
+            return;
+        }
+
         String serviceId = beacon.getServiceId();
         List<Event> events = EventManager.INSTANCE.getEventList(serviceId,
                 PROFILE_NAME, null, ATTRIBUTE_ON_DEVICE_PROXIMITY);
@@ -223,6 +229,10 @@ public class LinkingProximityProfile extends ProximityProfile {
 
     private double calcDistance(final GattData gatt) {
       return Math.pow(10.0, (gatt.getTxPower() - gatt.getRssi()) / 20.0);
+    }
+
+    private LinkingBeacon getLinkingBeacon() {
+        return ((LinkingBeaconService) getService()).getLinkingBeacon();
     }
 
     private LinkingBeaconManager getLinkingBeaconManager() {

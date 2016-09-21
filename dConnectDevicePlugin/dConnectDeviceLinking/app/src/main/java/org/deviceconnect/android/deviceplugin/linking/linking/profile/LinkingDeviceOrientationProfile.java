@@ -12,6 +12,7 @@ import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.linking.BuildConfig;
 import org.deviceconnect.android.deviceplugin.linking.LinkingApplication;
+import org.deviceconnect.android.deviceplugin.linking.LinkingDestroy;
 import org.deviceconnect.android.deviceplugin.linking.LinkingDevicePluginService;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingDevice;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingDeviceManager;
@@ -33,22 +34,17 @@ import org.deviceconnect.android.profile.api.PutApi;
 import org.deviceconnect.message.DConnectMessage;
 
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
 
-public class LinkingDeviceOrientationProfile extends DeviceOrientationProfile {
+public class LinkingDeviceOrientationProfile extends DeviceOrientationProfile implements LinkingDestroy {
 
     private static final String TAG = "LinkingPlugIn";
 
     private static final String PARAM_COMPASS = "compass";
 
-    private ConcurrentHashMap<String, SensorHolder> mSensorHolderMap = new ConcurrentHashMap<>();
     private EventDispatcherManager mDispatcherManager;
+    private SensorHolder mSensorHolder;
 
-    public LinkingDeviceOrientationProfile(final DConnectMessageService service) {
-        LinkingApplication app = (LinkingApplication) service.getApplication();
-        LinkingDeviceManager deviceManager = app.getLinkingDeviceManager();
-        deviceManager.addSensorListener(mListener);
-
+    public LinkingDeviceOrientationProfile() {
         mDispatcherManager = new EventDispatcherManager();
 
         addApi(mGetOnDeviceOrientation);
@@ -77,13 +73,10 @@ public class LinkingDeviceOrientationProfile extends DeviceOrientationProfile {
             }
 
             final LinkingDeviceManager deviceManager = getLinkingDeviceManager();
-            deviceManager.addSensorListener(new OnSensorListenerImpl(device) {
+            getLinkingDeviceManager().enableListenSensor(device, new OnSensorListenerImpl(device) {
                 @Override
                 public void onCleanup() {
-                    if (isEmptyEventList(mDevice.getBdAddress())) {
-                        getLinkingDeviceManager().stopSensor(mDevice);
-                    }
-                    deviceManager.removeSensorListener(this);
+                    deviceManager.disableListenSensor(mDevice, this);
                 }
 
                 @Override
@@ -115,7 +108,6 @@ public class LinkingDeviceOrientationProfile extends DeviceOrientationProfile {
                     }
                 }
             });
-            getLinkingDeviceManager().startSensor(device);
             return false;
         }
     };
@@ -135,9 +127,9 @@ public class LinkingDeviceOrientationProfile extends DeviceOrientationProfile {
 
             EventError error = EventManager.INSTANCE.addEvent(request);
             if (error == EventError.NONE) {
-                if (!getLinkingDeviceManager().isStartedSensor(device)) {
-                    getLinkingDeviceManager().startSensor(device);
-                    mSensorHolderMap.put(device.getBdAddress(), createSensorHolder(device, getInterval(request)));
+                getLinkingDeviceManager().enableListenSensor(device, mListener);
+                if (mSensorHolder == null) {
+                    mSensorHolder = createSensorHolder(device, getInterval(request));
                 }
                 addEventDispatcher(request);
                 setResult(response, DConnectMessage.RESULT_OK);
@@ -168,8 +160,8 @@ public class LinkingDeviceOrientationProfile extends DeviceOrientationProfile {
             EventError error = EventManager.INSTANCE.removeEvent(request);
             if (error == EventError.NONE) {
                 if (isEmptyEventList(getServiceID(request))) {
-                    getLinkingDeviceManager().stopSensor(device);
-                    mSensorHolderMap.remove(device.getBdAddress());
+                    getLinkingDeviceManager().disableListenSensor(device, mListener);
+                    mSensorHolder = null;
                 }
                 setResult(response, DConnectMessage.RESULT_OK);
             } else if (error == EventError.INVALID_PARAMETER) {
@@ -181,11 +173,12 @@ public class LinkingDeviceOrientationProfile extends DeviceOrientationProfile {
         }
     };
 
-    public void destroy() {
+    @Override
+    public void onDestroy() {
         if (BuildConfig.DEBUG) {
             Log.i(TAG, "LinkingDeviceOrientationProfile#destroy: " + getService().getId());
         }
-        getLinkingDeviceManager().removeSensorListener(mListener);
+        getLinkingDeviceManager().disableListenSensor(getDevice(), mListener);
         mDispatcherManager.removeAllEventDispatcher();
     }
 
@@ -251,42 +244,45 @@ public class LinkingDeviceOrientationProfile extends DeviceOrientationProfile {
     }
 
     private void notifyOrientation(final LinkingDevice device, final LinkingSensorData sensor) {
-        final SensorHolder holder = mSensorHolderMap.get(device.getBdAddress());
-        if (holder == null) {
+        if (mSensorHolder == null) {
             if (BuildConfig.DEBUG) {
                 Log.w(TAG, "holder is not exist.");
             }
             return;
         }
 
-        updateOrientation(holder, sensor, 0);
+        updateOrientation(mSensorHolder, sensor, 0);
 
-        if (holder.isFlag()) {
-            holder.clearFlag();
+        if (mSensorHolder.isFlag()) {
+            mSensorHolder.clearFlag();
 
-            setInterval(holder.getOrientation(), holder.getInterval());
+            setInterval(mSensorHolder.getOrientation(), mSensorHolder.getInterval());
             String serviceId = device.getBdAddress();
             List<Event> events = EventManager.INSTANCE.getEventList(serviceId,
                     PROFILE_NAME, null, ATTRIBUTE_ON_DEVICE_ORIENTATION);
             if (events != null && events.size() > 0) {
                 for (Event event : events) {
                     Intent intent = EventManager.createEventMessage(event);
-                    setOrientation(intent, holder.getOrientation());
+                    setOrientation(intent, mSensorHolder.getOrientation());
                     mDispatcherManager.sendEvent(event, intent);
                 }
             }
         }
     }
 
+    private LinkingDevice getDevice() {
+        return ((LinkingDeviceService) getService()).getLinkingDevice();
+    }
+
     private LinkingDevice getDevice(final Intent response) {
-        LinkingDevice device = ((LinkingDeviceService) getService()).getLinkingDevice();
+        LinkingDevice device = getDevice();
 
         if (!device.isConnected()) {
             MessageUtils.setIllegalDeviceStateError(response, "device not connected");
             return null;
         }
 
-        if (!device.isGyro() && !device.isAcceleration() && !device.isCompass()) {
+        if (!device.isSupportGyro() && !device.isSupportAcceleration() && !device.isSupportCompass()) {
             MessageUtils.setIllegalDeviceStateError(response, "device has not Sensor");
             return null;
         }
@@ -306,9 +302,9 @@ public class LinkingDeviceOrientationProfile extends DeviceOrientationProfile {
 
     private SensorHolder createSensorHolder(final LinkingDevice device, final int interval) {
         SensorHolder holder = new SensorHolder();
-        holder.setSupportGyro(device.isGyro());
-        holder.setSupportAcceleration(device.isAcceleration());
-        holder.setSupportCompass(device.isCompass());
+        holder.setSupportGyro(device.isSupportGyro());
+        holder.setSupportAcceleration(device.isSupportAcceleration());
+        holder.setSupportCompass(device.isSupportCompass());
         holder.setTime(System.currentTimeMillis());
         holder.setInterval(interval);
         return holder;

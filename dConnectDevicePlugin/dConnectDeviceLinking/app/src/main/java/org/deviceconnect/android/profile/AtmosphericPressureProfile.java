@@ -14,8 +14,8 @@ public class AtmosphericPressureProfile extends DConnectProfile implements Atmos
         return PROFILE_NAME;
     }
 
-    public static void setAtmosphericPressure(final Intent response, final float humidity) {
-        response.putExtra(PARAM_ATMOSPHERIC_PRESSURE, humidity);
+    public static void setAtmosphericPressure(final Intent response, final float atmosphericPressure) {
+        response.putExtra(PARAM_ATMOSPHERIC_PRESSURE, atmosphericPressure);
     }
 
     public static void setTimeStamp(final Intent response, final long timeStamp) {

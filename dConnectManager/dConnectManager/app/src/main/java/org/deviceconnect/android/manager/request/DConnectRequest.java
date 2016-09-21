@@ -138,12 +138,7 @@ public abstract class DConnectRequest {
     protected Intent createRequestMessage(final Intent request, final DevicePlugin plugin) {
         Intent targetIntent = new Intent(request);
         String serviceId = request.getStringExtra(DConnectMessage.EXTRA_SERVICE_ID);
-        String sessionKey = request.getStringExtra(DConnectMessage.EXTRA_SESSION_KEY);
         if (plugin != null) {
-            // serviceIdを書き換えてしまうので、serviceIdよりも先にsessionKeyを変換する
-            if (sessionKey != null) {
-                mPluginMgr.appendPluginIdToSessionKey(targetIntent, plugin);
-            }
             if (serviceId != null) {
                 mPluginMgr.splitPluginIdToServiceId(targetIntent);
             }

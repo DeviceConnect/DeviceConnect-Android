@@ -12,6 +12,7 @@ import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.linking.BuildConfig;
 import org.deviceconnect.android.deviceplugin.linking.LinkingApplication;
+import org.deviceconnect.android.deviceplugin.linking.LinkingDestroy;
 import org.deviceconnect.android.deviceplugin.linking.LinkingDevicePluginService;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingDevice;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingDeviceManager;
@@ -19,7 +20,6 @@ import org.deviceconnect.android.deviceplugin.linking.linking.service.LinkingDev
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
-import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.KeyEventProfile;
 import org.deviceconnect.android.profile.api.DConnectApi;
@@ -29,22 +29,18 @@ import org.deviceconnect.message.DConnectMessage;
 
 import java.util.List;
 
-public class LinkingKeyEventProfile extends KeyEventProfile {
+public class LinkingKeyEventProfile extends KeyEventProfile implements LinkingDestroy {
 
     private static final String TAG = "LinkingPlugIn";
 
-    public LinkingKeyEventProfile(DConnectMessageService service) {
-        LinkingApplication app = (LinkingApplication) service.getApplication();
-        LinkingDeviceManager deviceManager = app.getLinkingDeviceManager();
-        deviceManager.addKeyEventListener(mListener);
-
+    public LinkingKeyEventProfile() {
         addApi(mPutOnDown);
         addApi(mDeleteOnDown);
     }
 
-    private final LinkingDeviceManager.OnKeyEventListener mListener = new LinkingDeviceManager.OnKeyEventListener() {
+    private final LinkingDeviceManager.OnButtonEventListener mListener = new LinkingDeviceManager.OnButtonEventListener() {
         @Override
-        public void onKeyEvent(final LinkingDevice device, final int keyCode) {
+        public void onButtonEvent(final LinkingDevice device, final int keyCode) {
             notifyKeyEvent(device, keyCode);
         }
     };
@@ -64,7 +60,7 @@ public class LinkingKeyEventProfile extends KeyEventProfile {
 
             EventError error = EventManager.INSTANCE.addEvent(request);
             if (error == EventError.NONE) {
-                getLinkingDeviceManager().startKeyEvent(device);
+                getLinkingDeviceManager().enableListenButtonEvent(device, mListener);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else if (error == EventError.INVALID_PARAMETER) {
                 MessageUtils.setInvalidRequestParameterError(response);
@@ -90,8 +86,8 @@ public class LinkingKeyEventProfile extends KeyEventProfile {
 
             EventError error = EventManager.INSTANCE.removeEvent(request);
             if (error == EventError.NONE) {
-                if (isEmptyEventList()) {
-                    getLinkingDeviceManager().stopKeyEvent(device);
+                if (isEmptyEventList(device)) {
+                    getLinkingDeviceManager().disableListenButtonEvent(device, mListener);
                 }
                 setResult(response, DConnectMessage.RESULT_OK);
             } else if (error == EventError.INVALID_PARAMETER) {
@@ -103,21 +99,26 @@ public class LinkingKeyEventProfile extends KeyEventProfile {
         }
     };
 
-    public void destroy() {
+    @Override
+    public void onDestroy() {
         if (BuildConfig.DEBUG) {
             Log.i(TAG, "LinkingKeyEventProfile#destroy: " + getService().getId());
         }
-        getLinkingDeviceManager().removeKeyEventListener(mListener);
+        getLinkingDeviceManager().disableListenButtonEvent(getDevice(), mListener);
     }
 
-    private boolean isEmptyEventList() {
+    private boolean isEmptyEventList(final LinkingDevice device) {
         List<Event> events = EventManager.INSTANCE.getEventList(
-                PROFILE_NAME, null, ATTRIBUTE_ON_DOWN);
+                device.getBdAddress(), PROFILE_NAME, null, ATTRIBUTE_ON_DOWN);
         return events.isEmpty();
     }
 
+    private LinkingDevice getDevice() {
+        return ((LinkingDeviceService) getService()).getLinkingDevice();
+    }
+
     private LinkingDevice getDevice(final Intent response) {
-        LinkingDevice device = ((LinkingDeviceService) getService()).getLinkingDevice();
+        LinkingDevice device = getDevice();
 
         if (!device.isConnected()) {
             MessageUtils.setIllegalDeviceStateError(response, "device not connected");
@@ -137,6 +138,10 @@ public class LinkingKeyEventProfile extends KeyEventProfile {
     }
 
     private void notifyKeyEvent(final LinkingDevice device, final int keyCode) {
+        if (BuildConfig.DEBUG) {
+            Log.d(TAG, "notifyKeyEvent: " + device.getDisplayName() + "[" + keyCode + "]");
+        }
+
         String serviceId = device.getBdAddress();
         List<Event> events = EventManager.INSTANCE.getEventList(serviceId,
                 PROFILE_NAME, null, ATTRIBUTE_ON_DOWN);

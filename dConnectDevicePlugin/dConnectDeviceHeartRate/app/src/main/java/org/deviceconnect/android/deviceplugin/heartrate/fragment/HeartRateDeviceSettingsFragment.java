@@ -120,7 +120,7 @@ public class HeartRateDeviceSettingsFragment extends Fragment {
         super.onResume();
         registerBluetoothFilter();
 
-        getManager().setOnHeartRateDiscoveryListener(mEvtListener);
+        getManager().addOnHeartRateDiscoveryListener(mEvtListener);
 
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
             getManager().startScanBle();
@@ -135,7 +135,7 @@ public class HeartRateDeviceSettingsFragment extends Fragment {
     @Override
     public void onPause() {
         super.onPause();
-        getManager().setOnHeartRateDiscoveryListener(null);
+        getManager().removeOnHeartRateDiscoveryListener(mEvtListener);
         getManager().stopScanBle();
         dismissProgressDialog();
         dismissErrorDialog();
@@ -353,6 +353,11 @@ public class HeartRateDeviceSettingsFragment extends Fragment {
                     showErrorDialogNotConnect(device.getName());
                 }
             });
+        }
+
+        @Override
+        public void onDisconnected(BluetoothDevice device) {
+
         }
 
         @Override

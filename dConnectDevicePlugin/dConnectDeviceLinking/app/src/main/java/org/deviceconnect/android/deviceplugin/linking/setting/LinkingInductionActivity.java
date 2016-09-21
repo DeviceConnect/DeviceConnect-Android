@@ -47,6 +47,16 @@ public class LinkingInductionActivity extends AppCompatActivity {
                 }
             });
         }
+
+        Button updateBtn = (Button) findViewById(R.id.fragment_linking_setting_update_btn);
+        if (updateBtn != null) {
+            updateBtn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(final View v) {
+                    LinkingUtil.startGooglePlay(getApplicationContext());
+                }
+            });
+        }
     }
 
     @Override
@@ -65,12 +75,20 @@ public class LinkingInductionActivity extends AppCompatActivity {
     }
 
     private void showGooglePlay() {
-        View view = findViewById(R.id.fragment_linking_setting_google_play);
-        if (view != null) {
+        View playView = findViewById(R.id.fragment_linking_setting_google_play);
+        View updateView = findViewById(R.id.fragment_linking_setting_update_app);
+        if (playView != null && updateView != null) {
             if (LinkingUtil.isApplicationInstalled(getApplicationContext())) {
-                view.setVisibility(View.GONE);
+                if (LinkingUtil.getVersionCode(this) < LinkingUtil.LINKING_APP_VERSION) {
+                    updateView.setVisibility(View.VISIBLE);
+                    playView.setVisibility(View.GONE);
+                } else {
+                    updateView.setVisibility(View.GONE);
+                    playView.setVisibility(View.GONE);
+                }
             } else {
-                view.setVisibility(View.VISIBLE);
+                updateView.setVisibility(View.GONE);
+                playView.setVisibility(View.VISIBLE);
             }
         }
     }

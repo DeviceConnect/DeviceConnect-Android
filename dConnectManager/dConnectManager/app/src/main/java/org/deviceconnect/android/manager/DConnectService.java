@@ -18,10 +18,12 @@ import org.deviceconnect.android.compat.MessageConverter;
 import org.deviceconnect.android.manager.compat.CompatibleRequestConverter;
 import org.deviceconnect.android.manager.compat.ServiceDiscoveryConverter;
 import org.deviceconnect.android.manager.compat.ServiceInformationConverter;
-import org.deviceconnect.android.manager.keepalive.KeepAlive;
+import org.deviceconnect.android.manager.event.EventBroker;
+import org.deviceconnect.android.manager.event.KeepAlive;
+import org.deviceconnect.android.manager.event.KeepAliveManager;
 import org.deviceconnect.android.manager.util.DConnectUtil;
+import org.deviceconnect.android.manager.util.VersionName;
 import org.deviceconnect.android.profile.DConnectProfile;
-import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 import org.deviceconnect.server.DConnectServer;
 import org.deviceconnect.server.DConnectServerConfig;
@@ -40,7 +42,9 @@ import java.util.concurrent.Executors;
  */
 public class DConnectService extends DConnectMessageService {
     public static final String ACTION_DISCONNECT_WEB_SOCKET = "disconnect.WebSocket";
+    public static final String ACTION_SETTINGS_KEEP_ALIVE = "settings.KeepAlive";
     public static final String EXTRA_SESSION_KEY = "sessionKey";
+    public static final String EXTRA_KEEP_ALIVE_ENABLED = "enabled";
 
     /** 内部用: 通信タイプを定義する. */
     public static final String EXTRA_INNER_TYPE = "_type";
@@ -61,6 +65,9 @@ public class DConnectService extends DConnectMessageService {
     /** イベント送信スレッド. */
     private ExecutorService mEventSender = Executors.newSingleThreadExecutor();
 
+    /** イベントKeep Alive管理クラス. */
+    private KeepAliveManager mKeepAliveManager;
+
     private MessageConverter[] mRequestConverters;
     private MessageConverter[] mResponseConverters;
 
@@ -72,6 +79,22 @@ public class DConnectService extends DConnectMessageService {
     @Override
     public void onCreate() {
         super.onCreate();
+        mKeepAliveManager = new KeepAliveManager(this, mEventSessionTable);
+        mEventBroker.setRegistrationListener(new EventBroker.RegistrationListener() {
+            @Override
+            public void onPutEventSession(final Intent request, final DevicePlugin plugin) {
+                if (isSupportedKeepAlive(plugin)) {
+                    mKeepAliveManager.setManagementTable(plugin);
+                }
+            }
+
+            @Override
+            public void onDeleteEventSession(final Intent request, final DevicePlugin plugin) {
+                if (isSupportedKeepAlive(plugin)) {
+                    mKeepAliveManager.removeManagementTable(plugin);
+                }
+            }
+        });
         mRequestConverters = new MessageConverter[] {
                 new CompatibleRequestConverter(mPluginMgr)
         };
@@ -107,25 +130,43 @@ public class DConnectService extends DConnectMessageService {
             return START_STICKY;
         }
 
-        if (IntentDConnectMessage.ACTION_KEEPALIVE.equals(action)) {
-            String status = intent.getStringExtra(IntentDConnectMessage.EXTRA_KEEPALIVE_STATUS);
-            if (status.equals("RESPONSE")) {
-                String serviceId = intent.getStringExtra("serviceId");
-                if (serviceId != null) {
-                    KeepAlive keepAlive = ((DConnectApplication) getApplication()).getKeepAliveManager().getKeepAlive(serviceId);
-                    if (keepAlive != null) {
-                        keepAlive.setResponseFlag();
-                    }
-                }
-            } else if (status.equals("DISCONNECT")) {
-                String sessionKey = intent.getStringExtra(IntentDConnectMessage.EXTRA_SESSION_KEY);
-                if (sessionKey != null) {
-                    sendDisconnectWebSocket(sessionKey);
-                }
+        if (ACTION_SETTINGS_KEEP_ALIVE.equals(action)) {
+            if (intent.getBooleanExtra(EXTRA_KEEP_ALIVE_ENABLED, true)) {
+                mKeepAliveManager.enableKeepAlive();
+            } else {
+                mKeepAliveManager.disableKeepAlive();
             }
             return START_STICKY;
         }
+        if (IntentDConnectMessage.ACTION_KEEPALIVE.equals(action)) {
+            onKeepAliveCommand(intent);
+            return START_STICKY;
+        }
         return super.onStartCommand(intent, flags, startId);
+    }
+
+    private void onKeepAliveCommand(final Intent intent) {
+        String status = intent.getStringExtra(IntentDConnectMessage.EXTRA_KEEPALIVE_STATUS);
+        if (status.equals("RESPONSE")) {
+            String serviceId = intent.getStringExtra("serviceId");
+            if (serviceId != null) {
+                KeepAlive keepAlive = mKeepAliveManager.getKeepAlive(serviceId);
+                if (keepAlive != null) {
+                    keepAlive.setResponseFlag();
+                }
+            }
+        } else if (status.equals("DISCONNECT")) {
+            String sessionKey = intent.getStringExtra(IntentDConnectMessage.EXTRA_SESSION_KEY);
+            if (sessionKey != null) {
+                sendDisconnectWebSocket(sessionKey);
+            }
+        }
+    }
+
+    private boolean isSupportedKeepAlive(final DevicePlugin plugin) {
+        VersionName version = plugin.getPluginSdkVersionName();
+        VersionName match = VersionName.parse("1.1.0");
+        return !(version.compareTo(match) == -1);
     }
 
     @Override
@@ -141,11 +182,17 @@ public class DConnectService extends DConnectMessageService {
     @Override
     public void sendEvent(final String receiver, final Intent event) {
         if (receiver == null || receiver.length() <= 0) {
-            final String key = event.getStringExtra(DConnectMessage.EXTRA_SESSION_KEY);
+            final String key = event.getStringExtra(IntentDConnectMessage.EXTRA_SESSION_KEY);
             mEventSender.execute(new Runnable() {
                 @Override
                 public void run() {
                     if (key != null && mRESTfulServer != null && mRESTfulServer.isRunning()) {
+                        WebSocketInfo info = getWebSocketInfo(key);
+                        if (info == null) {
+                            mLogger.warning("sendEvent: webSocket is not found: key = " + key);
+                            return;
+                        }
+
                         try {
                             if (BuildConfig.DEBUG) {
                                 mLogger.info(String.format("sendEvent: %s extra: %s", key, event.getExtras()));
@@ -153,13 +200,13 @@ public class DConnectService extends DConnectMessageService {
                             JSONObject root = new JSONObject();
                             DConnectUtil.convertBundleToJSON(root, event.getExtras());
 
-                            mRESTfulServer.sendEvent(key, root.toString());
+                            mRESTfulServer.sendEvent(info.getId(), root.toString());
                         } catch (JSONException e) {
                             mLogger.warning("JSONException in sendEvent: " + e.toString());
                         } catch (IOException e) {
                             mLogger.warning("IOException in sendEvent: " + e.toString());
                             if (mWebServerListener != null) {
-                                mWebServerListener.onWebSocketDisconnected(key);
+                                mWebServerListener.onWebSocketDisconnected(info.getId());
                             }
                         }
                     }
@@ -179,14 +226,19 @@ public class DConnectService extends DConnectMessageService {
             mEventSender.execute(new Runnable() {
                 @Override
                 public void run() {
-                    try {
-                        mRESTfulServer.disconnectionWebSocket(sessionKey);
-                    } catch (IOException e) {
-                        mLogger.warning("IOException in disconnectWebSocket: " + e.toString());
+                    WebSocketInfo info = getWebSocketInfo(sessionKey);
+                    if (info != null) {
+                        mRESTfulServer.disconnectWebSocket(info.getId());
+                    } else {
+                        mLogger.warning("sendDisconnectWebSocket: WebSocketInfo is not found: key = " + sessionKey);
                     }
                 }
             });
         }
+    }
+
+    private WebSocketInfo getWebSocketInfo(final String sessionKey) {
+        return ((DConnectApplication) getApplication()).getWebSocketInfoManager().getWebSocketInfo(sessionKey);
     }
 
     /**
@@ -365,5 +417,4 @@ public class DConnectService extends DConnectMessageService {
         }
         return result;
     }
-
 }

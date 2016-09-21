@@ -7,6 +7,7 @@
 package org.deviceconnect.android.deviceplugin.heartrate;
 
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -27,6 +28,7 @@ import org.deviceconnect.android.service.DConnectService;
 import org.deviceconnect.android.service.DConnectServiceListener;
 import org.deviceconnect.android.service.DConnectServiceProvider;
 
+import java.util.List;
 import java.util.logging.Logger;
 
 /**

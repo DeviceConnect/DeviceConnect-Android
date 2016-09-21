@@ -101,7 +101,7 @@ public class LinkingVibrationProfile extends VibrationProfile {
             return null;
         }
 
-        if (!device.isVibration()) {
+        if (!device.isSupportVibration()) {
             MessageUtils.setNotSupportProfileError(response, "device has not vibration");
             return null;
         }

@@ -13,6 +13,7 @@ import android.os.Bundle;
 import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.linking.BuildConfig;
+import org.deviceconnect.android.deviceplugin.linking.LinkingApplication;
 import org.deviceconnect.android.deviceplugin.linking.R;
 
 public class ConfirmActivity extends Activity {
@@ -97,12 +98,21 @@ public class ConfirmActivity extends Activity {
     }
 
     private void finishConfirmActivity() {
+
+//        Intent intent = getIntent();
+//        if (intent != null) {
+//            LinkingDeviceManager mgr = getLinkingDeviceManager();
+//            if (mgr != null) {
+//                mgr.onConfirmActivityResult(intent);
+//            }
+//        }
+
         finish();
     }
 
     private void startSensor() {
         if (BuildConfig.DEBUG) {
-            Log.i(TAG, "ConfirmActivity:startSensor mIndex:" + mIndex);
+            Log.i(TAG, "ConfirmActivity:startSensor type:" + mRequestType[mIndex]);
         }
 
         Intent intent = new Intent(LinkingUtil.ACTION_START_SENSOR);
@@ -118,5 +128,10 @@ public class ConfirmActivity extends Activity {
             }
             finishConfirmActivity();
         }
+    }
+
+    private LinkingDeviceManager getLinkingDeviceManager() {
+        LinkingApplication app = (LinkingApplication) getApplication();
+        return app.getLinkingDeviceManager();
     }
 }

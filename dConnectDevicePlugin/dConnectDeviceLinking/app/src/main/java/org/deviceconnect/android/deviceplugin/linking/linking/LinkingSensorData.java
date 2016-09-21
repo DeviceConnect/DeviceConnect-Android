@@ -143,4 +143,21 @@ public class LinkingSensorData implements Parcelable {
     public void setTime(long time) {
         mTime = time;
     }
+
+    @Override
+    public String toString() {
+        String orig = "null";
+        if (mOriginalData != null) {
+            orig = "[";
+            for (int i = 0; i < mOriginalData.length; i++) {
+                if (i != 0) {
+                    orig += ", ";
+                }
+                orig += String.format("0x%1$02x", mOriginalData[i]);
+            }
+            orig += "]";
+        }
+        return "[" + getBdAddress() + "] type:" + getType() + " time:" + getTime()
+                + "( x: " + getX() + " y: " + getY() + " z: " + getZ() + ") orig: " + orig;
+    }
 }

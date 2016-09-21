@@ -14,7 +14,6 @@ import org.deviceconnect.android.deviceplugin.linking.util.PreferenceUtil;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 public class LinkingDeviceManager {
 
@@ -24,7 +23,7 @@ public class LinkingDeviceManager {
 
     private LinkingNotifyConnect mNotifyConnect;
     private LinkingNotifyRange mNotifyRange;
-    private LinkingNotifyKey mNotifyKey;
+    private LinkingNotifyNotification mNotifyKey;
     private LinkingNotifySensor mNotifySensor;
 
     public LinkingDeviceManager(final Context context) {
@@ -32,8 +31,12 @@ public class LinkingDeviceManager {
 
         mNotifyConnect = new LinkingNotifyConnect(context, this);
         mNotifyRange = new LinkingNotifyRange(context);
-        mNotifyKey = new LinkingNotifyKey(context);
-        mNotifySensor = new LinkingNotifySensor(context);
+        mNotifyKey = new LinkingNotifyNotification(context);
+        mNotifySensor = new LinkingNotifySensor(context, this);
+    }
+
+    public Context getContext() {
+        return mContext;
     }
 
     public void destroy() {
@@ -89,59 +92,68 @@ public class LinkingDeviceManager {
         return null;
     }
 
-    public void startKeyEvent(final LinkingDevice device) {
-        mNotifyKey.add(device);
+    public void enableListenButtonEvent(final LinkingDevice device, final OnButtonEventListener listener) {
+        mNotifyKey.enableListenNotification(device, listener);
     }
 
-    public void stopKeyEvent(final LinkingDevice device) {
-        mNotifyKey.remove(device);
+    public void disableListenButtonEvent(final LinkingDevice device, final OnButtonEventListener listener) {
+        mNotifyKey.disableListenNotification(device, listener);
     }
 
-    public void startRange(final LinkingDevice device) {
-        mNotifyRange.add(device);
+    public void enableListenRange(final LinkingDevice device, final OnRangeListener listener) {
+        mNotifyRange.enableListenRange(device, listener);
     }
 
-    public void stopRange(final LinkingDevice device) {
-        mNotifyRange.remove(device);
+    public void disableListenRange(final LinkingDevice device, final OnRangeListener listener) {
+        mNotifyRange.disableListenRange(device, listener);
     }
 
-    public void startSensor(final LinkingDevice device) {
-        mNotifySensor.startOrientation(device);
+    public void enableListenSensor(final LinkingDevice device, final OnSensorListener listener) {
+        mNotifySensor.enableListenOrientation(device, listener);
     }
 
-    public void stopSensor(final LinkingDevice device) {
-        mNotifySensor.stopOrientation(device);
+    public void disableListenSensor(final LinkingDevice device, final OnSensorListener listener) {
+        mNotifySensor.disableListenOrientation(device, listener);
     }
 
-    public boolean isStartedSensor(final LinkingDevice device) {
-        return mNotifySensor.containsOrientation(device);
+    public void enableListenBattery(final LinkingDevice device, final OnBatteryListener listener) {
+        mNotifySensor.enableListenBattery(device, listener);
     }
 
-    public void startBattery(final LinkingDevice device) {
-        mNotifySensor.startBattery(device);
+    public void disableListenBattery(final LinkingDevice device, final OnBatteryListener listener) {
+        mNotifySensor.disableListenBattery(device, listener);
     }
 
-    public void stopBattery(final LinkingDevice device) {
-        mNotifySensor.stopBattery(device);
+    public void enableListenHumidity(final LinkingDevice device, final OnHumidityListener listener) {
+        mNotifySensor.enableListenHumidity(device, listener);
     }
 
-    public void startHumidity(final LinkingDevice device) {
-        mNotifySensor.startHumidity(device);
+    public void disableListenHumidity(final LinkingDevice device, final OnHumidityListener listener) {
+        mNotifySensor.disableListenHumidity(device, listener);
     }
 
-    public void stopHumidity(final LinkingDevice device) {
-        mNotifySensor.stopHumidity(device);
+    public void enableListenTemperature(final LinkingDevice device, final OnTemperatureListener listener) {
+        mNotifySensor.enableListenTemperature(device, listener);
     }
 
-    public void startTemperature(final LinkingDevice device) {
-        mNotifySensor.startTemperature(device);
-    }
-
-    public void stopTemperature(final LinkingDevice device) {
-        mNotifySensor.stopTemperature(device);
+    public void disableListenTemperature(final LinkingDevice device, final OnTemperatureListener listener) {
+        mNotifySensor.disableListenTemperature(device, listener);
     }
 
     public boolean sendLEDCommand(final LinkingDevice device, final boolean on) {
+        if (device == null) {
+            if (BuildConfig.DEBUG) {
+                Log.e(TAG, "device is null.");
+            }
+            return false;
+        }
+
+        if (!device.isSupportLED()) {
+            if (BuildConfig.DEBUG) {
+                Log.w(TAG, "Not support led. name=" + device.getDisplayName());
+            }
+            return false;
+        }
         SendNotification notify = new SendNotification(mContext);
         notify.setDispNameEn("Linking Device Plug-in");
         notify.setDispNameJa("Linking Device Plug-in");
@@ -149,16 +161,31 @@ public class LinkingDeviceManager {
         notify.setTitle("title");
         notify.setText("linking");
         notify.setDeviceID(device.getModelId());
-        notify.setDeviceUID(device.getUniqueId());
-        setVibration(notify, device);
-        if (!on) {
-            setIllumination(notify, device);
+        notify.setDeviceUID(new int[] {device.getUniqueId()});
+        setVibration(notify, getVibrationOffSetting(device));
+        if (on) {
+            setIllumination(notify, getLightPatternSetting(device), getLightColorSetting(device));
+        } else {
+            setIllumination(notify, getLightOffSetting(device), getLightColorSetting(device));
         }
         int result = notify.send();
         return (result != ErrorCode.RESULT_OK);
     }
 
     public boolean sendVibrationCommand(final LinkingDevice device, final boolean on) {
+        if (device == null) {
+            if (BuildConfig.DEBUG) {
+                Log.e(TAG, "device is null.");
+            }
+            return false;
+        }
+
+        if (!device.isSupportLED()) {
+            if (BuildConfig.DEBUG) {
+                Log.w(TAG, "Not support vibration. name=" + device.getDisplayName());
+            }
+            return false;
+        }
         SendNotification notify = new SendNotification(mContext);
         notify.setDispNameEn("Linking Device Plug-in");
         notify.setDispNameJa("Linking Device Plug-in");
@@ -166,11 +193,13 @@ public class LinkingDeviceManager {
         notify.setTitle("title");
         notify.setText("linking");
         notify.setDeviceID(device.getModelId());
-        notify.setDeviceUID(device.getUniqueId());
-        if (!on) {
-            setVibration(notify, device);
+        notify.setDeviceUID(new int[] {device.getUniqueId()});
+        if (on) {
+            setVibration(notify, getVibrationOnSetting(device));
+        } else {
+            setVibration(notify, getVibrationOffSetting(device));
         }
-        setIllumination(notify, device);
+        setIllumination(notify, getLightOffSetting(device), getLightColorSetting(device));
         int result = notify.send();
         return (result != ErrorCode.RESULT_OK);
     }
@@ -183,33 +212,9 @@ public class LinkingDeviceManager {
         notify.setTitle(notification.getTitle());
         notify.setText(notification.getDetail());
         notify.setDeviceID(device.getModelId());
-        notify.setDeviceUID(device.getUniqueId());
+        notify.setDeviceUID(new int[] {device.getUniqueId()});
         int result = notify.send();
         return (result != ErrorCode.RESULT_OK);
-    }
-
-    public void addKeyEventListener(final OnKeyEventListener listener) {
-        mNotifyKey.addListener(listener);
-    }
-
-    public void removeKeyEventListener(final OnKeyEventListener listener) {
-        mNotifyKey.removeListener(listener);
-    }
-
-    public void addSensorListener(final OnSensorListener listener) {
-        mNotifySensor.addSensorListener(listener);
-    }
-
-    public void removeSensorListener(final OnSensorListener listener) {
-        mNotifySensor.removeSensorListener(listener);
-    }
-
-    public void addRangeListener(final OnRangeListener listener) {
-        mNotifyRange.addListener(listener);
-    }
-
-    public void removeRangeListener(final OnRangeListener listener) {
-        mNotifyRange.removeListener(listener);
     }
 
     public void addConnectListener(final OnConnectListener listener) {
@@ -220,40 +225,8 @@ public class LinkingDeviceManager {
         mNotifyConnect.removeListener(listener);
     }
 
-    public void addBatteryListener(final OnBatteryListener listener) {
-        mNotifySensor.addBatteryListener(listener);
-    }
-
-    public void removeBatteryListener(final OnBatteryListener listener) {
-        mNotifySensor.removeBatteryListener(listener);
-    }
-
-    public void addHumidityListener(final OnHumidityListener listener) {
-        mNotifySensor.addHumidityListener(listener);
-    }
-
-    public void removeHumidityListener(final OnHumidityListener listener) {
-        mNotifySensor.removeHumidityListener(listener);
-    }
-
-    public void addTemperatureListener(final OnTemperatureListener listener) {
-        mNotifySensor.addTemperatureListener(listener);
-    }
-
-    public void removeTemperatureListener(final OnTemperatureListener listener) {
-        mNotifySensor.removeTemperatureListener(listener);
-    }
-
-    private void setVibration(final SendNotification notify, final LinkingDevice device) {
-        if (device.getVibration() == null) {
-            return;
-        }
-
-        Integer patternId = getVibrationOffSetting(device);
+    private void setVibration(final SendNotification notify, final Integer patternId) {
         if (patternId == null) {
-            if (BuildConfig.DEBUG) {
-                Log.e(TAG, "Not exist pattern of Vibration. name=" + device.getDisplayName());
-            }
             return;
         }
         byte pattern = (byte) (patternId & 0xFF);
@@ -263,41 +236,38 @@ public class LinkingDeviceManager {
         notify.setVibration(vibration);
     }
 
-    private Integer getVibrationOffSetting(final LinkingDevice device) {
-        Map<String, Integer> map = PreferenceUtil.getInstance(mContext).getVibrationOffSetting();
-        if (map == null || map.get(device.getBdAddress()) == null) {
-            return LinkingUtil.getDefaultOffSettingOfLightId(device);
-        }
-        return map.get(device.getBdAddress());
-    }
-
-    private void setIllumination(final SendNotification notify, final LinkingDevice device) {
-        if (device.getIllumination() == null) {
-            return;
-        }
-
-        Integer patternId = getLightOffSetting(device);
-        if (patternId == null) {
-            if (BuildConfig.DEBUG) {
-                Log.e(TAG, "Not exist pattern of LED. name=" + device.getDisplayName());
-            }
+    private void setIllumination(final SendNotification notify, final Integer patternId, final Integer colorId) {
+        if (patternId == null || colorId == null) {
             return;
         }
         byte pattern = (byte) (patternId & 0xFF);
+        byte color = (byte) (colorId & 0xFF);
         byte[] illumination = new byte[4];
         illumination[0] = 0x20;
         illumination[1] = pattern;
         illumination[2] = 0x30;
-        illumination[3] = 0x01;//default color id
+        illumination[3] = color;
         notify.setIllumination(illumination);
     }
 
+    private Integer getVibrationOnSetting(final LinkingDevice device) {
+        return PreferenceUtil.getInstance(mContext).getVibrationOnSetting(device.getBdAddress());
+    }
+
+    private Integer getVibrationOffSetting(final LinkingDevice device) {
+        return PreferenceUtil.getInstance(mContext).getVibrationOffSetting(device.getBdAddress());
+    }
+
+    private Integer getLightColorSetting(final LinkingDevice device) {
+        return PreferenceUtil.getInstance(mContext).getLEDColorSetting(device.getBdAddress());
+    }
+
+    private Integer getLightPatternSetting(final LinkingDevice device) {
+        return PreferenceUtil.getInstance(mContext).getLEDPatternSetting(device.getBdAddress());
+    }
+
     private Integer getLightOffSetting(final LinkingDevice device) {
-        Map<String, Integer> map = PreferenceUtil.getInstance(mContext).getLightOffSetting();
-        if (map == null || map.get(device.getBdAddress()) == null) {
-            return LinkingUtil.getDefaultOffSettingOfLightId(device);
-        }
-        return map.get(device.getBdAddress());
+        return PreferenceUtil.getInstance(mContext).getLEDOffSetting(device.getBdAddress());
     }
 
     public enum Range {
@@ -346,8 +316,8 @@ public class LinkingDeviceManager {
         void onChangeRange(LinkingDevice device, Range range);
     }
 
-    public interface OnKeyEventListener {
-        void onKeyEvent(LinkingDevice device, int keyCode);
+    public interface OnButtonEventListener {
+        void onButtonEvent(LinkingDevice device, int keyCode);
     }
 
     public interface OnSensorListener {

@@ -274,6 +274,7 @@ public class HostFileProfile extends FileProfile {
         public boolean onRequest(final Intent request, final Intent response) {
             final String path = getPath(request);
             final String uri = getURI(request);
+            final String mimeType = getMIMEType(request);
             final byte[] data = getData(request);
             if (data == null) {
                 mImageService.execute(new Runnable() {
@@ -285,23 +286,26 @@ public class HostFileProfile extends FileProfile {
                             sendResponse(response);
                             return;
                         }
-                        saveFile(response, path, result);
+                        saveFile(response, path, mimeType, result);
                         sendResponse(response);
                     }
                 });
                 return false;
             }
 
-            saveFile(response, path, data);
+            saveFile(response, path, mimeType, data);
             return false;
         }
     };
 
-    private void saveFile(final Intent response, final String path, final byte[] data) {
+    private void saveFile(final Intent response, final String path, final String mimeType, final byte[] data) {
         getFileManager().saveFile(path, data, new FileManager.SaveFileCallback() {
             @Override
             public void onSuccess(@NonNull final String uri) {
-                String mMineType = getMIMEType(getFileManager().getBasePath() + "/" + path);
+                String mMineType = mimeType;
+                if (mMineType == null) {
+                    mMineType = getMIMEType(getFileManager().getBasePath() + "/" + path);
+                }
 
                 if (BuildConfig.DEBUG) {
                     Log.i(TAG, "mMineType:" + mMineType);

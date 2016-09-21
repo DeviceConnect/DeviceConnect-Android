@@ -12,6 +12,7 @@ import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.linking.BuildConfig;
 import org.deviceconnect.android.deviceplugin.linking.LinkingApplication;
+import org.deviceconnect.android.deviceplugin.linking.LinkingDestroy;
 import org.deviceconnect.android.deviceplugin.linking.LinkingDevicePluginService;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingDevice;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingDeviceManager;
@@ -19,7 +20,6 @@ import org.deviceconnect.android.deviceplugin.linking.linking.service.LinkingDev
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
-import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.ProximityProfile;
 import org.deviceconnect.android.profile.api.DConnectApi;
@@ -30,15 +30,11 @@ import org.deviceconnect.message.DConnectMessage;
 
 import java.util.List;
 
-public class LinkingProximityProfile extends ProximityProfile {
+public class LinkingProximityProfile extends ProximityProfile implements LinkingDestroy {
 
     private static final String TAG = "LinkingPlugIn";
 
-    public LinkingProximityProfile(final DConnectMessageService service) {
-        LinkingApplication app = (LinkingApplication) service.getApplication();
-        LinkingDeviceManager deviceManager = app.getLinkingDeviceManager();
-        deviceManager.addRangeListener(mListener);
-
+    public LinkingProximityProfile() {
         addApi(mGetOnDeviceProximity);
         addApi(mPutOnDeviceProximity);
         addApi(mDeleteOnDeviceProximity);
@@ -65,14 +61,10 @@ public class LinkingProximityProfile extends ProximityProfile {
             }
 
             final LinkingDeviceManager deviceManager = getLinkingDeviceManager();
-            deviceManager.addRangeListener(new OnRangeListenerImpl(device) {
-
+            deviceManager.enableListenRange(device, new OnRangeListenerImpl(device) {
                 @Override
                 public void onCleanup() {
-                    if (isEmptyEventList()) {
-                        deviceManager.stopRange(mDevice);
-                    }
-                    deviceManager.removeRangeListener(this);
+                    deviceManager.disableListenRange(mDevice, this);
                 }
 
                 @Override
@@ -96,7 +88,6 @@ public class LinkingProximityProfile extends ProximityProfile {
                     cleanup();
                 }
             });
-            deviceManager.startRange(device);
             return false;
         }
     };
@@ -115,7 +106,7 @@ public class LinkingProximityProfile extends ProximityProfile {
 
             EventError error = EventManager.INSTANCE.addEvent(request);
             if (error == EventError.NONE) {
-                getLinkingDeviceManager().startRange(device);
+                getLinkingDeviceManager().enableListenRange(device, mListener);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else if (error == EventError.INVALID_PARAMETER) {
                 MessageUtils.setInvalidRequestParameterError(response);
@@ -140,8 +131,8 @@ public class LinkingProximityProfile extends ProximityProfile {
 
             EventError error = EventManager.INSTANCE.removeEvent(request);
             if (error == EventError.NONE) {
-                if (isEmptyEventList()) {
-                    getLinkingDeviceManager().stopRange(device);
+                if (isEmptyEventList(device)) {
+                    getLinkingDeviceManager().disableListenRange(device, mListener);
                 }
                 setResult(response, DConnectMessage.RESULT_OK);
             } else if (error == EventError.INVALID_PARAMETER) {
@@ -153,15 +144,20 @@ public class LinkingProximityProfile extends ProximityProfile {
         }
     };
 
-    public void destroy() {
+    @Override
+    public void onDestroy() {
         if (BuildConfig.DEBUG) {
             Log.i(TAG, "LinkingProximityProfile#destroy: " + getService().getId());
         }
-        getLinkingDeviceManager().removeRangeListener(mListener);
+        getLinkingDeviceManager().disableListenRange(getDevice(), mListener);
+    }
+
+    private LinkingDevice getDevice() {
+        return ((LinkingDeviceService) getService()).getLinkingDevice();
     }
 
     private LinkingDevice getDevice(final Intent response) {
-        LinkingDevice device = ((LinkingDeviceService) getService()).getLinkingDevice();
+        LinkingDevice device = getDevice();
 
         if (!device.isConnected()) {
             MessageUtils.setIllegalDeviceStateError(response, "device not connected");
@@ -171,9 +167,9 @@ public class LinkingProximityProfile extends ProximityProfile {
         return device;
     }
 
-    private boolean isEmptyEventList() {
+    private boolean isEmptyEventList(final LinkingDevice device) {
         List<Event> events = EventManager.INSTANCE.getEventList(
-                PROFILE_NAME, null, ATTRIBUTE_ON_DEVICE_PROXIMITY);
+                device.getBdAddress(), PROFILE_NAME, null, ATTRIBUTE_ON_DEVICE_PROXIMITY);
         return events.isEmpty();
     }
 

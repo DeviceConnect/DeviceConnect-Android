@@ -6,12 +6,18 @@
     <string name="activity_linking_cancel">Cancel</string>
 
     <string name="activity_linking_confirm_title">ConfirmActivity</string>
+    <string name="activity_linking_confirm_message">Linkingアプリに接続しています...</string>
 
     <string name="activity_setting_tab_paring">ペアリング</string>
     <string name="activity_setting_tab_beacon">ビーコン</string>
     <string name="activity_setting_menu">Linkingアプリ誘導</string>
     <string name="activity_setting_menu_app_inform">アプリ情報</string>
     <string name="activity_setting_refresh_devices">Linkingデバイスの更新</string>
+
+    <string name="activity_setting_update_dialog_title">情報</string>
+    <string name="activity_setting_update_dialog_message">Google PlayにLinkingアプリの更新があります。\nLinkingアプリをアップデートしてください。</string>
+    <string name="activity_setting_update_dialog_positive">Google Playを開く</string>
+    <string name="activity_setting_update_dialog_negative">閉じる</string>
 
     <string name="fragment_beacon_list_scan_title">ビーコンスキャン</string>
     <string name="fragment_beacon_list_scan_start">開始</string>
@@ -59,6 +65,7 @@
     <string name="activity_linking_induction_2">2)</string>
     <string name="activity_linking_induction_3">3)</string>
     <string name="activity_linking_induction_4">4)</string>
+    <string name="activity_linking_induction_text_update">本アプリで、Linkingデバイスを操作するためには、最新版のLinkingアプリが必要になります。\n\nGoogle Playから最新版のLinkingアプリにアップデートしてください。</string>
     <string name="activity_linking_induction_text">本アプリで、Linkingデバイスを操作するためには、Linkingアプリで以下の設定を行う必要があります。</string>
     <string name="activity_linking_induction_text1">Linkingアプリを起動し、アプリの指示に従い対応デバイスと端末を接続してください。</string>
     <string name="activity_linking_induction_text2">Device Connectで利用したいLinkingデバイスの設定画面にて、Linking(Device Connect Device Plug-in)の通知設定をONにしてください。</string>
@@ -67,19 +74,36 @@
 
     <string name="activity_device_title">Linkingデバイス確認</string>
     <string name="activity_device_name">Linkingデバイス名 : </string>
-    <string name="activity_device_light_off_pattern">LED Off Pattern</string>
-    <string name="activity_device_light_off_description">LEDがOFFになるパターンを指定してください。</string>
-    <string name="activity_device_vibration_off_pattern">Vibration Off Pattern</string>
-    <string name="activity_device_vibration_off_description">バイブレーションがOFFになるパターンを指定してください。</string>
+    <string name="activity_device_setting">設定</string>
+    <string name="activity_device_operation_check">動作確認</string>
+    <string name="activity_device_light_setting">LED設定</string>
+    <string name="activity_device_light_on_setting">点灯設定</string>
+    <string name="activity_device_light_on_description">点灯時の色とパターンを選択してください。</string>
+    <string name="activity_device_light_off_setting">消灯設定</string>
+    <string name="activity_device_light_off_description">消灯時のパターンを選択してください。</string>
+    <string name="activity_device_vibration_setting">Vibration設定</string>
+    <string name="activity_device_vibration_on_pattern">振動設定</string>
+    <string name="activity_device_vibration_on_description">バイブレーションが振動するパターンを設定してください。</string>
+    <string name="activity_device_vibration_off_pattern">停止設定</string>
+    <string name="activity_device_vibration_off_description">バイブレーションが停止するパターンを設定してください。</string>
     <string name="activity_device_not_selected">未選択</string>
     <string name="activity_device_led">LED</string>
-    <string name="activity_device_on">ON</string>
-    <string name="activity_device_off">OFF</string>
+    <string name="activity_device_led_on">点灯</string>
+    <string name="activity_device_led_off">消灯</string>
+    <string name="activity_device_vibration_on">振動</string>
+    <string name="activity_device_vibration_off">停止</string>
     <string name="activity_device_vibration">バイブレーション</string>
     <string name="activity_device_sensor">センサー</string>
     <string name="activity_device_gyro">ジャイロ</string>
     <string name="activity_device_acceleration">加速度</string>
     <string name="activity_device_orientation">方位</string>
+    <string name="activity_device_battery">バッテリー</string>
+    <string name="activity_device_battery_level">残量</string>
+    <string name="activity_device_temperature">気温</string>
+    <string name="activity_device_temperature_value">温度</string>
+    <string name="activity_device_temperature_value_default">-</string>
+    <string name="activity_device_humidity">湿度</string>
+    <string name="activity_device_humidity_value">湿度</string>
     <string name="activity_device_button_id">ボタンID</string>
     <string name="activity_device_register_sensor">登録</string>
     <string name="activity_device_unregister_sensor">解除</string>
@@ -89,11 +113,18 @@
     <string name="activity_device_proximity_near">やや近く</string>
     <string name="activity_device_proximity_far">遠く</string>
     <string name="activity_device_proximity_unknown">不明</string>
+    <string name="activity_device_color_list">カラーリスト</string>
     <string name="activity_device_pattern_list">パターンリスト</string>
     <string name="activity_device_not_support_led">このデバイスはLEDをサポートしていません。</string>
     <string name="activity_device_not_support_vibration">このデバイスはバイブレーションをサポートしていません。</string>
     <string name="activity_device_not_support_sensor">このデバイスはセンサーをサポートしていません。</string>
+    <string name="activity_device_not_support_battery">このデバイスはバッテリーをサポートしていません。</string>
+    <string name="activity_device_not_support_temperature">このデバイスは気温センサーをサポートしていません。</string>
+    <string name="activity_device_not_support_humidity">このデバイスは湿度センサーをサポートしていません。</string>
+    <string name="activity_device_not_support_button">このデバイスはボタンをサポートしていません。</string>
     <string name="activity_device_sensor_value">x:%1$f\ny:%2$f\nz:%3$f\ntime:%4$d</string>
+    <string name="activity_device_unit_c">%1$.2f℃</string>
+    <string name="activity_device_unit_percent">%1$.2f%%</string>
 
     <string name="activity_beacon_title">Linkingビーコン確認</string>
     <string name="activity_beacon_vendor_id">VendorID</string>

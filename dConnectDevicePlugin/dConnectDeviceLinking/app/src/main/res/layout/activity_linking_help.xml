@@ -13,7 +13,7 @@
         android:layout_alignParentBottom="true"
         android:layout_centerInParent="true"
         android:layout_margin="12dp"
-        android:background="@drawable/button_blue"
+        android:background="@drawable/linking_button_blue"
         android:text="@string/fragment_help_linking_app"
         android:textColor="#FFF"
         android:textSize="18sp"/>
@@ -31,7 +31,7 @@
         android:layout_alignParentRight="true"
         android:layout_centerInParent="true"
         android:layout_margin="8dp"
-        android:background="@drawable/button_circle"
+        android:background="@drawable/linking_button_circle"
         android:text="＞"
         android:textColor="#FFF"
         android:textSize="32sp"/>
@@ -43,7 +43,7 @@
         android:layout_alignParentLeft="true"
         android:layout_centerInParent="true"
         android:layout_margin="8dp"
-        android:background="@drawable/button_circle"
+        android:background="@drawable/linking_button_circle"
         android:text="＜"
         android:textColor="#FFF"
         android:textSize="32sp"/>

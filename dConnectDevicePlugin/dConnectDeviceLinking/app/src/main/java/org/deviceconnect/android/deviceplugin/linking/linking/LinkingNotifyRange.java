@@ -15,14 +15,15 @@ import com.nttdocomo.android.sdaiflib.NotifyRange;
 
 import org.deviceconnect.android.deviceplugin.linking.BuildConfig;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 class LinkingNotifyRange {
     private static final String TAG = "LinkingPlugIn";
 
-    private final List<LinkingDeviceManager.OnRangeListener> mOnRangeListeners = new CopyOnWriteArrayList<>();
-    private final List<LinkingDevice> mRangeDeviceHolders = new CopyOnWriteArrayList<>();
+    private final Map<LinkingDevice, List<LinkingDeviceManager.OnRangeListener>> mMap = new HashMap<>();
 
     private NotifyRange mNotifyRange;
     private Context mContext;
@@ -31,45 +32,44 @@ class LinkingNotifyRange {
         mContext = context;
     }
 
-    public synchronized void add(final LinkingDevice device) {
-        if (mRangeDeviceHolders.contains(device)) {
+    public synchronized void enableListenRange(final LinkingDevice device, final LinkingDeviceManager.OnRangeListener listener) {
+        List<LinkingDeviceManager.OnRangeListener> listeners = mMap.get(device);
+        if (listeners == null) {
+            listeners = new CopyOnWriteArrayList<>();
+            mMap.put(device, listeners);
+        } else if (listeners.contains(listener)) {
             return;
         }
-        mRangeDeviceHolders.add(device);
-        start();
+        listeners.add(listener);
+
+        startNotifyRange();
     }
 
-    public synchronized void remove(final LinkingDevice device) {
-        mRangeDeviceHolders.remove(device);
+    public synchronized void disableListenRange(final LinkingDevice device, final LinkingDeviceManager.OnRangeListener listener) {
+        List<LinkingDeviceManager.OnRangeListener> listeners = mMap.get(device);
+        if (listeners != null) {
+            if (listener == null) {
+                mMap.remove(device);
+            } else {
+                listeners.remove(listener);
+                if (listeners.isEmpty()) {
+                    mMap.remove(device);
+                }
+            }
+        }
 
-        if (mRangeDeviceHolders.isEmpty()) {
-            release();
+        if (mMap.isEmpty()) {
+            stopNotifyRange();
         }
     }
 
     public synchronized void release() {
-        mOnRangeListeners.clear();
-        mRangeDeviceHolders.clear();
-
-        if (mNotifyRange != null) {
-            if (BuildConfig.DEBUG) {
-                Log.d(TAG, "Stop a range event.");
-            }
-            mNotifyRange.release();
-            mNotifyRange = null;
-        }
+        mMap.clear();
+        stopNotifyRange();
     }
 
-    public void addListener(final LinkingDeviceManager.OnRangeListener listener) {
-        mOnRangeListeners.add(listener);
-    }
-
-    public void removeListener(final LinkingDeviceManager.OnRangeListener listener) {
-        mOnRangeListeners.remove(listener);
-    }
-
-    private LinkingDevice findDeviceFromRangeHolders(final String address) {
-        for (LinkingDevice device : mRangeDeviceHolders) {
+    private synchronized LinkingDevice findDeviceFromRangeHolders(final String address) {
+        for (LinkingDevice device : mMap.keySet()) {
             if (device.getBdAddress().equals(address)) {
                 return device;
             }
@@ -77,17 +77,25 @@ class LinkingNotifyRange {
         return null;
     }
 
-    private void start() {
+    private void startNotifyRange() {
         if (mNotifyRange != null) {
             if (BuildConfig.DEBUG) {
                 Log.w(TAG, "mNotifyRange is already running.");
             }
             return;
         }
+
+        if (BuildConfig.DEBUG) {
+            Log.d(TAG, "startNotifyRange");
+        }
+
         mNotifyRange = new NotifyRange(mContext, new NotifyRange.RangeInterface() {
             @Override
             public void onRangeChange() {
-                if (mRangeDeviceHolders.isEmpty()) {
+                if (mMap.isEmpty()) {
+                    if (BuildConfig.DEBUG) {
+                        Log.w(TAG, "mMap is empty.");
+                    }
                     return;
                 }
 
@@ -97,18 +105,31 @@ class LinkingNotifyRange {
                 int rangeSetting = preference.getInt(LinkingUtil.RANGE_SETTING, -1);
                 LinkingDevice device = findDeviceFromRangeHolders(bdAddress);
                 if (device != null) {
+                    if (BuildConfig.DEBUG) {
+                        Log.d(TAG, "NotifyRange: [" + device.getDisplayName() + "] " + range);
+                    }
                     notifyOnChangeRange(device, LinkingDeviceManager.Range.valueOf(rangeSetting, range));
                 } else {
                     if (BuildConfig.DEBUG) {
-                        Log.w(TAG, "Not found a device.");
+                        Log.w(TAG, "Not found a device. bdAddress=" + bdAddress);
                     }
                 }
             }
         });
     }
 
-    private void notifyOnChangeRange(final LinkingDevice device, final LinkingDeviceManager.Range range) {
-        for (LinkingDeviceManager.OnRangeListener listener : mOnRangeListeners) {
+    private void stopNotifyRange() {
+        if (mNotifyRange != null) {
+            if (BuildConfig.DEBUG) {
+                Log.d(TAG, "Stop a range event.");
+            }
+            mNotifyRange.release();
+            mNotifyRange = null;
+        }
+    }
+
+    private synchronized void notifyOnChangeRange(final LinkingDevice device, final LinkingDeviceManager.Range range) {
+        for (LinkingDeviceManager.OnRangeListener listener : mMap.get(device)) {
             listener.onChangeRange(device, range);
         }
     }

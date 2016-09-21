@@ -8,6 +8,7 @@ package org.deviceconnect.android.deviceplugin.linking.linking;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.util.Log;
@@ -18,6 +19,8 @@ public final class LinkingUtil {
 
     private static final String TAG = "LinkingPlugin";
 
+    public static final int LINKING_APP_VERSION = 20152;
+
     public static final String EXTRA_APP_NAME = ".sda.extra.APP_NAME";
     public static final String EXTRA_DEVICE_ID = ".sda.extra.DEVICE_ID";
     public static final String EXTRA_DEVICE_UID = ".sda.extra.DEVICE_UID";
@@ -26,6 +29,7 @@ public final class LinkingUtil {
     public static final String ACTION_SENSOR_DATA = "com.nttdocomo.android.smartdeviceagent.action.SENSOR_DATA";
     public static final String ACTION_SENSOR_STOP = "com.nttdocomo.android.smartdeviceagent.action.STOP_SENSOR";
     public static final String ACTION_START_SENSOR = "com.nttdocomo.android.smartdeviceagent.action.START_SENSOR";
+    public static final String ACTION_START_SENSOR_RESULT = "com.nttdocomo.android.smartdeviceagent.action.START_SENSOR_RESULT";
 
     public static final Uri URI_DEVICES = Uri.parse("content://com.nttdocomo.android.smartdeviceagent/devices");
 
@@ -87,6 +91,50 @@ public final class LinkingUtil {
     private LinkingUtil() {
     }
 
+    public static IlluminationData.Setting getDefaultColorSettingOfLight(final LinkingDevice device) {
+        byte[] illumination = device.getIllumination();
+        if (illumination == null) {
+            return null;
+        }
+
+        try {
+            IlluminationData data = new IlluminationData(illumination);
+            for (IlluminationData.Setting setting : data.getColor().getChildren()) {
+                if (!setting.getName(0).getName().toLowerCase().contains("off")) {
+                    return setting;
+                }
+            }
+            return null;
+        } catch (Exception e) {
+            if (BuildConfig.DEBUG) {
+                Log.w(TAG, "", e);
+            }
+            return null;
+        }
+    }
+
+    public static IlluminationData.Setting getDefaultPatternSettingOfLight(final LinkingDevice device) {
+        byte[] illumination = device.getIllumination();
+        if (illumination == null) {
+            return null;
+        }
+
+        try {
+            IlluminationData data = new IlluminationData(illumination);
+            for (IlluminationData.Setting setting : data.getPattern().getChildren()) {
+                if (!setting.getName(0).getName().toLowerCase().contains("off")) {
+                    return setting;
+                }
+            }
+            return null;
+        } catch (Exception e) {
+            if (BuildConfig.DEBUG) {
+                Log.w(TAG, "", e);
+            }
+            return null;
+        }
+    }
+
     public static IlluminationData.Setting getDefaultOffSettingOfLight(final LinkingDevice device) {
         byte[] illumination = device.getIllumination();
         if (illumination == null) {
@@ -115,6 +163,28 @@ public final class LinkingUtil {
             return (int) setting.getId();
         }
         return null;
+    }
+
+    public static VibrationData.Setting getDefaultOnSettingOfVibration(final LinkingDevice device) {
+        byte[] vibration = device.getVibration();
+        if (vibration == null) {
+            return null;
+        }
+
+        try {
+            VibrationData data = new VibrationData(vibration);
+            for (VibrationData.Setting setting : data.getPattern().getChildren()) {
+                if (!setting.getName(0).getName().toLowerCase().contains("off")) {
+                    return setting;
+                }
+            }
+            return null;
+        } catch (Exception e) {
+            if (BuildConfig.DEBUG) {
+                Log.w(TAG, "", e);
+            }
+            return null;
+        }
     }
 
     public static VibrationData.Setting getDefaultOffSettingOfVibration(final LinkingDevice device) {
@@ -169,12 +239,24 @@ public final class LinkingUtil {
         return false;
     }
 
-    public static short byteToShort(final byte[] buf) {
-        return (short) ((buf[1] << 8) | buf[0]);
+    public static int getVersionCode(final Context context) {
+        PackageManager pm = context.getPackageManager();
+        int versionCode = 0;
+        try{
+            PackageInfo packageInfo = pm.getPackageInfo(PACKAGE_NAME, 0);
+            versionCode = packageInfo.versionCode;
+        }catch(PackageManager.NameNotFoundException e){
+            e.printStackTrace();
+        }
+        return versionCode;
+    }
+
+    public static int byteToShort(final byte[] buf) {
+        return (((buf[1] << 8) & 0xFF00) | (buf[0] & 0xff));
     }
 
     public static int byteToInt(final byte[] buf) {
-        return (buf[3] << 24) | (buf[2] << 16) | (buf[1] << 8) | buf[0];
+        return ((buf[3] << 24) & 0xFF000000) | ((buf[2] << 16) & 0xFF0000) | ((buf[1] << 8) & 0xFF00) | (buf[0] & 0xFF);
     }
 
     public static int floatToIntIEEE754(final float value, final int fraction, final int exponent, final boolean sign) {

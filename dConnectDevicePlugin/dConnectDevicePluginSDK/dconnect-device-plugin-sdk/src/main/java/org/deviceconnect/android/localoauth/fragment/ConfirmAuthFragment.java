@@ -68,14 +68,23 @@ public class ConfirmAuthFragment extends Fragment {
     @Override
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
             final Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.confirm_auth_activity, container, false);
-
         /* Intentから値取得 */
         Intent intent = getActivity().getIntent();
         mThreadId = intent.getLongExtra(ConfirmAuthActivity.EXTRA_THREADID, -1);
         String applicationName = intent.getStringExtra(ConfirmAuthActivity.EXTRA_APPLICATIONNAME);
+        String packageName = intent.getStringExtra(ConfirmAuthActivity.EXTRA_PACKAGE_NAME);
+        String keyword = intent.getStringExtra(ConfirmAuthActivity.EXTRA_KEYWORD);
         String[] displayScopes = intent.getStringArrayExtra(ConfirmAuthActivity.EXTRA_DISPLAY_SCOPES);
         String expirePeriod = toStringExpiredPeriod();
+        boolean isForPlugin = intent.getBooleanExtra(ConfirmAuthActivity.EXTRA_IS_FOR_DEVICEPLUGIN, true);
+
+        int layoutId;
+        if (isForPlugin) {
+            layoutId = R.layout.confirm_auth_activity_plugin;
+        } else {
+            layoutId = R.layout.confirm_auth_activity_manager;
+        }
+        View view = inflater.inflate(layoutId, container, false);
 
         // 有効期限
         TextView textViewExpirePeriod = (TextView) view.findViewById(R.id.textViewExpirePeriod);
@@ -98,6 +107,16 @@ public class ConfirmAuthFragment extends Fragment {
         // 拒否ボタン
         Button buttonReject = (Button) view.findViewById(R.id.buttonReject);
         buttonReject.setOnClickListener(mOnButtonApprovalClickListener);
+
+        if (!isForPlugin) {
+            // アプリのアクセス先(=マネージャ)のパッケージ名
+            TextView textViewPackageName = (TextView) view.findViewById(R.id.textPackageName);
+            textViewPackageName.setText(packageName);
+
+            // キーワード
+            TextView textViewKeyword = (TextView) view.findViewById(R.id.textKeyword);
+            textViewKeyword.setText(keyword);
+        }
 
         /* 受信用メッセンジャー設定 */
         mSelfMessenger = new Messenger(new Handler() {
@@ -289,4 +308,5 @@ public class ConfirmAuthFragment extends Fragment {
             mAutoClickTimer = null;
         }
     }
+
 }

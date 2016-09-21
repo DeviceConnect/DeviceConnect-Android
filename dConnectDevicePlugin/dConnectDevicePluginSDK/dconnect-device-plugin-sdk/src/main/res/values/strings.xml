@@ -32,6 +32,10 @@
     <string name="display_scope_system">system</string>
     <string name="display_scope_vibration">vibration</string>
 
+    <string name="column_application_name">App Name</string>
+    <string name="column_destination_package_name">Destination</string>
+    <string name="column_keyword">Keyword</string>
+    <string name="column_border">:</string>
     <string name="guidance_comfirm">This app must have access authority following</string>
     <string name="access_authority">Access authority</string>
     <string name="delete">Delete</string>

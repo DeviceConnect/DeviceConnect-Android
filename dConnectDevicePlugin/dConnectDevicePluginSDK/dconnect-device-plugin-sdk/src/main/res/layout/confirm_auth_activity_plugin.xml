@@ -30,6 +30,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_alignParentTop="true"
+            android:orientation="horizontal"
             android:padding="8dp" >
 
             <ImageView
@@ -40,26 +41,26 @@
                 android:contentDescription="@string/image_description"
                 android:src="@android:drawable/ic_menu_share" />
 
-            <LinearLayout
+            <TextView
+                android:id="@+id/textViewAccessToken"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical" >
-
-                <TextView
-                    android:id="@+id/textViewAccessToken"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textAppearance="?android:attr/textAppearanceMedium"
-                    android:textColor="@color/text_color" />
-
-                <TextView
-                    android:id="@+id/textViewGuidance"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/guidance_comfirm"
-                    android:textColor="@android:color/darker_gray" />
-            </LinearLayout>
+                android:layout_gravity="top"
+                android:padding="2sp"
+                android:ellipsize="middle"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:textColor="@color/text_color"/>
         </LinearLayout>
+
+        <TextView
+            android:id="@+id/textViewGuidance"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/topApplicationInfo"
+            android:paddingLeft="16dp"
+            android:paddingRight="16dp"
+            android:text="@string/guidance_comfirm"
+            android:textColor="@android:color/darker_gray" />
 
         <LinearLayout
             android:id="@+id/bottomButton"
@@ -97,7 +98,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_above="@id/bottomButton"
-            android:layout_below="@id/topApplicationInfo"
+            android:layout_below="@id/textViewGuidance"
             android:layout_margin="@dimen/confirm_auth_inner_margin"
             android:divider="@null" >
         </ListView>

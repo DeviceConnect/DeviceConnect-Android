@@ -10,29 +10,73 @@ import org.deviceconnect.android.deviceplugin.linking.util.ByteUtil;
 
 public class IlluminationData {
 
-    byte[] source;
-    byte[] header = new byte[4];//ヘッダ。固定値(0xB4,0x04,0x00,0x00)
+    private static final byte[] HEADER = {
+            (byte) 0xB1, (byte) 0x04, (byte) 0x00, (byte) 0x00
+    };
 
-    byte ledId;//LED項目ID。固定値(0x10)
-    int ledChildCount;//LED子項目数。固定値(0x02)
-    byte ledDefaultSettingId;//LEDデフォルト設定ID。子項目の中でのデフォルト設定IDを示す。
-    int ledNameLangCount;//項目名言語数。"1"固定。
-    Name[] ledNames;
-    public Setting mPattern;
-    Setting mColor;
+    private byte[] mSource;
+    private byte[] mHeader = new byte[4];//ヘッダ。固定値(0xB1,0x04,0x00,0x00)
+
+    private byte mLedId;//LED項目ID。固定値(0x10)
+    private int mLedChildCount;//LED子項目数。固定値(0x02)
+    private byte mLedDefaultSettingId;//LEDデフォルト設定ID。子項目の中でのデフォルト設定IDを示す。
+    private int mLedNameLangCount;//項目名言語数。"1"固定。
+    private Name[] mLedNames;
+    private Setting mColor;
+    private Setting mPattern;
+
+    public Setting getColor() {
+        return mColor;
+    }
+
+    public Setting getPattern() {
+        return mPattern;
+    }
 
     public class Setting {
-        public byte id;//ID
-        public int childCount;//子項目数
-        public byte defaultSettingId;//デフォルト設定ID
-        public int nameLangCount;//項目名言語数
-        public Name[] names;
-        public Setting[] children;
+        private byte mId;//ID
+        private int mChildCount;//子項目数
+        private byte mDefaultSettingId;//デフォルト設定ID
+        private int mNameLangCount;//項目名言語数
+        private Name[] mNames;
+        private Setting[] mChildren;
+
+        public byte getId() {
+            return mId;
+        }
+
+        public int getChildCount() {
+            return mChildCount;
+        }
+
+        public byte getDefaultSettingId() {
+            return mDefaultSettingId;
+        }
+
+        public int getNameLangCount() {
+            return mNameLangCount;
+        }
+
+        public Name getName(int index) {
+            return mNames[index];
+        }
+
+        public Name[] getNames() {
+            return mNames;
+        }
+
+        public Setting getChild(int index) {
+            return mChildren[index];
+        }
+
+        public Setting[] getChildren() {
+            return mChildren;
+        }
 
         @Override
         public String toString() {
-            return Setting.class.getSimpleName() + ":{id:" + ByteUtil.byteToHex(id) + ", childCount:" + childCount + ", defaultSettingId:" + ByteUtil.byteToHex(defaultSettingId) + "," +
-                    " nameLangCount:" + nameLangCount + ", names:" + toString(names) + ", children:" + toString(children) + "}";
+            return Setting.class.getSimpleName() + ":{mId:" + ByteUtil.byteToHex(mId) + ", mChildCount:" + mChildCount + ", mDefaultSettingId:" + ByteUtil.byteToHex(mDefaultSettingId) + "," +
+                    " mNameLangCount:" + mNameLangCount + ", mNames:" + toString(mNames) + ", mChildren:" + toString(mChildren) + "}";
         }
 
         private String toString(Object[] list) {
@@ -49,56 +93,83 @@ public class IlluminationData {
     }
 
     public class Name {
-        public String nameLang;//言語。"ja"固定。
-        public int size;//名前のサイズ。
-        public String name;//項目名(UTF-8)。
+        private String mNameLang;//言語。"ja"固定。
+        private int mSize;//名前のサイズ。
+        private String mName;//項目名(UTF-8)。
+
+        public String getNameLang() {
+            return mNameLang;
+        }
+
+        public int getSize() {
+            return mSize;
+        }
+
+        public String getName() {
+            return mName;
+        }
 
         @Override
         public String toString() {
-            return Name.class.getSimpleName() + ":{nameLang:" + nameLang + ", size:" + size + ", name:" + name + "}";
+            return Name.class.getSimpleName() + ":{mNameLang:" + mNameLang + ", mSize:" + mSize + ", mName:" + mName + "}";
         }
     }
 
-    public IlluminationData(byte[] illuminance) {
-        source = illuminance;
-        int index = 0;
-        header[0] = illuminance[index++];
-        header[1] = illuminance[index++];
-        header[2] = illuminance[index++];
-        header[3] = illuminance[index++];
-        ledId = illuminance[index++];
-        ledChildCount = illuminance[index++];
-        ledDefaultSettingId = illuminance[index++];
-        ledNameLangCount = illuminance[index++] & 0xFF;
+    public IlluminationData(final byte[] illuminance) {
+        mSource = illuminance;
 
-        ledNames = new Name[ledNameLangCount];
-        index = extractName(illuminance, index, ledNameLangCount, ledNames);
+        int index = 0;
+        mHeader[0] = illuminance[index++];
+        mHeader[1] = illuminance[index++];
+        mHeader[2] = illuminance[index++];
+        mHeader[3] = illuminance[index++];
+        for (int i = 0; i < HEADER.length; i++) {
+            if (mHeader[i] != HEADER[i]) {
+                throw new IllegalArgumentException("Header is invalid.");
+            }
+        }
+
+        mLedId = illuminance[index++];
+        if (mLedId != 0x10) {
+            throw new IllegalArgumentException("LED項目ID is invalid.");
+        }
+
+        mLedChildCount = illuminance[index++];
+        if (mLedChildCount != 0x02) {
+            throw new IllegalArgumentException("LED子項目数 is invalid.");
+        }
+
+        mLedDefaultSettingId = illuminance[index++];
+        mLedNameLangCount = illuminance[index++] & 0xFF;
+
+        mLedNames = new Name[mLedNameLangCount];
+        index = extractName(illuminance, index, mLedNameLangCount, mLedNames);
 
         Setting pattern = new Setting();
         index = makeSetting(pattern, illuminance, index, false);
-        this.mPattern = pattern;
+        mPattern = pattern;
 
         Setting color = new Setting();
         makeSetting(color, illuminance, index, false);
-        this.mColor = color;
+        mColor = color;
     }
 
     private int makeSetting(Setting setting, byte[] source, int offset, boolean isChild) {
-        setting.id = source[offset++];
-        setting.childCount = source[offset++] & 0xFF;
+        setting.mId = source[offset++];
+        setting.mChildCount = source[offset++] & 0xFF;
         if (!isChild) {
-            setting.defaultSettingId = source[offset++];
+            setting.mDefaultSettingId = source[offset++];
         }
-        setting.nameLangCount = source[offset++] & 0xFF;
-        setting.names = new Name[setting.nameLangCount];
-        offset = extractName(source, offset, setting.nameLangCount, setting.names);
+        setting.mNameLangCount = source[offset++] & 0xFF;
+        setting.mNames = new Name[setting.mNameLangCount];
+        offset = extractName(source, offset, setting.mNameLangCount, setting.mNames);
 
-        if (setting.childCount > 0) {
-            setting.children = new Setting[setting.childCount];
-            for (int i = 0; i < setting.childCount; i++) {
+        if (setting.mChildCount > 0) {
+            setting.mChildren = new Setting[setting.mChildCount];
+            for (int i = 0; i < setting.mChildCount; i++) {
                 Setting child = new Setting();
                 offset = makeSetting(child, source, offset, true);
-                setting.children[i] = child;
+                setting.mChildren[i] = child;
             }
         }
         return offset;
@@ -110,41 +181,41 @@ public class IlluminationData {
             byte[] tmp = new byte[2];
             tmp[0] = source[offset++];
             tmp[1] = source[offset++];
-            names[i].nameLang = ByteUtil.binaryToString(tmp);
+            names[i].mNameLang = ByteUtil.binaryToString(tmp);
             int size = source[offset++] & 0xFF;
-            names[i].size = size;
+            names[i].mSize = size;
             tmp = new byte[size];
             for (int j = 0; j < size; j++) {
                 tmp[j] = source[offset++];
             }
-            names[i].name = ByteUtil.binaryToString(tmp);
+            names[i].mName = ByteUtil.binaryToString(tmp);
         }
         return offset;
     }
 
     @Override
     public String toString() {
-        return new StringBuilder("{header: ")
-                .append(ByteUtil.binaryToHex(header))
-                .append(", ledId: ")
-                .append(ByteUtil.byteToHex(ledId))
-                .append(", ledChildCount: ")
-                .append(ledChildCount)
-                .append(", ledDefaultSettingId: ")
-                .append(ByteUtil.byteToHex(ledDefaultSettingId))
-                .append(", ledNameLangCount: ")
-                .append(ledNameLangCount)
-                .append(", ledNames: ")
-                .append(toString(ledNames))
-                .append(", pattern: ")
+        return new StringBuilder("{mHeader: ")
+                .append(ByteUtil.binaryToHex(mHeader))
+                .append(", mLedId: ")
+                .append(ByteUtil.byteToHex(mLedId))
+                .append(", mLedChildCount: ")
+                .append(mLedChildCount)
+                .append(", mLedDefaultSettingId: ")
+                .append(ByteUtil.byteToHex(mLedDefaultSettingId))
+                .append(", mLedNameLangCount: ")
+                .append(mLedNameLangCount)
+                .append(", mLedNames: ")
+                .append(toString(mLedNames))
+                .append(", mPattern: ")
                 .append(mPattern.toString())
-                .append(", color: ")
+                .append(", mColor: ")
                 .append(mColor.toString())
                 .append("}")
                 .toString();
     }
 
-    private String toString(Object[] list) {
+    private String toString(final Object[] list) {
         if (list == null) {
             return "";
         }

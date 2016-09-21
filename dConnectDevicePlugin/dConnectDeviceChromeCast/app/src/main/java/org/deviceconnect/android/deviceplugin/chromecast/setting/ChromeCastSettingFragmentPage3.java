@@ -6,9 +6,6 @@
  */
 package org.deviceconnect.android.deviceplugin.chromecast.setting;
 
-import org.deviceconnect.android.deviceplugin.chromecast.BuildConfig;
-import org.deviceconnect.android.deviceplugin.chromecast.R;
-
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -16,15 +13,17 @@ import android.content.pm.PackageManager.NameNotFoundException;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
-import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.View.OnClickListener;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout.LayoutParams;
+
+import org.deviceconnect.android.deviceplugin.chromecast.BuildConfig;
+import org.deviceconnect.android.deviceplugin.chromecast.R;
 
 /**
  * チュートリアル画面.
@@ -42,7 +41,8 @@ public class ChromeCastSettingFragmentPage3 extends Fragment {
     private int mBadgeWidth = 0;
     /** バッジの縦サイズ. */
     private int mBadgeHeight = 0;
-    
+
+
     /**
      * Chromecast App (Google) のインストール状態を調べる.
      * 
@@ -89,7 +89,6 @@ public class ChromeCastSettingFragmentPage3 extends Fragment {
     public View onCreateView(final LayoutInflater inflater,
             final ViewGroup container, final Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.chromecast_settings_step_3, container, false);
-
         Button button = (Button) rootView.findViewById(R.id.buttonChromecastSettingApp);
         button.setOnClickListener(new OnClickListener() {
             @Override
@@ -108,17 +107,8 @@ public class ChromeCastSettingFragmentPage3 extends Fragment {
         mBadgeWidth = image.getWidth();
         mBadgeHeight = image.getHeight();
         image.recycle();
-        
-        button = (Button) rootView.findViewById(R.id.buttonChromecastSettingWifiRestart);
-        button.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(final View v) {
-                WifiManager wifi = (WifiManager) getActivity().getSystemService(Context.WIFI_SERVICE);
-                wifi.setWifiEnabled(false);
-                wifi.setWifiEnabled(true);
-            }
-        });
 
         return rootView;
     }
+
 }

@@ -87,7 +87,7 @@ public final class DBCacheController extends BaseCacheController {
         if (db == null) {
             return EventError.FAILED;
         }
-        
+
         do {
             db.beginTransaction();
             long pId = ProfileDao.insert(db, event.getProfile());
@@ -284,15 +284,54 @@ public final class DBCacheController extends BaseCacheController {
     }
 
     @Override
+    public List<Event> getEvents(final String origin) {
+
+        if (origin == null) {
+            throw new IllegalArgumentException("origin key is null.");
+        }
+
+        List<Event> result = new ArrayList<Event>();
+        SQLiteDatabase db;
+        do {
+            db = openDB();
+            if (db == null) {
+                break;
+            }
+            Client[] clients = ClientDao.getByOrigin(db, origin);
+            if (clients == null) {
+                break;
+            }
+
+            for (Client client : clients) {
+                List<Event> events = EventSessionDao.getEventsByCid(db, client.mId);
+                for (Event event : events) {
+                    event.setOrigin(client.mOrigin);
+                    event.setAccessToken(client.mAccessToken);
+                    event.setReceiverName(client.mReceiver);
+                    event.setCreateDate(client.mESCreateDate);
+                    event.setUpdateDate(client.mESUpdateDate);
+                    result.add(event);
+                }
+            }
+        } while (false);
+
+        if (db != null) {
+            db.close();
+        }
+
+        return result;
+    }
+
+    @Override
     public void flush() {
         // do-nothing.
     }
 
     @Override
-    public synchronized boolean removeEvents(final String sessionKey) {
+    public synchronized boolean removeEvents(final String origin) {
         
-        if (sessionKey == null) {
-            throw new IllegalArgumentException("Session key is null.");
+        if (origin == null) {
+            throw new IllegalArgumentException("origin key is null.");
         }
         
         boolean result = false;
@@ -303,7 +342,7 @@ public final class DBCacheController extends BaseCacheController {
                 break;
             }
             db.beginTransaction();
-            Client[] clients = ClientDao.getBySessionKey(db, sessionKey);
+            Client[] clients = ClientDao.getByOrigin(db, origin);
             if (clients == null) {
                 break;
             } else if (clients.length == 0) {

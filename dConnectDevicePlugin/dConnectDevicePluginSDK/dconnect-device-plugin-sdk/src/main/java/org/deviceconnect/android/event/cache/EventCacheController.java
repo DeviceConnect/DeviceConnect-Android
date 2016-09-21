@@ -74,7 +74,9 @@ public interface EventCacheController {
      * @return イベントデータの一覧。無い場合は空のリストを返す。
      */
     List<Event> getEvents(String serviceId, String profile, String inter, String attribute);
-    
+
+    List<Event> getEvents(String sessionKey);
+
     /**
      * キャッシュデータをフラッシュする.
      */

@@ -8,28 +8,28 @@ package org.deviceconnect.android.deviceplugin.linking.linking;
 
 public class LinkingNotification {
 
-    private String title;
-    private String detail;
+    private String mTitle;
+    private String mDetail;
 
     public LinkingNotification(String title, String detail) {
-        this.title = title;
-        this.detail = detail;
+        mTitle = title;
+        mDetail = detail;
     }
 
     public String getTitle() {
-        return title;
+        return mTitle;
     }
 
-    public void setTitle(String title) {
-        this.title = title;
+    public void setTitle(final String title) {
+        mTitle = title;
     }
 
     public String getDetail() {
-        return detail;
+        return mDetail;
     }
 
     public void setDetail(String detail) {
-        this.detail = detail;
+        mDetail = detail;
     }
 
 }

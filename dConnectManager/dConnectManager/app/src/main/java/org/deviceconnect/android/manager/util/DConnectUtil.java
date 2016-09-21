@@ -34,12 +34,21 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Random;
+import java.util.UUID;
 
 /**
  * ユーティリティクラス.
  * @author NTT DOCOMO, INC.
  */
 public final class DConnectUtil {
+    /** 乱数の最大値. */
+    private static final int MAX_NUM = 10000;
+    /** キーワードの桁数を定義. */
+    private static final int DIGIT = 4;
+    /** 10進数の定義. */
+    private static final int DECIMAL = 10;
+
     /**
      * Defined the permission.
      */
@@ -53,6 +62,39 @@ public final class DConnectUtil {
      * ユーティリティクラスなので、privateとしておく。
      */
     private DConnectUtil() {
+    }
+
+    /**
+     * キーワードを作成する.
+     *
+     * @return キーワード
+     */
+    public static String createKeyword() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("DCONNECT-");
+        int rand = Math.abs(new Random().nextInt() % MAX_NUM);
+        for (int i = 0; i < DIGIT; i++) {
+            int r = rand % DECIMAL;
+            builder.append(r);
+            rand /= DECIMAL;
+        }
+        return builder.toString();
+    }
+
+    public static String createName() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("Manager-");
+        int rand = Math.abs(new Random().nextInt() % MAX_NUM);
+        for (int i = 0; i < DIGIT; i++) {
+            int r = rand % DECIMAL;
+            builder.append(r);
+            rand /= DECIMAL;
+        }
+        return builder.toString();
+    }
+
+    public static String createUuid() {
+        return UUID.randomUUID().toString();
     }
 
     /**

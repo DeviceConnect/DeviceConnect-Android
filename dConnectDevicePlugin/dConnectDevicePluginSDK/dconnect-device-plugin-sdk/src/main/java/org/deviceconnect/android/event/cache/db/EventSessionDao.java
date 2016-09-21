@@ -16,6 +16,8 @@ import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.cache.Utils;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * EventSessionテーブル用DAOクラス.
@@ -273,7 +275,84 @@ final class EventSessionDao implements EventSessionSchema {
         
         return result;
     }
-    
+
+    static List<Event> getEventsByCid(final SQLiteDatabase db, final long cid) {
+
+        List<Event> result = new ArrayList<>();
+        StringBuilder sb = new StringBuilder();
+        String join = " INNER JOIN ";
+        String prepared = " = ? ";
+
+        sb.append("SELECT ");
+        sb.append("a.");
+        sb.append(AttributeSchema.NAME);
+        sb.append(", i.");
+        sb.append(InterfaceSchema.NAME);
+        sb.append(", p.");
+        sb.append(ProfileSchema.NAME);
+        sb.append(", d.");
+        sb.append(DeviceSchema.SERVICE_ID);
+        sb.append(" FROM ");
+        sb.append(ProfileSchema.TABLE_NAME);
+        sb.append(" as p");
+        sb.append(join);
+        sb.append(InterfaceSchema.TABLE_NAME);
+        sb.append(" as i ON p.");
+        sb.append(ProfileSchema._ID);
+        sb.append(" = i.");
+        sb.append(InterfaceSchema.P_ID);
+        sb.append(join);
+        sb.append(AttributeSchema.TABLE_NAME);
+        sb.append(" as a ON i.");
+        sb.append(InterfaceSchema._ID);
+        sb.append(" = a.");
+        sb.append(AttributeSchema.I_ID);
+        sb.append(join);
+        sb.append(EventDeviceSchema.TABLE_NAME);
+        sb.append(" as ed ON a.");
+        sb.append(AttributeSchema._ID);
+        sb.append(" = ed.");
+        sb.append(EventDeviceSchema.A_ID);
+        sb.append(join);
+        sb.append(DeviceSchema.TABLE_NAME);
+        sb.append(" as d ON ed.");
+        sb.append(EventDeviceSchema.D_ID);
+        sb.append(" = d.");
+        sb.append(DeviceSchema._ID);
+        sb.append(join);
+        sb.append(EventSessionSchema.TABLE_NAME);
+        sb.append(" as es ON es.");
+        sb.append(EventSessionSchema.ED_ID);
+        sb.append(" = ed.");
+        sb.append(EventDeviceSchema._ID);
+        sb.append(join);
+        sb.append(ClientSchema.TABLE_NAME);
+        sb.append(" as c ON es.");
+        sb.append(EventSessionSchema.C_ID);
+        sb.append(" = c.");
+        sb.append(ClientSchema._ID);
+        sb.append(" WHERE es.");
+        sb.append(EventSessionSchema.C_ID);
+        sb.append(prepared);
+
+        String[] params = { "" + cid };
+        Cursor c = db.rawQuery(sb.toString(), params);
+
+        if (c.moveToFirst()) {
+            do {
+                Event event = new Event();
+                event.setAttribute(c.getString(0));
+                event.setInterface(c.getString(1));
+                event.setProfile(c.getString(2));
+                event.setServiceId(c.getString(3));
+                result.add(event);
+            } while (c.moveToNext());
+        }
+
+        c.close();
+        return result;
+    }
+
     /**
      * 文字列がnullの場合空文字を返す.
      * 

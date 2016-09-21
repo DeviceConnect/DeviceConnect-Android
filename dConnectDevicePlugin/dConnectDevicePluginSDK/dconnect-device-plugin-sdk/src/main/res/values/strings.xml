@@ -4,9 +4,9 @@
 
     <string name="password">Password</string>
 
-    <string name="ok">OK</string>
+    <string name="activity_linking_ok">OK</string>
 
-    <string name="cancel">Cancel</string>
+    <string name="activity_linking_cancel">Cancel</string>
 
     <string name="approval">ACCEPT</string>
 

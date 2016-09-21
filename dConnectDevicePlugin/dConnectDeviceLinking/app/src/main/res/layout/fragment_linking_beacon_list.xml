@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#fff"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/fragment_beacon_warning"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#eee"
+        android:padding="8dp"
+        android:text="@string/fragment_beacon_list_warning"
+        android:textColor="#000"/>
+
+    <LinearLayout
+        android:id="@+id/fragment_beacon_scan"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerInParent="true"
+        android:layout_gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <Switch
+            android:id="@+id/fragment_beacon_scan_switch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_margin="12dp"
+            android:singleLine="true"
+            android:text="@string/fragment_beacon_list_scan_title"
+            android:textColor="#000"
+            android:textOff="@string/fragment_beacon_list_scan_stop"
+            android:textOn="@string/fragment_beacon_list_scan_start"
+            android:textSize="18sp"/>
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1px"
+        android:layout_above="@id/fragment_beacon_scan"
+        android:background="#888"/>
+
+    <ListView
+        android:id="@+id/fragment_beacon_list_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@id/fragment_beacon_scan"
+        android:layout_below="@id/fragment_beacon_warning"
+        android:divider="@drawable/linking_listview_divider"
+        android:dividerHeight="1sp"/>
+</RelativeLayout>

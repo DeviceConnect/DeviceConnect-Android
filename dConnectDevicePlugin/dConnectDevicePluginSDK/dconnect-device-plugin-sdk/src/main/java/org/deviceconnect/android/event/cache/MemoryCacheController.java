@@ -216,8 +216,23 @@ public class MemoryCacheController extends BaseCacheController {
         if (res == null) {
             return new ArrayList<>();
         }
-        
+
         return res;
+    }
+
+    @Override
+    public synchronized List<Event> getEvents(final String origin) {
+        List<Event> result = new ArrayList<>();
+        for (Entry<String, Map<String, List<Event>>> entry : mEventMap.entrySet()) {
+            for (Entry<String, List<Event>> events : entry.getValue().entrySet()) {
+                for (Event event : events.getValue()) {
+                    if (origin.equals(event.getOrigin())) {
+                        result.add(event);
+                    }
+                }
+            }
+        }
+        return result;
     }
 
     @Override

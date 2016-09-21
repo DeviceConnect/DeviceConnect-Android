@@ -118,14 +118,14 @@ final class ClientDao implements ClientSchema {
      * 指定したセッションキーをもつデータを取得する.
      * 
      * @param db データベース操作オブジェクト
-     * @param sessionKey セッションキー
+     * @param origin リクエスト元のオリジン
      * @return マッチする行データ。無い場合はnullを返す。
      */
-    static Client[] getBySessionKey(final SQLiteDatabase db, final String sessionKey) {
+    static Client[] getByOrigin(final SQLiteDatabase db, final String origin) {
 
         Client[] result = null;
         Cursor c = db.query(TABLE_NAME, new String[] {_ID, ORIGIN, ACCESS_TOKEN, RECEIVER}, ORIGIN + "=?",
-                new String[] {sessionKey}, null, null, null);
+                new String[] {origin}, null, null, null);
         
         if (c.moveToFirst()) {
             int index = 0;

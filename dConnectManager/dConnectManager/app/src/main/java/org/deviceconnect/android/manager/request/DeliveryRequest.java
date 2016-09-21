@@ -54,6 +54,9 @@ public class DeliveryRequest extends LocalOAuthRequest {
         Intent request = createRequestMessage(mRequest, mDevicePlugin);
         request.setComponent(mDevicePlugin.getComponentName());
         request.putExtra(IntentDConnectMessage.EXTRA_REQUEST_CODE, mRequestCode);
+        if (accessToken != null) {
+            request.putExtra(DConnectMessage.EXTRA_ACCESS_TOKEN, accessToken);
+        }
         mContext.sendBroadcast(request);
 
         if (mResponse == null) {

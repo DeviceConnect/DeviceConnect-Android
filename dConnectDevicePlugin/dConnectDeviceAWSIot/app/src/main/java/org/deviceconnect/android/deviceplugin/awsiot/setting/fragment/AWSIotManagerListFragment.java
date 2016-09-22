@@ -8,9 +8,11 @@
 package org.deviceconnect.android.deviceplugin.awsiot.setting.fragment;
 
 
+import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
@@ -60,6 +62,9 @@ public class AWSIotManagerListFragment extends Fragment {
 
     /** Instance of {@link RDCMListManager}. */
     private RDCMListManager mRDCMListManager;
+
+    /** Device Connect Manager enable flag. */
+    private boolean mMyManagerEnable = false;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -117,16 +122,24 @@ public class AWSIotManagerListFragment extends Fragment {
         boolean ret = true;
         switch (item.getItemId()) {
             case R.id.menu_awsiot_info:
-                AWSIotInformationFragment infoFragment = new AWSIotInformationFragment();
-                transaction.add(R.id.container, infoFragment);
-                transaction.addToBackStack("ManagerList");
-                transaction.commit();
+                if (mMyManagerEnable) {
+                    AWSIotInformationFragment infoFragment = new AWSIotInformationFragment();
+                    transaction.add(R.id.container, infoFragment);
+                    transaction.addToBackStack("ManagerList");
+                    transaction.commit();
+                } else {
+                    showManagerCheckDialog();
+                }
                 break;
             case R.id.menu_device_auth:
-                AWSIotDeviceAuthenticationFragment deviceAuthFragment = new AWSIotDeviceAuthenticationFragment();
-                transaction.add(R.id.container, deviceAuthFragment);
-                transaction.addToBackStack("ManagerList");
-                transaction.commit();
+                if (mMyManagerEnable) {
+                    AWSIotDeviceAuthenticationFragment deviceAuthFragment = new AWSIotDeviceAuthenticationFragment();
+                    transaction.add(R.id.container, deviceAuthFragment);
+                    transaction.addToBackStack("ManagerList");
+                    transaction.commit();
+                } else {
+                    showManagerCheckDialog();
+                }
                 break;
             case R.id.menu_logout:
                 logoutAWSIot();
@@ -238,6 +251,7 @@ public class AWSIotManagerListFragment extends Fragment {
                     JSONObject jsonObject = new JSONObject(response);
                     int result = jsonObject.getInt("result");
                     if (result == 0) {
+                        mMyManagerEnable = true;
                         AWSIotPrefUtil pref = ((AWSIotSettingActivity) getContext()).getPrefUtil();
                         String name = jsonObject.optString("name");
                         String uuid = jsonObject.optString("uuid");
@@ -254,7 +268,8 @@ public class AWSIotManagerListFragment extends Fragment {
                         pref.setManagerName(name);
                         pref.setManagerUuid(uuid);
                     } else {
-                        // TODO Managerが起動していない場合の処理
+                        mMyManagerEnable = false;
+                        showManagerCheckDialog();
                     }
                 } catch (JSONException e) {
                     Log.e(TAG, "", e);
@@ -287,5 +302,18 @@ public class AWSIotManagerListFragment extends Fragment {
             dismiss();
             super.onPause();
         }
+    }
+
+    private void showManagerCheckDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        builder.setTitle("確認")
+                .setMessage("Device Connect ManagerがOFFです。ONにしてください。")
+                .setPositiveButton("はい", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        // No Operation.
+                    }
+                });
+        builder.show();
     }
 }

@@ -20,7 +20,7 @@ public class EventSessionTable {
         List<EventSession> result = new ArrayList<>();
         synchronized (mEventSessions) {
             for (EventSession session : mEventSessions) {
-                if (plugin.getServiceId().equals(session.getPluginId())) {
+                if (plugin.getPluginId().equals(session.getPluginId())) {
                     result.add(session);
                 }
             }

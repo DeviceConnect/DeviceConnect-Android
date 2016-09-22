@@ -123,7 +123,7 @@ public class KeepAliveManager {
         if (!(mManagementList.isEmpty())) {
             for (int i = 0; i < mManagementList.size(); i++) {
                 KeepAlive data = mManagementList.get(i);
-                if (data.getServiceId().equals(plugin.getServiceId())) {
+                if (data.getServiceId().equals(plugin.getPluginId())) {
                     data.subtractionEventCounter();
                     if (data.getEventCounter() <= 0) {
                         sendKeepAlive(plugin, "STOP");
@@ -149,7 +149,7 @@ public class KeepAliveManager {
         if (!(mManagementList.isEmpty())) {
             /** 要素数分ループ. */
             for (KeepAlive data : mManagementList) {
-                if (data.getServiceId().equals(plugin.getServiceId())) {
+                if (data.getServiceId().equals(plugin.getPluginId())) {
                     return data;
                 }
             }
@@ -187,7 +187,7 @@ public class KeepAliveManager {
         request.setAction(IntentDConnectMessage.ACTION_KEEPALIVE);
         request.putExtra(IntentDConnectMessage.EXTRA_KEEPALIVE_STATUS, status);
         request.putExtra(IntentDConnectMessage.EXTRA_RECEIVER, new ComponentName(mContext, DConnectBroadcastReceiver.class));
-        request.putExtra(IntentDConnectMessage.EXTRA_SERVICE_ID, plugin.getServiceId());
+        request.putExtra(IntentDConnectMessage.EXTRA_SERVICE_ID, plugin.getPluginId());
         mContext.sendBroadcast(request);
     }
 

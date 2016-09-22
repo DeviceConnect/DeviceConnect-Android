@@ -59,7 +59,7 @@ public class WebSocketInfoManager {
     private void notifyDisconnectWebSocket(final String origin) {
         List<DevicePlugin> plugins = mDevicePluginManager.getDevicePlugins();
         for (DevicePlugin plugin : plugins) {
-            String serviceId = plugin.getServiceId();
+            String serviceId = plugin.getPluginId();
             Intent request = new Intent();
             request.setComponent(plugin.getComponentName());
             request.setAction(IntentDConnectMessage.ACTION_EVENT_TRANSMIT_DISCONNECT);

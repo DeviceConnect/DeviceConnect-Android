@@ -171,7 +171,7 @@ public class DevicePluginInfoFragment extends Fragment {
         List<DevicePlugin> plugins = app.getDevicePluginManager().getDevicePlugins();
         for (DevicePlugin plugin : plugins) {
             if (mPackageName.equals(plugin.getPackageName())
-                    && plugin.getServiceId() != null) {
+                    && plugin.getPluginId() != null) {
                 Intent request = new Intent();
                 request.setComponent(plugin.getComponentName());
                 request.setAction(IntentDConnectMessage.ACTION_PUT);
@@ -179,7 +179,7 @@ public class DevicePluginInfoFragment extends Fragment {
                 SystemProfile.setProfile(request, SystemProfile.PROFILE_NAME);
                 SystemProfile.setInterface(request, SystemProfile.INTERFACE_DEVICE);
                 SystemProfile.setAttribute(request, SystemProfile.ATTRIBUTE_WAKEUP);
-                request.putExtra("pluginId", plugin.getServiceId());
+                request.putExtra("pluginId", plugin.getPluginId());
                 getActivity().sendBroadcast(request);
                 break;
             }
@@ -209,7 +209,7 @@ public class DevicePluginInfoFragment extends Fragment {
                 for (DevicePlugin plugin : plugins) {
                     if (mPackageName.equals(plugin.getPackageName())
                             && plugin.getStartServiceClassName() != null
-                            && plugin.getServiceId() != null) {
+                            && plugin.getPluginId() != null) {
                         restartDevicePlugin(plugin);
                         break;
                     }
@@ -228,7 +228,7 @@ public class DevicePluginInfoFragment extends Fragment {
         Intent request = new Intent();
         request.setComponent(plugin.getComponentName());
         request.setAction(IntentDConnectMessage.ACTION_DEVICEPLUGIN_RESET);
-        request.putExtra("pluginId", plugin.getServiceId());
+        request.putExtra("pluginId", plugin.getPluginId());
         getActivity().sendBroadcast(request);
     }
 

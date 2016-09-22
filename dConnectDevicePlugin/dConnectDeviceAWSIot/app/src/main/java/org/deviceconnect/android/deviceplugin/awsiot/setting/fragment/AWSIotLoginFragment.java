@@ -38,6 +38,7 @@ import org.deviceconnect.android.deviceplugin.awsiot.cores.core.AWSIotPrefUtil;
 import org.deviceconnect.android.deviceplugin.awsiot.local.AWSIotLocalDeviceService;
 import org.deviceconnect.android.deviceplugin.awsiot.remote.R;
 import org.deviceconnect.android.deviceplugin.awsiot.setting.AWSIotSettingActivity;
+import org.deviceconnect.android.deviceplugin.awsiot.setting.AWSIotWebViewActivity;
 
 /**
  * AWS IoT Settings Fragment Page 1.
@@ -142,12 +143,6 @@ public class AWSIotLoginFragment extends Fragment {
                 mPrefUtil.setSecretKey(secretKey);
                 mPrefUtil.setRegions(region);
 
-                Log.d("ABC", "accessKey   : " + accessKey);
-                Log.d("ABC", "secretKey   : " + secretKey);
-                Log.d("ABC", "Index       : " + mRegion.getSelectedItemId());
-                Log.d("ABC", "IndexRegion : " + regionsList[(int)mRegion.getSelectedItemId()].toString());
-                Log.d("ABC", "region      : " + region);
-
                 DuringLoginDialogFragment dialog = new DuringLoginDialogFragment();
                 dialog.show(getFragmentManager(),"DuringDialog");
 
@@ -160,7 +155,7 @@ public class AWSIotLoginFragment extends Fragment {
                         }
 
                         if (err != null) {
-                            Toast.makeText(getContext(), "ログインに失敗しました。Access Key, Secret Key, リージョンを確認して下さい。", Toast.LENGTH_LONG).show();
+                            Toast.makeText(getContext(), "ログインに失敗しました。アクセスキーID, シークレットアクセスキー, リージョンを確認して下さい。", Toast.LENGTH_LONG).show();
                             return;
                         }
 
@@ -183,12 +178,13 @@ public class AWSIotLoginFragment extends Fragment {
         fabHelp.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                FragmentManager manager = getActivity().getSupportFragmentManager();
-                FragmentTransaction transaction = manager.beginTransaction();
-                AWSIotHelpFragment help = new AWSIotHelpFragment();
-                transaction.add(R.id.container, help);
-                transaction.addToBackStack("LoginPage");
-                transaction.commit();
+                String url = "file:///android_asset/html/help/index.html";
+                Intent intent = new Intent();
+                intent.setClass(getContext(), AWSIotWebViewActivity.class);
+                intent.putExtra(AWSIotWebViewActivity.EXTRA_URL, url);
+                intent.putExtra(AWSIotWebViewActivity.EXTRA_TITLE, getString(R.string.activity_help_title));
+                startActivity(intent);
+
             }
         });
 
@@ -224,7 +220,7 @@ public class AWSIotLoginFragment extends Fragment {
         @NonNull
         @Override
         public Dialog onCreateDialog(final Bundle savedInstanceState) {
-            String msg = getString(R.string.duringLogin);
+            String msg = getString(R.string.awsiot_during_login);
             ProgressDialog progressDialog = new ProgressDialog(getActivity());
             progressDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
             progressDialog.setMessage(msg);

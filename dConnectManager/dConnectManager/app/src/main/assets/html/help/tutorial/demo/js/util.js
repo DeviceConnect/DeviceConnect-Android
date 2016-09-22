@@ -41,8 +41,6 @@ var util = (function(parent, global) {
                 mAccessToken = getCookie('accessToken');
             }
 
-            openWebSocketIfNeeded();
-
             findHostDevicePlugin(callback);
         });
     }
@@ -73,21 +71,22 @@ var util = (function(parent, global) {
     }
 
     function openWebSocketIfNeeded() {
-        dConnect.disconnectWebSocket();
-
-        var accessToken = mAccessToken ? mAccessToken : mSessionKey;
-        dConnect.connectWebSocket(accessToken, function(code, message) {
-            if (code > 0) {
-                alert('WebSocketが切れました。\n code=' + code + " message=" + message);
-            }
-            console.log('websocket: ' + code + ' - ' + message);
-        });
+        if (!dConnect.isConnectedWebSocket()) {
+            var accessToken = mAccessToken ? mAccessToken : mSessionKey;
+            dConnect.connectWebSocket(accessToken, function(code, message) {
+                if (code > 0) {
+                    alert('WebSocketが切れました。\n code=' + code + " message=" + message);
+                }
+                console.log("WebSocket: code=" + code + " message=" +message);
+            });
+        }
     }
 
     function findHostDevicePlugin(callback) {
         dConnect.discoverDevices(mAccessToken, function(json) {
             for (var i = 0; i < json.services.length; i++) {
                 if (json.services[i].name.toLowerCase().indexOf("host") == 0) {
+                    openWebSocketIfNeeded();
                     callback(json.services[i]);
                     return;
                 }

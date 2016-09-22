@@ -74,14 +74,13 @@ var util = (function(parent, global) {
 
             mAccessToken = getCookie('accessToken');
 
-            openWebSocketIfNeeded();
-
             serviceDiscovery(function(services) {
                 var serviceId = getServiceId();
                 for (var i = 0; i < services.length; i++) {
                     if (serviceId === services[i].id) {
                         var service = services[i];
                         serviceInformation(function(json) {
+                            openWebSocketIfNeeded();
                             callback(service.name, json);
                         });
                         return;
@@ -134,15 +133,15 @@ var util = (function(parent, global) {
     }
 
     function openWebSocketIfNeeded() {
-        dConnect.disconnectWebSocket();
-
-        var accessToken = mAccessToken ? mAccessToken : mSessionKey;
-        dConnect.connectWebSocket(accessToken, function(code, message) {
-            if (code > 0) {
-                alert('WebSocketが切れました。\n code=' + code + " message=" + message);
-            }
-            console.log('websocket: ' + code + ' - ' + message);
-        });
+        if (!dConnect.isConnectedWebSocket()) {
+            var accessToken = mAccessToken ? mAccessToken : mSessionKey;
+            dConnect.connectWebSocket(accessToken, function(code, message) {
+                if (code > 0) {
+                    alert('WebSocketが切れました。\n code=' + code + " message=" + message);
+                }
+                console.log("WebSocket: code=" + code + " message=" +message);
+            });
+        }
     }
 
     function setCookieInternal(key, value) {

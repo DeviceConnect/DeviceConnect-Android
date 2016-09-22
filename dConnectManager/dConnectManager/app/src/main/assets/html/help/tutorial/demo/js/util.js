@@ -41,9 +41,7 @@ var util = (function(parent, global) {
                 mAccessToken = getCookie('accessToken');
             }
 
-            if (mAccessToken) {
-                openWebSocketIfNeeded();
-            }
+            openWebSocketIfNeeded();
 
             findHostDevicePlugin(callback);
         });
@@ -75,18 +73,15 @@ var util = (function(parent, global) {
     }
 
     function openWebSocketIfNeeded() {
-        if (!dConnect.isConnectedWebSocket()) {
-            var accessToken = mAccessToken;
-            if (!accessToken) {
-                accessToken = mSessionKey;
+        dConnect.disconnectWebSocket();
+
+        var accessToken = mAccessToken ? mAccessToken : mSessionKey;
+        dConnect.connectWebSocket(accessToken, function(code, message) {
+            if (code > 0) {
+                alert('WebSocketが切れました。\n code=' + code + " message=" + message);
             }
-            dConnect.connectWebSocket(accessToken, function(errorCode, errorMessage) {
-                console.log('Failed to open websocket: ' + errorCode + ' - ' + errorMessage);
-            });
-            console.log('WebSocket opened.');
-        } else {
-            console.log('WebSocket has opened already.');
-        }
+            console.log('websocket: ' + code + ' - ' + message);
+        });
     }
 
     function findHostDevicePlugin(callback) {

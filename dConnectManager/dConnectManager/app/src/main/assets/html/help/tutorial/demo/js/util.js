@@ -6,7 +6,7 @@ var util = (function(parent, global) {
 
     function init(callback) {
         dConnect.setHost("localhost");
-        dConnect.setExtendedOrigin("file://android_asset/");
+        dConnect.setExtendedOrigin("file://");
         checkDeviceConnect(callback);
     }
     parent.init = init;
@@ -41,7 +41,9 @@ var util = (function(parent, global) {
                 mAccessToken = getCookie('accessToken');
             }
 
-            openWebSocketIfNeeded();
+            if (mAccessToken) {
+                openWebSocketIfNeeded();
+            }
 
             findHostDevicePlugin(callback);
         });
@@ -56,9 +58,10 @@ var util = (function(parent, global) {
             'deviceorientation',
             'mediastreamrecording',
             'vibration');
-        dConnect.authorization(scopes, 'ヘルプ',
+        dConnect.authorization(scopes, 'ヘルプ画面',
             function(clientId, accessToken) {
                 mAccessToken = accessToken;
+                openWebSocketIfNeeded();
                 if (window.Android) {
                     Android.setCookie("accessToken", mAccessToken);
                 } else {
@@ -73,7 +76,11 @@ var util = (function(parent, global) {
 
     function openWebSocketIfNeeded() {
         if (!dConnect.isConnectedWebSocket()) {
-            dConnect.connectWebSocket(mSessionKey, function(errorCode, errorMessage) {
+            var accessToken = mAccessToken;
+            if (!accessToken) {
+                accessToken = mSessionKey;
+            }
+            dConnect.connectWebSocket(accessToken, function(errorCode, errorMessage) {
                 console.log('Failed to open websocket: ' + errorCode + ' - ' + errorMessage);
             });
             console.log('WebSocket opened.');

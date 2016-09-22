@@ -43,7 +43,7 @@ var util = (function(parent, global) {
 
     function init(callback) {
         dConnect.setHost(mHost);
-        dConnect.setExtendedOrigin("file://android_asset/");
+        dConnect.setExtendedOrigin("file://");
         checkDeviceConnect(callback);
     }
     parent.init = init;
@@ -73,8 +73,9 @@ var util = (function(parent, global) {
             console.log('Device Connect API version: ' + apiVersion);
 
             mAccessToken = getCookie('accessToken');
-
-            openWebSocketIfNeeded();
+            if (mAccessToken) {
+                openWebSocketIfNeeded();
+            }
 
             serviceDiscovery(function(services) {
                 var serviceId = getServiceId();
@@ -93,9 +94,10 @@ var util = (function(parent, global) {
     }
 
     function authorization(callback) {
-        dConnect.authorization(mScopes, 'ヘルプ',
+        dConnect.authorization(mScopes, 'デバイス確認画面',
             function(clientId, accessToken) {
                 mAccessToken = accessToken;
+                openWebSocketIfNeeded();
                 setCookie('accessToken', mAccessToken);
                 callback();
             },
@@ -134,7 +136,12 @@ var util = (function(parent, global) {
 
     function openWebSocketIfNeeded() {
         if (!dConnect.isConnectedWebSocket()) {
-            dConnect.connectWebSocket(mSessionKey, function(code, message) {
+            var accessToken = mAccessToken;
+            if (!accessToken) {
+                accessToken = mSessionKey;
+            }
+            console.log("@@@ accessToken=" + accessToken);
+            dConnect.connectWebSocket(accessToken, function(code, message) {
                 if (code > 0) {
                     alert('WebSocketが切れました。\n code=' + code + " message=" + message);
                 }
@@ -276,7 +283,7 @@ var util = (function(parent, global) {
              case 1: {
                  console.log("サーバ接続を確立しました。\n xhr.readyState=" + xhr.readyState + "\n xhr.statusText=" + xhr.statusText);
                  try {
-                     xhr.setRequestHeader("X-GotAPI-Origin".toLowerCase(), "file://android_assets");
+                     xhr.setRequestHeader("X-GotAPI-Origin".toLowerCase(), "file://");
                  } catch (e) {
                      return;
                  }

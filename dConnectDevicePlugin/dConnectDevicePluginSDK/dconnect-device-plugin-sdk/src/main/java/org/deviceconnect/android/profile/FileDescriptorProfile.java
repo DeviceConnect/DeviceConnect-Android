@@ -6,11 +6,10 @@
  */
 package org.deviceconnect.android.profile;
 
-import org.deviceconnect.android.message.MessageUtils;
-import org.deviceconnect.profile.FileDescriptorProfileConstants;
-
 import android.content.Intent;
 import android.os.Bundle;
+
+import org.deviceconnect.profile.FileDescriptorProfileConstants;
 
 /**
  * File Descriptor プロファイル.
@@ -19,32 +18,7 @@ import android.os.Bundle;
  * ファイルディスクリプタ操作機能を提供するAPI.<br>
  * ファイルディスクリプタ操作機能を提供するデバイスプラグインは当クラスを継承し、対応APIを実装すること。 <br>
  * </p>
- * 
- * <h1>各API提供メソッド</h1>
- * <p>
- * File Descriptor Profile の各APIへのリクエストに対し、以下のコールバックメソッド群が自動的に呼び出される。<br>
- * サブクラスは以下のメソッド群からデバイスプラグインが提供するAPI用のメソッドをオーバーライドし、機能を実装すること。<br>
- * オーバーライドされていない機能は自動的に非対応APIとしてレスポンスを返す。
- * </p>
- * <ul>
- * <li>File Descriptor Open API [GET] :
- * {@link FileDescriptorProfile#onGetOpen(Intent, Intent, String, String, org.deviceconnect.profile.FileDescriptorProfileConstants.Flag)}
- * </li>
- * <li>File Descriptor Close API [PUT] :
- * {@link FileDescriptorProfile#onPutClose(Intent, Intent, String, String)}</li>
- * <li>File Descriptor Read API [GET] :
- * {@link FileDescriptorProfile#onGetRead(Intent, Intent, String, String, Long, Long)
- * )}</li>
- * <li>File Descriptor Write API [PUT] :
- * {@link FileDescriptorProfile#onPutWrite(Intent, Intent, String, String, byte[], Long)
- * )}</li>
- * <li>File Descriptor WatchFile Event API [Register] :
- * {@link FileDescriptorProfile#onPutOnWatchFile(Intent, Intent, String, String)}
- * </li>
- * <li>File Descriptor WatchFile Event API [Unregister] :
- * {@link FileDescriptorProfile#onDeleteOnWatchFile(Intent, Intent, String, String)}
- * </li>
- * </ul>
+ *
  * @author NTT DOCOMO, INC.
  */
 public abstract class FileDescriptorProfile extends DConnectProfile implements FileDescriptorProfileConstants {

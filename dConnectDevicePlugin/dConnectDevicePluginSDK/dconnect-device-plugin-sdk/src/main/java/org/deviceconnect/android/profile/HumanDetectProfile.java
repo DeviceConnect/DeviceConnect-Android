@@ -24,15 +24,7 @@ import java.util.Locale;
  * DevicePlugin that provides a HumanDetect operation function of for smart device inherits an
  * equivalent class, and implements the corresponding API thing. <br>
  * </p>
- * 
- * <h1>API provides methods</h1>
- * <p>
- * For requests to each API of HumanDetectProfile, following callback method group is automatically
- * invoked.<br>
- * Subclasses override the methods for API provided by the DevicePlugin from the following methods
- * group, to implement the functionality that.<br>
- * Features that are not overridden automatically return the response as non-compliant API.
- * </p>
+ *
  * @author NTT DOCOMO, INC.
  */
 public abstract class HumanDetectProfile extends DConnectProfile implements HumanDetectProfileConstants {

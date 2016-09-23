@@ -18,20 +18,7 @@ import org.deviceconnect.profile.DeviceOrientationProfileConstants;
  * スマートデバイスのセンサー操作機能を提供するAPI.<br>
  * センサー操作機能を提供するデバイスプラグインは当クラスを継承し、対応APIを実装すること。 <br>
  * </p>
- * 
- * <h1>各API提供メソッド</h1>
- * <p>
- * Device Orientation Profile の各APIへのリクエストに対し、以下のコールバックメソッド群が自動的に呼び出される。<br>
- * サブクラスは以下のメソッド群からデバイスプラグインが提供するAPI用のメソッドをオーバーライドし、機能を実装すること。<br>
- * オーバーライドされていない機能は自動的に非対応APIとしてレスポンスを返す。
- * </p>
- * <ul>
- * <li>Device Orientation Event API [Register] :
- * {@link DeviceOrientationProfile#onPutOnDeviceOrientation(Intent, Intent, String, String)}</li>
- * <li>Device Orientation Event API [Unregister] :
- * {@link DeviceOrientationProfile#onDeleteOnDeviceOrientation(Intent, Intent, String, String)}</li>
- * </ul>
- * 
+ *
  * @author NTT DOCOMO, INC.
  */
 public class DeviceOrientationProfile extends DConnectProfile implements DeviceOrientationProfileConstants {

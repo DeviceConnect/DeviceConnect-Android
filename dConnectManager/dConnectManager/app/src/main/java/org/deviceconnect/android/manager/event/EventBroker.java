@@ -147,8 +147,14 @@ public class EventBroker {
         }
         if (targetSession != null) {
             try {
-                event.putExtra(IntentDConnectMessage.EXTRA_SESSION_KEY, targetSession.getReceiverId());
-                targetSession.sendEvent(event);
+                DevicePlugin plugin = mPluginManager.getDevicePlugin(targetSession.getPluginId());
+                if (plugin != null) {
+                    event.putExtra(IntentDConnectMessage.EXTRA_SESSION_KEY, targetSession.getReceiverId());
+                    event.putExtra(DConnectMessage.EXTRA_SERVICE_ID, mPluginManager.appendServiceId(plugin, serviceId));
+                    targetSession.sendEvent(event);
+                } else {
+                    mLogger.warning("onEvent: Plugin is not found: id = " + targetSession.getPluginId());
+                }
             } catch (IOException e) {
                 error("Failed to send event.");
             }

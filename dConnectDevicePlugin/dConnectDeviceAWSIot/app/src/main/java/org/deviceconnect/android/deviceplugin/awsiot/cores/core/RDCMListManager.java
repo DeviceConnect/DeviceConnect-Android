@@ -28,6 +28,8 @@ public class RDCMListManager {
     private ScheduledExecutorService mExecutorService = Executors.newSingleThreadScheduledExecutor();
     private ScheduledFuture mFuture;
 
+    private final String MANAGER_LIST_SHADOW = "$aws/things/"+ AWSIotUtil.KEY_DCONNECT_SHADOW_NAME +"/shadow/update/accepted";
+
     /** OnEventListener Interface. */
     public interface OnEventListener{
         void onRDCMListUpdateSubscribe(RemoteDeviceConnectManager manager);
@@ -36,6 +38,19 @@ public class RDCMListManager {
     public interface UpdateManagerListCallback {
         void onUpdateManagerList(List<RemoteDeviceConnectManager> managerList);
     }
+
+    private UpdateManagerListCallback mUpdateManagerListCallback = new UpdateManagerListCallback() {
+        @Override
+        public void onUpdateManagerList(List<RemoteDeviceConnectManager> managerList) {
+            if (managerList != null) {
+                if (mOnEventListener != null) {
+                    for (RemoteDeviceConnectManager remote : managerList) {
+                        mOnEventListener.onRDCMListUpdateSubscribe(remote);
+                    }
+                }
+            }
+        }
+    };
 
     /**
      * Constructor.
@@ -59,20 +74,8 @@ public class RDCMListManager {
             @Override
             public void run() {
                 AWSIotDeviceApplication.getInstance().updateMyManagerShadow(true);
-                updateManagerList(new UpdateManagerListCallback() {
-                    @Override
-                    public void onUpdateManagerList(final List<RemoteDeviceConnectManager> managerList) {
-                        if (managerList != null) {
-                            if (mOnEventListener != null) {
-                                for (RemoteDeviceConnectManager remote : managerList) {
-                                    mOnEventListener.onRDCMListUpdateSubscribe(remote);
-                                }
-                            }
-                        }
-                    }
-                });
             }
-        }, 15, 5 * 60, TimeUnit.SECONDS);
+        }, 30, 5 * 60, TimeUnit.SECONDS);
     }
 
     /**
@@ -82,6 +85,27 @@ public class RDCMListManager {
         if (mFuture != null) {
             mFuture.cancel(true);
         }
+    }
+
+    /**
+     * Manager List Shadowの購読を開始する.
+     */
+    public void subscribeShadow() {
+        mAWSIotController.subscribe(MANAGER_LIST_SHADOW, new AWSIotController.MessageCallback() {
+            @Override
+            public void onReceivedMessage(String topic, String message, Exception err) {
+                if (err == null) {
+                    updateManagerList(mUpdateManagerListCallback);
+                }
+            }
+        });
+    }
+
+    /**
+     * Manager List Shadowの購読を停止する.
+     */
+    public void unsubscribeShadow() {
+        mAWSIotController.unsubscribe(MANAGER_LIST_SHADOW);
     }
 
     /**

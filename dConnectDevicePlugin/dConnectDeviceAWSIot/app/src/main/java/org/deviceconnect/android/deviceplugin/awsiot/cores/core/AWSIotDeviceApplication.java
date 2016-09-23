@@ -39,6 +39,7 @@ public class AWSIotDeviceApplication extends Application {
 
         mRDCMListManager = new RDCMListManager(getApplicationContext(), mIot);
         mRDCMListManager.startUpdateManagerListTimer();
+        mRDCMListManager.subscribeShadow();
 
         // ログインフラグがtrueの場合には自動接続を行う
         final AWSIotPrefUtil pref = new AWSIotPrefUtil(this);
@@ -50,6 +51,7 @@ public class AWSIotDeviceApplication extends Application {
                 @Override
                 public void onConnected(final Exception err) {
                     if (err == null) {
+                        mRDCMListManager.subscribeShadow();
                         mRDCMListManager.updateManagerList(null);
                         updateMyManagerShadow(true);
                         if (pref.getManagerRegister()) {
@@ -67,6 +69,7 @@ public class AWSIotDeviceApplication extends Application {
     @Override
     public void onTerminate() {
         if (mRDCMListManager != null) {
+            mRDCMListManager.unsubscribeShadow();
             mRDCMListManager.stopUpdateManagerListTimer();
         }
         super.onTerminate();

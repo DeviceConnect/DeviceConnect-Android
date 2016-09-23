@@ -86,8 +86,8 @@ public class AWSIotDeviceService extends DConnectMessageService {
                 @Override
                 public void onConnected(final Exception err) {
                     if (err == null) {
+                        ((AWSIotDeviceApplication) getApplication()).getRDCMListManager().subscribeShadow();
                         AWSIotDeviceApplication.getInstance().updateMyManagerShadow(true);
-                        ((AWSIotDeviceApplication) getApplication()).getRDCMListManager().updateManagerList(null);
                         AWSIotPrefUtil pref = new AWSIotPrefUtil(getContext());
                         if (pref.getManagerRegister()) {
                             Intent intent = new Intent();

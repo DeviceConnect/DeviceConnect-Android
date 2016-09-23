@@ -463,8 +463,8 @@ public class SlackManager {
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                webSocket.ping("ping");
                 if (connectState == CONNECT_STATE_CONNECTED) {
+                    webSocket.ping("ping");
                     handler.postDelayed(this, KEEPALIVE_SPAN);
                 }
             }

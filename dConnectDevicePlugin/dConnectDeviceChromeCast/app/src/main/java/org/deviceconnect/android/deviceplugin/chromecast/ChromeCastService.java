@@ -69,8 +69,6 @@ public class ChromeCastService extends DConnectMessageService implements
     private ChromeCastMediaPlayerProfile mMediaPlayerProfile;
     /** StatusChange時のServiceId. */
     private String mServiceIdOnStatusChange = null;
-    /** StatusChange時のSessionKey. */
-    private String mSessionKeyOnStatusChange = null;
     /** MediaPlayerのステータスアップデートフラグ. */
     private boolean mEnableCastMediaPlayerStatusUpdate = false;
 
@@ -254,11 +252,9 @@ public class ChromeCastService extends DConnectMessageService implements
      * 
      * @param response レスポンス
      * @param serviceId デバイスを識別するID
-     * @param sessionKey イベントを識別するKey
      */
-    public void registerOnStatusChange(final Intent response, final String serviceId, final String sessionKey) {
+    public void registerOnStatusChange(final Intent response, final String serviceId) {
         mServiceIdOnStatusChange = serviceId;
-        mSessionKeyOnStatusChange = sessionKey;
         mEnableCastMediaPlayerStatusUpdate = true;
         response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
         response.putExtra(DConnectMessage.EXTRA_VALUE, "Register OnStatusChange event");
@@ -272,7 +268,6 @@ public class ChromeCastService extends DConnectMessageService implements
      */
     public void unregisterOnStatusChange(final Intent response) {
         mServiceIdOnStatusChange = null;
-        mSessionKeyOnStatusChange = null;
         mEnableCastMediaPlayerStatusUpdate = false;
         response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
         response.putExtra(DConnectMessage.EXTRA_VALUE, "Unregister OnStatusChange event");
@@ -295,24 +290,23 @@ public class ChromeCastService extends DConnectMessageService implements
 
             for (int i = 0; i < events.size(); i++) {
                 Event event = events.get(i);
-                if (event.getSessionKey().equals(mSessionKeyOnStatusChange)) {
-                    Intent intent = EventManager.createEventMessage(event);
-                    MediaPlayerProfile.setAttribute(intent,
-                            MediaPlayerProfile.ATTRIBUTE_ON_STATUS_CHANGE);
-                    Bundle mediaPlayer = new Bundle();
-                    MediaPlayerProfile.setStatus(mediaPlayer, playStatusString);
-                    if (info != null) {
-                        MediaPlayerProfile.setMediaId(mediaPlayer, info.getContentId());
-                        MediaPlayerProfile.setMIMEType(mediaPlayer, info.getContentType());
-                    } else {
-                        MediaPlayerProfile.setMediaId(mediaPlayer, "");
-                        MediaPlayerProfile.setMIMEType(mediaPlayer, "");
-                    }
-                    MediaPlayerProfile.setPos(mediaPlayer, (int) status.getStreamPosition() / 1000);
-                    MediaPlayerProfile.setVolume(mediaPlayer, status.getStreamVolume());
-                    MediaPlayerProfile.setMediaPlayer(intent, mediaPlayer);
-                    sendEvent(intent, event.getAccessToken());
+
+                Intent intent = EventManager.createEventMessage(event);
+                MediaPlayerProfile.setAttribute(intent,
+                    MediaPlayerProfile.ATTRIBUTE_ON_STATUS_CHANGE);
+                Bundle mediaPlayer = new Bundle();
+                MediaPlayerProfile.setStatus(mediaPlayer, playStatusString);
+                if (info != null) {
+                    MediaPlayerProfile.setMediaId(mediaPlayer, info.getContentId());
+                    MediaPlayerProfile.setMIMEType(mediaPlayer, info.getContentType());
+                } else {
+                    MediaPlayerProfile.setMediaId(mediaPlayer, "");
+                    MediaPlayerProfile.setMIMEType(mediaPlayer, "");
                 }
+                MediaPlayerProfile.setPos(mediaPlayer, (int) status.getStreamPosition() / 1000);
+                MediaPlayerProfile.setVolume(mediaPlayer, status.getStreamVolume());
+                MediaPlayerProfile.setMediaPlayer(intent, mediaPlayer);
+                sendEvent(intent, event.getAccessToken());
             }
         }
     }

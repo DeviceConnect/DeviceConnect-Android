@@ -15,6 +15,8 @@ import org.deviceconnect.android.deviceplugin.linking.LinkingApplication;
 import org.deviceconnect.android.deviceplugin.linking.LinkingDevicePluginService;
 import org.deviceconnect.android.deviceplugin.linking.beacon.LinkingBeaconManager;
 import org.deviceconnect.android.deviceplugin.linking.beacon.data.LinkingBeacon;
+import org.deviceconnect.android.deviceplugin.linking.LinkingDestroy;
+import org.deviceconnect.android.deviceplugin.linking.beacon.service.LinkingBeaconService;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
@@ -28,7 +30,7 @@ import org.deviceconnect.message.DConnectMessage;
 
 import java.util.List;
 
-public class LinkingKeyEventProfile extends KeyEventProfile {
+public class LinkingKeyEventProfile extends KeyEventProfile implements LinkingDestroy {
 
     private static final String TAG = "LinkingPlugIn";
 
@@ -95,7 +97,8 @@ public class LinkingKeyEventProfile extends KeyEventProfile {
         }
     };
 
-    public void destroy() {
+    @Override
+    public void onDestroy() {
         if (BuildConfig.DEBUG) {
             Log.i(TAG, "LinkingKeyEventProfile#destroy: " + getService().getId());
         }
@@ -119,6 +122,10 @@ public class LinkingKeyEventProfile extends KeyEventProfile {
     }
 
     private void notifyKeyEvent(final LinkingBeacon beacon, final int keyCode, final long timeStamp) {
+        if (!beacon.equals(getLinkingBeacon())) {
+            return;
+        }
+
         String serviceId = beacon.getServiceId();
         List<Event> events = EventManager.INSTANCE.getEventList(serviceId,
                 PROFILE_NAME, null, ATTRIBUTE_ON_DOWN);
@@ -129,6 +136,10 @@ public class LinkingKeyEventProfile extends KeyEventProfile {
                 sendEvent(intent, event.getAccessToken());
             }
         }
+    }
+
+    private LinkingBeacon getLinkingBeacon() {
+        return ((LinkingBeaconService) getService()).getLinkingBeacon();
     }
 
     private LinkingBeaconManager getLinkingBeaconManager() {

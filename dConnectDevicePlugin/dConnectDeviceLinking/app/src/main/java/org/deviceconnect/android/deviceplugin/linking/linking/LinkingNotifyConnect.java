@@ -15,13 +15,13 @@ import com.nttdocomo.android.sdaiflib.NotifyConnect;
 
 import org.deviceconnect.android.deviceplugin.linking.BuildConfig;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 class LinkingNotifyConnect {
     private static final String TAG = "LinkingPlugIn";
 
-    private final List<LinkingDeviceManager.OnConnectListener> mOnConnectListeners = new CopyOnWriteArrayList<>();
+    private final List<LinkingDeviceManager.OnConnectListener> mOnConnectListeners = new ArrayList<>();
 
     private NotifyConnect mNotifyConnect;
     private LinkingDeviceManager mLinkingDeviceManager;
@@ -33,16 +33,16 @@ class LinkingNotifyConnect {
         startNotifyConnect();
     }
 
-    public void release() {
+    public synchronized void release() {
         mOnConnectListeners.clear();
         stopNotifyConnect();
     }
 
-    public void addListener(final LinkingDeviceManager.OnConnectListener listener) {
+    public synchronized void addListener(final LinkingDeviceManager.OnConnectListener listener) {
         mOnConnectListeners.add(listener);
     }
 
-    public void removeListener(final LinkingDeviceManager.OnConnectListener listener) {
+    public synchronized void removeListener(final LinkingDeviceManager.OnConnectListener listener) {
         mOnConnectListeners.remove(listener);
     }
 
@@ -97,20 +97,20 @@ class LinkingNotifyConnect {
         });
     }
 
-    private synchronized void stopNotifyConnect() {
+    private void stopNotifyConnect() {
         if (mNotifyConnect != null) {
             mNotifyConnect.release();
             mNotifyConnect = null;
         }
     }
 
-    private void notifyConnect(final LinkingDevice device) {
+    private synchronized void notifyConnect(final LinkingDevice device) {
         for (LinkingDeviceManager.OnConnectListener listener : mOnConnectListeners) {
             listener.onConnect(device);
         }
     }
 
-    private void notifyDisconnect(final LinkingDevice device) {
+    private synchronized void notifyDisconnect(final LinkingDevice device) {
         for (LinkingDeviceManager.OnConnectListener listener : mOnConnectListeners) {
             listener.onDisconnect(device);
         }

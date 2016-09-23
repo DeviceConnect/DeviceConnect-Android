@@ -29,6 +29,9 @@ import org.deviceconnect.utils.URIBuilder;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.UnsupportedEncodingException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Random;
@@ -244,5 +247,36 @@ public final class DConnectUtil {
         ColorMatrixColorFilter filter = new ColorMatrixColorFilter(matrix);
         clone.setColorFilter(filter);
         return clone;
+    }
+
+    /** マスクを定義. */
+    private static final int MASK = 0xFF;
+
+    /**
+     * バイト配列を16進数の文字列に変換する.
+     * @param buf 文字列に変換するバイト
+     * @return 文字列
+     */
+    private static String hexToString(final byte[] buf) {
+        StringBuilder hexString = new StringBuilder();
+        for (int i = 0; i < buf.length; i++) {
+            hexString.append(Integer.toHexString(MASK & buf[i]));
+        }
+        return hexString.toString();
+    }
+
+    /**
+     * 指定された文字列をMD5の文字列に変換する.
+     * MD5への変換に失敗した場合にはnullを返却する。
+     * @param s MD5にする文字列
+     * @return MD5にされた文字列
+     * @throws UnsupportedEncodingException 文字列の解析に失敗した場合
+     * @throws NoSuchAlgorithmException MD5がサポートされていない場合
+     */
+    public static String toMD5(final String s)
+        throws UnsupportedEncodingException, NoSuchAlgorithmException {
+        MessageDigest digest = java.security.MessageDigest.getInstance("MD5");
+        digest.update(s.getBytes("ASCII"));
+        return hexToString(digest.digest());
     }
 }

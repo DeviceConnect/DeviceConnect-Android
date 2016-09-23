@@ -31,11 +31,11 @@ import android.preference.SwitchPreference;
 import android.view.MenuItem;
 
 import org.deviceconnect.android.manager.BuildConfig;
-import org.deviceconnect.android.manager.DConnectApplication;
+import org.deviceconnect.android.manager.DConnectService;
+import org.deviceconnect.android.manager.DConnectSettings;
 import org.deviceconnect.android.manager.IDConnectService;
 import org.deviceconnect.android.manager.IDConnectWebService;
 import org.deviceconnect.android.manager.R;
-import org.deviceconnect.android.manager.keepalive.KeepAliveManager;
 import org.deviceconnect.android.manager.setting.OpenSourceLicenseFragment.OpenSourceSoftware;
 import org.deviceconnect.android.manager.util.DConnectUtil;
 import org.deviceconnect.android.observer.DConnectObservationService;
@@ -118,8 +118,8 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
         }
 
         SharedPreferences sp = getPreferenceManager().getSharedPreferences();
-        String keyword = sp.getString(getString(R.string.key_settings_dconn_keyword), null);
-        if (keyword == null || keyword.length() <= 0) {
+        String keyword = sp.getString(getString(R.string.key_settings_dconn_keyword), DConnectSettings.DEFAULT_KEYWORD);
+        if (keyword.length() <= 0) {
             keyword = DConnectUtil.createKeyword();
         }
 
@@ -445,12 +445,11 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
         if (activity == null) {
             return;
         }
-        KeepAliveManager mgr = ((DConnectApplication) activity.getApplication()).getKeepAliveManager();
-        if (checked) {
-            mgr.enableKeepAlive();
-        } else {
-            mgr.disableKeepAlive();
-        }
+        Intent intent = new Intent();
+        intent.setClass(activity, DConnectService.class);
+        intent.setAction(DConnectService.ACTION_SETTINGS_KEEP_ALIVE);
+        intent.putExtra(DConnectService.EXTRA_KEEP_ALIVE_ENABLED, checked);
+        activity.startService(intent);
     }
 
     /**

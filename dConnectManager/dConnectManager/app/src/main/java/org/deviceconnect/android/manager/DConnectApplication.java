@@ -10,7 +10,6 @@ import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
 
-import org.deviceconnect.android.manager.keepalive.KeepAliveManager;
 import org.deviceconnect.android.manager.util.DConnectUtil;
 
 import java.util.Map;
@@ -37,9 +36,6 @@ public class DConnectApplication extends Application {
     /** デバイスプラグイン管理クラス. */
     private DevicePluginManager mDevicePluginManager;
 
-    /** KeepAlive管理クラス. */
-    private KeepAliveManager mKeepAliveManager;
-
     @Override
     public void onCreate() {
         super.onCreate();
@@ -50,8 +46,6 @@ public class DConnectApplication extends Application {
         mDevicePluginManager.createDevicePluginList();
 
         mWebSocketInfoManager = new WebSocketInfoManager(this);
-
-        mKeepAliveManager = new KeepAliveManager(this);
     }
 
     @Override
@@ -71,50 +65,6 @@ public class DConnectApplication extends Application {
 
     public DevicePluginManager getDevicePluginManager() {
         return mDevicePluginManager;
-    }
-
-    public KeepAliveManager getKeepAliveManager() {
-        return mKeepAliveManager;
-    }
-
-    /**
-     * セッションキーとデバイスプラグインの紐付けを行う.
-     * @param identifyKey appendPluginIdToSessionKey()加工後のセッションキー
-     * @param serviceId プラグインID
-     */
-    public void setDevicePluginIdentifyKey(final String identifyKey, final String serviceId) {
-        mEventKeys.put(identifyKey, serviceId);
-    }
-
-    /**
-     * セッションキーに紐付いているデバイスプラグインIDを削除する.
-     * @param identifyKey セッションキー
-     * @return 削除成功でtrue, 該当無しの場合はfalse
-     */
-    public boolean removeDevicePluginIdentifyKey(final String identifyKey) {
-        if (mEventKeys.containsKey(identifyKey)) {
-            mEventKeys.remove(identifyKey);
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    /**
-     * Map登録されているKey取得.
-     * @param plugin デバイスプラグイン
-     * @return Map登録されているKey, 存在しない場合はnull.
-     */
-    public String getIdentifySessionKey(final DevicePlugin plugin) {
-        String matchKey = null;
-        for (Map.Entry<String, String> entry : mEventKeys.entrySet()) {
-            String serviceId = entry.getValue();
-            if (serviceId.contains(plugin.getServiceId())) {
-                matchKey = entry.getKey();
-                break;
-            }
-        }
-        return matchKey;
     }
 
     private void initialize() {

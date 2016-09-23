@@ -154,6 +154,18 @@ public class DevicePlugin {
         return mSupports;
     }
 
+    public boolean supportsProfile(final String profileName) {
+        if (mSupports == null) {
+            return false;
+        }
+        for (String support : mSupports) {
+            if (support.equalsIgnoreCase(profileName)) { // MEMO パスの大文字小文字無視
+                return true;
+            }
+        }
+        return false;
+    }
+
     public void setPluginSdkVersionName(final VersionName pluginSdkVersionName) {
         mPluginSdkVersionName = pluginSdkVersionName;
     }
@@ -161,7 +173,6 @@ public class DevicePlugin {
     public VersionName getPluginSdkVersionName() {
         return mPluginSdkVersionName;
     }
-
     
     @Override
     public String toString() {

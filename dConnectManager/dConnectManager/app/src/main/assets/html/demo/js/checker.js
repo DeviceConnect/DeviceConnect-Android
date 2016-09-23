@@ -82,14 +82,8 @@ var main = (function(parent, global) {
         var xType = formElem['deviceconnect.type'].value;
         var body = null;
 
-        console.log('method:' + method)
-        console.log('path:' + path)
-        console.log('xtype:' + xType)
-
         if (xType == 'event') {
-            // TODO
-            var uri = "http://localhost:4035" + path.toLowerCase() + "?" + createBody(nav).join('&') + "&sessionKey=" + util.getSessionKey();
-            console.log(uri);
+            var uri = "http://localhost:4035" + path.toLowerCase() + "?" + createBody(nav).join('&');
 
             setRequestText(nav, createRequest(method + " " + path));
 
@@ -298,9 +292,17 @@ var main = (function(parent, global) {
     }
 
     function createSupportApis(json) {
-        var profile = util.getProfile();
+        var profile = util.getProfile().toLowerCase();
         if (json.supportApis) {
-            document.getElementById('main').innerHTML = createSupportPath(json.supportApis[profile].paths);
+            for (var p in json.supportApis) {
+                if (profile == p.toLowerCase()) {
+                    document.getElementById('main').innerHTML = createSupportPath(json.supportApis[p].paths);
+                    return;
+                }
+            }
+            alert(profile + 'プロファイルが見つかりません。');
+        } else {
+            alert('古いプラグインのために、このサービスは確認することができません。');
         }
     }
 

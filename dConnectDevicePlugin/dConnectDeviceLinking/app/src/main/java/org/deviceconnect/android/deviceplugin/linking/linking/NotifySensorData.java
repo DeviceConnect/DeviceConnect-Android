@@ -22,12 +22,13 @@ public class NotifySensorData {
     private Context mContext;
     private ReceiveSensorData mReceiver;
 
-    public NotifySensorData(final Context context, final ControlSensorData.SensorDataInterface observer) {
+    public NotifySensorData(final Context context, final ControlSensorData.SensorRequestInterface requestObserver, final ControlSensorData.SensorDataInterface observer) {
         mContext = context;
         IntentFilter filter = new IntentFilter();
         filter.addAction(LinkingUtil.ACTION_SENSOR_DATA);
         filter.addAction(LinkingUtil.ACTION_SENSOR_STOP);
-        mReceiver = new ReceiveSensorData(observer);
+        filter.addAction(LinkingUtil.ACTION_START_SENSOR_RESULT);
+        mReceiver = new ReceiveSensorData(requestObserver, observer);
         mContext.registerReceiver(mReceiver, filter);
     }
 

@@ -64,7 +64,7 @@ public class HeartRateManager {
      */
     private HeartRateDBHelper mDBHelper;
 
-    private OnHeartRateDiscoveryListener mHRDiscoveryListener;
+    private List<OnHeartRateDiscoveryListener> mHRDiscoveryListener;
     private OnHeartRateEventListener mHREvtListener;
 
     // TODO: consider synchronized
@@ -83,7 +83,7 @@ public class HeartRateManager {
      */
     public HeartRateManager(final Context context) {
         mContext = context;
-
+        mHRDiscoveryListener = new ArrayList<>();
         mDetector = new BleDeviceDetector(context);
         mDetector.setListener(mDiscoveryListener);
 
@@ -110,8 +110,16 @@ public class HeartRateManager {
      *
      * @param listener The listener to be told when found device or connected device
      */
-    public void setOnHeartRateDiscoveryListener(OnHeartRateDiscoveryListener listener) {
-        mHRDiscoveryListener = listener;
+    public void addOnHeartRateDiscoveryListener(OnHeartRateDiscoveryListener listener) {
+        mHRDiscoveryListener.add(listener);
+    }
+
+    /**
+     * Remove the OnHeartRateDiscoveryListener.
+     * @param listener The listener to be told when found device or connected device
+     */
+    public void removeOnHeartRateDiscoveryListener(OnHeartRateDiscoveryListener listener) {
+        mHRDiscoveryListener.remove(listener);
     }
 
     /**
@@ -349,7 +357,9 @@ public class HeartRateManager {
         public void onDiscovery(final List<BluetoothDevice> devices) {
             mLogger.fine("BleDeviceDiscoveryListener#onDiscovery: " + devices.size());
             if (mHRDiscoveryListener != null) {
-                mHRDiscoveryListener.onDiscovery(devices);
+                for (OnHeartRateDiscoveryListener l : mHRDiscoveryListener) {
+                    l.onDiscovery(devices);
+                }
             }
         }
     };
@@ -369,7 +379,9 @@ public class HeartRateManager {
                 mConnectedDevices.add(hr);
             }
             if (mHRDiscoveryListener != null) {
-                mHRDiscoveryListener.onConnected(device);
+                for (OnHeartRateDiscoveryListener l : mHRDiscoveryListener) {
+                    l.onConnected(device);
+                }
             }
 
             // DEBUG
@@ -400,9 +412,17 @@ public class HeartRateManager {
 
             if (hr == null) {
                 if (mHRDiscoveryListener != null) {
-                    mHRDiscoveryListener.onConnectFailed(device);
+                    for (OnHeartRateDiscoveryListener l : mHRDiscoveryListener) {
+                        l.onConnectFailed(device);
+                    }
                 }
             } else {
+                if (mHRDiscoveryListener != null) {
+                    for (OnHeartRateDiscoveryListener l : mHRDiscoveryListener) {
+                        l.onDisconnected(device);
+                    }
+                }
+
                 // DEBUG
                 mHandler.post(new Runnable() {
                     @Override
@@ -426,7 +446,9 @@ public class HeartRateManager {
         public void onConnectFailed(final BluetoothDevice device) {
             mLogger.fine("HeartRateConnectEventListener#onConnectFailed: [" + device + "]");
             if (mHRDiscoveryListener != null) {
-                mHRDiscoveryListener.onConnectFailed(device);
+                for (OnHeartRateDiscoveryListener l : mHRDiscoveryListener) {
+                    l.onConnectFailed(device);
+                }
             }
         }
 
@@ -473,6 +495,7 @@ public class HeartRateManager {
         void onConnected(BluetoothDevice device);
 
         void onConnectFailed(BluetoothDevice device);
+        void onDisconnected(BluetoothDevice device);
     }
 
     /**

@@ -1,9 +1,19 @@
 package org.deviceconnect.android.manager;
 
 public class WebSocketInfo {
+    private String mId;
     private String mEventKey;
     private String mUri;
+    private String mOrigin;
     private long mConnectTime;
+
+    public String getId() {
+        return mId;
+    }
+
+    public void setId(final String id) {
+        mId = id;
+    }
 
     public String getEventKey() {
         return mEventKey;

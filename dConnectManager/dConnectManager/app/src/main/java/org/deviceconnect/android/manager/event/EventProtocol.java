@@ -1,3 +1,9 @@
+/*
+ EventProtocol.java
+ Copyright (c) 2016 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.manager.event;
 
 
@@ -17,6 +23,12 @@ import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
+
+/**
+ * イベント登録手順.
+ *
+ * @author NTT DOCOMO, INC.
+ */
 public abstract class EventProtocol {
 
     private static final VersionName V100 = VersionName.parse("1.0.0");

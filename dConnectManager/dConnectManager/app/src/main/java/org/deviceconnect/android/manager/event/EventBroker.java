@@ -1,3 +1,9 @@
+/*
+ EventBroker.java
+ Copyright (c) 2016 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.manager.event;
 
 
@@ -21,6 +27,11 @@ import java.io.IOException;
 import java.util.List;
 import java.util.logging.Logger;
 
+/**
+ * イベントブローカー.
+ *
+ * @author NTT DOCOMO, INC.
+ */
 public class EventBroker {
 
     private final Logger mLogger = Logger.getLogger("dconnect.manager");

@@ -17,7 +17,6 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.support.v4.content.LocalBroadcastManager;
-import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageView;
@@ -109,13 +108,15 @@ public class CanvasActivity extends Activity {
                 String sourceId = intent.getStringExtra(WearConst.PARAM_SOURCE_ID);
                 String requestId = intent.getStringExtra(WearConst.PARAM_REQUEST_ID);
                 sendResultToHost(sourceId, requestId, result.getResultCode());
+                if (!result.isSuccess()) {
+                    finish();
+                    return;
+                }
 
                 Bitmap bitmap = result.getBitmap();
                 if (bitmap == null) {
                     return;
                 }
-
-                Log.d("AAA", "********* Bitmap: size = " + bitmap.getByteCount());
 
                 int x = intent.getIntExtra(WearConst.PARAM_X, 0);
                 int y = intent.getIntExtra(WearConst.PARAM_Y, 0);
@@ -233,6 +234,10 @@ public class CanvasActivity extends Activity {
 
         public String getResultCode() {
             return mResultCode;
+        }
+
+        public boolean isSuccess() {
+            return WearConst.RESULT_SUCCESS.equals(mResultCode);
         }
 
         static LoadingResult success(final Bitmap bitmap) {

@@ -447,7 +447,7 @@ public class NormalMediaPlayerProfileTestCase extends IntentDConnectTestCase
     public void testPutOnStatusChangePlay() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_PUT);
         request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
-        request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, getClientId());
+
         request.putExtra(DConnectMessage.EXTRA_PROFILE, MediaPlayerProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, MediaPlayerProfileConstants.ATTRIBUTE_ON_STATUS_CHANGE);
 
@@ -476,7 +476,7 @@ public class NormalMediaPlayerProfileTestCase extends IntentDConnectTestCase
     public void testDeletePlayStatusChange() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_DELETE);
         request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
-        request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, getClientId());
+
         request.putExtra(DConnectMessage.EXTRA_PROFILE, MediaPlayerProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, MediaPlayerProfileConstants.ATTRIBUTE_ON_STATUS_CHANGE);
 

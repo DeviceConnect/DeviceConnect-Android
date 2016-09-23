@@ -7,10 +7,6 @@
 package org.deviceconnect.android.profile.restful.test;
 
 import android.support.test.runner.AndroidJUnit4;
-import org.junit.Before;
-import org.junit.After;
-import org.junit.Test;
-import org.junit.runner.RunWith;
 
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
@@ -25,6 +21,8 @@ import org.deviceconnect.profile.NotificationProfileConstants;
 import org.deviceconnect.utils.URIBuilder;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 /**
  * Notificationプロファイルの異常系テスト.
@@ -234,7 +232,7 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.UNKNOWN_ATTRIBUTE.getCode(), root);
+            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -405,7 +403,7 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_CLICK);
-        builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
+
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -435,7 +433,7 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_CLICK);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
-        builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
+
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -465,7 +463,7 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_CLICK);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
+
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -497,7 +495,7 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_CLICK);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-        builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
+
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -526,7 +524,7 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_CLICK);
-        builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
+
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -556,7 +554,7 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_CLICK);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
-        builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
+
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -586,7 +584,7 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_CLICK);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
+
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -618,43 +616,13 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_CLICK);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-        builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
+
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
             JSONObject root = sendRequest(request);
             assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
-    }
-
-    /**
-     * メソッドにGETを指定してonclick属性のリクエストテストを行う.
-     * <pre>
-     * 【HTTP通信】
-     * Method: GET
-     * Path: /notification/onclick?serviceId=xxxx&sessionKey=xxxx
-     * </pre>
-     * <pre>
-     * 【期待する動作】
-     * ・resultに1が返ってくること。
-     * </pre>
-     */
-    @Test
-    public void testDeleteOnClickChangeInvalidMethodGet() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
-        builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_CLICK);
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-        builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, TEST_SESSION_KEY);
-        builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -678,13 +646,13 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_CLICK);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-        builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, TEST_SESSION_KEY);
+
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.UNKNOWN_ATTRIBUTE.getCode(), root);
+            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -707,7 +675,7 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_SHOW);
-        builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
+
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -737,7 +705,7 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_SHOW);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
-        builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
+
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -767,7 +735,7 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_SHOW);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
+
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -799,7 +767,7 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_SHOW);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-        builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
+
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -828,7 +796,7 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_SHOW);
-        builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
+
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -858,7 +826,7 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_SHOW);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
-        builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
+
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -888,7 +856,7 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_SHOW);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
+
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -920,43 +888,13 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_SHOW);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-        builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
+
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
             JSONObject root = sendRequest(request);
             assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
-    }
-
-    /**
-     * メソッドにGETを指定してonshow属性のリクエストテストを行う.
-     * <pre>
-     * 【HTTP通信】
-     * Method: GET
-     * Path: /notification/onshow?serviceId=xxxx&sessionKey=xxxx
-     * </pre>
-     * <pre>
-     * 【期待する動作】
-     * ・resultに1が返ってくること。
-     * </pre>
-     */
-    @Test
-    public void testDeleteOnShowChangeInvalidMethodGet() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
-        builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_SHOW);
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-        builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, TEST_SESSION_KEY);
-        builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -980,13 +918,13 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_SHOW);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-        builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, TEST_SESSION_KEY);
+
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.UNKNOWN_ATTRIBUTE.getCode(), root);
+            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -1009,7 +947,7 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_CLOSE);
-        builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
+
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -1039,7 +977,7 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_CLOSE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
-        builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
+
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -1069,7 +1007,7 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_CLOSE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
+
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -1101,7 +1039,7 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_CLOSE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-        builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
+
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -1130,7 +1068,7 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_CLOSE);
-        builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
+
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -1160,7 +1098,7 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_CLOSE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
-        builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
+
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -1190,7 +1128,7 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_CLOSE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
+
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -1222,43 +1160,13 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_CLOSE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-        builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
+
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
             JSONObject root = sendRequest(request);
             assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
-    }
-
-    /**
-     * メソッドにGETを指定してonclose属性のリクエストテストを行う.
-     * <pre>
-     * 【HTTP通信】
-     * Method: GET
-     * Path: /notification/onclose?serviceId=xxxx&sessionKey=xxxx
-     * </pre>
-     * <pre>
-     * 【期待する動作】
-     * ・resultに1が返ってくること。
-     * </pre>
-     */
-    @Test
-    public void testDeleteOnCloseChangeInvalidMethodGet() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
-        builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_CLOSE);
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-        builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, TEST_SESSION_KEY);
-        builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -1282,13 +1190,13 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_CLOSE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-        builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, TEST_SESSION_KEY);
+
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.UNKNOWN_ATTRIBUTE.getCode(), root);
+            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -1311,7 +1219,7 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_ERROR);
-        builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
+
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -1341,7 +1249,7 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_ERROR);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
-        builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
+
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -1371,7 +1279,7 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_ERROR);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
+
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -1403,7 +1311,7 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_ERROR);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-        builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
+
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -1432,7 +1340,7 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_ERROR);
-        builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
+
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -1462,7 +1370,7 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_ERROR);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
-        builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
+
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -1492,7 +1400,7 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_ERROR);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
+
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -1524,43 +1432,13 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_ERROR);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-        builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
+
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
             JSONObject root = sendRequest(request);
             assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
-    }
-
-    /**
-     * メソッドにGETを指定してonerror属性のリクエストテストを行う.
-     * <pre>
-     * 【HTTP通信】
-     * Method: GET
-     * Path: /notification/onerror?serviceId=xxxx&sessionKey=xxxx
-     * </pre>
-     * <pre>
-     * 【期待する動作】
-     * ・resultに1が返ってくること。
-     * </pre>
-     */
-    @Test
-    public void testDeleteOnErrorChangeInvalidMethodGet() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
-        builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_ERROR);
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-        builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, TEST_SESSION_KEY);
-        builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -1584,7 +1462,7 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_ERROR);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-        builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, TEST_SESSION_KEY);
+
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {

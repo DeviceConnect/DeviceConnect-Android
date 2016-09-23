@@ -8,14 +8,10 @@ package org.deviceconnect.android.profile.restful.test;
 
 import android.support.test.runner.AndroidJUnit4;
 
-import junit.framework.Assert;
-
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpUriRequest;
-import org.deviceconnect.android.test.plugin.profile.TestFileDescriptorProfileConstants;
-import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.deviceconnect.profile.DConnectProfileConstants;
 import org.deviceconnect.profile.FileDescriptorProfileConstants;
@@ -66,8 +62,7 @@ public class NormalFileDescriptorProfileTestCase extends RESTfulDConnectTestCase
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject root = sendRequest(request);
-            Assert.assertNotNull("root is null.", root);
-            Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -100,8 +95,7 @@ public class NormalFileDescriptorProfileTestCase extends RESTfulDConnectTestCase
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject root = sendRequest(request);
-            Assert.assertNotNull("root is null.", root);
-            Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -136,12 +130,7 @@ public class NormalFileDescriptorProfileTestCase extends RESTfulDConnectTestCase
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject root = sendRequest(request);
-            Assert.assertNotNull("root is null.", root);
             assertResultOK(root);
-            Assert.assertEquals(TestFileDescriptorProfileConstants.BYTE,
-                    root.getInt(FileDescriptorProfileConstants.PARAM_SIZE));
-            Assert.assertEquals(TestFileDescriptorProfileConstants.FILE_DATA, 
-                    root.getString(FileDescriptorProfileConstants.PARAM_FILE_DATA));
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -178,12 +167,7 @@ public class NormalFileDescriptorProfileTestCase extends RESTfulDConnectTestCase
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject root = sendRequest(request);
-            Assert.assertNotNull("root is null.", root);
-            Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
-            Assert.assertEquals(TestFileDescriptorProfileConstants.BYTE,
-                    root.getInt(FileDescriptorProfileConstants.PARAM_SIZE));
-            Assert.assertEquals(TestFileDescriptorProfileConstants.FILE_DATA, 
-                    root.getString(FileDescriptorProfileConstants.PARAM_FILE_DATA));
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -281,20 +265,12 @@ public class NormalFileDescriptorProfileTestCase extends RESTfulDConnectTestCase
         builder.setProfile(FileDescriptorProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileDescriptorProfileConstants.ATTRIBUTE_ON_WATCH_FILE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-        builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, TEST_SESSION_KEY);
+
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject root = sendRequest(request);
-            Assert.assertNotNull("root is null.", root);
-            Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
-            JSONObject file = root.getJSONObject(FileDescriptorProfileConstants.PARAM_FILE);
-            Assert.assertEquals(TestFileDescriptorProfileConstants.PATH, 
-                    file.getString(FileDescriptorProfileConstants.PARAM_PATH));
-            Assert.assertEquals(TestFileDescriptorProfileConstants.CURR, 
-                    file.getString(FileDescriptorProfileConstants.PARAM_CURR));
-            Assert.assertEquals(TestFileDescriptorProfileConstants.PREV, 
-                    file.getString(FileDescriptorProfileConstants.PARAM_PREV));
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -321,22 +297,13 @@ public class NormalFileDescriptorProfileTestCase extends RESTfulDConnectTestCase
         builder.append("?");
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
-        builder.append(DConnectProfileConstants.PARAM_SESSION_KEY + "=" + getClientId());
-        builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         try {
             HttpPut request = new HttpPut(builder.toString());
             JSONObject root = sendRequest(request);
-            Assert.assertNotNull("root is null.", root);
-            Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
-            JSONObject response = waitForEvent();
-            JSONObject file = response.getJSONObject(FileDescriptorProfileConstants.PARAM_FILE);
-            Assert.assertEquals(TestFileDescriptorProfileConstants.PATH, 
-                    file.getString(FileDescriptorProfileConstants.PARAM_PATH));
-            Assert.assertEquals(TestFileDescriptorProfileConstants.CURR, 
-                    file.getString(FileDescriptorProfileConstants.PARAM_CURR));
-            Assert.assertEquals(TestFileDescriptorProfileConstants.PREV, 
-                    file.getString(FileDescriptorProfileConstants.PARAM_PREV));
+            assertResultOK(root);
+            JSONObject event = waitForEvent();
+            assertNotNull(event);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -362,8 +329,6 @@ public class NormalFileDescriptorProfileTestCase extends RESTfulDConnectTestCase
         builder.append("/" + FileDescriptorProfileConstants.ATTRIBUTE_ON_WATCH_FILE);
         builder.append("?");
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
-        builder.append("&");
-        builder.append(DConnectProfileConstants.PARAM_SESSION_KEY + "=" + getClientId());
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         try {

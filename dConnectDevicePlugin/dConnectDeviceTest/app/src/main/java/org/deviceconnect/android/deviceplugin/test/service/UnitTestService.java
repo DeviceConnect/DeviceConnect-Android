@@ -85,6 +85,7 @@ public class UnitTestService extends DConnectService {
                 };
                 profile.addApi(api);
             }
+            addProfile(profile);
         }
 
         addProfile(new TestUniqueProfile());

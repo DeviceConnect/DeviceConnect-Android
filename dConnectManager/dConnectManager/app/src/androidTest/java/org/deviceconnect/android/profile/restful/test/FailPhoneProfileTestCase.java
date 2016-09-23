@@ -7,10 +7,6 @@
 package org.deviceconnect.android.profile.restful.test;
 
 import android.support.test.runner.AndroidJUnit4;
-import org.junit.Before;
-import org.junit.After;
-import org.junit.Test;
-import org.junit.runner.RunWith;
 
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
@@ -26,6 +22,8 @@ import org.deviceconnect.profile.PhoneProfileConstants;
 import org.deviceconnect.utils.URIBuilder;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 
 
@@ -234,7 +232,7 @@ public class FailPhoneProfileTestCase extends RESTfulDConnectTestCase
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.UNKNOWN_ATTRIBUTE.getCode(), root);
+            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -263,7 +261,7 @@ public class FailPhoneProfileTestCase extends RESTfulDConnectTestCase
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.UNKNOWN_ATTRIBUTE.getCode(), root);
+            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -466,7 +464,7 @@ public class FailPhoneProfileTestCase extends RESTfulDConnectTestCase
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.UNKNOWN_ATTRIBUTE.getCode(), root);
+            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -495,7 +493,7 @@ public class FailPhoneProfileTestCase extends RESTfulDConnectTestCase
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.UNKNOWN_ATTRIBUTE.getCode(), root);
+            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -518,7 +516,7 @@ public class FailPhoneProfileTestCase extends RESTfulDConnectTestCase
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(PhoneProfileConstants.PROFILE_NAME);
         builder.setAttribute(PhoneProfileConstants.ATTRIBUTE_ON_CONNECT);
-        builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
+
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
@@ -547,7 +545,7 @@ public class FailPhoneProfileTestCase extends RESTfulDConnectTestCase
         builder.setProfile(PhoneProfileConstants.PROFILE_NAME);
         builder.setAttribute(PhoneProfileConstants.ATTRIBUTE_ON_CONNECT);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
-        builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
+
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
@@ -576,7 +574,7 @@ public class FailPhoneProfileTestCase extends RESTfulDConnectTestCase
         builder.setProfile(PhoneProfileConstants.PROFILE_NAME);
         builder.setAttribute(PhoneProfileConstants.ATTRIBUTE_ON_CONNECT);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
+
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
@@ -607,7 +605,7 @@ public class FailPhoneProfileTestCase extends RESTfulDConnectTestCase
         builder.setAttribute(PhoneProfileConstants.ATTRIBUTE_ON_CONNECT);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-        builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
+
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
@@ -635,7 +633,7 @@ public class FailPhoneProfileTestCase extends RESTfulDConnectTestCase
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(PhoneProfileConstants.PROFILE_NAME);
         builder.setAttribute(PhoneProfileConstants.ATTRIBUTE_ON_CONNECT);
-        builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
+
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
@@ -664,7 +662,7 @@ public class FailPhoneProfileTestCase extends RESTfulDConnectTestCase
         builder.setProfile(PhoneProfileConstants.PROFILE_NAME);
         builder.setAttribute(PhoneProfileConstants.ATTRIBUTE_ON_CONNECT);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
-        builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
+
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
@@ -693,7 +691,7 @@ public class FailPhoneProfileTestCase extends RESTfulDConnectTestCase
         builder.setProfile(PhoneProfileConstants.PROFILE_NAME);
         builder.setAttribute(PhoneProfileConstants.ATTRIBUTE_ON_CONNECT);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
+
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
@@ -724,7 +722,7 @@ public class FailPhoneProfileTestCase extends RESTfulDConnectTestCase
         builder.setAttribute(PhoneProfileConstants.ATTRIBUTE_ON_CONNECT);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-        builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
+
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
@@ -753,7 +751,7 @@ public class FailPhoneProfileTestCase extends RESTfulDConnectTestCase
         builder.setProfile(PhoneProfileConstants.PROFILE_NAME);
         builder.setAttribute(PhoneProfileConstants.ATTRIBUTE_ON_CONNECT);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-        builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, TEST_SESSION_KEY);
+
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
@@ -782,12 +780,12 @@ public class FailPhoneProfileTestCase extends RESTfulDConnectTestCase
         builder.setProfile(PhoneProfileConstants.PROFILE_NAME);
         builder.setAttribute(PhoneProfileConstants.ATTRIBUTE_ON_CONNECT);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-        builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, TEST_SESSION_KEY);
+
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.UNKNOWN_ATTRIBUTE.getCode(), root);
+            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }

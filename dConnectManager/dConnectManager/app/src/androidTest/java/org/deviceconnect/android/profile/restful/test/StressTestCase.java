@@ -207,7 +207,7 @@ public class StressTestCase extends RESTfulDConnectTestCase {
                     builder.setProfile("unique");
                     builder.setAttribute("event");
                     builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-                    builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, getClientId());
+
                     builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
                     builder.addParameter("key", Integer.toString(pos));
                     final HttpUriRequest request;

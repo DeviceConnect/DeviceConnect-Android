@@ -7,8 +7,6 @@
 package org.deviceconnect.android.profile.intent.test;
 
 import android.content.Intent;
-import android.os.Bundle;
-import android.os.Parcelable;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.deviceconnect.android.test.plugin.profile.TestFileProfileConstants;
@@ -59,16 +57,7 @@ public class NormalFileProfileTestCase extends IntentDConnectTestCase {
         request.putExtra(DConnectMessage.EXTRA_PROFILE, FileProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, FileProfileConstants.ATTRIBUTE_LIST);
         Intent response = sendRequest(request);
-
-        assertTrue(response.hasExtra(IntentDConnectMessage.EXTRA_RESULT));
-        assertEquals(IntentDConnectMessage.RESULT_OK, 
-                response.getIntExtra(IntentDConnectMessage.EXTRA_RESULT, -1));
-        Parcelable[] files = (Parcelable[]) response.getParcelableArrayExtra(FileProfileConstants.PARAM_FILES);
-        Bundle file = (Bundle) files[0];
-        assertEquals(TestFileProfileConstants.PATH, file.getString(FileProfileConstants.PARAM_PATH));
-        assertEquals(TestFileProfileConstants.MIME_TYPE, file.getString(FileProfileConstants.PARAM_MIME_TYPE));
-        assertEquals(TestFileProfileConstants.FILE_NAME, file.getString(FileProfileConstants.PARAM_FILE_NAME));
-        assertEquals(TestFileProfileConstants.BYTE, file.getInt(FileProfileConstants.PARAM_FILE_SIZE));
+        assertResultOK(response);
     }
 
     /**
@@ -99,16 +88,7 @@ public class NormalFileProfileTestCase extends IntentDConnectTestCase {
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, FileProfileConstants.ATTRIBUTE_LIST);
         request.putExtra(FileProfileConstants.PARAM_MIME_TYPE, TestFileProfileConstants.MIME_TYPE);
         Intent response = sendRequest(request);
-
-        assertTrue(response.hasExtra(IntentDConnectMessage.EXTRA_RESULT));
-        assertEquals(IntentDConnectMessage.RESULT_OK, 
-                response.getIntExtra(IntentDConnectMessage.EXTRA_RESULT, -1));
-        Parcelable[] files = (Parcelable[]) response.getParcelableArrayExtra(FileProfileConstants.PARAM_FILES);
-        Bundle file = (Bundle) files[0];
-        assertEquals(TestFileProfileConstants.PATH, file.getString(FileProfileConstants.PARAM_PATH));
-        assertEquals(TestFileProfileConstants.MIME_TYPE, file.getString(FileProfileConstants.PARAM_MIME_TYPE));
-        assertEquals(TestFileProfileConstants.FILE_NAME, file.getString(FileProfileConstants.PARAM_FILE_NAME));
-        assertEquals(TestFileProfileConstants.BYTE, file.getInt(FileProfileConstants.PARAM_FILE_SIZE));
+        assertResultOK(response);
     }
 
     /**
@@ -137,10 +117,6 @@ public class NormalFileProfileTestCase extends IntentDConnectTestCase {
         request.putExtra(FileProfileConstants.PARAM_PATH, TestFileProfileConstants.PATH);
         Intent response = sendRequest(request);
         assertResultOK(response);
-        assertNotNull(TestFileProfileConstants.MIME_TYPE, 
-                response.getStringExtra(FileProfileConstants.PARAM_MIME_TYPE));
-        assertNotNull(TestFileProfileConstants.URI,
-                response.getStringExtra(FileProfileConstants.PARAM_URI));
     }
 
     /**

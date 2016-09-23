@@ -156,7 +156,7 @@ public class FailSystemProfileTestCase extends RESTfulDConnectTestCase {
         builder.setProfile(SystemProfileConstants.PROFILE_NAME);
         builder.setInterface(SystemProfileConstants.INTERFACE_DEVICE);
         builder.setAttribute(SystemProfileConstants.ATTRIBUTE_EVENTS);
-        builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, getClientId());
+
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject root = sendRequest(request);
@@ -184,7 +184,7 @@ public class FailSystemProfileTestCase extends RESTfulDConnectTestCase {
         builder.setProfile(SystemProfileConstants.PROFILE_NAME);
         builder.setInterface(SystemProfileConstants.INTERFACE_DEVICE);
         builder.setAttribute(SystemProfileConstants.ATTRIBUTE_EVENTS);
-        builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, getClientId());
+
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
             JSONObject root = sendRequest(request);
@@ -212,7 +212,7 @@ public class FailSystemProfileTestCase extends RESTfulDConnectTestCase {
         builder.setProfile(SystemProfileConstants.PROFILE_NAME);
         builder.setInterface(SystemProfileConstants.INTERFACE_DEVICE);
         builder.setAttribute(SystemProfileConstants.ATTRIBUTE_EVENTS);
-        builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, getClientId());
+
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject root = sendRequest(request);
@@ -325,7 +325,7 @@ public class FailSystemProfileTestCase extends RESTfulDConnectTestCase {
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.UNKNOWN_ATTRIBUTE.getCode(), root);
+            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }

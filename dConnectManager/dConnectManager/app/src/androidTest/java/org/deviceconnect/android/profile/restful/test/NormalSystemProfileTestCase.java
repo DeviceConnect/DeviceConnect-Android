@@ -13,12 +13,10 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.deviceconnect.android.test.plugin.profile.TestSystemProfileConstants;
-import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.deviceconnect.profile.DConnectProfileConstants;
 import org.deviceconnect.profile.SystemProfileConstants;
 import org.deviceconnect.utils.URIBuilder;
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.After;
@@ -67,28 +65,8 @@ public class NormalSystemProfileTestCase extends RESTfulDConnectTestCase
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject resp = sendRequest(request);
-            assertResultOK(resp);
-            assertEquals(VERSION, 
-                    resp.getString(SystemProfileConstants.PARAM_VERSION));
-            JSONArray supports = resp.getJSONArray(SystemProfileConstants.PARAM_SUPPORTS);
-            assertNotNull(supports);
-            JSONArray plugins = resp.getJSONArray(SystemProfileConstants.PARAM_PLUGINS);
-            assertNotNull(plugins);
-            JSONObject testPlugin = null;
-            for (int i = 0; i < plugins.length(); i++) {
-                JSONObject plugin = plugins.getJSONObject(i);
-                if ("Device Connect Device Plugin for Test"
-                     .equals(plugin.getString(SystemProfileConstants.PARAM_NAME))) {
-                    testPlugin = plugin;
-                    break;
-                }
-            }
-            assertNotNull(testPlugin);
-            String id = testPlugin.getString(SystemProfileConstants.PARAM_ID);
-            assertNotNull(id);
-            mTestPluginID = id;
-            assertNotNull(testPlugin.getString(SystemProfileConstants.PARAM_NAME));
+            JSONObject root = sendRequest(request);
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -121,8 +99,8 @@ public class NormalSystemProfileTestCase extends RESTfulDConnectTestCase
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject resp = sendRequest(request);
-            assertResultOK(resp);
+            JSONObject root = sendRequest(request);
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -148,16 +126,14 @@ public class NormalSystemProfileTestCase extends RESTfulDConnectTestCase
         builder.setProfile("unique");
         builder.setAttribute("event");
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-        builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, getClientId());
+
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject root = sendRequest(request);
             assertResultOK(root);
-            JSONObject resp = waitForEvent();
-            assertNotNull("response is null.", resp);
-            assertEquals("unique", resp.getString(DConnectMessage.EXTRA_PROFILE));
-            assertEquals("event", resp.getString(DConnectMessage.EXTRA_ATTRIBUTE));
+            JSONObject event = waitForEvent();
+            assertNotNull(event);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -167,12 +143,12 @@ public class NormalSystemProfileTestCase extends RESTfulDConnectTestCase
         builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(SystemProfileConstants.PROFILE_NAME);
         builder.setAttribute(SystemProfileConstants.ATTRIBUTE_EVENTS);
-        builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, getClientId());
+
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject resp = sendRequest(request);
-            assertResultOK(resp);
+            JSONObject root = sendRequest(request);
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }

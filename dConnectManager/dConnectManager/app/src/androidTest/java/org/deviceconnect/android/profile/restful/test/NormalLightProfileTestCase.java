@@ -19,7 +19,6 @@ import org.deviceconnect.android.profile.LightProfile;
 import org.deviceconnect.android.test.plugin.profile.TestLightProfileConstants;
 import org.deviceconnect.profile.DConnectProfileConstants;
 import org.deviceconnect.utils.URIBuilder;
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.Test;
@@ -59,14 +58,6 @@ public class NormalLightProfileTestCase extends RESTfulDConnectTestCase implemen
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject response = sendRequest(request);
             assertResultOK(response);
-            assertTrue(response.has(LightProfile.PARAM_LIGHTS));
-            JSONArray lights = response.getJSONArray(LightProfile.PARAM_LIGHTS);
-            assertEquals("lights length is not equals.", lights.length(), 1);
-            JSONObject light = lights.getJSONObject(0);
-            assertEquals("lightId is not equals.", LIGHT_ID, light.getString(LightProfile.PARAM_LIGHT_ID));
-            assertEquals("name is not equals.", LIGHT_NAME, light.getString(LightProfile.PARAM_NAME));
-            assertEquals("on is not equals.", LIGHT_ON, light.getBoolean(LightProfile.PARAM_ON));
-            assertEquals("config is not equals.", LIGHT_CONFIG, light.getString(LightProfile.PARAM_CONFIG));
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -191,18 +182,6 @@ public class NormalLightProfileTestCase extends RESTfulDConnectTestCase implemen
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject response = sendRequest(request);
             assertResultOK(response);
-            assertTrue(response.has(LightProfile.PARAM_LIGHT_GROUPS));
-            JSONArray lightGroups = response.getJSONArray(LightProfile.PARAM_LIGHT_GROUPS);
-            assertEquals("lightGroups length is not equals.", lightGroups.length(), 1);
-            JSONObject lightGroup = lightGroups.getJSONObject(0);
-            assertEquals("groupId is not equals.", LIGHT_GROUP_ID, lightGroup.getString(LightProfile.PARAM_GROUP_ID));
-            assertEquals("groupName is not equals.", LIGHT_GROUP_NAME, lightGroup.getString(LightProfile.PARAM_NAME));
-            JSONArray lights = lightGroup.getJSONArray(LightProfile.PARAM_LIGHTS);
-            JSONObject light = lights.getJSONObject(0);
-            assertEquals("lightId is not equals.", LIGHT_ID, light.getString(LightProfile.PARAM_LIGHT_ID));
-            assertEquals("name is not equals.", LIGHT_NAME, light.getString(LightProfile.PARAM_NAME));
-            assertEquals("on is not equals.", LIGHT_ON, light.getBoolean(LightProfile.PARAM_ON));
-            assertEquals("config is not equals.", LIGHT_CONFIG, light.getString(LightProfile.PARAM_CONFIG));
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -329,7 +308,6 @@ public class NormalLightProfileTestCase extends RESTfulDConnectTestCase implemen
             HttpUriRequest request = new HttpPost(builder.toString());
             JSONObject response = sendRequest(request);
             assertResultOK(response);
-            assertEquals("groupId is not equals.", LIGHT_NEW_GROUP_ID, response.getString(LightProfile.PARAM_GROUP_ID));
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }

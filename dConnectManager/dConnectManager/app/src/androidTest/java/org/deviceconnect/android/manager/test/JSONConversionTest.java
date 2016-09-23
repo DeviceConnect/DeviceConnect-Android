@@ -43,7 +43,7 @@ public class JSONConversionTest extends RESTfulDConnectTestCase {
     public void testConversion() throws JSONException {
         StringBuilder builder = new StringBuilder();
         builder.append(DCONNECT_MANAGER_URI);
-        builder.append("/json_test");
+        builder.append("/jsonTest");
         builder.append("?");
         builder.append(DConnectMessage.EXTRA_SERVICE_ID + "=" + getServiceId());
         builder.append("&");

@@ -6,21 +6,16 @@
  */
 package org.deviceconnect.android.test;
 
-import android.app.ActivityManager;
-import android.app.ActivityManager.RunningServiceInfo;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.AssetManager;
 import android.net.Uri;
 import android.support.test.InstrumentationRegistry;
 import android.test.AndroidTestCase;
+import android.util.Log;
 
-import org.deviceconnect.android.observer.util.AndroidSocket;
-import org.deviceconnect.android.observer.util.SockStatUtil;
-import org.deviceconnect.android.observer.util.SocketState;
 import org.deviceconnect.android.test.plugin.profile.TestServiceDiscoveryProfileConstants;
 import org.deviceconnect.android.test.plugin.profile.TestSystemProfileConstants;
-import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 import org.deviceconnect.profile.BatteryProfileConstants;
 import org.deviceconnect.profile.ConnectProfileConstants;
 import org.deviceconnect.profile.DeviceOrientationProfileConstants;
@@ -44,7 +39,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.logging.Logger;
@@ -113,7 +107,7 @@ public abstract class DConnectTestCase extends AndroidTestCase {
             VibrationProfileConstants.PROFILE_NAME,
             "files",
             "unique",
-            "json_test",
+            "jsonTest",
             "abc" // 実際には実装しないプロファイル
     };
 
@@ -220,66 +214,24 @@ public abstract class DConnectTestCase extends AndroidTestCase {
                 "org.deviceconnect.android.manager.DConnectLaunchActivity");
         intent.addCategory(Intent.CATEGORY_DEFAULT);
         intent.addCategory(Intent.CATEGORY_BROWSABLE);
-        intent.putExtra(IntentDConnectMessage.EXTRA_ORIGIN, getOrigin());
-        intent.putExtra(IntentDConnectMessage.EXTRA_KEY, getHMACString());
-        intent.setData(Uri.parse("dconnect://start"));
+        intent.setData(Uri.parse("gotapi://start/server"));
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         getContext().startActivity(intent);
 
-        if (!isDConnectServiceRunning()) {
-            long timeout = 30 * 1000;
-            final long interval = 400;
-            while (!isDConnectServiceRunning()) {
+        long timeout = 30 * 1000;
+        final long interval = 250;
+        while (true) {
+            try {
+                isManagerAvailable();
+                break;
+            } catch (IllegalStateException e) {
                 timeout -= interval;
                 if (timeout <= 0) {
                     fail("Manager launching timeout.");
                 }
                 Thread.sleep(interval);
             }
-            Thread.sleep(1000);
         }
-    }
-
-    /**
-     * DConnectServiceが動作しているか確認する.
-     * @return 起動中の場合はtrue、それ以外はfalse
-     */
-    private boolean isDConnectServiceRunning() {
-        return isServiceRunning(getContext(), "org.deviceconnect.android.manager.DConnectService") && isDConnectServerRunning();
-    }
-
-    /**
-     * RESTfulサーバが動作しているか確認する.
-     * @return 動作している場合はtrue、それ以外はfalse
-     */
-    private boolean isDConnectServerRunning() {
-        ArrayList<AndroidSocket> sockets = SockStatUtil.getSocketList(getApplicationContext());
-        String packageName = getApplicationContext().getPackageName();
-        for (AndroidSocket socket : sockets) {
-            if (socket.getAppName().equals(packageName)
-                    && socket.getLocalPort() == 4035
-                    && socket.getState() == SocketState.TCP_LISTEN) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * サービスに起動確認を行う.
-     * @param c コンテキスト
-     * @param className クラス名
-     * @return 起動中の場合はtrue、それ以外はfalse
-     */
-    private boolean isServiceRunning(final Context c, final String className) {
-        ActivityManager am = (ActivityManager) c.getSystemService(Context.ACTIVITY_SERVICE);
-        List<RunningServiceInfo> runningService = am.getRunningServices(Integer.MAX_VALUE);
-        for (RunningServiceInfo i : runningService) {
-            if (className.equals(i.service.getClassName())) {
-                return true;
-            }
-        }
-        return false;
     }
 
     /**
@@ -507,6 +459,10 @@ public abstract class DConnectTestCase extends AndroidTestCase {
      */
     protected String getHMACString() {
         return toHexString(HMAC_KEY.getEncoded());
+    }
+
+    protected void log(final String message) {
+        Log.d(getClass().getSimpleName(), message);
     }
 
     /**

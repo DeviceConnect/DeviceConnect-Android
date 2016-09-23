@@ -7,8 +7,6 @@
 package org.deviceconnect.android.profile.intent.test;
 
 import android.content.Intent;
-import android.os.Bundle;
-import android.os.Parcelable;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.deviceconnect.android.test.plugin.profile.TestSystemProfileConstants;
@@ -49,27 +47,7 @@ public class NormalSystemProfileTestCase extends IntentDConnectTestCase
         Intent request = new Intent(IntentDConnectMessage.ACTION_GET);
         request.putExtra(DConnectMessage.EXTRA_PROFILE, SystemProfileConstants.PROFILE_NAME);
         Intent response = sendRequest(request);
-
         assertResultOK(response);
-        assertEquals(VERSION,
-                response.getStringExtra(SystemProfileConstants.PARAM_VERSION));
-        String[] supports = response.getStringArrayExtra(SystemProfileConstants.PARAM_SUPPORTS);
-        assertNotNull(supports);
-        Parcelable[] plugins = response.getParcelableArrayExtra(SystemProfileConstants.PARAM_PLUGINS);
-        assertNotNull(plugins);
-        Bundle testPlugin = null;
-        for (int i = 0; i < plugins.length; i++) {
-            Bundle plugin = (Bundle) plugins[i];
-            if ("Device Connect Device Plugin for Test".equals(plugin.getString(SystemProfileConstants.PARAM_NAME))) {
-                testPlugin = plugin;
-                break;
-            }
-        }
-        assertNotNull(testPlugin);
-        String id = testPlugin.getString(SystemProfileConstants.PARAM_ID);
-        assertNotNull(id);
-        mTestPluginID = id;
-        assertNotNull(testPlugin.getString(SystemProfileConstants.PARAM_NAME));
     }
 
     /**

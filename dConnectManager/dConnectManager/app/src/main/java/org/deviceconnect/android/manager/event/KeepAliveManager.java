@@ -60,7 +60,7 @@ public class KeepAliveManager {
      * KeepAlive機能無効.
      * @return 正常終了はtrue、それ以外はfalse.
      */
-    public Boolean disableKeepAlive() {
+    public synchronized Boolean disableKeepAlive() {
         setKeepAliveFunction(false);
         stopPeriodicProcess();
         if (!mManagementList.isEmpty()) {
@@ -76,7 +76,7 @@ public class KeepAliveManager {
      * KeepAlive機能有効.
      * @return 正常終了はtrue、それ以外はfalse.
      */
-    public Boolean enableKeepAlive() {
+    public synchronized Boolean enableKeepAlive() {
         setKeepAliveFunction(true);
         if (!mManagementList.isEmpty()) {
             if (!mManagementList.isEmpty()) {
@@ -119,7 +119,7 @@ public class KeepAliveManager {
      * 該当するデバイスプラグインを持つKeepAlive要素を削除する.
      * @param plugin デバイスプラグイン.
      */
-    public void removeManagementTable(final DevicePlugin plugin) {
+    public synchronized void removeManagementTable(final DevicePlugin plugin) {
         if (!(mManagementList.isEmpty())) {
             for (int i = 0; i < mManagementList.size(); i++) {
                 KeepAlive data = mManagementList.get(i);
@@ -145,7 +145,7 @@ public class KeepAliveManager {
      * @param plugin デバイスプラグイン.
      * @return KeepAliveデータ.
      */
-    public KeepAlive getKeepAlive(final DevicePlugin plugin) {
+    public synchronized KeepAlive getKeepAlive(final DevicePlugin plugin) {
         if (!(mManagementList.isEmpty())) {
             /** 要素数分ループ. */
             for (KeepAlive data : mManagementList) {
@@ -163,7 +163,7 @@ public class KeepAliveManager {
      * @param serviceId プラグインID.
      * @return KeepAliveデータ.
      */
-    public KeepAlive getKeepAlive(final String serviceId) {
+    public synchronized KeepAlive getKeepAlive(final String serviceId) {
         if (!(mManagementList.isEmpty())) {
             /** 要素数分ループ. */
             for (KeepAlive data : mManagementList) {
@@ -208,7 +208,7 @@ public class KeepAliveManager {
     /**
      * 定期処理
      */
-    private void periodicProcess() {
+    private synchronized void periodicProcess() {
         if (isEnableKeepAlive()) {
             for (KeepAlive data : mManagementList) {
                 if (data.getResponseFlag()) {

@@ -315,9 +315,9 @@ public class NormalMediaPlayerProfileTestCase extends IntentDConnectTestCase
     @Test
     public void testPutVolume() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_PUT);
-        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, MediaPlayerProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, MediaPlayerProfileConstants.ATTRIBUTE_VOLUME);
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(MediaPlayerProfileConstants.PARAM_VOLUME, TEST_VOLUME);
 
         Intent response = sendRequest(request);

@@ -12,7 +12,11 @@ import android.content.Intent;
 import org.deviceconnect.android.deviceplugin.test.profile.unique.TestJSONConversionProfile;
 import org.deviceconnect.android.deviceplugin.test.profile.unique.TestUniqueProfile;
 import org.deviceconnect.android.message.MessageUtils;
+import org.deviceconnect.android.profile.AuthorizationProfile;
 import org.deviceconnect.android.profile.DConnectProfile;
+import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
+import org.deviceconnect.android.profile.ServiceInformationProfile;
+import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.android.profile.api.DConnectApi;
 import org.deviceconnect.android.profile.spec.DConnectApiSpec;
 import org.deviceconnect.android.profile.spec.DConnectPluginSpec;
@@ -42,6 +46,13 @@ public class UnitTestService extends DConnectService {
         Map<String, DConnectProfileSpec> profileSpecs = pluginSpec.getProfileSpecs();
         for (Map.Entry<String, DConnectProfileSpec> entry : profileSpecs.entrySet()) {
             final String profileName = entry.getKey();
+            if (AuthorizationProfile.PROFILE_NAME.equalsIgnoreCase(profileName)
+                || ServiceDiscoveryProfile.PROFILE_NAME.equalsIgnoreCase(profileName)
+                || ServiceInformationProfile.PROFILE_NAME.equalsIgnoreCase(profileName)
+                || SystemProfile.PROFILE_NAME.equalsIgnoreCase(profileName)) {
+                continue;
+            }
+
             final DConnectProfileSpec profileSpec = entry.getValue();
             final DConnectProfile profile = new DConnectProfile() {
                 @Override

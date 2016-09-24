@@ -131,7 +131,7 @@ public class NormalLightProfileTestCase extends IntentDConnectTestCase implement
      */
     @Test
     public void testPutLight() {
-        Intent request = new Intent(IntentDConnectMessage.ACTION_POST);
+        Intent request = new Intent(IntentDConnectMessage.ACTION_PUT);
         request.putExtra(DConnectMessage.EXTRA_PROFILE, LightProfile.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(LightProfile.PARAM_LIGHT_ID, LIGHT_ID);

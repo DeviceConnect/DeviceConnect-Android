@@ -39,19 +39,19 @@ public class WebSocketInfoManager {
         mOnWebSocketEventListener = onWebSocketEventListener;
     }
 
-    public void addWebSocketInfo(final String eventKey, final String uri, final String webSocketId) {
+    public void addWebSocketInfo(final String receiverId, final String uri, final String webSocketId) {
         WebSocketInfo info = new WebSocketInfo();
-        info.setId(webSocketId);
+        info.setRawId(webSocketId);
         info.setUri(uri);
-        info.setEventKey(eventKey);
+        info.setReceiverId(receiverId);
         info.setConnectTime(System.currentTimeMillis());
-        mWebSocketInfoMap.put(eventKey, info);
+        mWebSocketInfoMap.put(receiverId, info);
     }
 
     public void removeWebSocketInfo(final String eventKey) {
         WebSocketInfo info = mWebSocketInfoMap.remove(eventKey);
         if (info != null) {
-            notifyDisconnectWebSocket(info.getEventKey());
+            notifyDisconnectWebSocket(info.getReceiverId());
 
             if (mOnWebSocketEventListener != null) {
                 mOnWebSocketEventListener.onDisconnect(eventKey);
@@ -59,8 +59,8 @@ public class WebSocketInfoManager {
         }
     }
 
-    public WebSocketInfo getWebSocketInfo(final String eventKey) {
-        return mWebSocketInfoMap.get(eventKey);
+    public WebSocketInfo getWebSocketInfo(final String receiverId) {
+        return mWebSocketInfoMap.get(receiverId);
     }
 
     public List<WebSocketInfo> getWebSocketInfos() {

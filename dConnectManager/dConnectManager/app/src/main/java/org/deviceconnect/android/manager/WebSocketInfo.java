@@ -12,25 +12,25 @@ package org.deviceconnect.android.manager;
  * @author NTT DOCOMO, INC.
  */
 public class WebSocketInfo {
-    private String mId;
-    private String mEventKey;
+    private String mRawId;
+    private String mReceiverId;
     private String mUri;
     private long mConnectTime;
 
-    public String getId() {
-        return mId;
+    public String getRawId() {
+        return mRawId;
     }
 
-    public void setId(final String id) {
-        mId = id;
+    public void setRawId(final String id) {
+        mRawId = id;
     }
 
-    public String getEventKey() {
-        return mEventKey;
+    public String getReceiverId() {
+        return mReceiverId;
     }
 
-    public void setEventKey(final String eventKey) {
-        mEventKey = eventKey;
+    public void setReceiverId(final String receiverId) {
+        mReceiverId = receiverId;
     }
 
     public String getUri() {

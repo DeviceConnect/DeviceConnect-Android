@@ -85,7 +85,7 @@ public class WebSocketListActivity extends Activity implements AlertDialogFragme
             Intent intent = new Intent();
             intent.setClass(this, DConnectService.class);
             intent.setAction(DConnectService.ACTION_DISCONNECT_WEB_SOCKET);
-            intent.putExtra(DConnectService.EXTRA_WEBSOCKET_ID, mWebSocketInfo.getId());
+            intent.putExtra(DConnectService.EXTRA_WEBSOCKET_ID, mWebSocketInfo.getRawId());
             startService(intent);
         }
     }
@@ -164,7 +164,7 @@ public class WebSocketListActivity extends Activity implements AlertDialogFragme
 
             TextView sessionKeyView = (TextView) view.findViewById(R.id.item_websocket_session_key);
             if (sessionKeyView != null) {
-                sessionKeyView.setText(info.getId());
+                sessionKeyView.setText(info.getRawId());
             }
 
             TextView timeView = (TextView) view.findViewById(R.id.item_websocket_connect_time);

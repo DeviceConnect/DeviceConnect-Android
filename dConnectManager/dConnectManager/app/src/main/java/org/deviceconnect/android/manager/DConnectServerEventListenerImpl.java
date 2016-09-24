@@ -152,13 +152,13 @@ public class DConnectServerEventListenerImpl implements DConnectServerEventListe
         DConnectApplication app = (DConnectApplication) service.getApplication();
         WebSocketInfo disconnected = null;
         for (WebSocketInfo info : app.getWebSocketInfoManager().getWebSocketInfos()) {
-            if (info.getId().equals(webSocketId)) {
+            if (info.getRawId().equals(webSocketId)) {
                 disconnected = info;
                 break;
             }
         }
         if (disconnected != null) {
-            app.getWebSocketInfoManager().removeWebSocketInfo(disconnected.getEventKey());
+            app.getWebSocketInfoManager().removeWebSocketInfo(disconnected.getReceiverId());
         }
     }
 

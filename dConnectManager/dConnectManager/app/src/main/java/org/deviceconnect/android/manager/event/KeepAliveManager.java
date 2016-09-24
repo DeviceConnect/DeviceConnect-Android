@@ -11,19 +11,23 @@ import android.content.Context;
 import android.content.Intent;
 
 import org.deviceconnect.android.manager.DConnectBroadcastReceiver;
+import org.deviceconnect.android.manager.DConnectService;
 import org.deviceconnect.android.manager.DevicePlugin;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
 import java.util.LinkedList;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.regex.Pattern;
+import java.util.logging.Logger;
 
 /**
  * Keep Alive Manager.
  * @author NTT DOCOMO, INC.
  */
 public class KeepAliveManager {
+    /** ロガー. */
+    private final Logger mLogger = Logger.getLogger("dconnect.manager");
+
     /** コンテキスト. */
     private final Context mContext;
     /** イベントセッション管理テーブル. */
@@ -193,15 +197,14 @@ public class KeepAliveManager {
 
     /**
      * DisconnectWebSocket送信.
-     * @param sessionKey セッションキー.
+     * @param receiverId イベントレシーバーID.
      */
-    private void sendDisconnectWebSeocket(final String sessionKey) {
-        String[] key = sessionKey.split(Pattern.quote("."), -1);
+    private void sendDisconnectWebSocket(final String receiverId) {
         Intent request = new Intent();
         request.setComponent(new ComponentName(mContext, DConnectBroadcastReceiver.class));
         request.setAction(IntentDConnectMessage.ACTION_KEEPALIVE);
         request.putExtra(IntentDConnectMessage.EXTRA_KEEPALIVE_STATUS, "DISCONNECT");
-        request.putExtra(IntentDConnectMessage.EXTRA_SESSION_KEY, key[0]);
+        request.putExtra(DConnectService.EXTRA_EVENT_RECEIVER_ID, receiverId);
         mContext.sendBroadcast(request);
     }
 
@@ -210,16 +213,20 @@ public class KeepAliveManager {
      */
     private synchronized void periodicProcess() {
         if (isEnableKeepAlive()) {
+            mLogger.info("periodicProcess: plugins = " + mManagementList.size());
             for (KeepAlive data : mManagementList) {
                 if (data.getResponseFlag()) {
+                    mLogger.info("Plugin " + data.getPlugin().getPackageName() + " is alive.");
                     data.resetResponseFlag();
                     sendKeepAlive(data.getPlugin(), "CHECK");
                 } else {
+                    mLogger.info("Plugin " + data.getPlugin().getPackageName() + " is dead.");
                     DevicePlugin plugin = data.getPlugin();
                     removeManagementTable(plugin);
                     // 該当プラグインIDに紐付くWebSocketの切断処理
                     for (EventSession session : mEventSessionTable.findEventSessionsForPlugin(plugin)) {
-                        sendDisconnectWebSeocket(session.getReceiverId());
+                        mLogger.info("Disconnecting with receiver: id = " + session.getReceiverId());
+                        sendDisconnectWebSocket(session.getReceiverId());
                         mEventSessionTable.remove(session);
                     }
                 }

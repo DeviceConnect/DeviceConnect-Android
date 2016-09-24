@@ -24,8 +24,8 @@ public class DevicePlugin {
     private String mClassName;
     /** デバイスプラグインのバージョン名. */
     private String mVersionName;
-    /** サービスID. */
-    private String mServiceId;
+    /** プラグインD. */
+    private String mPluginId;
     /** デバイスプラグイン名. */
     private String mDeviceName;
     /** Class name of service for restart. */
@@ -86,15 +86,15 @@ public class DevicePlugin {
      * デバイスプラグインIDを取得する.
      * @return デバイスプラグインID
      */
-    public String getServiceId() {
-        return mServiceId;
+    public String getPluginId() {
+        return mPluginId;
     }
     /**
      * デバイスプラグインIDを設定する.
-     * @param serviceId デバイスプラグインID
+     * @param pluginId デバイスプラグインID
      */
-    public void setServiceId(final String serviceId) {
-        this.mServiceId = serviceId;
+    public void setPluginId(final String pluginId) {
+        this.mPluginId = pluginId;
     }
     /**
      * デバイスプラグイン名を取得する.
@@ -176,7 +176,7 @@ public class DevicePlugin {
     
     @Override
     public String toString() {
-        return "ServiceId: " + mServiceId + "DeviceName: " + mDeviceName
+        return "ServiceId: " + mPluginId + "DeviceName: " + mDeviceName
                 + " package: " + mPackageName + " class: " + mClassName;
     }
 }

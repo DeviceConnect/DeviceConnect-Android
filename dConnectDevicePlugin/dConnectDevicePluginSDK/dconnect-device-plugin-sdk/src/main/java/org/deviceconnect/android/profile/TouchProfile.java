@@ -6,11 +6,9 @@
  */
 package org.deviceconnect.android.profile;
 
-import org.deviceconnect.android.message.MessageUtils;
-import org.deviceconnect.profile.TouchProfileConstants;
-
-import android.content.Intent;
 import android.os.Bundle;
+
+import org.deviceconnect.profile.TouchProfileConstants;
 
 /**
  * Touch Profile.
@@ -20,55 +18,7 @@ import android.os.Bundle;
  * Device plug-in that provides a touch operation function by extending this
  * class, and implements the corresponding API that.<br>
  * </p>
- * 
- * <h1>API provides methods</h1>
- * <p>
- * The request to each API of Touch Profile, following callback method group is
- * automatically invoked.<br>
- * Subclass is to implement the functionality by overriding the method for the
- * API provided by the device plug-in from the following methods group.<br>
- * Features that are not overridden automatically return the response as
- * non-compliant API.
- * </p>
- * <ul>
- * <li>Touch API [GET] :
- * {@link TouchProfile#onGetOnTouch(Intent, Intent, String)}</li>
- * <li>Touch Start API [GET] :
- * {@link TouchProfile#onGetOnTouchStart(Intent, Intent, String)}</li>
- * <li>Touch End API [GET] :
- * {@link TouchProfile#onGetOnTouchEnd(Intent, Intent, String)}</li>
- * <li>Double Tap API [GET] :
- * {@link TouchProfile#onGetOnDoubleTap(Intent, Intent, String)}</li>
- * <li>Touch Move API [GET] :
- * {@link TouchProfile#onGetOnTouchMove(Intent, Intent, String)}</li>
- * <li>Touch Cancel API [GET] :
- * {@link TouchProfile#onGetOnTouchCancel(Intent, Intent, String)}</li>
- * <li>Touch Event API [Register] :
- * {@link TouchProfile#onPutOnTouch(Intent, Intent, String, String)}</li>
- * <li>Touch API [Unregister] :
- * {@link TouchProfile#onDeleteOnTouch(Intent, Intent, String, String)}</li>
- * <li>Touch Start Event API [Register] :
- * {@link TouchProfile#onPutOnTouchStart(Intent, Intent, String, String)}</li>
- * <li>Touch Start API [Unregister] :
- * {@link TouchProfile#onDeleteOnTouchStart(Intent, Intent, String, String)}</li>
- * <li>Touch End Event API [Register] :
- * {@link TouchProfile#onPutOnTouchEnd(Intent, Intent, String, String)}</li>
- * <li>Touch End API [Unregister] :
- * {@link TouchProfile#onDeleteOnTouchEnd(Intent, Intent, String, String)}</li>
- * <li>Double Tap Event API [Register] :
- * {@link TouchProfile#onPutOnDoubleTap(Intent, Intent, String, String)}</li>
- * <li>Double Tap API [Unregister] :
- * {@link TouchProfile#onDeleteOnDoubleTap(Intent, Intent, String, String)}</li>
- * <li>Touch Move Event API [Register] :
- * {@link TouchProfile#onPutOnTouchMove(Intent, Intent, String, String)}</li>
- * <li>Touch Move API [Unregister] :
- * {@link TouchProfile#onDeleteOnTouchMove(Intent, Intent, String, String)}</li>
- * <li>Touch Cancel Event API [Register] :
- * {@link TouchProfile#onPutOnTouchCancel(Intent, Intent, String, String)}</li>
- * <li>Touch Cancel API [Unregister] :
- * {@link TouchProfile#onDeleteOnTouchCancel(Intent, Intent, String, String)}</li>
- * </ul>
- * 
+ *
  * @author NTT DOCOMO, INC.
  */
 public class TouchProfile extends DConnectProfile implements TouchProfileConstants {

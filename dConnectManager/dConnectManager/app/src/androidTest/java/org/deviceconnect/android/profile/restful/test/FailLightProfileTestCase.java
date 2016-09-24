@@ -6,11 +6,8 @@
  */
 package org.deviceconnect.android.profile.restful.test;
 
+import android.graphics.Color;
 import android.support.test.runner.AndroidJUnit4;
-import org.junit.Before;
-import org.junit.After;
-import org.junit.Test;
-import org.junit.runner.RunWith;
 
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
@@ -24,8 +21,8 @@ import org.deviceconnect.profile.DConnectProfileConstants;
 import org.deviceconnect.utils.URIBuilder;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import android.graphics.Color;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 /**
  * Lightプロファイルの異常系テスト.
@@ -299,7 +296,7 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
      * </pre>
      * <pre>
      * 【期待する動作】
-     * ・resultに1が返ってくること。
+     * ・resultに0が返ってくること。
      * </pre>
      */
     @Test
@@ -315,7 +312,7 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
             JSONObject response = sendRequest(request);
-            assertResultError(response);
+            assertResultOK(response);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -330,7 +327,7 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
      * </pre>
      * <pre>
      * 【期待する動作】
-     * ・resultに1が返ってくること。
+     * ・resultに0が返ってくること。
      * </pre>
      */
     @Test
@@ -346,7 +343,7 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
             JSONObject response = sendRequest(request);
-            assertResultError(response);
+            assertResultOK(response);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -362,7 +359,7 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
      * <pre>
      * 【期待する動作】
      * ・先に定義された属性が優先されること。
-     * ・resultに1が返ってくること。
+     * ・resultに0が返ってくること。
      * </pre>
      */
     @Test
@@ -379,7 +376,7 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
             JSONObject response = sendRequest(request);
-            assertResultError(response);
+            assertResultOK(response);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -706,7 +703,7 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
      * </pre>
      * <pre>
      * 【期待する動作】
-     * ・resultに1が返ってくること。
+     * ・resultに0が返ってくること。
      * </pre>
      */
     @Test
@@ -722,7 +719,7 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
             JSONObject response = sendRequest(request);
-            assertResultError(response);
+            assertResultOK(response);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -737,7 +734,7 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
      * </pre>
      * <pre>
      * 【期待する動作】
-     * ・resultに1が返ってくること。
+     * ・resultに0が返ってくること。
      * </pre>
      */
     @Test
@@ -754,7 +751,7 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
             JSONObject response = sendRequest(request);
-            assertResultError(response);
+            assertResultOK(response);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -893,7 +890,7 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
      * </pre>
      * <pre>
      * 【期待する動作】
-     * ・resultに1が返ってくること。
+     * ・resultに0が返ってくること。
      * </pre>
      */
     @Test
@@ -909,7 +906,7 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
             JSONObject response = sendRequest(request);
-            assertResultError(response);
+            assertResultOK(response);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -1063,7 +1060,7 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
      * </pre>
      * <pre>
      * 【期待する動作】
-     * ・resultに1が返ってくること。
+     * ・resultに0が返ってくること。
      * </pre>
      */
     @Test
@@ -1076,7 +1073,7 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
             JSONObject response = sendRequest(request);
-            assertResultError(response);
+            assertResultOK(response);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -1091,7 +1088,7 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
      * </pre>
      * <pre>
      * 【期待する動作】
-     * ・resultに1が返ってくること。
+     * ・resultに0が返ってくること。
      * </pre>
      */
     @Test
@@ -1104,7 +1101,7 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
             JSONObject response = sendRequest(request);
-            assertResultError(response);
+            assertResultOK(response);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -1119,7 +1116,7 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
      * </pre>
      * <pre>
      * 【期待する動作】
-     * ・resultに1が返ってくること。
+     * ・resultに0が返ってくること。
      * </pre>
      */
     @Test
@@ -1133,7 +1130,7 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
             JSONObject response = sendRequest(request);
-            assertResultError(response);
+            assertResultOK(response);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -1311,7 +1308,7 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
      * </pre>
      * <pre>
      * 【期待する動作】
-     * ・resultに1が返ってくること。
+     * ・resultに0が返ってくること。
      * </pre>
      */
     @Test
@@ -1328,7 +1325,7 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject response = sendRequest(request);
-            assertResultError(response);
+            assertResultOK(response);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -1343,7 +1340,7 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
      * </pre>
      * <pre>
      * 【期待する動作】
-     * ・resultに1が返ってくること。
+     * ・resultに0が返ってくること。
      * </pre>
      */
     @Test
@@ -1360,7 +1357,7 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject response = sendRequest(request);
-            assertResultError(response);
+            assertResultOK(response);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -1376,7 +1373,7 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
      * <pre>
      * 【期待する動作】
      * ・先に定義された属性が優先されること。
-     * ・resultに1が返ってくること。
+     * ・resultに0が返ってくること。
      * </pre>
      */
     @Test
@@ -1394,7 +1391,7 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject response = sendRequest(request);
-            assertResultError(response);
+            assertResultOK(response);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -1440,7 +1437,7 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
      * </pre>
      * <pre>
      * 【期待する動作】
-     * ・resultに1が返ってくること。
+     * ・resultに0が返ってくること。
      * </pre>
      */
     @Test
@@ -1457,7 +1454,7 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject response = sendRequest(request);
-            assertResultError(response);
+            assertResultOK(response);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -1472,7 +1469,7 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
      * </pre>
      * <pre>
      * 【期待する動作】
-     * ・resultに1が返ってくること。
+     * ・resultに0が返ってくること。
      * </pre>
      */
     @Test
@@ -1490,7 +1487,7 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject response = sendRequest(request);
-            assertResultError(response);
+            assertResultOK(response);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -1827,7 +1824,7 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
      * </pre>
      * <pre>
      * 【期待する動作】
-     * ・resultに1が返ってくること。
+     * ・resultに0が返ってくること。
      * </pre>
      */
     @Test
@@ -1844,7 +1841,7 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject response = sendRequest(request);
-            assertResultError(response);
+            assertResultOK(response);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -1859,7 +1856,7 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
      * </pre>
      * <pre>
      * 【期待する動作】
-     * ・resultに1が返ってくること。
+     * ・resultに0が返ってくること。
      * </pre>
      */
     @Test
@@ -1877,7 +1874,7 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject response = sendRequest(request);
-            assertResultError(response);
+            assertResultOK(response);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -2020,7 +2017,7 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
      * </pre>
      * <pre>
      * 【期待する動作】
-     * ・resultに1が返ってくること。
+     * ・resultに0が返ってくること。
      * </pre>
      */
     @Test
@@ -2037,7 +2034,7 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject response = sendRequest(request);
-            assertResultError(response);
+            assertResultOK(response);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -3969,7 +3966,7 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
      * </pre>
      * <pre>
      * 【期待する動作】
-     * ・resultに1が返ってくること。
+     * ・resultに0が返ってくること。
      * </pre>
      */
     @Test
@@ -3987,7 +3984,7 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject response = sendRequest(request);
-            assertResultError(response);
+            assertResultOK(response);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }

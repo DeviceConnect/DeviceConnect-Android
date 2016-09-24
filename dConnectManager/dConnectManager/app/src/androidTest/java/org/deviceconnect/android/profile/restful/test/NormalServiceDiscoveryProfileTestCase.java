@@ -10,7 +10,6 @@ import android.support.test.runner.AndroidJUnit4;
 
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpUriRequest;
-import org.deviceconnect.android.test.plugin.profile.TestServiceDiscoveryProfileConstants;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 import org.deviceconnect.utils.URIBuilder;
@@ -56,12 +55,6 @@ public class NormalServiceDiscoveryProfileTestCase extends RESTfulDConnectTestCa
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject response = sendRequest(request);
             assertResultOK(response);
-            JSONArray services = response.getJSONArray(
-                    ServiceDiscoveryProfileConstants.PARAM_SERVICES);
-            assertTrue(services.length() > 0);
-            JSONObject service = getServiceByName(services,
-                    TestServiceDiscoveryProfileConstants.DEVICE_NAME);
-            assertNotNull(service);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }

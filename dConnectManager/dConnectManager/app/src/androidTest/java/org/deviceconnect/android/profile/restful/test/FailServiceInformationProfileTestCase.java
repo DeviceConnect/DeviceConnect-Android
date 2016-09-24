@@ -13,7 +13,6 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpUriRequest;
-import org.deviceconnect.android.test.plugin.profile.TestSystemProfileConstants;
 import org.deviceconnect.message.DConnectMessage.ErrorCode;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.deviceconnect.profile.DConnectProfileConstants;
@@ -134,10 +133,6 @@ public class FailServiceInformationProfileTestCase extends RESTfulDConnectTestCa
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject resp = sendRequest(request);
             assertResultOK(resp);
-            assertEquals(TestSystemProfileConstants.VERSION, 
-                    resp.getString(ServiceInformationProfileConstants.PARAM_VERSION));
-            JSONObject connect = resp.getJSONObject(ServiceInformationProfileConstants.PARAM_CONNECT);
-            assertNotNull(connect);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }

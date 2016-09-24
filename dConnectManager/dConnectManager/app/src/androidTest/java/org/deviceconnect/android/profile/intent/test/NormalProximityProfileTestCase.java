@@ -7,10 +7,8 @@
 package org.deviceconnect.android.profile.intent.test;
 
 import android.content.Intent;
-import android.os.Bundle;
 import android.support.test.runner.AndroidJUnit4;
 
-import org.deviceconnect.android.test.plugin.profile.TestProximityProfileConstants;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 import org.deviceconnect.profile.ProximityProfileConstants;
@@ -48,21 +46,13 @@ public class NormalProximityProfileTestCase extends IntentDConnectTestCase {
         request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, ProximityProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, ProximityProfileConstants.ATTRIBUTE_ON_DEVICE_PROXIMITY);
-        request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
+
         Intent response = sendRequest(request);
 
         assertResultOK(response);
 
         Intent event = waitForEvent();
-        Bundle obj = event.getBundleExtra(ProximityProfileConstants.PARAM_PROXIMITY);
-        assertEquals(Double.valueOf(TestProximityProfileConstants.VALUE), 
-                obj.getDouble(ProximityProfileConstants.PARAM_VALUE));
-        assertEquals(Double.valueOf(TestProximityProfileConstants.THRESHOLD), 
-                obj.getDouble(ProximityProfileConstants.PARAM_THRESHOLD));
-        assertEquals(Double.valueOf(TestProximityProfileConstants.MAX), 
-                obj.getDouble(ProximityProfileConstants.PARAM_MAX));
-        assertEquals(Double.valueOf(TestProximityProfileConstants.MIN), 
-                obj.getDouble(ProximityProfileConstants.PARAM_MIN));
+        assertNotNull(event);
     }
 
     /**
@@ -86,7 +76,7 @@ public class NormalProximityProfileTestCase extends IntentDConnectTestCase {
         request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, ProximityProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, ProximityProfileConstants.ATTRIBUTE_ON_DEVICE_PROXIMITY);
-        request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
+
         Intent response = sendRequest(request);
 
         assertResultOK(response);
@@ -113,15 +103,12 @@ public class NormalProximityProfileTestCase extends IntentDConnectTestCase {
         request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, ProximityProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, ProximityProfileConstants.ATTRIBUTE_ON_USER_PROXIMITY);
-        request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
-        Intent response = sendRequest(request);
 
+        Intent response = sendRequest(request);
         assertResultOK(response);
 
         Intent event = waitForEvent();
-        Bundle obj = event.getBundleExtra(ProximityProfileConstants.PARAM_PROXIMITY);
-        assertEquals(TestProximityProfileConstants.NEAR, 
-                obj.getBoolean(ProximityProfileConstants.PARAM_NEAR));
+        assertNotNull(event);
     }
 
     /**
@@ -145,7 +132,7 @@ public class NormalProximityProfileTestCase extends IntentDConnectTestCase {
         request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, ProximityProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, ProximityProfileConstants.ATTRIBUTE_ON_USER_PROXIMITY);
-        request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
+
         Intent response = sendRequest(request);
 
         assertResultOK(response);

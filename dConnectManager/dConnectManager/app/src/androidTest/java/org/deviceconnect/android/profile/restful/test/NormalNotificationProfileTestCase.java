@@ -68,10 +68,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
             JSONObject root = sendRequest(request);
-            Assert.assertNotNull("root is null.", root);
-            Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
-            Assert.assertEquals("notificationid is not equals.", TestNotificationProfileConstants.NOTIFICATION_ID[type],
-                    root.getString(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -110,10 +107,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
             JSONObject root = sendRequest(request);
-            Assert.assertNotNull("root is null.", root);
-            Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
-            Assert.assertEquals("notificationid is not equals.", TestNotificationProfileConstants.NOTIFICATION_ID[type],
-                    root.getString(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -152,10 +146,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
             JSONObject root = sendRequest(request);
-            Assert.assertNotNull("root is null.", root);
-            Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
-            Assert.assertEquals("notificationid is not equals.", TestNotificationProfileConstants.NOTIFICATION_ID[type],
-                    root.getString(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -194,10 +185,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
             JSONObject root = sendRequest(request);
-            Assert.assertNotNull("root is null.", root);
-            Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
-            Assert.assertEquals("notificationid is not equals.", TestNotificationProfileConstants.NOTIFICATION_ID[type],
-                    root.getString(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -238,10 +226,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
             JSONObject root = sendRequest(request);
-            Assert.assertNotNull("root is null.", root);
-            Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
-            Assert.assertEquals("notificationid is not equals.", TestNotificationProfileConstants.NOTIFICATION_ID[type],
-                    root.getString(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -282,10 +267,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
             JSONObject root = sendRequest(request);
-            Assert.assertNotNull("root is null.", root);
-            Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
-            Assert.assertEquals("notificationid is not equals.", TestNotificationProfileConstants.NOTIFICATION_ID[type],
-                    root.getString(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -326,10 +308,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
             JSONObject root = sendRequest(request);
-            Assert.assertNotNull("root is null.", root);
-            Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
-            Assert.assertEquals("notificationid is not equals.", TestNotificationProfileConstants.NOTIFICATION_ID[type],
-                    root.getString(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -369,10 +348,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
             HttpPost request = new HttpPost(builder.toString());
 
             JSONObject root = sendRequest(request);
-            Assert.assertNotNull("root is null.", root);
-            Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
-            Assert.assertEquals("notificationid is not equals.", TestNotificationProfileConstants.NOTIFICATION_ID[0],
-                    root.getString(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -412,10 +388,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
             HttpPost request = new HttpPost(builder.toString());
 
             JSONObject root = sendRequest(request);
-            Assert.assertNotNull("root is null.", root);
-            Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
-            Assert.assertEquals("notificationid is not equals.", TestNotificationProfileConstants.NOTIFICATION_ID[0],
-                    root.getString(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -457,10 +430,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
             HttpPost request = new HttpPost(builder.toString());
 
             JSONObject root = sendRequest(request);
-            Assert.assertNotNull("root is null.", root);
-            Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
-            Assert.assertEquals("notificationid is not equals.", TestNotificationProfileConstants.NOTIFICATION_ID[0],
-                    root.getString(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -500,10 +470,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
             HttpPost request = new HttpPost(builder.toString());
 
             JSONObject root = sendRequest(request);
-            Assert.assertNotNull("root is null.", root);
-            Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
-            Assert.assertEquals("notificationid is not equals.", TestNotificationProfileConstants.NOTIFICATION_ID[0],
-                    root.getString(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -545,10 +512,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
             HttpPost request = new HttpPost(builder.toString());
 
             JSONObject root = sendRequest(request);
-            Assert.assertNotNull("root is null.", root);
-            Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
-            Assert.assertEquals("notificationid is not equals.", TestNotificationProfileConstants.NOTIFICATION_ID[0],
-                    root.getString(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -590,10 +554,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
             HttpPost request = new HttpPost(builder.toString());
 
             JSONObject root = sendRequest(request);
-            Assert.assertNotNull("root is null.", root);
-            Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
-            Assert.assertEquals("notificationid is not equals.", TestNotificationProfileConstants.NOTIFICATION_ID[0],
-                    root.getString(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -637,10 +598,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
             HttpPost request = new HttpPost(builder.toString());
 
             JSONObject root = sendRequest(request);
-            Assert.assertNotNull("root is null.", root);
-            Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
-            Assert.assertEquals("notificationid is not equals.", TestNotificationProfileConstants.NOTIFICATION_ID[0],
-                    root.getString(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -680,10 +638,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
             HttpPost request = new HttpPost(builder.toString());
 
             JSONObject root = sendRequest(request);
-            Assert.assertNotNull("root is null.", root);
-            Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
-            Assert.assertEquals("notificationid is not equals.", TestNotificationProfileConstants.NOTIFICATION_ID[0],
-                    root.getString(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -725,10 +680,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
             HttpPost request = new HttpPost(builder.toString());
 
             JSONObject root = sendRequest(request);
-            Assert.assertNotNull("root is null.", root);
-            Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
-            Assert.assertEquals("notificationid is not equals.", TestNotificationProfileConstants.NOTIFICATION_ID[0],
-                    root.getString(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -770,10 +722,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
             HttpPost request = new HttpPost(builder.toString());
 
             JSONObject root = sendRequest(request);
-            Assert.assertNotNull("root is null.", root);
-            Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
-            Assert.assertEquals("notificationid is not equals.", TestNotificationProfileConstants.NOTIFICATION_ID[0],
-                    root.getString(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -817,10 +766,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
             HttpPost request = new HttpPost(builder.toString());
 
             JSONObject root = sendRequest(request);
-            Assert.assertNotNull("root is null.", root);
-            Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
-            Assert.assertEquals("notificationid is not equals.", TestNotificationProfileConstants.NOTIFICATION_ID[0],
-                    root.getString(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -862,10 +808,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
             HttpPost request = new HttpPost(builder.toString());
 
             JSONObject root = sendRequest(request);
-            Assert.assertNotNull("root is null.", root);
-            Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
-            Assert.assertEquals("notificationid is not equals.", TestNotificationProfileConstants.NOTIFICATION_ID[0],
-                    root.getString(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -909,10 +852,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
             HttpPost request = new HttpPost(builder.toString());
 
             JSONObject root = sendRequest(request);
-            Assert.assertNotNull("root is null.", root);
-            Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
-            Assert.assertEquals("notificationid is not equals.", TestNotificationProfileConstants.NOTIFICATION_ID[0],
-                    root.getString(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -956,10 +896,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
             HttpPost request = new HttpPost(builder.toString());
 
             JSONObject root = sendRequest(request);
-            Assert.assertNotNull("root is null.", root);
-            Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
-            Assert.assertEquals("notificationid is not equals.", TestNotificationProfileConstants.NOTIFICATION_ID[0],
-                    root.getString(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -1005,10 +942,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
             HttpPost request = new HttpPost(builder.toString());
 
             JSONObject root = sendRequest(request);
-            Assert.assertNotNull("root is null.", root);
-            Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
-            Assert.assertEquals("notificationid is not equals.", TestNotificationProfileConstants.NOTIFICATION_ID[0],
-                    root.getString(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -1051,10 +985,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         body.put(NotificationProfileConstants.PARAM_ICON, data);
         try {
             JSONObject root = sendRequest("POST", builder.toString(), null, body);
-            Assert.assertNotNull("root is null.", root);
-            Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
-            Assert.assertEquals("notificationid is not equals.", TestNotificationProfileConstants.NOTIFICATION_ID[0],
-                    root.getString(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -1099,10 +1030,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         body.put(NotificationProfileConstants.PARAM_ICON, data);
         try {
             JSONObject root = sendRequest("POST", builder.toString(), null, body);
-            Assert.assertNotNull("root is null.", root);
-            Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
-            Assert.assertEquals("notificationid is not equals.", TestNotificationProfileConstants.NOTIFICATION_ID[0],
-                    root.getString(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -1147,10 +1075,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         body.put(NotificationProfileConstants.PARAM_ICON, data);
         try {
             JSONObject root = sendRequest("POST", builder.toString(), null, body);
-            Assert.assertNotNull("root is null.", root);
-            Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
-            Assert.assertEquals("notificationid is not equals.", TestNotificationProfileConstants.NOTIFICATION_ID[0],
-                    root.getString(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -1197,10 +1122,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         body.put(NotificationProfileConstants.PARAM_ICON, data);
         try {
             JSONObject root = sendRequest("POST", builder.toString(), null, body);
-            Assert.assertNotNull("root is null.", root);
-            Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
-            Assert.assertEquals("notificationid is not equals.", TestNotificationProfileConstants.NOTIFICATION_ID[0],
-                    root.getString(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -1245,10 +1167,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         body.put(NotificationProfileConstants.PARAM_ICON, data);
         try {
             JSONObject root = sendRequest("POST", builder.toString(), null, body);
-            Assert.assertNotNull("root is null.", root);
-            Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
-            Assert.assertEquals("notificationid is not equals.", TestNotificationProfileConstants.NOTIFICATION_ID[0],
-                    root.getString(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -1295,10 +1214,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         body.put(NotificationProfileConstants.PARAM_ICON, data);
         try {
             JSONObject root = sendRequest("POST", builder.toString(), null, body);
-            Assert.assertNotNull("root is null.", root);
-            Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
-            Assert.assertEquals("notificationid is not equals.", TestNotificationProfileConstants.NOTIFICATION_ID[0],
-                    root.getString(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -1345,10 +1261,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         body.put(NotificationProfileConstants.PARAM_ICON, data);
         try {
             JSONObject root = sendRequest("POST", builder.toString(), null, body);
-            Assert.assertNotNull("root is null.", root);
-            Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
-            Assert.assertEquals("notificationid is not equals.", TestNotificationProfileConstants.NOTIFICATION_ID[0],
-                    root.getString(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -1397,10 +1310,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         body.put(NotificationProfileConstants.PARAM_ICON, data);
         try {
             JSONObject root = sendRequest("POST", builder.toString(), null, body);
-            Assert.assertNotNull("root is null.", root);
-            Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
-            Assert.assertEquals("notificationid is not equals.", TestNotificationProfileConstants.NOTIFICATION_ID[0],
-                    root.getString(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -1445,10 +1355,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         body.put(NotificationProfileConstants.PARAM_ICON, data);
         try {
             JSONObject root = sendRequest("POST", builder.toString(), null, body);
-            Assert.assertNotNull("root is null.", root);
-            Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
-            Assert.assertEquals("notificationid is not equals.", TestNotificationProfileConstants.NOTIFICATION_ID[0],
-                    root.getString(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -1495,10 +1402,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         body.put(NotificationProfileConstants.PARAM_ICON, data);
         try {
             JSONObject root = sendRequest("POST", builder.toString(), null, body);
-            Assert.assertNotNull("root is null.", root);
-            Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
-            Assert.assertEquals("notificationid is not equals.", TestNotificationProfileConstants.NOTIFICATION_ID[0],
-                    root.getString(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -1545,10 +1449,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         body.put(NotificationProfileConstants.PARAM_ICON, data);
         try {
             JSONObject root = sendRequest("POST", builder.toString(), null, body);
-            Assert.assertNotNull("root is null.", root);
-            Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
-            Assert.assertEquals("notificationid is not equals.", TestNotificationProfileConstants.NOTIFICATION_ID[0],
-                    root.getString(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -1597,10 +1498,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         body.put(NotificationProfileConstants.PARAM_ICON, data);
         try {
             JSONObject root = sendRequest("POST", builder.toString(), null, body);
-            Assert.assertNotNull("root is null.", root);
-            Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
-            Assert.assertEquals("notificationid is not equals.", TestNotificationProfileConstants.NOTIFICATION_ID[0],
-                    root.getString(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -1647,10 +1545,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         body.put(NotificationProfileConstants.PARAM_ICON, data);
         try {
             JSONObject root = sendRequest("POST", builder.toString(), null, body);
-            Assert.assertNotNull("root is null.", root);
-            Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
-            Assert.assertEquals("notificationid is not equals.", TestNotificationProfileConstants.NOTIFICATION_ID[0],
-                    root.getString(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -1699,10 +1594,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         body.put(NotificationProfileConstants.PARAM_ICON, data);
         try {
             JSONObject root = sendRequest("POST", builder.toString(), null, body);
-            Assert.assertNotNull("root is null.", root);
-            Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
-            Assert.assertEquals("notificationid is not equals.", TestNotificationProfileConstants.NOTIFICATION_ID[0],
-                    root.getString(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -1751,10 +1643,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         body.put(NotificationProfileConstants.PARAM_ICON, data);
         try {
             JSONObject root = sendRequest("POST", builder.toString(), null, body);
-            Assert.assertNotNull("root is null.", root);
-            Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
-            Assert.assertEquals("notificationid is not equals.", TestNotificationProfileConstants.NOTIFICATION_ID[0],
-                    root.getString(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -1805,10 +1694,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         body.put(NotificationProfileConstants.PARAM_ICON, data);
         try {
             JSONObject root = sendRequest("POST", builder.toString(), null, body);
-            Assert.assertNotNull("root is null.", root);
-            Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
-            Assert.assertEquals("notificationid is not equals.", TestNotificationProfileConstants.NOTIFICATION_ID[0],
-                    root.getString(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -1868,9 +1754,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testPutOnClick() {
         try {
-            JSONObject event = registerEventCallback(NotificationProfileConstants.ATTRIBUTE_ON_CLICK);
-            Assert.assertEquals(TestNotificationProfileConstants.NOTIFICATION_ID[0],
-                    event.getString(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
+            registerEventCallback(NotificationProfileConstants.ATTRIBUTE_ON_CLICK);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -1913,9 +1797,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testPutOnShow() {
         try {
-            JSONObject event = registerEventCallback(NotificationProfileConstants.ATTRIBUTE_ON_SHOW);
-            Assert.assertEquals(TestNotificationProfileConstants.NOTIFICATION_ID[0],
-                    event.getString(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
+            registerEventCallback(NotificationProfileConstants.ATTRIBUTE_ON_SHOW);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -1958,9 +1840,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testPutOnClose() {
         try {
-            JSONObject event = registerEventCallback(NotificationProfileConstants.ATTRIBUTE_ON_CLOSE);
-            Assert.assertEquals(TestNotificationProfileConstants.NOTIFICATION_ID[0],
-                    event.getString(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
+            registerEventCallback(NotificationProfileConstants.ATTRIBUTE_ON_CLOSE);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -2003,9 +1883,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testPutOnError() {
         try {
-            JSONObject event = registerEventCallback(NotificationProfileConstants.ATTRIBUTE_ON_ERROR);
-            Assert.assertEquals(TestNotificationProfileConstants.NOTIFICATION_ID[0],
-                    event.getString(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
+            registerEventCallback(NotificationProfileConstants.ATTRIBUTE_ON_ERROR);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -2045,8 +1923,6 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("?");
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
-        builder.append(DConnectProfileConstants.PARAM_SESSION_KEY + "=" + getClientId());
-        builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         HttpUriRequest request = new HttpPut(builder.toString());
         JSONObject root = sendRequest(request);
@@ -2069,8 +1945,6 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + attribute);
         builder.append("?");
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
-        builder.append("&");
-        builder.append(DConnectProfileConstants.PARAM_SESSION_KEY + "=" + getClientId());
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         try {

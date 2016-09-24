@@ -7,10 +7,8 @@
 package org.deviceconnect.android.profile.intent.test;
 
 import android.content.Intent;
-import android.os.Bundle;
 import android.support.test.runner.AndroidJUnit4;
 
-import org.deviceconnect.android.test.plugin.profile.TestBatteryProfileConstants;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 import org.deviceconnect.profile.BatteryProfileConstants;
@@ -47,22 +45,10 @@ public class NormalBatteryProfileTestCase extends IntentDConnectTestCase {
         Intent request = new Intent(IntentDConnectMessage.ACTION_GET);
         String serviceId = getServiceId();
         request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, serviceId);
-        request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
+
         request.putExtra(DConnectMessage.EXTRA_PROFILE, BatteryProfileConstants.PROFILE_NAME);
         Intent response = sendRequest(request);
         assertResultOK(response);
-        assertTrue(response.hasExtra(BatteryProfileConstants.PARAM_CHARGING));
-        assertEquals(TestBatteryProfileConstants.CHARGING, 
-                response.getBooleanExtra(BatteryProfileConstants.PARAM_CHARGING, false));
-        assertTrue(response.hasExtra(BatteryProfileConstants.PARAM_CHARGING_TIME));
-        assertEquals(TestBatteryProfileConstants.CHARGING_TIME, 
-                response.getDoubleExtra(BatteryProfileConstants.PARAM_CHARGING_TIME, 0));
-        assertTrue(response.hasExtra(BatteryProfileConstants.PARAM_DISCHARGING_TIME));
-        assertEquals(TestBatteryProfileConstants.DISCHARGING_TIME, 
-                response.getDoubleExtra(BatteryProfileConstants.PARAM_DISCHARGING_TIME, 0));
-        assertTrue(response.hasExtra(BatteryProfileConstants.PARAM_LEVEL));
-        assertEquals(TestBatteryProfileConstants.LEVEL, 
-                response.getDoubleExtra(BatteryProfileConstants.PARAM_LEVEL, 0.0d));
     }
 
     /**
@@ -84,14 +70,11 @@ public class NormalBatteryProfileTestCase extends IntentDConnectTestCase {
     public void testBatteryCharging() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_GET);
         request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
-        request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
+
         request.putExtra(DConnectMessage.EXTRA_PROFILE, BatteryProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, BatteryProfileConstants.ATTRIBUTE_CHARGING);
         Intent response = sendRequest(request);
         assertResultOK(response);
-        assertTrue(response.hasExtra(BatteryProfileConstants.PARAM_CHARGING));
-        assertEquals(TestBatteryProfileConstants.CHARGING, 
-                response.getBooleanExtra(BatteryProfileConstants.PARAM_CHARGING, false));
     }
 
     /**
@@ -113,14 +96,11 @@ public class NormalBatteryProfileTestCase extends IntentDConnectTestCase {
     public void testBatteryChargingTime() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_GET);
         request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
-        request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
+
         request.putExtra(DConnectMessage.EXTRA_PROFILE, BatteryProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, BatteryProfileConstants.ATTRIBUTE_CHARGING_TIME);
         Intent response = sendRequest(request);
         assertResultOK(response);
-        assertTrue(response.hasExtra(BatteryProfileConstants.PARAM_CHARGING_TIME));
-        assertEquals(TestBatteryProfileConstants.CHARGING_TIME, 
-                response.getDoubleExtra(BatteryProfileConstants.PARAM_CHARGING_TIME, 0));
     }
 
     /**
@@ -142,14 +122,11 @@ public class NormalBatteryProfileTestCase extends IntentDConnectTestCase {
     public void testBatteryDischargingTime() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_GET);
         request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
-        request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
+
         request.putExtra(DConnectMessage.EXTRA_PROFILE, BatteryProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, BatteryProfileConstants.ATTRIBUTE_DISCHARGING_TIME);
         Intent response = sendRequest(request);
         assertResultOK(response);
-        assertTrue(response.hasExtra(BatteryProfileConstants.PARAM_DISCHARGING_TIME));
-        assertEquals(TestBatteryProfileConstants.DISCHARGING_TIME, 
-                response.getDoubleExtra(BatteryProfileConstants.PARAM_DISCHARGING_TIME, 0));
     }
 
     /**
@@ -171,14 +148,11 @@ public class NormalBatteryProfileTestCase extends IntentDConnectTestCase {
     public void testBatteryLevel() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_GET);
         request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
-        request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
+
         request.putExtra(DConnectMessage.EXTRA_PROFILE, BatteryProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, BatteryProfileConstants.ATTRIBUTE_LEVEL);
         Intent response = sendRequest(request);
         assertResultOK(response);
-        assertTrue(response.hasExtra(BatteryProfileConstants.PARAM_LEVEL));
-        assertEquals(TestBatteryProfileConstants.LEVEL, 
-                response.getDoubleExtra(BatteryProfileConstants.PARAM_LEVEL, 0.0d));
     }
 
     /**
@@ -200,19 +174,11 @@ public class NormalBatteryProfileTestCase extends IntentDConnectTestCase {
     public void testBatteryOnChargingChange01() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_PUT);
         request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
-        request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
+
         request.putExtra(DConnectMessage.EXTRA_PROFILE, BatteryProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, BatteryProfileConstants.ATTRIBUTE_ON_CHARGING_CHANGE);
         Intent response = sendRequest(request);
         assertResultOK(response);
-        Intent event = waitForEvent();
-        assertNotNull(event);
-        assertEquals(BatteryProfileConstants.PROFILE_NAME,
-                event.getStringExtra(DConnectMessage.EXTRA_PROFILE));
-        assertEquals(BatteryProfileConstants.ATTRIBUTE_ON_CHARGING_CHANGE,
-                event.getStringExtra(DConnectMessage.EXTRA_ATTRIBUTE));
-        Bundle battery = event.getBundleExtra(BatteryProfileConstants.PROFILE_NAME);
-        assertEquals(false, battery.getBoolean(BatteryProfileConstants.PARAM_CHARGING));
     }
 
     /**
@@ -233,7 +199,7 @@ public class NormalBatteryProfileTestCase extends IntentDConnectTestCase {
     public void testBatteryOnChargingChange02() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_DELETE);
         request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
-        request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
+
         request.putExtra(DConnectMessage.EXTRA_PROFILE, BatteryProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, BatteryProfileConstants.ATTRIBUTE_ON_CHARGING_CHANGE);
         Intent response = sendRequest(request);
@@ -259,24 +225,13 @@ public class NormalBatteryProfileTestCase extends IntentDConnectTestCase {
     public void testBatteryOnBatteryChange01() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_PUT);
         request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
-        request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
+
         request.putExtra(DConnectMessage.EXTRA_PROFILE, BatteryProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, BatteryProfileConstants.ATTRIBUTE_ON_BATTERY_CHANGE);
         Intent response = sendRequest(request);
         assertResultOK(response);
         Intent event = waitForEvent();
         assertNotNull(event);
-        assertEquals(BatteryProfileConstants.PROFILE_NAME,
-                event.getStringExtra(DConnectMessage.EXTRA_PROFILE));
-        assertEquals(BatteryProfileConstants.ATTRIBUTE_ON_BATTERY_CHANGE,
-                event.getStringExtra(DConnectMessage.EXTRA_ATTRIBUTE));
-        Bundle battery = event.getBundleExtra(BatteryProfileConstants.PARAM_BATTERY);
-        assertEquals(TestBatteryProfileConstants.CHARGING_TIME,
-                battery.getDouble(BatteryProfileConstants.PARAM_CHARGING_TIME));
-        assertEquals(TestBatteryProfileConstants.DISCHARGING_TIME,
-                battery.getDouble(BatteryProfileConstants.PARAM_DISCHARGING_TIME));
-        assertEquals(TestBatteryProfileConstants.LEVEL,
-                battery.getDouble(BatteryProfileConstants.PARAM_LEVEL));
     }
 
     /**
@@ -297,7 +252,7 @@ public class NormalBatteryProfileTestCase extends IntentDConnectTestCase {
     public void testBatteryOnBatteryChange02() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_DELETE);
         request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
-        request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
+
         request.putExtra(DConnectMessage.EXTRA_PROFILE, BatteryProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, BatteryProfileConstants.ATTRIBUTE_ON_BATTERY_CHANGE);
         Intent response = sendRequest(request);

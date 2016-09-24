@@ -7,7 +7,6 @@
 package org.deviceconnect.android.profile.intent.test;
 
 import android.content.Intent;
-import android.os.Bundle;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.deviceconnect.message.DConnectMessage;
@@ -43,15 +42,7 @@ public class NormalServiceInformationProfileTestCase extends IntentDConnectTestC
         request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, ServiceInformationProfileConstants.PROFILE_NAME);
         Intent response = sendRequest(request);
-
         assertResultOK(response);
-        String[] supports = response.getStringArrayExtra(ServiceInformationProfileConstants.PARAM_SUPPORTS);
-        assertNotNull(supports);
-        Bundle connect = response.getBundleExtra(ServiceInformationProfileConstants.PARAM_CONNECT);
-        assertEquals(false, connect.getBoolean(ServiceInformationProfileConstants.PARAM_WIFI));
-        assertEquals(false, connect.getBoolean(ServiceInformationProfileConstants.PARAM_BLUETOOTH));
-        assertEquals(false, connect.getBoolean(ServiceInformationProfileConstants.PARAM_NFC));
-        assertEquals(false, connect.getBoolean(ServiceInformationProfileConstants.PARAM_BLE));
     }
 
 }

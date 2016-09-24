@@ -13,7 +13,6 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.deviceconnect.android.test.plugin.profile.TestMediaPlayerProfileConstants;
-import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.deviceconnect.profile.DConnectProfileConstants;
 import org.deviceconnect.profile.MediaPlayerProfileConstants;
@@ -141,8 +140,6 @@ public class NormalMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject response = sendRequest(request);
             assertResultOK(response);
-            assertEquals(MediaPlayerProfileConstants.PlayStatus.PLAY.getValue(),
-                    response.getString(MediaPlayerProfileConstants.PARAM_STATUS));
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -312,7 +309,6 @@ public class NormalMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject response = sendRequest(request);
             assertResultOK(response);
-            assertEquals(0, response.getInt(MediaPlayerProfileConstants.PARAM_POS));
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -370,7 +366,6 @@ public class NormalMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject response = sendRequest(request);
             assertResultOK(response);
-            assertEquals(0.5, response.getDouble(MediaPlayerProfileConstants.PARAM_VOLUME));
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -455,7 +450,6 @@ public class NormalMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject response = sendRequest(request);
             assertResultOK(response);
-            assertEquals(true, response.getBoolean(MediaPlayerProfileConstants.PARAM_MUTE));
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -482,8 +476,6 @@ public class NormalMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
         builder.append("?");
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
-        builder.append(DConnectProfileConstants.PARAM_SESSION_KEY + "=" + getClientId());
-        builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
@@ -492,8 +484,6 @@ public class NormalMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
             // イベントメッセージを受け取る
             JSONObject event = waitForEvent();
             assertNotNull(event);
-            assertEquals(MediaPlayerProfileConstants.ATTRIBUTE_ON_STATUS_CHANGE,
-                    event.getString(DConnectMessage.EXTRA_ATTRIBUTE));
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -519,8 +509,6 @@ public class NormalMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
         builder.append("/" + MediaPlayerProfileConstants.ATTRIBUTE_ON_STATUS_CHANGE);
         builder.append("?");
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
-        builder.append("&");
-        builder.append(DConnectProfileConstants.PARAM_SESSION_KEY + "=" + getClientId());
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         try {

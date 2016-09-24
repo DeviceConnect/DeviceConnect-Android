@@ -7,7 +7,6 @@
 package org.deviceconnect.android.profile.intent.test;
 
 import android.content.Intent;
-import android.os.Bundle;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.deviceconnect.android.test.plugin.profile.TestFileDescriptorProfileConstants;
@@ -26,11 +25,6 @@ import java.io.IOException;
  */
 @RunWith(AndroidJUnit4.class)
 public class NormalFileDescriptorProfileTestCase extends IntentDConnectTestCase {
-
-    /**
-     * バッファサイズ.
-     */
-    private static final int BUF_SIZE = 1024;
 
     /**
      * ファイルの長さ.
@@ -129,10 +123,6 @@ public class NormalFileDescriptorProfileTestCase extends IntentDConnectTestCase 
         request.putExtra(FileDescriptorProfileConstants.PARAM_LENGTH, FILE_LENGTH);
         Intent response = sendRequest(request);
         assertResultOK(response);
-        assertTrue(response.hasExtra(FileDescriptorProfileConstants.PARAM_SIZE));
-        assertEquals(TestFileDescriptorProfileConstants.BYTE,
-                response.getIntExtra(FileDescriptorProfileConstants.PARAM_SIZE, -1));
-        assertTrue(response.hasExtra(FileDescriptorProfileConstants.PARAM_FILE_DATA));
     }
 
     /**
@@ -167,12 +157,7 @@ public class NormalFileDescriptorProfileTestCase extends IntentDConnectTestCase 
         request.putExtra(FileDescriptorProfileConstants.PARAM_LENGTH, FILE_LENGTH);
         request.putExtra(FileDescriptorProfileConstants.PARAM_POSITION, 0L);
         Intent response = sendRequest(request);
-
         assertResultOK(response);
-        assertTrue(response.hasExtra(FileDescriptorProfileConstants.PARAM_SIZE));
-        assertEquals(TestFileDescriptorProfileConstants.BYTE,
-                response.getIntExtra(FileDescriptorProfileConstants.PARAM_SIZE, -1));
-        assertTrue(response.hasExtra(FileDescriptorProfileConstants.PARAM_FILE_DATA));
     }
 
     /**
@@ -204,6 +189,7 @@ public class NormalFileDescriptorProfileTestCase extends IntentDConnectTestCase 
         request.putExtra(FileDescriptorProfileConstants.PARAM_PATH, TestFileDescriptorProfileConstants.PATH);
         String uri = getContentProviderFileUri("test.png");
         request.putExtra(FileDescriptorProfileConstants.PARAM_URI, uri);
+        request.putExtra(FileDescriptorProfileConstants.PARAM_DATA, "");
         Intent response = sendRequest(request);
         assertResultOK(response);
     }
@@ -239,6 +225,7 @@ public class NormalFileDescriptorProfileTestCase extends IntentDConnectTestCase 
         String uri = getContentProviderFileUri("test.png");
         request.putExtra(FileDescriptorProfileConstants.PARAM_URI, uri);
         request.putExtra(FileDescriptorProfileConstants.PARAM_POSITION, 0);
+        request.putExtra(FileDescriptorProfileConstants.PARAM_DATA, "");
         Intent response = sendRequest(request);
         assertResultOK(response);
     }
@@ -268,16 +255,11 @@ public class NormalFileDescriptorProfileTestCase extends IntentDConnectTestCase 
         request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, FileDescriptorProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, FileDescriptorProfileConstants.ATTRIBUTE_ON_WATCH_FILE);
-        request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
+
         Intent response = sendRequest(request);
         assertResultOK(response);
         Intent event = waitForEvent();
-        assertTrue(event.hasExtra(FileDescriptorProfileConstants.PARAM_FILE));
-        Bundle file = event.getBundleExtra(FileDescriptorProfileConstants.PARAM_FILE);
-        assertEquals(TestFileDescriptorProfileConstants.CURR, 
-                file.getString(FileDescriptorProfileConstants.PARAM_CURR));
-        assertEquals(TestFileDescriptorProfileConstants.PREV,
-                file.getString(FileDescriptorProfileConstants.PARAM_PREV));
+        assertNotNull(event);
     }
 
     /**
@@ -304,7 +286,7 @@ public class NormalFileDescriptorProfileTestCase extends IntentDConnectTestCase 
         request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, FileDescriptorProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, FileDescriptorProfileConstants.ATTRIBUTE_ON_WATCH_FILE);
-        request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
+
         Intent response = sendRequest(request);
         assertResultOK(response);
     }

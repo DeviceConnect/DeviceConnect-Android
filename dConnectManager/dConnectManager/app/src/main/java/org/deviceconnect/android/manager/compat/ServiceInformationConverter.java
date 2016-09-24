@@ -1,3 +1,9 @@
+/*
+ ServiceInformationConverter.java
+ Copyright (c) 2016 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.manager.compat;
 
 import android.content.Intent;
@@ -6,6 +12,11 @@ import org.deviceconnect.android.compat.MessageConverter;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 import org.deviceconnect.profile.ServiceInformationProfileConstants;
 
+/**
+ * Service Information APIレスポンスに含まれるプロファイル名を新仕様に統一するクラス.
+ *
+ * @author NTT DOCOMO, INC.
+ */
 public class ServiceInformationConverter implements MessageConverter,
     ServiceInformationProfileConstants {
 

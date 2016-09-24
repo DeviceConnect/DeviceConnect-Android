@@ -1,3 +1,9 @@
+/*
+ WebSocketInfoManager.java
+ Copyright (c) 2016 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.manager;
 
 import android.content.Context;
@@ -10,6 +16,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * イベント送信経路(WebSocket)管理クラス.
+ *
+ * @author NTT DOCOMO, INC.
+ */
 public class WebSocketInfoManager {
 
     private Map<String, WebSocketInfo> mWebSocketInfoMap = new HashMap<>();
@@ -59,7 +70,7 @@ public class WebSocketInfoManager {
     private void notifyDisconnectWebSocket(final String origin) {
         List<DevicePlugin> plugins = mDevicePluginManager.getDevicePlugins();
         for (DevicePlugin plugin : plugins) {
-            String serviceId = plugin.getServiceId();
+            String serviceId = plugin.getPluginId();
             Intent request = new Intent();
             request.setComponent(plugin.getComponentName());
             request.setAction(IntentDConnectMessage.ACTION_EVENT_TRANSMIT_DISCONNECT);

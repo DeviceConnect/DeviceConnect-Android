@@ -14,11 +14,9 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.deviceconnect.android.test.plugin.profile.TestMediaStreamRecordingProfileConstants;
-import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.deviceconnect.profile.DConnectProfileConstants;
 import org.deviceconnect.profile.MediaStreamRecordingProfileConstants;
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.Test;
@@ -67,31 +65,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject root = sendRequest(request);
-            assertNotNull("root is null.", root);
-            assertEquals(DConnectMessage.RESULT_OK,
-                root.getInt(DConnectMessage.EXTRA_RESULT));
-
-            JSONArray recorders = root.getJSONArray(MediaStreamRecordingProfileConstants.PARAM_RECORDERS);
-            assertEquals(1, recorders.length());
-            JSONObject recorder = recorders.getJSONObject(0);
-            assertEquals(TestMediaStreamRecordingProfileConstants.ID,
-                recorder.getString(MediaStreamRecordingProfileConstants.PARAM_ID));
-            assertEquals(TestMediaStreamRecordingProfileConstants.NAME,
-                recorder.getString(MediaStreamRecordingProfileConstants.PARAM_NAME));
-            assertEquals(TestMediaStreamRecordingProfileConstants.STATE,
-                recorder.getString(MediaStreamRecordingProfileConstants.PARAM_STATE));
-            assertEquals(TestMediaStreamRecordingProfileConstants.IMAGE_WIDTH,
-                recorder.getInt(MediaStreamRecordingProfileConstants.PARAM_IMAGE_WIDTH));
-            assertEquals(TestMediaStreamRecordingProfileConstants.IMAGE_HEIGHT,
-                recorder.getInt(MediaStreamRecordingProfileConstants.PARAM_IMAGE_HEIGHT));
-            assertEquals(TestMediaStreamRecordingProfileConstants.PREVIEW_WIDTH,
-                recorder.getInt(MediaStreamRecordingProfileConstants.PARAM_PREVIEW_WIDTH));
-            assertEquals(TestMediaStreamRecordingProfileConstants.PREVIEW_HEIGHT,
-                recorder.getInt(MediaStreamRecordingProfileConstants.PARAM_PREVIEW_HEIGHT));
-            assertEquals(TestMediaStreamRecordingProfileConstants.PREVIEW_MAX_FRAME_RATE,
-                recorder.getDouble(MediaStreamRecordingProfileConstants.PARAM_PREVIEW_MAX_FRAME_RATE));
-            assertEquals(TestMediaStreamRecordingProfileConstants.CONFIG,
-                recorder.getString(MediaStreamRecordingProfileConstants.PARAM_CONFIG));
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -123,11 +97,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
             JSONObject root = sendRequest(request);
-            assertNotNull("root is null.", root);
-            assertEquals(DConnectMessage.RESULT_OK,
-                root.getInt(DConnectMessage.EXTRA_RESULT));
-            assertEquals(getFileURI(TestMediaStreamRecordingProfileConstants.URI),
-                    root.getString(MediaStreamRecordingProfileConstants.PARAM_URI));
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -162,11 +132,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
             JSONObject root = sendRequest(request);
-            assertNotNull("root is null.", root);
-            assertEquals(DConnectMessage.RESULT_OK,
-                    root.getInt(DConnectMessage.EXTRA_RESULT));
-            assertEquals(getFileURI(TestMediaStreamRecordingProfileConstants.URI),
-                    root.getString(MediaStreamRecordingProfileConstants.PARAM_URI));
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -198,11 +164,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
             JSONObject root = sendRequest(request);
-            assertNotNull("root is null.", root);
-            assertEquals(DConnectMessage.RESULT_OK,
-                    root.getInt(DConnectMessage.EXTRA_RESULT));
-            assertEquals(getFileURI(TestMediaStreamRecordingProfileConstants.URI),
-                    root.getString(MediaStreamRecordingProfileConstants.PARAM_URI));
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -237,11 +199,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
             JSONObject root = sendRequest(request);
-            assertNotNull("root is null.", root);
-            assertEquals(DConnectMessage.RESULT_OK,
-                    root.getInt(DConnectMessage.EXTRA_RESULT));
-            assertEquals(getFileURI(TestMediaStreamRecordingProfileConstants.URI),
-                    root.getString(MediaStreamRecordingProfileConstants.PARAM_URI));
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -275,11 +233,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
             JSONObject root = sendRequest(request);
-            assertNotNull("root is null.", root);
-            assertEquals(DConnectMessage.RESULT_OK,
-                    root.getInt(DConnectMessage.EXTRA_RESULT));
-            assertEquals(getFileURI(TestMediaStreamRecordingProfileConstants.URI),
-                    root.getString(MediaStreamRecordingProfileConstants.PARAM_URI));
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -316,11 +270,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
             JSONObject root = sendRequest(request);
-            assertNotNull("root is null.", root);
-            assertEquals(DConnectMessage.RESULT_OK,
-                    root.getInt(DConnectMessage.EXTRA_RESULT));
-            assertEquals(getFileURI(TestMediaStreamRecordingProfileConstants.URI),
-                    root.getString(MediaStreamRecordingProfileConstants.PARAM_URI));
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -351,9 +301,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject root = sendRequest(request);
-            assertNotNull("root is null.", root);
-            assertEquals(DConnectMessage.RESULT_OK,
-                    root.getInt(DConnectMessage.EXTRA_RESULT));
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -384,9 +332,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject root = sendRequest(request);
-            assertNotNull("root is null.", root);
-            assertEquals(DConnectMessage.RESULT_OK,
-                    root.getInt(DConnectMessage.EXTRA_RESULT));
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -417,9 +363,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject root = sendRequest(request);
-            assertNotNull("root is null.", root);
-            assertEquals(DConnectMessage.RESULT_OK,
-                    root.getInt(DConnectMessage.EXTRA_RESULT));
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -512,31 +456,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject root = sendRequest(request);
-            assertNotNull("root is null.", root);
-            assertEquals(DConnectMessage.RESULT_OK,
-                root.getInt(DConnectMessage.EXTRA_RESULT));
-
-            // imageSizes
-            JSONArray imageSizes = root.getJSONArray(MediaStreamRecordingProfileConstants.PARAM_IMAGE_SIZES);
-            assertEquals(1, imageSizes.length());
-            JSONObject imageSize = imageSizes.getJSONObject(0);
-            assertEquals(TestMediaStreamRecordingProfileConstants.IMAGE_WIDTH,
-                imageSize.getInt(MediaStreamRecordingProfileConstants.PARAM_WIDTH));
-            assertEquals(TestMediaStreamRecordingProfileConstants.IMAGE_HEIGHT,
-                imageSize.getInt(MediaStreamRecordingProfileConstants.PARAM_HEIGHT));
-
-            // previewSizes
-            JSONArray previewSizes = root.getJSONArray(MediaStreamRecordingProfileConstants.PARAM_PREVIEW_SIZES);
-            assertEquals(1, previewSizes.length());
-            JSONObject previewSize = previewSizes.getJSONObject(0);
-            assertEquals(TestMediaStreamRecordingProfileConstants.PREVIEW_WIDTH,
-                previewSize.getInt(MediaStreamRecordingProfileConstants.PARAM_WIDTH));
-            assertEquals(TestMediaStreamRecordingProfileConstants.PREVIEW_HEIGHT,
-                previewSize.getInt(MediaStreamRecordingProfileConstants.PARAM_HEIGHT));
-
-            // mimeType
-            JSONArray mimeTypes = root.getJSONArray(MediaStreamRecordingProfileConstants.PARAM_MIME_TYPE);
-            assertEquals("video/mp4", mimeTypes.get(0));
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -570,31 +490,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject root = sendRequest(request);
-            assertNotNull("root is null.", root);
-            assertEquals(DConnectMessage.RESULT_OK,
-                    root.getInt(DConnectMessage.EXTRA_RESULT));
-
-            // imageSizes
-            JSONArray imageSizes = root.getJSONArray(MediaStreamRecordingProfileConstants.PARAM_IMAGE_SIZES);
-            assertEquals(1, imageSizes.length());
-            JSONObject imageSize = imageSizes.getJSONObject(0);
-            assertEquals(TestMediaStreamRecordingProfileConstants.IMAGE_WIDTH,
-                imageSize.getInt(MediaStreamRecordingProfileConstants.PARAM_WIDTH));
-            assertEquals(TestMediaStreamRecordingProfileConstants.IMAGE_HEIGHT,
-                imageSize.getInt(MediaStreamRecordingProfileConstants.PARAM_HEIGHT));
-
-            // previewSizes
-            JSONArray previewSizes = root.getJSONArray(MediaStreamRecordingProfileConstants.PARAM_PREVIEW_SIZES);
-            assertEquals(1, previewSizes.length());
-            JSONObject previewSize = previewSizes.getJSONObject(0);
-            assertEquals(TestMediaStreamRecordingProfileConstants.PREVIEW_WIDTH,
-                previewSize.getInt(MediaStreamRecordingProfileConstants.PARAM_WIDTH));
-            assertEquals(TestMediaStreamRecordingProfileConstants.PREVIEW_HEIGHT,
-                previewSize.getInt(MediaStreamRecordingProfileConstants.PARAM_HEIGHT));
-
-            // mimeType
-            JSONArray mimeTypes = root.getJSONArray(MediaStreamRecordingProfileConstants.PARAM_MIME_TYPE);
-            assertEquals("video/mp4", mimeTypes.get(0));
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -651,9 +547,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject root = sendRequest(request);
-            assertNotNull("root is null.", root);
-            assertEquals(DConnectMessage.RESULT_OK,
-                    root.getInt(DConnectMessage.EXTRA_RESULT));
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -675,12 +569,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
     @Test
     public void testOnPhoto01() {
         try {
-            JSONObject event = registerEventCallback(MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_PHOTO);
-            JSONObject photo = event.getJSONObject(MediaStreamRecordingProfileConstants.PARAM_PHOTO);
-            assertEquals(TestMediaStreamRecordingProfileConstants.PATH, 
-                    photo.getString(MediaStreamRecordingProfileConstants.PARAM_PATH));
-            assertEquals(TestMediaStreamRecordingProfileConstants.MIME_TYPE, 
-                    photo.getString(MediaStreamRecordingProfileConstants.PARAM_MIME_TYPE));
+            registerEventCallback(MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_PHOTO);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -719,15 +608,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
     @Test
     public void testOnRecording01() {
         try {
-            JSONObject event =
-                    registerEventCallback(MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_RECORDING_CHANGE);
-            JSONObject media = event.getJSONObject(MediaStreamRecordingProfileConstants.PARAM_MEDIA);
-            assertEquals(TestMediaStreamRecordingProfileConstants.STATUS, 
-                    media.getString(MediaStreamRecordingProfileConstants.PARAM_STATUS));
-            assertEquals(TestMediaStreamRecordingProfileConstants.PATH, 
-                    media.getString(MediaStreamRecordingProfileConstants.PARAM_PATH));
-            assertEquals(TestMediaStreamRecordingProfileConstants.MIME_TYPE, 
-                    media.getString(MediaStreamRecordingProfileConstants.PARAM_MIME_TYPE));
+            registerEventCallback(MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_RECORDING_CHANGE);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -748,53 +629,6 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
     @Test
     public void testOnRecording02() {
         unregisterEventCallback(MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_RECORDING_CHANGE);
-    }
-
-    /**
-     * 動画撮影または音声録音の一定時間経過イベントのコールバック登録テストを行う.
-     * <pre>
-     * 【HTTP通信】
-     * Method: PUT
-     * Path: /mediastream_recording/ondeviceavailable?serviceId=xxxx&session_key=xxxx
-     * </pre>
-     * <pre>
-     * 【期待する動作】
-     * ・resultに0が返ってくること。
-     * ・コールバック登録後にイベントを受信すること。
-     * </pre>
-     */
-    @Test
-    public void testOnDataAvailable01() {
-        try {
-            @SuppressWarnings("deprecation")
-            JSONObject event = registerEventCallback(
-                     MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_DATA_AVAILABLE);
-            JSONObject media = event.getJSONObject(MediaStreamRecordingProfileConstants.PARAM_MEDIA);
-            assertEquals(getFileURI(TestMediaStreamRecordingProfileConstants.URI), 
-                    media.getString(MediaStreamRecordingProfileConstants.PARAM_URI));
-            assertEquals(TestMediaStreamRecordingProfileConstants.MIME_TYPE, 
-                    media.getString(MediaStreamRecordingProfileConstants.PARAM_MIME_TYPE));
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
-    }
-
-    /**
-     * 動画撮影または音声録音の一定時間経過イベントのコールバック解除テストを行う.
-     * <pre>
-     * 【HTTP通信】
-     * Method: DELETE
-     * Path: /mediastream_recording/ondeviceavailable?serviceId=xxxx&session_key=xxxx
-     * </pre>
-     * <pre>
-     * 【期待する動作】
-     * ・resultに0が返ってくること。
-     * </pre>
-     */
-    @SuppressWarnings("deprecation")
-	@Test
-	public void testOnDataAvailable02() {
-        unregisterEventCallback(MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_DATA_AVAILABLE);
     }
 
     /**
@@ -822,21 +656,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject root = sendRequest(request);
-            assertNotNull("root is null.", root);
-
-            assertEquals(DConnectMessage.RESULT_OK,
-                root.getInt(DConnectMessage.EXTRA_RESULT));
-
-            // uri
-            String uri = root.getString(MediaStreamRecordingProfileConstants.PARAM_URI);
-            assertEquals(TestMediaStreamRecordingProfileConstants.PREVIEW_URI, uri);
-
-            // audio
-            JSONObject audio = root.getJSONObject(MediaStreamRecordingProfileConstants.PARAM_AUDIO);
-
-            // audio.uri
-            String audioUri = audio.getString(MediaStreamRecordingProfileConstants.PARAM_URI);
-            assertEquals(TestMediaStreamRecordingProfileConstants.AUDIO_URI, audioUri);
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -867,10 +687,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
             JSONObject root = sendRequest(request);
-            assertNotNull("root is null.", root);
-
-            assertEquals(DConnectMessage.RESULT_OK,
-                root.getInt(DConnectMessage.EXTRA_RESULT));
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -889,8 +706,6 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
         builder.append("/" + attribute);
         builder.append("?");
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
-        builder.append("&");
-        builder.append(DConnectProfileConstants.PARAM_SESSION_KEY + "=" + getClientId());
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         HttpUriRequest request = new HttpPut(builder.toString());
@@ -912,8 +727,6 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
         builder.append("/" + attribute);
         builder.append("?");
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
-        builder.append("&");
-        builder.append(DConnectProfileConstants.PARAM_SESSION_KEY + "=" + getClientId());
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         try {

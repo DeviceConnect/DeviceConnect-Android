@@ -40,7 +40,7 @@ public class KeepAlive {
      * @return デバイスプラグインID.
      */
     public String getServiceId() {
-        return mPlugin.getServiceId();
+        return mPlugin.getPluginId();
     }
 
     /**

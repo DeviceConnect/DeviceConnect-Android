@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -72,6 +73,44 @@ public class SlackMessageHookDeviceService extends DConnectMessageService implem
     public void onDestroy() {
         super.onDestroy();
         SlackManager.INSTANCE.removeSlackEventListener(this);
+    }
+
+    @Override
+    protected void onManagerUninstalled() {
+        EventManager.INSTANCE.removeAll();
+    }
+
+    @Override
+    protected void onManagerTerminated() {
+        EventManager.INSTANCE.removeAll();
+    }
+
+    @Override
+    protected void onManagerEventTransmitDisconnected(final String origin) {
+        EventManager.INSTANCE.removeEvents(origin);
+    }
+
+    @Override
+    protected void onDevicePluginReset() {
+        EventManager.INSTANCE.removeAll();
+
+        if (Utils.getOnlineStatus(getContext())) {
+            Executors.newSingleThreadExecutor().submit(new Runnable() {
+                @Override
+                public void run() {
+                    if (SlackManager.INSTANCE.isDisonnecting()) {
+                        SlackManager.INSTANCE.disconnect(new SlackManager.FinishCallback<Void>() {
+                            @Override
+                            public void onFinish(final Void aVoid, final Exception error) {
+                                SlackManager.INSTANCE.connect();
+                            }
+                        });
+                    } else {
+                        SlackManager.INSTANCE.connect();
+                    }
+                }
+            });
+        }
     }
 
     @Override

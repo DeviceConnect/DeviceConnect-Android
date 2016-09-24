@@ -39,6 +39,10 @@ var util = (function(parent, global) {
             'videochat',
             'airconditioner',
             'atmosphericpressure',
+            'ecg',
+            'poseEstimation',
+            'stressEstimation',
+            'walkState',
             'gpio');
 
     function init(callback) {

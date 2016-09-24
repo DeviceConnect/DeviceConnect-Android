@@ -1,3 +1,9 @@
+/*
+ AWSIotWebClientManager.java
+ Copyright (c) 2016 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.deviceplugin.awsiot.remote;
 
 import android.content.Context;
@@ -12,7 +18,7 @@ import java.util.Collections;
 import java.util.List;
 
 public class AWSIotWebClientManager {
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = BuildConfig.DEBUG;
     private static final String TAG = "AWS-Remote";
 
     private final List<WebClient> mWebClientList = Collections.synchronizedList(new ArrayList<WebClient>());

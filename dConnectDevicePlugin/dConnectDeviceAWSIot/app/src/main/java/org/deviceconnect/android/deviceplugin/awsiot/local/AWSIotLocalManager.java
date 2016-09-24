@@ -1,3 +1,9 @@
+/*
+ AWSIotLocalManager.java
+ Copyright (c) 2016 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.deviceplugin.awsiot.local;
 
 import android.content.Context;
@@ -9,6 +15,7 @@ import org.deviceconnect.android.deviceplugin.awsiot.cores.core.AWSIotController
 import org.deviceconnect.android.deviceplugin.awsiot.cores.core.AWSIotPrefUtil;
 import org.deviceconnect.android.deviceplugin.awsiot.cores.core.RemoteDeviceConnectManager;
 import org.deviceconnect.android.deviceplugin.awsiot.cores.util.AWSIotUtil;
+import org.deviceconnect.android.deviceplugin.awsiot.remote.BuildConfig;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -18,7 +25,7 @@ import java.util.concurrent.Executors;
 
 public class AWSIotLocalManager {
 
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = BuildConfig.DEBUG;
     private static final String TAG = "AWS-Local";
 
     private RemoteDeviceConnectManager mRemoteManager;
@@ -35,7 +42,7 @@ public class AWSIotLocalManager {
 
     private AWSIotPrefUtil mPrefUtil;
     private long mSyncTime = 0;
-    Handler mTimerHandler = new Handler();
+    private Handler mTimerHandler = new Handler();
     private String mSendData;
     private boolean mIsSendWait = false;
     private boolean mIsTimerEnable = false;

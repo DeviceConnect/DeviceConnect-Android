@@ -1,3 +1,9 @@
+/*
+ AWSIotController.java
+ Copyright (c) 2016 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.deviceplugin.awsiot.cores.core;
 
 import android.os.AsyncTask;
@@ -22,6 +28,7 @@ import com.amazonaws.services.iotdata.model.GetThingShadowResult;
 import com.amazonaws.services.iotdata.model.UpdateThingShadowRequest;
 import com.amazonaws.services.iotdata.model.UpdateThingShadowResult;
 
+import org.deviceconnect.android.deviceplugin.awsiot.remote.BuildConfig;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -37,39 +44,22 @@ import java.util.concurrent.CountDownLatch;
  */
 public class AWSIotController {
 
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = BuildConfig.DEBUG;
     private static final String TAG = "AWS";
 
     private static final String END_POINT_ADDRESS = "endpointAddress";
 
-    /**
-     * AWSIoTのClient
-     */
+    /** AWSIoTのClient. */
     private AWSIotClient mIotClient;
-
-    /**
-     * AWSIoTのDataClient.
-     */
+    /** AWSIoTのDataClient. */
     private AWSIotDataClient mIotDataClient;
-
-    /**
-     * AWSIoTのMqtt Manager.
-     */
+    /** AWSIoTのMqtt Manager. */
     private static AWSIotMqttManager mMqttManager;
-
-    /**
-     * 証明書のプロバイダ
-     */
+    /** 証明書のプロバイダ. */
     private AWSCredentialsProvider mCredentialsProvider;
-
-    /**
-     * 接続フラグ
-     */
+    /** 接続フラグ. */
     private boolean mIsConnected = false;
-
-    /**
-     * endpoint情報
-     */
+    /** endpoint情報. */
     private String mAWSIotEndPoint = "Not Connected";
 
     public interface ConnectCallback {
@@ -153,7 +143,7 @@ public class AWSIotController {
         disconnectMQTT();
     }
 
-    public void getShadow(final String name, final GetShadowCallback callback) {
+    void getShadow(final String name, final GetShadowCallback callback) {
         if (callback == null) {
             throw new NullPointerException("callback is null.");
         }
@@ -172,7 +162,7 @@ public class AWSIotController {
         task.execute();
     }
 
-    public void updateShadow(final String name, final String key, final Object value, final UpdateShadowCallback callback) {
+    void updateShadow(final String name, final String key, final Object value, final UpdateShadowCallback callback) {
         if (callback == null) {
             throw new NullPointerException("callback is null.");
         }
@@ -285,9 +275,7 @@ public class AWSIotController {
      */
     private class GetShadowTask extends AsyncTask<Void, Void, AsyncTaskResult<String>> {
 
-        /**
-         * Thing名.
-         */
+        /** Thing名. */
         private final String thingName;
 
         /**
@@ -295,7 +283,7 @@ public class AWSIotController {
          *
          * @param name 名前
          */
-        public GetShadowTask(final String name) {
+        GetShadowTask(final String name) {
             thingName = name;
         }
 
@@ -321,19 +309,11 @@ public class AWSIotController {
      * Shadowを更新するAsyncTask.
      */
     private class UpdateShadowTask extends AsyncTask<Void, Void, AsyncTaskResult<String>> {
-        /**
-         * Thing名
-         */
+        /** Thing名. */
         private String thingName;
-
-        /**
-         * 更新するState
-         */
+        /** 更新するState. */
         private String updateState;
-
-        /**
-         * 同期用CountDownLatch インスタンス.
-         */
+        /** 同期用CountDownLatch インスタンス. */
         private CountDownLatch mLatch;
 
         /**
@@ -341,7 +321,7 @@ public class AWSIotController {
          *
          * @param name Thing名
          */
-        public void setThingName(final String name) {
+        void setThingName(final String name) {
             thingName = name;
         }
 
@@ -349,7 +329,7 @@ public class AWSIotController {
          * 同期用CountDownLatch インスタンスを設定.
          * @param latch インスタンス.
          */
-        public void setLatch(final CountDownLatch latch) {
+        void setLatch(final CountDownLatch latch) {
             mLatch = latch;
         }
 
@@ -358,7 +338,7 @@ public class AWSIotController {
          *
          * @param state State
          */
-        public void setState(final String state) {
+        void setState(final String state) {
             updateState = state;
         }
 
@@ -417,6 +397,7 @@ public class AWSIotController {
                         }
                     }
                     if (status == AWSIotMqttClientStatus.Connecting) {
+                        // No Operation.
                     } else if (status == AWSIotMqttClientStatus.Connected) {
                         // 接続済みとする
                         if (!mIsConnected) {
@@ -426,8 +407,11 @@ public class AWSIotController {
                             }
                         }
                     } else if (status == AWSIotMqttClientStatus.Reconnecting) {
+                        // No Operation.
                     } else if (status == AWSIotMqttClientStatus.ConnectionLost) {
+                        // No Operation.
                     } else {
+                        // No Operation.
                     }
                 }
             });
@@ -438,7 +422,7 @@ public class AWSIotController {
         }
     }
 
-    public void disconnectMQTT() {
+    private void disconnectMQTT() {
         if (DEBUG) {
             Log.i(TAG, "AWSIotController#disconnectMQTT");
         }

@@ -1,10 +1,16 @@
+/*
+ AsyncTaskResult.java
+ Copyright (c) 2016 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.deviceplugin.awsiot.cores.core;
 
 /**
  * AsyncTaskの結果
  * @param <T> 型
  */
-public class AsyncTaskResult<T> {
+class AsyncTaskResult<T> {
     /** 結果 */
     private T result;
     /** エラー */
@@ -14,7 +20,7 @@ public class AsyncTaskResult<T> {
      * 結果を取得.
      * @return Result
      */
-    public T getResult() {
+    T getResult() {
         return result;
     }
 
@@ -22,7 +28,7 @@ public class AsyncTaskResult<T> {
      * エラーを取得.
      * @return Error
      */
-    public Exception getError() {
+    Exception getError() {
         return error;
     }
 
@@ -30,7 +36,7 @@ public class AsyncTaskResult<T> {
      * 結果を指定して初期化.
      * @param result 結果
      */
-    public AsyncTaskResult(T result) {
+    AsyncTaskResult(T result) {
         super();
         this.result = result;
     }
@@ -39,7 +45,7 @@ public class AsyncTaskResult<T> {
      * 結果を指定して初期化.
      * @param error エラー
      */
-    public AsyncTaskResult(Exception error) {
+    AsyncTaskResult(Exception error) {
         super();
         this.error = error;
     }

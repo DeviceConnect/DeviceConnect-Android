@@ -14,6 +14,7 @@ import org.deviceconnect.android.deviceplugin.awsiot.cores.core.AWSIotDeviceAppl
 import org.deviceconnect.android.deviceplugin.awsiot.cores.core.AWSIotPrefUtil;
 import org.deviceconnect.android.deviceplugin.awsiot.cores.util.AWSIotUtil;
 import org.deviceconnect.android.deviceplugin.awsiot.cores.util.HttpUtil;
+import org.deviceconnect.android.deviceplugin.awsiot.remote.BuildConfig;
 import org.deviceconnect.android.profile.AuthorizationProfile;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.utils.URIBuilder;
@@ -30,9 +31,8 @@ import java.util.Map;
  * DeviceConnectヘルパークラス.
  */
 public class DConnectHelper {
-
     /** デバッグフラグ. */
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = BuildConfig.DEBUG;
     /** デバッグタグ. */
     private static final String TAG = "DConnectHelper";
 

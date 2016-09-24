@@ -1,7 +1,14 @@
+/*
+ AWSIotWebSocketClient.java
+ Copyright (c) 2016 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.deviceplugin.awsiot.local;
 
 import android.util.Log;
 
+import org.deviceconnect.android.deviceplugin.awsiot.remote.BuildConfig;
 import org.deviceconnect.message.DConnectMessage;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
@@ -11,7 +18,7 @@ import java.nio.channels.NotYetConnectedException;
 
 public class AWSIotWebSocketClient extends WebSocketClient {
 
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = BuildConfig.DEBUG;
     private static final String TAG = "";
 
     private String mSessionKey;

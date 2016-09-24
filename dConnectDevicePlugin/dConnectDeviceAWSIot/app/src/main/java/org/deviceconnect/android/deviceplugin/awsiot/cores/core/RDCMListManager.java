@@ -1,3 +1,9 @@
+/*
+ RDCMListManager.java
+ Copyright (c) 2016 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.deviceplugin.awsiot.cores.core;
 
 import android.content.Context;
@@ -15,19 +21,21 @@ import java.util.concurrent.TimeUnit;
  * Remote Device Connect Manager List Manager Class.
  */
 public class RDCMListManager {
-
     /** 遠隔にあるDevice Connect Managerのリスト. */
     private List<RemoteDeviceConnectManager> mManagerList = new ArrayList<>();
     /** Database Helper. */
     private AWSIotDBHelper mDBHelper;
     /** OnEventListener Instance. */
     private OnEventListener mOnEventListener;
+    /** Context. */
     private Context mContext;
+    /** AWSIotController instance. */
     private AWSIotController mAWSIotController;
-
+    /** ScheduledExecutorService instance. */
     private ScheduledExecutorService mExecutorService = Executors.newSingleThreadScheduledExecutor();
+    /** ScheduledFuture instance. */
     private ScheduledFuture mFuture;
-
+    /** Manager list shadow 名称. */
     private final String MANAGER_LIST_SHADOW = "$aws/things/"+ AWSIotUtil.KEY_DCONNECT_SHADOW_NAME +"/shadow/update/accepted";
 
     /** OnEventListener Interface. */
@@ -35,6 +43,7 @@ public class RDCMListManager {
         void onRDCMListUpdateSubscribe(RemoteDeviceConnectManager manager);
     }
 
+    /** UpdateManagerListCallback Interface. */
     public interface UpdateManagerListCallback {
         void onUpdateManagerList(List<RemoteDeviceConnectManager> managerList);
     }
@@ -56,7 +65,7 @@ public class RDCMListManager {
      * Constructor.
      * @param context Context.
      */
-    public RDCMListManager(final Context context, final AWSIotController controller) {
+    RDCMListManager(final Context context, final AWSIotController controller) {
         mContext = context;
         mAWSIotController = controller;
         mDBHelper = new AWSIotDBHelper(context);
@@ -65,7 +74,7 @@ public class RDCMListManager {
     /**
      * 定期的にManager情報を更新するタイマーを開始します。
      */
-    public void startUpdateManagerListTimer() {
+    void startUpdateManagerListTimer() {
         if (mFuture != null) {
             return;
         }
@@ -81,7 +90,7 @@ public class RDCMListManager {
     /**
      * 定期的にManager情報を更新するタイマーを停止します。
      */
-    public void stopUpdateManagerListTimer() {
+    void stopUpdateManagerListTimer() {
         if (mFuture != null) {
             mFuture.cancel(true);
         }
@@ -104,7 +113,7 @@ public class RDCMListManager {
     /**
      * Manager List Shadowの購読を停止する.
      */
-    public void unsubscribeShadow() {
+    void unsubscribeShadow() {
         mAWSIotController.unsubscribe(MANAGER_LIST_SHADOW);
     }
 

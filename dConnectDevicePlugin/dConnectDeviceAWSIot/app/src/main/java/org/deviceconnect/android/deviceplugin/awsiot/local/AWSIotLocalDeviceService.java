@@ -1,5 +1,5 @@
 /*
- AWSIotDeviceService.java
+ AWSIotLocalDeviceService.java
  Copyright (c) 2016 NTT DOCOMO,INC.
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
@@ -15,10 +15,11 @@ import org.deviceconnect.android.deviceplugin.awsiot.cores.core.AWSIotController
 import org.deviceconnect.android.deviceplugin.awsiot.cores.core.AWSIotDeviceApplication;
 import org.deviceconnect.android.deviceplugin.awsiot.cores.core.AWSIotPrefUtil;
 import org.deviceconnect.android.deviceplugin.awsiot.cores.core.RemoteDeviceConnectManager;
+import org.deviceconnect.android.deviceplugin.awsiot.remote.BuildConfig;
 
 public class AWSIotLocalDeviceService extends Service {
 
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = BuildConfig.DEBUG;
     private static final String TAG = "AWS-Local";
 
     public static final String ACTION_START = "org.deviceconnect.android.deviceplugin.awsiot.local.ACTION_START";
@@ -33,7 +34,6 @@ public class AWSIotLocalDeviceService extends Service {
 
     @Override
     public void onCreate() {
-//        android.os.Debug.waitForDebugger();
         super.onCreate();
     }
 

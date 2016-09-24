@@ -28,15 +28,12 @@ import org.deviceconnect.android.profile.SystemProfile;
  * @author NTT DOCOMO, INC.
  */
 public class AWSIotDeviceService extends DConnectMessageService {
-    private static final String TAG = "AWS-Remote";
-
     public static final String ACTION_CONNECT_MQTT = "org.deviceconnect.android.deviceplugin.awsiot.ACTION_CONNECT_MQTT";
 
     private AWSIotRemoteManager mAWSIotRemoteManager;
 
     @Override
     public void onCreate() {
-//        android.os.Debug.waitForDebugger();
         super.onCreate();
 
         EventManager.INSTANCE.setController(new MemoryCacheController());

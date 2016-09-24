@@ -1,12 +1,10 @@
 /*
- AWSIoTManagerListFragment
+ AWSIoTManagerListFragment.java
  Copyright (c) 2016 NTT DOCOMO,INC.
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
  */
-
 package org.deviceconnect.android.deviceplugin.awsiot.setting.fragment;
-
 
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -48,7 +46,7 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * AWS IoT Settings Fragment Page 2.
+ * AWS Iot Manager List Fragment.
  *
  * @author NTT DOCOMO, INC.
  */
@@ -306,9 +304,9 @@ public class AWSIotManagerListFragment extends Fragment {
 
     private void showManagerCheckDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-        builder.setTitle("確認")
-                .setMessage("Device Connect ManagerがOFFです。ONにしてください。")
-                .setPositiveButton("はい", new DialogInterface.OnClickListener() {
+        builder.setTitle(R.string.setting_confirm_title)
+                .setMessage(R.string.setting_manager_off_warning)
+                .setPositiveButton(R.string.webview_js_alert_positive_btn, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         // No Operation.

@@ -1,8 +1,15 @@
+/*
+ WebServer.java
+ Copyright (c) 2016 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.deviceplugin.awsiot.cores.p2p;
 
 import android.content.Context;
 import android.util.Log;
 
+import org.deviceconnect.android.deviceplugin.awsiot.remote.BuildConfig;
 import org.deviceconnect.android.deviceplugin.awsiot.udt.P2PConnection;
 
 import java.io.BufferedReader;
@@ -23,7 +30,7 @@ import java.util.concurrent.Executors;
 
 public class WebServer extends AWSIotP2PManager {
 
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = BuildConfig.DEBUG;
     private static final String TAG = "AWS";
 
     private static final int MAX_CLIENT_SIZE = 8;
@@ -332,7 +339,6 @@ public class WebServer extends AWSIotP2PManager {
             public void onReceivedData(final byte[] data, final String address, final int port) {
                 if (DEBUG) {
                     Log.i(TAG, "WebServer#onReceivedData: " + address + ":" + port + " " + data.length);
-//                    Log.i(TAG, "WebServer#onReceivedData: " + new String(data).replace("\r\n", ""));
                 }
 
                 try {

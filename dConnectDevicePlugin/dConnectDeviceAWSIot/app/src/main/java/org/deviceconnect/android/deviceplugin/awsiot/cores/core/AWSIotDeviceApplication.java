@@ -22,13 +22,10 @@ import org.json.JSONObject;
  * @author NTT DOCOMO, INC.
  */
 public class AWSIotDeviceApplication extends Application {
-
     /** Singleton Instance. */
     private static AWSIotDeviceApplication sInstance;
-
     /** AWSIotコントローラー */
     private final AWSIotController mIot = new AWSIotController();
-
     /** Instance of {@link RDCMListManager}. */
     private RDCMListManager mRDCMListManager;
 
@@ -96,7 +93,6 @@ public class AWSIotDeviceApplication extends Application {
             } catch (JSONException e) {
                 e.printStackTrace();
             }
-        } else {
         }
     }
 

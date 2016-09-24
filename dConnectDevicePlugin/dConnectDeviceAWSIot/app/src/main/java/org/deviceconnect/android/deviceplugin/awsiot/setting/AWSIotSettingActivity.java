@@ -36,7 +36,6 @@ public class AWSIotSettingActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_main);
 
-        // TODO: Material Design ActionBar 要調査
         ActionBar ab = getSupportActionBar();
         if (ab != null) {
             ab.setDisplayHomeAsUpEnabled(true);

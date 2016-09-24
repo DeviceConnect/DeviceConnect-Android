@@ -1,3 +1,9 @@
+/*
+ WebClient.java
+ Copyright (c) 2016 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.deviceplugin.awsiot.cores.p2p;
 
 import android.content.ContentResolver;
@@ -5,6 +11,7 @@ import android.content.Context;
 import android.net.Uri;
 import android.util.Log;
 
+import org.deviceconnect.android.deviceplugin.awsiot.remote.BuildConfig;
 import org.deviceconnect.android.deviceplugin.awsiot.udt.P2PConnection;
 import org.deviceconnect.android.deviceplugin.awsiot.cores.util.AWSIotUtil;
 
@@ -28,7 +35,7 @@ import java.util.concurrent.Executors;
 
 public class WebClient extends AWSIotP2PManager {
 
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = BuildConfig.DEBUG;
     private static final String TAG = "AWS";
 
     private static final int BUF_SIZE = 1024 * 8;

@@ -1,3 +1,9 @@
+/*
+ AWSIotUtil.java
+ Copyright (c) 2016 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.deviceplugin.awsiot.cores.util;
 
 import android.content.Context;
@@ -73,7 +79,7 @@ public final class AWSIotUtil {
             while (ids.hasNext()) {
                 String id = ids.next();
 
-                // 自分自身のUUIDの場合にはリストに含めいない
+                // 自分自身のUUIDの場合にはリストに含めない
                 if (id.equals(myUuid)) {
                     continue;
                 }

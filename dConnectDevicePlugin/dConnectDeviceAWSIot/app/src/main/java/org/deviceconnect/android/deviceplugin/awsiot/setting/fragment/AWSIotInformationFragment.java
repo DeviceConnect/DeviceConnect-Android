@@ -1,5 +1,5 @@
 /*
- AWSIotInformationFragment
+ AWSIotInformationFragment.java
  Copyright (c) 2016 NTT DOCOMO,INC.
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
@@ -31,7 +31,7 @@ import org.deviceconnect.android.deviceplugin.awsiot.remote.R;
 import org.deviceconnect.android.deviceplugin.awsiot.setting.AWSIotSettingActivity;
 
 /**
- * AWS IoT Settings Fragment Page 3.
+ * AWS Iot Information Fragment.
  *
  * @author NTT DOCOMO, INC.
  */

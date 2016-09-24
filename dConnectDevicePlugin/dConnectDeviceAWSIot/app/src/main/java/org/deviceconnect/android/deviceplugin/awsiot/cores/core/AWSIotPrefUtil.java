@@ -1,3 +1,9 @@
+/*
+ AWSIotPrefUtil.java
+ Copyright (c) 2016 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.deviceplugin.awsiot.cores.core;
 
 import android.content.Context;
@@ -7,21 +13,21 @@ import com.amazonaws.regions.Regions;
 import org.deviceconnect.android.deviceplugin.awsiot.cores.util.PreferenceUtil;
 
 public class AWSIotPrefUtil extends PreferenceUtil {
-    public static final String KEY_ACCESS_KEY = "awsAccessKey";
-    public static final String KEY_SECRET_KEY = "awsSecretKey";
-    public static final String KEY_REGIONS = "awsRegions";
+    private static final String KEY_ACCESS_KEY = "awsAccessKey";
+    private static final String KEY_SECRET_KEY = "awsSecretKey";
+    private static final String KEY_REGIONS = "awsRegions";
 
-    public static final String KEY_AWS_LOGIN_FLAG = "awsLoginFlag";
+    private static final String KEY_AWS_LOGIN_FLAG = "awsLoginFlag";
 
-    public static final String KEY_MANAGER_NAME = "awsManagerName";
-    public static final String KEY_MANAGER_UUID = "awsManagerUuid";
-    public static final String KEY_MANAGER_REGISTER = "awsManagerRegister";
-    public static final String KEY_SYNC_TIME = "awsSyncTime";
-    public static final String KEY_SYNC_TIME_SET = "awsSyncTimeSet";
-    public static final long DEFAULT_SYNC_TIME = 10;
+    private static final String KEY_MANAGER_NAME = "awsManagerName";
+    private static final String KEY_MANAGER_UUID = "awsManagerUuid";
+    private static final String KEY_MANAGER_REGISTER = "awsManagerRegister";
+    private static final String KEY_SYNC_TIME = "awsSyncTime";
+    private static final String KEY_SYNC_TIME_SET = "awsSyncTimeSet";
+    private static final long DEFAULT_SYNC_TIME = 10;
 
-    public static final String KEY_AUTH_ACCESS_TOKEN = "awsAuthAccessToken";
-    public static final String KEY_AUTH_CLIENT_ID = "awsAuthClientId";
+    private static final String KEY_AUTH_ACCESS_TOKEN = "awsAuthAccessToken";
+    private static final String KEY_AUTH_CLIENT_ID = "awsAuthClientId";
 
     public AWSIotPrefUtil(final Context context) {
         super(context);

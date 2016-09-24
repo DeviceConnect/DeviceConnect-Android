@@ -1,4 +1,12 @@
+/*
+ HttpUtil.java
+ Copyright (c) 2016 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.deviceplugin.awsiot.cores.util;
+
+import org.deviceconnect.android.deviceplugin.awsiot.remote.BuildConfig;
 
 import android.util.Log;
 
@@ -18,69 +26,31 @@ import java.util.Random;
  * HTTP通信を行うためのユーティリティクラス.
  */
 public final class HttpUtil {
-    /**
-     * デバック用フラグ.
-     */
-    private static final boolean DEBUG = true;
-
-    /**
-     * デバック用タグを定義します.
-     */
+    /** デバック用フラグ. */
+    private static final boolean DEBUG = BuildConfig.DEBUG;
+    /** デバック用タグを定義します. */
     private static final String TAG = "HTTP";
-
-    /**
-     * バッファサイズを定義します.
-     */
+    /** バッファサイズを定義します. */
     private static final int BUF_SIZE = 4096;
-
-    /**
-     * エラーとなるレスポンスコードを定義します.
-     */
+    /** エラーとなるレスポンスコードを定義します. */
     private static final int ERROR_RESPONSE_CODE = 400;
-
-    /**
-     * 接続のタイムアウト.
-     */
+    /** 接続のタイムアウト. */
     private static final int CONNECT_TIMEOUT = 30 * 1000;
-
-    /**
-     * 読み込みのタイムアウト時間.
-     */
+    /** 読み込みのタイムアウト時間. */
     private static final int READ_TIMEOUT = 3 * 60 * 1000;
-
-    /**
-     * POSTメソッドを定義します.
-     */
+    /** POSTメソッドを定義します. */
     private static final String METHOD_POST = "POST";
-
-    /**
-     * GETメソッドを定義します.
-     */
+    /** GETメソッドを定義します. */
     private static final String METHOD_GET = "GET";
-
-    /**
-     * PUTメソッドを定義します.
-     */
+    /** PUTメソッドを定義します. */
     private static final String METHOD_PUT = "PUT";
-
-    /**
-     * DELETEメソッドを定義します.
-     */
+    /** DELETEメソッドを定義します. */
     private static final String METHOD_DELETE = "DELETE";
-
-    /**
-     * マルチパートで使用するハイフンの定義.
-     */
+    /** マルチパートで使用するハイフンの定義. */
     private final static String TWO_HYPHEN = "--";
-
-    /**
-     * マルチパートで使用する改行コードの定義.
-     */
+    /** マルチパートで使用する改行コードの定義. */
     private final static String EOL = "\r\n";
-
-    /**
-     * マルチパートのバウンダリーの定義.
-     */
+    /** マルチパートのバウンダリーの定義. */
     private final static String BOUNDARY = String.format("%x", new Random().hashCode());
 
     private HttpUtil() {

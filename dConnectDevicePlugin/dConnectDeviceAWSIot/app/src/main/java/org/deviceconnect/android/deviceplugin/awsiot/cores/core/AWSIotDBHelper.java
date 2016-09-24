@@ -1,5 +1,5 @@
 /*
- AWSIotDBHelper
+ AWSIotDBHelper.java
  Copyright (c) 2016 NTT DOCOMO,INC.
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
@@ -136,21 +136,6 @@ public class AWSIotDBHelper {
         }
     }
 
-    public synchronized int removeManagerByOldDate(final long time) {
-        String whereClause = COL_UPDATEDATE_MILLIS + "=?";
-        String[] whereArgs = {
-                // TODO: 指定値以下のレコードを削除するクエリー設定
-                // System.currentTimeMillis() - time(Millis) > COL_UPDATEDATE_MILLIS
-        };
-
-        SQLiteDatabase db = mDBHelper.getWritableDatabase();
-        try {
-            return db.delete(TBL_NAME, whereClause, whereArgs);
-        } finally {
-            db.close();
-        }
-    }
-
     /**
      * Get a list of information in the database.
      *
@@ -179,7 +164,7 @@ public class AWSIotDBHelper {
     }
 
     private static class DBHelper extends SQLiteOpenHelper {
-        public DBHelper(Context context) {
+        DBHelper(Context context) {
             super(context, DB_NAME, null, DB_VERSION);
         }
 

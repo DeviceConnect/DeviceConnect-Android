@@ -23,10 +23,11 @@
     <string name="menu_device_auth">デバイス認証</string>
     <string name="menu_logout">ログアウト</string>
     <string name="default_manager_name">ManagerName</string>
-    <string name="setting_help">AWS IoT Device Plug-in help page.</string>
     <string name="webview_js_alert_positive_btn">はい</string>
     <string name="webview_js_alert_negative_btn">いいえ</string>
     <string name="activity_help_title">AWS IoT Device Plug-in ヘルプ</string>
+    <string name="setting_manager_off_warning">Device Connect ManagerがOFFです。ONにしてください。</string>
+    <string name="setting_confirm_title">確認</string>
     <string-array name="region_array">
         <item>米国東部（バージニア北部）</item>
         <item>米国西部（オレゴン）</item>

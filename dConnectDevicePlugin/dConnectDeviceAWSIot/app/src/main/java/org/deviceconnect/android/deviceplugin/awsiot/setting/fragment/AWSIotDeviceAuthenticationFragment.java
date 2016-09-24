@@ -1,5 +1,5 @@
 /*
- AWSIotDeviceAuthenticationFragment
+ AWSIotDeviceAuthenticationFragment.java
  Copyright (c) 2016 NTT DOCOMO,INC.
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
@@ -39,7 +39,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * AWS IoT Settings Fragment Page 4.
+ * AWS Iot Device Authentication Fragment.
  *
  * @author NTT DOCOMO, INC.
  */

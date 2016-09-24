@@ -1,3 +1,9 @@
+/*
+ AWSIotWebViewActivity.java
+ Copyright (c) 2016 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.deviceplugin.awsiot.setting;
 
 import org.deviceconnect.android.deviceplugin.awsiot.remote.BuildConfig;
@@ -390,7 +396,7 @@ public class AWSIotWebViewActivity extends Activity {
         public void setCookie(final String name, final String value) {
             SharedPreferences.Editor editor = mPref.edit();
             editor.putString(name, value);
-            editor.commit();
+            editor.apply();
         }
 
         @JavascriptInterface
@@ -402,7 +408,7 @@ public class AWSIotWebViewActivity extends Activity {
         public void deleteCookie(final String name) {
             SharedPreferences.Editor editor = mPref.edit();
             editor.remove(name);
-            editor.commit();
+            editor.apply();
         }
     }
 }

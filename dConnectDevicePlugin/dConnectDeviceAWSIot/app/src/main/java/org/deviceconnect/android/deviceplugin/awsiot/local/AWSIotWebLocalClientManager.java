@@ -1,3 +1,9 @@
+/*
+ AWSIotWebLocalClientManager.java
+ Copyright (c) 2016 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.deviceplugin.awsiot.local;
 
 import android.content.Context;
@@ -5,6 +11,7 @@ import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.awsiot.cores.p2p.WebClient;
 import org.deviceconnect.android.deviceplugin.awsiot.cores.util.AWSIotUtil;
+import org.deviceconnect.android.deviceplugin.awsiot.remote.BuildConfig;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -12,7 +19,7 @@ import java.util.List;
 
 public class AWSIotWebLocalClientManager {
 
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = BuildConfig.DEBUG;
     private static final String TAG = "AWS-Local";
 
     private final List<WebClient> mWebClientList = Collections.synchronizedList(new ArrayList<WebClient>());

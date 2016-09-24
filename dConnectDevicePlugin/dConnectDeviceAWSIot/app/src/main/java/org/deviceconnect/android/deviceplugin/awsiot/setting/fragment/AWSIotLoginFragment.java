@@ -1,12 +1,10 @@
 /*
- AWSIoTLoginFragment
+ AWSIoTLoginFragment.java
  Copyright (c) 2016 NTT DOCOMO,INC.
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
  */
-
 package org.deviceconnect.android.deviceplugin.awsiot.setting.fragment;
-
 
 import android.app.Dialog;
 import android.app.ProgressDialog;
@@ -18,7 +16,6 @@ import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -42,12 +39,11 @@ import org.deviceconnect.android.deviceplugin.awsiot.setting.AWSIotSettingActivi
 import org.deviceconnect.android.deviceplugin.awsiot.setting.AWSIotWebViewActivity;
 
 /**
- * AWS IoT Settings Fragment Page 1.
+ * AWS Iot Login Fragment.
  *
  * @author NTT DOCOMO, INC.
  */
 public class AWSIotLoginFragment extends Fragment {
-
     /** Access Key EditText. */
     private EditText mAccessKey;
     /** Secret Key EditText. */
@@ -126,15 +122,14 @@ public class AWSIotLoginFragment extends Fragment {
         login.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                // TODO:AWS IoT ログイン処理
                 String accessKey = mAccessKey.getText().toString();
                 if (accessKey.length() == 0) {
-                    Toast.makeText(getContext(), "Access Keyを入力して下さい。", Toast.LENGTH_LONG).show();
+                    Toast.makeText(getContext(), "アクセスキーIDを入力して下さい。", Toast.LENGTH_LONG).show();
                     return;
                 }
                 String secretKey = mSecretKey.getText().toString();
                 if (secretKey.length() == 0) {
-                    Toast.makeText(getContext(), "Secret Keyを入力して下さい。", Toast.LENGTH_LONG).show();
+                    Toast.makeText(getContext(), "シークレットアクセスキーを入力して下さい。", Toast.LENGTH_LONG).show();
                     return;
                 }
 

@@ -1,3 +1,9 @@
+/*
+ AWSIotRemoteManager.java
+ Copyright (c) 2016 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.deviceplugin.awsiot.remote;
 
 import android.content.Context;
@@ -37,7 +43,7 @@ import java.util.concurrent.TimeUnit;
 
 public class AWSIotRemoteManager {
 
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = BuildConfig.DEBUG;
     private static final String TAG = "AWS-Remote";
 
     private Context mContext;

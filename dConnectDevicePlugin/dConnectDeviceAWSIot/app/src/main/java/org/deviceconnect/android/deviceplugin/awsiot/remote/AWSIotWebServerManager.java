@@ -1,3 +1,9 @@
+/*
+ AWSIotWebServerManager.java
+ Copyright (c) 2016 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.deviceplugin.awsiot.remote;
 
 import android.content.Context;
@@ -11,7 +17,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class AWSIotWebServerManager {
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = BuildConfig.DEBUG;
     private static final String TAG = "AWS-Remote";
 
     private final Map<RemoteDeviceConnectManager, WebServer> mWebServerList = new ConcurrentHashMap<>();

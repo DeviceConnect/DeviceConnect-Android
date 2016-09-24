@@ -238,6 +238,10 @@ public class DConnectService extends DConnectMessageService {
         }
     }
 
+    public EventBroker getEventBroker() {
+        return mEventBroker;
+    }
+
     private WebSocketInfo getWebSocketInfo(final String receiverId) {
         return ((DConnectApplication) getApplication()).getWebSocketInfoManager().getWebSocketInfo(receiverId);
     }

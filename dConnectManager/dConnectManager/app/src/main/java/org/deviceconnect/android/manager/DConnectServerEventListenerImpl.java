@@ -18,6 +18,7 @@ import org.apache.james.mime4j.stream.BodyDescriptor;
 import org.apache.james.mime4j.stream.Field;
 import org.deviceconnect.android.localoauth.ClientPackageInfo;
 import org.deviceconnect.android.localoauth.LocalOAuth2Main;
+import org.deviceconnect.android.manager.event.EventBroker;
 import org.deviceconnect.android.manager.profile.DConnectFilesProfile;
 import org.deviceconnect.android.manager.util.DConnectUtil;
 import org.deviceconnect.android.provider.FileManager;
@@ -150,6 +151,7 @@ public class DConnectServerEventListenerImpl implements DConnectServerEventListe
 
         DConnectService service = (DConnectService) mContext;
         DConnectApplication app = (DConnectApplication) service.getApplication();
+        EventBroker eventBroker = service.getEventBroker();
         WebSocketInfo disconnected = null;
         for (WebSocketInfo info : app.getWebSocketInfoManager().getWebSocketInfos()) {
             if (info.getRawId().equals(webSocketId)) {
@@ -158,6 +160,7 @@ public class DConnectServerEventListenerImpl implements DConnectServerEventListe
             }
         }
         if (disconnected != null) {
+            eventBroker.removeEventSession(disconnected.getReceiverId());
             app.getWebSocketInfoManager().removeWebSocketInfo(disconnected.getReceiverId());
         }
     }

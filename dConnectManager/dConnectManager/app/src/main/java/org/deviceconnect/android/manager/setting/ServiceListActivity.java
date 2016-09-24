@@ -72,6 +72,7 @@ public class ServiceListActivity extends Activity implements AlertDialogFragment
 
     private Switch mSwitchAction;
     private int mPageIndex;
+    private boolean mSwitchServerFlag;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -287,6 +288,15 @@ public class ServiceListActivity extends Activity implements AlertDialogFragment
             return;
         }
 
+        if (mServiceDiscovery != null) {
+            return;
+        }
+
+        if (mSwitchServerFlag) {
+            return;
+        }
+        mSwitchServerFlag = true;
+
         try {
             if (checked) {
                 mDConnectService.start();
@@ -294,8 +304,9 @@ public class ServiceListActivity extends Activity implements AlertDialogFragment
                     @Override
                     public void run() {
                         reload();
+                        mSwitchServerFlag = false;
                     }
-                }, 400);
+                }, 500);
             } else {
                 mDConnectService.stop();
                 notifyManagerTerminate();
@@ -304,6 +315,7 @@ public class ServiceListActivity extends Activity implements AlertDialogFragment
                     public void run() {
                         mServiceAdapter.mServices = new ArrayList<>();
                         mServiceAdapter.notifyDataSetInvalidated();
+                        mSwitchServerFlag = false;
                     }
                 });
             }
@@ -347,22 +359,35 @@ public class ServiceListActivity extends Activity implements AlertDialogFragment
 
             @Override
             protected void onPreExecute() {
-                mDialog = new ServiceDiscoveryDialogFragment();
-                mDialog.show(getFragmentManager(), null);
+                try {
+                    mDialog = new ServiceDiscoveryDialogFragment();
+                    mDialog.show(getFragmentManager(), null);
+                } catch (Exception e) {
+                    if (DEBUG) {
+                        Log.w(TAG, "Failed to open the dialog for service discovery.");
+                    }
+                }
             }
 
             @Override
             protected void onPostExecute(final List<ServiceContainer> serviceContainers) {
-                mDialog.dismiss();
+                try {
+                    mDialog.dismiss();
 
-                View view = findViewById(R.id.activity_service_no_service);
-                if (view != null) {
-                    view.setVisibility(serviceContainers.size() == 0 ? View.VISIBLE : View.GONE);
+                    View view = findViewById(R.id.activity_service_no_service);
+                    if (view != null) {
+                        view.setVisibility(serviceContainers.size() == 0 ? View.VISIBLE : View.GONE);
+                    }
+
+                    mServiceAdapter.mServices = serviceContainers;
+                    mServiceAdapter.notifyDataSetInvalidated();
+                } catch (Exception e) {
+                    if (DEBUG) {
+                        Log.w(TAG, "Failed to dismiss the dialog for service discovery.");
+                    }
+                } finally {
+                    mServiceDiscovery = null;
                 }
-
-                mServiceAdapter.mServices = serviceContainers;
-                mServiceAdapter.notifyDataSetInvalidated();
-                mServiceDiscovery = null;
             }
         };
         mServiceDiscovery.execute();

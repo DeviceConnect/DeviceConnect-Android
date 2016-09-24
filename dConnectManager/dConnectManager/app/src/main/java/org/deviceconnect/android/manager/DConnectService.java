@@ -43,7 +43,7 @@ import java.util.concurrent.Executors;
 public class DConnectService extends DConnectMessageService {
     public static final String ACTION_DISCONNECT_WEB_SOCKET = "disconnect.WebSocket";
     public static final String ACTION_SETTINGS_KEEP_ALIVE = "settings.KeepAlive";
-    public static final String EXTRA_SESSION_KEY = "sessionKey";
+    public static final String EXTRA_WEBSOCKET_ID = "webSocketId";
     public static final String EXTRA_KEEP_ALIVE_ENABLED = "enabled";
 
     /** 内部用: 通信タイプを定義する. */
@@ -123,9 +123,9 @@ public class DConnectService extends DConnectMessageService {
         }
 
         if (ACTION_DISCONNECT_WEB_SOCKET.equals(action)) {
-            String sessionKey = intent.getStringExtra(EXTRA_SESSION_KEY);
-            if (sessionKey != null) {
-                mRESTfulServer.disconnectWebSocket(sessionKey);
+            String webSocketId = intent.getStringExtra(EXTRA_WEBSOCKET_ID);
+            if (webSocketId != null) {
+                mRESTfulServer.disconnectWebSocket(webSocketId);
             }
             return START_STICKY;
         }

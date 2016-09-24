@@ -166,7 +166,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_SUPPORT_ATTRIBUTE.getCode(), root);
+            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -363,7 +363,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_SUPPORT_ATTRIBUTE.getCode(), root);
+            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -560,7 +560,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_SUPPORT_ATTRIBUTE.getCode(), root);
+            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -757,7 +757,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_SUPPORT_ATTRIBUTE.getCode(), root);
+            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -785,7 +785,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_SUPPORT_ATTRIBUTE.getCode(), root);
+            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -954,7 +954,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_SUPPORT_ATTRIBUTE.getCode(), root);
+            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -982,7 +982,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_SUPPORT_ATTRIBUTE.getCode(), root);
+            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -1151,7 +1151,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_SUPPORT_ATTRIBUTE.getCode(), root);
+            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -1179,7 +1179,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_SUPPORT_ATTRIBUTE.getCode(), root);
+            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -1348,7 +1348,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_SUPPORT_ATTRIBUTE.getCode(), root);
+            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -1639,7 +1639,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_SUPPORT_ATTRIBUTE.getCode(), root);
+            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -1902,7 +1902,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_SUPPORT_ATTRIBUTE.getCode(), root);
+            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -2151,7 +2151,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * </pre>
      * <pre>
      * 【期待する動作】
-     * ・resultに1が返ってくること。
+     * ・resultに0が返ってくること。
      * </pre>
      */
     @Test
@@ -2165,7 +2165,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_SUPPORT_ATTRIBUTE.getCode(), root);
+            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }

@@ -50,33 +50,4 @@ public class NormalSystemProfileTestCase extends IntentDConnectTestCase
         assertResultOK(response);
     }
 
-    /**
-     * デバイスプラグインの機能を有効にするテストを行う.
-     * <pre>
-     * 【Intent通信】
-     * Action: PUT
-     * Extra: 
-     *     profile=system
-     *     interface=device
-     *     attribute=wakeup
-     *     sessionKey=xxxx
-     * </pre>
-     * <pre>
-     * 【期待する動作】
-     * ・resultに0が返ってくること。
-     * ・versionに"2.0.0"が返ってくること。
-     * </pre>
-     */
-    @Test
-    public void testPutSystemWakeup() {
-        testGetSystem();
-        Intent request = new Intent(IntentDConnectMessage.ACTION_PUT);
-        request.putExtra(SystemProfileConstants.PARAM_PLUGIN_ID, mTestPluginID);
-        request.putExtra(DConnectMessage.EXTRA_PROFILE, SystemProfileConstants.PROFILE_NAME);
-        request.putExtra(DConnectMessage.EXTRA_INTERFACE, SystemProfileConstants.INTERFACE_DEVICE);
-        request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, SystemProfileConstants.ATTRIBUTE_WAKEUP);
-        Intent response = sendRequest(request);
-        assertResultOK(response);
-    }
-
 }

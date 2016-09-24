@@ -12,6 +12,7 @@ import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpUriRequest;
+import org.deviceconnect.android.profile.FileDescriptorProfile;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.deviceconnect.profile.DConnectProfileConstants;
 import org.deviceconnect.profile.FileDescriptorProfileConstants;
@@ -200,7 +201,7 @@ public class NormalFileDescriptorProfileTestCase extends RESTfulDConnectTestCase
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
 
         Map<String, Object> body = new HashMap<>();
-        body.put("media", "test".getBytes());
+        body.put(FileDescriptorProfile.PARAM_DATA, "test".getBytes());
         try {
             JSONObject response = sendRequest("PUT", builder.toString(), null, body);
             assertResultOK(response);
@@ -238,7 +239,7 @@ public class NormalFileDescriptorProfileTestCase extends RESTfulDConnectTestCase
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
 
         Map<String, Object> body = new HashMap<>();
-        body.put("media", "test".getBytes());
+        body.put(FileDescriptorProfile.PARAM_DATA, "test".getBytes());
         try {
             JSONObject response = sendRequest("PUT", builder.toString(), null, body);
             assertResultOK(response);

@@ -734,35 +734,6 @@ public class FailPhoneProfileTestCase extends RESTfulDConnectTestCase
     }
 
     /**
-     * メソッドにGETを指定してonconnect属性のリクエストテストを行う.
-     * <pre>
-     * 【HTTP通信】
-     * Method: GET
-     * Path: /phone/onconnect?serviceId=xxxx&sessionKey=xxxx
-     * </pre>
-     * <pre>
-     * 【期待する動作】
-     * ・resultに1が返ってくること。
-     * </pre>
-     */
-    @Test
-    public void testDeleteOnConnectInvalidMethodGet() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(PhoneProfileConstants.PROFILE_NAME);
-        builder.setAttribute(PhoneProfileConstants.ATTRIBUTE_ON_CONNECT);
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-
-        builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
-    }
-
-    /**
      * メソッドにPOSTを指定してonconnect属性のリクエストテストを行う.
      * <pre>
      * 【HTTP通信】

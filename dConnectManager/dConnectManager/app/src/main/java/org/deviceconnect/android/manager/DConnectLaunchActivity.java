@@ -170,6 +170,7 @@ public class DConnectLaunchActivity extends Activity {
     protected void onPause() {
         super.onPause();
         onActivityResult(0, RESULT_CANCELED, null);
+        unbindService(mServiceConnection);
         finish();
     }
 

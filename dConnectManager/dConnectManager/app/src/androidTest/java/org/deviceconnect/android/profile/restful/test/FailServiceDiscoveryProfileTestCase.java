@@ -13,13 +13,11 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpUriRequest;
-import org.deviceconnect.android.test.plugin.profile.TestServiceDiscoveryProfileConstants;
 import org.deviceconnect.message.DConnectMessage.ErrorCode;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.deviceconnect.profile.DConnectProfileConstants;
 import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 import org.deviceconnect.utils.URIBuilder;
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.Test;
@@ -82,7 +80,7 @@ public class FailServiceDiscoveryProfileTestCase extends RESTfulDConnectTestCase
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_SUPPORT_ATTRIBUTE.getCode(), root);
+            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -110,7 +108,7 @@ public class FailServiceDiscoveryProfileTestCase extends RESTfulDConnectTestCase
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_SUPPORT_ATTRIBUTE.getCode(), root);
+            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -142,25 +140,6 @@ public class FailServiceDiscoveryProfileTestCase extends RESTfulDConnectTestCase
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject root = sendRequest(request);
             assertResultOK(root);
-            JSONArray services = root.getJSONArray(ServiceDiscoveryProfileConstants.PARAM_SERVICES);
-            assertNotNull("services is null.", root);
-            assertTrue("services not found.", services.length() > 0);
-            boolean isFoundName = false;
-            for (int i = 0; i < services.length(); i++) {
-                JSONObject service = services.getJSONObject(i);
-                String name = service.getString(ServiceDiscoveryProfileConstants.PARAM_NAME);
-                String id = service.getString(ServiceDiscoveryProfileConstants.PARAM_ID);
-                String type = service.getString(ServiceDiscoveryProfileConstants.PARAM_TYPE);
-                assertNotNull("service.name is null", name);
-                if (name.equals(TestServiceDiscoveryProfileConstants.DEVICE_NAME)) {
-                    isFoundName = true;
-                }
-                assertNotNull("service.id is null", id);
-                assertNotNull("service.type is null", type);
-            }
-            if (!isFoundName) {
-                fail("Not found Test DevicePlugin.");
-            }
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }

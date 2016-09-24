@@ -42,8 +42,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -64,9 +62,6 @@ public class RESTfulDConnectTestCase extends DConnectTestCase {
     private static final int BUF_SIZE = 8192;
     /** 最大リトライ回数. */
     private static final int RETRY_COUNT = 3;
-
-    /** HTTPクライアント. */
-    private final HttpClient mHttpClient = new DefaultHttpClient();
 
     /**
      * アクセストークン取得APIに対するスコープ指定を取得する.
@@ -237,7 +232,7 @@ public class RESTfulDConnectTestCase extends DConnectTestCase {
     protected final HttpResponse requestHttpResponse(final HttpUriRequest request) throws IOException {
         // Origin指定
         request.setHeader(DConnectMessage.HEADER_GOTAPI_ORIGIN, getOrigin());
-        return mHttpClient.execute(request);
+        return ((HttpClient) new DefaultHttpClient()).execute(request);
     }
 
     /**
@@ -272,19 +267,9 @@ public class RESTfulDConnectTestCase extends DConnectTestCase {
 
             assertNotNull(response.getString(DConnectProfileConstants.PARAM_PRODUCT));
             assertNotNull(response.getString(DConnectProfileConstants.PARAM_VERSION));
-            assertTrue("Device Connect Manager must send HMAC.", response.has(IntentDConnectMessage.EXTRA_HMAC));
-
-            String hmacString = response.getString(IntentDConnectMessage.EXTRA_HMAC);
-            byte[] expectedHmac = calculateHMAC(nonce);
-            assertEquals(expectedHmac, toByteArray(hmacString));
-
             return response;
         } catch (JSONException e) {
             fail("Failed to parse response: " + e.getMessage());
-        } catch (InvalidKeyException e) {
-            throw new RuntimeException("The JDK does not support HMAC-SHA256.");
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException("The JDK does not support HMAC-SHA256.");
         }
         return null;
     }
@@ -320,19 +305,9 @@ public class RESTfulDConnectTestCase extends DConnectTestCase {
 
             assertNotNull(response.getString(DConnectProfileConstants.PARAM_PRODUCT));
             assertNotNull(response.getString(DConnectProfileConstants.PARAM_VERSION));
-            assertTrue("Device Connect Manager must send HMAC.", response.has(IntentDConnectMessage.EXTRA_HMAC));
-
-            String hmacString = response.getString(IntentDConnectMessage.EXTRA_HMAC);
-            byte[] expectedHmac = calculateHMAC(nonce);
-            assertEquals(expectedHmac, toByteArray(hmacString));
-
             return response;
         } catch (JSONException e) {
             fail("Failed to parse response: " + e.getMessage());
-        } catch (InvalidKeyException e) {
-            throw new RuntimeException("The JDK does not support HMAC-SHA256.");
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException("The JDK does not support HMAC-SHA256.");
         }
         return null;
     }
@@ -423,6 +398,7 @@ public class RESTfulDConnectTestCase extends DConnectTestCase {
                     + " : " + response.getStatusLine().getReasonPhrase());
             }
         } catch (IOException e) {
+            e.printStackTrace();
             throw new IllegalStateException(e.getMessage());
         }
         return null;

@@ -1468,7 +1468,7 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.UNKNOWN_ATTRIBUTE.getCode(), root);
+            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }

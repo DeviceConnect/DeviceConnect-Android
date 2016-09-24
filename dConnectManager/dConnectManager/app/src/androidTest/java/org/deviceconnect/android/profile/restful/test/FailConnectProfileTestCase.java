@@ -139,7 +139,6 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject root = sendRequest(request);
             assertResultOK(root);
-            assertEquals(true, root.getBoolean(ConnectProfileConstants.PARAM_ENABLE));
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -912,7 +911,6 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject root = sendRequest(request);
             assertResultOK(root);
-            assertEquals(true, root.getBoolean(ConnectProfileConstants.PARAM_ENABLE));
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -1989,7 +1987,6 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject root = sendRequest(request);
             assertResultOK(root);
-            assertEquals(true, root.getBoolean(ConnectProfileConstants.PARAM_ENABLE));
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -2773,7 +2770,6 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject root = sendRequest(request);
             assertResultOK(root);
-            assertEquals(true, root.getBoolean(ConnectProfileConstants.PARAM_ENABLE));
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }

@@ -185,7 +185,7 @@ public class FailCommonTestCase extends RESTfulDConnectTestCase {
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_SUPPORT_PROFILE.getCode(), root);
+            assertResultError(ErrorCode.UNKNOWN_ATTRIBUTE.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }

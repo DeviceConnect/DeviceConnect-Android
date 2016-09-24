@@ -189,6 +189,7 @@ public class NormalFileDescriptorProfileTestCase extends IntentDConnectTestCase 
         request.putExtra(FileDescriptorProfileConstants.PARAM_PATH, TestFileDescriptorProfileConstants.PATH);
         String uri = getContentProviderFileUri("test.png");
         request.putExtra(FileDescriptorProfileConstants.PARAM_URI, uri);
+        request.putExtra(FileDescriptorProfileConstants.PARAM_DATA, "");
         Intent response = sendRequest(request);
         assertResultOK(response);
     }
@@ -224,6 +225,7 @@ public class NormalFileDescriptorProfileTestCase extends IntentDConnectTestCase 
         String uri = getContentProviderFileUri("test.png");
         request.putExtra(FileDescriptorProfileConstants.PARAM_URI, uri);
         request.putExtra(FileDescriptorProfileConstants.PARAM_POSITION, 0);
+        request.putExtra(FileDescriptorProfileConstants.PARAM_DATA, "");
         Intent response = sendRequest(request);
         assertResultOK(response);
     }

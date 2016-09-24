@@ -10,11 +10,9 @@ import android.support.test.runner.AndroidJUnit4;
 
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.deviceconnect.android.test.plugin.profile.TestSystemProfileConstants;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
-import org.deviceconnect.profile.DConnectProfileConstants;
 import org.deviceconnect.profile.SystemProfileConstants;
 import org.deviceconnect.utils.URIBuilder;
 import org.json.JSONException;
@@ -32,12 +30,8 @@ import org.junit.runner.RunWith;
 public class NormalSystemProfileTestCase extends RESTfulDConnectTestCase
     implements TestSystemProfileConstants {
 
-    /** テスト用デバイスプラグインID. */
-    private String mTestPluginID;
-
     @After
     public void tearDown() throws Exception {
-        mTestPluginID = null;
         super.tearDown();
     }
 
@@ -73,40 +67,6 @@ public class NormalSystemProfileTestCase extends RESTfulDConnectTestCase
     }
 
     /**
-     * デバイスプラグインの機能を有効にする.
-     * <pre>
-     * 【HTTP通信】
-     * Method: PUT
-     * Path: /system/device/wakeup?deviceid=xxxx
-     * </pre>
-     * <pre>
-     * 【期待する動作】
-     * ・resultに0が返ってくること。
-     * ・versionにStringが返ってくること。
-     * </pre>
-     */
-    @Test
-    public void testPutSystemWakeup() {
-        testGetSystem();
-        StringBuilder builder = new StringBuilder();
-        builder.append(DCONNECT_MANAGER_URI);
-        builder.append("/" + SystemProfileConstants.PROFILE_NAME);
-        builder.append("/" + SystemProfileConstants.INTERFACE_DEVICE);
-        builder.append("/" + SystemProfileConstants.ATTRIBUTE_WAKEUP);
-        builder.append("?");
-        builder.append(SystemProfileConstants.PARAM_PLUGIN_ID + "=" + mTestPluginID);
-        builder.append("&");
-        builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
-    }
-
-    /**
      * 指定したセッションキーに対応するイベントを全て解除する.
      * <pre>
      * 【HTTP通信】
@@ -121,29 +81,9 @@ public class NormalSystemProfileTestCase extends RESTfulDConnectTestCase
      */
     @Test
     public void testDeleteSystemEvents() throws JSONException {
-        // イベント登録
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile("unique");
-        builder.setAttribute("event");
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-            JSONObject event = waitForEvent();
-            assertNotNull(event);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
-
-        // イベント全削除
-        long removedTime = System.currentTimeMillis();
-        builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(SystemProfileConstants.PROFILE_NAME);
         builder.setAttribute(SystemProfileConstants.ATTRIBUTE_EVENTS);
-
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
@@ -151,13 +91,6 @@ public class NormalSystemProfileTestCase extends RESTfulDConnectTestCase
             assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
-        }
-        
-        // イベント解除確認
-        JSONObject event = waitForEvent(750);
-        if (event != null) {
-            long publishedTime = event.getLong("time");
-            assertTrue(removedTime >= publishedTime);
         }
     }
 }

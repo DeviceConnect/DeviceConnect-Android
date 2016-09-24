@@ -1014,7 +1014,7 @@ public class FailFileDescriptorProfileTestCase extends RESTfulDConnectTestCase {
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
 
         Map<String, Object> body = new HashMap<>();
-        body.put("media", "test".getBytes());
+        body.put(FileDescriptorProfileConstants.PARAM_DATA, "test".getBytes());
         try {
             JSONObject response = sendRequest("PUT", builder.build().toString(), null, body);
             assertResultOK(response);

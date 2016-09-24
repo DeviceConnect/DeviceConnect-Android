@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:tools="http://schemas.android.com/tools"
+      xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/menu_awsiot_info"
+          android:title="@string/menu_awsiot_info"
+          android:showAsAction="never"
+          tools:ignore="AppCompatResource"/>
+    <item android:id="@+id/menu_device_auth"
+          android:title="@string/menu_device_auth"
+          android:showAsAction="never"
+          tools:ignore="AppCompatResource"/>
+    <item android:id="@+id/menu_logout"
+          android:title="@string/menu_logout"
+          android:showAsAction="never"
+          tools:ignore="AppCompatResource"/>
+</menu>

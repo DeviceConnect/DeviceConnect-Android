@@ -60,6 +60,10 @@ public class EventBroker {
         mListener = listener;
     }
 
+    public void removeEventSession(final String receiverId) {
+        mTable.removeForReceiverId(receiverId);
+    }
+
     public void onRequest(final Intent request, final DevicePlugin dest) {
         String serviceId = DConnectProfile.getServiceID(request);
         String origin = request.getStringExtra(IntentDConnectMessage.EXTRA_ORIGIN);

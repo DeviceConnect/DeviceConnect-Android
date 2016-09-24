@@ -155,9 +155,14 @@ public class DConnectLaunchActivity extends Activity {
                             finish();
                         }
                     };
+                } else {
+                    finish();
+                    return;
                 }
             }
             bindManagerService();
+        } else {
+            finish();
         }
     }
 

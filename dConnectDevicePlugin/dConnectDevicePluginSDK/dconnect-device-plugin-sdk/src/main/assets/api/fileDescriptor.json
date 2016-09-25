@@ -131,9 +131,15 @@
                         "type": "string"
                     },
                     {
+                        "name": "uri",
+                        "in": "formData",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
                         "name": "data",
                         "in": "formData",
-                        "required": true,
+                        "required": false,
                         "type": "file"
                     },
                     {

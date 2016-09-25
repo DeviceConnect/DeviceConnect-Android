@@ -165,7 +165,6 @@ public abstract class DConnectMessageService extends Service
 
         // デバイスプラグイン管理クラスの作成
         mPluginMgr = ((DConnectApplication) getApplication()).getDevicePluginManager();
-        mPluginMgr.setEventListener(this);
 
         // イベントハンドラーの初期化
         mEventBroker = new EventBroker(this, mEventSessionTable, mLocalOAuth, mPluginMgr);
@@ -540,6 +539,7 @@ public abstract class DConnectMessageService extends Service
         mOriginValidator = new OriginValidator(this,
                 mSettings.requireOrigin(), mSettings.isBlockingOrigin());
 
+        mPluginMgr.setEventListener(this);
         mPluginMgr.createDevicePluginList();
 
         showNotification();
@@ -552,6 +552,8 @@ public abstract class DConnectMessageService extends Service
      */
     protected synchronized void stopDConnect() {
         mRunningFlag = false;
+
+        mPluginMgr.setEventListener(null);
 
         if (mRequestManager != null) {
             mRequestManager.shutdown();

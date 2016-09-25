@@ -168,7 +168,7 @@ public abstract class DConnectMessageService extends Service
         mLocalOAuth = new DConnectLocalOAuth(this);
 
         // デバイスプラグイン管理クラスの作成
-        mPluginMgr = new DevicePluginManager((DConnectApplication) getApplication(), LOCALHOST_DCONNECT);
+        mPluginMgr = ((DConnectApplication) getApplication()).getDevicePluginManager();
         mPluginMgr.setEventListener(this);
 
         // イベントハンドラーの初期化
@@ -190,6 +190,7 @@ public abstract class DConnectMessageService extends Service
 
     @Override
     public void onDestroy() {
+        mPluginMgr.setEventListener(null);
         stopDConnect();
         LocalOAuth2Main.destroy();
         super.onDestroy();
@@ -228,10 +229,6 @@ public abstract class DConnectMessageService extends Service
             onResponseReceive(intent);
         } else if (IntentDConnectMessage.ACTION_EVENT.equals(action)) {
             onEventReceive(intent);
-        } else if (Intent.ACTION_PACKAGE_ADDED.equals(action)) {
-            mPluginMgr.checkAndAddDevicePlugin(intent);
-        } else if (Intent.ACTION_PACKAGE_REMOVED.equals(action)) {
-            mPluginMgr.checkAndRemoveDevicePlugin(intent);
         }
 
         return START_STICKY;

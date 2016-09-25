@@ -68,10 +68,6 @@ import java.util.logging.SimpleFormatter;
  */
 public abstract class DConnectMessageService extends Service
         implements DConnectProfileProvider, DevicePluginEventListener {
-    /** ドメイン名. */
-    private static final String DCONNECT_DOMAIN = ".deviceconnect.org";
-    /** ローカルのドメイン名. */
-    private static final String LOCALHOST_DCONNECT = "localhost" + DCONNECT_DOMAIN;
     /** 匿名オリジン. */
     public static final String ANONYMOUS_ORIGIN = "<anonymous>";
 
@@ -168,8 +164,7 @@ public abstract class DConnectMessageService extends Service
         mLocalOAuth = new DConnectLocalOAuth(this);
 
         // デバイスプラグイン管理クラスの作成
-        mPluginMgr = new DevicePluginManager((DConnectApplication) getApplication(), LOCALHOST_DCONNECT);
-        mPluginMgr.setEventListener(this);
+        mPluginMgr = ((DConnectApplication) getApplication()).getDevicePluginManager();
 
         // イベントハンドラーの初期化
         mEventBroker = new EventBroker(this, mEventSessionTable, mLocalOAuth, mPluginMgr);
@@ -190,6 +185,7 @@ public abstract class DConnectMessageService extends Service
 
     @Override
     public void onDestroy() {
+        mPluginMgr.setEventListener(null);
         stopDConnect();
         LocalOAuth2Main.destroy();
         super.onDestroy();
@@ -228,10 +224,6 @@ public abstract class DConnectMessageService extends Service
             onResponseReceive(intent);
         } else if (IntentDConnectMessage.ACTION_EVENT.equals(action)) {
             onEventReceive(intent);
-        } else if (Intent.ACTION_PACKAGE_ADDED.equals(action)) {
-            mPluginMgr.checkAndAddDevicePlugin(intent);
-        } else if (Intent.ACTION_PACKAGE_REMOVED.equals(action)) {
-            mPluginMgr.checkAndRemoveDevicePlugin(intent);
         }
 
         return START_STICKY;
@@ -547,6 +539,7 @@ public abstract class DConnectMessageService extends Service
         mOriginValidator = new OriginValidator(this,
                 mSettings.requireOrigin(), mSettings.isBlockingOrigin());
 
+        mPluginMgr.setEventListener(this);
         mPluginMgr.createDevicePluginList();
 
         showNotification();
@@ -559,6 +552,8 @@ public abstract class DConnectMessageService extends Service
      */
     protected synchronized void stopDConnect() {
         mRunningFlag = false;
+
+        mPluginMgr.setEventListener(null);
 
         if (mRequestManager != null) {
             mRequestManager.shutdown();

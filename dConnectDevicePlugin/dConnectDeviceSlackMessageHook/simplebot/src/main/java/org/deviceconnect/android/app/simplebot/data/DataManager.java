@@ -153,9 +153,7 @@ public class DataManager {
             sb.append(");");
             if (BuildConfig.DEBUG) Log.d(TAG,"onCreate:" + sb.toString());
             db.execSQL(sb.toString());
-            if (BuildConfig.DEBUG) {
-                addSampleData(db);
-            }
+            addSampleData(db);
         }
 
         @Override

@@ -8,14 +8,12 @@ package org.deviceconnect.android.deviceplugin.kadecot;
 
 import android.content.Intent;
 
-import org.deviceconnect.android.deviceplugin.kadecot.kadecotdevice.KadecotDevice;
 import org.deviceconnect.android.deviceplugin.kadecot.profile.KadecotServiceDiscoveryProfile;
 import org.deviceconnect.android.deviceplugin.kadecot.profile.KadecotSystemProfile;
 import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.profile.SystemProfile;
 import org.json.JSONObject;
 
-import java.util.ArrayList;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
@@ -30,16 +28,17 @@ public class KadecotDeviceService extends DConnectMessageService {
     private KadecotDeviceApplication mApp;
     /** Logger. */
     private final Logger mLogger = Logger.getLogger("kadecot.dplugin");
-    /** Kadecot device list. */
-    private ArrayList<KadecotDevice> mKadecotDevices = new ArrayList<>();
+    /** Service Discovery Profile. */
+    private KadecotServiceDiscoveryProfile mServiceDiscoveryProfile;
 
     @Override
     public void onCreate() {
         super.onCreate();
 
         mApp = (KadecotDeviceApplication) this.getApplication();
+        mServiceDiscoveryProfile = new KadecotServiceDiscoveryProfile(getServiceProvider());
 
-        addProfile(new KadecotServiceDiscoveryProfile(getServiceProvider()));
+        addProfile(mServiceDiscoveryProfile);
     }
 
     @Override
@@ -88,22 +87,6 @@ public class KadecotDeviceService extends DConnectMessageService {
     @Override
     protected SystemProfile getSystemProfile() {
         return new KadecotSystemProfile();
-    }
-
-    /**
-     * Check ServiceID.
-     * @param serviceId ServiceID.
-     * @return If <code>serviceId</code> is equal to test for serviceId, true.
-     *         Otherwise false.
-     */
-    public boolean checkServiceId(final String serviceId) {
-        for (int  i = 0; i < mKadecotDevices.size(); i++) {
-            String id = mKadecotDevices.get(i).getServiceId();
-            if (id != null && id.equals(serviceId)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     /**
@@ -160,15 +143,8 @@ public class KadecotDeviceService extends DConnectMessageService {
      * @return Nickname(Success) / null(not found)
      */
     public String getNickName(final String serviceId) {
-        for (KadecotDevice device : mKadecotDevices) {
-            String id = device.getServiceId();
-            if (id != null && id.equals(serviceId)) {
-                return device.getNickname();
-            }
-        }
-        return null;
+        return mServiceDiscoveryProfile.getNickName(serviceId);
     }
-
 
     /**
      * Get application instance.

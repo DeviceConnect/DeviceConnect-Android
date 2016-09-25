@@ -6,4 +6,5 @@
     <profile name="canvas" />
     <profile name="mediaPlayer" />
     <profile name="notification" />
-</deviceplugin-provider> 
+    <profile name="system" />
+</deviceplugin-provider>

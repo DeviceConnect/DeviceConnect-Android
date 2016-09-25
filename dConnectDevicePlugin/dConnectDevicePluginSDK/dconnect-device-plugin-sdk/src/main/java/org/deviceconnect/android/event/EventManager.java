@@ -114,7 +114,7 @@ public enum EventManager {
                 profile != null ? profile.toLowerCase() : null,
                 inter != null ? inter.toLowerCase() : null,
                 attribute != null ? attribute.toLowerCase() : null,
-                request.getStringExtra(DConnectMessage.EXTRA_SESSION_KEY),
+                request.getStringExtra(IntentDConnectMessage.EXTRA_ORIGIN),
                 receiverName);
     }
 

@@ -68,10 +68,6 @@ import java.util.logging.SimpleFormatter;
  */
 public abstract class DConnectMessageService extends Service
         implements DConnectProfileProvider, DevicePluginEventListener {
-    /** ドメイン名. */
-    private static final String DCONNECT_DOMAIN = ".deviceconnect.org";
-    /** ローカルのドメイン名. */
-    private static final String LOCALHOST_DCONNECT = "localhost" + DCONNECT_DOMAIN;
     /** 匿名オリジン. */
     public static final String ANONYMOUS_ORIGIN = "<anonymous>";
 

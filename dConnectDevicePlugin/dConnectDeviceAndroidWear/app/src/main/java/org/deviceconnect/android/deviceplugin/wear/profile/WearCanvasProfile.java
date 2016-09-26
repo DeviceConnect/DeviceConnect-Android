@@ -81,6 +81,13 @@ public class WearCanvasProfile extends CanvasProfile {
             final double x = getX(request);
             final double y = getY(request);
             final String mode = getMode(request);
+            String mimeType = getMIMEType(request);
+            if (mimeType != null && !mimeType.contains("image")) {
+                MessageUtils.setInvalidRequestParameterError(response,
+                        "Unsupported mimeType: " + mimeType);
+                return true;
+            }
+
             if (data == null) {
                 mImageService.execute(new Runnable() {
                     @Override

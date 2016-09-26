@@ -377,6 +377,8 @@ public class HostConnectProfile extends ConnectProfile {
                 intent.setClass(getContext(), BluetoothManageActivity.class);
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 getContext().startActivity(intent);
+
+                setResult(response, IntentDConnectMessage.RESULT_OK);
             } else {
                 // bluetooth has already enabled
                 setResult(response, IntentDConnectMessage.RESULT_OK);

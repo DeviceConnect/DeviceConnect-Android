@@ -102,7 +102,6 @@ public class HitoeProfileHealthFragment extends Fragment  implements HitoeSchedu
             public void run() {
                 HitoeApplication app = (HitoeApplication) getActivity().getApplication();
                 HitoeManager manager = app.getHitoeManager();
-
                 HeartRateData heart = manager.getHeartRateData(mCurrentDevice.getId());
                 if (heart != null) {
                     HeartData rate = heart.getHeartRate();

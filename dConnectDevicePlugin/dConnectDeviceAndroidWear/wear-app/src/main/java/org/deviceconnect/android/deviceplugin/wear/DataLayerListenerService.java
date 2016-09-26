@@ -12,10 +12,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.hardware.Sensor;
-import android.hardware.SensorEvent;
-import android.hardware.SensorEventListener;
-import android.hardware.SensorManager;
 import android.net.Uri;
 import android.os.Vibrator;
 import android.support.v4.content.LocalBroadcastManager;
@@ -50,36 +46,12 @@ import java.util.concurrent.TimeUnit;
  *
  * @author NTT DOCOMO, INC.
  */
-public class DataLayerListenerService extends WearableListenerService implements SensorEventListener {
-    /** radian. */
-    private static final double RAD2DEG = 180 / Math.PI;
-
-    /** SensorManager. */
-    private SensorManager mSensorManager;
-
-    /** Gyro x. */
-    private float mGyroX;
-
-    /** Gyro y. */
-    private float mGyroY;
-
-    /** Gyro z. */
-    private float mGyroZ;
-
+public class DataLayerListenerService extends WearableListenerService {
     /** Device NodeID . */
     private final List<String> mIds = Collections.synchronizedList(new ArrayList<String>());
 
-    /** GyroSensor. */
-    private Sensor mGyroSensor;
-
-    /** AcceleratorSensor. */
-    private Sensor mAccelerometer;
-
-    /** The start time for measuring the interval. */
-    private long mStartTime;
-
     /** Broadcast receiver. */
-    MyBroadcastReceiver mReceiver = null;
+    private MyBroadcastReceiver mReceiver = null;
 
     /**
      * スレッド管理用クラス.
@@ -101,8 +73,8 @@ public class DataLayerListenerService extends WearableListenerService implements
 
     @Override
     public void onDestroy() {
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(mReceiver);
         mIds.clear();
-        unregisterSensor();
         super.onDestroy();
     }
 
@@ -136,13 +108,22 @@ public class DataLayerListenerService extends WearableListenerService implements
                 startActivity(intent);
             }
         }
+    }
 
-        if (mSensorManager != null) {
-            mSensorManager.unregisterListener(this, mAccelerometer);
-            mSensorManager.unregisterListener(this, mGyroSensor);
-            mSensorManager.unregisterListener(this);
-            mSensorManager = null;
-        }
+    private void startSensorService(String id) {
+        Intent intent = new Intent();
+        intent.setAction(WearConst.DEVICE_TO_WEAR_DEIVCEORIENTATION_REGISTER);
+        intent.setClass(this, DeviceOrientationSensorService.class);
+        intent.putExtra("id", id);
+        startService(intent);
+    }
+
+    private void stopSensorService(String id) {
+        Intent intent = new Intent();
+        intent.setAction(WearConst.DEVICE_TO_WEAR_DEIVCEORIENTATION_UNREGISTER);
+        intent.setClass(this, DeviceOrientationSensorService.class);
+        intent.putExtra("id", id);
+        startService(intent);
     }
 
     @Override
@@ -158,10 +139,7 @@ public class DataLayerListenerService extends WearableListenerService implements
             if (!mIds.contains(id)) {
                 mIds.add(id);
             }
-            if (mSensorManager == null) {
-                registerSensor();
-            }
-
+            startSensorService(id);
             // For service destruction suppression.
             Intent i = new Intent(WearConst.ACTION_WEAR_PING_SERVICE);
             LocalBroadcastManager.getInstance(this).sendBroadcast(i);
@@ -178,7 +156,7 @@ public class DataLayerListenerService extends WearableListenerService implements
         } else if (action.equals(WearConst.DEVICE_TO_WEAR_DEIVCEORIENTATION_UNREGISTER)) {
             mIds.remove(id);
             if (mIds.isEmpty()) {
-                unregisterSensor();
+                stopSensorService(id);
             }
         } else if (action.equals(WearConst.DEVICE_TO_WEAR_CANCAS_DELETE_IMAGE)) {
             deleteCanvas();
@@ -275,64 +253,6 @@ public class DataLayerListenerService extends WearableListenerService implements
     public void onPeerDisconnected(final Node peer) {
     }
 
-    @Override
-    public void onSensorChanged(final SensorEvent sensorEvent) {
-        if (sensorEvent.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
-            long time = System.currentTimeMillis();
-            long interval = time - mStartTime;
-            mStartTime = time;
-
-            float accelX = sensorEvent.values[0];
-            float accelY = sensorEvent.values[1];
-            float accelZ = sensorEvent.values[2];
-            final String data = accelX + "," + accelY + "," + accelZ
-                    + "," + mGyroX + "," + mGyroY + "," + mGyroZ + "," + interval;
-            mExecutorService.execute(new Runnable() {
-                @Override
-                public void run() {
-                    synchronized (mIds) {
-                        for (String id : mIds) {
-                            sendSensorEvent(data, id);
-                        }
-                    }
-                }
-            });
-        } else if (sensorEvent.sensor.getType() == Sensor.TYPE_GYROSCOPE) {
-            mGyroX = (float) (sensorEvent.values[0] * RAD2DEG);
-            mGyroY = (float) (sensorEvent.values[1] * RAD2DEG);
-            mGyroZ = (float) (sensorEvent.values[2] * RAD2DEG);
-        }
-    }
-
-    @Override
-    public void onAccuracyChanged(final Sensor sensor, final int accuracy) {
-    }
-
-    /**
-     * センサーイベントをスマホ側に送信する.
-     * @param data 送信するデータ
-     * @param id 送信先のID
-     */
-    private void sendSensorEvent(final String data, final String id) {
-        GoogleApiClient client = getClient();
-        if (!client.isConnected()) {
-            ConnectionResult connectionResult = client.blockingConnect(30, TimeUnit.SECONDS);
-            if (!connectionResult.isSuccess()) {
-                if (BuildConfig.DEBUG) {
-                    Log.e("WEAR", "Failed to connect google play service.");
-                }
-                return;
-            }
-        }
-        
-        MessageApi.SendMessageResult result = Wearable.MessageApi.sendMessage(client, id,
-                WearConst.WEAR_TO_DEVICE_DEIVCEORIENTATION_DATA, data.getBytes()).await();
-        if (!result.getStatus().isSuccess()) {
-            if (BuildConfig.DEBUG) {
-                Log.e("WEAR", "Failed to send a sensor event.");
-            }
-        }
-    }
     /**
      * バイブレーションを開始する.
      * @param messageEvent メッセージ
@@ -353,7 +273,7 @@ public class DataLayerListenerService extends WearableListenerService implements
         Vibrator vibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
         vibrator.vibrate(mPatternLong, -1);
     }
-    
+
     /**
      * バイブレーションを停止する.
      */
@@ -362,52 +282,7 @@ public class DataLayerListenerService extends WearableListenerService implements
         Vibrator vibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
         vibrator.cancel();
     }
-    
-    /**
-     * センサーを登録する.
-     */
-    private synchronized void registerSensor() {
-        GoogleApiClient client = getClient();
-        if (client == null || !client.isConnected()) {
-            client = new GoogleApiClient.Builder(this).addApi(Wearable.API).build();
-            client.connect();
-            ConnectionResult connectionResult = client.blockingConnect(30, TimeUnit.SECONDS);
-            if (!connectionResult.isSuccess()) {
-                if (BuildConfig.DEBUG) {
-                    Log.e("WEAR", "Failed to connect google play service.");
-                }
-                return;
-            }
-        }
-        
-        mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
-        List<Sensor> accelSensors = mSensorManager.getSensorList(Sensor.TYPE_ACCELEROMETER);
-        if (accelSensors.size() > 0) {
-            mAccelerometer = accelSensors.get(0);
-            mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
-        }
-        
-        List<Sensor> gyroSensors = mSensorManager.getSensorList(Sensor.TYPE_GYROSCOPE);
-        if (gyroSensors.size() > 0) {
-            mGyroSensor = gyroSensors.get(0);
-            mSensorManager.registerListener(this, mGyroSensor, SensorManager.SENSOR_DELAY_NORMAL);
-        }
-        
-        mStartTime = System.currentTimeMillis();
-    }
-    
-    /**
-     * センサーを解除する.
-     */
-    private synchronized void unregisterSensor() {
-        if (mSensorManager != null) {
-            mSensorManager.unregisterListener(this, mAccelerometer);
-            mSensorManager.unregisterListener(this, mGyroSensor);
-            mSensorManager.unregisterListener(this);
-            mSensorManager = null;
-        }
-    }
-    
+
     /**
      * Canvasの画面を削除する.
      */

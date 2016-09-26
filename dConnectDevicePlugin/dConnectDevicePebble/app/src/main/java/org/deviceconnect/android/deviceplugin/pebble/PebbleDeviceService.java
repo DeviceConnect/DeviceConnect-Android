@@ -115,13 +115,13 @@ public class PebbleDeviceService extends DConnectMessageService {
     }
 
     @Override
-    protected void onManagerEventTransmitDisconnected(String sessionKey) {
+    protected void onManagerEventTransmitDisconnected(final String origin) {
         // ManagerのEvent送信経路切断通知受信時の処理。
         if (BuildConfig.DEBUG) {
             mLogger.info("Plug-in : onManagerEventTransmitDisconnected");
         }
-        if (sessionKey != null) {
-            EventManager.INSTANCE.removeEvents(sessionKey);
+        if (origin != null) {
+            EventManager.INSTANCE.removeEvents(origin);
         } else {
             EventManager.INSTANCE.removeAll();
         }

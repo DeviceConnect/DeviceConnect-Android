@@ -7,10 +7,7 @@ http://opensource.org/licenses/mit-license.php
 package org.deviceconnect.android.deviceplugin.wear.activity;
 
 import android.app.Activity;
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.support.annotation.NonNull;
@@ -21,7 +18,12 @@ import android.view.MotionEvent;
 import android.view.WindowManager;
 
 import org.deviceconnect.android.deviceplugin.wear.R;
+import org.deviceconnect.android.deviceplugin.wear.WearApplication;
 import org.deviceconnect.android.deviceplugin.wear.WearConst;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * WearTouchProfileActivity.
@@ -29,14 +31,13 @@ import org.deviceconnect.android.deviceplugin.wear.WearConst;
  * @author NTT DOCOMO, INC.
  */
 public class WearTouchProfileActivity extends Activity {
-    /** Broadcast receiver. */
-    MyBroadcastReceiver mReceiver;
-
-    /** Intent filter. */
-    IntentFilter mIntentFilter;
 
     /** Gesture detector. */
-    GestureDetector mGestureDetector;
+    private GestureDetector mGestureDetector;
+
+    /** Device NodeID . */
+    private final List<String> mIds = Collections.synchronizedList(new ArrayList<String>());
+
     /**
      * Wakelock.
      */
@@ -77,14 +78,9 @@ public class WearTouchProfileActivity extends Activity {
         }
 
         // Get intent data.
-        Intent intent = getIntent();
-        setRegisterEvent(intent.getStringExtra(WearConst.PARAM_TOUCH_REGIST));
-
+        setRegisterEvent(getIntent());
         setContentView(R.layout.activity_wear_touch_profile);
         mGestureDetector = new GestureDetector(this, mSimpleOnGestureListener);
-
-        mReceiver = new MyBroadcastReceiver();
-        mIntentFilter = new IntentFilter(WearConst.PARAM_DC_WEAR_TOUCH_SVC_TO_ACT);
 
         // For service destruction suppression.
         Intent i = new Intent(WearConst.ACTION_WEAR_PING_SERVICE);
@@ -92,16 +88,10 @@ public class WearTouchProfileActivity extends Activity {
     }
 
     @Override
-    public void onResume() {
-        super.onResume();
-        registerReceiver(mReceiver, mIntentFilter);
+    protected void onNewIntent(Intent intent) {
+        setRegisterEvent(intent);
     }
 
-    @Override
-    public void onPause() {
-        super.onPause();
-        unregisterReceiver(mReceiver);
-    }
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -180,28 +170,28 @@ public class WearTouchProfileActivity extends Activity {
      */
     private void sendEventData(final String action, final MotionEvent event) {
         int dataCount = event.getPointerCount();
-        StringBuffer data = new StringBuffer(String.valueOf(dataCount));
+        StringBuilder data = new StringBuilder(String.valueOf(dataCount));
         data.append(",").append(action);
-
         for (int n = 0; n < dataCount; n++) {
             int pointerId = event.getPointerId(n);
             data.append(",").append(pointerId).append(",").append(event.getX(n)).append(",").append(event.getY(n));
         }
 
-        // Send key event data to service.
-        Intent i = new Intent(WearConst.PARAM_DC_WEAR_TOUCH_ACT_TO_SVC);
-        i.putExtra(WearConst.PARAM_TOUCH_DATA, new String(data));
-        LocalBroadcastManager.getInstance(this).sendBroadcast(i);
+        sendEvent(WearConst.WEAR_TO_DEVICE_TOUCH_DATA, data.toString());
     }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
+    private void sendEvent(final String path, final String data) {
+        synchronized (mIds) {
+            for (String id : mIds) {
+                ((WearApplication) getApplication()).sendMessage(id, path, data);
+            }
+        }
     }
 
-    @Override
-    protected void onStop() {
-        super.onStop();
+    private void setRegisterEvent(Intent intent) {
+        String type = intent.getStringExtra(WearConst.PARAM_TOUCH_REGIST);
+        String id = intent.getStringExtra(WearConst.PARAM_TOUCH_ID);
+        setRegisterEvent(type, id);
     }
 
     /**
@@ -209,60 +199,73 @@ public class WearTouchProfileActivity extends Activity {
      *
      * @param regist Request event.
      */
-    private void setRegisterEvent(final String regist) {
+    private void setRegisterEvent(final String regist, String id) {
         if (WearConst.DEVICE_TO_WEAR_TOUCH_ONTOUCH_REGISTER.equals(regist)) {
+            if (!mIds.contains(id)) {
+                mIds.add(id);
+            }
             mRegisterEvent |= REGIST_FLAG_TOUCH_TOUCH;
         } else if (WearConst.DEVICE_TO_WEAR_TOUCH_ONTOUCHSTART_REGISTER.equals(regist)) {
+            if (!mIds.contains(id)) {
+                mIds.add(id);
+            }
             mRegisterEvent |= REGIST_FLAG_TOUCH_TOUCHSTART;
         } else if (WearConst.DEVICE_TO_WEAR_TOUCH_ONTOUCHEND_REGISTER.equals(regist)) {
+            if (!mIds.contains(id)) {
+                mIds.add(id);
+            }
             mRegisterEvent |= REGIST_FLAG_TOUCH_TOUCHEND;
         } else if (WearConst.DEVICE_TO_WEAR_TOUCH_ONDOUBLETAP_REGISTER.equals(regist)) {
+            if (!mIds.contains(id)) {
+                mIds.add(id);
+            }
             mRegisterEvent |= REGIST_FLAG_TOUCH_DOUBLETAP;
         } else if (WearConst.DEVICE_TO_WEAR_TOUCH_ONTOUCHMOVE_REGISTER.equals(regist)) {
+            if (!mIds.contains(id)) {
+                mIds.add(id);
+            }
             mRegisterEvent |= REGIST_FLAG_TOUCH_TOUCHMOVE;
         } else if (WearConst.DEVICE_TO_WEAR_TOUCH_ONTOUCHCANCEL_REGISTER.equals(regist)) {
+            if (!mIds.contains(id)) {
+                mIds.add(id);
+            }
             mRegisterEvent |= REGIST_FLAG_TOUCH_TOUCHCANCEL;
         } else if (WearConst.DEVICE_TO_WEAR_TOUCH_ONTOUCH_UNREGISTER.equals(regist)) {
+            mIds.remove(id);
             mRegisterEvent &= ~(REGIST_FLAG_TOUCH_TOUCH);
             if (mRegisterEvent == 0) {
                 finish();
             }
         } else if (WearConst.DEVICE_TO_WEAR_TOUCH_ONTOUCHSTART_UNREGISTER.equals(regist)) {
+            mIds.remove(id);
             mRegisterEvent &= ~(REGIST_FLAG_TOUCH_TOUCHSTART);
             if (mRegisterEvent == 0) {
                 finish();
             }
         } else if (WearConst.DEVICE_TO_WEAR_TOUCH_ONTOUCHEND_UNREGISTER.equals(regist)) {
+            mIds.remove(id);
             mRegisterEvent &= ~(REGIST_FLAG_TOUCH_TOUCHEND);
             if (mRegisterEvent == 0) {
                 finish();
             }
         } else if (WearConst.DEVICE_TO_WEAR_TOUCH_ONDOUBLETAP_UNREGISTER.equals(regist)) {
+            mIds.remove(id);
             mRegisterEvent &= ~(REGIST_FLAG_TOUCH_DOUBLETAP);
             if (mRegisterEvent == 0) {
                 finish();
             }
         } else if (WearConst.DEVICE_TO_WEAR_TOUCH_ONTOUCHMOVE_UNREGISTER.equals(regist)) {
+            mIds.remove(id);
             mRegisterEvent &= ~(REGIST_FLAG_TOUCH_TOUCHMOVE);
             if (mRegisterEvent == 0) {
                 finish();
             }
         } else if (WearConst.DEVICE_TO_WEAR_TOUCH_ONTOUCHCANCEL_UNREGISTER.equals(regist)) {
+            mIds.remove(id);
             mRegisterEvent &= ~(REGIST_FLAG_TOUCH_TOUCHCANCEL);
             if (mRegisterEvent == 0) {
                 finish();
             }
         }
     }
-
-    /**
-     * Broadcast receiver.
-     */
-    public class MyBroadcastReceiver extends BroadcastReceiver {
-        @Override
-        public void onReceive(final Context context, final Intent i) {
-            setRegisterEvent(i.getStringExtra(WearConst.PARAM_TOUCH_REGIST));
-        }
-    }
-
 }

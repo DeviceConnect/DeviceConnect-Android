@@ -32,7 +32,7 @@
             </intent-filter>
         </service>
 
-        <service android:name=".DeviceOrientationSensorService">
+        <service android:name=".WearAppService">
         </service>
 
         <activity

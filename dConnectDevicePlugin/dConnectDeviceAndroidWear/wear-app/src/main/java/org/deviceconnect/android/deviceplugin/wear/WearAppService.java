@@ -22,7 +22,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-public class DeviceOrientationSensorService extends Service implements SensorEventListener {
+public class WearAppService extends Service implements SensorEventListener {
     /** radian. */
     private static final double RAD2DEG = 180 / Math.PI;
 
@@ -70,7 +70,7 @@ public class DeviceOrientationSensorService extends Service implements SensorEve
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (intent != null) {
             String action = intent.getAction();
-            String id = intent.getStringExtra("id");
+            String id = intent.getStringExtra(WearConst.PARAM_SENSOR_ID);
             if (WearConst.DEVICE_TO_WEAR_DEIVCEORIENTATION_REGISTER.equals(action)) {
                 if (!mIds.contains(id)) {
                     mIds.add(id);

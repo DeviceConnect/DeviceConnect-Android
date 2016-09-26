@@ -7,9 +7,16 @@ http://opensource.org/licenses/mit-license.php
 package org.deviceconnect.android.deviceplugin.wear;
 
 import android.app.Application;
+import android.util.Log;
 
+import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.wearable.MessageApi;
 import com.google.android.gms.wearable.Wearable;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /**
  * このアプリで共有するGoogleApiClientを保持するアプリケーションクラス.
@@ -18,6 +25,11 @@ public class WearApplication extends Application {
 
     /** Google API Client. */
     private GoogleApiClient mGoogleApiClient;
+
+    /**
+     * スレッド管理用クラス.
+     */
+    private final ExecutorService mExecutorService = Executors.newSingleThreadExecutor();
 
     @Override
     public void onCreate() {
@@ -45,6 +57,8 @@ public class WearApplication extends Application {
      * GoogleApiClientの後始末を行う.
      */
     public synchronized void destroy() {
+        mExecutorService.shutdown();
+
         if (mGoogleApiClient != null) {
             // Disconnect google play service.
             mGoogleApiClient.disconnect();
@@ -61,5 +75,32 @@ public class WearApplication extends Application {
             init();
         }
         return mGoogleApiClient;
+    }
+
+
+    public void sendMessage(final String destinationId, final String path, final String data) {
+        mExecutorService.execute(new Runnable() {
+            @Override
+            public void run() {
+                GoogleApiClient client = mGoogleApiClient;
+                if (!client.isConnected()) {
+                    ConnectionResult connectionResult = client.blockingConnect(30, TimeUnit.SECONDS);
+                    if (!connectionResult.isSuccess()) {
+                        if (BuildConfig.DEBUG) {
+                            Log.e("WEAR", "Failed to connect google play service.");
+                        }
+                        return;
+                    }
+                }
+
+                MessageApi.SendMessageResult result = Wearable.MessageApi.sendMessage(client, destinationId,
+                        path, data.getBytes()).await();
+                if (!result.getStatus().isSuccess()) {
+                    if (BuildConfig.DEBUG) {
+                        Log.e("WEAR", "Failed to send a sensor event.");
+                    }
+                }
+            }
+        });
     }
 }

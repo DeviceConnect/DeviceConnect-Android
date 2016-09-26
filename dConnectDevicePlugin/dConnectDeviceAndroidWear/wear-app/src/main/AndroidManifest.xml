@@ -32,6 +32,9 @@
             </intent-filter>
         </service>
 
+        <service android:name=".WearAppService">
+        </service>
+
         <activity
             android:name=".activity.WearKeyEventProfileActivity"
             android:label="@string/title_activity_wear_keyevent_profile"

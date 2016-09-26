@@ -73,7 +73,9 @@ public class DataLayerListenerService extends WearableListenerService {
 
     @Override
     public void onDestroy() {
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(mReceiver);
+        if (mReceiver != null) {
+            LocalBroadcastManager.getInstance(this).unregisterReceiver(mReceiver);
+        }
         mIds.clear();
         super.onDestroy();
     }

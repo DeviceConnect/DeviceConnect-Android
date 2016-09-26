@@ -15,9 +15,9 @@ android {
     def getVersionName = { ->
         def version
         if (System.getProperty('os.name').toLowerCase().contains('windows')) {
-            version = ["cmd", "/c", "git describe --tags"].execute().in.text.trim()
+            version = ["cmd", "/c", "git describe --tags --long"].execute().in.text.trim()
         } else {
-            version = ["sh", "-c", "git describe --tags"].execute().in.text.trim()
+            version = ["sh", "-c", "git describe --tags --long"].execute().in.text.trim()
         }
         version = version.empty ? "2.0.0" : version
         return "${version}"

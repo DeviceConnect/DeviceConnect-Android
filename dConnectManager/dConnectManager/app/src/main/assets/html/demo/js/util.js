@@ -276,7 +276,6 @@ var util = (function(parent, global) {
          xhr.onreadystatechange = function() {
              switch (xhr.readyState) {
              case 1: {
-                 console.log("サーバ接続を確立しました。\n xhr.readyState=" + xhr.readyState + "\n xhr.statusText=" + xhr.statusText);
                  try {
                      xhr.setRequestHeader("X-GotAPI-Origin".toLowerCase(), "file://");
                  } catch (e) {
@@ -290,10 +289,8 @@ var util = (function(parent, global) {
                  break;
              }
              case 2:
-                 console.log("リクエストを送信しました。\n xhr.readyState=" + xhr.readyState + "\n xhr.statusText=" + xhr.statusText);
                  break;
              case 3:
-                 console.log("リクエストの処理中。\n xhr.readyState=" + xhr.readyState + "\n xhr.statusText=" + xhr.statusText);
                 break;
              case 4: {
                  if (xhr.status == 200) {

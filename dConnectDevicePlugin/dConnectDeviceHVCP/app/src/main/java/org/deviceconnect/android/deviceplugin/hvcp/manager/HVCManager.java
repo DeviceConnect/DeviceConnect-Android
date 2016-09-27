@@ -483,7 +483,7 @@ public enum HVCManager {
         if (BuildConfig.DEBUG) {
             Log.d(TAG, "Set threshold cmd:" + cmdThreshold.toString());
         }
-        sendCommand(cmdThreshold.toString(), new Long(100));
+        sendCommand(cmdThreshold.toString(), new Long(1));
 
     }
 
@@ -615,7 +615,7 @@ public enum HVCManager {
      */
     private synchronized void startReadThread(final String stCommand, final Long interval) {
         mTimer.removeCallbacksAndMessages(null);
-
+        mNowInterval = interval;
         mTimer.postDelayed(new Runnable() {
             @Override
             public void run() {
@@ -719,11 +719,10 @@ public enum HVCManager {
                             return;
                         }
                     }
-                    mTimer.postDelayed(this, mNowInterval.longValue());
+                    mTimer.postDelayed(this, mNowInterval);
                 }
             }
-        }, interval.longValue());
-        mNowInterval = interval;
+        }, interval);
     }
 
     @NonNull

@@ -198,9 +198,6 @@ public class NormalBatteryProfileTestCase extends RESTfulDConnectTestCase {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject root = sendRequest(request);
             assertResultOK(root);
-            // イベントメッセージを受け取る
-            JSONObject event = waitForEvent();
-            assertNotNull("event is null.", event);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -259,9 +256,6 @@ public class NormalBatteryProfileTestCase extends RESTfulDConnectTestCase {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject root = sendRequest(request);
             assertResultOK(root);
-            // イベントメッセージを受け取る
-            JSONObject resp = waitForEvent();
-            assertNotNull("response is null.", resp);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }

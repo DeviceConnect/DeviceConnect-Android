@@ -126,8 +126,6 @@ public class NormalConnectProfileTestCase extends IntentDConnectTestCase {
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, ConnectProfileConstants.ATTRIBUTE_ON_WIFI_CHANGE);
         Intent response = sendRequest(request);
         assertResultOK(response);
-        Intent event = waitForEvent();
-        assertNotNull(event);
     }
 
     /**
@@ -260,8 +258,6 @@ public class NormalConnectProfileTestCase extends IntentDConnectTestCase {
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, ConnectProfileConstants.ATTRIBUTE_ON_BLUETOOTH_CHANGE);
         Intent response = sendRequest(request);
         assertResultOK(response);
-        Intent event = waitForEvent();
-        assertNotNull(event);
     }
 
     /**
@@ -448,8 +444,6 @@ public class NormalConnectProfileTestCase extends IntentDConnectTestCase {
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, ConnectProfileConstants.ATTRIBUTE_ON_NFC_CHANGE);
         Intent response = sendRequest(request);
         assertResultOK(response);
-        Intent event = waitForEvent();
-        assertNotNull(event);
     }
 
     /**
@@ -582,8 +576,6 @@ public class NormalConnectProfileTestCase extends IntentDConnectTestCase {
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, ConnectProfileConstants.ATTRIBUTE_ON_BLE_CHANGE);
         Intent response = sendRequest(request);
         assertResultOK(response);
-        Intent event = waitForEvent();
-        assertNotNull(event);
     }
 
     /**

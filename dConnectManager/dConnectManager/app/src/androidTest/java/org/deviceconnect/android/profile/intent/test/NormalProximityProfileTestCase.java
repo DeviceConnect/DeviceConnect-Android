@@ -50,9 +50,6 @@ public class NormalProximityProfileTestCase extends IntentDConnectTestCase {
         Intent response = sendRequest(request);
 
         assertResultOK(response);
-
-        Intent event = waitForEvent();
-        assertNotNull(event);
     }
 
     /**
@@ -106,9 +103,6 @@ public class NormalProximityProfileTestCase extends IntentDConnectTestCase {
 
         Intent response = sendRequest(request);
         assertResultOK(response);
-
-        Intent event = waitForEvent();
-        assertNotNull(event);
     }
 
     /**

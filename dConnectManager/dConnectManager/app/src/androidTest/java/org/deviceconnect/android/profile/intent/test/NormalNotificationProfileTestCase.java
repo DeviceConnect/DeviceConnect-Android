@@ -1369,9 +1369,6 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
 
         Intent response = sendRequest(request);
         assertResultOK(response);
-
-        Intent event = waitForEvent();
-        assertNotNull(event);
     }
 
     /**
@@ -1429,9 +1426,6 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
 
         Intent response = sendRequest(request);
         assertResultOK(response);
-
-        Intent event = waitForEvent();
-        assertNotNull(event);
     }
 
     /**
@@ -1489,9 +1483,6 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
 
         Intent response = sendRequest(request);
         assertResultOK(response);
-
-        Intent event = waitForEvent();
-        assertNotNull(event);
     }
 
     /**
@@ -1549,9 +1540,6 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
 
         Intent response = sendRequest(request);
         assertResultOK(response);
-
-        Intent event = waitForEvent();
-        assertNotNull(event);
     }
 
     /**

@@ -187,8 +187,6 @@ public class NormalPhoneProfileTestCase extends RESTfulDConnectTestCase {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject root = sendRequest(request);
             assertResultOK(root);
-            JSONObject event = waitForEvent();
-            assertNotNull(event);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }

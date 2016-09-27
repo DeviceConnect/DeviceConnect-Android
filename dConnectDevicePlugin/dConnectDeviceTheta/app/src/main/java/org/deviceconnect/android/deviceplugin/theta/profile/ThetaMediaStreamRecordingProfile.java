@@ -248,6 +248,12 @@ public abstract class ThetaMediaStreamRecordingProfile extends MediaStreamRecord
         public boolean onRequest(final Intent request, final Intent response) {
             final String serviceId = getServiceID(request);
             final String target = getTarget(request);
+            Long timeslice = getTimeSlice(request);
+            if (timeslice != null && timeslice < 0) {
+                MessageUtils.setInvalidRequestParameterError(response,
+                        "Invalid timeslice");
+                return true;
+            }
             mClient.startVideoRecording(serviceId, target, new ThetaDeviceClient.DefaultListener() {
 
                 @Override

@@ -52,7 +52,6 @@ import org.deviceconnect.android.provider.FileManager;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Logger;
 
 /**
  * THETA Device's Gallery Fragment.
@@ -81,7 +80,7 @@ public class ThetaGalleryFragment extends Fragment implements ThetaDeviceEventLi
     private static final int MODE_DISABLE_BACKGROUND = R.drawable.button_white;
 
     /** Gallery Mode Enable text color. */
-    private static final int MODE_ENABLE_TEXT_COLOR = R.color.title_text;
+    private static final int MODE_ENABLE_TEXT_COLOR = R.color.tab_text;
 
     /** Gallery Mode Disable text color. */
     private static final int MODE_DISABLE_TEXT_COLOR = R.color.action_bar_background;

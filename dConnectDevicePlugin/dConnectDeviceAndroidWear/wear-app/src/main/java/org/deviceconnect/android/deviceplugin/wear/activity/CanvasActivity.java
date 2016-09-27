@@ -16,7 +16,6 @@ import android.graphics.drawable.BitmapDrawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.PowerManager;
-import android.support.v4.content.LocalBroadcastManager;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageView;
@@ -73,11 +72,13 @@ public class CanvasActivity extends Activity {
             refreshImage(intent);
         }
     }
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
         mWakeLock.release();
     }
+
     @Override
     protected void onNewIntent(final Intent intent) {
         super.onNewIntent(intent);
@@ -126,13 +127,10 @@ public class CanvasActivity extends Activity {
         }).execute();
     }
 
-    private void sendResultToHost(final String destinationId, final String requestId,
-                                  final String resultCode) {
-        Intent result = new Intent(WearConst.PARAM_DC_WEAR_CANVAS_ACT_TO_SVC);
-        result.putExtra(WearConst.PARAM_DESTINATION_ID, destinationId);
-        result.putExtra(WearConst.PARAM_REQUEST_ID, requestId);
-        result.putExtra(WearConst.PARAM_RESULT, resultCode);
-        LocalBroadcastManager.getInstance(this).sendBroadcast(result);
+    private void sendResultToHost(final String destinationId, final String requestId, final String resultCode) {
+        String data = requestId + "," + resultCode;
+        String path = WearConst.WEAR_TO_DEVICE_CANVAS_RESULT;
+        ((WearApplication) getApplication()).sendMessage(destinationId, path, data);
     }
 
     /**

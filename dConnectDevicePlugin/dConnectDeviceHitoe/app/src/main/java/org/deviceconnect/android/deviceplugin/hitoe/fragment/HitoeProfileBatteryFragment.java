@@ -92,7 +92,7 @@ public class HitoeProfileBatteryFragment extends Fragment {
                 HeartRateData heart = manager.getHeartRateData(mCurrentDevice.getId());
                 TargetDeviceData device = heart.getDevice();
                 if (device != null) {
-                    float level = (device.getBatteryLevel() + 1) / 4;
+                    float level = device.getBatteryLevel();
                     if (level == 1.0) {
                         mBatteryImage.setImageResource(R.drawable.mark_battery01);
                     } else if (level == 0.75) {

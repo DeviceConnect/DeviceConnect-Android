@@ -23,6 +23,7 @@ import org.deviceconnect.android.profile.spec.DConnectProfileSpec;
 import org.deviceconnect.android.profile.spec.DConnectSpecConstants;
 import org.deviceconnect.android.service.DConnectService;
 import org.deviceconnect.message.DConnectMessage;
+import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 import org.deviceconnect.profile.DConnectProfileConstants;
 
 import java.io.ByteArrayOutputStream;
@@ -691,11 +692,22 @@ public abstract class DConnectProfile implements DConnectProfileConstants,
     }
 
     /**
+     * リクエストからオリジンを取得する.
+     *
+     * @param request リクエストパラメータ
+     * @return オリジン。無い場合はnullを返す。
+     */
+    public static String getOrigin(final Intent request) {
+        return request.getStringExtra(IntentDConnectMessage.EXTRA_ORIGIN);
+    }
+
+    /**
      * リクエストからセッションキーを取得する.
      * 
      * @param request リクエストパラメータ
      * @return セッションキー。無い場合はnullを返す。
-     * @deprecated
+     * @deprecated GotAPI 1.1では、セッションキーではなくオリジンごとにイベントを管理
+     * @see {@link #getOrigin(Intent)}
      */
     public static String getSessionKey(final Intent request) {
         return request.getStringExtra(PARAM_SESSION_KEY);
@@ -706,7 +718,7 @@ public abstract class DConnectProfile implements DConnectProfileConstants,
      * 
      * @param message メッセージパラメータ
      * @param sessionKey セッションキー
-     * @deprecated
+     * @deprecated GotAPI 1.1では、セッションキーではなくオリジンごとにイベントを管理
      */
     public static void setSessionKey(final Intent message, final String sessionKey) {
         message.putExtra(PARAM_SESSION_KEY, sessionKey);

@@ -161,8 +161,6 @@ public class NormalPhoneProfileTestCase extends IntentDConnectTestCase {
         Intent response = sendRequest(request);
 
         assertResultOK(response);
-        Intent event = waitForEvent();
-        assertNotNull(event);
     }
 
     /**

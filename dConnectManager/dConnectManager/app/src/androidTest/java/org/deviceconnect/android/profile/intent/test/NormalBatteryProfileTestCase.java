@@ -230,8 +230,6 @@ public class NormalBatteryProfileTestCase extends IntentDConnectTestCase {
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, BatteryProfileConstants.ATTRIBUTE_ON_BATTERY_CHANGE);
         Intent response = sendRequest(request);
         assertResultOK(response);
-        Intent event = waitForEvent();
-        assertNotNull(event);
     }
 
     /**

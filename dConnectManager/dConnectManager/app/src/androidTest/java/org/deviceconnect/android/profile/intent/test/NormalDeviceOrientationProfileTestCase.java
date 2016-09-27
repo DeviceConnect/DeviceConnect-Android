@@ -48,8 +48,6 @@ public class NormalDeviceOrientationProfileTestCase extends IntentDConnectTestCa
                 DeviceOrientationProfileConstants.ATTRIBUTE_ON_DEVICE_ORIENTATION);
         Intent response = sendRequest(request);
         assertResultOK(response);
-        Intent event = waitForEvent();
-        assertNotNull(event);
     }
 
     /**

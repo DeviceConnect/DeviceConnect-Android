@@ -87,9 +87,6 @@ public class NormalDeviceOrientationProfileTestCase extends RESTfulDConnectTestC
             JSONObject root = sendRequest(request);
             Assert.assertNotNull("root is null.", root);
             assertResultOK(root);
-
-            JSONObject event = waitForEvent();
-            assertNotNull(event);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }

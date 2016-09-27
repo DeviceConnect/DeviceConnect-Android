@@ -696,10 +696,9 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
     /**
      * コールバック登録リクエストを送信する.
      * @param attribute コールバックの属性名
-     * @return 受信したイベント
      * @throws JSONException JSONの解析に失敗した場合
      */
-    private JSONObject registerEventCallback(final String attribute) throws JSONException {
+    private void registerEventCallback(final String attribute) throws JSONException {
         StringBuilder builder = new StringBuilder();
         builder.append(DCONNECT_MANAGER_URI);
         builder.append("/" + MediaStreamRecordingProfileConstants.PROFILE_NAME);
@@ -711,9 +710,6 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
         HttpUriRequest request = new HttpPut(builder.toString());
         JSONObject root = sendRequest(request);
         assertResultOK(root);
-        JSONObject event = waitForEvent();
-        assertNotNull("event is null.", event);
-        return event;
     }
 
     /**

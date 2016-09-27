@@ -1912,10 +1912,9 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * コールバック登録リクエストを送信する.
      * 
      * @param attribute コールバックの属性名
-     * @return 受信したイベント
      * @throws JSONException JSONの解析に失敗した場合
      */
-    private JSONObject registerEventCallback(final String attribute) throws JSONException {
+    private void registerEventCallback(final String attribute) throws JSONException {
         StringBuilder builder = new StringBuilder();
         builder.append(DCONNECT_MANAGER_URI);
         builder.append("/" + NotificationProfileConstants.PROFILE_NAME);
@@ -1928,9 +1927,6 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         JSONObject root = sendRequest(request);
         Assert.assertNotNull("root is null.", root);
         Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
-        JSONObject event = waitForEvent();
-        Assert.assertNotNull("event is null.", event);
-        return event;
     }
 
     /**

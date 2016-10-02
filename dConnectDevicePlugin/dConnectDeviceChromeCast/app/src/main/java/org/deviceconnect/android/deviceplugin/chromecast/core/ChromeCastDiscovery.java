@@ -7,17 +7,16 @@
 package org.deviceconnect.android.deviceplugin.chromecast.core;
 
 import android.content.Context;
-import android.support.v7.media.MediaRouteSelector;
-import android.support.v7.media.MediaRouter;
 import android.util.Log;
 
 import com.google.android.gms.cast.CastDevice;
-import com.google.android.gms.cast.CastMediaControlIntent;
+import com.google.android.gms.cast.framework.CastContext;
+import com.google.android.gms.cast.framework.CastSession;
+import com.google.android.gms.cast.framework.SessionManagerListener;
 
 import org.deviceconnect.android.deviceplugin.chromecast.BuildConfig;
 
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Chromecast Discovery クラス.
@@ -28,23 +27,15 @@ import java.util.List;
  * @author NTT DOCOMO, INC.
  */
 public class ChromeCastDiscovery {
-    
+
     /** 出力するログのタグ名. */
     private static final String TAG = ChromeCastDiscovery.class.getSimpleName();
-    /** MediaRouter. */
-    private MediaRouter mMediaRouter;
-    /** MediaRouteSelector. */
-    private MediaRouteSelector mMediaRouteSelector;
-    /** MediaRouterのコールバック. */
-    private MediaRouter.Callback mMediaRouterCallback;
     /** 選択されたデバイス. */
     private CastDevice mSelectedDevice;
     /** Chromecastとの接続状態を通知するコールバック. */
     private Callbacks mCallbacks;
     /** Route名のリスト. */
-    private ArrayList<String> mRouteNames;
-    /** Routeの情報のリスト. */
-    private ArrayList<MediaRouter.RouteInfo> mRouteInfos;
+    private ArrayList<CastDevice> mRouteNames;
 
     /**
      * Chromecastとの接続状態を通知するコールバックのインターフェース.
@@ -55,7 +46,7 @@ public class ChromeCastDiscovery {
          * Chromecastデバイスの探索状態（発見or消失した場合）を通知する.
          * @param   devices デバイス名のリスト
          */
-        void onCastDeviceUpdate(final ArrayList<String> devices);
+        void onCastDeviceUpdate(final ArrayList<CastDevice> devices);
         /**
          * Chromecastデバイスが選択されたときに通知する.
          * 
@@ -64,9 +55,9 @@ public class ChromeCastDiscovery {
         void onCastDeviceSelected(final CastDevice selectedDevice);
         /**
          * Chromecastデバイスが非選択されたときに通知する.
-         * 
+         * @param unselectedDevice 選択されたデバイス
          */
-        void onCastDeviceUnselected();
+        void onCastDeviceUnselected(final CastDevice unselectedDevice);
     }
 
     /**
@@ -79,165 +70,113 @@ public class ChromeCastDiscovery {
     }
 
     /**
+     * ChromeCastとの接続を管理する.
+     */
+    private CastContext mCastContext;
+
+    /**
      * コンストラクタ.
      * <p>
      * ReceiverアプリのアプリケーションIDに対応した、Chromecastデバイスの探索を開始する.
      * </p>
      * 
      * @param context コンテキスト
-     * @param appId   ReceiverアプリのアプリケーションID
      */
-    public ChromeCastDiscovery(final Context context, final String appId) {
+    public ChromeCastDiscovery(final Context context) {
+        mCastContext = CastContext.getSharedInstance(context);
+        mCastContext.getSessionManager().addSessionManagerListener(
+                new SessionManagerListener<CastSession>() {
 
-        mRouteNames = new ArrayList<String>();
-        mRouteInfos = new ArrayList<MediaRouter.RouteInfo>();
-
-        mMediaRouter = MediaRouter.getInstance(context);
-        mMediaRouteSelector = new MediaRouteSelector.Builder()
-                .addControlCategory(
-                        CastMediaControlIntent.categoryForCast(appId)).build();
-
-        mMediaRouterCallback = new MediaRouter.Callback() {
-            @Override
-            public void onRouteAdded(final MediaRouter router, final MediaRouter.RouteInfo info) {
-                if (BuildConfig.DEBUG) {
-                    Log.d(TAG, "MediaRouter.Callback$onRouteAdded");
-                    Log.d(TAG, "MediaRouter.Callback$onRouteAdded: " + info.toString());
-                }
-                synchronized (this) {
-                    CastDevice device = CastDevice.getFromBundle(info.getExtras());
-                    if (device != null) {
-                        mRouteInfos.add(info);
-                        mRouteNames.add(info.getName());
-                    }
-                }
-                mCallbacks.onCastDeviceUpdate(mRouteNames);
-            }
-
-            @Override
-            public void onRouteRemoved(final MediaRouter router, final MediaRouter.RouteInfo info) {
-                if (BuildConfig.DEBUG) {
-                    Log.d(TAG, "MediaRouter.Callback$onRouteRemoved");
-                    Log.d(TAG, "MediaRouter.Callback$onRouteRemoved: " + info.toString());
-                }
-                for (int i = 0; i < mRouteInfos.size(); i++) {
-                    MediaRouter.RouteInfo routeInfo = mRouteInfos.get(i);
-                    if (routeInfo.equals(info)) {
+                    @Override
+                    public void onSessionStarting(CastSession castSession) {
+                        if (BuildConfig.DEBUG) {
+                            Log.d(TAG, "================================>");
+                            Log.d(TAG, "SessionManagerListener.onSessionStarting");
+                            Log.d(TAG, "<================================");
+                        }
                         synchronized (this) {
-                            mRouteInfos.remove(i);
-                            mRouteNames.remove(i);
+                            CastDevice device = castSession.getCastDevice();
+                            if (device != null) {
+                                mRouteNames.add(device);
+                            }
                         }
                         mCallbacks.onCastDeviceUpdate(mRouteNames);
-                        break;
                     }
-                }
-            }
 
-            @Override
-            public void onRouteSelected(final MediaRouter router, final MediaRouter.RouteInfo info) {
-                if (BuildConfig.DEBUG) {
-                    Log.d(TAG, "MediaRouter.Callback$onRouteSelected");
-                    Log.d(TAG, "MediaRouter.Callback$onRouteSelected: " + info.toString());
-                }
-                mSelectedDevice = CastDevice.getFromBundle(info.getExtras());
-                mCallbacks.onCastDeviceSelected(mSelectedDevice);
-            }
-
-            @Override
-            public void onRouteUnselected(final MediaRouter router, final MediaRouter.RouteInfo info) {
-                if (BuildConfig.DEBUG) {
-                    Log.d(TAG, "MediaRouter.Callback$onRouteUnselected");
-                    Log.d(TAG, "MediaRouter.Callback$onRouteUnselected: " + info.toString());
-                }
-                mCallbacks.onCastDeviceUnselected();
-//                mSelectedDevice = null;
-            }
-
-            @Override
-            public void onRouteChanged(final MediaRouter router, final MediaRouter.RouteInfo info) {
-                if (BuildConfig.DEBUG) {
-                    Log.d(TAG, "MediaRouter.onRouteChanged");
-                    Log.d(TAG, "MediaRouter.onRouteChanged: " + info.toString());
-                }
-            }
-            @Override
-            public void onRoutePresentationDisplayChanged(final MediaRouter router, final MediaRouter.RouteInfo info) {
-                if (BuildConfig.DEBUG) {
-                    Log.d(TAG, "MediaRouter.onRoutePresentationDisplayChanged");
-                    Log.d(TAG, "MediaRouter.onRoutePresentationDisplayChanged: " + info.toString());
-                }
-            }
-            @Override
-            public void onRouteVolumeChanged(final MediaRouter router, final MediaRouter.RouteInfo info) {
-            }
-            @Override
-            public void onProviderAdded(final MediaRouter router, final MediaRouter.ProviderInfo info) {
-            }
-            @Override
-            public void onProviderChanged(final MediaRouter router, final MediaRouter.ProviderInfo info) {
-            }
-            @Override
-            public void onProviderRemoved(final MediaRouter router, final MediaRouter.ProviderInfo info) {
-                if (BuildConfig.DEBUG) {
-                    Log.d(TAG, "MediaRouter.onProviderRemoved");
-                    Log.d(TAG, "MediaRouter.onProviderRemoved: " + info.toString());
-                }
-
-            }
-        };
-    }
-
-    /**
-     * MediaRouteSelector.
-     */
-    public MediaRouteSelector getMediaRouteSelector() {
-        return mMediaRouteSelector;
-    }
-
-    /**
-     * MediaRouterのイベントを登録する.
-     */
-    public void registerEvent() {
-        update();
-        mMediaRouter.addCallback(mMediaRouteSelector, mMediaRouterCallback,
-                MediaRouter.CALLBACK_FLAG_REQUEST_DISCOVERY);
-    }
-
-    /**
-     * MediaRouterのイベントの登録を解除する.
-     */
-    public void unregisterEvent() {
-        mMediaRouter.removeCallback(mMediaRouterCallback);
-    }
-
-    /**
-     * Chromecastデバイス情報を更新する.
-     */
-    private void update() {
-        List<MediaRouter.RouteInfo> rInfos = mMediaRouter.getRoutes();
-
-        mRouteInfos.clear();
-        mRouteNames.clear();
-        for (int i = 0; i < rInfos.size(); i++) {
-            MediaRouter.RouteInfo info = rInfos.get(i);
-
-            if (info.getDescription() != null) {
-                CastDevice device = CastDevice.getFromBundle(info.getExtras());
-                if (device != null) {
-                    mRouteInfos.add(info);
-                    mRouteNames.add(info.getName());
-                    if (BuildConfig.DEBUG) {
-                        Log.d(TAG, "name:" + info.getName());
-                        Log.d(TAG, "desc:" + info.getDescription());
-                        Log.d(TAG, "Is Connecting:" + info.isConnecting());
-                        Log.d(TAG, "Is Enabled:" + info.isEnabled());
-                        Log.d(TAG, "Is Selected:" + info.isSelected());
+                    @Override
+                    public void onSessionStarted(CastSession castSession, String s) {
+                        if (BuildConfig.DEBUG) {
+                            Log.d(TAG, "================================>");
+                            Log.d(TAG, "SessionManagerListener.onSessionStarted");
+                            Log.d(TAG, "<================================");
+                        }
+                        mSelectedDevice = castSession.getCastDevice();
+                        mCallbacks.onCastDeviceSelected(mSelectedDevice);
                     }
-                }
-            }
-        }
+
+                    @Override
+                    public void onSessionStartFailed(CastSession castSession, int i) {
+
+                    }
+
+                    @Override
+                    public void onSessionEnding(CastSession castSession) {
+                        if (BuildConfig.DEBUG) {
+                            Log.d(TAG, "================================>");
+                            Log.d(TAG, "SessionManagerListener.onSessionEnding");
+                            Log.d(TAG, "<================================");
+                        }
+                        mCallbacks.onCastDeviceUpdate(mRouteNames);
+                    }
+
+                    @Override
+                    public void onSessionEnded(CastSession castSession, int i) {
+                        if (BuildConfig.DEBUG) {
+                            Log.d(TAG, "================================>");
+                            Log.d(TAG, "SessionManagerListener.onSessionEnded");
+                            Log.d(TAG, "<================================");
+                        }
+                        mCallbacks.onCastDeviceUnselected(mSelectedDevice);
+                        mSelectedDevice = null;
+                    }
+
+                    @Override
+                    public void onSessionResuming(CastSession castSession, String s) {
+
+                    }
+
+                    @Override
+                    public void onSessionResumed(CastSession castSession, boolean b) {
+                        if (BuildConfig.DEBUG) {
+                            Log.d(TAG, "================================>");
+                            Log.d(TAG, "SessionManagerListener.onSessionResumed: " + b);
+                            Log.d(TAG, "<================================");
+                        }
+                        mSelectedDevice = castSession.getCastDevice();
+                        mCallbacks.onCastDeviceSelected(mSelectedDevice);
+                    }
+
+                    @Override
+                    public void onSessionResumeFailed(CastSession castSession, int i) {
+
+                    }
+
+                    @Override
+                    public void onSessionSuspended(CastSession castSession, int i) {
+                        if (BuildConfig.DEBUG) {
+                            Log.d(TAG, "================================>");
+                            Log.d(TAG, "SessionManagerListener.onSessionSuspended");
+                            Log.d(TAG, "<================================");
+                        }
+                        mCallbacks.onCastDeviceUnselected(mSelectedDevice);
+                        mSelectedDevice = null;
+
+                    }
+                }, CastSession.class);
+
+        mRouteNames = new ArrayList<CastDevice>();
     }
-	
+
     /**
      * 選択されたChromecastデバイスを返す.
      * 
@@ -252,22 +191,7 @@ public class ChromeCastDiscovery {
      * 
      * @return デバイス名のリスト
      */
-    public ArrayList<String> getDeviceNames() {
+    public ArrayList<CastDevice> getDeviceNames() {
         return mRouteNames;
-    }
-
-    /**
-     * Chromecastデバイスを選択する.
-     * 
-     * @param name Chromecastデバイス名
-     */
-    public void setRouteName(final String name) {
-        for (int i = 0; i < mRouteInfos.size(); i++) {
-            MediaRouter.RouteInfo routeInfo = mRouteInfos.get(i);
-            if (routeInfo.getName().equals(name)) {
-                mMediaRouter.selectRoute(routeInfo);
-                break;
-            }
-        }
     }
 }

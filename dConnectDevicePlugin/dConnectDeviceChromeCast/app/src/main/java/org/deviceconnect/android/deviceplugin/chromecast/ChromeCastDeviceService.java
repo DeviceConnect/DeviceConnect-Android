@@ -1,5 +1,7 @@
 package org.deviceconnect.android.deviceplugin.chromecast;
 
+import com.google.android.gms.cast.CastDevice;
+
 import org.deviceconnect.android.deviceplugin.chromecast.profile.ChromeCastCanvasProfile;
 import org.deviceconnect.android.deviceplugin.chromecast.profile.ChromeCastMediaPlayerProfile;
 import org.deviceconnect.android.deviceplugin.chromecast.profile.ChromeCastNotificationProfile;
@@ -15,9 +17,9 @@ public class ChromeCastDeviceService extends DConnectService {
 
     private ChromeCastMediaPlayerProfile mMediaPlayerProfile;
 
-    public ChromeCastDeviceService(final String ip) {
-        super(ip);
-        setName(getDeviceName(ip));
+    public ChromeCastDeviceService(final CastDevice cast) {
+        super(cast.getDeviceId());
+        setName(getDeviceName(cast.getFriendlyName()));
         setNetworkType(ServiceDiscoveryProfileConstants.NetworkType.WIFI);
         mMediaPlayerProfile = new ChromeCastMediaPlayerProfile();
         addProfile(new ChromeCastCanvasProfile());

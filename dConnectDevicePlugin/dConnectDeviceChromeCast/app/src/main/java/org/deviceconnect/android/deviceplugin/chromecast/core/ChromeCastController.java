@@ -95,7 +95,7 @@ public class ChromeCastController implements
     @Override
     public void onConnected(final Bundle connectionHint) {
         if (BuildConfig.DEBUG) {
-            Log.d(TAG, "onConnected");
+            Log.d(TAG, "onConnected:");
         }
         if (mApiClient == null) {
             return;
@@ -119,8 +119,6 @@ public class ChromeCastController implements
         if (BuildConfig.DEBUG) {
             Log.d(TAG, "onConnectionFailed$result: " + result.toString());
         }
-        mApiClient = null;
-        connect();
     }
 
     /**
@@ -187,7 +185,6 @@ public class ChromeCastController implements
                         Log.d(TAG, "onApplicationDisconnected$statusCode: " + statusCode);
                     }
                     mIsApplicationDisconnected = true;
-                    teardown();
                 }
                 @Override
                 public void onApplicationStatusChanged() {
@@ -215,7 +212,7 @@ public class ChromeCastController implements
      * 
      */
     public void reconnect() {
-        stopApplication(true);
+        stopApplication();
     }
     
     /**
@@ -223,7 +220,7 @@ public class ChromeCastController implements
      * 
      */
     public void teardown() {
-        stopApplication(false);
+        stopApplication();
     }
     
     /**
@@ -264,10 +261,8 @@ public class ChromeCastController implements
      * <p>
      * 停止後、再接続することもできる
      * </p>
-     * @param isReconnect 再接続するか否か
      */
-    private void stopApplication(final boolean isReconnect) {
-        
+    private void stopApplication() {
         if (mApiClient != null && mApiClient.isConnected()) {
             Cast.CastApi.stopApplication(mApiClient);
             Cast.CastApi.leaveApplication(mApiClient).setResultCallback(new ResultCallback<Status>() {
@@ -284,10 +279,6 @@ public class ChromeCastController implements
 
                         mApiClient.disconnect();
                         mApiClient = null;
-                        //再接続はしない
-//                        if (isReconnect) {
-//                            connect();
-//                        }
                     } else {
                         if (BuildConfig.DEBUG) {
                             Log.d(TAG, "stopApplication$onResult: Fail");

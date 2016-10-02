@@ -23,6 +23,7 @@ import com.google.android.gms.cast.MediaStatus;
 
 import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.chromecast.ChromeCastService;
+import org.deviceconnect.android.deviceplugin.chromecast.core.ChromeCastDiscovery;
 import org.deviceconnect.android.deviceplugin.chromecast.core.ChromeCastHttpServer;
 import org.deviceconnect.android.deviceplugin.chromecast.core.ChromeCastMediaPlayer;
 import org.deviceconnect.android.deviceplugin.chromecast.core.MediaFile;
@@ -55,6 +56,7 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
 
     /** イベントの登録・解除に失敗したときのエラーコード. */
     private static final int ERROR_VALUE_IS_NULL = 100;
+    private static final String SAMPLE_URL = "https://github.com/DeviceConnect/DeviceConnect-Android/wiki/sphero_demo.MOV";
     /** １ミリ秒. */
     private static final int MILLISECOND = 1000;
     /** Chromecastの再生状態がバッファリング中であることを表す. */
@@ -178,7 +180,13 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
     private ChromeCastMediaPlayer getChromeCastMediaPlayer() {
         return ((ChromeCastService) getContext()).getChromeCastMediaPlayer();
     }
-
+    /**
+     * サービスからChromeCastDiscoveryrを取得する.
+     * @return  ChromeCastDiscovery
+     */
+    private ChromeCastDiscovery getChromeCastDiscovery() {
+        return ((ChromeCastService) getContext()).getChromeCastDiscovery();
+    }
     /**
      * デバイスが有効か否かを返す<br>.
      * デバイスが無効の場合、レスポンスにエラーを設定する
@@ -194,7 +202,7 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
         }
         return true;
     }
-	
+
     /**
      * メディアの状態を取得する.
      * @param   response    レスポンス
@@ -815,9 +823,16 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
                                         title = cursor.getString(cursor
                                                 .getColumnIndex(MediaStore.Video.Media.TITLE));
                                         url = exposeMedia(mId);
+                                        ChromeCastDiscovery discovery = getChromeCastDiscovery();
                                         if (url == null) {
                                             response.putExtra(DConnectMessage.EXTRA_VALUE, "url is null");
                                             setResult(response, DConnectMessage.RESULT_ERROR);
+                                            sendResponse(response);
+                                            return;
+                                        } else if (discovery != null
+                                            && !discovery.getSelectedDevice().isOnLocalNetwork()
+                                            && !url.equals(SAMPLE_URL)) {
+                                            MessageUtils.setInvalidRequestParameterError(response, "Local File is not found.");
                                             sendResponse(response);
                                             return;
                                         }
@@ -1034,7 +1049,7 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
         Bundle medium = new Bundle();
         setType(medium, "Video");
         setLanguage(medium, "Language");
-        setMediaId(medium, "https://github.com/DeviceConnect/DeviceConnect-Android/wiki/sphero_demo.MOV");
+        setMediaId(medium,  SAMPLE_URL);
         setMIMEType(medium, "video/quicktime");
         setTitle(medium, "Title: Sample");
         setDuration(medium, 9999);

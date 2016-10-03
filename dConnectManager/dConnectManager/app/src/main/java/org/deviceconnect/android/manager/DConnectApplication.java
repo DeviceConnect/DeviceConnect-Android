@@ -6,10 +6,10 @@
  */
 package org.deviceconnect.android.manager;
 
-import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import org.deviceconnect.android.deviceplugin.linking.LinkingApplication;
 import org.deviceconnect.android.manager.util.DConnectUtil;
 
 import java.util.Map;
@@ -20,7 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * @author NTT DOCOMO, INC.
  */
-public class DConnectApplication extends Application {
+public class DConnectApplication extends LinkingApplication {
     /** ドメイン名. */
     private static final String DCONNECT_DOMAIN = ".deviceconnect.org";
 

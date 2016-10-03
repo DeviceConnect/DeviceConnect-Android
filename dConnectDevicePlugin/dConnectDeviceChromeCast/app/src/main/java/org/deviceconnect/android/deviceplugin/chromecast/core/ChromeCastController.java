@@ -119,6 +119,7 @@ public class ChromeCastController implements
         if (BuildConfig.DEBUG) {
             Log.d(TAG, "onConnectionFailed$result: " + result.toString());
         }
+        teardown();
     }
 
     /**
@@ -206,21 +207,21 @@ public class ChromeCastController implements
             
 
     }
-    
+
     /**
      * Receiverアプリケーションを終了し、GooglePlayServiceから切断し、再接続する.
-     * 
+     *
      */
     public void reconnect() {
-        stopApplication();
+        stopApplication(true);
     }
-    
+
     /**
      * Receiverアプリケーションを終了し、GooglePlayServiceから切断する.
      * 
      */
     public void teardown() {
-        stopApplication();
+        stopApplication(false);
     }
     
     /**
@@ -236,7 +237,7 @@ public class ChromeCastController implements
                         Status status = result.getStatus();
                         if (status.isSuccess()) {
                             if (BuildConfig.DEBUG) {
-                                Log.d(TAG, "launchApplication$onResult: Success");
+                                Log.d("TEST", "launchApplication$onResult: Success");
                             }
                             for (int i = 0; i < mCallbacks.size(); i++) {
                                 mCallbacks.get(i).onAttach();
@@ -244,7 +245,7 @@ public class ChromeCastController implements
 
                         } else {
                             if (BuildConfig.DEBUG) {
-                                Log.d(TAG, "launchApplication$onResult: Fail");
+                                Log.d("TEST", "launchApplication$onResult: Fail");
                             }
                             teardown();
                         }
@@ -262,15 +263,15 @@ public class ChromeCastController implements
      * 停止後、再接続することもできる
      * </p>
      */
-    private void stopApplication() {
+    private void stopApplication(final boolean isReconect) {
         if (mApiClient != null && mApiClient.isConnected()) {
-            Cast.CastApi.stopApplication(mApiClient);
-            Cast.CastApi.leaveApplication(mApiClient).setResultCallback(new ResultCallback<Status>() {
+//            Cast.CastApi.leaveApplication(mApiClient);
+            Cast.CastApi.stopApplication(mApiClient).setResultCallback(new ResultCallback<Status>() {
                 @Override
                 public void onResult(final Status result) {
                     if (result.getStatus().isSuccess()) {
                         if (BuildConfig.DEBUG) {
-                            Log.d(TAG, "stopApplication$onResult: Success");
+                            Log.d("TEST", "stopApplication$onResult: Success");
                         }
 
                         for (int i = 0; i < mCallbacks.size(); i++) {
@@ -279,9 +280,12 @@ public class ChromeCastController implements
 
                         mApiClient.disconnect();
                         mApiClient = null;
+                        if (isReconect) {
+                            launchApplication();
+                        }
                     } else {
                         if (BuildConfig.DEBUG) {
-                            Log.d(TAG, "stopApplication$onResult: Fail");
+                            Log.d("TEST", "stopApplication$onResult: Fail");
                         }
                     }
                 }

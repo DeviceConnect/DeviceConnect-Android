@@ -168,9 +168,6 @@ public class ChromeCastDiscovery {
                             Log.d(TAG, "SessionManagerListener.onSessionSuspended");
                             Log.d(TAG, "<================================");
                         }
-                        mCallbacks.onCastDeviceUnselected(mSelectedDevice);
-                        mSelectedDevice = null;
-
                     }
                 }, CastSession.class);
 

@@ -121,6 +121,7 @@ public class ChromeCastService extends DConnectMessageService implements
     @Override
     public void onDestroy() {
         mServer.stop();
+
         super.onDestroy();
     }
 
@@ -191,6 +192,10 @@ public class ChromeCastService extends DConnectMessageService implements
         } else {
             EventManager.INSTANCE.removeAll();
         }
+        ChromeCastApplication app = (ChromeCastApplication) getApplication();
+        if (app != null) {
+            app.getController().teardown();
+        }
     }
 
     @Override
@@ -200,10 +205,6 @@ public class ChromeCastService extends DConnectMessageService implements
             Log.i("TEST", "Plug-in : onDevicePluginReset");
         }
         resetPluginResource();
-        ChromeCastApplication app = (ChromeCastApplication) getApplication();
-        if (app != null) {
-            app.getController().teardown();
-        }
     }
 
     /**
@@ -359,7 +360,7 @@ public class ChromeCastService extends DConnectMessageService implements
         }
         if (devices.size() == 0) {
             if (BuildConfig.DEBUG) {
-                Log.d("ChromeCastDiscovery", "size:0");
+                Log.d("TEST", "size:0");
             }
             ChromeCastApplication app = (ChromeCastApplication) getApplication();
 
@@ -431,7 +432,6 @@ public class ChromeCastService extends DConnectMessageService implements
         if (castService != null) {
             castService.setOnline(false);
         }
-
         app.getController().teardown();
     }
 

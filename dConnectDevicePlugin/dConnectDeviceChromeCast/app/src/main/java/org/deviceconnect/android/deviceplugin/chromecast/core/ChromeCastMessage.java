@@ -156,6 +156,7 @@ public class ChromeCastMessage implements ChromeCastController.Callbacks {
      */
     public void sendMessage(final Intent response, final String message) {
         if (mApplication.getGoogleApiClient() != null && mMessageChannel != null) {
+            try {
             Cast.CastApi.sendMessage(mApplication.getGoogleApiClient(),
                     mMessageChannel.getNamespace(), message)
                     .setResultCallback(new ResultCallback<Status>() {
@@ -164,6 +165,9 @@ public class ChromeCastMessage implements ChromeCastController.Callbacks {
                             mCallbacks.onChromeCastMessageResult(response, result, null);
                         }
                     });
+            } catch (IllegalStateException e) {
+                mCallbacks.onChromeCastMessageResult(response, null, null);
+            }
         }
     }
 

@@ -829,10 +829,11 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
                                             setResult(response, DConnectMessage.RESULT_ERROR);
                                             sendResponse(response);
                                             return;
+
                                         } else if (discovery != null
                                             && !discovery.getSelectedDevice().isOnLocalNetwork()
                                             && !url.equals(SAMPLE_URL)) {
-                                            MessageUtils.setInvalidRequestParameterError(response, "Local File is not found.");
+                                            MessageUtils.setInvalidRequestParameterError(response, "Now guest mode.Local File is not found.");
                                             sendResponse(response);
                                             return;
                                         }

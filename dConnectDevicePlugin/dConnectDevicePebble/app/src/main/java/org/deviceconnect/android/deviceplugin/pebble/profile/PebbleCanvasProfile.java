@@ -16,10 +16,14 @@ import org.deviceconnect.android.deviceplugin.pebble.util.PebbleManager.OnSendCo
 import org.deviceconnect.android.deviceplugin.pebble.util.PebbleManager.OnSendDataListener;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.CanvasProfile;
+import org.deviceconnect.android.profile.api.DConnectApi;
+import org.deviceconnect.android.profile.api.DeleteApi;
+import org.deviceconnect.android.profile.api.PostApi;
 import org.deviceconnect.message.DConnectMessage;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.regex.Pattern;
 
 /**
  * Pebble 用 Canvasプロファイル.
@@ -30,48 +34,74 @@ public class PebbleCanvasProfile extends CanvasProfile {
 
     private ExecutorService mImageService = Executors.newSingleThreadExecutor();
 
-    @Override
-    protected boolean onPostDrawImage(final Intent request, final Intent response,
-                                      final String serviceId, final String mimeType, final byte[] data, final String uri, final double x, final double y,
-                                      final String mode) {
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-            return true;
-        }
+    private final Pattern PATTERN_MIME_TYPE = Pattern.compile("^[^/]+/[^/]+$");
 
-        if (!PebbleUtil.checkServiceId(serviceId)) {
-            MessageUtils.setNotFoundServiceError(response);
-            return true;
-        }
-
-        if (data == null) {
-            mImageService.execute(new Runnable() {
-                @Override
-                public void run() {
-                    byte[] result = getData(uri);
-                    if (result == null) {
-                        MessageUtils.setInvalidRequestParameterError(response, "could not get image from uri.");
-                        sendResponse(response);
-                        return;
-                    }
-                    if (drawImage(response, result, mode, x, y)) {
-                        sendResponse(response);
-                    }
-                }
-            });
-            return false;
-        } else {
-            return drawImage(response, data, mode, x, y);
-        }
+    private boolean isMIMEType(final String mimeType) {
+        return PATTERN_MIME_TYPE.matcher(mimeType).matches();
     }
 
-    @Override
-    protected boolean onDeleteDrawImage(final Intent request, final Intent response, final String serviceId) {
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-        } else if (!PebbleUtil.checkServiceId(serviceId)) {
-            MessageUtils.setNotFoundServiceError(response);
-        } else {
+    private final DConnectApi mPostDrawImageApi = new PostApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_DRAW_IMAGE;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            final byte[] data = getData(request);
+            final String mode = getMode(request);
+            final double x = getX(request);
+            final double y = getY(request);
+            final String mimeType = getMIMEType(request);
+            if (mimeType != null) {
+                boolean isValid = isMIMEType(mimeType);
+                if (!isValid) {
+                    MessageUtils.setInvalidRequestParameterError(response, "mimeType is invalid: " + mimeType);
+                    return true;
+                } else if (!mimeType.startsWith("image/")) {
+                    MessageUtils.setInvalidRequestParameterError(response, "this mimeType is unsupported: " + mimeType);
+                    return true;
+                }
+            }
+
+            if (data == null) {
+                mImageService.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        String uri = getURI(request);
+                        byte[] result = getData(uri);
+                        if (result == null) {
+                            MessageUtils.setInvalidRequestParameterError(response, "could not get image from uri.");
+                            sendResponse(response);
+                            return;
+                        }
+                        if (drawImage(response, result, mode, x, y)) {
+                            sendResponse(response);
+                        }
+                    }
+                });
+                return false;
+            } else {
+                try {
+                    return drawImage(response, data, mode, x, y);
+                } catch (Throwable e) {
+                    e.printStackTrace();
+                    MessageUtils.setUnknownError(response, e.getMessage());
+                    return true;
+                }
+
+            }
+        }
+    };
+
+    private final DConnectApi mDeleteDrawImage = new DeleteApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_DRAW_IMAGE;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
             PebbleDeviceService service = (PebbleDeviceService) getContext();
             PebbleManager mgr = service.getPebbleManager();
             PebbleDictionary dic = new PebbleDictionary();
@@ -91,7 +121,11 @@ public class PebbleCanvasProfile extends CanvasProfile {
             });
             return false;
         }
-        return true;
+    };
+
+    public PebbleCanvasProfile() {
+        addApi(mPostDrawImageApi);
+        addApi(mDeleteDrawImage);
     }
 
     private boolean drawImage(final Intent response, byte[] data, String mode, double x, double y) {

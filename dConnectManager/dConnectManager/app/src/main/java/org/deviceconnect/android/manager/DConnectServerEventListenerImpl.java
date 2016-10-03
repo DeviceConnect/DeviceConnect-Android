@@ -16,6 +16,9 @@ import org.apache.james.mime4j.parser.AbstractContentHandler;
 import org.apache.james.mime4j.parser.MimeStreamParser;
 import org.apache.james.mime4j.stream.BodyDescriptor;
 import org.apache.james.mime4j.stream.Field;
+import org.deviceconnect.android.localoauth.ClientPackageInfo;
+import org.deviceconnect.android.localoauth.LocalOAuth2Main;
+import org.deviceconnect.android.manager.event.EventBroker;
 import org.deviceconnect.android.manager.profile.DConnectFilesProfile;
 import org.deviceconnect.android.manager.util.DConnectUtil;
 import org.deviceconnect.android.provider.FileManager;
@@ -27,8 +30,10 @@ import org.deviceconnect.server.DConnectServerEventListener;
 import org.deviceconnect.server.http.HttpRequest;
 import org.deviceconnect.server.http.HttpResponse;
 import org.deviceconnect.server.http.HttpResponse.StatusCode;
+import org.deviceconnect.server.websocket.DConnectWebSocket;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.restlet.ext.oauth.PackageInfoOAuth;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -50,8 +55,7 @@ import java.util.logging.Logger;
  * Webサーバからのイベントを受領するクラス.
  * @author NTT DOCOMO, INC.
  */
-public class DConnectServerEventListenerImpl implements
-        DConnectServerEventListener {
+public class DConnectServerEventListenerImpl implements DConnectServerEventListener {
     /**
      * HTTPサーバからリクエストのマップ.
      */
@@ -89,16 +93,12 @@ public class DConnectServerEventListenerImpl implements
     /** ロックオブジェクト. */
     private final Object mLockObj = new Object();
 
-    /** アプリケーションクラスインスタンス. */
-    private DConnectApplication mApp;
-
     /**
      * コンストラクタ.
      * @param context このクラスが属するコンテキスト
      */
     public DConnectServerEventListenerImpl(final Context context) {
         mContext = context;
-        mApp = (DConnectApplication) DConnectApplication.getInstance().getApplicationContext();
     }
 
     /**
@@ -111,7 +111,7 @@ public class DConnectServerEventListenerImpl implements
 
     /**
      * Device Connect Managerからレスポンスを受け取る.
-     * 
+     *
      * @param intent レスポンス
      */
     public void onResponse(final Intent intent) {
@@ -136,68 +136,145 @@ public class DConnectServerEventListenerImpl implements
         mLogger.info("HttpServer was started.");
     }
 
-    /**
-     * WebSocketのセッションが切断された時に呼び出されます.
-     *
-     * @param sessionKey 切断されたセッションのsessionKey
-     */
     @Override
-    public void onWebSocketDisconnected(final String sessionKey) {
+    public void onWebSocketConnected(final DConnectWebSocket webSocket) {
         if (BuildConfig.DEBUG) {
-            mLogger.info("sessionKey :" + sessionKey);
+            mLogger.info("onWebSocketConnected: id = " + webSocket.getId());
         }
-        String matchSessionKey = mApp.getIdentifySessionKey(sessionKey);
-        if (matchSessionKey == null) {
-            if (BuildConfig.DEBUG) {
-                mLogger.info(" Didn't find the corresponding device plug-in to the sessionKey.");
-            }
-            return;
-        }
-        String matchServiceId = mApp.getDevicePluginIdentifyKey(matchSessionKey);
-        if (matchServiceId == null) {
-            if (BuildConfig.DEBUG) {
-                mLogger.info(" Didn't find the corresponding device plug-in to the sessionKey.");
-            }
-            return;
-        }
-
-        DevicePluginManager mgr = new DevicePluginManager(mContext, null);
-        mgr.createDevicePluginList();
-        List<DevicePlugin> plugins = mgr.getDevicePlugins();
-        for (DevicePlugin plugin : plugins) {
-            String serviceId = plugin.getServiceId();
-            if (serviceId != null && serviceId.equals(matchServiceId)) {
-                Intent request = new Intent();
-                request.setComponent(plugin.getComponentName());
-                request.setAction(IntentDConnectMessage.ACTION_EVENT_TRANSMIT_DISCONNECT);
-                request.putExtra("pluginId", serviceId);
-                request.putExtra(IntentDConnectMessage.EXTRA_SESSION_KEY, matchSessionKey);
-                mContext.sendBroadcast(request);
-            }
-        }
-        mApp.removeDevicePluginIdentifyKey(matchSessionKey);
     }
 
-    /**
-     * WebSocketのsessionKeyがリセットされた時に呼び出されます.
-     *
-     * @param sessionKey リセットされたsessionKey
-     */
     @Override
-    public void onResetEventSessionKey(String sessionKey) {
-        String matchSessionKey = mApp.getIdentifySessionKey(sessionKey);
-        if (matchSessionKey != null) {
-            mApp.removeDevicePluginIdentifyKey(matchSessionKey);
-        } else {
-            if (BuildConfig.DEBUG) {
-                mLogger.info(" Didn't find the corresponding device plug-in to the sessionKey.");
+    public void onWebSocketDisconnected(final String webSocketId) {
+        if (BuildConfig.DEBUG) {
+            mLogger.info("onWebSocketDisconnected: id = " + webSocketId);
+        }
+
+        DConnectService service = (DConnectService) mContext;
+        DConnectApplication app = (DConnectApplication) service.getApplication();
+        EventBroker eventBroker = service.getEventBroker();
+        WebSocketInfo disconnected = null;
+        for (WebSocketInfo info : app.getWebSocketInfoManager().getWebSocketInfos()) {
+            if (info.getRawId().equals(webSocketId)) {
+                disconnected = info;
+                break;
             }
+        }
+        if (disconnected != null) {
+            eventBroker.removeEventSession(disconnected.getReceiverId());
+            app.getWebSocketInfoManager().removeWebSocketInfo(disconnected.getReceiverId());
+        }
+    }
+
+    @Override
+    public void onWebSocketMessage(final DConnectWebSocket webSocket, final String message) {
+        try {
+            mLogger.info("onWebSocketMessage: message = " + message);
+
+            JSONObject json = new JSONObject(message);
+            String uri = webSocket.getUri();
+            String origin = webSocket.getClientOrigin();
+            String eventKey;
+            if (uri.equalsIgnoreCase("/gotapi/websocket")) { // MEMO パスの大文字小文字を無視
+                String accessToken = json.optString(DConnectMessage.EXTRA_ACCESS_TOKEN);
+                if (accessToken == null) {
+                    mLogger.warning("onWebSocketMessage: accessToken is not specified");
+                    sendError(webSocket, 1, "accessToken is not specified.");
+                    return;
+                }
+                if (requiresOrigin()) {
+                    if (origin == null) {
+                        sendError(webSocket, 2, "origin is not specified.");
+                        return;
+                    }
+                    if (usesLocalOAuth() && !isValidAccessToken(accessToken, origin)) {
+                        sendError(webSocket, 3, "accessToken is invalid.");
+                        return;
+                    }
+                } else {
+                    if (origin == null) {
+                        origin = DConnectService.ANONYMOUS_ORIGIN;
+                    }
+                }
+                eventKey = origin;
+                // NOTE: 既存のイベントセッションを保持する.
+                if (getWebSocketInfoManager().getWebSocketInfo(eventKey) != null) {
+                    sendError(webSocket, 4, "already established.");
+                    webSocket.disconnectWebSocket();
+                    return;
+                }
+                sendSuccess(webSocket);
+            } else {
+                if (origin == null) {
+                    origin = DConnectService.ANONYMOUS_ORIGIN;
+                }
+                eventKey = json.optString(DConnectMessage.EXTRA_SESSION_KEY);
+                // NOTE: 既存のイベントセッションを破棄する.
+                if (getWebSocketInfoManager().getWebSocketInfo(eventKey) != null) {
+                    ((DConnectService) mContext).sendDisconnectWebSocket(eventKey);
+                }
+            }
+            if (eventKey == null) {
+                mLogger.warning("onWebSocketMessage: Failed to generate eventKey: uri = " + uri +  ", origin = " + origin);
+                return;
+            }
+
+            getWebSocketInfoManager().addWebSocketInfo(eventKey, origin + uri, webSocket.getId());
+        } catch (JSONException e) {
+            mLogger.warning("onWebSocketMessage: Failed to parse message as JSON object: " + message);
+        }
+    }
+
+    private boolean requiresOrigin() {
+        return ((DConnectService) mContext).requiresOrigin();
+    }
+
+    private boolean usesLocalOAuth() {
+        return ((DConnectService) mContext).usesLocalOAuth();
+    }
+
+    private WebSocketInfoManager getWebSocketInfoManager() {
+        DConnectApplication app = (DConnectApplication) ((DConnectService) mContext).getApplication();
+        return app.getWebSocketInfoManager();
+    }
+
+    private void sendSuccess(final DConnectWebSocket webSocket) throws JSONException {
+        JSONObject message = new JSONObject();
+        message.put("result", 0);
+        webSocket.sendEvent(message.toString());
+    }
+
+    private void sendError(final DConnectWebSocket webSocket,
+                             final int errorCode,
+                             final String errorMessage) throws JSONException {
+        JSONObject message = new JSONObject();
+        message.put("result", 1);
+        message.put("errorCode", errorCode);
+        message.put("errorMessage", errorMessage);
+        webSocket.sendEvent(message.toString());
+    }
+
+    private boolean isValidAccessToken(final String accessToken, final String origin) {
+        ClientPackageInfo client = LocalOAuth2Main.findClientPackageInfoByAccessToken(accessToken);
+        if (client == null) {
+            return false;
+        }
+        PackageInfoOAuth oauth = client.getPackageInfo();
+        if (oauth == null) {
+            return false;
+        }
+        return oauth.getPackageName().equals(origin);
+    }
+
+    @Override
+    public void onResetEventSessionKey(final String sessionKey) {
+        if (BuildConfig.DEBUG) {
+            mLogger.info("onResetEventSessionKey: sessionKey :" + sessionKey);
         }
     }
 
     @Override
     public boolean onReceivedHttpRequest(final HttpRequest request,
-            final HttpResponse response) {
+                                         final HttpResponse response) {
         final int requestCode = UUID.randomUUID().hashCode();
         Uri uri = Uri.parse(request.getUri());
         List<String> segments = uri.getPathSegments();
@@ -238,13 +315,13 @@ public class DConnectServerEventListenerImpl implements
 
         // プロファイルが存在しない場合にはエラー
         if (profile == null) {
-                try {
-                    setEmptyProfile(response);
-                } catch (UnsupportedEncodingException e) {
-                    setErrorResponse(response);
-                } catch (JSONException e) {
-                    setErrorResponse(response);
-                }
+            try {
+                setEmptyProfile(response);
+            } catch (UnsupportedEncodingException e) {
+                setErrorResponse(response);
+            } catch (JSONException e) {
+                setErrorResponse(response);
+            }
             return true;
         }
 
@@ -380,9 +457,9 @@ public class DConnectServerEventListenerImpl implements
         sb.append("{");
         sb.append("\"" + DConnectMessage.EXTRA_RESULT +  "\":"
                 + DConnectMessage.RESULT_ERROR + ",");
-        sb.append("\"" + DConnectMessage.EXTRA_ERROR_CODE + "\": " 
+        sb.append("\"" + DConnectMessage.EXTRA_ERROR_CODE + "\": "
                 + DConnectMessage.ErrorCode.UNKNOWN.getCode() + ",");
-        sb.append("\"" + DConnectMessage.EXTRA_ERROR_MESSAGE + "\":\"" 
+        sb.append("\"" + DConnectMessage.EXTRA_ERROR_MESSAGE + "\":\""
                 + DConnectMessage.ErrorCode.UNKNOWN.toString() + "\"");
         sb.append("}");
         response.setContentType(CONTENT_TYPE_JSON);
@@ -410,7 +487,7 @@ public class DConnectServerEventListenerImpl implements
      * @return マルチパートが入っている場合はtrue,それ以外はfalse
      */
     private boolean hasMultipart(final String contentType) {
-        return contentType != null && contentType.indexOf("multipart/form-data") != -1;
+        return contentType != null && contentType.contains("multipart/form-data");
     }
 
     /**
@@ -419,7 +496,7 @@ public class DConnectServerEventListenerImpl implements
      * @return エンコードされている場合はtrue、それ以外はfalse
      */
     private boolean isUrlEncoded(final String contentType) {
-        return contentType != null && contentType.indexOf("application/x-www-form-urlencoded") != -1;
+        return contentType != null && contentType.contains("application/x-www-form-urlencoded");
     }
 
     /**
@@ -446,7 +523,7 @@ public class DConnectServerEventListenerImpl implements
 
     /**
      * HTTPリクエストヘッダからWebアプリのオリジンを取得する.
-     * 
+     *
      * @param headers HTTPリクエストヘッダ
      * @return Webアプリのオリジン
      */
@@ -466,7 +543,7 @@ public class DConnectServerEventListenerImpl implements
 
     /**
      * HTTPリクエストヘッダからAndroidネイティブアプリのオリジンを取得する.
-     * 
+     *
      * @param headers HTTPリクエストヘッダ
      * @return Androidネイティブアプリのオリジン
      */
@@ -517,13 +594,13 @@ public class DConnectServerEventListenerImpl implements
 
     /**
      * マルチパートを解析する.
-     * 
+     *
      * 許容するマルチパートのデータは1個まで。
-     * 
+     *
      * @see <a
      *      href="http://www.w3.org/TR/html401/interact/forms.html#h-17.13.4.2">
      *      http://www.w3.org/TR/html401/interact/forms.html#h-17.13.4.2</a>
-     * 
+     *
      * @param request Httpリクエスト
      * @param intent 変換したデータを格納するIntent
      */
@@ -642,7 +719,7 @@ public class DConnectServerEventListenerImpl implements
      * @throws UnsupportedEncodingException 文字列のエンコードに失敗した場合
      */
     private void convertResponse(final HttpResponse response, final String prof,
-            final String att, final Intent resp) throws JSONException, UnsupportedEncodingException {
+                                 final String att, final Intent resp) throws JSONException, UnsupportedEncodingException {
         if (DConnectFilesProfile.PROFILE_NAME.equals(prof)) {
             byte[] data = resp.getByteArrayExtra(DConnectFilesProfile.PARAM_DATA);
             if (data == null) {

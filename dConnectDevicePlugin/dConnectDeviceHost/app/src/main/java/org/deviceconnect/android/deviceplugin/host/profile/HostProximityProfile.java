@@ -128,6 +128,12 @@ public class HostProximityProfile extends ProximityProfile implements SensorEven
             List<Event> events = EventManager.INSTANCE.getEventList(sServiceId,
                     ProximityProfile.PROFILE_NAME, null,
                     ProximityProfile.ATTRIBUTE_ON_USER_PROXIMITY);
+
+            if (events == null || events.size() == 0) {
+                unregisterProximity();
+                return;
+            }
+
             synchronized (events) {
                 for (Event event : events) {
                     Intent evtIntent = EventManager.createEventMessage(event);

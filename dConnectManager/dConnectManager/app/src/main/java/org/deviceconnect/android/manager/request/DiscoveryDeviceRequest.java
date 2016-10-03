@@ -6,15 +6,14 @@
  */
 package org.deviceconnect.android.manager.request;
 
-import java.util.List;
+import android.content.Intent;
 
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.manager.DConnectService;
-import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 
-import android.content.Intent;
+import java.util.List;
 
 /**
  * デバイスが発見されてdConnectManagerに通知があった場合にClientやAccessTokenを作成するためのリクエスト.
@@ -39,7 +38,6 @@ public class DiscoveryDeviceRequest extends LocalOAuthRequest {
                 ServiceDiscoveryProfileConstants.ATTRIBUTE_ON_SERVICE_CHANGE);
         for (int i = 0; i < evts.size(); i++) {
             Event evt = evts.get(i);
-            mEvent.putExtra(DConnectMessage.EXTRA_SESSION_KEY, evt.getSessionKey());
             ((DConnectService) getContext()).sendEvent(evt.getReceiverName(), mEvent);
         }
     }

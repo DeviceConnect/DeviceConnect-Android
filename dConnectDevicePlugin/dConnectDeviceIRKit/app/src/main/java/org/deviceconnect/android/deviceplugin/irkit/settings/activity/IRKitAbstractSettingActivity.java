@@ -13,33 +13,21 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.view.ViewPager;
 import android.view.MenuItem;
 
-import org.deviceconnect.android.deviceplugin.irkit.settings.widget.HoldableViewPager;
+import org.deviceconnect.android.deviceplugin.irkit.R;
 import org.deviceconnect.android.ui.adapter.DConnectFragmentPagerAdapter;
 import org.deviceconnect.android.ui.adapter.DConnectPageCreater;
-
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * ViewPagerを独自拡張するためのActivity.
  * @author NTT DOCOMO, INC.
  */
-public abstract class IRKitAbstractSettingActivity extends FragmentActivity implements
-DConnectPageCreater<Fragment> {
-
-    /**
-     * ID値のMAX.
-     */
-    private static final int MAX_VALUE = 0x00FFFFFF;
+abstract class IRKitAbstractSettingActivity extends FragmentActivity implements
+    DConnectPageCreater<Fragment> {
 
     /**
      * ページ用のビューページャー.
      */
     private ViewPager mViewPager;
-
-    /**
-     * デフォルトのタイトル文字列.
-     */
-    public static final String DEFAULT_TITLE = "CLOSE";
 
     /**
      * ViewPagerを持つレイアウトを自動的に設定する. サブクラスでオーバーライドする場合は setContentView
@@ -51,35 +39,18 @@ DConnectPageCreater<Fragment> {
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mViewPager = new HoldableViewPager(this);
-        mViewPager.setId(generateViewId());
+        setContentView(R.layout.irkit_activity_setting_page);
+
+        mViewPager = (ViewPager) findViewById(R.id.setting_pager);
         DConnectFragmentPagerAdapter adapter = new DConnectFragmentPagerAdapter(getSupportFragmentManager(), this);
         mViewPager.setAdapter(adapter);
-        setContentView(mViewPager);
 
-        getActionBar().setDisplayHomeAsUpEnabled(true);
-        getActionBar().setDisplayOptions(0, ActionBar.DISPLAY_SHOW_HOME);
-        getActionBar().setTitle(DEFAULT_TITLE);
-    }
 
-    /**
-     * ViewPagerのIDを生成する. IDが無いとリソースIDが無いといわれエラーになってしまうため対処。
-     * View.generateViewId()はAPI17からなので同等の機能を実装。
-     * 
-     * @return リソースID
-     */
-    private int generateViewId() {
-        AtomicInteger sNextGeneratedId = new AtomicInteger(1);
-
-        for (;;) {
-            final int result = sNextGeneratedId.get();
-            int newValue = result + 1;
-            if (newValue > MAX_VALUE) {
-                newValue = 1;
-            }
-            if (sNextGeneratedId.compareAndSet(result, newValue)) {
-                return result;
-            }
+        ActionBar actionBar = getActionBar();
+        if (actionBar != null) {
+            actionBar.setDisplayHomeAsUpEnabled(true);
+            actionBar.setDisplayOptions(0, ActionBar.DISPLAY_SHOW_HOME);
+            actionBar.setTitle(R.string.setting_page_title);
         }
     }
 

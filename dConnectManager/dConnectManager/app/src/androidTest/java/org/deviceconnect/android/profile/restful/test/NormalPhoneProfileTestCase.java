@@ -8,14 +8,11 @@ package org.deviceconnect.android.profile.restful.test;
 
 import android.support.test.runner.AndroidJUnit4;
 
-import junit.framework.Assert;
-
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.deviceconnect.android.test.plugin.profile.TestPhoneProfileConstants;
-import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.deviceconnect.profile.DConnectProfileConstants;
 import org.deviceconnect.profile.PhoneProfileConstants;
@@ -59,8 +56,7 @@ public class NormalPhoneProfileTestCase extends RESTfulDConnectTestCase {
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
             JSONObject root = sendRequest(request);
-            Assert.assertNotNull("root is null.", root);
-            Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -93,8 +89,7 @@ public class NormalPhoneProfileTestCase extends RESTfulDConnectTestCase {
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject root = sendRequest(request);
-            Assert.assertNotNull("root is null.", root);
-            Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -127,8 +122,7 @@ public class NormalPhoneProfileTestCase extends RESTfulDConnectTestCase {
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject root = sendRequest(request);
-            Assert.assertNotNull("root is null.", root);
-            Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -161,8 +155,7 @@ public class NormalPhoneProfileTestCase extends RESTfulDConnectTestCase {
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject root = sendRequest(request);
-            Assert.assertNotNull("root is null.", root);
-            Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -189,20 +182,11 @@ public class NormalPhoneProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("?");
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
-        builder.append(DConnectProfileConstants.PARAM_SESSION_KEY + "=" + getClientId());
-        builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject root = sendRequest(request);
-            Assert.assertNotNull("root is null.", root);
-            Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
-            JSONObject event = waitForEvent();
-            JSONObject phoneStatus = event.getJSONObject(PhoneProfileConstants.PARAM_PHONE_STATUS);
-            Assert.assertEquals(TestPhoneProfileConstants.PHONE_NUMBER,
-                  phoneStatus.getString(PhoneProfileConstants.PARAM_PHONE_NUMBER));
-            Assert.assertEquals(PhoneProfileConstants.CallState.FINISHED.getValue(),
-                  phoneStatus.getInt(PhoneProfileConstants.PARAM_STATE));
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -229,14 +213,11 @@ public class NormalPhoneProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("?");
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
-        builder.append(DConnectProfileConstants.PARAM_SESSION_KEY + "=" + getClientId());
-        builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
             JSONObject root = sendRequest(request);
-            Assert.assertNotNull("root is null.", root);
-            Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }

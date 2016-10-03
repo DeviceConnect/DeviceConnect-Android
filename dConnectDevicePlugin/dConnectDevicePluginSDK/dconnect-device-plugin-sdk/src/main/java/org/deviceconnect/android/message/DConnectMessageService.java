@@ -10,6 +10,7 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.AssetManager;
+import android.os.Binder;
 import android.os.Bundle;
 import android.os.IBinder;
 
@@ -20,6 +21,8 @@ import org.deviceconnect.android.compat.MessageConverter;
 import org.deviceconnect.android.compat.ServiceDiscoveryRequestConverter;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
+import org.deviceconnect.android.event.cache.EventCacheController;
+import org.deviceconnect.android.event.cache.MemoryCacheController;
 import org.deviceconnect.android.localoauth.CheckAccessTokenResult;
 import org.deviceconnect.android.localoauth.DevicePluginXmlProfile;
 import org.deviceconnect.android.localoauth.DevicePluginXmlUtil;
@@ -30,6 +33,7 @@ import org.deviceconnect.android.profile.DConnectProfileProvider;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.android.profile.spec.DConnectPluginSpec;
+import org.deviceconnect.android.profile.spec.DConnectProfileSpec;
 import org.deviceconnect.android.service.DConnectService;
 import org.deviceconnect.android.service.DConnectServiceManager;
 import org.deviceconnect.android.service.DConnectServiceProvider;
@@ -87,14 +91,13 @@ public abstract class DConnectMessageService extends Service implements DConnect
      */
     private boolean mUseLocalOAuth = true;
 
-    private DConnectServiceManager mServiceManager;
+    private DConnectServiceProvider mServiceProvider;
 
     private final MessageConverter[] mRequestConverters = {
         new ServiceDiscoveryRequestConverter(),
         new AuthorizationRequestConverter(),
         new LowerCaseConverter()
     };
-
     /**
      * SystemProfileを取得する.
      * SystemProfileは必須実装となるため、本メソッドでSystemProfileのインスタンスを渡すこと。
@@ -104,20 +107,48 @@ public abstract class DConnectMessageService extends Service implements DConnect
      */
     protected abstract SystemProfile getSystemProfile();
 
-    protected final DConnectServiceProvider getServiceProvider() {
-        return mServiceManager;
+    /**
+     * EventCacheControllerのインスタンスを返す.
+     *
+     * <p>
+     * デフォルトではMemoryCacheControllerを使用する.
+     * 変更したい場合は本メソッドをオーバーライドすること.
+     * </p>
+     *
+     * @return EventCacheControllerのインスタンス
+     */
+    protected EventCacheController getEventCacheController() {
+        return new MemoryCacheController();
+    }
+
+    public final DConnectServiceProvider getServiceProvider() {
+        return mServiceProvider;
+    }
+
+    protected final void setServiceProvider(final DConnectServiceProvider provider) {
+        mServiceProvider = provider;
+    }
+
+    protected final DConnectPluginSpec getPluginSpec() {
+        return mPluginSpec;
     }
 
     private DConnectPluginSpec mPluginSpec;
 
+    private final IBinder mLocalBinder = new LocalBinder();
+
     @Override
     public void onCreate() {
         super.onCreate();
+        EventManager.INSTANCE.setController(getEventCacheController());
+
 
         mPluginSpec = loadPluginSpec();
-        mServiceManager = new DConnectServiceManager();
-        mServiceManager.setPluginSpec(mPluginSpec);
-        mServiceManager.setContext(getContext());
+
+        DConnectServiceManager serviceManager = new DConnectServiceManager();
+        serviceManager.setPluginSpec(mPluginSpec);
+        serviceManager.setContext(getContext());
+        mServiceProvider = serviceManager;
 
         // LocalOAuthの初期化
         LocalOAuth2Main.initialize(this);
@@ -125,7 +156,7 @@ public abstract class DConnectMessageService extends Service implements DConnect
         // 認証プロファイルの追加
         addProfile(new AuthorizationProfile(this));
         // 必須プロファイルの追加
-        addProfile(new ServiceDiscoveryProfile(mServiceManager));
+        addProfile(new ServiceDiscoveryProfile(mServiceProvider));
         addProfile(getSystemProfile());
     }
 
@@ -178,7 +209,7 @@ public abstract class DConnectMessageService extends Service implements DConnect
 
     @Override
     public IBinder onBind(final Intent intent) {
-        return null;
+        return mLocalBinder;
     }
 
     @Override
@@ -210,7 +241,7 @@ public abstract class DConnectMessageService extends Service implements DConnect
         }
 
         if (checkManagerEventTransmitDisconnect(action)) {
-            onManagerEventTransmitDisconnected(intent.getStringExtra(IntentDConnectMessage.EXTRA_SESSION_KEY));
+            onManagerEventTransmitDisconnected(intent.getStringExtra(IntentDConnectMessage.EXTRA_ORIGIN));
         }
 
         if (checkDevicePluginReset(action)) {
@@ -329,12 +360,12 @@ public abstract class DConnectMessageService extends Service implements DConnect
         }
     }
 
-    private boolean executeRequest(final String profileName, final Intent request,
+    protected boolean executeRequest(final String profileName, final Intent request,
                                    final Intent response) {
         DConnectProfile profile = getProfile(profileName);
         if (profile == null) {
             String serviceId = DConnectProfile.getServiceID(request);
-            DConnectService service = mServiceManager.getService(serviceId);
+            DConnectService service = getServiceProvider().getService(serviceId);
             if (service != null) {
                 return service.onRequest(request, response);
             } else {
@@ -376,7 +407,11 @@ public abstract class DConnectMessageService extends Service implements DConnect
         }
         String profileName = profile.getProfileName().toLowerCase();
         profile.setContext(this);
-        profile.setProfileSpec(mPluginSpec.findProfileSpec(profileName));
+        DConnectProfileSpec profileSpec = mPluginSpec.findProfileSpec(profileName);
+        if (profileSpec != null) {
+            profile.setProfileSpec(profileSpec);
+        }
+
         //XXXX パスの大文字小文字の無視
         mProfileMap.put(profileName, profile);
     }
@@ -488,6 +523,15 @@ public abstract class DConnectMessageService extends Service implements DConnect
         return mUseLocalOAuth;
     }
 
+    public boolean isIgnoredProfile(final String profileName) {
+        for (String name : IGNORE_PROFILES) {
+            if (name.equalsIgnoreCase(profileName)) { // MEMO パスの大文字小文字を無視
+                return true;
+            }
+        }
+        return false;
+    }
+
     /**
      * Device Connect Managerがアンインストールされた時に呼ばれる処理部.
      */
@@ -504,9 +548,9 @@ public abstract class DConnectMessageService extends Service implements DConnect
 
     /**
      * Device Connect ManagerのEvent送信経路切断通知を受信した時に呼ばれる処理部.
-     * @param sessionKey セッションキー
+     * @param origin オリジン
      */
-    protected void onManagerEventTransmitDisconnected(String sessionKey) {
+    protected void onManagerEventTransmitDisconnected(final String origin) {
         mLogger.info("SDK : onManagerEventTransmitDisconnected");
     }
 
@@ -515,5 +559,13 @@ public abstract class DConnectMessageService extends Service implements DConnect
      */
     protected void onDevicePluginReset() {
         mLogger.info("SDK : onDevicePluginReset");
+    }
+
+    public class LocalBinder extends Binder {
+
+        public DConnectMessageService getMessageService() {
+            return DConnectMessageService.this;
+        }
+
     }
 }

@@ -2,7 +2,7 @@ apply plugin: 'com.android.library'
 
 dependencies {
     compile fileTree(include: '*.jar', dir: 'libs')
-    compile 'com.android.support:support-v4:23.0.0'
+    compile 'com.android.support:support-v4:23.1.0'
     compile 'org.apache.httpcomponents:httpmime:4.5'
     compile 'org.apache.httpcomponents:httpcore:4.4.1'
     compile 'org.apache.james:apache-mime4j-core:0.7.2'
@@ -33,7 +33,7 @@ android {
         minSdkVersion 14
         targetSdkVersion 23
     }
-
+    useLibrary 'org.apache.http.legacy'
     packagingOptions {
         exclude 'META-INF/DEPENDENCIES'
         exclude 'META-INF/LICENSE'

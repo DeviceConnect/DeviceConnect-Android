@@ -271,20 +271,15 @@ public class HostFileDescriptorProfile extends FileDescriptorProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            String sessionKey = getSessionKey(request);
-            if (sessionKey == null) {
-                MessageUtils.setInvalidRequestParameterError(response);
-            } else {
-                EventError error = EventManager.INSTANCE.addEvent(request);
-                if (error == EventError.NONE) {
-                    List<Event> events = EventManager.INSTANCE.getEventList(request);
-                    if (events.size() == 1) {
-                        mFileDataManager.startTimer();
-                    }
-                    setResult(response, DConnectMessage.RESULT_OK);
-                } else {
-                    MessageUtils.setError(response, ERROR_VALUE_IS_NULL, "Can not register event.");
+            EventError error = EventManager.INSTANCE.addEvent(request);
+            if (error == EventError.NONE) {
+                List<Event> events = EventManager.INSTANCE.getEventList(request);
+                if (events.size() == 1) {
+                    mFileDataManager.startTimer();
                 }
+                setResult(response, DConnectMessage.RESULT_OK);
+            } else {
+                MessageUtils.setError(response, ERROR_VALUE_IS_NULL, "Can not register event.");
             }
             return true;
         }
@@ -299,20 +294,15 @@ public class HostFileDescriptorProfile extends FileDescriptorProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            String sessionKey = getSessionKey(request);
-            if (sessionKey == null) {
-                MessageUtils.setInvalidRequestParameterError(response);
-            } else {
-                EventError error = EventManager.INSTANCE.removeEvent(request);
-                if (error == EventError.NONE) {
-                    List<Event> events = EventManager.INSTANCE.getEventList(request);
-                    if (events.size() == 0) {
-                        mFileDataManager.stopTimer();
-                    }
-                    setResult(response, DConnectMessage.RESULT_OK);
-                } else {
-                    MessageUtils.setError(response, ERROR_VALUE_IS_NULL, "Can not unregister event.");
+            EventError error = EventManager.INSTANCE.removeEvent(request);
+            if (error == EventError.NONE) {
+                List<Event> events = EventManager.INSTANCE.getEventList(request);
+                if (events.size() == 0) {
+                    mFileDataManager.stopTimer();
                 }
+                setResult(response, DConnectMessage.RESULT_OK);
+            } else {
+                MessageUtils.setError(response, ERROR_VALUE_IS_NULL, "Can not unregister event.");
             }
             return true;
         }
@@ -350,6 +340,7 @@ public class HostFileDescriptorProfile extends FileDescriptorProfile {
 
         List<Event> events = EventManager.INSTANCE.getEventList(HostDeviceService.SERVICE_ID, PROFILE_NAME,
                 null, ATTRIBUTE_ON_WATCH_FILE);
+        // TODO:Eventが無くなっていたらlistener 解除を行うように実装。
         synchronized (events) {
             for (File f : files) {
                 Bundle file = createFile(f);

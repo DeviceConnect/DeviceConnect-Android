@@ -12,6 +12,7 @@ import android.content.Intent;
 import org.deviceconnect.android.event.cache.EventCacheController;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.message.DConnectMessage;
+import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
 import java.util.List;
 
@@ -71,15 +72,16 @@ public enum EventManager {
         String inter = request.getStringExtra(DConnectMessage.EXTRA_INTERFACE);
         String attribute = request.getStringExtra(DConnectMessage.EXTRA_ATTRIBUTE);
         String accessToken = request.getStringExtra(DConnectMessage.EXTRA_ACCESS_TOKEN);
-        String sessionKey = request.getStringExtra(DConnectMessage.EXTRA_SESSION_KEY);
+        String origin = request.getStringExtra(IntentDConnectMessage.EXTRA_ORIGIN);
         ComponentName name = request.getParcelableExtra(DConnectMessage.EXTRA_RECEIVER);
         
         Event event = new Event();
-        event.setSessionKey(sessionKey);
+        event.setOrigin(origin);
         event.setAccessToken(accessToken);
-        event.setProfile(profile);
-        event.setInterface(inter);
-        event.setAttribute(attribute);
+        // XXXX パスの大文字小文字を無視
+        event.setProfile(profile != null ? profile.toLowerCase() : null);
+        event.setInterface(inter != null ? inter.toLowerCase() : null);
+        event.setAttribute(attribute != null ? attribute.toLowerCase() : null);
         event.setServiceId(serviceId);
         if (name != null) {
             event.setReceiverName(name.flattenToString());
@@ -104,11 +106,15 @@ public enum EventManager {
 
         ComponentName receiver = request.getParcelableExtra(DConnectMessage.EXTRA_RECEIVER);
         String receiverName = receiver != null ? receiver.flattenToString() : null;
+        String profile = request.getStringExtra(DConnectMessage.EXTRA_PROFILE);
+        String inter = request.getStringExtra(DConnectMessage.EXTRA_INTERFACE);
+        String attribute = request.getStringExtra(DConnectMessage.EXTRA_ATTRIBUTE);
+        // XXXX パスの大文字小文字を無視
         return mController.getEvent(request.getStringExtra(DConnectMessage.EXTRA_SERVICE_ID),
-                request.getStringExtra(DConnectMessage.EXTRA_PROFILE),
-                request.getStringExtra(DConnectMessage.EXTRA_INTERFACE),
-                request.getStringExtra(DConnectMessage.EXTRA_ATTRIBUTE),
-                request.getStringExtra(DConnectMessage.EXTRA_SESSION_KEY),
+                profile != null ? profile.toLowerCase() : null,
+                inter != null ? inter.toLowerCase() : null,
+                attribute != null ? attribute.toLowerCase() : null,
+                request.getStringExtra(IntentDConnectMessage.EXTRA_ORIGIN),
                 receiverName);
     }
 
@@ -131,14 +137,14 @@ public enum EventManager {
     }
 
     /**
-     * 指定されたセッションキーに紐づくイベント情報を解除する.
+     * 指定されたオリジンに紐づくイベント情報を解除する.
      * 
-     * @param sessionKey セッションキー
+     * @param origin オリジン
      * @return 削除に成功した場合はtrue、その他はfalseを返す。
      */
-    public boolean removeEvents(final String sessionKey) {
+    public boolean removeEvents(final String origin) {
         checkState();
-        return mController.removeEvents(sessionKey);
+        return mController.removeEvents(origin);
     }
     
     /**
@@ -241,7 +247,7 @@ public enum EventManager {
         message.putExtra(DConnectMessage.EXTRA_PROFILE, event.getProfile());
         message.putExtra(DConnectMessage.EXTRA_INTERFACE, event.getInterface());
         message.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, event.getAttribute());
-        message.putExtra(DConnectMessage.EXTRA_SESSION_KEY, event.getSessionKey());
+        message.putExtra(DConnectMessage.EXTRA_ACCESS_TOKEN, event.getAccessToken());
         ComponentName cn = ComponentName.unflattenFromString(event.getReceiverName());
         message.setComponent(cn);
         return message;

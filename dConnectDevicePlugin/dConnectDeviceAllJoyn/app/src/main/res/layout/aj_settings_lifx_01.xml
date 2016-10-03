@@ -8,22 +8,9 @@
         android:layout_height="wrap_content">
 
         <TextView
-            android:id="@+id/textViewTopBar"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_alignParentTop="true"
-            android:layout_centerHorizontal="true"
-            android:background="#00a0e9"
-            android:gravity="center"
-            android:text="@string/alljoyn_settings_lifx_01_textViewTopBar_text"
-            android:textColor="#ffffff"
-            android:textSize="20sp" />
-
-        <TextView
             android:id="@+id/textViewDesc1"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/textViewTopBar"
             android:layout_centerHorizontal="true"
             android:layout_marginLeft="30dp"
             android:layout_marginRight="30dp"

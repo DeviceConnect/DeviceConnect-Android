@@ -3,23 +3,10 @@
     android:layout_width="match_parent" android:layout_height="match_parent">
 
     <TextView
-        android:id="@+id/textViewTopBar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="#00a0e9"
-        android:gravity="center"
-        android:text="AllJoyn設定"
-        android:textColor="#ffffff"
-        android:textSize="20sp"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentBottom="false" />
-
-    <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/alljoyn_settings_master_textViewDesc_text"
         android:id="@+id/textViewDesc"
-        android:layout_below="@+id/textViewTopBar"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="35dp"
         android:layout_marginLeft="30dp"

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <link rel="stylesheet" href="../../css/main.css" type="text/css" />
+    <title>アクセストークン管理について</title>
+</head>
+<body>
+<div class="heading">アクセストークン管理について</div>
+<div class="content">
+    <p>
+        アクセストークン管理を押下することで、アクセストークンを管理する画面に遷移します。
+    </p>
+</div>
+<div class="heading">アクセストークン一覧画面</div>
+<div class="content">
+    <p>
+        Local OAuthでユーザから認可されたアプリのアクセストークンを管理します。<br>
+        アクセストークンが登録されているアプリは、Device Connect Managerにアクセスすることができます。
+    </p>
+    <p>
+        各リストの右にある×を押下することで、アクセストークンを削除することができます。<br>
+        アクセストークンが削除した場合には、アプリがDevice Connect Managerにアクセスしようとした時に再度Local OAuthで認可が必要になります。
+    </p>
+    <div class="image">
+        <img class="dialog" src="images/access_token_list.png">
+    </div>
+    <p>各アクセストークンを押下することで、アクセストークンの情報を確認することができます。</p>
+    <div class="image">
+        <img class="dialog" src="images/access_token_info.png">
+    </div>
+    <p>
+        アクセストークンには、アプリが使用するプロファイル一覧と有効期限が記載されています。
+    </p>
+</div>
+<div class="link">
+    <a href="security_local_oauth.html">前: Local OAuthについて</a><br>
+    <a href="security_origin.html">次: Origin有効化について</a><br>
+    <a href="../security.html">セキュリティについて</a>
+</div>
+</body>
+</html>

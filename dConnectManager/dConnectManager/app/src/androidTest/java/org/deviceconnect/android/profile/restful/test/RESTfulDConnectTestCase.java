@@ -31,6 +31,7 @@ import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 import org.deviceconnect.profile.SystemProfileConstants;
 import org.deviceconnect.utils.URIBuilder;
 import org.java_websocket.client.WebSocketClient;
+import org.java_websocket.drafts.Draft_17;
 import org.java_websocket.handshake.ServerHandshake;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -41,8 +42,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -228,20 +227,12 @@ public class RESTfulDConnectTestCase extends DConnectTestCase {
      * RESTfulでdConnectManagerにリクエストを出す.
      * @param request Httpリクエスト
      * @return HttpResponse
+     * @throws IOException 通信に失敗した場合
      */
-    protected final HttpResponse requestHttpResponse(final HttpUriRequest request) {
+    protected final HttpResponse requestHttpResponse(final HttpUriRequest request) throws IOException {
         // Origin指定
         request.setHeader(DConnectMessage.HEADER_GOTAPI_ORIGIN, getOrigin());
-        
-        HttpClient client = new DefaultHttpClient();
-        try {
-            return client.execute(request);
-        } catch (ClientProtocolException e) {
-            Assert.fail("ClientProtocolException: " + e.getMessage());
-        } catch (IOException e) {
-            Assert.fail("IOException: " + e.getMessage());
-        }
-        return null;
+        return ((HttpClient) new DefaultHttpClient()).execute(request);
     }
 
     /**
@@ -274,21 +265,11 @@ public class RESTfulDConnectTestCase extends DConnectTestCase {
             }
             JSONObject response = new JSONObject(new String(data));
 
-            assertEquals(response.getString(DConnectProfileConstants.PARAM_PRODUCT), DCONNECT_MANAGER_APP_NAME);
-            assertEquals(response.getString(DConnectProfileConstants.PARAM_VERSION), DCONNECT_MANAGER_VERSION_NAME);
-            assertTrue("Device Connect Manager must send HMAC.", response.has(IntentDConnectMessage.EXTRA_HMAC));
-
-            String hmacString = response.getString(IntentDConnectMessage.EXTRA_HMAC);
-            byte[] expectedHmac = calculateHMAC(nonce);
-            assertEquals(expectedHmac, toByteArray(hmacString));
-
+            assertNotNull(response.getString(DConnectProfileConstants.PARAM_PRODUCT));
+            assertNotNull(response.getString(DConnectProfileConstants.PARAM_VERSION));
             return response;
         } catch (JSONException e) {
             fail("Failed to parse response: " + e.getMessage());
-        } catch (InvalidKeyException e) {
-            throw new RuntimeException("The JDK does not support HMAC-SHA256.");
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException("The JDK does not support HMAC-SHA256.");
         }
         return null;
     }
@@ -322,21 +303,11 @@ public class RESTfulDConnectTestCase extends DConnectTestCase {
             }
             JSONObject response = new JSONObject(new String(data));
 
-            assertEquals(response.getString(DConnectProfileConstants.PARAM_PRODUCT), DCONNECT_MANAGER_APP_NAME);
-            assertEquals(response.getString(DConnectProfileConstants.PARAM_VERSION), DCONNECT_MANAGER_VERSION_NAME);
-            assertTrue("Device Connect Manager must send HMAC.", response.has(IntentDConnectMessage.EXTRA_HMAC));
-
-            String hmacString = response.getString(IntentDConnectMessage.EXTRA_HMAC);
-            byte[] expectedHmac = calculateHMAC(nonce);
-            assertEquals(expectedHmac, toByteArray(hmacString));
-
+            assertNotNull(response.getString(DConnectProfileConstants.PARAM_PRODUCT));
+            assertNotNull(response.getString(DConnectProfileConstants.PARAM_VERSION));
             return response;
         } catch (JSONException e) {
             fail("Failed to parse response: " + e.getMessage());
-        } catch (InvalidKeyException e) {
-            throw new RuntimeException("The JDK does not support HMAC-SHA256.");
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException("The JDK does not support HMAC-SHA256.");
         }
         return null;
     }
@@ -363,26 +334,14 @@ public class RESTfulDConnectTestCase extends DConnectTestCase {
             builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
             request = recreateRequest(request, builder);
         }
-        final byte[] nonce = generateRandom(16);
-        request = addParam(request, IntentDConnectMessage.EXTRA_NONCE, toHexString(nonce));
 
         JSONObject response = sendRequest(request, requiredAuth, 0);
         try {
-            assertEquals(response.getString(DConnectProfileConstants.PARAM_PRODUCT), DCONNECT_MANAGER_APP_NAME);
-            assertEquals(response.getString(DConnectProfileConstants.PARAM_VERSION), DCONNECT_MANAGER_VERSION_NAME);
-
-            // HMACの検証
-            assertTrue("Device Connect Manager must send HMAC.", response.has(IntentDConnectMessage.EXTRA_HMAC));
-            String hmacString = response.getString(IntentDConnectMessage.EXTRA_HMAC);
-            byte[] expectedHmac = calculateHMAC(nonce);
-            assertEquals(expectedHmac, toByteArray(hmacString));
+            assertNotNull(response.getString(DConnectProfileConstants.PARAM_PRODUCT));
+            assertNotNull(response.getString(DConnectProfileConstants.PARAM_VERSION));
         } catch (JSONException e) {
             fail("Invalid JSON.");
             return null;
-        } catch (InvalidKeyException e) {
-            throw new RuntimeException("The JDK does not support HMAC-SHA256.");
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException("The JDK does not support HMAC-SHA256.");
         }
         return response;
     }
@@ -433,15 +392,14 @@ public class RESTfulDConnectTestCase extends DConnectTestCase {
                 }
                 break;
             case HttpStatus.SC_NOT_FOUND:
-                Assert.fail("Not found page. 404 ");
-                break;
+                throw new IllegalStateException("Devive Connect Manager is not found.");
             default:
-                Assert.fail("Connection Error. " + response.getStatusLine().getStatusCode()
-                        + " : " + response.getStatusLine().getReasonPhrase());
-                break;
+                throw new IllegalStateException("Connection Error. " + response.getStatusLine().getStatusCode()
+                    + " : " + response.getStatusLine().getReasonPhrase());
             }
         } catch (IOException e) {
-            Assert.fail("IOException: " + e.getMessage());
+            e.printStackTrace();
+            throw new IllegalStateException(e.getMessage());
         }
         return null;
     }
@@ -464,13 +422,16 @@ public class RESTfulDConnectTestCase extends DConnectTestCase {
     protected final JSONObject waitForEvent(final long time) {
         final CountDownLatch latch = new CountDownLatch(1);
         final JSONObject[] response = new JSONObject[1];
-        URI uri = URI.create("ws://localhost:4035/websocket");
-        WebSocketClient client = new WebSocketClient(uri) {
+        URI uri = URI.create("ws://localhost:4035/gotapi/websocket");
+        Map<String, String> headers = new HashMap<>();
+        headers.put(DConnectMessage.HEADER_GOTAPI_ORIGIN, getOrigin());
+        WebSocketClient client = new WebSocketClient(uri, new Draft_17(), headers, 0) {
             @Override
             public void onOpen(final ServerHandshake handshake) {
+                log("WebSocketClient.onOpen: status = " + handshake.getHttpStatus());
                 try {
                     JSONObject root = new JSONObject();
-                    root.put(DConnectMessage.EXTRA_SESSION_KEY, getClientId());
+                    root.put(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
                     send(root.toString());
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -478,6 +439,7 @@ public class RESTfulDConnectTestCase extends DConnectTestCase {
             }
             @Override
             public void onMessage(final String message) {
+                log("WebSocketClient.onMessage: message = " + message);
                 try {
                     response[0] = new JSONObject(message);
                 } catch (JSONException e) {

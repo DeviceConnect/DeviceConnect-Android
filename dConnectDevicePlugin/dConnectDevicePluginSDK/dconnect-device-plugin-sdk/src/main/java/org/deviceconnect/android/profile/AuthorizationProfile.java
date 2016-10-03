@@ -37,6 +37,7 @@ import java.util.List;
  * <p>
  * Local OAuthの認可機能を提供するAPI.<br>
  * </p>
+ *
  * @author NTT DOCOMO, INC.
  */
 public class AuthorizationProfile extends DConnectProfile implements AuthorizationProfileConstants {

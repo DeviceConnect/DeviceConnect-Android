@@ -1,0 +1,40 @@
+<resources>
+    <string name="app_name">AWS IoT (Device Connect Device Plug-in)</string>
+    <string name="settings_page_1_title">AWS IoT ログイン画面</string>
+    <string name="awsiot_id">アクセスキーID</string>
+    <string name="awsiot_password">シークレットアクセスキー</string>
+    <string name="awsiot_login">ログイン</string>
+    <string name="settings_page_2_title">Device Connect Manager 管理</string>
+    <string name="settings_page_4_title">デバイス認証</string>
+    <string name="settings_page_3_title">AWS IoT 設定</string>
+    <string name="sync_time">同期周期</string>
+    <string name="sync_time_second">秒</string>
+    <string name="awsiot_info_title">AWS IoT 情報</string>
+    <string name="awsiot_mqtt_endpoint"><u>MQTT endpoint</u></string>
+    <string name="awsiot_request_topic"><u>Request Topic</u></string>
+    <string name="awsiot_response_topic"><u>Response Topic</u></string>
+    <string name="awsiot_event_topic"><u>Event Topic</u></string>
+    <string name="settings_device_auth">認可</string>
+    <string name="settings_awsiot_sync_button">AWS IoT と同期</string>
+    <string name="awsiot_during_login">ログイン中</string>
+    <string name="awsiot_region">リージョン</string>
+    <string name="manager_list_update">更新中</string>
+    <string name="menu_awsiot_info">AWS IoT 設定</string>
+    <string name="menu_device_auth">デバイス認証</string>
+    <string name="menu_logout">ログアウト</string>
+    <string name="default_manager_name">ManagerName</string>
+    <string name="webview_js_alert_positive_btn">はい</string>
+    <string name="webview_js_alert_negative_btn">いいえ</string>
+    <string name="activity_help_title">AWS IoT Device Plug-in ヘルプ</string>
+    <string name="setting_manager_off_warning">Device Connect ManagerがOFFです。ONにしてください。</string>
+    <string name="setting_confirm_title">確認</string>
+    <string-array name="region_array">
+        <item>米国東部（バージニア北部）</item>
+        <item>米国西部（オレゴン）</item>
+        <item>アジアパシフィック（シンガポール）</item>
+        <item>アジアパシフィック（シドニー）</item>
+        <item>アジアパシフィック（東京）</item>
+        <item>欧州（フランクフルト）</item>
+        <item>欧州（アイルランド）</item>
+    </string-array>
+</resources>

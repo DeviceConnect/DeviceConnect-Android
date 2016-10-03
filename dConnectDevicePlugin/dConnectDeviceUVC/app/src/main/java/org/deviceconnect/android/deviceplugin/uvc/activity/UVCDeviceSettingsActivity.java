@@ -8,11 +8,6 @@ package org.deviceconnect.android.deviceplugin.uvc.activity;
 
 import android.support.v4.app.Fragment;
 
-import com.serenegiant.usb.CameraDialog;
-import com.serenegiant.usb.USBMonitor;
-
-import org.deviceconnect.android.deviceplugin.uvc.UVCDeviceApplication;
-import org.deviceconnect.android.deviceplugin.uvc.UVCDeviceManager;
 import org.deviceconnect.android.deviceplugin.uvc.fragment.UVCDeviceInstructionFragment;
 import org.deviceconnect.android.deviceplugin.uvc.fragment.UVCDeviceListFragment;
 import org.deviceconnect.android.ui.activity.DConnectSettingPageFragmentActivity;
@@ -33,4 +28,5 @@ public class UVCDeviceSettingsActivity extends DConnectSettingPageFragmentActivi
             return new UVCDeviceListFragment();
         }
     }
+
 }

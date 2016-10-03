@@ -1983,6 +1983,10 @@ public final class LocalOAuth2Main {
         intent.putExtra(ConfirmAuthActivity.EXTRA_SCOPES, params.getScopes());
         intent.putExtra(ConfirmAuthActivity.EXTRA_DISPLAY_SCOPES, displayScopes);
         intent.putExtra(ConfirmAuthActivity.EXTRA_IS_FOR_DEVICEPLUGIN, params.isForDevicePlugin());
+        if (!params.isForDevicePlugin()) {
+            intent.putExtra(ConfirmAuthActivity.EXTRA_PACKAGE_NAME, context.getPackageName());
+            intent.putExtra(ConfirmAuthActivity.EXTRA_KEYWORD, params.getKeyword());
+        }
         intent.setFlags(Intent.FLAG_ACTIVITY_MULTIPLE_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
         context.startActivity(intent);
     }

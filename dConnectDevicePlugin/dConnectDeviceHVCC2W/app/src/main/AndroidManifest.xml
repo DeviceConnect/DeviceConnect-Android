@@ -28,6 +28,10 @@
                 <action android:name="org.deviceconnect.action.PUT" />
                 <action android:name="org.deviceconnect.action.POST" />
                 <action android:name="org.deviceconnect.action.DELETE" />
+
+                <!-- uninstall notification -->
+                <action android:name="android.intent.action.PACKAGE_FULLY_REMOVED"/>
+                <data android:scheme="package"/>
             </intent-filter>
         </receiver>
         <service
@@ -41,6 +45,14 @@
                 android:name="org.deviceconnect.android.deviceplugin"
                 android:value="enable" />
         </service>
+
+        <activity
+            android:name="org.deviceconnect.android.deviceplugin.hvcc2w.setting.HVCC2WServiceListActivity"
+            android:configChanges="orientation|screenSize"
+            android:exported="false"
+            android:label="@string/app_name"
+            android:launchMode="singleInstance"/>
+
         <activity
             android:name="org.deviceconnect.android.deviceplugin.hvcc2w.setting.SettingActivity"
             android:configChanges="orientation|screenSize"

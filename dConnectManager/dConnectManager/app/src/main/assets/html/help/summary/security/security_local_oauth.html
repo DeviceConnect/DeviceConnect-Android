@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <link rel="stylesheet" href="../../css/main.css" type="text/css" />
+    <title>Local OAuthについて</title>
+</head>
+<body>
+<div class="heading">Local OAuthについて</div>
+<div class="content">
+    <div class="image">
+        <img class="start" src="images/security_local_oauth.png">
+    </div>
+    <p>
+        アプリがDevice Connect Managerを使用する前に使用許可を求めるダイアログを表示します。<br>
+        ダイアログには、アプリが使用するプロファイル一覧などが表示されます。
+    </p>
+    <div class="image">
+        <img class="dialog" src="images/security_local_oauth_dialog.png">
+    </div>
+    <p>
+        同意するを押下した場合には、アプリにアクセストークンが発行され、Device Connect Managerへのアクセスができるようになります。<br>
+        拒否するを押下した場合には、アプリにアクセストークンを発生せずに、Device Connect Managerへのアクセスをさせません。<br>
+    </p>
+    <p>
+        一度、同意したアプリは、<a href="security_access_token.html">アクセストークン</a>の有効期限が切れるか、削除されるまでDevice Connect Managerへのアクセスすることができます。
+    </p>
+    <p>
+        アプリの識別には、Originを使用しますので、Local OAuthを使用する場合には、<a href="security_origin.html">Origin有効化</a>する必要があります。
+    </p>
+    <p>
+        Local OAuthの設定が無効になっていると許可を求めるダイアログが表示されずにアクセスされますので、ご注意ください。
+    </p>
+</div>
+<div class="link">
+    <a href="security_external_ip.html">前: 外部IPを許可について</a><br>
+    <a href="security_access_token.html">次: アクセストークン管理について</a><br>
+    <a href="../security.html">セキュリティについて</a>
+</div>
+</body>
+</html>

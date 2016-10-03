@@ -46,7 +46,7 @@ public class FailProximityProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ProximityProfileConstants.PROFILE_NAME);
         builder.setAttribute(ProximityProfileConstants.ATTRIBUTE_ON_DEVICE_PROXIMITY);
-        builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, getClientId());
+
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
@@ -75,7 +75,7 @@ public class FailProximityProfileTestCase extends RESTfulDConnectTestCase {
         builder.setProfile(ProximityProfileConstants.PROFILE_NAME);
         builder.setAttribute(ProximityProfileConstants.ATTRIBUTE_ON_DEVICE_PROXIMITY);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
-        builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, getClientId());
+
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
@@ -104,7 +104,7 @@ public class FailProximityProfileTestCase extends RESTfulDConnectTestCase {
         builder.setProfile(ProximityProfileConstants.PROFILE_NAME);
         builder.setAttribute(ProximityProfileConstants.ATTRIBUTE_ON_DEVICE_PROXIMITY);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, getClientId());
+
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
@@ -135,7 +135,7 @@ public class FailProximityProfileTestCase extends RESTfulDConnectTestCase {
         builder.setAttribute(ProximityProfileConstants.ATTRIBUTE_ON_DEVICE_PROXIMITY);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-        builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, getClientId());
+
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
@@ -163,7 +163,7 @@ public class FailProximityProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ProximityProfileConstants.PROFILE_NAME);
         builder.setAttribute(ProximityProfileConstants.ATTRIBUTE_ON_DEVICE_PROXIMITY);
-        builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, getClientId());
+
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
@@ -192,7 +192,7 @@ public class FailProximityProfileTestCase extends RESTfulDConnectTestCase {
         builder.setProfile(ProximityProfileConstants.PROFILE_NAME);
         builder.setAttribute(ProximityProfileConstants.ATTRIBUTE_ON_DEVICE_PROXIMITY);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
-        builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, getClientId());
+
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
@@ -221,7 +221,7 @@ public class FailProximityProfileTestCase extends RESTfulDConnectTestCase {
         builder.setProfile(ProximityProfileConstants.PROFILE_NAME);
         builder.setAttribute(ProximityProfileConstants.ATTRIBUTE_ON_DEVICE_PROXIMITY);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, getClientId());
+
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
@@ -252,7 +252,7 @@ public class FailProximityProfileTestCase extends RESTfulDConnectTestCase {
         builder.setAttribute(ProximityProfileConstants.ATTRIBUTE_ON_DEVICE_PROXIMITY);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-        builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, getClientId());
+
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
@@ -281,7 +281,7 @@ public class FailProximityProfileTestCase extends RESTfulDConnectTestCase {
         builder.setProfile(ProximityProfileConstants.PROFILE_NAME);
         builder.setAttribute(ProximityProfileConstants.ATTRIBUTE_ON_DEVICE_PROXIMITY);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-        builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, getClientId());
+
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
@@ -309,7 +309,7 @@ public class FailProximityProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ProximityProfileConstants.PROFILE_NAME);
         builder.setAttribute(ProximityProfileConstants.ATTRIBUTE_ON_USER_PROXIMITY);
-        builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, getClientId());
+
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
@@ -338,7 +338,7 @@ public class FailProximityProfileTestCase extends RESTfulDConnectTestCase {
         builder.setProfile(ProximityProfileConstants.PROFILE_NAME);
         builder.setAttribute(ProximityProfileConstants.ATTRIBUTE_ON_USER_PROXIMITY);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
-        builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, getClientId());
+
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
@@ -367,7 +367,7 @@ public class FailProximityProfileTestCase extends RESTfulDConnectTestCase {
         builder.setProfile(ProximityProfileConstants.PROFILE_NAME);
         builder.setAttribute(ProximityProfileConstants.ATTRIBUTE_ON_USER_PROXIMITY);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, getClientId());
+
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
@@ -398,7 +398,7 @@ public class FailProximityProfileTestCase extends RESTfulDConnectTestCase {
         builder.setAttribute(ProximityProfileConstants.ATTRIBUTE_ON_USER_PROXIMITY);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-        builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, getClientId());
+
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
@@ -426,7 +426,7 @@ public class FailProximityProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ProximityProfileConstants.PROFILE_NAME);
         builder.setAttribute(ProximityProfileConstants.ATTRIBUTE_ON_USER_PROXIMITY);
-        builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, getClientId());
+
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
@@ -455,7 +455,7 @@ public class FailProximityProfileTestCase extends RESTfulDConnectTestCase {
         builder.setProfile(ProximityProfileConstants.PROFILE_NAME);
         builder.setAttribute(ProximityProfileConstants.ATTRIBUTE_ON_USER_PROXIMITY);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
-        builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, getClientId());
+
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
@@ -484,7 +484,7 @@ public class FailProximityProfileTestCase extends RESTfulDConnectTestCase {
         builder.setProfile(ProximityProfileConstants.PROFILE_NAME);
         builder.setAttribute(ProximityProfileConstants.ATTRIBUTE_ON_USER_PROXIMITY);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, getClientId());
+
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
@@ -515,7 +515,7 @@ public class FailProximityProfileTestCase extends RESTfulDConnectTestCase {
         builder.setAttribute(ProximityProfileConstants.ATTRIBUTE_ON_USER_PROXIMITY);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-        builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, getClientId());
+
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
@@ -544,7 +544,7 @@ public class FailProximityProfileTestCase extends RESTfulDConnectTestCase {
         builder.setProfile(ProximityProfileConstants.PROFILE_NAME);
         builder.setAttribute(ProximityProfileConstants.ATTRIBUTE_ON_USER_PROXIMITY);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-        builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, getClientId());
+
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPost(builder.toString());

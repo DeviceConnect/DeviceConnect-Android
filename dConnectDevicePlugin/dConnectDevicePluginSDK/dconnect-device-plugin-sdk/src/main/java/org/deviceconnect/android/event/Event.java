@@ -48,9 +48,9 @@ public class Event implements Serializable {
     private String mAccessToken;
     
     /** 
-     * セッションキー.
+     * オリジン.
      */
-    private String mSessionKey;
+    private String mOrigin;
     
     /**
      * レシーバーのパッケージ名.
@@ -159,21 +159,21 @@ public class Event implements Serializable {
     }
     
     /**
-     * セッションキーを取得する.
+     * オリジンを取得する.
      * 
-     * @return セッションキー
+     * @return オリジン
      */
-    public String getSessionKey() {
-        return mSessionKey;
+    public String getOrigin() {
+        return mOrigin;
     }
     
     /**
-     * セッションキーを設定する.
+     * オリジンを設定する.
      * 
-     * @param sessionKey セッションキー
+     * @param origin オリジン
      */
-    public void setSessionKey(final String sessionKey) {
-        this.mSessionKey = sessionKey;
+    public void setOrigin(final String origin) {
+        this.mOrigin = origin;
     }
     
     /**
@@ -231,7 +231,6 @@ public class Event implements Serializable {
     
     @Override
     public String toString() {
-        
         StringBuilder to = new StringBuilder();
         to.append("[profile = ");
         to.append(mProfile);
@@ -242,7 +241,7 @@ public class Event implements Serializable {
         to.append(", serviceId = ");
         to.append(mServiceId);
         to.append(", sessionKey = ");
-        to.append(mSessionKey);
+        to.append(mOrigin);
         to.append(", receiverName = ");
         to.append(mReceiverName);
         to.append(", accessToken = ");
@@ -261,5 +260,45 @@ public class Event implements Serializable {
         }
         to.append("]");
         return to.toString();
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Event event = (Event) o;
+
+        if (mProfile != null ? !mProfile.equals(event.mProfile) : event.mProfile != null)
+            return false;
+        if (mInterface != null ? !mInterface.equals(event.mInterface) : event.mInterface != null)
+            return false;
+        if (mAttribute != null ? !mAttribute.equals(event.mAttribute) : event.mAttribute != null)
+            return false;
+        if (mServiceId != null ? !mServiceId.equals(event.mServiceId) : event.mServiceId != null)
+            return false;
+        if (mAccessToken != null ? !mAccessToken.equals(event.mAccessToken) : event.mAccessToken != null)
+            return false;
+        if (mOrigin != null ? !mOrigin.equals(event.mOrigin) : event.mOrigin != null) return false;
+        if (mReceiverName != null ? !mReceiverName.equals(event.mReceiverName) : event.mReceiverName != null)
+            return false;
+        if (mCreateDate != null ? !mCreateDate.equals(event.mCreateDate) : event.mCreateDate != null)
+            return false;
+        return mUpdateDate != null ? mUpdateDate.equals(event.mUpdateDate) : event.mUpdateDate == null;
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = mProfile != null ? mProfile.hashCode() : 0;
+        result = 31 * result + (mInterface != null ? mInterface.hashCode() : 0);
+        result = 31 * result + (mAttribute != null ? mAttribute.hashCode() : 0);
+        result = 31 * result + (mServiceId != null ? mServiceId.hashCode() : 0);
+        result = 31 * result + (mAccessToken != null ? mAccessToken.hashCode() : 0);
+        result = 31 * result + (mOrigin != null ? mOrigin.hashCode() : 0);
+        result = 31 * result + (mReceiverName != null ? mReceiverName.hashCode() : 0);
+        result = 31 * result + (mCreateDate != null ? mCreateDate.hashCode() : 0);
+        result = 31 * result + (mUpdateDate != null ? mUpdateDate.hashCode() : 0);
+        return result;
     }
 }

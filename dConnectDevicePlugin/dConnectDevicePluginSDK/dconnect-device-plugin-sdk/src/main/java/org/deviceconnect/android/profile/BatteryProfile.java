@@ -6,11 +6,10 @@
  */
 package org.deviceconnect.android.profile;
 
-import org.deviceconnect.android.message.MessageUtils;
-import org.deviceconnect.profile.BatteryProfileConstants;
-
 import android.content.Intent;
 import android.os.Bundle;
+
+import org.deviceconnect.profile.BatteryProfileConstants;
 
 /**
  * Battery プロファイル.
@@ -19,36 +18,6 @@ import android.os.Bundle;
  * スマートデバイスのバッテリー情報を提供するAPI.<br>
  * バッテリー情報を提供するデバイスプラグインは当クラスを継承し、対応APIを実装すること。
  * </p>
- * 
- * <h1>各API提供メソッド</h1>
- * <p>
- * Battery Profile の各APIへのリクエストに対し、以下のコールバックメソッド群が自動的に呼び出される。<br>
- * サブクラスは以下のメソッド群からデバイスプラグインが提供するAPI用のメソッドをオーバーライドし、機能を実装すること。<br>
- * オーバーライドされていない機能は自動的に非対応APIとしてレスポンスを返す。
- * </p>
- * <ul>
- * <li>Battery Status API [GET] :
- * {@link BatteryProfile#onGetAll(Intent, Intent, String) }</li>
- * <li>Battery Status Charging API [GET] :
- * {@link BatteryProfile#onGetCharging(Intent, Intent, String) }</li>
- * <li>Battery Status Charging Time API [GET] :
- * {@link BatteryProfile#onGetChargingTime(Intent, Intent, String) }</li>
- * <li>Battery Status Discharging Time API [GET] :
- * {@link BatteryProfile#onGetDischargingTime(Intent, Intent, String) }</li>
- * <li>Battery Status Level API [GET] :
- * {@link BatteryProfile#onGetLevel(Intent, Intent, String) }</li>
- * <li>Battery Status Charging Change Event API [Register] :
- * {@link BatteryProfile#onPutOnChargingChange(Intent, Intent, String, String) }</li>
- * <li>Battery Status Charging Change Event API [Unregister] :
- * {@link BatteryProfile#onDeleteOnChargingChange(Intent, Intent, String, String) }
- * </li>
- * <li>Battery Status Change Event API [Register] :
- * {@link BatteryProfile#onPutOnBatteryChange(Intent, Intent, String, String) }
- * </li>
- * <li>Battery Status Change Event API [Unregister] :
- * {@link BatteryProfile#onDeleteOnBatteryChange(Intent, Intent, String, String) }
- * </li>
- * </ul>
  * 
  * @author NTT DOCOMO, INC.
  */

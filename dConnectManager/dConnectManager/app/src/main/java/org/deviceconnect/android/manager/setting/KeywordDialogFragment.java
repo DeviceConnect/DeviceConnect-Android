@@ -6,10 +6,6 @@
  */
 package org.deviceconnect.android.manager.setting;
 
-import org.deviceconnect.android.manager.DConnectService;
-import org.deviceconnect.android.manager.R;
-import org.deviceconnect.message.intent.message.IntentDConnectMessage;
-
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
@@ -18,6 +14,11 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.DialogFragment;
+
+import org.deviceconnect.android.manager.DConnectService;
+import org.deviceconnect.android.manager.DConnectSettings;
+import org.deviceconnect.android.manager.R;
+import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
 /**
  * キーワード表示用フラグメント.
@@ -28,7 +29,7 @@ public class KeywordDialogFragment extends DialogFragment {
     @Override
     public Dialog onCreateDialog(final Bundle savedInstanceState) {
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getActivity());
-        String keyword = sp.getString(getString(R.string.key_settings_dconn_keyword), null);
+        String keyword = sp.getString(getString(R.string.key_settings_dconn_keyword), DConnectSettings.DEFAULT_KEYWORD);
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         final Dialog dialog = builder.setTitle(R.string.activity_keyword).setMessage(keyword)
                 .setPositiveButton(R.string.activity_keyword_ok, new DialogInterface.OnClickListener() {

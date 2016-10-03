@@ -7,24 +7,48 @@ http://opensource.org/licenses/mit-license.php
 
 package org.deviceconnect.android.deviceplugin.sonycamera.profile;
 
-import org.deviceconnect.android.deviceplugin.sonycamera.SonyCameraDeviceService;
-
 import android.content.Intent;
+
+import org.deviceconnect.android.deviceplugin.sonycamera.SonyCameraDeviceService;
+import org.deviceconnect.android.profile.api.DConnectApi;
+import org.deviceconnect.android.profile.api.GetApi;
+import org.deviceconnect.android.profile.api.PutApi;
 
 /**
  * Sony Camera 用 カメラプロファイル.
  * @author NTT DOCOMO, INC.
  */
 public class SonyCameraZoomProfile extends CameraProfile {
-    @Override
-    protected boolean onPutActZoom(final Intent request, final Intent response, final String serviceId,
-            final String direction, final String movement) {
-        return ((SonyCameraDeviceService) getContext())
-                .onPutActZoom(request, response, serviceId, direction, movement);
-    }
 
-    @Override
-    protected boolean onGetZoomDiameter(final Intent request, final Intent response, final String serviceId) {
-        return ((SonyCameraDeviceService) getContext()).onGetZoomDiameter(request, response, serviceId);
+    private final DConnectApi mPutZoomApi = new PutApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ZOOM;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            return ((SonyCameraDeviceService) getContext())
+                .onPutActZoom(request, response, getServiceID(request), getDirection(request),
+                    getMovement(request));
+        }
+    };
+
+    private final DConnectApi mGetZoomApi = new GetApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ZOOM;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            return ((SonyCameraDeviceService) getContext()).onGetZoomDiameter(request, response,
+                getServiceID(request));
+        }
+    };
+
+    public SonyCameraZoomProfile() {
+        addApi(mPutZoomApi);
+        addApi(mGetZoomApi);
     }
 }

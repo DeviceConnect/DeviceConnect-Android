@@ -46,7 +46,7 @@ public class FailDeviceOrientationProfileTestCase extends RESTfulDConnectTestCas
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(DeviceOrientationProfileConstants.PROFILE_NAME);
         builder.setAttribute(DeviceOrientationProfileConstants.ATTRIBUTE_ON_DEVICE_ORIENTATION);
-        builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, getClientId());
+
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
@@ -75,7 +75,7 @@ public class FailDeviceOrientationProfileTestCase extends RESTfulDConnectTestCas
         builder.setProfile(DeviceOrientationProfileConstants.PROFILE_NAME);
         builder.setAttribute(DeviceOrientationProfileConstants.ATTRIBUTE_ON_DEVICE_ORIENTATION);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
-        builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, getClientId());
+
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
@@ -104,7 +104,7 @@ public class FailDeviceOrientationProfileTestCase extends RESTfulDConnectTestCas
         builder.setProfile(DeviceOrientationProfileConstants.PROFILE_NAME);
         builder.setAttribute(DeviceOrientationProfileConstants.ATTRIBUTE_ON_DEVICE_ORIENTATION);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, getClientId());
+
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
@@ -135,7 +135,7 @@ public class FailDeviceOrientationProfileTestCase extends RESTfulDConnectTestCas
         builder.setAttribute(DeviceOrientationProfileConstants.ATTRIBUTE_ON_DEVICE_ORIENTATION);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter("abc", "abc");
-        builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, getClientId());
+
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
@@ -166,7 +166,7 @@ public class FailDeviceOrientationProfileTestCase extends RESTfulDConnectTestCas
         builder.setAttribute(DeviceOrientationProfileConstants.ATTRIBUTE_ON_DEVICE_ORIENTATION);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-        builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, getClientId());
+
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
@@ -194,7 +194,7 @@ public class FailDeviceOrientationProfileTestCase extends RESTfulDConnectTestCas
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(DeviceOrientationProfileConstants.PROFILE_NAME);
         builder.setAttribute(DeviceOrientationProfileConstants.ATTRIBUTE_ON_DEVICE_ORIENTATION);
-        builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, getClientId());
+
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
@@ -223,7 +223,7 @@ public class FailDeviceOrientationProfileTestCase extends RESTfulDConnectTestCas
         builder.setProfile(DeviceOrientationProfileConstants.PROFILE_NAME);
         builder.setAttribute(DeviceOrientationProfileConstants.ATTRIBUTE_ON_DEVICE_ORIENTATION);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
-        builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, getClientId());
+
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
@@ -252,7 +252,7 @@ public class FailDeviceOrientationProfileTestCase extends RESTfulDConnectTestCas
         builder.setProfile(DeviceOrientationProfileConstants.PROFILE_NAME);
         builder.setAttribute(DeviceOrientationProfileConstants.ATTRIBUTE_ON_DEVICE_ORIENTATION);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, getClientId());
+
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
@@ -283,7 +283,7 @@ public class FailDeviceOrientationProfileTestCase extends RESTfulDConnectTestCas
         builder.setAttribute(DeviceOrientationProfileConstants.ATTRIBUTE_ON_DEVICE_ORIENTATION);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter("abc", "abc");
-        builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, getClientId());
+
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
@@ -314,7 +314,7 @@ public class FailDeviceOrientationProfileTestCase extends RESTfulDConnectTestCas
         builder.setAttribute(DeviceOrientationProfileConstants.ATTRIBUTE_ON_DEVICE_ORIENTATION);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-        builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, getClientId());
+
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
@@ -343,7 +343,7 @@ public class FailDeviceOrientationProfileTestCase extends RESTfulDConnectTestCas
         builder.setProfile(DeviceOrientationProfileConstants.PROFILE_NAME);
         builder.setAttribute(DeviceOrientationProfileConstants.ATTRIBUTE_ON_DEVICE_ORIENTATION);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-        builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, getClientId());
+
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPost(builder.toString());

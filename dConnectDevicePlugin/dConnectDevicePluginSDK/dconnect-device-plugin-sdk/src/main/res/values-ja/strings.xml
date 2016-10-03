@@ -32,7 +32,10 @@
     <string name="display_scope_system">システム</string>
     <string name="display_scope_vibration">バイブレーション</string>
 
-    <string name="guidance_comfirm">このアプリは、次へのアクセスが必要</string>
+    <string name="column_application_name">アプリ名</string>
+    <string name="column_destination_package_name">アクセス先</string>
+    <string name="column_keyword">キーワード</string>
+    <string name="guidance_comfirm">このアプリは以下の機能にアクセスします</string>
     <string name="access_authority">アクセス権限</string>
     <string name="delete">削除</string>
     <string name="delete_all">全削除</string>
@@ -48,4 +51,20 @@
     <string name="expire_period_date_format">有効期限 %1$s</string>
 
     <string name="image_description"></string>
+
+    <string name="activity_service_list_title">サービス一覧</string>
+    <string name="activity_setting_page_title">サービス追加手順</string>
+    <string name="activity_service_list_button_add_service">追加</string>
+    <string name="activity_service_list_button_remove_service">削除</string>
+    <string name="activity_service_list_button_cancel">キャンセル</string>
+    <string name="activity_service_list_button_done">完了</string>
+    <string name="activity_service_list_message_no_service">サービスが登録されていません</string>
+    <string name="device_connect_service_default_name">不明なデバイス</string>
+    <string name="device_connect_service_is_online">オンライン</string>
+    <string name="device_connect_service_is_offline">オフライン</string>
+    <string name="button_remove_device_connect_service">削除</string>
+    <string name="dialog_title_service_removal_confirmation">確認</string>
+    <string name="dialog_message_service_removal_confirmation">選択したサービスを削除しますか？</string>
+    <string name="dialog_button_service_removal_ok">OK</string>
+    <string name="dialog_button_service_removal_cancel">キャンセル</string>
 </resources>

@@ -6,13 +6,13 @@ android {
 
     def getVersionName = { ->
         def version
-        def date = new java.text.SimpleDateFormat("yyyyMMdd").format(new Date())
         if (System.getProperty('os.name').toLowerCase().contains('windows')) {
-            version = ["cmd", "/c", "git rev-parse --short HEAD"].execute().in.text.trim()
+            version = ["cmd", "/c", "git describe --tags --long"].execute().in.text.trim()
         } else {
-            version = ["sh", "-c", "git rev-parse --short HEAD"].execute().in.text.trim()
+            version = ["sh", "-c", "git describe --tags --long"].execute().in.text.trim()
         }
-        return "v2.0.0-${date}-${version}"
+        version = version.empty ? "2.1.0" : version
+        return "${version}"
     }
 
     defaultConfig {
@@ -44,22 +44,13 @@ android {
 
     buildTypes {
         release {
-            versionNameSuffix '-release'
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
             signingConfig signingConfigs.releaseConfig
         }
-
-        debug {
-            versionNameSuffix '-debug'
-        }
     }
 
     productFlavors {
-        DeviceWebApi {
-            versionCode 1
-            versionName "1.1.0"
-        }
     }
 }
 

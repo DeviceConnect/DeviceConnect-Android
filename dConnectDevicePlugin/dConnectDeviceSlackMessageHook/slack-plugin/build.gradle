@@ -7,9 +7,9 @@ android {
     def getVersionName = { ->
         def version
         if (System.getProperty('os.name').toLowerCase().contains('windows')) {
-            version = ["cmd", "/c", "git describe --tags"].execute().in.text.trim()
+            version = ["cmd", "/c", "git describe --tags --long"].execute().in.text.trim()
         } else {
-            version = ["sh", "-c", "git describe --tags"].execute().in.text.trim()
+            version = ["sh", "-c", "git describe --tags --long"].execute().in.text.trim()
         }
         version = version.empty ? "2.0.0" : version
         return "${version}"
@@ -22,10 +22,21 @@ android {
         versionCode 1
         versionName getVersionName()
     }
+
+    signingConfigs {
+        releaseConfig {
+            storeFile=file(project.properties.storeFile)
+            storePassword=project.properties.storePassword
+            keyAlias=project.properties.keyAlias
+            keyPassword=project.properties.keyPassword
+        }
+    }
+
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.releaseConfig
         }
     }
     packagingOptions {

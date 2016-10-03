@@ -26,6 +26,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import org.deviceconnect.android.manager.BuildConfig;
+import org.deviceconnect.android.manager.DConnectApplication;
 import org.deviceconnect.android.manager.DevicePlugin;
 import org.deviceconnect.android.manager.DevicePluginManager;
 import org.deviceconnect.android.manager.R;
@@ -63,7 +64,11 @@ public class DevicePluginListFragment extends Fragment {
      */
     private PluginContainer createContainer(final PackageManager pm, final ApplicationInfo app) {
         PluginContainer container = new PluginContainer();
-        container.setLabel(app.loadLabel(pm).toString());
+        if (app.packageName.equals(getActivity().getPackageName())) {
+            container.setLabel(getString(R.string.linking_app_name));
+        } else {
+            container.setLabel(app.loadLabel(pm).toString());
+        }
         container.setPackageName(app.packageName);
         try {
             container.setIcon(pm.getApplicationIcon(app.packageName));
@@ -90,14 +95,14 @@ public class DevicePluginListFragment extends Fragment {
      * @return list of plug-in.
      */
     private List<PluginContainer> createPluginContainers() {
-        List<PluginContainer> containers = new ArrayList<PluginContainer>();
+        List<PluginContainer> containers = new ArrayList<>();
         PackageManager pm = getActivity().getPackageManager();
-        DevicePluginManager manager = new DevicePluginManager(getActivity(), "");
-        manager.createDevicePluginList();
+        DConnectApplication app = (DConnectApplication) getActivity().getApplication();
+        DevicePluginManager manager = app.getDevicePluginManager();
         for (DevicePlugin plugin : manager.getDevicePlugins()) {
             try {
-                ApplicationInfo app = pm.getApplicationInfo(plugin.getPackageName(), 0);
-                containers.add(createContainer(pm, app));
+                ApplicationInfo info = pm.getApplicationInfo(plugin.getPackageName(), 0);
+                containers.add(createContainer(pm, info));
             } catch (PackageManager.NameNotFoundException e) {
                 continue;
             }

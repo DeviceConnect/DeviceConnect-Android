@@ -248,6 +248,10 @@ public class ThetaDeviceClient {
         return device;
     }
 
+    public ThetaDevice getCurrentConnectDevice() {
+        return mDeviceMgr.getConnectedDevice();
+    }
+
     public void execute(final Runnable r) {
         mExecutor.execute(r);
     }

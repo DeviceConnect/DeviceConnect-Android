@@ -4,27 +4,52 @@ android {
     compileSdkVersion 21
     buildToolsVersion "23.0.0"
 
+    def getVersionName = { ->
+        def version
+        if (System.getProperty('os.name').toLowerCase().contains('windows')) {
+            version = ["cmd", "/c", "git describe --tags --long"].execute().in.text.trim()
+        } else {
+            version = ["sh", "-c", "git describe --tags --long"].execute().in.text.trim()
+        }
+        version = version.empty ? "2.1.0" : version
+        return "${version}"
+    }
+
     defaultConfig {
         applicationId "org.deviceconnect.android.deviceplugin.webrtc"
         minSdkVersion 15
         targetSdkVersion 21
         versionCode 1
-        versionName "1.0"
+        versionName getVersionName()
     }
+
+    signingConfigs {
+        releaseConfig {
+            storeFile=file(project.properties.storeFile)
+            storePassword=project.properties.storePassword
+            keyAlias=project.properties.keyAlias
+            keyPassword=project.properties.keyPassword
+        }
+    }
+
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.releaseConfig
         }
     }
+
     sourceSets {
         main {
             jni.srcDirs = []
             jniLibs.srcDirs = ['src/main/libs', 'src/main/jniLibs']
         }
     }
+
     productFlavors {
     }
+
     packagingOptions {
         exclude 'META-INF/DEPENDENCIES'
         exclude 'META-INF/LICENSE'

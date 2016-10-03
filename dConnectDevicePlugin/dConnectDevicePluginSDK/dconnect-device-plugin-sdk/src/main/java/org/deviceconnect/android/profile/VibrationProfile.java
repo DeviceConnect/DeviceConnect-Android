@@ -6,12 +6,11 @@
  */
 package org.deviceconnect.android.profile;
 
-import java.util.ArrayList;
+import android.content.Intent;
 
-import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.profile.VibrationProfileConstants;
 
-import android.content.Intent;
+import java.util.ArrayList;
 
 /**
  * Vibration プロファイル.
@@ -21,20 +20,7 @@ import android.content.Intent;
  * スマートデバイスのバイブレーション操作機能を提供するデバイスプラグインは当クラスを継承し、対応APIを実装すること。 <br>
  * AndridManifest.xmlにてVIBRATEパーミッションの指定が必要。
  * </p>
- * 
- * <h1>各API提供メソッド</h1>
- * <p>
- * Vibration Profile の各APIへのリクエストに対し、以下のコールバックメソッド群が自動的に呼び出される。<br>
- * サブクラスは以下のメソッド群からデバイスプラグインが提供するAPI用のメソッドをオーバーライドし、機能を実装すること。<br>
- * オーバーライドされていない機能は自動的に非対応APIとしてレスポンスを返す。
- * </p>
- * <ul>
- * <li>Vibration Start API [PUT] :
- * {@link VibrationProfile#onPutVibrate(Intent, Intent, String, long[])}</li>
- * <li>Vibration Stop API [DELETE] :
- * {@link VibrationProfile#onDeleteVibrate(Intent, Intent, String)}</li>
- * </ul>
- * 
+ *
  * @author NTT DOCOMO, INC.
  */
 public abstract class VibrationProfile extends DConnectProfile implements VibrationProfileConstants {
@@ -53,80 +39,6 @@ public abstract class VibrationProfile extends DConnectProfile implements Vibrat
     @Override
     public final String getProfileName() {
         return PROFILE_NAME;
-    }
-
-    @Override
-    protected boolean onPutRequest(final Intent request, final Intent response) {
-        String attribute = getAttribute(request);
-        boolean result = true;
-
-        if (ATTRIBUTE_VIBRATE.equals(attribute)) {
-            long[] pattern = parsePattern(getPattern(request));
-            if (pattern == null) {
-                MessageUtils.setInvalidRequestParameterError(response,
-                        "pattern is invalid.");
-            } else {
-                result = onPutVibrate(request, response, getServiceID(request), pattern);
-            }
-        } else {
-            MessageUtils.setUnknownAttributeError(response);
-        }
-
-        return result;
-    }
-
-    @Override
-    protected boolean onDeleteRequest(final Intent request, final Intent response) {
-        String attribute = getAttribute(request);
-        boolean result = true;
-
-        if (ATTRIBUTE_VIBRATE.equals(attribute)) {
-            result = onDeleteVibrate(request, response, getServiceID(request));
-        } else {
-            MessageUtils.setUnknownAttributeError(response);
-        }
-
-        return result;
-    }
-
-    // ------------------------------------
-    // PUT
-    // ------------------------------------
-
-    /**
-     * バイブ鳴動開始リクエストハンドラー.<br>
-     * デバイスを鳴動させ、その結果をレスポンスパラメータに格納する。 レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
-     * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
-     * 
-     * @param request リクエストパラメータ
-     * @param response レスポンスパラメータ
-     * @param serviceId サービスID
-     * @param pattern バイブレーションの鳴動パターン配列。省略された場合は最大値を、不正なフォーマットでリクエストを受けた場合はnullが渡される。
-     * @return レスポンスパラメータを送信するか否か
-     */
-    protected boolean onPutVibrate(final Intent request, final Intent response, final String serviceId, 
-            final long[] pattern) {
-        setUnsupportedError(response);
-        return true;
-    }
-
-    // ------------------------------------
-    // DELETE
-    // ------------------------------------
-
-    /**
-     * バイブ鳴動停止リクエストハンドラー.<br>
-     * デバイスの鳴動を終了させ、その結果をレスポンスパラメータに格納する。 レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
-     * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
-     * 
-     * @param request リクエストパラメータ
-     * @param response レスポンスパラメータ
-     * @param serviceId サービスID
-     * @return レスポンスパラメータを送信するか否か
-     */
-    protected boolean onDeleteVibrate(final Intent request, final Intent response, final String serviceId) {
-        setUnsupportedError(response);
-        return true;
     }
 
     // ------------------------------------

@@ -26,9 +26,9 @@ interface ClientSchema extends BaseSchema {
     String ACCESS_TOKEN = "access_token";
     
     /** 
-     * セッションキー.
+     * オリジン.
      */
-    String SESSION_KEY = "session_key";
+    String ORIGIN = "origin";
     
     /** 
      * レシーバー.
@@ -40,11 +40,11 @@ interface ClientSchema extends BaseSchema {
      */
     String CREATE = "CREATE TABLE " + TABLE_NAME + " (" 
             + _ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
-            + SESSION_KEY + " TEXT NOT NULL, "
+            + ORIGIN + " TEXT NOT NULL, "
             + ACCESS_TOKEN + " TEXT, "
             + RECEIVER + " TEXT DEFAULT '', "
             + CREATE_DATE + " INTEGER NOT NULL, "
-            + UPDATE_DATE + " INTEGER NOT NULL, UNIQUE(" + SESSION_KEY + ", " + RECEIVER + "));";
+            + UPDATE_DATE + " INTEGER NOT NULL, UNIQUE(" + ORIGIN + ", " + RECEIVER + "));";
     
     /** 
      * テーブルdrop文.

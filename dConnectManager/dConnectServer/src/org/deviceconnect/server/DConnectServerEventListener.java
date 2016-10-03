@@ -8,6 +8,7 @@ package org.deviceconnect.server;
 
 import org.deviceconnect.server.http.HttpRequest;
 import org.deviceconnect.server.http.HttpResponse;
+import org.deviceconnect.server.websocket.DConnectWebSocket;
 
 /**
  * DConnectServerからのイベントを受け取る為のリスナーインターフェース.
@@ -39,4 +40,23 @@ public interface DConnectServerEventListener {
      */
     void onServerLaunched();
 
+    /**
+     * WebSocketのセッションが接続された時に呼び出されます。
+     * @param webSocket WebSocketのインスタンス
+     */
+    void onWebSocketConnected(DConnectWebSocket webSocket);
+
+    /**
+     * WebSocketのセッションが切断された時に呼び出されます.
+     * @param webSocketId WebSocket ID
+     */
+    void onWebSocketDisconnected(String webSocketId);
+
+    void onWebSocketMessage(DConnectWebSocket webSocket, String message);
+
+    /**
+     * WebSocketのsessionKeyがリセットされた時に呼び出されます.
+     * @param sessionKey リセットされたsessionKey
+     */
+    void onResetEventSessionKey(String sessionKey);
 }

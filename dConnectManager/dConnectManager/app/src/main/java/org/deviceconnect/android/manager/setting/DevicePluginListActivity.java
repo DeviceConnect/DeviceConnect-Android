@@ -6,6 +6,7 @@
  */
 package org.deviceconnect.android.manager.setting;
 
+import android.app.ActionBar;
 import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentManager;
@@ -24,9 +25,13 @@ public class DevicePluginListActivity extends Activity {
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setTitle(R.string.activity_devicepluginlist_title);
-        getActionBar().setDisplayHomeAsUpEnabled(true);
-        
+        ActionBar actionBar = getActionBar();
+        if (actionBar != null) {
+            actionBar.setDisplayHomeAsUpEnabled(true);
+        }
+
         if (savedInstanceState == null) {
             Fragment f = new DevicePluginListFragment();
             FragmentManager fm = getFragmentManager();

@@ -4,9 +4,9 @@
 
     <string name="password">Password</string>
 
-    <string name="ok">OK</string>
+    <string name="activity_linking_ok">OK</string>
 
-    <string name="cancel">Cancel</string>
+    <string name="activity_linking_cancel">Cancel</string>
 
     <string name="approval">ACCEPT</string>
 
@@ -19,11 +19,12 @@
     <string name="display_scope_battery">battery</string>
     <string name="display_scope_connect">connect</string>
     <string name="display_scope_deviceorientation">deviceorientation</string>
-    <string name="display_scope_file_descriptor">file_descriptor</string>
+    <string name="display_scope_filedescriptor">filedescriptor</string>
     <string name="display_scope_file">file</string>
-    <string name="display_scope_mediastreams_play">mediastreams_play</string>
-    <string name="display_scope_mediastream_recording">mediastream_recording</string>
+    <string name="display_scope_mediaplayer">mediaplayer</string>
+    <string name="display_scope_mediastream_recording">mediastreamrecording</string>
     <string name="display_scope_servicediscovery">servicediscovery</string>
+    <string name="display_scope_serviceinformation">serviceinformation</string>
     <string name="display_scope_notification">notification</string>
     <string name="display_scope_phone">phone</string>
     <string name="display_scope_proximity">proximity</string>
@@ -31,6 +32,10 @@
     <string name="display_scope_system">system</string>
     <string name="display_scope_vibration">vibration</string>
 
+    <string name="column_application_name">App Name</string>
+    <string name="column_destination_package_name">Destination</string>
+    <string name="column_keyword">Keyword</string>
+    <string name="column_border">:</string>
     <string name="guidance_comfirm">This app must have access authority following</string>
     <string name="access_authority">Access authority</string>
     <string name="delete">Delete</string>
@@ -48,4 +53,20 @@
     <string name="expire_period_date_format">Expiration date: %1$s</string>
 
     <string name="image_description"></string>
+
+    <string name="activity_service_list_title">Services</string>
+    <string name="activity_setting_page_title">Manual</string>
+    <string name="activity_service_list_button_add_service">Add</string>
+    <string name="activity_service_list_button_remove_service">Remove</string>
+    <string name="activity_service_list_button_cancel">Cancel</string>
+    <string name="activity_service_list_button_done">Done</string>
+    <string name="activity_service_list_message_no_service">No Services.</string>
+    <string name="device_connect_service_default_name">Unknown Device</string>
+    <string name="device_connect_service_is_online">Online</string>
+    <string name="device_connect_service_is_offline">Offline</string>
+    <string name="button_remove_device_connect_service">Remove</string>
+    <string name="dialog_title_service_removal_confirmation">Confirmation</string>
+    <string name="dialog_message_service_removal_confirmation">Selected services will be removed. OK?</string>
+    <string name="dialog_button_service_removal_ok">OK</string>
+    <string name="dialog_button_service_removal_cancel">Cancel</string>
 </resources>

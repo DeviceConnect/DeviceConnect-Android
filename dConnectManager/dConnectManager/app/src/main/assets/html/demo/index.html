@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <link rel="stylesheet" href="css/index.css" type="text/css" />
+    <script type="text/javascript" src="js/dconnectsdk-2.1.0.js"></script>
+    <script type="text/javascript" src="js/util.js"></script>
+    <script type="text/javascript" src="js/index.js"></script>
+
+    <script id="service" type="text/x-template">
+        <div>
+            <span class="serviceName">{#name}</span>
+        </div>
+        <div>
+            <span class="serviceId">{#id}</span>
+        </div>
+    </script>
+
+    <script id="profileTable" type="text/x-template">
+        <table class="profileTable">
+            <tbody>
+                {#content}
+            </tbody>
+        </table>
+    </script>
+
+    <script id="profileRow" type="text/x-template">
+        <tr>
+            {#content}
+        </tr>
+    </script>
+
+    <script id="profileCell" type="text/x-template">
+        <td>
+            <a href="{#url}">
+                <div class="no">
+                    <img class="icon" src="{#icon}"><br>
+                    <div class="profileName">{#content}</div>
+                    <div class="line"></div>
+                </div>
+            </a>
+        </td>
+    </script>
+
+    <title>デバイス確認画面</title>
+</head>
+<body onload="main.init()">
+    <div id="serviceInfo"></div>
+    <hr>
+    <div id="profileList"></div>
+</body>
+</html>

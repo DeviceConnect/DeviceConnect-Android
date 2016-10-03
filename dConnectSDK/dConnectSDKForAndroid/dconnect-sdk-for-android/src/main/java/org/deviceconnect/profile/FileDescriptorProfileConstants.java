@@ -18,7 +18,7 @@ public interface FileDescriptorProfileConstants extends DConnectProfileConstants
     /**
      * プロファイル名: {@value} .
      */
-    String PROFILE_NAME = "file_descriptor";
+    String PROFILE_NAME = "fileDescriptor";
 
     /**
      * 属性:{@value} .
@@ -43,7 +43,7 @@ public interface FileDescriptorProfileConstants extends DConnectProfileConstants
     /**
      * 属性:{@value} .
      */
-    String ATTRIBUTE_ON_WATCH_FILE = "onwatchfile";
+    String ATTRIBUTE_ON_WATCH_FILE = "onWatchFile";
 
     /**
      * パス: {@value}.
@@ -124,6 +124,11 @@ public interface FileDescriptorProfileConstants extends DConnectProfileConstants
      * パラメータ: {@value} .
      */
     String PARAM_MEDIA = "media";
+
+    /**
+     * パラメータ: {@value} .
+     */
+    String PARAM_DATA = "data";
 
     /**
      * ファイルフラグ.

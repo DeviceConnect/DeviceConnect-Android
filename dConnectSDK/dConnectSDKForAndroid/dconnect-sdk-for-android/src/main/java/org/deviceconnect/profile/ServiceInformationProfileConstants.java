@@ -16,7 +16,7 @@ public interface ServiceInformationProfileConstants extends DConnectProfileConst
     /**
      * プロファイル名: {@value} .
      */
-    String PROFILE_NAME = "serviceinformation";
+    String PROFILE_NAME = "serviceInformation";
 
     /**
      * パス: {@value}.
@@ -27,6 +27,11 @@ public interface ServiceInformationProfileConstants extends DConnectProfileConst
      * パラメータ: {@value} .
      */
     String PARAM_SUPPORTS = "supports";
+
+    /**
+     * パラメータ: {@value} .
+     */
+    String PARAM_SUPPORT_APIS = "supportApis";
 
     /**
      * パラメータ: {@value} .
@@ -52,6 +57,36 @@ public interface ServiceInformationProfileConstants extends DConnectProfileConst
      * パラメータ: {@value} .
      */
     String PARAM_BLE = "ble";
+
+    String PARAM_NAME = "name";
+
+    String PARAM_VALUE = "value";
+
+    String PARAM_FORMAT = "format";
+
+    String PARAM_METHOD = "method";
+
+    String PARAM_PATH = "path";
+
+    String PARAM_REQUEST_PARAMS = "requestParams";
+
+    String PARAM_TYPE = "type";
+
+    String PARAM_MANDATORY = "mandatory";
+
+    String PARAM_ENUM = "enum";
+
+    String PARAM_MAX_LENGTH = "maxLength";
+
+    String PARAM_MIN_LENGTH = "minLength";
+
+    String PARAM_MAX_VALUE = "maxValue";
+
+    String PARAM_MIN_VALUE = "minValue";
+
+    String PARAM_EXCLUSIVE_MAX_VALUE = "exclusiveMaxValue";
+
+    String PARAM_EXCLUSIVE_MIN_VALUE = "exclusiveMinValue";
 
     /**
      * 接続状態定数.

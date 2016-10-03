@@ -21,6 +21,8 @@ import org.json.JSONObject;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.io.IOException;
+
 /**
  * プロファイル共通の異常系テスト.
  * @author NTT DOCOMO, INC.
@@ -183,7 +185,7 @@ public class FailCommonTestCase extends RESTfulDConnectTestCase {
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_SUPPORT_PROFILE.getCode(), root);
+            assertResultError(ErrorCode.UNKNOWN_ATTRIBUTE.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -233,7 +235,7 @@ public class FailCommonTestCase extends RESTfulDConnectTestCase {
      * </pre>
      */
     @Test
-    public void testInvalidAccessEmptyProfileEmptyInterfaceEmptyAttribute() {
+    public void testInvalidAccessEmptyProfileEmptyInterfaceEmptyAttribute() throws IOException {
         StringBuilder builder = new StringBuilder();
         builder.append(DCONNECT_MANAGER_URI);
         builder.append("///?");

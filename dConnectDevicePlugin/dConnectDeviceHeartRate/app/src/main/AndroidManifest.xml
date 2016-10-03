@@ -24,6 +24,11 @@
         <!-- Settings Activity -->
         <!-- ============================================================== -->
         <activity
+            android:name=".activity.HeartRateServiceListActivity"
+            android:label="@string/app_name"
+            android:exported="false">
+        </activity>
+        <activity
             android:name=".activity.HeartRateDeviceSettingsActivity"
             android:label="@string/app_name"
             android:exported="false">
@@ -42,6 +47,10 @@
                 <action android:name="org.deviceconnect.action.PUT"/>
                 <action android:name="org.deviceconnect.action.POST"/>
                 <action android:name="org.deviceconnect.action.DELETE"/>
+
+                <!-- uninstall notification -->
+                <action android:name="android.intent.action.PACKAGE_FULLY_REMOVED"/>
+                <data android:scheme="package"/>
             </intent-filter>
         </receiver>
 

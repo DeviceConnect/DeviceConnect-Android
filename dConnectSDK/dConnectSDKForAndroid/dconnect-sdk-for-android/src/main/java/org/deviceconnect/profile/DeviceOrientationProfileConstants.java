@@ -17,12 +17,12 @@ public interface DeviceOrientationProfileConstants extends DConnectProfileConsta
     /**
      * プロファイル名: {@value} .
      */
-    String PROFILE_NAME = "deviceorientation";
+    String PROFILE_NAME = "deviceOrientation";
 
     /**
      * 属性: {@value} .
      */
-    String ATTRIBUTE_ON_DEVICE_ORIENTATION = "ondeviceorientation";
+    String ATTRIBUTE_ON_DEVICE_ORIENTATION = "onDeviceOrientation";
 
     /**
      * パス: {@value}.

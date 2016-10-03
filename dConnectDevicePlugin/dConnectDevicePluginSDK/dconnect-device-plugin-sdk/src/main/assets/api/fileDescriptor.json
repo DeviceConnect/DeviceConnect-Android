@@ -1,0 +1,218 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "title": "File Descriptor Profile",
+        "version": "2.0.0",
+        "description": ""
+    },
+    "consumes": [
+        "application/x-www-form-urlencoded",
+        "multipart/form-data"
+    ],
+    "paths": {
+        "/open": {
+            "get": {
+                "x-type": "one-shot",
+                "summary": "",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "query",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "path",
+                        "in": "query",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "flag",
+                        "in": "query",
+                        "required": true,
+                        "type": "string",
+                        "enum": ["r", "rw"]
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/close": {
+            "put": {
+                "x-type": "one-shot",
+                "summary": "",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "formData",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "path",
+                        "in": "formData",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/read": {
+            "get": {
+                "x-type": "one-shot",
+                "summary": "",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "query",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "path",
+                        "in": "query",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "length",
+                        "in": "query",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64",
+                        "minimum": 0,
+                        "exclusiveMinimum": true
+                    },
+                    {
+                        "name": "position",
+                        "in": "query",
+                        "required": false,
+                        "type": "integer",
+                        "format": "int64",
+                        "minimum": 0
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/write": {
+            "put": {
+                "x-type": "one-shot",
+                "summary": "",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "formData",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "path",
+                        "in": "formData",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "uri",
+                        "in": "formData",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "data",
+                        "in": "formData",
+                        "required": false,
+                        "type": "file"
+                    },
+                    {
+                        "name": "position",
+                        "in": "formData",
+                        "required": false,
+                        "type": "integer",
+                        "format": "int64",
+                        "minimum": 0
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/onWatchFile": {
+            "get": {
+                "x-type": "one-shot",
+                "summary": "",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "query",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            },
+            "put": {
+                "x-type": "event",
+                "summary": "",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "formData",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            },
+            "delete": {
+                "x-type": "event",
+                "summary": "",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "query",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        }
+    }
+}

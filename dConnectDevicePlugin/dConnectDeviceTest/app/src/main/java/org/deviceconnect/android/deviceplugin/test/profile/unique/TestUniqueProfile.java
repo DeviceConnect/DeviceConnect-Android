@@ -6,11 +6,10 @@
  */
 package org.deviceconnect.android.deviceplugin.test.profile.unique;
 
-import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
+import android.content.Intent;
+import android.os.Bundle;
 
-import org.deviceconnect.android.deviceplugin.test.DeviceTestService;
+import org.deviceconnect.android.deviceplugin.test.UnitTestDeviceService;
 import org.deviceconnect.android.deviceplugin.test.profile.Util;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventError;
@@ -20,8 +19,9 @@ import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
-import android.content.Intent;
-import android.os.Bundle;
+import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 
 /**
@@ -103,7 +103,7 @@ public class TestUniqueProfile extends DConnectProfile {
                             MessageUtils.setUnknownError(response, "event error: " + error.name());
                         }
                         response.putExtra(PARAM_KEY, key);
-                        ((DeviceTestService) getContext()).sendResponse(response);
+                        ((UnitTestDeviceService) getContext()).sendResponse(response);
                     }
                 }).start();
                 return false;
@@ -117,7 +117,7 @@ public class TestUniqueProfile extends DConnectProfile {
                         EventManager.INSTANCE.removeEvent(request);
                         setResult(response, DConnectMessage.RESULT_OK);
                         response.putExtra(PARAM_KEY, key);
-                        ((DeviceTestService) getContext()).sendResponse(response);
+                        ((UnitTestDeviceService) getContext()).sendResponse(response);
                     }
                 }).start();
                 return false;
@@ -140,7 +140,7 @@ public class TestUniqueProfile extends DConnectProfile {
                     } catch (InterruptedException e) {
                         MessageUtils.setUnknownError(response, "thread is interrupted. key=" + key);
                     }
-                    ((DeviceTestService) getContext()).sendResponse(response);
+                    ((UnitTestDeviceService) getContext()).sendResponse(response);
                 }
             }).start();
             return false;

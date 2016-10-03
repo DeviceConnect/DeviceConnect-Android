@@ -8,8 +8,12 @@ package org.deviceconnect.android.deviceplugin.linking.util;
 
 import java.io.UnsupportedEncodingException;
 
-public class ByteUtil {
-    public static String binaryToString(byte[] binary) {
+public final class ByteUtil {
+
+    private ByteUtil() {
+    }
+
+    public static String binaryToString(final byte[] binary) {
         try {
             return new String(binary, "UTF-8");
         } catch (UnsupportedEncodingException e) {
@@ -17,7 +21,7 @@ public class ByteUtil {
         }
     }
 
-    public static String binaryToHex(byte[] bytes) {
+    public static String binaryToHex(final byte[] bytes) {
         StringBuilder sb = new StringBuilder(2 * bytes.length);
         for (byte b : bytes) {
             sb.append(String.format("%02x", b & 0xff));
@@ -25,7 +29,7 @@ public class ByteUtil {
         return sb.toString();
     }
 
-    public static String byteToHex(byte b) {
+    public static String byteToHex(final byte b) {
         return String.format("%02x", b & 0xff);
     }
 }

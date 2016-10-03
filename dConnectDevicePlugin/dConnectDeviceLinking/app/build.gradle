@@ -1,16 +1,24 @@
-apply plugin: 'com.android.application'
+apply plugin: 'com.android.library'
 
 android {
     compileSdkVersion 23
     buildToolsVersion '23.0.0'
 
+    def getVersionName = { ->
+        def version
+        if (System.getProperty('os.name').toLowerCase().contains('windows')) {
+            version = ["cmd", "/c", "git describe --tags --long"].execute().in.text.trim()
+        } else {
+            version = ["sh", "-c", "git describe --tags --long"].execute().in.text.trim()
+        }
+        version = version.empty ? "2.1.0" : version
+        return "${version}"
+    }
+
     defaultConfig {
-        applicationId "org.deviceconnect.android.deviceplugin.linking"
         minSdkVersion 19
         targetSdkVersion 21
-        versionCode 2
-        versionName "1.0.1"
-        testInstrumentationRunner "org.deviceconnect.android.deviceplugin.linking.LinkingTestRunner"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
 
     signingConfigs {
@@ -40,14 +48,12 @@ android {
     configurations {
         androidTestCompile.exclude group: 'com.android.support', module: 'support-annotations'
     }
-
-
 }
 
 dependencies {
-    compile fileTree(include: ['*.jar'], dir: 'libs')
+    compile fileTree(dir: 'libs', include: ['*.jar'])
     compile project(':dconnect-device-plugin-sdk')
-    androidTestCompile 'com.android.support.test:runner:0.4'
-    androidTestCompile 'org.mockito:mockito-core:1.+'
-
+    compile 'com.android.support:design:23.4.0'
+    androidTestCompile 'com.android.support.test:testing-support-lib:0.1'
+    androidTestCompile 'org.hamcrest:hamcrest-library:1.3'
 }

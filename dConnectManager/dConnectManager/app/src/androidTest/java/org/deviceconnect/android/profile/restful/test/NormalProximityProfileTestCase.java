@@ -14,7 +14,6 @@ import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpUriRequest;
-import org.deviceconnect.android.test.plugin.profile.TestProximityProfileConstants;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.deviceconnect.profile.DConnectProfileConstants;
@@ -52,23 +51,12 @@ public class NormalProximityProfileTestCase extends RESTfulDConnectTestCase {
         builder.setProfile(ProximityProfileConstants.PROFILE_NAME);
         builder.setAttribute(ProximityProfileConstants.ATTRIBUTE_ON_DEVICE_PROXIMITY);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-        builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, getClientId());
+
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject root = sendRequest(request);
-            Assert.assertNotNull("root is null.", root);
-            Assert.assertEquals(DConnectMessage.RESULT_OK,
-                    root.getInt(DConnectMessage.EXTRA_RESULT));
-            JSONObject proximity = root.getJSONObject(ProximityProfileConstants.PARAM_PROXIMITY);
-            Assert.assertEquals(Double.valueOf(TestProximityProfileConstants.VALUE),
-                    proximity.getDouble(ProximityProfileConstants.PARAM_VALUE));
-            Assert.assertEquals(Double.valueOf(TestProximityProfileConstants.MIN), 
-                    proximity.getDouble(ProximityProfileConstants.PARAM_MIN));
-            Assert.assertEquals(Double.valueOf(TestProximityProfileConstants.MAX), 
-                    proximity.getDouble(ProximityProfileConstants.PARAM_MAX));
-            Assert.assertEquals(Double.valueOf(TestProximityProfileConstants.THRESHOLD),
-                    proximity.getDouble(ProximityProfileConstants.PARAM_THRESHOLD));
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -89,16 +77,7 @@ public class NormalProximityProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testOnDeviceProximity01() {
         try {
-            JSONObject event = registerEventCallback(ProximityProfileConstants.ATTRIBUTE_ON_DEVICE_PROXIMITY);
-            JSONObject proximity = event.getJSONObject(ProximityProfileConstants.PARAM_PROXIMITY);
-            Assert.assertEquals(Double.valueOf(TestProximityProfileConstants.VALUE),
-                    proximity.getDouble(ProximityProfileConstants.PARAM_VALUE));
-            Assert.assertEquals(Double.valueOf(TestProximityProfileConstants.MIN), 
-                    proximity.getDouble(ProximityProfileConstants.PARAM_MIN));
-            Assert.assertEquals(Double.valueOf(TestProximityProfileConstants.MAX), 
-                    proximity.getDouble(ProximityProfileConstants.PARAM_MAX));
-            Assert.assertEquals(Double.valueOf(TestProximityProfileConstants.THRESHOLD),
-                    proximity.getDouble(ProximityProfileConstants.PARAM_THRESHOLD));
+            registerEventCallback(ProximityProfileConstants.ATTRIBUTE_ON_DEVICE_PROXIMITY);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -139,16 +118,12 @@ public class NormalProximityProfileTestCase extends RESTfulDConnectTestCase {
         builder.setProfile(ProximityProfileConstants.PROFILE_NAME);
         builder.setAttribute(ProximityProfileConstants.ATTRIBUTE_ON_USER_PROXIMITY);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-        builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, getClientId());
+
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject root = sendRequest(request);
-            Assert.assertNotNull("root is null.", root);
-            Assert.assertEquals(DConnectMessage.RESULT_OK,
-                    root.getInt(DConnectMessage.EXTRA_RESULT));
-            JSONObject proximity = root.getJSONObject(ProximityProfileConstants.PARAM_PROXIMITY);
-            Assert.assertEquals(true, proximity.getBoolean(ProximityProfileConstants.PARAM_NEAR));
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -169,9 +144,7 @@ public class NormalProximityProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testOnUserProximity01() {
         try {
-            JSONObject event = registerEventCallback(ProximityProfileConstants.ATTRIBUTE_ON_USER_PROXIMITY);
-            JSONObject proximity = event.getJSONObject(ProximityProfileConstants.PARAM_PROXIMITY);
-            Assert.assertEquals(true, proximity.getBoolean(ProximityProfileConstants.PARAM_NEAR));
+            registerEventCallback(ProximityProfileConstants.ATTRIBUTE_ON_USER_PROXIMITY);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -197,10 +170,9 @@ public class NormalProximityProfileTestCase extends RESTfulDConnectTestCase {
     /**
      * コールバック登録リクエストを送信する.
      * @param attribute コールバックの属性名
-     * @return 受信したイベント
      * @throws JSONException JSONの解析に失敗した場合
      */
-    private JSONObject registerEventCallback(final String attribute) throws JSONException {
+    private void registerEventCallback(final String attribute) throws JSONException {
         StringBuilder builder = new StringBuilder();
         builder.append(DCONNECT_MANAGER_URI);
         builder.append("/" + ProximityProfileConstants.PROFILE_NAME);
@@ -208,17 +180,12 @@ public class NormalProximityProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("?");
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
-        builder.append(DConnectProfileConstants.PARAM_SESSION_KEY + "=" + getClientId());
-        builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         HttpUriRequest request = new HttpPut(builder.toString());
         JSONObject root = sendRequest(request);
         Assert.assertNotNull("root is null.", root);
         Assert.assertEquals(DConnectMessage.RESULT_OK,
                 root.getInt(DConnectMessage.EXTRA_RESULT));
-        JSONObject event = waitForEvent();
-        Assert.assertNotNull("event is null.", event);
-        return event;
     }
 
     /**
@@ -232,8 +199,6 @@ public class NormalProximityProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + attribute);
         builder.append("?");
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
-        builder.append("&");
-        builder.append(DConnectProfileConstants.PARAM_SESSION_KEY + "=" + getClientId());
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         try {

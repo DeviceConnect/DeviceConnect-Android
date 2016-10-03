@@ -21,6 +21,8 @@ import org.deviceconnect.android.ui.activity.DConnectSettingPageActivity;
  * <p>
  * 実際に使用されるSonyWatchに応じた設定手順説明画面への導線を提供する.
  * </p>
+ *
+ * @author NTT DOCOMO, INC.
  */
 public class SWSettingMainActivity extends DConnectSettingPageActivity {
     /**
@@ -57,10 +59,12 @@ public class SWSettingMainActivity extends DConnectSettingPageActivity {
         }
         return mView;
     }
-/**
- * 
- * @param targetModel targetModel.
- */
+
+    /**
+     * 指定した機種の設定画面を表示する.
+     *
+     * @param targetModel targetModel 機種
+     */
     public void startActivity(final int targetModel) {
         Intent intent = new Intent(getApplicationContext(), SWSettingStepsActivity.class);
         intent.putExtra(SWConstants.EXTRA_SW_MODEL, targetModel);

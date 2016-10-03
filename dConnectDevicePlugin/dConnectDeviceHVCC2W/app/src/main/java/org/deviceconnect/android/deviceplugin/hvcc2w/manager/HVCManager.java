@@ -16,6 +16,7 @@ import org.deviceconnect.android.deviceplugin.hvcc2w.R;
 import org.deviceconnect.android.deviceplugin.hvcc2w.manager.data.FaceRecognitionDataModel;
 import org.deviceconnect.android.deviceplugin.hvcc2w.manager.data.FaceRecognitionObject;
 import org.deviceconnect.android.deviceplugin.hvcc2w.manager.data.HVCCameraInfo;
+import org.deviceconnect.android.deviceplugin.hvcc2w.manager.data.HumanDetectKind;
 import org.deviceconnect.android.deviceplugin.hvcc2w.manager.data.UserDataModel;
 import org.deviceconnect.android.deviceplugin.hvcc2w.manager.data.UserDataObject;
 import org.json.JSONArray;
@@ -41,7 +42,7 @@ import jp.co.omron.hvcw.FileInfo;
 import jp.co.omron.hvcw.HvcwApi;
 import jp.co.omron.hvcw.Int;
 import jp.co.omron.hvcw.OkaoResult;
-import jp.co.omron.hvcw.ResultAeg;
+import jp.co.omron.hvcw.ResultAge;
 import jp.co.omron.hvcw.ResultDetection;
 import jp.co.omron.hvcw.ResultDirection;
 import jp.co.omron.hvcw.ResultFace;
@@ -62,7 +63,7 @@ public enum HVCManager {
 
 
     /** TAG. */
-    private static final String TAG = "ABC";
+    private static final String TAG = "HVCManager";
     /** Based request URL of the Web API. */
     private static final String HVC_SERVICE_URL = "https://developer.hvc.omron.com/c2w";
 
@@ -242,9 +243,13 @@ public enum HVCManager {
     private List<String> mEventList;
     /** HVC SDK Handle. */
     private HvcwApi mApi;
-    /** Timer Handler. */
-    private Handler mTimer;
+    /** Body Timer Handler. */
+    private Handler mBodyTimer;
 
+    /** Hand Timer Handler. */
+    private Handler mHandTimer;
+    /** Face Timer Handler. */
+    private Handler mFaceTimer;
     /**
      * POST Request's or Manager's Listener.
      */
@@ -276,7 +281,9 @@ public enum HVCManager {
     private HVCManager() {
         mServices = new ConcurrentHashMap<String, HVCCameraInfo>();
         mEventList = new ArrayList<String>();
-        mTimer = new Handler();
+        mBodyTimer = new Handler();
+        mHandTimer = new Handler();
+        mFaceTimer = new Handler();
     }
     /**
      * Return HVC Cameras.
@@ -383,8 +390,10 @@ public enum HVCManager {
      */
     public void removeBodyDetectEventListener(final String serviceId) {
         HVCCameraInfo camera = mServices.get(serviceId);
-        camera.setBodyEvent(null);
-        removeEventList(serviceId, camera);
+        if (camera != null) {
+            camera.setBodyEvent(null);
+            removeEventList(serviceId, camera);
+        }
     }
 
     /**
@@ -393,8 +402,10 @@ public enum HVCManager {
      */
     public void removeHandDetectEventListener(final String serviceId) {
         HVCCameraInfo camera = mServices.get(serviceId);
-        camera.setHandEvent(null);
-        removeEventList(serviceId, camera);
+        if (camera != null) {
+            camera.setHandEvent(null);
+            removeEventList(serviceId, camera);
+        }
     }
 
     /**
@@ -403,8 +414,10 @@ public enum HVCManager {
      */
     public void removeFaceDetectEventListener(final String serviceId) {
         HVCCameraInfo camera = mServices.get(serviceId);
-        camera.setFaceEvent(null);
-        removeEventList(serviceId, camera);
+        if (camera != null) {
+            camera.setFaceEvent(null);
+            removeEventList(serviceId, camera);
+        }
     }
 
     /**
@@ -413,53 +426,125 @@ public enum HVCManager {
      */
     public void removeFaceRecognizeEventListener(final String serviceId) {
         HVCCameraInfo camera = mServices.get(serviceId);
-        camera.setFaceRecognizeEvent(null);
-        removeEventList(serviceId, camera);
+        if (camera != null) {
+            camera.setFaceRecognizeEvent(null);
+            removeEventList(serviceId, camera);
+        }
     }
 
+    /**
+     * Remove all event listener.
+     */
+    public void removeAllEventListener() {
+        for (String key : mServices.keySet()) {
+            HVCCameraInfo camera = mServices.get(key);
+            if (camera != null) {
+                camera.setBodyEvent(null);
+                camera.setFaceEvent(null);
+                camera.setFaceRecognizeEvent(null);
+                camera.setHandEvent(null);
+                mEventList.remove(camera.getID());
+            }
+        }
+    }
 
     /**
      * Start Event Timer.
+     * @param kind HumanDetect kind
      * @param interval Interval
      */
-    public void startEventTimer(final Long interval) {
-        mTimer.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                for (String key : mServices.keySet()) {
-                    HVCCameraInfo camera = mServices.get(key);
-                    OkaoResult result = HVCManager.INSTANCE.execute();
+    public void startEventTimer(final HumanDetectKind kind, final Long interval) {
+        switch (kind) {
+            case BODY:
+                mBodyTimer.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        for (String key : mServices.keySet()) {
+                            HVCCameraInfo camera = mServices.get(key);
+                            if (camera == null) {
+                                return;
+                            }
+                            OkaoResult result = HVCManager.INSTANCE.execute();
 
-                    if (camera.getBodyEvent() != null) {
-                        camera.getBodyEvent().onNotifyForBodyDetectResult(key, result);
+                            if (camera.getBodyEvent() != null) {
+                                camera.getBodyEvent().onNotifyForBodyDetectResult(key, result);
+                            }
+
+                        }
+                        if (mEventList.size() > 0) {
+                            mBodyTimer.postDelayed(this, interval);
+                        }
                     }
+                }, interval);
+                break;
+            case HAND:
+                mHandTimer.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        for (String key : mServices.keySet()) {
+                            HVCCameraInfo camera = mServices.get(key);
+                            if (camera == null) {
+                                return;
+                            }
+                            OkaoResult result = HVCManager.INSTANCE.execute();
 
-                    if (camera.getHandEvent() != null) {
-                        camera.getHandEvent().onNotifyForHandDetectResult(key, result);
+                            if (camera.getHandEvent() != null) {
+                                camera.getHandEvent().onNotifyForHandDetectResult(key, result);
+                            }
+                        }
+                        if (mEventList.size() > 0) {
+                            mHandTimer.postDelayed(this, interval);
+                        }
                     }
+                }, interval);
+                break;
+            case FACE:
+                mFaceTimer.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        for (String key : mServices.keySet()) {
+                            HVCCameraInfo camera = mServices.get(key);
+                            if (camera == null) {
+                                return;
+                            }
+                            OkaoResult result = HVCManager.INSTANCE.execute();
 
-                    if (camera.getFaceEvent() != null) {
-                        camera.getFaceEvent().onNotifyForFaceDetectResult(key, result);
+                            if (camera.getFaceEvent() != null) {
+                                camera.getFaceEvent().onNotifyForFaceDetectResult(key, result);
+                            }
+                        }
+                        if (mEventList.size() > 0) {
+                            mFaceTimer.postDelayed(this, interval);
+                        }
                     }
-                    if (camera.getFaceRecognizeEvent() != null) {
-                        camera.getFaceRecognizeEvent().onNotifyForFaceRecognizeResult(key, result);
-                    }
-                }
+                }, interval);
+                break;
+            default:
 
+        }
 
-                if (mEventList.size() > 0) {
-                    mTimer.postDelayed(this, interval.longValue());
-                }
-            }
-        }, interval.longValue());
     }
 
 
     /**
      * Stop Event Timer.
      */
-    public void stopEventTimer() {
-        mTimer.removeCallbacksAndMessages(null);
+    public void stopEventTimer(final HumanDetectKind kind) {
+        switch(kind) {
+            case BODY:
+                mBodyTimer.removeCallbacksAndMessages(null);
+                break;
+            case HAND:
+                mHandTimer.removeCallbacksAndMessages(null);
+                break;
+            case FACE:
+                mFaceTimer.removeCallbacksAndMessages(null);
+                break;
+            default:
+                mBodyTimer.removeCallbacksAndMessages(null);
+                mHandTimer.removeCallbacksAndMessages(null);
+                mFaceTimer.removeCallbacksAndMessages(null);
+        }
     }
 
 
@@ -857,7 +942,7 @@ public enum HVCManager {
                         rd.getLR(),
                         rd.getUD(),
                         rd.getRoll()));
-                ResultAeg ra = rf[i].getAge();
+                ResultAge ra = rf[i].getAge();
                 sb.append(String.format("\nface[%d] age=%d,confidence=%d", i,
                         ra.getAge(),
                         ra.getConfidence()));

@@ -22,6 +22,7 @@ import org.deviceconnect.android.localoauth.PublishAccessTokenListener;
 import org.deviceconnect.android.localoauth.exception.AuthorizationException;
 import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.message.MessageUtils;
+import org.deviceconnect.android.profile.api.DConnectApi;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.restlet.ext.oauth.PackageInfoOAuth;
@@ -35,8 +36,8 @@ import java.util.List;
  * 
  * <p>
  * Local OAuthの認可機能を提供するAPI.<br>
- * Local OAuthの認可機能を提供するデバイスプラグインは当クラスを継承し、対応APIを実装すること。
  * </p>
+ *
  * @author NTT DOCOMO, INC.
  */
 public class AuthorizationProfile extends DConnectProfile implements AuthorizationProfileConstants {
@@ -55,7 +56,9 @@ public class AuthorizationProfile extends DConnectProfile implements Authorizati
      * @param provider プロファイルプロバイダー
      */
     public AuthorizationProfile(final DConnectProfileProvider provider) {
-        this.mProvider = provider;
+        mProvider = provider;
+        addApi(mGrantApi);
+        addApi(mCreateAccessTokenApi);
     }
 
     /**
@@ -77,80 +80,89 @@ public class AuthorizationProfile extends DConnectProfile implements Authorizati
     }
 
     @Override
-    protected final boolean onGetRequest(final Intent request, final Intent response) {
+    public boolean onRequest(final Intent request, final Intent response) {
         // Local OAuthを使用しない場合にはNot Supportを返却する
         DConnectMessageService service = (DConnectMessageService) getContext();
         if (!service.isUseLocalOAuth()) {
             MessageUtils.setNotSupportProfileError(response);
+            service.sendResponse(response);
             return true;
         }
 
-        boolean send;
-        String attribute = getAttribute(request);
-        if (ATTRIBUTE_GRANT.equals(attribute)) {
-            send = onGetCreateClient(request, response);
-        } else if (ATTRIBUTE_ACCESS_TOKEN.equals(attribute)) {
-            send = onGetRequestAccessToken(request, response);
-        } else {
-            MessageUtils.setUnknownAttributeError(response);
-            send = true;
+        return super.onRequest(request, response);
+    }
+
+    /**
+     * Authorization Grant API.
+     */
+    private final DConnectApi mGrantApi = new DConnectApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_GRANT;
         }
-        return send;
-    }
+
+        @Override
+        public Method getMethod() {
+            return Method.GET;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        createClient(request, response);
+                    } catch (Exception e) {
+                        MessageUtils.setAuthorizationError(response, e.getMessage());
+                    }
+                    sendResponse(response);
+                }
+            }).start();
+            return false;
+        }
+    };
 
     /**
-     * Local OAuthで使用するクライアントを作成要求を行う.
-     * 
-     * @param request リクエストパラメータ
-     * @param response レスポンスパラメータ
-     * 
-     * @return レスポンスパラメータを送信するか否か
+     * Authorization Create Access Token API.
      */
-    private boolean onGetCreateClient(final Intent request, final Intent response) {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    createClient(request, response);
-                } catch (Exception e) {
-                    MessageUtils.setAuthorizationError(response, e.getMessage());
-                }
-                sendResponse(response);
-            }
-        }).start();
-        return false;
-    }
+    private final DConnectApi mCreateAccessTokenApi = new DConnectApi() {
 
-    /**
-     * Local OAuthで使用するクライアントを作成要求を行う.
-     * 
-     * @param request リクエストパラメータ
-     * @param response レスポンスパラメータ
-     * 
-     * @return レスポンスパラメータを送信するか否か
-     */
-    private boolean onGetRequestAccessToken(final Intent request, final Intent response) {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    getAccessToken(request, response);
-                } catch (AuthorizationException e) {
-                    MessageUtils.setAuthorizationError(response, e.getMessage());
-                } catch (UnsupportedEncodingException e) {
-                    MessageUtils.setInvalidRequestParameterError(response, e.getMessage());
-                } catch (IllegalArgumentException e) {
-                    MessageUtils.setInvalidRequestParameterError(response, e.getMessage());
-                } catch (IllegalStateException e) {
-                    MessageUtils.setInvalidRequestParameterError(response, e.getMessage());
-                } catch (Exception e) {
-                    MessageUtils.setUnknownError(response, e.getMessage());
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ACCESS_TOKEN;
+        }
+
+        @Override
+        public Method getMethod() {
+            return Method.GET;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        getAccessToken(request, response);
+                    } catch (AuthorizationException e) {
+                        MessageUtils.setAuthorizationError(response, e.getMessage());
+                    } catch (UnsupportedEncodingException e) {
+                        MessageUtils.setInvalidRequestParameterError(response, e.getMessage());
+                    } catch (IllegalArgumentException e) {
+                        MessageUtils.setInvalidRequestParameterError(response, e.getMessage());
+                    } catch (IllegalStateException e) {
+                        MessageUtils.setInvalidRequestParameterError(response, e.getMessage());
+                    } catch (Exception e) {
+                        MessageUtils.setUnknownError(response, e.getMessage());
+                    }
+                    sendResponse(response);
                 }
-                sendResponse(response);
-            }
-        }).start();
-        return false;
-    }
+            }).start();
+            return false;
+        }
+    };
 
     /**
      * Clientデータを作成する.

@@ -7,11 +7,12 @@ http://opensource.org/licenses/mit-license.php
 
 package org.deviceconnect.android.deviceplugin.sonycamera.profile;
 
-import org.deviceconnect.android.deviceplugin.sonycamera.SonyCameraDeviceService;
-
 import android.content.Intent;
 
+import org.deviceconnect.android.deviceplugin.sonycamera.SonyCameraDeviceService;
 import org.deviceconnect.android.profile.SettingsProfile;
+import org.deviceconnect.android.profile.api.DConnectApi;
+import org.deviceconnect.android.profile.api.PutApi;
 
 /**
  * Sony Camera 用 Settings プロファイル.
@@ -19,10 +20,20 @@ import org.deviceconnect.android.profile.SettingsProfile;
  */
 public class SonyCameraSettingsProfile extends SettingsProfile {
 
-    @Override
-    protected boolean onPutDate(final Intent request, final Intent response, 
-            final String serviceId, final String date) {
-        return ((SonyCameraDeviceService) getContext()).onPutDate(request, response, serviceId, date);
-    }
+    private final DConnectApi mPutDateApi = new PutApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_DATE;
+        }
 
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            return ((SonyCameraDeviceService) getContext()).onPutDate(request, response,
+                getServiceID(request), getDate(request));
+        }
+    };
+
+    public SonyCameraSettingsProfile() {
+        addApi(mPutDateApi);
+    }
 }

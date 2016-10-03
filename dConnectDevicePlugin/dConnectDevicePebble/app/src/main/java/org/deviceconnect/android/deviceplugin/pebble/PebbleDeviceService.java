@@ -6,33 +6,32 @@
  */
 package org.deviceconnect.android.deviceplugin.pebble;
 
-import java.util.Set;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 
-import org.deviceconnect.android.deviceplugin.pebble.profile.PebbleBatteryProfile;
-import org.deviceconnect.android.deviceplugin.pebble.profile.PebbleDeviceOrientationProfile;
-import org.deviceconnect.android.deviceplugin.pebble.profile.PebbleCanvasProfile;
-import org.deviceconnect.android.deviceplugin.pebble.profile.PebbleKeyEventProfile;
-import org.deviceconnect.android.deviceplugin.pebble.profile.PebbleNotificationProfile;
-import org.deviceconnect.android.deviceplugin.pebble.profile.PebbleServceDiscoveryProfile;
-import org.deviceconnect.android.deviceplugin.pebble.profile.PebbleSettingProfile;
+import com.getpebble.android.kit.PebbleKit;
+import com.getpebble.android.kit.util.PebbleDictionary;
+
 import org.deviceconnect.android.deviceplugin.pebble.profile.PebbleSystemProfile;
-import org.deviceconnect.android.deviceplugin.pebble.profile.PebbleVibrationProfile;
+import org.deviceconnect.android.deviceplugin.pebble.service.PebbleService;
 import org.deviceconnect.android.deviceplugin.pebble.util.PebbleManager;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.event.cache.MemoryCacheController;
 import org.deviceconnect.android.message.DConnectMessageService;
-import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
-import org.deviceconnect.android.profile.ServiceInformationProfile;
 import org.deviceconnect.android.profile.SystemProfile;
+import org.deviceconnect.android.service.DConnectService;
 
-import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
+import java.util.Set;
+import java.util.logging.Logger;
 
 /**
  * Pebbleデバイスプロバイダ.
  * @author NTT DOCOMO, INC.
  */
 public class PebbleDeviceService extends DConnectMessageService {
+    /** ロガー. */
+    private final Logger mLogger = Logger.getLogger("pebble.dplugin");
+
     /**
      * Pebbleとのインターフェースを管理するクラス.
      */
@@ -48,14 +47,48 @@ public class PebbleDeviceService extends DConnectMessageService {
         // initialize of the EventManager
         EventManager.INSTANCE.setController(new MemoryCacheController());
 
-        // add supported profiles
-        addProfile(new PebbleNotificationProfile());
-        addProfile(new PebbleDeviceOrientationProfile(this));
-        addProfile(new PebbleVibrationProfile());
-        addProfile(new PebbleBatteryProfile(this));
-        addProfile(new PebbleSettingProfile());
-        addProfile(new PebbleCanvasProfile());
-        addProfile(new PebbleKeyEventProfile(this));
+        if (PebbleKit.isWatchConnected(this)) {
+            BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
+            if (adapter != null) {
+                for (BluetoothDevice device : adapter.getBondedDevices()) {
+                    if (device.getName().contains("Pebble")) {
+                        DConnectService service = new PebbleService(device, PebbleDeviceService.this);
+                        service.setOnline(true);
+                        getServiceProvider().addService(service);
+                        break;
+                    }
+                }
+            }
+        }
+        mPebbleManager.addConnectStatusListener(new PebbleManager.OnConnectionStatusListener() {
+            @Override
+            public void onConnect(final String macAddress) {
+                String serviceId = PebbleService.createServiceId(macAddress);
+                DConnectService service = getServiceProvider().getService(serviceId);
+                if (service == null) {
+                    BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
+                    if (adapter != null) {
+                        for (BluetoothDevice device : adapter.getBondedDevices()) {
+                            if (device.getAddress().equalsIgnoreCase(macAddress)) {
+                                service = new PebbleService(device, PebbleDeviceService.this);
+                                getServiceProvider().addService(service);
+                                break;
+                            }
+                        }
+                    }
+                }
+                service.setOnline(true);
+            }
+
+            @Override
+            public void onDisconnect(final String macAddress) {
+                String serviceId = PebbleService.createServiceId(macAddress);
+                DConnectService service = getServiceProvider().getService(serviceId);
+                if (service != null) {
+                    service.setOnline(false);
+                }
+            }
+        });
     }
 
     @Override
@@ -66,18 +99,96 @@ public class PebbleDeviceService extends DConnectMessageService {
     }
 
     @Override
+    protected void onManagerUninstalled() {
+        // Managerアンインストール検知時の処理。
+        if (BuildConfig.DEBUG) {
+            mLogger.info("Plug-in : onManagerUninstalled");
+        }
+    }
+
+    @Override
+    protected void onManagerTerminated() {
+        // Manager正常終了通知受信時の処理。
+        if (BuildConfig.DEBUG) {
+            mLogger.info("Plug-in : onManagerTerminated");
+        }
+    }
+
+    @Override
+    protected void onManagerEventTransmitDisconnected(final String origin) {
+        // ManagerのEvent送信経路切断通知受信時の処理。
+        if (BuildConfig.DEBUG) {
+            mLogger.info("Plug-in : onManagerEventTransmitDisconnected");
+        }
+        if (origin != null) {
+            EventManager.INSTANCE.removeEvents(origin);
+        } else {
+            EventManager.INSTANCE.removeAll();
+        }
+    }
+
+    @Override
+    protected void onDevicePluginReset() {
+        // Device Plug-inへのReset要求受信時の処理。
+        if (BuildConfig.DEBUG) {
+            mLogger.info("Plug-in : onDevicePluginReset");
+        }
+        resetPluginResource();
+    }
+
+    /**
+     * リソースリセット処理.
+     */
+    private void resetPluginResource() {
+        /** 全イベント削除. */
+        EventManager.INSTANCE.removeAll();
+
+        /** Pebble バッテリー関連 イベント解放. */
+        sendDeleteEventToPebble(PebbleManager.PROFILE_BATTERY,
+                PebbleManager.BATTERY_ATTRIBUTE_ON_BATTERY_CHANGE);
+
+        sendDeleteEventToPebble(PebbleManager.PROFILE_BATTERY,
+                PebbleManager.BATTERY_ATTRIBUTE_ON_CHARGING_CHANGE);
+
+        /** Pebble DeviceOrientation イベント解放. */
+        sendDeleteEventToPebble(PebbleManager.PROFILE_DEVICE_ORIENTATION,
+                PebbleManager.DEVICE_ORIENTATION_ATTRIBUTE_ON_DEVICE_ORIENTATION);
+
+        /** Pebble KeyEvent イベント解放. */
+        sendDeleteEventToPebble(PebbleManager.PROFILE_KEY_EVENT,
+                PebbleManager.KEY_EVENT_ATTRIBUTE_ON_DOWN);
+
+        sendDeleteEventToPebble(PebbleManager.PROFILE_KEY_EVENT,
+                PebbleManager.KEY_EVENT_ATTRIBUTE_ON_UP);
+
+        /** System イベント解放. */
+        sendDeleteEventToPebble(PebbleManager.PROFILE_SYSTEM,
+                PebbleManager.SYSTEM_ATTRIBUTE_EVENTS);
+    }
+
+    /**
+     * PebbleへEvent停止コマンドを送信する.
+     * @param profile プロファイル.
+     * @param attribute 属性.
+     */
+    private void sendDeleteEventToPebble(final int profile, final int attribute) {
+        if (mPebbleManager != null) {
+            PebbleDictionary dic = new PebbleDictionary();
+            dic.addInt8(PebbleManager.KEY_PROFILE, (byte) profile);
+            dic.addInt8(PebbleManager.KEY_ATTRIBUTE, (byte) attribute);
+            dic.addInt8(PebbleManager.KEY_ACTION, (byte) PebbleManager.ACTION_DELETE);
+            mPebbleManager.sendCommandToPebble(dic, new PebbleManager.OnSendCommandListener() {
+                @Override
+                public void onReceivedData(final PebbleDictionary dic) {
+                    // do nothing.
+                }
+            });
+        }
+    }
+
+    @Override
     protected SystemProfile getSystemProfile() {
         return new PebbleSystemProfile();
-    }
-
-    @Override
-    protected ServiceInformationProfile getServiceInformationProfile() {
-        return new ServiceInformationProfile(this) { };
-    }
-
-    @Override
-    protected ServiceDiscoveryProfile getServiceDiscoveryProfile() {
-        return new PebbleServceDiscoveryProfile(this, this);
     }
 
     /**
@@ -88,7 +199,7 @@ public class PebbleDeviceService extends DConnectMessageService {
     public PebbleManager getPebbleManager() {
         return mPebbleManager;
     }
-    
+
     /**
      * 現在接続されているPebbleのサービスIDを取得する.
      * <p>
@@ -107,11 +218,8 @@ public class PebbleDeviceService extends DConnectMessageService {
         if (bondedDevices.size() > 0) {
             for (BluetoothDevice device : bondedDevices) {
                 String deviceName = device.getName();
-                String deviceAddress = device.getAddress();
-                // URIに使えるように、Macアドレスの":"を取り除いて小文字に変換する 
-                String serviceId = deviceAddress.replace(":", "").toLowerCase();
-                if (deviceName.indexOf("Pebble") != -1) {
-                    return PebbleServceDiscoveryProfile.SERVICE_ID + serviceId;
+                if (deviceName.contains("Pebble")) {
+                    return PebbleService.createServiceId(device);
                 }
             }
         }

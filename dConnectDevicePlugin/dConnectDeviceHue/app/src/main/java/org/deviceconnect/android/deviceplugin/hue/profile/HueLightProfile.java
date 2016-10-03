@@ -25,6 +25,10 @@ import org.deviceconnect.android.deviceplugin.hue.R;
 import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.LightProfile;
+import org.deviceconnect.android.profile.api.DeleteApi;
+import org.deviceconnect.android.profile.api.GetApi;
+import org.deviceconnect.android.profile.api.PostApi;
+import org.deviceconnect.android.profile.api.PutApi;
 import org.deviceconnect.message.DConnectMessage;
 
 import java.util.ArrayList;
@@ -56,213 +60,215 @@ public class HueLightProfile extends LightProfile {
      */
     private static final int HUE_BRIGHTNESS_TUNED_MAX_VALUE = 254;
 
-    private Map<String, FlashingExecutor> mFlashingMap = new HashMap<String, FlashingExecutor>();
+    private final Map<String, FlashingExecutor> mFlashingMap = new HashMap<String, FlashingExecutor>();
 
-    @Override
-    protected boolean onGetLight(final Intent request, final Intent response, final String serviceId) {
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-            return true;
-        }
-
-        PHBridge bridge = findBridge(serviceId);
-        if (bridge == null) {
-            MessageUtils.setNotFoundServiceError(response, "Not found bridge: " + serviceId);
-            return true;
-        }
-
-        List<Bundle> lightList = new ArrayList<Bundle>();
-        for (PHLight phLight : bridge.getResourceCache().getAllLights()) {
-            PHLightState phState = phLight.getLastKnownLightState();
-            Bundle light = new Bundle();
-            setLightId(light, phLight.getIdentifier());
-            setName(light, phLight.getName());
-            setOn(light, phState != null ? phState.isOn() : false);
-            setConfig(light, "");
-            lightList.add(light);
-        }
-        setLights(response, lightList);
-        sendResultOK(response);
-        return true;
-    }
-
-    @Override
-    protected boolean onPostLight(final Intent request, final Intent response, final String serviceId,
-                                  final String lightId, final Integer color, final Double brightness, final long[] flashing) {
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-            return true;
-        }
-
-        final PHBridge bridge = findBridge(serviceId);
-        if (bridge == null) {
-            MessageUtils.setNotFoundServiceError(response, "Not found bridge: " + serviceId);
-            return true;
-        }
-
-        final PHLight light = findLight(bridge, lightId);
-        if (light == null) {
-            MessageUtils.setInvalidRequestParameterError(response, "Not found light: " + lightId + "@" + serviceId);
-            return true;
-        }
-
-        final PHLightState lightState = makeLightState(color, brightness, flashing);
-        if (flashing != null) {
-
-            flashing(lightId, lightState, bridge, light, flashing);
-            sendResultOK(response);//do not check result of flashing
-            return true;
-        } else {
-            bridge.updateLightState(light, lightState, new PHLightAdapter() {
-                @Override
-                public void onStateUpdate(final Map<String, String> successAttribute, final List<PHHueError> errorAttribute) {
-                    sendResultOK(response);
-                }
-
-                @Override
-                public void onError(final int code, final String message) {
-                    MessageUtils.setUnknownError(response, code + ": " + message);
-                    sendResultERR(response);
-                }
-            });
-            return false;
-        }
-    }
-
-    @Override
-    protected boolean onDeleteLight(final Intent request, final Intent response, final String serviceId,
-                                    final String lightId) {
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-            return true;
-        }
-
-        PHBridge bridge = findBridge(serviceId);
-        if (bridge == null) {
-            MessageUtils.setNotFoundServiceError(response, "Not found bridge: " + serviceId);
-            return true;
-        }
-
-        PHLight light = findLight(bridge, lightId);
-        if (light == null) {
-            MessageUtils.setInvalidRequestParameterError(response, "Not found light: " + lightId + "@" + serviceId);
-            return true;
-        }
-
-        PHLightState lightState = new PHLightState();
-        lightState.setOn(false);
-
-        bridge.updateLightState(light, lightState, new PHLightAdapter() {
+    public HueLightProfile() {
+        addApi(new GetApi() {
             @Override
-            public void onStateUpdate(final Map<String, String> successAttribute,
-                                      final List<PHHueError> errorAttribute) {
+            public boolean onRequest(final Intent request, final Intent response) {
+                String serviceId = getServiceID(request);
+
+                PHBridge bridge = findBridge(serviceId);
+                if (bridge == null) {
+                    MessageUtils.setNotFoundServiceError(response, "Not found bridge: " + serviceId);
+                    return true;
+                }
+
+                List<Bundle> lightList = new ArrayList<Bundle>();
+                for (PHLight phLight : bridge.getResourceCache().getAllLights()) {
+                    PHLightState phState = phLight.getLastKnownLightState();
+                    Bundle light = new Bundle();
+                    setLightId(light, phLight.getIdentifier());
+                    setName(light, phLight.getName());
+                    setOn(light, phState != null ? phState.isOn() : false);
+                    setConfig(light, "");
+                    lightList.add(light);
+                }
+                setLights(response, lightList);
                 sendResultOK(response);
-            }
-
-            @Override
-            public void onError(final int code, final String message) {
-                String errMsg = getContext().getString(
-                        R.string.error_message_failed_to_update_light,
-                        code, message);
-                MessageUtils.setUnknownError(response, errMsg);
-                sendResultERR(response);
+                return true;
             }
         });
-        return false;
-    }
-
-    @Override
-    protected boolean onPutLight(final Intent request, final Intent response, final String serviceId,
-                                 final String lightId, final String name, final Integer color, final Double brightness, final long[] flashing) {
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-            return true;
-        }
-
-        if (name == null || name.length() == 0) {
-            MessageUtils.setInvalidRequestParameterError(response, "name is not specified.");
-            return true;
-        }
-
-        final PHBridge bridge = findBridge(serviceId);
-        if (bridge == null) {
-            MessageUtils.setNotFoundServiceError(response, "Not found bridge: " + serviceId);
-            return true;
-        }
-
-        final PHLight light = findLight(bridge, lightId);
-        if (light == null) {
-            MessageUtils.setInvalidRequestParameterError(response, "Not found light: " + lightId + "@" + serviceId);
-            return true;
-        }
-
-        //wait for change name and status
-        final CountDownLatch countDownLatch = new CountDownLatch(2);
-        sendResponseAfterAwait(response, countDownLatch);
-
-        PHLight newLight = new PHLight(light);
-        newLight.setName(name);
-        bridge.updateLight(newLight, new PHLightAdapter() {
-            private boolean mErrorFlag = false;
-
+        addApi(new PostApi() {
             @Override
-            public void onSuccess() {
-                super.onSuccess();
-                countDown();
-            }
+            public boolean onRequest(final Intent request, final Intent response) {
+                String serviceId = getServiceID(request);
+                String lightId = getLightId(request);
+                Integer color = getColor(request);
+                Double brightness = getBrightness(request);
+                long[] flashing = getFlashing(request);
 
-            @Override
-            public void onError(int code, String message) {
-                super.onError(code, message);
-                String errMsg = getContext().getString(
-                        R.string.error_message_failed_to_update_light,
-                        code, message);
-                MessageUtils.setUnknownError(response, errMsg);
-                mErrorFlag = true;
-                countDown();
-            }
-
-            private void countDown() {
-                if (!mErrorFlag) {
-                    setResult(response, DConnectMessage.RESULT_OK);
+                final PHBridge bridge = findBridge(serviceId);
+                if (bridge == null) {
+                    MessageUtils.setNotFoundServiceError(response, "Not found bridge: " + serviceId);
+                    return true;
                 }
-                countDownLatch.countDown();
-            }
 
+                final PHLight light = findLight(bridge, lightId);
+                if (light == null) {
+                    MessageUtils.setInvalidRequestParameterError(response, "Not found light: " + lightId + "@" + serviceId);
+                    return true;
+                }
+
+                final PHLightState lightState = makeLightState(color, brightness, flashing);
+                if (flashing != null) {
+
+                    flashing(lightId, lightState, bridge, light, flashing);
+                    sendResultOK(response);//do not check result of flashing
+                    return true;
+                } else {
+                    bridge.updateLightState(light, lightState, new PHLightAdapter() {
+                        @Override
+                        public void onStateUpdate(final Map<String, String> successAttribute, final List<PHHueError> errorAttribute) {
+                            sendResultOK(response);
+                        }
+
+                        @Override
+                        public void onError(final int code, final String message) {
+                            MessageUtils.setUnknownError(response, code + ": " + message);
+                            sendResultERR(response);
+                        }
+                    });
+                    return false;
+                }
+            }
         });
+        addApi(new DeleteApi() {
+            @Override
+            public boolean onRequest(final Intent request, final Intent response) {
+                String serviceId = getServiceID(request);
+                String lightId = getLightId(request);
 
-        final PHLightState lightState = makeLightState(color, brightness, flashing);
-        if (flashing != null) {
-            flashing(lightId, lightState, bridge, light, flashing);
-            countDownLatch.countDown();//do not check result of flashing
-        } else {
-            bridge.updateLightState(light, lightState, new PHLightAdapter() {
-                private boolean mErrorFlag = false;
-
-                @Override
-                public void onStateUpdate(Map<String, String> successAttribute, List<PHHueError> errorAttribute) {
-                    countDown();
+                PHBridge bridge = findBridge(serviceId);
+                if (bridge == null) {
+                    MessageUtils.setNotFoundServiceError(response, "Not found bridge: " + serviceId);
+                    return true;
                 }
 
-                @Override
-                public void onError(int code, String message) {
-                    String errMsg = getContext().getString(
+                PHLight light = findLight(bridge, lightId);
+                if (light == null) {
+                    MessageUtils.setInvalidRequestParameterError(response, "Not found light: " + lightId + "@" + serviceId);
+                    return true;
+                }
+
+                PHLightState lightState = new PHLightState();
+                lightState.setOn(false);
+
+                bridge.updateLightState(light, lightState, new PHLightAdapter() {
+                    @Override
+                    public void onStateUpdate(final Map<String, String> successAttribute,
+                                              final List<PHHueError> errorAttribute) {
+                        sendResultOK(response);
+                    }
+
+                    @Override
+                    public void onError(final int code, final String message) {
+                        String errMsg = getContext().getString(
                             R.string.error_message_failed_to_update_light,
                             code, message);
-                    MessageUtils.setUnknownError(response, errMsg);
-                    mErrorFlag = true;
-                    countDown();
+                        MessageUtils.setUnknownError(response, errMsg);
+                        sendResultERR(response);
+                    }
+                });
+                return false;
+            }
+        });
+        addApi(new PutApi() {
+            @Override
+            public boolean onRequest(final Intent request, final Intent response) {
+                String serviceId = getServiceID(request);
+                String lightId = getLightId(request);
+                Integer color = getColor(request);
+                Double brightness = getBrightness(request);
+                long[] flashing = getFlashing(request);
+                String name = getName(request);
+
+                final PHBridge bridge = findBridge(serviceId);
+                if (bridge == null) {
+                    MessageUtils.setNotFoundServiceError(response, "Not found bridge: " + serviceId);
+                    return true;
                 }
 
-                private void countDown() {
-                    if (!mErrorFlag) {
-                        setResult(response, DConnectMessage.RESULT_OK);
-                    }
-                    countDownLatch.countDown();
+                final PHLight light = findLight(bridge, lightId);
+                if (light == null) {
+                    MessageUtils.setInvalidRequestParameterError(response, "Not found light: " + lightId + "@" + serviceId);
+                    return true;
                 }
-            });
-        }
-        return false;
+
+                if (name == null || name.length() == 0) {
+                    MessageUtils.setInvalidRequestParameterError(response, "name is invalid.");
+                    return true;
+                }
+
+                //wait for change name and status
+                final CountDownLatch countDownLatch = new CountDownLatch(2);
+                sendResponseAfterAwait(response, countDownLatch);
+
+                PHLight newLight = new PHLight(light);
+                newLight.setName(name);
+                bridge.updateLight(newLight, new PHLightAdapter() {
+                    private boolean mErrorFlag = false;
+
+                    @Override
+                    public void onSuccess() {
+                        super.onSuccess();
+                        countDown();
+                    }
+
+                    @Override
+                    public void onError(int code, String message) {
+                        super.onError(code, message);
+                        String errMsg = getContext().getString(
+                            R.string.error_message_failed_to_update_light,
+                            code, message);
+                        MessageUtils.setUnknownError(response, errMsg);
+                        mErrorFlag = true;
+                        countDown();
+                    }
+
+                    private void countDown() {
+                        if (!mErrorFlag) {
+                            setResult(response, DConnectMessage.RESULT_OK);
+                        }
+                        countDownLatch.countDown();
+                    }
+
+                });
+
+                final PHLightState lightState = makeLightState(color, brightness, flashing);
+                if (flashing != null) {
+                    flashing(lightId, lightState, bridge, light, flashing);
+                    countDownLatch.countDown();//do not check result of flashing
+                } else {
+                    bridge.updateLightState(light, lightState, new PHLightAdapter() {
+                        private boolean mErrorFlag = false;
+
+                        @Override
+                        public void onStateUpdate(Map<String, String> successAttribute, List<PHHueError> errorAttribute) {
+                            countDown();
+                        }
+
+                        @Override
+                        public void onError(int code, String message) {
+                            String errMsg = getContext().getString(
+                                R.string.error_message_failed_to_update_light,
+                                code, message);
+                            MessageUtils.setUnknownError(response, errMsg);
+                            mErrorFlag = true;
+                            countDown();
+                        }
+
+                        private void countDown() {
+                            if (!mErrorFlag) {
+                                setResult(response, DConnectMessage.RESULT_OK);
+                            }
+                            countDownLatch.countDown();
+                        }
+                    });
+                }
+                return false;
+            }
+        });
     }
 
     private PHLightState makeLightState(Integer color, Double brightness, long[] flashing) {

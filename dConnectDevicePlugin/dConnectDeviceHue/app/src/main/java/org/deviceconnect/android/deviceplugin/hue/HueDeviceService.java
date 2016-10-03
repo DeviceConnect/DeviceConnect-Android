@@ -7,16 +7,6 @@ http://opensource.org/licenses/mit-license.php
 
 package org.deviceconnect.android.deviceplugin.hue;
 
-import java.util.List;
-
-import org.deviceconnect.android.deviceplugin.hue.profile.HueLightProfile;
-import org.deviceconnect.android.deviceplugin.hue.profile.HueServiceDiscoveryProfile;
-import org.deviceconnect.android.deviceplugin.hue.profile.HueSystemProfile;
-import org.deviceconnect.android.message.DConnectMessageService;
-import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
-import org.deviceconnect.android.profile.ServiceInformationProfile;
-import org.deviceconnect.android.profile.SystemProfile;
-
 import com.philips.lighting.hue.sdk.PHAccessPoint;
 import com.philips.lighting.hue.sdk.PHBridgeSearchManager;
 import com.philips.lighting.hue.sdk.PHHueSDK;
@@ -24,16 +14,27 @@ import com.philips.lighting.hue.sdk.PHSDKListener;
 import com.philips.lighting.model.PHBridge;
 import com.philips.lighting.model.PHHueParsingError;
 
+import org.deviceconnect.android.deviceplugin.hue.profile.HueSystemProfile;
+import org.deviceconnect.android.deviceplugin.hue.service.HueService;
+import org.deviceconnect.android.message.DConnectMessageService;
+import org.deviceconnect.android.profile.SystemProfile;
+import org.deviceconnect.android.service.DConnectService;
+
+import java.util.List;
+import java.util.logging.Logger;
+
 /**
  * 本デバイスプラグインのプロファイルをDeviceConnectに登録するサービス.
  * @author NTT DOCOMO, INC.
  */
 public class HueDeviceService extends DConnectMessageService {
 
+    /** ロガー. */
+    private final Logger mLogger = Logger.getLogger("hue.dplugin");
+
     @Override
     public void onCreate() {
         super.onCreate();
-        addProfile(new HueLightProfile());
 
         //hue SDKの初期化
         PHHueSDK hueSDK = PHHueSDK.getInstance();
@@ -60,18 +61,32 @@ public class HueDeviceService extends DConnectMessageService {
     }
 
     @Override
+    protected void onManagerUninstalled() {
+        // Managerアンインストール検知時の処理。
+        if (BuildConfig.DEBUG) {
+            mLogger.info("Plug-in : onManagerUninstalled");
+        }
+    }
+
+    @Override
+    protected void onManagerTerminated() {
+        // Manager正常終了通知受信時の処理。
+        if (BuildConfig.DEBUG) {
+            mLogger.info("Plug-in : onManagerTerminated");
+        }
+    }
+
+    @Override
+    protected void onDevicePluginReset() {
+        // Device Plug-inへのReset要求受信時の処理。
+        if (BuildConfig.DEBUG) {
+            mLogger.info("Plug-in : onDevicePluginReset");
+        }
+    }
+
+    @Override
     protected SystemProfile getSystemProfile() {
         return new HueSystemProfile();
-    }
-
-    @Override
-    protected ServiceInformationProfile getServiceInformationProfile() {
-        return new ServiceInformationProfile(this) { };
-    }
-
-    @Override
-    protected ServiceDiscoveryProfile getServiceDiscoveryProfile() {
-        return new HueServiceDiscoveryProfile(this);
     }
 
     /**
@@ -80,11 +95,17 @@ public class HueDeviceService extends DConnectMessageService {
     private final PHSDKListener mPhListener = new PHSDKListener() {
 
         @Override
-        public void onAccessPointsFound(final List<PHAccessPoint> accessPoint) {
+        public void onAccessPointsFound(final List<PHAccessPoint> accessPoints) {
             PHHueSDK hueSDK = PHHueSDK.getInstance();
-            if (accessPoint != null && accessPoint.size() > 0) {
+            if (accessPoints != null && accessPoints.size() > 0) {
                 hueSDK.getAccessPointsFound().clear();
-                hueSDK.getAccessPointsFound().addAll(accessPoint);
+                hueSDK.getAccessPointsFound().addAll(accessPoints);
+
+                for (PHAccessPoint accessPoint : accessPoints) {
+                    if (getServiceProvider().getService(accessPoint.getIpAddress()) == null) {
+                        getServiceProvider().addService(new HueService(accessPoint));
+                    }
+                }
             } else {
                 PHBridgeSearchManager sm = (PHBridgeSearchManager) hueSDK.getSDKService(PHHueSDK.SEARCH_BRIDGE);
                 sm.search(false, false, true);
@@ -96,12 +117,18 @@ public class HueDeviceService extends DConnectMessageService {
         }
 
         @Override
-        public void onBridgeConnected(final PHBridge b) {
+        public void onBridgeConnected(final PHBridge bridge) {
+            String ipAddress = bridge.getResourceCache().getBridgeConfiguration().getIpAddress();
+
             PHHueSDK phHueSDK = PHHueSDK.getInstance();
-            phHueSDK.setSelectedBridge(b);
-            phHueSDK.enableHeartbeat(b, PHHueSDK.HB_INTERVAL);
-            phHueSDK.getLastHeartbeat().put(b.getResourceCache().getBridgeConfiguration() 
-                    .getIpAddress(), System.currentTimeMillis());
+            phHueSDK.setSelectedBridge(bridge);
+            phHueSDK.enableHeartbeat(bridge, PHHueSDK.HB_INTERVAL);
+            phHueSDK.getLastHeartbeat().put(ipAddress, System.currentTimeMillis());
+
+            DConnectService service = getServiceProvider().getService(ipAddress);
+            if (service != null) {
+                service.setOnline(true);
+            }
         }
 
         @Override
@@ -112,12 +139,18 @@ public class HueDeviceService extends DConnectMessageService {
 
         @Override
         public void onConnectionResumed(final PHBridge bridge) {
+            String ipAddress = bridge.getResourceCache().getBridgeConfiguration().getIpAddress();
+
             PHHueSDK phHueSDK = PHHueSDK.getInstance();
             for (int i = 0; i < phHueSDK.getDisconnectedAccessPoint().size(); i++) {
-                if (phHueSDK.getDisconnectedAccessPoint().get(i).getIpAddress()
-                        .equals(bridge.getResourceCache().getBridgeConfiguration().getIpAddress())) {
+                if (phHueSDK.getDisconnectedAccessPoint().get(i).getIpAddress().equals(ipAddress)) {
                     phHueSDK.getDisconnectedAccessPoint().remove(i);
                 }
+            }
+
+            DConnectService service = getServiceProvider().getService(ipAddress);
+            if (service != null) {
+                service.setOnline(true);
             }
         }
 
@@ -126,6 +159,11 @@ public class HueDeviceService extends DConnectMessageService {
             PHHueSDK phHueSDK = PHHueSDK.getInstance();
             if (!phHueSDK.getDisconnectedAccessPoint().contains(accessPoint)) {
                 phHueSDK.getDisconnectedAccessPoint().add(accessPoint);
+            }
+
+            DConnectService service = getServiceProvider().getService(accessPoint.getIpAddress());
+            if (service != null) {
+                service.setOnline(false);
             }
         }
 

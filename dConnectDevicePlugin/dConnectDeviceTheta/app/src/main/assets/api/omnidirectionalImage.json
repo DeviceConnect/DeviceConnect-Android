@@ -1,0 +1,171 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "title": "Omnidirectional Image Profile",
+        "version": "2.0.0",
+        "description": ""
+    },
+    "consumes": [
+        "application/x-www-form-urlencoded",
+        "multipart/form-data"
+    ],
+    "paths": {
+        "/roi": {
+            "put": {
+                "x-type": "streaming",
+                "summary": "",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "formData",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "source",
+                        "in": "formData",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            },
+            "delete": {
+                "x-type": "streaming",
+                "summary": "",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "query",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "uri",
+                        "in": "query",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/roi/settings" :{
+            "put": {
+                "x-type": "one-shot",
+                "summary": "",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "formData",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "uri",
+                        "in": "formData",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "x",
+                        "in": "formData",
+                        "required": false,
+                        "type": "number"
+                    },
+                    {
+                        "name": "y",
+                        "in": "formData",
+                        "required": false,
+                        "type": "number"
+                    },
+                    {
+                        "name": "z",
+                        "in": "formData",
+                        "required": false,
+                        "type": "number"
+                    },
+                    {
+                        "name": "roll",
+                        "in": "formData",
+                        "required": false,
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 360
+                    },
+                    {
+                        "name": "pitch",
+                        "in": "formData",
+                        "required": false,
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 360
+                    },
+                    {
+                        "name": "yaw",
+                        "in": "formData",
+                        "required": false,
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 360
+                    },
+                    {
+                        "name": "fov",
+                        "in": "formData",
+                        "required": false,
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 180
+                    },
+                    {
+                        "name": "sphereSize",
+                        "in": "formData",
+                        "required": false,
+                        "type": "number",
+                        "minimum": 0
+                    },
+                    {
+                        "name": "width",
+                        "in": "formData",
+                        "required": false,
+                        "type": "integer"
+                    },
+                    {
+                        "name": "height",
+                        "in": "formData",
+                        "required": false,
+                        "type": "integer"
+                    },
+                    {
+                        "name": "stereo",
+                        "in": "formData",
+                        "required": false,
+                        "type": "boolean"
+                    },
+                    {
+                        "name": "vr",
+                        "in": "formData",
+                        "required": false,
+                        "type": "boolean"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        }
+    }
+}

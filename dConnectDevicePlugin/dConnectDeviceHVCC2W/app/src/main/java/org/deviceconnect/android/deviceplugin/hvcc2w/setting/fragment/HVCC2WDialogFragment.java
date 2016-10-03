@@ -69,7 +69,7 @@ public class HVCC2WDialogFragment extends DialogFragment {
                 .setTitle(title)
                 .setMessage(message)
                 .setCancelable(false)
-                .setPositiveButton(R.string.ok, listener)
+                .setPositiveButton(R.string.button_ok, listener)
                 .show();
     }
 

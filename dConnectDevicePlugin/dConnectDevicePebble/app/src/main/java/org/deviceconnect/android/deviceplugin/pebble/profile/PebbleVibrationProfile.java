@@ -15,6 +15,9 @@ import org.deviceconnect.android.deviceplugin.pebble.util.PebbleManager;
 import org.deviceconnect.android.deviceplugin.pebble.util.PebbleManager.OnSendCommandListener;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.VibrationProfile;
+import org.deviceconnect.android.profile.api.DConnectApi;
+import org.deviceconnect.android.profile.api.DeleteApi;
+import org.deviceconnect.android.profile.api.PutApi;
 import org.deviceconnect.message.DConnectMessage;
 
 /**
@@ -22,18 +25,24 @@ import org.deviceconnect.message.DConnectMessage;
  * @author NTT DOCOMO, INC.
  */
 public class PebbleVibrationProfile extends VibrationProfile {
-    @Override
-    protected boolean onPutVibrate(final Intent request, final Intent response, final String serviceId,
-            final long[] pattern) {
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-            return true;
-        } else if (!PebbleUtil.checkServiceId(serviceId)) {
-            MessageUtils.setNotFoundServiceError(response);
-            return true;
-        } else {
+
+    private final DConnectApi mPutVibrateApi = new PutApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_VIBRATE;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String pattern = getPattern(request);
+
             // リクエスト作成
-            byte[] p = PebbleManager.convertVibrationPattern(pattern);
+            byte[] p;
+            try {
+                p = PebbleManager.convertVibrationPattern(pattern);
+            } catch (NumberFormatException e) {
+                p = null;
+            }
             PebbleDictionary dic = new PebbleDictionary();
             dic.addInt8(PebbleManager.KEY_PROFILE, (byte) PebbleManager.PROFILE_VIBRATION);
             dic.addInt8(PebbleManager.KEY_ATTRIBUTE, (byte) PebbleManager.VIBRATION_ATTRIBUTE_VIBRATE);
@@ -59,17 +68,16 @@ public class PebbleVibrationProfile extends VibrationProfile {
             });
             return false;
         }
-    }
+    };
 
-    @Override
-    protected boolean onDeleteVibrate(final Intent request, final Intent response, final String serviceId) {
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-            return true;
-        } else if (!PebbleUtil.checkServiceId(serviceId)) {
-            MessageUtils.setNotFoundServiceError(response);
-            return true;
-        } else {
+    private final DConnectApi mDeleteVibrateApi = new DeleteApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_VIBRATE;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
             PebbleDictionary dic = new PebbleDictionary();
             dic.addInt8(PebbleManager.KEY_PROFILE, (byte) PebbleManager.PROFILE_VIBRATION);
             dic.addInt8(PebbleManager.KEY_ATTRIBUTE, (byte) PebbleManager.VIBRATION_ATTRIBUTE_VIBRATE);
@@ -89,5 +97,10 @@ public class PebbleVibrationProfile extends VibrationProfile {
             });
             return false;
         }
+    };
+
+    public PebbleVibrationProfile() {
+        addApi(mPutVibrateApi);
+        addApi(mDeleteVibrateApi);
     }
 }

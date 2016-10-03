@@ -20,6 +20,10 @@ import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.DeviceOrientationProfile;
+import org.deviceconnect.android.profile.api.DConnectApi;
+import org.deviceconnect.android.profile.api.DeleteApi;
+import org.deviceconnect.android.profile.api.GetApi;
+import org.deviceconnect.android.profile.api.PutApi;
 import org.deviceconnect.message.DConnectMessage;
 
 import java.util.List;
@@ -31,10 +35,87 @@ import java.util.List;
 public class PebbleDeviceOrientationProfile extends DeviceOrientationProfile {
     /** milli G を m/s^2 の値にする係数. */
     private static final double G_TO_MS2_COEFFICIENT =  9.81 / 1000.0;
-    /** sessionKeyが設定されていないときのエラーメッセージ. */
-    private static final String ERROR_MESSAGE = "sessionKey must be specified.";
+
     /** Orientationデータをキャッシュする変数. */
     private Bundle mCacheOrientation;
+
+    private final DConnectApi mGetOnDeviceOrientationApi = new GetApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_DEVICE_ORIENTATION;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            if (isStartSensor()) {
+                if (mCacheOrientation != null) {
+                    setResult(response, DConnectMessage.RESULT_OK);
+                    setOrientation(response, mCacheOrientation);
+                } else {
+                    MessageUtils.setIllegalDeviceStateError(response,
+                        "Device is not ready.");
+                }
+                return true;
+            } else {
+                startSensorOnce(response);
+                return false;
+            }
+        }
+    };
+
+    private final DConnectApi mPutOnDeviceOrientationApi = new PutApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_DEVICE_ORIENTATION;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            startSensor(new OnSendCommandListener() {
+                @Override
+                public void onReceivedData(final PebbleDictionary dic) {
+                    if (dic == null) {
+                        MessageUtils.setUnknownError(response);
+                    } else {
+                        // イベントリスナーを登録
+                        EventError error = EventManager.INSTANCE.addEvent(request);
+                        if (error == EventError.NONE) {
+                            setResult(response, DConnectMessage.RESULT_OK);
+                        } else if (error == EventError.INVALID_PARAMETER) {
+                            MessageUtils.setInvalidRequestParameterError(response);
+                        } else {
+                            MessageUtils.setUnknownError(response);
+                        }
+                    }
+                    sendResponse(response);
+                }
+            });
+            // レスポンスを非同期で返却するので、falseを返す
+            return false;
+        }
+    };
+
+    private final DConnectApi mDeleteOnDeviceOrientationApiApi = new DeleteApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_DEVICE_ORIENTATION;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            stopSensor();
+            // イベントリスナーを解除
+            EventError error = EventManager.INSTANCE.removeEvent(request);
+            if (error == EventError.NONE) {
+                setResult(response, DConnectMessage.RESULT_OK);
+            } else if (error == EventError.INVALID_PARAMETER) {
+                MessageUtils.setInvalidRequestParameterError(response);
+            } else {
+                MessageUtils.setUnknownError(response);
+            }
+            return true;
+        }
+    };
 
     /**
      * コンストラクタ.
@@ -63,94 +144,10 @@ public class PebbleDeviceOrientationProfile extends DeviceOrientationProfile {
                 }
             }
         });
-    }
 
-    @Override
-    protected boolean onGetOnDeviceOrientation(final Intent request, final Intent response,
-            final String serviceId) {
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-        } else if (!PebbleUtil.checkServiceId(serviceId)) {
-            MessageUtils.setNotFoundServiceError(response);
-        } else {
-            if (isStartSensor()) {
-                if (mCacheOrientation != null) {
-                    setResult(response, DConnectMessage.RESULT_OK);
-                    setOrientation(response, mCacheOrientation);
-                } else {
-                    MessageUtils.setIllegalDeviceStateError(response,
-                            "Device is not ready.");
-                }
-            } else {
-                startSensorOnce(response);
-                return false;
-            }
-        }
-        return true;
-    }
-
-    @Override
-    protected boolean onPutOnDeviceOrientation(final Intent request, final Intent response
-            , final String serviceId, final String sessionKey) {
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-            return true;
-        } else if (!PebbleUtil.checkServiceId(serviceId)) {
-            MessageUtils.setNotFoundServiceError(response);
-            return true;
-        } else if (sessionKey == null) {
-            MessageUtils.setInvalidRequestParameterError(response, ERROR_MESSAGE);
-            return true;
-        } else {
-            startSensor(new OnSendCommandListener() {
-                @Override
-                public void onReceivedData(final PebbleDictionary dic) {
-                    if (dic == null) {
-                        MessageUtils.setUnknownError(response);
-                    } else {
-                        // イベントリスナーを登録
-                        EventError error = EventManager.INSTANCE.addEvent(request);
-                        if (error == EventError.NONE) {
-                            setResult(response, DConnectMessage.RESULT_OK);
-                        } else if (error == EventError.INVALID_PARAMETER) {
-                            MessageUtils.setInvalidRequestParameterError(response);
-                        } else {
-                            MessageUtils.setUnknownError(response);
-                        }
-                    }
-                    sendResponse(response);
-                }
-            });
-            // レスポンスを非同期で返却するので、falseを返す
-            return false;
-        }
-    }
-
-    @Override
-    protected boolean onDeleteOnDeviceOrientation(final Intent request, final Intent response
-            , final String serviceId, final String sessionKey) {
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-            return true;
-        } else if (!PebbleUtil.checkServiceId(serviceId)) {
-            MessageUtils.setNotFoundServiceError(response);
-            return true;
-        } else if (sessionKey == null) {
-            MessageUtils.setInvalidRequestParameterError(response, ERROR_MESSAGE);
-            return true;
-        } else {
-            stopSensor();
-            // イベントリスナーを解除
-            EventError error = EventManager.INSTANCE.removeEvent(request);
-            if (error == EventError.NONE) {
-                setResult(response, DConnectMessage.RESULT_OK);
-            } else if (error == EventError.INVALID_PARAMETER) {
-                MessageUtils.setInvalidRequestParameterError(response);
-            } else {
-                MessageUtils.setUnknownError(response);
-            }
-            return true;
-        }
+        addApi(mGetOnDeviceOrientationApi);
+        addApi(mPutOnDeviceOrientationApi);
+        addApi(mDeleteOnDeviceOrientationApiApi);
     }
 
     /**

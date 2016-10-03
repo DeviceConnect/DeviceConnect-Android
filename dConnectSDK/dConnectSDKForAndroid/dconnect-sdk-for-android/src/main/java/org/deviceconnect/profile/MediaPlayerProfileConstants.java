@@ -18,7 +18,7 @@ public interface MediaPlayerProfileConstants extends DConnectProfileConstants {
     /**
      * プロファイル名: {@value}.
      */
-    String PROFILE_NAME = "media_player";
+    String PROFILE_NAME = "mediaPlayer";
 
     /**
      * 属性: {@value}.
@@ -28,12 +28,12 @@ public interface MediaPlayerProfileConstants extends DConnectProfileConstants {
     /**
      * 属性: {@value}.
      */
-    String ATTRIBUTE_MEDIA_LIST = "media_list";
+    String ATTRIBUTE_MEDIA_LIST = "mediaList";
 
     /**
      * 属性: {@value}.
      */
-    String ATTRIBUTE_PLAY_STATUS = "play_status";
+    String ATTRIBUTE_PLAY_STATUS = "playStatus";
 
     /**
      * 属性: {@value}.
@@ -73,7 +73,7 @@ public interface MediaPlayerProfileConstants extends DConnectProfileConstants {
     /**
      * 属性: {@value}.
      */
-    String ATTRIBUTE_ON_STATUS_CHANGE = "onstatuschange";
+    String ATTRIBUTE_ON_STATUS_CHANGE = "onStatusChange";
 
     /**
      * パス: {@value}.

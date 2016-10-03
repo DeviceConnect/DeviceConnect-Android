@@ -3,19 +3,18 @@
     package="org.deviceconnect.android.deviceplugin.linking"
     xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <application
-        android:name=".LinkingApplication"
-        android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher"
-        android:label="@string/app_name"
-        android:theme="@style/AppTheme">
+    <application>
 
         <meta-data
             android:name="com.nttdocomo.android.smartdeviceagent.feature.setting_activity"
-            android:value="\#Intent;action=android.intent.action.MAIN;component=org.deviceconnect.android.deviceplugin.linking/.setting.SettingActivity;end"/>
+            android:value="\#Intent;action=android.intent.action.MAIN;component=org.deviceconnect.android.manager/org.deviceconnect.android.deviceplugin.linking.setting.SettingActivity;end"/>
 
         <meta-data
             android:name="com.nttdocomo.android.smartdeviceagent.feature.support"
+            android:value="true"/>
+
+        <meta-data
+            android:name="com.nttdocomo.android.smartdeviceagent.feature.beacon"
             android:value="true"/>
 
         <meta-data
@@ -29,46 +28,88 @@
             <meta-data
                 android:name="org.deviceconnect.android.deviceplugin"
                 android:resource="@xml/deviceplugin"/>
+
+            <intent-filter>
+                <!-- uninstall notification -->
+                <action android:name="android.intent.action.PACKAGE_FULLY_REMOVED"/>
+                <data android:scheme="package"/>
+            </intent-filter>
         </receiver>
 
         <service
-            android:name=".LinkingDeviceService"
+            android:name=".LinkingDevicePluginService"
             android:enabled="true"
             android:exported="false"/>
-
-        <!-- 再起動用のService. -->
-        <service
-            android:name="org.deviceconnect.android.message.DConnectLaunchService"
-            android:exported="true">
-            <meta-data
-                android:name="org.deviceconnect.android.deviceplugin"
-                android:value="enable"/>
-        </service>
 
         <activity
             android:name=".setting.SettingActivity"
             android:configChanges="orientation|screenSize"
-            android:label="@string/app_name"
-            android:launchMode="singleInstance">
+            android:label="@string/linking_app_name"
+            android:launchMode="singleInstance"
+            android:theme="@style/LinkingTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
             </intent-filter>
         </activity>
 
-        <!-- LocalOAuth ユーザ認可ダイアログ用Activity -->
         <activity
-            android:name="org.deviceconnect.android.localoauth.activity.ConfirmAuthActivity"
-            android:excludeFromRecents="true"
-            android:exported="false"/>
+            android:name=".setting.LinkingDeviceActivity"
+            android:configChanges="orientation|screenSize"
+            android:label="@string/linking_app_name"
+            android:launchMode="singleInstance"
+            android:theme="@style/LinkingTheme">
+        </activity>
 
-        <!-- LocalOAuth ユーザ認可ダイアログ用Service -->
-        <service
-            android:name="org.deviceconnect.android.localoauth.LocalOAuth2Service"
-            android:exported="false">
+        <activity
+            android:name=".setting.LinkingBeaconActivity"
+            android:configChanges="orientation|screenSize"
+            android:label="@string/linking_app_name"
+            android:launchMode="singleInstance"
+            android:theme="@style/LinkingTheme">
+        </activity>
+
+        <activity
+            android:name=".setting.LinkingInductionActivity"
+            android:configChanges="orientation|screenSize"
+            android:label="@string/linking_app_name"
+            android:launchMode="singleInstance"
+            android:theme="@style/LinkingTheme">
+        </activity>
+
+        <activity
+            android:name=".setting.LinkingHelpActivity"
+            android:configChanges="orientation|screenSize"
+            android:label="@string/linking_app_name"
+            android:launchMode="singleInstance"
+            android:theme="@style/LinkingTheme">
+        </activity>
+
+        <activity
+            android:name=".setting.AppInformationActivity"
+            android:configChanges="orientation|screenSize"
+            android:label="@string/linking_app_name"
+            android:launchMode="singleInstance"
+            android:theme="@style/LinkingTheme">
+        </activity>
+
+        <activity
+            android:name=".linking.ConfirmActivity"
+            android:configChanges="orientation|screenSize"
+            android:excludeFromRecents="true"
+            android:finishOnCloseSystemDialogs="true"
+            android:label="@string/activity_linking_confirm_title"
+            android:taskAffinity=""
+            android:theme="@android:style/Theme.Translucent.NoTitleBar">
+        </activity>
+
+        <receiver
+            android:name=".beacon.LinkingBeaconReceiver"
+            android:exported="true">
             <intent-filter>
-                <action android:name="org.deviceconnect.android.localoauth.LocalOAuth2Service"/>
+                <action android:name="com.nttdocomo.android.smartdeviceagent.action.BEACON_SCAN_RESULT"/>
+                <action android:name="com.nttdocomo.android.smartdeviceagent.action.BEACON_SCAN_STATE"/>
             </intent-filter>
-        </service>
+        </receiver>
     </application>
 
 </manifest>

@@ -280,6 +280,7 @@ public class ChromeCastController implements
 
                         mApiClient.disconnect();
                         mApiClient = null;
+                        mSelectedDevice = null;
                         if (isReconect) {
                             launchApplication();
                         }

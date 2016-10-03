@@ -113,13 +113,6 @@ public class ChromeCastCanvasProfile extends CanvasProfile implements ChromeCast
                     try {
                         String path;
                         if (data != null) {
-                            ChromeCastDiscovery discovery = getChromeCastDiscovery();
-                            // uriが設定されておらず、pathのみの場合、ゲストモードで接続されている時はファイルを見つけられない
-                            if (uri == null && discovery != null && !discovery.getSelectedDevice().isOnLocalNetwork()) {
-                                MessageUtils.setInvalidRequestParameterError(response, "Now guest mode.Local File is not found.");
-                                sendResponse(response);
-                                return;
-                            }
                             path = exposeImage(data, mimeType);
                         } else {
                             path = uri;

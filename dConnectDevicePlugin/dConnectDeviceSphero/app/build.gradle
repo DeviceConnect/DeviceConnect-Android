@@ -17,7 +17,7 @@ android {
     defaultConfig {
         applicationId "org.deviceconnect.android.deviceplugin.sphero"
         minSdkVersion 14
-        targetSdkVersion 23
+        targetSdkVersion 19
         versionCode 1
         versionName getVersionName()
     }
@@ -51,6 +51,13 @@ android {
         exclude 'META-INF/DEPENDENCIES'
         exclude 'META-INF/LICENSE'
         exclude 'META-INF/NOTICE'
+    }
+
+    productFlavors {
+        DeviceWebApi {
+            versionCode 2
+            versionName "1.0.1"
+        }
     }
 }
 

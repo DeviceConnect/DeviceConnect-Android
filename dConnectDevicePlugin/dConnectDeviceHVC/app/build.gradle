@@ -51,6 +51,13 @@ android {
         exclude 'META-INF/LICENSE'
         exclude 'META-INF/NOTICE'
     }
+
+    productFlavors {
+        DeviceWebApi {
+            versionCode 3
+            versionName "1.0.2"
+        }
+    }
 }
 
 dependencies {

@@ -40,14 +40,18 @@ android {
         }
     }
 
-    productFlavors {
-    }
-
     packagingOptions {
         exclude 'LICENSE.txt'
         exclude 'META-INF/LICENSE'
         exclude 'META-INF/DEPENDENCIES'
         exclude 'META-INF/NOTICE'
+    }
+
+    productFlavors {
+        DeviceWebApi {
+            versionCode 5
+            versionName "1.0.4"
+        }
     }
 }
 

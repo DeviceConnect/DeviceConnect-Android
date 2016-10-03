@@ -19,7 +19,7 @@ android {
         applicationId "org.deviceconnect.android.deviceplugin.theta"
         minSdkVersion 14
         targetSdkVersion 23
-        versionCode 7
+        versionCode 1
         versionName getVersionName()
     }
 
@@ -47,6 +47,12 @@ android {
         exclude 'META-INF/NOTICE'
     }
 
+    productFlavors {
+        DeviceWebApi {
+            versionCode 8
+            versionName "1.0.2"
+        }
+    }
 }
 
 dependencies {

@@ -56,6 +56,10 @@ android {
     }
 
     productFlavors {
+        DeviceWebApi {
+            versionCode 1
+            versionName "1.1.0"
+        }
     }
 }
 

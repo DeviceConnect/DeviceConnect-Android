@@ -6,6 +6,7 @@
  */
 package org.deviceconnect.android.app.simplebot;
 
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -13,6 +14,7 @@ import android.database.Cursor;
 import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
+import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
 import com.x5.template.Chunk;
@@ -22,10 +24,15 @@ import org.deviceconnect.android.app.simplebot.data.ResultData;
 import org.deviceconnect.android.app.simplebot.data.SettingData;
 import org.deviceconnect.android.app.simplebot.utils.DConnectHelper;
 import org.deviceconnect.android.app.simplebot.utils.Utils;
+import org.deviceconnect.message.http.event.HttpEventManager;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -40,8 +47,14 @@ public class SimpleBotService extends Service {
     /** デバッグタグ */
     private static final String TAG = "SimpleBotService";
 
+    /** Notification ID.*/
+    private static final int ONGOING_NOTIFICATION_ID = 45632;
+
     /** Handler */
     private Handler handler;
+
+    private final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+    private ScheduledFuture scheduledFuture;
 
     @Nullable
     @Override
@@ -49,60 +62,86 @@ public class SimpleBotService extends Service {
         return null;
     }
 
-    /**
-     * サービス作成時.
-     */
     @Override
     public void onCreate() {
         super.onCreate();
         handler = new Handler();
         connect();
+        startTimer();
+        showNotification(getString(R.string.connecting_service));
     }
 
-    /**
-     * サービス終了時.
-     */
     @Override
     public void onDestroy() {
-        super.onDestroy();
+        if (BuildConfig.DEBUG) {
+            Log.d(TAG, "service destroyed...");
+        }
+
+        hideNotification();
+        stopTimer();
         disconnect();
-        if (BuildConfig.DEBUG) Log.d(TAG, "service destroyed...");
+
+        notifyStopAction();
+
+        super.onDestroy();
+    }
+
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        if (BuildConfig.DEBUG) Log.d(TAG, "onStartCommand");
+        return super.onStartCommand(intent, flags, startId);
+    }
+
+    private void notifyStopAction() {
         // サービス停止を通知
         Intent broadcastIntent = new Intent();
         broadcastIntent.setAction(SERVICE_STOP_ACTION);
         getBaseContext().sendBroadcast(broadcastIntent);
     }
 
-    /**
-     * サービス起動時.
-     *
-     * @param intent Intent
-     * @param flags Flags
-     * @param startId StartID
-     * @return Command Command
-     */
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        if (BuildConfig.DEBUG) Log.d(TAG, "onStartCommand");
-        if (intent == null)
-            return super.onStartCommand(null, flags, startId);
+    private void showNotification(String content) {
+        Intent notificationIntent = new Intent(getApplicationContext(), MainActivity.class);
+        PendingIntent pendingIntent = PendingIntent.getActivity(
+                getApplicationContext(), 0, notificationIntent, 0);
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext());
+        builder.setContentIntent(pendingIntent);
+        builder.setTicker(getString(R.string.app_name));
+        builder.setContentTitle(getString(R.string.app_name));
+        builder.setContentText(content);
+        builder.setSmallIcon(R.mipmap.ic_launcher);
+        startForeground(ONGOING_NOTIFICATION_ID, builder.build());
+    }
 
-        return super.onStartCommand(intent, flags, startId);
+    private void hideNotification() {
+        stopForeground(true);
+    }
+
+    private void startTimer() {
+        scheduledFuture = executor.scheduleAtFixedRate(new Runnable() {
+            @Override
+            public void run() {
+                if (!HttpEventManager.INSTANCE.isOpen()) {
+                    showNotification(getString(R.string.disconnected_service));
+                    connect();
+                }
+            }
+        }, 15, 15, TimeUnit.SECONDS);
+    }
+
+    private void stopTimer() {
+        if (scheduledFuture != null) {
+            scheduledFuture.cancel(true);
+            scheduledFuture = null;
+        }
     }
 
     /**
      * 接続
      */
     private void connect() {
-
-        // アクティブじゃない場合は終了
         final Context context = getApplicationContext();
         final SettingData setting = SettingData.getInstance(context);
-        if (!setting.active) {
-            // サービス終了
-            stopSelf();
-            return;
-        }
 
         // イベントハンドラー登録
         DConnectHelper.INSTANCE.setEventHandler(new DConnectHelper.EventHandler() {
@@ -117,12 +156,11 @@ public class SimpleBotService extends Service {
             @Override
             public void onFinish(Void aVoid, Exception error) {
                 if (error != null) {
-                    Log.e(TAG, "Error on registEvent", error);
-                    // 設定をOFFにする
-                    setting.active = false;
+                    Log.e(TAG, "Error on registEvent");
                     setting.save();
-                    // サービス終了
-                    stopSelf();
+                    showNotification(getString(R.string.disconnected_service));
+                } else {
+                    showNotification(getString(R.string.connected_service));
                 }
             }
         });
@@ -141,7 +179,7 @@ public class SimpleBotService extends Service {
             @Override
             public void onFinish(Void aVoid, Exception error) {
                 if (error != null) {
-                    Log.e(TAG, "Error on unregistEvent", error);
+                    Log.e(TAG, "Error on unregistEvent");
                 }
             }
         });

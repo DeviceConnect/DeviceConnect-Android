@@ -52,4 +52,7 @@
     <string name="host">Host</string>
     <string name="port">Port</string>
     <string name="selected_service">連携サービス</string>
+    <string name="connected_service">接続済み</string>
+    <string name="disconnected_service">切断されました</string>
+    <string name="connecting_service">接続中</string>
 </resources>

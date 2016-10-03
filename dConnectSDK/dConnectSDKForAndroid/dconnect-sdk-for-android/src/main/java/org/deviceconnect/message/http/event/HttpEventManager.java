@@ -191,6 +191,14 @@ public final class HttpEventManager extends AbstractEventManager {
         }
     }
 
+    @Override
+    public boolean isOpen() {
+        if (mWSClient != null) {
+            return mWSClient.isOpen();
+        }
+        return false;
+    }
+
     /**
      * 再接続を試みる.
      */

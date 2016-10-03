@@ -31,7 +31,7 @@ public class WebRTCDeviceService extends DConnectMessageService {
     public void onCreate() {
         super.onCreate();
         mWebRTCManager = new WebRTCManager((WebRTCApplication) getApplication());
-        getServiceProvider().addService(new WebRTCService((WebRTCApplication) getApplication()));
+        getServiceProvider().addService(new WebRTCService());
     }
 
     @Override

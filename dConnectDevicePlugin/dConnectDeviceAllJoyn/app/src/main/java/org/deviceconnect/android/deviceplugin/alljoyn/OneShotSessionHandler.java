@@ -28,7 +28,12 @@ public class OneShotSessionHandler {
             @Override
             protected void onReceiveResult(int resultCode, Bundle resultData) {
                 if (resultCode != AllJoynDeviceApplication.RESULT_OK) {
-                    callback.onSessionFailed(busName, port);
+                    if (failedCount > JOIN_RETRY_MAX) {
+                        callback.onSessionFailed(busName, port);
+                    } else {
+                        ++failedCount;
+                        app.joinSession(busName, port, this);
+                    }
                     return;
                 }
                 int sessionId = resultData.getInt(AllJoynDeviceApplication.PARAM_SESSION_ID);

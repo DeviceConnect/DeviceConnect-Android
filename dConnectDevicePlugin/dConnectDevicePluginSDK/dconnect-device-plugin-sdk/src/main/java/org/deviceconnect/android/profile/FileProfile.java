@@ -6,15 +6,15 @@
  */
 package org.deviceconnect.android.profile;
 
-import java.io.IOException;
-import java.util.List;
+import android.content.Intent;
+import android.os.Bundle;
 
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.provider.FileManager;
 import org.deviceconnect.profile.FileProfileConstants;
 
-import android.content.Intent;
-import android.os.Bundle;
+import java.io.IOException;
+import java.util.List;
 
 /**
  * File プロファイル.
@@ -73,10 +73,10 @@ public abstract class FileProfile extends DConnectProfile implements FileProfile
         boolean result = true;
 
         String serviceId = getServiceID(request);
-        if (ATTRIBUTE_RECEIVE.equals(attribute)) {
+        if (ATTRIBUTE_RECEIVE.equalsIgnoreCase(attribute)) {
             String path = getPath(request);
             result = onGetReceive(request, response, serviceId, path);
-        } else if (ATTRIBUTE_LIST.equals(attribute)) {
+        } else if (ATTRIBUTE_LIST.equalsIgnoreCase(attribute)) {
             
             String path = getPath(request);
             String mimeType = getMIMEType(request);
@@ -96,7 +96,7 @@ public abstract class FileProfile extends DConnectProfile implements FileProfile
         String attribute = getAttribute(request);
         boolean result = true;
 
-        if (ATTRIBUTE_SEND.equals(attribute)) {
+        if (ATTRIBUTE_SEND.equalsIgnoreCase(attribute)) {
             String uri = request.getStringExtra(FileProfile.PARAM_URI);
             byte[] data = getContentData(uri);
             if (data == null) {
@@ -107,7 +107,7 @@ public abstract class FileProfile extends DConnectProfile implements FileProfile
                 String mimeType = getMIMEType(request);
                 result = onPostSend(request, response, serviceId, path, mimeType, data);
             }
-        } else if (ATTRIBUTE_MKDIR.equals(attribute)) {
+        } else if (ATTRIBUTE_MKDIR.equalsIgnoreCase(attribute)) {
             String path = getPath(request);
             String serviceId = getServiceID(request);
             result = onPostMkdir(request, response, serviceId, path);
@@ -123,11 +123,11 @@ public abstract class FileProfile extends DConnectProfile implements FileProfile
         String attribute = getAttribute(request);
         boolean result = true;
 
-        if (ATTRIBUTE_REMOVE.equals(attribute)) {
+        if (ATTRIBUTE_REMOVE.equalsIgnoreCase(attribute)) {
             String serviceId = getServiceID(request);
             String path = getPath(request);
             result = onDeleteRemove(request, response, serviceId, path);
-        } else if (ATTRIBUTE_RMDIR.equals(attribute)) {
+        } else if (ATTRIBUTE_RMDIR.equalsIgnoreCase(attribute)) {
             String path = getPath(request);
             String serviceId = getServiceID(request);
             boolean force = getForce(request);

@@ -6,11 +6,11 @@
  */
 package org.deviceconnect.android.profile;
 
-import org.deviceconnect.android.message.MessageUtils;
-import org.deviceconnect.profile.TouchProfileConstants;
-
 import android.content.Intent;
 import android.os.Bundle;
+
+import org.deviceconnect.android.message.MessageUtils;
+import org.deviceconnect.profile.TouchProfileConstants;
 
 /**
  * Touch Profile.
@@ -83,17 +83,17 @@ public class TouchProfile extends DConnectProfile implements TouchProfileConstan
         boolean result = true;
         String attribute = getAttribute(request);
 
-        if (ATTRIBUTE_ON_TOUCH.equals(attribute)) {
+        if (ATTRIBUTE_ON_TOUCH.equalsIgnoreCase(attribute)) {
             result = onGetOnTouch(request, response, getServiceID(request));
-        } else if (ATTRIBUTE_ON_TOUCH_START.equals(attribute)) {
+        } else if (ATTRIBUTE_ON_TOUCH_START.equalsIgnoreCase(attribute)) {
             result = onGetOnTouchStart(request, response, getServiceID(request));
-        } else if (ATTRIBUTE_ON_TOUCH_END.equals(attribute)) {
+        } else if (ATTRIBUTE_ON_TOUCH_END.equalsIgnoreCase(attribute)) {
             result = onGetOnTouchEnd(request, response, getServiceID(request));
-        } else if (ATTRIBUTE_ON_DOUBLE_TAP.equals(attribute)) {
+        } else if (ATTRIBUTE_ON_DOUBLE_TAP.equalsIgnoreCase(attribute)) {
             result = onGetOnDoubleTap(request, response, getServiceID(request));
-        } else if (ATTRIBUTE_ON_TOUCH_MOVE.equals(attribute)) {
+        } else if (ATTRIBUTE_ON_TOUCH_MOVE.equalsIgnoreCase(attribute)) {
             result = onGetOnTouchMove(request, response, getServiceID(request));
-        } else if (ATTRIBUTE_ON_TOUCH_CANCEL.equals(attribute)) {
+        } else if (ATTRIBUTE_ON_TOUCH_CANCEL.equalsIgnoreCase(attribute)) {
             result = onGetOnTouchCancel(request, response, getServiceID(request));
         } else {
             MessageUtils.setUnknownAttributeError(response);
@@ -107,17 +107,17 @@ public class TouchProfile extends DConnectProfile implements TouchProfileConstan
         boolean result = true;
         String attribute = getAttribute(request);
 
-        if (ATTRIBUTE_ON_TOUCH.equals(attribute)) {
+        if (ATTRIBUTE_ON_TOUCH.equalsIgnoreCase(attribute)) {
             result = onPutOnTouch(request, response, getServiceID(request), getSessionKey(request));
-        } else if (ATTRIBUTE_ON_TOUCH_START.equals(attribute)) {
+        } else if (ATTRIBUTE_ON_TOUCH_START.equalsIgnoreCase(attribute)) {
             result = onPutOnTouchStart(request, response, getServiceID(request), getSessionKey(request));
-        } else if (ATTRIBUTE_ON_TOUCH_END.equals(attribute)) {
+        } else if (ATTRIBUTE_ON_TOUCH_END.equalsIgnoreCase(attribute)) {
             result = onPutOnTouchEnd(request, response, getServiceID(request), getSessionKey(request));
-        } else if (ATTRIBUTE_ON_DOUBLE_TAP.equals(attribute)) {
+        } else if (ATTRIBUTE_ON_DOUBLE_TAP.equalsIgnoreCase(attribute)) {
             result = onPutOnDoubleTap(request, response, getServiceID(request), getSessionKey(request));
-        } else if (ATTRIBUTE_ON_TOUCH_MOVE.equals(attribute)) {
+        } else if (ATTRIBUTE_ON_TOUCH_MOVE.equalsIgnoreCase(attribute)) {
             result = onPutOnTouchMove(request, response, getServiceID(request), getSessionKey(request));
-        } else if (ATTRIBUTE_ON_TOUCH_CANCEL.equals(attribute)) {
+        } else if (ATTRIBUTE_ON_TOUCH_CANCEL.equalsIgnoreCase(attribute)) {
             result = onPutOnTouchCancel(request, response, getServiceID(request), getSessionKey(request));
         } else {
             MessageUtils.setUnknownAttributeError(response);
@@ -131,17 +131,17 @@ public class TouchProfile extends DConnectProfile implements TouchProfileConstan
         boolean result = true;
         String attribute = getAttribute(request);
 
-        if (ATTRIBUTE_ON_TOUCH.equals(attribute)) {
+        if (ATTRIBUTE_ON_TOUCH.equalsIgnoreCase(attribute)) {
             result = onDeleteOnTouch(request, response, getServiceID(request), getSessionKey(request));
-        } else if (ATTRIBUTE_ON_TOUCH_START.equals(attribute)) {
+        } else if (ATTRIBUTE_ON_TOUCH_START.equalsIgnoreCase(attribute)) {
             result = onDeleteOnTouchStart(request, response, getServiceID(request), getSessionKey(request));
-        } else if (ATTRIBUTE_ON_TOUCH_END.equals(attribute)) {
+        } else if (ATTRIBUTE_ON_TOUCH_END.equalsIgnoreCase(attribute)) {
             result = onDeleteOnTouchEnd(request, response, getServiceID(request), getSessionKey(request));
-        } else if (ATTRIBUTE_ON_DOUBLE_TAP.equals(attribute)) {
+        } else if (ATTRIBUTE_ON_DOUBLE_TAP.equalsIgnoreCase(attribute)) {
             result = onDeleteOnDoubleTap(request, response, getServiceID(request), getSessionKey(request));
-        } else if (ATTRIBUTE_ON_TOUCH_MOVE.equals(attribute)) {
+        } else if (ATTRIBUTE_ON_TOUCH_MOVE.equalsIgnoreCase(attribute)) {
             result = onDeleteOnTouchMove(request, response, getServiceID(request), getSessionKey(request));
-        } else if (ATTRIBUTE_ON_TOUCH_CANCEL.equals(attribute)) {
+        } else if (ATTRIBUTE_ON_TOUCH_CANCEL.equalsIgnoreCase(attribute)) {
             result = onDeleteOnTouchCancel(request, response, getServiceID(request), getSessionKey(request));
         } else {
             MessageUtils.setUnknownAttributeError(response);

@@ -6,12 +6,12 @@
  */
 package org.deviceconnect.android.profile;
 
-import java.util.ArrayList;
+import android.content.Intent;
 
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.profile.VibrationProfileConstants;
 
-import android.content.Intent;
+import java.util.ArrayList;
 
 /**
  * Vibration プロファイル.
@@ -60,7 +60,7 @@ public abstract class VibrationProfile extends DConnectProfile implements Vibrat
         String attribute = getAttribute(request);
         boolean result = true;
 
-        if (ATTRIBUTE_VIBRATE.equals(attribute)) {
+        if (ATTRIBUTE_VIBRATE.equalsIgnoreCase(attribute)) {
             long[] pattern = parsePattern(getPattern(request));
             if (pattern == null) {
                 MessageUtils.setInvalidRequestParameterError(response,
@@ -80,7 +80,7 @@ public abstract class VibrationProfile extends DConnectProfile implements Vibrat
         String attribute = getAttribute(request);
         boolean result = true;
 
-        if (ATTRIBUTE_VIBRATE.equals(attribute)) {
+        if (ATTRIBUTE_VIBRATE.equalsIgnoreCase(attribute)) {
             result = onDeleteVibrate(request, response, getServiceID(request));
         } else {
             MessageUtils.setUnknownAttributeError(response);

@@ -6,11 +6,11 @@
  */
 package org.deviceconnect.android.profile;
 
-import org.deviceconnect.android.message.MessageUtils;
-import org.deviceconnect.profile.KeyEventProfileConstants;
-
 import android.content.Intent;
 import android.os.Bundle;
+
+import org.deviceconnect.android.message.MessageUtils;
+import org.deviceconnect.profile.KeyEventProfileConstants;
 
 /**
  * Key Event Profile.
@@ -59,9 +59,9 @@ public class KeyEventProfile extends DConnectProfile implements KeyEventProfileC
         boolean result = true;
         String attribute = getAttribute(request);
 
-        if (ATTRIBUTE_ON_DOWN.equals(attribute)) {
+        if (ATTRIBUTE_ON_DOWN.equalsIgnoreCase(attribute)) {
             result = onGetOnDown(request, response, getServiceID(request));
-        } else if (ATTRIBUTE_ON_UP.equals(attribute)) {
+        } else if (ATTRIBUTE_ON_UP.equalsIgnoreCase(attribute)) {
             result = onGetOnUp(request, response, getServiceID(request));
         } else {
             MessageUtils.setUnknownAttributeError(response);
@@ -75,9 +75,9 @@ public class KeyEventProfile extends DConnectProfile implements KeyEventProfileC
         boolean result = true;
         String attribute = getAttribute(request);
 
-        if (ATTRIBUTE_ON_DOWN.equals(attribute)) {
+        if (ATTRIBUTE_ON_DOWN.equalsIgnoreCase(attribute)) {
             result = onPutOnDown(request, response, getServiceID(request), getSessionKey(request));
-        } else if (ATTRIBUTE_ON_UP.equals(attribute)) {
+        } else if (ATTRIBUTE_ON_UP.equalsIgnoreCase(attribute)) {
             result = onPutOnUp(request, response, getServiceID(request), getSessionKey(request));
         } else {
             MessageUtils.setUnknownAttributeError(response);
@@ -91,9 +91,9 @@ public class KeyEventProfile extends DConnectProfile implements KeyEventProfileC
         boolean result = true;
         String attribute = getAttribute(request);
 
-        if (ATTRIBUTE_ON_DOWN.equals(attribute)) {
+        if (ATTRIBUTE_ON_DOWN.equalsIgnoreCase(attribute)) {
             result = onDeleteOnDown(request, response, getServiceID(request), getSessionKey(request));
-        } else if (ATTRIBUTE_ON_UP.equals(attribute)) {
+        } else if (ATTRIBUTE_ON_UP.equalsIgnoreCase(attribute)) {
             result = onDeleteOnUp(request, response, getServiceID(request), getSessionKey(request));
         } else {
             MessageUtils.setUnknownAttributeError(response);

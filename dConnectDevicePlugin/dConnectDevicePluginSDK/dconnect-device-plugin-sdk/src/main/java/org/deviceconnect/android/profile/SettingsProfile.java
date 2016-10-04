@@ -6,11 +6,10 @@
  */
 package org.deviceconnect.android.profile;
 
+import android.content.Intent;
+
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.profile.SettingsProfileConstants;
-import org.deviceconnect.profile.SettingsProfileConstants.VolumeKind;
-
-import android.content.Intent;
 
 /**
  * Settings プロファイル.
@@ -67,17 +66,20 @@ public abstract class SettingsProfile extends DConnectProfile implements Setting
             String serviceId = getServiceID(request);
 
             if (inter == null) {
-                if (attribute.equals(ATTRIBUTE_DATE)) {
+                if (attribute.equalsIgnoreCase(ATTRIBUTE_DATE)) {
                     result = onGetDate(request, response, serviceId);
                 } else {
                     MessageUtils.setUnknownAttributeError(response);
                 }
             } else {
-                if (inter.equals(INTERFACE_SOUND) && attribute.equals(ATTRIBUTE_VOLUME)) {
+                if (inter.equalsIgnoreCase(INTERFACE_SOUND)
+                    && attribute.equalsIgnoreCase(ATTRIBUTE_VOLUME)) {
                     result = onGetSoundVolume(request, response, serviceId, getVolumeKind(request));
-                } else if (inter.equals(INTERFACE_DISPLAY) && attribute.equals(ATTRIBUTE_LIGHT)) {
+                } else if (inter.equalsIgnoreCase(INTERFACE_DISPLAY)
+                    && attribute.equalsIgnoreCase(ATTRIBUTE_LIGHT)) {
                     result = onGetDisplayLight(request, response, serviceId);
-                } else if (inter.equals(INTERFACE_DISPLAY) && attribute.equals(ATTRIBUTE_SLEEP)) {
+                } else if (inter.equalsIgnoreCase(INTERFACE_DISPLAY)
+                    && attribute.equalsIgnoreCase(ATTRIBUTE_SLEEP)) {
                     result = onGetDisplaySleep(request, response, serviceId);
                 } else {
                     MessageUtils.setUnknownAttributeError(response);
@@ -101,18 +103,21 @@ public abstract class SettingsProfile extends DConnectProfile implements Setting
             String serviceId = getServiceID(request);
 
             if (inter == null) {
-                if (attribute.equals(ATTRIBUTE_DATE)) {
+                if (attribute.equalsIgnoreCase(ATTRIBUTE_DATE)) {
                     result = onPutDate(request, response, serviceId, getDate(request));
                 } else {
                     MessageUtils.setUnknownAttributeError(response);
                 }
             } else {
-                if (inter.equals(INTERFACE_SOUND) && attribute.equals(ATTRIBUTE_VOLUME)) {
+                if (inter.equalsIgnoreCase(INTERFACE_SOUND)
+                    && attribute.equalsIgnoreCase(ATTRIBUTE_VOLUME)) {
                     result = onPutSoundVolume(request, response, serviceId, getVolumeKind(request),
                                 getVolumeLevel(request));
-                } else if (inter.equals(INTERFACE_DISPLAY) && attribute.equals(ATTRIBUTE_LIGHT)) {
+                } else if (inter.equalsIgnoreCase(INTERFACE_DISPLAY)
+                    && attribute.equalsIgnoreCase(ATTRIBUTE_LIGHT)) {
                     result = onPutDisplayLight(request, response, serviceId, getLightLevel(request));
-                } else if (inter.equals(INTERFACE_DISPLAY) && attribute.equals(ATTRIBUTE_SLEEP)) {
+                } else if (inter.equalsIgnoreCase(INTERFACE_DISPLAY)
+                    && attribute.equalsIgnoreCase(ATTRIBUTE_SLEEP)) {
                     result = onPutDisplaySleep(request, response, serviceId, getTime(request));
                 } else {
                     MessageUtils.setUnknownAttributeError(response);

@@ -87,9 +87,9 @@ public class AuthorizationProfile extends DConnectProfile implements Authorizati
 
         boolean send;
         String attribute = getAttribute(request);
-        if (ATTRIBUTE_GRANT.equals(attribute)) {
+        if (ATTRIBUTE_GRANT.equalsIgnoreCase(attribute)) {
             send = onGetCreateClient(request, response);
-        } else if (ATTRIBUTE_ACCESS_TOKEN.equals(attribute)) {
+        } else if (ATTRIBUTE_ACCESS_TOKEN.equalsIgnoreCase(attribute)) {
             send = onGetRequestAccessToken(request, response);
         } else {
             MessageUtils.setUnknownAttributeError(response);

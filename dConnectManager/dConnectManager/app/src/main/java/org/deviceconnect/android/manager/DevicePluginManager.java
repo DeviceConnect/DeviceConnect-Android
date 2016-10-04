@@ -10,12 +10,14 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.pm.ServiceInfo;
 import android.content.res.XmlResourceParser;
 
+import org.deviceconnect.android.manager.util.VersionName;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 import org.xmlpull.v1.XmlPullParser;
@@ -38,6 +40,8 @@ import java.util.logging.Logger;
 public class DevicePluginManager {
     /** ロガー. */
     private final Logger mLogger = Logger.getLogger("dconnect.manager");
+    /** デバイスプラグインSDKに格納されるメタタグ名. */
+    private static final String PLUGIN_SDK_META_DATA = "org.deviceconnect.android.deviceplugin.sdk";
     /** デバイスプラグインに格納されるメタタグ名. */
     private static final String PLUGIN_META_DATA = "org.deviceconnect.android.deviceplugin";
     /** 再起動用のサービスを表すメタデータの値. */
@@ -141,13 +145,16 @@ public class DevicePluginManager {
      * @param component コンポーネント
      */
     public void checkAndAddDevicePlugin(final ComponentName component, final PackageInfo pkgInfo) {
-        ActivityInfo receiverInfo = null;
+        ApplicationInfo appInfo;
+        ActivityInfo receiverInfo;
         try {
             PackageManager pkgMgr = mContext.getPackageManager();
+            appInfo = pkgMgr.getApplicationInfo(component.getPackageName(), PackageManager.GET_META_DATA);
             receiverInfo = pkgMgr.getReceiverInfo(component, PackageManager.GET_META_DATA);
             if (receiverInfo.metaData != null) {
                 Object value = receiverInfo.metaData.get(PLUGIN_META_DATA);
                 if (value != null) {
+                    VersionName sdkVersionName = getPluginSDKVersion(appInfo);
                     String packageName = receiverInfo.packageName;
                     String className = receiverInfo.name;
                     String versionName = pkgInfo.versionName;
@@ -160,6 +167,7 @@ public class DevicePluginManager {
                     mLogger.info("    PackageName: " + packageName);
                     mLogger.info("    className: " + className);
                     mLogger.info("    versionName: " + versionName);
+                    mLogger.info("    sdkVersionName: " + sdkVersionName);
                     // MEMO 既に同じ名前のデバイスプラグインが存在した場合の処理
                     // 現在は警告を表示し、上書きする.
                     if (mPlugins.containsKey(hash)) {
@@ -174,6 +182,7 @@ public class DevicePluginManager {
                     plugin.setDeviceName(receiverInfo.applicationInfo.loadLabel(pkgMgr).toString());
                     plugin.setStartServiceClassName(startClassName);
                     plugin.setSupportProfiles(checkDevicePluginXML(receiverInfo));
+                    plugin.setPluginSdkVersionName(sdkVersionName);
                     mPlugins.put(hash, plugin);
                     if (mEventListener != null) {
                         mEventListener.onDeviceFound(plugin);
@@ -389,6 +398,53 @@ public class DevicePluginManager {
             return serviceId.substring(0, idx - 1);
         }
         return "";
+    }
+
+    private VersionName getPluginSDKVersion(final ApplicationInfo info) {
+        VersionName versionName = null;
+        if (info.metaData != null && info.metaData.get(PLUGIN_SDK_META_DATA) != null) {
+            PackageManager pkgMgr = mContext.getPackageManager();
+            XmlResourceParser xpp = info.loadXmlMetaData(pkgMgr, PLUGIN_SDK_META_DATA);
+            try {
+                String str = parsePluginSDKVersionName(xpp);
+                if (str != null) {
+                    versionName = VersionName.parse(str);
+                }
+            } catch (XmlPullParserException e) {
+                // NOP
+            } catch (IOException e) {
+                // NOP
+            }
+        }
+        if (versionName != null) {
+            return versionName;
+        } else {
+            return VersionName.parse("1.0.0");
+        }
+    }
+
+    private String parsePluginSDKVersionName(final XmlResourceParser xpp)
+            throws XmlPullParserException, IOException {
+        String versionName = null;
+        int eventType = xpp.getEventType();
+        while (eventType != XmlPullParser.END_DOCUMENT) {
+            final String name = xpp.getName();
+            switch (eventType) {
+                case XmlPullParser.START_DOCUMENT:
+                    break;
+                case XmlPullParser.START_TAG:
+                    if (name.equals("version")) {
+                        versionName = xpp.nextText();
+                    }
+                    break;
+                case XmlPullParser.END_TAG:
+                    break;
+                default:
+                    break;
+            }
+            eventType = xpp.next();
+        }
+        return versionName;
     }
 
     /**

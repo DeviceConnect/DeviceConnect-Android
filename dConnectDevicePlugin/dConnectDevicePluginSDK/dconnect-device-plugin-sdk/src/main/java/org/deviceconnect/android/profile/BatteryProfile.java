@@ -6,11 +6,11 @@
  */
 package org.deviceconnect.android.profile;
 
-import org.deviceconnect.android.message.MessageUtils;
-import org.deviceconnect.profile.BatteryProfileConstants;
-
 import android.content.Intent;
 import android.os.Bundle;
+
+import org.deviceconnect.android.message.MessageUtils;
+import org.deviceconnect.profile.BatteryProfileConstants;
 
 /**
  * Battery プロファイル.
@@ -67,13 +67,13 @@ public abstract class BatteryProfile extends DConnectProfile implements BatteryP
         String serviceId = getServiceID(request);
         if (attribute == null) {
             result = onGetAll(request, response, serviceId);
-        } else if (attribute.equals(ATTRIBUTE_CHARGING)) {
+        } else if (attribute.equalsIgnoreCase(ATTRIBUTE_CHARGING)) {
             result = onGetCharging(request, response, serviceId);
-        } else if (attribute.equals(ATTRIBUTE_CHARGING_TIME)) {
+        } else if (attribute.equalsIgnoreCase(ATTRIBUTE_CHARGING_TIME)) {
             result = onGetChargingTime(request, response, serviceId);
-        } else if (attribute.equals(ATTRIBUTE_DISCHARGING_TIME)) {
+        } else if (attribute.equalsIgnoreCase(ATTRIBUTE_DISCHARGING_TIME)) {
             result = onGetDischargingTime(request, response, serviceId);
-        } else if (attribute.equals(ATTRIBUTE_LEVEL)) {
+        } else if (attribute.equalsIgnoreCase(ATTRIBUTE_LEVEL)) {
             result = onGetLevel(request, response, serviceId);
         } else {
             MessageUtils.setUnknownAttributeError(response);
@@ -95,9 +95,9 @@ public abstract class BatteryProfile extends DConnectProfile implements BatteryP
             String serviceId = getServiceID(request);
             String sessionKey = getSessionKey(request);
 
-            if (attribute.equals(ATTRIBUTE_ON_CHARGING_CHANGE)) {
+            if (attribute.equalsIgnoreCase(ATTRIBUTE_ON_CHARGING_CHANGE)) {
                 result = onPutOnChargingChange(request, response, serviceId, sessionKey);
-            } else if (attribute.equals(ATTRIBUTE_ON_BATTERY_CHANGE)) {
+            } else if (attribute.equalsIgnoreCase(ATTRIBUTE_ON_BATTERY_CHANGE)) {
                 result = onPutOnBatteryChange(request, response, serviceId, sessionKey);
             } else {
                 MessageUtils.setUnknownAttributeError(response);
@@ -118,9 +118,9 @@ public abstract class BatteryProfile extends DConnectProfile implements BatteryP
             String serviceId = getServiceID(request);
             String sessionKey = getSessionKey(request);
 
-            if (attribute.equals(ATTRIBUTE_ON_CHARGING_CHANGE)) {
+            if (attribute.equalsIgnoreCase(ATTRIBUTE_ON_CHARGING_CHANGE)) {
                 result = onDeleteOnChargingChange(request, response, serviceId, sessionKey);
-            } else if (attribute.equals(ATTRIBUTE_ON_BATTERY_CHANGE)) {
+            } else if (attribute.equalsIgnoreCase(ATTRIBUTE_ON_BATTERY_CHANGE)) {
                 result = onDeleteOnBatteryChange(request, response, serviceId, sessionKey);
             } else {
                 MessageUtils.setUnknownAttributeError(response);

@@ -16,12 +16,12 @@ public interface ServiceDiscoveryProfileConstants extends DConnectProfileConstan
     /**
      * プロファイル名: {@value} .
      */
-    String PROFILE_NAME = "servicediscovery";
+    String PROFILE_NAME = "serviceDiscovery";
 
     /**
      * 属性: {@value} .
      */
-    String ATTRIBUTE_ON_SERVICE_CHANGE = "onservicechange";
+    String ATTRIBUTE_ON_SERVICE_CHANGE = "onServiceChange";
 
     /**
      * パス: {@value}.

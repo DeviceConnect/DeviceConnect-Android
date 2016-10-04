@@ -6,11 +6,11 @@
  */
 package org.deviceconnect.android.profile;
 
-import org.deviceconnect.android.message.MessageUtils;
-import org.deviceconnect.profile.DeviceOrientationProfileConstants;
-
 import android.content.Intent;
 import android.os.Bundle;
+
+import org.deviceconnect.android.message.MessageUtils;
+import org.deviceconnect.profile.DeviceOrientationProfileConstants;
 
 /**
  * Device Orientation プロファイル.
@@ -47,7 +47,7 @@ public class DeviceOrientationProfile extends DConnectProfile implements DeviceO
         boolean result = true;
         String attribute = getAttribute(request);
 
-        if (ATTRIBUTE_ON_DEVICE_ORIENTATION.equals(attribute)) {
+        if (ATTRIBUTE_ON_DEVICE_ORIENTATION.equalsIgnoreCase(attribute)) {
             result = onGetOnDeviceOrientation(request, response, getServiceID(request));
         } else {
             MessageUtils.setUnknownAttributeError(response);
@@ -60,7 +60,7 @@ public class DeviceOrientationProfile extends DConnectProfile implements DeviceO
         boolean result = true;
         String attribute = getAttribute(request);
 
-        if (ATTRIBUTE_ON_DEVICE_ORIENTATION.equals(attribute)) {
+        if (ATTRIBUTE_ON_DEVICE_ORIENTATION.equalsIgnoreCase(attribute)) {
             result = onPutOnDeviceOrientation(request, response, getServiceID(request), getSessionKey(request));
         } else {
             MessageUtils.setUnknownAttributeError(response);
@@ -74,7 +74,7 @@ public class DeviceOrientationProfile extends DConnectProfile implements DeviceO
         boolean result = true;
         String attribute = getAttribute(request);
 
-        if (ATTRIBUTE_ON_DEVICE_ORIENTATION.equals(attribute)) {
+        if (ATTRIBUTE_ON_DEVICE_ORIENTATION.equalsIgnoreCase(attribute)) {
             result = onDeleteOnDeviceOrientation(request, response, getServiceID(request), getSessionKey(request));
         } else {
             MessageUtils.setUnknownAttributeError(response);

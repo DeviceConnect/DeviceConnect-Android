@@ -11,6 +11,8 @@ import android.support.annotation.NonNull;
  */
 public class OneShotSessionHandler {
 
+    private static final int JOIN_RETRY_MAX = 5;
+
     private OneShotSessionHandler() {
 
     }
@@ -21,10 +23,17 @@ public class OneShotSessionHandler {
                 (AllJoynDeviceApplication) context.getApplicationContext();
 
         AllJoynDeviceApplication.ResultReceiver resultReceiver = app.new ResultReceiver() {
+            private int failedCount = 0;
+
             @Override
             protected void onReceiveResult(int resultCode, Bundle resultData) {
                 if (resultCode != AllJoynDeviceApplication.RESULT_OK) {
-                    callback.onSessionFailed(busName, port);
+                    if (failedCount > JOIN_RETRY_MAX) {
+                        callback.onSessionFailed(busName, port);
+                    } else {
+                        ++failedCount;
+                        app.joinSession(busName, port, this);
+                    }
                     return;
                 }
                 int sessionId = resultData.getInt(AllJoynDeviceApplication.PARAM_SESSION_ID);

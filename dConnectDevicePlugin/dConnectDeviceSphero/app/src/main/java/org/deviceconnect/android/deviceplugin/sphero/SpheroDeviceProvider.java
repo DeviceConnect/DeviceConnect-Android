@@ -17,11 +17,6 @@ import org.deviceconnect.android.message.DConnectMessageServiceProvider;
  * @author NTT DOCOMO, INC.
  */
 public class SpheroDeviceProvider<T extends Service> extends DConnectMessageServiceProvider<Service> {
-    
-    /**
-     * DebugLog.
-     */
-    private static final String TAG = "PluginShepro";
 
     @SuppressWarnings("unchecked")
     @Override

@@ -27,6 +27,7 @@ import org.deviceconnect.android.localoauth.CheckAccessTokenResult;
 import org.deviceconnect.android.localoauth.DevicePluginXmlProfile;
 import org.deviceconnect.android.localoauth.DevicePluginXmlUtil;
 import org.deviceconnect.android.localoauth.LocalOAuth2Main;
+import org.deviceconnect.android.logger.AndroidHandler;
 import org.deviceconnect.android.profile.AuthorizationProfile;
 import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.android.profile.DConnectProfileProvider;
@@ -51,7 +52,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 
 /**
  * Device Connectメッセージサービス.
@@ -140,8 +143,8 @@ public abstract class DConnectMessageService extends Service implements DConnect
     @Override
     public void onCreate() {
         super.onCreate();
+        setLogLevel();
         EventManager.INSTANCE.setController(getEventCacheController());
-
 
         mPluginSpec = loadPluginSpec();
 
@@ -158,6 +161,18 @@ public abstract class DConnectMessageService extends Service implements DConnect
         // 必須プロファイルの追加
         addProfile(new ServiceDiscoveryProfile(mServiceProvider));
         addProfile(getSystemProfile());
+    }
+
+    private void setLogLevel() {
+        if (BuildConfig.DEBUG) {
+            AndroidHandler handler = new AndroidHandler(mLogger.getName());
+            handler.setFormatter(new SimpleFormatter());
+            handler.setLevel(Level.ALL);
+            mLogger.addHandler(handler);
+            mLogger.setLevel(Level.ALL);
+        } else {
+            mLogger.setLevel(Level.OFF);
+        }
     }
 
     private DConnectPluginSpec loadPluginSpec() {

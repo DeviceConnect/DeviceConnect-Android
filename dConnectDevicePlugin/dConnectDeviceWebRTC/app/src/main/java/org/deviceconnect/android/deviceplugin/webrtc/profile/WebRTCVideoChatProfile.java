@@ -18,7 +18,7 @@ import org.deviceconnect.android.deviceplugin.webrtc.activity.VideoChatActivity;
 import org.deviceconnect.android.deviceplugin.webrtc.core.Address;
 import org.deviceconnect.android.deviceplugin.webrtc.core.Peer;
 import org.deviceconnect.android.deviceplugin.webrtc.core.PeerConfig;
-import org.deviceconnect.android.deviceplugin.webrtc.core.PeerUtil;
+import org.deviceconnect.android.deviceplugin.webrtc.service.WebRTCService;
 import org.deviceconnect.android.deviceplugin.webrtc.setting.SettingUtil;
 import org.deviceconnect.android.deviceplugin.webrtc.util.WebRTCManager;
 import org.deviceconnect.android.event.Event;
@@ -482,7 +482,6 @@ public class WebRTCVideoChatProfile extends VideoChatProfile {
                 if (peer == null) {
                     MessageUtils.setInvalidRequestParameterError(response, "peer not found.");
                 } else {
-                    request.putExtra(PARAM_SERVICE_ID, PeerUtil.getServiceId(peer));
                     EventError error = EventManager.INSTANCE.addEvent(request);
                     switch (error) {
                         case NONE:
@@ -529,7 +528,6 @@ public class WebRTCVideoChatProfile extends VideoChatProfile {
                 if (peer == null) {
                     MessageUtils.setInvalidRequestParameterError(response, "peer not found.");
                 } else {
-                    request.putExtra(PARAM_SERVICE_ID, PeerUtil.getServiceId(peer));
                     EventError error = EventManager.INSTANCE.removeEvent(request);
                     switch (error) {
                         case NONE:
@@ -646,7 +644,7 @@ public class WebRTCVideoChatProfile extends VideoChatProfile {
             }
 
             List<Event> events = EventManager.INSTANCE.getEventList(
-                    PeerUtil.getServiceId(peer),
+                    WebRTCService.PLUGIN_ID,
                     PROFILE_NAME, null, ATTR_INCOMING);
             if (events.size() != 0) {
                 Bundle arg = new Bundle();

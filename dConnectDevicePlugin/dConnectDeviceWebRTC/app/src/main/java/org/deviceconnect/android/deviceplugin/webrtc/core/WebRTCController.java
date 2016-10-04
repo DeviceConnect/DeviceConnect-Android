@@ -9,6 +9,7 @@ import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.webrtc.BuildConfig;
 import org.deviceconnect.android.deviceplugin.webrtc.WebRTCApplication;
+import org.deviceconnect.android.deviceplugin.webrtc.service.WebRTCService;
 import org.deviceconnect.android.deviceplugin.webrtc.setting.SettingUtil;
 import org.deviceconnect.android.deviceplugin.webrtc.util.AudioUtils;
 import org.deviceconnect.android.deviceplugin.webrtc.util.CameraUtils;
@@ -265,7 +266,7 @@ public class WebRTCController {
     private void sendCallEvent() {
         final String LOCALHOST = "localhost";
         List<Event> events = EventManager.INSTANCE.getEventList(
-                PeerUtil.getServiceId(getPeer()),
+                WebRTCService.PLUGIN_ID,
                 VideoChatProfile.PROFILE_NAME, null, VideoChatProfile.ATTR_ONCALL);
         if (events.size() != 0) {
             Bundle local = new Bundle();
@@ -351,7 +352,7 @@ public class WebRTCController {
      */
     private void sendHangupEvent() {
         List<Event> events = EventManager.INSTANCE.getEventList(
-                PeerUtil.getServiceId(getPeer()),
+                WebRTCService.PLUGIN_ID,
                 VideoChatProfile.PROFILE_NAME, null, VideoChatProfile.ATTR_HANGUP);
         if (events.size() != 0) {
             Bundle arg = new Bundle();

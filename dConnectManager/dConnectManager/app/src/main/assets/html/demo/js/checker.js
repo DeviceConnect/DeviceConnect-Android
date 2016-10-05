@@ -39,7 +39,12 @@ var main = (function(parent, global) {
                         }
                     }
                 } else if (elem.tagName.toLowerCase() == 'select') {
-                    data.push(elem.name + "=" + encodeURIComponent(elem.value));
+                    var option = elem.options[elem.selectedIndex];
+                    if (option.dataset.excluded == 'true') {
+                        // パラメータ省略
+                    } else {
+                        data.push(elem.name + "=" + encodeURIComponent(elem.value));
+                    }
                 }
             }
         }
@@ -67,7 +72,12 @@ var main = (function(parent, global) {
                         }
                     }
                 } else if (elem.tagName.toLowerCase() == 'select') {
-                    formData.append(elem.name, elem.value);
+                    var option = elem.options[elem.selectedIndex];
+                    if (option.dataset.excluded == 'true') {
+                        // パラメータ省略
+                    } else {
+                        formData.append(elem.name, elem.value);
+                    }
                 }
             }
         }
@@ -161,8 +171,11 @@ var main = (function(parent, global) {
         return util.createTemplate('param_number', data);
     }
 
-    function createSelectParam(name, list) {
+    function createSelectParam(name, list, required) {
         var text = "";
+        if (required !== true) {
+            text += '<option data-excluded="true">-- Not Specified --</option>';
+        }
         for (var i = 0; i < list.length; i++) {
             text += '<option value="' + list[i] + '">' + list[i] + '</option>';
         }
@@ -213,7 +226,7 @@ var main = (function(parent, global) {
             switch (param.type) {
             case 'string':
                 if (('enum' in param)) {
-                    contentHtml += createSelectParam(param.name, param.enum);
+                    contentHtml += createSelectParam(param.name, param.enum, param.required);
                 } else {
                     if (param.name == 'serviceId') {
                         contentHtml += createTextParam(param.name, util.getServiceId());
@@ -227,7 +240,7 @@ var main = (function(parent, global) {
                 break;
             case 'integer':
                 if (('enum' in param)) {
-                    contentHtml += createSelectParam(param.name, param.enum);
+                    contentHtml += createSelectParam(param.name, param.enum, param.required);
                 } else if (('minimum' in param) && ('maximum' in param)) {
                     contentHtml += createSliderParam(nav, param.name, param.minimum, param.maximum, 1);
                 } else {
@@ -236,7 +249,7 @@ var main = (function(parent, global) {
                 break;
             case 'number':
                 if (('enum' in param)) {
-                    contentHtml += createSelectParam(param.name, param.enum);
+                    contentHtml += createSelectParam(param.name, param.enum, param.required);
                 } else if (('minimum' in param) && ('maximum' in param)) {
                     contentHtml += createSliderParam(nav, param.name, param.minimum, param.maximum, 0.01);
                 } else {

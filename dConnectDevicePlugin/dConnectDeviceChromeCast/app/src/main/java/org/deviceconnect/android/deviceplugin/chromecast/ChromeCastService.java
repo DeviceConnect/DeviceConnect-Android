@@ -175,10 +175,6 @@ public class ChromeCastService extends DConnectMessageService implements
         if (BuildConfig.DEBUG) {
             Log.i("TEST", "Plug-in : onManagerTerminated");
         }
-        ChromeCastApplication app = (ChromeCastApplication) getApplication();
-        if (app != null) {
-            app.getController().teardown();
-        }
     }
 
     @Override
@@ -192,10 +188,7 @@ public class ChromeCastService extends DConnectMessageService implements
         } else {
             EventManager.INSTANCE.removeAll();
         }
-        ChromeCastApplication app = (ChromeCastApplication) getApplication();
-        if (app != null) {
-            app.getController().teardown();
-        }
+
     }
 
     @Override

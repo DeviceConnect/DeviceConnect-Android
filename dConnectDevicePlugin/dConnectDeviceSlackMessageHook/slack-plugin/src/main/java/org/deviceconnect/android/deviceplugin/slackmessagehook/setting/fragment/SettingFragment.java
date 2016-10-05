@@ -97,7 +97,7 @@ public class SettingFragment extends Fragment implements SlackManager.SlackEvent
     //---------------------------------------------------------------------------------------
     //region Private
 
-    private void refreshDozePermission(View view) {
+    private void refreshDozePermission(final View view) {
         View dozeView = view.findViewById(R.id.doze_layout);
         if (dozeView != null) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {

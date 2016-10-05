@@ -55,4 +55,8 @@
     <string name="connected_service">接続済み</string>
     <string name="disconnected_service">切断されました</string>
     <string name="connecting_service">接続中</string>
+    <string name="service_description">SimpleBotにメッセージを配送するサービスを選択します。\nMessage Hookプロファイルを実装しているサービスを設定することができます。</string>
+    <string name="doze_description">最適化が解除されていません。最適化が解除されていないとバッググラントで正常に動作することができない恐れがあります。\n以下のボタンを押下して、最適化を解除してください。</string>
+    <string name="doze_button">最適化を解除</string>
+    <string name="doze_settings">最適化</string>
 </resources>

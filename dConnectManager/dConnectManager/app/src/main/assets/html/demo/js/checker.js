@@ -19,6 +19,14 @@ var main = (function(parent, global) {
         return name == 'deviceconnect.method' || name == 'deviceconnect.type' || name == 'deviceconnect.path';
     }
 
+    function isIncludedParam(name, formElem) {
+        var checkbox = formElem['include-' + name];
+        if (!checkbox) {
+            return false
+        }
+        return checkbox.checked;
+    }
+
     function createBody(nav) {
         var data = [];
 
@@ -28,9 +36,13 @@ var main = (function(parent, global) {
         for (var key in formElem) {
             var elem = formElem[key];
             if (elem && elem.tagName) {
-                if (elem.tagName.toLowerCase() == 'input') {
+                if (!isIncludedParam(elem.name, formElem)) {
+                    // パラメータ省略
+                } else if (elem.tagName.toLowerCase() == 'input') {
                     if (isHiddenParam(elem.name)) {
                         // 隠しパラメータ
+                    } else if (elem.type == 'checkbox') {
+                        // チェックボックスは省略指定のために使用
                     } else if (elem.type == 'file') {
                         // どうするべきか検討
                     } else if (elem.name.indexOf('t_') != 0) {
@@ -39,12 +51,7 @@ var main = (function(parent, global) {
                         }
                     }
                 } else if (elem.tagName.toLowerCase() == 'select') {
-                    var option = elem.options[elem.selectedIndex];
-                    if (option.dataset.excluded == 'true') {
-                        // パラメータ省略
-                    } else {
-                        data.push(elem.name + "=" + encodeURIComponent(elem.value));
-                    }
+                    data.push(elem.name + "=" + encodeURIComponent(elem.value));
                 }
             }
         }
@@ -61,9 +68,13 @@ var main = (function(parent, global) {
         for (var key in formElem) {
             var elem = formElem[key];
             if (elem && elem.tagName) {
-                if (elem.tagName.toLowerCase() == 'input') {
+                if (!isIncludedParam(elem.name, formElem)) {
+                    // パラメータ省略
+                } else if (elem.tagName.toLowerCase() == 'input') {
                     if (isHiddenParam(elem.name)) {
                         // 隠しパラメータ
+                    } else if (elem.type == 'checkbox') {
+                        // チェックボックスは省略指定のために使用
                     } else if (elem.type == 'file') {
                         formData.append(elem.name, elem.files[0]);
                     } else if (elem.name.indexOf('t_') != 0) {
@@ -148,52 +159,54 @@ var main = (function(parent, global) {
         return '/gotapi/' + util.getProfile() + path;
     }
 
-    function createTextParam(name, value) {
+    function createTextParam(name, value, required) {
         var data = {
             'name' : name,
-            'value' : value
+            'value' : value,
+            'required': required
         };
         return util.createTemplate('param_text', data);
     }
 
-    function createFileParam(name) {
+    function createFileParam(name, required) {
         var data = {
-            'name' : name
+            'name' : name,
+            'required': required
         };
         return util.createTemplate('param_file', data);
     }
 
-    function createNumberParam(name, value) {
+    function createNumberParam(name, value, required) {
         var data = {
             'name' : name,
-            'value' : value
+            'value' : value,
+            'required': required
         };
         return util.createTemplate('param_number', data);
     }
 
     function createSelectParam(name, list, required) {
         var text = "";
-        if (required !== true) {
-            text += '<option data-excluded="true">-- Not Specified --</option>';
-        }
         for (var i = 0; i < list.length; i++) {
             text += '<option value="' + list[i] + '">' + list[i] + '</option>';
         }
         var data = {
             'name' : name,
-            'value' : text
+            'value' : text,
+            'required': required
         };
         return util.createTemplate('param_select', data);
     }
 
-    function createSliderParam(nav, name, min, max, step) {
+    function createSliderParam(nav, name, min, max, step, required) {
         var data = {
             'nav' : nav,
             'name' : name,
             'value' : (max + min) / 2.0,
             'step' : step,
             'min' : '' + min,
-            'max' : '' + max
+            'max' : '' + max,
+            'required': required
         };
         return util.createTemplate('param_slider', data);
     }
@@ -223,41 +236,42 @@ var main = (function(parent, global) {
         var contentHtml = "";
         for (var i = 0; i < params.length; i++) {
             var param = params[i];
+            var required = param.required ? 'required' : 'optional';
             switch (param.type) {
             case 'string':
                 if (('enum' in param)) {
-                    contentHtml += createSelectParam(param.name, param.enum, param.required);
+                    contentHtml += createSelectParam(param.name, param.enum, required);
                 } else {
                     if (param.name == 'serviceId') {
-                        contentHtml += createTextParam(param.name, util.getServiceId());
+                        contentHtml += createTextParam(param.name, util.getServiceId(), required);
                     } else {
-                        contentHtml += createTextParam(param.name, '');
+                        contentHtml += createTextParam(param.name, '', required);
                     }
                 }
                 break;
             case 'array':
-                contentHtml += createTextParam(param.name, '');
+                contentHtml += createTextParam(param.name, '', required);
                 break;
             case 'integer':
                 if (('enum' in param)) {
-                    contentHtml += createSelectParam(param.name, param.enum, param.required);
+                    contentHtml += createSelectParam(param.name, param.enum, required);
                 } else if (('minimum' in param) && ('maximum' in param)) {
-                    contentHtml += createSliderParam(nav, param.name, param.minimum, param.maximum, 1);
+                    contentHtml += createSliderParam(nav, param.name, param.minimum, param.maximum, 1, required);
                 } else {
-                    contentHtml += createNumberParam(param.name, 0);
+                    contentHtml += createNumberParam(param.name, 0, required);
                 }
                 break;
             case 'number':
                 if (('enum' in param)) {
-                    contentHtml += createSelectParam(param.name, param.enum, param.required);
+                    contentHtml += createSelectParam(param.name, param.enum, required);
                 } else if (('minimum' in param) && ('maximum' in param)) {
-                    contentHtml += createSliderParam(nav, param.name, param.minimum, param.maximum, 0.01);
+                    contentHtml += createSliderParam(nav, param.name, param.minimum, param.maximum, 0.01, required);
                 } else {
-                    contentHtml += createNumberParam(param.name, 0);
+                    contentHtml += createNumberParam(param.name, 0, required);
                 }
                 break;
             case 'file':
-                contentHtml += createFileParam(param.name);
+                contentHtml += createFileParam(param.name, required);
                 break;
             default:
                 console.log("Error: " + param.type);

@@ -9,14 +9,19 @@ package org.deviceconnect.android.deviceplugin.slackmessagehook.setting.fragment
 import android.app.Fragment;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.content.res.Configuration;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.PowerManager;
+import android.provider.Settings;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.CompoundButton;
+import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.Switch;
 import android.widget.TextView;
@@ -48,6 +53,7 @@ public class SettingFragment extends Fragment implements SlackManager.SlackEvent
         View view = initView();
         rootLayout = new FrameLayout(view.getContext());
         rootLayout.addView(view);
+
         return rootLayout;
     }
 
@@ -71,6 +77,7 @@ public class SettingFragment extends Fragment implements SlackManager.SlackEvent
     public void onResume() {
         super.onResume();
         refreshStatus(getView());
+        refreshDozePermission(getView());
     }
 
     @Override
@@ -89,6 +96,35 @@ public class SettingFragment extends Fragment implements SlackManager.SlackEvent
     //endregion
     //---------------------------------------------------------------------------------------
     //region Private
+
+    private void refreshDozePermission(View view) {
+        View dozeView = view.findViewById(R.id.doze_layout);
+        if (dozeView != null) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                PowerManager mgr = getActivity().getSystemService(PowerManager.class);
+                if (!mgr.isIgnoringBatteryOptimizations(getActivity().getPackageName())) {
+                    Button dozeBtn = (Button) view.findViewById(R.id.doze_btn);
+                    if (dozeBtn != null) {
+                        dozeBtn.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                                    Intent intent = new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
+                                    intent.setData(Uri.parse("package:" + getActivity().getPackageName()));
+                                    getActivity().startActivity(intent);
+                                }
+                            }
+                        });
+                    }
+                    dozeView.setVisibility(View.VISIBLE);
+                } else {
+                    dozeView.setVisibility(View.GONE);
+                }
+            } else {
+                dozeView.setVisibility(View.GONE);
+            }
+        }
+    }
 
     /**
      * View作成

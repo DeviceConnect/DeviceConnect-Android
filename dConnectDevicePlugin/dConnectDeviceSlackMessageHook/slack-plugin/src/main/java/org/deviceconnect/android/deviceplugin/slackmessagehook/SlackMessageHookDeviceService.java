@@ -6,8 +6,13 @@
  */
 package org.deviceconnect.android.deviceplugin.slackmessagehook;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.PowerManager;
 import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.slackmessagehook.profile.SlackMessageHookProfile;
@@ -67,12 +72,15 @@ public class SlackMessageHookDeviceService extends DConnectMessageService implem
             final String token = Utils.getAccessToken(this);
             SlackManager.INSTANCE.setApiToken(token, true, null);
         }
+
+        registerDozeStateReceiver();
     }
 
     @Override
     public void onDestroy() {
-        super.onDestroy();
+        unregisterDozeStateReceiver();
         SlackManager.INSTANCE.removeSlackEventListener(this);
+        super.onDestroy();
     }
 
     @Override
@@ -289,4 +297,33 @@ public class SlackMessageHookDeviceService extends DConnectMessageService implem
             }
         }
     }
+
+    private void registerDozeStateReceiver() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            IntentFilter intentFilter = new IntentFilter(PowerManager.ACTION_DEVICE_IDLE_MODE_CHANGED);
+            registerReceiver(mDozeStateReceiver, intentFilter);
+        }
+    }
+
+    private void unregisterDozeStateReceiver() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            unregisterReceiver(mDozeStateReceiver);
+        }
+    }
+
+    private BroadcastReceiver mDozeStateReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(final Context context, final Intent intent) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                PowerManager mgr = context.getSystemService(PowerManager.class);
+                if (!mgr.isIgnoringBatteryOptimizations(context.getPackageName())) {
+                    if (mgr.isDeviceIdleMode()) {
+                        SlackManager.INSTANCE.disconnect();
+                    } else {
+                        SlackManager.INSTANCE.connect();
+                    }
+                }
+            }
+        }
+    };
 }

@@ -8,11 +8,15 @@ package org.deviceconnect.android.app.simplebot;
 
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.database.Cursor;
+import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.PowerManager;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
@@ -69,6 +73,7 @@ public class SimpleBotService extends Service {
         connect();
         startTimer();
         showNotification(getString(R.string.connecting_service));
+        registerDozeStateReceiver();
     }
 
     @Override
@@ -77,6 +82,7 @@ public class SimpleBotService extends Service {
             Log.d(TAG, "service destroyed...");
         }
 
+        unregisterDozeStateReceiver();
         hideNotification();
         stopTimer();
         disconnect();
@@ -222,8 +228,7 @@ public class SimpleBotService extends Service {
         if (cursor.moveToFirst()) {
             do {
                 // 各コマンドを判定
-                DataManager.Data data = dm.convertData(cursor);
-                result.data = data;
+                result.data = dm.convertData(cursor);
                 if (handleData(result)) {
                     break;
                 }
@@ -348,4 +353,35 @@ public class SimpleBotService extends Service {
         });
     }
 
+    private void registerDozeStateReceiver() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            IntentFilter intentFilter = new IntentFilter(PowerManager.ACTION_DEVICE_IDLE_MODE_CHANGED);
+            registerReceiver(mDozeStateReceiver, intentFilter);
+        }
+    }
+
+    private void unregisterDozeStateReceiver() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            unregisterReceiver(mDozeStateReceiver);
+        }
+    }
+
+    private BroadcastReceiver mDozeStateReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(final Context context, final Intent intent) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                PowerManager mgr = context.getSystemService(PowerManager.class);
+                if (!mgr.isIgnoringBatteryOptimizations(context.getPackageName())) {
+                    if (mgr.isDeviceIdleMode()) {
+                        stopTimer();
+                        disconnect();
+                        showNotification(getString(R.string.disconnected_service));
+                    } else {
+                        connect();
+                        startTimer();
+                    }
+                }
+            }
+        }
+    };
 }

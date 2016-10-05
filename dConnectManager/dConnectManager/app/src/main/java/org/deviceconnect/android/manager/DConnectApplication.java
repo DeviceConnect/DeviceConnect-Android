@@ -10,10 +10,12 @@ import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import org.deviceconnect.android.logger.AndroidHandler;
 import org.deviceconnect.android.manager.util.DConnectUtil;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 
 /**
  * Device Connect Manager Application.
@@ -23,9 +25,6 @@ import java.util.concurrent.ConcurrentHashMap;
 public class DConnectApplication extends Application {
     /** ドメイン名. */
     private static final String DCONNECT_DOMAIN = ".deviceconnect.org";
-
-    /** デバイスプラグインに紐付くイベント判断用キー格納領域 */
-    private final Map<String, String> mEventKeys = new ConcurrentHashMap<>();
 
     /** ローカルのドメイン名. */
     private static final String LOCALHOST_DCONNECT = "localhost" + DCONNECT_DOMAIN;
@@ -39,6 +38,16 @@ public class DConnectApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+        Logger logger = Logger.getLogger("dconnect.manager");
+        if (BuildConfig.DEBUG) {
+            AndroidHandler handler = new AndroidHandler(logger.getName());
+            handler.setFormatter(new SimpleFormatter());
+            handler.setLevel(Level.ALL);
+            logger.addHandler(handler);
+            logger.setLevel(Level.ALL);
+        } else {
+            logger.setLevel(Level.OFF);
+        }
 
         initialize();
 

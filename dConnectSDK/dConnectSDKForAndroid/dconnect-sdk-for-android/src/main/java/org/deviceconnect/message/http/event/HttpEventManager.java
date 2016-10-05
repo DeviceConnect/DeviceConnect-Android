@@ -194,7 +194,7 @@ public final class HttpEventManager extends AbstractEventManager {
 
     @Override
     public boolean isOpen() {
-        return mWSClient != null && mWSClient.isOpen();
+        return mStatus != Status.CLOSE;
     }
 
     /**
@@ -243,7 +243,7 @@ public final class HttpEventManager extends AbstractEventManager {
          * @param serverURI サーバーのURI
          */
         public EventWebSocketClient(final URI serverURI) {
-            super(serverURI, new Draft_17(), null, 30 * 1000);
+            super(serverURI, new Draft_17(), null, 10 * 1000);
         }
 
         @Override
@@ -268,7 +268,7 @@ public final class HttpEventManager extends AbstractEventManager {
 
         @Override
         public void onClose(final int code, final String reason, final boolean remote) {
-            mLogger.warning("EventWebSocketClient#onClose : " + mStatus);
+            mLogger.warning("EventWebSocketClient#onClose: " + mStatus + " reason:" + reason);
 
             if (mStatus == Status.WAITING_OPEN
                     || mStatus == Status.RETRYING) {

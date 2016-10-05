@@ -246,7 +246,7 @@ public class SlackManager {
         return connectState == CONNECT_STATE_CONNECTED;
     }
 
-    public boolean isDisonnecting() {
+    public boolean isDisconnecting() {
         return (connectState > CONNECT_STATE_DISCONNECTING);
     }
 
@@ -278,8 +278,9 @@ public class SlackManager {
         }
         connectState = CONNECT_STATE_CONNECTING;
         if (callback != null) {
-            this.connectionFinishCallback = callback;
+            connectionFinishCallback = callback;
         }
+
         // 接続処理
         new GetTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, new TaskParam("rtm.start", "&simple_latest=True&no_unreads=True") {
             @Override
@@ -340,15 +341,16 @@ public class SlackManager {
      */
     public void disconnect(FinishCallback<Void> callback) {
         if (BuildConfig.DEBUG) Log.d(TAG, "*disconnect");
-        if (webSocket ==null || connectState < CONNECT_STATE_CONNECTING) {
+        if (webSocket == null || connectState < CONNECT_STATE_CONNECTING) {
             if (callback != null) {
                 callback.onFinish(null, null);
             }
             return;
         }
         connectState = CONNECT_STATE_DISCONNECTING;
-        this.connectionFinishCallback = callback;
+        connectionFinishCallback = callback;
         webSocket.disconnect();
+        webSocket = null;
     }
 
 
@@ -481,6 +483,9 @@ public class SlackManager {
      */
     private void connectWebSocket(final URI uri) {
         final Handler handler = new Handler();
+        if (webSocket != null) {
+            webSocket.disconnect();
+        }
         webSocket = new WebSocketClient(uri, new WebSocketClient.Listener() {
             @Override
             public void onConnect() {

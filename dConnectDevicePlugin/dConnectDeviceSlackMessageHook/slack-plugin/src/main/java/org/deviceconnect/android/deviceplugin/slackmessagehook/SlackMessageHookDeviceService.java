@@ -106,7 +106,7 @@ public class SlackMessageHookDeviceService extends DConnectMessageService implem
             Executors.newSingleThreadExecutor().submit(new Runnable() {
                 @Override
                 public void run() {
-                    if (SlackManager.INSTANCE.isDisonnecting()) {
+                    if (SlackManager.INSTANCE.isDisconnecting()) {
                         SlackManager.INSTANCE.disconnect(new SlackManager.FinishCallback<Void>() {
                             @Override
                             public void onFinish(final Void aVoid, final Exception error) {
@@ -169,82 +169,80 @@ public class SlackMessageHookDeviceService extends DConnectMessageService implem
         String attribute = SlackMessageHookProfile.ATTRIBUTE_MESSAGE;
         List<Event> events = EventManager.INSTANCE.getEventList(serviceId, profile, null, attribute);
 
-        synchronized (events) {
-            synchronized (userMap) {
-                // 情報セット
-                Bundle message = new Bundle();
-                message.putString("messengerType", "slack");
-                message.putString("channelId", channel);
+        synchronized (userMap) {
+            // 情報セット
+            Bundle message = new Bundle();
+            message.putString("messengerType", "slack");
+            message.putString("channelId", channel);
 
-                // TimeStampは少数以下切り捨て
-                double time = ts;
-                message.putLong("timeStamp", (long)time);
+            // TimeStampは少数以下切り捨て
+            double time = ts;
+            message.putLong("timeStamp", (long)time);
 
-                // 送信者情報を変換
-                SlackManager.ListInfo info = userMap.get(user);
-                if (info != null) {
-                    message.putString("from", info.name);
-                } else {
-                    message.putString("from", user);
-                    // 値が無い場合はユーザーリスト再取得
-                    fetchUserList();
-                }
+            // 送信者情報を変換
+            SlackManager.ListInfo info = userMap.get(user);
+            if (info != null) {
+                message.putString("from", info.name);
+            } else {
+                message.putString("from", user);
+                // 値が無い場合はユーザーリスト再取得
+                fetchUserList();
+            }
 
-                // メンション処理
-                if (text != null) {
-                    boolean isMentioned = false;
-                    Pattern p = Pattern.compile("<@(\\w*)>");
-                    Matcher m = p.matcher(text);
-                    StringBuffer sb = new StringBuffer();
-                    while (m.find()) {
-                        String uid = m.group(1);
-                        info = userMap.get(uid);
-                        if (info != null) {
-                            m.appendReplacement(sb, "@" + info.name);
-                        } else {
-                            m.appendReplacement(sb, m.group());
-                            // 値が無い場合はユーザーリスト再取得
-                            fetchUserList();
-                        }
-                        if (!isMentioned) {
-                            isMentioned = SlackManager.INSTANCE.getBotInfo().id.equals(uid);
-                        }
-                    }
-                    m.appendTail(sb);
-                    message.putString("text", sb.toString());
-                    //　メッセージタイプ
-                    String messageType = null;
-                    // Dから始まるChannelIDはDirectMessage
-                    if (channel.startsWith("D")) {
-                        messageType = "direct";
+            // メンション処理
+            if (text != null) {
+                boolean isMentioned = false;
+                Pattern p = Pattern.compile("<@(\\w*)>");
+                Matcher m = p.matcher(text);
+                StringBuffer sb = new StringBuffer();
+                while (m.find()) {
+                    String uid = m.group(1);
+                    info = userMap.get(uid);
+                    if (info != null) {
+                        m.appendReplacement(sb, "@" + info.name);
                     } else {
-                        messageType = "normal";
+                        m.appendReplacement(sb, m.group());
+                        // 値が無い場合はユーザーリスト再取得
+                        fetchUserList();
                     }
-                    if (isMentioned) {
-                        messageType += ",mention";
+                    if (!isMentioned) {
+                        isMentioned = SlackManager.INSTANCE.getBotInfo().id.equals(uid);
                     }
-                    message.putString("messageType", messageType);
                 }
+                m.appendTail(sb);
+                message.putString("text", sb.toString());
+                //　メッセージタイプ
+                String messageType = null;
+                // Dから始まるChannelIDはDirectMessage
+                if (channel.startsWith("D")) {
+                    messageType = "direct";
+                } else {
+                    messageType = "normal";
+                }
+                if (isMentioned) {
+                    messageType += ",mention";
+                }
+                message.putString("messageType", messageType);
+            }
 
-                // リソース
-                if (url != null) {
-                    message.putString("resource", url);
-                }
-                if (mimeType != null) {
-                    message.putString("mimeType", mimeType);
-                }
+            // リソース
+            if (url != null) {
+                message.putString("resource", url);
+            }
+            if (mimeType != null) {
+                message.putString("mimeType", mimeType);
+            }
 
-                // GetMessageのために一定時間イベントを保持する
-                eventHistory.add(message);
-                // 一定時間経過したメッセージを削除する
-                truncateHistory();
+            // GetMessageのために一定時間イベントを保持する
+            eventHistory.add(message);
+            // 一定時間経過したメッセージを削除する
+            truncateHistory();
 
-                // Eventに値をおくる.
-                for (Event event : events) {
-                    Intent intent = EventManager.createEventMessage(event);
-                    intent.putExtra("message", message);
-                    sendEvent(intent, event.getAccessToken());
-                }
+            // Eventに値をおくる.
+            for (Event event : events) {
+                Intent intent = EventManager.createEventMessage(event);
+                intent.putExtra("message", message);
+                sendEvent(intent, event.getAccessToken());
             }
         }
     }

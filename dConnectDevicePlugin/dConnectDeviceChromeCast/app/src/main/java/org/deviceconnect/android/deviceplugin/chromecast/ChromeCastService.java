@@ -6,6 +6,7 @@
  */
 package org.deviceconnect.android.deviceplugin.chromecast;
 
+import android.content.BroadcastReceiver;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -22,7 +23,6 @@ import org.deviceconnect.android.deviceplugin.chromecast.core.ChromeCastDiscover
 import org.deviceconnect.android.deviceplugin.chromecast.core.ChromeCastHttpServer;
 import org.deviceconnect.android.deviceplugin.chromecast.core.ChromeCastMediaPlayer;
 import org.deviceconnect.android.deviceplugin.chromecast.core.ChromeCastMessage;
-import org.deviceconnect.android.deviceplugin.chromecast.profile.ChromeCastMediaPlayerProfile;
 import org.deviceconnect.android.deviceplugin.chromecast.profile.ChromeCastServiceDiscoveryProfile;
 import org.deviceconnect.android.deviceplugin.chromecast.profile.ChromeCastSystemProfile;
 import org.deviceconnect.android.event.Event;
@@ -65,8 +65,6 @@ public class ChromeCastService extends DConnectMessageService implements
     private ChromeCastMessage mMessage;
     /** ChromecastHttpServer. */
     private ChromeCastHttpServer mServer;
-    /** ChromecastMediaPlayerProfile. */
-    private ChromeCastMediaPlayerProfile mMediaPlayerProfile;
     /** StatusChange時のServiceId. */
     private String mServiceIdOnStatusChange = null;
     /** MediaPlayerのステータスアップデートフラグ. */
@@ -74,6 +72,10 @@ public class ChromeCastService extends DConnectMessageService implements
 
     /** Async Response Array List. */
     private ArrayList<Callback> mAsyncResponse = new ArrayList<Callback>();
+    /**
+     * レシーバー.
+     */
+    private BroadcastReceiver mReceiver;
 
     /**
      * ChromeCastが接続完了してからレスポンスを返すためのCallbackを返す.
@@ -85,7 +87,6 @@ public class ChromeCastService extends DConnectMessageService implements
          */
         void onResponse();
     }
-
 
     @Override
     public void onCreate() {
@@ -114,11 +115,13 @@ public class ChromeCastService extends DConnectMessageService implements
 
         EventManager.INSTANCE.setController(new DBCacheController(this));
         addProfile(new ChromeCastServiceDiscoveryProfile(getServiceProvider()));
+
     }
-	
+
     @Override
     public void onDestroy() {
         mServer.stop();
+
         super.onDestroy();
     }
 
@@ -172,10 +175,6 @@ public class ChromeCastService extends DConnectMessageService implements
         if (BuildConfig.DEBUG) {
             Log.i("TEST", "Plug-in : onManagerTerminated");
         }
-        ChromeCastApplication app = (ChromeCastApplication) getApplication();
-        if (app != null) {
-            app.getController().teardown();
-        }
     }
 
     @Override
@@ -189,6 +188,7 @@ public class ChromeCastService extends DConnectMessageService implements
         } else {
             EventManager.INSTANCE.removeAll();
         }
+
     }
 
     @Override
@@ -198,10 +198,6 @@ public class ChromeCastService extends DConnectMessageService implements
             Log.i("TEST", "Plug-in : onDevicePluginReset");
         }
         resetPluginResource();
-        ChromeCastApplication app = (ChromeCastApplication) getApplication();
-        if (app != null) {
-            app.getController().teardown();
-        }
     }
 
     /**
@@ -210,7 +206,7 @@ public class ChromeCastService extends DConnectMessageService implements
     private void resetPluginResource() {
         /** 全イベント削除. */
         EventManager.INSTANCE.removeAll();
-
+        onCastDeviceUnselected(null);
     }
 
 
@@ -225,6 +221,7 @@ public class ChromeCastService extends DConnectMessageService implements
         }
         return app.getDiscovery();
     }
+
     /**
      * ChromeCastMediaPlayerを返す.
      * @return  ChromeCastMediaPlayer
@@ -276,6 +273,7 @@ public class ChromeCastService extends DConnectMessageService implements
 
     @Override
     public void onChromeCastMediaPlayerStatusUpdate(final MediaStatus status) {
+
         MediaInfo info = status.getMediaInfo();
         ChromeCastDeviceService service = (ChromeCastDeviceService) getServiceProvider().getService(mServiceIdOnStatusChange);
         if (service == null) {
@@ -349,18 +347,18 @@ public class ChromeCastService extends DConnectMessageService implements
     }
 
     @Override
-    public void onCastDeviceUpdate(final ArrayList<String> devices) {
+    public void onCastDeviceUpdate(final ArrayList<CastDevice> devices) {
+        if (BuildConfig.DEBUG) {
+            Log.d("TEST", "onCastDeviceUpdate#");
+        }
         if (devices.size() == 0) {
             if (BuildConfig.DEBUG) {
-                Log.d("ChromeCastDiscovery", "size:0");
+                Log.d("TEST", "size:0");
             }
             ChromeCastApplication app = (ChromeCastApplication) getApplication();
 
             if (app.getController() != null) {
                 app.getController().teardown();
-            }
-            if (app.getDiscovery() != null) {
-                app.getDiscovery().unregisterEvent();
             }
         }
     }
@@ -368,6 +366,9 @@ public class ChromeCastService extends DConnectMessageService implements
 
     @Override
     public void onCastDeviceSelected(final CastDevice selectedDevice) {
+        if (BuildConfig.DEBUG) {
+            Log.d("TEST", "onCastDeviceSelected#" + selectedDevice.getDeviceId());
+        }
         ChromeCastApplication app = (ChromeCastApplication) getApplication();
         if (app == null) {
             return;
@@ -375,9 +376,9 @@ public class ChromeCastService extends DConnectMessageService implements
 
         CastDevice currentDevice = app.getController().getSelectedDevice();
         if (currentDevice != null) {
-            DConnectService castService = getServiceProvider().getService(currentDevice.getFriendlyName());
+            DConnectService castService = getServiceProvider().getService(currentDevice.getDeviceId());
             if (castService == null) {
-                castService = new ChromeCastDeviceService(currentDevice.getFriendlyName());
+                castService = new ChromeCastDeviceService(currentDevice);
                 getServiceProvider().addService(castService);
             }
             castService.setOnline(true);
@@ -388,9 +389,9 @@ public class ChromeCastService extends DConnectMessageService implements
                 app.getController().connect();
             }
         } else {
-            DConnectService castService = getServiceProvider().getService(selectedDevice.getFriendlyName());
+            DConnectService castService = getServiceProvider().getService(selectedDevice.getDeviceId());
             if (castService == null) {
-                castService = new ChromeCastDeviceService(selectedDevice.getFriendlyName());
+                castService = new ChromeCastDeviceService(selectedDevice);
                 getServiceProvider().addService(castService);
             }
             castService.setOnline(true);
@@ -400,21 +401,30 @@ public class ChromeCastService extends DConnectMessageService implements
     }
 
     @Override
-    public void onCastDeviceUnselected() {
+    public void onCastDeviceUnselected(final CastDevice unselectedDevice) {
+        if (BuildConfig.DEBUG) {
+            Log.d("TEST", "onCastDeviceUnselected#start");
+        }
         ChromeCastApplication app = (ChromeCastApplication) getApplication();
 
         if (app == null) {
             return;
         }
-        CastDevice currentDevice = app.getController().getSelectedDevice();
+        CastDevice currentDevice = unselectedDevice;
         if (currentDevice == null) {
-            return;
+            if (app.getController().getSelectedDevice() == null) {
+                return;
+            }
+            currentDevice = app.getController().getSelectedDevice();
         }
-        DConnectService castService = getServiceProvider().getService(currentDevice.getFriendlyName());
+        if (BuildConfig.DEBUG) {
+            Log.d("TEST", "onCastDeviceUnselected#start+ " + currentDevice.getDeviceId());
+        }
+
+        DConnectService castService = getServiceProvider().getService(currentDevice.getDeviceId());
         if (castService != null) {
             castService.setOnline(false);
         }
-
         app.getController().teardown();
     }
 
@@ -448,19 +458,23 @@ public class ChromeCastService extends DConnectMessageService implements
                 callback.onResponse();
                 return;
             }
-            if (app.getDiscovery().getSelectedDevice().getFriendlyName().equals(serviceId)
+            if (app.getDiscovery().getSelectedDevice().getDeviceId().equals(serviceId)
                     && !app.getController().getGoogleApiClient().isConnecting()) {
                 app.getController().connect();
                 // Whether application that had been started before whether other apps
-                String status = Cast.CastApi.getApplicationStatus(app.getController().getGoogleApiClient());
-                if (status != null) {
-                    for (int i = 0; i < mAsyncResponse.size(); i++) {
-                        Callback call = mAsyncResponse.remove(i);
-                        call.onResponse();
+                try {
+                    String status = Cast.CastApi.getApplicationStatus(app.getController().getGoogleApiClient());
+                    if (status != null) {
+                        for (int i = 0; i < mAsyncResponse.size(); i++) {
+                            Callback call = mAsyncResponse.remove(i);
+                            call.onResponse();
+                        }
+                        callback.onResponse();
+                    } else {
+                        mAsyncResponse.add(callback);
                     }
+                } catch (IllegalStateException e) {
                     callback.onResponse();
-                } else  {
-                    mAsyncResponse.add(callback);
                 }
                 return;
             } else {
@@ -470,6 +484,5 @@ public class ChromeCastService extends DConnectMessageService implements
             }
         }
         mAsyncResponse.add(callback);
-        app.getDiscovery().setRouteName(serviceId);
     }
 }

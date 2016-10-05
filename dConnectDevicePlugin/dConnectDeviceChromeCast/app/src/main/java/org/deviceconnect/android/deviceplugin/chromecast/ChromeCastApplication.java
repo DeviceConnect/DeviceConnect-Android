@@ -20,8 +20,7 @@ public class ChromeCastApplication extends Application {
         String appId = getString(R.string.application_id);
 
         if (mDiscovery == null) {
-            mDiscovery = new ChromeCastDiscovery(this, appId);
-            mDiscovery.registerEvent();
+            mDiscovery = new ChromeCastDiscovery(this);
 
         }
         if (mController == null) {

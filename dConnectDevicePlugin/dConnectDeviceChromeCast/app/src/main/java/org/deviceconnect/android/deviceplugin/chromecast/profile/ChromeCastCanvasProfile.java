@@ -10,6 +10,7 @@ import android.content.Intent;
 import android.webkit.URLUtil;
 
 import org.deviceconnect.android.deviceplugin.chromecast.ChromeCastService;
+import org.deviceconnect.android.deviceplugin.chromecast.core.ChromeCastDiscovery;
 import org.deviceconnect.android.deviceplugin.chromecast.core.ChromeCastHttpServer;
 import org.deviceconnect.android.deviceplugin.chromecast.core.ChromeCastMessage;
 import org.deviceconnect.android.deviceplugin.chromecast.core.MediaFile;
@@ -248,5 +249,11 @@ public class ChromeCastCanvasProfile extends CanvasProfile implements ChromeCast
         return true;
     }
 
-
+    /**
+     * サービスからChromeCastDiscoveryrを取得する.
+     * @return  ChromeCastDiscovery
+     */
+    private ChromeCastDiscovery getChromeCastDiscovery() {
+        return ((ChromeCastService) getContext()).getChromeCastDiscovery();
+    }
 }

@@ -30,11 +30,11 @@ table.request tr td.include {
     padding-left: 10px;
 }
 
-table.required tr td {
+table.included tr td {
     background-color: #9ECDF9;
 }
 
-table.optional tr td {
+table.excluded tr td {
     background-color: #CCCCCC;
 }
 
@@ -54,11 +54,11 @@ table.request tr td div {
     text-align: center;
 }
 
-table.required tr td div {
+table.included tr td div {
     border: solid 2px #9ECDF9;
 }
 
-table.optional tr td div {
+table.excluded tr td div {
     border: solid 2px #CCCCCC;
 }
 

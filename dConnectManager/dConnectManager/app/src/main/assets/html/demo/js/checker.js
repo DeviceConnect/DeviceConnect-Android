@@ -27,6 +27,14 @@ var main = (function(parent, global) {
         return checkbox.checked;
     }
 
+    function switchParam(checkbox, name) {
+        var inputElem = checkbox.form.elements[name];
+        var tableElem = checkbox.form.children['table-' +name];
+        inputElem.disabled = !checkbox.checked;
+        tableElem.className = 'request ' + (checkbox.checked ? 'included' : 'excluded');
+    }
+    parent.switchParam = switchParam;
+
     function createBody(nav) {
         var data = [];
 
@@ -159,33 +167,39 @@ var main = (function(parent, global) {
         return '/gotapi/' + util.getProfile() + path;
     }
 
-    function createTextParam(name, value, required) {
+    function createTextParam(name, value, on) {
         var data = {
             'name' : name,
             'value' : value,
-            'required': required
+            'included' : (on ? 'included' : 'excluded'),
+            'checkbox' : (on ? 'checked disabled' : ''),
+            'inputable' : (on ? '' : 'disabled')
         };
         return util.createTemplate('param_text', data);
     }
 
-    function createFileParam(name, required) {
+    function createFileParam(name, on) {
         var data = {
             'name' : name,
-            'required': required
+            'included' : (on ? 'included' : 'excluded'),
+            'checkbox' : (on ? 'checked disabled' : ''),
+            'inputable' : (on ? '' : 'disabled')
         };
         return util.createTemplate('param_file', data);
     }
 
-    function createNumberParam(name, value, required) {
+    function createNumberParam(name, value, on) {
         var data = {
             'name' : name,
             'value' : value,
-            'required': required
+            'included' : (on ? 'included' : 'excluded'),
+            'checkbox' : (on ? 'checked disabled' : ''),
+            'inputable' : (on ? '' : 'disabled')
         };
         return util.createTemplate('param_number', data);
     }
 
-    function createSelectParam(name, list, required) {
+    function createSelectParam(name, list, on) {
         var text = "";
         for (var i = 0; i < list.length; i++) {
             text += '<option value="' + list[i] + '">' + list[i] + '</option>';
@@ -193,12 +207,14 @@ var main = (function(parent, global) {
         var data = {
             'name' : name,
             'value' : text,
-            'required': required
+            'included' : (on ? 'included' : 'excluded'),
+            'checkbox' : (on ? 'checked disabled' : ''),
+            'inputable' : (on ? '' : 'disabled')
         };
         return util.createTemplate('param_select', data);
     }
 
-    function createSliderParam(nav, name, min, max, step, required) {
+    function createSliderParam(nav, name, min, max, step, on) {
         var data = {
             'nav' : nav,
             'name' : name,
@@ -206,7 +222,9 @@ var main = (function(parent, global) {
             'step' : step,
             'min' : '' + min,
             'max' : '' + max,
-            'required': required
+            'included' : (on ? 'included' : 'excluded'),
+            'checkbox' : (on ? 'checked disabled' : ''),
+            'inputable' : (on ? '' : 'disabled')
         };
         return util.createTemplate('param_slider', data);
     }
@@ -236,42 +254,42 @@ var main = (function(parent, global) {
         var contentHtml = "";
         for (var i = 0; i < params.length; i++) {
             var param = params[i];
-            var required = param.required ? 'required' : 'optional';
+            var on = param.required;
             switch (param.type) {
             case 'string':
                 if (('enum' in param)) {
-                    contentHtml += createSelectParam(param.name, param.enum, required);
+                    contentHtml += createSelectParam(param.name, param.enum, on);
                 } else {
                     if (param.name == 'serviceId') {
-                        contentHtml += createTextParam(param.name, util.getServiceId(), required);
+                        contentHtml += createTextParam(param.name, util.getServiceId(), on);
                     } else {
-                        contentHtml += createTextParam(param.name, '', required);
+                        contentHtml += createTextParam(param.name, '', on);
                     }
                 }
                 break;
             case 'array':
-                contentHtml += createTextParam(param.name, '', required);
+                contentHtml += createTextParam(param.name, '', on);
                 break;
             case 'integer':
                 if (('enum' in param)) {
-                    contentHtml += createSelectParam(param.name, param.enum, required);
+                    contentHtml += createSelectParam(param.name, param.enum, on);
                 } else if (('minimum' in param) && ('maximum' in param)) {
-                    contentHtml += createSliderParam(nav, param.name, param.minimum, param.maximum, 1, required);
+                    contentHtml += createSliderParam(nav, param.name, param.minimum, param.maximum, 1, on);
                 } else {
-                    contentHtml += createNumberParam(param.name, 0, required);
+                    contentHtml += createNumberParam(param.name, 0, on);
                 }
                 break;
             case 'number':
                 if (('enum' in param)) {
-                    contentHtml += createSelectParam(param.name, param.enum, required);
+                    contentHtml += createSelectParam(param.name, param.enum, on);
                 } else if (('minimum' in param) && ('maximum' in param)) {
-                    contentHtml += createSliderParam(nav, param.name, param.minimum, param.maximum, 0.01, required);
+                    contentHtml += createSliderParam(nav, param.name, param.minimum, param.maximum, 0.01, on);
                 } else {
-                    contentHtml += createNumberParam(param.name, 0, required);
+                    contentHtml += createNumberParam(param.name, 0, on);
                 }
                 break;
             case 'file':
-                contentHtml += createFileParam(param.name, required);
+                contentHtml += createFileParam(param.name, on);
                 break;
             default:
                 console.log("Error: " + param.type);

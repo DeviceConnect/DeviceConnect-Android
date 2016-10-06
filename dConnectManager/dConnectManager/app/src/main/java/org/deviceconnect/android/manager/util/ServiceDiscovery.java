@@ -100,6 +100,9 @@ public class ServiceDiscovery extends Authorization {
         public int compare(final ServiceContainer lhs, final ServiceContainer rhs) {
             String name1 = lhs.getName();
             String name2 = rhs.getName();
+            if (name1 == null || name2 == null) {
+                return 0;
+            }
             return name1.compareTo(name2);
         }
     };

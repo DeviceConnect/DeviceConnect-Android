@@ -307,6 +307,12 @@ public abstract class AbstractEventManager {
     }
 
     /**
+     * イベント受信用のセッションが接続されているかを取得する.
+     * @return 接続中の場合はtrue、それ以外の場合はfalse
+     */
+    public abstract boolean isOpen();
+
+    /**
      * イベント受信用のセッションを切断する.
      */
     public abstract void disconnect();

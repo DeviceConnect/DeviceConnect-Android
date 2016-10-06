@@ -14,7 +14,11 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.PowerManager;
+import android.provider.Settings;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -150,6 +154,36 @@ public class SettingFragment extends Fragment implements ShowMenuFragment {
     public void onResume() {
         super.onResume();
         getActivity().setTitle(getString(R.string.app_name) + " [設定]");
+        refreshDozePermission(getView());
+    }
+
+    private void refreshDozePermission(final View view) {
+        View dozeView = view.findViewById(R.id.doze_layout);
+        if (dozeView != null) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                PowerManager mgr = getActivity().getSystemService(PowerManager.class);
+                if (!mgr.isIgnoringBatteryOptimizations(getActivity().getPackageName())) {
+                    Button dozeBtn = (Button) view.findViewById(R.id.doze_btn);
+                    if (dozeBtn != null) {
+                        dozeBtn.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                                    Intent intent = new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
+                                    intent.setData(Uri.parse("package:" + getActivity().getPackageName()));
+                                    getActivity().startActivity(intent);
+                                }
+                            }
+                        });
+                    }
+                    dozeView.setVisibility(View.VISIBLE);
+                } else {
+                    dozeView.setVisibility(View.GONE);
+                }
+            } else {
+                dozeView.setVisibility(View.GONE);
+            }
+        }
     }
 
     /**

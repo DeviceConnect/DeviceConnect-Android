@@ -33,12 +33,15 @@
     </script>
 
     <script id="param_file" type="text/x-template">
-        <table class="request">
+        <table name="table-{#name}" class="request {#included}">
             <tr>
-                <td width="20%" class="left"><span>{#name}</span></td>
-                <td width="80%">
+                <td width="5%" class="left include">
+                    <input type="checkbox" name="include-{#name}" onchange="main.switchParam(this,'{#name}')" {#checkbox} />
+                </td>
+                <td width="20%"><span>{#name}</span></td>
+                <td width="75%">
                     <div>
-                        <input class="text" type="file" name="{#name}">
+                        <input class="text" type="file" name="{#name}" {#inputable}>
                     </div>
                 </td>
             </tr>
@@ -46,12 +49,15 @@
     </script>
 
     <script id="param_text" type="text/x-template">
-        <table class="request">
+        <table name="table-{#name}" class="request {#included}">
             <tr>
-                <td width="20%" class="left"><span>{#name}</span></td>
-                <td width="80%">
+                <td width="5%" class="left include">
+                    <input type="checkbox" name="include-{#name}" onchange="main.switchParam(this,'{#name}')" {#checkbox} />
+                </td>
+                <td width="20%"><span>{#name}</span></td>
+                <td width="75%">
                     <div>
-                        <input class="text" type="text" name="{#name}" value="{#value}">
+                        <input class="text" type="text" name="{#name}" value="{#value}" {#inputable}>
                     </div>
                 </td>
             </tr>
@@ -59,12 +65,15 @@
     </script>
 
     <script id="param_number" type="text/x-template">
-        <table class="request">
+        <table name="table-{#name}" class="request {#included}">
             <tr>
-                <td width="20%" class="left"><span>{#name}</span></td>
-                <td width="80%">
+                <td width="5%" class="left include">
+                    <input type="checkbox" name="include-{#name}" onchange="main.switchParam(this,'{#name}')" {#checkbox} />
+                </td>
+                <td width="20%"><span>{#name}</span></td>
+                <td width="75%">
                     <div>
-                        <input class="text" type="number" name="{#name}" value="{#value}">
+                        <input class="text" type="number" name="{#name}" value="{#value}" {#inputable}>
                     </div>
                 </td>
             </tr>
@@ -72,12 +81,15 @@
     </script>
 
     <script id="param_select" type="text/x-template">
-        <table class="request">
+        <table name="table-{#name}" class="request {#included}">
             <tr>
-                <td width="20%" class="left"><span>{#name}</span></td>
-                <td width="80%">
+                <td width="5%" class="left include">
+                    <input type="checkbox" name="include-{#name}" onchange="main.switchParam(this,'{#name}')" {#checkbox} />
+                </td>
+                <td width="20%"><span>{#name}</span></td>
+                <td width="75%">
                     <div>
-                        <select name="{#name}">
+                        <select name="{#name}" {#inputable}>
                             {#value}
                         </select>
                     </div>
@@ -87,18 +99,21 @@
     </script>
 
     <script id="param_slider" type="text/x-template">
-        <table class="request">
+        <table name="table-{#name}" class="request {#included}">
             <tr>
-                <td width="20%" class="left"><span>{#name}</span></td>
+                <td width="5%" class="left include">
+                    <input type="checkbox" name="include-{#name}" onchange="main.switchParam(this,'{#name}')" {#checkbox} />
+                </td>
+                <td width="20%"><span>{#name}</span></td>
                 <td width="10%">
                     <div>
                         <input class="text" type="text" name="t_{#name}" value="{#value}">
                     </div>
                 </td>
-                <td width="70%">
+                <td width="75%">
                     <div>
                         <span class="min">{#min}</span>
-                        <input class="slider" type="range" onchange="main.onChangeValue('{#nav}', '{#name}')" name="{#name}" value="{#value}" min="{#min}" max="{#max}" step="{#step}">
+                        <input class="slider" type="range" onchange="main.onChangeValue('{#nav}', '{#name}')" name="{#name}" value="{#value}" min="{#min}" max="{#max}" step="{#step}" {#inputable}>
                         <span class="max">{#max}</span>
                     </div>
                 </td>

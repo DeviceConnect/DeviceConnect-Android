@@ -797,6 +797,13 @@
                         "type": "number",
                         "minimum": 0.0,
                         "maximum": 1.0
+                    },
+                    {
+                        "name": "interval",
+                        "in": "formData",
+                        "required": false,
+                        "type": "integer",
+                        "format": "int64"
                     }
                 ],
                 "responses": {
@@ -933,6 +940,13 @@
                         "type": "number",
                         "minimum": 0.0,
                         "maximum": 1.0
+                    },
+                    {
+                        "name": "interval",
+                        "in": "formData",
+                        "required": false,
+                        "type": "integer",
+                        "format": "int64"
                     }
                 ],
                 "responses": {
@@ -1213,6 +1227,13 @@
                         "type": "number",
                         "minimum": 0.0,
                         "maximum": 1.0
+                    },
+                    {
+                        "name": "interval",
+                        "in": "formData",
+                        "required": false,
+                        "type": "integer",
+                        "format": "int64"
                     }
                 ],
                 "responses": {

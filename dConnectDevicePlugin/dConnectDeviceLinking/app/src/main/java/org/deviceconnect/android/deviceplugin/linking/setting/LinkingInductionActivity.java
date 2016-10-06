@@ -77,7 +77,8 @@ public class LinkingInductionActivity extends AppCompatActivity {
     private void showGooglePlay() {
         View playView = findViewById(R.id.fragment_linking_setting_google_play);
         View updateView = findViewById(R.id.fragment_linking_setting_update_app);
-        if (playView != null && updateView != null) {
+        View appBtnView = findViewById(R.id.fragment_linking_app);
+        if (playView != null && updateView != null && appBtnView != null) {
             if (LinkingUtil.isApplicationInstalled(getApplicationContext())) {
                 if (LinkingUtil.getVersionCode(this) < LinkingUtil.LINKING_APP_VERSION) {
                     updateView.setVisibility(View.VISIBLE);
@@ -86,9 +87,12 @@ public class LinkingInductionActivity extends AppCompatActivity {
                     updateView.setVisibility(View.GONE);
                     playView.setVisibility(View.GONE);
                 }
+                appBtnView.setVisibility(View.VISIBLE);
             } else {
                 updateView.setVisibility(View.GONE);
+
                 playView.setVisibility(View.VISIBLE);
+                appBtnView.setVisibility(View.GONE);
             }
         }
     }

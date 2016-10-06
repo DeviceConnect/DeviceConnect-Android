@@ -301,7 +301,7 @@ public class ServiceListActivity extends Activity implements AlertDialogFragment
                         reload();
                         mSwitchAction.setEnabled(true);
                     }
-                }, 500);
+                }, 1000);
             } else {
                 mDConnectService.stop();
                 notifyManagerTerminate();

@@ -46,6 +46,7 @@
             android:layout_height="wrap_content"
             android:layout_marginLeft="10dp"
             android:layout_marginRight="10dp"
+            android:layout_marginBottom="8dp"
             android:text="@string/keyword_help" />
 
         <View
@@ -68,6 +69,7 @@
             android:layout_height="wrap_content"
             android:layout_marginLeft="10dp"
             android:layout_marginRight="10dp"
+            android:layout_marginBottom="8dp"
             android:text="@string/service_id_help" />
 
         <View
@@ -90,6 +92,7 @@
             android:layout_height="wrap_content"
             android:layout_marginLeft="10dp"
             android:layout_marginRight="10dp"
+            android:layout_marginBottom="8dp"
             android:text="@string/api_help" />
 
         <View
@@ -112,6 +115,7 @@
             android:layout_height="wrap_content"
             android:layout_marginLeft="10dp"
             android:layout_marginRight="10dp"
+            android:layout_marginBottom="8dp"
             android:text="@string/data_help" />
 
         <View
@@ -134,6 +138,7 @@
             android:layout_height="wrap_content"
             android:layout_marginLeft="10dp"
             android:layout_marginRight="10dp"
+            android:layout_marginBottom="8dp"
             android:text="@string/res_accept_help" />
 
         <TextView
@@ -149,6 +154,7 @@
             android:layout_height="wrap_content"
             android:layout_marginLeft="10dp"
             android:layout_marginRight="10dp"
+            android:layout_marginBottom="8dp"
             android:text="@string/res_accept_uri_help" />
 
         <View
@@ -171,6 +177,7 @@
             android:layout_height="wrap_content"
             android:layout_marginLeft="10dp"
             android:layout_marginRight="10dp"
+            android:layout_marginBottom="8dp"
             android:text="@string/res_success_help" />
 
         <TextView
@@ -186,6 +193,7 @@
             android:layout_height="wrap_content"
             android:layout_marginLeft="10dp"
             android:layout_marginRight="10dp"
+            android:layout_marginBottom="8dp"
             android:text="@string/res_success_uri_help" />
 
         <View
@@ -208,6 +216,7 @@
             android:layout_height="wrap_content"
             android:layout_marginLeft="10dp"
             android:layout_marginRight="10dp"
+            android:layout_marginBottom="8dp"
             android:text="@string/res_error_help" />
 
         <TextView
@@ -223,6 +232,7 @@
             android:layout_height="wrap_content"
             android:layout_marginLeft="10dp"
             android:layout_marginRight="10dp"
+            android:layout_marginBottom="8dp"
             android:text="@string/res_error_uri_help" />
 
     </LinearLayout>

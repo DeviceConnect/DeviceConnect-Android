@@ -194,6 +194,9 @@ public final class HttpEventManager extends AbstractEventManager {
 
     @Override
     public boolean isOpen() {
+        if (mStatus == Status.OPEN) {
+            return mWSClient.isOpen();
+        }
         return mStatus != Status.CLOSE;
     }
 

@@ -16,7 +16,7 @@ public class ServiceDiscoveryRequestConverter implements MessageConverter {
     private static final String ATTRIBUTE_GET_NETWORK_SERVICES = "getNetworkServices";
 
     @Override
-    public boolean convert(final Intent request) {
+    public void convert(final Intent request) {
         String profileName = DConnectProfile.getProfile(request);
         if (PROFILE_NETWORK_SERVICE_DISCOVERY.equals(profileName)) {
             profileName = ServiceDiscoveryProfileConstants.PROFILE_NAME;
@@ -26,6 +26,5 @@ public class ServiceDiscoveryRequestConverter implements MessageConverter {
                 request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, (String) null);
             }
         }
-        return false;
     }
 }

@@ -2,7 +2,7 @@ var util = (function(parent, global) {
     var mAccessToken = null;
     var mSessionKey = "test-session-key";
     var mHost = "localhost";
-    var scopes = Array(
+    var mScopes = Array(
             'servicediscovery',
             'serviceinformation',
             'system',
@@ -39,11 +39,15 @@ var util = (function(parent, global) {
             'videochat',
             'airconditioner',
             'atmosphericpressure',
+            'ecg',
+            'poseEstimation',
+            'stressEstimation',
+            'walkState',
             'gpio');
 
     function init(callback) {
         dConnect.setHost(mHost);
-        dConnect.setExtendedOrigin("file://android_asset/");
+        dConnect.setExtendedOrigin("file://");
         checkDeviceConnect(callback);
     }
     parent.init = init;
@@ -74,22 +78,48 @@ var util = (function(parent, global) {
 
             mAccessToken = getCookie('accessToken');
 
-            openWebSocketIfNeeded();
-
-            serviceInformation(callback);
+            serviceDiscovery(function(services) {
+                var serviceId = getServiceId();
+                for (var i = 0; i < services.length; i++) {
+                    if (serviceId === services[i].id) {
+                        var service = services[i];
+                        serviceInformation(function(json) {
+                            openWebSocketIfNeeded();
+                            callback(service.name, json);
+                        });
+                        return;
+                    }
+                }
+                alert('指定されたサービスが見つかりません。\n serviceId=' + serviceId);
+            });
         });
     }
 
     function authorization(callback) {
-        dConnect.authorization(scopes, 'ヘルプ',
+        dConnect.authorization(mScopes, 'デバイス確認画面',
             function(clientId, accessToken) {
                 mAccessToken = accessToken;
+                openWebSocketIfNeeded();
                 setCookie('accessToken', mAccessToken);
                 callback();
             },
             function(errorCode, errorMessage) {
                 showAlert("認証に失敗しました", errorCode, errorMessage);
             });
+    }
+
+    function serviceDiscovery(callback) {
+        dConnect.discoverDevices(mAccessToken, function(json) {
+            callback(json.services);
+        }, function(errorCode, errorMessage) {
+            if (errorCode == 11 || errorCode == 12 || errorCode == 13 || errorCode == 15) {
+                authorization(function() {
+                    serviceDiscovery(callback);
+                });
+            } else {
+                showAlert("デバイスの情報取得に失敗しました。", errorCode, errorMessage)
+            }
+        });
     }
 
     function serviceInformation(callback) {
@@ -107,13 +137,18 @@ var util = (function(parent, global) {
     }
 
     function openWebSocketIfNeeded() {
-        if (!dConnect.isConnectedWebSocket()) {
-            dConnect.connectWebSocket(mSessionKey, function(errorCode, errorMessage) {
-                console.log('Failed to open websocket: ' + errorCode + ' - ' + errorMessage);
-            });
-            console.log('WebSocket opened.');
-        } else {
-            console.log('WebSocket has opened already.');
+        try {
+            if (!dConnect.isConnectedWebSocket()) {
+                var accessToken = mAccessToken ? mAccessToken : mSessionKey;
+                dConnect.connectWebSocket(accessToken, function(code, message) {
+                    if (code > 0) {
+                        alert('WebSocketが切れました。\n code=' + code + " message=" + message);
+                    }
+                    console.log("WebSocket: code=" + code + " message=" +message);
+                });
+            }
+        } catch (e) {
+            alert("この端末は、WebSocketをサポートしていません。");
         }
     }
 
@@ -170,8 +205,8 @@ var util = (function(parent, global) {
     }
 
     function containsScope(profile) {
-        for (var i = 0; i < scopes.length; i++) {
-            if (scopes[i] == profile) {
+        for (var i = 0; i < mScopes.length; i++) {
+            if (mScopes[i] == profile) {
                 return true;
             }
         }
@@ -186,7 +221,7 @@ var util = (function(parent, global) {
         for (var i = 0; i < p.length; i++) {
             if (p[i] != '' && p[i] != 'gotapi') {
                 if (!containsScope(p[i])) {
-                    scopes.push(p[i]);
+                    mScopes.push(p[i]);
                 }
                 break;
             }
@@ -245,9 +280,8 @@ var util = (function(parent, global) {
          xhr.onreadystatechange = function() {
              switch (xhr.readyState) {
              case 1: {
-                 console.log("サーバ接続を確立しました。\n xhr.readyState=" + xhr.readyState + "\n xhr.statusText=" + xhr.statusText);
                  try {
-                     xhr.setRequestHeader("X-GotAPI-Origin".toLowerCase(), "file://android_assets");
+                     xhr.setRequestHeader("X-GotAPI-Origin".toLowerCase(), "file://");
                  } catch (e) {
                      return;
                  }
@@ -259,10 +293,8 @@ var util = (function(parent, global) {
                  break;
              }
              case 2:
-                 console.log("リクエストを送信しました。\n xhr.readyState=" + xhr.readyState + "\n xhr.statusText=" + xhr.statusText);
                  break;
              case 3:
-                 console.log("リクエストの処理中。\n xhr.readyState=" + xhr.readyState + "\n xhr.statusText=" + xhr.statusText);
                 break;
              case 4: {
                  if (xhr.status == 200) {
@@ -310,6 +342,16 @@ var util = (function(parent, global) {
     parent.getServiceId = getServiceId;
 
 
+    function getResourceUri() {
+        return getQuery('resource');
+    }
+    parent.getResourceUri = getResourceUri;
+
+    function getMimeType() {
+        return getQuery('mimeType');
+    }
+    parent.getMimeType = getMimeType;
+
     function getAccessToken() {
         return mAccessToken;
     }
@@ -338,13 +380,36 @@ var util = (function(parent, global) {
     }
     parent.createTemplate = createTemplate;
 
+    function replaceUri(jsonObject) {
+        var mimeType = 'image/png';
+        for (var key in jsonObject) {
+            var value = jsonObject[key];
+            if (value instanceof Object && !(value instanceof Array)) {
+                replaceUri(value);
+            } else {
+                if (key == 'uri') {
+                    if (jsonObject['mimeType']) {
+                        mimeType = jsonObject['mimeType'];
+                    }
+                    jsonObject[key] = '<a href=resource.html?mimeType=' + encodeURIComponent(mimeType) + '&resource=' + encodeURIComponent(value) + '>' + value + "</a>";
+                }
+            }
+        }
+    }
 
     function formatJSON(jsonText) {
         var jsonBefore = JSON.parse(jsonText);
+        replaceUri(jsonBefore);
         var json = JSON.stringify(jsonBefore, null, "    ");
-        return json.replace(/\r?\n/g, "<br>").replace(/\s/g, "&nbsp;");
+        return json.replace(/\r?\n/g, "<br>").replace(/\s{2}/g, "&nbsp;&nbsp;");
     }
     parent.formatJSON = formatJSON;
+
+
+    function escapeText(text) {
+        return text.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+    parent.escapeText = escapeText;
 
     return parent;
 })(util || {}, this.self || global);

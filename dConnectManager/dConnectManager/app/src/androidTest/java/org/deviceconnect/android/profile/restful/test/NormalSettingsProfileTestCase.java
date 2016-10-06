@@ -7,10 +7,6 @@
 package org.deviceconnect.android.profile.restful.test;
 
 import android.support.test.runner.AndroidJUnit4;
-import org.junit.Before;
-import org.junit.After;
-import org.junit.Test;
-import org.junit.runner.RunWith;
 
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPut;
@@ -21,6 +17,8 @@ import org.deviceconnect.profile.DConnectProfileConstants;
 import org.deviceconnect.profile.SettingsProfileConstants;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 
 
@@ -61,10 +59,8 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject resp = sendRequest(request);
-            assertResultOK(resp);
-            assertEquals(TestSettingsProfileConstants.LEVEL, 
-                    resp.getDouble(SettingsProfileConstants.PARAM_LEVEL));
+            JSONObject root = sendRequest(request);
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -100,10 +96,8 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject resp = sendRequest(request);
-            assertResultOK(resp);
-            assertEquals(TestSettingsProfileConstants.LEVEL, 
-                    resp.getDouble(SettingsProfileConstants.PARAM_LEVEL));
+            JSONObject root = sendRequest(request);
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -139,10 +133,8 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject resp = sendRequest(request);
-            assertResultOK(resp);
-            assertEquals(TestSettingsProfileConstants.LEVEL, 
-                    resp.getDouble(SettingsProfileConstants.PARAM_LEVEL));
+            JSONObject root = sendRequest(request);
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -178,10 +170,8 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject resp = sendRequest(request);
-            assertResultOK(resp);
-            assertEquals(TestSettingsProfileConstants.LEVEL, 
-                    resp.getDouble(SettingsProfileConstants.PARAM_LEVEL));
+            JSONObject root = sendRequest(request);
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -217,10 +207,8 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject resp = sendRequest(request);
-            assertResultOK(resp);
-            assertEquals(TestSettingsProfileConstants.LEVEL, 
-                    resp.getDouble(SettingsProfileConstants.PARAM_LEVEL));
+            JSONObject root = sendRequest(request);
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -257,8 +245,8 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject resp = sendRequest(request);
-            assertResultOK(resp);
+            JSONObject root = sendRequest(request);
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -295,8 +283,8 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject resp = sendRequest(request);
-            assertResultOK(resp);
+            JSONObject root = sendRequest(request);
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -333,8 +321,8 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject resp = sendRequest(request);
-            assertResultOK(resp);
+            JSONObject root = sendRequest(request);
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -371,8 +359,8 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject resp = sendRequest(request);
-            assertResultOK(resp);
+            JSONObject root = sendRequest(request);
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -409,8 +397,8 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject resp = sendRequest(request);
-            assertResultOK(resp);
+            JSONObject root = sendRequest(request);
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -443,10 +431,8 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject resp = sendRequest(request);
-            assertResultOK(resp);
-            assertEquals(TestSettingsProfileConstants.DATE, 
-                    resp.getString(SettingsProfileConstants.PARAM_DATE));
+            JSONObject root = sendRequest(request);
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -480,8 +466,8 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject resp = sendRequest(request);
-            assertResultOK(resp);
+            JSONObject root = sendRequest(request);
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -515,10 +501,8 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject resp = sendRequest(request);
-            assertResultOK(resp);
-            assertEquals(TestSettingsProfileConstants.LEVEL, 
-                    resp.getDouble(SettingsProfileConstants.PARAM_LEVEL));
+            JSONObject root = sendRequest(request);
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -553,8 +537,8 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject resp = sendRequest(request);
-            assertResultOK(resp);
+            JSONObject root = sendRequest(request);
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -588,10 +572,8 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject resp = sendRequest(request);
-            assertResultOK(resp);
-            assertEquals(1, 
-                    resp.getInt(SettingsProfileConstants.PARAM_TIME));
+            JSONObject root = sendRequest(request);
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -626,8 +608,8 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject resp = sendRequest(request);
-            assertResultOK(resp);
+            JSONObject root = sendRequest(request);
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }

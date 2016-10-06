@@ -6,19 +6,20 @@
  */
 package org.deviceconnect.android.manager.profile;
 
-import java.util.List;
+import android.content.Intent;
 
 import org.deviceconnect.android.manager.DConnectLocalOAuth;
 import org.deviceconnect.android.manager.DConnectMessageService;
 import org.deviceconnect.android.manager.DConnectService;
 import org.deviceconnect.android.manager.DevicePlugin;
 import org.deviceconnect.android.manager.DevicePluginManager;
+import org.deviceconnect.android.manager.event.EventBroker;
 import org.deviceconnect.android.manager.request.DeliveryRequest;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.profile.SystemProfileConstants;
 
-import android.content.Intent;
+import java.util.List;
 
 /**
  * 指定されたリクエストを各デバイスプラグインに送信するためのプロファイル.
@@ -26,10 +27,13 @@ import android.content.Intent;
  */
 public class DConnectDeliveryProfile extends DConnectProfile {
     /** デバイスプラグイン管理クラス. */
-    private DevicePluginManager mDevicePluginManager;
+    private final DevicePluginManager mDevicePluginManager;
 
     /** LocalOAuth管理クラス. */
-    private DConnectLocalOAuth mLocalOAuth;
+    private final DConnectLocalOAuth mLocalOAuth;
+
+    /** イベントハンドラー. */
+    private final EventBroker mEventBroker;
 
     /** オリジン有効フラグ. */
     private final boolean mRequireOrigin;
@@ -38,12 +42,14 @@ public class DConnectDeliveryProfile extends DConnectProfile {
      * コンストラクタ.
      * @param mgr デバイスプラグイン管理クラス
      * @param auth LocalOAuth管理クラス
+     * @param eventBroker イベントハンドラー
      * @param requireOrigin オリジン有効フラグ
      */
     public DConnectDeliveryProfile(final DevicePluginManager mgr, final DConnectLocalOAuth auth,
-                                   final boolean requireOrigin) {
+                                   final EventBroker eventBroker, final boolean requireOrigin) {
         mDevicePluginManager = mgr;
         mLocalOAuth = auth;
+        mEventBroker = eventBroker;
         mRequireOrigin = requireOrigin;
     }
 
@@ -54,22 +60,17 @@ public class DConnectDeliveryProfile extends DConnectProfile {
 
     @Override
     public boolean onRequest(final Intent request, final Intent response) {
+        String profileName = getProfile(request);
         String serviceId = getServiceID(request);
 
         // TODO wakeup以外にも例外的な動きをするProfileがある場合には再検討すること。
         // System Profileのwakeupは例外的にpluginIdで宛先を決める
         // ここでは、/system/device/wakeupの場合のみpluginIdを使用するようにする
-        String profileName = getProfile(request);
-        if (SystemProfileConstants.PROFILE_NAME.equals(profileName)) {
-            String inter = getInterface(request);
-            String attr = getAttribute(request);
-            if (SystemProfileConstants.INTERFACE_DEVICE.equals(inter)
-                    && SystemProfileConstants.ATTRIBUTE_WAKEUP.equals(attr)) {
-                serviceId = request.getStringExtra(SystemProfileConstants.PARAM_PLUGIN_ID);
-                if (serviceId == null) {
-                    sendEmptyPluginId(request, response);
-                    return true;
-                }
+        if (DConnectSystemProfile.isWakeUpRequest(request)) {
+            serviceId = request.getStringExtra(SystemProfileConstants.PARAM_PLUGIN_ID);
+            if (serviceId == null) {
+                sendEmptyPluginId(request, response);
+                return true;
             }
         }
 
@@ -78,6 +79,9 @@ public class DConnectDeliveryProfile extends DConnectProfile {
         } else {
             List<DevicePlugin> plugins = mDevicePluginManager.getDevicePlugins(serviceId);
             if (plugins != null && plugins.size() > 0) {
+                DevicePlugin plugin = plugins.get(0);
+                mEventBroker.onRequest(request, plugin);
+
                 DeliveryRequest req = new DeliveryRequest();
                 req.setContext(getContext());
                 req.setLocalOAuth(mLocalOAuth);
@@ -85,7 +89,7 @@ public class DConnectDeliveryProfile extends DConnectProfile {
                 req.setRequireOrigin(mRequireOrigin);
                 req.setRequest(request);
                 req.setDevicePluginManager(mDevicePluginManager);
-                req.setDestination(plugins.get(0));
+                req.setDestination(plugin);
                 ((DConnectMessageService) getContext()).addRequest(req);
             } else {
                 sendNotFoundService(request, response);

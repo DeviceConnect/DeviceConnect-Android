@@ -6,15 +6,17 @@
  */
 package org.deviceconnect.android.deviceplugin.hvc.profile;
 
-import org.deviceconnect.android.deviceplugin.hvc.setting.HvcSettingStepsActivity;
-import org.deviceconnect.android.event.EventManager;
-import org.deviceconnect.android.message.MessageUtils;
-import org.deviceconnect.android.profile.SystemProfile;
-import org.deviceconnect.message.DConnectMessage;
-
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+
+import org.deviceconnect.android.deviceplugin.hvc.setting.HvcServiceListActivity;
+import org.deviceconnect.android.event.EventManager;
+import org.deviceconnect.android.message.MessageUtils;
+import org.deviceconnect.android.profile.SystemProfile;
+import org.deviceconnect.android.profile.api.DConnectApi;
+import org.deviceconnect.android.profile.api.DeleteApi;
+import org.deviceconnect.message.DConnectMessage;
 
 /**
  * HVC DevicePlugin, System Profile.
@@ -22,6 +24,30 @@ import android.os.Bundle;
  * @author NTT DOCOMO, INC.
  */
 public class HvcSystemProfile extends SystemProfile {
+
+    private final DConnectApi mDeleteEventsApi = new DeleteApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_EVENTS;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            if (EventManager.INSTANCE.removeEvents(getOrigin(request))) {
+                setResult(response, DConnectMessage.RESULT_OK);
+            } else {
+                MessageUtils.setUnknownError(response);
+            }
+
+            return true;
+        }
+    };
+
+    public HvcSystemProfile() {
+        super();
+        addApi(mDeleteEventsApi);
+    }
 
     /**
      * set setting activity.
@@ -32,20 +58,6 @@ public class HvcSystemProfile extends SystemProfile {
      * @return setting activity
      */
     protected Class<? extends Activity> getSettingPageActivity(final Intent request, final Bundle bundle) {
-        return HvcSettingStepsActivity.class;
-    }
-
-    @Override
-    protected boolean onDeleteEvents(final Intent request, final Intent response, final String sessionKey) {
-
-        if (sessionKey == null || sessionKey.length() == 0) {
-            MessageUtils.setInvalidRequestParameterError(response);
-        } else if (EventManager.INSTANCE.removeEvents(sessionKey)) {
-            setResult(response, DConnectMessage.RESULT_OK);
-        } else {
-            MessageUtils.setUnknownError(response);
-        }
-
-        return true;
+        return HvcServiceListActivity.class;
     }
 }

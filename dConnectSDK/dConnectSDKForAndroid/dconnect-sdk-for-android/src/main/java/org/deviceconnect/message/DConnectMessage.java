@@ -112,8 +112,14 @@ public interface DConnectMessage extends Map<String, Object> {
 
     /**
      * エクストラ:sessionKey.
+     * @deprecated
      */
     String EXTRA_SESSION_KEY = "sessionKey";
+
+    /**
+     * エクストラ:clientId.
+     */
+    String EXTRA_CLIENT_ID = "clientId";
 
     /**
      * エクストラ:accessToken.

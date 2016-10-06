@@ -6,11 +6,13 @@
  */
 package org.deviceconnect.android.manager;
 
-import java.io.File;
-
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Environment;
+
+import org.deviceconnect.android.manager.util.DConnectUtil;
+
+import java.io.File;
 
 /**
  * DConnectの設定を保持するクラス.
@@ -25,6 +27,8 @@ public final class DConnectSettings {
     public static final int DEFALUT_WEB_PORT = 8080;
     /** デフォルトのインターバルを定義. */
     public static final int DEFAULT_INTERVAL = 1000 * 60 * 5;
+    /** デフォルトのキーワード. */
+    public static final String DEFAULT_KEYWORD = DConnectUtil.createKeyword();
     /** ポート番号. */
     private int mPort = DEFAULT_PORT;
     /** ホスト名. */
@@ -34,6 +38,9 @@ public final class DConnectSettings {
 
     /** 外部IPのアクセス権限. */
     private boolean mAllowExternalIP = false;
+
+    /** 外部アプリからの自動起動および自動終了を許可するフラグ. */
+    private boolean mAllowExternalStartAndStop = true;
 
     /** オリジン要求フラグ. */
     private boolean mRequireOrigin = true;
@@ -53,6 +60,9 @@ public final class DConnectSettings {
     private String mWebHost = DEFAULT_HOST;
     /** Webサーバのポート番号. */
     private int mWebPort = DEFALUT_WEB_PORT;
+
+    /** キーワード. */
+    private String mKeyword;
 
     /** このクラスの唯一のインスタンス. */
     private static DConnectSettings sInstance;
@@ -93,9 +103,11 @@ public final class DConnectSettings {
         setSSL(sp.getBoolean(context.getString(R.string.key_settings_dconn_ssl), false));
         setUseALocalOAuth(sp.getBoolean(context.getString(R.string.key_settings_dconn_local_oauth), true));
         setAllowExternalIP(sp.getBoolean(context.getString(R.string.key_settings_dconn_allow_external_ip), false));
+        setAllowExternalStartAndStop(sp.getBoolean(context.getString(R.string.key_settings_dconn_allow_external_start_and_stop), true));
         setRequireOrigin(sp.getBoolean(context.getString(R.string.key_settings_dconn_require_origin), true));
         setBlockingOrigin(sp
                 .getBoolean(context.getString(R.string.key_settings_dconn_whitelist_origin_blocking), false));
+        setKeyword(sp.getString(context.getString(R.string.key_settings_dconn_keyword), DEFAULT_KEYWORD));
         try {
             setObservationInterval(Integer.parseInt(sp.getString(
                     context.getString(R.string.key_settings_dconn_observation_interval),
@@ -211,6 +223,17 @@ public final class DConnectSettings {
     }
 
     /**
+     * 外部アプリからの自動起動および自動終了を許可するフラグを取得する.
+     * <p>
+     * デフォルトではfalseに設定されている。
+     * </p>
+     * @return trueの場合は許可、falseの場合は不許可
+     */
+    public boolean allowExternalStartAndStop() {
+        return mAllowExternalStartAndStop;
+    }
+
+    /**
      * 外部IP承認フラグを設定する.
      * <p>
      * デフォルトではfalseに設定されている。
@@ -219,6 +242,17 @@ public final class DConnectSettings {
      */
     public void setAllowExternalIP(final boolean allow) {
         this.mAllowExternalIP = allow;
+    }
+
+    /**
+     * 外部アプリからの自動起動および自動終了を許可するフラグを設定する.
+     * <p>
+     * デフォルトではfalseに設定されている。
+     * </p>
+     * @param allow trueの場合は許可、falseの場合は不許可
+     */
+    public void setAllowExternalStartAndStop(final boolean allow) {
+        this.mAllowExternalStartAndStop = allow;
     }
 
     /**
@@ -299,5 +333,21 @@ public final class DConnectSettings {
      */
     public void setObservationInterval(final int interval) {
         mObservationInterval = interval;
+    }
+
+    /**
+     * キーワードを取得する.
+     * @return キーワード
+     */
+    public String getKeyword() {
+        return mKeyword;
+    }
+
+    /**
+     * キーワードを設定する.
+     * @param keyword キーワード
+     */
+    public void setKeyword(final String keyword) {
+        mKeyword = keyword;
     }
 }

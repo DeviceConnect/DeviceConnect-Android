@@ -1,14 +1,14 @@
 /*
- ThetaDeviceServiceProvider
+ KadecotDeviceServiceProvider
  Copyright (c) 2015 NTT DOCOMO,INC.
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
  */
 package org.deviceconnect.android.deviceplugin.kadecot;
 
-import org.deviceconnect.android.message.DConnectMessageServiceProvider;
-
 import android.app.Service;
+
+import org.deviceconnect.android.message.DConnectMessageServiceProvider;
 
 /**
  * Theta Device Service Provider.

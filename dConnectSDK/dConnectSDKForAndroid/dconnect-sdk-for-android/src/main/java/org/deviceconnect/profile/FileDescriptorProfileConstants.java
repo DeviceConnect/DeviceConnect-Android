@@ -126,6 +126,11 @@ public interface FileDescriptorProfileConstants extends DConnectProfileConstants
     String PARAM_MEDIA = "media";
 
     /**
+     * パラメータ: {@value} .
+     */
+    String PARAM_DATA = "data";
+
+    /**
      * ファイルフラグ.
      */
     enum Flag {

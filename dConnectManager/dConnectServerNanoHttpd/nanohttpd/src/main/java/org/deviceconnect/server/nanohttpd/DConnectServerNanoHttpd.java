@@ -17,8 +17,6 @@ import org.deviceconnect.server.nanohttpd.logger.AndroidHandler;
 import org.deviceconnect.server.nanohttpd.security.Firewall;
 import org.deviceconnect.server.nanohttpd.util.KeyStoreManager;
 import org.deviceconnect.server.websocket.DConnectWebSocket;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -34,6 +32,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.UUID;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.SimpleFormatter;
@@ -659,8 +658,8 @@ public class DConnectServerNanoHttpd extends DConnectServer {
         /** Keep-Aliveのタスク. */
         private final KeepAliveTask mKeepAliveTask;
 
-        /** セッションキー. */
-        private String mSessionKey;
+        /** ID. */
+        private final UUID mId = UUID.randomUUID();
 
         /**
          * コンストラクタ.
@@ -672,6 +671,32 @@ public class DConnectServerNanoHttpd extends DConnectServer {
             mKeepAliveTimer = new Timer();
             mKeepAliveTimer.scheduleAtFixedRate(mKeepAliveTask, WEBSOCKET_KEEP_ALIVE_INTERVAL,
                     WEBSOCKET_KEEP_ALIVE_INTERVAL);
+
+            mSockets.put(getId(), this);
+            if (mListener != null) {
+                mListener.onWebSocketConnected(this);
+            }
+            mWebSockets.add(this);
+        }
+
+        @Override
+        public String getId() {
+            return mId.toString();
+        }
+
+        @Override
+        public String getUri() {
+            return getHandshakeRequest().getUri();
+        }
+
+        @Override
+        public String getClientOrigin() {
+            NanoHTTPD.IHTTPSession request = getHandshakeRequest();
+            String origin = request.getHeaders().get("origin");
+            if (origin == null) {
+                origin = request.getHeaders().get("X-GotAPI-Origin");
+            }
+            return origin;
         }
 
         @Override
@@ -722,21 +747,22 @@ public class DConnectServerNanoHttpd extends DConnectServer {
             }
         }
 
-        @Override
-        protected void onClose(final NanoWSD.WebSocketFrame.CloseCode code, final String reason, final boolean initiatedByRemote) {
-            if (mSessionKey != null) {
-                mSockets.remove(mSessionKey);
-                mLogger.fine("WebSocket closed. Session Key : " + mSessionKey);
-                if (mListener != null) {
-                    mListener.onWebSocketDisconnected(mSessionKey);
-                }
-                mSessionKey = null;
+        private void closeWebSocket() {
+            mSockets.remove(getId());
+            mLogger.fine("WebSocket closed. id = " + getId());
+            if (mListener != null) {
+                mListener.onWebSocketDisconnected(getId());
             }
             if (mServer != null) {
                 mServer.countdownWebSocket();
             }
 
             mKeepAliveTimer.cancel();
+        }
+
+        @Override
+        protected void onClose(final CloseCode code, final String reason, final boolean initiatedByRemote) {
+            closeWebSocket();
         }
 
         @Override
@@ -815,5 +841,24 @@ public class DConnectServerNanoHttpd extends DConnectServer {
                 }
             }
         }
+    }
+
+    @Override
+    public void disconnectWebSocket(final String webSocketId) {
+        for (NanoWebSocket socket : mWebSockets) {
+            if (webSocketId.equals(socket.getId())) {
+                try {
+                    socket.close(CloseCode.GoingAway, "User disconnect");
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                return;
+            }
+        }
+    }
+
+    @Override
+    public String getVersion() {
+        return VERESION;
     }
 }

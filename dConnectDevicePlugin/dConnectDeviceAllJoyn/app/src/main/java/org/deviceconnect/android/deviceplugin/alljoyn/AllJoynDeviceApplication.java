@@ -206,16 +206,7 @@ public class AllJoynDeviceApplication extends Application {
         return null;
     }
 
-    public String getCurrentVersionName() {
-        PackageManager packageManager = getPackageManager();
 
-        try {
-            PackageInfo e = packageManager.getPackageInfo(getPackageName(), 1);
-            return e.versionName;
-        } catch (PackageManager.NameNotFoundException var3) {
-            return "Unknown";
-        }
-    }
 
     public AllJoynServiceEntity getServiceWithBusName(String busName) {
         for (AllJoynServiceEntity service : mAllJoynServiceEntities.values()) {
@@ -346,11 +337,7 @@ public class AllJoynDeviceApplication extends Application {
                 return;
             }
 
-            if (mAllJoynServiceEntities.containsKey(service.appId)) {
-                AllJoynServiceEntity oldService = mAllJoynServiceEntities.get(service.appId);
-                service.lastAlive = oldService.lastAlive;
-            }
-            mAllJoynServiceEntities.put(service.appId, service);
+            putEntity(service);
         }
 
         @Override
@@ -367,7 +354,7 @@ public class AllJoynDeviceApplication extends Application {
                             "Service " + service.serviceName + " is removed.");
                 }
 
-                mAllJoynServiceEntities.remove(service.appId);
+                removeEntity(service);
             }
         }
 
@@ -444,7 +431,7 @@ public class AllJoynDeviceApplication extends Application {
                                                 "Ping failed: " + service.serviceName +
                                                         ". Removing it from discovered services...");
                                     }
-                                    mAllJoynServiceEntities.remove(service.appId);
+                                    removeEntity(service);
                                 }
                             } else {
                                 if (BuildConfig.DEBUG) {
@@ -644,6 +631,48 @@ public class AllJoynDeviceApplication extends Application {
     public class ResultReceiver extends android.os.ResultReceiver {
         public ResultReceiver() {
             super(mAllJoynHandler);
+        }
+    }
+
+
+    private void removeEntity(final AllJoynServiceEntity entity) {
+        if (mAllJoynServiceEntities.remove(entity.appId) != null) {
+            notifyOnDisconnect(entity);
+        }
+    }
+
+    private void putEntity(final AllJoynServiceEntity entity) {
+        if (mAllJoynServiceEntities.containsKey(entity.appId)) {
+            AllJoynServiceEntity oldService = mAllJoynServiceEntities.get(entity.appId);
+            entity.lastAlive = oldService.lastAlive;
+        }
+        mAllJoynServiceEntities.put(entity.appId, entity);
+        notifyOnConnect(entity);
+    }
+
+    public interface ConnectionListener {
+
+        void onConnect(AllJoynServiceEntity entity);
+
+        void onDisconnect(AllJoynServiceEntity entity);
+
+    }
+
+    private ConnectionListener mConnectionListener;
+
+    public void setConnectionListener(final ConnectionListener listener) {
+        mConnectionListener = listener;
+    }
+
+    private void notifyOnConnect(AllJoynServiceEntity entity) {
+        if (mConnectionListener != null) {
+            mConnectionListener.onConnect(entity);
+        }
+    }
+
+    private void notifyOnDisconnect(AllJoynServiceEntity entity) {
+        if (mConnectionListener != null) {
+            mConnectionListener.onDisconnect(entity);
         }
     }
 

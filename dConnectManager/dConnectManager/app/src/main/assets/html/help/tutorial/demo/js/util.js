@@ -6,7 +6,7 @@ var util = (function(parent, global) {
 
     function init(callback) {
         dConnect.setHost("localhost");
-        dConnect.setExtendedOrigin("file://android_asset/");
+        dConnect.setExtendedOrigin("file://");
         checkDeviceConnect(callback);
     }
     parent.init = init;
@@ -41,8 +41,6 @@ var util = (function(parent, global) {
                 mAccessToken = getCookie('accessToken');
             }
 
-            openWebSocketIfNeeded();
-
             findHostDevicePlugin(callback);
         });
     }
@@ -54,11 +52,12 @@ var util = (function(parent, global) {
             'system',
             'battery',
             'deviceorientation',
-            'mediastream_recording',
+            'mediastreamrecording',
             'vibration');
-        dConnect.authorization(scopes, 'ヘルプ',
+        dConnect.authorization(scopes, 'ヘルプ画面',
             function(clientId, accessToken) {
                 mAccessToken = accessToken;
+                openWebSocketIfNeeded();
                 if (window.Android) {
                     Android.setCookie("accessToken", mAccessToken);
                 } else {
@@ -73,12 +72,13 @@ var util = (function(parent, global) {
 
     function openWebSocketIfNeeded() {
         if (!dConnect.isConnectedWebSocket()) {
-            dConnect.connectWebSocket(mSessionKey, function(errorCode, errorMessage) {
-                console.log('Failed to open websocket: ' + errorCode + ' - ' + errorMessage);
+            var accessToken = mAccessToken ? mAccessToken : mSessionKey;
+            dConnect.connectWebSocket(accessToken, function(code, message) {
+                if (code > 0) {
+                    alert('WebSocketが切れました。\n code=' + code + " message=" + message);
+                }
+                console.log("WebSocket: code=" + code + " message=" +message);
             });
-            console.log('WebSocket opened.');
-        } else {
-            console.log('WebSocket has opened already.');
         }
     }
 
@@ -86,6 +86,7 @@ var util = (function(parent, global) {
         dConnect.discoverDevices(mAccessToken, function(json) {
             for (var i = 0; i < json.services.length; i++) {
                 if (json.services[i].name.toLowerCase().indexOf("host") == 0) {
+                    openWebSocketIfNeeded();
                     callback(json.services[i]);
                     return;
                 }

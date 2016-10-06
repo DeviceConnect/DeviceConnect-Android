@@ -8,8 +8,6 @@ package org.deviceconnect.android.profile;
 
 import android.content.Intent;
 
-import org.deviceconnect.android.message.MessageUtils;
-
 /**
  * Temperature profile.
  *
@@ -52,12 +50,6 @@ public class TemperatureProfile extends DConnectProfile implements TemperaturePr
     @Override
     public String getProfileName() {
         return PROFILE_NAME;
-    }
-
-    @Override
-    protected boolean onGetRequest(Intent request, Intent response) {
-        MessageUtils.setNotSupportAttributeError(response);
-        return true;
     }
 
     public static void setTemperature(Intent response, double temperature) {

@@ -4,11 +4,23 @@ android {
     compileSdkVersion 23
     buildToolsVersion "23.0.0"
 
+    def getVersionName = { ->
+        def version
+        if (System.getProperty('os.name').toLowerCase().contains('windows')) {
+            version = ["cmd", "/c", "git describe --tags --long"].execute().in.text.trim()
+        } else {
+            version = ["sh", "-c", "git describe --tags --long"].execute().in.text.trim()
+        }
+        version = version.empty ? "2.1.0" : version
+        return "${version}"
+    }
+
     defaultConfig {
+        applicationId "org.deviceconnect.android.deviceplugin.alljoyn"
         minSdkVersion 19
         targetSdkVersion 23
         versionCode 1
-        versionName "1.0"
+        versionName getVersionName()
     }
 
     signingConfigs {

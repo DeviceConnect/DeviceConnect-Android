@@ -7,8 +7,13 @@
 
 package org.deviceconnect.android.deviceplugin.host.profile;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import android.bluetooth.BluetoothAdapter;
+import android.content.Context;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.net.wifi.WifiManager;
+import android.nfc.NfcAdapter;
+import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.HostDeviceService;
@@ -17,16 +22,12 @@ import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.ConnectProfile;
+import org.deviceconnect.android.profile.api.DConnectApi;
+import org.deviceconnect.android.profile.api.DeleteApi;
+import org.deviceconnect.android.profile.api.GetApi;
+import org.deviceconnect.android.profile.api.PutApi;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
-
-import android.bluetooth.BluetoothAdapter;
-import android.content.Context;
-import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.net.wifi.WifiManager;
-import android.nfc.NfcAdapter;
-import android.util.Log;
 
 /**
  * Connect プロファイル.
@@ -41,69 +42,61 @@ public class HostConnectProfile extends ConnectProfile {
     /** Bluetooth Adapter. */
     private BluetoothAdapter mBluetoothAdapter;
 
-    /**
-     * コンストラクタ.
-     * 
-     * @param bluetoothAdapter Bluetoothアダプタ.
-     */
-    public HostConnectProfile(final BluetoothAdapter bluetoothAdapter) {
-        mBluetoothAdapter = bluetoothAdapter;
-    }
+    private final DConnectApi mGetWifiApi = new GetApi() {
 
-    @Override
-    protected boolean onGetWifi(final Intent request, final Intent response, final String serviceId) {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_WIFI;
+        }
 
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else {
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
             getEnabledOfWiFi(request, response);
             setResult(response, IntentDConnectMessage.RESULT_OK);
+            return true;
         }
-        return true;
+    };
 
-    }
+    private final DConnectApi mGetBluetoothApi = new GetApi() {
 
-    @Override
-    protected boolean onGetBluetooth(final Intent request, final Intent response, final String serviceId) {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_BLUETOOTH;
+        }
 
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else {
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
             getEnabledBluetooth(request, response);
             setResult(response, IntentDConnectMessage.RESULT_OK);
+            return true;
         }
-        return true;
+    };
 
-    }
+    private final DConnectApi mGetBleApi = new GetApi() {
 
-    @Override
-    protected boolean onGetBLE(final Intent request, final Intent response, final String serviceId) {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_BLE;
+        }
 
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else {
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
             getEnabledOfBluetoothLowEnery(request, response);
             setResult(response, IntentDConnectMessage.RESULT_OK);
+            return true;
         }
-        return true;
+    };
 
-    }
+    private final DConnectApi mGetNfcApi = new GetApi() {
 
-    @Override
-    protected boolean onGetNFC(final Intent request, final Intent response, final String serviceId) {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_NFC;
+        }
 
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else {
-            NfcAdapter adapter = NfcAdapter.getDefaultAdapter(this.getContext());
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            NfcAdapter adapter = NfcAdapter.getDefaultAdapter(getContext());
             if (adapter != null) {
                 if (adapter.isEnabled()) {
                     response.putExtra(PARAM_ENABLE, true);
@@ -114,120 +107,105 @@ public class HostConnectProfile extends ConnectProfile {
                 response.putExtra(PARAM_ENABLE, false);
             }
             setResult(response, IntentDConnectMessage.RESULT_OK);
+            return true;
+        }
+    };
+
+    private final DConnectApi mPutWifiApi = new PutApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_WIFI;
         }
 
-        return true;
-
-    }
-
-    @Override
-    protected boolean onPutWifi(final Intent request, final Intent response, final String serviceId) {
-
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else {
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
             setEnabledOfWiFi(request, response, true);
+            return true;
         }
-        return true;
-    }
+    };
 
-    @Override
-    protected boolean onPutBluetooth(final Intent request, final Intent response, final String serviceId) {
+    private final DConnectApi mPutBluetoothApi = new PutApi() {
 
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_BLUETOOTH;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
             setEnabledBluetooth(request, response, true);
-            setResult(response, IntentDConnectMessage.RESULT_OK);
+            return true;
         }
-        return true;
-    }
+    };
 
-    @Override
-    protected boolean onPutBLE(final Intent request, final Intent response, final String serviceId) {
+    private final DConnectApi mPutBleApi = new PutApi() {
 
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_BLE;
+        }
 
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
             setEnabledBluetooth(request, response, true);
-            setResult(response, IntentDConnectMessage.RESULT_OK);
+            return true;
         }
-        return true;
-    }
+    };
 
-    @Override
-    protected boolean onDeleteWifi(final Intent request, final Intent response, final String serviceId) {
+    private final DConnectApi mDeleteWifiApi = new DeleteApi() {
 
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_WIFI;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
             setEnabledOfWiFi(request, response, false);
+            return true;
         }
-        return true;
-    }
+    };
 
-    @Override
-    protected boolean onDeleteBluetooth(final Intent request, final Intent response, final String serviceId) {
+    private final DConnectApi mDeleteBluetoothApi = new DeleteApi() {
 
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else {
-            setResult(response, DConnectMessage.RESULT_OK);
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_BLUETOOTH;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
             setEnabledBluetooth(request, response, false);
+            return true;
         }
-        return true;
-    }
+    };
 
-    @Override
-    protected boolean onDeleteBLE(final Intent request, final Intent response, final String serviceId) {
+    private final DConnectApi mDeleteBleApi = new DeleteApi() {
 
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else {
-            setResult(response, DConnectMessage.RESULT_OK);
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_BLE;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
             setEnabledBluetooth(request, response, false);
+            return true;
         }
-        return true;
-    }
+    };
 
-    @Override
-    protected boolean onDeleteNFC(final Intent request, final Intent response, final String serviceId) {
+    private final DConnectApi mPutOnWifiChangeApi = new PutApi() {
 
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else {
-            setResult(response, DConnectMessage.RESULT_OK);
-            setEnabledNfc(request, response, false);
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_WIFI_CHANGE;
         }
-        return true;
-    }
 
-    @Override
-    protected boolean onPutOnWifiChange(final Intent request, final Intent response, final String serviceId,
-            final String sessionKey) {
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String serviceId = getServiceID(request);
 
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else if (sessionKey == null) {
-            MessageUtils.setInvalidRequestParameterError(response);
-        } else {
             setResult(response, DConnectMessage.RESULT_OK);
             // イベントの登録
             EventError error = EventManager.INSTANCE.addEvent(request);
@@ -240,23 +218,19 @@ public class HostConnectProfile extends ConnectProfile {
                 setResult(response, DConnectMessage.RESULT_ERROR);
                 return true;
             }
+        }
+    };
 
+    private final DConnectApi mPutOnBluetoothChangeApi = new PutApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_BLUETOOTH_CHANGE;
         }
 
-        return true;
-    }
-
-    @Override
-    protected boolean onPutOnBluetoothChange(final Intent request, final Intent response, final String serviceId,
-            final String sessionKey) {
-
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else if (sessionKey == null) {
-            MessageUtils.setInvalidRequestParameterError(response);
-        } else {
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String serviceId = getServiceID(request);
 
             // イベントの登録
             EventError error = EventManager.INSTANCE.addEvent(request);
@@ -267,23 +241,19 @@ public class HostConnectProfile extends ConnectProfile {
             } else {
                 setResult(response, DConnectMessage.RESULT_ERROR);
             }
+            return true;
+        }
+    };
+
+    private final DConnectApi mDeleteOnWifiChange = new DeleteApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_WIFI_CHANGE;
         }
 
-        return true;
-    }
-
-    @Override
-    protected boolean onDeleteOnWifiChange(final Intent request, final Intent response, final String serviceId,
-            final String sessionKey) {
-
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else if (sessionKey == null) {
-            MessageUtils.setInvalidRequestParameterError(response);
-        } else {
-
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
             // イベントの解除
             EventError error = EventManager.INSTANCE.removeEvent(request);
             if (error == EventError.NONE) {
@@ -294,21 +264,17 @@ public class HostConnectProfile extends ConnectProfile {
                 return true;
             }
         }
-        return true;
-    }
+    };
 
-    @Override
-    protected boolean onDeleteOnBluetoothChange(final Intent request, final Intent response, final String serviceId,
-            final String sessionKey) {
+    private final DConnectApi mDeleteOnBluetoothChange = new DeleteApi() {
 
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else if (sessionKey == null) {
-            MessageUtils.setInvalidRequestParameterError(response);
-        } else {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_BLUETOOTH_CHANGE;
+        }
 
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
             // イベントの解除
             EventError error = EventManager.INSTANCE.removeEvent(request);
             if (error == EventError.NONE) {
@@ -319,7 +285,29 @@ public class HostConnectProfile extends ConnectProfile {
                 return true;
             }
         }
-        return true;
+    };
+
+    /**
+     * コンストラクタ.
+     * 
+     * @param bluetoothAdapter Bluetoothアダプタ.
+     */
+    public HostConnectProfile(final BluetoothAdapter bluetoothAdapter) {
+        mBluetoothAdapter = bluetoothAdapter;
+        addApi(mGetWifiApi);
+        addApi(mGetBluetoothApi);
+        addApi(mGetBleApi);
+        addApi(mGetNfcApi);
+        addApi(mPutWifiApi);
+        addApi(mPutBluetoothApi);
+        addApi(mPutBleApi);
+        addApi(mDeleteWifiApi);
+        addApi(mDeleteBluetoothApi);
+        addApi(mDeleteBleApi);
+        addApi(mPutOnWifiChangeApi);
+        addApi(mPutOnBluetoothChangeApi);
+        addApi(mDeleteOnWifiChange);
+        addApi(mDeleteOnBluetoothChange);
     }
 
     /**
@@ -389,6 +377,8 @@ public class HostConnectProfile extends ConnectProfile {
                 intent.setClass(getContext(), BluetoothManageActivity.class);
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 getContext().startActivity(intent);
+
+                setResult(response, IntentDConnectMessage.RESULT_OK);
             } else {
                 // bluetooth has already enabled
                 setResult(response, IntentDConnectMessage.RESULT_OK);
@@ -423,49 +413,6 @@ public class HostConnectProfile extends ConnectProfile {
         } else {
             response.putExtra(PARAM_ENABLE, false);
         }
-    }
-
-    /**
-     * NFCの状態を変更する.
-     * 
-     * @param request リクエスト
-     * @param response レスポンス
-     * @param enabled WiFi接続状態
-     */
-    protected void setEnabledNfc(final Intent request, final Intent response, final boolean enabled) {
-        MessageUtils.setNotSupportActionError(response, "not support change status of nfc.");
-    }
-
-    /**
-     * サービスIDをチェックする.
-     * 
-     * @param serviceId サービスID
-     * @return <code>serviceId</code>がテスト用サービスIDに等しい場合はtrue、そうでない場合はfalse
-     */
-    private boolean checkServiceId(final String serviceId) {
-        String regex = HostServiceDiscoveryProfile.SERVICE_ID;
-        Pattern mPattern = Pattern.compile(regex);
-        Matcher match = mPattern.matcher(serviceId);
-
-        return match.find();
-    }
-
-    /**
-     * サービスIDが空の場合のエラーを作成する.
-     * 
-     * @param response レスポンスを格納するIntent
-     */
-    private void createEmptyServiceId(final Intent response) {
-        MessageUtils.setEmptyServiceIdError(response);
-    }
-
-    /**
-     * デバイスが発見できなかった場合のエラーを作成する.
-     * 
-     * @param response レスポンスを格納するIntent
-     */
-    private void createNotFoundService(final Intent response) {
-        MessageUtils.setNotFoundServiceError(response);
     }
 
 }

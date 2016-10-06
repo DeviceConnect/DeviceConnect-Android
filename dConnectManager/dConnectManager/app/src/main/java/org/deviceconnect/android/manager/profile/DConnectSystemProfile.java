@@ -20,10 +20,13 @@ import org.deviceconnect.android.manager.request.RemoveEventsRequest;
 import org.deviceconnect.android.manager.setting.KeywordDialogActivity;
 import org.deviceconnect.android.manager.setting.SettingActivity;
 import org.deviceconnect.android.manager.util.DConnectUtil;
-import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.android.profile.DConnectProfileProvider;
 import org.deviceconnect.android.profile.SystemProfile;
+import org.deviceconnect.android.profile.api.DConnectApi;
+import org.deviceconnect.android.profile.api.DeleteApi;
+import org.deviceconnect.android.profile.api.GetApi;
+import org.deviceconnect.android.profile.api.PutApi;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 import org.deviceconnect.profile.SystemProfileConstants;
@@ -39,10 +42,10 @@ import java.util.UUID;
  */
 public class DConnectSystemProfile extends SystemProfile {
     /** プロファイル管理クラス. */
-    private DConnectProfileProvider mProvider;
+    private final DConnectProfileProvider mProvider;
 
     /** プラグイン管理クラス. */
-    private DevicePluginManager mPluginMgr;
+    private final DevicePluginManager mPluginMgr;
 
     /**
      * コンストラクタ.
@@ -53,232 +56,151 @@ public class DConnectSystemProfile extends SystemProfile {
     public DConnectSystemProfile(final DConnectProfileProvider provider, final DevicePluginManager pluginMgr) {
         mProvider = provider;
         mPluginMgr = pluginMgr;
+
+        addApi(mGetRequest);
+        addApi(mPutKeywordRequest);
+        addApi(mDeleteEvents);
     }
 
     @Override
-    protected boolean onGetRequest(final Intent request, final Intent response) {
-        String inter = getInterface(request);
-        String attri = getAttribute(request);
-        if (inter == null && attri == null) {
-            return onGetSystemRequest(request, response);
-        } else if (SystemProfileConstants.ATTRIBUTE_KEYWORD.equalsIgnoreCase(attri)) {
-            return sendNotSupportActionError(request, response);
-        } else if (SystemProfileConstants.ATTRIBUTE_EVENTS.equalsIgnoreCase(attri)) {
-            return sendNotSupportActionError(request, response);
-        }
-        // 各デバイスプラグインに渡すのでfalse
-        return false;
+    protected Class<? extends Activity> getSettingPageActivity(final Intent request, final Bundle param) {
+        return SettingActivity.class;
     }
 
-    @Override
-    protected boolean onPutRequest(final Intent request, final Intent response) {
-        String inter = getInterface(request);
-        String attri = getAttribute(request);
-        if (inter == null && attri == null) {
-            return sendNotSupportActionError(request, response);
-        } else if (SystemProfileConstants.ATTRIBUTE_KEYWORD.equalsIgnoreCase(attri)) {
-            return onPutKeywordRequest(request, response);
-        } else if (SystemProfileConstants.ATTRIBUTE_EVENTS.equalsIgnoreCase(attri)) {
-            return sendNotSupportActionError(request, response);
-        }
-        // 各デバイスプラグインに渡すのでfalse
-        return false;
-    }
+    private final DConnectApi mGetRequest = new GetApi() {
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            setResult(response, DConnectMessage.RESULT_OK);
+            setVersion(response, DConnectUtil.getVersionName(getContext()));
 
-    @Override
-    protected boolean onDeleteRequest(final Intent request, final Intent response) {
-        String inter = getInterface(request);
-        String attri = getAttribute(request);
-        if (inter == null && attri == null) {
-            return sendNotSupportActionError(request, response);
-        } else if (SystemProfileConstants.ATTRIBUTE_KEYWORD.equalsIgnoreCase(attri)) {
-            return sendNotSupportActionError(request, response);
-        } else if (SystemProfileConstants.ATTRIBUTE_EVENTS.equalsIgnoreCase(attri)) {
-            return onDeleteEvents(request, response);
-        }
-        // 各デバイスプラグインに渡すのでfalse
-        return false;
-    }
-
-    @Override
-    protected boolean onPostRequest(final Intent request, final Intent response) {
-        String inter = getInterface(request);
-        String attri = getAttribute(request);
-        if (inter == null && attri == null) {
-            return sendNotSupportActionError(request, response);
-        } else if (SystemProfileConstants.ATTRIBUTE_KEYWORD.equalsIgnoreCase(attri)) {
-            return sendNotSupportActionError(request, response);
-        } else if (SystemProfileConstants.ATTRIBUTE_EVENTS.equalsIgnoreCase(attri)) {
-            return sendNotSupportActionError(request, response);
-        }
-        // 各デバイスプラグインに渡すのでfalse
-        return false;
-    }
-
-    /**
-     * Not Support action Errorを返却する.
-     * @param request リクエスト
-     * @param response レスポンス
-     * @return イベントを止める場合はtrue、配送する場合はfalseを返却
-     */
-    private boolean sendNotSupportActionError(final Intent request, final Intent response) {
-        MessageUtils.setNotSupportActionError(response);
-        ((DConnectService) getContext()).sendResponse(request, response);
-        return true;
-    }
-
-    /**
-     * dConnectManagerのシステムプロファイルを取得する.
-     * @param request リクエスト
-     * @param response レスポンス
-     * @return dConnectManagerでリクエストを止める場合はtrue、それ以外はfalse
-     */
-    private boolean onGetSystemRequest(final Intent request, final Intent response) {
-        setResult(response, DConnectMessage.RESULT_OK);
-        setVersion(response, DConnectUtil.getVersionName(getContext()));
-
-        // サポートしているプロファイル一覧設定
-        List<String> supports = new ArrayList<String>();
-        List<DConnectProfile> profiles = mProvider.getProfileList();
-        for (int i = 0; i < profiles.size(); i++) {
-            supports.add(profiles.get(i).getProfileName());
-        }
-        setSupports(response, supports.toArray(new String[supports.size()]));
-
-        // プラグインの一覧を設定
-        List<Bundle> plugins = new ArrayList<Bundle>();
-        List<DevicePlugin> p = mPluginMgr.getDevicePlugins();
-        for (int i = 0; i < p.size(); i++) {
-            DevicePlugin plugin = p.get(i);
-            String serviceId = mPluginMgr.appendServiceId(plugin, null);
-            Bundle b = new Bundle();
-            b.putString(PARAM_ID, serviceId);
-            b.putString(PARAM_NAME, plugin.getDeviceName());
-            b.putString(PARAM_PACKAGE_NAME, plugin.getPackageName());
-            b.putString(PARAM_VERSION, plugin.getVersionName());
-            setSupports(b, plugin.getSupportProfiles());
-            plugins.add(b);
-        }
-        response.putExtra(PARAM_PLUGINS, plugins.toArray(new Bundle[plugins.size()]));
-
-        // レスポンスを返却
-        ((DConnectService) getContext()).sendResponse(request, response);
-
-        // 各デバイスプラグインに送信する場合にはfalseを返却、
-        // dConnectManagerで止める場合にはtrueを返却する
-        // ここでは、各デバイスには渡さないのでtrueを返却する。
-        return true;
-    }
-
-    /**
-     * キーワード表示用のリクエスト解析を行います.
-     * @param request リクエスト
-     * @param response レスポンス
-     * @return dConnectManagerでリクエストを止める場合はtrue、それ以外はfalse
-     */
-    private boolean onPutKeywordRequest(final Intent request, final Intent response) {
-        DConnectRequest req = new DConnectRequest() {
-            /** ロックオブジェクト. */
-            protected final Object mLockObj = new Object();
-            /** リクエストコード. */
-            protected int mRequestCode;
-
-            @Override
-            public void setResponse(final Intent response) {
-                super.setResponse(response);
-                synchronized (mLockObj) {
-                    mLockObj.notifyAll();
-                }
+            // サポートしているプロファイル一覧設定
+            List<String> supports = new ArrayList<String>();
+            List<DConnectProfile> profiles = mProvider.getProfileList();
+            for (int i = 0; i < profiles.size(); i++) {
+                supports.add(profiles.get(i).getProfileName());
             }
+            setSupports(response, supports.toArray(new String[supports.size()]));
 
-            @Override
-            public boolean hasRequestCode(final int requestCode) {
-                return mRequestCode == requestCode;
+            // プラグインの一覧を設定
+            List<Bundle> plugins = new ArrayList<Bundle>();
+            List<DevicePlugin> p = mPluginMgr.getDevicePlugins();
+            for (int i = 0; i < p.size(); i++) {
+                DevicePlugin plugin = p.get(i);
+                String serviceId = mPluginMgr.appendServiceId(plugin, null);
+                Bundle b = new Bundle();
+                b.putString(PARAM_ID, serviceId);
+                b.putString(PARAM_NAME, plugin.getDeviceName());
+                b.putString(PARAM_PACKAGE_NAME, plugin.getPackageName());
+                b.putString(PARAM_VERSION, plugin.getVersionName());
+                setSupports(b, plugin.getSupportProfiles());
+                plugins.add(b);
             }
+            response.putExtra(PARAM_PLUGINS, plugins.toArray(new Bundle[plugins.size()]));
+            return true;
+        }
+    };
 
-            @Override
-            public void run() {
-                // リクエストコードを作成する
-                mRequestCode = UUID.randomUUID().hashCode();
+    private final DConnectApi mPutKeywordRequest = new PutApi() {
+        @Override
+        public String getAttribute() {
+            return SystemProfileConstants.ATTRIBUTE_KEYWORD;
+        }
 
-                // キーワード表示用のダイアログを表示
-                Intent intent = new Intent(getContext(), KeywordDialogActivity.class);
-                intent.putExtra(IntentDConnectMessage.EXTRA_REQUEST_CODE, mRequestCode);
-                intent.setFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION | Intent.FLAG_ACTIVITY_MULTIPLE_TASK
-                        | Intent.FLAG_ACTIVITY_NEW_TASK);
-                getContext().startActivity(intent);
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            DConnectRequest req = new DConnectRequest() {
+                /** ロックオブジェクト. */
+                protected final Object mLockObj = new Object();
+                /** リクエストコード. */
+                protected int mRequestCode;
 
-                // ダイアログからの返答を待つ
-                if (mResponse == null) {
-                    waitForResponse();
-                }
-
-                // レスポンスを返却
-                setResult(response, DConnectMessage.RESULT_OK);
-                ((DConnectService) getContext()).sendResponse(request, response);
-            }
-
-            /**
-             * 各デバイスからのレスポンスを待つ.
-             * 
-             * この関数から返答があるのは以下の条件になる。
-             * <ul>
-             * <li>デバイスプラグインからレスポンスがあった場合
-             * <li>指定された時間無いにレスポンスが返ってこない場合
-             * </ul>
-             */
-            protected void waitForResponse() {
-                synchronized (mLockObj) {
-                    try {
-                        mLockObj.wait(mTimeout);
-                    } catch (InterruptedException e) {
-                        return;
+                @Override
+                public void setResponse(final Intent response) {
+                    super.setResponse(response);
+                    synchronized (mLockObj) {
+                        mLockObj.notifyAll();
                     }
                 }
-            }
 
-        };
-        req.setContext(getContext());
-        req.setRequest(request);
-        ((DConnectMessageService) getContext()).addRequest(req);
+                @Override
+                public boolean hasRequestCode(final int requestCode) {
+                    return mRequestCode == requestCode;
+                }
 
-        // 各デバイスプラグインに送信する場合にはfalseを返却、
-        // dConnectManagerで止める場合にはtrueを返却する
-        // ここでは、各デバイスには渡さないのでtrueを返却する。
-        return true;
-    }
+                @Override
+                public void run() {
+                    // リクエストコードを作成する
+                    mRequestCode = UUID.randomUUID().hashCode();
 
-    /**
-     * 指定されたセッションキーのイベントを削除する.
-     * @param request リクエスト
-     * @param response レスポンス
-     * @return dConnectManagerでリクエストを止める場合はtrue、それ以外はfalse
-     */
-    private boolean onDeleteEvents(final Intent request, final Intent response) {
-        // dConnectManagerに登録されているイベントを削除
-        String sessionKey = request.getStringExtra(DConnectMessage.EXTRA_SESSION_KEY);
-        if (sessionKey == null) {
-            MessageUtils.setInvalidRequestParameterError(response, "sessionKey is null.");
-            ((DConnectService) getContext()).sendResponse(request, response);
-        } else {
-            EventManager.INSTANCE.removeEvents(sessionKey);
+                    // キーワード表示用のダイアログを表示
+                    Intent intent = new Intent(getContext(), KeywordDialogActivity.class);
+                    intent.putExtra(IntentDConnectMessage.EXTRA_REQUEST_CODE, mRequestCode);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION | Intent.FLAG_ACTIVITY_MULTIPLE_TASK
+                            | Intent.FLAG_ACTIVITY_NEW_TASK);
+                    getContext().startActivity(intent);
 
+                    // ダイアログからの返答を待つ
+                    if (mResponse == null) {
+                        waitForResponse();
+                    }
+
+                    // レスポンスを返却
+                    setResult(response, DConnectMessage.RESULT_OK);
+                    ((DConnectService) getContext()).sendResponse(request, response);
+                }
+
+                /**
+                 * 各デバイスからのレスポンスを待つ.
+                 *
+                 * この関数から返答があるのは以下の条件になる。
+                 * <ul>
+                 * <li>デバイスプラグインからレスポンスがあった場合
+                 * <li>指定された時間無いにレスポンスが返ってこない場合
+                 * </ul>
+                 */
+                protected void waitForResponse() {
+                    synchronized (mLockObj) {
+                        try {
+                            mLockObj.wait(mTimeout);
+                        } catch (InterruptedException e) {
+                            // do-nothing
+                        }
+                    }
+                }
+
+            };
+            req.setContext(getContext());
+            req.setRequest(request);
+            ((DConnectMessageService) getContext()).addRequest(req);
+            return false;
+        }
+    };
+
+    private final DConnectApi mDeleteEvents = new DeleteApi() {
+        @Override
+        public String getAttribute() {
+            return SystemProfileConstants.ATTRIBUTE_EVENTS;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            // dConnectManagerに登録されているイベントを削除
+            String origin = request.getStringExtra(IntentDConnectMessage.EXTRA_ORIGIN);
+            EventManager.INSTANCE.removeEvents(origin);
             // 各デバイスプラグインにイベントを削除依頼を送る
             RemoveEventsRequest req = new RemoveEventsRequest();
             req.setContext(getContext());
             req.setRequest(request);
             req.setDevicePluginManager(mPluginMgr);
             ((DConnectMessageService) getContext()).addRequest(req);
+            return false;
         }
+    };
 
-        // 各デバイスプラグインに送信する場合にはfalseを返却、
-        // dConnectManagerで止める場合にはtrueを返却する
-        // ここでは、各デバイスには渡さないのでtrueを返却する。
-        return true;
-    }
-
-    @Override
-    protected Class<? extends Activity> getSettingPageActivity(final Intent request, final Bundle param) {
-        return SettingActivity.class;
+    public static boolean isWakeUpRequest(final Intent request) {
+        String profile = getProfile(request);
+        String inter = getInterface(request);
+        String attribute = getAttribute(request);
+        return PROFILE_NAME.equals(profile) && INTERFACE_DEVICE.equals(inter) && ATTRIBUTE_WAKEUP.equals(attribute);
     }
 }

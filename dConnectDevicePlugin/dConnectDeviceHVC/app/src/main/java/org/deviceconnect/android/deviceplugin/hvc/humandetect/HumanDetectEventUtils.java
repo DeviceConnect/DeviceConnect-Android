@@ -23,36 +23,50 @@ public final class HumanDetectEventUtils {
     }
     
     /**
-     * search event data by detectKind and sessionKey.
+     * search event data by detectKind and origin.
      * @param eventArray event array
      * @param detectKind detect kind
-     * @param sessionKey session key
+     * @param origin origin
      * @return not null: found event data / null: not found
      */
     public static HumanDetectEvent search(final List<HumanDetectEvent> eventArray,
-            final HumanDetectKind detectKind, final String sessionKey) {
+            final HumanDetectKind detectKind, final String origin) {
         for (HumanDetectEvent event : eventArray) {
             if (event.getKind() == detectKind
-            &&  event.getSessionKey().equals(sessionKey)) {
+            &&  event.getOrigin().equals(origin)) {
                 return event;
             }
-            
         }
         return null;
     }
 
     /**
-     * remove event data by detectKind and sessionKey.
+     * remove event data by detectKind and origin.
      * @param eventArray event array
      * @param detectKind detect kind
-     * @param sessionKey session key
+     * @param origin session key
      */
     public static void remove(final List<HumanDetectEvent> eventArray, final HumanDetectKind detectKind,
-            final String sessionKey) {
+            final String origin) {
         int count = eventArray.size();
         for (int index = (count - 1); index >= 0; index--) {
             HumanDetectEvent event = eventArray.get(index);
-            if (detectKind == event.getKind() && sessionKey.equals(event.getSessionKey())) {
+            if (detectKind == event.getKind() && origin.equals(event.getOrigin())) {
+                eventArray.remove(index);
+            }
+        }
+    }
+
+    /**
+     * remove event data by origin.
+     * @param eventArray event array
+     * @param origin session key
+     */
+    public static void remove(final List<HumanDetectEvent> eventArray, final String origin) {
+        int count = eventArray.size();
+        for (int index = (count - 1); index >= 0; index--) {
+            HumanDetectEvent event = eventArray.get(index);
+            if (origin.equals(event.getOrigin())) {
                 eventArray.remove(index);
             }
         }

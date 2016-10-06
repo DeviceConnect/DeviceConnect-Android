@@ -7,9 +7,15 @@
 package org.deviceconnect.android.manager;
 
 import android.app.Application;
+import android.content.Context;
+import android.content.SharedPreferences;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import org.deviceconnect.android.logger.AndroidHandler;
+import org.deviceconnect.android.manager.util.DConnectUtil;
+
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 
 /**
  * Device Connect Manager Application.
@@ -23,19 +29,27 @@ public class DConnectApplication extends Application {
     /** ローカルのドメイン名. */
     private static final String LOCALHOST_DCONNECT = "localhost" + DCONNECT_DOMAIN;
 
-    /** デバイスプラグインに紐付くイベント判断用キー格納領域 */
-    private final Map<String, String> mEventKeys = new ConcurrentHashMap<>();
-
-    /** インスタンス */
-    private static DConnectApplication sInstance;
-
+    /** WebSocket管理クラス. */
     private WebSocketInfoManager mWebSocketInfoManager;
+
+    /** デバイスプラグイン管理クラス. */
     private DevicePluginManager mDevicePluginManager;
 
     @Override
     public void onCreate() {
         super.onCreate();
-        sInstance = this;
+        Logger logger = Logger.getLogger("dconnect.manager");
+        if (BuildConfig.DEBUG) {
+            AndroidHandler handler = new AndroidHandler(logger.getName());
+            handler.setFormatter(new SimpleFormatter());
+            handler.setLevel(Level.ALL);
+            logger.addHandler(handler);
+            logger.setLevel(Level.ALL);
+        } else {
+            logger.setLevel(Level.OFF);
+        }
+
+        initialize();
 
         mDevicePluginManager = new DevicePluginManager(this, LOCALHOST_DCONNECT);
         mDevicePluginManager.createDevicePluginList();
@@ -50,6 +64,10 @@ public class DConnectApplication extends Application {
         super.onTerminate();
     }
 
+    public void updateDevicePluginList() {
+        mDevicePluginManager.createDevicePluginList();
+    }
+
     public WebSocketInfoManager getWebSocketInfoManager() {
         return mWebSocketInfoManager;
     }
@@ -58,64 +76,21 @@ public class DConnectApplication extends Application {
         return mDevicePluginManager;
     }
 
-    /**
-     * Applicationインスタンス取得.
-     * @return インスタンス
-     */
-    public static synchronized DConnectApplication getInstance() {
-        return sInstance;
-    }
+    private void initialize() {
+        SharedPreferences sp = getSharedPreferences(getPackageName() + "_preferences", Context.MODE_PRIVATE);
 
-    /**
-     * セッションキーとデバイスプラグインの紐付けを行う.
-     * @param identifyKey appendPluginIdToSessionKey()加工後のセッションキー
-     * @param serviceId プラグインID
-     */
-    public void setDevicePluginIdentifyKey(final String identifyKey, final String serviceId) {
-        mEventKeys.put(identifyKey, serviceId);
-    }
-
-    /**
-     * セッションキーに紐付いているデバイスプラグインIDを取得する.
-     * @param identifyKey セッションキー
-     * @return プラグインID、該当無しの場合はnull
-     */
-    public String getDevicePluginIdentifyKey(final String identifyKey) {
-        if (mEventKeys.containsKey(identifyKey)) {
-            return mEventKeys.get(identifyKey);
-        } else {
-            return null;
+        String name = sp.getString(getString(R.string.key_settings_dconn_name), null);
+        if (name == null) {
+            SharedPreferences.Editor editor = sp.edit();
+            editor.putString(getString(R.string.key_settings_dconn_name), DConnectUtil.createName());
+            editor.apply();
         }
-    }
 
-    /**
-     * セッションキーに紐付いているデバイスプラグインIDを削除する.
-     * @param identifyKey セッションキー
-     * @return 削除成功でtrue, 該当無しの場合はfalse
-     */
-    public boolean removeDevicePluginIdentifyKey(final String identifyKey) {
-        if (mEventKeys.containsKey(identifyKey)) {
-            mEventKeys.remove(identifyKey);
-            return true;
-        } else {
-            return false;
+        String uuid = sp.getString(getString(R.string.key_settings_dconn_uuid), null);
+        if (uuid == null) {
+            SharedPreferences.Editor editor = sp.edit();
+            editor.putString(getString(R.string.key_settings_dconn_uuid), DConnectUtil.createUuid());
+            editor.apply();
         }
-    }
-
-    /**
-     * Map登録されているKey取得.
-     * @param sessionKey セッションキー
-     * @return Map登録されているKey, 存在しない場合はnull.
-     */
-    public String getIdentifySessionKey(final String sessionKey) {
-        String matchKey = null;
-        for (Map.Entry<String, String> entry : mEventKeys.entrySet()) {
-            String key = entry.getKey();
-            if (key.startsWith(sessionKey)) {
-                matchKey = key;
-                break;
-            }
-        }
-        return matchKey;
     }
 }

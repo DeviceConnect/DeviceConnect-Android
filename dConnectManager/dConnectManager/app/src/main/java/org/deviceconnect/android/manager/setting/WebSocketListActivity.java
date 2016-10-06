@@ -2,17 +2,21 @@ package org.deviceconnect.android.manager.setting;
 
 import android.app.ActionBar;
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
 import org.deviceconnect.android.manager.DConnectApplication;
+import org.deviceconnect.android.manager.DConnectService;
 import org.deviceconnect.android.manager.R;
 import org.deviceconnect.android.manager.WebSocketInfo;
+import org.deviceconnect.android.manager.WebSocketInfoManager;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -20,8 +24,13 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-public class WebSocketListActivity extends Activity {
+public class WebSocketListActivity extends Activity implements AlertDialogFragment.OnAlertDialogListener,
+        WebSocketInfoManager.OnWebSocketEventListener {
+
+    private static final String TAG_DELETE_WEB_SOCKET = "delete_web_socket";
+
     private WebSocketInfoAdapter mWebSocketInfoAdapter;
+    private WebSocketInfo mWebSocketInfo;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,16 +43,31 @@ public class WebSocketListActivity extends Activity {
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
 
-
-        DConnectApplication app = (DConnectApplication) getApplication();
-
         mWebSocketInfoAdapter = new WebSocketInfoAdapter();
-        mWebSocketInfoAdapter.mWebSocketInfoList = app.getWebSocketInfoManager().getWebSocketInfos();
+        mWebSocketInfoAdapter.setWebSocketInfoList(getWebSocketInfoManager().getWebSocketInfos());
 
         ListView listView = (ListView) findViewById(R.id.activity_websocket_list);
         if (listView != null) {
             listView.setAdapter(mWebSocketInfoAdapter);
+            listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(final AdapterView<?> parent, final View view, final int position, final long id) {
+                    showDeleteDialog(position);
+                }
+            });
         }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        getWebSocketInfoManager().setOnWebSocketEventListener(this);
+    }
+
+    @Override
+    protected void onPause() {
+        getWebSocketInfoManager().setOnWebSocketEventListener(null);
+        super.onPause();
     }
 
     @Override
@@ -55,9 +79,56 @@ public class WebSocketListActivity extends Activity {
         return super.onOptionsItemSelected(item);
     }
 
+    @Override
+    public void onPositiveButton(final String tag) {
+        if (TAG_DELETE_WEB_SOCKET.equals(tag) && mWebSocketInfo != null) {
+            Intent intent = new Intent();
+            intent.setClass(this, DConnectService.class);
+            intent.setAction(DConnectService.ACTION_DISCONNECT_WEB_SOCKET);
+            intent.putExtra(DConnectService.EXTRA_WEBSOCKET_ID, mWebSocketInfo.getRawId());
+            startService(intent);
+        }
+    }
+
+    @Override
+    public void onNegativeButton(final String tag) {
+
+    }
+
+    @Override
+    public void onDisconnect(final String sessionKey) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mWebSocketInfoAdapter.setWebSocketInfoList(getWebSocketInfoManager().getWebSocketInfos());
+                mWebSocketInfoAdapter.notifyDataSetChanged();
+            }
+        });
+    }
+
+    private void showDeleteDialog(final int position) {
+        mWebSocketInfo = (WebSocketInfo) mWebSocketInfoAdapter.getItem(position);
+
+        String title = getString(R.string.activity_websocket_delete_title);
+        String message = getString(R.string.activity_websocket_delete_message);
+        String positive = getString(R.string.activity_websocket_delete_positive);
+        String negative = getString(R.string.activity_websocket_delete_negative);
+        AlertDialogFragment dialog = AlertDialogFragment.create(TAG_DELETE_WEB_SOCKET, title, message, positive, negative);
+        dialog.show(getFragmentManager(), TAG_DELETE_WEB_SOCKET);
+    }
+
+    private WebSocketInfoManager getWebSocketInfoManager() {
+        DConnectApplication app = (DConnectApplication) getApplication();
+        return app.getWebSocketInfoManager();
+    }
+
     private class WebSocketInfoAdapter extends BaseAdapter {
+        private final SimpleDateFormat mDateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm", Locale.JAPAN);
         private List<WebSocketInfo> mWebSocketInfoList = new ArrayList<>();
-        private SimpleDateFormat mDateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm", Locale.JAPAN);
+
+        public void setWebSocketInfoList(List<WebSocketInfo> webSocketInfoList) {
+            mWebSocketInfoList = webSocketInfoList;
+        }
 
         @Override
         public int getCount() {
@@ -93,7 +164,7 @@ public class WebSocketListActivity extends Activity {
 
             TextView sessionKeyView = (TextView) view.findViewById(R.id.item_websocket_session_key);
             if (sessionKeyView != null) {
-                sessionKeyView.setText(info.getEventKey());
+                sessionKeyView.setText(info.getRawId());
             }
 
             TextView timeView = (TextView) view.findViewById(R.id.item_websocket_connect_time);

@@ -12,8 +12,6 @@ import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpUriRequest;
-import org.deviceconnect.android.test.plugin.profile.TestBatteryProfileConstants;
-import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.deviceconnect.profile.BatteryProfileConstants;
 import org.deviceconnect.profile.DConnectProfileConstants;
@@ -56,18 +54,6 @@ public class NormalBatteryProfileTestCase extends RESTfulDConnectTestCase {
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject root = sendRequest(request);
             assertResultOK(root);
-            assertEquals("charging is not equals.",
-                    TestBatteryProfileConstants.CHARGING,
-                    root.getBoolean(BatteryProfileConstants.ATTRIBUTE_CHARGING));
-            assertEquals("chargingtime is not equals.",
-                    TestBatteryProfileConstants.CHARGING_TIME,
-                    root.getDouble(BatteryProfileConstants.ATTRIBUTE_CHARGING_TIME));
-            assertEquals("dischargingtime is not equals.",
-                    TestBatteryProfileConstants.DISCHARGING_TIME,
-                    root.getDouble(BatteryProfileConstants.ATTRIBUTE_DISCHARGING_TIME));
-            assertEquals("level is not equals.", 
-                    TestBatteryProfileConstants.LEVEL,
-                    root.getDouble(BatteryProfileConstants.ATTRIBUTE_LEVEL));
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -97,9 +83,6 @@ public class NormalBatteryProfileTestCase extends RESTfulDConnectTestCase {
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject root = sendRequest(request);
             assertResultOK(root);
-            assertEquals("level is not equals.", 
-                    TestBatteryProfileConstants.LEVEL,
-                    root.getDouble(BatteryProfileConstants.ATTRIBUTE_LEVEL));
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -129,9 +112,6 @@ public class NormalBatteryProfileTestCase extends RESTfulDConnectTestCase {
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject root = sendRequest(request);
             assertResultOK(root);
-            assertEquals("charging is not equals.", 
-                    TestBatteryProfileConstants.CHARGING,
-                    root.getBoolean(BatteryProfileConstants.ATTRIBUTE_CHARGING));
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -161,9 +141,6 @@ public class NormalBatteryProfileTestCase extends RESTfulDConnectTestCase {
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject root = sendRequest(request);
             assertResultOK(root);
-            assertEquals("chargingtime is not equals.", 
-                    TestBatteryProfileConstants.CHARGING_TIME,
-                    root.getDouble(BatteryProfileConstants.ATTRIBUTE_CHARGING_TIME));
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -193,9 +170,6 @@ public class NormalBatteryProfileTestCase extends RESTfulDConnectTestCase {
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject root = sendRequest(request);
             assertResultOK(root);
-            assertEquals("dischargingtime is not equals.", 
-                    TestBatteryProfileConstants.DISCHARGING_TIME,
-                    root.getDouble(BatteryProfileConstants.ATTRIBUTE_DISCHARGING_TIME));
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -219,19 +193,11 @@ public class NormalBatteryProfileTestCase extends RESTfulDConnectTestCase {
         builder.setProfile(BatteryProfileConstants.PROFILE_NAME);
         builder.setAttribute(BatteryProfileConstants.ATTRIBUTE_ON_CHARGING_CHANGE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-        builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, getClientId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject root = sendRequest(request);
             assertResultOK(root);
-            // イベントメッセージを受け取る
-            JSONObject resp = waitForEvent();
-            assertNotNull("response is null.", resp);
-            assertEquals(BatteryProfileConstants.PROFILE_NAME,
-                    resp.getString(DConnectMessage.EXTRA_PROFILE));
-            assertEquals(BatteryProfileConstants.ATTRIBUTE_ON_CHARGING_CHANGE,
-                    resp.getString(DConnectMessage.EXTRA_ATTRIBUTE));
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -255,7 +221,7 @@ public class NormalBatteryProfileTestCase extends RESTfulDConnectTestCase {
         builder.setProfile(BatteryProfileConstants.PROFILE_NAME);
         builder.setAttribute(BatteryProfileConstants.ATTRIBUTE_ON_CHARGING_CHANGE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-        builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, getClientId());
+
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
@@ -284,19 +250,12 @@ public class NormalBatteryProfileTestCase extends RESTfulDConnectTestCase {
         builder.setProfile(BatteryProfileConstants.PROFILE_NAME);
         builder.setAttribute(BatteryProfileConstants.ATTRIBUTE_ON_BATTERY_CHANGE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-        builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, getClientId());
+
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject root = sendRequest(request);
             assertResultOK(root);
-            // イベントメッセージを受け取る
-            JSONObject resp = waitForEvent();
-            assertNotNull("response is null.", resp);
-            assertEquals(BatteryProfileConstants.PROFILE_NAME,
-                    resp.getString(DConnectMessage.EXTRA_PROFILE));
-            assertEquals(BatteryProfileConstants.ATTRIBUTE_ON_BATTERY_CHANGE,
-                    resp.getString(DConnectMessage.EXTRA_ATTRIBUTE));
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -320,7 +279,7 @@ public class NormalBatteryProfileTestCase extends RESTfulDConnectTestCase {
         builder.setProfile(BatteryProfileConstants.PROFILE_NAME);
         builder.setAttribute(BatteryProfileConstants.ATTRIBUTE_ON_BATTERY_CHANGE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-        builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, getClientId());
+
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());

@@ -58,6 +58,7 @@ import org.deviceconnect.android.localoauth.oauthserver.db.SQLiteToken;
 import org.deviceconnect.android.localoauth.oauthserver.db.SQLiteTokenManager;
 import org.deviceconnect.android.localoauth.temp.RedirectRepresentation;
 import org.deviceconnect.android.localoauth.temp.ResultRepresentation;
+import org.deviceconnect.android.logger.AndroidHandler;
 import org.json.JSONException;
 import org.restlet.Context;
 import org.restlet.Request;
@@ -89,7 +90,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 
 /**
  * Local OAuth API.
@@ -218,6 +221,14 @@ public final class LocalOAuth2Main {
     }
 
     /**
+     * ロガーを取得する.
+     * @return ロガー
+     */
+    public static Logger getLogger() {
+        return sLogger;
+    }
+
+    /**
      * (1)Local OAuthを初期化する.
      * <p>
      * - 変数を初期化する。<br>
@@ -236,6 +247,18 @@ public final class LocalOAuth2Main {
 
         /* ユーザー追加 */
         addUserData(SampleUser.LOCALOAUTH_USER, SampleUser.LOCALOAUTH_PASS);
+
+        /* ログレベル設定 */
+        Logger logger = getLogger();
+        if (BuildConfig.DEBUG) {
+            AndroidHandler handler = new AndroidHandler(logger.getName());
+            handler.setFormatter(new SimpleFormatter());
+            handler.setLevel(Level.ALL);
+            logger.addHandler(handler);
+            logger.setLevel(Level.ALL);
+        } else {
+            logger.setLevel(Level.OFF);
+        }
     }
 
     /**
@@ -1619,7 +1642,7 @@ public final class LocalOAuth2Main {
 
         /* AuthorizationServerResourceを初期化する */
         if (initialize) {
-            Context context = new Context(Logger.getLogger("LocalOAuth"));
+            Context context = new Context(getLogger());
             AuthorizationServerResource.init(context);
         }
 
@@ -1983,6 +2006,10 @@ public final class LocalOAuth2Main {
         intent.putExtra(ConfirmAuthActivity.EXTRA_SCOPES, params.getScopes());
         intent.putExtra(ConfirmAuthActivity.EXTRA_DISPLAY_SCOPES, displayScopes);
         intent.putExtra(ConfirmAuthActivity.EXTRA_IS_FOR_DEVICEPLUGIN, params.isForDevicePlugin());
+        if (!params.isForDevicePlugin()) {
+            intent.putExtra(ConfirmAuthActivity.EXTRA_PACKAGE_NAME, context.getPackageName());
+            intent.putExtra(ConfirmAuthActivity.EXTRA_KEYWORD, params.getKeyword());
+        }
         intent.setFlags(Intent.FLAG_ACTIVITY_MULTIPLE_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
         context.startActivity(intent);
     }

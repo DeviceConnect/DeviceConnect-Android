@@ -3,12 +3,12 @@ table.profileTable {
     margin: 8px;
     padding: 0px;
     border-collapse: separate;
-    border-spacing: 8px;
+    border-spacing: 12px;
 }
 
 table.profileTable tr td {
     width: 50%;
-    border: solid 1px #0000ff;
+    border: solid 1px #5B9CFF;
     padding: 0px;
     margin: 0px;
     text-align: center;
@@ -19,12 +19,21 @@ table.profileTable tr td div {
     margin: 0px;
 }
 
+img.icon {
+    margin: 8px;
+}
+
+div.profileName {
+    padding: 8px;
+    font-size: small;
+}
+
 div.line {
     width: 100%;
     height: 20px;
     margin: 0px;
     padding: 0px;
-    background-color: #0000ff;
+    background-color: #5B9CFF;
 }
 
 span.serviceName {

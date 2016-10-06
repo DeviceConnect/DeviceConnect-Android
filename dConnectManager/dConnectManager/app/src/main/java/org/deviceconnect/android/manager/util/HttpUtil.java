@@ -11,7 +11,20 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.Map;
+
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 
 public final class HttpUtil {
     /**
@@ -82,7 +95,11 @@ public final class HttpUtil {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         HttpURLConnection conn = null;
         try {
-            conn = (HttpURLConnection) new URL(uri).openConnection();
+            if (uri.startsWith("https://")) {
+                conn = makeHttpsURLConnection(new URL(uri));
+            } else {
+                conn = (HttpURLConnection) new URL(uri).openConnection();
+            }
             conn.setConnectTimeout(CONNECT_TIMEOUT);
             conn.setReadTimeout(READ_TIMEOUT);
             conn.setRequestMethod(method);
@@ -157,4 +174,39 @@ public final class HttpUtil {
     public static byte[] get(final String uri) {
         return connect(METHOD_GET, uri, null, null);
     }
+
+    private static HttpsURLConnection makeHttpsURLConnection(final URL url) throws IOException, NoSuchAlgorithmException, KeyManagementException {
+        HttpsURLConnection connection = (HttpsURLConnection) url.openConnection();
+        connection.setHostnameVerifier(new HostnameVerifier() {
+            @Override
+            public boolean verify(final String hostname, final SSLSession sslSession) {
+                return true;
+            }
+        });
+
+        KeyManager[] keyManagers = null;
+        TrustManager[] transManagers = {
+            new X509TrustManager() {
+                @Override
+                public void checkClientTrusted(final X509Certificate[] chain, final String authType) throws CertificateException {
+                }
+
+                @Override
+                public void checkServerTrusted(final X509Certificate[] chain, final String authType) throws CertificateException {
+                }
+
+                @Override
+                public X509Certificate[] getAcceptedIssuers() {
+                    return new X509Certificate[0];
+                }
+            }
+        };
+
+        SSLContext sslcontext = SSLContext.getInstance("SSL");
+        sslcontext.init(keyManagers, transManagers, new SecureRandom());
+        connection.setSSLSocketFactory(sslcontext.getSocketFactory());
+
+        return connection;
+    }
+
 }

@@ -7,8 +7,7 @@
 
 package org.deviceconnect.android.deviceplugin.host.profile;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import android.content.Intent;
 
 import org.deviceconnect.android.deviceplugin.host.HostDeviceService;
 import org.deviceconnect.android.deviceplugin.host.manager.HostBatteryManager;
@@ -16,10 +15,12 @@ import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.BatteryProfile;
+import org.deviceconnect.android.profile.api.DConnectApi;
+import org.deviceconnect.android.profile.api.DeleteApi;
+import org.deviceconnect.android.profile.api.GetApi;
+import org.deviceconnect.android.profile.api.PutApi;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
-
-import android.content.Intent;
 
 /**
  * Battery Profile.
@@ -30,14 +31,15 @@ public class HostBatteryProfile extends BatteryProfile {
     /** エラーコード. */
     private static final int ERROR_CODE = 100;
 
-    @Override
-    protected boolean onGetLevel(final Intent request, final Intent response, final String serviceId) {
+    private final DConnectApi mBatteryLevelApi = new GetApi() {
 
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_LEVEL;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
             int mLevel = ((HostDeviceService) getContext()).getBatteryLevel();
             int mScale = ((HostDeviceService) getContext()).getBatteryScale();
             if (mScale <= 0) {
@@ -48,33 +50,29 @@ public class HostBatteryProfile extends BatteryProfile {
                 setResult(response, IntentDConnectMessage.RESULT_OK);
                 setLevel(response, mLevel / (float) mScale);
             }
+            return true;
         }
-        return true;
-    }
+    };
 
-    @Override
-    protected boolean onGetCharging(final Intent request, final Intent response, final String serviceId) {
+    private final DConnectApi mBatteryChargingApi = new GetApi() {
 
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_CHARGING;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
             int mStatus = ((HostDeviceService) getContext()).getBatteryStatus();
             setResult(response, IntentDConnectMessage.RESULT_OK);
             setCharging(response, getBatteryChargingStatus(mStatus));
+            return true;
         }
-        return true;
-    }
+    };
 
-    @Override
-    protected boolean onGetAll(final Intent request, final Intent response, final String serviceId) {
-
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else {
+    private final DConnectApi mBatteryAllApi = new GetApi() {
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
             int mLevel = ((HostDeviceService) getContext()).getBatteryLevel();
             int mScale = ((HostDeviceService) getContext()).getBatteryScale();
             if (mScale <= 0) {
@@ -88,20 +86,21 @@ public class HostBatteryProfile extends BatteryProfile {
 
                 setResult(response, IntentDConnectMessage.RESULT_OK);
             }
+            return true;
         }
-        return true;
-    }
+    };
 
-    @Override
-    protected boolean onPutOnChargingChange(final Intent request, final Intent response, final String serviceId,
-            final String sessionKey) {
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else if (sessionKey == null) {
-            MessageUtils.setInvalidRequestParameterError(response);
-        } else {
+    private final DConnectApi mPutOnChargingChangeApi = new PutApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_CHARGING_CHANGE;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String serviceId = getServiceID(request);
+
             // Add event
             EventError error = EventManager.INSTANCE.addEvent(request);
             if (error == EventError.NONE) {
@@ -111,20 +110,19 @@ public class HostBatteryProfile extends BatteryProfile {
             } else {
                 setResult(response, DConnectMessage.RESULT_ERROR);
             }
+            return true;
         }
-        return true;
-    }
+    };
 
-    @Override
-    protected boolean onDeleteOnChargingChange(final Intent request, final Intent response, final String serviceId,
-            final String sessionKey) {
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else if (sessionKey == null) {
-            MessageUtils.setInvalidRequestParameterError(response);
-        } else {
+    private final DConnectApi mDeleteOnChargingChangeApi = new DeleteApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_CHARGING_CHANGE;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
             ((HostDeviceService) getContext()).unregisterBatteryConnectBroadcastReceiver();
             // イベントの解除
             EventError error = EventManager.INSTANCE.removeEvent(request);
@@ -133,21 +131,21 @@ public class HostBatteryProfile extends BatteryProfile {
             } else {
                 MessageUtils.setError(response, ERROR_CODE, "Can not unregister event.");
             }
+            return true;
         }
-        return true;
-    }
+    };
 
-    @Override
-    protected boolean onPutOnBatteryChange(final Intent request, final Intent response, final String serviceId,
-            final String sessionKey) {
+    private final DConnectApi mPutOnBatteryChangeApi = new PutApi() {
 
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else if (sessionKey == null) {
-            MessageUtils.setInvalidRequestParameterError(response);
-        } else {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_BATTERY_CHANGE;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String serviceId = getServiceID(request);
+
             // Add event
             EventError error = EventManager.INSTANCE.addEvent(request);
             if (error == EventError.NONE) {
@@ -157,21 +155,19 @@ public class HostBatteryProfile extends BatteryProfile {
             } else {
                 setResult(response, DConnectMessage.RESULT_ERROR);
             }
+            return true;
         }
-        return true;
-    }
+    };
 
-    @Override
-    protected boolean onDeleteOnBatteryChange(final Intent request, final Intent response, final String serviceId,
-            final String sessionKey) {
+    private final DConnectApi mDeleteOnBatteryChangeApi = new DeleteApi() {
 
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else if (sessionKey == null) {
-            MessageUtils.setInvalidRequestParameterError(response);
-        } else {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_BATTERY_CHANGE;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
             // イベントの解除
             ((HostDeviceService) getContext()).unregisterBatteryChargeBroadcastReceiver();
             EventError error = EventManager.INSTANCE.removeEvent(request);
@@ -180,8 +176,18 @@ public class HostBatteryProfile extends BatteryProfile {
             } else {
                 MessageUtils.setError(response, ERROR_CODE, "Can not unregister event.");
             }
+            return true;
         }
-        return true;
+    };
+
+    public HostBatteryProfile() {
+        addApi(mBatteryLevelApi);
+        addApi(mBatteryChargingApi);
+        addApi(mBatteryAllApi);
+        addApi(mPutOnChargingChangeApi);
+        addApi(mDeleteOnChargingChangeApi);
+        addApi(mPutOnBatteryChangeApi);
+        addApi(mDeleteOnBatteryChangeApi);
     }
 
     /**
@@ -201,36 +207,5 @@ public class HostBatteryProfile extends BatteryProfile {
         default:
             return false;
         }
-    }
-
-    /**
-     * Check serviceId.
-     * 
-     * @param serviceId ServiceId
-     * @return <code>serviceId</code>がテスト用サービスIDに等しい場合はtrue、そうでない場合はfalse
-     */
-    private boolean checkServiceId(final String serviceId) {
-        String regex = HostServiceDiscoveryProfile.SERVICE_ID;
-        Pattern p = Pattern.compile(regex);
-        Matcher m = p.matcher(serviceId);
-        return m.find();
-    }
-
-    /**
-     * サービスIDが空の場合のエラーを作成する.
-     * 
-     * @param response レスポンスを格納するIntent
-     */
-    private void createEmptyServiceId(final Intent response) {
-        MessageUtils.setEmptyServiceIdError(response);
-    }
-
-    /**
-     * デバイスが発見できなかった場合のエラーを作成する.
-     * 
-     * @param response レスポンスを格納するIntent
-     */
-    private void createNotFoundService(final Intent response) {
-        MessageUtils.setNotFoundServiceError(response);
     }
 }

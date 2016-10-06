@@ -18,7 +18,7 @@ public interface OmnidirectionalImageProfileConstants extends DConnectProfileCon
     /**
      * Profile name: {@value} .
      */
-    String PROFILE_NAME = "omnidirectional_image";
+    String PROFILE_NAME = "omnidirectionalImage";
 
     /**
      * Interface name: {@value} .

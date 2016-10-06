@@ -53,15 +53,13 @@ public class NormalVibrationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("?");
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&" + AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        builder.append("&");
-        builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
 
             // パターンのデータを追加
             ArrayList<NameValuePair> params = new ArrayList<NameValuePair>();
             params.add(new BasicNameValuePair(VibrationProfileConstants.PARAM_PATTERN,
-                    "100, 100, 100, 100"));
+                    "100,100,100,100"));
             ((HttpPut) request).setEntity(new UrlEncodedFormEntity(params, "UTF-8"));
 
             JSONObject root = sendRequest(request);

@@ -12,6 +12,8 @@ import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceClient;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceException;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.BatteryProfile;
+import org.deviceconnect.android.profile.api.DConnectApi;
+import org.deviceconnect.android.profile.api.GetApi;
 import org.deviceconnect.message.DConnectMessage;
 
 /**
@@ -23,6 +25,55 @@ public class ThetaBatteryProfile extends BatteryProfile {
 
     private final ThetaDeviceClient mClient;
 
+    private final DConnectApi mGetAllApi = new GetApi() {
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String serviceId = getServiceID(request);
+            mClient.getBatteryLevel(serviceId, new ThetaDeviceClient.DefaultListener() {
+
+                @Override
+                public void onBatteryLevel(final double level) {
+                    setLevel(response, level);
+                    setCharging(response, false);
+                    setResult(response, DConnectMessage.RESULT_OK);
+                    sendResponse(response);
+                }
+
+                @Override
+                public void onFailed(final ThetaDeviceException cause) {
+                    MessageUtils.setUnknownError(response, cause.getMessage());
+                    sendResponse(response);
+                }
+
+            });
+            return false;
+        }
+    };
+
+    private final DConnectApi mGetLevelApi = new GetApi() {
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String serviceId = getServiceID(request);
+            mClient.getBatteryLevel(serviceId, new ThetaDeviceClient.DefaultListener() {
+
+                @Override
+                public void onBatteryLevel(final double level) {
+                    setLevel(response, level);
+                    setResult(response, DConnectMessage.RESULT_OK);
+                    sendResponse(response);
+                }
+
+                @Override
+                public void onFailed(final ThetaDeviceException cause) {
+                    MessageUtils.setUnknownError(response, cause.getMessage());
+                    sendResponse(response);
+                }
+
+            });
+            return false;
+        }
+    };
+
     /**
      * Constructor.
      *
@@ -30,49 +81,8 @@ public class ThetaBatteryProfile extends BatteryProfile {
      */
     public ThetaBatteryProfile(final ThetaDeviceClient client) {
         mClient = client;
-    }
-
-    @Override
-    protected boolean onGetAll(final Intent request, final Intent response, final String serviceId) {
-        mClient.getBatteryLevel(serviceId, new ThetaDeviceClient.DefaultListener() {
-
-            @Override
-            public void onBatteryLevel(final double level) {
-                setLevel(response, level);
-                setCharging(response, false);
-                setResult(response, DConnectMessage.RESULT_OK);
-                sendResponse(response);
-            }
-
-            @Override
-            public void onFailed(final ThetaDeviceException cause) {
-                MessageUtils.setUnknownError(response, cause.getMessage());
-                sendResponse(response);
-            }
-
-        });
-        return false;
-    }
-
-    @Override
-    protected boolean onGetLevel(final Intent request, final Intent response, final String serviceId) {
-        mClient.getBatteryLevel(serviceId, new ThetaDeviceClient.DefaultListener() {
-
-            @Override
-            public void onBatteryLevel(final double level) {
-                setLevel(response, level);
-                setResult(response, DConnectMessage.RESULT_OK);
-                sendResponse(response);
-            }
-
-            @Override
-            public void onFailed(final ThetaDeviceException cause) {
-                MessageUtils.setUnknownError(response, cause.getMessage());
-                sendResponse(response);
-            }
-
-        });
-        return false;
+        addApi(mGetAllApi);
+        addApi(mGetLevelApi);
     }
 
 }

@@ -2,8 +2,9 @@
 <html>
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <link rel="stylesheet" href="../../css/main.css" type="text/css" />
-    <script type="text/javascript" src="js/dconnectsdk-2.0.0.js"></script>
+    <script type="text/javascript" src="js/dconnectsdk-2.1.0.js"></script>
     <script type="text/javascript" src="js/util.js"></script>
     <script type="text/javascript" src="js/demo_take_photo.js"></script>
     <title>写真を撮影する</title>
@@ -12,14 +13,27 @@
     <div class="heading">写真を撮影する</div>
     <div class="photo">
         <form name="recorder">
-            <select name="target" onchange="demoTakePhoto.onChangeTarget()"></select>
-            <select name="imageSize" onchange="demoTakePhoto.onChangeOption()"></select>
-            <select name="previewSize" onchange="demoTakePhoto.onChangeOption()"></select>
+            <table class="settings">
+                <tr>
+                    <td class="name"><span class="label">ターゲット:</span></td>
+                    <td class="value"><select name="target" onchange="demoTakePhoto.onChangeTarget()"></select></td>
+                </tr>
+                <tr>
+                    <td class="name"><span class="label">撮影サイズ:</span></td>
+                    <td class="value"><select name="imageSize" onchange="demoTakePhoto.onChangeOption()"></select></td>
+                </tr>
+                <tr>
+                    <td class="name"><span class="label">プレビューサイズ:</span></td>
+                    <td class="value"><select name="previewSize" onchange="demoTakePhoto.onChangeOption()"></select></td>
+                </tr>
+            </table>
         </form>
         <div style="margin:12px;">
             <img id="preview" crossorigin="anonymous">
         </div>
         <button onclick="demoTakePhoto.onTakePhoto()">撮影</button>
+        <button onclick="demoTakePhoto.onStartPreview()">プレビュー開始</button>
+        <button onclick="demoTakePhoto.onStopPreview()">プレビュー停止</button>
     </div>
     <div id="photos" style="margin:12px;"></div>
 </body>

@@ -22,19 +22,22 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
             android:textAppearance="?android:attr/textAppearanceMedium"
             android:text="@string/command_help" />
 
         <View
             android:layout_width="wrap_content"
             android:background="#000"
-            android:layout_marginTop="5dp"
-            android:layout_marginBottom="5dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
             android:layout_height="1px" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:textSize="18sp"
             android:textColor="@android:color/tertiary_text_dark"
             android:text="@string/keyword" />
 
@@ -48,13 +51,15 @@
         <View
             android:layout_width="wrap_content"
             android:background="#000"
-            android:layout_marginTop="5dp"
-            android:layout_marginBottom="5dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
             android:layout_height="1px" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:textSize="18sp"
             android:textColor="@android:color/tertiary_text_dark"
             android:text="@string/service_id" />
 
@@ -68,13 +73,15 @@
         <View
             android:layout_width="wrap_content"
             android:background="#000"
-            android:layout_marginTop="5dp"
-            android:layout_marginBottom="5dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
             android:layout_height="1px" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:textSize="18sp"
             android:textColor="@android:color/tertiary_text_dark"
             android:text="@string/api" />
 
@@ -88,13 +95,15 @@
         <View
             android:layout_width="wrap_content"
             android:background="#000"
-            android:layout_marginTop="5dp"
-            android:layout_marginBottom="5dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
             android:layout_height="1px" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:textSize="18sp"
             android:textColor="@android:color/tertiary_text_dark"
             android:text="@string/data" />
 
@@ -108,13 +117,15 @@
         <View
             android:layout_width="wrap_content"
             android:background="#000"
-            android:layout_marginTop="5dp"
-            android:layout_marginBottom="5dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
             android:layout_height="1px" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:textSize="18sp"
             android:textColor="@android:color/tertiary_text_dark"
             android:text="@string/res_accept" />
 
@@ -128,6 +139,8 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:textSize="18sp"
             android:textColor="@android:color/tertiary_text_dark"
             android:text="@string/res_accept_uri" />
 
@@ -141,13 +154,15 @@
         <View
             android:layout_width="wrap_content"
             android:background="#000"
-            android:layout_marginTop="5dp"
-            android:layout_marginBottom="5dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
             android:layout_height="1px" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:textSize="18sp"
             android:textColor="@android:color/tertiary_text_dark"
             android:text="@string/res_success" />
 
@@ -161,6 +176,8 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:textSize="18sp"
             android:textColor="@android:color/tertiary_text_dark"
             android:text="@string/res_success_uri" />
 
@@ -169,18 +186,20 @@
             android:layout_height="wrap_content"
             android:layout_marginLeft="10dp"
             android:layout_marginRight="10dp"
-            android:text="@string/res_success_help" />
+            android:text="@string/res_success_uri_help" />
 
         <View
             android:layout_width="wrap_content"
             android:background="#000"
-            android:layout_marginTop="5dp"
-            android:layout_marginBottom="5dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
             android:layout_height="1px" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:textSize="18sp"
             android:textColor="@android:color/tertiary_text_dark"
             android:text="@string/res_error" />
 
@@ -194,6 +213,8 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:textSize="18sp"
             android:textColor="@android:color/tertiary_text_dark"
             android:text="@string/res_error_uri" />
 

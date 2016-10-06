@@ -15,7 +15,7 @@
     <string name="command_help">コマンドの項目説明</string>
     <string name="keyword">キーワード</string>
     <string name="keyword_help">Botが反応するフレーズを登録します。\n
-正規表現での記述が可能なので、表記の揺らぎなどに対応できます。\n
+正規表現での記述が可能なので、表記の揺らぎなどに対応できます。\n\n
 例：写真を(撮って|撮れ|撮りなさい)</string>
     <string name="command">コマンド</string>
     <string name="service_id">サービス</string>
@@ -25,7 +25,7 @@
     <string name="data">データ</string>
     <string name="data_help">APIに渡すパラメータを入力します。\n
 パラメータが必要ないAPIについては「設定できるデータはありません」と表示されます。\n
-キーワードの正規表現のグループをパラメータに渡すことができます。\n
+キーワードの正規表現のグループをパラメータに渡すことができます。\n\n
 例：\n
 キーワード：(\d+)を設定 = 123を設定\n
 パラメータ：mediaId: $1 = mediaId: 123</string>
@@ -43,7 +43,7 @@
 画像などを送信する場合に利用します。</string>
     <string name="res_success">成功レスポンス</string>
     <string name="res_success_help">サービスの機能の呼び出しに成功した場合のレスポンスです。\n
-Chunkテンプレートエンジンに対応していますので、サービスから返却されたレスポンスのパラメータなどを表示することができます。\n
+Chunkテンプレートエンジンに対応していますので、サービスから返却されたレスポンスのパラメータなどを表示することができます。\n\n
 例：バッテリー容量は{$level|calc(*100)}%です。</string>
     <string name="res_success_uri">成功レスポンスリソースURI</string>
     <string name="res_success_uri_help">成功レスポンスのリソースURIです。\n

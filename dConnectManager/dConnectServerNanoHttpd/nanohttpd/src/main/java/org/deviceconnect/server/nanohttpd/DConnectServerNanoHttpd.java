@@ -27,6 +27,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;
 import java.security.GeneralSecurityException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -69,6 +71,9 @@ public class DConnectServerNanoHttpd extends DConnectServer {
     /** Firewall. */
     private Firewall mFirewall;
 
+    /** WebSocket一覧. */
+    private List<NanoWebSocket> mWebSockets = new ArrayList<>();
+
     /**
      * Keep-Aliveの状態定数.
      * 
@@ -82,6 +87,7 @@ public class DConnectServerNanoHttpd extends DConnectServer {
         /** pong受信完了状態. */
         GOT_PONG,
     }
+
     /**
      * 設定値を元にサーバーを構築します.
      * 
@@ -184,17 +190,15 @@ public class DConnectServerNanoHttpd extends DConnectServer {
     }
 
     @Override
-    public void disconnectWebSocket(final String sessionKey) {
-        if (sessionKey == null) {
-            return;
-        }
-
-        DConnectWebSocket webSocket = mSockets.get(sessionKey);
-        if (webSocket != null && webSocket instanceof NanoWSD.WebSocket) {
-            try {
-                ((NanoWebSocket) webSocket).close(NanoWSD.WebSocketFrame.CloseCode.NormalClosure, "Disconnected by the user.", false);
-            } catch (IOException e) {
-                mLogger.warning("Exception in the DConnectServerNanoHttpd#shutdown() method. " + e.toString());
+    public void disconnectWebSocket(final String webSocketId) {
+        for (NanoWebSocket socket : mWebSockets) {
+            if (webSocketId.equals(socket.getId())) {
+                try {
+                    socket.close(NanoWSD.WebSocketFrame.CloseCode.GoingAway, "User disconnect", false);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                return;
             }
         }
     }
@@ -210,7 +214,7 @@ public class DConnectServerNanoHttpd extends DConnectServer {
      * @return 読み込み成功時はSSLServerSocketFactoryを、その他はnullを返す。
      */
     private SSLServerSocketFactory createServerSocketFactory() {
-        SSLServerSocketFactory retval = null;
+        SSLServerSocketFactory retVal = null;
         do {
             KeyStoreManager storeManager = new KeyStoreManager();
             try {
@@ -221,9 +225,9 @@ public class DConnectServerNanoHttpd extends DConnectServer {
                 break;
             }
 
-            retval = storeManager.getServerSocketFactory();
+            retVal = storeManager.getServerSocketFactory();
         } while (false);
-        return retval;
+        return retVal;
     }
 
     /**
@@ -232,13 +236,13 @@ public class DConnectServerNanoHttpd extends DConnectServer {
      * @return 正しい場合true、不正な場合falseを返す。
      */
     private boolean checkDocumentRoot() {
-        boolean retval = true;
+        boolean retVal = true;
         File documentRoot = new File(mConfig.getDocumentRootPath());
         if (!documentRoot.exists() || !documentRoot.isDirectory()) {
             mLogger.warning("Invalid document root path : " + documentRoot.getPath());
-            retval = false;
+            retVal = false;
         }
-        return retval;
+        return retVal;
     }
 
     /**
@@ -293,8 +297,8 @@ public class DConnectServerNanoHttpd extends DConnectServer {
                 HttpRequest req = new HttpRequest();
                 nanoRes = createRequest(session, req);
                 if (nanoRes != null) {
-                    // Device Connect 用のリクエストが生成できない場合は何かしらのエラー、または別対応が入るので
-                    // dConnectManagerへの通知はしない。
+                    // Device Connect 用のリクエストが生成できない場合は何かしらのエラー、
+                    // または別対応が入るのでdConnectManagerへの通知はしない。
                     break;
                 }
 
@@ -356,8 +360,8 @@ public class DConnectServerNanoHttpd extends DConnectServer {
                 return nanoRes;
             }
 
-            // WebSocketを開く処理&レスポンスはNanoWSDに任せ、セッションキーが送られてから
-            // 独自のセッション管理を行う。
+            // WebSocketを開く処理&レスポンスはNanoWSDに任せ、
+            // セッションキーが送られてから独自のセッション管理を行う。
             nanoRes = super.serve(session);
 
             if (nanoRes.getStatus() != Status.SWITCH_PROTOCOL) {
@@ -374,7 +378,8 @@ public class DConnectServerNanoHttpd extends DConnectServer {
          * @return 変換されたNanoHTTPD.Response
          */
         private Response newFixedLengthResponse(final HttpResponse res) {
-            Response nanoRes;ByteArrayInputStream stream;
+            Response nanoRes;
+            ByteArrayInputStream stream;
             int length;
 
             if (res.getBody() != null) {
@@ -628,19 +633,19 @@ public class DConnectServerNanoHttpd extends DConnectServer {
          * @return 読み込めるファイルの場合trueを、その他はfalseを返す。
          */
         private boolean isReadableFile(final File file) {
-            boolean retval;
+            boolean retVal;
             try {
                 // ../ などのDocument Rootより上の階層にいくファイルパスをチェックし
                 // 不正なリクエストを拒否する。
                 File root = new File(mConfig.getDocumentRootPath());
                 String rootAbPath = root.getCanonicalPath() + "/";
                 String fileAbPath = file.getCanonicalPath();
-                retval = fileAbPath.contains(rootAbPath) && file.canRead();
+                retVal = fileAbPath.contains(rootAbPath) && file.canRead();
             } catch (IOException e) {
                 mLogger.warning("Exception in the NanoServer#isDeployedInDocumentRoot() method. " + e.toString());
-                retval = false;
+                retVal = false;
             }
-            return retval;
+            return retVal;
         }
     }
 
@@ -679,6 +684,8 @@ public class DConnectServerNanoHttpd extends DConnectServer {
             mWebSockets.add(this);
         }
 
+        // Implements DConnectWebSocket
+
         @Override
         public String getId() {
             return mId.toString();
@@ -700,8 +707,27 @@ public class DConnectServerNanoHttpd extends DConnectServer {
         }
 
         @Override
+        public void sendEvent(final String event) {
+            try {
+                send(event);
+            } catch (IOException e) {
+                mLogger.warning("Exception in the NanoWebSocket#sendEvent() method. " + e.toString());
+                if (mListener != null) {
+                    mListener.onError(DConnectServerError.SEND_EVENT_FAILED);
+                    mListener.onWebSocketDisconnected(getId());
+                }
+            }
+        }
+
+        @Override
+        public void disconnectWebSocket() {
+            closeWebSocket();
+        }
+
+        // Implements NanoWSD.WebSocket
+
+        @Override
         protected void onOpen() {
-            mLogger.fine("NanoWebSocket#onOpen()");
         }
 
         @Override
@@ -721,31 +747,21 @@ public class DConnectServerNanoHttpd extends DConnectServer {
                 return;
             }
 
-            try {
-                JSONObject json = new JSONObject(jsonText);
-                String sessionKey = json.getString(WEBSOCKET_PARAM_KEY_SESSION_KEY);
-
-                if (sessionKey != null) {
-                    // 同じクライアントからは１つのセッションしか張らせない。
-                    if (mSessionKey != null) {
-                        mSockets.remove(mSessionKey);
-                    }
-
-                    mSessionKey = sessionKey;
-                    mSockets.put(sessionKey, this);
-                    if (mListener != null) {
-                        NanoHTTPD.IHTTPSession request = getHandshakeRequest();
-                        String origin = request.getHeaders().get("origin");
-                        if (origin == null) {
-                            origin = request.getHeaders().get("X-GotAPI-Origin");
-                        }
-                        mListener.onWebSocketConnected(origin + getHandshakeRequest().getUri(), mSessionKey);
-                    }
-                }
-            } catch (JSONException e) {
-                mLogger.warning("Exception in the NanoWebSocket#onMessage() method." + e.toString());
+            if (mListener != null) {
+                mListener.onWebSocketMessage(this, jsonText);
             }
         }
+
+        @Override
+        protected void onClose(final NanoWSD.WebSocketFrame.CloseCode code, final String reason, final boolean initiatedByRemote) {
+            closeWebSocket();
+        }
+
+        @Override
+        protected void onException(final IOException e) {
+            mLogger.warning("Exception in the NanoWebSocket#onException() method. " + e.toString());
+        }
+
 
         private void closeWebSocket() {
             mSockets.remove(getId());
@@ -758,32 +774,6 @@ public class DConnectServerNanoHttpd extends DConnectServer {
             }
 
             mKeepAliveTimer.cancel();
-        }
-
-        @Override
-        protected void onClose(final CloseCode code, final String reason, final boolean initiatedByRemote) {
-            closeWebSocket();
-        }
-
-        @Override
-        protected void onException(final IOException e) {
-            mLogger.warning("Exception in the NanoWebSocket#onException() method. " + e.toString());
-            e.printStackTrace();
-        }
-
-        @Override
-        public void sendEvent(final String event) {
-            try {
-                send(event);
-            } catch (IOException e) {
-                mLogger.warning("Exception in the NanoWebSocket#sendEvent() method. " + e.toString());
-                if (mListener != null) {
-                    mListener.onError(DConnectServerError.SEND_EVENT_FAILED);
-                    if (mSessionKey != null) {
-                        mListener.onWebSocketDisconnected(mSessionKey);
-                    }
-                }
-            }
         }
 
         /**
@@ -841,24 +831,5 @@ public class DConnectServerNanoHttpd extends DConnectServer {
                 }
             }
         }
-    }
-
-    @Override
-    public void disconnectWebSocket(final String webSocketId) {
-        for (NanoWebSocket socket : mWebSockets) {
-            if (webSocketId.equals(socket.getId())) {
-                try {
-                    socket.close(CloseCode.GoingAway, "User disconnect");
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                return;
-            }
-        }
-    }
-
-    @Override
-    public String getVersion() {
-        return VERESION;
     }
 }

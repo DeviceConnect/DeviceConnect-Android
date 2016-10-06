@@ -258,6 +258,7 @@ public class WebRTCVideoChatProfile extends VideoChatProfile {
                                     intent.putExtra(VideoChatActivity.EXTRA_AUDIOSAMPLERATE, audioSampleRate);
                                     intent.putExtra(VideoChatActivity.EXTRA_AUDIOBITDEPTH, audioBitDepth);
                                     intent.putExtra(VideoChatActivity.EXTRA_AUDIOCHANNEL, audioChannel);
+                                    intent.putExtra(VideoChatActivity.EXTRA_CALL_TIMESTAMP, System.currentTimeMillis());
                                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                                     if (outputs.equals(PARAM_HOST)) {
                                         getContext().startActivity(intent);

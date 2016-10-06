@@ -12,6 +12,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -76,6 +78,7 @@ public class ServiceDiscovery extends Authorization {
                 Log.e(TAG, "", e);
             }
         }
+        Collections.sort(services, mComparator);
         return services;
     }
 
@@ -91,4 +94,13 @@ public class ServiceDiscovery extends Authorization {
         service.setOnline(obj.getBoolean(ServiceDiscoveryProfile.PARAM_ONLINE));
         return service;
     }
+
+    private Comparator<ServiceContainer> mComparator = new Comparator<ServiceContainer>() {
+        @Override
+        public int compare(final ServiceContainer lhs, final ServiceContainer rhs) {
+            String name1 = lhs.getName();
+            String name2 = rhs.getName();
+            return name1.compareTo(name2);
+        }
+    };
 }

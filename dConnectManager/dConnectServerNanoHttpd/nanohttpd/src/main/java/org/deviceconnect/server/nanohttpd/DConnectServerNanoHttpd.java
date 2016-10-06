@@ -68,17 +68,14 @@ public class DConnectServerNanoHttpd extends DConnectServer {
     /** コンテキストオブジェクト. */
     private Context mContext;
 
-    /** Firewall. */
-    private Firewall mFirewall;
-
     /** WebSocket一覧. */
     private List<NanoWebSocket> mWebSockets = new ArrayList<>();
 
     /**
      * Keep-Aliveの状態定数.
-     * 
+     *
      * @author NTT DOCOMO, INC.
-     * 
+     *
      */
     private enum KeepAliveState {
         /** クライアントの返事待ち状態. */
@@ -138,8 +135,6 @@ public class DConnectServerNanoHttpd extends DConnectServer {
             mServer.makeSecure(factory, null);
         }
 
-        // Androidで利用する場合にMainThreadで利用できない処理がNanoServer#start()にあるため
-        // 別スレッドで処理を実行する
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -196,7 +191,7 @@ public class DConnectServerNanoHttpd extends DConnectServer {
                 try {
                     socket.close(NanoWSD.WebSocketFrame.CloseCode.GoingAway, "User disconnect", false);
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    mLogger.warning("Exception in the DConnectServerNanoHttpd#disconnectWebSocket() method. " + e.toString());
                 }
                 return;
             }
@@ -224,7 +219,6 @@ public class DConnectServerNanoHttpd extends DConnectServer {
                         + e.toString());
                 break;
             }
-
             retVal = storeManager.getServerSocketFactory();
         } while (false);
         return retVal;
@@ -246,7 +240,7 @@ public class DConnectServerNanoHttpd extends DConnectServer {
     }
 
     /**
-     * NanoHttpサーバーの実継承クラス.
+     * NanoWSDの実継承クラス.
      * 
      * @author NTT DOCOMO, INC.
      * 
@@ -255,6 +249,9 @@ public class DConnectServerNanoHttpd extends DConnectServer {
 
         /** WebSocketのコネクションカウンター. */
         private int mWebSocketCount;
+
+        /** Firewall. */
+        private Firewall mFirewall;
 
         /**
          * コンストラクタ.
@@ -504,7 +501,6 @@ public class DConnectServerNanoHttpd extends DConnectServer {
                 mLogger.exiting(getClass().getName(), "countupWebSocket", false);
                 return false;
             }
-
             mWebSocketCount++;
             return true;
         }
@@ -650,10 +646,9 @@ public class DConnectServerNanoHttpd extends DConnectServer {
     }
 
     /**
-     * WebSocket.
+     * NanoWSD.WebSocketの実装クラス.
      * 
      * @author NTT DOCOMO, INC.
-     * 
      */
     private class NanoWebSocket extends NanoWSD.WebSocket implements DConnectWebSocket {
 

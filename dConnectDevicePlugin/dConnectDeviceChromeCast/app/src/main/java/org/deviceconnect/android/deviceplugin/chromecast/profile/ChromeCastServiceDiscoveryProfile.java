@@ -8,6 +8,8 @@ package org.deviceconnect.android.deviceplugin.chromecast.profile;
 
 import android.content.Intent;
 
+import com.google.android.gms.cast.CastDevice;
+
 import org.deviceconnect.android.deviceplugin.chromecast.ChromeCastDeviceService;
 import org.deviceconnect.android.deviceplugin.chromecast.ChromeCastService;
 import org.deviceconnect.android.deviceplugin.chromecast.R;
@@ -44,14 +46,13 @@ public class ChromeCastServiceDiscoveryProfile extends ServiceDiscoveryProfile {
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
             ChromeCastDiscovery discovery = ((ChromeCastService) getContext()).getChromeCastDiscovery();
-            discovery.registerEvent();
             List<DConnectService> disappeared = getServiceProvider().getServiceList();
             for (int i = 0; i < discovery.getDeviceNames().size(); i++) {
 
-                String name = discovery.getDeviceNames().get(i);
-                DConnectService castService = getServiceProvider().getService(name);
+                CastDevice cast = discovery.getDeviceNames().get(i);
+                DConnectService castService = getServiceProvider().getService(cast.getDeviceId());
                 if (castService == null) {
-                    castService = new ChromeCastDeviceService(name);
+                    castService = new ChromeCastDeviceService(cast);
                     getServiceProvider().addService(castService);
                 } else {
                     for (Iterator<DConnectService> it = disappeared.iterator(); ; it.hasNext()) {

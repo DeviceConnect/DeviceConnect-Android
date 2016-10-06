@@ -206,16 +206,7 @@ public class AllJoynDeviceApplication extends Application {
         return null;
     }
 
-    public String getCurrentVersionName() {
-        PackageManager packageManager = getPackageManager();
 
-        try {
-            PackageInfo e = packageManager.getPackageInfo(getPackageName(), 1);
-            return e.versionName;
-        } catch (PackageManager.NameNotFoundException var3) {
-            return "Unknown";
-        }
-    }
 
     public AllJoynServiceEntity getServiceWithBusName(String busName) {
         for (AllJoynServiceEntity service : mAllJoynServiceEntities.values()) {

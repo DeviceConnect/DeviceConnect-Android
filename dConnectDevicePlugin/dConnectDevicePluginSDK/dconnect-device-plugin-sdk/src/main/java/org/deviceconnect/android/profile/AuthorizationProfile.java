@@ -85,7 +85,6 @@ public class AuthorizationProfile extends DConnectProfile implements Authorizati
         DConnectMessageService service = (DConnectMessageService) getContext();
         if (!service.isUseLocalOAuth()) {
             MessageUtils.setNotSupportProfileError(response);
-            service.sendResponse(response);
             return true;
         }
 

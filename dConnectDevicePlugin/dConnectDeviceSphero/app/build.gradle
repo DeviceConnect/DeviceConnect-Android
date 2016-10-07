@@ -20,6 +20,10 @@ android {
         targetSdkVersion 19
         versionCode 1
         versionName getVersionName()
+        manifestPlaceholders = [
+                appIcon: "@drawable/dconnect_icon",
+                appName: "Sphero (Device Connect device plug-in)"
+        ]
     }
 
     signingConfigs {
@@ -54,9 +58,22 @@ android {
     }
 
     productFlavors {
+        DeviceConnect {
+            versionCode 1
+            versionName "2.0.0"
+            manifestPlaceholders = [
+                    appIcon: "@drawable/dconnect_icon",
+                    appName: "Sphero (Device Connect device plug-in)"
+            ]
+        }
+
         DeviceWebApi {
-            versionCode 2
-            versionName "1.0.1"
+            versionCode 3
+            versionName "1.0.2"
+            manifestPlaceholders = [
+                    appIcon: "@drawable/ic_launcher",
+                    appName: "Sphero (Device Web API device plug-in)"
+            ]
         }
     }
 }

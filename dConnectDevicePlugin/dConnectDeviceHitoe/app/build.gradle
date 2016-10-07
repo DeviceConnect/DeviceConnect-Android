@@ -21,6 +21,10 @@ android {
         targetSdkVersion 23
         versionCode 1
         versionName getVersionName()
+        manifestPlaceholders = [
+                appIcon: "@drawable/dconnect_icon",
+                appName: "Hitoe (Device Connect device plug-in)"
+        ]
     }
 
     signingConfigs {
@@ -45,6 +49,25 @@ android {
         exclude 'META-INF/DEPENDENCIES'
         exclude 'META-INF/LICENSE'
         exclude 'META-INF/NOTICE'
+    }
+    productFlavors {
+        DeviceConnect {
+            versionCode 1
+            versionName "1.0.0"
+            manifestPlaceholders = [
+                    appIcon: "@mipmap/dconnect_icon",
+                    appName: "Hitoe (Device Connect device plug-in)"
+            ]
+        }
+
+        DeviceWebApi {
+            versionCode 1
+            versionName "1.0.0"
+            manifestPlaceholders = [
+                    appIcon: "@mipmap/ic_launcher",
+                    appName: "Hitoe (Device Web API device plug-in)"
+            ]
+        }
     }
 }
 

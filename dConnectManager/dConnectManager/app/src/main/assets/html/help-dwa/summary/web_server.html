@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <link rel="stylesheet" href="../css/main.css" type="text/css" />
+    <title>Webサーバについて</title>
+</head>
+<body>
+<div class="heading">Webサーバについて</div>
+<div class="content">
+    <p>Webサーバを起動して、SDカードにorg.deviceconnect.android.managerというフォルダを作成し、この中にあるファイルにアクセスできるようにします。</p>
+    <div class="image">
+        <img class="start" src="images/web_server_start.png">
+        <div class="wrapper">
+            <div class="box">ONにすることで、 Web Serverが起動します。</div>
+        </div>
+    </div>
+    <p>
+        org.deviceconnect.android.managerにあるファイルは、全てHTTP経由でアクセスできるようになりますので、ユーザに対して許可ダイアログを表示して確認を行います。<br>
+        問題がなければ、はいを押下してください。
+    </p>
+    <div class="image">
+        <img class="dialog" src="images/web_server_allow_dialog.png">
+    </div>
+    <p>
+        Android OS 6.0以降では、SDカードの使用にパーミッション許可が必要になります。
+        以下のようなダイアログが表示されますので、こちらも問題がなければ、許可を押下してください。
+    </p>
+    <div class="image">
+        <img class="dialog" src="images/web_server_permission.png">
+    </div>
+</div>
+<div class="link">
+    <a href="security.html">前: セキュリティについて</a><br>
+    <a href="manager.html">Device Web API Managerとはページへ</a>
+</div>
+</body>
+</html>

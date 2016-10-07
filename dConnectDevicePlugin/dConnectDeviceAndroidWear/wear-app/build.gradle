@@ -26,7 +26,15 @@ android {
             signingConfig signingConfigs.releaseConfig
         }
     }
+
     productFlavors {
+        DeviceWebApi {
+            versionCode 1
+            versionName "1.0.0"
+            manifestPlaceholders = [
+                    appIcon: "@drawable/ic_launcher"
+            ]
+        }
     }
 }
 

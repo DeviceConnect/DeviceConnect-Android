@@ -7,8 +7,8 @@
 
     <application
         android:allowBackup="true"
-        android:icon="@drawable/dconnect_icon"
-        android:label="@string/app_name"
+        android:icon="${appIcon}"
+        android:label="${appName}"
         android:supportsRtl="true"
         android:theme="@android:style/Theme.Black.NoTitleBar">
 

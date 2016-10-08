@@ -4,6 +4,8 @@ android {
     compileSdkVersion 23
     buildToolsVersion '23.0.2'
 
+    useLibrary 'org.apache.http.legacy'
+
     def getVersionName = { ->
         def version
         if (System.getProperty('os.name').toLowerCase().contains('windows')) {
@@ -21,6 +23,10 @@ android {
         targetSdkVersion 23
         versionCode 1
         versionName getVersionName()
+        manifestPlaceholders = [
+                appIcon: "@drawable/dconnect_icon",
+                appName: "@string/app_name"
+        ]
     }
 
     signingConfigs {
@@ -48,6 +54,14 @@ android {
         exclude 'META-INF/DEPENDENCIES.txt'
     }
     productFlavors {
+        DeviceWebApi {
+            versionCode 1
+            versionName "1.0.0"
+            manifestPlaceholders = [
+                    appIcon: "@drawable/ic_launcher",
+                    appName: "@string/app_name_for_device_web_api"
+            ]
+        }
     }
 }
 

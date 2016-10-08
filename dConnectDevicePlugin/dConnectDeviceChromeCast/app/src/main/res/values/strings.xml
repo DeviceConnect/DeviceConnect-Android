@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Chromecast (Device Connect Device Plug-in)</string>
+    <string name="app_name_for_device_web_api">Chromecast (Device Web API Device Plug-in)</string>
     <string name="device_name">Chromecast (%1$s)</string>
     <string name="preference_activity_title">Chromecast 2.0.0</string>
     <string name="application_id">YOUR APPLICATION ID</string>

@@ -23,7 +23,7 @@ android {
         versionName getVersionName()
         manifestPlaceholders = [
                 appIcon: "@drawable/dconnect_icon",
-                appName: "Hitoe (Device Connect device plug-in)"
+                appName: "@string/app_name"
         ]
     }
 
@@ -56,7 +56,7 @@ android {
             versionName "1.0.0"
             manifestPlaceholders = [
                     appIcon: "@mipmap/dconnect_icon",
-                    appName: "Hitoe (Device Connect device plug-in)"
+                    appName: "@string/app_name"
             ]
         }
 
@@ -65,7 +65,7 @@ android {
             versionName "1.0.0"
             manifestPlaceholders = [
                     appIcon: "@mipmap/ic_launcher",
-                    appName: "Hitoe (Device Web API device plug-in)"
+                    appName: "@string/app_name_for_device_web_api"
             ]
         }
     }

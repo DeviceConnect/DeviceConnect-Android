@@ -26,6 +26,10 @@ android {
         targetSdkVersion 23
         versionCode 1
         versionName getVersionName()
+        manifestPlaceholders = [
+                appIcon: "@drawable/dconnect_icon",
+                appName: "@string/app_name"
+        ]
     }
 
     signingConfigs {
@@ -56,6 +60,10 @@ android {
         DeviceWebApi {
             versionCode 3
             versionName "1.0.2"
+            manifestPlaceholders = [
+                    appIcon: "@drawable/ic_launcher",
+                    appName: "@string/app_name_for_device_web_api"
+            ]
         }
     }
 }

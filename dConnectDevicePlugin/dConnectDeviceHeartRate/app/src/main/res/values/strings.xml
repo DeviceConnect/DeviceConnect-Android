@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">HeartRate(BLE) (Device Web API device plug-in)</string>
+    <string name="app_name_for_device_web_api">HeartRate(BLE) (Device Web API device plug-in)</string>
 
     <string name="summary_title">[1/4] デバイスプラグイン概要</string>
     <string name="summary_body">このデバイスプラグインはBluetooth Low Energyの仕様であるHeart Rate Serviceに対応しているデバイスと接続し、心拍数を取得する機能を提供します。\n\n以下のデバイスと接続できることを確認しています。\n・Mio Alpha\n・H7\n・BLUEHR\n・PULSENSE</string>

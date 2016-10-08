@@ -395,7 +395,7 @@ public class ServiceListActivity extends Activity implements AlertDialogFragment
     }
 
     private void openHelp() {
-        String url = "file:///android_asset/html/help/index.html";
+        String url = "file:///android_asset/html/help-dwa/index.html";
         Intent intent = new Intent();
         intent.setClass(this, WebViewActivity.class);
         intent.putExtra(WebViewActivity.EXTRA_URL, url);

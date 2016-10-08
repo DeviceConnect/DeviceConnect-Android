@@ -9,7 +9,7 @@ android {
         minSdkVersion 20
         targetSdkVersion 23
         versionCode 1
-        versionName '2.0.0'
+        versionName '1.0.0'
     }
     signingConfigs {
         releaseConfig {
@@ -26,6 +26,7 @@ android {
             signingConfig signingConfigs.releaseConfig
         }
     }
+
     productFlavors {
     }
 }

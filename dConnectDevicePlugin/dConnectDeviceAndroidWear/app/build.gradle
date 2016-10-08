@@ -29,6 +29,10 @@ android {
         targetSdkVersion 23
         versionCode 1
         versionName getVersionName()
+        manifestPlaceholders = [
+                appIcon: "@drawable/dconnect_icon",
+                appName: "@string/app_name"
+        ]
     }
 
     signingConfigs {
@@ -45,6 +49,17 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
             signingConfig signingConfigs.releaseConfig
+        }
+    }
+
+    productFlavors {
+        DeviceWebApi {
+            versionCode 1
+            versionName "1.0.0"
+            manifestPlaceholders = [
+                    appIcon: "@drawable/ic_launcher",
+                    appName: "@string/app_name_for_device_web_api"
+            ]
         }
     }
 

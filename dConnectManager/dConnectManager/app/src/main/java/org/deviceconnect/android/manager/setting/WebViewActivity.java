@@ -233,6 +233,17 @@ public class WebViewActivity extends Activity {
         private long mRestoringScaleStart;
 
         @Override
+        public boolean shouldOverrideUrlLoading(final WebView view, final String url) {
+            if (url.startsWith("market://")) {
+                Uri uri = Uri.parse(url);
+                Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+                startActivity(intent);
+                return true;
+            }
+            return super.shouldOverrideUrlLoading(view, url);
+        }
+
+        @Override
         public void onScaleChanged(final WebView view, float oldScale, float newScale) {
             final long now = System.currentTimeMillis();
             if (mStableScale == null || (now - mStableScaleCalculationStart) < STABLE_SCALE_CALCULATION_DURATION) {

@@ -1,5 +1,6 @@
 <resources>
     <string name="app_name">AWS IoT (Device Connect Device Plug-in)</string>
+    <string name="app_name_for_device_web_api">AWS IoT (Device Web API Device Plug-in)</string>
     <string name="settings_page_1_title">AWS IoT ログイン画面</string>
     <string name="awsiot_id">アクセスキーID</string>
     <string name="awsiot_password">シークレットアクセスキー</string>

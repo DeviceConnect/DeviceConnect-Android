@@ -21,6 +21,10 @@ android {
         targetSdkVersion 23
         versionCode 1
         versionName getVersionName()
+        manifestPlaceholders = [
+                appIcon: "@drawable/dconnect_icon",
+                appName: "@string/app_name"
+        ]
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
 
@@ -41,6 +45,17 @@ android {
         }
     }
 
+    productFlavors {
+        DeviceWebApi {
+            versionCode 1
+            versionName "1.0.0"
+            manifestPlaceholders = [
+                    appIcon: "@drawable/ic_launcher",
+                    appName: "@string/app_name_for_device_web_api"
+            ]
+        }
+    }
+
     packagingOptions {
         exclude 'META-INF/DEPENDENCIES'
         exclude 'META-INF/LICENSE'
@@ -48,9 +63,6 @@ android {
         exclude 'META-INF/NOTICE.txt'
         exclude 'META-INF/LICENSE.txt'
         exclude 'META-INF/DEPENDENCIES.txt'
-    }
-
-    productFlavors {
     }
 }
 

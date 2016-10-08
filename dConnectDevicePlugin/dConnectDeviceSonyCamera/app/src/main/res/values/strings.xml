@@ -2,6 +2,7 @@
 <resources>
 
     <string name="app_name">Sony Camera (Device Connect Device Plug-in)</string>
+    <string name="app_name_for_device_web_api">Sony Camera (Device Web API Device Plug-in)</string>
 
     <string name="sonycamera_no_device"></string>
     <string name="sonycamera_setting_message_QX_1_1">Sonyカメラとの接続</string>

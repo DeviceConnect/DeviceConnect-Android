@@ -64,7 +64,7 @@ public class AWSIotLocalManager {
         }
 
         if (mAWSIotWebSocketClient != null) {
-            mAWSIotWebSocketClient.close();
+            mAWSIotWebSocketClient.close(0);
             mAWSIotWebSocketClient = null;
         }
 
@@ -91,7 +91,7 @@ public class AWSIotLocalManager {
         mAWSIotWebClientManager = new AWSIotWebLocalClientManager(mContext, this);
         mAWSIotWebServerManager = new AWSIotWebLocalServerManager(mContext, this);
 
-        mAWSIotWebSocketClient = new AWSIotWebSocketClient("http://localhost:4035/websocket", mSessionKey) {
+        mAWSIotWebSocketClient = new AWSIotWebSocketClient("http://localhost:4035/gotapi/websocket", mPrefUtil.getAuthAccessToken()) {
             @Override
             public void onMessage(final String message) {
                 publishEvent(message);
@@ -107,6 +107,12 @@ public class AWSIotLocalManager {
     }
 
     public void publishEvent(final String message) {
+        // TODO accessTokenのレスポンスは弾くようにする
+        if (message.indexOf("result") != -1) {
+            return;
+        }
+
+        // TODO イベントのサービスIDは、変換すること。
         mSyncTime = (mPrefUtil.getSyncTime()) * 1000;
         if (mSyncTime <= 0) {
             mIot.publish(mRemoteManager.getEventTopic(), message);

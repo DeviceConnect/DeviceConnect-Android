@@ -51,6 +51,10 @@ android {
     }
 
     productFlavors {
+        DeviceWebApi {
+            buildConfigField "String", "URL_HELP_HTML", "\"file:///android_asset/html/help-dwa/index.html\""
+            buildConfigField "String", "URL_DEMO_HTML", "\"file:///android_asset/html/demo/index.html\""
+        }
     }
 }
 

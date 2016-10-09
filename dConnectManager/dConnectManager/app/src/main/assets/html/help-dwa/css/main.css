@@ -153,3 +153,7 @@ tr.plugin {
     padding : 3px;
     font-size: 80%;
 }
+
+img.architecture {
+    max-width: 240px;
+}

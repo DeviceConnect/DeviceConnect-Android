@@ -106,6 +106,7 @@ public class DevicePluginInfoFragment extends Fragment {
                 openUninstall();
             }
         });
+        deleteBtn.setEnabled(!mPackageName.equals(getActivity().getPackageName()));
         Button restartBtn = (Button) view.findViewById(R.id.plugin_restart_btn);
         restartBtn.setOnClickListener(new View.OnClickListener() {
             @Override

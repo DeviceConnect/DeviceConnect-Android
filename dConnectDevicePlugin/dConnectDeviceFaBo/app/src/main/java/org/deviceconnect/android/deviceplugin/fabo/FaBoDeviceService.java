@@ -33,6 +33,7 @@ import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.event.cache.MemoryCacheController;
 import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.profile.SystemProfile;
+import org.deviceconnect.android.service.DConnectService;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -47,6 +48,9 @@ import java.util.logging.Logger;
  * @author NTT DOCOMO, INC.
  */
 public class FaBoDeviceService extends DConnectMessageService {
+
+    /** ServiceId. */
+    private static final String SERVICE_ID = "gpio_service_id";
 
     /** Tag. */
     private final static String TAG = "FABO_PLUGIN_SERVICE";
@@ -316,6 +320,11 @@ public class FaBoDeviceService extends DConnectMessageService {
         }
 
         setStatus(FaBoConst.STATUS_FABO_NOCONNECT);
+
+        DConnectService service = getServiceProvider().getService(SERVICE_ID);
+        if (service != null) {
+            service.setOnline(false);
+        }
     }
 
     /**
@@ -331,6 +340,11 @@ public class FaBoDeviceService extends DConnectMessageService {
      * シリアル通信を開始.
      */
     private void onDeviceStateChange() {
+
+        DConnectService service = getServiceProvider().getService(SERVICE_ID);
+        if (service != null) {
+            service.setOnline(true);
+        }
 
         // Init.
         stopIoManager();
@@ -351,6 +365,8 @@ public class FaBoDeviceService extends DConnectMessageService {
         // FirmataのVersion取得のコマンドを送付
         byte command[] = {(byte)0xF9};
         SendMessage(command);
+
+
     }
 
     /**

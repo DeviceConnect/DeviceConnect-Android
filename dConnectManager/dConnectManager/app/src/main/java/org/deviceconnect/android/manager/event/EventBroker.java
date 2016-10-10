@@ -133,8 +133,8 @@ public class EventBroker {
         EventSession targetSession = null;
         if (pluginAccessToken != null) {
             for (EventSession session : mTable.getAll()) {
-                if (isSameName(pluginAccessToken, session.getAccessToken()) &&
-                    isSameName(serviceId, session.getServiceId()) &&
+                if (isSameNameCaseSensitive(pluginAccessToken, session.getAccessToken()) &&
+                    isSameNameCaseSensitive(serviceId, session.getServiceId()) &&
                     isSameName(profileName, session.getProfileName()) &&
                     isSameName(interfaceName, session.getInterfaceName()) &&
                     isSameName(attributeName, session.getAttributeName())) {
@@ -148,9 +148,9 @@ public class EventBroker {
                 String pluginId = EventProtocol.convertSessionKey2PluginId(sessionKey);
                 String receiverId = EventProtocol.convertSessionKey2Key(sessionKey);
                 for (EventSession session : mTable.getAll()) {
-                    if (isSameName(pluginId, session.getPluginId()) &&
-                        isSameName(receiverId, session.getReceiverId()) &&
-                        isSameName(serviceId, session.getServiceId()) &&
+                    if (isSameNameCaseSensitive(pluginId, session.getPluginId()) &&
+                        isSameNameCaseSensitive(receiverId, session.getReceiverId()) &&
+                        isSameNameCaseSensitive(serviceId, session.getServiceId()) &&
                         isSameName(profileName, session.getProfileName()) &&
                         isSameName(interfaceName, session.getInterfaceName()) &&
                         isSameName(attributeName, session.getAttributeName())) {
@@ -272,6 +272,17 @@ public class EventBroker {
             return a.equalsIgnoreCase(b);
         } else {
             return b.equalsIgnoreCase(a);
+        }
+    }
+
+    private boolean isSameNameCaseSensitive(final String a, final  String b) {
+        if (a == null && b == null) {
+            return true;
+        }
+        if (a != null) {
+            return a.equals(b);
+        } else {
+            return b.equals(a);
         }
     }
 

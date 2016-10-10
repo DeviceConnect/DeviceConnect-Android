@@ -22,14 +22,17 @@ import java.util.Map;
 public class AWSIotWebSocketClient extends WebSocketClient {
 
     private static final boolean DEBUG = BuildConfig.DEBUG;
-    private static final String TAG = "";
+    private static final String TAG = "AWSIoT-Local";
 
     private String mAccessToken;
 
     private static Map<String, String> DEFAULT_HEADERS = new HashMap<String, String>() {{
-        put("Origin", "http://org.deviceconnect.android.deviceplugin.awsiot");
+        put("Origin", DConnectHelper.ORIGIN);
     }};
 
+    public AWSIotWebSocketClient(final String accessToken) {
+        this("http://localhost:4035/gotapi/websocket", accessToken);
+    }
 
     public AWSIotWebSocketClient(final String serverURI, final String accessToken) {
         this(URI.create(serverURI), accessToken);
@@ -45,7 +48,9 @@ public class AWSIotWebSocketClient extends WebSocketClient {
         try {
             send("{\"" + DConnectMessage.EXTRA_ACCESS_TOKEN + "\":\"" + mAccessToken + "\"}");
         } catch (NotYetConnectedException e) {
-            e.printStackTrace();
+            if (DEBUG) {
+                Log.e(TAG, "", e);
+            }
         }
     }
 
@@ -56,7 +61,7 @@ public class AWSIotWebSocketClient extends WebSocketClient {
     @Override
     public void onClose(final int code, final String reason, final boolean remote) {
         if (DEBUG) {
-            Log.i(TAG, "AWSIotWebSocketClient#onClose");
+            Log.i(TAG, "AWSIotWebSocketClient#onClose: " + code + " " + reason);
         }
 
         // TODO 再接続処理

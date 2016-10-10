@@ -39,6 +39,8 @@ public class DConnectHelper {
     /** シングルトンなManagerのインスタンス. */
     public static final DConnectHelper INSTANCE = new DConnectHelper();
 
+    public static final String ORIGIN = "http://org.deviceconnect.android.deviceplugin.awsiot";
+
     private AuthInfo mAuthInfo;
 
     private Map<String, String> mDefaultHeader = new HashMap<>();
@@ -87,7 +89,7 @@ public class DConnectHelper {
     private AWSIotPrefUtil mPrefUtil;
 
     private DConnectHelper() {
-        mDefaultHeader.put(DConnectMessage.HEADER_GOTAPI_ORIGIN, "http://org.deviceconnect.android.deviceplugin.awsiot");
+        mDefaultHeader.put(DConnectMessage.HEADER_GOTAPI_ORIGIN, ORIGIN);
 
         mPrefUtil = new AWSIotPrefUtil(AWSIotDeviceApplication.getInstance());
         String accessToken = mPrefUtil.getAuthAccessToken();

@@ -16,6 +16,7 @@ import org.deviceconnect.android.deviceplugin.awsiot.cores.core.AWSIotPrefUtil;
 import org.deviceconnect.android.deviceplugin.awsiot.cores.core.RemoteDeviceConnectManager;
 import org.deviceconnect.android.deviceplugin.awsiot.cores.util.AWSIotUtil;
 import org.deviceconnect.android.deviceplugin.awsiot.remote.BuildConfig;
+import org.deviceconnect.message.DConnectMessage;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -91,10 +92,32 @@ public class AWSIotLocalManager {
         mAWSIotWebClientManager = new AWSIotWebLocalClientManager(mContext, this);
         mAWSIotWebServerManager = new AWSIotWebLocalServerManager(mContext, this);
 
-        mAWSIotWebSocketClient = new AWSIotWebSocketClient("http://localhost:4035/gotapi/websocket", mPrefUtil.getAuthAccessToken()) {
+        mAWSIotWebSocketClient = new AWSIotWebSocketClient(mPrefUtil.getAuthAccessToken()) {
             @Override
             public void onMessage(final String message) {
-                publishEvent(message);
+                if (message.contains("result")) {
+                    try {
+                        JSONObject json = new JSONObject(message);
+                        int result = json.getInt("result");
+                        if (result == DConnectMessage.RESULT_ERROR) {
+                            // TODO WebSocketが開けなかった時の処理を検討
+                            if (DEBUG) {
+                                Log.w(TAG, "Failed to open the WebSocket. message" + message);
+                            }
+                            close();
+                        } else {
+                            if (DEBUG) {
+                                Log.i(TAG, "Open the WebSocket.");
+                            }
+                        }
+                    } catch (JSONException e) {
+                        if (DEBUG) {
+                            Log.e(TAG, "Failed to parse message. " + message, e);
+                        }
+                    }
+                } else {
+                    publishEvent(message);
+                }
             }
         };
         mAWSIotWebSocketClient.connect();
@@ -107,12 +130,6 @@ public class AWSIotLocalManager {
     }
 
     public void publishEvent(final String message) {
-        // TODO accessTokenのレスポンスは弾くようにする
-        if (message.indexOf("result") != -1) {
-            return;
-        }
-
-        // TODO イベントのサービスIDは、変換すること。
         mSyncTime = (mPrefUtil.getSyncTime()) * 1000;
         if (mSyncTime <= 0) {
             mIot.publish(mRemoteManager.getEventTopic(), message);
@@ -150,7 +167,7 @@ public class AWSIotLocalManager {
     private void parseMQTT(final String message) {
         try {
             JSONObject json = new JSONObject(message);
-            int requestCode = json.optInt("requestCode");
+            long requestCode = json.optLong("requestCode");
             JSONObject request = json.optJSONObject(AWSIotUtil.KEY_REQUEST);
             if (request != null) {
                 onReceivedDeviceConnectRequest(requestCode, request.toString());
@@ -170,7 +187,7 @@ public class AWSIotLocalManager {
         }
     }
 
-    private void onReceivedDeviceConnectRequest(final int requestCode, final String request) {
+    private void onReceivedDeviceConnectRequest(final long requestCode, final String request) {
         if (DEBUG) {
             Log.i(TAG, "onReceivedDeviceConnectRequest: request=" + request);
         }

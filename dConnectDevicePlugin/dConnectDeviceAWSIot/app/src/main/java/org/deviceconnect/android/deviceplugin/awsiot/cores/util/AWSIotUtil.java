@@ -108,11 +108,11 @@ public final class AWSIotUtil {
         return managers;
     }
 
-    public static String createRequest(final int requestCode, final String request) {
+    public static String createRequest(final long requestCode, final String request) {
         return "{\"" + KEY_REQUEST + "\":" + request + ",\"" + KEY_REQUEST_CODE + "\":" + requestCode + "}";
     }
 
-    public static String createResponse(final int requestCode, final String response) {
+    public static String createResponse(final long requestCode, final String response) {
         return "{\"" + KEY_RESPONSE + "\":" + response + ",\"" + KEY_REQUEST_CODE + "\":" + requestCode + "}";
     }
 
@@ -120,7 +120,7 @@ public final class AWSIotUtil {
         return createRemoteP2P(generateRequestCode(), p2p);
     }
 
-    public static String createRemoteP2P(final int requestCode, final String p2p) {
+    public static String createRemoteP2P(final long requestCode, final String p2p) {
         return "{\"" + KEY_P2P_REMOTE + "\":" + p2p + ",\"" + KEY_REQUEST_CODE + "\":" + requestCode + "}";
     }
 
@@ -128,11 +128,11 @@ public final class AWSIotUtil {
         return createLocalP2P(generateRequestCode(), p2p);
     }
 
-    public static String createLocalP2P(final int requestCode, final String p2p) {
+    public static String createLocalP2P(final long requestCode, final String p2p) {
         return "{\"" + KEY_P2P_LOCAL + "\":" + p2p + ",\"" + KEY_REQUEST_CODE + "\":" + requestCode + "}";
     }
 
     public static int generateRequestCode() {
-        return UUID.randomUUID().hashCode();
+        return Math.abs(UUID.randomUUID().hashCode());
     }
 }

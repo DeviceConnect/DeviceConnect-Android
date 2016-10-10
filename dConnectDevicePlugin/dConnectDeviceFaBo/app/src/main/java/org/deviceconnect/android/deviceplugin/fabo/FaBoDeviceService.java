@@ -341,11 +341,6 @@ public class FaBoDeviceService extends DConnectMessageService {
      */
     private void onDeviceStateChange() {
 
-        DConnectService service = getServiceProvider().getService(SERVICE_ID);
-        if (service != null) {
-            service.setOnline(true);
-        }
-
         // Init.
         stopIoManager();
         startIoManager();
@@ -445,6 +440,11 @@ public class FaBoDeviceService extends DConnectMessageService {
                                     setStatus(FaBoConst.STATUS_FABO_RUNNING);
                                     sendResult(FaBoConst.SUCCESS_CONNECT_FIRMATA);
                                     startWatchFirmata();
+
+                                    DConnectService service = getServiceProvider().getService(SERVICE_ID);
+                                    if (service != null) {
+                                        service.setOnline(true);
+                                    }
                                 }
                             }
                         } else {

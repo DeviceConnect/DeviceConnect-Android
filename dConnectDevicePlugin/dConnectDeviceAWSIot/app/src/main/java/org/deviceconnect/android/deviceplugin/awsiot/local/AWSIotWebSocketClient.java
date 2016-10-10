@@ -13,6 +13,8 @@ import org.deviceconnect.message.DConnectMessage;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.drafts.Draft_17;
 import org.java_websocket.handshake.ServerHandshake;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.net.URI;
 import java.nio.channels.NotYetConnectedException;
@@ -26,7 +28,9 @@ public class AWSIotWebSocketClient extends WebSocketClient {
 
     private String mAccessToken;
 
-    private static Map<String, String> DEFAULT_HEADERS = new HashMap<String, String>() {{
+    private OnMessageEventListener mOnMessageEventListener;
+
+    private static final Map<String, String> DEFAULT_HEADERS = new HashMap<String, String>() {{
         put("Origin", DConnectHelper.ORIGIN);
     }};
 
@@ -43,8 +47,16 @@ public class AWSIotWebSocketClient extends WebSocketClient {
         mAccessToken = sessionKey;
     }
 
+    public void setOnMessageEventListener(OnMessageEventListener onMessageEventListener) {
+        mOnMessageEventListener = onMessageEventListener;
+    }
+
     @Override
     public void onOpen(final ServerHandshake handshakedata) {
+        if (DEBUG) {
+            Log.i(TAG, "Open the WebSocket. accessToken=" + mAccessToken);
+        }
+
         try {
             send("{\"" + DConnectMessage.EXTRA_ACCESS_TOKEN + "\":\"" + mAccessToken + "\"}");
         } catch (NotYetConnectedException e) {
@@ -56,6 +68,30 @@ public class AWSIotWebSocketClient extends WebSocketClient {
 
     @Override
     public void onMessage(final String message) {
+        if (message.contains("result")) {
+            try {
+                JSONObject json = new JSONObject(message);
+                int result = json.getInt("result");
+                if (result == DConnectMessage.RESULT_ERROR) {
+                    // TODO WebSocketが開けなかった時の処理を検討
+                    if (DEBUG) {
+                        Log.w(TAG, "Failed to open the WebSocket. message" + message);
+                    }
+                } else {
+                    if (DEBUG) {
+                        Log.i(TAG, "Open the WebSocket.");
+                    }
+                }
+            } catch (JSONException e) {
+                if (DEBUG) {
+                    Log.e(TAG, "Failed to parse message. " + message, e);
+                }
+            }
+        } else {
+            if (mOnMessageEventListener != null) {
+                mOnMessageEventListener.onMessage(message);
+            }
+        }
     }
 
     @Override
@@ -72,5 +108,9 @@ public class AWSIotWebSocketClient extends WebSocketClient {
         if (DEBUG) {
             Log.e(TAG, "", ex);
         }
+    }
+
+    public interface OnMessageEventListener {
+        void onMessage(String message);
     }
 }

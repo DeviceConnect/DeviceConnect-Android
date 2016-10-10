@@ -87,6 +87,8 @@ public class DConnectHelper {
     };
 
     private AWSIotPrefUtil mPrefUtil;
+    private AWSIotWebSocketClient mAWSIotWebSocketClient;
+    private AWSIotWebSocketClient.OnMessageEventListener mOnMessageEventListener;
 
     private DConnectHelper() {
         mDefaultHeader.put(DConnectMessage.HEADER_GOTAPI_ORIGIN, ORIGIN);
@@ -96,6 +98,25 @@ public class DConnectHelper {
         String clientId = mPrefUtil.getAuthClientId();
         if (accessToken != null && clientId != null) {
             mAuthInfo = new AuthInfo(clientId, accessToken);
+        }
+    }
+
+    public void openWebSocket(final AWSIotWebSocketClient.OnMessageEventListener listener) {
+        if (mAWSIotWebSocketClient != null) {
+            mAWSIotWebSocketClient.close();
+        }
+
+        mOnMessageEventListener = listener;
+
+        mAWSIotWebSocketClient = new AWSIotWebSocketClient(mPrefUtil.getAuthAccessToken());
+        mAWSIotWebSocketClient.setOnMessageEventListener(listener);
+        mAWSIotWebSocketClient.connect();
+    }
+
+    public void closeWebSocket() {
+        if (mAWSIotWebSocketClient != null) {
+            mAWSIotWebSocketClient.close();
+            mAWSIotWebSocketClient = null;
         }
     }
 
@@ -309,6 +330,7 @@ public class DConnectHelper {
                     mBody.put("accessToken", accessToken);
                     mPrefUtil.setAuthAccessToken(accessToken);
                     mPrefUtil.setAuthClientId(clientId);
+                    openWebSocket(mOnMessageEventListener);
                     return executeRequest();
                 }
             } catch (JSONException e) {

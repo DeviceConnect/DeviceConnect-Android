@@ -34,7 +34,6 @@ import org.deviceconnect.android.deviceplugin.awsiot.cores.core.AWSIotController
 import org.deviceconnect.android.deviceplugin.awsiot.cores.core.AWSIotDeviceApplication;
 import org.deviceconnect.android.deviceplugin.awsiot.cores.core.AWSIotPrefUtil;
 import org.deviceconnect.android.deviceplugin.awsiot.local.AWSIotLocalDeviceService;
-import org.deviceconnect.android.deviceplugin.awsiot.local.DConnectHelper;
 import org.deviceconnect.android.deviceplugin.awsiot.remote.R;
 import org.deviceconnect.android.deviceplugin.awsiot.setting.AWSIotSettingActivity;
 import org.deviceconnect.android.deviceplugin.awsiot.setting.AWSIotWebViewActivity;
@@ -164,18 +163,7 @@ public class AWSIotLoginFragment extends Fragment {
                         transaction.replace(R.id.container, fragment);
                         transaction.commit();
 
-                        if (mPrefUtil.getAuthAccessToken() == null) {
-                            DConnectHelper.INSTANCE.serviceDiscovery(new DConnectHelper.FinishCallback() {
-                                @Override
-                                public void onFinish(final String response, final Exception error) {
-                                    if (error != null) {
-                                        startAWSIot();
-                                    }
-                                }
-                            });
-                        } else {
-                            startAWSIot();
-                        }
+                        startAWSIot();
                     }
                 });
             }

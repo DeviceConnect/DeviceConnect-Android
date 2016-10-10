@@ -16,7 +16,6 @@ import org.deviceconnect.android.deviceplugin.awsiot.cores.core.AWSIotPrefUtil;
 import org.deviceconnect.android.deviceplugin.awsiot.cores.core.RemoteDeviceConnectManager;
 import org.deviceconnect.android.deviceplugin.awsiot.cores.util.AWSIotUtil;
 import org.deviceconnect.android.deviceplugin.awsiot.remote.BuildConfig;
-import org.deviceconnect.message.DConnectMessage;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -32,7 +31,6 @@ public class AWSIotLocalManager {
     private RemoteDeviceConnectManager mRemoteManager;
     private AWSIotWebLocalClientManager mAWSIotWebClientManager;
     private AWSIotWebLocalServerManager mAWSIotWebServerManager;
-    private AWSIotWebSocketClient mAWSIotWebSocketClient;
     private OnEventListener mOnEventListener;
     private Context mContext;
     private ExecutorService mExecutorService = Executors.newSingleThreadExecutor();
@@ -64,10 +62,7 @@ public class AWSIotLocalManager {
             Log.i(TAG, "AWSIotLocalManager#disconnect");
         }
 
-        if (mAWSIotWebSocketClient != null) {
-            mAWSIotWebSocketClient.close(0);
-            mAWSIotWebSocketClient = null;
-        }
+        DConnectHelper.INSTANCE.closeWebSocket();
 
         if (mAWSIotWebClientManager != null) {
             mAWSIotWebClientManager.destroy();
@@ -92,35 +87,7 @@ public class AWSIotLocalManager {
         mAWSIotWebClientManager = new AWSIotWebLocalClientManager(mContext, this);
         mAWSIotWebServerManager = new AWSIotWebLocalServerManager(mContext, this);
 
-        mAWSIotWebSocketClient = new AWSIotWebSocketClient(mPrefUtil.getAuthAccessToken()) {
-            @Override
-            public void onMessage(final String message) {
-                if (message.contains("result")) {
-                    try {
-                        JSONObject json = new JSONObject(message);
-                        int result = json.getInt("result");
-                        if (result == DConnectMessage.RESULT_ERROR) {
-                            // TODO WebSocketが開けなかった時の処理を検討
-                            if (DEBUG) {
-                                Log.w(TAG, "Failed to open the WebSocket. message" + message);
-                            }
-                            close();
-                        } else {
-                            if (DEBUG) {
-                                Log.i(TAG, "Open the WebSocket.");
-                            }
-                        }
-                    } catch (JSONException e) {
-                        if (DEBUG) {
-                            Log.e(TAG, "Failed to parse message. " + message, e);
-                        }
-                    }
-                } else {
-                    publishEvent(message);
-                }
-            }
-        };
-        mAWSIotWebSocketClient.connect();
+        DConnectHelper.INSTANCE.openWebSocket(mOnMessageEventListener);
 
         subscribeTopic();
     }
@@ -216,6 +183,13 @@ public class AWSIotLocalManager {
             }
         });
     }
+
+    private final AWSIotWebSocketClient.OnMessageEventListener mOnMessageEventListener = new AWSIotWebSocketClient.OnMessageEventListener() {
+        @Override
+        public void onMessage(final String message) {
+            publishEvent(message);
+        }
+    };
 
     private final AWSIotController.MessageCallback mMessageCallback = new AWSIotController.MessageCallback() {
         @Override

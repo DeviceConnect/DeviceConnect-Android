@@ -212,9 +212,9 @@ public class AccelerationData {
         Bundle orientation = new Bundle();
 
         Bundle ag = new Bundle();
-        DeviceOrientationProfile.setX(ag, mAccelX);
-        DeviceOrientationProfile.setY(ag, mAccelY);
-        DeviceOrientationProfile.setZ(ag, mAccelZ);
+        DeviceOrientationProfile.setX(ag, mAccelX * 9.81);
+        DeviceOrientationProfile.setY(ag, mAccelY * 9.81);
+        DeviceOrientationProfile.setZ(ag, mAccelZ * 9.81);
 
         DeviceOrientationProfile.setAcceleration(orientation, ag);
         DeviceOrientationProfile.setInterval(orientation, mInterval);

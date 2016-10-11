@@ -55,8 +55,6 @@ public class AWSIotRemoteManager {
 
     private ExecutorService mExecutorService = Executors.newSingleThreadExecutor();
 
-    private OnEventListener mOnEventListener;
-
     private AWSIotController mIot;
 
     private RDCMListManager mRDCMListManager;
@@ -74,11 +72,11 @@ public class AWSIotRemoteManager {
         return mIot;
     }
 
-    public void setOnEventListener(OnEventListener listener) {
-        mOnEventListener = listener;
-    }
-
     public void connect() {
+        if (DEBUG) {
+            Log.i(TAG, "AWSIotRemoteManager#connect");
+        }
+
         if (mAWSIotWebServerManager == null) {
             mAWSIotWebServerManager = new AWSIotWebServerManager(mContext, this);
         }
@@ -89,19 +87,6 @@ public class AWSIotRemoteManager {
 
         if (mRequestManager == null) {
             mRequestManager = new AWSIotRequestManager();
-        }
-
-        if (mIot.isConnected()) {
-            mIot.connectMQTT(new AWSIotController.ConnectCallback() {
-                @Override
-                public void onConnected(final Exception err) {
-                    if (err != null) {
-                        return;
-                    }
-                    AWSIotDeviceApplication.getInstance().updateMyManagerShadow(true);
-                    subscribeTopic();
-                }
-            });
         }
     }
 
@@ -118,11 +103,6 @@ public class AWSIotRemoteManager {
         if (mAWSIotWebClientManager != null) {
             mAWSIotWebClientManager.destroy();
             mAWSIotWebClientManager = null;
-        }
-
-        if (mIot != null) {
-            AWSIotDeviceApplication.getInstance().updateMyManagerShadow(false);
-            unsubscribeTopic();
         }
 
         if (mRequestManager != null) {
@@ -172,7 +152,10 @@ public class AWSIotRemoteManager {
         });
 
         int requestCode = AWSIotUtil.generateRequestCode();
-        publish(remote, AWSIotUtil.createRequest(requestCode, message));
+        if (!publish(remote, AWSIotUtil.createRequest(requestCode, message))) {
+            MessageUtils.setNotFoundServiceError(response);
+            return true;
+        }
 
         AWSIotRequest aws = new AWSIotRequest() {
             @Override
@@ -243,8 +226,9 @@ public class AWSIotRemoteManager {
         int requestCode = AWSIotUtil.generateRequestCode();
         for (RemoteDeviceConnectManager remote : managers) {
             if (remote.isSubscribe() && remote.isOnline()) {
-                publish(remote, AWSIotUtil.createRequest(requestCode, message));
-                count++;
+                if (publish(remote, AWSIotUtil.createRequest(requestCode, message))) {
+                    count++;
+                }
             }
         }
 
@@ -309,35 +293,12 @@ public class AWSIotRemoteManager {
         return false;
     }
 
-    public void publish(final RemoteDeviceConnectManager remote, final String message) {
-        mIot.publish(remote.getRequestTopic(), message);
+    public boolean publish(final RemoteDeviceConnectManager remote, final String message) {
+        return mIot.publish(remote.getRequestTopic(), message);
     }
 
     private String createWebServer(final RemoteDeviceConnectManager remote, final String address, final String path) {
         return mAWSIotWebServerManager.createWebServer(remote, address, path);
-    }
-
-    private void subscribeTopic() {
-        List<RemoteDeviceConnectManager> managers = mRDCMListManager.getRDCMList();
-        if (managers != null) {
-            long checkTime = System.currentTimeMillis() - 600000;
-            for (RemoteDeviceConnectManager remote : managers) {
-                if (remote.isSubscribe() && remote.isOnline() && (remote.getTimeStamp() - checkTime > 0)) {
-                    mIot.subscribe(remote.getResponseTopic(), mMessageCallback);
-                    mIot.subscribe(remote.getEventTopic(), mMessageCallback);
-                }
-            }
-        }
-    }
-
-    private void unsubscribeTopic() {
-        List<RemoteDeviceConnectManager> managers = mRDCMListManager.getRDCMList();
-        if (managers != null) {
-            for (RemoteDeviceConnectManager remote : managers) {
-                mIot.unsubscribe(remote.getResponseTopic());
-                mIot.unsubscribe(remote.getEventTopic());
-            }
-        }
     }
 
     private void sendResponse(final Intent intent) {
@@ -485,10 +446,6 @@ public class AWSIotRemoteManager {
                 return;
             }
 
-            if (mOnEventListener != null) {
-                mOnEventListener.onReceivedMessage(topic, message);
-            }
-
             final RemoteDeviceConnectManager remote = parseTopic(topic);
             if (remote == null) {
                 if (DEBUG) {
@@ -591,12 +548,5 @@ public class AWSIotRemoteManager {
         public void onTimeout() {
             // do nothing.
         }
-    }
-
-    public interface OnEventListener {
-        void onConnected(Exception err);
-        void onReconnecting();
-        void onDisconnected();
-        void onReceivedMessage(String topic, String message);
     }
 }

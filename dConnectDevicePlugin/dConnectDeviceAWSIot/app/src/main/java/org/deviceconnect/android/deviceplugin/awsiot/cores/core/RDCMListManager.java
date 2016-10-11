@@ -39,7 +39,7 @@ public class RDCMListManager {
     private final String MANAGER_LIST_SHADOW = "$aws/things/"+ AWSIotUtil.KEY_DCONNECT_SHADOW_NAME +"/shadow/update/accepted";
 
     /** OnEventListener Interface. */
-    public interface OnEventListener{
+    public interface OnEventListener {
         void onRDCMListUpdateSubscribe(RemoteDeviceConnectManager manager);
     }
 
@@ -79,6 +79,8 @@ public class RDCMListManager {
             return;
         }
 
+        mAWSIotController.addOnAWSIotEventListener(mOnAWSIotEventListener);
+
         mFuture = mExecutorService.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
@@ -93,7 +95,12 @@ public class RDCMListManager {
     void stopUpdateManagerListTimer() {
         if (mFuture != null) {
             mFuture.cancel(true);
+            mFuture = null;
         }
+
+        mAWSIotController.removeOnAWSIotEventListener(mOnAWSIotEventListener);
+
+        unsubscribeShadow();
     }
 
     /**
@@ -131,14 +138,6 @@ public class RDCMListManager {
      */
     public List<RemoteDeviceConnectManager> getRDCMList() {
         return mManagerList;
-    }
-
-    /**
-     * Set RDCMList.
-     * @param managerList RDCMList.
-     */
-    public void setRDCMList(final List<RemoteDeviceConnectManager> managerList) {
-        mManagerList = managerList;
     }
 
     /**
@@ -199,4 +198,16 @@ public class RDCMListManager {
         }
         return null;
     }
+
+    private final AWSIotController.OnAWSIotEventListener mOnAWSIotEventListener = new AWSIotController.OnAWSIotEventListener() {
+        @Override
+        public void onLogin() {
+        }
+
+        @Override
+        public void onConnected() {
+            subscribeShadow();
+            updateManagerList(mUpdateManagerListCallback);
+        }
+    };
 }

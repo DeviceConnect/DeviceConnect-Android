@@ -31,7 +31,6 @@ import com.amazonaws.regions.Regions;
 
 import org.deviceconnect.android.deviceplugin.awsiot.AWSIotDeviceService;
 import org.deviceconnect.android.deviceplugin.awsiot.cores.core.AWSIotController;
-import org.deviceconnect.android.deviceplugin.awsiot.cores.core.AWSIotDeviceApplication;
 import org.deviceconnect.android.deviceplugin.awsiot.cores.core.AWSIotPrefUtil;
 import org.deviceconnect.android.deviceplugin.awsiot.local.AWSIotLocalDeviceService;
 import org.deviceconnect.android.deviceplugin.awsiot.remote.R;
@@ -142,9 +141,9 @@ public class AWSIotLoginFragment extends Fragment {
                 DuringLoginDialogFragment dialog = new DuringLoginDialogFragment();
                 dialog.show(getFragmentManager(),"DuringDialog");
 
-                mAWSIotController.connect(accessKey, secretKey, region, new AWSIotController.ConnectCallback() {
+                mAWSIotController.login(accessKey, secretKey, region, new AWSIotController.LoginCallback() {
                     @Override
-                    public void onConnected(final Exception err) {
+                    public void onLogin(final Exception err) {
                         DuringLoginDialogFragment dialog = (DuringLoginDialogFragment) getFragmentManager().findFragmentByTag("DuringDialog");
                         if (dialog != null) {
                             dialog.dismiss();
@@ -156,6 +155,7 @@ public class AWSIotLoginFragment extends Fragment {
                         }
 
                         mPrefUtil.setAWSLoginFlag(true);
+
                         // Managerリスト一覧へ遷移
                         FragmentManager manager = getActivity().getSupportFragmentManager();
                         AWSIotManagerListFragment fragment = new AWSIotManagerListFragment();
@@ -199,7 +199,6 @@ public class AWSIotLoginFragment extends Fragment {
             intent2.setAction(AWSIotLocalDeviceService.ACTION_START);
             getActivity().startService(intent2);
         }
-        AWSIotDeviceApplication.getInstance().getRDCMListManager().subscribeShadow();
     }
 
     /**

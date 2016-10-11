@@ -36,44 +36,29 @@ public class AWSIotDeviceApplication extends Application {
 
         mRDCMListManager = new RDCMListManager(getApplicationContext(), mIot);
         mRDCMListManager.startUpdateManagerListTimer();
-        mRDCMListManager.subscribeShadow();
 
-        // ログインフラグがtrueの場合には自動接続を行う
-        final AWSIotPrefUtil pref = new AWSIotPrefUtil(this);
-        if (pref.isAWSLoginFlag()) {
-            String accessKey = pref.getAccessKey();
-            String secretKey = pref.getSecretKey();
-            Regions region = pref.getRegions();
-            mIot.connect(accessKey, secretKey, region, new AWSIotController.ConnectCallback() {
-                @Override
-                public void onConnected(final Exception err) {
-                    if (err == null) {
-                        mRDCMListManager.subscribeShadow();
-                        mRDCMListManager.updateManagerList(null);
-                        updateMyManagerShadow(true);
-                        if (pref.getManagerRegister()) {
-                            Intent intent = new Intent();
-                            intent.setClass(getApplicationContext(), AWSIotLocalDeviceService.class);
-                            intent.setAction(AWSIotLocalDeviceService.ACTION_START);
-                            getApplicationContext().startService(intent);
-                        }
-                    }
-                }
-            });
-        }
+        loginAWSIot();
     }
 
     @Override
     public void onTerminate() {
         if (mRDCMListManager != null) {
-            mRDCMListManager.unsubscribeShadow();
             mRDCMListManager.stopUpdateManagerListTimer();
         }
+        logoutAWSIot();
         super.onTerminate();
     }
 
-    public void updateMyManagerShadow(boolean online) {
-        if (mIot.isConnected()) {
+    public void updateMyManagerShadow(final boolean online) {
+        updateMyManagerShadow(online, new AWSIotController.UpdateShadowCallback() {
+            @Override
+            public void onUpdateShadow(final String result, final Exception err) {
+            }
+        });
+    }
+
+    public void updateMyManagerShadow(final boolean online, final AWSIotController.UpdateShadowCallback callback) {
+        if (mIot.isLogin()) {
             try {
                 AWSIotPrefUtil prefUtil = new AWSIotPrefUtil(this);
                 if (prefUtil.getManagerName() == null) {
@@ -85,15 +70,52 @@ public class AWSIotDeviceApplication extends Application {
                 managerData.put("online", online);
                 managerData.put("timeStamp", System.currentTimeMillis());
 
-                mIot.updateShadow(AWSIotUtil.KEY_DCONNECT_SHADOW_NAME, prefUtil.getManagerUuid(), managerData, new AWSIotController.UpdateShadowCallback() {
-                    @Override
-                    public void onUpdateShadow(final String result, final Exception err) {
-                    }
-                });
+                mIot.updateShadow(AWSIotUtil.KEY_DCONNECT_SHADOW_NAME, prefUtil.getManagerUuid(), managerData, callback);
             } catch (JSONException e) {
-                e.printStackTrace();
+                if (callback != null) {
+                    callback.onUpdateShadow(null, e);
+                }
+            }
+        } else {
+            if (callback != null) {
+                callback.onUpdateShadow(null, new Exception("Not login."));
             }
         }
+    }
+
+    public void loginAWSIot() {
+        final AWSIotPrefUtil pref = new AWSIotPrefUtil(this);
+        if (pref.isAWSLoginFlag()) {
+            String accessKey = pref.getAccessKey();
+            String secretKey = pref.getSecretKey();
+            Regions region = pref.getRegions();
+            mIot.login(accessKey, secretKey, region, new AWSIotController.LoginCallback() {
+                @Override
+                public void onLogin(final Exception err) {
+                    if (err == null) {
+                        if (pref.getManagerRegister()) {
+                            updateMyManagerShadow(true);
+
+                            Intent intent = new Intent();
+                            intent.setClass(getApplicationContext(), AWSIotLocalDeviceService.class);
+                            intent.setAction(AWSIotLocalDeviceService.ACTION_START);
+                            getApplicationContext().startService(intent);
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    public void logoutAWSIot() {
+        AWSIotPrefUtil pref = new AWSIotPrefUtil(this);
+        pref.setAWSLoginFlag(false);
+        updateMyManagerShadow(false, new AWSIotController.UpdateShadowCallback() {
+            @Override
+            public void onUpdateShadow(final String result, final Exception err) {
+                mIot.logout();
+            }
+        });
     }
 
     public AWSIotController getAWSIotController() {

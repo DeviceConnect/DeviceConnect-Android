@@ -225,7 +225,7 @@ public class AWSIotRemoteManager {
         int count = 0;
         int requestCode = AWSIotUtil.generateRequestCode();
         for (RemoteDeviceConnectManager remote : managers) {
-            if (remote.isSubscribe() && remote.isOnline()) {
+            if (isOnlineManager(remote)) {
                 if (publish(remote, AWSIotUtil.createRequest(requestCode, message))) {
                     count++;
                 }
@@ -427,8 +427,7 @@ public class AWSIotRemoteManager {
     private RDCMListManager.OnEventListener mUpdateListener = new RDCMListManager.OnEventListener() {
         @Override
         public void onRDCMListUpdateSubscribe(final RemoteDeviceConnectManager manager) {
-            long checkTime = System.currentTimeMillis() - 600000;
-            if (manager.isSubscribe() && manager.isOnline() && (manager.getTimeStamp() - checkTime > 0)) {
+            if (isOnlineManager(manager)) {
                 mIot.subscribe(manager.getResponseTopic(), mMessageCallback);
                 mIot.subscribe(manager.getEventTopic(), mMessageCallback);
             } else {
@@ -437,6 +436,11 @@ public class AWSIotRemoteManager {
             }
         }
     };
+
+    private boolean isOnlineManager(final RemoteDeviceConnectManager manager) {
+        long checkTime = System.currentTimeMillis() - 600000;
+        return (manager.isSubscribe() && manager.isOnline() && (manager.getTimeStamp() - checkTime > 0));
+    }
 
     private final AWSIotController.MessageCallback mMessageCallback = new AWSIotController.MessageCallback() {
         @Override

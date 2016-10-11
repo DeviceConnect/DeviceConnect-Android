@@ -429,7 +429,7 @@ public class AWSIotRemoteManager {
             for (Event event : events) {
                 Intent intent = EventManager.createEventMessage(event);
 
-                String sessionKey = intent.getStringExtra("sessionKey");
+                String accessToken = intent.getStringExtra("accessToken");
 
                 // TODO json->intent 変換をちゃんと検討すること。
                 Bundle b = new Bundle();
@@ -450,7 +450,9 @@ public class AWSIotRemoteManager {
                     }
                 });
                 intent.putExtras(b);
-                intent.putExtra("sessionKey", sessionKey);
+                if (accessToken != null) {
+                    intent.putExtra("accessToken", accessToken);
+                }
 
                 sendEvent(intent, event.getAccessToken());
             }

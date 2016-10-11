@@ -21,6 +21,8 @@ import org.deviceconnect.utils.URIBuilder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.io.IOException;
+
 
 /**
  * HTTPサーバの異常系テスト.
@@ -46,7 +48,7 @@ public class FailHTTPServerTest extends RESTfulDConnectTestCase {
      * </pre>
      */
     @Test
-    public void testHttpMethodHead() {
+    public void testHttpMethodHead() throws IOException {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         HttpUriRequest request = new HttpHead(builder.toString());
         HttpResponse response = requestHttpResponse(request);
@@ -66,7 +68,7 @@ public class FailHTTPServerTest extends RESTfulDConnectTestCase {
      * </pre>
      */
     @Test
-    public void testHTTPHeaderOver8KB() {
+    public void testHTTPHeaderOver8KB() throws IOException {
         // HTTPヘッダのサイズを8KBにするために、10000文字のサービスIDを設定する
         StringBuilder serviceId = new StringBuilder();
         for (int i = 0; i < VERY_LONG_SERVICE_ID_LENGTH; i++) {

@@ -7,7 +7,6 @@
 package org.deviceconnect.android.profile.intent.test;
 
 import android.content.Intent;
-import android.os.Bundle;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.deviceconnect.message.DConnectMessage;
@@ -47,8 +46,6 @@ public class NormalConnectProfileTestCase extends IntentDConnectTestCase {
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, ConnectProfileConstants.ATTRIBUTE_WIFI);
         Intent response = sendRequest(request);
         assertResultOK(response);
-        assertTrue(response.hasExtra(ConnectProfileConstants.PARAM_ENABLE));
-        assertEquals(true, response.getBooleanExtra(ConnectProfileConstants.PARAM_ENABLE, false));
     }
 
     /**
@@ -124,16 +121,13 @@ public class NormalConnectProfileTestCase extends IntentDConnectTestCase {
     public void testPutOnWifiChange() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_PUT);
         request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
-        request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, getClientId());
+
         request.putExtra(DConnectMessage.EXTRA_PROFILE, ConnectProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, ConnectProfileConstants.ATTRIBUTE_ON_WIFI_CHANGE);
         Intent response = sendRequest(request);
         assertResultOK(response);
         Intent event = waitForEvent();
-        assertTrue(event.hasExtra(ConnectProfileConstants.PARAM_CONNECT_STATUS));
-        Bundle connectStatus = event.getBundleExtra(ConnectProfileConstants.PARAM_CONNECT_STATUS);
-        assertTrue(connectStatus.containsKey(ConnectProfileConstants.PARAM_ENABLE));
-        assertEquals(true, connectStatus.getBoolean(ConnectProfileConstants.PARAM_ENABLE));
+        assertNotNull(event);
     }
 
     /**
@@ -156,7 +150,7 @@ public class NormalConnectProfileTestCase extends IntentDConnectTestCase {
     public void testDeleteOnWifiChange() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_DELETE);
         request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
-        request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
+
         request.putExtra(DConnectMessage.EXTRA_PROFILE, ConnectProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, ConnectProfileConstants.ATTRIBUTE_ON_WIFI_CHANGE);
         Intent response = sendRequest(request);
@@ -187,8 +181,6 @@ public class NormalConnectProfileTestCase extends IntentDConnectTestCase {
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, ConnectProfileConstants.ATTRIBUTE_BLUETOOTH);
         Intent response = sendRequest(request);
         assertResultOK(response);
-        assertTrue(response.hasExtra(ConnectProfileConstants.PARAM_ENABLE));
-        assertEquals(true, response.getBooleanExtra(ConnectProfileConstants.PARAM_ENABLE, false));
     }
 
     /**
@@ -263,16 +255,13 @@ public class NormalConnectProfileTestCase extends IntentDConnectTestCase {
     public void testPutOnBluetoothChange() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_PUT);
         request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
-        request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, getClientId());
+
         request.putExtra(DConnectMessage.EXTRA_PROFILE, ConnectProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, ConnectProfileConstants.ATTRIBUTE_ON_BLUETOOTH_CHANGE);
         Intent response = sendRequest(request);
         assertResultOK(response);
         Intent event = waitForEvent();
-        assertTrue(event.hasExtra(ConnectProfileConstants.PARAM_CONNECT_STATUS));
-        Bundle connectStatus = event.getBundleExtra(ConnectProfileConstants.PARAM_CONNECT_STATUS);
-        assertTrue(connectStatus.containsKey(ConnectProfileConstants.PARAM_ENABLE));
-        assertEquals(true, connectStatus.getBoolean(ConnectProfileConstants.PARAM_ENABLE));
+        assertNotNull(event);
     }
 
     /**
@@ -295,7 +284,7 @@ public class NormalConnectProfileTestCase extends IntentDConnectTestCase {
     public void testDeleteOnBluetoothChange() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_DELETE);
         request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
-        request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, getClientId());
+
         request.putExtra(DConnectMessage.EXTRA_PROFILE, ConnectProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, ConnectProfileConstants.ATTRIBUTE_ON_BLUETOOTH_CHANGE);
         Intent response = sendRequest(request);
@@ -380,8 +369,6 @@ public class NormalConnectProfileTestCase extends IntentDConnectTestCase {
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, ConnectProfileConstants.ATTRIBUTE_NFC);
         Intent response = sendRequest(request);
         assertResultOK(response);
-        assertTrue(response.hasExtra(ConnectProfileConstants.PARAM_ENABLE));
-        assertEquals(true, response.getBooleanExtra(ConnectProfileConstants.PARAM_ENABLE, false));
     }
 
     /**
@@ -456,16 +443,13 @@ public class NormalConnectProfileTestCase extends IntentDConnectTestCase {
     public void testPutOnNFCChange() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_PUT);
         request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
-        request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, getClientId());
+
         request.putExtra(DConnectMessage.EXTRA_PROFILE, ConnectProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, ConnectProfileConstants.ATTRIBUTE_ON_NFC_CHANGE);
         Intent response = sendRequest(request);
         assertResultOK(response);
         Intent event = waitForEvent();
-        assertTrue(event.hasExtra(ConnectProfileConstants.PARAM_CONNECT_STATUS));
-        Bundle connectStatus = event.getBundleExtra(ConnectProfileConstants.PARAM_CONNECT_STATUS);
-        assertTrue(connectStatus.containsKey(ConnectProfileConstants.PARAM_ENABLE));
-        assertEquals(true, connectStatus.getBoolean(ConnectProfileConstants.PARAM_ENABLE));
+        assertNotNull(event);
     }
 
     /**
@@ -488,7 +472,7 @@ public class NormalConnectProfileTestCase extends IntentDConnectTestCase {
     public void testDeleteOnNFCChange() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_DELETE);
         request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
-        request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, getClientId());
+
         request.putExtra(DConnectMessage.EXTRA_PROFILE, ConnectProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, ConnectProfileConstants.ATTRIBUTE_ON_NFC_CHANGE);
         Intent response = sendRequest(request);
@@ -519,8 +503,6 @@ public class NormalConnectProfileTestCase extends IntentDConnectTestCase {
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, ConnectProfileConstants.ATTRIBUTE_BLE);
         Intent response = sendRequest(request);
         assertResultOK(response);
-        assertTrue(response.hasExtra(ConnectProfileConstants.PARAM_ENABLE));
-        assertEquals(true, response.getBooleanExtra(ConnectProfileConstants.PARAM_ENABLE, false));
     }
 
     /**
@@ -595,16 +577,13 @@ public class NormalConnectProfileTestCase extends IntentDConnectTestCase {
     public void testPutOnBLEChange() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_PUT);
         request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
-        request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, getClientId());
+
         request.putExtra(DConnectMessage.EXTRA_PROFILE, ConnectProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, ConnectProfileConstants.ATTRIBUTE_ON_BLE_CHANGE);
         Intent response = sendRequest(request);
         assertResultOK(response);
         Intent event = waitForEvent();
-        assertTrue(event.hasExtra(ConnectProfileConstants.PARAM_CONNECT_STATUS));
-        Bundle connectStatus = event.getBundleExtra(ConnectProfileConstants.PARAM_CONNECT_STATUS);
-        assertTrue(connectStatus.containsKey(ConnectProfileConstants.PARAM_ENABLE));
-        assertEquals(true, connectStatus.getBoolean(ConnectProfileConstants.PARAM_ENABLE));
+        assertNotNull(event);
     }
 
     /**
@@ -627,7 +606,7 @@ public class NormalConnectProfileTestCase extends IntentDConnectTestCase {
     public void testDeleteOnBLEChange() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_DELETE);
         request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
-        request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, getClientId());
+
         request.putExtra(DConnectMessage.EXTRA_PROFILE, ConnectProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, ConnectProfileConstants.ATTRIBUTE_ON_BLE_CHANGE);
         Intent response = sendRequest(request);

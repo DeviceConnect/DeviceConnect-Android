@@ -1,25 +1,26 @@
 apply plugin: 'com.android.application'
 
-def createVersionName = { ->
-    def version
-    if (System.getProperty('os.name').toLowerCase().contains('windows')) {
-        version = ["cmd", "/c", "git describe --tags"].execute().in.text.trim()
-    } else {
-        version = ["sh", "-c", "git describe --tags"].execute().in.text.trim()
-    }
-    version = version.empty ? "2.0.0" : version
-    return "${version}"
-}
-
 android {
     compileSdkVersion 23
     buildToolsVersion '23.0.0'
 
+    def getVersionName = { ->
+        def version
+        if (System.getProperty('os.name').toLowerCase().contains('windows')) {
+            version = ["cmd", "/c", "git describe --tags"].execute().in.text.trim()
+        } else {
+            version = ["sh", "-c", "git describe --tags"].execute().in.text.trim()
+        }
+        version = version.empty ? "2.0.0" : version
+        return "${version}"
+    }
+
     defaultConfig {
+        applicationId "org.deviceconnect.android.manager"
         minSdkVersion 14
         targetSdkVersion 23
         versionCode 1
-        versionName createVersionName()
+        versionName getVersionName()
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
 

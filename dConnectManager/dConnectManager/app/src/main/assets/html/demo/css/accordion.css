@@ -1,0 +1,38 @@
+
+label {
+    padding :8px;
+    display: block;
+    margin: 8px 0px 0px 0px;
+    color :#fff;
+    background :#74A6F6;
+}
+
+input[type="checkbox"].bellows {
+    display: none;
+}
+
+.ac_menu div.ac_content {
+    border: thin solid #74A6F6;
+    background :#f4f4f4;
+    -webkit-transition: all 0.5s;
+    -moz-transition: all 0.5s;
+    -ms-transition: all 0.5s;
+    -o-transition: all 0.5s;
+    transition: all 0.5s;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.ac_menu li {
+    padding: 5px;
+}
+
+input[type="checkbox"].bellows + div.ac_content {
+    height: 0;
+    overflow: hidden;
+}
+
+input[type="checkbox"].bellows:checked + div.ac_content {
+    height: auto;
+}

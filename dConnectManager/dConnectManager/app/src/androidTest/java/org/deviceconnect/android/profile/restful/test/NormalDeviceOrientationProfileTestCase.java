@@ -48,30 +48,12 @@ public class NormalDeviceOrientationProfileTestCase extends RESTfulDConnectTestC
         builder.setProfile(DeviceOrientationProfileConstants.PROFILE_NAME);
         builder.setAttribute(DeviceOrientationProfileConstants.ATTRIBUTE_ON_DEVICE_ORIENTATION);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-        builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, getClientId());
+
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject root = sendRequest(request);
-            JSONObject orientation = root.getJSONObject(DeviceOrientationProfileConstants.PARAM_ORIENTATION);
-            Assert.assertNotNull(orientation);
-            JSONObject a1 = orientation.getJSONObject(DeviceOrientationProfileConstants.PARAM_ACCELERATION);
-            Assert.assertNotNull(a1);
-            Assert.assertEquals(0.0, a1.getDouble(DeviceOrientationProfileConstants.PARAM_X));
-            Assert.assertEquals(0.0, a1.getDouble(DeviceOrientationProfileConstants.PARAM_Y));
-            Assert.assertEquals(0.0, a1.getDouble(DeviceOrientationProfileConstants.PARAM_Z));
-            JSONObject a2 = 
-                    orientation.getJSONObject(DeviceOrientationProfileConstants.PARAM_ACCELERATION_INCLUDING_GRAVITY);
-            Assert.assertNotNull(a2);
-            Assert.assertEquals(0.0, a2.getDouble(DeviceOrientationProfileConstants.PARAM_X));
-            Assert.assertEquals(0.0, a2.getDouble(DeviceOrientationProfileConstants.PARAM_Y));
-            Assert.assertEquals(0.0, a2.getDouble(DeviceOrientationProfileConstants.PARAM_Z));
-            JSONObject r = orientation.getJSONObject(DeviceOrientationProfileConstants.PARAM_ROTATION_RATE);
-            Assert.assertNotNull(r);
-            Assert.assertEquals(0.0, r.getDouble(DeviceOrientationProfileConstants.PARAM_ALPHA));
-            Assert.assertEquals(0.0, r.getDouble(DeviceOrientationProfileConstants.PARAM_BETA));
-            Assert.assertEquals(0.0, r.getDouble(DeviceOrientationProfileConstants.PARAM_GAMMA));
-            Assert.assertEquals(0.0, orientation.getDouble(DeviceOrientationProfileConstants.PARAM_INTERVAL));
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -99,8 +81,6 @@ public class NormalDeviceOrientationProfileTestCase extends RESTfulDConnectTestC
         builder.append("?");
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
-        builder.append(DConnectProfileConstants.PARAM_SESSION_KEY + "=" + getClientId());
-        builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
@@ -109,25 +89,7 @@ public class NormalDeviceOrientationProfileTestCase extends RESTfulDConnectTestC
             assertResultOK(root);
 
             JSONObject event = waitForEvent();
-            JSONObject orientation = event.getJSONObject(DeviceOrientationProfileConstants.PARAM_ORIENTATION);
-            Assert.assertNotNull(orientation);
-            JSONObject a1 = orientation.getJSONObject(DeviceOrientationProfileConstants.PARAM_ACCELERATION);
-            Assert.assertNotNull(a1);
-            Assert.assertEquals(0.0, a1.getDouble(DeviceOrientationProfileConstants.PARAM_X));
-            Assert.assertEquals(0.0, a1.getDouble(DeviceOrientationProfileConstants.PARAM_Y));
-            Assert.assertEquals(0.0, a1.getDouble(DeviceOrientationProfileConstants.PARAM_Z));
-            JSONObject a2 = 
-                    orientation.getJSONObject(DeviceOrientationProfileConstants.PARAM_ACCELERATION_INCLUDING_GRAVITY);
-            Assert.assertNotNull(a2);
-            Assert.assertEquals(0.0, a2.getDouble(DeviceOrientationProfileConstants.PARAM_X));
-            Assert.assertEquals(0.0, a2.getDouble(DeviceOrientationProfileConstants.PARAM_Y));
-            Assert.assertEquals(0.0, a2.getDouble(DeviceOrientationProfileConstants.PARAM_Z));
-            JSONObject r = orientation.getJSONObject(DeviceOrientationProfileConstants.PARAM_ROTATION_RATE);
-            Assert.assertNotNull(r);
-            Assert.assertEquals(0.0, r.getDouble(DeviceOrientationProfileConstants.PARAM_ALPHA));
-            Assert.assertEquals(0.0, r.getDouble(DeviceOrientationProfileConstants.PARAM_BETA));
-            Assert.assertEquals(0.0, r.getDouble(DeviceOrientationProfileConstants.PARAM_GAMMA));
-            Assert.assertEquals(0.0, orientation.getDouble(DeviceOrientationProfileConstants.PARAM_INTERVAL));
+            assertNotNull(event);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -153,8 +115,6 @@ public class NormalDeviceOrientationProfileTestCase extends RESTfulDConnectTestC
         builder.append("/" + DeviceOrientationProfileConstants.ATTRIBUTE_ON_DEVICE_ORIENTATION);
         builder.append("?");
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
-        builder.append("&");
-        builder.append(DConnectProfileConstants.PARAM_SESSION_KEY + "=" + getClientId());
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         try {

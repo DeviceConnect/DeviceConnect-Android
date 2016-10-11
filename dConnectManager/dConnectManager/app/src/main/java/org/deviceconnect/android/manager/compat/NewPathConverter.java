@@ -1,3 +1,9 @@
+/*
+ NewPathConverter.java
+ Copyright (c) 2016 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.manager.compat;
 
 
@@ -10,17 +16,16 @@ import org.deviceconnect.android.compat.MessageConverter;
  * リクエストパスを新仕様に統一するクラス.
  * @author NTT DOCOMO, INC.
  */
-public class NewPathConverter implements MessageConverter {
+class NewPathConverter implements MessageConverter {
 
     @Override
-    public boolean convert(final Intent request) {
+    public void convert(final Intent request) {
         for (PathConversion conversion : PathConversionTable.OLD_TO_NEW) {
             if (conversion.canConvert(request)) {
                 conversion.convert(request);
-                return true;
+                return;
             }
         }
-        return false;
     }
 
 }

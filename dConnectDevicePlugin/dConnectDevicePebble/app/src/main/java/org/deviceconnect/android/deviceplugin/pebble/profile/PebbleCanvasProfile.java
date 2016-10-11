@@ -16,6 +16,9 @@ import org.deviceconnect.android.deviceplugin.pebble.util.PebbleManager.OnSendCo
 import org.deviceconnect.android.deviceplugin.pebble.util.PebbleManager.OnSendDataListener;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.CanvasProfile;
+import org.deviceconnect.android.profile.api.DConnectApi;
+import org.deviceconnect.android.profile.api.DeleteApi;
+import org.deviceconnect.android.profile.api.PostApi;
 import org.deviceconnect.message.DConnectMessage;
 
 import java.util.concurrent.ExecutorService;
@@ -30,48 +33,50 @@ public class PebbleCanvasProfile extends CanvasProfile {
 
     private ExecutorService mImageService = Executors.newSingleThreadExecutor();
 
-    @Override
-    protected boolean onPostDrawImage(final Intent request, final Intent response,
-                                      final String serviceId, final String mimeType, final byte[] data, final String uri, final double x, final double y,
-                                      final String mode) {
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-            return true;
+    private final DConnectApi mPostDrawImageApi = new PostApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_DRAW_IMAGE;
         }
 
-        if (!PebbleUtil.checkServiceId(serviceId)) {
-            MessageUtils.setNotFoundServiceError(response);
-            return true;
-        }
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            final byte[] data = getData(request);
+            final String mode = getMode(request);
+            final double x = getX(request);
+            final double y = getY(request);
 
-        if (data == null) {
-            mImageService.execute(new Runnable() {
-                @Override
-                public void run() {
-                    byte[] result = getData(uri);
-                    if (result == null) {
-                        MessageUtils.setInvalidRequestParameterError(response, "could not get image from uri.");
-                        sendResponse(response);
-                        return;
+            if (data == null) {
+                mImageService.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        String uri = getURI(request);
+                        byte[] result = getData(uri);
+                        if (result == null) {
+                            MessageUtils.setInvalidRequestParameterError(response, "could not get image from uri.");
+                            sendResponse(response);
+                            return;
+                        }
+                        if (drawImage(response, result, mode, x, y)) {
+                            sendResponse(response);
+                        }
                     }
-                    if (drawImage(response, result, mode, x, y)) {
-                        sendResponse(response);
-                    }
-                }
-            });
-            return false;
-        } else {
-            return drawImage(response, data, mode, x, y);
+                });
+                return false;
+            } else {
+                return drawImage(response, data, mode, x, y);
+            }
         }
-    }
+    };
 
-    @Override
-    protected boolean onDeleteDrawImage(final Intent request, final Intent response, final String serviceId) {
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-        } else if (!PebbleUtil.checkServiceId(serviceId)) {
-            MessageUtils.setNotFoundServiceError(response);
-        } else {
+    private final DConnectApi mDeleteDrawImage = new DeleteApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_DRAW_IMAGE;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
             PebbleDeviceService service = (PebbleDeviceService) getContext();
             PebbleManager mgr = service.getPebbleManager();
             PebbleDictionary dic = new PebbleDictionary();
@@ -91,7 +96,11 @@ public class PebbleCanvasProfile extends CanvasProfile {
             });
             return false;
         }
-        return true;
+    };
+
+    public PebbleCanvasProfile() {
+        addApi(mPostDrawImageApi);
+        addApi(mDeleteDrawImage);
     }
 
     private boolean drawImage(final Intent response, byte[] data, String mode, double x, double y) {

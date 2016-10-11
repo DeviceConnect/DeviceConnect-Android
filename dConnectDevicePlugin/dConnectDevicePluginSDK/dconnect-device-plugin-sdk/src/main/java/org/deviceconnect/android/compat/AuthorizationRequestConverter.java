@@ -16,7 +16,7 @@ public class AuthorizationRequestConverter implements MessageConverter {
     private static final String ATTRIBUTE_REQUEST_ACCESS_TOKEN = "requestAccessToken";
 
     @Override
-    public boolean convert(final Intent request) {
+    public void convert(final Intent request) {
         String profileName = DConnectProfile.getProfile(request);
         if (AuthorizationProfileConstants.PROFILE_NAME.equals(profileName)) {
             String attributeName = request.getStringExtra(DConnectMessage.EXTRA_ATTRIBUTE);
@@ -28,6 +28,5 @@ public class AuthorizationRequestConverter implements MessageConverter {
                     AuthorizationProfileConstants.ATTRIBUTE_ACCESS_TOKEN);
             }
         }
-        return true;
     }
 }

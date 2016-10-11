@@ -1,0 +1,14 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "title": "JSON Test Profile",
+        "version": "2.0.0",
+        "description": ""
+    },
+    "consumes": [
+        "application/x-www-form-urlencoded",
+        "multipart/form-data"
+    ],
+    "paths": {
+    }
+}

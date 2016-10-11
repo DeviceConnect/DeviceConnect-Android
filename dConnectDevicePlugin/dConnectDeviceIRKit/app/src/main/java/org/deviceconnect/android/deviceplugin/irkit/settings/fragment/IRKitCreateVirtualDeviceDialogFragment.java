@@ -12,7 +12,9 @@ import android.app.Dialog;
 import android.app.DialogFragment;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.content.LocalBroadcastManager;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
@@ -22,6 +24,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import org.deviceconnect.android.deviceplugin.irkit.IRKitDeviceService;
 import org.deviceconnect.android.deviceplugin.irkit.R;
 import org.deviceconnect.android.deviceplugin.irkit.data.IRKitDBHelper;
 import org.deviceconnect.android.deviceplugin.irkit.data.VirtualDeviceData;
@@ -142,12 +145,24 @@ public class IRKitCreateVirtualDeviceDialogFragment extends DialogFragment {
         if (i < 0) {
             // TODO 登録失敗
         } else {
+            sendEventOnAdded(device);
+
             showAlert(getActivity(), getString(R.string.virtual_device_create),
                     getString(R.string.created_virtual_device));
             if (mDelegate != null) {
                 mDelegate.onCreated();
             }
         }
+    }
+
+    private void sendEventOnAdded(final VirtualDeviceData device) {
+        Activity activity = getActivity();
+        if (activity == null) {
+            return;
+        }
+        Intent intent = new Intent(IRKitDeviceService.ACTION_VIRTUAL_DEVICE_ADDED);
+        intent.putExtra(IRKitDeviceService.EXTRA_VIRTUAL_DEVICE_ID, device.getServiceId());
+        LocalBroadcastManager.getInstance(activity).sendBroadcast(intent);
     }
 
     /**

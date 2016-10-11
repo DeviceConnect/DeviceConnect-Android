@@ -7,23 +7,18 @@
 package org.deviceconnect.android.profile.restful.test;
 
 import android.support.test.runner.AndroidJUnit4;
-import org.junit.Before;
-import org.junit.After;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-
-import junit.framework.Assert;
 
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpUriRequest;
-import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.deviceconnect.profile.ConnectProfileConstants;
 import org.deviceconnect.profile.DConnectProfileConstants;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 /**
  * Connectプロファイルの正常系テスト.
@@ -58,9 +53,7 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject root = sendRequest(request);
-            Assert.assertNotNull("root is null.", root);
-            Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
-            Assert.assertEquals("power is not equals.", true, root.getBoolean(ConnectProfileConstants.PARAM_ENABLE));
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -91,8 +84,7 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject root = sendRequest(request);
-            Assert.assertNotNull("root is null.", root);
-            Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -123,8 +115,7 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
             JSONObject root = sendRequest(request);
-            Assert.assertNotNull("root is null.", root);
-            Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -151,18 +142,13 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("?");
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
-        builder.append(DConnectProfileConstants.PARAM_SESSION_KEY + "=" + getClientId());
-        builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject root = sendRequest(request);
-            Assert.assertNotNull("root is null.", root);
-            Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
+            assertResultOK(root);
             JSONObject event = waitForEvent();
-            JSONObject connectStatus = event.getJSONObject(ConnectProfileConstants.PARAM_CONNECT_STATUS);
-            Assert.assertNotNull(connectStatus);
-            Assert.assertEquals(true, connectStatus.getBoolean(ConnectProfileConstants.PARAM_ENABLE));
+            assertNotNull(event);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -189,14 +175,11 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("?");
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
-        builder.append(DConnectProfileConstants.PARAM_SESSION_KEY + "=" + getClientId());
-        builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
             JSONObject root = sendRequest(request);
-            Assert.assertNotNull("root is null.", root);
-            Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -228,9 +211,7 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject root = sendRequest(request);
-            Assert.assertNotNull("root is null.", root);
-            Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
-            Assert.assertEquals("power is not equals.", true, root.getBoolean(ConnectProfileConstants.PARAM_ENABLE));
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -261,8 +242,7 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject root = sendRequest(request);
-            Assert.assertNotNull("root is null.", root);
-            Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -293,8 +273,7 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
             JSONObject root = sendRequest(request);
-            Assert.assertNotNull("root is null.", root);
-            Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -321,18 +300,13 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("?");
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
-        builder.append(DConnectProfileConstants.PARAM_SESSION_KEY + "=" + getClientId());
-        builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject root = sendRequest(request);
-            Assert.assertNotNull("root is null.", root);
-            Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
+            assertResultOK(root);
             JSONObject event = waitForEvent();
-            JSONObject connectStatus = event.getJSONObject(ConnectProfileConstants.PARAM_CONNECT_STATUS);
-            Assert.assertNotNull(connectStatus);
-            Assert.assertEquals(true, connectStatus.getBoolean(ConnectProfileConstants.PARAM_ENABLE));
+            assertNotNull(event);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -359,14 +333,11 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("?");
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
-        builder.append(DConnectProfileConstants.PARAM_SESSION_KEY + "=" + getClientId());
-        builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
             JSONObject root = sendRequest(request);
-            Assert.assertNotNull("root is null.", root);
-            Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -398,8 +369,7 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject root = sendRequest(request);
-            Assert.assertNotNull("root is null.", root);
-            Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -431,8 +401,7 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
             JSONObject root = sendRequest(request);
-            Assert.assertNotNull("root is null.", root);
-            Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -464,9 +433,7 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject root = sendRequest(request);
-            Assert.assertNotNull("root is null.", root);
-            Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
-            Assert.assertEquals("power is not equals.", true, root.getBoolean(ConnectProfileConstants.PARAM_ENABLE));
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -497,8 +464,7 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject root = sendRequest(request);
-            Assert.assertNotNull("root is null.", root);
-            Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -529,8 +495,7 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
             JSONObject root = sendRequest(request);
-            Assert.assertNotNull("root is null.", root);
-            Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -557,18 +522,13 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("?");
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
-        builder.append(DConnectProfileConstants.PARAM_SESSION_KEY + "=" + getClientId());
-        builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject root = sendRequest(request);
-            Assert.assertNotNull("root is null.", root);
-            Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
+            assertResultOK(root);
             JSONObject event = waitForEvent();
-            JSONObject connectStatus = event.getJSONObject(ConnectProfileConstants.PARAM_CONNECT_STATUS);
-            Assert.assertNotNull(connectStatus);
-            Assert.assertEquals(true, connectStatus.getBoolean(ConnectProfileConstants.PARAM_ENABLE));
+            assertNotNull(event);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -595,14 +555,11 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("?");
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
-        builder.append(DConnectProfileConstants.PARAM_SESSION_KEY + "=" + getClientId());
-        builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
             JSONObject root = sendRequest(request);
-            Assert.assertNotNull("root is null.", root);
-            Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -634,9 +591,7 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject root = sendRequest(request);
-            Assert.assertNotNull("root is null.", root);
-            Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
-            Assert.assertEquals("power is not equals.", true, root.getBoolean(ConnectProfileConstants.PARAM_ENABLE));
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -667,8 +622,7 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject root = sendRequest(request);
-            Assert.assertNotNull("root is null.", root);
-            Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -699,8 +653,7 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
             JSONObject root = sendRequest(request);
-            Assert.assertNotNull("root is null.", root);
-            Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -727,18 +680,13 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("?");
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
-        builder.append(DConnectProfileConstants.PARAM_SESSION_KEY + "=" + getClientId());
-        builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject root = sendRequest(request);
-            Assert.assertNotNull("root is null.", root);
-            Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
+            assertResultOK(root);
             JSONObject event = waitForEvent();
-            JSONObject connectStatus = event.getJSONObject(ConnectProfileConstants.PARAM_CONNECT_STATUS);
-            Assert.assertNotNull(connectStatus);
-            Assert.assertEquals(true, connectStatus.getBoolean(ConnectProfileConstants.PARAM_ENABLE));
+            assertNotNull(event);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -765,14 +713,11 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("?");
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
-        builder.append(DConnectProfileConstants.PARAM_SESSION_KEY + "=" + getClientId());
-        builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
             JSONObject root = sendRequest(request);
-            Assert.assertNotNull("root is null.", root);
-            Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }

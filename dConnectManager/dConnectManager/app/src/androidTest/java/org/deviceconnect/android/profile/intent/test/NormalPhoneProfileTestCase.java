@@ -7,7 +7,6 @@
 package org.deviceconnect.android.profile.intent.test;
 
 import android.content.Intent;
-import android.os.Bundle;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.deviceconnect.android.test.plugin.profile.TestPhoneProfileConstants;
@@ -158,18 +157,12 @@ public class NormalPhoneProfileTestCase extends IntentDConnectTestCase {
         request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, PhoneProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, PhoneProfileConstants.ATTRIBUTE_ON_CONNECT);
-        request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, getClientId());
+
         Intent response = sendRequest(request);
 
         assertResultOK(response);
         Intent event = waitForEvent();
-        Bundle phoneStatus = event.getBundleExtra(PhoneProfileConstants.PARAM_PHONE_STATUS);
-        assertTrue(phoneStatus.containsKey(PhoneProfileConstants.PARAM_PHONE_NUMBER));
-        assertEquals(TestPhoneProfileConstants.PHONE_NUMBER,
-                phoneStatus.getString(PhoneProfileConstants.PARAM_PHONE_NUMBER));
-        assertTrue(phoneStatus.containsKey(PhoneProfileConstants.PARAM_STATE));
-        assertEquals(PhoneProfileConstants.CallState.FINISHED.getValue(),
-                phoneStatus.getInt(PhoneProfileConstants.PARAM_STATE));
+        assertNotNull(event);
     }
 
     /**
@@ -193,7 +186,7 @@ public class NormalPhoneProfileTestCase extends IntentDConnectTestCase {
         request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, PhoneProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, PhoneProfileConstants.ATTRIBUTE_ON_CONNECT);
-        request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
+
         Intent response = sendRequest(request);
 
         assertResultOK(response);

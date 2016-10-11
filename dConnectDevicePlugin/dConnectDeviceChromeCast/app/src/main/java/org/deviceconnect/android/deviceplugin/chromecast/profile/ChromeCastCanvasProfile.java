@@ -15,6 +15,9 @@ import org.deviceconnect.android.deviceplugin.chromecast.core.ChromeCastMessage;
 import org.deviceconnect.android.deviceplugin.chromecast.core.MediaFile;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.CanvasProfile;
+import org.deviceconnect.android.profile.api.DConnectApi;
+import org.deviceconnect.android.profile.api.DeleteApi;
+import org.deviceconnect.android.profile.api.PostApi;
 import org.deviceconnect.message.DConnectMessage;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -53,6 +56,13 @@ public class ChromeCastCanvasProfile extends CanvasProfile implements ChromeCast
      */
     private final Logger mLogger = Logger.getLogger("chromecast.dplugin");
 
+
+
+    public ChromeCastCanvasProfile() {
+        addApi(mPostDrawImageApi);
+        addApi(mDeleteDrawImageApi);
+    }
+
     /**
      * Generates an image file name.
      *
@@ -63,64 +73,83 @@ public class ChromeCastCanvasProfile extends CanvasProfile implements ChromeCast
         return PREFIX + FORMAT.format(timestamp);
     }
 
-    @Override
-    protected boolean onPostDrawImage(final Intent request, final Intent response, final String serviceId,
-                                      final String mimeType, final byte[] data, final String uri, final double x, final double y, final String mode) {
-        ((ChromeCastService) getContext()).connectChromeCast(serviceId, new ChromeCastService.Callback() {
+    private final DConnectApi mPostDrawImageApi = new PostApi() {
+        @Override
+        public String getAttribute() {
+            return CanvasProfile.ATTRIBUTE_DRAW_IMAGE;
+        }
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            final String mimeType = CanvasProfile.getMIMEType(request);
+            final String serviceId = getServiceID(request);
+            final byte[] data = CanvasProfile.getData(request);
+            final String uri = CanvasProfile.getURI(request);
+            final double x = CanvasProfile.getX(request);
+            final double y = CanvasProfile.getY(request);
+            final String mode = CanvasProfile.getMode(request);
+            ((ChromeCastService) getContext()).connectChromeCast(serviceId, new ChromeCastService.Callback() {
 
-            @Override
-            public void onResponse() {
-                if (data == null && uri == null) {
-                    MessageUtils.setInvalidRequestParameterError(response, "data is not specified.");
-                    sendResponse(response);
-                    return;
-                }
-                if (uri != null &&!URLUtil.isHttpsUrl(uri) && !URLUtil.isHttpUrl(uri)) {
-                    MessageUtils.setInvalidRequestParameterError(response, "uri is not invalid.");
-                    sendResponse(response);
-                    return;
-                }
-
-                try {
-                    String path;
-                    if (data != null) {
-                        path = exposeImage(data, mimeType);
-                    } else {
-                        path = uri;
-                    }
-                    mLogger.info("Exposed image: URL=" + path);
-                    if (path == null) {
-                        MessageUtils.setUnknownError(response, "The host device is not in local network.");
+                @Override
+                public void onResponse() {
+                    if (data == null && uri == null) {
+                        MessageUtils.setInvalidRequestParameterError(response, "data is not specified.");
                         sendResponse(response);
                         return;
                     }
-                    ChromeCastMessage app = ((ChromeCastService) getContext()).getChromeCastMessage();
-                    if (!isDeviceEnable(response, app)) {
+                    if (mimeType != null && !mimeType.contains("image")) {
+                        MessageUtils.setInvalidRequestParameterError(response,
+                                "Unsupported mimeType: " + mimeType);
                         sendResponse(response);
                         return;
                     }
-                    JSONObject json = new JSONObject();
-                    json.put(KEY_FUNCTION, FUNCTION_POST_IMAGE);
-                    json.put(KEY_URL, path);
-                    json.put(KEY_MODE, mode);
-                    json.put(KEY_X, x);
-                    json.put(KEY_Y, y);
-                    String message = json.toString();
-                    mLogger.info("Send message successfully: " + message);
-                    setResult(response, DConnectMessage.RESULT_OK);
-                    app.sendMessage(response, message);
-                } catch (IOException e) {
-                    MessageUtils.setUnknownError(response, "Failed to deploy image to Chromecast.");
-                    sendResponse(response);
-                } catch (Exception e) {
-                    MessageUtils.setUnknownError(response, e.getMessage());
-                    sendResponse(response);
-                }
-            }
-        });
-        return false;
-    }
 
+                    if (uri != null && !URLUtil.isHttpsUrl(uri) && !URLUtil.isHttpUrl(uri)) {
+                        MessageUtils.setInvalidRequestParameterError(response, "uri is not invalid.");
+                        sendResponse(response);
+                        return;
+                    }
+
+                    try {
+                        String path;
+                        if (data != null) {
+                            path = exposeImage(data, mimeType);
+                        } else {
+                            path = uri;
+                        }
+
+                        mLogger.info("Exposed image: URL=" + path);
+                        if (path == null) {
+                            MessageUtils.setUnknownError(response, "The host device is not in local network.");
+                            sendResponse(response);
+                            return;
+                        }
+                        ChromeCastMessage app = ((ChromeCastService) getContext()).getChromeCastMessage();
+                        if (!isDeviceEnable(response, app)) {
+                            sendResponse(response);
+                            return;
+                        }
+                        JSONObject json = new JSONObject();
+                        json.put(KEY_FUNCTION, FUNCTION_POST_IMAGE);
+                        json.put(KEY_URL, path);
+                        json.put(KEY_MODE, mode);
+                        json.put(KEY_X, x);
+                        json.put(KEY_Y, y);
+                        String message = json.toString();
+                        mLogger.info("Send message successfully: " + message);
+                        setResult(response, DConnectMessage.RESULT_OK);
+                        app.sendMessage(response, message);
+                    } catch (IOException e) {
+                        MessageUtils.setUnknownError(response, "Failed to deploy image to Chromecast.");
+                        sendResponse(response);
+                    } catch (Exception e) {
+                        MessageUtils.setUnknownError(response, e.getMessage());
+                        sendResponse(response);
+                    }
+                }
+            });
+            return false;
+        }
+    };
     /**
      * Expose an image.
      *
@@ -172,30 +201,36 @@ public class ChromeCastCanvasProfile extends CanvasProfile implements ChromeCast
         return ((ChromeCastService) getContext()).getChromeCastHttpServer();
     }
 
-    @Override
-    protected boolean onDeleteDrawImage(final Intent request, final Intent response, final String serviceId) {
-        ((ChromeCastService) getContext()).connectChromeCast(serviceId, new ChromeCastService.Callback() {
+    private final DConnectApi mDeleteDrawImageApi = new DeleteApi() {
+        @Override
+        public String getAttribute() {
+            return CanvasProfile.ATTRIBUTE_DRAW_IMAGE;
+        }
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            final String serviceId = getServiceID(request);
+            ((ChromeCastService) getContext()).connectChromeCast(serviceId, new ChromeCastService.Callback() {
 
-            @Override
-            public void onResponse() {
-                ChromeCastMessage app = ((ChromeCastService) getContext()).getChromeCastMessage();
-                if (!isDeviceEnable(response, app)) {
-                    sendResponse(response);
-                    return;
+                @Override
+                public void onResponse() {
+                    ChromeCastMessage app = ((ChromeCastService) getContext()).getChromeCastMessage();
+                    if (!isDeviceEnable(response, app)) {
+                        sendResponse(response);
+                        return;
+                    }
+                    try {
+                        JSONObject json = new JSONObject();
+                        json.put(KEY_FUNCTION, FUNCTION_DELETE_IMAGE);
+                        app.sendMessage(response, json.toString());
+                    } catch (JSONException e) {
+                        MessageUtils.setUnknownError(response);
+                        sendResponse(response);
+                    }
                 }
-                try {
-                    JSONObject json = new JSONObject();
-                    json.put(KEY_FUNCTION, FUNCTION_DELETE_IMAGE);
-                    app.sendMessage(response, json.toString());
-                } catch (JSONException e) {
-                    MessageUtils.setUnknownError(response);
-                    sendResponse(response);
-                }
-            }
-        });
-        return false;
-    }
-
+            });
+            return false;
+        }
+    };
     /**
      * デバイスが有効か否かを返す<br/>.
      * デバイスが無効の場合、レスポンスにエラーを設定する
@@ -212,4 +247,6 @@ public class ChromeCastCanvasProfile extends CanvasProfile implements ChromeCast
         }
         return true;
     }
+
+
 }

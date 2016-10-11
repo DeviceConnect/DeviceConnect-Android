@@ -21,6 +21,10 @@ import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.android.profile.ProximityProfile;
+import org.deviceconnect.android.profile.api.DConnectApi;
+import org.deviceconnect.android.profile.api.DeleteApi;
+import org.deviceconnect.android.profile.api.GetApi;
+import org.deviceconnect.android.profile.api.PutApi;
 import org.deviceconnect.message.DConnectMessage;
 
 import java.util.ArrayList;
@@ -38,59 +42,29 @@ public class HostProximityProfile extends ProximityProfile implements SensorEven
      */
     private static String sServiceId = "";
 
-    /**
-     * サービスIDをチェックする.
-     * 
-     * @param serviceId サービスID
-     * @return <code>serviceId</code>がテスト用サービスIDに等しい場合はtrue、そうでない場合はfalse
-     */
-    private boolean checkserviceId(final String serviceId) {
-        return HostServiceDiscoveryProfile.SERVICE_ID.equals(serviceId);
-    }
+    private final DConnectApi mGetOnUserProximityApi = new GetApi() {
 
-    /**
-     * サービスIDが空の場合のエラーを作成する.
-     * 
-     * @param response レスポンスを格納するIntent
-     */
-    private void createEmptyserviceId(final Intent response) {
-        MessageUtils.setEmptyServiceIdError(response);
-    }
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_USER_PROXIMITY;
+        }
 
-    /**
-     * セッションキーが空の場合のエラーを作成する.
-     * 
-     * @param response レスポンスを格納するIntent
-     */
-    private void createEmptySessionKey(final Intent response) {
-        MessageUtils.setInvalidRequestParameterError(response);
-    }
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            return getOnUserProximity(response);
+        }
+    };
 
-    /**
-     * デバイスが発見できなかった場合のエラーを作成する.
-     * 
-     * @param response レスポンスを格納するIntent
-     */
-    private void createNotFoundService(final Intent response) {
-        MessageUtils.setNotFoundServiceError(response);
-    }
+    private final DConnectApi mPutOnUserProximityApi = new PutApi() {
 
-    @Override
-    protected boolean onGetOnUserProximity(final Intent request, final Intent response,
-            final String serviceId) {
-        return getOnUserProximity(response);
-    }
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_USER_PROXIMITY;
+        }
 
-    @Override
-    protected boolean onPutOnUserProximity(final Intent request, final Intent response,
-            final String serviceId, final String sessionKey) {
-        if (serviceId == null) {
-            createEmptyserviceId(response);
-        } else if (!checkserviceId(serviceId)) {
-            createNotFoundService(response);
-        } else if (sessionKey == null) {
-            createEmptySessionKey(response);
-        } else {
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String serviceId = getServiceID(request);
             // イベントの登録
             EventError error = EventManager.INSTANCE.addEvent(request);
             if (error == EventError.NONE) {
@@ -99,26 +73,25 @@ public class HostProximityProfile extends ProximityProfile implements SensorEven
                     setResult(response, DConnectMessage.RESULT_OK);
                 } else {
                     MessageUtils.setNotSupportAttributeError(response,
-                            "This device is not support proximity.");
+                        "This device is not support proximity.");
                 }
             } else {
                 MessageUtils.setUnknownError(response,
-                        "Failed to register event.");
+                    "Failed to register event.");
             }
+            return true;
         }
-        return true;
-    }
+    };
 
-    @Override
-    protected boolean onDeleteOnUserProximity(final Intent request, final Intent response, 
-            final String serviceId, final String sessionKey) {
-        if (serviceId == null) {
-            createEmptyserviceId(response);
-        } else if (!checkserviceId(serviceId)) {
-            createNotFoundService(response);
-        } else if (sessionKey == null) {
-            createEmptySessionKey(response);
-        } else {
+    private final DConnectApi mDeleteOnUserProximityApi = new DeleteApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_USER_PROXIMITY;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
             // イベントの解除
             EventError error = EventManager.INSTANCE.removeEvent(request);
             if (error == EventError.NONE) {
@@ -126,14 +99,20 @@ public class HostProximityProfile extends ProximityProfile implements SensorEven
                     setResult(response, DConnectMessage.RESULT_OK);
                 } else {
                     MessageUtils.setNotSupportAttributeError(response,
-                            "This device is not support proximity.");
+                        "This device is not support proximity.");
                 }
             } else {
                 MessageUtils.setUnknownError(response,
-                        "Failed to unregister event.");
+                    "Failed to unregister event.");
             }
+            return true;
         }
-        return true;
+    };
+
+    public HostProximityProfile() {
+        addApi(mGetOnUserProximityApi);
+        addApi(mPutOnUserProximityApi);
+        addApi(mDeleteOnUserProximityApi);
     }
 
     @Override
@@ -149,6 +128,12 @@ public class HostProximityProfile extends ProximityProfile implements SensorEven
             List<Event> events = EventManager.INSTANCE.getEventList(sServiceId,
                     ProximityProfile.PROFILE_NAME, null,
                     ProximityProfile.ATTRIBUTE_ON_USER_PROXIMITY);
+
+            if (events == null || events.size() == 0) {
+                unregisterProximity();
+                return;
+            }
+
             synchronized (events) {
                 for (Event event : events) {
                     Intent evtIntent = EventManager.createEventMessage(event);

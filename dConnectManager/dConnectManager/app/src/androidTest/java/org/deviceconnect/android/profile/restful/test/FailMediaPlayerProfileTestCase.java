@@ -347,7 +347,7 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.UNKNOWN_ATTRIBUTE.getCode(), root);
+            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -518,7 +518,7 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.UNKNOWN_ATTRIBUTE.getCode(), root);
+            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -546,7 +546,7 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.UNKNOWN_ATTRIBUTE.getCode(), root);
+            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -900,7 +900,7 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.UNKNOWN_ATTRIBUTE.getCode(), root);
+            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -1668,7 +1668,7 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.UNKNOWN_ATTRIBUTE.getCode(), root);
+            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -1982,7 +1982,7 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.UNKNOWN_ATTRIBUTE.getCode(), root);
+            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }

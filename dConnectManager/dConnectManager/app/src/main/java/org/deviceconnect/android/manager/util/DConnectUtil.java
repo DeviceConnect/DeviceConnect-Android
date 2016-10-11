@@ -11,6 +11,9 @@ import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.graphics.ColorMatrix;
+import android.graphics.ColorMatrixColorFilter;
+import android.graphics.drawable.Drawable;
 import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -26,14 +29,26 @@ import org.deviceconnect.utils.URIBuilder;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.UnsupportedEncodingException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Random;
+import java.util.UUID;
 
 /**
  * ユーティリティクラス.
  * @author NTT DOCOMO, INC.
  */
 public final class DConnectUtil {
+    /** 乱数の最大値. */
+    private static final int MAX_NUM = 10000;
+    /** キーワードの桁数を定義. */
+    private static final int DIGIT = 4;
+    /** 10進数の定義. */
+    private static final int DECIMAL = 10;
+
     /**
      * Defined the permission.
      */
@@ -47,6 +62,39 @@ public final class DConnectUtil {
      * ユーティリティクラスなので、privateとしておく。
      */
     private DConnectUtil() {
+    }
+
+    /**
+     * キーワードを作成する.
+     *
+     * @return キーワード
+     */
+    public static String createKeyword() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("DCONNECT-");
+        int rand = Math.abs(new Random().nextInt() % MAX_NUM);
+        for (int i = 0; i < DIGIT; i++) {
+            int r = rand % DECIMAL;
+            builder.append(r);
+            rand /= DECIMAL;
+        }
+        return builder.toString();
+    }
+
+    public static String createName() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("Manager-");
+        int rand = Math.abs(new Random().nextInt() % MAX_NUM);
+        for (int i = 0; i < DIGIT; i++) {
+            int r = rand % DECIMAL;
+            builder.append(r);
+            rand /= DECIMAL;
+        }
+        return builder.toString();
+    }
+
+    public static String createUuid() {
+        return UUID.randomUUID().toString();
     }
 
     /**
@@ -190,5 +238,45 @@ public final class DConnectUtil {
             }
             return result;
         }
+    }
+
+    public static Drawable convertToGrayScale(final Drawable drawable) {
+        Drawable clone = drawable.getConstantState().newDrawable().mutate();
+        ColorMatrix matrix = new ColorMatrix();
+        matrix.setSaturation(0.2f);
+        ColorMatrixColorFilter filter = new ColorMatrixColorFilter(matrix);
+        clone.setColorFilter(filter);
+        return clone;
+    }
+
+    /** マスクを定義. */
+    private static final int MASK = 0xFF;
+
+    /**
+     * バイト配列を16進数の文字列に変換する.
+     * @param buf 文字列に変換するバイト
+     * @return 文字列
+     */
+    private static String hexToString(final byte[] buf) {
+        StringBuilder hexString = new StringBuilder();
+        for (int i = 0; i < buf.length; i++) {
+            hexString.append(Integer.toHexString(MASK & buf[i]));
+        }
+        return hexString.toString();
+    }
+
+    /**
+     * 指定された文字列をMD5の文字列に変換する.
+     * MD5への変換に失敗した場合にはnullを返却する。
+     * @param s MD5にする文字列
+     * @return MD5にされた文字列
+     * @throws UnsupportedEncodingException 文字列の解析に失敗した場合
+     * @throws NoSuchAlgorithmException MD5がサポートされていない場合
+     */
+    public static String toMD5(final String s)
+        throws UnsupportedEncodingException, NoSuchAlgorithmException {
+        MessageDigest digest = java.security.MessageDigest.getInstance("MD5");
+        digest.update(s.getBytes("ASCII"));
+        return hexToString(digest.digest());
     }
 }

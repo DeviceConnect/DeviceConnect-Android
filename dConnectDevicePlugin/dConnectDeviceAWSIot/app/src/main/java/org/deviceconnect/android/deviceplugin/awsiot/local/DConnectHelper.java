@@ -39,6 +39,8 @@ public class DConnectHelper {
     /** シングルトンなManagerのインスタンス. */
     public static final DConnectHelper INSTANCE = new DConnectHelper();
 
+    public static final String ORIGIN = "http://org.deviceconnect.android.deviceplugin.awsiot";
+
     private AuthInfo mAuthInfo;
 
     private Map<String, String> mDefaultHeader = new HashMap<>();
@@ -85,15 +87,36 @@ public class DConnectHelper {
     };
 
     private AWSIotPrefUtil mPrefUtil;
+    private AWSIotWebSocketClient mAWSIotWebSocketClient;
+    private AWSIotWebSocketClient.OnMessageEventListener mOnMessageEventListener;
 
     private DConnectHelper() {
-        mDefaultHeader.put(DConnectMessage.HEADER_GOTAPI_ORIGIN, "http://org.deviceconnect.android.deviceplugin.awsiot");
+        mDefaultHeader.put(DConnectMessage.HEADER_GOTAPI_ORIGIN, ORIGIN);
 
         mPrefUtil = new AWSIotPrefUtil(AWSIotDeviceApplication.getInstance());
         String accessToken = mPrefUtil.getAuthAccessToken();
         String clientId = mPrefUtil.getAuthClientId();
         if (accessToken != null && clientId != null) {
             mAuthInfo = new AuthInfo(clientId, accessToken);
+        }
+    }
+
+    public void openWebSocket(final AWSIotWebSocketClient.OnMessageEventListener listener) {
+        if (mAWSIotWebSocketClient != null) {
+            mAWSIotWebSocketClient.close();
+        }
+
+        mOnMessageEventListener = listener;
+
+        mAWSIotWebSocketClient = new AWSIotWebSocketClient(mPrefUtil.getAuthAccessToken());
+        mAWSIotWebSocketClient.setOnMessageEventListener(listener);
+        mAWSIotWebSocketClient.connect();
+    }
+
+    public void closeWebSocket() {
+        if (mAWSIotWebSocketClient != null) {
+            mAWSIotWebSocketClient.close();
+            mAWSIotWebSocketClient = null;
         }
     }
 
@@ -307,6 +330,7 @@ public class DConnectHelper {
                     mBody.put("accessToken", accessToken);
                     mPrefUtil.setAuthAccessToken(accessToken);
                     mPrefUtil.setAuthClientId(clientId);
+                    openWebSocket(mOnMessageEventListener);
                     return executeRequest();
                 }
             } catch (JSONException e) {

@@ -395,7 +395,7 @@ public class ServiceListActivity extends Activity implements AlertDialogFragment
     }
 
     private void openHelp() {
-        String url = "file:///android_asset/html/help-dwa/index.html";
+        String url = BuildConfig.URL_HELP_HTML;
         Intent intent = new Intent();
         intent.setClass(this, WebViewActivity.class);
         intent.putExtra(WebViewActivity.EXTRA_URL, url);
@@ -406,7 +406,7 @@ public class ServiceListActivity extends Activity implements AlertDialogFragment
     private void openServiceInfo(final int position) {
         mSelectedService = (ServiceContainer) mServiceAdapter.getItem(position);
         if (mSelectedService.isOnline()) {
-            String url = "file:///android_asset/html/demo/index.html?serviceId=" + mSelectedService.getId();
+            String url = BuildConfig.URL_DEMO_HTML + "?serviceId=" + mSelectedService.getId();
             Intent intent = new Intent();
             intent.setClass(this, WebViewActivity.class);
             intent.putExtra(WebViewActivity.EXTRA_URL, url);

@@ -10,8 +10,8 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 
-import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * 設定データ管理クラス.
@@ -27,6 +27,7 @@ public class SettingData {
     public String serviceId = null;
     public String serviceName = null;
     public Set<String> scopes = null;
+    public String sessionKey;
 
     /** Context */
     private Context context;
@@ -88,5 +89,12 @@ public class SettingData {
         serviceId = preferences.getString("serviceId", null);
         serviceName = preferences.getString("serviceName", null);
         scopes = preferences.getStringSet("scopes", null);
+        sessionKey = preferences.getString("sessionKey", null);
+        if (sessionKey == null) {
+            sessionKey = UUID.randomUUID().toString();
+            SharedPreferences.Editor editor = preferences.edit();
+            editor.putString("sessionKey", sessionKey);
+            editor.apply();
+        }
     }
 }

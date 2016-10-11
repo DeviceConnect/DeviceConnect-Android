@@ -32,6 +32,8 @@ import org.deviceconnect.android.manager.DevicePluginManager;
 import org.deviceconnect.android.manager.R;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -107,6 +109,14 @@ public class DevicePluginListFragment extends Fragment {
                 continue;
             }
         }
+        Collections.sort(containers, new Comparator<PluginContainer>() {
+            @Override
+            public int compare(final PluginContainer o1, final PluginContainer o2) {
+                String a = o1.getLabel();
+                String b = o2.getLabel();
+                return a.compareTo(b);
+            }
+        });
         return containers;
     }
 

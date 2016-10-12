@@ -51,7 +51,6 @@ android {
         exclude 'META-INF/LICENSE'
         exclude 'META-INF/NOTICE'
     }
-
     tasks.withType(JavaCompile) {
         options.encoding = 'UTF-8'
     }

@@ -37,4 +37,7 @@
         <item>欧州（フランクフルト）</item>
         <item>欧州（アイルランド）</item>
     </string-array>
+    <string name="awsiot_login_error_access_key">アクセスキーIDを入力して下さい。</string>
+    <string name="awsiot_login_error_secret_key">シークレットアクセスキーを入力して下さい。</string>
+    <string name="awsiot_login_error">ログインに失敗しました。アクセスキーID, シークレットアクセスキー, リージョンを確認して下さい。</string>
 </resources>

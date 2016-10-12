@@ -6,13 +6,10 @@
  */
 package org.deviceconnect.android.deviceplugin.awsiot;
 
-import com.amazonaws.regions.Regions;
-
 import android.content.Intent;
 
 import org.deviceconnect.android.deviceplugin.awsiot.cores.core.AWSIotController;
 import org.deviceconnect.android.deviceplugin.awsiot.cores.core.AWSIotDeviceApplication;
-import org.deviceconnect.android.deviceplugin.awsiot.cores.core.AWSIotPrefUtil;
 import org.deviceconnect.android.deviceplugin.awsiot.local.AWSIotLocalDeviceService;
 import org.deviceconnect.android.deviceplugin.awsiot.profile.AWSIotServiceDiscoveryProfile;
 import org.deviceconnect.android.deviceplugin.awsiot.profile.AWSIotSystemProfile;
@@ -37,13 +34,13 @@ public class AWSIotDeviceService extends DConnectMessageService {
         super.onCreate();
 
         EventManager.INSTANCE.setController(new MemoryCacheController());
-        startAWSIot();
-        addProfile(new AWSIotServiceDiscoveryProfile(mAWSIotRemoteManager, getServiceProvider()));
+        startRemoteAWSIot();
+        addProfile(new AWSIotServiceDiscoveryProfile(this, getServiceProvider()));
     }
 
     @Override
     public void onDestroy() {
-        stopAWSIot();
+        stopRemoteAWSIot();
         super.onDestroy();
     }
 
@@ -52,7 +49,9 @@ public class AWSIotDeviceService extends DConnectMessageService {
         if (intent != null) {
             String action = intent.getAction();
             if (ACTION_CONNECT_MQTT.equals(action)) {
-                mAWSIotRemoteManager.connect();
+                if (mAWSIotRemoteManager != null) {
+                    mAWSIotRemoteManager.connect();
+                }
             }
         }
         return super.onStartCommand(intent, flags, startId);
@@ -65,37 +64,20 @@ public class AWSIotDeviceService extends DConnectMessageService {
 
     @Override
     protected void onManagerUninstalled() {
-        stopAWSIot();
+        stopRemoteAWSIot();
     }
 
     @Override
     protected void onDevicePluginReset() {
-        stopAWSIot();
-        startAWSIot();
+        stopRemoteAWSIot();
+        stopLocalAWSIot();
 
-        // ログインフラグがtrueの場合には自動接続を行う
-        AWSIotPrefUtil pref = new AWSIotPrefUtil(this);
-        if (pref.isAWSLoginFlag()) {
-            String accessKey = pref.getAccessKey();
-            String secretKey = pref.getSecretKey();
-            Regions region = pref.getRegions();
-            getAWSIotController().connect(accessKey, secretKey, region, new AWSIotController.ConnectCallback() {
-                @Override
-                public void onConnected(final Exception err) {
-                    if (err == null) {
-                        ((AWSIotDeviceApplication) getApplication()).getRDCMListManager().subscribeShadow();
-                        AWSIotDeviceApplication.getInstance().updateMyManagerShadow(true);
-                        AWSIotPrefUtil pref = new AWSIotPrefUtil(getContext());
-                        if (pref.getManagerRegister()) {
-                            Intent intent = new Intent();
-                            intent.setClass(getApplicationContext(), AWSIotLocalDeviceService.class);
-                            intent.setAction(AWSIotLocalDeviceService.ACTION_START);
-                            getApplicationContext().startService(intent);
-                        }
-                    }
-                }
-            });
-        }
+        getAWSIotController().logout();
+
+        startRemoteAWSIot();
+        startLocalAWSIot();
+
+        ((AWSIotDeviceApplication) getApplication()).loginAWSIot();
     }
 
     @Override
@@ -108,16 +90,34 @@ public class AWSIotDeviceService extends DConnectMessageService {
         }
     }
 
-    private void startAWSIot() {
+    public AWSIotRemoteManager getAWSIotRemoteManager() {
+        return mAWSIotRemoteManager;
+    }
+
+    private void startRemoteAWSIot() {
         mAWSIotRemoteManager = new AWSIotRemoteManager(this, getAWSIotController());
         mAWSIotRemoteManager.connect();
     }
 
-    private void stopAWSIot() {
+    private void stopRemoteAWSIot() {
         if (mAWSIotRemoteManager != null) {
             mAWSIotRemoteManager.disconnect();
             mAWSIotRemoteManager = null;
         }
+    }
+
+    private void startLocalAWSIot() {
+        Intent intent = new Intent();
+        intent.setClass(getApplicationContext(), AWSIotLocalDeviceService.class);
+        intent.setAction(AWSIotLocalDeviceService.ACTION_START);
+        getApplicationContext().startService(intent);
+    }
+
+    private void stopLocalAWSIot() {
+        Intent intent = new Intent();
+        intent.setClass(getApplicationContext(), AWSIotLocalDeviceService.class);
+        intent.setAction(AWSIotLocalDeviceService.ACTION_STOP);
+        getApplicationContext().startService(intent);
     }
 
     private AWSIotController getAWSIotController() {

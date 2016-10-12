@@ -31,7 +31,6 @@ public class AWSIotLocalManager {
     private RemoteDeviceConnectManager mRemoteManager;
     private AWSIotWebLocalClientManager mAWSIotWebClientManager;
     private AWSIotWebLocalServerManager mAWSIotWebServerManager;
-    private OnEventListener mOnEventListener;
     private Context mContext;
     private ExecutorService mExecutorService = Executors.newSingleThreadExecutor();
 
@@ -51,16 +50,32 @@ public class AWSIotLocalManager {
         mIot = controller;
         mRemoteManager = remote;
         mPrefUtil = new AWSIotPrefUtil(mContext);
+        mIot.addOnAWSIotEventListener(mOnAWSIotEventListener);
     }
 
     public AWSIotController getAWSIotController() {
         return mIot;
     }
 
-    public void disconnect() {
+    public void connectAWSIoT() {
         if (DEBUG) {
-            Log.i(TAG, "AWSIotLocalManager#disconnect");
+            Log.i(TAG, "AWSIotLocalManager#connectAWSIoT");
         }
+
+        mAWSIotWebClientManager = new AWSIotWebLocalClientManager(mContext, this);
+        mAWSIotWebServerManager = new AWSIotWebLocalServerManager(mContext, this);
+
+        DConnectHelper.INSTANCE.openWebSocket(mOnMessageEventListener);
+
+        subscribeTopic();
+    }
+
+    public void disconnectAWSIoT() {
+        if (DEBUG) {
+            Log.i(TAG, "AWSIotLocalManager#disconnectAWSIoT");
+        }
+
+        mIot.removeOnAWSIotEventListener(mOnAWSIotEventListener);
 
         DConnectHelper.INSTANCE.closeWebSocket();
 
@@ -74,26 +89,13 @@ public class AWSIotLocalManager {
             mAWSIotWebServerManager = null;
         }
 
-        if (mIot != null) {
-           unsubscribeTopic();
-        }
-    }
-
-    public void setOnEventListener(final OnEventListener listener) {
-        mOnEventListener = listener;
-    }
-
-    public void connectAWSIoT() {
-        mAWSIotWebClientManager = new AWSIotWebLocalClientManager(mContext, this);
-        mAWSIotWebServerManager = new AWSIotWebLocalServerManager(mContext, this);
-
-        DConnectHelper.INSTANCE.openWebSocket(mOnMessageEventListener);
-
-        subscribeTopic();
+        unsubscribeTopic();
     }
 
     public void publish(final String message) {
-        mIot.publish(mRemoteManager.getResponseTopic(), message);
+        if (mIot != null) {
+            mIot.publish(mRemoteManager.getResponseTopic(), message);
+        }
     }
 
     public void publishEvent(final String message) {
@@ -124,11 +126,15 @@ public class AWSIotLocalManager {
     }
 
     private void subscribeTopic() {
-        mIot.subscribe(mRemoteManager.getRequestTopic(), mMessageCallback);
+        if (mIot != null) {
+            mIot.subscribe(mRemoteManager.getRequestTopic(), mMessageCallback);
+        }
     }
 
     private void unsubscribeTopic() {
-        mIot.unsubscribe(mRemoteManager.getRequestTopic());
+        if (mIot != null) {
+            mIot.unsubscribe(mRemoteManager.getRequestTopic());
+        }
     }
 
     private void parseMQTT(final String message) {
@@ -207,10 +213,6 @@ public class AWSIotLocalManager {
                 return;
             }
 
-            if (mOnEventListener != null) {
-                mOnEventListener.onReceivedMessage(topic, message);
-            }
-
             if (!topic.equals(mRemoteManager.getRequestTopic())) {
                 if (DEBUG) {
                     Log.e(TAG, "Not found the RemoteDeviceConnectManager. topic=" + topic);
@@ -227,10 +229,14 @@ public class AWSIotLocalManager {
         }
     };
 
-    public interface OnEventListener {
-        void onConnected();
-        void onReconnecting();
-        void onDisconnected();
-        void onReceivedMessage(String topic, String message);
-    }
+    private final AWSIotController.OnAWSIotEventListener mOnAWSIotEventListener = new AWSIotController.OnAWSIotEventListener() {
+        @Override
+        public void onLogin() {
+        }
+
+        @Override
+        public void onConnected() {
+            subscribeTopic();
+        }
+    };
 }

@@ -30,7 +30,6 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Switch;
 
-import org.deviceconnect.android.deviceplugin.awsiot.cores.core.AWSIotController;
 import org.deviceconnect.android.deviceplugin.awsiot.cores.core.AWSIotDeviceApplication;
 import org.deviceconnect.android.deviceplugin.awsiot.cores.core.AWSIotPrefUtil;
 import org.deviceconnect.android.deviceplugin.awsiot.cores.core.RDCMListManager;
@@ -140,7 +139,7 @@ public class AWSIotManagerListFragment extends Fragment {
                 }
                 break;
             case R.id.menu_logout:
-                logoutAWSIot();
+                AWSIotDeviceApplication.getInstance().logoutAWSIot();
 
                 // ログイン画面へ遷移
                 AWSIotLoginFragment loginFragment = new AWSIotLoginFragment();
@@ -152,13 +151,6 @@ public class AWSIotManagerListFragment extends Fragment {
                 break;
         }
         return ret;
-    }
-
-    private void logoutAWSIot() {
-        AWSIotPrefUtil pref = new AWSIotPrefUtil(getActivity());
-        pref.setAWSLoginFlag(false);
-        AWSIotDeviceApplication.getInstance().updateMyManagerShadow(false);
-        getAWSIotController().disconnect();
     }
 
     private void getManagerList() {
@@ -227,10 +219,6 @@ public class AWSIotManagerListFragment extends Fragment {
 
             return convertView;
         }
-    }
-
-    private AWSIotController getAWSIotController() {
-        return ((AWSIotSettingActivity) getActivity()).getAWSIotController();
     }
 
     private void availability() {

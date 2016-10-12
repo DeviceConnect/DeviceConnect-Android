@@ -29,11 +29,9 @@ import android.widget.Toast;
 
 import com.amazonaws.regions.Regions;
 
-import org.deviceconnect.android.deviceplugin.awsiot.AWSIotDeviceService;
 import org.deviceconnect.android.deviceplugin.awsiot.cores.core.AWSIotController;
 import org.deviceconnect.android.deviceplugin.awsiot.cores.core.AWSIotDeviceApplication;
 import org.deviceconnect.android.deviceplugin.awsiot.cores.core.AWSIotPrefUtil;
-import org.deviceconnect.android.deviceplugin.awsiot.local.AWSIotLocalDeviceService;
 import org.deviceconnect.android.deviceplugin.awsiot.remote.R;
 import org.deviceconnect.android.deviceplugin.awsiot.setting.AWSIotSettingActivity;
 import org.deviceconnect.android.deviceplugin.awsiot.setting.AWSIotWebViewActivity;
@@ -124,12 +122,12 @@ public class AWSIotLoginFragment extends Fragment {
             public void onClick(View view) {
                 String accessKey = mAccessKey.getText().toString();
                 if (accessKey.length() == 0) {
-                    Toast.makeText(getContext(), "アクセスキーIDを入力して下さい。", Toast.LENGTH_LONG).show();
+                    Toast.makeText(getContext(), getString(R.string.awsiot_login_error_access_key), Toast.LENGTH_LONG).show();
                     return;
                 }
                 String secretKey = mSecretKey.getText().toString();
                 if (secretKey.length() == 0) {
-                    Toast.makeText(getContext(), "シークレットアクセスキーを入力して下さい。", Toast.LENGTH_LONG).show();
+                    Toast.makeText(getContext(), getString(R.string.awsiot_login_error_secret_key), Toast.LENGTH_LONG).show();
                     return;
                 }
 
@@ -142,20 +140,21 @@ public class AWSIotLoginFragment extends Fragment {
                 DuringLoginDialogFragment dialog = new DuringLoginDialogFragment();
                 dialog.show(getFragmentManager(),"DuringDialog");
 
-                mAWSIotController.connect(accessKey, secretKey, region, new AWSIotController.ConnectCallback() {
+                mAWSIotController.login(accessKey, secretKey, region, new AWSIotController.LoginCallback() {
                     @Override
-                    public void onConnected(final Exception err) {
+                    public void onLogin(final Exception err) {
                         DuringLoginDialogFragment dialog = (DuringLoginDialogFragment) getFragmentManager().findFragmentByTag("DuringDialog");
                         if (dialog != null) {
                             dialog.dismiss();
                         }
 
                         if (err != null) {
-                            Toast.makeText(getContext(), "ログインに失敗しました。アクセスキーID, シークレットアクセスキー, リージョンを確認して下さい。", Toast.LENGTH_LONG).show();
+                            Toast.makeText(getContext(), getString(R.string.awsiot_login_error), Toast.LENGTH_LONG).show();
                             return;
                         }
 
                         mPrefUtil.setAWSLoginFlag(true);
+
                         // Managerリスト一覧へ遷移
                         FragmentManager manager = getActivity().getSupportFragmentManager();
                         AWSIotManagerListFragment fragment = new AWSIotManagerListFragment();
@@ -163,7 +162,7 @@ public class AWSIotLoginFragment extends Fragment {
                         transaction.replace(R.id.container, fragment);
                         transaction.commit();
 
-                        startAWSIot();
+                        ((AWSIotDeviceApplication)getActivity().getApplication()).startAWSIot();
                     }
                 });
             }
@@ -185,21 +184,6 @@ public class AWSIotLoginFragment extends Fragment {
         });
 
         return rootView;
-    }
-
-    private void startAWSIot() {
-        Intent intent = new Intent();
-        intent.setClass(getActivity(), AWSIotDeviceService.class);
-        intent.setAction(AWSIotDeviceService.ACTION_CONNECT_MQTT);
-        getActivity().startService(intent);
-
-        if (mPrefUtil.getManagerRegister()) {
-            Intent intent2 = new Intent();
-            intent2.setClass(getActivity(), AWSIotLocalDeviceService.class);
-            intent2.setAction(AWSIotLocalDeviceService.ACTION_START);
-            getActivity().startService(intent2);
-        }
-        AWSIotDeviceApplication.getInstance().getRDCMListManager().subscribeShadow();
     }
 
     /**

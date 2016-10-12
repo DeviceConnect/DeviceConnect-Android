@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name">Hitoe (Device Connect Device Plug-in)</string>
-    <string name="app_name_for_device_web_api">Hitoe (DWA Plug-in)</string>
+    <string name="app_name_for_device_web_api">Hitoe (Device Web API Plug-in)</string>
     <string name="summary_title">[1/4] デバイスプラグイン概要</string>
     <string name="summary_body">このデバイスプラグインはHitoeデバイスと接続し、心拍数などを取得する機能を提供します。</string>
 

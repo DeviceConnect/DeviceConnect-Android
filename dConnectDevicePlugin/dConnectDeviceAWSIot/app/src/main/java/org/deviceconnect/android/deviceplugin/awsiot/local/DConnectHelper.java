@@ -115,6 +115,7 @@ public class DConnectHelper {
 
     public void closeWebSocket() {
         if (mAWSIotWebSocketClient != null) {
+            mAWSIotWebSocketClient.setOnMessageEventListener(null);
             mAWSIotWebSocketClient.close();
             mAWSIotWebSocketClient = null;
         }

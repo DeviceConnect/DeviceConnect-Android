@@ -7,6 +7,8 @@
 package org.deviceconnect.android.deviceplugin.awsiot.cores.core;
 
 import android.content.Context;
+import android.support.v4.BuildConfig;
+import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.awsiot.cores.util.AWSIotUtil;
 
@@ -21,6 +23,9 @@ import java.util.concurrent.TimeUnit;
  * Remote Device Connect Manager List Manager Class.
  */
 public class RDCMListManager {
+    private static final boolean DEBUG = BuildConfig.DEBUG;
+    private static final String TAG = "RDCM";
+
     /** 遠隔にあるDevice Connect Managerのリスト. */
     private List<RemoteDeviceConnectManager> mManagerList = new ArrayList<>();
     /** Database Helper. */
@@ -39,7 +44,7 @@ public class RDCMListManager {
     private final String MANAGER_LIST_SHADOW = "$aws/things/"+ AWSIotUtil.KEY_DCONNECT_SHADOW_NAME +"/shadow/update/accepted";
 
     /** OnEventListener Interface. */
-    public interface OnEventListener{
+    public interface OnEventListener {
         void onRDCMListUpdateSubscribe(RemoteDeviceConnectManager manager);
     }
 
@@ -79,10 +84,16 @@ public class RDCMListManager {
             return;
         }
 
+        mAWSIotController.addOnAWSIotEventListener(mOnAWSIotEventListener);
+
         mFuture = mExecutorService.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
-                AWSIotDeviceApplication.getInstance().updateMyManagerShadow(true);
+                if (DEBUG) {
+                    Log.i(TAG, "Update the online status for Device Shadow.");
+                }
+                AWSIotPrefUtil pref = new AWSIotPrefUtil(mContext);
+                AWSIotDeviceApplication.getInstance().updateMyManagerShadow(pref.getManagerRegister());
             }
         }, 30, 5 * 60, TimeUnit.SECONDS);
     }
@@ -93,7 +104,12 @@ public class RDCMListManager {
     void stopUpdateManagerListTimer() {
         if (mFuture != null) {
             mFuture.cancel(true);
+            mFuture = null;
         }
+
+        mAWSIotController.removeOnAWSIotEventListener(mOnAWSIotEventListener);
+
+        unsubscribeShadow();
     }
 
     /**
@@ -119,7 +135,7 @@ public class RDCMListManager {
 
     /**
      * Set OnEventListener.
-     * @param eventListener listner.
+     * @param eventListener listener.
      */
     public void setOnEventListener(final OnEventListener eventListener) {
         mOnEventListener = eventListener;
@@ -131,14 +147,6 @@ public class RDCMListManager {
      */
     public List<RemoteDeviceConnectManager> getRDCMList() {
         return mManagerList;
-    }
-
-    /**
-     * Set RDCMList.
-     * @param managerList RDCMList.
-     */
-    public void setRDCMList(final List<RemoteDeviceConnectManager> managerList) {
-        mManagerList = managerList;
     }
 
     /**
@@ -199,4 +207,16 @@ public class RDCMListManager {
         }
         return null;
     }
+
+    private final AWSIotController.OnAWSIotEventListener mOnAWSIotEventListener = new AWSIotController.OnAWSIotEventListener() {
+        @Override
+        public void onLogin() {
+        }
+
+        @Override
+        public void onConnected() {
+            subscribeShadow();
+            updateManagerList(mUpdateManagerListCallback);
+        }
+    };
 }

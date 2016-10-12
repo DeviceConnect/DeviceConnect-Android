@@ -34,9 +34,9 @@ import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 
 /**
@@ -62,8 +62,10 @@ public class AWSIotController {
     /** endpoint情報. */
     private String mAWSIotEndPoint = "Not Connected";
 
-    public interface ConnectCallback {
-        void onConnected(Exception err);
+    private List<OnAWSIotEventListener> mOnAWSIotEventListeners = new CopyOnWriteArrayList<>();
+
+    public interface LoginCallback {
+        void onLogin(Exception err);
     }
 
     public interface GetShadowCallback {
@@ -78,22 +80,38 @@ public class AWSIotController {
         void onReceivedMessage(String topic, String message, Exception err);
     }
 
+    public interface OnAWSIotEventListener {
+        void onLogin();
+        void onConnected();
+    }
+
+    public void addOnAWSIotEventListener(OnAWSIotEventListener listener) {
+        mOnAWSIotEventListeners.add(listener);
+    }
+
+    public void removeOnAWSIotEventListener(OnAWSIotEventListener listener) {
+        mOnAWSIotEventListeners.remove(listener);
+    }
+
+    public boolean isLogin() {
+        return mAWSIotEndPoint != null;
+    }
+
     /**
-     * 接続
+     * AWSIoTサーバにログインします.
      *
      * @param accessKey アクセスキー
      * @param secretKey シークレットキー
      * @param region    リージョン
      */
-    public void connect(final String accessKey, final String secretKey, final Regions region, final ConnectCallback callback) {
+    public void login(final String accessKey, final String secretKey, final Regions region, final LoginCallback callback) {
 
         if (accessKey == null || secretKey == null || region == null) {
             if (callback != null) {
-                callback.onConnected(new RuntimeException("Arguments is null."));
+                callback.onLogin(new RuntimeException("Arguments is null."));
             }
             return;
         }
-
 
         BasicAWSCredentials credentials = new BasicAWSCredentials(accessKey, secretKey);
         mCredentialsProvider = new StaticCredentialsProvider(credentials);
@@ -105,7 +123,7 @@ public class AWSIotController {
         new DescribeEndpointTask() {
             @Override
             protected void onPostExecute(final AsyncTaskResult<String> result) {
-                Exception exception;
+                Exception exception = null;
                 if (result.getError() == null) {
                     JSONObject json;
                     try {
@@ -114,8 +132,10 @@ public class AWSIotController {
                             String endpoint = json.getString(END_POINT_ADDRESS);
                             mAWSIotEndPoint = endpoint;
                             mIotDataClient.setEndpoint(endpoint);
-                            connectMQTT(callback);
-                            return;
+                            for (OnAWSIotEventListener l : mOnAWSIotEventListeners) {
+                                l.onLogin();
+                            }
+                            connectMQTT();
                         } else {
                             exception = new Exception("Not found endpointAddress.");
                         }
@@ -125,19 +145,30 @@ public class AWSIotController {
                 } else {
                     exception = result.getError();
                 }
-                callback.onConnected(exception);
+                callback.onLogin(exception);
             }
         }.execute();
     }
 
-    public void disconnect() {
+    /**
+     * AWS IoTサーバからログアウトします.
+     */
+    public void logout() {
         if (DEBUG) {
             Log.i(TAG, "AWSIotController#disconnect");
         }
 
+        if (mIotDataClient != null) {
+            mIotDataClient.shutdown();
+            mIotDataClient = null;
+        }
+
+        if (mIotClient != null) {
+            mIotClient.shutdown();
+            mIotClient = null;
+        }
+
         mAWSIotEndPoint = null;
-        mIotClient = null;
-        mIotDataClient = null;
         mCredentialsProvider = null;
 
         disconnectMQTT();
@@ -191,18 +222,6 @@ public class AWSIotController {
     }
 
     /**
-     * Shadowのクリア.
-     *
-     * @param name Shadow名
-     */
-    public void clearShadow(final String name) {
-        UpdateShadowTask updateShadowTask = new UpdateShadowTask();
-        updateShadowTask.setThingName(name);
-        updateShadowTask.setState("{\"state\":{\"reported\":null}}");
-        updateShadowTask.execute();
-    }
-
-    /**
      * AWSIotへ送信するjson作成
      *
      * @param key   キー
@@ -216,31 +235,6 @@ public class AWSIotController {
         try {
             jsonDesired.put(key, value);
             jsonState.put("reported", jsonDesired);
-            jsonRoot.put("state", jsonState);
-        } catch (JSONException e) {
-            if (DEBUG) {
-                Log.e(TAG, "json error.", e);
-            }
-            // TODO: エラー処理
-        }
-        return jsonRoot;
-    }
-
-    /**
-     * AWSIotへ送信するjson作成
-     *
-     * @param keys 値
-     * @return json
-     */
-    private JSONObject makeJson(final HashMap<String, Object> keys) {
-        JSONObject jsonRoot = new JSONObject();
-        JSONObject jsonState = new JSONObject();
-        JSONObject jsonReported = new JSONObject();
-        try {
-            for (Map.Entry<String, Object> entry : keys.entrySet()) {
-                jsonReported.put(entry.getKey(), entry.getValue());
-            }
-            jsonState.put("reported", jsonReported);
             jsonRoot.put("state", jsonState);
         } catch (JSONException e) {
             if (DEBUG) {
@@ -371,15 +365,12 @@ public class AWSIotController {
     /**
      * MQTTへの接続.
      */
-    public void connectMQTT(final ConnectCallback callback) {
+    private void connectMQTT() {
         if (DEBUG) {
             Log.i(TAG, "connectMQTT");
         }
 
         if (mMqttManager != null) {
-            if (callback != null) {
-                callback.onConnected(null);
-            }
             return;
         }
 
@@ -396,22 +387,16 @@ public class AWSIotController {
                             Log.e(TAG, "MQTT Error", throwable);
                         }
                     }
-                    if (status == AWSIotMqttClientStatus.Connecting) {
-                        // No Operation.
-                    } else if (status == AWSIotMqttClientStatus.Connected) {
+                    if (status == AWSIotMqttClientStatus.Connected) {
                         // 接続済みとする
                         if (!mIsConnected) {
                             mIsConnected = true;
-                            if (callback != null) {
-                                callback.onConnected(null);
+                            for (OnAWSIotEventListener l : mOnAWSIotEventListeners) {
+                                l.onConnected();
                             }
                         }
-                    } else if (status == AWSIotMqttClientStatus.Reconnecting) {
-                        // No Operation.
-                    } else if (status == AWSIotMqttClientStatus.ConnectionLost) {
-                        // No Operation.
                     } else {
-                        // No Operation.
+                        mIsConnected = false;
                     }
                 }
             });
@@ -443,17 +428,23 @@ public class AWSIotController {
             return;
         }
 
-        mMqttManager.subscribeToTopic(topic, AWSIotMqttQos.QOS0,
-                new AWSIotMqttNewMessageCallback() {
-                    @Override
-                    public void onMessageArrived(final String topic, final byte[] data) {
-                        try {
-                            callback.onReceivedMessage(topic, new String(data, "UTF-8"), null);
-                        } catch (UnsupportedEncodingException e) {
-                            callback.onReceivedMessage(topic, null, e);
+        try {
+            mMqttManager.subscribeToTopic(topic, AWSIotMqttQos.QOS0,
+                    new AWSIotMqttNewMessageCallback() {
+                        @Override
+                        public void onMessageArrived(final String topic, final byte[] data) {
+                            try {
+                                callback.onReceivedMessage(topic, new String(data, "UTF-8"), null);
+                            } catch (UnsupportedEncodingException e) {
+                                callback.onReceivedMessage(topic, null, e);
+                            }
                         }
-                    }
-                });
+                    });
+        } catch (Exception e) {
+            if (DEBUG) {
+                Log.e(TAG, "subscribe error. topic=" + topic);
+            }
+        }
     }
 
     public void unsubscribe(final String topic) {
@@ -469,7 +460,7 @@ public class AWSIotController {
             mMqttManager.unsubscribeTopic(topic);
         } catch (Exception e) {
             if (DEBUG) {
-                Log.e(TAG, "unsubscribe error.", e);
+                Log.e(TAG, "unsubscribe error. topic=" + topic);
             }
         }
     }
@@ -480,13 +471,13 @@ public class AWSIotController {
      * @param topic topicのURI
      * @param msg   メッセージ
      */
-    public void publish(final String topic, final String msg) {
+    public boolean publish(final String topic, final String msg) {
         if (DEBUG) {
             Log.i(TAG, "publish topic:" + topic);
         }
 
         if (mMqttManager == null) {
-            return;
+            return false;
         }
 
         try {
@@ -498,11 +489,12 @@ public class AWSIotController {
                     }
                 }
             }, null);
+            return true;
         } catch (Exception e) {
             if (DEBUG) {
-                Log.e(TAG, "Publish error.", e);
+                Log.e(TAG, "Publish error." + e.toString());
             }
-            // TODO: エラー処理
+            return false;
         }
     }
 
@@ -512,13 +504,6 @@ public class AWSIotController {
      */
     public Boolean isConnected() {
         return mIsConnected;
-    }
-
-    /**
-     * 接続状態をリセット.
-     */
-    public void resetConnected() {
-        mIsConnected = false;
     }
 
     /** endpoint情報取得関数 */

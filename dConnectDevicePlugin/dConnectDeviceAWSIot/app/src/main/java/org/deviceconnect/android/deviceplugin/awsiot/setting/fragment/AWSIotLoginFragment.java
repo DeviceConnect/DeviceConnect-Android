@@ -123,12 +123,12 @@ public class AWSIotLoginFragment extends Fragment {
             public void onClick(View view) {
                 String accessKey = mAccessKey.getText().toString();
                 if (accessKey.length() == 0) {
-                    Toast.makeText(getContext(), "アクセスキーIDを入力して下さい。", Toast.LENGTH_LONG).show();
+                    Toast.makeText(getContext(), getString(R.string.awsiot_login_error_access_key), Toast.LENGTH_LONG).show();
                     return;
                 }
                 String secretKey = mSecretKey.getText().toString();
                 if (secretKey.length() == 0) {
-                    Toast.makeText(getContext(), "シークレットアクセスキーを入力して下さい。", Toast.LENGTH_LONG).show();
+                    Toast.makeText(getContext(), getString(R.string.awsiot_login_error_secret_key), Toast.LENGTH_LONG).show();
                     return;
                 }
 
@@ -150,7 +150,7 @@ public class AWSIotLoginFragment extends Fragment {
                         }
 
                         if (err != null) {
-                            Toast.makeText(getContext(), "ログインに失敗しました。アクセスキーID, シークレットアクセスキー, リージョンを確認して下さい。", Toast.LENGTH_LONG).show();
+                            Toast.makeText(getContext(), getString(R.string.awsiot_login_error), Toast.LENGTH_LONG).show();
                             return;
                         }
 

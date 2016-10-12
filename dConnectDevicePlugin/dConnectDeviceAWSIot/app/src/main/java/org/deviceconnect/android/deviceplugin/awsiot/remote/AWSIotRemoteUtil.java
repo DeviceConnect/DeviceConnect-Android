@@ -80,6 +80,8 @@ public final class AWSIotRemoteUtil {
             if (obj instanceof String) {
                 if (key.equals("id")) {
                     response.putString(key, callback.convertServiceId((String) obj));
+                } else if (key.equals("serviceId")) {
+                    response.putString(key, callback.convertServiceId((String) obj));
                 } else if (key.equals("name")) {
                     response.putString(key, callback.convertName((String) obj));
                 } else if (key.equals("uri")) {

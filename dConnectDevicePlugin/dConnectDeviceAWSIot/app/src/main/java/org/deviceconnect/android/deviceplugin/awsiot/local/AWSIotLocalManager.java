@@ -31,7 +31,6 @@ public class AWSIotLocalManager {
     private RemoteDeviceConnectManager mRemoteManager;
     private AWSIotWebLocalClientManager mAWSIotWebClientManager;
     private AWSIotWebLocalServerManager mAWSIotWebServerManager;
-    private AWSIotWebSocketClient mAWSIotWebSocketClient;
     private OnEventListener mOnEventListener;
     private Context mContext;
     private ExecutorService mExecutorService = Executors.newSingleThreadExecutor();
@@ -63,10 +62,7 @@ public class AWSIotLocalManager {
             Log.i(TAG, "AWSIotLocalManager#disconnect");
         }
 
-        if (mAWSIotWebSocketClient != null) {
-            mAWSIotWebSocketClient.close();
-            mAWSIotWebSocketClient = null;
-        }
+        DConnectHelper.INSTANCE.closeWebSocket();
 
         if (mAWSIotWebClientManager != null) {
             mAWSIotWebClientManager.destroy();
@@ -91,13 +87,7 @@ public class AWSIotLocalManager {
         mAWSIotWebClientManager = new AWSIotWebLocalClientManager(mContext, this);
         mAWSIotWebServerManager = new AWSIotWebLocalServerManager(mContext, this);
 
-        mAWSIotWebSocketClient = new AWSIotWebSocketClient("http://localhost:4035/websocket", mSessionKey) {
-            @Override
-            public void onMessage(final String message) {
-                publishEvent(message);
-            }
-        };
-        mAWSIotWebSocketClient.connect();
+        DConnectHelper.INSTANCE.openWebSocket(mOnMessageEventListener);
 
         subscribeTopic();
     }
@@ -144,7 +134,7 @@ public class AWSIotLocalManager {
     private void parseMQTT(final String message) {
         try {
             JSONObject json = new JSONObject(message);
-            int requestCode = json.optInt("requestCode");
+            long requestCode = json.optLong("requestCode");
             JSONObject request = json.optJSONObject(AWSIotUtil.KEY_REQUEST);
             if (request != null) {
                 onReceivedDeviceConnectRequest(requestCode, request.toString());
@@ -164,7 +154,7 @@ public class AWSIotLocalManager {
         }
     }
 
-    private void onReceivedDeviceConnectRequest(final int requestCode, final String request) {
+    private void onReceivedDeviceConnectRequest(final long requestCode, final String request) {
         if (DEBUG) {
             Log.i(TAG, "onReceivedDeviceConnectRequest: request=" + request);
         }
@@ -193,6 +183,13 @@ public class AWSIotLocalManager {
             }
         });
     }
+
+    private final AWSIotWebSocketClient.OnMessageEventListener mOnMessageEventListener = new AWSIotWebSocketClient.OnMessageEventListener() {
+        @Override
+        public void onMessage(final String message) {
+            publishEvent(message);
+        }
+    };
 
     private final AWSIotController.MessageCallback mMessageCallback = new AWSIotController.MessageCallback() {
         @Override

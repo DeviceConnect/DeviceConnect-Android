@@ -84,7 +84,8 @@ public class RDCMListManager {
         mFuture = mExecutorService.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
-                AWSIotDeviceApplication.getInstance().updateMyManagerShadow(true);
+                AWSIotPrefUtil pref = new AWSIotPrefUtil(mContext);
+                AWSIotDeviceApplication.getInstance().updateMyManagerShadow(pref.getManagerRegister());
             }
         }, 30, 5 * 60, TimeUnit.SECONDS);
     }

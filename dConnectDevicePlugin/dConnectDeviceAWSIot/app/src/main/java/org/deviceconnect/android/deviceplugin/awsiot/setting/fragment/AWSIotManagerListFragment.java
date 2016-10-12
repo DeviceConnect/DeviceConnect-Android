@@ -30,7 +30,6 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Switch;
 
-import org.deviceconnect.android.deviceplugin.awsiot.cores.core.AWSIotController;
 import org.deviceconnect.android.deviceplugin.awsiot.cores.core.AWSIotDeviceApplication;
 import org.deviceconnect.android.deviceplugin.awsiot.cores.core.AWSIotPrefUtil;
 import org.deviceconnect.android.deviceplugin.awsiot.cores.core.RDCMListManager;
@@ -220,10 +219,6 @@ public class AWSIotManagerListFragment extends Fragment {
 
             return convertView;
         }
-    }
-
-    private AWSIotController getAWSIotController() {
-        return ((AWSIotSettingActivity) getActivity()).getAWSIotController();
     }
 
     private void availability() {

@@ -49,7 +49,9 @@ public class AWSIotDeviceService extends DConnectMessageService {
         if (intent != null) {
             String action = intent.getAction();
             if (ACTION_CONNECT_MQTT.equals(action)) {
-                mAWSIotRemoteManager.connect();
+                if (mAWSIotRemoteManager != null) {
+                    mAWSIotRemoteManager.connect();
+                }
             }
         }
         return super.onStartCommand(intent, flags, startId);

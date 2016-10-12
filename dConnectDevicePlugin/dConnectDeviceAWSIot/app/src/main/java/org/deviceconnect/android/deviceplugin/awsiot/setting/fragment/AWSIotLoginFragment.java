@@ -29,10 +29,9 @@ import android.widget.Toast;
 
 import com.amazonaws.regions.Regions;
 
-import org.deviceconnect.android.deviceplugin.awsiot.AWSIotDeviceService;
 import org.deviceconnect.android.deviceplugin.awsiot.cores.core.AWSIotController;
+import org.deviceconnect.android.deviceplugin.awsiot.cores.core.AWSIotDeviceApplication;
 import org.deviceconnect.android.deviceplugin.awsiot.cores.core.AWSIotPrefUtil;
-import org.deviceconnect.android.deviceplugin.awsiot.local.AWSIotLocalDeviceService;
 import org.deviceconnect.android.deviceplugin.awsiot.remote.R;
 import org.deviceconnect.android.deviceplugin.awsiot.setting.AWSIotSettingActivity;
 import org.deviceconnect.android.deviceplugin.awsiot.setting.AWSIotWebViewActivity;
@@ -163,7 +162,7 @@ public class AWSIotLoginFragment extends Fragment {
                         transaction.replace(R.id.container, fragment);
                         transaction.commit();
 
-                        startAWSIot();
+                        ((AWSIotDeviceApplication)getActivity().getApplication()).startAWSIot();
                     }
                 });
             }
@@ -185,20 +184,6 @@ public class AWSIotLoginFragment extends Fragment {
         });
 
         return rootView;
-    }
-
-    private void startAWSIot() {
-        Intent intent = new Intent();
-        intent.setClass(getActivity(), AWSIotDeviceService.class);
-        intent.setAction(AWSIotDeviceService.ACTION_CONNECT_MQTT);
-        getActivity().startService(intent);
-
-        if (mPrefUtil.getManagerRegister()) {
-            Intent intent2 = new Intent();
-            intent2.setClass(getActivity(), AWSIotLocalDeviceService.class);
-            intent2.setAction(AWSIotLocalDeviceService.ACTION_START);
-            getActivity().startService(intent2);
-        }
     }
 
     /**

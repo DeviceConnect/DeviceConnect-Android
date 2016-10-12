@@ -11,6 +11,7 @@ import android.content.Intent;
 
 import com.amazonaws.regions.Regions;
 
+import org.deviceconnect.android.deviceplugin.awsiot.AWSIotDeviceService;
 import org.deviceconnect.android.deviceplugin.awsiot.cores.util.AWSIotUtil;
 import org.deviceconnect.android.deviceplugin.awsiot.local.AWSIotLocalDeviceService;
 import org.json.JSONException;
@@ -84,7 +85,7 @@ public class AWSIotDeviceApplication extends Application {
     }
 
     public void loginAWSIot() {
-        final AWSIotPrefUtil pref = new AWSIotPrefUtil(this);
+        AWSIotPrefUtil pref = new AWSIotPrefUtil(this);
         if (pref.isAWSLoginFlag()) {
             String accessKey = pref.getAccessKey();
             String secretKey = pref.getSecretKey();
@@ -93,14 +94,7 @@ public class AWSIotDeviceApplication extends Application {
                 @Override
                 public void onLogin(final Exception err) {
                     if (err == null) {
-                        if (pref.getManagerRegister()) {
-                            updateMyManagerShadow(true);
-
-                            Intent intent = new Intent();
-                            intent.setClass(getApplicationContext(), AWSIotLocalDeviceService.class);
-                            intent.setAction(AWSIotLocalDeviceService.ACTION_START);
-                            getApplicationContext().startService(intent);
-                        }
+                        startAWSIot();
                     }
                 }
             });
@@ -116,6 +110,23 @@ public class AWSIotDeviceApplication extends Application {
                 mIot.logout();
             }
         });
+    }
+
+    public void startAWSIot() {
+        Intent intent = new Intent();
+        intent.setClass(this, AWSIotDeviceService.class);
+        intent.setAction(AWSIotDeviceService.ACTION_CONNECT_MQTT);
+        startService(intent);
+
+        AWSIotPrefUtil pref = new AWSIotPrefUtil(this);
+        if (pref.getManagerRegister()) {
+            updateMyManagerShadow(true);
+
+            Intent intent2 = new Intent();
+            intent2.setClass(this, AWSIotLocalDeviceService.class);
+            intent2.setAction(AWSIotLocalDeviceService.ACTION_START);
+            startService(intent2);
+        }
     }
 
     public AWSIotController getAWSIotController() {

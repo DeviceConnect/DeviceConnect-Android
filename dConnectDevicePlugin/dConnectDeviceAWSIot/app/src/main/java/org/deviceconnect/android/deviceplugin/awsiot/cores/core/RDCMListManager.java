@@ -7,6 +7,8 @@
 package org.deviceconnect.android.deviceplugin.awsiot.cores.core;
 
 import android.content.Context;
+import android.support.v4.BuildConfig;
+import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.awsiot.cores.util.AWSIotUtil;
 
@@ -21,6 +23,9 @@ import java.util.concurrent.TimeUnit;
  * Remote Device Connect Manager List Manager Class.
  */
 public class RDCMListManager {
+    private static final boolean DEBUG = BuildConfig.DEBUG;
+    private static final String TAG = "RDCM";
+
     /** 遠隔にあるDevice Connect Managerのリスト. */
     private List<RemoteDeviceConnectManager> mManagerList = new ArrayList<>();
     /** Database Helper. */
@@ -84,6 +89,9 @@ public class RDCMListManager {
         mFuture = mExecutorService.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
+                if (DEBUG) {
+                    Log.i(TAG, "Update the online status for Device Shadow.");
+                }
                 AWSIotPrefUtil pref = new AWSIotPrefUtil(mContext);
                 AWSIotDeviceApplication.getInstance().updateMyManagerShadow(pref.getManagerRegister());
             }
@@ -127,7 +135,7 @@ public class RDCMListManager {
 
     /**
      * Set OnEventListener.
-     * @param eventListener listner.
+     * @param eventListener listener.
      */
     public void setOnEventListener(final OnEventListener eventListener) {
         mOnEventListener = eventListener;

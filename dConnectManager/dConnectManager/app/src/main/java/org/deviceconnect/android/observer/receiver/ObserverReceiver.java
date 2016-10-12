@@ -14,7 +14,7 @@ import android.content.Intent;
 
 /**
  * 監視用のブロードキャストを受けるレシーバー.
- * 
+ *
  *
  * @author NTT DOCOMO, INC.
  */

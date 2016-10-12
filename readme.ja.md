@@ -17,6 +17,7 @@ Device Connect AndroidはAndroid版のDeviceConnectのプラットフォーム�
 | プロジェクト名|内容  |
 |:-----------|:---------|
 |dConnectDeviceAllJoyn|AllJoynのデバイスプラグイン。|
+|dConnectDeviceAWSIoT|AWSIoTのプラグイン。|
 |dConnectDeviceChromeCast|Chromecastのデバイスプラグイン。 |
 |dConnectDeviceFPLUG|F-PLUGのデバイスプラグイン。|
 |dConnectDeviceFaBo|FaBoのデバイスプラグイン。|
@@ -33,6 +34,7 @@ Device Connect AndroidはAndroid版のDeviceConnectのプラットフォーム�
 |dConnectDevicePebble|Pebbleのデバイスプラグイン。|
 |dConnectDeviceSonyCamera|QX10などのSonyCameraのデバイスプラグイン。|
 |dConnectDeviceSonySW|SonySmartWatchデバイスプラグイン。<br>※SmartWatch3は未対応。|
+|dConnectDeviceSlackMessageHook|Slackのプラグイン。|
 |dConnectDeviceSphero|Spheroのデバイスプラグイン。|
 |dConnectDeviceTheta|THETAのデバイスプラグイン。|
 |dConnectDeviceUVC|UVCカメラのデバイスプラグイン。|
@@ -40,6 +42,7 @@ Device Connect AndroidはAndroid版のDeviceConnectのプラットフォーム�
 |dConnectDeviceWebRTC|WebRTCのデバイスプラグイン。|
 |dConnectDeviceTest|DeviceConnectのテスト用のデバイスプラグイン。|
 |dConnectDevicePluginSDK|DevicePluginを作成するためのSDK。dConnectSDKForAndroidが必要。|
+
 
 ## dConnectManager
 | プロジェクト名|内容  |
@@ -81,6 +84,8 @@ Device Connect AndroidはAndroid版のDeviceConnectのプラットフォーム�
 * [UVC](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/UVC-Build)
 * [AndroidWear](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/AndroidWear-Build)
 * [WebRTC](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/WebRTC-Build)
+* [AWSIoT](https://github.com/TakayukiHoshi1984/DeviceConnect-Android/wiki/AWSIoT-Build)
+* [SlackBot](https://github.com/TakayukiHoshi1984/DeviceConnect-Android/wiki/SlackBot-Build)
 
 　なお、[こちら](https://github.com/DeviceConnect/DeviceConnect-Docs/tree/master/Bin/Android)からもapkを取得することができます。
 　インストール方法につきましては、以下のようにコマンドラインからコマンドの実行することができます。<br>
@@ -128,6 +133,8 @@ DeviceConnectManagerの欄をONにすることによって、起動すること�
  {
      "product":"Device Connect Manager",
      "version":"x.x",
+     "name":"Manager-0702",
+     "uuid":"xxxx-yyyyy-zzz-aaaa",
      "result":0,
 }
  ```

@@ -35,7 +35,7 @@ public class AWSIotDeviceService extends DConnectMessageService {
 
         EventManager.INSTANCE.setController(new MemoryCacheController());
         startRemoteAWSIot();
-        addProfile(new AWSIotServiceDiscoveryProfile(mAWSIotRemoteManager, getServiceProvider()));
+        addProfile(new AWSIotServiceDiscoveryProfile(this, getServiceProvider()));
     }
 
     @Override
@@ -86,6 +86,10 @@ public class AWSIotDeviceService extends DConnectMessageService {
         } else {
             return profile.onRequest(request, response);
         }
+    }
+
+    public AWSIotRemoteManager getAWSIotRemoteManager() {
+        return mAWSIotRemoteManager;
     }
 
     private void startRemoteAWSIot() {

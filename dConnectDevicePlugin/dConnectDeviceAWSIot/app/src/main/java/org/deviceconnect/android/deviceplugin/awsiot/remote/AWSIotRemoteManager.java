@@ -113,7 +113,7 @@ public class AWSIotRemoteManager {
 
     public boolean sendRequest(final Intent request, final Intent response) {
         if (!mIot.isConnected()) {
-            MessageUtils.setUnknownError(response);
+            MessageUtils.setIllegalDeviceStateError(response, "Not connected to the AWS IoT.");
             return true;
         }
 
@@ -153,7 +153,7 @@ public class AWSIotRemoteManager {
 
         int requestCode = AWSIotUtil.generateRequestCode();
         if (!publish(remote, AWSIotUtil.createRequest(requestCode, message))) {
-            MessageUtils.setNotFoundServiceError(response);
+            MessageUtils.setIllegalDeviceStateError(response, "Not publish to the mqtt.");
             return true;
         }
 
@@ -205,7 +205,7 @@ public class AWSIotRemoteManager {
         }
 
         if (!mIot.isConnected()) {
-            MessageUtils.setUnknownError(response);
+            MessageUtils.setIllegalDeviceStateError(response, "Not connected to the AWS IoT.");
             return true;
         }
 
@@ -216,7 +216,7 @@ public class AWSIotRemoteManager {
 
         List<RemoteDeviceConnectManager> managers = mRDCMListManager.getRDCMList();
         if (managers == null) {
-            MessageUtils.setUnknownError(response);
+            MessageUtils.setUnknownError(response, "There is no managers.");
             return true;
         }
 
@@ -233,7 +233,7 @@ public class AWSIotRemoteManager {
         }
 
         if (count == 0) {
-            MessageUtils.setUnknownError(response);
+            MessageUtils.setUnknownError(response, "There is no managers.");
             return true;
         }
 

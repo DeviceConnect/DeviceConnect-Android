@@ -14,6 +14,8 @@ import org.deviceconnect.android.deviceplugin.hvcc2w.setting.SettingActivity;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.SystemProfile;
+import org.deviceconnect.android.profile.api.DConnectApi;
+import org.deviceconnect.android.profile.api.DeleteApi;
 import org.deviceconnect.message.DConnectMessage;
 
 /**
@@ -23,21 +25,32 @@ import org.deviceconnect.message.DConnectMessage;
  */
 public class HVCC2WSystemProfile extends SystemProfile {
 
+    private final DConnectApi mDeleteEventsApi = new DeleteApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_EVENTS;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String sessionKey = getSessionKey(request);
+            if (sessionKey == null || sessionKey.length() == 0) {
+                MessageUtils.setInvalidRequestParameterError(response);
+            } else if (EventManager.INSTANCE.removeEvents(sessionKey)) {
+                setResult(response, DConnectMessage.RESULT_OK);
+            } else {
+                MessageUtils.setUnknownError(response);
+            }
+            return true;
+        }
+    };
+
+    public HVCC2WSystemProfile() {
+        addApi(mDeleteEventsApi);
+    }
+
     @Override
     protected Class<? extends Activity> getSettingPageActivity(Intent request, Bundle param) {
         return SettingActivity.class;
-    }
-    @Override
-    protected boolean onDeleteEvents(final Intent request, final Intent response, final String sessionKey) {
-
-        if (sessionKey == null || sessionKey.length() == 0) {
-            MessageUtils.setInvalidRequestParameterError(response);
-        } else if (EventManager.INSTANCE.removeEvents(sessionKey)) {
-            setResult(response, DConnectMessage.RESULT_OK);
-        } else {
-            MessageUtils.setUnknownError(response);
-        }
-
-        return true;
     }
 }

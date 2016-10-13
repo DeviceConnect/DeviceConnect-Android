@@ -21,7 +21,6 @@ import android.os.Looper;
 import android.provider.BaseColumns;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
-import android.text.TextUtils;
 import android.util.Log;
 import android.webkit.MimeTypeMap;
 
@@ -32,6 +31,10 @@ import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.MediaPlayerProfile;
+import org.deviceconnect.android.profile.api.DConnectApi;
+import org.deviceconnect.android.profile.api.DeleteApi;
+import org.deviceconnect.android.profile.api.GetApi;
+import org.deviceconnect.android.profile.api.PutApi;
 import org.deviceconnect.android.provider.FileManager;
 import org.deviceconnect.message.DConnectMessage;
 
@@ -108,147 +111,379 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
     /** Mute Status. */
     private static Boolean sIsMute = false;
 
-    @Override
-    protected boolean onPutPlay(final Intent request, final Intent response, final String serviceId) {
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else {
+    private final DConnectApi mPutPlayApi = new PutApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_PLAY;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
             ((HostDeviceService) getContext()).playMedia();
             setResult(response, DConnectMessage.RESULT_OK);
+            return true;
         }
-        return true;
-    }
+    };
 
-    @Override
-    protected boolean onPutStop(final Intent request, final Intent response, final String serviceId) {
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else {
+    private final DConnectApi mPutStopApi = new PutApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_STOP;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
             ((HostDeviceService) getContext()).stopMedia(response);
             return false;
         }
-        return true;
-    }
+    };
 
-    @Override
-    protected boolean onPutPause(final Intent request, final Intent response, final String serviceId) {
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else {
+    private final DConnectApi mPutPauseApi = new PutApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_PAUSE;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
             ((HostDeviceService) getContext()).pauseMedia();
             setResult(response, DConnectMessage.RESULT_OK);
+            return true;
         }
-        return true;
-    }
+    };
 
-    @Override
-    protected boolean onPutResume(final Intent request, final Intent response, final String serviceId) {
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else {
+    private final DConnectApi mPutResumeApi = new PutApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_RESUME;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
             ((HostDeviceService) getContext()).resumeMedia();
             setResult(response, DConnectMessage.RESULT_OK);
+            return true;
         }
-        return true;
-    }
+    };
 
-    @Override
-    protected boolean onGetPlayStatus(final Intent request, final Intent response, final String serviceId) {
+    private final DConnectApi mGetPlayStatusApi = new GetApi() {
 
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-            return true;
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-            return true;
-        } else {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_PLAY_STATUS;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
             ((HostDeviceService) getContext()).getPlayStatus(response);
             return false;
         }
+    };
 
-    }
+    private final DConnectApi mPutMediaApi = new PutApi() {
 
-    @Override
-    protected boolean onPutMedia(final Intent request, final Intent response, final String serviceId,
-            final String mediaId) {
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else if (TextUtils.isEmpty(mediaId)) {
-            MessageUtils.setInvalidRequestParameterError(response);
-        } else {
-            if (checkInteger(mediaId)) {
-                ((HostDeviceService) getContext()).putMediaId(response, mediaId);
-            } else {
-                PermissionUtility.requestPermissions(getContext(), new Handler(Looper.getMainLooper()),
-                        new String[] { Manifest.permission.READ_EXTERNAL_STORAGE },
-                        new PermissionUtility.PermissionRequestCallback() {
-                            @Override
-                            public void onSuccess() {
-                                FileManager mFileManager = new FileManager(getContext());
-
-                                long newMediaId = mediaIdFromPath(getContext(), mFileManager.getBasePath() + mediaId);
-                                if (newMediaId == -1) {
-                                    MessageUtils.setInvalidRequestParameterError(response);
-                                    sendResponse(response);
-                                    return;
-                                }
-                                ((HostDeviceService) getContext()).putMediaId(response, "" + newMediaId);
-                                sendResponse(response);
-                            }
-
-                            @Override
-                            public void onFail(@NonNull String deniedPermission) {
-                                MessageUtils.setIllegalServerStateError(response,
-                                        "Permission READ_EXTERNAL_STORAGE not granted.");
-                                sendResponse(response);
-                            }
-                        });
-
-                return false;
-            }
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_MEDIA;
         }
 
-        return true;
-    }
-
-    @Override
-    protected boolean onGetMedia(final Intent request, final Intent response, final String serviceId,
-            final String mediaId) {
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else if (TextUtils.isEmpty(mediaId)) {
-            MessageUtils.setInvalidRequestParameterError(response);
-        } else {
-            PermissionUtility.requestPermissions(getContext(), new Handler(Looper.getMainLooper()),
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            final String mediaId = getMediaId(request);
+            if (checkInteger(mediaId)) {
+                ((HostDeviceService) getContext()).putMediaId(response, mediaId);
+                return true;
+            } else {
+                PermissionUtility.requestPermissions(getContext(), new Handler(Looper.getMainLooper()),
                     new String[] { Manifest.permission.READ_EXTERNAL_STORAGE },
                     new PermissionUtility.PermissionRequestCallback() {
                         @Override
                         public void onSuccess() {
-                            onGetMediaInternal(request, response, serviceId, mediaId);
+                            FileManager mFileManager = new FileManager(getContext());
+
+                            long newMediaId = mediaIdFromPath(getContext(), mFileManager.getBasePath() + mediaId);
+                            if (newMediaId == -1) {
+                                MessageUtils.setInvalidRequestParameterError(response);
+                                sendResponse(response);
+                                return;
+                            }
+                            ((HostDeviceService) getContext()).putMediaId(response, "" + newMediaId);
+                            sendResponse(response);
                         }
 
                         @Override
                         public void onFail(@NonNull String deniedPermission) {
                             MessageUtils.setIllegalServerStateError(response,
-                                    "Permission READ_EXTERNAL_STORAGE not granted.");
+                                "Permission READ_EXTERNAL_STORAGE not granted.");
                             sendResponse(response);
                         }
                     });
+                return false;
+            }
+        }
+    };
+
+    private final DConnectApi mGetMediaApi = new GetApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_MEDIA;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            final String serviceId = getServiceID(request);
+            final String mediaId = getMediaId(request);
+            PermissionUtility.requestPermissions(getContext(), new Handler(Looper.getMainLooper()),
+                new String[] { Manifest.permission.READ_EXTERNAL_STORAGE },
+                new PermissionUtility.PermissionRequestCallback() {
+                    @Override
+                    public void onSuccess() {
+                        onGetMediaInternal(request, response, serviceId, mediaId);
+                    }
+
+                    @Override
+                    public void onFail(@NonNull String deniedPermission) {
+                        MessageUtils.setIllegalServerStateError(response,
+                            "Permission READ_EXTERNAL_STORAGE not granted.");
+                        sendResponse(response);
+                    }
+                });
             return false;
         }
-        return true;
+    };
+
+    private final DConnectApi mGetMediaListApi = new GetApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_MEDIA_LIST;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String query = getQuery(request);
+            String mimeType = getMIMEType(request);
+            String[] orders = getOrder(request);
+            Integer offset = getOffset(request);
+            Integer limit = getLimit(request);
+            Bundle b = request.getExtras();
+            if (b.getString(PARAM_LIMIT) != null) {
+                if (parseInteger(b.get(PARAM_LIMIT)) == null) {
+                    MessageUtils.setInvalidRequestParameterError(response);
+                    return true;
+                }
+            }
+            if (b.getString(PARAM_OFFSET) != null) {
+                if (parseInteger(b.get(PARAM_OFFSET)) == null) {
+                    MessageUtils.setInvalidRequestParameterError(response);
+                    return true;
+                }
+            }
+            return getMediaList(response, query, mimeType, orders, offset, limit);
+        }
+    };
+
+    private final DConnectApi mPutVolumeApi = new PutApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_VOLUME;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            Double volume = getVolume(request);
+
+            AudioManager manager = (AudioManager) getContext().getSystemService(Context.AUDIO_SERVICE);
+
+            double maxVolume = manager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+            manager.setStreamVolume(AudioManager.STREAM_MUSIC, (int) (maxVolume * volume), 1);
+            setResult(response, DConnectMessage.RESULT_OK);
+
+            ((HostDeviceService) getContext()).sendOnStatusChangeEvent("volume");
+            return true;
+        }
+    };
+
+    private final DConnectApi mGetVolumeApi = new GetApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_VOLUME;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            AudioManager manager = (AudioManager) getContext().getSystemService(Context.AUDIO_SERVICE);
+
+            double maxVolume = 1;
+            double mVolume = 0;
+
+            mVolume = manager.getStreamVolume(AudioManager.STREAM_MUSIC);
+            maxVolume = manager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+            setVolume(response, mVolume / maxVolume);
+
+            setResult(response, DConnectMessage.RESULT_OK);
+            return true;
+        }
+    };
+
+    private final DConnectApi mPutSeekApi = new PutApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_SEEK;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            ((HostDeviceService) getContext()).setMediaPos(response, getPos(request));
+            return false;
+        }
+    };
+
+    private final DConnectApi mGetSeekApi = new GetApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_SEEK;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            int pos = ((HostDeviceService) getContext()).getMediaPos();
+            if (pos < 0) {
+                setPos(response, 0);
+                MessageUtils.setError(response, DConnectMessage.RESULT_ERROR, "Position acquisition failure.");
+            } else if (pos == Integer.MAX_VALUE) {
+                ((HostDeviceService) getContext()).setVideoMediaPosRes(response);
+                return false;
+            } else {
+                setPos(response, pos);
+                setResult(response, DConnectMessage.RESULT_OK);
+            }
+            return true;
+        }
+    };
+
+    private final DConnectApi mPutMuteApi = new PutApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_MUTE;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            AudioManager manager = (AudioManager) getContext().getSystemService(Context.AUDIO_SERVICE);
+            manager.setStreamMute(AudioManager.STREAM_MUSIC, true);
+            sIsMute = true;
+            setResult(response, DConnectMessage.RESULT_OK);
+            ((HostDeviceService) getContext()).sendOnStatusChangeEvent("mute");
+            return true;
+        }
+    };
+
+    private final DConnectApi mDeleteMuteApi = new DeleteApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_MUTE;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            AudioManager manager = (AudioManager) getContext().getSystemService(Context.AUDIO_SERVICE);
+            manager.setStreamMute(AudioManager.STREAM_MUSIC, false);
+            sIsMute = false;
+            setResult(response, DConnectMessage.RESULT_OK);
+            ((HostDeviceService) getContext()).sendOnStatusChangeEvent("unmute");
+            return true;
+        }
+    };
+
+    private final DConnectApi mGetMuteApi = new GetApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_MUTE;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            setMute(response, sIsMute);
+            setResult(response, DConnectMessage.RESULT_OK);
+            return true;
+        }
+    };
+
+    private final DConnectApi mPutOnStatusChangeApi = new PutApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_STATUS_CHANGE;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String serviceId = getServiceID(request);
+
+            // イベントの登録
+            EventError error = EventManager.INSTANCE.addEvent(request);
+            if (error == EventError.NONE) {
+                ((HostDeviceService) getContext()).registerOnStatusChange(response, serviceId);
+                return false;
+            } else {
+                MessageUtils.setError(response, ERROR_VALUE_IS_NULL, "Can not register event.");
+                return true;
+            }
+        }
+    };
+
+    private final DConnectApi mDeleteOnStatusChangeApi = new DeleteApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_STATUS_CHANGE;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            // イベントの解除
+            EventError error = EventManager.INSTANCE.removeEvent(request);
+            if (error == EventError.NONE) {
+                ((HostDeviceService) getContext()).unregisterOnStatusChange(response);
+                return false;
+            } else {
+                MessageUtils.setError(response, ERROR_VALUE_IS_NULL, "Can not unregister event.");
+                return true;
+            }
+        }
+    };
+
+    public HostMediaPlayerProfile() {
+        addApi(mPutPlayApi);
+        addApi(mPutStopApi);
+        addApi(mPutPauseApi);
+        addApi(mPutResumeApi);
+        addApi(mGetPlayStatusApi);
+        addApi(mPutMediaApi);
+        addApi(mGetMediaApi);
+        addApi(mGetMediaListApi);
+        addApi(mPutVolumeApi);
+        addApi(mGetVolumeApi);
+        addApi(mPutSeekApi);
+        addApi(mGetSeekApi);
+        addApi(mPutMuteApi);
+        addApi(mDeleteMuteApi);
+        addApi(mGetMuteApi);
+        addApi(mPutOnStatusChangeApi);
+        addApi(mDeleteOnStatusChangeApi);
     }
 
     private void onGetMediaInternal(final Intent request, final Intent response, final String serviceId,
@@ -382,32 +617,7 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
         return null;
     }
 
-    @Override
-    protected boolean onGetMediaList(final Intent request, final Intent response, final String serviceId,
-            final String query, final String mimeType, final String[] orders, final Integer offset,
-            final Integer limit) {
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else {
-            Bundle b = request.getExtras();
-            if (b.getString(PARAM_LIMIT) != null) {
-                if (parseInteger(b.get(PARAM_LIMIT)) == null) {
-                    MessageUtils.setInvalidRequestParameterError(response);
-                    return true;
-                }
-            }
-            if (b.getString(PARAM_OFFSET) != null) {
-                if (parseInteger(b.get(PARAM_OFFSET)) == null) {
-                    MessageUtils.setInvalidRequestParameterError(response);
-                    return true;
-                }
-            }
-            return getMediaList(response, query, mimeType, orders, offset, limit);
-        }
-        return true;
-    }
+
 
     /**
      * Get Media List.
@@ -734,191 +944,7 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
         return orglist.size();
     }
 
-    @Override
-    protected boolean onPutVolume(final Intent request, final Intent response, final String serviceId,
-            final Double volume) {
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else if (volume == null) {
-            MessageUtils.setInvalidRequestParameterError(response);
-        } else if (0.0 > volume || volume > 1.0) {
-            MessageUtils.setInvalidRequestParameterError(response);
-        } else {
-            AudioManager manager = (AudioManager) this.getContext().getSystemService(Context.AUDIO_SERVICE);
 
-            double maxVolume = manager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
-            manager.setStreamVolume(AudioManager.STREAM_MUSIC, (int) (maxVolume * volume), 1);
-            setResult(response, DConnectMessage.RESULT_OK);
-
-            ((HostDeviceService) getContext()).sendOnStatusChangeEvent("volume");
-        }
-        return true;
-    }
-
-    @Override
-    protected boolean onGetVolume(final Intent request, final Intent response, final String serviceId) {
-
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else {
-            AudioManager manager = (AudioManager) this.getContext().getSystemService(Context.AUDIO_SERVICE);
-
-            double maxVolume = 1;
-            double mVolume = 0;
-
-            mVolume = manager.getStreamVolume(AudioManager.STREAM_MUSIC);
-            maxVolume = manager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
-            setVolume(response, mVolume / maxVolume);
-
-            setResult(response, DConnectMessage.RESULT_OK);
-        }
-        return true;
-    }
-
-    @Override
-    protected boolean onPutSeek(final Intent request, final Intent response, final String serviceId,
-            final Integer pos) {
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else if (pos == null) {
-            MessageUtils.setInvalidRequestParameterError(response);
-            return true;
-        } else if (0 > pos) {
-            MessageUtils.setInvalidRequestParameterError(response);
-            return true;
-        }
-        ((HostDeviceService) getContext()).setMediaPos(response, pos);
-        return false;
-    }
-
-    @Override
-    protected boolean onGetSeek(final Intent request, final Intent response, final String serviceId) {
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else {
-            int pos = ((HostDeviceService) getContext()).getMediaPos();
-            if (pos < 0) {
-                setPos(response, 0);
-                MessageUtils.setError(response, DConnectMessage.RESULT_ERROR, "Position acquisition failure.");
-            } else if (pos == Integer.MAX_VALUE) {
-                ((HostDeviceService) getContext()).setVideoMediaPosRes(response);
-                return false;
-            } else {
-                setPos(response, pos);
-                setResult(response, DConnectMessage.RESULT_OK);
-            }
-        }
-        return true;
-    }
-
-    @Override
-    protected boolean onPutMute(final Intent request, final Intent response, final String serviceId) {
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else {
-            AudioManager manager = (AudioManager) this.getContext().getSystemService(Context.AUDIO_SERVICE);
-            manager.setStreamMute(AudioManager.STREAM_MUSIC, true);
-            sIsMute = true;
-            setResult(response, DConnectMessage.RESULT_OK);
-            ((HostDeviceService) getContext()).sendOnStatusChangeEvent("mute");
-        }
-        return true;
-    }
-
-    @Override
-    protected boolean onDeleteMute(final Intent request, final Intent response, final String serviceId) {
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else {
-            AudioManager manager = (AudioManager) this.getContext().getSystemService(Context.AUDIO_SERVICE);
-            manager.setStreamMute(AudioManager.STREAM_MUSIC, false);
-            sIsMute = false;
-            setResult(response, DConnectMessage.RESULT_OK);
-            ((HostDeviceService) getContext()).sendOnStatusChangeEvent("unmute");
-        }
-        return true;
-    }
-
-    @Override
-    protected boolean onGetMute(final Intent request, final Intent response, final String serviceId) {
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else {
-            setMute(response, sIsMute);
-            setResult(response, DConnectMessage.RESULT_OK);
-        }
-        return true;
-    }
-
-    @Override
-    protected boolean onPutOnStatusChange(final Intent request, final Intent response, final String serviceId,
-            final String sessionKey) {
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-            return true;
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-            return true;
-        } else if (sessionKey == null) {
-            MessageUtils.setInvalidRequestParameterError(response);
-
-            return true;
-        } else {
-            // イベントの登録
-            EventError error = EventManager.INSTANCE.addEvent(request);
-
-            if (error == EventError.NONE) {
-                ((HostDeviceService) getContext()).registerOnStatusChange(response, serviceId);
-                return false;
-            } else {
-                MessageUtils.setError(response, ERROR_VALUE_IS_NULL, "Can not register event.");
-                return true;
-            }
-        }
-    }
-
-    @Override
-    protected boolean onDeleteOnStatusChange(final Intent request, final Intent response, final String serviceId,
-            final String sessionKey) {
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-            return true;
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-            return true;
-        } else if (sessionKey == null) {
-            MessageUtils.setInvalidRequestParameterError(response);
-            return true;
-        } else {
-            // イベントの解除
-            EventError error = EventManager.INSTANCE.removeEvent(request);
-            if (error == EventError.NONE) {
-
-                ((HostDeviceService) getContext()).unregisterOnStatusChange(response);
-                return false;
-
-            } else {
-                MessageUtils.setError(response, ERROR_VALUE_IS_NULL, "Can not unregister event.");
-                return true;
-
-            }
-        }
-
-    }
 
     /**
      * ファイル名からMIMEタイプ取得.
@@ -951,34 +977,6 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
         } catch (NumberFormatException e) {
             return false;
         }
-    }
-
-    /**
-     * サービスIDをチェックする.
-     *
-     * @param serviceId サービスID
-     * @return <code>serviceId</code>がテスト用サービスIDに等しい場合はtrue、そうでない場合はfalse
-     */
-    private boolean checkServiceId(final String serviceId) {
-        return HostServiceDiscoveryProfile.SERVICE_ID.equals(serviceId);
-    }
-
-    /**
-     * サービスIDが空の場合のエラーを作成する.
-     *
-     * @param response レスポンスを格納するIntent
-     */
-    private void createEmptyServiceId(final Intent response) {
-        setResult(response, DConnectMessage.RESULT_ERROR);
-    }
-
-    /**
-     * デバイスが発見できなかった場合のエラーを作成する.
-     *
-     * @param response レスポンスを格納するIntent
-     */
-    private void createNotFoundService(final Intent response) {
-        setResult(response, DConnectMessage.RESULT_ERROR);
     }
 
     /**

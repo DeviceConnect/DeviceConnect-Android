@@ -22,9 +22,9 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import org.deviceconnect.android.deviceplugin.uvc.R;
-import org.deviceconnect.android.deviceplugin.uvc.UVCDevice;
+import org.deviceconnect.android.deviceplugin.uvc.core.UVCDevice;
 import org.deviceconnect.android.deviceplugin.uvc.UVCDeviceApplication;
-import org.deviceconnect.android.deviceplugin.uvc.UVCDeviceManager;
+import org.deviceconnect.android.deviceplugin.uvc.core.UVCDeviceManager;
 import org.deviceconnect.android.deviceplugin.uvc.fragment.dialog.ErrorDialogFragment;
 import org.deviceconnect.android.deviceplugin.uvc.fragment.dialog.ProgressDialogFragment;
 
@@ -34,8 +34,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
-import static org.deviceconnect.android.deviceplugin.uvc.UVCDeviceManager.ConnectionListener;
-import static org.deviceconnect.android.deviceplugin.uvc.UVCDeviceManager.DiscoveryListener;
+import static org.deviceconnect.android.deviceplugin.uvc.core.UVCDeviceManager.ConnectionListener;
+import static org.deviceconnect.android.deviceplugin.uvc.core.UVCDeviceManager.DiscoveryListener;
 
 public class UVCDeviceListFragment extends Fragment {
     /**

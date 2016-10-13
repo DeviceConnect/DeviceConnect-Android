@@ -7,6 +7,7 @@
 package org.deviceconnect.android.deviceplugin.irkit.settings.activity;
 
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -226,6 +227,10 @@ public class IRKitSettingActivity extends IRKitAbstractSettingActivity {
         if (f != null && f instanceof IRKitBaseFragment) {
             ((IRKitBaseFragment) f).onEnterBackground();
         }
+    }
+    @Override
+    public void onConfigurationChanged(final Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
     }
 
     /**

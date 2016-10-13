@@ -16,7 +16,7 @@ android {
     }
 
     defaultConfig {
-        applicationId "app.android.deviceconnect.org.simplebot"
+        applicationId "org.deviceconnect.android.app.simplebot"
         minSdkVersion 14
         targetSdkVersion 23
         versionCode 1

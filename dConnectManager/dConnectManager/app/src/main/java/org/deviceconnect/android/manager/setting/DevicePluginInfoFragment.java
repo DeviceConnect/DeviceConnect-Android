@@ -216,7 +216,9 @@ public class DevicePluginInfoFragment extends Fragment {
                         break;
                     }
                 }
-                dialog.dismiss();
+                if (dialog.isResumed()) {
+                    dialog.dismiss();
+                }
             }
         }).start();
     }
@@ -270,6 +272,12 @@ public class DevicePluginInfoFragment extends Fragment {
             progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
             setCancelable(false);
             return progressDialog;
+        }
+
+        @Override
+        public void onPause() {
+            dismiss();
+            super.onPause();
         }
     }
 }

@@ -24,7 +24,6 @@ import java.util.List;
  */
 public class AllJoynSettingActivity extends Activity {
 
-    private static final int FIRST_PAGE_LAYOUT_INDEX = 1;
     private static final List<SettingData> SETTING_LIST = Arrays.asList(
             new SettingData(R.layout.aj_settings_lifx_list_item, AllJoynSettingLIFXActivity.class)
     );
@@ -40,7 +39,7 @@ public class AllJoynSettingActivity extends Activity {
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
             actionBar.setDisplayOptions(0, ActionBar.DISPLAY_SHOW_HOME);
-            actionBar.setTitle("CLOSE");
+            actionBar.setTitle(getString(R.string.alljoyn_settings_master_textViewTopBar_text));
         }
 
         mInflator = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);

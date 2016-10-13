@@ -10,6 +10,7 @@
             res/values-vXX/styles.xml, while customizations related to
             backward-compatibility can go here.
         -->
+        <item name="android:actionBarStyle">@style/DefaultActionBarTheme</item>
     </style>
 
     <!-- Application theme. -->
@@ -32,5 +33,11 @@
         <item name="android:windowNoTitle">true</item>
         <item name="android:windowContentOverlay">@null</item>
     </style>
+
+    <style name="horizontalLine.sw1" parent="horizontalLine">
+        <item name="android:background">@color/sw1_title_text</item>
+    </style>
+
+    <style name="horizontalLine.sw2" parent="horizontalLine" />
 
 </resources>

@@ -47,6 +47,8 @@ public class DConnectService implements DConnectProfileProvider, ServiceDiscover
 
     private Context mContext;
 
+    private OnStatusChangeListener mStatusListener;
+
     /**
      * コンストラクタ.
      * @param id サービスID
@@ -89,6 +91,10 @@ public class DConnectService implements DConnectProfileProvider, ServiceDiscover
 
     public void setOnline(final boolean isOnline) {
         mIsOnline = isOnline;
+
+        if (mStatusListener != null) {
+            mStatusListener.onStatusChange(this);
+        }
     }
 
     public boolean isOnline() {
@@ -152,5 +158,15 @@ public class DConnectService implements DConnectProfileProvider, ServiceDiscover
             return true;
         }
         return profile.onRequest(request, response);
+    }
+
+    void setOnStatusChangeListener(final OnStatusChangeListener listener) {
+        mStatusListener = listener;
+    }
+
+    interface OnStatusChangeListener {
+
+        void onStatusChange(DConnectService service);
+
     }
 }

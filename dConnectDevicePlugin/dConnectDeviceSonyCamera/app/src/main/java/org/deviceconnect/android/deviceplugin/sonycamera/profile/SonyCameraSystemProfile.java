@@ -11,7 +11,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 
-import org.deviceconnect.android.deviceplugin.sonycamera.activity.SonyCameraSettingActivity;
+import org.deviceconnect.android.deviceplugin.sonycamera.activity.SonyCameraServiceListActivity;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.SystemProfile;
@@ -52,6 +52,6 @@ public class SonyCameraSystemProfile extends SystemProfile {
 
     @Override
     protected Class<? extends Activity> getSettingPageActivity(final Intent request, final Bundle param) {
-        return SonyCameraSettingActivity.class;
+        return SonyCameraServiceListActivity.class;
     }
 }

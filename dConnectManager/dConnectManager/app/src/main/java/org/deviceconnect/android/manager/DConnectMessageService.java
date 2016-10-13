@@ -24,7 +24,6 @@ import org.deviceconnect.android.localoauth.CheckAccessTokenResult;
 import org.deviceconnect.android.localoauth.ClientPackageInfo;
 import org.deviceconnect.android.localoauth.LocalOAuth2Main;
 import org.deviceconnect.android.logger.AndroidHandler;
-import org.deviceconnect.android.manager.DConnectLocalOAuth.OAuthData;
 import org.deviceconnect.android.manager.DevicePluginManager.DevicePluginEventListener;
 import org.deviceconnect.android.manager.hmac.HmacManager;
 import org.deviceconnect.android.manager.policy.OriginValidator;
@@ -370,28 +369,31 @@ public abstract class DConnectMessageService extends Service
 
             // Local OAuthの仕様で、デバイスを発見するごとにclientIdを作成して、
             // アクセストークンを取得する作業を行う。
-            if (ServiceDiscoveryProfileConstants.PROFILE_NAME.equals(profile) 
-                || ServiceDiscoveryProfileConstants.ATTRIBUTE_ON_SERVICE_CHANGE.equals(attribute)) {
+            if (ServiceDiscoveryProfileConstants.PROFILE_NAME.equalsIgnoreCase(profile)
+                || ServiceDiscoveryProfileConstants.ATTRIBUTE_ON_SERVICE_CHANGE.equalsIgnoreCase(attribute)) {
 
                 // network service discoveryの場合には、networkServiceのオブジェクトの中にデータが含まれる
                 Bundle service = event.getParcelableExtra(
                         ServiceDiscoveryProfile.PARAM_NETWORK_SERVICE);
-                String id = service.getString(ServiceDiscoveryProfile.PARAM_ID);
-                String did = mPluginMgr.appendServiceId(plugin, id);
+                if (service != null) {
+                    String id = service.getString(ServiceDiscoveryProfile.PARAM_ID);
+                    String did = mPluginMgr.appendServiceId(plugin, id);
+                    service.putString(ServiceDiscoveryProfile.PARAM_ID, did);
 
-                // サービスIDを変更
-                replaceServiceId(event, plugin);
+                    // サービスIDを変更
+                    replaceServiceId(event, plugin);
 
-                OAuthData oauth = mLocalOAuth.getOAuthData(did);
-                if (oauth == null) {
-                    createClientOfDevicePlugin(plugin, did, event);
-                } else {
-                    // 送信先のセッションを取得
-                    List<Event> evts = EventManager.INSTANCE.getEventList(profile, attribute);
-                    for (int i = 0; i < evts.size(); i++) {
-                        Event evt = evts.get(i);
-                        event.putExtra(DConnectMessage.EXTRA_SESSION_KEY, evt.getSessionKey());
-                        sendEvent(evt.getReceiverName(), event);
+                    DConnectLocalOAuth.OAuthData oauth = mLocalOAuth.getOAuthData(did);
+                    if (oauth == null) {
+                        createClientOfDevicePlugin(plugin, did, event);
+                    } else {
+                        // 送信先のセッションを取得
+                        List<Event> evts = EventManager.INSTANCE.getEventList(profile, attribute);
+                        for (int i = 0; i < evts.size(); i++) {
+                            Event evt = evts.get(i);
+                            event.putExtra(DConnectMessage.EXTRA_SESSION_KEY, evt.getSessionKey());
+                            sendEvent(evt.getReceiverName(), event);
+                        }
                     }
                 }
             } else {
@@ -708,6 +710,7 @@ public abstract class DConnectMessageService extends Service
         intent.putExtra(DConnectMessage.EXTRA_PROFILE,
                 ServiceDiscoveryProfileConstants.PROFILE_NAME);
         intent.putExtra(DConnectMessage.EXTRA_SERVICE_ID, serviceId);
+        intent.putExtra(DConnectMessage.HEADER_GOTAPI_ORIGIN, getPackageName());
 
         DiscoveryDeviceRequest request = new DiscoveryDeviceRequest();
         request.setContext(this);

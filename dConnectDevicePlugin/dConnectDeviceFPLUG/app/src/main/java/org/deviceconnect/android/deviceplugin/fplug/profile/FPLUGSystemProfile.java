@@ -10,7 +10,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 
-import org.deviceconnect.android.deviceplugin.fplug.setting.SettingActivity;
+import org.deviceconnect.android.deviceplugin.fplug.setting.FPLUGServiceListActivity;
 import org.deviceconnect.android.profile.SystemProfile;
 
 /**
@@ -22,7 +22,7 @@ public class FPLUGSystemProfile extends SystemProfile {
 
     @Override
     protected Class<? extends Activity> getSettingPageActivity(final Intent request, final Bundle param) {
-        return SettingActivity.class;
+        return FPLUGServiceListActivity.class;
     }
 
 }

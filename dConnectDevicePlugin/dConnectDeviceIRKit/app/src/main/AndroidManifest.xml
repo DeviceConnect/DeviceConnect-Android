@@ -22,7 +22,7 @@
         android:theme="@style/AppTheme">
 
         <receiver
-            android:name="org.deviceconnect.android.deviceplugin.irkit.IRKitDeviceProvider"
+            android:name=".IRKitDeviceProvider"
             android:exported="true">
             <meta-data
                 android:name="org.deviceconnect.android.deviceplugin"
@@ -42,18 +42,24 @@
         </receiver>
 
         <service
-            android:name="org.deviceconnect.android.deviceplugin.irkit.IRKitDeviceService"
+            android:name=".IRKitDeviceService"
             android:exported="false">
         </service>
 
         <activity
-            android:name="org.deviceconnect.android.deviceplugin.irkit.settings.activity.IRKitSettingActivity"
+            android:name=".settings.activity.IRKitServiceListActivity"
             android:exported="false"
             android:label="@string/app_name">
         </activity>
 
         <activity
-            android:name="org.deviceconnect.android.deviceplugin.irkit.settings.activity.IRKitDeviceListActivity"
+            android:name=".settings.activity.IRKitSettingActivity"
+            android:exported="false"
+            android:label="@string/app_name">
+        </activity>
+
+        <activity
+            android:name=".settings.activity.IRKitVirtualDeviceListActivity"
             android:exported="false"
             android:label="@string/app_name">
         </activity>

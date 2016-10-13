@@ -73,13 +73,14 @@ public class IRKitDeviceService extends DConnectMessageService implements Detect
     @Override
     public void onCreate() {
         super.onCreate();
+        EventManager.INSTANCE.setController(new MemoryCacheController());
+
         mDBHelper = new IRKitDBHelper(getContext());
         for (VirtualDeviceData device : mDBHelper.getVirtualDevices(null)) {
             getServiceProvider().addService(new VirtualService(device, mDBHelper,
                 getServiceProvider()));
         }
 
-        EventManager.INSTANCE.setController(new MemoryCacheController());
         IRKitApplication app = (IRKitApplication) getApplication();
         app.setIRKitDevices(mDevices);
         IRKitManager.INSTANCE.init(this);

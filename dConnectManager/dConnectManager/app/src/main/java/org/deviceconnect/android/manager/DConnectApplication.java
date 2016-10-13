@@ -90,4 +90,22 @@ public class DConnectApplication extends Application {
         }
         return matchKey;
     }
+
+    /**
+     * Map登録されているKey取得.
+     * @param plugin デバイスプラグイン
+     * @return Map登録されているKey, 存在しない場合はnull.
+     */
+    public String getIdentifySessionKey(final DevicePlugin plugin) {
+        String matchKey = null;
+        for (Map.Entry<String, String> entry : mEventKeys.entrySet()) {
+            String serviceId = entry.getValue();
+            if (serviceId.contains(plugin.getServiceId())) {
+                matchKey = entry.getKey();
+                break;
+            }
+        }
+        return matchKey;
+    }
+
 }

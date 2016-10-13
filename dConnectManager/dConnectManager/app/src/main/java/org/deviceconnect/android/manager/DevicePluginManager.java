@@ -17,6 +17,7 @@ import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.pm.ServiceInfo;
 import android.content.res.XmlResourceParser;
 
+import org.deviceconnect.android.manager.keepalive.KeepAliveManager;
 import org.deviceconnect.android.manager.util.VersionName;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
@@ -366,7 +367,18 @@ public class DevicePluginManager {
                         + receiver.flattenToString();
             }
             if (!plugin.getServiceId().equals(beforeSessionKey)) {
-                mApp.setDevicePluginIdentifyKey(sessionKey, plugin.getServiceId());
+                VersionName version = plugin.getPluginSdkVersionName();
+                VersionName match = VersionName.parse("1.1.0");
+                if (IntentDConnectMessage.ACTION_PUT.equals(request.getAction())) {
+                    mApp.setDevicePluginIdentifyKey(sessionKey, plugin.getServiceId());
+                    if (!(version.compareTo(match) == -1)) {
+                        KeepAliveManager.getInstance().setManagementTable(plugin);
+                    }
+                } else if (IntentDConnectMessage.ACTION_DELETE.equals(request.getAction())) {
+                    if (!(version.compareTo(match) == -1)) {
+                        KeepAliveManager.getInstance().removeManagementTable(plugin);
+                    }
+                }
             }
             request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, sessionKey);
         }

@@ -186,6 +186,23 @@ public class HvcCommManager {
     }
 
     /**
+     * remove all detect event.
+     */
+    public void removeAllDetectEvent() {
+        if (!mEventArray.isEmpty()) {
+            mEventArray.clear();
+        }
+    }
+
+    /**
+     * remove detect event.
+     * @param sessionKey sessionKey
+     */
+    public void removeDetectEvent(final String sessionKey) {
+        HumanDetectEventUtils.remove(mEventArray, sessionKey);
+    }
+
+    /**
      * Get serviceId from bluetoothAddress.
      * 
      * @param address bluetoothAddress

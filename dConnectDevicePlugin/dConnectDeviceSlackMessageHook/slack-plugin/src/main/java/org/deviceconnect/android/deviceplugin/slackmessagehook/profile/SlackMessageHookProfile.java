@@ -257,6 +257,11 @@ public class SlackMessageHookProfile extends MessageHookProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
+            if (!SlackManager.INSTANCE.isConnected()) {
+                MessageUtils.setUnknownError(response, "Not connected to the Slack server");
+                return true;
+            }
+
             EventError error = EventManager.INSTANCE.addEvent(request);
             switch (error) {
                 case NONE:
@@ -285,6 +290,11 @@ public class SlackMessageHookProfile extends MessageHookProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
+            if (!SlackManager.INSTANCE.isConnected()) {
+                MessageUtils.setUnknownError(response, "Not connected to the Slack server");
+                return true;
+            }
+
             EventError error = EventManager.INSTANCE.removeEvent(request);
             switch (error) {
                 case NONE:

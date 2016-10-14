@@ -476,8 +476,6 @@ public class HVCPDeviceService extends DConnectMessageService
     @Override
     public void onConnected(final HVCCameraInfo camera) {
         DConnectService service = getServiceProvider().getService(camera.getID());
-
-        Log.d("TEST", "init");
         if (service == null) {
             service = new HVCPService(camera);
             getServiceProvider().addService(service);

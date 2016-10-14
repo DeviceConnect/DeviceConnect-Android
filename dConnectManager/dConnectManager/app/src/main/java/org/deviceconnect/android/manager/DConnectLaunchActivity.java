@@ -121,6 +121,9 @@ public class DConnectLaunchActivity extends Activity {
                             finish();
                         }
                     };
+                } else {
+                    finish();
+                    return;
                 }
             } else if (HOST_STOP.equals(host)) {
                 if (!allowExternalStartAndStop() || PATH_ROOT.equals(path) || PATH_ACTIVITY.equals(path)) {
@@ -155,9 +158,14 @@ public class DConnectLaunchActivity extends Activity {
                             finish();
                         }
                     };
+                } else {
+                    finish();
+                    return;
                 }
             }
             bindManagerService();
+        } else {
+            finish();
         }
     }
 
@@ -170,6 +178,7 @@ public class DConnectLaunchActivity extends Activity {
     protected void onPause() {
         super.onPause();
         onActivityResult(0, RESULT_CANCELED, null);
+        unbindService(mServiceConnection);
         finish();
     }
 

@@ -10,7 +10,6 @@ import org.deviceconnect.android.deviceplugin.webrtc.profile.WebRTCSystemProfile
 import org.deviceconnect.android.deviceplugin.webrtc.service.WebRTCService;
 import org.deviceconnect.android.deviceplugin.webrtc.util.WebRTCManager;
 import org.deviceconnect.android.event.EventManager;
-import org.deviceconnect.android.event.cache.MemoryCacheController;
 import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.profile.SystemProfile;
 
@@ -31,9 +30,8 @@ public class WebRTCDeviceService extends DConnectMessageService {
     @Override
     public void onCreate() {
         super.onCreate();
-        EventManager.INSTANCE.setController(new MemoryCacheController());
         mWebRTCManager = new WebRTCManager((WebRTCApplication) getApplication());
-        getServiceProvider().addService(new WebRTCService((WebRTCApplication) getApplication()));
+        getServiceProvider().addService(new WebRTCService());
     }
 
     @Override

@@ -6,11 +6,9 @@
  */
 package org.deviceconnect.android.profile;
 
-import org.deviceconnect.android.message.MessageUtils;
-import org.deviceconnect.profile.SettingsProfileConstants;
-import org.deviceconnect.profile.SettingsProfileConstants.VolumeKind;
-
 import android.content.Intent;
+
+import org.deviceconnect.profile.SettingsProfileConstants;
 
 /**
  * Settings プロファイル.
@@ -19,32 +17,7 @@ import android.content.Intent;
  * スマートデバイスの各種設定状態の取得および設定機能を提供するAPI.<br>
  * スマートデバイスの各種設定状態の取得および設定機能を提供するデバイスプラグインは当クラスを継承し、対応APIを実装すること。 <br>
  * </p>
- * 
- * <h1>各API提供メソッド</h1>
- * <p>
- * Settings Profile の各APIへのリクエストに対し、以下のコールバックメソッド群が自動的に呼び出される。<br>
- * サブクラスは以下のメソッド群からデバイスプラグインが提供するAPI用のメソッドをオーバーライドし、機能を実装すること。<br>
- * オーバーライドされていない機能は自動的に非対応APIとしてレスポンスを返す。
- * </p>
- * <ul>
- * <li>Volume Settings API [GET] :
- * {@link SettingsProfile#onGetSoundVolume(Intent, Intent, String, 
- * org.deviceconnect.profile.SettingsProfileConstants.VolumeKind)}</li>
- * <li>Volume Settings API [PUT] :
- * {@link SettingsProfile#onPutSoundVolume(Intent, Intent, String, VolumeKind, Double)}</li>
- * <li>Date Settings API [GET] :
- * {@link SettingsProfile#onGetDate(Intent, Intent, String)}</li>
- * <li>Date Settings API [PUT] :
- * {@link SettingsProfile#onPutDate(Intent, Intent, String, String)}</li>
- * <li>Display Light Settings API [GET] :
- * {@link SettingsProfile#onGetDisplayLight(Intent, Intent, String)}</li>
- * <li>Display Light Settings API [PUT] :
- * {@link SettingsProfile#onPutDisplayLight(Intent, Intent, String, Double)}</li>
- * <li>Display Sleep Settings API [GET] :
- * {@link SettingsProfile#onGetDisplaySleep(Intent, Intent, String)}</li>
- * <li>Display Sleep Settings API [PUT] :
- * {@link SettingsProfile#onPutDisplaySleep(Intent, Intent, String, Integer)}</li>
- * </ul>
+ *
  * @author NTT DOCOMO, INC.
  */
 public abstract class SettingsProfile extends DConnectProfile implements SettingsProfileConstants {

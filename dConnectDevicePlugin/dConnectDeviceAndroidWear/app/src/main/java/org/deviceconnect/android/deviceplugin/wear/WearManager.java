@@ -19,6 +19,7 @@ import com.google.android.gms.wearable.PutDataRequest;
 import com.google.android.gms.wearable.Wearable;
 
 import org.deviceconnect.android.deviceplugin.wear.profile.WearConst;
+import org.deviceconnect.android.logger.AndroidHandler;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -26,7 +27,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 
 /**
  * Android Wearを管理するクラス.
@@ -75,6 +78,15 @@ public class WearManager implements ConnectionCallbacks, OnConnectionFailedListe
      */
     public WearManager(final Context context) {
         mContext = context;
+        if (BuildConfig.DEBUG) {
+            AndroidHandler handler = new AndroidHandler(mLogger.getName());
+            handler.setFormatter(new SimpleFormatter());
+            handler.setLevel(Level.ALL);
+            mLogger.addHandler(handler);
+            mLogger.setLevel(Level.ALL);
+        } else {
+            mLogger.setLevel(Level.OFF);
+        }
     }
 
     @Override
@@ -216,7 +228,7 @@ public class WearManager implements ConnectionCallbacks, OnConnectionFailedListe
                 final String data = new String(messageEvent.getData());
                 final String path = messageEvent.getPath();
                 final String nodeId = messageEvent.getSourceNodeId();
-                mLogger.info("onMessageReceived: path = " + path);
+                mLogger.info("onMessageReceived: path = " + path + ":node:" + nodeId);
                 OnMessageEventListener listener = mOnMessageEventListeners.get(path);
                 if (listener != null) {
                     listener.onEvent(nodeId, data);

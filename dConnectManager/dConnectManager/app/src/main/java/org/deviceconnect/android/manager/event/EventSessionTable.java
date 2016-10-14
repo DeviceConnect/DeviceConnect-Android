@@ -4,6 +4,7 @@ package org.deviceconnect.android.manager.event;
 import org.deviceconnect.android.manager.DevicePlugin;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 public class EventSessionTable {
@@ -20,7 +21,7 @@ public class EventSessionTable {
         List<EventSession> result = new ArrayList<>();
         synchronized (mEventSessions) {
             for (EventSession session : mEventSessions) {
-                if (plugin.getServiceId().equals(session.getPluginId())) {
+                if (plugin.getPluginId().equals(session.getPluginId())) {
                     result.add(session);
                 }
             }
@@ -37,6 +38,16 @@ public class EventSessionTable {
     void remove(final EventSession session) {
         synchronized (mEventSessions) {
             mEventSessions.remove(session);
+        }
+    }
+
+    void removeForReceiverId(final String receiverId) {
+        synchronized (mEventSessions) {
+            for (Iterator<EventSession> it = mEventSessions.iterator(); it.hasNext(); ) {
+                if (it.next().getReceiverId().equals(receiverId)) {
+                    it.remove();
+                }
+            }
         }
     }
 }

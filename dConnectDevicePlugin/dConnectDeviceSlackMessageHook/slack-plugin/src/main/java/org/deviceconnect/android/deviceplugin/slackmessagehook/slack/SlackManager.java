@@ -246,6 +246,10 @@ public class SlackManager {
         return connectState == CONNECT_STATE_CONNECTED;
     }
 
+    public boolean isDisonnecting() {
+        return (connectState > CONNECT_STATE_DISCONNECTING);
+    }
+
     /**
      * 接続.
      */

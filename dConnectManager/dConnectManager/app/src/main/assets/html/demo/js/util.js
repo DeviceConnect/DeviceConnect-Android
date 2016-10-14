@@ -39,6 +39,10 @@ var util = (function(parent, global) {
             'videochat',
             'airconditioner',
             'atmosphericpressure',
+            'ecg',
+            'poseEstimation',
+            'stressEstimation',
+            'walkState',
             'gpio');
 
     function init(callback) {
@@ -133,14 +137,18 @@ var util = (function(parent, global) {
     }
 
     function openWebSocketIfNeeded() {
-        if (!dConnect.isConnectedWebSocket()) {
-            var accessToken = mAccessToken ? mAccessToken : mSessionKey;
-            dConnect.connectWebSocket(accessToken, function(code, message) {
-                if (code > 0) {
-                    alert('WebSocketが切れました。\n code=' + code + " message=" + message);
-                }
-                console.log("WebSocket: code=" + code + " message=" +message);
-            });
+        try {
+            if (!dConnect.isConnectedWebSocket()) {
+                var accessToken = mAccessToken ? mAccessToken : mSessionKey;
+                dConnect.connectWebSocket(accessToken, function(code, message) {
+                    if (code > 0) {
+                        alert('WebSocketが切れました。\n code=' + code + " message=" + message);
+                    }
+                    console.log("WebSocket: code=" + code + " message=" +message);
+                });
+            }
+        } catch (e) {
+            alert("この端末は、WebSocketをサポートしていません。");
         }
     }
 
@@ -272,7 +280,6 @@ var util = (function(parent, global) {
          xhr.onreadystatechange = function() {
              switch (xhr.readyState) {
              case 1: {
-                 console.log("サーバ接続を確立しました。\n xhr.readyState=" + xhr.readyState + "\n xhr.statusText=" + xhr.statusText);
                  try {
                      xhr.setRequestHeader("X-GotAPI-Origin".toLowerCase(), "file://");
                  } catch (e) {
@@ -286,10 +293,8 @@ var util = (function(parent, global) {
                  break;
              }
              case 2:
-                 console.log("リクエストを送信しました。\n xhr.readyState=" + xhr.readyState + "\n xhr.statusText=" + xhr.statusText);
                  break;
              case 3:
-                 console.log("リクエストの処理中。\n xhr.readyState=" + xhr.readyState + "\n xhr.statusText=" + xhr.statusText);
                 break;
              case 4: {
                  if (xhr.status == 200) {

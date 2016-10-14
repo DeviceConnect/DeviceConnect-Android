@@ -72,7 +72,6 @@ public class ServiceListActivity extends Activity implements AlertDialogFragment
 
     private Switch mSwitchAction;
     private int mPageIndex;
-    private boolean mSwitchServerFlag;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -292,11 +291,7 @@ public class ServiceListActivity extends Activity implements AlertDialogFragment
             return;
         }
 
-        if (mSwitchServerFlag) {
-            return;
-        }
-        mSwitchServerFlag = true;
-
+        mSwitchAction.setEnabled(false);
         try {
             if (checked) {
                 mDConnectService.start();
@@ -304,7 +299,7 @@ public class ServiceListActivity extends Activity implements AlertDialogFragment
                     @Override
                     public void run() {
                         reload();
-                        mSwitchServerFlag = false;
+                        mSwitchAction.setEnabled(true);
                     }
                 }, 500);
             } else {
@@ -315,7 +310,7 @@ public class ServiceListActivity extends Activity implements AlertDialogFragment
                     public void run() {
                         mServiceAdapter.mServices = new ArrayList<>();
                         mServiceAdapter.notifyDataSetInvalidated();
-                        mSwitchServerFlag = false;
+                        mSwitchAction.setEnabled(true);
                     }
                 });
             }
@@ -440,7 +435,7 @@ public class ServiceListActivity extends Activity implements AlertDialogFragment
         DevicePluginManager mgr = app.getDevicePluginManager();
         List<DevicePlugin> plugins = mgr.getDevicePlugins();
         for (DevicePlugin plugin : plugins) {
-            if (mSelectedService.getId().contains(plugin.getServiceId())) {
+            if (mSelectedService.getId().contains(plugin.getPluginId())) {
                 Intent request = new Intent();
                 request.setComponent(plugin.getComponentName());
                 request.setAction(IntentDConnectMessage.ACTION_PUT);
@@ -448,7 +443,7 @@ public class ServiceListActivity extends Activity implements AlertDialogFragment
                 SystemProfile.setProfile(request, SystemProfile.PROFILE_NAME);
                 SystemProfile.setInterface(request, SystemProfile.INTERFACE_DEVICE);
                 SystemProfile.setAttribute(request, SystemProfile.ATTRIBUTE_WAKEUP);
-                request.putExtra("pluginId", plugin.getServiceId());
+                request.putExtra("pluginId", plugin.getPluginId());
                 sendBroadcast(request);
                 break;
             }
@@ -458,7 +453,7 @@ public class ServiceListActivity extends Activity implements AlertDialogFragment
     private String getPackageName(final String serviceId) {
         List<DevicePlugin> list = mDevicePluginManager.getDevicePlugins();
         for (DevicePlugin plugin : list) {
-            if (serviceId.contains(plugin.getServiceId())) {
+            if (serviceId.contains(plugin.getPluginId())) {
                 return plugin.getPackageName();
             }
         }

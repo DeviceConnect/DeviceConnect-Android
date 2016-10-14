@@ -28,8 +28,6 @@ import org.deviceconnect.profile.SystemProfileConstants;
 import org.junit.After;
 import org.junit.Before;
 
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -49,7 +47,7 @@ public class IntentDConnectTestCase extends DConnectTestCase {
             = "org.deviceconnect.android.manager/.DConnectBroadcastReceiver";
 
     /** ポーリング時間(ms). */
-    private static final int POLLING_WAIT_TIME = 100;
+    private static final int POLLING_WAIT_TIME = 250;
 
     /** デフォルトのタイムアウト時間(ms). */
     private static final int DEFAULT_RESTFUL_TIMEOUT = 10000;
@@ -218,23 +216,11 @@ public class IntentDConnectTestCase extends DConnectTestCase {
                 && (System.currentTimeMillis() - now) < mTimeout);
 
         Intent resp = mRequests.remove(requestCode);
-        assertEquals(resp.getStringExtra(DConnectProfileConstants.PARAM_PRODUCT), DCONNECT_MANAGER_APP_NAME);
-        assertEquals(resp.getStringExtra(DConnectProfileConstants.PARAM_VERSION), DCONNECT_MANAGER_VERSION_NAME);
-
-        // HMACの検証
-        String hmacString = resp.getStringExtra(IntentDConnectMessage.EXTRA_HMAC);
-        if (hmacString == null) {
-            fail("Device Connect Manager must send HMAC.");
+        if (resp == null) {
+            throw new IllegalStateException("Device Connect Manager is not found.");
         }
-        try {
-            byte[] expectedHmac = calculateHMAC(nonce);
-            assertEquals(expectedHmac, toByteArray(hmacString));
-        } catch (InvalidKeyException e) {
-            throw new RuntimeException("The JDK does not support HMAC-SHA256.");
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException("The JDK does not support HMAC-SHA256.");
-        }
-
+        assertNotNull(resp.getStringExtra(DConnectProfileConstants.PARAM_PRODUCT));
+        assertNotNull(resp.getStringExtra(DConnectProfileConstants.PARAM_VERSION));
         return resp;
     }
 

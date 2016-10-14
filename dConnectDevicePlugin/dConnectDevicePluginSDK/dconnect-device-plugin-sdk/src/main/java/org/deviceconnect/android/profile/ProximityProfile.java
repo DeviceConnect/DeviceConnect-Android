@@ -9,7 +9,6 @@ package org.deviceconnect.android.profile;
 import android.content.Intent;
 import android.os.Bundle;
 
-import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.profile.ProximityProfileConstants;
 
 /**
@@ -19,23 +18,7 @@ import org.deviceconnect.profile.ProximityProfileConstants;
  * スマートデバイスの近接センサーの検知通知を提供するAPI.<br>
  * スマートデバイスの近接センサーの検知通知を提供するデバイスプラグインは当クラスを継承し、対応APIを実装すること。 <br>
  * </p>
- * 
- * <h1>各API提供メソッド</h1>
- * <p>
- * Proximity Profile の各APIへのリクエストに対し、以下のコールバックメソッド群が自動的に呼び出される。<br>
- * サブクラスは以下のメソッド群からデバイスプラグインが提供するAPI用のメソッドをオーバーライドし、機能を実装すること。<br>
- * オーバーライドされていない機能は自動的に非対応APIとしてレスポンスを返す。
- * </p>
- * <ul>
- * <li>Proximity Device Event API [Register] :
- * {@link ProximityProfile#onPutOnDeviceProximity(Intent, Intent, String, String)}</li>
- * <li>Proximity Device Event API [Unregister] :
- * {@link ProximityProfile#onDeleteOnDeviceProximity(Intent, Intent, String, String)}</li>
- * <li>Proximity User Event API [Register] :
- * {@link ProximityProfile#onPutOnUserProximity(Intent, Intent, String, String)}</li>
- * <li>Proximity User Event API [Unregister] :
- * {@link ProximityProfile#onDeleteOnUserProximity(Intent, Intent, String, String)}</li>
- * </ul>
+ *
  * @author NTT DOCOMO, INC.
  */
 public class ProximityProfile extends DConnectProfile implements ProximityProfileConstants {

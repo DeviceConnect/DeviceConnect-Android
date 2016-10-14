@@ -172,7 +172,7 @@ public class DevicePluginManager {
                     plugin.setClassName(className);
                     plugin.setPackageName(packageName);
                     plugin.setVersionName(versionName);
-                    plugin.setServiceId(hash);
+                    plugin.setPluginId(hash);
                     plugin.setDeviceName(receiverInfo.applicationInfo.loadLabel(pkgMgr).toString());
                     plugin.setStartServiceClassName(startClassName);
                     plugin.setSupportProfiles(checkDevicePluginXML(receiverInfo));
@@ -308,9 +308,9 @@ public class DevicePluginManager {
      */
     public String appendServiceId(final DevicePlugin plugin, final String serviceId) {
         if (serviceId == null) {
-            return plugin.getServiceId() + DConnectMessageService.SEPARATOR + mDConnectDomain;
+            return plugin.getPluginId() + DConnectMessageService.SEPARATOR + mDConnectDomain;
         } else {
-            return serviceId + DConnectMessageService.SEPARATOR + plugin.getServiceId()
+            return serviceId + DConnectMessageService.SEPARATOR + plugin.getPluginId()
                     + DConnectMessageService.SEPARATOR + mDConnectDomain;
         }
     }
@@ -329,7 +329,7 @@ public class DevicePluginManager {
         List<DevicePlugin> plugins = getDevicePlugins(serviceId);
         String sessionKey = request.getStringExtra(DConnectMessage.EXTRA_SESSION_KEY);
         if (plugins != null && sessionKey != null) {
-            sessionKey = sessionKey + DConnectMessageService.SEPARATOR + plugins.get(0).getServiceId();
+            sessionKey = sessionKey + DConnectMessageService.SEPARATOR + plugins.get(0).getPluginId();
             ComponentName receiver = (ComponentName) request.getExtras().get(DConnectMessage.EXTRA_RECEIVER);
             if (receiver != null) {
                 sessionKey = sessionKey + DConnectMessageService.SEPARATOR_SESSION
@@ -352,7 +352,7 @@ public class DevicePluginManager {
     public void appendPluginIdToSessionKey(final Intent request, final DevicePlugin plugin) {
         String sessionKey = request.getStringExtra(DConnectMessage.EXTRA_SESSION_KEY);
         if (plugin != null && sessionKey != null) {
-            sessionKey = sessionKey + DConnectMessageService.SEPARATOR + plugin.getServiceId();
+            sessionKey = sessionKey + DConnectMessageService.SEPARATOR + plugin.getPluginId();
             ComponentName receiver = (ComponentName) request.getExtras().get(DConnectMessage.EXTRA_RECEIVER);
             if (receiver != null) {
                 sessionKey = sessionKey + DConnectMessageService.SEPARATOR_SESSION
@@ -382,7 +382,7 @@ public class DevicePluginManager {
      * @return Device Connect Managerのドメインが省かれたサービスID
      */
     public static String splitServiceId(final DevicePlugin plugin, final String serviceId) {
-        String p = plugin.getServiceId();
+        String p = plugin.getPluginId();
         int idx = serviceId.indexOf(p);
         if (idx > 0) {
             return serviceId.substring(0, idx - 1);

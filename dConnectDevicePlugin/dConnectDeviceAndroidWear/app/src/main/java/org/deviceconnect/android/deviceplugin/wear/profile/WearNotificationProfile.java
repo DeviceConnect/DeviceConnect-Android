@@ -258,8 +258,6 @@ public class WearNotificationProfile extends NotificationProfile {
             MessageUtils.setEmptyServiceIdError(response);
         } else if (!WearUtils.checkServiceId(serviceId)) {
             MessageUtils.setNotFoundServiceError(response);
-        } else if (sessionKey == null) {
-            MessageUtils.setInvalidRequestParameterError(response);
         } else {
             // Event registration.
             EventError error = EventManager.INSTANCE.addEvent(request);
@@ -297,8 +295,6 @@ public class WearNotificationProfile extends NotificationProfile {
             MessageUtils.setEmptyServiceIdError(response);
         } else if (!WearUtils.checkServiceId(serviceId)) {
             MessageUtils.setNotFoundServiceError(response);
-        } else if (sessionKey == null) {
-            MessageUtils.setInvalidRequestParameterError(response);
         } else {
             // Event release.
             EventError error = EventManager.INSTANCE.removeEvent(request);

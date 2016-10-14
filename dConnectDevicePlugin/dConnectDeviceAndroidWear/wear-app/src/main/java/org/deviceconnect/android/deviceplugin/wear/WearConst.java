@@ -70,6 +70,9 @@ public final class WearConst {
     /** Broadcast Data Key (Regist). */
     public static final String PARAM_KEYEVENT_REGIST = "keyeventRegist";
 
+    /** Broadcast Data Key (Regist). */
+    public static final String PARAM_KEYEVENT_ID = "keyeventId";
+
     /** Broadcast Data Key (Data). */
     public static final String PARAM_KEYEVENT_DATA = "data";
 
@@ -136,6 +139,8 @@ public final class WearConst {
     /** Broadcast Data Key (Regist). */
     public static final String PARAM_TOUCH_REGIST = "touchRegist";
 
+    public static final String PARAM_TOUCH_ID = "touchId";
+
     /** Broadcast Data Key (Data). */
     public static final String PARAM_TOUCH_DATA = "data";
 
@@ -185,6 +190,8 @@ public final class WearConst {
 
     /** メッセージの送信先(Android端末)を特定するためのID. */
     public static final String PARAM_DESTINATION_ID = "destinationId";
+
+    public static final String PARAM_SENSOR_ID = "sensorId";
 
     /**
      * bitmapを受け渡しするためのキー.

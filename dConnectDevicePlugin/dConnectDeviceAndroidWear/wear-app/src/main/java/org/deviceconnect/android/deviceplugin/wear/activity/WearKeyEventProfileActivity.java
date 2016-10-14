@@ -7,10 +7,7 @@ http://opensource.org/licenses/mit-license.php
 package org.deviceconnect.android.deviceplugin.wear.activity;
 
 import android.app.Activity;
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.support.v4.content.LocalBroadcastManager;
@@ -21,7 +18,12 @@ import android.view.WindowManager;
 import android.widget.Button;
 
 import org.deviceconnect.android.deviceplugin.wear.R;
+import org.deviceconnect.android.deviceplugin.wear.WearApplication;
 import org.deviceconnect.android.deviceplugin.wear.WearConst;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * WearKeyEventProfileActivity.
@@ -29,11 +31,8 @@ import org.deviceconnect.android.deviceplugin.wear.WearConst;
  * @author NTT DOCOMO, INC.
  */
 public class WearKeyEventProfileActivity extends Activity {
-    /** Broadcast receiver. */
-    MyBroadcastReceiver mReceiver;
-
-    /** Intent filter. */
-    IntentFilter mIntentFilter;
+    /** Device NodeID . */
+    private final List<String> mIds = Collections.synchronizedList(new ArrayList<String>());
 
     /** Event flag. */
     private int mRegisterEvent = 0;
@@ -93,16 +92,13 @@ public class WearKeyEventProfileActivity extends Activity {
         if (!mWakeLock.isHeld()) {
             mWakeLock.acquire();
         }
-        // Get intent data.
-        Intent intent = getIntent();
-        setRegisterEvent(intent.getStringExtra(WearConst.PARAM_KEYEVENT_REGIST));
-
+        setRegisterEvent(getIntent());
         setContentView(R.layout.activity_wear_keyevent_profile);
-        final WatchViewStub stub = (WatchViewStub) findViewById(R.id.watch_view_stub);
+
+        WatchViewStub stub = (WatchViewStub) findViewById(R.id.watch_view_stub);
         stub.setOnLayoutInflatedListener(new WatchViewStub.OnLayoutInflatedListener() {
             @Override
             public void onLayoutInflated(final WatchViewStub stub) {
-
                 mBtnKeyMode = (Button) stub.findViewById(R.id.button_key_mode);
                 mBtnKeyMode.setOnClickListener(new View.OnClickListener() {
                     @Override
@@ -170,25 +166,15 @@ public class WearKeyEventProfileActivity extends Activity {
             }
         });
 
-        mReceiver = new MyBroadcastReceiver();
-        mIntentFilter = new IntentFilter(WearConst.PARAM_DC_WEAR_KEYEVENT_SVC_TO_ACT);
-
-        // For service destruction suppression.
         Intent i = new Intent(WearConst.ACTION_WEAR_PING_SERVICE);
         LocalBroadcastManager.getInstance(this).sendBroadcast(i);
     }
 
     @Override
-    public void onResume() {
-        super.onResume();
-        registerReceiver(mReceiver, mIntentFilter);
+    protected void onNewIntent(Intent intent) {
+        setRegisterEvent(intent);
     }
 
-    @Override
-    public void onPause() {
-        super.onPause();
-        unregisterReceiver(mReceiver);
-    }
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -206,17 +192,32 @@ public class WearKeyEventProfileActivity extends Activity {
         String config;
         int nIndex;
         switch (keyId) {
-            case KEYCODE_CANCEL: nIndex = 0;    break;
-            case KEYCODE_OK:     nIndex = 1;    break;
-            default:             nIndex = -1;   break;
+            case KEYCODE_CANCEL:
+                nIndex = 0;
+                break;
+            case KEYCODE_OK:
+                nIndex = 1;
+                break;
+            default:
+                nIndex = -1;
+                break;
         }
+
         if (nIndex != -1) {
             switch (keyMode) {
-                case KM_MEDIA_CTRL:     config = CONFIG_MEDIA_CTRL[nIndex];   break;
-                case KM_DPAD_BUTTON:    config = CONFIG_DPAD[nIndex];        break;
-                case KM_USER:           config = CONFIG_USER[nIndex];        break;
+                case KM_MEDIA_CTRL:
+                    config = CONFIG_MEDIA_CTRL[nIndex];
+                    break;
+                case KM_DPAD_BUTTON:
+                    config = CONFIG_DPAD[nIndex];
+                    break;
+                case KM_USER:
+                    config = CONFIG_USER[nIndex];
+                    break;
                 case KM_STD_KEY:
-                default:                config = CONFIG_STD_KEY[nIndex];      break;
+                default:
+                    config = CONFIG_STD_KEY[nIndex];
+                    break;
             }
         } else {
             config = "";
@@ -265,21 +266,21 @@ public class WearKeyEventProfileActivity extends Activity {
         }
 
         String data = keyAction + "," + String.valueOf(keycode) + "," + keyConfig;
-
-        // Send key event data to service.
-        Intent i = new Intent(WearConst.PARAM_DC_WEAR_KEYEVENT_ACT_TO_SVC);
-        i.putExtra(WearConst.PARAM_KEYEVENT_DATA, data);
-        LocalBroadcastManager.getInstance(this).sendBroadcast(i);
+        sendEvent(WearConst.WEAR_TO_DEVICE_KEYEVENT_DATA, data);
     }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
+    private void sendEvent(final String path, final String data) {
+        synchronized (mIds) {
+            for (String id : mIds) {
+                ((WearApplication) getApplication()).sendMessage(id, path, data);
+            }
+        }
     }
 
-    @Override
-    protected void onStop() {
-        super.onStop();
+    private void setRegisterEvent(Intent intent) {
+        String type = intent.getStringExtra(WearConst.PARAM_KEYEVENT_REGIST);
+        String id = intent.getStringExtra(WearConst.PARAM_KEYEVENT_ID);
+        setRegisterEvent(type, id);
     }
 
     /**
@@ -287,31 +288,29 @@ public class WearKeyEventProfileActivity extends Activity {
      *
      * @param regist Request event.
      */
-    private void setRegisterEvent(final String regist) {
+    private void setRegisterEvent(final String regist, final String id) {
         if (WearConst.DEVICE_TO_WEAR_KEYEVENT_ONDOWN_REGISTER.equals(regist)) {
+            if (!mIds.contains(id)) {
+                mIds.add(id);
+            }
             mRegisterEvent |= REGIST_FLAG_KEYEVENT_DOWN;
         } else if (WearConst.DEVICE_TO_WEAR_KEYEVENT_ONUP_REGISTER.equals(regist)) {
+            if (!mIds.contains(id)) {
+                mIds.add(id);
+            }
             mRegisterEvent |= REGIST_FLAG_KEYEVENT_UP;
         } else if (WearConst.DEVICE_TO_WEAR_KEYEVENT_ONDOWN_UNREGISTER.equals(regist)) {
+            mIds.remove(id);
             mRegisterEvent &= ~(REGIST_FLAG_KEYEVENT_DOWN);
             if (mRegisterEvent == 0) {
                 finish();
             }
         } else if (WearConst.DEVICE_TO_WEAR_KEYEVENT_ONUP_UNREGISTER.equals(regist)) {
+            mIds.remove(id);
             mRegisterEvent &= ~(REGIST_FLAG_KEYEVENT_UP);
             if (mRegisterEvent == 0) {
                 finish();
             }
-        }
-    }
-
-    /**
-     * Broadcast receiver.
-     */
-    public class MyBroadcastReceiver extends BroadcastReceiver {
-        @Override
-        public void onReceive(final Context context, final Intent i) {
-            setRegisterEvent(i.getStringExtra(WearConst.PARAM_KEYEVENT_REGIST));
         }
     }
 }

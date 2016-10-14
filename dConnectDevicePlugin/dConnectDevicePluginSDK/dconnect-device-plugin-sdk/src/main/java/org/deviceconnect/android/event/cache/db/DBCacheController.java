@@ -386,7 +386,7 @@ public final class DBCacheController extends BaseCacheController {
         /** 
          * バージョン番号.
          */
-        private static final int DB_VERSION = 2;
+        private static final int DB_VERSION = 3;
         
         /**
          * DBオープンヘルパーを生成する.

@@ -132,7 +132,8 @@
                         "name": "sphereSize",
                         "in": "formData",
                         "required": false,
-                        "type": "number"
+                        "type": "number",
+                        "minimum": 0
                     },
                     {
                         "name": "width",

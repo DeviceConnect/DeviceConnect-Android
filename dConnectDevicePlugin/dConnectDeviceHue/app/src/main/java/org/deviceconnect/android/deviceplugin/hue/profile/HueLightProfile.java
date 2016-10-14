@@ -195,6 +195,11 @@ public class HueLightProfile extends LightProfile {
                     return true;
                 }
 
+                if (name == null || name.length() == 0) {
+                    MessageUtils.setInvalidRequestParameterError(response, "name is invalid.");
+                    return true;
+                }
+
                 //wait for change name and status
                 final CountDownLatch countDownLatch = new CountDownLatch(2);
                 sendResponseAfterAwait(response, countDownLatch);

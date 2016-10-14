@@ -7,11 +7,8 @@
 package org.deviceconnect.android.profile.intent.test;
 
 import android.content.Intent;
-import android.os.Bundle;
-import android.os.Parcelable;
 import android.support.test.runner.AndroidJUnit4;
 
-import org.deviceconnect.android.test.plugin.profile.TestServiceDiscoveryProfileConstants;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 import org.junit.Test;
@@ -48,28 +45,6 @@ public class NormalServiceDiscoveryProfileTestCase extends IntentDConnectTestCas
         request.putExtra(IntentDConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(IntentDConnectMessage.EXTRA_PROFILE, ServiceDiscoveryProfileConstants.PROFILE_NAME);
         Intent response = sendRequest(request);
-
         assertResultOK(response);
-        Parcelable[] services =
-                (Parcelable[]) response.getParcelableArrayExtra(ServiceDiscoveryProfileConstants.PARAM_SERVICES);
-
-        assertTrue("services not found.", services.length > 0);
-        boolean isFoundName = false;
-        for (int i = 0; i < services.length; i++) {
-            Bundle service = (Bundle) services[i];
-            String name = service.getString(ServiceDiscoveryProfileConstants.PARAM_NAME);
-            String id = service.getString(ServiceDiscoveryProfileConstants.PARAM_ID);
-            String type = service.getString(ServiceDiscoveryProfileConstants.PARAM_TYPE);
-            assertNotNull("service.name is null", name);
-            if (name.equals(TestServiceDiscoveryProfileConstants.DEVICE_NAME)) {
-                isFoundName = true;
-                break;
-            }
-            assertNotNull("service.id is null", id);
-            assertNotNull("service.type is null", type);
-        }
-        if (!isFoundName) {
-            fail("Not found Test DevicePlugin.");
-        }
     }
 }

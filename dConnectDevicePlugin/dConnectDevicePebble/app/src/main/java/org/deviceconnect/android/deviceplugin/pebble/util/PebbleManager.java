@@ -922,6 +922,7 @@ public final class PebbleManager {
      * </p>
      * @param pattern パターン
      * @return Pebble用のバイブレーションパターン
+     * @throws NumberFormatException 変換に失敗した場合
      */
     public static byte[] convertVibrationPattern(final String pattern) {
         if (pattern == null) {

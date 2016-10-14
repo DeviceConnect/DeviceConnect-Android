@@ -15,13 +15,13 @@ import com.getpebble.android.kit.util.PebbleDictionary;
 import org.deviceconnect.android.deviceplugin.pebble.PebbleDeviceService;
 import org.deviceconnect.android.deviceplugin.pebble.setting.PebbleServiceListActivity;
 import org.deviceconnect.android.deviceplugin.pebble.util.PebbleManager;
-import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.android.profile.api.DConnectApi;
 import org.deviceconnect.android.profile.api.DeleteApi;
 import org.deviceconnect.message.DConnectMessage;
+import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
 import java.util.logging.Logger;
 
@@ -33,9 +33,6 @@ public class PebbleSystemProfile extends SystemProfile {
     /** debug log. */
     private Logger mLogger = Logger.getLogger("Pebble");
 
-    /** sessionKeyが設定されていないときのエラーメッセージ. */
-    private static final String ERROR_MESSAGE = "sessionKey must be specified.";
-
     private final DConnectApi mDeleteEventsApi = new DeleteApi() {
         @Override
         public String getAttribute() {
@@ -44,24 +41,17 @@ public class PebbleSystemProfile extends SystemProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            mLogger.fine("onDeleteEvents delete /system/events");
-            String sessionKey = getSessionKey(request);
-            if (sessionKey == null) {
-                MessageUtils.setInvalidRequestParameterError(response, ERROR_MESSAGE);
-                return true;
-            }
             PebbleManager mgr = ((PebbleDeviceService) getContext()).getPebbleManager();
             mLogger.fine("onDeleteEvents delete system");
             // PebbleにEVENT解除依頼を送る
             sendDeleteEvent(PebbleManager.PROFILE_SYSTEM, PebbleManager.SYSTEM_ATTRIBUTE_EVENTS, mgr);
             // ここでイベントの解除をする
-            EventError error = EventManager.INSTANCE.removeEvent(request);
-            if (error == EventError.NONE) {
+            String origin = request.getStringExtra(IntentDConnectMessage.EXTRA_ORIGIN);
+            boolean isSuccess = EventManager.INSTANCE.removeEvents(origin);
+            if (isSuccess) {
                 setResult(response, DConnectMessage.RESULT_OK);
-            } else if (error == EventError.INVALID_PARAMETER) {
-                MessageUtils.setInvalidRequestParameterError(response);
             } else {
-                MessageUtils.setUnknownError(response);
+                MessageUtils.setUnknownError(response, "Failed to remove events for origin = " + origin);
             }
             return true;
         }

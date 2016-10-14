@@ -1,3 +1,9 @@
+/*
+ WebSocketInfoManager.java
+ Copyright (c) 2016 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.manager;
 
 import android.content.Context;
@@ -10,6 +16,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * イベント送信経路(WebSocket)管理クラス.
+ *
+ * @author NTT DOCOMO, INC.
+ */
 public class WebSocketInfoManager {
 
     private Map<String, WebSocketInfo> mWebSocketInfoMap = new HashMap<>();
@@ -28,19 +39,19 @@ public class WebSocketInfoManager {
         mOnWebSocketEventListener = onWebSocketEventListener;
     }
 
-    public void addWebSocketInfo(final String eventKey, final String uri, final String webSocketId) {
+    public void addWebSocketInfo(final String receiverId, final String uri, final String webSocketId) {
         WebSocketInfo info = new WebSocketInfo();
-        info.setId(webSocketId);
+        info.setRawId(webSocketId);
         info.setUri(uri);
-        info.setEventKey(eventKey);
+        info.setReceiverId(receiverId);
         info.setConnectTime(System.currentTimeMillis());
-        mWebSocketInfoMap.put(eventKey, info);
+        mWebSocketInfoMap.put(receiverId, info);
     }
 
     public void removeWebSocketInfo(final String eventKey) {
         WebSocketInfo info = mWebSocketInfoMap.remove(eventKey);
         if (info != null) {
-            notifyDisconnectWebSocket(info.getEventKey());
+            notifyDisconnectWebSocket(info.getReceiverId());
 
             if (mOnWebSocketEventListener != null) {
                 mOnWebSocketEventListener.onDisconnect(eventKey);
@@ -48,8 +59,8 @@ public class WebSocketInfoManager {
         }
     }
 
-    public WebSocketInfo getWebSocketInfo(final String eventKey) {
-        return mWebSocketInfoMap.get(eventKey);
+    public WebSocketInfo getWebSocketInfo(final String receiverId) {
+        return mWebSocketInfoMap.get(receiverId);
     }
 
     public List<WebSocketInfo> getWebSocketInfos() {
@@ -59,7 +70,7 @@ public class WebSocketInfoManager {
     private void notifyDisconnectWebSocket(final String origin) {
         List<DevicePlugin> plugins = mDevicePluginManager.getDevicePlugins();
         for (DevicePlugin plugin : plugins) {
-            String serviceId = plugin.getServiceId();
+            String serviceId = plugin.getPluginId();
             Intent request = new Intent();
             request.setComponent(plugin.getComponentName());
             request.setAction(IntentDConnectMessage.ACTION_EVENT_TRANSMIT_DISCONNECT);

@@ -13,7 +13,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:background="@color/title_text">
+            android:background="#FFFFFF">
             <Button
                 android:id="@+id/change_list_app"
                 android:layout_width="wrap_content"
@@ -24,7 +24,7 @@
                 android:layout_marginBottom="16dp"
                 android:text="@string/theta_app"
                 android:layout_gravity="center"
-                android:textColor="@color/title_text"
+                android:textColor="@color/tab_text"
                 android:background="@drawable/button_blue"
                 />
             <Button

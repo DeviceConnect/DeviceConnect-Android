@@ -107,11 +107,8 @@ public class HitoeStressEstimationProfile extends StressEstimationProfile {
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
             String serviceId = getServiceID(request);
-            String sessionKey = getSessionKey(request);
             if (serviceId == null) {
                 MessageUtils.setNotFoundServiceError(response, "Not found serviceID");
-            } else if (sessionKey == null) {
-                MessageUtils.setInvalidRequestParameterError(response, "Not found sessionKey");
             } else {
                 HitoeManager mgr = getManager();
                 if (mgr == null) {
@@ -148,11 +145,8 @@ public class HitoeStressEstimationProfile extends StressEstimationProfile {
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
             String serviceId = getServiceID(request);
-            String sessionKey = getSessionKey(request);
             if (serviceId == null) {
                 MessageUtils.setEmptyServiceIdError(response);
-            } else if (sessionKey == null) {
-                MessageUtils.setInvalidRequestParameterError(response, "There is no sessionKey.");
             } else {
                 removeEventDispatcher(request);
                 EventError error = EventManager.INSTANCE.removeEvent(request);

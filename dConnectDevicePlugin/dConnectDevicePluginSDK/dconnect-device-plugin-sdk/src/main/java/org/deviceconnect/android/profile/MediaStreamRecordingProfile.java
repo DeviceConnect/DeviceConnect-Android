@@ -9,7 +9,6 @@ package org.deviceconnect.android.profile;
 import android.content.Intent;
 import android.os.Bundle;
 
-import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.profile.MediaStreamRecordingProfileConstants;
 
 import java.util.List;
@@ -21,69 +20,7 @@ import java.util.List;
  * スマートデバイスによる写真撮影、動画録画、音声録音などの機能を提供するAPI.<br>
  * スマートデバイスによる写真撮影、動画録画、音声録音などの機能を提供するデバイスプラグインは当クラスを継承し、対応APIを実装すること。 <br>
  * </p>
- * 
- * <h1>各API提供メソッド</h1>
- * <p>
- * MediaStream Profile の各APIへのリクエストに対し、以下のコールバックメソッド群が自動的に呼び出される。<br>
- * サブクラスは以下のメソッド群からデバイスプラグインが提供するAPI用のメソッドをオーバーライドし、機能を実装すること。<br>
- * オーバーライドされていない機能は自動的に非対応APIとしてレスポンスを返す。
- * </p>
- * <ul>
- * <li>MediaStreamRecording MediaRecorder API [GET] :
- * {@link MediaStreamRecordingProfile#onGetMediaRecorder(Intent, Intent, String)}
- * </li>
- * <li>MediaStreamRecording Take Photo API [POST] :
- * {@link MediaStreamRecordingProfile#onPostTakePhoto(Intent, Intent, String, String)}
- * </li>
- * <li>MediaStreamRecording Record API [POST] :
- * {@link MediaStreamRecordingProfile#onPostRecord(Intent, Intent, String, String, Long)}
- * </li>
- * <li>MediaStreamRecording Pause API [PUT] :
- * {@link MediaStreamRecordingProfile#onPutPause(Intent, Intent, String, String)}
- * </li>
- * <li>MediaStreamRecording Resume API [PUT] :
- * {@link MediaStreamRecordingProfile#onPutResume(Intent, Intent, String, String)}
- * </li>
- * <li>MediaStreamRecording Stop API [PUT] :
- * {@link MediaStreamRecordingProfile#onPutStop(Intent, Intent, String, String)}
- * </li>
- * <li>MediaStreamRecording Mute Track API [PUT] :
- * {@link MediaStreamRecordingProfile#onPutMuteTrack(Intent, Intent, String, String)}
- * </li>
- * <li>MediaStreamRecording Unmute Track API [PUT] :
- * {@link MediaStreamRecordingProfile#onPutUnmuteTrack(Intent, Intent, String, String)}
- * </li>
- * <li>MediaStreamRecording Options API [GET] :
- * {@link MediaStreamRecordingProfile#onGetOptions(Intent, Intent, String, String)}
- * </li>
- * <li>MediaStreamRecording Options API [PUT] :
- * {@link MediaStreamRecordingProfile#onPutOptions(Intent, Intent, String, String, Integer, Integer, Integer, Integer, Double, String)}
- * </li>
- * <li>MediaStreamRecording Preview API [PUT] :
- * {@link MediaStreamRecordingProfile#onPutPreview(Intent, Intent, String, String)}
- * </li>
- * <li>MediaStreamRecording Preview API [DELETE] :
- * {@link MediaStreamRecordingProfile#onPutPreview(Intent, Intent, String, String)}
- * </li>
- * <li>MediaStreamRecording Take a Picture Event API [Register] :
- * {@link MediaStreamRecordingProfile#onPutOnPhoto(Intent, Intent, String, String)}
- * </li>
- * <li>MediaStreamRecording Take a Picture Event API [Unregister] :
- * {@link MediaStreamRecordingProfile#onDeleteOnPhoto(Intent, Intent, String, String)}
- * </li>
- * <li>MediaStreamRecording Recording Change Event API [Register] :
- * {@link MediaStreamRecordingProfile#onPutOnRecordingChange(Intent, Intent, String, String)}
- * </li>
- * <li>MediaStreamRecording Recording Change Event API [Unregister] :
- * {@link MediaStreamRecordingProfile#onDeleteOnRecordingChange(Intent, Intent, String, String)}
- * </li>
- * <li>MediaStreamRecording Data Available Event API [Register] :
- * {@link MediaStreamRecordingProfile#onPutOnDataAvailable(Intent, Intent, String, String)}
- * </li>
- * <li>MediaStreamRecording Data Available Event API [Unregister] :
- * {@link MediaStreamRecordingProfile#onDeleteOnDataAvailable(Intent, Intent, String, String)}
- * </li>
- * </ul>
+ *
  * @author NTT DOCOMO, INC.
  */
 public class MediaStreamRecordingProfile extends DConnectProfile implements MediaStreamRecordingProfileConstants {

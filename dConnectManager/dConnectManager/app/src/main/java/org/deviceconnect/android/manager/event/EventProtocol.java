@@ -1,3 +1,9 @@
+/*
+ EventProtocol.java
+ Copyright (c) 2016 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.manager.event;
 
 
@@ -17,6 +23,12 @@ import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
+
+/**
+ * イベント登録手順.
+ *
+ * @author NTT DOCOMO, INC.
+ */
 public abstract class EventProtocol {
 
     private static final VersionName V100 = VersionName.parse("1.0.0");
@@ -91,7 +103,7 @@ public abstract class EventProtocol {
         if (receiverId == null) {
             return false;
         }
-        EventSession query = createSession(request, serviceId, receiverId, plugin.getServiceId());
+        EventSession query = createSession(request, serviceId, receiverId, plugin.getPluginId());
         for (EventSession session : table.getAll()) {
             if (isSameSession(query, session)) {
                 table.remove(session);
@@ -108,7 +120,7 @@ public abstract class EventProtocol {
     boolean addSession(final EventSessionTable table, final Intent request, final DevicePlugin plugin) {
         String accessToken = request.getStringExtra(DConnectMessage.EXTRA_ACCESS_TOKEN);
         if (accessToken == null) {
-            DConnectProfile.setAccessToken(request, plugin.getServiceId());
+            DConnectProfile.setAccessToken(request, plugin.getPluginId());
         }
 
         String serviceId = DevicePluginManager.splitServiceId(plugin, DConnectProfile.getServiceID(request));
@@ -116,7 +128,7 @@ public abstract class EventProtocol {
         if (receiverId == null) {
             return false;
         }
-        EventSession session = createSession(request, serviceId, receiverId, plugin.getServiceId());
+        EventSession session = createSession(request, serviceId, receiverId, plugin.getPluginId());
         table.add(session);
 
         if (plugin.getPluginSdkVersionName().compareTo(V100) == 0) {
@@ -243,7 +255,7 @@ public abstract class EventProtocol {
             attributeName);
         if (plugin.getPluginSdkVersionName().compareTo(V110) >= 0) {
             // NOTE: イベントハンドラーがあとでプラグインを特定するための情報
-            request.putExtra(DConnectMessage.EXTRA_ACCESS_TOKEN, plugin.getServiceId());
+            request.putExtra(DConnectMessage.EXTRA_ACCESS_TOKEN, plugin.getPluginId());
         }
         return request;
     }
@@ -281,7 +293,7 @@ public abstract class EventProtocol {
         request.putExtra(DConnectMessage.EXTRA_RECEIVER,
             new ComponentName(context, DConnectBroadcastReceiver.class));
         if (plugin.getPluginSdkVersionName().compareTo(V100) == 0) {
-            request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, plugin.getServiceId());
+            request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, plugin.getPluginId());
         }
         return request;
     }

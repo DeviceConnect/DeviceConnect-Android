@@ -45,6 +45,7 @@ public class DConnectService extends DConnectMessageService {
     public static final String ACTION_SETTINGS_KEEP_ALIVE = "settings.KeepAlive";
     public static final String EXTRA_WEBSOCKET_ID = "webSocketId";
     public static final String EXTRA_KEEP_ALIVE_ENABLED = "enabled";
+    public static final String EXTRA_EVENT_RECEIVER_ID = "receiverId";
 
     /** 内部用: 通信タイプを定義する. */
     public static final String EXTRA_INNER_TYPE = "_type";
@@ -156,9 +157,9 @@ public class DConnectService extends DConnectMessageService {
                 }
             }
         } else if (status.equals("DISCONNECT")) {
-            String sessionKey = intent.getStringExtra(IntentDConnectMessage.EXTRA_SESSION_KEY);
-            if (sessionKey != null) {
-                sendDisconnectWebSocket(sessionKey);
+            String receiverId = intent.getStringExtra(DConnectService.EXTRA_EVENT_RECEIVER_ID);
+            if (receiverId != null) {
+                sendDisconnectWebSocket(receiverId);
             }
         }
     }
@@ -200,13 +201,13 @@ public class DConnectService extends DConnectMessageService {
                             JSONObject root = new JSONObject();
                             DConnectUtil.convertBundleToJSON(root, event.getExtras());
 
-                            mRESTfulServer.sendEvent(info.getId(), root.toString());
+                            mRESTfulServer.sendEvent(info.getRawId(), root.toString());
                         } catch (JSONException e) {
                             mLogger.warning("JSONException in sendEvent: " + e.toString());
                         } catch (IOException e) {
                             mLogger.warning("IOException in sendEvent: " + e.toString());
                             if (mWebServerListener != null) {
-                                mWebServerListener.onWebSocketDisconnected(info.getId());
+                                mWebServerListener.onWebSocketDisconnected(info.getRawId());
                             }
                         }
                     }
@@ -219,26 +220,30 @@ public class DConnectService extends DConnectMessageService {
 
     /**
      * 該当セッションキーを持つWebSocket切断要求を送る.
-     * @param sessionKey セッションキー.
+     * @param receiverId イベントレシーバーID.
      */
-    public void sendDisconnectWebSocket(final String sessionKey) {
-        if (sessionKey != null) {
+    public void sendDisconnectWebSocket(final String receiverId) {
+        if (receiverId != null) {
             mEventSender.execute(new Runnable() {
                 @Override
                 public void run() {
-                    WebSocketInfo info = getWebSocketInfo(sessionKey);
+                    WebSocketInfo info = getWebSocketInfo(receiverId);
                     if (info != null) {
-                        mRESTfulServer.disconnectWebSocket(info.getId());
+                        mRESTfulServer.disconnectWebSocket(info.getRawId());
                     } else {
-                        mLogger.warning("sendDisconnectWebSocket: WebSocketInfo is not found: key = " + sessionKey);
+                        mLogger.warning("sendDisconnectWebSocket: WebSocketInfo is not found: key = " + receiverId);
                     }
                 }
             });
         }
     }
 
-    private WebSocketInfo getWebSocketInfo(final String sessionKey) {
-        return ((DConnectApplication) getApplication()).getWebSocketInfoManager().getWebSocketInfo(sessionKey);
+    public EventBroker getEventBroker() {
+        return mEventBroker;
+    }
+
+    private WebSocketInfo getWebSocketInfo(final String receiverId) {
+        return ((DConnectApplication) getApplication()).getWebSocketInfoManager().getWebSocketInfo(receiverId);
     }
 
     /**

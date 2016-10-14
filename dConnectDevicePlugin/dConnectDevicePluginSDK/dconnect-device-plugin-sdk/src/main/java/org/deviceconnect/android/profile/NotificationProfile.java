@@ -17,38 +17,7 @@ import org.deviceconnect.profile.NotificationProfileConstants;
  * スマートデバイスのノーティフィケーションの操作機能を提供するAPI.<br>
  * スマートデバイスのノーティフィケーションの操作機能を提供するデバイスプラグインは当クラスを継承し、対応APIを実装すること。 <br>
  * </p>
- * 
- * <h1>各API提供メソッド</h1>
- * <p>
- * Notification Profile の各APIへのリクエストに対し、以下のコールバックメソッド群が自動的に呼び出される。<br>
- * サブクラスは以下のメソッド群からデバイスプラグインが提供するAPI用のメソッドをオーバーライドし、機能を実装すること。<br>
- * オーバーライドされていない機能は自動的に非対応APIとしてレスポンスを返す。
- * </p>
- * <ul>
- * <li>Notification API [POST] :
- * {@link NotificationProfile#onPostNotify(Intent, Intent, 
- * String, org.deviceconnect.profile.NotificationProfileConstants.NotificationType, 
- * org.deviceconnect.profile.NotificationProfileConstants.Direction, String, String, String, byte[])}
- * </li>
- * <li>Notification API [DELETE] :
- * {@link NotificationProfile#onDeleteNotify(Intent, Intent, String, String)}</li>
- * <li>Notification Click Event API [Register] :
- * {@link NotificationProfile#onPutOnClick(Intent, Intent, String, String)}</li>
- * <li>Notification Click Event API [Unregister] :
- * {@link NotificationProfile#onDeleteOnClick(Intent, Intent, String, String)}</li>
- * <li>Notification Show Event API [Register] :
- * {@link NotificationProfile#onPutOnShow(Intent, Intent, String, String)}</li>
- * <li>Notification Show Event API [Unregister] :
- * {@link NotificationProfile#onDeleteOnShow(Intent, Intent, String, String)}</li>
- * <li>Notification Close Event API [Register] :
- * {@link NotificationProfile#onPutOnClose(Intent, Intent, String, String)}</li>
- * <li>Notification Close Event API [Unregister] :
- * {@link NotificationProfile#onDeleteOnClose(Intent, Intent, String, String)}</li>
- * <li>Notification Error Event API [Register] :
- * {@link NotificationProfile#onPutOnError(Intent, Intent, String, String)}</li>
- * <li>Notification Error Event API [Unregister] :
- * {@link NotificationProfile#onDeleteOnError(Intent, Intent, String, String)}</li>
- * </ul>
+ *
  * @author NTT DOCOMO, INC.
  */
 public class NotificationProfile extends DConnectProfile implements NotificationProfileConstants {

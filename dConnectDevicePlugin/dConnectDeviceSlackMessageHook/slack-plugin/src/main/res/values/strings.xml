@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">SlackMessageHook Plugin</string>
+    <string name="app_name">SlackMessageHook Plugin(Device Connect Device Plug-in)</string>
     <string name="next">次へ</string>
     <string name="help">？</string>
     <string name="send">送信</string>
@@ -32,4 +32,6 @@
     <string name="error_network">Slackサーバーへの接続に失敗しました。ネットワーク接続を確認してください。</string>
     <string name="error_slack">Slackサーバーからエラーが返りました。しばらく待ってお試しください。</string>
     <string name="error_unknown">不明なエラーが発生しました。</string>
+    <string name="doze_description">最適化が解除されていません。最適化が解除されていないとバッググラントで正常に動作することができない恐れがあります。\n以下のボタンを押下して、最適化を解除してください。</string>
+    <string name="doze_button">最適化を解除</string>
 </resources>

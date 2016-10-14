@@ -19,6 +19,22 @@ var main = (function(parent, global) {
         return name == 'deviceconnect.method' || name == 'deviceconnect.type' || name == 'deviceconnect.path';
     }
 
+    function isIncludedParam(name, formElem) {
+        var checkbox = formElem['include-' + name];
+        if (!checkbox) {
+            return false
+        }
+        return checkbox.checked;
+    }
+
+    function switchParam(checkbox, name) {
+        var inputElem = checkbox.form.elements[name];
+        var tableElem = checkbox.form.children['table-' +name];
+        inputElem.disabled = !checkbox.checked;
+        tableElem.className = 'request ' + (checkbox.checked ? 'included' : 'excluded');
+    }
+    parent.switchParam = switchParam;
+
     function createBody(nav) {
         var data = [];
 
@@ -28,9 +44,13 @@ var main = (function(parent, global) {
         for (var key in formElem) {
             var elem = formElem[key];
             if (elem && elem.tagName) {
-                if (elem.tagName.toLowerCase() == 'input') {
+                if (!isIncludedParam(elem.name, formElem)) {
+                    // パラメータ省略
+                } else if (elem.tagName.toLowerCase() == 'input') {
                     if (isHiddenParam(elem.name)) {
                         // 隠しパラメータ
+                    } else if (elem.type == 'checkbox') {
+                        // チェックボックスは省略指定のために使用
                     } else if (elem.type == 'file') {
                         // どうするべきか検討
                     } else if (elem.name.indexOf('t_') != 0) {
@@ -56,9 +76,13 @@ var main = (function(parent, global) {
         for (var key in formElem) {
             var elem = formElem[key];
             if (elem && elem.tagName) {
-                if (elem.tagName.toLowerCase() == 'input') {
+                if (!isIncludedParam(elem.name, formElem)) {
+                    // パラメータ省略
+                } else if (elem.tagName.toLowerCase() == 'input') {
                     if (isHiddenParam(elem.name)) {
                         // 隠しパラメータ
+                    } else if (elem.type == 'checkbox') {
+                        // チェックボックスは省略指定のために使用
                     } else if (elem.type == 'file') {
                         formData.append(elem.name, elem.files[0]);
                     } else if (elem.name.indexOf('t_') != 0) {
@@ -67,7 +91,12 @@ var main = (function(parent, global) {
                         }
                     }
                 } else if (elem.tagName.toLowerCase() == 'select') {
-                    formData.append(elem.name, elem.value);
+                    var option = elem.options[elem.selectedIndex];
+                    if (option.dataset.excluded == 'true') {
+                        // パラメータ省略
+                    } else {
+                        formData.append(elem.name, elem.value);
+                    }
                 }
             }
         }
@@ -82,14 +111,11 @@ var main = (function(parent, global) {
         var xType = formElem['deviceconnect.type'].value;
         var body = null;
 
-        console.log('method:' + method)
-        console.log('path:' + path)
-        console.log('xtype:' + xType)
+        hideResponseText(nav);
+        hideEventText(nav);
 
         if (xType == 'event') {
-            // TODO
-            var uri = "http://localhost:4035" + path.toLowerCase() + "?" + createBody(nav).join('&') + "&sessionKey=" + util.getSessionKey();
-            console.log(uri);
+            var uri = "http://localhost:4035" + path.toLowerCase() + "?" + createBody(nav).join('&');
 
             setRequestText(nav, createRequest(method + " " + path));
 
@@ -140,53 +166,76 @@ var main = (function(parent, global) {
         document.getElementById(nav + '_event').innerHTML = eventText;
     }
 
+    function hideResponseText(nav) {
+        document.getElementById(nav + '_response').innerHTML = "";
+    }
+
+    function hideEventText(nav) {
+        document.getElementById(nav + '_event').innerHTML = "";
+    }
+
     function createDConnectPath(path) {
         return '/gotapi/' + util.getProfile() + path;
     }
 
-    function createTextParam(name, value) {
+    function createTextParam(name, value, on) {
         var data = {
             'name' : name,
-            'value' : value
+            'value' : value,
+            'included' : (on ? 'included' : 'excluded'),
+            'checkbox' : (on ? 'checked disabled' : ''),
+            'inputable' : (on ? '' : 'disabled')
         };
         return util.createTemplate('param_text', data);
     }
 
-    function createFileParam(name) {
+    function createFileParam(name, on) {
         var data = {
-            'name' : name
+            'name' : name,
+            'included' : (on ? 'included' : 'excluded'),
+            'checkbox' : (on ? 'checked disabled' : ''),
+            'inputable' : (on ? '' : 'disabled')
         };
         return util.createTemplate('param_file', data);
     }
 
-    function createNumberParam(name, value) {
+    function createNumberParam(name, value, on) {
         var data = {
             'name' : name,
-            'value' : value
+            'value' : value,
+            'included' : (on ? 'included' : 'excluded'),
+            'checkbox' : (on ? 'checked disabled' : ''),
+            'inputable' : (on ? '' : 'disabled')
         };
         return util.createTemplate('param_number', data);
     }
 
-    function createSelectParam(name, list) {
+    function createSelectParam(name, list, on) {
         var text = "";
         for (var i = 0; i < list.length; i++) {
             text += '<option value="' + list[i] + '">' + list[i] + '</option>';
         }
         var data = {
             'name' : name,
-            'value' : text
+            'value' : text,
+            'included' : (on ? 'included' : 'excluded'),
+            'checkbox' : (on ? 'checked disabled' : ''),
+            'inputable' : (on ? '' : 'disabled')
         };
         return util.createTemplate('param_select', data);
     }
 
-    function createSliderParam(nav, name, min, max, step) {
+    function createSliderParam(nav, name, min, max, step, on) {
         var data = {
             'nav' : nav,
             'name' : name,
             'value' : (max + min) / 2.0,
             'step' : step,
             'min' : '' + min,
-            'max' : '' + max
+            'max' : '' + max,
+            'included' : (on ? 'included' : 'excluded'),
+            'checkbox' : (on ? 'checked disabled' : ''),
+            'inputable' : (on ? '' : 'disabled')
         };
         return util.createTemplate('param_slider', data);
     }
@@ -216,41 +265,42 @@ var main = (function(parent, global) {
         var contentHtml = "";
         for (var i = 0; i < params.length; i++) {
             var param = params[i];
+            var on = param.required;
             switch (param.type) {
             case 'string':
                 if (('enum' in param)) {
-                    contentHtml += createSelectParam(param.name, param.enum);
+                    contentHtml += createSelectParam(param.name, param.enum, on);
                 } else {
                     if (param.name == 'serviceId') {
-                        contentHtml += createTextParam(param.name, util.getServiceId());
+                        contentHtml += createTextParam(param.name, util.getServiceId(), on);
                     } else {
-                        contentHtml += createTextParam(param.name, '');
+                        contentHtml += createTextParam(param.name, '', on);
                     }
                 }
                 break;
             case 'array':
-                contentHtml += createTextParam(param.name, '');
+                contentHtml += createTextParam(param.name, '', on);
                 break;
             case 'integer':
                 if (('enum' in param)) {
-                    contentHtml += createSelectParam(param.name, param.enum);
+                    contentHtml += createSelectParam(param.name, param.enum, on);
                 } else if (('minimum' in param) && ('maximum' in param)) {
-                    contentHtml += createSliderParam(nav, param.name, param.minimum, param.maximum, 1);
+                    contentHtml += createSliderParam(nav, param.name, param.minimum, param.maximum, 1, on);
                 } else {
-                    contentHtml += createNumberParam(param.name, 0);
+                    contentHtml += createNumberParam(param.name, 0, on);
                 }
                 break;
             case 'number':
                 if (('enum' in param)) {
-                    contentHtml += createSelectParam(param.name, param.enum);
+                    contentHtml += createSelectParam(param.name, param.enum, on);
                 } else if (('minimum' in param) && ('maximum' in param)) {
-                    contentHtml += createSliderParam(nav, param.name, param.minimum, param.maximum, 0.01);
+                    contentHtml += createSliderParam(nav, param.name, param.minimum, param.maximum, 0.01, on);
                 } else {
-                    contentHtml += createNumberParam(param.name, 0);
+                    contentHtml += createNumberParam(param.name, 0, on);
                 }
                 break;
             case 'file':
-                contentHtml += createFileParam(param.name);
+                contentHtml += createFileParam(param.name, on);
                 break;
             default:
                 console.log("Error: " + param.type);
@@ -298,9 +348,17 @@ var main = (function(parent, global) {
     }
 
     function createSupportApis(json) {
-        var profile = util.getProfile();
+        var profile = util.getProfile().toLowerCase();
         if (json.supportApis) {
-            document.getElementById('main').innerHTML = createSupportPath(json.supportApis[profile].paths);
+            for (var p in json.supportApis) {
+                if (profile == p.toLowerCase()) {
+                    document.getElementById('main').innerHTML = createSupportPath(json.supportApis[p].paths);
+                    return;
+                }
+            }
+            alert(profile + 'プロファイルが見つかりません。');
+        } else {
+            alert('古いプラグインのために、このサービスは確認することができません。');
         }
     }
 

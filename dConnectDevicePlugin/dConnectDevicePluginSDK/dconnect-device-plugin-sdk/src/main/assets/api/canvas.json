@@ -38,15 +38,13 @@
                         "name": "x",
                         "in": "formData",
                         "type": "integer",
-                        "required": false,
-                        "minimum": 0
+                        "required": false
                     },
                     {
                         "name": "y",
                         "in": "formData",
                         "type": "integer",
-                        "required": false,
-                        "minimum": 0
+                        "required": false
                     },
                     {
                         "name": "mode",

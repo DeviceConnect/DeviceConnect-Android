@@ -26,12 +26,12 @@ import java.io.IOException;
  * </p>
  * @author NTT DOCOMO, INC.
  */
-public class ChromeCastMessage implements ChromeCastApplication.Callbacks {
+public class ChromeCastMessage implements ChromeCastController.Callbacks {
 
     /** Message Channel. */
     private MessageChannel mMessageChannel;
     /** Chromecast Application. */
-    private ChromeCastApplication mApplication;
+    private ChromeCastController mApplication;
     /** メッセージの宛先. */
     private String mUrn = null;
     /** メッセージのコールバック. */
@@ -105,7 +105,7 @@ public class ChromeCastMessage implements ChromeCastApplication.Callbacks {
      * @param   application     ChromeCastApplication
      * @param   urn             メッセージの宛先(名前空間)
      */
-    public ChromeCastMessage(final ChromeCastApplication application, final String urn) {
+    public ChromeCastMessage(final ChromeCastController application, final String urn) {
         this.mApplication = application;
         this.mApplication.addCallbacks(this);
         this.mUrn = urn;
@@ -156,6 +156,7 @@ public class ChromeCastMessage implements ChromeCastApplication.Callbacks {
      */
     public void sendMessage(final Intent response, final String message) {
         if (mApplication.getGoogleApiClient() != null && mMessageChannel != null) {
+            try {
             Cast.CastApi.sendMessage(mApplication.getGoogleApiClient(),
                     mMessageChannel.getNamespace(), message)
                     .setResultCallback(new ResultCallback<Status>() {
@@ -164,6 +165,9 @@ public class ChromeCastMessage implements ChromeCastApplication.Callbacks {
                             mCallbacks.onChromeCastMessageResult(response, result, null);
                         }
                     });
+            } catch (IllegalStateException e) {
+                mCallbacks.onChromeCastMessageResult(response, null, null);
+            }
         }
     }
 

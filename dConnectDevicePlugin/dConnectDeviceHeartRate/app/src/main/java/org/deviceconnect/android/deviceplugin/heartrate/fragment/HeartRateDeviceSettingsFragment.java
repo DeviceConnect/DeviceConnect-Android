@@ -356,6 +356,11 @@ public class HeartRateDeviceSettingsFragment extends Fragment {
         }
 
         @Override
+        public void onDisconnected(BluetoothDevice device) {
+
+        }
+
+        @Override
         public void onDiscovery(final List<BluetoothDevice> devices) {
             if (mDeviceAdapter == null) {
                 return;
@@ -376,11 +381,6 @@ public class HeartRateDeviceSettingsFragment extends Fragment {
                     mDeviceAdapter.notifyDataSetChanged();
                 }
             });
-        }
-
-        @Override
-        public void onDisconnected(final BluetoothDevice device) {
-            // NOP.
         }
     };
 

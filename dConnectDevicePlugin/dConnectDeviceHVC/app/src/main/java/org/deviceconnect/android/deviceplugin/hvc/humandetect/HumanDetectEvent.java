@@ -20,9 +20,9 @@ public class HumanDetectEvent {
      */
     private final HumanDetectKind mDetectKind;
     /**
-     * session key.
+     * origin.
      */
-    private final String mSessionKey;
+    private final String mOrigin;
     /**
      * request parameters.
      */
@@ -36,14 +36,14 @@ public class HumanDetectEvent {
     /**
      * Constructor.
      * @param detectKind detect kind
-     * @param sessionKey session key
+     * @param origin origin
      * @param requestParams request params
      * @param response response
      */
-    public HumanDetectEvent(final HumanDetectKind detectKind, final String sessionKey,
+    public HumanDetectEvent(final HumanDetectKind detectKind, final String origin,
             final HumanDetectRequestParams requestParams, final Intent response) {
         mDetectKind = detectKind;
-        mSessionKey = sessionKey;
+        mOrigin = origin;
         mRequestParams = requestParams;
         mResponse = response;
     }
@@ -57,11 +57,11 @@ public class HumanDetectEvent {
     }
     
     /**
-     * get session key.
-     * @return session key
+     * get origin.
+     * @return origin
      */
-    public String getSessionKey() {
-        return mSessionKey;
+    public String getOrigin() {
+        return mOrigin;
     }
     
     /**

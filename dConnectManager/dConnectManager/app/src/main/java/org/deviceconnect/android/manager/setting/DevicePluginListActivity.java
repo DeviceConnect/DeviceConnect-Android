@@ -13,7 +13,6 @@ import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.os.Bundle;
 
-import org.deviceconnect.android.manager.DConnectApplication;
 import org.deviceconnect.android.manager.R;
 
 /**
@@ -41,8 +40,5 @@ public class DevicePluginListActivity extends Activity {
             t.add(android.R.id.content, f, "container");
             t.commit();
         }
-
-        DConnectApplication app = (DConnectApplication) getApplication();
-        app.updateDevicePluginList();
     }
 }

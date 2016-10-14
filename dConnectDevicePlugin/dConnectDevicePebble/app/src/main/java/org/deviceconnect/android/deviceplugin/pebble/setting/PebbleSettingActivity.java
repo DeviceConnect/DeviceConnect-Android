@@ -8,9 +8,8 @@ package org.deviceconnect.android.deviceplugin.pebble.setting;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.ActivityNotFoundException;
 import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Settings;
@@ -38,13 +37,9 @@ import java.util.List;
  */
 public class PebbleSettingActivity extends DConnectSettingPageFragmentActivity {
     /** googleStorId. */
-    private static final String PACKAGE_PEBBLE = "com.getpebble.android";
+    private static final String PACKAGE_PEBBLE = "com.getpebble.android.basalt";
 
-    /** Pebbleアプリのインストールに使用する、Pebble社管理アプリのコンポーネント. */
-    private static final String PEBBLE_LAUNCH_COMPONENT = "com.getpebble.android";
-    /** Pebbleアプリのインストールに使用する、Pebble社管理アプリのActivity. */
-    private static final String PEBBLE_LAUNCH_ACTIVITY = "com.getpebble.android.ui.UpdateActivity";
-    
+
     /**
      * フラグメント一覧.
      */
@@ -156,15 +151,13 @@ public class PebbleSettingActivity extends DConnectSettingPageFragmentActivity {
      * @param uri URI
      */
     private static void installPebbleApprication(final Activity activity, final Uri uri) {
-        Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-        intent.setClassName(PEBBLE_LAUNCH_COMPONENT, PEBBLE_LAUNCH_ACTIVITY);
-        PackageManager pm = activity.getPackageManager();
-        List<ResolveInfo> apps = pm.queryIntentActivities(intent, 0);
-        if (apps.size() > 0) {
+        try {
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            intent.setDataAndType(uri, "application/octet-stream");
             activity.startActivity(intent);
-            return;
+        } catch (ActivityNotFoundException e) {
+            Toast.makeText(activity, R.string.page04_error01, Toast.LENGTH_LONG).show();
         }
-        Toast.makeText(activity, R.string.page04_error01, Toast.LENGTH_LONG).show();
     }
 
     /**

@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                xmlns:tools="http://schemas.android.com/tools"
+              android:orientation="vertical"
+              android:layout_width="fill_parent"
+              android:layout_height="fill_parent"
+              android:background="#FFFFFF"
+              tools:context="org.deviceconnect.android.deviceplugin.awsiot.setting.AWSIotSettingActivity" >
+
+    <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+        <TextView
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/background_title"
+                android:gravity="center"
+                android:text="@string/settings_page_2_title"
+                android:textColor="@color/text_titles"
+                android:textSize="@dimen/text_title"
+                android:paddingTop="6dp"
+                android:paddingBottom="6dp"/>
+
+        <ListView
+                android:id="@+id/manager_list_view"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@drawable/border"/>
+
+        <Button
+                android:layout_margin="5dp"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:id="@+id/button_awsiot_sync1"
+                android:paddingTop="6dp"
+                android:paddingBottom="6dp"
+                android:textSize="24dp"
+                android:gravity="bottom"
+                android:visibility="invisible"/>
+    </LinearLayout>
+    <Button
+            android:layout_margin="5dp"
+            android:textColor="@color/text_light"
+            android:background="@drawable/button_blue"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:text="@string/settings_awsiot_sync_button"
+            android:id="@+id/button_awsiot_sync"
+            android:paddingTop="6dp"
+            android:paddingBottom="6dp"
+            android:textSize="24dp"
+            />
+
+
+</RelativeLayout>

@@ -10,12 +10,9 @@ import android.support.test.runner.AndroidJUnit4;
 
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpUriRequest;
-import org.deviceconnect.android.test.plugin.profile.TestSystemProfileConstants;
-import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.deviceconnect.profile.DConnectProfileConstants;
 import org.deviceconnect.profile.ServiceInformationProfileConstants;
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.Test;
@@ -53,20 +50,8 @@ public class NormalServiceInformationProfileTestCase extends RESTfulDConnectTest
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject resp = sendRequest(request);
-            assertNotNull("root is null.", resp);
-            assertEquals(DConnectMessage.RESULT_OK,
-                    resp.getInt(DConnectMessage.EXTRA_RESULT));
-            assertEquals(TestSystemProfileConstants.VERSION, 
-                    resp.getString(ServiceInformationProfileConstants.PARAM_VERSION));
-            JSONObject connect = resp.getJSONObject(ServiceInformationProfileConstants.PARAM_CONNECT);
-            assertNotNull(connect);
-            assertEquals(false, connect.getBoolean(ServiceInformationProfileConstants.PARAM_WIFI));
-            assertEquals(false, connect.getBoolean(ServiceInformationProfileConstants.PARAM_BLUETOOTH));
-            assertEquals(false, connect.getBoolean(ServiceInformationProfileConstants.PARAM_NFC));
-            assertEquals(false, connect.getBoolean(ServiceInformationProfileConstants.PARAM_BLE));
-            JSONArray supports = resp.getJSONArray(ServiceInformationProfileConstants.PARAM_SUPPORTS);
-            assertNotNull(supports);
+            JSONObject root = sendRequest(request);
+            assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }

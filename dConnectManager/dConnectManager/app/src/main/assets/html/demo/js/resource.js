@@ -2,12 +2,15 @@
 var main = (function(parent, global) {
     function init() {
         var mimeType = decodeURIComponent(util.getMimeType());
-        var uri = decodeURIComponent(util.getResourceUri());
+        var uri = util.getResourceUri();
         if (mimeType.indexOf('image') === 0) {
             var elem = document.getElementById('image');
-            elem.src = decodeURIComponent(util.getResourceUri());
+            elem.src = uri;
+            elem.onerror = function() {
+                alert('Not found the image.');
+            }
             elem.onload = function() {
-                console.log("onload: " + decodeURIComponent(util.getResourceUri()));
+                console.log("onload: " + uri);
             }
         } else {
             sendRequest('GET', uri, null, function(status, responseText) {

@@ -117,7 +117,7 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
             return doPutDetectionProc(request, response, getServiceID(request),
-                getSessionKey(request), HumanDetectKind.BODY);
+                getOrigin(request), HumanDetectKind.BODY);
         }
     };
 
@@ -130,7 +130,7 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
             return doPutDetectionProc(request, response, getServiceID(request),
-                getSessionKey(request), HumanDetectKind.HAND);
+                getOrigin(request), HumanDetectKind.HAND);
         }
     };
 
@@ -143,7 +143,7 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
             return doPutDetectionProc(request, response, getServiceID(request),
-                getSessionKey(request), HumanDetectKind.FACE);
+                getOrigin(request), HumanDetectKind.FACE);
         }
     };
     
@@ -160,7 +160,7 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
             return doDeleteDetectionProc(request, response, getServiceID(request),
-                getSessionKey(request), HumanDetectKind.BODY);
+                getOrigin(request), HumanDetectKind.BODY);
         }
     };
 
@@ -173,7 +173,7 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
             return doDeleteDetectionProc(request, response, getServiceID(request),
-                getSessionKey(request), HumanDetectKind.HAND);
+                getOrigin(request), HumanDetectKind.HAND);
         }
     };
 
@@ -186,7 +186,7 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
             return doDeleteDetectionProc(request, response, getServiceID(request),
-                getSessionKey(request), HumanDetectKind.FACE);
+                getOrigin(request), HumanDetectKind.FACE);
         }
     };
 
@@ -258,17 +258,15 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
      * @param request request
      * @param response response
      * @param serviceId serviceId
-     * @param sessionKey sessionKey
+     * @param origin origin
      * @param detectKind detectKind
      * @return send response flag.(true:sent / false: unsent (Send after the
      *         thread has been completed))
      */
     protected boolean doPutDetectionProc(final Intent request, final Intent response,
-            final String serviceId, final String sessionKey, final HumanDetectKind detectKind) {
+            final String serviceId, final String origin, final HumanDetectKind detectKind) {
         
-        if (sessionKey == null) {
-            createEmptySessionKey(response);
-        } else if (!getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
+        if (!getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
             // ble not available.
             MessageUtils.setNotSupportProfileError(response, ERROR_BLE_NOT_AVAILABLE);
             return true;
@@ -290,14 +288,16 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
                 MessageUtils.setInvalidRequestParameterError(response, e.getMessage());
                 return true;
             }
-            requestParams.dumpLog(TAG);
+            if (DEBUG) {
+                requestParams.dumpLog(TAG);
+            }
             
             // register event.
             EventError error = EventManager.INSTANCE.addEvent(request);
 
             if (error == EventError.NONE) {
                 ((HvcDeviceService) getContext()).registerDetectionEvent(detectKind, requestParams, response,
-                        serviceId, sessionKey);
+                        serviceId, origin);
                 return false;
             } else {
                 MessageUtils.setIllegalDeviceStateError(response, "Can not register event.");
@@ -305,7 +305,6 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
             }
 
         }
-        return true;
     }
     
     /**
@@ -313,38 +312,24 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
      * @param request request
      * @param response response
      * @param serviceId serviceId
-     * @param sessionKey sessionKey
+     * @param origin origin
      * @param detectKind detectKind
      * @return send response flag.(true:sent / false: unsent (Send after the
      *         thread has been completed))
      */
     private boolean doDeleteDetectionProc(final Intent request, final Intent response, final String serviceId,
-            final String sessionKey, final HumanDetectKind detectKind) {
-        
-        if (sessionKey == null) {
-            createEmptySessionKey(response);
-        } else {
-            // unregister event.
-            EventError error = EventManager.INSTANCE.removeEvent(request);
-            if (error == EventError.NONE) {
-                ((HvcDeviceService) getContext()).unregisterDetectionEvent(detectKind, response, serviceId,
-                        sessionKey);
-                return false;
-            } else {
-                MessageUtils.setIllegalDeviceStateError(response, "Can not unregister event.");
-                return true;
-            }
-        }
-        return true;
-    }
+            final String origin, final HumanDetectKind detectKind) {
 
-    /**
-     * create empty session key error response.
-     * 
-     * @param response response
-     */
-    private void createEmptySessionKey(final Intent response) {
-        MessageUtils.setInvalidRequestParameterError(response, "SessionKey not found");
+        // unregister event.
+        EventError error = EventManager.INSTANCE.removeEvent(request);
+        if (error == EventError.NONE) {
+            ((HvcDeviceService) getContext()).unregisterDetectionEvent(detectKind, response, serviceId,
+                origin);
+            return false;
+        } else {
+            MessageUtils.setIllegalDeviceStateError(response, "Can not unregister event.");
+            return true;
+        }
     }
 }
 

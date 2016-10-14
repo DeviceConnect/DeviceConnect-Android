@@ -6,10 +6,10 @@
  */
 package org.deviceconnect.message.basic.message;
 
-import java.util.logging.Logger;
-
 import org.deviceconnect.message.DConnectMessage;
 import org.json.JSONException;
+
+import java.util.logging.Logger;
 
 /**
  * レスポンスメッセージ.
@@ -115,6 +115,7 @@ public class DConnectEventMessage extends BasicDConnectMessage {
      * セッションキーを取得する.
      * 
      * @return セッションキー
+     * @deprecated
      */
     public String getSessionKey() {
         return getString(DConnectMessage.EXTRA_SESSION_KEY);

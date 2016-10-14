@@ -15,6 +15,7 @@ import org.deviceconnect.android.localoauth.ConfirmAuthParams;
 import org.deviceconnect.android.localoauth.LocalOAuth2Main;
 import org.deviceconnect.android.localoauth.PublishAccessTokenListener;
 import org.deviceconnect.android.localoauth.exception.AuthorizationException;
+import org.deviceconnect.android.manager.DConnectSettings;
 import org.deviceconnect.android.manager.profile.AuthorizationProfile;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.DConnectMessage.ErrorCode;
@@ -73,7 +74,8 @@ public class GetAccessTokenRequest extends DConnectRequest {
         // TODO _typeからアプリorデバイスプラグインかを判別できる？
         ConfirmAuthParams params = new ConfirmAuthParams.Builder().context(mContext).serviceId(serviceId)
                 .clientId(clientId).scopes(scopes).applicationName(applicationName)
-                .isForDevicePlugin(false) 
+                .isForDevicePlugin(false)
+                .keyword(DConnectSettings.getInstance().getKeyword())
                 .build();
 
         // Local OAuthでAccessTokenを作成する。

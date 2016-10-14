@@ -8,14 +8,11 @@ package org.deviceconnect.android.profile.restful.test;
 
 import android.support.test.runner.AndroidJUnit4;
 
-import junit.framework.Assert;
-
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.deviceconnect.message.DConnectMessage;
-import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.deviceconnect.profile.DConnectProfileConstants;
 import org.deviceconnect.profile.FileProfileConstants;
 import org.deviceconnect.utils.URIBuilder;
@@ -120,14 +117,6 @@ public class NormalFileProfileTestCase extends RESTfulDConnectTestCase {
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject root = sendRequest(request);
             assertResultOK(root);
-
-            String uri = root.getString(FileProfileConstants.PARAM_URI);
-            Assert.assertNotNull("uri is null.", uri);
-            uri += "&" + AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken();
-            byte[] data = getBytesFromHttp(uri);
-            byte[] orig = getBytesFromAssets(name);
-            Assert.assertNotNull("data is invalid.", data);
-            Assert.assertEquals("length of data is invalid", orig.length, data.length);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }

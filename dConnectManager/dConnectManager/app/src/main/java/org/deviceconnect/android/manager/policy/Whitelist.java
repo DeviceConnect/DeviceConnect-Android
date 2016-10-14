@@ -6,9 +6,6 @@
  */
 package org.deviceconnect.android.manager.policy;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -16,6 +13,11 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.provider.BaseColumns;
+import android.support.v4.BuildConfig;
+import android.util.Log;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Whitelist of origins.
@@ -192,6 +194,13 @@ public class Whitelist {
         @Override
         public void onCreate(final SQLiteDatabase db) {
             db.execSQL(CREATE);
+            try {
+                addOrigin(db, new HttpOrigin("localhost", 80), "Manager (HTTP)", System.currentTimeMillis());
+            } catch (OriginDBException e) {
+                if (BuildConfig.DEBUG) {
+                    Log.e("Origin", "error.");
+                }
+            }
         }
 
         @Override
@@ -239,6 +248,23 @@ public class Whitelist {
             if (db == null) {
                 throw new OriginDBException("Failed to open the database.");
             }
+            try {
+                return addOrigin(db, origin, title, date);
+            } finally {
+                db.close();
+            }
+        }
+
+        /**
+         * Adds a origin to this database.
+         * @param db database
+         * @param origin the origin
+         * @param title the title of origin
+         * @param date the registration date
+         * @return row ID
+         * @throws OriginDBException throws if database error occurred
+         */
+        long addOrigin(SQLiteDatabase db, final Origin origin, final String title, final long date) throws OriginDBException {
             long id;
             try {
                 db.beginTransaction();
@@ -253,7 +279,6 @@ public class Whitelist {
                 db.setTransactionSuccessful();
             } finally {
                 db.endTransaction();
-                db.close();
             }
             return id;
         }

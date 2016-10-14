@@ -6,11 +6,6 @@
  */
 package org.deviceconnect.message.http.event;
 
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.logging.Logger;
-
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.impl.client.DefaultHttpClient;
@@ -18,9 +13,15 @@ import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.event.AbstractEventManager;
 import org.deviceconnect.utils.URIBuilder;
 import org.java_websocket.client.WebSocketClient;
+import org.java_websocket.drafts.Draft_17;
 import org.java_websocket.handshake.ServerHandshake;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.logging.Logger;
 
 /**
  * イベント管理クラス.
@@ -39,14 +40,14 @@ public final class HttpEventManager extends AbstractEventManager {
     /**
      * リトライする回数.
      */
-    private static final int RETRY_TIMES = 5;
+    private static final int RETRY_TIMES = 10;
 
     /**
      * リトライ時に待つ時間.
      * 回数を重ねるたびにこの時間分だけ増えていく。
      * ex. 1回目 {@value} ミリ秒、2回目 {@value} * 2ミリ秒。
      */
-    private static final long RETRY_WAIT = 30 * 1000;
+    private static final long RETRY_WAIT = 10 * 1000;
 
     /**
      * シングルトンなEventManagerのインスタンス.
@@ -71,7 +72,7 @@ public final class HttpEventManager extends AbstractEventManager {
     /**
      * ロックオブジェクト.
      */
-    private Object mLock;
+    private final Object mLock = new Object();
 
     /**
      * WebSocketステータス.
@@ -111,7 +112,6 @@ public final class HttpEventManager extends AbstractEventManager {
      * シングルトンのためprivate.
      */
     private HttpEventManager() {
-        mLock = new Object();
         mStatus = Status.CLOSE;
     }
 
@@ -192,6 +192,14 @@ public final class HttpEventManager extends AbstractEventManager {
         }
     }
 
+    @Override
+    public boolean isOpen() {
+        if (mStatus == Status.OPEN) {
+            return mWSClient.isOpen();
+        }
+        return mStatus != Status.CLOSE;
+    }
+
     /**
      * 再接続を試みる.
      */
@@ -238,7 +246,7 @@ public final class HttpEventManager extends AbstractEventManager {
          * @param serverURI サーバーのURI
          */
         public EventWebSocketClient(final URI serverURI) {
-            super(serverURI);
+            super(serverURI, new Draft_17(), null, 10 * 1000);
         }
 
         @Override
@@ -263,27 +271,27 @@ public final class HttpEventManager extends AbstractEventManager {
 
         @Override
         public void onClose(final int code, final String reason, final boolean remote) {
+            mLogger.warning("EventWebSocketClient#onClose: " + mStatus + " reason:" + reason);
 
-            synchronized (HttpEventManager.this) {
-                if (mStatus == Status.WAITING_OPEN
-                        || mStatus == Status.RETRYING) {
-                    synchronized (mLock) {
-                        mLock.notifyAll();
-                    }
-                } else if (mStatus == Status.OPEN) {
-                    if (code != NORMAL_CLOSE_CODE) {
-                        // 異常終了の場合はリトライし、自動的に回復を図る
-                        retry();
-                        return;
-                    } else if (mCloseHandler != null) {
-                        mCloseHandler.onClosed();
-                    }
+            if (mStatus == Status.WAITING_OPEN
+                    || mStatus == Status.RETRYING) {
+                synchronized (mLock) {
+                    mLock.notifyAll();
                 }
-
-                if (mStatus != Status.RETRYING) {
-                    mStatus = Status.CLOSE;
+            } else if (mStatus == Status.OPEN) {
+                if (code != NORMAL_CLOSE_CODE) {
+                    // 異常終了の場合はリトライし、自動的に回復を図る
+                    retry();
+                    return;
+                } else if (mCloseHandler != null) {
+                    mCloseHandler.onClosed();
                 }
             }
+
+            if (mStatus != Status.RETRYING) {
+                mStatus = Status.CLOSE;
+            }
+
         }
 
         @Override
@@ -315,7 +323,7 @@ public final class HttpEventManager extends AbstractEventManager {
             for (int i = 0; i < RETRY_TIMES; i++) {
                 long wait = RETRY_WAIT * (i + 1);
                 if (retry(wait)) {
-                    mLogger.fine("RetryProcess#run. Successed to retry.");
+                    mLogger.fine("RetryProcess#run. Succeed to retry.");
                     return;
                 }
             }
@@ -334,7 +342,6 @@ public final class HttpEventManager extends AbstractEventManager {
          * @return 接続できたらtrue、失敗したらfalseを返す
          */
         private boolean retry(final long wait) {
-
             try {
                 Thread.sleep(wait);
             } catch (InterruptedException e) {
@@ -344,11 +351,7 @@ public final class HttpEventManager extends AbstractEventManager {
             mWSClient = new EventWebSocketClient(mWSClient.getURI());
             mWSClient.connect();
             waitConnect();
-            if (mWSClient.isOpen()) {
-                return true;
-            }
-
-            return false;
+            return mWSClient.isOpen();
         }
     }
 }

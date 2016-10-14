@@ -42,4 +42,5 @@ span.serviceName {
 
 span.serviceId {
     font-size: xx-small;
+    word-break: break-all;
 }

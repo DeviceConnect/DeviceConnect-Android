@@ -16,6 +16,9 @@ import android.os.Bundle;
 import android.text.InputType;
 import android.view.Gravity;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
@@ -44,7 +47,10 @@ import java.util.Map;
 /**
  *　コマンド詳細画面
  */
-public class CommandDetailsFragment extends Fragment implements View.OnClickListener {
+public class CommandDetailsFragment extends Fragment implements View.OnClickListener, ShowMenuFragment {
+
+    /** メニュー */
+    private Menu mainMenu;
 
     /** キーワードEditText */
     private EditText editTextKeyword;
@@ -86,6 +92,7 @@ public class CommandDetailsFragment extends Fragment implements View.OnClickList
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        setHasOptionsMenu(true);
         View view = inflater.inflate(R.layout.fragment_command_details, container, false);
         final Context context = view.getContext();
         Bundle bundle = getArguments();
@@ -686,4 +693,28 @@ public class CommandDetailsFragment extends Fragment implements View.OnClickList
     //endregion
     //---------------------------------------------------------------------------------------
 
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+        inflater.inflate(R.menu.help_menu, menu);
+        mainMenu = menu;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.menu_help:
+                Fragment fragment = new CommandDetailsHelpFragment();
+                Utils.transition(fragment, getFragmentManager(), true);
+                break;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    /**
+     * メニューを表示
+     */
+    public void showMenu() {
+        mainMenu.performIdentifierAction(R.id.overflow_options, 0);
+    }
 }

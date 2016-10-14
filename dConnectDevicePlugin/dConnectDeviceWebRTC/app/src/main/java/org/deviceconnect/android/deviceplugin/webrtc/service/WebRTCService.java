@@ -6,7 +6,6 @@
  */
 package org.deviceconnect.android.deviceplugin.webrtc.service;
 
-import org.deviceconnect.android.deviceplugin.webrtc.WebRTCApplication;
 import org.deviceconnect.android.deviceplugin.webrtc.profile.WebRTCVideoChatProfile;
 import org.deviceconnect.android.service.DConnectService;
 
@@ -22,24 +21,13 @@ public class WebRTCService extends DConnectService {
      */
     public static final String PLUGIN_ID = "webrtcplugin";
 
-    private final WebRTCApplication mApplication;
-
-    public WebRTCService(final WebRTCApplication application) {
+    public WebRTCService() {
         super(PLUGIN_ID);
-        if (application == null) {
-            throw new IllegalArgumentException("application is null.");
-        }
-        mApplication = application;
         setName("WebRTC Service");
         setNetworkType(NetworkType.WIFI);
         setOnline(true);
         setConfig("{apiKey:\"XXX\", domain:\"XXX\"}");
 
         addProfile(new WebRTCVideoChatProfile());
-    }
-
-    @Override
-    public boolean isOnline() {
-        return mApplication.isConnected();
     }
 }

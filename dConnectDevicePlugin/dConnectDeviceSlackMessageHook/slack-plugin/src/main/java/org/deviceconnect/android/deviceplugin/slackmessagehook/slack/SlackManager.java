@@ -143,8 +143,6 @@ public class SlackManager {
 
     /** Botの情報 */
     private BotInfo botInfo = new BotInfo();
-    /** 再接続カウンタ */
-    private int retryCount = 0;
 
 
     //endregion
@@ -248,6 +246,10 @@ public class SlackManager {
         return connectState == CONNECT_STATE_CONNECTED;
     }
 
+    public boolean isDisconnecting() {
+        return (connectState > CONNECT_STATE_DISCONNECTING);
+    }
+
     /**
      * 接続.
      */
@@ -276,8 +278,9 @@ public class SlackManager {
         }
         connectState = CONNECT_STATE_CONNECTING;
         if (callback != null) {
-            this.connectionFinishCallback = callback;
+            connectionFinishCallback = callback;
         }
+
         // 接続処理
         new GetTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, new TaskParam("rtm.start", "&simple_latest=True&no_unreads=True") {
             @Override
@@ -338,15 +341,16 @@ public class SlackManager {
      */
     public void disconnect(FinishCallback<Void> callback) {
         if (BuildConfig.DEBUG) Log.d(TAG, "*disconnect");
-        if (webSocket ==null || connectState < CONNECT_STATE_CONNECTING) {
+        if (webSocket == null || connectState < CONNECT_STATE_CONNECTING) {
             if (callback != null) {
                 callback.onFinish(null, null);
             }
             return;
         }
         connectState = CONNECT_STATE_DISCONNECTING;
-        this.connectionFinishCallback = callback;
+        connectionFinishCallback = callback;
         webSocket.disconnect();
+        webSocket = null;
     }
 
 
@@ -465,8 +469,8 @@ public class SlackManager {
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                webSocket.ping("ping");
                 if (connectState == CONNECT_STATE_CONNECTED) {
+                    webSocket.ping("ping");
                     handler.postDelayed(this, KEEPALIVE_SPAN);
                 }
             }
@@ -479,11 +483,13 @@ public class SlackManager {
      */
     private void connectWebSocket(final URI uri) {
         final Handler handler = new Handler();
+        if (webSocket != null) {
+            webSocket.disconnect();
+        }
         webSocket = new WebSocketClient(uri, new WebSocketClient.Listener() {
             @Override
             public void onConnect() {
                 if (BuildConfig.DEBUG) Log.d(TAG, "Connected!");
-                retryCount = 0;
                 connectState = CONNECT_STATE_CONNECTED;
                 callConnectionFinishCallback(null, handler);
                 for (final SlackEventListener listener: slackEventListeners){
@@ -582,12 +588,17 @@ public class SlackManager {
                 if (BuildConfig.DEBUG) Log.d(TAG, String.format("Disconnected! Code: %d Reason: %s", code, reason));
                 if (connectState == CONNECT_STATE_CONNECTED) {
                     // 接続中に急に切れたら再接続を試みる
-                    if (!retry(handler)) {
-                        // 切断処理
-                        retryCount = 0;
-                        connectState = CONNECT_STATE_DISCONNECTED;
-                        callConnectionFinishCallback(null, handler);
-                    }
+                    connectState = CONNECT_STATE_CONNECTING;
+                    retry(0, handler, new FinishCallback<Boolean>() {
+                        @Override
+                        public void onFinish(Boolean flg, Exception error) {
+                            if (!flg) {
+                                // 切断処理
+                                connectState = CONNECT_STATE_DISCONNECTED;
+                                callConnectionFinishCallback(null, handler);
+                            }
+                        }
+                    });
                 } else {
                     // 切断処理
                     connectState = CONNECT_STATE_DISCONNECTED;
@@ -600,11 +611,16 @@ public class SlackManager {
                 Log.e(TAG, "Error!", error);
                 if (connectState == CONNECT_STATE_CONNECTED) {
                     // 接続中に急に切れたら再接続を試みる
-                    if (!retry(handler)) {
-                        retryCount = 0;
-                        callConnectionFinishCallback(error, handler);
-                        callSendMsgFinishCallback(null, error, handler);
-                    }
+                    retry(0, handler, new FinishCallback<Boolean>() {
+                        @Override
+                        public void onFinish(Boolean flg, Exception error) {
+                            if (!flg) {
+                                // 切断処理
+                                connectState = CONNECT_STATE_DISCONNECTED;
+                                callConnectionFinishCallback(null, handler);
+                            }
+                        }
+                    });
                 } else {
                     callConnectionFinishCallback(error, handler);
                     callSendMsgFinishCallback(null, error, handler);
@@ -619,7 +635,7 @@ public class SlackManager {
      * @param handler Handler
      * @return 再接続した場合はtrue
      */
-    private boolean retry(final Handler handler) {
+    private boolean retry(int retryCount, final Handler handler, final FinishCallback<Boolean> callback) {
         int delay = 0;
         switch (retryCount++) {
             case 0:
@@ -631,16 +647,19 @@ public class SlackManager {
             case 2:
                 delay = 30000; // 30s
                 break;
-            case 4:
+            case 3:
                 delay = 60000; // 1m
                 break;
-            case 5:
+            case 4:
                 delay = 3 * 60000; // 3m
                 break;
             default:
+                // callback
+                callback.onFinish(false, null);
                 return false;
         }
         if (BuildConfig.DEBUG) Log.d(TAG, "retry:" + delay);
+        final int _retryCount = retryCount;
         handler.postDelayed(new Runnable() {
             public void run() {
                 // 再接続処理
@@ -649,7 +668,7 @@ public class SlackManager {
                     public void callBack(JSONObject json) {
                         // rtm.startに失敗
                         if (json == null) {
-                            retry(handler);
+                            retry(_retryCount, handler, callback);
                             return;
                         }
                         // WebSocketに接続
@@ -658,7 +677,7 @@ public class SlackManager {
                         String jsonUrl;
                         try {
                             if (json.has("error")) {
-                                retry(handler);
+                                retry(_retryCount, handler, callback);
                                 return;
                             }
                             jsonUrl = json.getString("url");
@@ -671,9 +690,11 @@ public class SlackManager {
                             botInfo.teamDomain = teamJson.getString("domain");
                             if (BuildConfig.DEBUG) Log.d(TAG, "bot:" + botInfo.toString());
                             connectWebSocket(URI.create(jsonUrl));
+                            // callback
+                            callback.onFinish(true, null);
                         } catch (JSONException e) {
                             Log.e(TAG, "error", e);
-                            retry(handler);
+                            retry(_retryCount, handler, callback);
                         }
                     }
                 });

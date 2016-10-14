@@ -6,11 +6,10 @@
  */
 package org.deviceconnect.android.profile;
 
-import org.deviceconnect.android.message.MessageUtils;
-import org.deviceconnect.profile.PhoneProfileConstants;
-
 import android.content.Intent;
 import android.os.Bundle;
+
+import org.deviceconnect.profile.PhoneProfileConstants;
 
 /**
  * Phone プロファイル.
@@ -19,22 +18,7 @@ import android.os.Bundle;
  * 通話操作機能を提供するAPI.<br>
  * 通話操作機能を提供するデバイスプラグインは当クラスを継承し、対応APIを実装すること。 <br>
  * </p>
- * 
- * <h1>各API提供メソッド</h1>
- * <p>
- * Phone Profile の各APIへのリクエストに対し、以下のコールバックメソッド群が自動的に呼び出される。<br>
- * サブクラスは以下のメソッド群からデバイスプラグインが提供するAPI用のメソッドをオーバーライドし、機能を実装すること。<br>
- * オーバーライドされていない機能は自動的に非対応APIとしてレスポンスを返す。
- * </p>
- * <ul>
- * <li>Phone Call API [POST] : {@link PhoneProfile#onPostCall(Intent, Intent, String, String)}</li>
- * <li>Phone Setting API [PUT] : {@link PhoneProfile#onPutSet(Intent, Intent, String, 
- * org.deviceconnect.profile.PhoneProfileConstants.PhoneMode)}</li>
- * <li>Phone Connect Event API [Register] :
- * {@link PhoneProfile#onPutOnConnect(Intent, Intent, String, String)}</li>
- * <li>Phone Connect Event API [Unregister] :
- * {@link PhoneProfile#onDeleteOnConnect(Intent, Intent, String, String)}</li>
- * </ul>
+ *
  * @author NTT DOCOMO, INC.
  */
 public abstract class PhoneProfile extends DConnectProfile implements PhoneProfileConstants {

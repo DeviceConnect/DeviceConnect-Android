@@ -25,12 +25,17 @@ import org.deviceconnect.android.service.DConnectServiceProvider;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
+
 /**
  * Kadecot Service Discovery Profile.
  *
  * @author NTT DOCOMO, INC.
  */
 public class KadecotServiceDiscoveryProfile extends ServiceDiscoveryProfile {
+
+    /** Kadecot device list. */
+    private ArrayList<KadecotDevice> mKadecotDevices = new ArrayList<>();
 
     /**
      * Constructor.
@@ -48,6 +53,22 @@ public class KadecotServiceDiscoveryProfile extends ServiceDiscoveryProfile {
             return false;
         }
     };
+
+    /**
+     * Get NickName.
+     *
+     * @param serviceId ServiceId.
+     * @return Nickname(Success) / null(not found)
+     */
+    public String getNickName(final String serviceId) {
+        for (KadecotDevice device : mKadecotDevices) {
+            String id = device.getServiceId();
+            if (id != null && id.equals(serviceId)) {
+                return device.getNickname();
+            }
+        }
+        return null;
+    }
 
     /**
      *  Device search async task.
@@ -78,6 +99,8 @@ public class KadecotServiceDiscoveryProfile extends ServiceDiscoveryProfile {
                         kadecotObject[i] = resultArray.getJSONObject(i);
                     }
 
+                    mKadecotDevices.clear();
+
                     for (JSONObject obj : kadecotObject) {
                         KadecotDevice kadecotDevice = new KadecotDevice();
 
@@ -89,6 +112,7 @@ public class KadecotServiceDiscoveryProfile extends ServiceDiscoveryProfile {
                         kadecotDevice.setNickname(obj.getString("nickname"));
                         kadecotDevice.setIpAddr(obj.getString("ip_addr"));
                         kadecotDevice.setLocation(obj.getString("location"));
+                        mKadecotDevices.add(kadecotDevice);
 
                         if (kadecotDevice.getProtocol().equals("echonetlite")) {
                             String serviceId = "";

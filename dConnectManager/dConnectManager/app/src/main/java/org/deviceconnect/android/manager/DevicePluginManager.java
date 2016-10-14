@@ -16,6 +16,7 @@ import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.pm.ServiceInfo;
 import android.content.res.XmlResourceParser;
 
+import org.deviceconnect.android.manager.util.DConnectUtil;
 import org.deviceconnect.android.manager.util.VersionName;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
@@ -24,7 +25,6 @@ import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
@@ -45,8 +45,6 @@ public class DevicePluginManager {
     private static final String PLUGIN_META_DATA = "org.deviceconnect.android.deviceplugin";
     /** 再起動用のサービスを表すメタデータの値. */
     private static final String VALUE_META_DATA = "enable";
-    /** マスクを定義. */
-    private static final int MASK = 0xFF;
     /** デバイスプラグイン一覧. */
     private final Map<String, DevicePlugin> mPlugins = new ConcurrentHashMap<String, DevicePlugin>();
     /** dConnectManagerのドメイン名. */
@@ -174,7 +172,7 @@ public class DevicePluginManager {
                     plugin.setClassName(className);
                     plugin.setPackageName(packageName);
                     plugin.setVersionName(versionName);
-                    plugin.setServiceId(hash);
+                    plugin.setPluginId(hash);
                     plugin.setDeviceName(receiverInfo.applicationInfo.loadLabel(pkgMgr).toString());
                     plugin.setStartServiceClassName(startClassName);
                     plugin.setSupportProfiles(checkDevicePluginXML(receiverInfo));
@@ -310,9 +308,9 @@ public class DevicePluginManager {
      */
     public String appendServiceId(final DevicePlugin plugin, final String serviceId) {
         if (serviceId == null) {
-            return plugin.getServiceId() + DConnectMessageService.SEPARATOR + mDConnectDomain;
+            return plugin.getPluginId() + DConnectMessageService.SEPARATOR + mDConnectDomain;
         } else {
-            return serviceId + DConnectMessageService.SEPARATOR + plugin.getServiceId()
+            return serviceId + DConnectMessageService.SEPARATOR + plugin.getPluginId()
                     + DConnectMessageService.SEPARATOR + mDConnectDomain;
         }
     }
@@ -331,7 +329,7 @@ public class DevicePluginManager {
         List<DevicePlugin> plugins = getDevicePlugins(serviceId);
         String sessionKey = request.getStringExtra(DConnectMessage.EXTRA_SESSION_KEY);
         if (plugins != null && sessionKey != null) {
-            sessionKey = sessionKey + DConnectMessageService.SEPARATOR + plugins.get(0).getServiceId();
+            sessionKey = sessionKey + DConnectMessageService.SEPARATOR + plugins.get(0).getPluginId();
             ComponentName receiver = (ComponentName) request.getExtras().get(DConnectMessage.EXTRA_RECEIVER);
             if (receiver != null) {
                 sessionKey = sessionKey + DConnectMessageService.SEPARATOR_SESSION
@@ -354,26 +352,11 @@ public class DevicePluginManager {
     public void appendPluginIdToSessionKey(final Intent request, final DevicePlugin plugin) {
         String sessionKey = request.getStringExtra(DConnectMessage.EXTRA_SESSION_KEY);
         if (plugin != null && sessionKey != null) {
-            String beforeSessionKey = sessionKey;
-            sessionKey = sessionKey + DConnectMessageService.SEPARATOR + plugin.getServiceId();
+            sessionKey = sessionKey + DConnectMessageService.SEPARATOR + plugin.getPluginId();
             ComponentName receiver = (ComponentName) request.getExtras().get(DConnectMessage.EXTRA_RECEIVER);
             if (receiver != null) {
                 sessionKey = sessionKey + DConnectMessageService.SEPARATOR_SESSION
                         + receiver.flattenToString();
-            }
-            if (!plugin.getServiceId().equals(beforeSessionKey)) {
-                VersionName version = plugin.getPluginSdkVersionName();
-                VersionName match = VersionName.parse("1.1.0");
-                if (IntentDConnectMessage.ACTION_PUT.equals(request.getAction())) {
-                    mApp.setDevicePluginIdentifyKey(sessionKey, plugin.getServiceId());
-                    if (!(version.compareTo(match) == -1)) {
-                        mApp.getKeepAliveManager().setManagementTable(plugin);
-                    }
-                } else if (IntentDConnectMessage.ACTION_DELETE.equals(request.getAction())) {
-                    if (!(version.compareTo(match) == -1)) {
-                        mApp.getKeepAliveManager().removeManagementTable(plugin);
-                    }
-                }
             }
             request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, sessionKey);
         }
@@ -399,7 +382,7 @@ public class DevicePluginManager {
      * @return Device Connect Managerのドメインが省かれたサービスID
      */
     public static String splitServiceId(final DevicePlugin plugin, final String serviceId) {
-        String p = plugin.getServiceId();
+        String p = plugin.getPluginId();
         int idx = serviceId.indexOf(p);
         if (idx > 0) {
             return serviceId.substring(0, idx - 1);
@@ -504,19 +487,6 @@ public class DevicePluginManager {
     }
 
     /**
-     * バイト配列を16進数の文字列に変換する.
-     * @param buf 文字列に変換するバイト
-     * @return 文字列
-     */
-    private String hexToString(final byte[] buf) {
-        StringBuilder hexString = new StringBuilder();
-        for (int i = 0; i < buf.length; i++) {
-            hexString.append(Integer.toHexString(MASK & buf[i]));
-        }
-        return hexString.toString();
-    }
-
-    /**
      * 指定された文字列をMD5の文字列に変換する.
      * MD5への変換に失敗した場合にはnullを返却する。
      * @param s MD5にする文字列
@@ -524,9 +494,7 @@ public class DevicePluginManager {
      */
     private String md5(final String s) {
         try {
-            MessageDigest digest = java.security.MessageDigest.getInstance("MD5");
-            digest.update(s.getBytes("ASCII"));
-            return hexToString(digest.digest());
+            return DConnectUtil.toMD5(s);
         } catch (UnsupportedEncodingException e) {
             mLogger.warning("Not support Charset.");
         } catch (NoSuchAlgorithmException e) {

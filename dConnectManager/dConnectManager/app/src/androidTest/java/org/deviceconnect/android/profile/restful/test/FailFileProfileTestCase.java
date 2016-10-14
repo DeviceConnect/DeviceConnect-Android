@@ -206,7 +206,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.UNKNOWN_ATTRIBUTE.getCode(), root);
+            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -262,7 +262,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.UNKNOWN_ATTRIBUTE.getCode(), root);
+            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -474,7 +474,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.UNKNOWN_ATTRIBUTE.getCode(), root);
+            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -534,7 +534,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.UNKNOWN_ATTRIBUTE.getCode(), root);
+            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -819,7 +819,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
         try {
             HttpDelete request = new HttpDelete(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.UNKNOWN_ATTRIBUTE.getCode(), root);
+            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -1031,7 +1031,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
         try {
             HttpGet request = new HttpGet(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.UNKNOWN_ATTRIBUTE.getCode(), root);
+            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -1098,7 +1098,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
         body.put(FileProfileConstants.PARAM_DATA, data);
         try {
             JSONObject response = sendRequest("POST", builder.toString(), null, body);
-            assertResultError(ErrorCode.UNKNOWN_ATTRIBUTE.getCode(), response);
+            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), response);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -1290,7 +1290,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
             HttpGet request = new HttpGet(builder.toString());
             JSONObject root = sendRequest(request);
             assertResultError(root);
-            assertResultError(ErrorCode.UNKNOWN_ATTRIBUTE.getCode(), root);
+            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -1354,7 +1354,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
             HttpDelete request = new HttpDelete(builder.toString());
             JSONObject root = sendRequest(request);
             assertResultError(root);
-            assertResultError(ErrorCode.UNKNOWN_ATTRIBUTE.getCode(), root);
+            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -1546,7 +1546,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
             HttpGet request = new HttpGet(builder.toString());
             JSONObject root = sendRequest(request);
             assertResultError(root);
-            assertResultError(ErrorCode.UNKNOWN_ATTRIBUTE.getCode(), root);
+            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -1578,7 +1578,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
             HttpPost request = new HttpPost(builder.toString());
             JSONObject root = sendRequest(request);
             assertResultError(root);
-            assertResultError(ErrorCode.UNKNOWN_ATTRIBUTE.getCode(), root);
+            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }

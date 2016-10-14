@@ -315,9 +315,9 @@ public class NormalMediaPlayerProfileTestCase extends IntentDConnectTestCase
     @Test
     public void testPutVolume() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_PUT);
-        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, MediaPlayerProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, MediaPlayerProfileConstants.ATTRIBUTE_VOLUME);
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(MediaPlayerProfileConstants.PARAM_VOLUME, TEST_VOLUME);
 
         Intent response = sendRequest(request);
@@ -447,14 +447,12 @@ public class NormalMediaPlayerProfileTestCase extends IntentDConnectTestCase
     public void testPutOnStatusChangePlay() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_PUT);
         request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
-        request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, getClientId());
+
         request.putExtra(DConnectMessage.EXTRA_PROFILE, MediaPlayerProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, MediaPlayerProfileConstants.ATTRIBUTE_ON_STATUS_CHANGE);
 
         Intent response = sendRequest(request);
         assertResultOK(response);
-        Intent event = waitForEvent();
-        assertNotNull(event);
     }
 
     /**
@@ -476,7 +474,7 @@ public class NormalMediaPlayerProfileTestCase extends IntentDConnectTestCase
     public void testDeletePlayStatusChange() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_DELETE);
         request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
-        request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, getClientId());
+
         request.putExtra(DConnectMessage.EXTRA_PROFILE, MediaPlayerProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, MediaPlayerProfileConstants.ATTRIBUTE_ON_STATUS_CHANGE);
 

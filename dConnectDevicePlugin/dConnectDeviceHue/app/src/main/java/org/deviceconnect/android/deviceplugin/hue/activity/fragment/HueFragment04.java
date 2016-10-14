@@ -359,7 +359,12 @@ public class HueFragment04 extends Fragment {
 
         @Override
         public void onError(final int code, final String message) {
-            showToast(message);
+            if (code == 1) { // unauthorized user
+                showToast(getString(R.string.frag04_unauthorized_bridge));
+                mPhHueSDK.startPushlinkAuthentication(mAccessPoint);
+            } else {
+                showToast(message);
+            }
             closeProgressBar();
         }
 

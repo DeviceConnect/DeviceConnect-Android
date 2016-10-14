@@ -34,10 +34,7 @@ public class HvcSystemProfile extends SystemProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            String sessionKey = getSessionKey(request);
-            if (sessionKey == null || sessionKey.length() == 0) {
-                MessageUtils.setInvalidRequestParameterError(response);
-            } else if (EventManager.INSTANCE.removeEvents(sessionKey)) {
+            if (EventManager.INSTANCE.removeEvents(getOrigin(request))) {
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
                 MessageUtils.setUnknownError(response);

@@ -7,11 +7,11 @@ android {
     def getVersionName = { ->
         def version
         if (System.getProperty('os.name').toLowerCase().contains('windows')) {
-            version = ["cmd", "/c", "git describe --tags"].execute().in.text.trim()
+            version = ["cmd", "/c", "git describe --tags --long"].execute().in.text.trim()
         } else {
-            version = ["sh", "-c", "git describe --tags"].execute().in.text.trim()
+            version = ["sh", "-c", "git describe --tags --long"].execute().in.text.trim()
         }
-        version = version.empty ? "2.0.0" : version
+        version = version.empty ? "2.1.0" : version
         return "${version}"
     }
 
@@ -22,6 +22,8 @@ android {
         versionCode 1
         versionName getVersionName()
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        buildConfigField "String", "URL_HELP_HTML", "\"file:///android_asset/html/help/index.html\""
+        buildConfigField "String", "URL_DEMO_HTML", "\"file:///android_asset/html/demo/index.html\""
     }
 
     packagingOptions {

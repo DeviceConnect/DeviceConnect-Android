@@ -287,6 +287,11 @@ public class ServiceListActivity extends Activity implements AlertDialogFragment
             return;
         }
 
+        if (mServiceDiscovery != null) {
+            return;
+        }
+
+        mSwitchAction.setEnabled(false);
         try {
             if (checked) {
                 mDConnectService.start();
@@ -294,8 +299,9 @@ public class ServiceListActivity extends Activity implements AlertDialogFragment
                     @Override
                     public void run() {
                         reload();
+                        mSwitchAction.setEnabled(true);
                     }
-                }, 400);
+                }, 1000);
             } else {
                 mDConnectService.stop();
                 notifyManagerTerminate();
@@ -304,6 +310,7 @@ public class ServiceListActivity extends Activity implements AlertDialogFragment
                     public void run() {
                         mServiceAdapter.mServices = new ArrayList<>();
                         mServiceAdapter.notifyDataSetInvalidated();
+                        mSwitchAction.setEnabled(true);
                     }
                 });
             }
@@ -347,22 +354,35 @@ public class ServiceListActivity extends Activity implements AlertDialogFragment
 
             @Override
             protected void onPreExecute() {
-                mDialog = new ServiceDiscoveryDialogFragment();
-                mDialog.show(getFragmentManager(), null);
+                try {
+                    mDialog = new ServiceDiscoveryDialogFragment();
+                    mDialog.show(getFragmentManager(), null);
+                } catch (Exception e) {
+                    if (DEBUG) {
+                        Log.w(TAG, "Failed to open the dialog for service discovery.");
+                    }
+                }
             }
 
             @Override
             protected void onPostExecute(final List<ServiceContainer> serviceContainers) {
-                mDialog.dismiss();
+                try {
+                    mDialog.dismiss();
 
-                View view = findViewById(R.id.activity_service_no_service);
-                if (view != null) {
-                    view.setVisibility(serviceContainers.size() == 0 ? View.VISIBLE : View.GONE);
+                    View view = findViewById(R.id.activity_service_no_service);
+                    if (view != null) {
+                        view.setVisibility(serviceContainers.size() == 0 ? View.VISIBLE : View.GONE);
+                    }
+
+                    mServiceAdapter.mServices = serviceContainers;
+                    mServiceAdapter.notifyDataSetInvalidated();
+                } catch (Exception e) {
+                    if (DEBUG) {
+                        Log.w(TAG, "Failed to dismiss the dialog for service discovery.");
+                    }
+                } finally {
+                    mServiceDiscovery = null;
                 }
-
-                mServiceAdapter.mServices = serviceContainers;
-                mServiceAdapter.notifyDataSetInvalidated();
-                mServiceDiscovery = null;
             }
         };
         mServiceDiscovery.execute();
@@ -375,7 +395,7 @@ public class ServiceListActivity extends Activity implements AlertDialogFragment
     }
 
     private void openHelp() {
-        String url = "file:///android_asset/html/help/index.html";
+        String url = BuildConfig.URL_HELP_HTML;
         Intent intent = new Intent();
         intent.setClass(this, WebViewActivity.class);
         intent.putExtra(WebViewActivity.EXTRA_URL, url);
@@ -386,7 +406,7 @@ public class ServiceListActivity extends Activity implements AlertDialogFragment
     private void openServiceInfo(final int position) {
         mSelectedService = (ServiceContainer) mServiceAdapter.getItem(position);
         if (mSelectedService.isOnline()) {
-            String url = "file:///android_asset/html/demo/index.html?serviceId=" + mSelectedService.getId();
+            String url = BuildConfig.URL_DEMO_HTML + "?serviceId=" + mSelectedService.getId();
             Intent intent = new Intent();
             intent.setClass(this, WebViewActivity.class);
             intent.putExtra(WebViewActivity.EXTRA_URL, url);
@@ -415,7 +435,7 @@ public class ServiceListActivity extends Activity implements AlertDialogFragment
         DevicePluginManager mgr = app.getDevicePluginManager();
         List<DevicePlugin> plugins = mgr.getDevicePlugins();
         for (DevicePlugin plugin : plugins) {
-            if (mSelectedService.getId().contains(plugin.getServiceId())) {
+            if (mSelectedService.getId().contains(plugin.getPluginId())) {
                 Intent request = new Intent();
                 request.setComponent(plugin.getComponentName());
                 request.setAction(IntentDConnectMessage.ACTION_PUT);
@@ -423,7 +443,7 @@ public class ServiceListActivity extends Activity implements AlertDialogFragment
                 SystemProfile.setProfile(request, SystemProfile.PROFILE_NAME);
                 SystemProfile.setInterface(request, SystemProfile.INTERFACE_DEVICE);
                 SystemProfile.setAttribute(request, SystemProfile.ATTRIBUTE_WAKEUP);
-                request.putExtra("pluginId", plugin.getServiceId());
+                request.putExtra("pluginId", plugin.getPluginId());
                 sendBroadcast(request);
                 break;
             }
@@ -433,7 +453,7 @@ public class ServiceListActivity extends Activity implements AlertDialogFragment
     private String getPackageName(final String serviceId) {
         List<DevicePlugin> list = mDevicePluginManager.getDevicePlugins();
         for (DevicePlugin plugin : list) {
-            if (serviceId.contains(plugin.getServiceId())) {
+            if (serviceId.contains(plugin.getPluginId())) {
                 return plugin.getPackageName();
             }
         }

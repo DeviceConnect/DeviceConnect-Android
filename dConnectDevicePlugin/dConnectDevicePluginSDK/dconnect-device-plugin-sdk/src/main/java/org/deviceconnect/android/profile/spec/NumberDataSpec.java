@@ -126,6 +126,8 @@ public class NumberDataSpec extends DConnectDataSpec {
             }
         } else if (param instanceof Float) {
             return validateRange((float) param);
+        } else if (param instanceof Double) {
+            return validateRange(((Double) param).doubleValue());
         } else {
             return false;
         }
@@ -140,6 +142,8 @@ public class NumberDataSpec extends DConnectDataSpec {
             }
         } else if (param instanceof Double) {
             return validateRange((double) param);
+        } else if (param instanceof Float) {
+            return validateRange(((Float) param).doubleValue());
         } else {
             return false;
         }

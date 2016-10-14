@@ -6,8 +6,13 @@
  */
 package org.deviceconnect.android.deviceplugin.slackmessagehook;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.PowerManager;
 import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.slackmessagehook.profile.SlackMessageHookProfile;
@@ -26,6 +31,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -66,12 +72,53 @@ public class SlackMessageHookDeviceService extends DConnectMessageService implem
             final String token = Utils.getAccessToken(this);
             SlackManager.INSTANCE.setApiToken(token, true, null);
         }
+
+        registerDozeStateReceiver();
     }
 
     @Override
     public void onDestroy() {
-        super.onDestroy();
+        unregisterDozeStateReceiver();
         SlackManager.INSTANCE.removeSlackEventListener(this);
+        super.onDestroy();
+    }
+
+    @Override
+    protected void onManagerUninstalled() {
+        EventManager.INSTANCE.removeAll();
+    }
+
+    @Override
+    protected void onManagerTerminated() {
+        EventManager.INSTANCE.removeAll();
+    }
+
+    @Override
+    protected void onManagerEventTransmitDisconnected(final String origin) {
+        EventManager.INSTANCE.removeEvents(origin);
+    }
+
+    @Override
+    protected void onDevicePluginReset() {
+        EventManager.INSTANCE.removeAll();
+
+        if (Utils.getOnlineStatus(getContext())) {
+            Executors.newSingleThreadExecutor().submit(new Runnable() {
+                @Override
+                public void run() {
+                    if (SlackManager.INSTANCE.isDisconnecting()) {
+                        SlackManager.INSTANCE.disconnect(new SlackManager.FinishCallback<Void>() {
+                            @Override
+                            public void onFinish(final Void aVoid, final Exception error) {
+                                SlackManager.INSTANCE.connect();
+                            }
+                        });
+                    } else {
+                        SlackManager.INSTANCE.connect();
+                    }
+                }
+            });
+        }
     }
 
     @Override
@@ -122,82 +169,80 @@ public class SlackMessageHookDeviceService extends DConnectMessageService implem
         String attribute = SlackMessageHookProfile.ATTRIBUTE_MESSAGE;
         List<Event> events = EventManager.INSTANCE.getEventList(serviceId, profile, null, attribute);
 
-        synchronized (events) {
-            synchronized (userMap) {
-                // 情報セット
-                Bundle message = new Bundle();
-                message.putString("messengerType", "slack");
-                message.putString("channelId", channel);
+        synchronized (userMap) {
+            // 情報セット
+            Bundle message = new Bundle();
+            message.putString("messengerType", "slack");
+            message.putString("channelId", channel);
 
-                // TimeStampは少数以下切り捨て
-                double time = ts;
-                message.putLong("timeStamp", (long)time);
+            // TimeStampは少数以下切り捨て
+            double time = ts;
+            message.putLong("timeStamp", (long)time);
 
-                // 送信者情報を変換
-                SlackManager.ListInfo info = userMap.get(user);
-                if (info != null) {
-                    message.putString("from", info.name);
-                } else {
-                    message.putString("from", user);
-                    // 値が無い場合はユーザーリスト再取得
-                    fetchUserList();
-                }
+            // 送信者情報を変換
+            SlackManager.ListInfo info = userMap.get(user);
+            if (info != null) {
+                message.putString("from", info.name);
+            } else {
+                message.putString("from", user);
+                // 値が無い場合はユーザーリスト再取得
+                fetchUserList();
+            }
 
-                // メンション処理
-                if (text != null) {
-                    boolean isMentioned = false;
-                    Pattern p = Pattern.compile("<@(\\w*)>");
-                    Matcher m = p.matcher(text);
-                    StringBuffer sb = new StringBuffer();
-                    while (m.find()) {
-                        String uid = m.group(1);
-                        info = userMap.get(uid);
-                        if (info != null) {
-                            m.appendReplacement(sb, "@" + info.name);
-                        } else {
-                            m.appendReplacement(sb, m.group());
-                            // 値が無い場合はユーザーリスト再取得
-                            fetchUserList();
-                        }
-                        if (!isMentioned) {
-                            isMentioned = SlackManager.INSTANCE.getBotInfo().id.equals(uid);
-                        }
-                    }
-                    m.appendTail(sb);
-                    message.putString("text", sb.toString());
-                    //　メッセージタイプ
-                    String messageType = null;
-                    // Dから始まるChannelIDはDirectMessage
-                    if (channel.startsWith("D")) {
-                        messageType = "direct";
+            // メンション処理
+            if (text != null) {
+                boolean isMentioned = false;
+                Pattern p = Pattern.compile("<@(\\w*)>");
+                Matcher m = p.matcher(text);
+                StringBuffer sb = new StringBuffer();
+                while (m.find()) {
+                    String uid = m.group(1);
+                    info = userMap.get(uid);
+                    if (info != null) {
+                        m.appendReplacement(sb, "@" + info.name);
                     } else {
-                        messageType = "normal";
+                        m.appendReplacement(sb, m.group());
+                        // 値が無い場合はユーザーリスト再取得
+                        fetchUserList();
                     }
-                    if (isMentioned) {
-                        messageType += ",mention";
+                    if (!isMentioned) {
+                        isMentioned = SlackManager.INSTANCE.getBotInfo().id.equals(uid);
                     }
-                    message.putString("messageType", messageType);
                 }
+                m.appendTail(sb);
+                message.putString("text", sb.toString());
+                //　メッセージタイプ
+                String messageType = null;
+                // Dから始まるChannelIDはDirectMessage
+                if (channel.startsWith("D")) {
+                    messageType = "direct";
+                } else {
+                    messageType = "normal";
+                }
+                if (isMentioned) {
+                    messageType += ",mention";
+                }
+                message.putString("messageType", messageType);
+            }
 
-                // リソース
-                if (url != null) {
-                    message.putString("resource", url);
-                }
-                if (mimeType != null) {
-                    message.putString("mimeType", mimeType);
-                }
+            // リソース
+            if (url != null) {
+                message.putString("resource", url);
+            }
+            if (mimeType != null) {
+                message.putString("mimeType", mimeType);
+            }
 
-                // GetMessageのために一定時間イベントを保持する
-                eventHistory.add(message);
-                // 一定時間経過したメッセージを削除する
-                truncateHistory();
+            // GetMessageのために一定時間イベントを保持する
+            eventHistory.add(message);
+            // 一定時間経過したメッセージを削除する
+            truncateHistory();
 
-                // Eventに値をおくる.
-                for (Event event : events) {
-                    Intent intent = EventManager.createEventMessage(event);
-                    intent.putExtra("message", message);
-                    sendEvent(intent, event.getAccessToken());
-                }
+            // Eventに値をおくる.
+            for (Event event : events) {
+                Intent intent = EventManager.createEventMessage(event);
+                intent.putExtra("message", message);
+                sendEvent(intent, event.getAccessToken());
             }
         }
     }
@@ -250,4 +295,33 @@ public class SlackMessageHookDeviceService extends DConnectMessageService implem
             }
         }
     }
+
+    private void registerDozeStateReceiver() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            IntentFilter intentFilter = new IntentFilter(PowerManager.ACTION_DEVICE_IDLE_MODE_CHANGED);
+            registerReceiver(mDozeStateReceiver, intentFilter);
+        }
+    }
+
+    private void unregisterDozeStateReceiver() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            unregisterReceiver(mDozeStateReceiver);
+        }
+    }
+
+    private BroadcastReceiver mDozeStateReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(final Context context, final Intent intent) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                PowerManager mgr = context.getSystemService(PowerManager.class);
+                if (!mgr.isIgnoringBatteryOptimizations(context.getPackageName())) {
+                    if (mgr.isDeviceIdleMode()) {
+                        SlackManager.INSTANCE.disconnect();
+                    } else {
+                        SlackManager.INSTANCE.connect();
+                    }
+                }
+            }
+        }
+    };
 }

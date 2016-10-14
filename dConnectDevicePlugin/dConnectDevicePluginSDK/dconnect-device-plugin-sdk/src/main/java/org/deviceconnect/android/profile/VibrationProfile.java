@@ -6,12 +6,11 @@
  */
 package org.deviceconnect.android.profile;
 
-import java.util.ArrayList;
+import android.content.Intent;
 
-import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.profile.VibrationProfileConstants;
 
-import android.content.Intent;
+import java.util.ArrayList;
 
 /**
  * Vibration プロファイル.
@@ -21,20 +20,7 @@ import android.content.Intent;
  * スマートデバイスのバイブレーション操作機能を提供するデバイスプラグインは当クラスを継承し、対応APIを実装すること。 <br>
  * AndridManifest.xmlにてVIBRATEパーミッションの指定が必要。
  * </p>
- * 
- * <h1>各API提供メソッド</h1>
- * <p>
- * Vibration Profile の各APIへのリクエストに対し、以下のコールバックメソッド群が自動的に呼び出される。<br>
- * サブクラスは以下のメソッド群からデバイスプラグインが提供するAPI用のメソッドをオーバーライドし、機能を実装すること。<br>
- * オーバーライドされていない機能は自動的に非対応APIとしてレスポンスを返す。
- * </p>
- * <ul>
- * <li>Vibration Start API [PUT] :
- * {@link VibrationProfile#onPutVibrate(Intent, Intent, String, long[])}</li>
- * <li>Vibration Stop API [DELETE] :
- * {@link VibrationProfile#onDeleteVibrate(Intent, Intent, String)}</li>
- * </ul>
- * 
+ *
  * @author NTT DOCOMO, INC.
  */
 public abstract class VibrationProfile extends DConnectProfile implements VibrationProfileConstants {

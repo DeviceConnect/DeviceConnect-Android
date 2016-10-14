@@ -64,6 +64,7 @@
     <string name="activity_settings_manager_terminate">全デバイスプラグインへManager終了通知</string>
     <string name="activity_settings_manager_terminate_title">デバイスプラグインへManager終了通知中</string>
     <string name="activity_settings_manager_terminate_message">処理中</string>
+    <string name="activity_settings_manage_websocket">WebSocket管理</string>
 
     <string name="activity_settings_web_server_settings">Webサーバ設定</string>
     <string name="activity_settings_web_server">Webサーバ</string>
@@ -74,8 +75,8 @@
     <string name="activity_settings_web_server_warning_message">Webサーバを起動します。\n\nこの機能を有効にすると外部からSDカードにあるファイルへアクセスが行えるようになります。\n\n有効にしてよろしいでしょうか？</string>
     <string name="activity_settings_web_server_warning_positive">はい</string>
     <string name="activity_settings_web_server_warning_negative">いいえ</string>
-
     <string name="activity_settings_event_keep_alive_settings">イベント Keep Alive 設定</string>
+
     <!-- ================= SharedPreferences ================= -->
 
     <string name="key_settings_about_appinfo">settings_about_appinfo</string>
@@ -101,6 +102,7 @@
     <string name="key_settings_web_server_host">key_settings_web_server_host</string>
     <string name="key_settings_web_server_port">key_settings_web_server_port</string>
     <string name="key_settings_web_server_document_root_path">key_settings_web_server_document_root_path</string>
+    <string name="key_settings_dconn_websocket">key_settings_dconn_websocket</string>
     <string name="key_settings_event_keep_alive_on_off">key_settings_event_keep_alive_on_off</string>
 
     <!-- ================= WhitelistActivity ================= -->
@@ -155,405 +157,39 @@
     <!-- ================= DConnectObservationService ================= -->
     <string name="service_observation_warning">警告</string>
     <string name="service_observation_msg_no_permission">ファイル読み込み権限が拒否されたため、ポート監視が中断されました。</string>
-
     <string name="service_web_server">Webサーバ</string>
 
-    <!-- =================     DebugActivity     ================= -->
+    <!-- =================     ServiceListActivity     ================= -->
+    <string name="activity_service_list_search">サービスを検索</string>
+    <string name="activity_service_menu_settings">設定</string>
+    <string name="activity_service_menu_help">ヘルプ</string>
+    <string name="activity_service_list_service_discovery">デバイスを検索中</string>
+    <string name="activity_service_list_checkbox">次回からこの画面を表示しない。</string>
+    <string name="activity_service_list_guide_1">Device Connect Managerを起動することができます。</string>
+    <string name="activity_service_list_guide_2">Device Connect Managerの設定を行うことができます。</string>
+    <string name="activity_service_list_guide_next">次へ</string>
+    <string name="activity_service_list_guide_end">閉じる</string>
+    <string name="activity_service_list_no_service">デバイスが接続されていません。\nプラグインから設定を行ってください。</string>
+    <string name="activity_service_list_no_plugin_title">プラグイン確認</string>
+    <string name="activity_service_list_no_plugin_message">プラグインが入っていないと、このDevice Connect Managerは使用できません。\nHOSTプラグインなどをインストールしてください。</string>
+    <string name="activity_service_list_no_plugin_positive">はい</string>
+    <string name="activity_service_list_offline_title">デバイス起動</string>
+    <string name="activity_service_list_offline_message">%1sは、接続されていません。\nデバイスプラグインの設定を確認してください。</string>
+    <string name="activity_service_list_offline_positive">設定を開く</string>
+    <string name="activity_service_list_offline_negative">閉じる</string>
 
-    <string name="contents"></string>
-    <string name="action_settings">Settings</string>
-    <string name="action_menu">Menu</string>
-    <string name="action_search">Network Service Discovery</string>
-    <string name="action_access_token">Request AccessToken</string>
-    <string name="action_input_session_key">Input SessionKey</string>
-    <string name="discovery">servicediscovery</string>
-    <string name="http_method">HTTP Method:</string>
-    <string name="profile">Profile:</string>
-    <string name="interfaces">Interfaces:</string>
-    <string name="attribute">Attribute:</string>
-    <string name="serviceid">Service ID:</string>
-    <string name="send_request">Send</string>
-    <string name="select_or_url">Parameter or URL</string>
-    <string name="url_hint1">param1=xxx&amp;param2=yyy</string>
-    <string name="url_hint2">/profile/interfaces/attribute?param1=xxx</string>
-    <string name="content_description"></string>
-    <string name="websocket_open">WebSocket Open</string>
-    <string name="websocket_close">WebSocket Close</string>
+    <string name="activity_websocket_delete_title">WebSocket削除確認</string>
+    <string name="activity_websocket_delete_message">WebSocketを閉じて良いでしょうか？</string>
+    <string name="activity_websocket_delete_positive">はい</string>
+    <string name="activity_websocket_delete_negative">いいえ</string>
+
+    <!-- =================     WebViewActivity     ================= -->
+    <string name="webview_js_alert_positive_btn">はい</string>
+    <string name="webview_js_alert_negative_btn">いいえ</string>
+
+    <string name="activity_help_title">ヘルプ</string>
 
     <!-- ================= Chrome for Android ================= -->
     <string name="chrome_bookmark_provider_url">content://com.android.chrome.browser/bookmarks</string>
-
-    <!-- ================= API ================= -->
-
-    <string name="authorization_profile">/authorization</string>
-
-    <string-array name="authorization_interface_list">
-        <item></item>
-    </string-array>
-    <string-array name="authorization_attrib_list">
-        <item></item>
-        <item>create_client</item>
-        <item>request_accesstoken</item>
-    </string-array>
-
-    <!-- ServiceDiscovery API -->
-    <string name="servicediscovery_profile">servicediscovery</string>
-
-    <string-array name="servicediscovery_interface_list">
-        <item></item>
-    </string-array>
-    <string-array name="servicediscovery_attrib_list">
-        <item></item>
-        <item>onservicechange</item>
-    </string-array>
-
-    <!-- ServiceInformation API -->
-    <string name="serviceinformation_profile">serviceinformation</string>
-
-    <string-array name="serviceinformation_interface_list">
-        <item></item>
-    </string-array>
-    <string-array name="serviceinformation_attrib_list">
-        <item></item>
-    </string-array>
-
-    <!-- System API -->
-    <string name="system_profile">system</string>
-
-    <string-array name="system_interface_list">
-        <item></item>
-    </string-array>
-    <string-array name="system_attrib_list">
-        <item></item>
-        <item>wakeup</item>
-        <item>keyword</item>
-        <item>events</item>
-    </string-array>
-
-    <!-- File API -->
-    <string name="file_profile">file</string>
-
-    <string-array name="file_interface_list">
-        <item></item>
-    </string-array>
-    <string-array name="file_attrib_list">
-        <item></item>
-        <item>send</item>
-        <item>receive</item>
-        <item>list</item>
-        <item>remove</item>
-        <item>mkdir</item>
-        <item>rmdir</item>
-    </string-array>
-
-    <!-- MediaStream Recording API -->
-    <string name="mediastream_recording_profile">mediastream_recording</string>
-
-    <string-array name="mediastream_recording_interface_list">
-        <item></item>
-    </string-array>
-    <string-array name="mediastream_recording_attrib_list">
-        <item></item>
-        <item>mediarecorder</item>
-        <item>takephoto</item>
-        <item>record</item>
-        <item>pause</item>
-        <item>resume</item>
-        <item>stop</item>
-        <item>mutetrack</item>
-        <item>unmutetrack</item>
-        <item>options</item>
-        <item>onphoto</item>
-    </string-array>
-
-    <!-- Phone Call API -->
-    <string name="phone_profile">phone</string>
-
-    <string-array name="phone_interface_list">
-        <item></item>
-    </string-array>
-    <string-array name="phone_attrib_list">
-        <item></item>
-        <item>call</item>
-        <item>set</item>
-    </string-array>
-
-    <!-- File Descriptor API -->
-    <string name="file_descriptor_profile">file_descriptor</string>
-
-    <string-array name="file_descriptor_interface_list">
-        <item></item>
-    </string-array>
-    <string-array name="file_descriptor_attrib_list">
-        <item></item>
-        <item>open</item>
-        <item>close</item>
-        <item>read</item>
-        <item>write</item>
-    </string-array>
-
-    <!-- proximity API -->
-    <string name="proximity_profile">rssi</string>
-
-    <string-array name="proximity_interface_list">
-        <item></item>
-    </string-array>
-    <string-array name="proximity_attrib_list">
-        <item></item>
-        <item>ondeviceproximity</item>
-        <item>onuserproximity</item>
-    </string-array>
-    <!-- Setting API -->
-    <string name="settings_profile">settings</string>
-
-    <string-array name="settings_interface_list">
-        <item></item>
-        <item>sound</item>
-        <item>display</item>
-    </string-array>
-    <string-array name="settings_attrib_list">
-        <item></item>
-        <item>volume</item>
-        <item>date</item>
-        <item>sleep</item>
-        <item>light</item>
-    </string-array>
-
-    <!-- Vibration API -->
-    <string name="vibration_profile">vibration</string>
-
-    <string-array name="vibration_interface_list">
-        <item></item>
-    </string-array>
-    <string-array name="vibration_attrib_list">
-        <item></item>
-        <item>vibrate</item>
-    </string-array>
-    <!-- Notification API -->
-    <string name="notification_profile">notification</string>
-
-    <string-array name="notification_interface_list">
-        <item></item>
-    </string-array>
-    <string-array name="notification_attrib_list">
-        <item></item>
-        <item>notify</item>
-    </string-array>
-
-    <!-- Battery API -->
-    <string name="battery_profile">battery</string>
-
-    <string-array name="battery_interface_list">
-        <item></item>
-    </string-array>
-    <string-array name="battery_attrib_list">
-        <item></item>
-        <item>charging</item>
-        <item>level</item>
-        <item>onchargingchange</item>
-        <item>onbatterychange</item>
-    </string-array>
-
-    <!-- Media Player API -->
-    <string name="media_player_profile">media_player</string>
-
-    <string-array name="media_player_interface_list">
-        <item></item>
-    </string-array>
-    <string-array name="media_player_attrib_list">
-        <item></item>
-        <item>media</item>
-        <item>media_list</item>
-        <item>play_status</item>
-        <item>play</item>
-        <item>stop</item>
-        <item>pause</item>
-        <item>resume</item>
-        <item>seek</item>
-        <item>volume</item>
-        <item>mute</item>
-        <item>onstatuschange</item>
-    </string-array>
-
-    <!-- Connect API -->
-    <string name="connect_recording_profile">connect</string>
-
-    <string-array name="connect_interface_list">
-        <item></item>
-        <item>wifi</item>
-        <item>bluetooth</item>
-        <item>nfc</item>
-    </string-array>
-    <string-array name="connect_attrib_list">
-        <item></item>
-        <item>discoverable</item>
-    </string-array>
-
-    <!-- Smart Sensor API -->
-    <string name="deviceorientation_profile">deviceorientation</string>
-
-    <string-array name="deviceorientation_interface_list">
-        <item></item>
-    </string-array>
-    <string-array name="deviceorientation_attrib_list">
-        <item></item>
-        <item>ondeviceorientation</item>
-    </string-array>
-
-    <!-- Light API -->
-    <string name="light_profile">light</string>
-
-    <string-array name="light_interface_list">
-        <item></item>
-        <item>group</item>
-    </string-array>
-    <string-array name="light_attrib_list">
-        <item></item>
-        <item>group</item>
-        <item>create</item>
-        <item>clear</item>
-    </string-array>
-
-    <!-- Camera API -->
-    <string name="camera_profile">camera</string>
-
-    <string-array name="camera_interface_list">
-        <item></item>
-    </string-array>
-    <string-array name="camera_attrib_list">
-        <item></item>
-        <item>zoom</item>
-    </string-array>
-    
-    <!-- Dice API -->
-    <string name="dice_profile">camera</string>
-
-    <string-array name="dice_interface_list">
-        <item></item>
-    </string-array>
-    <string-array name="dice_attrib_list">
-        <item></item>
-        <item>ondice</item>
-        <item>onmagnetometer</item>
-    </string-array>
-    
-    <!-- Temperature API -->
-    <string name="temperature_profile">camera</string>
-
-    <string-array name="temperature_interface_list">
-        <item></item>
-    </string-array>
-    <string-array name="temperature_attrib_list">
-        <item></item>
-    </string-array>
-    
-    <!-- drive_controller API -->
-    <string name="drive_controller_profile">drive_controller</string>
-
-    <string-array name="drive_controller_interface_list">
-        <item></item>
-    </string-array>
-    <string-array name="drive_controller_attrib_list">
-        <item>move</item>
-        <item>stop</item>
-        <item>rotate</item>
-    </string-array>
-   
-    <!-- remote_controller API -->
-    <string name="remote_controller_profile">remote_controller</string>
-
-    <string-array name="remote_controller_interface_list">
-        <item></item>
-    </string-array>
-    <string-array name="remote_controller_attrib_list">
-        <item></item>
-    </string-array>
-        
-    
-    <!-- sphero API -->
-    <string name="sphero_profile">sphero</string>
-
-    <string-array name="sphero_interface_list">
-        <item></item>
-        <item>quaternion</item>
-        <item>locator</item>
-        <item>collision</item>
-    </string-array>
-    <string-array name="sphero_attrib_list">
-        <item></item>
-        <item>onquaternion</item>
-        <item>onlocator</item>
-        <item>oncollision</item>
-    </string-array>
-        
-    <!-- MHealth API -->
-    <string name="mhealth_profile">mhealth</string>
-
-    <string-array name="mhealth_interface_list">
-        <item></item>
-    </string-array>
-    <string-array name="mhealth_attrib_list">
-        <item></item>
-        <item>setting</item>
-        <item>startgateway</item>
-        <item>stopgateway</item>
-        <item>startservice</item>
-        <item>stopservice</item>
-        <item>getmeasurements</item>
-        <item>sendmeasurement</item>
-        <item>deletemeasurement</item>
-        <item>setserverparameter</item>
-        <item>setmfcpermission</item>
-        <item>startmfcdetect</item>
-        <item>stopmfcdetect</item>
-        <item>insertmeasurement</item>
-        <item>getstatus</item>
-        <item>getdbinfo</item>
-        <item>startscanwithfilteringlist</item>
-        <item>stopscan</item>
-        <item>connectbledevice</item>
-        <item>disconnectbledevice</item>
-        <item>getscanresult</item>
-    </string-array>
-
-    <!-- Profile一覧 -->
-    <string-array name="dconnect_profile_list">
-        <item></item>
-        <item>authorization</item>
-        <item>battery</item>
-        <item>connect</item>
-        <item>deviceorientation</item>
-        <item>file_descriptor</item>
-        <item>file</item>
-        <item>media_player</item>
-        <item>mediastream_recording</item>
-        <item>notification</item>
-        <item>phone</item>
-        <item>proximity</item>
-        <item>settings</item>
-        <item>system</item>
-        <item>vibration</item>
-        <item>servicediscovery</item>
-        <item>serviceinformation</item>
-        <item>light</item>
-        <item>camera</item>
-        <item>mhealth</item>
-        <item>dice</item>
-        <item>sphero</item>
-        <item>temperature</item>
-        <item>drive_controller</item>
-        <item>remote_controller</item>
-    </string-array>
-    <string-array name="http_methods">
-        <item>GET</item>
-        <item>POST</item>
-        <item>PUT</item>
-        <item>DELETE</item>
-        <item>マルチパート</item>
-        <!-- <item>非マルチパート</item> -->
-    </string-array>
-    <string-array name="string_empty">
-        <item></item>
-    </string-array>
 
 </resources>

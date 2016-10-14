@@ -13,7 +13,7 @@ import android.support.v4.app.FragmentActivity;
  * キーワード表示用Activity.
  * @author NTT DOCOMO, INC.
  */
-public class KeywordDialogAcitivty extends FragmentActivity {
+public class KeywordDialogActivity extends FragmentActivity {
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

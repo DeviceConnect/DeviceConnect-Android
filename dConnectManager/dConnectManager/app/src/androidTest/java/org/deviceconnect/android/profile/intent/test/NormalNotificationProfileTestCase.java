@@ -6,18 +6,15 @@
  */
 package org.deviceconnect.android.profile.intent.test;
 
+import android.content.Intent;
 import android.support.test.runner.AndroidJUnit4;
-import org.junit.Before;
-import org.junit.After;
-import org.junit.Test;
-import org.junit.runner.RunWith;
 
 import org.deviceconnect.android.test.plugin.profile.TestNotificationProfileConstants;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 import org.deviceconnect.profile.NotificationProfileConstants;
-
-import android.content.Intent;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 
 /**
@@ -56,12 +53,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
         request.putExtra(NotificationProfileConstants.PARAM_TYPE, type);
         request.putExtra(NotificationProfileConstants.PARAM_BODY, "test_body");
         Intent response = sendRequest(request);
-
-        assertTrue(response.hasExtra(IntentDConnectMessage.EXTRA_RESULT));
-        assertEquals(IntentDConnectMessage.RESULT_OK, 
-                response.getIntExtra(IntentDConnectMessage.EXTRA_RESULT, -1));
-        assertEquals(TestNotificationProfileConstants.NOTIFICATION_ID[type],
-                response.getStringExtra(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
+        assertResultOK(response);
     }
 
     /**
@@ -93,12 +85,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
         request.putExtra(NotificationProfileConstants.PARAM_TYPE, type);
         request.putExtra(NotificationProfileConstants.PARAM_BODY, "test_body");
         Intent response = sendRequest(request);
-
-        assertTrue(response.hasExtra(IntentDConnectMessage.EXTRA_RESULT));
-        assertEquals(IntentDConnectMessage.RESULT_OK, 
-                response.getIntExtra(IntentDConnectMessage.EXTRA_RESULT, -1));
-        assertEquals(TestNotificationProfileConstants.NOTIFICATION_ID[type],
-                response.getStringExtra(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
+        assertResultOK(response);
     }
 
     /**
@@ -130,12 +117,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
         request.putExtra(NotificationProfileConstants.PARAM_TYPE, type);
         request.putExtra(NotificationProfileConstants.PARAM_BODY, "test_body");
         Intent response = sendRequest(request);
-
-        assertTrue(response.hasExtra(IntentDConnectMessage.EXTRA_RESULT));
-        assertEquals(IntentDConnectMessage.RESULT_OK, 
-                response.getIntExtra(IntentDConnectMessage.EXTRA_RESULT, -1));
-        assertEquals(TestNotificationProfileConstants.NOTIFICATION_ID[type],
-                response.getStringExtra(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
+        assertResultOK(response);
     }
 
     /**
@@ -167,12 +149,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
         request.putExtra(NotificationProfileConstants.PARAM_TYPE, type);
         request.putExtra(NotificationProfileConstants.PARAM_BODY, "test_body");
         Intent response = sendRequest(request);
-
-        assertTrue(response.hasExtra(IntentDConnectMessage.EXTRA_RESULT));
-        assertEquals(IntentDConnectMessage.RESULT_OK, 
-                response.getIntExtra(IntentDConnectMessage.EXTRA_RESULT, -1));
-        assertEquals(TestNotificationProfileConstants.NOTIFICATION_ID[type],
-                response.getStringExtra(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
+        assertResultOK(response);
     }
 
     /**
@@ -206,12 +183,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
         request.putExtra(NotificationProfileConstants.PARAM_DIR, "auto");
         request.putExtra(NotificationProfileConstants.PARAM_BODY, "test_body");
         Intent response = sendRequest(request);
-
-        assertTrue(response.hasExtra(IntentDConnectMessage.EXTRA_RESULT));
-        assertEquals(IntentDConnectMessage.RESULT_OK, 
-                response.getIntExtra(IntentDConnectMessage.EXTRA_RESULT, -1));
-        assertEquals(TestNotificationProfileConstants.NOTIFICATION_ID[type],
-                response.getStringExtra(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
+        assertResultOK(response);
     }
 
     /**
@@ -245,12 +217,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
         request.putExtra(NotificationProfileConstants.PARAM_DIR, "rtl");
         request.putExtra(NotificationProfileConstants.PARAM_BODY, "test_body");
         Intent response = sendRequest(request);
-
-        assertTrue(response.hasExtra(IntentDConnectMessage.EXTRA_RESULT));
-        assertEquals(IntentDConnectMessage.RESULT_OK, 
-                response.getIntExtra(IntentDConnectMessage.EXTRA_RESULT, -1));
-        assertEquals(TestNotificationProfileConstants.NOTIFICATION_ID[type],
-                response.getStringExtra(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
+        assertResultOK(response);
     }
 
     /**
@@ -284,12 +251,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
         request.putExtra(NotificationProfileConstants.PARAM_DIR, "ltr");
         request.putExtra(NotificationProfileConstants.PARAM_BODY, "test_body");
         Intent response = sendRequest(request);
-
-        assertTrue(response.hasExtra(IntentDConnectMessage.EXTRA_RESULT));
-        assertEquals(IntentDConnectMessage.RESULT_OK, 
-                response.getIntExtra(IntentDConnectMessage.EXTRA_RESULT, -1));
-        assertEquals(TestNotificationProfileConstants.NOTIFICATION_ID[type],
-                response.getStringExtra(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
+        assertResultOK(response);
     }
 
     /**
@@ -320,12 +282,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
         request.putExtra(NotificationProfileConstants.PARAM_TYPE, 0);
         request.putExtra(NotificationProfileConstants.PARAM_DIR, "auto");
         Intent response = sendRequest(request);
-
-        assertTrue(response.hasExtra(IntentDConnectMessage.EXTRA_RESULT));
-        assertEquals(IntentDConnectMessage.RESULT_OK, 
-                response.getIntExtra(IntentDConnectMessage.EXTRA_RESULT, -1));
-        assertEquals(TestNotificationProfileConstants.NOTIFICATION_ID[0],
-                response.getStringExtra(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
+        assertResultOK(response);
     }
 
     /**
@@ -356,12 +313,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
         request.putExtra(NotificationProfileConstants.PARAM_TYPE, 0);
         request.putExtra(NotificationProfileConstants.PARAM_LANG, "jp-JP");
         Intent response = sendRequest(request);
-
-        assertTrue(response.hasExtra(IntentDConnectMessage.EXTRA_RESULT));
-        assertEquals(IntentDConnectMessage.RESULT_OK, 
-                response.getIntExtra(IntentDConnectMessage.EXTRA_RESULT, -1));
-        assertEquals(TestNotificationProfileConstants.NOTIFICATION_ID[0],
-                response.getStringExtra(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
+        assertResultOK(response);
     }
 
     /**
@@ -394,12 +346,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
         request.putExtra(NotificationProfileConstants.PARAM_DIR, "auto");
         request.putExtra(NotificationProfileConstants.PARAM_LANG, "jp-JP");
         Intent response = sendRequest(request);
-
-        assertTrue(response.hasExtra(IntentDConnectMessage.EXTRA_RESULT));
-        assertEquals(IntentDConnectMessage.RESULT_OK, 
-                response.getIntExtra(IntentDConnectMessage.EXTRA_RESULT, -1));
-        assertEquals(TestNotificationProfileConstants.NOTIFICATION_ID[0],
-                response.getStringExtra(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
+        assertResultOK(response);
     }
 
     /**
@@ -430,12 +377,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
         request.putExtra(NotificationProfileConstants.PARAM_TYPE, 0);
         request.putExtra(NotificationProfileConstants.PARAM_BODY, "test_body");
         Intent response = sendRequest(request);
-
-        assertTrue(response.hasExtra(IntentDConnectMessage.EXTRA_RESULT));
-        assertEquals(IntentDConnectMessage.RESULT_OK, 
-                response.getIntExtra(IntentDConnectMessage.EXTRA_RESULT, -1));
-        assertEquals(TestNotificationProfileConstants.NOTIFICATION_ID[0],
-                response.getStringExtra(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
+        assertResultOK(response);
     }
 
     /**
@@ -468,12 +410,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
         request.putExtra(NotificationProfileConstants.PARAM_DIR, "auto");
         request.putExtra(NotificationProfileConstants.PARAM_BODY, "test_body");
         Intent response = sendRequest(request);
-
-        assertTrue(response.hasExtra(IntentDConnectMessage.EXTRA_RESULT));
-        assertEquals(IntentDConnectMessage.RESULT_OK, 
-                response.getIntExtra(IntentDConnectMessage.EXTRA_RESULT, -1));
-        assertEquals(TestNotificationProfileConstants.NOTIFICATION_ID[0],
-                response.getStringExtra(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
+        assertResultOK(response);
     }
 
     /**
@@ -506,12 +443,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
         request.putExtra(NotificationProfileConstants.PARAM_LANG, "jp-JP");
         request.putExtra(NotificationProfileConstants.PARAM_BODY, "test_body");
         Intent response = sendRequest(request);
-
-        assertTrue(response.hasExtra(IntentDConnectMessage.EXTRA_RESULT));
-        assertEquals(IntentDConnectMessage.RESULT_OK, 
-                response.getIntExtra(IntentDConnectMessage.EXTRA_RESULT, -1));
-        assertEquals(TestNotificationProfileConstants.NOTIFICATION_ID[0],
-                response.getStringExtra(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
+        assertResultOK(response);
     }
 
     /**
@@ -546,12 +478,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
         request.putExtra(NotificationProfileConstants.PARAM_LANG, "jp-JP");
         request.putExtra(NotificationProfileConstants.PARAM_BODY, "test_body");
         Intent response = sendRequest(request);
-
-        assertTrue(response.hasExtra(IntentDConnectMessage.EXTRA_RESULT));
-        assertEquals(IntentDConnectMessage.RESULT_OK, 
-                response.getIntExtra(IntentDConnectMessage.EXTRA_RESULT, -1));
-        assertEquals(TestNotificationProfileConstants.NOTIFICATION_ID[0],
-                response.getStringExtra(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
+        assertResultOK(response);
     }
 
     /**
@@ -582,12 +509,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
         request.putExtra(NotificationProfileConstants.PARAM_TYPE, 0);
         request.putExtra(NotificationProfileConstants.PARAM_TAG, "tag1,tag2,tag3");
         Intent response = sendRequest(request);
-
-        assertTrue(response.hasExtra(IntentDConnectMessage.EXTRA_RESULT));
-        assertEquals(IntentDConnectMessage.RESULT_OK, 
-                response.getIntExtra(IntentDConnectMessage.EXTRA_RESULT, -1));
-        assertEquals(TestNotificationProfileConstants.NOTIFICATION_ID[0],
-                response.getStringExtra(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
+        assertResultOK(response);
     }
 
     /**
@@ -620,12 +542,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
         request.putExtra(NotificationProfileConstants.PARAM_DIR, "auto");
         request.putExtra(NotificationProfileConstants.PARAM_TAG, "tag1,tag2,tag3");
         Intent response = sendRequest(request);
-
-        assertTrue(response.hasExtra(IntentDConnectMessage.EXTRA_RESULT));
-        assertEquals(IntentDConnectMessage.RESULT_OK, 
-                response.getIntExtra(IntentDConnectMessage.EXTRA_RESULT, -1));
-        assertEquals(TestNotificationProfileConstants.NOTIFICATION_ID[0],
-                response.getStringExtra(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
+        assertResultOK(response);
     }
 
     /**
@@ -658,12 +575,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
         request.putExtra(NotificationProfileConstants.PARAM_LANG, "jp-JP");
         request.putExtra(NotificationProfileConstants.PARAM_TAG, "tag1,tag2,tag3");
         Intent response = sendRequest(request);
-
-        assertTrue(response.hasExtra(IntentDConnectMessage.EXTRA_RESULT));
-        assertEquals(IntentDConnectMessage.RESULT_OK, 
-                response.getIntExtra(IntentDConnectMessage.EXTRA_RESULT, -1));
-        assertEquals(TestNotificationProfileConstants.NOTIFICATION_ID[0],
-                response.getStringExtra(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
+        assertResultOK(response);
     }
 
     /**
@@ -698,12 +610,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
         request.putExtra(NotificationProfileConstants.PARAM_LANG, "jp-JP");
         request.putExtra(NotificationProfileConstants.PARAM_TAG, "tag1,tag2,tag3");
         Intent response = sendRequest(request);
-
-        assertTrue(response.hasExtra(IntentDConnectMessage.EXTRA_RESULT));
-        assertEquals(IntentDConnectMessage.RESULT_OK, 
-                response.getIntExtra(IntentDConnectMessage.EXTRA_RESULT, -1));
-        assertEquals(TestNotificationProfileConstants.NOTIFICATION_ID[0],
-                response.getStringExtra(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
+        assertResultOK(response);
     }
 
     /**
@@ -736,12 +643,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
         request.putExtra(NotificationProfileConstants.PARAM_BODY, "test_body");
         request.putExtra(NotificationProfileConstants.PARAM_TAG, "tag1,tag2,tag3");
         Intent response = sendRequest(request);
-
-        assertTrue(response.hasExtra(IntentDConnectMessage.EXTRA_RESULT));
-        assertEquals(IntentDConnectMessage.RESULT_OK, 
-                response.getIntExtra(IntentDConnectMessage.EXTRA_RESULT, -1));
-        assertEquals(TestNotificationProfileConstants.NOTIFICATION_ID[0],
-                response.getStringExtra(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
+        assertResultOK(response);
     }
 
     /**
@@ -776,12 +678,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
         request.putExtra(NotificationProfileConstants.PARAM_BODY, "test_body");
         request.putExtra(NotificationProfileConstants.PARAM_TAG, "tag1,tag2,tag3");
         Intent response = sendRequest(request);
-
-        assertTrue(response.hasExtra(IntentDConnectMessage.EXTRA_RESULT));
-        assertEquals(IntentDConnectMessage.RESULT_OK, 
-                response.getIntExtra(IntentDConnectMessage.EXTRA_RESULT, -1));
-        assertEquals(TestNotificationProfileConstants.NOTIFICATION_ID[0],
-                response.getStringExtra(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
+        assertResultOK(response);
     }
 
     /**
@@ -816,12 +713,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
         request.putExtra(NotificationProfileConstants.PARAM_BODY, "test_body");
         request.putExtra(NotificationProfileConstants.PARAM_TAG, "tag1,tag2,tag3");
         Intent response = sendRequest(request);
-
-        assertTrue(response.hasExtra(IntentDConnectMessage.EXTRA_RESULT));
-        assertEquals(IntentDConnectMessage.RESULT_OK, 
-                response.getIntExtra(IntentDConnectMessage.EXTRA_RESULT, -1));
-        assertEquals(TestNotificationProfileConstants.NOTIFICATION_ID[0],
-                response.getStringExtra(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
+        assertResultOK(response);
     }
 
     /**
@@ -858,12 +750,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
         request.putExtra(NotificationProfileConstants.PARAM_BODY, "test_body");
         request.putExtra(NotificationProfileConstants.PARAM_TAG, "tag1,tag2,tag3");
         Intent response = sendRequest(request);
-
-        assertTrue(response.hasExtra(IntentDConnectMessage.EXTRA_RESULT));
-        assertEquals(IntentDConnectMessage.RESULT_OK, 
-                response.getIntExtra(IntentDConnectMessage.EXTRA_RESULT, -1));
-        assertEquals(TestNotificationProfileConstants.NOTIFICATION_ID[0],
-                response.getStringExtra(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
+        assertResultOK(response);
     }
 
     /**
@@ -894,12 +781,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
         request.putExtra(NotificationProfileConstants.PARAM_TYPE, 0);
         request.putExtra(NotificationProfileConstants.PARAM_ICON, "test.png");
         Intent response = sendRequest(request);
-
-        assertTrue(response.hasExtra(IntentDConnectMessage.EXTRA_RESULT));
-        assertEquals(IntentDConnectMessage.RESULT_OK, 
-                response.getIntExtra(IntentDConnectMessage.EXTRA_RESULT, -1));
-        assertEquals(TestNotificationProfileConstants.NOTIFICATION_ID[0],
-                response.getStringExtra(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
+        assertResultOK(response);
     }
 
     /**
@@ -932,12 +814,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
         request.putExtra(NotificationProfileConstants.PARAM_DIR, "auto");
         request.putExtra(NotificationProfileConstants.PARAM_ICON, "test.png");
         Intent response = sendRequest(request);
-
-        assertTrue(response.hasExtra(IntentDConnectMessage.EXTRA_RESULT));
-        assertEquals(IntentDConnectMessage.RESULT_OK, 
-                response.getIntExtra(IntentDConnectMessage.EXTRA_RESULT, -1));
-        assertEquals(TestNotificationProfileConstants.NOTIFICATION_ID[0],
-                response.getStringExtra(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
+        assertResultOK(response);
     }
 
     /**
@@ -970,12 +847,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
         request.putExtra(NotificationProfileConstants.PARAM_LANG, "jp-JP");
         request.putExtra(NotificationProfileConstants.PARAM_ICON, "test.png");
         Intent response = sendRequest(request);
-
-        assertTrue(response.hasExtra(IntentDConnectMessage.EXTRA_RESULT));
-        assertEquals(IntentDConnectMessage.RESULT_OK, 
-                response.getIntExtra(IntentDConnectMessage.EXTRA_RESULT, -1));
-        assertEquals(TestNotificationProfileConstants.NOTIFICATION_ID[0],
-                response.getStringExtra(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
+        assertResultOK(response);
     }
 
     /**
@@ -1010,12 +882,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
         request.putExtra(NotificationProfileConstants.PARAM_LANG, "jp-JP");
         request.putExtra(NotificationProfileConstants.PARAM_ICON, "test.png");
         Intent response = sendRequest(request);
-
-        assertTrue(response.hasExtra(IntentDConnectMessage.EXTRA_RESULT));
-        assertEquals(IntentDConnectMessage.RESULT_OK, 
-                response.getIntExtra(IntentDConnectMessage.EXTRA_RESULT, -1));
-        assertEquals(TestNotificationProfileConstants.NOTIFICATION_ID[0],
-                response.getStringExtra(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
+        assertResultOK(response);
     }
 
     /**
@@ -1048,12 +915,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
         request.putExtra(NotificationProfileConstants.PARAM_BODY, "test_body");
         request.putExtra(NotificationProfileConstants.PARAM_ICON, "test.png");
         Intent response = sendRequest(request);
-
-        assertTrue(response.hasExtra(IntentDConnectMessage.EXTRA_RESULT));
-        assertEquals(IntentDConnectMessage.RESULT_OK, 
-                response.getIntExtra(IntentDConnectMessage.EXTRA_RESULT, -1));
-        assertEquals(TestNotificationProfileConstants.NOTIFICATION_ID[0],
-                response.getStringExtra(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
+        assertResultOK(response);
     }
 
     /**
@@ -1088,12 +950,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
         request.putExtra(NotificationProfileConstants.PARAM_BODY, "test_body");
         request.putExtra(NotificationProfileConstants.PARAM_ICON, "test.png");
         Intent response = sendRequest(request);
-
-        assertTrue(response.hasExtra(IntentDConnectMessage.EXTRA_RESULT));
-        assertEquals(IntentDConnectMessage.RESULT_OK, 
-                response.getIntExtra(IntentDConnectMessage.EXTRA_RESULT, -1));
-        assertEquals(TestNotificationProfileConstants.NOTIFICATION_ID[0],
-                response.getStringExtra(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
+        assertResultOK(response);
     }
 
     /**
@@ -1128,12 +985,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
         request.putExtra(NotificationProfileConstants.PARAM_BODY, "test_body");
         request.putExtra(NotificationProfileConstants.PARAM_ICON, "test.png");
         Intent response = sendRequest(request);
-
-        assertTrue(response.hasExtra(IntentDConnectMessage.EXTRA_RESULT));
-        assertEquals(IntentDConnectMessage.RESULT_OK, 
-                response.getIntExtra(IntentDConnectMessage.EXTRA_RESULT, -1));
-        assertEquals(TestNotificationProfileConstants.NOTIFICATION_ID[0],
-                response.getStringExtra(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
+        assertResultOK(response);
     }
 
     /**
@@ -1170,12 +1022,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
         request.putExtra(NotificationProfileConstants.PARAM_BODY, "test_body");
         request.putExtra(NotificationProfileConstants.PARAM_ICON, "test.png");
         Intent response = sendRequest(request);
-
-        assertTrue(response.hasExtra(IntentDConnectMessage.EXTRA_RESULT));
-        assertEquals(IntentDConnectMessage.RESULT_OK, 
-                response.getIntExtra(IntentDConnectMessage.EXTRA_RESULT, -1));
-        assertEquals(TestNotificationProfileConstants.NOTIFICATION_ID[0],
-                response.getStringExtra(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
+        assertResultOK(response);
     }
 
     /**
@@ -1208,12 +1055,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
         request.putExtra(NotificationProfileConstants.PARAM_TAG, "tag1,tag2,tag3");
         request.putExtra(NotificationProfileConstants.PARAM_ICON, "test.png");
         Intent response = sendRequest(request);
-
-        assertTrue(response.hasExtra(IntentDConnectMessage.EXTRA_RESULT));
-        assertEquals(IntentDConnectMessage.RESULT_OK, 
-                response.getIntExtra(IntentDConnectMessage.EXTRA_RESULT, -1));
-        assertEquals(TestNotificationProfileConstants.NOTIFICATION_ID[0],
-                response.getStringExtra(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
+        assertResultOK(response);
     }
 
     /**
@@ -1248,12 +1090,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
         request.putExtra(NotificationProfileConstants.PARAM_TAG, "tag1,tag2,tag3");
         request.putExtra(NotificationProfileConstants.PARAM_ICON, "test.png");
         Intent response = sendRequest(request);
-
-        assertTrue(response.hasExtra(IntentDConnectMessage.EXTRA_RESULT));
-        assertEquals(IntentDConnectMessage.RESULT_OK, 
-                response.getIntExtra(IntentDConnectMessage.EXTRA_RESULT, -1));
-        assertEquals(TestNotificationProfileConstants.NOTIFICATION_ID[0],
-                response.getStringExtra(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
+        assertResultOK(response);
     }
 
     /**
@@ -1288,12 +1125,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
         request.putExtra(NotificationProfileConstants.PARAM_TAG, "tag1,tag2,tag3");
         request.putExtra(NotificationProfileConstants.PARAM_ICON, "test.png");
         Intent response = sendRequest(request);
-
-        assertTrue(response.hasExtra(IntentDConnectMessage.EXTRA_RESULT));
-        assertEquals(IntentDConnectMessage.RESULT_OK, 
-                response.getIntExtra(IntentDConnectMessage.EXTRA_RESULT, -1));
-        assertEquals(TestNotificationProfileConstants.NOTIFICATION_ID[0],
-                response.getStringExtra(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
+        assertResultOK(response);
     }
 
     /**
@@ -1330,12 +1162,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
         request.putExtra(NotificationProfileConstants.PARAM_TAG, "tag1,tag2,tag3");
         request.putExtra(NotificationProfileConstants.PARAM_ICON, "test.png");
         Intent response = sendRequest(request);
-
-        assertTrue(response.hasExtra(IntentDConnectMessage.EXTRA_RESULT));
-        assertEquals(IntentDConnectMessage.RESULT_OK, 
-                response.getIntExtra(IntentDConnectMessage.EXTRA_RESULT, -1));
-        assertEquals(TestNotificationProfileConstants.NOTIFICATION_ID[0],
-                response.getStringExtra(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
+        assertResultOK(response);
     }
 
     /**
@@ -1370,12 +1197,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
         request.putExtra(NotificationProfileConstants.PARAM_TAG, "tag1,tag2,tag3");
         request.putExtra(NotificationProfileConstants.PARAM_ICON, "test.png");
         Intent response = sendRequest(request);
-
-        assertTrue(response.hasExtra(IntentDConnectMessage.EXTRA_RESULT));
-        assertEquals(IntentDConnectMessage.RESULT_OK, 
-                response.getIntExtra(IntentDConnectMessage.EXTRA_RESULT, -1));
-        assertEquals(TestNotificationProfileConstants.NOTIFICATION_ID[0],
-                response.getStringExtra(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
+        assertResultOK(response);
     }
 
     /**
@@ -1412,12 +1234,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
         request.putExtra(NotificationProfileConstants.PARAM_TAG, "tag1,tag2,tag3");
         request.putExtra(NotificationProfileConstants.PARAM_ICON, "test.png");
         Intent response = sendRequest(request);
-
-        assertTrue(response.hasExtra(IntentDConnectMessage.EXTRA_RESULT));
-        assertEquals(IntentDConnectMessage.RESULT_OK, 
-                response.getIntExtra(IntentDConnectMessage.EXTRA_RESULT, -1));
-        assertEquals(TestNotificationProfileConstants.NOTIFICATION_ID[0],
-                response.getStringExtra(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
+        assertResultOK(response);
     }
 
     /**
@@ -1454,12 +1271,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
         request.putExtra(NotificationProfileConstants.PARAM_TAG, "tag1,tag2,tag3");
         request.putExtra(NotificationProfileConstants.PARAM_ICON, "test.png");
         Intent response = sendRequest(request);
-
-        assertTrue(response.hasExtra(IntentDConnectMessage.EXTRA_RESULT));
-        assertEquals(IntentDConnectMessage.RESULT_OK, 
-                response.getIntExtra(IntentDConnectMessage.EXTRA_RESULT, -1));
-        assertEquals(TestNotificationProfileConstants.NOTIFICATION_ID[0],
-                response.getStringExtra(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
+        assertResultOK(response);
     }
 
     /**
@@ -1498,12 +1310,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
         request.putExtra(NotificationProfileConstants.PARAM_TAG, "tag1,tag2,tag3");
         request.putExtra(NotificationProfileConstants.PARAM_ICON, "test.png");
         Intent response = sendRequest(request);
-
-        assertTrue(response.hasExtra(IntentDConnectMessage.EXTRA_RESULT));
-        assertEquals(IntentDConnectMessage.RESULT_OK, 
-                response.getIntExtra(IntentDConnectMessage.EXTRA_RESULT, -1));
-        assertEquals(TestNotificationProfileConstants.NOTIFICATION_ID[0],
-                response.getStringExtra(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
+        assertResultOK(response);
     }
 
     /**
@@ -1559,16 +1366,9 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
         request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, NotificationProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, NotificationProfileConstants.ATTRIBUTE_ON_CLICK);
-        request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, getClientId());
+
         Intent response = sendRequest(request);
-
-        assertTrue(response.hasExtra(IntentDConnectMessage.EXTRA_RESULT));
-        assertEquals(IntentDConnectMessage.RESULT_OK, 
-                response.getIntExtra(IntentDConnectMessage.EXTRA_RESULT, -1));
-
-        Intent event = waitForEvent();
-        assertEquals(TestNotificationProfileConstants.NOTIFICATION_ID[0], 
-                event.getStringExtra(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
+        assertResultOK(response);
     }
 
     /**
@@ -1594,7 +1394,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
         request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, NotificationProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, NotificationProfileConstants.ATTRIBUTE_ON_CLICK);
-        request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, getClientId());
+
         Intent response = sendRequest(request);
         assertResultOK(response);
     }
@@ -1623,16 +1423,9 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
         request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, NotificationProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, NotificationProfileConstants.ATTRIBUTE_ON_SHOW);
-        request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, getClientId());
+
         Intent response = sendRequest(request);
-
-        assertTrue(response.hasExtra(IntentDConnectMessage.EXTRA_RESULT));
-        assertEquals(IntentDConnectMessage.RESULT_OK, 
-                response.getIntExtra(IntentDConnectMessage.EXTRA_RESULT, -1));
-
-        Intent event = waitForEvent();
-        assertEquals(TestNotificationProfileConstants.NOTIFICATION_ID[0], 
-                event.getStringExtra(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
+        assertResultOK(response);
     }
 
     /**
@@ -1658,7 +1451,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
         request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, NotificationProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, NotificationProfileConstants.ATTRIBUTE_ON_SHOW);
-        request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, getClientId());
+
         Intent response = sendRequest(request);
         assertResultOK(response);
     }
@@ -1687,16 +1480,9 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
         request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, NotificationProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, NotificationProfileConstants.ATTRIBUTE_ON_CLOSE);
-        request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, getClientId());
+
         Intent response = sendRequest(request);
-
-        assertTrue(response.hasExtra(IntentDConnectMessage.EXTRA_RESULT));
-        assertEquals(IntentDConnectMessage.RESULT_OK, 
-                response.getIntExtra(IntentDConnectMessage.EXTRA_RESULT, -1));
-
-        Intent event = waitForEvent();
-        assertEquals(TestNotificationProfileConstants.NOTIFICATION_ID[0], 
-                event.getStringExtra(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
+        assertResultOK(response);
     }
 
     /**
@@ -1722,7 +1508,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
         request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, NotificationProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, NotificationProfileConstants.ATTRIBUTE_ON_CLOSE);
-        request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, getClientId());
+
         Intent response = sendRequest(request);
         assertResultOK(response);
     }
@@ -1751,16 +1537,9 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
         request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, NotificationProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, NotificationProfileConstants.ATTRIBUTE_ON_ERROR);
-        request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, getClientId());
+
         Intent response = sendRequest(request);
-
-        assertTrue(response.hasExtra(IntentDConnectMessage.EXTRA_RESULT));
-        assertEquals(IntentDConnectMessage.RESULT_OK, 
-                response.getIntExtra(IntentDConnectMessage.EXTRA_RESULT, -1));
-
-        Intent event = waitForEvent();
-        assertEquals(TestNotificationProfileConstants.NOTIFICATION_ID[0], 
-                event.getStringExtra(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
+        assertResultOK(response);
     }
 
     /**
@@ -1786,7 +1565,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
         request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, NotificationProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, NotificationProfileConstants.ATTRIBUTE_ON_ERROR);
-        request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, getClientId());
+
         Intent response = sendRequest(request);
         assertResultOK(response);
     }

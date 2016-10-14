@@ -33,6 +33,7 @@ import org.deviceconnect.android.profile.DConnectProfileProvider;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.android.profile.spec.DConnectPluginSpec;
+import org.deviceconnect.android.profile.spec.DConnectProfileSpec;
 import org.deviceconnect.android.service.DConnectService;
 import org.deviceconnect.android.service.DConnectServiceManager;
 import org.deviceconnect.android.service.DConnectServiceProvider;
@@ -97,7 +98,6 @@ public abstract class DConnectMessageService extends Service implements DConnect
         new AuthorizationRequestConverter(),
         new LowerCaseConverter()
     };
-
     /**
      * SystemProfileを取得する.
      * SystemProfileは必須実装となるため、本メソッドでSystemProfileのインスタンスを渡すこと。
@@ -141,6 +141,7 @@ public abstract class DConnectMessageService extends Service implements DConnect
     public void onCreate() {
         super.onCreate();
         EventManager.INSTANCE.setController(getEventCacheController());
+
 
         mPluginSpec = loadPluginSpec();
 
@@ -240,7 +241,7 @@ public abstract class DConnectMessageService extends Service implements DConnect
         }
 
         if (checkManagerEventTransmitDisconnect(action)) {
-            onManagerEventTransmitDisconnected(intent.getStringExtra(IntentDConnectMessage.EXTRA_SESSION_KEY));
+            onManagerEventTransmitDisconnected(intent.getStringExtra(IntentDConnectMessage.EXTRA_ORIGIN));
         }
 
         if (checkDevicePluginReset(action)) {
@@ -359,7 +360,7 @@ public abstract class DConnectMessageService extends Service implements DConnect
         }
     }
 
-    private boolean executeRequest(final String profileName, final Intent request,
+    protected boolean executeRequest(final String profileName, final Intent request,
                                    final Intent response) {
         DConnectProfile profile = getProfile(profileName);
         if (profile == null) {
@@ -406,7 +407,11 @@ public abstract class DConnectMessageService extends Service implements DConnect
         }
         String profileName = profile.getProfileName().toLowerCase();
         profile.setContext(this);
-        profile.setProfileSpec(mPluginSpec.findProfileSpec(profileName));
+        DConnectProfileSpec profileSpec = mPluginSpec.findProfileSpec(profileName);
+        if (profileSpec != null) {
+            profile.setProfileSpec(profileSpec);
+        }
+
         //XXXX パスの大文字小文字の無視
         mProfileMap.put(profileName, profile);
     }
@@ -518,6 +523,15 @@ public abstract class DConnectMessageService extends Service implements DConnect
         return mUseLocalOAuth;
     }
 
+    public boolean isIgnoredProfile(final String profileName) {
+        for (String name : IGNORE_PROFILES) {
+            if (name.equalsIgnoreCase(profileName)) { // MEMO パスの大文字小文字を無視
+                return true;
+            }
+        }
+        return false;
+    }
+
     /**
      * Device Connect Managerがアンインストールされた時に呼ばれる処理部.
      */
@@ -534,9 +548,9 @@ public abstract class DConnectMessageService extends Service implements DConnect
 
     /**
      * Device Connect ManagerのEvent送信経路切断通知を受信した時に呼ばれる処理部.
-     * @param sessionKey セッションキー
+     * @param origin オリジン
      */
-    protected void onManagerEventTransmitDisconnected(String sessionKey) {
+    protected void onManagerEventTransmitDisconnected(final String origin) {
         mLogger.info("SDK : onManagerEventTransmitDisconnected");
     }
 

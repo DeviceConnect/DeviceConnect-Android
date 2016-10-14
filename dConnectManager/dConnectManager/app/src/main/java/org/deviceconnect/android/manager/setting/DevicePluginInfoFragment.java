@@ -29,8 +29,8 @@ import android.widget.TextView;
 import org.deviceconnect.android.localoauth.DevicePluginXmlProfile;
 import org.deviceconnect.android.localoauth.DevicePluginXmlProfileLocale;
 import org.deviceconnect.android.localoauth.DevicePluginXmlUtil;
+import org.deviceconnect.android.manager.DConnectApplication;
 import org.deviceconnect.android.manager.DevicePlugin;
-import org.deviceconnect.android.manager.DevicePluginManager;
 import org.deviceconnect.android.manager.R;
 import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
@@ -167,12 +167,11 @@ public class DevicePluginInfoFragment extends Fragment {
      * Open device plug-in's settings.
      */
     private void openSettings() {
-        DevicePluginManager mgr = new DevicePluginManager(getActivity(), null);
-        mgr.createDevicePluginList();
-        List<DevicePlugin> plugins = mgr.getDevicePlugins();
+        DConnectApplication app = (DConnectApplication) getActivity().getApplication();
+        List<DevicePlugin> plugins = app.getDevicePluginManager().getDevicePlugins();
         for (DevicePlugin plugin : plugins) {
             if (mPackageName.equals(plugin.getPackageName())
-                    && plugin.getServiceId() != null) {
+                    && plugin.getPluginId() != null) {
                 Intent request = new Intent();
                 request.setComponent(plugin.getComponentName());
                 request.setAction(IntentDConnectMessage.ACTION_PUT);
@@ -180,7 +179,7 @@ public class DevicePluginInfoFragment extends Fragment {
                 SystemProfile.setProfile(request, SystemProfile.PROFILE_NAME);
                 SystemProfile.setInterface(request, SystemProfile.INTERFACE_DEVICE);
                 SystemProfile.setAttribute(request, SystemProfile.ATTRIBUTE_WAKEUP);
-                request.putExtra("pluginId", plugin.getServiceId());
+                request.putExtra("pluginId", plugin.getPluginId());
                 getActivity().sendBroadcast(request);
                 break;
             }
@@ -205,20 +204,17 @@ public class DevicePluginInfoFragment extends Fragment {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                DevicePluginManager mgr = new DevicePluginManager(getActivity(), null);
-                mgr.createDevicePluginList();
-                List<DevicePlugin> plugins = mgr.getDevicePlugins();
+                DConnectApplication app = (DConnectApplication) getActivity().getApplication();
+                List<DevicePlugin> plugins = app.getDevicePluginManager().getDevicePlugins();
                 for (DevicePlugin plugin : plugins) {
                     if (mPackageName.equals(plugin.getPackageName())
                             && plugin.getStartServiceClassName() != null
-                            && plugin.getServiceId() != null) {
+                            && plugin.getPluginId() != null) {
                         restartDevicePlugin(plugin);
                         break;
                     }
                 }
-                if (dialog.isResumed()) {
-                    dialog.dismiss();
-                }
+                dialog.dismiss();
             }
         }).start();
     }
@@ -232,7 +228,7 @@ public class DevicePluginInfoFragment extends Fragment {
         Intent request = new Intent();
         request.setComponent(plugin.getComponentName());
         request.setAction(IntentDConnectMessage.ACTION_DEVICEPLUGIN_RESET);
-        request.putExtra("pluginId", plugin.getServiceId());
+        request.putExtra("pluginId", plugin.getPluginId());
         getActivity().sendBroadcast(request);
     }
 

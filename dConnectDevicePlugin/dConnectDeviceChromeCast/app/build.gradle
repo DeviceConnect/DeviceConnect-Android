@@ -1,20 +1,26 @@
 apply plugin: 'com.android.application'
 
-dependencies {
-    compile fileTree(include: '*.jar', dir: 'libs')
-    compile project(':dconnect-device-plugin-sdk')
-    compile 'com.android.support:mediarouter-v7:20.0.+'
-    compile 'com.google.android.gms:play-services:7.0.+'
-}
-
 android {
-
-    compileSdkVersion 19
+    compileSdkVersion 23
     buildToolsVersion '23.0.0'
 
+    def getVersionName = { ->
+        def version
+        if (System.getProperty('os.name').toLowerCase().contains('windows')) {
+            version = ["cmd", "/c", "git describe --tags"].execute().in.text.trim()
+        } else {
+            version = ["sh", "-c", "git describe --tags"].execute().in.text.trim()
+        }
+        version = version.empty ? "2.0.0" : version
+        return "${version}"
+    }
+
     defaultConfig {
+        applicationId "org.deviceconnect.android.deviceplugin.chromecast"
         minSdkVersion 14
-        targetSdkVersion 19
+        targetSdkVersion 23
+        versionCode 1
+        versionName getVersionName()
     }
 
     signingConfigs {
@@ -42,4 +48,11 @@ android {
     }
 }
 
+dependencies {
+    compile fileTree(include: '*.jar', dir: 'libs')
+    compile project(':dconnect-device-plugin-sdk')
+    compile 'com.android.support:appcompat-v7:23.4.0'
+    compile 'com.android.support:mediarouter-v7:23.4.0'
+    compile 'com.google.android.gms:play-services-cast-framework:9.4.0'
+}
 

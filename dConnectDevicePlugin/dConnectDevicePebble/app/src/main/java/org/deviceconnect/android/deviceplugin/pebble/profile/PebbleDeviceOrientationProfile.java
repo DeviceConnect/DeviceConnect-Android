@@ -36,9 +36,6 @@ public class PebbleDeviceOrientationProfile extends DeviceOrientationProfile {
     /** milli G を m/s^2 の値にする係数. */
     private static final double G_TO_MS2_COEFFICIENT =  9.81 / 1000.0;
 
-    /** sessionKeyが設定されていないときのエラーメッセージ. */
-    private static final String ERROR_MESSAGE = "sessionKey must be specified.";
-
     /** Orientationデータをキャッシュする変数. */
     private Bundle mCacheOrientation;
 
@@ -74,33 +71,27 @@ public class PebbleDeviceOrientationProfile extends DeviceOrientationProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            String sessionKey = getSessionKey(request);
-            if (sessionKey == null) {
-                MessageUtils.setInvalidRequestParameterError(response, ERROR_MESSAGE);
-                return true;
-            } else {
-                startSensor(new OnSendCommandListener() {
-                    @Override
-                    public void onReceivedData(final PebbleDictionary dic) {
-                        if (dic == null) {
-                            MessageUtils.setUnknownError(response);
+            startSensor(new OnSendCommandListener() {
+                @Override
+                public void onReceivedData(final PebbleDictionary dic) {
+                    if (dic == null) {
+                        MessageUtils.setUnknownError(response);
+                    } else {
+                        // イベントリスナーを登録
+                        EventError error = EventManager.INSTANCE.addEvent(request);
+                        if (error == EventError.NONE) {
+                            setResult(response, DConnectMessage.RESULT_OK);
+                        } else if (error == EventError.INVALID_PARAMETER) {
+                            MessageUtils.setInvalidRequestParameterError(response);
                         } else {
-                            // イベントリスナーを登録
-                            EventError error = EventManager.INSTANCE.addEvent(request);
-                            if (error == EventError.NONE) {
-                                setResult(response, DConnectMessage.RESULT_OK);
-                            } else if (error == EventError.INVALID_PARAMETER) {
-                                MessageUtils.setInvalidRequestParameterError(response);
-                            } else {
-                                MessageUtils.setUnknownError(response);
-                            }
+                            MessageUtils.setUnknownError(response);
                         }
-                        sendResponse(response);
                     }
-                });
-                // レスポンスを非同期で返却するので、falseを返す
-                return false;
-            }
+                    sendResponse(response);
+                }
+            });
+            // レスポンスを非同期で返却するので、falseを返す
+            return false;
         }
     };
 
@@ -112,23 +103,17 @@ public class PebbleDeviceOrientationProfile extends DeviceOrientationProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            String sessionKey = getSessionKey(request);
-            if (sessionKey == null) {
-                MessageUtils.setInvalidRequestParameterError(response, ERROR_MESSAGE);
-                return true;
+            stopSensor();
+            // イベントリスナーを解除
+            EventError error = EventManager.INSTANCE.removeEvent(request);
+            if (error == EventError.NONE) {
+                setResult(response, DConnectMessage.RESULT_OK);
+            } else if (error == EventError.INVALID_PARAMETER) {
+                MessageUtils.setInvalidRequestParameterError(response);
             } else {
-                stopSensor();
-                // イベントリスナーを解除
-                EventError error = EventManager.INSTANCE.removeEvent(request);
-                if (error == EventError.NONE) {
-                    setResult(response, DConnectMessage.RESULT_OK);
-                } else if (error == EventError.INVALID_PARAMETER) {
-                    MessageUtils.setInvalidRequestParameterError(response);
-                } else {
-                    MessageUtils.setUnknownError(response);
-                }
-                return true;
+                MessageUtils.setUnknownError(response);
             }
+            return true;
         }
     };
 

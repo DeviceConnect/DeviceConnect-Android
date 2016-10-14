@@ -145,23 +145,23 @@ public class HvcCommManager {
      * @param detectKind detectKind
      * @param requestParams request parameters.
      * @param response response
-     * @param sessionKey sessionKey
+     * @param origin origin
      */
     public void registerDetectEvent(final HumanDetectKind detectKind, final HumanDetectRequestParams requestParams,
-            final Intent response, final String sessionKey) {
+            final Intent response, final String origin) {
         if (DEBUG) {
-            Log.d(TAG, "registerDetectEvent() detectKind:" + detectKind.toString() + " sessionKey:" + sessionKey);
+            Log.d(TAG, "registerDetectEvent() detectKind:" + detectKind.toString() + " origin:" + origin);
         }
         
         // check already event register info registered.
-        if (HumanDetectEventUtils.search(mEventArray, detectKind, sessionKey) != null) {
+        if (HumanDetectEventUtils.search(mEventArray, detectKind, origin) != null) {
             response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
             mContext.sendResponse(response);
             return;
         }
 
         // store event register info.
-        HumanDetectEvent event = new HumanDetectEvent(detectKind, sessionKey, requestParams, response);
+        HumanDetectEvent event = new HumanDetectEvent(detectKind, origin, requestParams, response);
         mEventArray.add(event);
         
         // response(success)
@@ -174,15 +174,15 @@ public class HvcCommManager {
      * unregister detect event.
      * 
      * @param detectKind detectKind
-     * @param sessionKey sessionKey
+     * @param origin origin
      */
-    public void unregisterDetectEvent(final HumanDetectKind detectKind, final String sessionKey) {
+    public void unregisterDetectEvent(final HumanDetectKind detectKind, final String origin) {
         if (DEBUG) {
-            Log.d(TAG, "unregisterDetectEvent() detectKind:" + detectKind.toString() + " sessionKey:" + sessionKey);
+            Log.d(TAG, "unregisterDetectEvent() detectKind:" + detectKind.toString() + " origin:" + origin);
         }
 
         // remove event register info.
-        HumanDetectEventUtils.remove(mEventArray, detectKind, sessionKey);
+        HumanDetectEventUtils.remove(mEventArray, detectKind, origin);
     }
 
     /**
@@ -196,10 +196,10 @@ public class HvcCommManager {
 
     /**
      * remove detect event.
-     * @param sessionKey sessionKey
+     * @param origin origin
      */
-    public void removeDetectEvent(final String sessionKey) {
-        HumanDetectEventUtils.remove(mEventArray, sessionKey);
+    public void removeDetectEvent(final String origin) {
+        HumanDetectEventUtils.remove(mEventArray, origin);
     }
 
     /**
@@ -213,15 +213,15 @@ public class HvcCommManager {
     }
 
     /**
-     * get event interval by detectKind and sessionKey.
+     * get event interval by detectKind and origin.
      * 
      * @param detectKind detect kind
-     * @param sessionKey session key
+     * @param origin session key
      * @return not null: event interval / null: event not fuond
      */
-    public Long getEventInterval(final HumanDetectKind detectKind, final String sessionKey) {
+    public Long getEventInterval(final HumanDetectKind detectKind, final String origin) {
         for (HumanDetectEvent event : mEventArray) {
-            if (event.getSessionKey().equals(sessionKey) && event.getKind() == detectKind) {
+            if (event.getOrigin().equals(origin) && event.getKind() == detectKind) {
                 return event.getRequestParams().getEvent().getInterval();
             }
         }

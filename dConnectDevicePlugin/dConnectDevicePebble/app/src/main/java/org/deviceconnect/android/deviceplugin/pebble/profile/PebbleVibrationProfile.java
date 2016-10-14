@@ -37,7 +37,12 @@ public class PebbleVibrationProfile extends VibrationProfile {
             String pattern = getPattern(request);
 
             // リクエスト作成
-            byte[] p = PebbleManager.convertVibrationPattern(pattern);
+            byte[] p;
+            try {
+                p = PebbleManager.convertVibrationPattern(pattern);
+            } catch (NumberFormatException e) {
+                p = null;
+            }
             PebbleDictionary dic = new PebbleDictionary();
             dic.addInt8(PebbleManager.KEY_PROFILE, (byte) PebbleManager.PROFILE_VIBRATION);
             dic.addInt8(PebbleManager.KEY_ATTRIBUTE, (byte) PebbleManager.VIBRATION_ATTRIBUTE_VIBRATE);

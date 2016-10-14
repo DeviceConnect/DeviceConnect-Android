@@ -31,7 +31,7 @@ public class DConnectLocalOAuth {
     /** DBのファイル名を定義. */
     private static final String DATABASE_NAME = "local_oauth_deviceplugin.db";
     /** DBのバージョンを定義. */
-    private static final int DATABASE_VERSION = 3;
+    private static final int DATABASE_VERSION = 4;
     /** OAuthデータ用のテーブル名を定義. */
     private static final String OAUTH_DATA_TABLE_NAME = "oauth_data_tbl";
     /** アクセストークン用のテーブル名を定義. */
@@ -105,15 +105,16 @@ public class DConnectLocalOAuth {
 
     /**
      * Local OAuthデータを追加する.
+     * @param origin リクエスト元のオリジン
      * @param serviceId サービスID
      * @param clientId クライアントID
-     * @param clientSecret クライアントシークレット
      */
-    public synchronized void setOAuthData(final String serviceId, final String clientId, final String clientSecret) {
-        mLogger.fine("setOAuthData[serviceId: " + serviceId + ", clinetId: " 
-                + clientId + ", clientSecret: " + clientSecret + "]");
+    public synchronized void setOAuthData(final String origin, final String serviceId, final String clientId) {
+        mLogger.fine("setOAuthData[origin: " + origin + ", serviceId: " + serviceId + ", clinetId: "
+                + clientId + "]");
 
         ContentValues values = new ContentValues();
+        values.put(OAuthDataColumns.ORIGIN, origin);
         values.put(OAuthDataColumns.SERVICE_ID, serviceId);
         values.put(OAuthDataColumns.CLIENT_ID, clientId);
         SQLiteDatabase db = mDBHelper.getWritableDatabase();
@@ -127,12 +128,13 @@ public class DConnectLocalOAuth {
     /**
      * 指定されたサービスIDのLocal OAuthデータを取得する.
      * 指定されたサービスIDに対応するデータが存在しない場合はnullを返却する.
+     * @param origin リクエスト元のオリジン
      * @param serviceId サービスID
      * @return Local OAuthデータ
      */
-    public synchronized OAuthData getOAuthData(final String serviceId) {
-        String select = OAuthDataColumns.SERVICE_ID + "=?";
-        String[] selectArgs = {serviceId};
+    public synchronized OAuthData getOAuthData(final String origin, final String serviceId) {
+        String select = OAuthDataColumns.ORIGIN + "=? and " + OAuthDataColumns.SERVICE_ID + "=?";
+        String[] selectArgs = {origin, serviceId};
         OAuthData client =  null;
         SQLiteDatabase db = mDBHelper.getReadableDatabase();
         Cursor cs = db.query(OAUTH_DATA_TABLE_NAME, null, select, selectArgs, null, null, null);
@@ -149,11 +151,12 @@ public class DConnectLocalOAuth {
 
     /**
      * 指定されたサービスIDのLocal OAuthのデータを削除する.
+     * @param origin リクエスト元のオリジン
      * @param serviceId サービスID
      * @return 削除に成功した場合はtrue、それ以外はfalse
      */
-    public boolean deleteOAuthData(final String serviceId) {
-        OAuthData oauth = getOAuthData(serviceId);
+    public boolean deleteOAuthData(final String origin, final String serviceId) {
+        OAuthData oauth = getOAuthData(origin, serviceId);
         if (oauth == null) {
             return false;
         }
@@ -217,6 +220,7 @@ public class DConnectLocalOAuth {
                     client.mId = cs.getInt(cs.getColumnIndex(OAuthDataColumns._ID));
                     client.mServiceId = cs.getString(cs.getColumnIndex(OAuthDataColumns.SERVICE_ID));
                     client.mClientId = cs.getString(cs.getColumnIndex(OAuthDataColumns.CLIENT_ID));
+                    client.mOrigin = cs.getString(cs.getColumnIndex(OAuthDataColumns.ORIGIN));
                     datas.add(client);
                 } while (cs.moveToNext());
             }
@@ -340,6 +344,7 @@ public class DConnectLocalOAuth {
         cd.mId = cs.getInt(cs.getColumnIndex(OAuthDataColumns._ID));
         cd.mServiceId = cs.getString(cs.getColumnIndex(OAuthDataColumns.SERVICE_ID));
         cd.mClientId = cs.getString(cs.getColumnIndex(OAuthDataColumns.CLIENT_ID));
+        cd.mOrigin = cs.getString(cs.getColumnIndex(OAuthDataColumns.ORIGIN));
         return cd;
     }
     /**
@@ -349,10 +354,10 @@ public class DConnectLocalOAuth {
     public class OAuthData {
         /** 識別子. */
         private int mId;
+        /** リクエスト元のオリジン. */
+        private String mOrigin;
         /** クライアントID. */
         private String mClientId;
-        /** クライアントシークレット. */
-        private String mClientSecret;
         /** サービスID. */
         private String mServiceId;
         /**
@@ -384,18 +389,18 @@ public class DConnectLocalOAuth {
             this.mClientId = clientId;
         }
         /**
-         * クライアントシークレットを取得する.
-         * @return クライアントシークレット
+         * リクエスト元のオリジンを取得する.
+         * @return オリジン
          */
-        public String getClientSecret() {
-            return mClientSecret;
+        public String getOrigin() {
+            return mOrigin;
         }
         /**
-         * クライアントシークレットを設定する.
-         * @param clientSecret クライアントシークレット
+         * リクエスト元のオリジンを設定する.
+         * @param origin オリジン
          */
-        public void setClientSecret(final String clientSecret) {
-            this.mClientSecret = clientSecret;
+        public void setOrigin(final String origin) {
+            this.mOrigin = origin;
         }
         /**
          * サービスIDを取得する.
@@ -457,6 +462,7 @@ public class DConnectLocalOAuth {
             StringBuilder sql = new StringBuilder();
             sql.append("CREATE TABLE " + OAUTH_DATA_TABLE_NAME);
             sql.append("(_id INTEGER PRIMARY KEY, ");
+            sql.append(OAuthDataColumns.ORIGIN + " TEXT NOT NULL,");
             sql.append(OAuthDataColumns.SERVICE_ID + " TEXT NOT NULL,");
             sql.append(OAuthDataColumns.CLIENT_ID + " TEXT NOT NULL");
             sql.append(");");
@@ -498,6 +504,11 @@ public class DConnectLocalOAuth {
          * サービスID.
          */
         public static final String SERVICE_ID = "service_id";
+
+        /**
+         * リクエスト元のオリジン.
+         */
+        public static final String ORIGIN = "origin";
     }
 
     /**

@@ -286,6 +286,7 @@ public class IRKitDBHelper {
             devices.add(device);
             next = cursor.moveToNext();
         }
+        cursor.close();
         return devices;
     }
 
@@ -315,6 +316,7 @@ public class IRKitDBHelper {
             devices.add(device);
             next = cursor.moveToNext();
         }
+        cursor.close();
         return devices;
     }
 
@@ -354,6 +356,7 @@ public class IRKitDBHelper {
             profiles.add(p);
             next = cursor.moveToNext();
         }
+        cursor.close();
         return profiles;
     }
 

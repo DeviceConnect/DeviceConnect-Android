@@ -6,13 +6,13 @@
  */
 package org.deviceconnect.android.deviceplugin.chromecast.setting;
 
-import org.deviceconnect.android.deviceplugin.chromecast.R;
-
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
+import org.deviceconnect.android.deviceplugin.chromecast.R;
 
 /**
  * チュートリアル画面.

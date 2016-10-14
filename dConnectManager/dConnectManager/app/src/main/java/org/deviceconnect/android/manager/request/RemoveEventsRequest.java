@@ -6,15 +6,16 @@
  */
 package org.deviceconnect.android.manager.request;
 
+import android.content.Intent;
+import android.util.SparseArray;
+
+import org.deviceconnect.android.manager.DevicePlugin;
+import org.deviceconnect.android.profile.DConnectProfile;
+import org.deviceconnect.message.intent.message.IntentDConnectMessage;
+
 import java.util.List;
 import java.util.UUID;
 import java.util.logging.Logger;
-
-import org.deviceconnect.android.manager.DevicePlugin;
-import org.deviceconnect.message.intent.message.IntentDConnectMessage;
-
-import android.content.Intent;
-import android.util.SparseArray;
 
 /**
  * 各デバイスプラグインにイベント解除要求を行う.
@@ -71,6 +72,10 @@ public class RemoveEventsRequest extends DConnectRequest {
 
             // 送信用のIntentを作成
             Intent request = createRequestMessage(mRequest, plugin);
+            String sessionKey = DConnectProfile.getSessionKey(request);
+            if (sessionKey != null) {
+                mPluginMgr.appendPluginIdToSessionKey(request, plugin);
+            }
 
             // リクエストコード作成
             int requestCode = UUID.randomUUID().hashCode();

@@ -355,6 +355,9 @@ public enum HVCManager {
             mEventList.add(serviceId);
         }
         HVCCameraInfo camera = mServices.get(serviceId);
+        if (camera == null) {
+            return;
+        }
         camera.setBodyEvent(l);
         mType = CMD_OKAO_EXECUTE;
         if (BuildConfig.DEBUG) {
@@ -376,6 +379,9 @@ public enum HVCManager {
             mEventList.add(serviceId);
         }
         HVCCameraInfo camera = mServices.get(serviceId);
+        if (camera == null) {
+            return;
+        }
         camera.setHandEvent(l);
         mType = CMD_OKAO_EXECUTE;
         sendCommand(OKAO_EXECUTE, interval);
@@ -397,6 +403,9 @@ public enum HVCManager {
         }
 
         HVCCameraInfo camera = mServices.get(serviceId);
+        if (camera == null) {
+            return;
+        }
         camera.setOptions(options);
         camera.setFaceEvent(l);
         mType = CMD_OKAO_EXECUTE;
@@ -415,6 +424,9 @@ public enum HVCManager {
         mOneShotList.add(serviceId);
 
         HVCCameraInfo camera = mServices.get(serviceId);
+        if (camera == null) {
+            return;
+        }
         switch (kind) {
             case BODY:
                 camera.setBodyGet(l);
@@ -463,6 +475,9 @@ public enum HVCManager {
                 .append(swapLSBandMSB(f)).append("F401");
         mOneShotList.add(serviceId);
         HVCCameraInfo camera = mServices.get(serviceId);
+        if (camera == null) {
+            return;
+        }
         camera.setThresholdSet(l);
         mType = CMD_SET_THRESHOLD;
         if (BuildConfig.DEBUG) {
@@ -518,6 +533,9 @@ public enum HVCManager {
                 .append(swapLSBandMSB(fMin)).append(swapLSBandMSB(fMax));
         mOneShotList.add(serviceId);
         HVCCameraInfo camera = mServices.get(serviceId);
+        if (camera == null) {
+            return;
+        }
         camera.setSizeSet(l);
         mType = CMD_SET_SIZE;
         if (BuildConfig.DEBUG) {
@@ -532,6 +550,9 @@ public enum HVCManager {
      */
     public synchronized void removeBodyDetectEventListener(final String serviceId) {
         HVCCameraInfo camera = mServices.get(serviceId);
+        if (camera == null) {
+            return;
+        }
         camera.setBodyEvent(null);
         removeEventList(serviceId, camera);
     }
@@ -542,6 +563,9 @@ public enum HVCManager {
      */
     public synchronized void removeHandDetectEventListener(final String serviceId) {
         HVCCameraInfo camera = mServices.get(serviceId);
+        if (camera == null) {
+            return;
+        }
         camera.setHandEvent(null);
         removeEventList(serviceId, camera);
     }
@@ -552,6 +576,9 @@ public enum HVCManager {
      */
     public synchronized void removeFaceDetectEventListener(final String serviceId) {
         HVCCameraInfo camera = mServices.get(serviceId);
+        if (camera == null) {
+            return;
+        }
         camera.setFaceEvent(null);
         removeEventList(serviceId, camera);
     }
@@ -562,6 +589,9 @@ public enum HVCManager {
      */
     public synchronized void removeFaceRecognizeEventListener(final String serviceId) {
         HVCCameraInfo camera = mServices.get(serviceId);
+        if (camera == null) {
+            return;
+        }
         camera.setFaceRecognizeEvent(null);
         removeEventList(serviceId, camera);
     }

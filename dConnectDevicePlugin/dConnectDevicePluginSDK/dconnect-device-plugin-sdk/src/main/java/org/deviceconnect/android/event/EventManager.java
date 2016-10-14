@@ -12,6 +12,7 @@ import android.content.Intent;
 import org.deviceconnect.android.event.cache.EventCacheController;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.message.DConnectMessage;
+import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
 import java.util.List;
 
@@ -71,11 +72,11 @@ public enum EventManager {
         String inter = request.getStringExtra(DConnectMessage.EXTRA_INTERFACE);
         String attribute = request.getStringExtra(DConnectMessage.EXTRA_ATTRIBUTE);
         String accessToken = request.getStringExtra(DConnectMessage.EXTRA_ACCESS_TOKEN);
-        String sessionKey = request.getStringExtra(DConnectMessage.EXTRA_SESSION_KEY);
+        String origin = request.getStringExtra(IntentDConnectMessage.EXTRA_ORIGIN);
         ComponentName name = request.getParcelableExtra(DConnectMessage.EXTRA_RECEIVER);
         
         Event event = new Event();
-        event.setSessionKey(sessionKey);
+        event.setOrigin(origin);
         event.setAccessToken(accessToken);
         // XXXX パスの大文字小文字を無視
         event.setProfile(profile != null ? profile.toLowerCase() : null);
@@ -99,7 +100,24 @@ public enum EventManager {
         Event event = createEvent(request);
         return mController.addEvent(event);
     }
-    
+
+    public Event getEvent(final Intent request) {
+        checkState();
+
+        ComponentName receiver = request.getParcelableExtra(DConnectMessage.EXTRA_RECEIVER);
+        String receiverName = receiver != null ? receiver.flattenToString() : null;
+        String profile = request.getStringExtra(DConnectMessage.EXTRA_PROFILE);
+        String inter = request.getStringExtra(DConnectMessage.EXTRA_INTERFACE);
+        String attribute = request.getStringExtra(DConnectMessage.EXTRA_ATTRIBUTE);
+        // XXXX パスの大文字小文字を無視
+        return mController.getEvent(request.getStringExtra(DConnectMessage.EXTRA_SERVICE_ID),
+                profile != null ? profile.toLowerCase() : null,
+                inter != null ? inter.toLowerCase() : null,
+                attribute != null ? attribute.toLowerCase() : null,
+                request.getStringExtra(IntentDConnectMessage.EXTRA_ORIGIN),
+                receiverName);
+    }
+
     /**
      * 指定されたイベント解除用のリクエストからイベントデータを解除する.
      * 
@@ -107,19 +125,26 @@ public enum EventManager {
      * @return 処理結果
      */
     public EventError removeEvent(final Intent request) {
-        Event event = createEvent(request);
+        return removeEvent(createEvent(request));
+    }
+
+    public EventError removeEvent(final Event event) {
+        checkState();
+        if (event == null) {
+            throw new IllegalArgumentException("Event is null.");
+        }
         return mController.removeEvent(event);
     }
-    
+
     /**
-     * 指定されたセッションキーに紐づくイベント情報を解除する.
+     * 指定されたオリジンに紐づくイベント情報を解除する.
      * 
-     * @param sessionKey セッションキー
+     * @param origin オリジン
      * @return 削除に成功した場合はtrue、その他はfalseを返す。
      */
-    public boolean removeEvents(final String sessionKey) {
+    public boolean removeEvents(final String origin) {
         checkState();
-        return mController.removeEvents(sessionKey);
+        return mController.removeEvents(origin);
     }
     
     /**
@@ -197,7 +222,18 @@ public enum EventManager {
         checkState();
         return getEventList(profile, null, attribute);
     }
-    
+
+    /**
+     * 指定されたAPIに紐づくイベント情報の一覧を取得する.
+     *
+     * @param sessionKey セッションキー
+     * @return イベントの一覧
+     */
+    public List<Event> getEventList(final String sessionKey) {
+        checkState();
+        return mController.getEvents(sessionKey);
+    }
+
     /**
      * イベントデータからイベントメッセージ用のIntentを生成する.
      * 取得したIntentに適宜イベントオブジェクトを設定し送信すること。
@@ -211,7 +247,7 @@ public enum EventManager {
         message.putExtra(DConnectMessage.EXTRA_PROFILE, event.getProfile());
         message.putExtra(DConnectMessage.EXTRA_INTERFACE, event.getInterface());
         message.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, event.getAttribute());
-        message.putExtra(DConnectMessage.EXTRA_SESSION_KEY, event.getSessionKey());
+        message.putExtra(DConnectMessage.EXTRA_ACCESS_TOKEN, event.getAccessToken());
         ComponentName cn = ComponentName.unflattenFromString(event.getReceiverName());
         message.setComponent(cn);
         return message;

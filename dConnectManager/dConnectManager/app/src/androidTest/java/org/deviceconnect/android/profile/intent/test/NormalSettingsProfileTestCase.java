@@ -52,8 +52,6 @@ public class NormalSettingsProfileTestCase extends IntentDConnectTestCase
         Intent response = sendRequest(request);
 
         assertResultOK(response);
-        assertEquals(TestSettingsProfileConstants.LEVEL,
-                response.getDoubleExtra(SettingsProfileConstants.PARAM_LEVEL, 0));
     }
 
     /**
@@ -83,8 +81,6 @@ public class NormalSettingsProfileTestCase extends IntentDConnectTestCase
         Intent response = sendRequest(request);
 
         assertResultOK(response);
-        assertEquals(TestSettingsProfileConstants.LEVEL,
-                response.getDoubleExtra(SettingsProfileConstants.PARAM_LEVEL, 0));
     }
 
     /**
@@ -114,8 +110,6 @@ public class NormalSettingsProfileTestCase extends IntentDConnectTestCase
         Intent response = sendRequest(request);
 
         assertResultOK(response);
-        assertEquals(TestSettingsProfileConstants.LEVEL,
-                response.getDoubleExtra(SettingsProfileConstants.PARAM_LEVEL, 0));
     }
 
     /**
@@ -145,8 +139,6 @@ public class NormalSettingsProfileTestCase extends IntentDConnectTestCase
         Intent response = sendRequest(request);
 
         assertResultOK(response);
-        assertEquals(TestSettingsProfileConstants.LEVEL,
-                response.getDoubleExtra(SettingsProfileConstants.PARAM_LEVEL, 0));
     }
 
     /**
@@ -176,8 +168,6 @@ public class NormalSettingsProfileTestCase extends IntentDConnectTestCase
         Intent response = sendRequest(request);
 
         assertResultOK(response);
-        assertEquals(TestSettingsProfileConstants.LEVEL,
-                response.getDoubleExtra(SettingsProfileConstants.PARAM_LEVEL, 0));
     }
 
     /**
@@ -354,8 +344,6 @@ public class NormalSettingsProfileTestCase extends IntentDConnectTestCase
         Intent response = sendRequest(request);
 
         assertResultOK(response);
-        assertEquals(TestSettingsProfileConstants.DATE,
-                response.getStringExtra(SettingsProfileConstants.PARAM_DATE));
     }
 
     /**
@@ -412,8 +400,6 @@ public class NormalSettingsProfileTestCase extends IntentDConnectTestCase
         Intent response = sendRequest(request);
 
         assertResultOK(response);
-        assertEquals(TestSettingsProfileConstants.LEVEL,
-                response.getDoubleExtra(SettingsProfileConstants.PARAM_LEVEL, 0));
     }
 
     /**
@@ -443,8 +429,6 @@ public class NormalSettingsProfileTestCase extends IntentDConnectTestCase
         Intent response = sendRequest(request);
 
         assertResultOK(response);
-        assertEquals(TestSettingsProfileConstants.LEVEL,
-                response.getDoubleExtra(SettingsProfileConstants.PARAM_LEVEL, 0));
     }
 
     /**
@@ -474,8 +458,6 @@ public class NormalSettingsProfileTestCase extends IntentDConnectTestCase
         Intent response = sendRequest(request);
 
         assertResultOK(response);
-        assertEquals(TestSettingsProfileConstants.LEVEL,
-                response.getDoubleExtra(SettingsProfileConstants.PARAM_LEVEL, 0));
     }
 
     /**
@@ -592,7 +574,6 @@ public class NormalSettingsProfileTestCase extends IntentDConnectTestCase
         Intent response = sendRequest(request);
 
         assertResultOK(response);
-        assertEquals(1, response.getIntExtra(SettingsProfileConstants.PARAM_TIME, -1));
     }
 
     /**

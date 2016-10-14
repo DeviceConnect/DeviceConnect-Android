@@ -4,9 +4,9 @@
 
     <string name="password">パスワード</string>
 
-    <string name="ok">OK</string>
+    <string name="activity_linking_ok">OK</string>
 
-    <string name="cancel">Cancel</string>
+    <string name="activity_linking_cancel">Cancel</string>
 
     <string name="approval">同意する</string>
 

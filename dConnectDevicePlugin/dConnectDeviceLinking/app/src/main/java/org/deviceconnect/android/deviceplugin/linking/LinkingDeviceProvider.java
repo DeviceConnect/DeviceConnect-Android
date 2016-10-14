@@ -21,7 +21,7 @@ public class LinkingDeviceProvider<T extends Service> extends DConnectMessageSer
     @SuppressWarnings("unchecked")
     @Override
     protected Class<Service> getServiceClass() {
-        Class<? extends Service> clazz = LinkingDeviceService.class;
+        Class<? extends Service> clazz = LinkingDevicePluginService.class;
         return (Class<Service>) clazz;
     }
 

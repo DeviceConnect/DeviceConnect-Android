@@ -97,7 +97,6 @@ public abstract class DConnectMessageService extends Service implements DConnect
         new AuthorizationRequestConverter(),
         new LowerCaseConverter()
     };
-
     /**
      * SystemProfileを取得する.
      * SystemProfileは必須実装となるため、本メソッドでSystemProfileのインスタンスを渡すこと。
@@ -141,6 +140,7 @@ public abstract class DConnectMessageService extends Service implements DConnect
     public void onCreate() {
         super.onCreate();
         EventManager.INSTANCE.setController(getEventCacheController());
+
 
         mPluginSpec = loadPluginSpec();
 

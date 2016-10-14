@@ -8,78 +8,66 @@ package org.deviceconnect.android.deviceplugin.linking.profile;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 
-import org.deviceconnect.android.deviceplugin.linking.BuildConfig;
-import org.deviceconnect.android.deviceplugin.linking.linking.LinkingDevice;
-import org.deviceconnect.android.deviceplugin.linking.linking.LinkingManagerFactory;
-import org.deviceconnect.android.deviceplugin.linking.linking.LinkingUtil;
-import org.deviceconnect.android.profile.DConnectProfile;
-import org.deviceconnect.android.profile.DConnectProfileProvider;
+import org.deviceconnect.android.deviceplugin.linking.LinkingApplication;
+import org.deviceconnect.android.deviceplugin.linking.LinkingDevicePluginService;
+import org.deviceconnect.android.deviceplugin.linking.beacon.LinkingBeaconManager;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
+import org.deviceconnect.android.profile.api.DConnectApi;
+import org.deviceconnect.android.profile.api.GetApi;
+import org.deviceconnect.android.service.DConnectService;
+import org.deviceconnect.android.service.DConnectServiceProvider;
 import org.deviceconnect.message.DConnectMessage;
-import org.deviceconnect.profile.DeviceOrientationProfileConstants;
-import org.deviceconnect.profile.LightProfileConstants;
-import org.deviceconnect.profile.VibrationProfileConstants;
 
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Discovery Profile.
- *
- * @author NTT DOCOMO, INC.
- */
 public class LinkingServiceDiscoveryProfile extends ServiceDiscoveryProfile {
 
-    public LinkingServiceDiscoveryProfile(final DConnectProfileProvider provider) {
+    private static final String TAG = "LinkingPlugin";
+    private static final int TIMEOUT = 20 * 1000;
+
+    private LinkingDevicePluginService mService;
+
+    public LinkingServiceDiscoveryProfile(final LinkingDevicePluginService service, final DConnectServiceProvider provider) {
         super(provider);
+        mService = service;
+        addApi(mServiceDiscoveryApi);
     }
 
-    @Override
-    protected boolean onGetServices(final Intent request, final Intent response) {
-        if (BuildConfig.DEBUG) {
-            Log.i("LinkingPlugIn", "ServiceDiscovery:onGetServices");
-        }
-        List<LinkingDevice> list = LinkingManagerFactory.createManager(getContext().getApplicationContext()).getDevices();
-        if (list.size() == 0) {
+    private final DConnectApi mServiceDiscoveryApi = new GetApi() {
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            LinkingBeaconManager mgr = getLinkingBeaconManager();
+            mgr.startBeaconScanWithTimeout(TIMEOUT);
+
+            mService.refreshDevices();
+
+            List<Bundle> serviceBundles = new ArrayList<>();
+            for (DConnectService service : getServiceProvider().getServiceList()) {
+                Bundle serviceBundle = new Bundle();
+                setId(serviceBundle, service.getId());
+                setType(serviceBundle, service.getNetworkType());
+                setName(serviceBundle, service.getName());
+                setOnline(serviceBundle, service.isOnline());
+                if (service.getConfig() != null) {
+                    setConfig(serviceBundle, service.getConfig());
+                }
+                serviceBundles.add(serviceBundle);
+            }
+            setServices(response, serviceBundles);
             setResult(response, DConnectMessage.RESULT_OK);
             return true;
         }
-        Bundle[] services = new Bundle[list.size()];
-        int index = 0;
-        for (LinkingDevice device : list) {
-            if (BuildConfig.DEBUG) {
-                Log.i("LinkingPlugIn", "name:" + device.getDisplayName() + " feature:" + device.getFeature());
-            }
-            Bundle service = new Bundle();
-            ServiceDiscoveryProfile.setId(service, device.getBdAddress());
-            ServiceDiscoveryProfile.setName(service, device.getDisplayName());
-            ServiceDiscoveryProfile.setType(service, NetworkType.BLE);
-            ServiceDiscoveryProfile.setOnline(service, device.isConnected());
-            DConnectProfileProvider provider = getProfileProvider();
-            List<String> scopes = new ArrayList<>();
-            for (DConnectProfile profile : provider.getProfileList()) {
-                scopes.add(profile.getProfileName());
-            }
-            if (!LinkingUtil.hasLED(device)) {
-                scopes.remove(LightProfileConstants.PROFILE_NAME);
-            }
-            if (!LinkingUtil.hasVibration(device)) {
-                scopes.remove(VibrationProfileConstants.PROFILE_NAME);
-            }
-            if (!LinkingUtil.hasSensor(device)) {
-                scopes.remove(DeviceOrientationProfileConstants.PROFILE_NAME);
-            }
-            String[] array = new String[scopes.size()];
-            array = scopes.toArray(array);
-            service.putStringArray(PARAM_SCOPES, array);
-            services[index] = service;
-            index++;
-        }
-        setServices(response, services);
-        setResult(response, DConnectMessage.RESULT_OK);
-        return true;
+    };
+
+    private LinkingBeaconManager getLinkingBeaconManager() {
+        LinkingApplication app = getLinkingApplication();
+        return app.getLinkingBeaconManager();
     }
 
+    private LinkingApplication getLinkingApplication() {
+        LinkingDevicePluginService service = (LinkingDevicePluginService) getContext();
+        return (LinkingApplication) service.getApplication();
+    }
 }

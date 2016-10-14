@@ -24,4 +24,6 @@ public interface AvailabilityProfileConstants extends DConnectProfileConstants {
      */
     String PATH_PROFILE = PATH_ROOT + SEPARATOR + PROFILE_NAME;
 
+    String PARAM_NAME = "name";
+    String PARAM_UUID = "uuid";
 }

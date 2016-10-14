@@ -7,9 +7,6 @@
 package org.deviceconnect.android.manager.policy;
 
 import android.content.Context;
-import android.content.Intent;
-
-import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
 public final class OriginValidator {
     /** fileスキームのオリジン. */
@@ -38,14 +35,13 @@ public final class OriginValidator {
      * <p>
      * 設定画面上でオリジン要求フラグがOFFにされた場合は即座に「エラー無し」を返す。
      * </p>
-     * @param request 送信元のリクエスト
+     * @param originParam 送信元のオリジン
      * @return チェック処理の結果
      */
-    public OriginError checkOrigin(final Intent request) {
+    public OriginError checkOrigin(final String originParam) {
         if (!mRequireOrigin) {
             return OriginError.NONE;
         }
-        String originParam = request.getStringExtra(IntentDConnectMessage.EXTRA_ORIGIN);
         if (originParam == null) {
             return OriginError.NOT_SPECIFIED;
         }
@@ -53,7 +49,7 @@ public final class OriginValidator {
         if (origins.length != 1) {
             return OriginError.NOT_UNIQUE;
         }
-        if (!allowsOrigin(request)) {
+        if (!allowsOrigin(originParam)) {
             return OriginError.NOT_ALLOWED;
         }
         return OriginError.NONE;
@@ -62,12 +58,11 @@ public final class OriginValidator {
     /**
      * 指定されたリクエストのオリジンが許可されるかどうかを返す.
      *
-     * @param request 受信したリクエスト
+     * @param originExp 受信したオリジン
      * @return 指定されたリクエストのオリジンが許可される場合は<code>true</code>、
      *      そうでない場合は<code>false</code>
      */
-    private boolean allowsOrigin(final Intent request) {
-        String originExp = request.getStringExtra(IntentDConnectMessage.EXTRA_ORIGIN);
+    private boolean allowsOrigin(final String originExp) {
         if (originExp == null) {
             // NOTE: クライアント作成のためにオリジンが必要のため、
             // ホワイトリストが無効の場合でもオリジン指定のない場合はリクエストを許可しない.

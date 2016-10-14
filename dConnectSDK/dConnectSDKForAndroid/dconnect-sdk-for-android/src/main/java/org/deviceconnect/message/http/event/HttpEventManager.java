@@ -6,11 +6,6 @@
  */
 package org.deviceconnect.message.http.event;
 
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.logging.Logger;
-
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.impl.client.DefaultHttpClient;
@@ -21,6 +16,11 @@ import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.logging.Logger;
 
 /**
  * イベント管理クラス.
@@ -71,7 +71,7 @@ public final class HttpEventManager extends AbstractEventManager {
     /**
      * ロックオブジェクト.
      */
-    private Object mLock;
+    private final Object mLock = new Object();
 
     /**
      * WebSocketステータス.
@@ -111,7 +111,6 @@ public final class HttpEventManager extends AbstractEventManager {
      * シングルトンのためprivate.
      */
     private HttpEventManager() {
-        mLock = new Object();
         mStatus = Status.CLOSE;
     }
 
@@ -263,27 +262,27 @@ public final class HttpEventManager extends AbstractEventManager {
 
         @Override
         public void onClose(final int code, final String reason, final boolean remote) {
+            mLogger.warning("EventWebSocketClient#onClose : " + mStatus);
 
-            synchronized (HttpEventManager.this) {
-                if (mStatus == Status.WAITING_OPEN
-                        || mStatus == Status.RETRYING) {
-                    synchronized (mLock) {
-                        mLock.notifyAll();
-                    }
-                } else if (mStatus == Status.OPEN) {
-                    if (code != NORMAL_CLOSE_CODE) {
-                        // 異常終了の場合はリトライし、自動的に回復を図る
-                        retry();
-                        return;
-                    } else if (mCloseHandler != null) {
-                        mCloseHandler.onClosed();
-                    }
+            if (mStatus == Status.WAITING_OPEN
+                    || mStatus == Status.RETRYING) {
+                synchronized (mLock) {
+                    mLock.notifyAll();
                 }
-
-                if (mStatus != Status.RETRYING) {
-                    mStatus = Status.CLOSE;
+            } else if (mStatus == Status.OPEN) {
+                if (code != NORMAL_CLOSE_CODE) {
+                    // 異常終了の場合はリトライし、自動的に回復を図る
+                    retry();
+                    return;
+                } else if (mCloseHandler != null) {
+                    mCloseHandler.onClosed();
                 }
             }
+
+            if (mStatus != Status.RETRYING) {
+                mStatus = Status.CLOSE;
+            }
+
         }
 
         @Override
@@ -315,7 +314,7 @@ public final class HttpEventManager extends AbstractEventManager {
             for (int i = 0; i < RETRY_TIMES; i++) {
                 long wait = RETRY_WAIT * (i + 1);
                 if (retry(wait)) {
-                    mLogger.fine("RetryProcess#run. Successed to retry.");
+                    mLogger.fine("RetryProcess#run. Succeed to retry.");
                     return;
                 }
             }

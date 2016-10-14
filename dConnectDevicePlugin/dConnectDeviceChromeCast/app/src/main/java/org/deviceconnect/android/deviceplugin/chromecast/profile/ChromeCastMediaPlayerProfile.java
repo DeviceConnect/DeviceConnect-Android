@@ -1188,7 +1188,6 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
             final String serviceId = getServiceID(request);
-            final String sessionKey = getSessionKey(request);
             ((ChromeCastService) getContext()).connectChromeCast(serviceId,
                     new ChromeCastService.Callback() {
 
@@ -1197,7 +1196,7 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
                             EventError error = EventManager.INSTANCE.addEvent(request);
                             if (error == EventError.NONE) {
                                 ((ChromeCastService) getContext()).registerOnStatusChange(response,
-                                        serviceId, sessionKey);
+                                        serviceId);
                             } else {
                                 MessageUtils.setError(response, ERROR_VALUE_IS_NULL, "Can not register event.");
                                 sendResponse(response);

@@ -17,6 +17,7 @@ import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.android.profile.api.DConnectApi;
 import org.deviceconnect.android.profile.api.DeleteApi;
 import org.deviceconnect.message.DConnectMessage;
+import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
 /**
  * ホストデバイスプラグイン, System プロファイル.
@@ -34,10 +35,8 @@ public class HostSystemProfile extends SystemProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            String sessionKey = getSessionKey(request);
-            if (sessionKey == null || sessionKey.length() == 0) {
-                MessageUtils.setInvalidRequestParameterError(response);
-            } else if (EventManager.INSTANCE.removeEvents(sessionKey)) {
+            String origin = request.getStringExtra(IntentDConnectMessage.EXTRA_ORIGIN);
+            if (EventManager.INSTANCE.removeEvents(origin)) {
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
                 MessageUtils.setUnknownError(response);

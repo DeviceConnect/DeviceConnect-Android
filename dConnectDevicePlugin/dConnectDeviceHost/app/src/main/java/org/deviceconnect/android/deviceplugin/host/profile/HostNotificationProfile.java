@@ -106,7 +106,9 @@ public class HostNotificationProfile extends NotificationProfile {
 
             String encodeBody = "";
             try {
-                encodeBody = URLDecoder.decode(body, "UTF-8");
+                if (body != null) {
+                    encodeBody = URLDecoder.decode(body, "UTF-8");
+                }
             } catch (UnsupportedEncodingException e) {
                 MessageUtils.setInvalidRequestParameterError(response,
                     "body is invalid.");

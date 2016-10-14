@@ -6,17 +6,16 @@
  */
 package org.deviceconnect.android.profile;
 
-import java.util.List;
+import android.app.Activity;
+import android.content.Intent;
+import android.os.Bundle;
 
-import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.api.DConnectApi;
 import org.deviceconnect.android.profile.spec.DConnectApiSpec;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.profile.SystemProfileConstants;
 
-import android.app.Activity;
-import android.content.Intent;
-import android.os.Bundle;
+import java.util.List;
 
 /**
  * System プロファイル.
@@ -25,21 +24,6 @@ import android.os.Bundle;
  * システム情報を提供するAPI.<br>
  * システム情報を提供するデバイスプラグインは当クラスを継承し、対応APIを実装すること。 <br>
  * </p>
- * 
- * <h1>各API提供メソッド</h1>
- * <p>
- * System Profile の各APIへのリクエストに対し、以下のコールバックメソッド群が自動的に呼び出される。<br>
- * サブクラスは以下のメソッド群からデバイスプラグインが提供するAPI用のメソッドをオーバーライドし、機能を実装すること。<br>
- * オーバーライドされていない機能は自動的に非対応APIとしてレスポンスを返す。
- * </p>
- * <ul>
- * <li>System API [GET] :
- * {@link SystemProfile#onGetSystem(Intent, Intent, String)}</li>
- * <li>Device System Wake Up API [PUT] :
- * {@link SystemProfile#onPutWakeup(Intent, Intent, String)}</li>
- * <li>Device System Wake Up API [DELETE] :
- * {@link SystemProfile#onDeleteWakeup(Intent, Intent, String)}</li>
- * </ul>
  * 
  * @author NTT DOCOMO, INC.
  */

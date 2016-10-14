@@ -22,6 +22,9 @@ android {
             jniLibs.srcDirs = ['src/main/libs', 'src/main/jniLibs']
         }
     }
+    tasks.withType(JavaCompile) {
+        options.encoding = 'UTF-8'
+    }
 }
 
 dependencies {

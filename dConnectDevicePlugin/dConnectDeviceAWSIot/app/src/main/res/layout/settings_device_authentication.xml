@@ -1,0 +1,28 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="fill_parent"
+              android:layout_height="fill_parent"
+              android:orientation="vertical"
+              android:background="#FFFFFF"
+              android:splitMotionEvents="false">
+
+    <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+        <TextView
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/background_title"
+                android:gravity="center"
+                android:text="@string/settings_page_4_title"
+                android:textColor="@color/text_titles"
+                android:textSize="@dimen/text_title"/>
+
+        <ListView
+                android:id="@+id/device_list_view"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:background="@drawable/border"/>
+    </LinearLayout>
+</LinearLayout>

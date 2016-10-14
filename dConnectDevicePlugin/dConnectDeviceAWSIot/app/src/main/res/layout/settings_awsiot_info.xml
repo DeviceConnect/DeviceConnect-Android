@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="fill_parent"
+              android:layout_height="fill_parent"
+              android:baselineAligned="false"
+              android:orientation="vertical"
+              android:background="#ffffff">
+
+    <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/background_title"
+            android:gravity="center"
+            android:text="@string/settings_page_3_title"
+            android:textColor="@color/text_titles"
+            android:textSize="20sp" />
+
+    <Switch
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/manager_switch"
+            android:paddingLeft="16dp"
+            android:visibility="visible"
+            android:enabled="true"
+            android:clickable="true"
+            android:paddingTop="16dp"
+            android:text="@string/default_manager_name"
+            android:textStyle="bold"
+            android:textSize="18dp"
+            android:textColor="@color/text_black"
+            android:layout_marginRight="16dp"/>
+
+    <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="16dp"
+            android:background="#ff808080" />
+
+    <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:baselineAligned="true"
+            android:paddingLeft="16dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp">
+
+
+        <LinearLayout
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_weight="1"
+                android:gravity="fill_vertical"
+                android:baselineAligned="true">
+            <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:text="@string/sync_time"
+                    android:textColor="@color/text_black"
+                    android:textSize="16sp"
+                    android:gravity="fill_vertical"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_weight="1"/>
+
+        </LinearLayout>
+        <LinearLayout
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_weight="1"
+                android:baselineAligned="true">
+            <EditText
+                    android:id="@+id/input_sync_time"
+                    android:layout_width="wrap_content"
+                    android:layout_height="fill_parent"
+                    android:inputType="numberDecimal"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_weight="1"
+                    android:textColor="@color/text_black"
+                    android:background="@drawable/border_edit"
+                    android:gravity="right"
+                    android:enabled="true"
+                    android:selectAllOnFocus="true"/>
+
+            <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/sync_time_second"
+                    android:textColor="@color/text_black"
+                    android:textSize="16sp"
+                    android:layout_weight="1"
+                    android:layout_gravity="center_horizontal"/>
+        </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingLeft="16dp"
+            android:paddingTop="8dp">
+        <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/awsiot_info_title"
+                android:textColor="@color/text_black"
+                android:textSize="16sp"
+                />
+        <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingLeft="16dp"
+                android:paddingTop="8dp">
+
+
+            <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/awsiot_mqtt_endpoint"
+                    android:textColor="@color/text_black"
+                    android:textSize="16sp"
+                    />
+
+            <TextView
+                    android:id="@+id/display_awsiot_mqtt_endpoint"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text=""
+                    android:textColor="@color/text_black"
+                    android:textSize="16sp"
+                    />
+            <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/awsiot_request_topic"
+                    android:textColor="@color/text_black"
+                    android:textSize="16sp" />
+
+            <TextView
+                    android:id="@+id/display_awsiot_request_topic"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text=""
+                    android:textColor="@color/text_black"
+                    android:textSize="16sp"
+                    />
+            <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/awsiot_response_topic"
+                    android:textColor="@color/text_black"
+                    android:textSize="16sp" />
+
+            <TextView
+                    android:id="@+id/display_awsiot_response_topic"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text=""
+                    android:textColor="@color/text_black"
+                    android:textSize="16sp"
+                    />
+            <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/awsiot_event_topic"
+                    android:textColor="@color/text_black"
+                    android:textSize="16sp" />
+
+            <TextView
+                    android:id="@+id/display_awsiot_event_topic"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text=""
+                    android:textColor="@color/text_black"
+                    android:textSize="16sp"
+                    android:textIsSelectable="true"/>
+        </LinearLayout>
+    </LinearLayout>
+
+
+</LinearLayout>

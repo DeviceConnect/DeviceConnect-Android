@@ -4,7 +4,6 @@ public class WebSocketInfo {
     private String mId;
     private String mEventKey;
     private String mUri;
-    private String mOrigin;
     private long mConnectTime;
 
     public String getId() {

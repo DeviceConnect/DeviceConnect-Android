@@ -43,7 +43,7 @@ var util = (function(parent, global) {
 
     function init(callback) {
         dConnect.setHost(mHost);
-        dConnect.setExtendedOrigin("file://android_asset/");
+        dConnect.setExtendedOrigin("file://");
         checkDeviceConnect(callback);
     }
     parent.init = init;
@@ -74,14 +74,13 @@ var util = (function(parent, global) {
 
             mAccessToken = getCookie('accessToken');
 
-            openWebSocketIfNeeded();
-
             serviceDiscovery(function(services) {
                 var serviceId = getServiceId();
                 for (var i = 0; i < services.length; i++) {
                     if (serviceId === services[i].id) {
                         var service = services[i];
                         serviceInformation(function(json) {
+                            openWebSocketIfNeeded();
                             callback(service.name, json);
                         });
                         return;
@@ -93,9 +92,10 @@ var util = (function(parent, global) {
     }
 
     function authorization(callback) {
-        dConnect.authorization(mScopes, 'ヘルプ',
+        dConnect.authorization(mScopes, 'デバイス確認画面',
             function(clientId, accessToken) {
                 mAccessToken = accessToken;
+                openWebSocketIfNeeded();
                 setCookie('accessToken', mAccessToken);
                 callback();
             },
@@ -134,15 +134,13 @@ var util = (function(parent, global) {
 
     function openWebSocketIfNeeded() {
         if (!dConnect.isConnectedWebSocket()) {
-            dConnect.connectWebSocket(mSessionKey, function(code, message) {
+            var accessToken = mAccessToken ? mAccessToken : mSessionKey;
+            dConnect.connectWebSocket(accessToken, function(code, message) {
                 if (code > 0) {
                     alert('WebSocketが切れました。\n code=' + code + " message=" + message);
                 }
-                console.log('websocket: ' + code + ' - ' + message);
+                console.log("WebSocket: code=" + code + " message=" +message);
             });
-            console.log('WebSocket opened.');
-        } else {
-            console.log('WebSocket has opened already.');
         }
     }
 
@@ -276,7 +274,7 @@ var util = (function(parent, global) {
              case 1: {
                  console.log("サーバ接続を確立しました。\n xhr.readyState=" + xhr.readyState + "\n xhr.statusText=" + xhr.statusText);
                  try {
-                     xhr.setRequestHeader("X-GotAPI-Origin".toLowerCase(), "file://android_assets");
+                     xhr.setRequestHeader("X-GotAPI-Origin".toLowerCase(), "file://");
                  } catch (e) {
                      return;
                  }

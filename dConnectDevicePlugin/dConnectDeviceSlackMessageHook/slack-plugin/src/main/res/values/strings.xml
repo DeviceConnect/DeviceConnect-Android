@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">SlackMessageHook Plugin</string>
+    <string name="app_name">SlackMessageHook Plugin(Device Connect Device Plug-in)</string>
     <string name="next">次へ</string>
     <string name="help">？</string>
     <string name="send">送信</string>

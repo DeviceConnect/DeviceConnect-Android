@@ -39,7 +39,6 @@ var demoAcceleration = (function(parent, global) {
         builder.setAttribute('ondeviceorientation');
         builder.setServiceId(mServiceId);
         builder.setAccessToken(util.getAccessToken());
-        builder.setSessionKey(util.getSessionKey());
         var uri = builder.build();
 
         dConnect.addEventListener(uri, function(message) {
@@ -74,7 +73,6 @@ var demoAcceleration = (function(parent, global) {
         builder.setAttribute('ondeviceorientation');
         builder.setServiceId(mServiceId);
         builder.setAccessToken(util.getAccessToken());
-        builder.setSessionKey(util.getSessionKey());
         var uri = builder.build();
         dConnect.removeEventListener(uri, function() {
             clearInterval(mTimerId);

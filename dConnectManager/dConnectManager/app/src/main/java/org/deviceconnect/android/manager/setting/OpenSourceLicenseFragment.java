@@ -37,7 +37,7 @@ public class OpenSourceLicenseFragment extends DialogFragment {
     /**
      * ロガー.
      */
-    private Logger mLogger = Logger.getLogger("dconnect.uiapp");
+    private Logger mLogger = Logger.getLogger("dconnect.manager");
 
     @Override
     public Dialog onCreateDialog(final Bundle savedInstanceState) {

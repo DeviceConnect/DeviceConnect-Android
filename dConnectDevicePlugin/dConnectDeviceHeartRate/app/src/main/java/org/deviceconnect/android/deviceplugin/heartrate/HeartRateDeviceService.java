@@ -54,7 +54,6 @@ public class HeartRateDeviceService extends DConnectMessageService
                 int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, -1);
                 if (state == BluetoothAdapter.STATE_ON) {
                     getManager().start();
-                    getManager().addOnHeartRateDiscoveryListener(mOnDiscoveryListener);
                 } else if (state == BluetoothAdapter.STATE_OFF) {
                     getManager().stop();
                 }

@@ -41,5 +41,6 @@
     <string name="error_failed_to_connect_p2p_btn">OK</string>
     <string name="error_failed_to_connect_camera">カメラが起動できませんでした。</string>
     <string name="error_failed_to_connect_audio">マイクが起動できませんでした。</string>
+    <string name="error_failed_to_connect_already_disconnect_msg">このセッションは既に切断されています。</string>
 
 </resources>

@@ -6,9 +6,10 @@
  */
 package org.deviceconnect.android.event.cache.db;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.logging.Logger;
+import android.content.Context;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteException;
+import android.database.sqlite.SQLiteOpenHelper;
 
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventError;
@@ -16,10 +17,9 @@ import org.deviceconnect.android.event.cache.BaseCacheController;
 import org.deviceconnect.android.event.cache.db.ClientDao.Client;
 import org.deviceconnect.android.event.cache.db.EventSessionDao.EventSession;
 
-import android.content.Context;
-import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteException;
-import android.database.sqlite.SQLiteOpenHelper;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Logger;
 
 /**
  * イベントデータをデータベースに保存し、キャッシュの操作機能を提供する. 
@@ -87,7 +87,7 @@ public final class DBCacheController extends BaseCacheController {
         if (db == null) {
             return EventError.FAILED;
         }
-        
+
         do {
             db.beginTransaction();
             long pId = ProfileDao.insert(db, event.getProfile());
@@ -179,7 +179,7 @@ public final class DBCacheController extends BaseCacheController {
     
     @Override
     public synchronized Event getEvent(final String serviceId, final String profile, final String inter, 
-            final String attribute, final String sessionKey, final String receiver) {
+            final String attribute, final String origin, final String receiver) {
         
         Event result = null;
         SQLiteDatabase db = null;
@@ -195,10 +195,10 @@ public final class DBCacheController extends BaseCacheController {
             search.setProfile(profile);
             search.setInterface(inter);
             search.setAttribute(attribute);
-            search.setSessionKey(sessionKey);
+            search.setOrigin(origin);
             search.setReceiverName(receiver);
             // checkParameterエラー回避用データの設定
-            search.setAccessToken("dammy");
+            search.setAccessToken("dummy");
             
             if (!checkParameter(search)) {
                 break;
@@ -247,9 +247,9 @@ public final class DBCacheController extends BaseCacheController {
             search.setInterface(inter);
             search.setAttribute(attribute);
             // checkParameterエラー回避用データの設定
-            search.setSessionKey("dammy");
-            search.setAccessToken("dammy");
-            search.setReceiverName("dammy");
+            search.setOrigin("dummy");
+            search.setAccessToken("dummy");
+            search.setReceiverName("dummy");
             
             if (!checkParameter(search)) {
                 break;
@@ -266,7 +266,7 @@ public final class DBCacheController extends BaseCacheController {
                 event.setProfile(profile);
                 event.setInterface(inter);
                 event.setAttribute(attribute);
-                event.setSessionKey(client.mSessionKey);
+                event.setOrigin(client.mOrigin);
                 event.setAccessToken(client.mAccessToken);
                 event.setReceiverName(client.mReceiver);
                 event.setCreateDate(client.mESCreateDate);
@@ -284,15 +284,54 @@ public final class DBCacheController extends BaseCacheController {
     }
 
     @Override
+    public List<Event> getEvents(final String origin) {
+
+        if (origin == null) {
+            throw new IllegalArgumentException("origin key is null.");
+        }
+
+        List<Event> result = new ArrayList<Event>();
+        SQLiteDatabase db;
+        do {
+            db = openDB();
+            if (db == null) {
+                break;
+            }
+            Client[] clients = ClientDao.getByOrigin(db, origin);
+            if (clients == null) {
+                break;
+            }
+
+            for (Client client : clients) {
+                List<Event> events = EventSessionDao.getEventsByCid(db, client.mId);
+                for (Event event : events) {
+                    event.setOrigin(client.mOrigin);
+                    event.setAccessToken(client.mAccessToken);
+                    event.setReceiverName(client.mReceiver);
+                    event.setCreateDate(client.mESCreateDate);
+                    event.setUpdateDate(client.mESUpdateDate);
+                    result.add(event);
+                }
+            }
+        } while (false);
+
+        if (db != null) {
+            db.close();
+        }
+
+        return result;
+    }
+
+    @Override
     public void flush() {
         // do-nothing.
     }
 
     @Override
-    public synchronized boolean removeEvents(final String sessionKey) {
+    public synchronized boolean removeEvents(final String origin) {
         
-        if (sessionKey == null) {
-            throw new IllegalArgumentException("Session key is null.");
+        if (origin == null) {
+            throw new IllegalArgumentException("origin key is null.");
         }
         
         boolean result = false;
@@ -303,7 +342,7 @@ public final class DBCacheController extends BaseCacheController {
                 break;
             }
             db.beginTransaction();
-            Client[] clients = ClientDao.getBySessionKey(db, sessionKey);
+            Client[] clients = ClientDao.getByOrigin(db, origin);
             if (clients == null) {
                 break;
             } else if (clients.length == 0) {
@@ -347,7 +386,7 @@ public final class DBCacheController extends BaseCacheController {
         /** 
          * バージョン番号.
          */
-        private static final int DB_VERSION = 2;
+        private static final int DB_VERSION = 3;
         
         /**
          * DBオープンヘルパーを生成する.

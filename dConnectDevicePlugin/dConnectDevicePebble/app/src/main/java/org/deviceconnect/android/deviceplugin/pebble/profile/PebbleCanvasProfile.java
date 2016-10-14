@@ -23,6 +23,7 @@ import org.deviceconnect.message.DConnectMessage;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.regex.Pattern;
 
 /**
  * Pebble 用 Canvasプロファイル.
@@ -32,6 +33,12 @@ import java.util.concurrent.Executors;
 public class PebbleCanvasProfile extends CanvasProfile {
 
     private ExecutorService mImageService = Executors.newSingleThreadExecutor();
+
+    private final Pattern PATTERN_MIME_TYPE = Pattern.compile("^[^/]+/[^/]+$");
+
+    private boolean isMIMEType(final String mimeType) {
+        return PATTERN_MIME_TYPE.matcher(mimeType).matches();
+    }
 
     private final DConnectApi mPostDrawImageApi = new PostApi() {
         @Override
@@ -45,6 +52,17 @@ public class PebbleCanvasProfile extends CanvasProfile {
             final String mode = getMode(request);
             final double x = getX(request);
             final double y = getY(request);
+            final String mimeType = getMIMEType(request);
+            if (mimeType != null) {
+                boolean isValid = isMIMEType(mimeType);
+                if (!isValid) {
+                    MessageUtils.setInvalidRequestParameterError(response, "mimeType is invalid: " + mimeType);
+                    return true;
+                } else if (!mimeType.startsWith("image/")) {
+                    MessageUtils.setInvalidRequestParameterError(response, "this mimeType is unsupported: " + mimeType);
+                    return true;
+                }
+            }
 
             if (data == null) {
                 mImageService.execute(new Runnable() {
@@ -64,7 +82,14 @@ public class PebbleCanvasProfile extends CanvasProfile {
                 });
                 return false;
             } else {
-                return drawImage(response, data, mode, x, y);
+                try {
+                    return drawImage(response, data, mode, x, y);
+                } catch (Throwable e) {
+                    e.printStackTrace();
+                    MessageUtils.setUnknownError(response, e.getMessage());
+                    return true;
+                }
+
             }
         }
     };

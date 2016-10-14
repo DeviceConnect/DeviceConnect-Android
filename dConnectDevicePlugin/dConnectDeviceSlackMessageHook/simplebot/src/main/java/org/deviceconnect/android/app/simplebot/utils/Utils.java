@@ -461,13 +461,16 @@ public class Utils {
             public void onFinish(final DConnectHelper.AuthInfo authInfo, Exception error) {
                 if (error == null) {
                     // 登録
-                    SettingData setting = SettingData.getInstance(context);
-                    DConnectHelper.INSTANCE.registerEvent("messageHook", "message", setting.serviceId, setting.accessToken, authInfo.clientId, unregist, new DConnectHelper.FinishCallback<Void>() {
+                    final SettingData setting = SettingData.getInstance(context);
+                    DConnectHelper.INSTANCE.registerEvent("messageHook", "message", setting.serviceId, setting.accessToken, setting.sessionKey, unregist, new DConnectHelper.FinishCallback<Void>() {
                         @Override
                         public void onFinish(Void aVoid, Exception error) {
                             if (error == null) {
-                                // WebSocket接続
-                                DConnectHelper.INSTANCE.openWebsocket(authInfo.clientId);
+                                if (unregist) {
+                                    DConnectHelper.INSTANCE.closeWebsocket();
+                                } else {
+                                    DConnectHelper.INSTANCE.openWebsocket(setting.sessionKey);
+                                }
                                 callback.onFinish(null, null);
                             } else {
                                 if (retryCheck(context, error)) {
@@ -552,7 +555,8 @@ public class Utils {
     public static boolean retryCheck(Context context, Exception error) {
         if (error instanceof DConnectHelper.DConnectInvalidResultException) {
             // "clientId was not found"の場合はclientIdを消して再接続
-            if (((DConnectHelper.DConnectInvalidResultException) error).errorCode == 15) {
+            int errorCode = ((DConnectHelper.DConnectInvalidResultException) error).errorCode;
+            if (errorCode == 15 || errorCode == 11 || errorCode == 12 || errorCode == 13) {
                 if (retryCount++ > 3) {
                     retryCount = 0;
                     return false;

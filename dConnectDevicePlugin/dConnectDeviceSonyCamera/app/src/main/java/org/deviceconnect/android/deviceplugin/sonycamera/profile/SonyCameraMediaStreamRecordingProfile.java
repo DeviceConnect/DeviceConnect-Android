@@ -47,16 +47,11 @@ public class SonyCameraMediaStreamRecordingProfile extends MediaStreamRecordingP
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            String sessionKey = getSessionKey(request);
-            if (sessionKey == null) {
-                MessageUtils.setInvalidRequestParameterError(response, "Not found sessionKey");
+            EventError error = EventManager.INSTANCE.addEvent(request);
+            if (error == EventError.NONE) {
+                setResult(response, DConnectMessage.RESULT_OK);
             } else {
-                EventError error = EventManager.INSTANCE.addEvent(request);
-                if (error == EventError.NONE) {
-                    setResult(response, DConnectMessage.RESULT_OK);
-                } else {
-                    MessageUtils.setUnknownError(response);
-                }
+                MessageUtils.setUnknownError(response);
             }
 
             mLogger.exiting(this.getClass().getName(), "onPutOnPhoto");
@@ -85,22 +80,17 @@ public class SonyCameraMediaStreamRecordingProfile extends MediaStreamRecordingP
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            String sessionKey = getSessionKey(request);
-            if (sessionKey == null) {
-                MessageUtils.setInvalidRequestParameterError(response, "There is no sessionKey.");
+            EventError error = EventManager.INSTANCE.removeEvent(request);
+            if (error == EventError.NONE) {
+                setResult(response, DConnectMessage.RESULT_OK);
+            } else if (error == EventError.INVALID_PARAMETER) {
+                MessageUtils.setInvalidRequestParameterError(response);
+            } else if (error == EventError.FAILED) {
+                MessageUtils.setUnknownError(response, "Failed to uninsert event for db.");
+            } else if (error == EventError.NOT_FOUND) {
+                MessageUtils.setUnknownError(response, "Not found event.");
             } else {
-                EventError error = EventManager.INSTANCE.removeEvent(request);
-                if (error == EventError.NONE) {
-                    setResult(response, DConnectMessage.RESULT_OK);
-                } else if (error == EventError.INVALID_PARAMETER) {
-                    MessageUtils.setInvalidRequestParameterError(response);
-                } else if (error == EventError.FAILED) {
-                    MessageUtils.setUnknownError(response, "Failed to uninsert event for db.");
-                } else if (error == EventError.NOT_FOUND) {
-                    MessageUtils.setUnknownError(response, "Not found event.");
-                } else {
-                    MessageUtils.setUnknownError(response);
-                }
+                MessageUtils.setUnknownError(response);
             }
 
             mLogger.exiting(this.getClass().getName(), "onDeleteOnPhoto");

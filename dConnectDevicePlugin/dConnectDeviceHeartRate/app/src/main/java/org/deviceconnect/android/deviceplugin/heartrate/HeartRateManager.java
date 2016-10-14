@@ -64,8 +64,7 @@ public class HeartRateManager {
      */
     private HeartRateDBHelper mDBHelper;
 
-    private final List<OnHeartRateDiscoveryListener> mHRDiscoveryListeners = Collections.synchronizedList(
-        new ArrayList<OnHeartRateDiscoveryListener>());
+    private List<OnHeartRateDiscoveryListener> mHRDiscoveryListener;
     private OnHeartRateEventListener mHREvtListener;
 
     // TODO: consider synchronized
@@ -84,7 +83,7 @@ public class HeartRateManager {
      */
     public HeartRateManager(final Context context) {
         mContext = context;
-
+        mHRDiscoveryListener = new ArrayList<>();
         mDetector = new BleDeviceDetector(context);
         mDetector.setListener(mDiscoveryListener);
 
@@ -107,23 +106,20 @@ public class HeartRateManager {
     }
 
     /**
-     * Adds the OnHeartRateDiscoveryListener.
+     * Sets the OnHeartRateDiscoveryListener.
      *
      * @param listener The listener to be told when found device or connected device
      */
     public void addOnHeartRateDiscoveryListener(OnHeartRateDiscoveryListener listener) {
-        if (!mHRDiscoveryListeners.contains(listener)) {
-            mHRDiscoveryListeners.add(listener);
-        }
+        mHRDiscoveryListener.add(listener);
     }
 
     /**
-     * Removes the OnHeartRateDiscoveryListener.
-     *
+     * Remove the OnHeartRateDiscoveryListener.
      * @param listener The listener to be told when found device or connected device
      */
     public void removeOnHeartRateDiscoveryListener(OnHeartRateDiscoveryListener listener) {
-        mHRDiscoveryListeners.remove(listener);
+        mHRDiscoveryListener.remove(listener);
     }
 
     /**
@@ -360,10 +356,9 @@ public class HeartRateManager {
         @Override
         public void onDiscovery(final List<BluetoothDevice> devices) {
             mLogger.fine("BleDeviceDiscoveryListener#onDiscovery: " + devices.size());
-
-            synchronized (mHRDiscoveryListeners) {
-                for (OnHeartRateDiscoveryListener listener : mHRDiscoveryListeners) {
-                    listener.onDiscovery(devices);
+            if (mHRDiscoveryListener != null) {
+                for (OnHeartRateDiscoveryListener l : mHRDiscoveryListener) {
+                    l.onDiscovery(devices);
                 }
             }
         }
@@ -383,9 +378,9 @@ public class HeartRateManager {
             if (!mConnectedDevices.contains(hr)) {
                 mConnectedDevices.add(hr);
             }
-            synchronized (mHRDiscoveryListeners) {
-                for (OnHeartRateDiscoveryListener listener : mHRDiscoveryListeners) {
-                    listener.onConnected(device);
+            if (mHRDiscoveryListener != null) {
+                for (OnHeartRateDiscoveryListener l : mHRDiscoveryListener) {
+                    l.onConnected(device);
                 }
             }
 
@@ -416,12 +411,18 @@ public class HeartRateManager {
             }
 
             if (hr == null) {
-                synchronized (mHRDiscoveryListeners) {
-                    for (OnHeartRateDiscoveryListener listener : mHRDiscoveryListeners) {
-                        listener.onConnectFailed(device);
+                if (mHRDiscoveryListener != null) {
+                    for (OnHeartRateDiscoveryListener l : mHRDiscoveryListener) {
+                        l.onConnectFailed(device);
                     }
                 }
             } else {
+                if (mHRDiscoveryListener != null) {
+                    for (OnHeartRateDiscoveryListener l : mHRDiscoveryListener) {
+                        l.onDisconnected(device);
+                    }
+                }
+
                 // DEBUG
                 mHandler.post(new Runnable() {
                     @Override
@@ -438,21 +439,15 @@ public class HeartRateManager {
                         }
                     }
                 });
-
-                synchronized (mHRDiscoveryListeners) {
-                    for (OnHeartRateDiscoveryListener listener : mHRDiscoveryListeners) {
-                        listener.onDisconnected(device);
-                    }
-                }
             }
         }
 
         @Override
         public void onConnectFailed(final BluetoothDevice device) {
             mLogger.fine("HeartRateConnectEventListener#onConnectFailed: [" + device + "]");
-            synchronized (mHRDiscoveryListeners) {
-                for (OnHeartRateDiscoveryListener listener : mHRDiscoveryListeners) {
-                    listener.onConnectFailed(device);
+            if (mHRDiscoveryListener != null) {
+                for (OnHeartRateDiscoveryListener l : mHRDiscoveryListener) {
+                    l.onConnectFailed(device);
                 }
             }
         }
@@ -500,7 +495,6 @@ public class HeartRateManager {
         void onConnected(BluetoothDevice device);
 
         void onConnectFailed(BluetoothDevice device);
-
         void onDisconnected(BluetoothDevice device);
     }
 

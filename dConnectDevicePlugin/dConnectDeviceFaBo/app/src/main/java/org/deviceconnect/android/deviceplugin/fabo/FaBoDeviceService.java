@@ -33,6 +33,7 @@ import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.event.cache.MemoryCacheController;
 import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.profile.SystemProfile;
+import org.deviceconnect.android.service.DConnectService;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -47,6 +48,9 @@ import java.util.logging.Logger;
  * @author NTT DOCOMO, INC.
  */
 public class FaBoDeviceService extends DConnectMessageService {
+
+    /** ServiceId. */
+    private static final String SERVICE_ID = "gpio_service_id";
 
     /** Tag. */
     private final static String TAG = "FABO_PLUGIN_SERVICE";
@@ -143,17 +147,17 @@ public class FaBoDeviceService extends DConnectMessageService {
     }
 
     @Override
-    protected void onManagerEventTransmitDisconnected(String sessionKey) {
+    protected void onManagerEventTransmitDisconnected(final String origin) {
         // ManagerのEvent送信経路切断通知受信時の処理。
         if (BuildConfig.DEBUG) {
             mLogger.info("Plug-in : onManagerEventTransmitDisconnected");
         }
-        if (sessionKey != null) {
-            EventManager.INSTANCE.removeEvents(sessionKey);
+        if (origin != null) {
+            EventManager.INSTANCE.removeEvents(origin);
             List<Event> events = EventManager.INSTANCE.getEventList(FaBoGPIOProfile.PROFILE_NAME,
                     FaBoGPIOProfile.ATTRIBUTE_ON_CHANGE);
             for (Event event : events) {
-                if (event.getSessionKey().equals(sessionKey)) {
+                if (event.getOrigin().equals(origin)) {
                     String serviceId = event.getServiceId();
                     Iterator serviceIds = mServiceIdStore.iterator();
                     while(serviceIds.hasNext()){
@@ -316,6 +320,11 @@ public class FaBoDeviceService extends DConnectMessageService {
         }
 
         setStatus(FaBoConst.STATUS_FABO_NOCONNECT);
+
+        DConnectService service = getServiceProvider().getService(SERVICE_ID);
+        if (service != null) {
+            service.setOnline(false);
+        }
     }
 
     /**
@@ -351,6 +360,8 @@ public class FaBoDeviceService extends DConnectMessageService {
         // FirmataのVersion取得のコマンドを送付
         byte command[] = {(byte)0xF9};
         SendMessage(command);
+
+
     }
 
     /**
@@ -429,6 +440,11 @@ public class FaBoDeviceService extends DConnectMessageService {
                                     setStatus(FaBoConst.STATUS_FABO_RUNNING);
                                     sendResult(FaBoConst.SUCCESS_CONNECT_FIRMATA);
                                     startWatchFirmata();
+
+                                    DConnectService service = getServiceProvider().getService(SERVICE_ID);
+                                    if (service != null) {
+                                        service.setOnline(true);
+                                    }
                                 }
                             }
                         } else {

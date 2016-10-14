@@ -6,8 +6,9 @@
  */
 package org.deviceconnect.message.intent.event;
 
-import java.io.IOException;
-import java.util.logging.Logger;
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;
@@ -24,9 +25,8 @@ import org.deviceconnect.utils.URIBuilder;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import android.content.ComponentName;
-import android.content.Context;
-import android.content.Intent;
+import java.io.IOException;
+import java.util.logging.Logger;
 
 /**
  * イベント管理クラス.
@@ -91,6 +91,11 @@ public final class IntentEventManager extends AbstractEventManager {
     public synchronized void disconnect() {
         mContext = null;
         mDConnectComponentName = null;
+    }
+
+    @Override
+    public boolean isOpen() {
+        return true;
     }
 
     @Override

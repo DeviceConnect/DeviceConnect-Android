@@ -204,25 +204,20 @@ public class HostConnectProfile extends ConnectProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            String sessionKey = getSessionKey(request);
             String serviceId = getServiceID(request);
-            if (sessionKey == null) {
-                MessageUtils.setInvalidRequestParameterError(response);
-            } else {
-                setResult(response, DConnectMessage.RESULT_OK);
-                // イベントの登録
-                EventError error = EventManager.INSTANCE.addEvent(request);
 
-                if (error == EventError.NONE) {
-                    ((HostDeviceService) getContext()).setServiceId(serviceId);
-                    setResult(response, DConnectMessage.RESULT_OK);
-                    return true;
-                } else {
-                    setResult(response, DConnectMessage.RESULT_ERROR);
-                    return true;
-                }
+            setResult(response, DConnectMessage.RESULT_OK);
+            // イベントの登録
+            EventError error = EventManager.INSTANCE.addEvent(request);
+
+            if (error == EventError.NONE) {
+                ((HostDeviceService) getContext()).setServiceId(serviceId);
+                setResult(response, DConnectMessage.RESULT_OK);
+                return true;
+            } else {
+                setResult(response, DConnectMessage.RESULT_ERROR);
+                return true;
             }
-            return true;
         }
     };
 
@@ -235,21 +230,16 @@ public class HostConnectProfile extends ConnectProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            String sessionKey = getSessionKey(request);
             String serviceId = getServiceID(request);
-            if (sessionKey == null) {
-                MessageUtils.setInvalidRequestParameterError(response);
+
+            // イベントの登録
+            EventError error = EventManager.INSTANCE.addEvent(request);
+
+            if (error == EventError.NONE) {
+                ((HostDeviceService) getContext()).setServiceId(serviceId);
+                setResult(response, DConnectMessage.RESULT_OK);
             } else {
-
-                // イベントの登録
-                EventError error = EventManager.INSTANCE.addEvent(request);
-
-                if (error == EventError.NONE) {
-                    ((HostDeviceService) getContext()).setServiceId(serviceId);
-                    setResult(response, DConnectMessage.RESULT_OK);
-                } else {
-                    setResult(response, DConnectMessage.RESULT_ERROR);
-                }
+                setResult(response, DConnectMessage.RESULT_ERROR);
             }
             return true;
         }
@@ -264,21 +254,15 @@ public class HostConnectProfile extends ConnectProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            String sessionKey = getSessionKey(request);
-            if (sessionKey == null) {
-                MessageUtils.setInvalidRequestParameterError(response);
+            // イベントの解除
+            EventError error = EventManager.INSTANCE.removeEvent(request);
+            if (error == EventError.NONE) {
+                setResult(response, DConnectMessage.RESULT_OK);
+                return true;
             } else {
-                // イベントの解除
-                EventError error = EventManager.INSTANCE.removeEvent(request);
-                if (error == EventError.NONE) {
-                    setResult(response, DConnectMessage.RESULT_OK);
-                    return true;
-                } else {
-                    MessageUtils.setError(response, 100, "Can not unregister event.");
-                    return true;
-                }
+                MessageUtils.setError(response, 100, "Can not unregister event.");
+                return true;
             }
-            return true;
         }
     };
 
@@ -291,22 +275,15 @@ public class HostConnectProfile extends ConnectProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            String sessionKey = getSessionKey(request);
-            if (sessionKey == null) {
-                MessageUtils.setInvalidRequestParameterError(response);
+            // イベントの解除
+            EventError error = EventManager.INSTANCE.removeEvent(request);
+            if (error == EventError.NONE) {
+                setResult(response, DConnectMessage.RESULT_OK);
+                return true;
             } else {
-
-                // イベントの解除
-                EventError error = EventManager.INSTANCE.removeEvent(request);
-                if (error == EventError.NONE) {
-                    setResult(response, DConnectMessage.RESULT_OK);
-                    return true;
-                } else {
-                    MessageUtils.setError(response, 100, "Can not unregister event.");
-                    return true;
-                }
+                MessageUtils.setError(response, 100, "Can not unregister event.");
+                return true;
             }
-            return true;
         }
     };
 
@@ -400,6 +377,8 @@ public class HostConnectProfile extends ConnectProfile {
                 intent.setClass(getContext(), BluetoothManageActivity.class);
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 getContext().startActivity(intent);
+
+                setResult(response, IntentDConnectMessage.RESULT_OK);
             } else {
                 // bluetooth has already enabled
                 setResult(response, IntentDConnectMessage.RESULT_OK);

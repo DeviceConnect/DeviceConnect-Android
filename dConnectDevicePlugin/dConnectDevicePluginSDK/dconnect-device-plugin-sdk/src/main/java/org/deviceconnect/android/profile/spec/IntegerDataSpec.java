@@ -143,6 +143,8 @@ public class IntegerDataSpec extends DConnectDataSpec {
             }
         } else if (param instanceof Integer) {
             return validateRange((Integer) param);
+        } else if (param instanceof Long) {
+            return validateRange((Long) param);
         } else {
             return false;
         }
@@ -157,6 +159,8 @@ public class IntegerDataSpec extends DConnectDataSpec {
             }
         } else if (param instanceof Long) {
             return validateRange((Long) param);
+        } else if (param instanceof Integer) {
+            return validateRange(((Integer) param).longValue());
         } else {
             return false;
         }

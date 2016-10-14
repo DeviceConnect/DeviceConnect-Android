@@ -13,14 +13,17 @@ import android.net.Uri;
 import android.os.Bundle;
 
 import org.deviceconnect.android.event.Event;
+import org.deviceconnect.android.localoauth.ClientPackageInfo;
+import org.deviceconnect.android.localoauth.LocalOAuth2Main;
 import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.api.DConnectApi;
 import org.deviceconnect.android.profile.spec.DConnectApiSpec;
-import org.deviceconnect.android.profile.spec.DConnectSpecConstants;
 import org.deviceconnect.android.profile.spec.DConnectProfileSpec;
+import org.deviceconnect.android.profile.spec.DConnectSpecConstants;
 import org.deviceconnect.android.service.DConnectService;
 import org.deviceconnect.message.DConnectMessage;
+import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 import org.deviceconnect.profile.DConnectProfileConstants;
 
 import java.io.ByteArrayOutputStream;
@@ -43,6 +46,9 @@ public abstract class DConnectProfile implements DConnectProfileConstants,
 
     /** バッファサイズを定義. */
     private static final int BUF_SIZE = 4096;
+
+    /** 内部エクストラ: {@value}. */
+    private static final String INNER_EXTRA_ORIGIN = "_origin";
 
     /**
      * コンテキスト.
@@ -209,9 +215,11 @@ public abstract class DConnectProfile implements DConnectProfileConstants,
         DConnectApi api = findApi(request);
         if (api != null) {
             DConnectApiSpec spec = api.getApiSpec();
-            if (spec != null && !spec.validate(request)) {
-                MessageUtils.setInvalidRequestParameterError(response);
-                return true;
+            if (spec != null) {
+                if (!spec.validate(request)) {
+                    MessageUtils.setInvalidRequestParameterError(response);
+                    return true;
+                }
             }
             return api.onRequest(request, response);
         } else {
@@ -226,6 +234,19 @@ public abstract class DConnectProfile implements DConnectProfileConstants,
             }
             return true;
         }
+    }
+
+    protected boolean isUseLocalOAuth() {
+        return ((DConnectMessageService) getContext()).isUseLocalOAuth();
+    }
+
+    protected boolean isIgnoredProfile(final String profileName) {
+        return ((DConnectMessageService) getContext()).isIgnoredProfile(profileName);
+    }
+
+    private String findRequestOrigin(final String accessToken) {
+        ClientPackageInfo info = LocalOAuth2Main.findClientPackageInfoByAccessToken(accessToken);
+        return info.getPackageInfo().getPackageName();
     }
 
     /**
@@ -270,6 +291,28 @@ public abstract class DConnectProfile implements DConnectProfileConstants,
      */
     public void setProfileSpec(final DConnectProfileSpec profileSpec) {
         mProfileSpec = profileSpec;
+        for (DConnectApi api : getApiList()) {
+            String path = createPath(api);
+            DConnectApiSpec spec = profileSpec.findApiSpec(path, api.getMethod());
+            if (spec != null) {
+                api.setApiSpec(spec);
+            }
+        }
+    }
+
+    private String createPath(final DConnectApi api) {
+        String interfaceName = api.getInterface();
+        String attributeName = api.getAttribute();
+        StringBuffer path = new StringBuffer();
+        path.append("/");
+        if (interfaceName != null) {
+            path.append(interfaceName);
+            path.append("/");
+        }
+        if (attributeName != null) {
+            path.append(attributeName);
+        }
+        return path.toString();
     }
 
     /**
@@ -649,14 +692,25 @@ public abstract class DConnectProfile implements DConnectProfileConstants,
     }
 
     /**
+     * リクエストからオリジンを取得する.
+     *
+     * @param request リクエストパラメータ
+     * @return オリジン。無い場合はnullを返す。
+     */
+    public static String getOrigin(final Intent request) {
+        return request.getStringExtra(IntentDConnectMessage.EXTRA_ORIGIN);
+    }
+
+    /**
      * リクエストからセッションキーを取得する.
      * 
      * @param request リクエストパラメータ
      * @return セッションキー。無い場合はnullを返す。
+     * @deprecated GotAPI 1.1では、セッションキーではなくオリジンごとにイベントを管理
+     * @see {@link #getOrigin(Intent)}
      */
     public static String getSessionKey(final Intent request) {
-        String sessionKey = request.getStringExtra(PARAM_SESSION_KEY);
-        return sessionKey;
+        return request.getStringExtra(PARAM_SESSION_KEY);
     }
 
     /**
@@ -664,6 +718,7 @@ public abstract class DConnectProfile implements DConnectProfileConstants,
      * 
      * @param message メッセージパラメータ
      * @param sessionKey セッションキー
+     * @deprecated GotAPI 1.1では、セッションキーではなくオリジンごとにイベントを管理
      */
     public static void setSessionKey(final Intent message, final String sessionKey) {
         message.putExtra(PARAM_SESSION_KEY, sessionKey);

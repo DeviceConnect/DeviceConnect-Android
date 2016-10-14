@@ -1,16 +1,36 @@
+/*
+ WebSocketInfo.java
+ Copyright (c) 2016 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.manager;
 
+/**
+ * イベント送信経路情報(WebSocket).
+ *
+ * @author NTT DOCOMO, INC.
+ */
 public class WebSocketInfo {
-    private String mEventKey;
+    private String mRawId;
+    private String mReceiverId;
     private String mUri;
     private long mConnectTime;
 
-    public String getEventKey() {
-        return mEventKey;
+    public String getRawId() {
+        return mRawId;
     }
 
-    public void setEventKey(final String eventKey) {
-        mEventKey = eventKey;
+    public void setRawId(final String id) {
+        mRawId = id;
+    }
+
+    public String getReceiverId() {
+        return mReceiverId;
+    }
+
+    public void setReceiverId(final String receiverId) {
+        mReceiverId = receiverId;
     }
 
     public String getUri() {

@@ -11,11 +11,24 @@
     <string name="add">追加</string>
     <string name="delete">削除</string>
     <string name="update">更新</string>
+    <string name="help">ヘルプ</string>
+    <string name="command_help">コマンドの項目説明</string>
     <string name="keyword">キーワード</string>
+    <string name="keyword_help">Botが反応するフレーズを登録します。\n
+正規表現での記述が可能なので、表記の揺らぎなどに対応できます。\n\n
+例：写真を(撮って|撮れ|撮りなさい)</string>
     <string name="command">コマンド</string>
     <string name="service_id">サービス</string>
+    <string name="service_id_help">コマンドによって呼び出されるサービスを選びます。</string>
     <string name="api">API</string>
+    <string name="api_help">サービスの呼び出すAPIを選択します。</string>
     <string name="data">データ</string>
+    <string name="data_help">APIに渡すパラメータを入力します。\n
+パラメータが必要ないAPIについては「設定できるデータはありません」と表示されます。\n
+キーワードの正規表現のグループをパラメータに渡すことができます。\n\n
+例：\n
+キーワード：(\d+)を設定 = 123を設定\n
+パラメータ：mediaId: $1 = mediaId: 123</string>
     <string name="event">イベント</string>
     <string name="result">結果</string>
     <string name="from">From</string>
@@ -23,11 +36,24 @@
     <string name="text">Text</string>
     <string name="date">Date</string>
     <string name="res_accept">受付レスポンス</string>
+    <string name="res_accept_help">コマンドを受付た瞬間に返すレプポンスです。\n
+処理に時間がかかる場合などに利用します。</string>
     <string name="res_accept_uri">受付レスポンスリソースURI</string>
+    <string name="res_accept_uri_help">受付レスポンスのリソースURIです。\n
+画像などを送信する場合に利用します。</string>
     <string name="res_success">成功レスポンス</string>
+    <string name="res_success_help">サービスの機能の呼び出しに成功した場合のレスポンスです。\n
+Chunkテンプレートエンジンに対応していますので、サービスから返却されたレスポンスのパラメータなどを表示することができます。\n\n
+例：バッテリー容量は{$level|calc(*100)}%です。</string>
     <string name="res_success_uri">成功レスポンスリソースURI</string>
+    <string name="res_success_uri_help">成功レスポンスのリソースURIです。\n
+画像などを送信する場合に利用します。</string>
     <string name="res_error">失敗レスポンス</string>
+    <string name="res_error_help">サービスの機能の呼び出しに失敗した場合のレスポンスです。\n
+こちらもChunkテンプレートエンジンに対応しています。</string>
     <string name="res_error_uri">失敗レスポンスリソースURI</string>
+    <string name="res_error_uri_help">失敗レスポンスのリソースURIです。\n
+画像などを送信する場合に利用します。</string>
     <string name="unset">未設定</string>
     <string name="err">エラー</string>
     <string name="err_occurred">エラーが発生しました</string>
@@ -52,4 +78,11 @@
     <string name="host">Host</string>
     <string name="port">Port</string>
     <string name="selected_service">連携サービス</string>
+    <string name="connected_service">接続済み</string>
+    <string name="disconnected_service">切断されました</string>
+    <string name="connecting_service">接続中</string>
+    <string name="service_description">SimpleBotにメッセージを配送するサービスを選択します。\nMessage Hookプロファイルを実装しているサービスを設定することができます。</string>
+    <string name="doze_description">最適化が解除されていません。最適化が解除されていないとバッググラントで正常に動作することができない恐れがあります。\n以下のボタンを押下して、最適化を解除してください。</string>
+    <string name="doze_button">最適化を解除</string>
+    <string name="doze_settings">最適化</string>
 </resources>

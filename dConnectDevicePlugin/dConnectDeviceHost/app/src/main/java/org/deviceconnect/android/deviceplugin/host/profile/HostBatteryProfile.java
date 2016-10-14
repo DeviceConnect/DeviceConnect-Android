@@ -99,20 +99,16 @@ public class HostBatteryProfile extends BatteryProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            String sessionKey = getSessionKey(request);
             String serviceId = getServiceID(request);
-            if (sessionKey == null) {
-                MessageUtils.setInvalidRequestParameterError(response);
+
+            // Add event
+            EventError error = EventManager.INSTANCE.addEvent(request);
+            if (error == EventError.NONE) {
+                ((HostDeviceService) getContext()).setServiceId(serviceId);
+                ((HostDeviceService) getContext()).registerBatteryConnectBroadcastReceiver();
+                setResult(response, DConnectMessage.RESULT_OK);
             } else {
-                // Add event
-                EventError error = EventManager.INSTANCE.addEvent(request);
-                if (error == EventError.NONE) {
-                    ((HostDeviceService) getContext()).setServiceId(serviceId);
-                    ((HostDeviceService) getContext()).registerBatteryConnectBroadcastReceiver();
-                    setResult(response, DConnectMessage.RESULT_OK);
-                } else {
-                    setResult(response, DConnectMessage.RESULT_ERROR);
-                }
+                setResult(response, DConnectMessage.RESULT_ERROR);
             }
             return true;
         }
@@ -127,18 +123,13 @@ public class HostBatteryProfile extends BatteryProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            String sessionKey = getSessionKey(request);
-            if (sessionKey == null) {
-                MessageUtils.setInvalidRequestParameterError(response);
+            ((HostDeviceService) getContext()).unregisterBatteryConnectBroadcastReceiver();
+            // イベントの解除
+            EventError error = EventManager.INSTANCE.removeEvent(request);
+            if (error == EventError.NONE) {
+                setResult(response, DConnectMessage.RESULT_OK);
             } else {
-                ((HostDeviceService) getContext()).unregisterBatteryConnectBroadcastReceiver();
-                // イベントの解除
-                EventError error = EventManager.INSTANCE.removeEvent(request);
-                if (error == EventError.NONE) {
-                    setResult(response, DConnectMessage.RESULT_OK);
-                } else {
-                    MessageUtils.setError(response, ERROR_CODE, "Can not unregister event.");
-                }
+                MessageUtils.setError(response, ERROR_CODE, "Can not unregister event.");
             }
             return true;
         }
@@ -153,20 +144,16 @@ public class HostBatteryProfile extends BatteryProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            String sessionKey = getSessionKey(request);
             String serviceId = getServiceID(request);
-            if (sessionKey == null) {
-                MessageUtils.setInvalidRequestParameterError(response);
+
+            // Add event
+            EventError error = EventManager.INSTANCE.addEvent(request);
+            if (error == EventError.NONE) {
+                ((HostDeviceService) getContext()).setServiceId(serviceId);
+                ((HostDeviceService) getContext()).registerBatteryChargeBroadcastReceiver();
+                setResult(response, DConnectMessage.RESULT_OK);
             } else {
-                // Add event
-                EventError error = EventManager.INSTANCE.addEvent(request);
-                if (error == EventError.NONE) {
-                    ((HostDeviceService) getContext()).setServiceId(serviceId);
-                    ((HostDeviceService) getContext()).registerBatteryChargeBroadcastReceiver();
-                    setResult(response, DConnectMessage.RESULT_OK);
-                } else {
-                    setResult(response, DConnectMessage.RESULT_ERROR);
-                }
+                setResult(response, DConnectMessage.RESULT_ERROR);
             }
             return true;
         }
@@ -181,18 +168,13 @@ public class HostBatteryProfile extends BatteryProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            String sessionKey = getSessionKey(request);
-            if (sessionKey == null) {
-                MessageUtils.setInvalidRequestParameterError(response);
+            // イベントの解除
+            ((HostDeviceService) getContext()).unregisterBatteryChargeBroadcastReceiver();
+            EventError error = EventManager.INSTANCE.removeEvent(request);
+            if (error == EventError.NONE) {
+                setResult(response, DConnectMessage.RESULT_OK);
             } else {
-                // イベントの解除
-                ((HostDeviceService) getContext()).unregisterBatteryChargeBroadcastReceiver();
-                EventError error = EventManager.INSTANCE.removeEvent(request);
-                if (error == EventError.NONE) {
-                    setResult(response, DConnectMessage.RESULT_OK);
-                } else {
-                    MessageUtils.setError(response, ERROR_CODE, "Can not unregister event.");
-                }
+                MessageUtils.setError(response, ERROR_CODE, "Can not unregister event.");
             }
             return true;
         }

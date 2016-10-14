@@ -635,6 +635,12 @@ public class AllJoynLightProfile extends LightProfile {
                 return true;
             }
 
+            if (name == null || name.length() == 0) {
+                MessageUtils.setInvalidRequestParameterError(response,
+                        "name is invalid.");
+                return true;
+            }
+
             int[] colors = new int[3];
             String colorParam = getColorString(request);
             if (colorParam != null) {

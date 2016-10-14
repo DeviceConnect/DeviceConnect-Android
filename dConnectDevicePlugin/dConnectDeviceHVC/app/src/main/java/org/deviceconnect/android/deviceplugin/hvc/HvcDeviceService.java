@@ -108,13 +108,13 @@ public class HvcDeviceService extends DConnectMessageService {
     }
 
     @Override
-    protected void onManagerEventTransmitDisconnected(String sessionKey) {
+    protected void onManagerEventTransmitDisconnected(String origin) {
         // ManagerのEvent送信経路切断通知受信時の処理。
         if (DEBUG) {
             Log.i(TAG, "Plug-in : onManagerEventTransmitDisconnected");
         }
-        if (sessionKey != null) {
-            unregisterDetectionEventByMatchedSessionKey(sessionKey);
+        if (origin != null) {
+            unregisterDetectionEventByMatchedOrigin(origin);
         } else {
             removeAllDetectEvent();
         }
@@ -209,14 +209,14 @@ public class HvcDeviceService extends DConnectMessageService {
      * @param requestParams request parameters.
      * @param response response
      * @param serviceId serviceId
-     * @param sessionKey sessionKey
+     * @param origin origin
      */
     public void registerDetectionEvent(final HumanDetectKind detectKind, final HumanDetectRequestParams requestParams,
-            final Intent response, final String serviceId, final String sessionKey) {
+            final Intent response, final String serviceId, final String origin) {
 
         if (DEBUG) {
             Log.d(TAG, "registerDetectionEvent(). detectKind:" + detectKind.toString() + " serviceId:" + serviceId
-                    + " sessionKey:" + sessionKey);
+                    + " origin:" + origin);
         }
 
         // Bluetooth OFF
@@ -256,7 +256,7 @@ public class HvcDeviceService extends DConnectMessageService {
         startIntervalTimer(requestParams.getEvent().getInterval());
 
         // add event data to commManager.
-        commManager.registerDetectEvent(detectKind, requestParams, response, sessionKey);
+        commManager.registerDetectEvent(detectKind, requestParams, response, origin);
     }
 
     //
@@ -269,14 +269,14 @@ public class HvcDeviceService extends DConnectMessageService {
      * @param detectKind detectKind
      * @param response response
      * @param serviceId serviceId
-     * @param sessionKey sessionKey
+     * @param origin origin
      */
     public void unregisterDetectionEvent(final HumanDetectKind detectKind, final Intent response,
-            final String serviceId, final String sessionKey) {
+            final String serviceId, final String origin) {
 
         if (DEBUG) {
             Log.d(TAG, "unregisterDetectionEvent(). detectKind:" + detectKind.toString() + " serviceId:" + serviceId
-                    + " sessionKey:" + sessionKey);
+                    + " origin:" + origin);
         }
 
         // search CommManager by serviceId.
@@ -290,15 +290,15 @@ public class HvcDeviceService extends DConnectMessageService {
             return;
         }
         // get event interval.
-        Long interval = commManager.getEventInterval(detectKind, sessionKey);
+        Long interval = commManager.getEventInterval(detectKind, origin);
         if (interval == null) {
-            MessageUtils.setInvalidRequestParameterError(response, "detectKind and sessionKey pair not found.");
+            MessageUtils.setInvalidRequestParameterError(response, "detectKind and origin pair not found.");
             sendResponse(response);
             return;
         }
         
         // unregister
-        commManager.unregisterDetectEvent(detectKind, sessionKey);
+        commManager.unregisterDetectEvent(detectKind, origin);
 
         // if no event with same interval, stop interval timer (and remove
         // interval timer info record).
@@ -316,12 +316,12 @@ public class HvcDeviceService extends DConnectMessageService {
     }
 
     /**
-     * Human Detect Profile unregister detection event by matched sessionKey.
-     * @param sessionKey sessionKey
+     * Human Detect Profile unregister detection event by matched origin.
+     * @param origin origin
      */
-    private void unregisterDetectionEventByMatchedSessionKey(final String sessionKey) {
+    private void unregisterDetectionEventByMatchedOrigin(final String origin) {
         for (HvcCommManager commManager : mHvcCommManagerArray) {
-            commManager.removeDetectEvent(sessionKey);
+            commManager.removeDetectEvent(origin);
             HumanDetectKind kind;
             for (int i = 0; i < 3; i++) {
                 switch (i) {
@@ -336,7 +336,7 @@ public class HvcDeviceService extends DConnectMessageService {
                         kind = HumanDetectKind.HAND;
                         break;
                 }
-                Long interval = commManager.getEventInterval(kind, sessionKey);
+                Long interval = commManager.getEventInterval(kind, origin);
                 if (interval != null) {
                     stopIntervalTimer(interval);
                 }

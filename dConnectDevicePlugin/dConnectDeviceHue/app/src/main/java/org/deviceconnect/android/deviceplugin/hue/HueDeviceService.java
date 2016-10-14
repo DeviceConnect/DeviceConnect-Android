@@ -40,10 +40,6 @@ public class HueDeviceService extends DConnectMessageService {
         PHHueSDK hueSDK = PHHueSDK.getInstance();
         hueSDK.setAppName(HueConstants.APNAME);
         hueSDK.getNotificationManager().registerSDKListener(mPhListener);
-
-        //前もってキャッシュをupdateしておく
-        PHBridgeSearchManager sm = (PHBridgeSearchManager) hueSDK.getSDKService(PHHueSDK.SEARCH_BRIDGE);
-        sm.search(true, true);
     }
 
     @Override

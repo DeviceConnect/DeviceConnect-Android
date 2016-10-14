@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no">
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="../css/main.css" type="text/css" />
+    <title>【AWS IoT 設定】ヘルプ</title>
+</head>
+<body>
+    <div class="heading">【AWS IoT 設定】</div>
+    <div class="content">
+        <p>AWS IoTの設定情報を表示します。</p>
+        <p>また、AWS IoT ManagerのSubscribe / Unsubscribe 設定、イベントをPublishする周期設定を行います。</p>
+        <ul>
+            <li>Device Connect Manager 名称</li>
+                <p>Device Connect Manager 名称が表示されます。</p>
+                <p>スイッチのOn/Offに連動して、AWS IoT Managerの要求受信TopicのSubscribe / Unsubscribe設定を行います。</p>
+                <p>同時にクラウド上のAWS IoT ManagerのOnline/Offline状態更新を行います。</p>
+                <p>これにより、自機のDevice Connect Managerをクラウド上に公開します。</p>
+            <li>同期周期</li>
+                <p>イベントで送信する情報をPublishする周期を秒単位で設定します。</p>
+                <p>初期設定は10秒間隔です。0を設定すると即時送信となります。</p>
+                <p>※短時間で大量にイベントが発生するプロファイルのイベントの長時間連続受信は、AWS IoT利用課金が高額になる恐れがありますのでご注意下さい。</p>
+            <li>AWS IoT 情報</li>
+                <p>以下のAWS IoTの設定情報を表示します。</p>
+                <ul>
+                    <li>MQTT endpoint</li>
+                    <li>Request Topic</li>
+                    <li>Response Topic</li>
+                    <li>Event Topic</li>
+                </ul>
+        </ul>
+    </div>
+    <div class="link">
+        <a href="../index.html">ヘルプTOPページ</a>
+    </div>
+</body>
+</html>

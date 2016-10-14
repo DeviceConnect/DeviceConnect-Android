@@ -37,6 +37,7 @@ import java.util.List;
  * <p>
  * Local OAuthの認可機能を提供するAPI.<br>
  * </p>
+ *
  * @author NTT DOCOMO, INC.
  */
 public class AuthorizationProfile extends DConnectProfile implements AuthorizationProfileConstants {
@@ -84,7 +85,6 @@ public class AuthorizationProfile extends DConnectProfile implements Authorizati
         DConnectMessageService service = (DConnectMessageService) getContext();
         if (!service.isUseLocalOAuth()) {
             MessageUtils.setNotSupportProfileError(response);
-            service.sendResponse(response);
             return true;
         }
 

@@ -7,12 +7,17 @@
 package org.deviceconnect.android.deviceplugin.test.service;
 
 
+import android.content.ComponentName;
 import android.content.Intent;
 
 import org.deviceconnect.android.deviceplugin.test.profile.unique.TestJSONConversionProfile;
 import org.deviceconnect.android.deviceplugin.test.profile.unique.TestUniqueProfile;
 import org.deviceconnect.android.message.MessageUtils;
+import org.deviceconnect.android.profile.AuthorizationProfile;
 import org.deviceconnect.android.profile.DConnectProfile;
+import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
+import org.deviceconnect.android.profile.ServiceInformationProfile;
+import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.android.profile.api.DConnectApi;
 import org.deviceconnect.android.profile.spec.DConnectApiSpec;
 import org.deviceconnect.android.profile.spec.DConnectPluginSpec;
@@ -21,6 +26,7 @@ import org.deviceconnect.android.service.DConnectService;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.impl.client.DefaultIntentClient;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -34,6 +40,8 @@ public class UnitTestService extends DConnectService {
 
     private static final long DEFAULT_DELAY = 500;
 
+    private Map<String, EventSender> mEventSenders = new HashMap<String, EventSender>();
+
     public UnitTestService(final String id, final String name, final DConnectPluginSpec pluginSpec) {
         super(id);
         setName(name);
@@ -42,6 +50,13 @@ public class UnitTestService extends DConnectService {
         Map<String, DConnectProfileSpec> profileSpecs = pluginSpec.getProfileSpecs();
         for (Map.Entry<String, DConnectProfileSpec> entry : profileSpecs.entrySet()) {
             final String profileName = entry.getKey();
+            if (AuthorizationProfile.PROFILE_NAME.equalsIgnoreCase(profileName)
+                || ServiceDiscoveryProfile.PROFILE_NAME.equalsIgnoreCase(profileName)
+                || ServiceInformationProfile.PROFILE_NAME.equalsIgnoreCase(profileName)
+                || SystemProfile.PROFILE_NAME.equalsIgnoreCase(profileName)) {
+                continue;
+            }
+
             final DConnectProfileSpec profileSpec = entry.getValue();
             final DConnectProfile profile = new DConnectProfile() {
                 @Override
@@ -70,21 +85,23 @@ public class UnitTestService extends DConnectService {
                     public boolean onRequest(final Intent request, final Intent response) {
                         DConnectProfile.setResult(response, DConnectMessage.RESULT_OK);
                         if (apiSpec.getType() == Type.EVENT) {
-                            // 空のイベントを送信.
-                            String sessionKey = DConnectProfile.getSessionKey(request);
-                            String serviceId = DConnectProfile.getServiceID(request);
-                            Intent message = MessageUtils.createEventIntent();
-                            DConnectProfile.setSessionKey(message, sessionKey);
-                            DConnectProfile.setServiceID(message, serviceId);
-                            DConnectProfile.setProfile(message, profileName);
-                            DConnectProfile.setAttribute(message, getAttribute());
-                            sendBroadcast(message);
+                            switch (apiSpec.getMethod()) {
+                                case PUT:
+                                    startEventBroadcast(request);
+                                    break;
+                                case DELETE:
+                                    stopEventSender(request);
+                                    break;
+                                default:
+                                    break;
+                            }
                         }
                         return true;
                     }
                 };
                 profile.addApi(api);
             }
+            addProfile(profile);
         }
 
         addProfile(new TestUniqueProfile());
@@ -120,4 +137,82 @@ public class UnitTestService extends DConnectService {
     public void sendBroadcast(final Intent intent) {
         sendBroadcast(intent, DEFAULT_DELAY);
     }
+
+
+    private EventSender getEventSender(final String path) {
+        return mEventSenders.get(path);
+    }
+
+    private void putEventSender(final String path, final EventSender thread) {
+        mEventSenders.put(path, thread);
+    }
+
+    private void startEventBroadcast(final Intent request) {
+        EventSender sender = new EventSender(request);
+        EventSender cache = getEventSender(sender.getPath());
+        if (cache != null) {
+            return;
+        }
+        putEventSender(sender.getPath(), sender);
+        new Thread(sender).start();
+    }
+
+    private void stopEventSender(final Intent request) {
+        EventSender cache = getEventSender(createPath(request));
+        if (cache == null) {
+            return;
+        }
+        cache.stop();
+    }
+
+    private String createPath(final Intent request) {
+        String profileName = DConnectProfile.getProfile(request);
+        String attributeName = DConnectProfile.getAttribute(request);
+        return "/" + profileName + "/" + attributeName;
+    }
+
+    private class EventSender implements Runnable {
+
+        private final String mPath;
+        private final Intent mEvent;
+        private boolean mIsSending = true;
+        private int mCount = 100;
+
+        EventSender(final Intent request) {
+            String profileName = DConnectProfile.getProfile(request);
+            String attributeName = DConnectProfile.getAttribute(request);
+            String accessToken = DConnectProfile.getAccessToken(request);
+            String serviceId = DConnectProfile.getServiceID(request);
+            Intent message = MessageUtils.createEventIntent();
+            DConnectProfile.setAccessToken(message, accessToken);
+            DConnectProfile.setServiceID(message, serviceId);
+            DConnectProfile.setProfile(message, profileName);
+            DConnectProfile.setAttribute(message, attributeName);
+            message.setComponent((ComponentName) request.getParcelableExtra(DConnectMessage.EXTRA_RECEIVER));
+            mEvent = message;
+            mPath = createPath(request);
+        }
+
+        String getPath() {
+            return mPath;
+        }
+
+        void stop() {
+            mIsSending = false;
+        }
+
+        @Override
+        public void run() {
+            try {
+                while (mIsSending && mCount > 0) {
+                    sendBroadcast(mEvent);
+                    Thread.sleep(DEFAULT_DELAY);
+                    mCount--;
+                }
+            } catch (InterruptedException e) {
+                mIsSending = false;
+            }
+        }
+    }
+
 }

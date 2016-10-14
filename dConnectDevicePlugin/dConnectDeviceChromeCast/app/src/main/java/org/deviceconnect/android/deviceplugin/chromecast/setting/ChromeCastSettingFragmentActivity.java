@@ -6,9 +6,19 @@
  */
 package org.deviceconnect.android.deviceplugin.chromecast.setting;
 
-import java.util.ArrayList;
+import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.app.Fragment;
-import org.deviceconnect.android.ui.activity.DConnectSettingPageFragmentActivity;
+import android.view.Menu;
+import android.view.MenuItem;
+
+import com.google.android.gms.cast.framework.CastButtonFactory;
+import com.google.android.gms.cast.framework.CastContext;
+import com.google.android.gms.cast.framework.IntroductoryOverlay;
+
+import org.deviceconnect.android.deviceplugin.chromecast.R;
+
+import java.util.ArrayList;
 
 /**
  * チュートリアル画面（ステップ）.
@@ -18,11 +28,12 @@ import org.deviceconnect.android.ui.activity.DConnectSettingPageFragmentActivity
  * 
  * @author NTT DOCOMO, INC.
  */
-public class ChromeCastSettingFragmentActivity extends DConnectSettingPageFragmentActivity {
+public class ChromeCastSettingFragmentActivity extends DConnectSettingCompatPageFragmentActivity {
 
     /** ページUI用Fragment. */
     private ArrayList<Fragment> mFragments;
-    
+    private MenuItem mediaRouteMenuItem;
+    private IntroductoryOverlay mIntroductoryOverlay;
     /**
      * コンストラクタ.
      */
@@ -32,7 +43,12 @@ public class ChromeCastSettingFragmentActivity extends DConnectSettingPageFragme
         mFragments.add(new ChromeCastSettingFragmentPage2());
         mFragments.add(new ChromeCastSettingFragmentPage3());
     }
-
+    @Override
+    public void onCreate(final Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        CastContext castContext = CastContext.getSharedInstance(this);
+        castContext.registerLifecycleCallbacksBeforeIceCreamSandwich(this, savedInstanceState);
+    }
     @Override
     public int getPageCount() {
         return mFragments.size();
@@ -42,4 +58,46 @@ public class ChromeCastSettingFragmentActivity extends DConnectSettingPageFragme
     public Fragment createPage(final int position) {
         return mFragments.get(position);
     }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        super.onCreateOptionsMenu(menu);
+        getMenuInflater().inflate(R.menu.browse, menu);
+        mediaRouteMenuItem = CastButtonFactory.setUpMediaRouteButton(this, menu,
+                R.id.media_route_menu_item);
+        showIntroductoryOverlay();
+        return true;
+    }
+
+
+    /**
+     * 説明を表示.
+     */
+    private void showIntroductoryOverlay() {
+        if (mIntroductoryOverlay != null) {
+            mIntroductoryOverlay.remove();
+        }
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                    if ((mediaRouteMenuItem != null) && mediaRouteMenuItem.isVisible()) {
+                        mIntroductoryOverlay = new IntroductoryOverlay.Builder(
+                                ChromeCastSettingFragmentActivity.this, mediaRouteMenuItem)
+                                .setTitleText(getString(R.string.introducing_cast))
+                                .setOverlayColor(R.color.primary)
+                                .setSingleTime()
+                                .setOnOverlayDismissedListener(
+                                        new IntroductoryOverlay.OnOverlayDismissedListener() {
+                                            @Override
+                                            public void onOverlayDismissed() {
+                                                mIntroductoryOverlay = null;
+                                            }
+                                        })
+                                .build();
+                        mIntroductoryOverlay.show();
+                    }
+            }
+        }, 500);
+    }
+
 }

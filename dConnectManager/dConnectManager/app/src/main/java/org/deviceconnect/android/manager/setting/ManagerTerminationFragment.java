@@ -57,11 +57,11 @@ public class ManagerTerminationFragment extends DialogFragment {
                 DevicePluginManager mgr = app.getDevicePluginManager();
                 List<DevicePlugin> plugins = mgr.getDevicePlugins();
                 for (DevicePlugin plugin : plugins) {
-                    if (plugin.getServiceId() != null) {
+                    if (plugin.getPluginId() != null) {
                         Intent request = new Intent();
                         request.setComponent(plugin.getComponentName());
                         request.setAction(IntentDConnectMessage.ACTION_MANAGER_TERMINATED);
-                        request.putExtra("pluginId", plugin.getServiceId());
+                        request.putExtra("pluginId", plugin.getPluginId());
                         activity.sendBroadcast(request);
                     }
                 }

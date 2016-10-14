@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no">
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="../css/main.css" type="text/css" />
+    <title>【AWS IoT Manager 管理】ヘルプ</title>
+</head>
+<body>
+    <div class="heading">【AWS IoT Manager 管理】</div>
+    <div class="content">
+        <p>クラウド上のAWS IoT ManagerへのSubscribe / Unsubscribe設定を行います。</p>
+        <p>また、メニューから「AWS IoT設定」「デバイス認証」「ログアウト」を実行出来ます。</p>
+        <p></p>
+        <p>画面には、クラウド上に設定されているAWS IoT Manageの一覧が表示されます。</p>
+        <p>スイッチのOn/Offに連動して、該当AWS IoT Managerへの応答・イベント受信TopicのSubscribe / Unsubscribe設定を行います。</p>
+        <p>OnになっているAWS IoT Managerに対して、ServiceDiscoveryを行い、デバイス一覧を取得します。</p>
+        <ul>
+            <li>「AWS Iotと同期」ボタン</li>
+                <p>「AWS IoTと同期」ボタンを押下すると、クラウド上に設定されているAWS IoT Manageの一覧再取得を行います。</p>
+            <li>メニュー</li>
+                <ul>
+                    <li>「AWS IoT 設定」</li>
+                        <p><a href="menu_setting.html">【AWS IoT 設定】</a>画面が表示されます。</p>
+                        <p>Device Connect Managerが起動されていない場合は、確認ダイアログが表示され、【AWS IoT 設定】画面は表示されません。</p>
+                    <li>「デバイス認証」</li>
+                        <p><a href="menu_oauth.html">【デバイス認証】</a>画面が表示されます。</p>
+                        <p>Device Connect Managerが起動されていない場合は、確認ダイアログが表示され、【デバイス認証】画面は表示されません。</p>
+                    <li>「ログアウト」</li>
+                        <p>AWS IoTからログアウトを行い、<a href="login.html">【AWS IoT ログイン画面】</a>が表示されます。</p>
+                </ul>
+        </ul>
+    </div>
+    <div class="link">
+        <a href="../index.html">ヘルプTOPページ</a>
+    </div>
+</body>
+</html>

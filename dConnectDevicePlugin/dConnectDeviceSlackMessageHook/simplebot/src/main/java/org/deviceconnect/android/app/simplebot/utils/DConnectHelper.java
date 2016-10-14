@@ -386,10 +386,10 @@ public class DConnectHelper {
      * @param attribute Attribute
      * @param serviceId ServiceID
      * @param accessToken AccessToken
-     * @param clientId ClientID
+     * @param sessionKey セッションキー
      * @param callback Callback
      */
-    public void registerEvent(String profile, String attribute, String serviceId, String accessToken, String clientId, boolean unregist, final FinishCallback<Void> callback) {
+    public void registerEvent(String profile, String attribute, String serviceId, String accessToken, String sessionKey, boolean unregist, final FinishCallback<Void> callback) {
         if (BuildConfig.DEBUG) Log.d(TAG, "registerEvent:" + profile + ":" + attribute);
         // 接続情報
         String method = "PUT";
@@ -409,7 +409,7 @@ public class DConnectHelper {
             params.put(DConnectMessage.EXTRA_ACCESS_TOKEN, accessToken);
         }
         params.put(DConnectMessage.EXTRA_SERVICE_ID, serviceId);
-        params.put(DConnectMessage.EXTRA_SESSION_KEY, clientId);
+        params.put(DConnectMessage.EXTRA_SESSION_KEY, sessionKey);
         // 接続
         new EventTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, new TaskParam(connectionParam, params) {
             @Override
@@ -535,16 +535,15 @@ public class DConnectHelper {
      * @param sessionKey SessionKey
      * @return 成功時true
      */
-    public boolean openWebsocket(String sessionKey) {
-        boolean isSSL = "https".equals(targetHost.getSchemeName());
-        String host = targetHost.getHostName();
-        int port = targetHost.getPort();
+    public boolean openWebsocket(final String sessionKey) {
+        final boolean isSSL = "https".equals(targetHost.getSchemeName());
+        final String host = targetHost.getHostName();
+        final int port = targetHost.getPort();
 
         return HttpEventManager.INSTANCE.connect(host, port, isSSL, sessionKey, new CloseHandler() {
             @Override
             public void onClosed() {
-                Log.d(TAG, "ws closed");
-                // TODO: 再接続処理
+                Log.w(TAG, "ws closed");
             }
         });
     }

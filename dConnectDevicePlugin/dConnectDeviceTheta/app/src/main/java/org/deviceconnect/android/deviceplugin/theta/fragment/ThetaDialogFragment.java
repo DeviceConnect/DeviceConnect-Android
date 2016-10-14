@@ -160,7 +160,7 @@ public class ThetaDialogFragment extends DialogFragment {
         builder.setTitle(title);
         builder.setSingleChoiceItems(list, 0, singleChoiceListner);
         builder.setPositiveButton(R.string.ok, positiveListener);
-        builder.setNegativeButton(R.string.cancel, negativeListener);
+        builder.setNegativeButton(R.string.button_cancel, negativeListener);
         builder.setCancelable(true);
         builder.show();
     }
@@ -173,7 +173,7 @@ public class ThetaDialogFragment extends DialogFragment {
         builder.setIcon(android.R.drawable.ic_dialog_info);
         builder.setTitle(R.string.theta_password_dialog);
         builder.setView(editView).setPositiveButton(R.string.ok, okListener);
-        builder.setNegativeButton(R.string.cancel, cancelListener);
+        builder.setNegativeButton(R.string.button_cancel, cancelListener);
         builder.show();
     }
 }

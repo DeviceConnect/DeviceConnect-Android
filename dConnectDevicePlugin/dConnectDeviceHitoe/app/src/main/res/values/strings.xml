@@ -1,0 +1,84 @@
+<resources>
+    <string name="app_name">Hitoe (Device Connect Device Plug-in)</string>
+    <string name="summary_title">[1/4] デバイスプラグイン概要</string>
+    <string name="summary_body">このデバイスプラグインはHitoeデバイスと接続し、心拍数などを取得する機能を提供します。</string>
+
+    <string name="summary_not_support_title">デバイスエラー</string>
+    <string name="summary_not_support_message">このデバイスはBluetooth Low Energyをサポートしていません</string>
+
+    <string name="hitoe_title">Hitoeの準備</string>
+    <string name="hitoe_body">ボタンをランプが点滅するまで、長押してください。\nランプが黄緑色に点滅します。\nランプが点灯したら、Hitoeをウェアに装着してください。</string>
+
+    <string name="bluetooth_settings_title">Bluetoothの設定</string>
+    <string name="bluetooth_settings_body">このデバイスプラグインでは、Bluetooth Low Energyを使用しますので、端末のBluetooth設定画面より設定をONにしてください。\n\n既にBluetoothがONになっている場合には次のページにお進みください。\n</string>
+    <string name="bluetooth_settings_button"> 設定画面を開く </string>
+    <string name="bluetooth_settings_ble_detail">Android 6.0からBLEをスキャンするには、位置情報のパーミッションが必要になりました。\nこのプラグインを使用するためには、以下のパーミッションを許可してください。\n許可を取り消すには、アプリの設定画面から行うことができます。</string>
+    <string name="bluetooth_settings_ble_permission">位置情報の許可</string>
+    <string name="bluetooth_settings_ble_permission_on">取得済み</string>
+    <string name="bluetooth_settings_ble_permission_off">取得</string>
+
+    <string name="hitoe_setting_title">デバイスの接続</string>
+    <string name="tap_discovery">Hitoeデバイスの検索をタップしてください。</string>
+    <string name="discovery_devices">Hitoeデバイスの検索</string>
+    <string name="device_list_description">デバイスとの接続を行ってください。</string>
+    <string name="hitoe_setting_connect">接続</string>
+    <string name="hitoe_setting_disconnect">解除</string>
+    <string name="hitoe_setting_default_name">Unknown</string>
+    <string name="hitoe_setting_default_address">Unknown</string>
+    <string name="hitoe_setting_connecting_title">BLE接続</string>
+    <string name="hitoe_setting_connecting_message">%1$sと接続中</string>
+    <string name="hitoe_setting_dialog_positive">OK</string>
+    <string name="hitoe_setting_dialog_pin_title">PINコードの入力</string>
+    <string name="hitoe_setting_dialog_error_title">BLE接続エラー</string>
+    <string name="hitoe_setting_dialog_error_message">%1$sとの接続に失敗しました</string>
+    <string name="hitoe_setting_dialog_error_message02">PINコードを入力してください</string>
+    <string name="hitoe_setting_dialog_error_message03">Hitoeデバイスとの接続に失敗しました</string>
+    <string name="hitoe_setting_dialog_error_message04">Hitoeデバイスとの接続に失敗しました。\nPINコードを確認してください。</string>
+    <string name="hitoe_setting_online">[ONLINE]</string>
+    <string name="hitoe_setting_offline">[OFFLINE]</string>
+    <string name="hitoe_setting_dialog_error_permission">BLE検索するためのパーミッションが許可されていないために検索できません。\nBluetooth設定画面から位置情報の許可を取得してください。</string>
+    <string name="hitoe_setting_dialog_disable_bluetooth">Bluetoothが無効になっているために検索できません。\nBluetooth設定画面からBluetoothを有効に設定してください。</string>
+    <string name="hitoe_setting_searching">デバイス検索中</string>
+
+
+    <string name="add_device_button">デバイス追加画面へ</string>
+    <string name="action_search">更新</string>
+    <string name="device_list_view">デバイス一覧画面</string>
+    <string name="add_device_view">デバイス追加画面</string>
+    <string name="alert_add_device">Hitoeが追加されていません。\n「デバイス追加画面へ」ボタンを押して、Hitoeを追加してください。</string>
+    <string name="ok">ok</string>
+    <string name="cancel">cancel</string>
+    <string name="confirm_delete_device">このデバイスを削除しますか？</string>
+    <string name="error_disconnected_hitoe">デバイスと接続してください。</string>
+    <string-array name="support_profiles">
+        <item>HeartRate(心拍数)</item>
+        <item>Battery(電池残量)</item>
+        <item>DeviceOrientation(加速度)</item>
+        <item>ECG(心電図)</item>
+        <item>StressEstimation(ストレス推定)</item>
+        <item>PoseEstimation(姿勢推定)</item>
+        <item>WalkState(歩行状態)</item>
+    </string-array>
+
+    <string name="dialog_next">次回以降省略</string>
+    <string name="dialog_title_lunch_hitoe">Hitoeの起動</string>
+    <string name="dialog_message_lunch_hitoe">デバイスの電源は入っていますか？\nHitoeの電源を２秒押して電源を入れてください。</string>
+
+    <string name="dialog_title_pin_input">PINコードの入力</string>
+    <string name="dialog_message_pin_input">枠の中の数字を入力してください。</string>
+
+    <string name="dialog_title_equip_hitoe">Hitoeの装着</string>
+    <string name="dialog_message_equip_hitoe">Hitoeをシャツに装着してください。</string>
+
+    <string name="title_control">操作画面</string>
+    <string name="button_register">登録</string>
+    <string name="button_unregister">解除</string>
+
+    <string name="step">歩数</string>
+    <string name="state">歩行状態</string>
+    <string name="speed">歩行速度</string>
+    <string name="distance">歩行距離</string>
+    <string name="balance">左右バランス</string>
+    <string name="warning_title">警告</string>
+    <string name="warning_connections">すでに接続されているデバイスがある場合に、新たにデバイスが接続しようとした場合は、新たに接続したデバイスと接続しなおされます。\nその時、すでに接続されているデバイスとは接続が切断されますので、ご注意ください。</string>
+</resources>

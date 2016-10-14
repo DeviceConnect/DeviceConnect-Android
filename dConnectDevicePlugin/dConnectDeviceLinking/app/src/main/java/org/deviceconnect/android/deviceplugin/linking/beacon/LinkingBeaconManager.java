@@ -24,7 +24,6 @@ import org.deviceconnect.android.deviceplugin.linking.util.PreferenceUtil;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -45,16 +44,16 @@ public class LinkingBeaconManager {
 
     private final List<LinkingBeacon> mLinkingBeacons = Collections.synchronizedList(new ArrayList<LinkingBeacon>());
 
-    private List<OnBeaconConnectListener> mOnBeaconConnectListeners = new CopyOnWriteArrayList<>();
-    private List<OnBeaconEventListener> mOnBeaconEventListeners = new CopyOnWriteArrayList<>();
-    private List<OnBeaconButtonEventListener> mOnBeaconButtonEventListeners = new CopyOnWriteArrayList<>();
-    private List<OnBeaconProximityEventListener> mOnBeaconProximityEventListeners = new CopyOnWriteArrayList<>();
-    private List<OnBeaconBatteryEventListener> mOnBeaconBatteryEventListeners = new CopyOnWriteArrayList<>();
-    private List<OnBeaconAtmosphericPressureEventListener> mOnBeaconAtmosphericPressureEventListeners = new CopyOnWriteArrayList<>();
-    private List<OnBeaconHumidityEventListener> mOnBeaconHumidityEventListeners = new CopyOnWriteArrayList<>();
-    private List<OnBeaconTemperatureEventListener> mOnBeaconTemperatureEventListeners = new CopyOnWriteArrayList<>();
-    private List<OnBeaconRawDataEventListener> mOnBeaconRawDataEventListeners = new CopyOnWriteArrayList<>();
-    private List<OnBeaconScanStateListener> mOnBeaconScanStateListeners = new CopyOnWriteArrayList<>();
+    private final List<OnBeaconConnectListener> mOnBeaconConnectListeners = Collections.synchronizedList(new ArrayList<OnBeaconConnectListener>());
+    private final List<OnBeaconEventListener> mOnBeaconEventListeners = Collections.synchronizedList(new ArrayList<OnBeaconEventListener>());
+    private final List<OnBeaconButtonEventListener> mOnBeaconButtonEventListeners = Collections.synchronizedList(new ArrayList<OnBeaconButtonEventListener>());
+    private final List<OnBeaconProximityEventListener> mOnBeaconProximityEventListeners = Collections.synchronizedList(new ArrayList<OnBeaconProximityEventListener>());
+    private final List<OnBeaconBatteryEventListener> mOnBeaconBatteryEventListeners = Collections.synchronizedList(new ArrayList<OnBeaconBatteryEventListener>());
+    private final List<OnBeaconAtmosphericPressureEventListener> mOnBeaconAtmosphericPressureEventListeners = Collections.synchronizedList(new ArrayList<OnBeaconAtmosphericPressureEventListener>());
+    private final List<OnBeaconHumidityEventListener> mOnBeaconHumidityEventListeners = Collections.synchronizedList(new ArrayList<OnBeaconHumidityEventListener>());
+    private final List<OnBeaconTemperatureEventListener> mOnBeaconTemperatureEventListeners = Collections.synchronizedList(new ArrayList<OnBeaconTemperatureEventListener>());
+    private final List<OnBeaconRawDataEventListener> mOnBeaconRawDataEventListeners = Collections.synchronizedList(new ArrayList<OnBeaconRawDataEventListener>());
+    private final List<OnBeaconScanStateListener> mOnBeaconScanStateListeners = Collections.synchronizedList(new ArrayList<OnBeaconScanStateListener>());
 
     private LinkingDBAdapter mDBAdapter;
 
@@ -68,12 +67,16 @@ public class LinkingBeaconManager {
         mLinkingBeacons.addAll(mDBAdapter.queryBeacons());
         mScanMode = LinkingBeaconUtil.ScanMode.valueOf(PreferenceUtil.getInstance(mContext).getBeaconScanMode());
 
-        boolean scan = isStartForceBeaconScan();
+        boolean scan = isStartedForceBeaconScan();
         if (scan) {
-            startBeaconScan(mScanMode);
+            stopForceBeaconScan();
         }
 
         startCheckConnectionOfBeacon();
+    }
+
+    public boolean isScanState() {
+        return isStartedForceBeaconScan() || isStartedBeaconScan();
     }
 
     public void destroy() {
@@ -108,19 +111,28 @@ public class LinkingBeaconManager {
 
     public void stopForceBeaconScan() {
         PreferenceUtil.getInstance(mContext).setForceBeaconScanStatus(false);
-        if (!isStartBeaconScan()) {
+
+        if (BuildConfig.DEBUG) {
+            Log.d(TAG, "stopForceBeaconScan: " + isStartedBeaconScan());
+        }
+
+        if (!isStartedBeaconScan()) {
             stopBeaconScanInternal();
         }
     }
 
-    public boolean isStartForceBeaconScan() {
+    public boolean isStartedForceBeaconScan() {
         return PreferenceUtil.getInstance(mContext).getForceBeaconScanStatus();
     }
 
     public synchronized void startBeaconScanWithTimeout(final int timeout) {
 
-        if (isStartBeaconScan()) {
+        if (isStartedBeaconScan()) {
             return;
+        }
+
+        if (BuildConfig.DEBUG) {
+            Log.d(TAG, "startBeaconScanWithTimeout");
         }
 
         if (mTimeoutRunnable != null) {
@@ -131,10 +143,9 @@ public class LinkingBeaconManager {
             @Override
             public void onTimeout() {
                 if (BuildConfig.DEBUG) {
-                    Log.d(TAG, "startBeaconScanWithTimeout");
+                    Log.d(TAG, "startBeaconScanWithTimeout:onTimeout");
                 }
-                mTimeoutRunnable = null;
-                if (!isStartBeaconScan()) {
+                if (!isStartedBeaconScan()) {
                     stopBeaconScan();
                 }
             }
@@ -158,14 +169,14 @@ public class LinkingBeaconManager {
         }
     }
 
-    public void stopBeaconScan() {
+    public synchronized void stopBeaconScan() {
         mScanFlag = false;
-        if (!isStartForceBeaconScan()) {
+        if (!isStartedForceBeaconScan()) {
             stopBeaconScanInternal();
         }
     }
 
-    public synchronized boolean isStartBeaconScan() {
+    public synchronized boolean isStartedBeaconScan() {
         return mScanFlag;
     }
 
@@ -299,14 +310,14 @@ public class LinkingBeaconManager {
         Intent intent = new Intent();
         intent.setClassName(LinkingBeaconUtil.LINKING_PACKAGE_NAME, LinkingBeaconUtil.BEACON_SERVICE_NAME);
         intent.setAction(mContext.getPackageName() + LinkingBeaconUtil.ACTION_START_BEACON_SCAN);
-        intent.putExtra(mContext.getPackageName() + LinkingBeaconUtil.EXTRA_SERVICE_ID, new int[] {0, 1, 2, 3, 4, 5, 15});
+//        intent.putExtra(mContext.getPackageName() + LinkingBeaconUtil.EXTRA_SERVICE_ID, new int[] {0, 1, 2, 3, 4, 5, 15});
         if (scanMode != null) {
             intent.putExtra(mContext.getPackageName() + LinkingBeaconUtil.EXTRA_SCAN_MODE, scanMode.getValue());
         }
         mContext.startService(intent);
     }
 
-    private synchronized void stopBeaconScanInternal() {
+    private void stopBeaconScanInternal() {
         if (BuildConfig.DEBUG) {
             Log.i(TAG, "LinkingBeaconManager#stopBeaconScan");
         }
@@ -327,7 +338,8 @@ public class LinkingBeaconManager {
                     if (BuildConfig.DEBUG) {
                         Log.d(TAG, "@@ Restart the beacon scan.");
                     }
-                    startBeaconScan(mScanMode);
+                    stopBeaconScan();
+                    stopForceBeaconScan();
                     break;
                 case DETAIL_META_DATA_NONE:
                     if (BuildConfig.DEBUG) {
@@ -399,15 +411,11 @@ public class LinkingBeaconManager {
 
         if (!beacon.isOnline()) {
             beacon.setOnline(true);
-            for (OnBeaconConnectListener listener : mOnBeaconConnectListeners) {
-                listener.onConnected(beacon);
-            }
+            notifyBeaconConnectionListener(beacon);
         }
 
         if (beacon.isOnline()) {
-            for (OnBeaconEventListener listener : mOnBeaconEventListeners) {
-                listener.onNotify(beacon);
-            }
+            notifyBeaconEventListener(beacon);
         }
     }
 
@@ -430,9 +438,7 @@ public class LinkingBeaconManager {
 
         mDBAdapter.insertGatt(beacon, gatt);
 
-        for (OnBeaconProximityEventListener listener : mOnBeaconProximityEventListeners) {
-            listener.onProximity(beacon, gatt);
-        }
+        notifyBeaconProximityEventListener(beacon, gatt);
     }
 
     private void parseAtmosphericPressureData(final Intent intent, final LinkingBeacon beacon) {
@@ -450,9 +456,7 @@ public class LinkingBeaconManager {
 
             mDBAdapter.insertAtmosphericPressure(beacon, atm);
 
-            for (OnBeaconAtmosphericPressureEventListener listener : mOnBeaconAtmosphericPressureEventListeners) {
-                listener.onAtmosphericPressure(beacon, atm);
-            }
+            notifyBeaconAtmosphericPressureEventListener(beacon, atm);
         }
     }
 
@@ -474,9 +478,7 @@ public class LinkingBeaconManager {
 
             mDBAdapter.insertBattery(beacon, battery);
 
-            for (OnBeaconBatteryEventListener listener : mOnBeaconBatteryEventListeners) {
-                listener.onBattery(beacon, battery);
-            }
+            notifyBeaconBatteryEventListener(beacon, battery);
         }
     }
 
@@ -495,9 +497,7 @@ public class LinkingBeaconManager {
 
             mDBAdapter.insertHumidity(beacon, humidity);
 
-            for (OnBeaconHumidityEventListener listener : mOnBeaconHumidityEventListeners) {
-                listener.onHumidity(beacon, humidity);
-            }
+            notifyBeaconHumidityEventListener(beacon, humidity);
         }
     }
 
@@ -516,9 +516,7 @@ public class LinkingBeaconManager {
 
             mDBAdapter.insertTemperature(beacon, temp);
 
-            for (OnBeaconTemperatureEventListener listener : mOnBeaconTemperatureEventListeners) {
-                listener.onTemperature(beacon, temp);
-            }
+            notifyBeaconTemperatureEventListener(beacon, temp);
         }
     }
 
@@ -536,9 +534,7 @@ public class LinkingBeaconManager {
 
             mDBAdapter.insertRawData(beacon, raw);
 
-            for (OnBeaconRawDataEventListener listener : mOnBeaconRawDataEventListeners) {
-                listener.onRawData(beacon, raw);
-            }
+            notifyBeaconRawDataEventListener(beacon, raw);
         }
     }
 
@@ -546,9 +542,7 @@ public class LinkingBeaconManager {
         if (intent.getExtras().containsKey(LinkingBeaconUtil.BUTTON_ID)) {
             long timeStamp = intent.getLongExtra(LinkingBeaconUtil.TIME_STAMP, 0);
             int keyCode = intent.getIntExtra(LinkingBeaconUtil.BUTTON_ID, -1);
-            for (OnBeaconButtonEventListener listener: mOnBeaconButtonEventListeners) {
-                listener.onClickButton(beacon, keyCode, timeStamp);
-            }
+            notifyBeaconButtonEventListener(beacon, timeStamp, keyCode);
         }
     }
 
@@ -581,11 +575,81 @@ public class LinkingBeaconManager {
                 if (beacon.isOnline()) {
                     if (now - beacon.getTimeStamp() > INTERVAL) {
                         beacon.setOnline(false);
-                        for (OnBeaconConnectListener listener : mOnBeaconConnectListeners) {
-                            listener.onDisconnected(beacon);
-                        }
+                        notifyBeaconConnectionListener(beacon);
                     }
                 }
+            }
+        }
+    }
+
+    private void notifyBeaconAtmosphericPressureEventListener(final LinkingBeacon beacon, final AtmosphericPressureData atm) {
+        synchronized (mOnBeaconAtmosphericPressureEventListeners) {
+            for (OnBeaconAtmosphericPressureEventListener listener : mOnBeaconAtmosphericPressureEventListeners) {
+                listener.onAtmosphericPressure(beacon, atm);
+            }
+        }
+    }
+
+    private void notifyBeaconBatteryEventListener(final LinkingBeacon beacon, final BatteryData battery) {
+        synchronized (mOnBeaconBatteryEventListeners) {
+            for (OnBeaconBatteryEventListener listener : mOnBeaconBatteryEventListeners) {
+                listener.onBattery(beacon, battery);
+            }
+        }
+    }
+
+    private void notifyBeaconTemperatureEventListener(final LinkingBeacon beacon, final TemperatureData temp) {
+        synchronized (mOnBeaconTemperatureEventListeners) {
+            for (OnBeaconTemperatureEventListener listener : mOnBeaconTemperatureEventListeners) {
+                listener.onTemperature(beacon, temp);
+            }
+        }
+    }
+
+    private void notifyBeaconHumidityEventListener(final LinkingBeacon beacon, final HumidityData humidity) {
+        synchronized (mOnBeaconHumidityEventListeners) {
+            for (OnBeaconHumidityEventListener listener : mOnBeaconHumidityEventListeners) {
+                listener.onHumidity(beacon, humidity);
+            }
+        }
+    }
+
+    private void notifyBeaconRawDataEventListener(final LinkingBeacon beacon, final RawData raw) {
+        synchronized (mOnBeaconRawDataEventListeners) {
+            for (OnBeaconRawDataEventListener listener : mOnBeaconRawDataEventListeners) {
+                listener.onRawData(beacon, raw);
+            }
+        }
+    }
+
+    private void notifyBeaconProximityEventListener(final LinkingBeacon beacon, final GattData gatt) {
+        synchronized (mOnBeaconProximityEventListeners) {
+            for (OnBeaconProximityEventListener listener : mOnBeaconProximityEventListeners) {
+                listener.onProximity(beacon, gatt);
+            }
+        }
+    }
+
+    private void notifyBeaconButtonEventListener(final LinkingBeacon beacon, final long timeStamp, final int keyCode) {
+        synchronized (mOnBeaconButtonEventListeners) {
+            for (OnBeaconButtonEventListener listener: mOnBeaconButtonEventListeners) {
+                listener.onClickButton(beacon, keyCode, timeStamp);
+            }
+        }
+    }
+
+    private void notifyBeaconEventListener(final LinkingBeacon beacon) {
+        synchronized (mOnBeaconEventListeners) {
+            for (OnBeaconEventListener listener : mOnBeaconEventListeners) {
+                listener.onNotify(beacon);
+            }
+        }
+    }
+
+    private void notifyBeaconConnectionListener(final LinkingBeacon beacon) {
+        synchronized (mOnBeaconConnectListeners) {
+            for (OnBeaconConnectListener listener : mOnBeaconConnectListeners) {
+                listener.onDisconnected(beacon);
             }
         }
     }

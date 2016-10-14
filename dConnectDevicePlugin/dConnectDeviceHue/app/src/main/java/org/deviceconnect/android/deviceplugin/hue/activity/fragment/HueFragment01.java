@@ -178,6 +178,8 @@ public class HueFragment01 extends Fragment implements OnClickListener, OnItemCl
      * ローカルBridgeのUPNP Searchを開始する.
      */
     public void doBridgeSearch() {
+        // アクセスポイントのキャッシュクリア
+        mPhHueSDK.getAccessPointsFound().clear();
         // ローカルBridgeのUPNP Searchを開始
         PHBridgeSearchManager sm = (PHBridgeSearchManager) mPhHueSDK.getSDKService(PHHueSDK.SEARCH_BRIDGE);
         sm.search(true, true);

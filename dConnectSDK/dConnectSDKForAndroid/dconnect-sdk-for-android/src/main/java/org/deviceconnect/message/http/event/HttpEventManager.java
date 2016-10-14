@@ -13,6 +13,7 @@ import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.event.AbstractEventManager;
 import org.deviceconnect.utils.URIBuilder;
 import org.java_websocket.client.WebSocketClient;
+import org.java_websocket.drafts.Draft_17;
 import org.java_websocket.handshake.ServerHandshake;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -39,14 +40,14 @@ public final class HttpEventManager extends AbstractEventManager {
     /**
      * リトライする回数.
      */
-    private static final int RETRY_TIMES = 5;
+    private static final int RETRY_TIMES = 10;
 
     /**
      * リトライ時に待つ時間.
      * 回数を重ねるたびにこの時間分だけ増えていく。
      * ex. 1回目 {@value} ミリ秒、2回目 {@value} * 2ミリ秒。
      */
-    private static final long RETRY_WAIT = 30 * 1000;
+    private static final long RETRY_WAIT = 10 * 1000;
 
     /**
      * シングルトンなEventManagerのインスタンス.
@@ -191,6 +192,14 @@ public final class HttpEventManager extends AbstractEventManager {
         }
     }
 
+    @Override
+    public boolean isOpen() {
+        if (mStatus == Status.OPEN) {
+            return mWSClient.isOpen();
+        }
+        return mStatus != Status.CLOSE;
+    }
+
     /**
      * 再接続を試みる.
      */
@@ -237,7 +246,7 @@ public final class HttpEventManager extends AbstractEventManager {
          * @param serverURI サーバーのURI
          */
         public EventWebSocketClient(final URI serverURI) {
-            super(serverURI);
+            super(serverURI, new Draft_17(), null, 10 * 1000);
         }
 
         @Override
@@ -262,7 +271,7 @@ public final class HttpEventManager extends AbstractEventManager {
 
         @Override
         public void onClose(final int code, final String reason, final boolean remote) {
-            mLogger.warning("EventWebSocketClient#onClose : " + mStatus);
+            mLogger.warning("EventWebSocketClient#onClose: " + mStatus + " reason:" + reason);
 
             if (mStatus == Status.WAITING_OPEN
                     || mStatus == Status.RETRYING) {
@@ -333,7 +342,6 @@ public final class HttpEventManager extends AbstractEventManager {
          * @return 接続できたらtrue、失敗したらfalseを返す
          */
         private boolean retry(final long wait) {
-
             try {
                 Thread.sleep(wait);
             } catch (InterruptedException e) {
@@ -343,11 +351,7 @@ public final class HttpEventManager extends AbstractEventManager {
             mWSClient = new EventWebSocketClient(mWSClient.getURI());
             mWSClient.connect();
             waitConnect();
-            if (mWSClient.isOpen()) {
-                return true;
-            }
-
-            return false;
+            return mWSClient.isOpen();
         }
     }
 }

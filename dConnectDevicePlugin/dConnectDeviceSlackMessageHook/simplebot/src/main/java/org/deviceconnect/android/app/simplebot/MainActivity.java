@@ -12,6 +12,7 @@ import android.os.Bundle;
 import android.view.KeyEvent;
 
 import org.deviceconnect.android.app.simplebot.data.SettingData;
+import org.deviceconnect.android.app.simplebot.fragment.CommandDetailsFragment;
 import org.deviceconnect.android.app.simplebot.fragment.CommandListFragment;
 import org.deviceconnect.android.app.simplebot.fragment.ShowMenuFragment;
 import org.deviceconnect.android.app.simplebot.fragment.SettingFragment;
@@ -27,6 +28,7 @@ public class MainActivity extends Activity {
     private static final Class[] MenuFragments = {
             SettingFragment.class,
             CommandListFragment.class,
+            CommandDetailsFragment.class
     };
 
     @Override

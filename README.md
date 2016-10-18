@@ -37,7 +37,7 @@ In this guide I will continue to discuss the following.
 |dConnectDeviceHVCP|Device Plug-in for HVC-P.|
 |dConnectDeviceIRKit|Device Plug-in for IRKit.|
 |dConnectDeviceKadecot|Device Plug-in for Kadecot.|
-|dConnectDeviceLinking|Device Plug-in for Linking|
+|dConnectDeviceLinking|Device Plug-in for Linking.|
 |dConnectDevicePebble|Device Plug-in for Pebble.|
 |dConnectDeviceSonyCamera|Device Plug-in for SonyCamera such as QX10.|
 |dConnectDeviceSonySW|Device Plug-in for SonySmartWatch<br>※SmartWatch3 is not supported.|
@@ -45,7 +45,7 @@ In this guide I will continue to discuss the following.
 |dConnectDeviceSphero|Device Plug-in for Sphero.|
 |dConnectDeviceTheta|Device Plug-in for THETA.|
 |dConnectDeviceUVC|Device Plug-in for UVC Camera.|
-|dConnectDeviceWear|Device Plug-in for AndroidWear.|
+|dConnectDeviceAndroidWear|Device Plug-in for AndroidWear.|
 |dConnectDeviceWebRTC|Device Plug-in for WebRTC.|
 |dConnectDeviceTest|Device Plug-in for test of DeviceConnect.|
 |dConnectDevicePluginSDK|SDK for creating DevicePlugin. dConnectSDKForAndroid necessary.|
@@ -91,7 +91,7 @@ People who want to develop the DeviceConnectManager and device Plug-ins, please 
 * [AndroidWear](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/AndroidWear-Build)
 * [WebRTC](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/WebRTC-Build)
 * [AWSIoT](https://github.com/TakayukiHoshi1984/DeviceConnect-Android/wiki/AWSIoT-Build)
-* [SlackBot](https://github.com/TakayukiHoshi1984/DeviceConnect-Android/wiki/SlackBot-Build)
+* [SlackMessageHook](https://github.com/TakayukiHoshi1984/DeviceConnect-Android/wiki/SlackBot-Build)
 
 　In addition, you can get the apk from [here] (https://github.com/DeviceConnect/DeviceConnect-Docs/tree/master/Bin/Android).
 　With regard to the installation method, you can run from the command line of the command as follows.<br>
@@ -169,10 +169,8 @@ At that time, this function because there is a possibility that a security hole,
 Application and using the DeviceConnect, regard the development of the application, please refer to the following pages.
 
 * [Application Development Manual(AndroidStudio)](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Application-Manual-for-Android-Studio)
-* [Application Development Manual(Eclipse)](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Application-Manual-for-Eclipse)
 
 <br>
 If you want to develop a device plug-ins using the Device Connect Manager, please see this Application Development Manual.
 
 * [Device Plug-in development manual(AndroidStudio)](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/DevicePlugin-Manual-for-Android-Studio)
-* [Device Plug-in development manual(Eclipse)](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/DevicePlugin-Manual-for-Eclipse)

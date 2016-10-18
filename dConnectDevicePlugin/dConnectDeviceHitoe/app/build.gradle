@@ -50,6 +50,7 @@ android {
         exclude 'META-INF/LICENSE'
         exclude 'META-INF/NOTICE'
     }
+
     productFlavors {
         DeviceConnect {
             versionCode 1
@@ -68,6 +69,10 @@ android {
                     appName: "@string/app_name_for_device_web_api"
             ]
         }
+    }
+
+    tasks.withType(JavaCompile) {
+        options.encoding = 'UTF-8'
     }
 }
 

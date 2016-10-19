@@ -5,14 +5,7 @@
  http://opensource.org/licenses/mit-license.php
  */
 
-package org.deviceconnect.android.deviceplugin.host.audio;
-
-import java.io.File;
-import java.io.IOException;
-
-import org.deviceconnect.android.activity.PermissionUtility;
-import org.deviceconnect.android.deviceplugin.host.R;
-import org.deviceconnect.android.provider.FileManager;
+package org.deviceconnect.android.deviceplugin.host.recorder.audio;
 
 import android.Manifest;
 import android.app.Activity;
@@ -26,13 +19,19 @@ import android.media.MediaRecorder;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Looper;
 import android.os.ResultReceiver;
 import android.provider.MediaStore;
 import android.provider.MediaStore.Video;
 import android.support.annotation.NonNull;
 import android.view.MotionEvent;
 import android.view.Window;
+
+import org.deviceconnect.android.activity.PermissionUtility;
+import org.deviceconnect.android.deviceplugin.host.R;
+import org.deviceconnect.android.provider.FileManager;
+
+import java.io.File;
+import java.io.IOException;
 
 /**
  * AudioRecorder.
@@ -43,9 +42,6 @@ public class AudioRecorderActivity extends Activity {
 
     /** MediaRecoder. */
     private MediaRecorder mMediaRecorder;
-
-    /** ファイル管理クラス. */
-    private FileManager mFileMgr;
 
     /** ファイル名. */
     private String mFileName;
@@ -87,7 +83,7 @@ public class AudioRecorderActivity extends Activity {
                                 initAudioContext();
                             } catch (Exception e) {
                                 releaseMediaRecorder();
-                                // e.printStackTrace();
+
                                 Bundle data = new Bundle();
                                 data.putString(AudioConst.EXTRA_CALLBACK_ERROR_MESSAGE,
                                         e.getClass().getSimpleName() + ": " + e.getLocalizedMessage());
@@ -112,7 +108,7 @@ public class AudioRecorderActivity extends Activity {
                 initAudioContext();
             } catch (Exception e) {
                 releaseMediaRecorder();
-                // e.printStackTrace();
+
                 Bundle data = new Bundle();
                 data.putString(AudioConst.EXTRA_CALLBACK_ERROR_MESSAGE,
                         e.getClass().getSimpleName() + ": " + e.getLocalizedMessage());
@@ -125,7 +121,7 @@ public class AudioRecorderActivity extends Activity {
     }
 
     private void initAudioContext() throws IOException {
-        mFileMgr = new FileManager(this);
+        FileManager fileMgr = new FileManager(this);
 
         mMediaRecorder = new MediaRecorder();
         mMediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
@@ -134,7 +130,7 @@ public class AudioRecorderActivity extends Activity {
 
         mFileName = mIntent.getStringExtra(AudioConst.EXTRA_FINE_NAME);
         if (mFileName != null) {
-            mFile = new File(mFileMgr.getBasePath(), mFileName);
+            mFile = new File(fileMgr.getBasePath(), mFileName);
             mMediaRecorder.setOutputFile(mFile.toString());
             mMediaRecorder.prepare();
             mMediaRecorder.start();
@@ -143,7 +139,6 @@ public class AudioRecorderActivity extends Activity {
             data.putString(AudioConst.EXTRA_CALLBACK_ERROR_MESSAGE, "File name must be specified.");
             mCallback.send(Activity.RESULT_CANCELED, data);
             finish();
-            return;
         }
     }
 

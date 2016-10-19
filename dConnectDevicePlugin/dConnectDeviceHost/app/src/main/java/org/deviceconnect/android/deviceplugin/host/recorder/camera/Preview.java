@@ -4,7 +4,7 @@
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
  */
-package org.deviceconnect.android.deviceplugin.host.camera;
+package org.deviceconnect.android.deviceplugin.host.recorder.camera;
 
 import android.content.Context;
 import android.graphics.Point;
@@ -21,7 +21,7 @@ import android.view.WindowManager;
 import android.widget.Toast;
 
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
-import org.deviceconnect.android.deviceplugin.host.HostDeviceRecorder;
+import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
 import org.deviceconnect.android.deviceplugin.host.R;
 
 import java.io.IOException;
@@ -70,15 +70,6 @@ public class Preview extends ViewGroup implements SurfaceHolder.Callback {
 
     /** カメラID. */
     private int mCameraId;
-
-    /**
-     * ホストデバイスプラグインから渡されたリクエストID.
-     * <ul>
-     *   <li>Broadcastで指示された場合は設定する。</li>
-     *   <li>アプリ内ならの指示ならnullを設定する。</li>
-     * </ul>
-     */
-    private String mRequestId;
 
     /**
      * コンストラクタ.

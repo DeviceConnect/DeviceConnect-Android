@@ -6,10 +6,13 @@
  */
 package org.deviceconnect.android.deviceplugin.host.manager;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.BatteryManager;
+
+import org.deviceconnect.android.deviceplugin.host.HostDeviceService;
 
 /**
  * バッテリー関連の値の処理と保持.
@@ -49,19 +52,54 @@ public class HostBatteryManager {
     /** 充電中 USB. */
     public static final int BATTERY_PLUGGED_USB = 2;
 
+    /** Intent filter for battery charge event. */
+    private IntentFilter mIfBatteryCharge;
+
+    /** Intent filter for battery connect event. */
+    private IntentFilter mIfBatteryConnect;
+
+    /**
+     * Context.
+     */
+    private HostDeviceService mHostDeviceService;
+
+    private BatteryChargingEventListener mBatteryChargingEventListener;
+    private BatteryStatusEventListener mBatteryStatusEventListener;
+
+    public HostBatteryManager(final HostDeviceService service) {
+        mHostDeviceService = service;
+
+        mIfBatteryCharge = new IntentFilter();
+        mIfBatteryCharge.addAction(Intent.ACTION_BATTERY_CHANGED);
+        mIfBatteryCharge.addAction(Intent.ACTION_BATTERY_LOW);
+        mIfBatteryCharge.addAction(Intent.ACTION_BATTERY_OKAY);
+
+        mIfBatteryConnect = new IntentFilter();
+        mIfBatteryConnect.addAction(Intent.ACTION_POWER_CONNECTED);
+        mIfBatteryConnect.addAction(Intent.ACTION_POWER_DISCONNECTED);
+    }
+
+    private Context getContext() {
+        return mHostDeviceService;
+    }
+
+    public void clear() {
+        unregisterBatteryChargeBroadcastReceiver();
+        unregisterBatteryConnectBroadcastReceiver();
+    }
+
     /**
      * バッテリーのIntentから情報を取得.
-     * 
-     * @param context Context
      */
-    public void getBatteryInfo(final Context context) {
+    public void getBatteryInfo() {
 
-        IntentFilter ifilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
-        Intent batteryStatus = null;
+        IntentFilter filter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
+        Intent batteryStatus;
         int i = 0;
         do {
-            batteryStatus = context.registerReceiver(null, ifilter);
+            batteryStatus = getContext().registerReceiver(null, filter);
         } while (i++ < 3 && batteryStatus == null);
+
         if (batteryStatus == null) {
             mStatusBattery = HostBatteryManager.BATTERY_STATUS_UNKNOWN;
             mValueLevel = 0;
@@ -197,4 +235,90 @@ public class HostBatteryManager {
     public int getBatteryScale() {
         return mValueScale;
     }
+
+
+    /**
+     * Register broadcast receiver for battery charge event.
+     */
+    public void registerBatteryChargeBroadcastReceiver() {
+        getContext().registerReceiver(mBatteryChargeBR, mIfBatteryCharge);
+    }
+
+    /**
+     * Unregister broadcast receiver for battery charge event.
+     */
+    public void unregisterBatteryChargeBroadcastReceiver() {
+        try {
+            getContext().unregisterReceiver(mBatteryChargeBR);
+        } catch (Exception e) {
+            // Nop
+        }
+    }
+
+    /**
+     * Register broadcast receiver for battery connect event.
+     */
+    public void registerBatteryConnectBroadcastReceiver() {
+        getContext().registerReceiver(mBatteryConnectBR, mIfBatteryConnect);
+    }
+
+    /**
+     * Unregister broadcast receiver for battery connect event.
+     */
+    public void unregisterBatteryConnectBroadcastReceiver() {
+        try {
+            getContext().unregisterReceiver(mBatteryConnectBR);
+        } catch (Exception e) {
+            // Nop
+        }
+    }
+
+    public void setBatteryChargingEventListener(final BatteryChargingEventListener listener) {
+        mBatteryChargingEventListener = listener;
+    }
+
+    public void setBatteryStatusEventListener(final BatteryStatusEventListener listener) {
+        mBatteryStatusEventListener = listener;
+    }
+
+    public interface BatteryChargingEventListener {
+        void onChangeCharging();
+    }
+
+    public interface BatteryStatusEventListener {
+        void onChangeStatus();
+    }
+
+    /**
+     * Broadcast receiver for battery charge event.
+     */
+    private BroadcastReceiver mBatteryChargeBR = new BroadcastReceiver() {
+        @Override
+        public void onReceive(final Context context, final Intent intent) {
+            String action = intent.getAction();
+            if (Intent.ACTION_BATTERY_CHANGED.equals(action) || Intent.ACTION_BATTERY_LOW.equals(action)
+                    || Intent.ACTION_BATTERY_OKAY.equals(action)) {
+                setBatteryRequest(intent);
+                if (mBatteryChargingEventListener != null) {
+                    mBatteryChargingEventListener.onChangeCharging();
+                }
+            }
+        }
+    };
+
+    /**
+     * Broadcast receiver for battery connect event.
+     */
+    private BroadcastReceiver mBatteryConnectBR = new BroadcastReceiver() {
+        @Override
+        public void onReceive(final Context context, final Intent intent) {
+            String action = intent.getAction();
+            if (Intent.ACTION_POWER_CONNECTED.equals(action) || Intent.ACTION_POWER_DISCONNECTED.equals(action)) {
+                setBatteryRequest(intent);
+                if (mBatteryStatusEventListener != null) {
+                    mBatteryStatusEventListener.onChangeStatus();
+                }
+            }
+        }
+    };
 }

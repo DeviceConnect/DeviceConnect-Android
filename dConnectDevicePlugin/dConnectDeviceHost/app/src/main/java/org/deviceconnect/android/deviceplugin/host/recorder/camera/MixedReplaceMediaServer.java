@@ -4,7 +4,7 @@
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
  */
-package org.deviceconnect.android.deviceplugin.host.camera;
+package org.deviceconnect.android.deviceplugin.host.recorder.camera;
 
 import android.net.Uri;
 
@@ -331,7 +331,7 @@ public class MixedReplaceMediaServer {
          * Constructor.
          * @param socket socket
          */
-        public ServerRunnable(final Socket socket) {
+        ServerRunnable(final Socket socket) {
             mSocket = socket;
         }
         

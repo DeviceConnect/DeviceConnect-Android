@@ -4,7 +4,7 @@
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
  */
-package org.deviceconnect.android.deviceplugin.host.video;
+package org.deviceconnect.android.deviceplugin.host.recorder.video;
 
 
 import android.app.Activity;
@@ -16,8 +16,8 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.ResultReceiver;
 
-import org.deviceconnect.android.deviceplugin.host.HostDeviceStreamRecorder;
-import org.deviceconnect.android.deviceplugin.host.camera.HostDeviceCameraRecorder;
+import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceStreamRecorder;
+import org.deviceconnect.android.deviceplugin.host.recorder.camera.HostDeviceCameraRecorder;
 import org.deviceconnect.android.provider.FileManager;
 
 import java.text.SimpleDateFormat;

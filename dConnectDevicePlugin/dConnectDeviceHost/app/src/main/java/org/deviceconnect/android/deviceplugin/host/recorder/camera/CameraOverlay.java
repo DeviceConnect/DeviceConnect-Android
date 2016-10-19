@@ -4,7 +4,7 @@
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
  */
-package org.deviceconnect.android.deviceplugin.host.camera;
+package org.deviceconnect.android.deviceplugin.host.recorder.camera;
 
 import android.Manifest;
 import android.annotation.TargetApi;
@@ -46,9 +46,9 @@ import android.view.WindowManager;
 import org.deviceconnect.android.activity.IntentHandlerActivity;
 import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
-import org.deviceconnect.android.deviceplugin.host.HostDeviceRecorder;
 import org.deviceconnect.android.deviceplugin.host.HostDeviceService;
 import org.deviceconnect.android.deviceplugin.host.R;
+import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
 import org.deviceconnect.android.provider.FileManager;
 
 import java.io.ByteArrayOutputStream;
@@ -121,23 +121,49 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
     /** 使用するカメラのインスタンス. */
     private Camera mCamera;
 
+    /**
+     * カメラの操作をブロックするロックオブジェクト.
+     */
     private final Object mCameraLock = new Object();
 
-    /** 画像を送るサーバ. */
+    /**
+     * 画像を送るサーバ.
+     */
     private MixedReplaceMediaServer mServer;
 
+    /**
+     * プレビューサイズ.
+     */
     private HostDeviceRecorder.PictureSize mPreviewSize;
 
+    /**
+     * 写真サイズ.
+     */
     private HostDeviceRecorder.PictureSize mPictureSize;
 
+    /**
+     * 最後のフレームを取得した時間.
+     */
     private long mLastFrameTime;
 
+    /**
+     * インターバル.
+     */
     private long mFrameInterval;
 
+    /**
+     * プレビューのFPS.
+     */
     private double mMaxFps;
 
+    /**
+     * カメラの向き.
+     */
     private int mFacingDirection = 1;
 
+    /**
+     * ロガー.
+     */
     private final Logger mLogger = Logger.getLogger("host.dplugin");
 
     /**
@@ -441,12 +467,20 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
     }
 
     /**
+     * NotificationIdを取得します.
+     * @return NotificationId
+     */
+    private int getNotificationId() {
+        return NOTIFICATION_ID + mCameraId;
+    }
+
+    /**
      * Notificationを削除する.
      */
     private void hideNotification() {
         NotificationManager manager = (NotificationManager) mContext
                 .getSystemService(Service.NOTIFICATION_SERVICE);
-        manager.cancel(NOTIFICATION_ID);
+        manager.cancel(getNotificationId());
     }
 
     /**
@@ -458,8 +492,8 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
         notification.flags = Notification.FLAG_NO_CLEAR;
         NotificationManager manager = (NotificationManager) mContext
                 .getSystemService(Service.NOTIFICATION_SERVICE);
-        manager.cancel(NOTIFICATION_ID);
-        manager.notify(NOTIFICATION_ID, notification);
+        manager.cancel(getNotificationId());
+        manager.notify(getNotificationId(), notification);
     }
 
     /**

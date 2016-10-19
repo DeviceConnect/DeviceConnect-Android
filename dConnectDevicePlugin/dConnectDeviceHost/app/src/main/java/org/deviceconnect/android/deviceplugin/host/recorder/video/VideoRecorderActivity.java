@@ -5,7 +5,7 @@
  http://opensource.org/licenses/mit-license.php
  */
 
-package org.deviceconnect.android.deviceplugin.host.video;
+package org.deviceconnect.android.deviceplugin.host.recorder.video;
 
 import android.Manifest;
 import android.app.Activity;
@@ -36,7 +36,7 @@ import android.widget.Button;
 
 import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
-import org.deviceconnect.android.deviceplugin.host.HostDeviceRecorder;
+import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
 import org.deviceconnect.android.deviceplugin.host.R;
 import org.deviceconnect.android.provider.FileManager;
 
@@ -77,6 +77,8 @@ public class VideoRecorderActivity extends Activity implements SurfaceHolder.Cal
 
     /** Ready flag. */
     private Boolean mIsReady = false;
+
+    /** 初期化完了フラグ. */
     private boolean mIsInitialized = false;
 
     /** 開始インテント。 */
@@ -144,7 +146,6 @@ public class VideoRecorderActivity extends Activity implements SurfaceHolder.Cal
                                 try {
                                     initVideoContext();
                                 } catch (Exception e) {
-                                    // e.printStackTrace();
                                     Bundle data = new Bundle();
                                     data.putString(VideoConst.EXTRA_CALLBACK_ERROR_MESSAGE,
                                             e.getClass().getSimpleName() + ": " + e.getLocalizedMessage());

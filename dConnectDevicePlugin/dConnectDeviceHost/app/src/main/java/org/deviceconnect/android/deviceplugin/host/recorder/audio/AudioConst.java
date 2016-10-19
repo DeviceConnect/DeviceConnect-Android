@@ -5,7 +5,7 @@
  http://opensource.org/licenses/mit-license.php
  */
 
-package org.deviceconnect.android.deviceplugin.host.audio;
+package org.deviceconnect.android.deviceplugin.host.recorder.audio;
 
 /**
  * 音声録音Broadcastで使用する定数を定義.
@@ -66,6 +66,4 @@ public final class AudioConst {
 
     /** フォーマット名. */
     public static final String FORMAT_TYPE = ".3gp";
-
-
 }

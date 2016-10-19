@@ -4,7 +4,7 @@
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
  */
-package org.deviceconnect.android.deviceplugin.host.video;
+package org.deviceconnect.android.deviceplugin.host.recorder.video;
 
 /**
  * 映像録画Broadcastで使用する定数を定義.

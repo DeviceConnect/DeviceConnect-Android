@@ -24,8 +24,6 @@ import org.deviceconnect.message.DConnectMessage;
  * @author NTT DOCOMO, INC.
  */
 public class BluetoothManageActivity extends FragmentActivity {
-
-   
     /**
      * リクエストパラメータ.
      */
@@ -33,7 +31,6 @@ public class BluetoothManageActivity extends FragmentActivity {
 
     @Override
     protected void onStart() {
-      
         super.onStart();
 
         mRequestParam = new Bundle(getIntent().getExtras());
@@ -49,8 +46,6 @@ public class BluetoothManageActivity extends FragmentActivity {
             // finish if attribute is unknown
             finish();
         }
-
-       
     }
 
     @Override

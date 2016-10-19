@@ -5,9 +5,7 @@
  http://opensource.org/licenses/mit-license.php
  */
 
-package org.deviceconnect.android.deviceplugin.host.video;
-
-import org.deviceconnect.android.deviceplugin.host.R;
+package org.deviceconnect.android.deviceplugin.host.recorder.video;
 
 import android.app.Activity;
 import android.content.BroadcastReceiver;
@@ -23,6 +21,8 @@ import android.view.View;
 import android.view.Window;
 import android.widget.MediaController;
 import android.widget.VideoView;
+
+import org.deviceconnect.android.deviceplugin.host.R;
 
 /**
  * Video Player.

@@ -14,14 +14,14 @@ import android.os.Handler;
 import android.support.annotation.NonNull;
 
 import org.deviceconnect.android.activity.PermissionUtility;
-import org.deviceconnect.android.deviceplugin.host.HostDevicePreviewServer;
-import org.deviceconnect.android.deviceplugin.host.HostDeviceRecorder;
-import org.deviceconnect.android.deviceplugin.host.HostDeviceRecorderManager;
+import org.deviceconnect.android.deviceplugin.host.recorder.HostDevicePreviewServer;
+import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
+import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorderManager;
 import org.deviceconnect.android.deviceplugin.host.HostDeviceService;
-import org.deviceconnect.android.deviceplugin.host.HostDeviceStreamRecorder;
-import org.deviceconnect.android.deviceplugin.host.camera.CameraOverlay;
-import org.deviceconnect.android.deviceplugin.host.camera.HostDeviceCameraRecorder;
-import org.deviceconnect.android.deviceplugin.host.camera.HostDevicePhotoRecorder;
+import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceStreamRecorder;
+import org.deviceconnect.android.deviceplugin.host.recorder.camera.CameraOverlay;
+import org.deviceconnect.android.deviceplugin.host.recorder.camera.HostDeviceCameraRecorder;
+import org.deviceconnect.android.deviceplugin.host.recorder.camera.HostDevicePhotoRecorder;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
@@ -73,7 +73,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                         return;
                     }
 
-                    List<Bundle> recorders = new LinkedList<Bundle>();
+                    List<Bundle> recorders = new LinkedList<>();
                     for (HostDeviceRecorder recorder : mRecorderMgr.getRecorders()) {
                         Bundle info = new Bundle();
                         setRecorderId(info, recorder.getId());
@@ -88,7 +88,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                                 break;
                         }
                         if (recorder instanceof HostDeviceCameraRecorder) {
-                            HostDeviceRecorder.PictureSize size = ((HostDeviceCameraRecorder) recorder).getPictureSize();
+                            HostDeviceRecorder.PictureSize size = recorder.getPictureSize();
                             setRecorderImageWidth(info, size.getWidth());
                             setRecorderImageHeight(info, size.getHeight());
                         }
@@ -590,26 +590,5 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             }
         }
         return false;
-    }
-
-    /**
-     * 記録強制停止.
-     */
-    public void forcedStopRecording() {
-        for (HostDeviceRecorder hostRecorder : mRecorderMgr.getRecorders()) {
-            HostDeviceStreamRecorder movie = mRecorderMgr.getStreamRecorder(hostRecorder.getId());
-            if (movie != null && movie.getState() != HostDeviceRecorder.RecorderState.INACTTIVE) {
-                movie.stop();
-            }
-        }
-    }
-
-    public void forcedStopPreview() {
-        for (HostDeviceRecorder hostRecorder : mRecorderMgr.getRecorders()) {
-            HostDevicePreviewServer server = mRecorderMgr.getPreviewServer(hostRecorder.getId());
-            if (server != null) {
-                server.stopWebServer();
-            }
-        }
     }
 }

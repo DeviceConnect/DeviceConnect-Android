@@ -8,5 +8,5 @@
 /**
  * video 表示用画面.
  */
-package org.deviceconnect.android.deviceplugin.host.video;
+package org.deviceconnect.android.deviceplugin.host.recorder.video;
 

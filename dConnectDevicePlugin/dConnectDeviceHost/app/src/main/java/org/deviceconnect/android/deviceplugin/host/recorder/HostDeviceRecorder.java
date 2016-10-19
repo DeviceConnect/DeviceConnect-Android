@@ -4,7 +4,7 @@
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
  */
-package org.deviceconnect.android.deviceplugin.host;
+package org.deviceconnect.android.deviceplugin.host.recorder;
 
 
 import android.os.Parcel;
@@ -44,8 +44,6 @@ public interface HostDeviceRecorder {
     PictureSize getPictureSize();
 
     void setPictureSize(PictureSize size);
-
-
 
     enum RecorderState {
         INACTTIVE,
@@ -104,14 +102,14 @@ public interface HostDeviceRecorder {
         }
 
         public static final Parcelable.Creator CREATOR = new Parcelable.Creator() {
+            @Override
             public PictureSize createFromParcel(Parcel in) {
                 return new PictureSize(in);
             }
-
+            @Override
             public PictureSize[] newArray(int size) {
                 return new PictureSize[size];
             }
         };
     }
-
 }

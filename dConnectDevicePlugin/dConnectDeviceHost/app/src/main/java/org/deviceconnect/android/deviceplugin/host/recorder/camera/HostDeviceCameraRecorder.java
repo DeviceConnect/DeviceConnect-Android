@@ -4,13 +4,13 @@
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
  */
-package org.deviceconnect.android.deviceplugin.host.camera;
+package org.deviceconnect.android.deviceplugin.host.recorder.camera;
 
 
 import android.content.Context;
 import android.hardware.Camera;
 
-import org.deviceconnect.android.deviceplugin.host.HostDevicePreviewServer;
+import org.deviceconnect.android.deviceplugin.host.recorder.HostDevicePreviewServer;
 import org.deviceconnect.android.provider.FileManager;
 
 import java.util.ArrayList;
@@ -24,9 +24,9 @@ import java.util.List;
 @SuppressWarnings("deprecation")
 public abstract class HostDeviceCameraRecorder implements HostDevicePreviewServer {
 
-    private static final int DEFAULT_PREVIEW_WIDTH_THRESHOLD = 640;
+    private static final int DEFAULT_PREVIEW_WIDTH_THRESHOLD = 320;
 
-    private static final int DEFAULT_PREVIEW_HEIGHT_THRESHOLD = 480;
+    private static final int DEFAULT_PREVIEW_HEIGHT_THRESHOLD = 240;
 
     protected final Context mContext;
 

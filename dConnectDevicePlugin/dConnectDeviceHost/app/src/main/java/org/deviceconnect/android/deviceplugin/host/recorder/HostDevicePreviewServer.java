@@ -4,7 +4,7 @@
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
  */
-package org.deviceconnect.android.deviceplugin.host;
+package org.deviceconnect.android.deviceplugin.host.recorder;
 
 
 import android.support.annotation.NonNull;

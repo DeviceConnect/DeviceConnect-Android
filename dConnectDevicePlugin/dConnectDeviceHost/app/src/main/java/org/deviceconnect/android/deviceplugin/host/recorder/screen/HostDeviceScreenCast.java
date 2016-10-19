@@ -4,7 +4,7 @@
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
  */
-package org.deviceconnect.android.deviceplugin.host.screen;
+package org.deviceconnect.android.deviceplugin.host.recorder.screen;
 
 
 import android.annotation.TargetApi;
@@ -23,9 +23,9 @@ import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
 import android.util.DisplayMetrics;
 
-import org.deviceconnect.android.deviceplugin.host.HostDevicePreviewServer;
-import org.deviceconnect.android.deviceplugin.host.HostDeviceRecorder;
-import org.deviceconnect.android.deviceplugin.host.camera.MixedReplaceMediaServer;
+import org.deviceconnect.android.deviceplugin.host.recorder.HostDevicePreviewServer;
+import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
+import org.deviceconnect.android.deviceplugin.host.recorder.camera.MixedReplaceMediaServer;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;

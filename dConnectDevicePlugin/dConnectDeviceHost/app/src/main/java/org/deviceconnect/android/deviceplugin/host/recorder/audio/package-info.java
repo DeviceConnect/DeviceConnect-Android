@@ -8,5 +8,5 @@
 /**
  * ホストデバイスプラグインAudioRecorder.
  */
-package org.deviceconnect.android.deviceplugin.host.audio;
+package org.deviceconnect.android.deviceplugin.host.recorder.audio;
 

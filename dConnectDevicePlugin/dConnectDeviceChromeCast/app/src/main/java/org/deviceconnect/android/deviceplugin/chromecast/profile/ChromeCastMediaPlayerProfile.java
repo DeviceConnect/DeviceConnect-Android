@@ -823,7 +823,6 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
                                         title = cursor.getString(cursor
                                                 .getColumnIndex(MediaStore.Video.Media.TITLE));
                                         url = exposeMedia(mId);
-                                        ChromeCastDiscovery discovery = getChromeCastDiscovery();
                                         if (url == null) {
                                             response.putExtra(DConnectMessage.EXTRA_VALUE, "url is null");
                                             setResult(response, DConnectMessage.RESULT_ERROR);

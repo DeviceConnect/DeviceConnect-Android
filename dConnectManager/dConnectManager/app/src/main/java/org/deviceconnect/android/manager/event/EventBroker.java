@@ -143,8 +143,10 @@ public class EventBroker {
                 }
             }
         } else {
+            // 旧バージョンのイベントAPIとの互換性保持
             String sessionKey = DConnectProfile.getSessionKey(event);
             if (sessionKey != null) {
+                sessionKey = trimReceiverName(sessionKey);
                 String pluginId = EventProtocol.convertSessionKey2PluginId(sessionKey);
                 String receiverId = EventProtocol.convertSessionKey2Key(sessionKey);
                 for (EventSession session : mTable.getAll()) {
@@ -174,6 +176,16 @@ public class EventBroker {
                 error("Failed to send event.");
             }
         }
+    }
+
+    private String trimReceiverName(final String sessionKey) {
+        int index = sessionKey.lastIndexOf(DConnectMessageService.SEPARATOR_SESSION);
+        if (index == -1) {
+            // HTTP経由でイベントを登録した場合
+            return sessionKey;
+        }
+        // Intent経由でイベントを登録した場合
+        return sessionKey.substring(0, index);
     }
 
     private boolean isServiceChangeEvent(final Intent event) {

@@ -59,9 +59,6 @@ public class HueFragment01 extends Fragment implements OnClickListener, OnItemCl
      */
     private PHSDKListener mListener = new PHSDKListener() {
 
-        @Override
-        public void onBridgeConnected(final PHBridge b) {
-        }
 
         @Override
         public void onAuthenticationRequired(final PHAccessPoint accessPoint) {
@@ -90,6 +87,11 @@ public class HueFragment01 extends Fragment implements OnClickListener, OnItemCl
 
         @Override
         public void onCacheUpdated(final List<Integer> list, final PHBridge bridge) {
+        }
+
+        @Override
+        public void onBridgeConnected(PHBridge phBridge, String s) {
+
         }
 
         @Override

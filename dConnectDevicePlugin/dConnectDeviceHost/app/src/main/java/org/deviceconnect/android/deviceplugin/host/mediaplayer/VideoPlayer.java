@@ -5,7 +5,7 @@
  http://opensource.org/licenses/mit-license.php
  */
 
-package org.deviceconnect.android.deviceplugin.host.recorder.video;
+package org.deviceconnect.android.deviceplugin.host.mediaplayer;
 
 import android.app.Activity;
 import android.content.BroadcastReceiver;

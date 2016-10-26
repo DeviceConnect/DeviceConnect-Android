@@ -11,7 +11,7 @@ import android.content.Intent;
 import android.os.Bundle;
 
 import org.deviceconnect.android.deviceplugin.host.HostDeviceService;
-import org.deviceconnect.android.deviceplugin.host.manager.HostBatteryManager;
+import org.deviceconnect.android.deviceplugin.host.battery.HostBatteryManager;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;

@@ -80,6 +80,13 @@ public class FileDataManager {
     }
 
     /**
+     * 後始末を行う.
+     */
+    public void clear() {
+
+    }
+
+    /**
      * パスを変換する.
      * 
      * @param file パス変換するファイル

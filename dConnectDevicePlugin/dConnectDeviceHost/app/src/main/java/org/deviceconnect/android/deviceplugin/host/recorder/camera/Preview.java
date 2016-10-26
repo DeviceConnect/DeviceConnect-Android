@@ -34,7 +34,10 @@ import java.util.List;
  */
 @SuppressWarnings("deprecation")
 public class Preview extends ViewGroup implements SurfaceHolder.Callback {
-    /** デバック用タグ. */
+    /** デバッグ用フラグ. */
+    private static final boolean DEBUG = BuildConfig.DEBUG;
+
+    /** デバッグ用タグ. */
     private static final String LOG_TAG = "Camera:Preview";
 
     /**
@@ -130,7 +133,7 @@ public class Preview extends ViewGroup implements SurfaceHolder.Callback {
         try {
             camera.setPreviewDisplay(mHolder);
         } catch (IOException exception) {
-            if (BuildConfig.DEBUG) {
+            if (DEBUG) {
                 Log.e(LOG_TAG, "IOException caused by setPreviewDisplay()", exception);
             }
         }
@@ -191,7 +194,7 @@ public class Preview extends ViewGroup implements SurfaceHolder.Callback {
                 mCamera.setPreviewDisplay(holder);
             }
         } catch (IOException e) {
-            if (BuildConfig.DEBUG) {
+            if (DEBUG) {
                 Log.e(LOG_TAG, "IOException caused by setPreviewDisplay()", e);
             }
         }
@@ -210,42 +213,56 @@ public class Preview extends ViewGroup implements SurfaceHolder.Callback {
         // Now that the size is known, set up the camera parameters and begin
         // the preview.
         if (mCamera != null) {
-            int rot = getCameraDisplayOrientation(getContext());
-
-            if (BuildConfig.DEBUG) {
-                Log.i(LOG_TAG, "PreViewSize: " + mPreviewSize.getWidth() + ", "
-                    + mPreviewSize.getHeight());
-            }
-
-            Camera.Parameters parameters = mCamera.getParameters();
-            String focusMode = parameters.getFocusMode();
-            parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
             try {
-                mCamera.setParameters(parameters);
+                setCameraParam();
             } catch (Exception e) {
-                Log.i(LOG_TAG, "Auto focus not support.");
-                parameters.setFocusMode(focusMode);
-                mCamera.setParameters(parameters);
+                if (DEBUG) {
+                    e.printStackTrace();
+                }
             }
-
-            parameters.setRotation(rot);
-            try {
-                mCamera.setParameters(parameters);
-            } catch (Exception e) {
-                Log.i(LOG_TAG, "Rotation not support.");
-            }
-
-            mCamera.setDisplayOrientation(rot);
-            try {
-                mCamera.setParameters(parameters);
-            } catch (Exception e) {
-                Log.i(LOG_TAG, "Display orientation not support.");
-            }
-
-            mCamera.startPreview();
-
-            mPreviewFormat = parameters.getPreviewFormat();
         }
+    }
+
+    public SurfaceHolder getHolder() {
+        return mHolder;
+    }
+
+    private void setCameraParam() {
+        int rot = getCameraDisplayOrientation(getContext());
+
+        if (DEBUG) {
+            Log.i(LOG_TAG, "PreViewSize: " + mPreviewSize.getWidth() + ", "
+                + mPreviewSize.getHeight());
+        }
+
+        Camera.Parameters parameters = mCamera.getParameters();
+        String focusMode = parameters.getFocusMode();
+        parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
+        try {
+            mCamera.setParameters(parameters);
+        } catch (Exception e) {
+            Log.i(LOG_TAG, "Auto focus not support.");
+            parameters.setFocusMode(focusMode);
+            mCamera.setParameters(parameters);
+        }
+
+        parameters.setRotation(rot);
+        try {
+            mCamera.setParameters(parameters);
+        } catch (Exception e) {
+            Log.i(LOG_TAG, "Rotation not support.");
+        }
+
+        mCamera.setDisplayOrientation(rot);
+        try {
+            mCamera.setParameters(parameters);
+        } catch (Exception e) {
+            Log.i(LOG_TAG, "Display orientation not support.");
+        }
+
+        mCamera.startPreview();
+
+        mPreviewFormat = parameters.getPreviewFormat();
     }
 
     /**
@@ -394,8 +411,13 @@ public class Preview extends ViewGroup implements SurfaceHolder.Callback {
      */
     public void takePicture(final Camera.PictureCallback callback) {
         if (mCamera != null) {
-            mCamera.takePicture(mShutterCallback, null, callback);
-            Toast.makeText(getContext(), R.string.shutter, Toast.LENGTH_SHORT).show();
+            post(new Runnable() {
+                @Override
+                public void run() {
+                    mCamera.takePicture(mShutterCallback, null, callback);
+                    Toast.makeText(getContext(), R.string.shutter, Toast.LENGTH_SHORT).show();
+                }
+            });
         }
     }
 

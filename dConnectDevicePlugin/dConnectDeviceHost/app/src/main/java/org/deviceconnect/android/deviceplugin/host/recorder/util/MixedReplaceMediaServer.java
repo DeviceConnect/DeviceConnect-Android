@@ -4,7 +4,7 @@
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
  */
-package org.deviceconnect.android.deviceplugin.host.recorder.camera;
+package org.deviceconnect.android.deviceplugin.host.recorder.util;
 
 import android.net.Uri;
 

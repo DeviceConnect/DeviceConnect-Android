@@ -17,10 +17,12 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.ResultReceiver;
 
+import org.deviceconnect.android.deviceplugin.host.mediaplayer.VideoConst;
+import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceStreamRecorder;
-import org.deviceconnect.android.deviceplugin.host.recorder.video.VideoConst;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -30,7 +32,7 @@ import java.util.Locale;
  *
  * @author NTT DOCOMO, INC.
  */
-public class HostDeviceAudioRecorder implements HostDeviceStreamRecorder {
+public class HostDeviceAudioRecorder implements HostDeviceRecorder, HostDeviceStreamRecorder {
 
     private static final String ID = "audio";
 
@@ -42,8 +44,26 @@ public class HostDeviceAudioRecorder implements HostDeviceStreamRecorder {
 
     private final Context mContext;
 
+    /**
+     * マイムタイプ一覧を定義.
+     */
+    private List<String> mMimeTypes = new ArrayList<String>() {
+        {
+            add("audio/3gp");
+        }
+    };
     public HostDeviceAudioRecorder(final Context context) {
         mContext = context;
+    }
+
+    @Override
+    public void initialize() {
+        // Nothing to do.
+    }
+
+    @Override
+    public void clean() {
+        stopRecording();
     }
 
     @Override
@@ -57,16 +77,6 @@ public class HostDeviceAudioRecorder implements HostDeviceStreamRecorder {
     }
 
     @Override
-    public String getMimeType() {
-        return MIME_TYPE;
-    }
-
-    @Override
-    public String[] getSupportedMimeTypes() {
-        return new String[] {MIME_TYPE};
-    }
-
-    @Override
     public RecorderState getState() {
         String className = getClassnameOfTopActivity();
         if (AudioRecorderActivity.class.getName().equals(className)) {
@@ -76,43 +86,9 @@ public class HostDeviceAudioRecorder implements HostDeviceStreamRecorder {
         }
     }
 
-    private String getClassnameOfTopActivity() {
-        ActivityManager activityMgr = (ActivityManager) mContext.getSystemService(Service.ACTIVITY_SERVICE);
-        List<ActivityManager.RunningTaskInfo> tasks = activityMgr.getRunningTasks(1);
-        if (tasks != null && tasks.size() > 0) {
-            return tasks.get(0).topActivity.getClassName();
-        }
-        return null;
-    }
-
     @Override
-    public void initialize() {
-        // Nothing to do.
-    }
-
-    @Override
-    public boolean mutablePictureSize() {
-        return false;
-    }
-
-    @Override
-    public boolean usesCamera() {
-        return false;
-    }
-
-    @Override
-    public int getCameraId() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public List<PictureSize> getSupportedPictureSizes() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean supportsPictureSize(final int width, final int height) {
-        throw new UnsupportedOperationException();
+    public String getMimeType() {
+        return MIME_TYPE;
     }
 
     @Override
@@ -126,12 +102,57 @@ public class HostDeviceAudioRecorder implements HostDeviceStreamRecorder {
     }
 
     @Override
-    public boolean canPause() {
+    public PictureSize getPreviewSize() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void setPreviewSize(PictureSize size) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public double getMaxFrameRate() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void setMaxFrameRate(double frameRate) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public List<PictureSize> getSupportedPreviewSizes() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public List<PictureSize> getSupportedPictureSizes() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean isSupportedPictureSize(int width, int height) {
+        return false;
+    }
+
+    @Override
+    public boolean isSupportedPreviewSize(int width, int height) {
+        return false;
+    }
+
+    @Override
+    public List<String> getSupportedMimeTypes() {
+        return mMimeTypes;
+    }
+
+    @Override
+    public boolean canPauseRecording() {
         return true;
     }
 
     @Override
-    public synchronized void start(final RecordingListener listener) {
+    public synchronized void startRecording(final RecordingListener listener) {
         if (getState() == RecorderState.RECORDING) {
             throw new IllegalStateException();
         }
@@ -156,29 +177,38 @@ public class HostDeviceAudioRecorder implements HostDeviceStreamRecorder {
         mContext.startActivity(intent);
     }
 
-    private String generateAudioFileName() {
-        return "audio" + mSimpleDateFormat.format(new Date()) + AudioConst.FORMAT_TYPE;
-    }
-
     @Override
-    public synchronized void stop() {
+    public synchronized void stopRecording() {
         Intent intent = new Intent(AudioConst.SEND_HOSTDP_TO_AUDIO);
         intent.putExtra(AudioConst.EXTRA_NAME, AudioConst.EXTRA_NAME_AUDIO_RECORD_STOP);
         mContext.sendBroadcast(intent);
     }
 
     @Override
-    public void pause() {
+    public void pauseRecording() {
         Intent intent = new Intent(AudioConst.SEND_HOSTDP_TO_AUDIO);
         intent.putExtra(AudioConst.EXTRA_NAME, AudioConst.EXTRA_NAME_AUDIO_RECORD_PAUSE);
         mContext.sendBroadcast(intent);
     }
 
     @Override
-    public void resume() {
+    public void resumeRecording() {
         Intent intent = new Intent(AudioConst.SEND_HOSTDP_TO_AUDIO);
         intent.putExtra(AudioConst.EXTRA_NAME, AudioConst.EXTRA_NAME_AUDIO_RECORD_RESUME);
         mContext.sendBroadcast(intent);
     }
 
+
+    private String getClassnameOfTopActivity() {
+        ActivityManager activityMgr = (ActivityManager) mContext.getSystemService(Service.ACTIVITY_SERVICE);
+        List<ActivityManager.RunningTaskInfo> tasks = activityMgr.getRunningTasks(1);
+        if (tasks != null && tasks.size() > 0) {
+            return tasks.get(0).topActivity.getClassName();
+        }
+        return null;
+    }
+
+    private String generateAudioFileName() {
+        return "audio" + mSimpleDateFormat.format(new Date()) + AudioConst.FORMAT_TYPE;
+    }
 }

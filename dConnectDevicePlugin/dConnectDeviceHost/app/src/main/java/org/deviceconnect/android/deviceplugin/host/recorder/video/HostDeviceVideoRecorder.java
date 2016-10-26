@@ -15,12 +15,16 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.ResultReceiver;
+import android.util.Log;
 
+import org.deviceconnect.android.deviceplugin.host.BuildConfig;
+import org.deviceconnect.android.deviceplugin.host.mediaplayer.VideoConst;
+import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceStreamRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.camera.HostDeviceCameraRecorder;
-import org.deviceconnect.android.provider.FileManager;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -30,8 +34,11 @@ import java.util.Locale;
  *
  * @author NTT DOCOMO, INC.
  */
-public class HostDeviceVideoRecorder extends HostDeviceCameraRecorder
-    implements HostDeviceStreamRecorder {
+@SuppressWarnings("deprecation")
+public class HostDeviceVideoRecorder implements HostDeviceRecorder, HostDeviceStreamRecorder {
+
+    private static final boolean DEBUG = BuildConfig.DEBUG;
+    private static final String TAG = "HOST";
 
     private static final String ID_BASE = "video";
 
@@ -39,29 +46,87 @@ public class HostDeviceVideoRecorder extends HostDeviceCameraRecorder
 
     private static final String MIME_TYPE = "video/3gp";
 
-    private final SimpleDateFormat mSimpleDateFormat = new SimpleDateFormat("yyyyMMdd_kkmmss", Locale.JAPAN);
+    private List<String> mMimeTypes = new ArrayList<String>(){
+        {
+            add("video/3gp");
+        }
+    };
 
-    private RecorderState mState = RecorderState.INACTTIVE;
+    /**
+     * デフォルトのプレビューサイズの閾値を定義.
+     */
+    private static final int DEFAULT_PREVIEW_WIDTH_THRESHOLD = 640;
 
+    /**
+     * デフォルトのプレビューサイズの閾値を定義.
+     */
+    private static final int DEFAULT_PREVIEW_HEIGHT_THRESHOLD = 480;
+
+    private SimpleDateFormat mSimpleDateFormat = new SimpleDateFormat("yyyyMMdd_kkmmss", Locale.JAPAN);
+
+    private Context mContext;
+    private int mCameraId;
+    private HostDeviceCameraRecorder.CameraFacing mFacing;
+
+    private boolean mIsInitialized;
+
+    private List<PictureSize> mSupportedPictureSizes = new ArrayList<>();
+
+    private RecorderState mState;
     private PictureSize mPictureSize;
+    private double mMaxFrameRate;
 
     public HostDeviceVideoRecorder(final Context context, final int cameraId,
-                                   final CameraFacing facing, final FileManager fileMgr) {
-        super(context, createId(cameraId), createName(facing), facing, cameraId, fileMgr);
+                                   final HostDeviceCameraRecorder.CameraFacing facing) {
+        mContext = context;
+        mCameraId = cameraId;
+        mFacing = facing;
+        mState = RecorderState.INACTTIVE;
     }
 
     @Override
-    @SuppressWarnings("deprecation")
-    protected List<Camera.Size> getSupportedSizes(final Camera.Parameters params) {
-        return params.getSupportedVideoSizes();
+    public void initialize() {
+        if (mIsInitialized) {
+            return;
+        }
+
+        try {
+            Camera camera = Camera.open(mCameraId);
+            Camera.Parameters params = camera.getParameters();
+            Camera.Size picture = params.getPictureSize();
+            setPictureSize(new PictureSize(picture.width, picture.height));
+            for (Camera.Size size : params.getSupportedPictureSizes()) {
+                mSupportedPictureSizes.add(new PictureSize(size.width, size.height));
+            }
+            PictureSize defaultSize = getDefaultPictureSize();
+            if (defaultSize != null) {
+                setPictureSize(defaultSize);
+            } else {
+                setPictureSize(new PictureSize(picture.width, picture.height));
+            }
+            camera.release();
+
+            mIsInitialized = true;
+        } catch (Exception e) {
+            if (DEBUG) {
+                Log.w(TAG, "", e);
+            }
+        }
     }
 
-    private static String createId(final int cameraId) {
-        return ID_BASE + "_" + cameraId;
+    @Override
+    public void clean() {
+        stopRecording();
     }
 
-    private static String createName(final CameraFacing facing) {
-        return NAME_BASE + " - " + facing.getName();
+    @Override
+    public String getId() {
+        return ID_BASE + "_" + mCameraId;
+    }
+
+    @Override
+    public String getName() {
+        return NAME_BASE + " - " + mFacing.getName();
     }
 
     @Override
@@ -70,31 +135,79 @@ public class HostDeviceVideoRecorder extends HostDeviceCameraRecorder
     }
 
     @Override
-    public String[] getSupportedMimeTypes() {
-        return new String[] {MIME_TYPE};
-    }
-
-    public void setState(final RecorderState state) {
-        mState = state;
-    }
-
-    @Override
     public RecorderState getState() {
         return mState;
     }
 
     @Override
-    public boolean mutablePictureSize() {
-        return true;
+    public PictureSize getPictureSize() {
+        return mPictureSize;
     }
 
     @Override
-    public boolean canPause() {
+    public void setPictureSize(final PictureSize size) {
+        mPictureSize = size;
+    }
+
+    @Override
+    public PictureSize getPreviewSize() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void setPreviewSize(final PictureSize size) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public double getMaxFrameRate() {
+        return mMaxFrameRate;
+    }
+
+    @Override
+    public void setMaxFrameRate(double frameRate) {
+        mMaxFrameRate = frameRate;
+    }
+
+    @Override
+    public List<PictureSize> getSupportedPictureSizes() {
+        return mSupportedPictureSizes;
+    }
+
+    @Override
+    public List<PictureSize> getSupportedPreviewSizes() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public List<String> getSupportedMimeTypes() {
+        return mMimeTypes;
+    }
+
+    @Override
+    public boolean isSupportedPictureSize(int width, int height) {
+        if (mSupportedPictureSizes != null) {
+            for (PictureSize size : mSupportedPictureSizes) {
+                if (size.getWidth() == width && size.getHeight() == height) {
+                    return true;
+                }
+            }
+        }
         return false;
     }
 
     @Override
-    public synchronized void start(final RecordingListener listener) {
+    public boolean isSupportedPreviewSize(int width, int height) {
+        return false;
+    }
+
+    @Override
+    public boolean canPauseRecording() {
+        return false;
+    }
+
+    @Override
+    public synchronized void startRecording(final RecordingListener listener) {
         if (getState() == RecorderState.RECORDING) {
             throw new IllegalStateException();
         }
@@ -107,6 +220,7 @@ public class HostDeviceVideoRecorder extends HostDeviceCameraRecorder
         intent.putExtra(VideoConst.EXTRA_CAMERA_ID, mCameraId);
         intent.putExtra(VideoConst.EXTRA_FILE_NAME, filename);
         intent.putExtra(VideoConst.EXTRA_PICTURE_SIZE, getPictureSize());
+        intent.putExtra(VideoConst.EXTRA_FRAME_RATE, (int) getMaxFrameRate());
         intent.putExtra(VideoConst.EXTRA_CALLBACK, new ResultReceiver(new Handler(Looper.getMainLooper())) {
             @Override
             protected void onReceiveResult(final int resultCode, final Bundle resultData) {
@@ -122,25 +236,63 @@ public class HostDeviceVideoRecorder extends HostDeviceCameraRecorder
         mContext.startActivity(intent);
     }
 
-    private String generateVideoFileName() {
-        return "video" + mSimpleDateFormat.format(new Date()) + VideoConst.FORMAT_TYPE;
-    }
-
     @Override
-    public synchronized void stop() {
+    public synchronized void stopRecording() {
         Intent intent = new Intent(VideoConst.SEND_HOSTDP_TO_VIDEO);
         intent.putExtra(VideoConst.EXTRA_NAME, VideoConst.EXTRA_VALUE_VIDEO_RECORD_STOP);
         mContext.sendBroadcast(intent);
     }
 
     @Override
-    public void pause() {
+    public void pauseRecording() {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public void resume() {
+    public void resumeRecording() {
         throw new UnsupportedOperationException();
     }
 
+    @Override
+    public String toString() {
+        return "{ face: " + mFacing + ", mPictureSize: " + mPictureSize + " }";
+    }
+
+    public void setState(RecorderState state) {
+        mState = state;
+    }
+
+    private String generateVideoFileName() {
+        return "video" + mSimpleDateFormat.format(new Date()) + VideoConst.FORMAT_TYPE;
+    }
+
+    /**
+     * デフォルトのプレビューサイズを取得します.
+     * @return デフォルトのプレビューサイズ
+     */
+    private PictureSize getDefaultPictureSize() {
+        if (mSupportedPictureSizes.size() == 0) {
+            return null;
+        }
+        PictureSize defaultSize = null;
+        for (PictureSize size : mSupportedPictureSizes) {
+            if (size.getWidth() == DEFAULT_PREVIEW_WIDTH_THRESHOLD &&
+                    size.getHeight() == DEFAULT_PREVIEW_HEIGHT_THRESHOLD) {
+                defaultSize = size;
+            }
+        }
+        if (defaultSize != null) {
+            return defaultSize;
+        }
+        for (PictureSize size : mSupportedPictureSizes) {
+            if (size.getWidth() * size.getHeight() <=
+                    DEFAULT_PREVIEW_WIDTH_THRESHOLD * DEFAULT_PREVIEW_HEIGHT_THRESHOLD) {
+                defaultSize = size;
+            }
+        }
+        if (defaultSize != null) {
+            return defaultSize;
+        }
+        return mSupportedPictureSizes.get(0);
+    }
 }

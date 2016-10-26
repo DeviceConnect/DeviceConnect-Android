@@ -14,8 +14,8 @@ import android.os.Bundle;
 import android.os.IBinder;
 
 import org.deviceconnect.android.deviceplugin.host.file.FileDataManager;
-import org.deviceconnect.android.deviceplugin.host.manager.HostBatteryManager;
-import org.deviceconnect.android.deviceplugin.host.manager.HostMediaPlayerManager;
+import org.deviceconnect.android.deviceplugin.host.battery.HostBatteryManager;
+import org.deviceconnect.android.deviceplugin.host.mediaplayer.HostMediaPlayerManager;
 import org.deviceconnect.android.deviceplugin.host.profile.HostBatteryProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostCanvasProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostConnectProfile;
@@ -33,7 +33,7 @@ import org.deviceconnect.android.deviceplugin.host.profile.HostSystemProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostTouchProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostVibrationProfile;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorderManager;
-import org.deviceconnect.android.deviceplugin.host.recorder.camera.CameraOverlay;
+import org.deviceconnect.android.deviceplugin.host.recorder.camera.HostDeviceCameraRecorder;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.event.cache.MemoryCacheController;
@@ -127,6 +127,7 @@ public class HostDeviceService extends DConnectMessageService {
     @Override
     public void onDestroy() {
         mRecorderMgr.stop();
+        mRecorderMgr.clean();
         mFileDataManager.stopTimer();
         super.onDestroy();
     }
@@ -138,9 +139,8 @@ public class HostDeviceService extends DConnectMessageService {
         }
 
         String action = intent.getAction();
-        if (CameraOverlay.DELETE_PREVIEW_ACTION.equals(action)) {
-            mRecorderMgr.stopWebServer("");
-            return START_STICKY;
+        if (HostDeviceCameraRecorder.DELETE_PREVIEW_ACTION.equals(action)) {
+            return stopWebServer(intent);
         } else if ("android.intent.action.NEW_OUTGOING_CALL".equals(action)) {
             return onReceivedOutGoingCall(intent);
         } else if (WifiManager.WIFI_STATE_CHANGED_ACTION.equals(action)
@@ -202,6 +202,11 @@ public class HostDeviceService extends DConnectMessageService {
      */
     public FileManager getFileManager() {
         return mFileMgr;
+    }
+
+    private int stopWebServer(final Intent intent) {
+        mRecorderMgr.stopWebServer(intent.getStringExtra(HostDeviceCameraRecorder.EXTRA_CAMERA_ID));
+        return START_STICKY;
     }
 
     private int onChangedBluetoothStatus() {
@@ -266,7 +271,7 @@ public class HostDeviceService extends DConnectMessageService {
         mHostBatteryManager.clear();
 
         // FileDescriptorProfile リセット
-        // TODO:ファイル管理機能の実装検討必要。
+        mFileDataManager.clear();
 
         // KeyEventProfile リセット
         DConnectService service = getServiceProvider().getService(SERVICE_ID);
@@ -285,7 +290,6 @@ public class HostDeviceService extends DConnectMessageService {
         mHostMediaPlayerManager.forceStop();
 
         // MediaStreamingRecorder リセット
-        mRecorderMgr.forcedStopRecording();
-        mRecorderMgr.forcedStopPreview();
+        mRecorderMgr.clean();
     }
 }

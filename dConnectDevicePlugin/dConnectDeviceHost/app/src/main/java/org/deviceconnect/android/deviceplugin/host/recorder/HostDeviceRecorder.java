@@ -19,53 +19,44 @@ import java.util.List;
  */
 public interface HostDeviceRecorder {
 
+    void initialize();
+
+    void clean();
+
     String getId();
 
     String getName();
 
     String getMimeType();
 
-    String[] getSupportedMimeTypes();
-
     RecorderState getState();
-
-    void initialize();
-
-    boolean usesCamera();
-
-    int getCameraId();
-
-    List<PictureSize> getSupportedPictureSizes();
-
-    boolean supportsPictureSize(int width, int height);
-
-    boolean mutablePictureSize();
 
     PictureSize getPictureSize();
 
     void setPictureSize(PictureSize size);
 
+    PictureSize getPreviewSize();
+
+    void setPreviewSize(PictureSize size);
+
+    double getMaxFrameRate();
+
+    void setMaxFrameRate(double frameRate);
+
+    List<PictureSize> getSupportedPictureSizes();
+
+    List<PictureSize> getSupportedPreviewSizes();
+
+    List<String> getSupportedMimeTypes();
+
+    boolean isSupportedPictureSize(int width, int height);
+
+    boolean isSupportedPreviewSize(int width, int height);
+
     enum RecorderState {
         INACTTIVE,
         PAUSED,
         RECORDING
-    }
-
-    enum CameraFacing {
-
-        BACK("back"),
-        FRONT("front"),
-        UNKNOWN("unknown");
-
-        private final String mName;
-
-        CameraFacing(final String name) {
-            mName = name;
-        }
-
-        public String getName() {
-            return mName;
-        }
     }
 
     class PictureSize implements Parcelable {
@@ -111,5 +102,10 @@ public interface HostDeviceRecorder {
                 return new PictureSize[size];
             }
         };
+
+        @Override
+        public String toString() {
+            return "(width = " + getWidth() + ", height = " + getHeight() + ")";
+        }
     }
 }

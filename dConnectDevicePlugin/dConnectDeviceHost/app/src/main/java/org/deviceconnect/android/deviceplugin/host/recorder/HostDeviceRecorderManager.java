@@ -15,11 +15,11 @@ import android.hardware.Camera;
 import android.os.Build;
 
 import org.deviceconnect.android.deviceplugin.host.HostDeviceService;
+import org.deviceconnect.android.deviceplugin.host.mediaplayer.VideoConst;
 import org.deviceconnect.android.deviceplugin.host.recorder.audio.HostDeviceAudioRecorder;
-import org.deviceconnect.android.deviceplugin.host.recorder.camera.HostDevicePhotoRecorder;
+import org.deviceconnect.android.deviceplugin.host.recorder.camera.HostDeviceCameraRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.screen.HostDeviceScreenCast;
 import org.deviceconnect.android.deviceplugin.host.recorder.video.HostDeviceVideoRecorder;
-import org.deviceconnect.android.deviceplugin.host.recorder.video.VideoConst;
 import org.deviceconnect.android.provider.FileManager;
 
 import java.util.ArrayList;
@@ -37,11 +37,12 @@ public class HostDeviceRecorderManager {
     private HostDeviceRecorder[] mRecorders;
 
     /** HostDevicePhotoRecorder. */
-    private HostDevicePhotoRecorder mDefaultPhotoRecorder;
+    private HostDeviceRecorder mDefaultPhotoRecorder;
 
     /** HostDeviceAudioRecorder. */
-    private HostDeviceVideoRecorder mDefaultVideoRecorder;
+    private HostDeviceRecorder mDefaultVideoRecorder;
 
+    /** コンテキスト. */
     private HostDeviceService mHostDeviceService;
 
     public HostDeviceRecorderManager(final HostDeviceService service) {
@@ -49,31 +50,33 @@ public class HostDeviceRecorderManager {
     }
 
     public void createRecorders(final FileManager fileMgr) {
-        List<HostDevicePhotoRecorder> photoRecorders = new ArrayList<>();
+        List<HostDeviceCameraRecorder> photoRecorders = new ArrayList<>();
         List<HostDeviceVideoRecorder> videoRecorders = new ArrayList<>();
         for (int cameraId = 0; cameraId < Camera.getNumberOfCameras(); cameraId++) {
             Camera.CameraInfo cameraInfo = new Camera.CameraInfo();
             Camera.getCameraInfo(cameraId, cameraInfo);
-            HostDeviceRecorder.CameraFacing facing;
+            HostDeviceCameraRecorder.CameraFacing facing;
             switch (cameraInfo.facing) {
                 case Camera.CameraInfo.CAMERA_FACING_BACK:
-                    facing = HostDeviceRecorder.CameraFacing.BACK;
+                    facing = HostDeviceCameraRecorder.CameraFacing.BACK;
                     break;
                 case Camera.CameraInfo.CAMERA_FACING_FRONT:
-                    facing = HostDeviceRecorder.CameraFacing.FRONT;
+                    facing = HostDeviceCameraRecorder.CameraFacing.FRONT;
                     break;
                 default:
-                    facing = HostDeviceRecorder.CameraFacing.UNKNOWN;
+                    facing = HostDeviceCameraRecorder.CameraFacing.UNKNOWN;
                     break;
             }
-            photoRecorders.add(new HostDevicePhotoRecorder(mHostDeviceService, cameraId, facing, fileMgr));
-            videoRecorders.add(new HostDeviceVideoRecorder(mHostDeviceService, cameraId, facing, fileMgr));
+
+            photoRecorders.add(new HostDeviceCameraRecorder(mHostDeviceService, cameraId, facing, fileMgr));
+            videoRecorders.add(new HostDeviceVideoRecorder(mHostDeviceService, cameraId, facing));
         }
 
-        if (photoRecorders.size() > 0) {
+        if (!photoRecorders.isEmpty()) {
             mDefaultPhotoRecorder = photoRecorders.get(0);
         }
-        if (videoRecorders.size() > 0) {
+
+        if (!videoRecorders.isEmpty()) {
             mDefaultVideoRecorder = videoRecorders.get(0);
         }
 
@@ -87,13 +90,25 @@ public class HostDeviceRecorderManager {
         mRecorders = recorders.toArray(new HostDeviceRecorder[recorders.size()]);
     }
 
+    public void initialize() {
+        for (HostDeviceRecorder recorder : getRecorders()) {
+            recorder.initialize();
+        }
+    }
+
+    public void clean() {
+        for (HostDeviceRecorder recorder : getRecorders()) {
+            recorder.clean();
+        }
+    }
+
     public HostDeviceRecorder[] getRecorders() {
         return mRecorders;
     }
 
     public HostDeviceRecorder getRecorder(final String id) {
         if (id == null) {
-            return mDefaultVideoRecorder;
+            return mDefaultPhotoRecorder;
         }
         for (HostDeviceRecorder recorder : mRecorders) {
             if (id.equals(recorder.getId())) {
@@ -103,13 +118,13 @@ public class HostDeviceRecorderManager {
         return null;
     }
 
-    public HostDevicePhotoRecorder getPhotoRecorder(final String id) {
+    public HostDeviceCameraRecorder getCameraRecorder(final String id) {
         if (id == null) {
-            return mDefaultPhotoRecorder;
+            return (HostDeviceCameraRecorder) mDefaultPhotoRecorder;
         }
         for (HostDeviceRecorder recorder : mRecorders) {
-            if (id.equals(recorder.getId()) && recorder instanceof HostDevicePhotoRecorder) {
-                return (HostDevicePhotoRecorder) recorder;
+            if (id.equals(recorder.getId()) && recorder instanceof HostDeviceCameraRecorder) {
+                return (HostDeviceCameraRecorder) recorder;
             }
         }
         return null;
@@ -117,7 +132,7 @@ public class HostDeviceRecorderManager {
 
     public HostDeviceStreamRecorder getStreamRecorder(final String id) {
         if (id == null) {
-            return mDefaultVideoRecorder;
+            return (HostDeviceStreamRecorder) mDefaultVideoRecorder;
         }
         for (HostDeviceRecorder recorder : mRecorders) {
             if (id.equals(recorder.getId()) && recorder instanceof HostDeviceStreamRecorder) {
@@ -129,7 +144,7 @@ public class HostDeviceRecorderManager {
 
     public HostDevicePreviewServer getPreviewServer(final String id) {
         if (id == null) {
-            return mDefaultPhotoRecorder;
+            return (HostDevicePreviewServer) mDefaultPhotoRecorder;
         }
         for (HostDeviceRecorder recorder : mRecorders) {
             if (id.equals(recorder.getId()) && recorder instanceof HostDevicePreviewServer) {
@@ -148,29 +163,22 @@ public class HostDeviceRecorderManager {
         getContext().unregisterReceiver(mRecorderStateReceiver);
     }
 
-    public void forcedStopRecording() {
-        for (HostDeviceRecorder hostRecorder : getRecorders()) {
-            HostDeviceStreamRecorder movie = getStreamRecorder(hostRecorder.getId());
-            if (movie != null && movie.getState() != HostDeviceRecorder.RecorderState.INACTTIVE) {
-                movie.stop();
-            }
-        }
-    }
-
-    public void forcedStopPreview() {
-        for (HostDeviceRecorder hostRecorder : getRecorders()) {
-            HostDevicePreviewServer server = getPreviewServer(hostRecorder.getId());
-            if (server != null) {
-                server.stopWebServer();
-            }
-        }
-    }
-
     public void stopWebServer(final String id) {
+        if (id == null) {
+            return;
+        }
         HostDeviceRecorder recorder = getRecorder(id);
         if (recorder != null && recorder instanceof HostDevicePreviewServer) {
             ((HostDevicePreviewServer)recorder).stopWebServer();
         }
+    }
+
+    private boolean isSupportedMediaProjection() {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP;
+    }
+
+    private Context getContext() {
+        return mHostDeviceService;
     }
 
     private HostDeviceVideoRecorder getVideoRecorder(final String id) {
@@ -180,14 +188,6 @@ public class HostDeviceRecorderManager {
             }
         }
         return null;
-    }
-
-    private Context getContext() {
-        return mHostDeviceService;
-    }
-
-    private boolean isSupportedMediaProjection() {
-        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP;
     }
 
     private final BroadcastReceiver mRecorderStateReceiver = new BroadcastReceiver() {

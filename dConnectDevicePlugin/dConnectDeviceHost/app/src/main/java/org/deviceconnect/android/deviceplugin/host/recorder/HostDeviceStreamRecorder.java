@@ -14,19 +14,19 @@ package org.deviceconnect.android.deviceplugin.host.recorder;
  */
 public interface HostDeviceStreamRecorder extends HostDeviceRecorder {
 
-    boolean canPause();
+    boolean canPauseRecording();
 
-    void start(RecordingListener listener);
+    void startRecording(RecordingListener listener);
 
-    void stop();
+    void stopRecording();
 
-    void pause();
+    void pauseRecording();
 
-    void resume();
+    void resumeRecording();
 
     interface RecordingListener {
-        void onRecorded(HostDeviceRecorder recorder, String fileName);
-        void onFailed(HostDeviceRecorder recorder, String errorMessage);
+        void onRecorded(HostDeviceStreamRecorder recorder, String fileName);
+        void onFailed(HostDeviceStreamRecorder recorder, String errorMessage);
     }
 
 }

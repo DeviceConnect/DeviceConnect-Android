@@ -1,4 +1,4 @@
-package org.deviceconnect.android.deviceplugin.host.manager;
+package org.deviceconnect.android.deviceplugin.host.mediaplayer;
 
 import android.app.ActivityManager;
 import android.app.Service;
@@ -19,8 +19,6 @@ import android.webkit.MimeTypeMap;
 
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.HostDeviceService;
-import org.deviceconnect.android.deviceplugin.host.recorder.video.VideoConst;
-import org.deviceconnect.android.deviceplugin.host.recorder.video.VideoPlayer;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.MessageUtils;
@@ -269,6 +267,7 @@ public class HostMediaPlayerManager {
                     mMediaPlayer = null;
                 }
                 mMediaPlayer = new MediaPlayer();
+
                 FileInputStream fis = new FileInputStream(mMyCurrentFilePath);
                 FileDescriptor mFd = fis.getFD();
 

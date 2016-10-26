@@ -26,6 +26,7 @@ import android.os.ResultReceiver;
 import android.provider.MediaStore;
 import android.provider.MediaStore.Video;
 import android.support.annotation.NonNull;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -36,8 +37,9 @@ import android.widget.Button;
 
 import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
-import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
 import org.deviceconnect.android.deviceplugin.host.R;
+import org.deviceconnect.android.deviceplugin.host.mediaplayer.VideoConst;
+import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
 import org.deviceconnect.android.provider.FileManager;
 
 import java.io.File;
@@ -65,6 +67,9 @@ public class VideoRecorderActivity extends Activity implements SurfaceHolder.Cal
 
     /** Picture size. */
     private HostDeviceRecorder.PictureSize mPictureSize;
+
+    /** フレームレート. */
+    private int mFps;
 
     /** ファイル管理クラス. */
     private FileManager mFileMgr;
@@ -145,23 +150,16 @@ public class VideoRecorderActivity extends Activity implements SurfaceHolder.Cal
                             public void onSuccess() {
                                 try {
                                     initVideoContext();
+                                    mCallback.send(Activity.RESULT_OK, null);
                                 } catch (Exception e) {
-                                    Bundle data = new Bundle();
-                                    data.putString(VideoConst.EXTRA_CALLBACK_ERROR_MESSAGE,
-                                            e.getClass().getSimpleName() + ": " + e.getLocalizedMessage());
-                                    mCallback.send(Activity.RESULT_CANCELED, data);
+                                    sendErrorCallback(e.getClass().getSimpleName() + ": " + e.getLocalizedMessage());
                                     finish();
-                                    return;
                                 }
-                                mCallback.send(Activity.RESULT_OK, null);
                             }
 
                             @Override
                             public void onFail(@NonNull String deniedPermission) {
-                                Bundle data = new Bundle();
-                                data.putString(VideoConst.EXTRA_CALLBACK_ERROR_MESSAGE,
-                                        "Permission " + deniedPermission + " not granted.");
-                                mCallback.send(Activity.RESULT_CANCELED, data);
+                                sendErrorCallback("Permission " + deniedPermission + " not granted.");
                                 finish();
                             }
                         });
@@ -180,6 +178,12 @@ public class VideoRecorderActivity extends Activity implements SurfaceHolder.Cal
         }
     }
 
+    private void sendErrorCallback(final String message) {
+        Bundle data = new Bundle();
+        data.putString(VideoConst.EXTRA_CALLBACK_ERROR_MESSAGE, message);
+        mCallback.send(Activity.RESULT_CANCELED, data);
+    }
+
     private void sendRecordingEvent() {
         sendRecorderStateEvent(HostDeviceRecorder.RecorderState.RECORDING);
     }
@@ -195,6 +199,8 @@ public class VideoRecorderActivity extends Activity implements SurfaceHolder.Cal
         intent.putExtra(VideoConst.EXTRA_RECORDER_ID, mRecorderId);
         intent.putExtra(VideoConst.EXTRA_VIDEO_RECORDER_STATE, state);
         sendBroadcast(intent);
+
+        Log.e("ABC", "AAAAAAAAAAAAAAAAAAAAA " + mRecorderId);
     }
 
     private void initVideoContext() {
@@ -204,8 +210,9 @@ public class VideoRecorderActivity extends Activity implements SurfaceHolder.Cal
 
         final int cameraId = mIntent.getIntExtra(VideoConst.EXTRA_CAMERA_ID, -1);
         mPictureSize = mIntent.getParcelableExtra(VideoConst.EXTRA_PICTURE_SIZE);
+        mFps = mIntent.getIntExtra(VideoConst.EXTRA_FRAME_RATE, 10);
         mCamera = getCameraInstance(cameraId);
-        setRequestedPictureSize(mCamera);
+        setRequestParameters(mCamera);
         mCamera.unlock();
 
         mFileName = mIntent.getStringExtra(VideoConst.EXTRA_FILE_NAME);
@@ -220,10 +227,8 @@ public class VideoRecorderActivity extends Activity implements SurfaceHolder.Cal
             mMediaRecorder.setVideoSize(mPictureSize.getWidth(), mPictureSize.getHeight());
             mMediaRecorder.setOutputFile(mFile.toString());
 
-            mLogger.info("VideoRecorderActivity: width = " + mPictureSize.getWidth()
-                + ", height = " + mPictureSize.getHeight());
+            mLogger.info("VideoRecorderActivity: " + mPictureSize);
             mCallback.send(Activity.RESULT_OK, null);
-
         } else {
             Bundle data = new Bundle();
             data.putString(VideoConst.EXTRA_CALLBACK_ERROR_MESSAGE, "File name must be specified.");
@@ -235,13 +240,12 @@ public class VideoRecorderActivity extends Activity implements SurfaceHolder.Cal
         mIsInitialized = true;
     }
 
-    private void setRequestedPictureSize(final Camera camera) {
+    private void setRequestParameters(final Camera camera) {
         HostDeviceRecorder.PictureSize currentSize = mPictureSize;
         if (camera != null && currentSize != null) {
             Camera.Parameters params = camera.getParameters();
             params.setPictureSize(currentSize.getWidth(), currentSize.getHeight());
             camera.setParameters(params);
-
         }
     }
 

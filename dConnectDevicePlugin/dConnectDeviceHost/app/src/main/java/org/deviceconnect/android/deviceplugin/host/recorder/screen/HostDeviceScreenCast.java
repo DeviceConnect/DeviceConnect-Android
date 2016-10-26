@@ -14,7 +14,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
-import android.graphics.PixelFormat;
+import android.graphics.ImageFormat;
 import android.hardware.display.DisplayManager;
 import android.hardware.display.VirtualDisplay;
 import android.media.Image;
@@ -24,14 +24,14 @@ import android.media.projection.MediaProjectionManager;
 import android.util.DisplayMetrics;
 
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDevicePreviewServer;
-import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
-import org.deviceconnect.android.deviceplugin.host.recorder.camera.MixedReplaceMediaServer;
+import org.deviceconnect.android.deviceplugin.host.recorder.util.MixedReplaceMediaServer;
 
 import java.io.ByteArrayOutputStream;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
+
+import static android.R.attr.max;
 
 /**
  * Host Device Screen Cast.
@@ -39,7 +39,7 @@ import java.util.logging.Logger;
  * @author NTT DOCOMO, INC.
  */
 @TargetApi(21)
-public class HostDeviceScreenCast implements HostDeviceRecorder, HostDevicePreviewServer {
+public class HostDeviceScreenCast extends HostDevicePreviewServer {
 
     public static final String ACTION_PERMISSION =
         HostDeviceScreenCast.class.getPackage().getName() + ".permission";
@@ -55,6 +55,15 @@ public class HostDeviceScreenCast implements HostDeviceRecorder, HostDevicePrevi
     private static final String MIME_TYPE = "video/x-mjpeg";
 
     private static final double DEFAULT_MAX_FPS = 10.0d;
+
+    /**
+     * マイムタイプ一覧を定義.
+     */
+    private List<String> mMimeTypes = new ArrayList<String>() {
+        {
+            add(MIME_TYPE);
+        }
+    };
 
     private final Context mContext;
 
@@ -78,7 +87,7 @@ public class HostDeviceScreenCast implements HostDeviceRecorder, HostDevicePrevi
 
     private Thread mThread;
 
-    private final List<PictureSize> mSupportedPreviewSizes = new ArrayList<PictureSize>();
+    private final List<PictureSize> mSupportedPreviewSizes = new ArrayList<>();
 
     private PictureSize mPreviewSize;
 
@@ -89,6 +98,7 @@ public class HostDeviceScreenCast implements HostDeviceRecorder, HostDevicePrevi
     private double mMaxFps;
 
     public HostDeviceScreenCast(final Context context) {
+        super(context, 2000);
         mContext = context;
         mManager = (MediaProjectionManager) context.getSystemService(Context.MEDIA_PROJECTION_SERVICE);
 
@@ -99,7 +109,7 @@ public class HostDeviceScreenCast implements HostDeviceRecorder, HostDevicePrevi
         mPreviewSize = mSupportedPreviewSizes.get(0);
 
         mMaxFps = DEFAULT_MAX_FPS;
-        setPreviewFrameRate(mMaxFps);
+        setMaxFrameRate(mMaxFps);
     }
 
     private void initSupportedPreviewSizes(final PictureSize originalSize) {
@@ -112,6 +122,16 @@ public class HostDeviceScreenCast implements HostDeviceRecorder, HostDevicePrevi
             PictureSize previewSize = new PictureSize((int) (w * scale), (int) (h * scale));
             mSupportedPreviewSizes.add(previewSize);
         }
+    }
+
+    @Override
+    public void initialize() {
+        // Nothing to do.
+    }
+
+    @Override
+    public void clean() {
+        stopWebServer();
     }
 
     @Override
@@ -130,44 +150,10 @@ public class HostDeviceScreenCast implements HostDeviceRecorder, HostDevicePrevi
     }
 
     @Override
-    public String[] getSupportedMimeTypes() {
-        return new String[] {MIME_TYPE};
-    }
-
-    @Override
     public RecorderState getState() {
         return mIsCasting ? RecorderState.RECORDING : RecorderState.INACTTIVE;
     }
 
-    @Override
-    public void initialize() {
-        // Nothing to do.
-    }
-
-    @Override
-    public boolean mutablePictureSize() {
-        return false;
-    }
-
-    @Override
-    public boolean usesCamera() {
-        return false;
-    }
-
-    @Override
-    public int getCameraId() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public List<PictureSize> getSupportedPictureSizes() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean supportsPictureSize(int width, int height) {
-        throw new UnsupportedOperationException();
-    }
 
     @Override
     public PictureSize getPictureSize() {
@@ -178,6 +164,63 @@ public class HostDeviceScreenCast implements HostDeviceRecorder, HostDevicePrevi
     public void setPictureSize(final PictureSize size) {
         throw new UnsupportedOperationException();
     }
+
+    @Override
+    public PictureSize getPreviewSize() {
+        return mPreviewSize;
+    }
+
+    @Override
+    public synchronized void setPreviewSize(final PictureSize size) {
+        mPreviewSize = size;
+        if (mIsCasting) {
+            restartScreenCast();
+        }
+    }
+
+    @Override
+    public double getMaxFrameRate() {
+        return mMaxFps;
+    }
+
+    @Override
+    public void setMaxFrameRate(double frameRate) {
+        mMaxFps = frameRate;
+        mFrameInterval = (long) (1 / max) * 1000L;
+    }
+
+    @Override
+    public List<PictureSize> getSupportedPreviewSizes() {
+        return mSupportedPreviewSizes;
+    }
+
+    @Override
+    public List<PictureSize> getSupportedPictureSizes() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public List<String> getSupportedMimeTypes() {
+        return mMimeTypes;
+    }
+
+    @Override
+    public boolean isSupportedPictureSize(int width, int height) {
+        return false;
+    }
+
+    @Override
+    public boolean isSupportedPreviewSize(int width, int height) {
+        if (mSupportedPreviewSizes != null) {
+            for (PictureSize size : mSupportedPreviewSizes) {
+                if (width == size.getWidth() && height == size.getHeight()) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
 
     @Override
     public void startWebServer(final OnWebServerStartCallback callback) {
@@ -250,7 +293,7 @@ public class HostDeviceScreenCast implements HostDeviceRecorder, HostDevicePrevi
     private void setupVirtualDisplay() {
         int w = mPreviewSize.getWidth();
         int h = mPreviewSize.getHeight();
-        mImageReader = ImageReader.newInstance(w, h, PixelFormat.RGBA_8888, 10);
+        mImageReader = ImageReader.newInstance(w, h, ImageFormat.RGB_565, 10);
         mVirtualDisplay = mMediaProjection.createVirtualDisplay(
             "Android Host Screen",
             w,
@@ -288,6 +331,7 @@ public class HostDeviceScreenCast implements HostDeviceRecorder, HostDevicePrevi
             @Override
             public void run() {
                 mLogger.info("Server URL: " + mServer.getUrl());
+                sendNotification();
                 while (mIsCasting) {
                     try {
                         long start = System.currentTimeMillis();
@@ -306,10 +350,11 @@ public class HostDeviceScreenCast implements HostDeviceRecorder, HostDevicePrevi
                         if (interval > 0) {
                             Thread.sleep(interval);
                         }
-                    } catch (InterruptedException e) {
+                    } catch (Throwable e) {
                         break;
                     }
                 }
+                hideNotification();
             }
         });
         mThread.start();
@@ -352,71 +397,19 @@ public class HostDeviceScreenCast implements HostDeviceRecorder, HostDevicePrevi
         if (planes[0].getBuffer() == null) {
             return null;
         }
+
         int width = img.getWidth();
         int height = img.getHeight();
+
         int pixelStride = planes[0].getPixelStride();
         int rowStride = planes[0].getRowStride();
         int rowPadding = rowStride - pixelStride * width;
-
-        int offset = 0;
-        DisplayMetrics metrics = mContext.getResources().getDisplayMetrics();
-        Bitmap bitmap = Bitmap.createBitmap(metrics, width, height, Bitmap.Config.ARGB_8888);
-        ByteBuffer buffer = planes[0].getBuffer();
-        for (int i = 0; i < height; ++i) {
-            for (int j = 0; j < width; ++j) {
-                int pixel = 0;
-                pixel |= (buffer.get(offset) & 0xff) << 16;     // R
-                pixel |= (buffer.get(offset + 1) & 0xff) << 8;  // G
-                pixel |= (buffer.get(offset + 2) & 0xff);       // B
-                pixel |= (buffer.get(offset + 3) & 0xff) << 24; // A
-                bitmap.setPixel(j, i, pixel);
-                offset += pixelStride;
-            }
-            offset += rowPadding;
-        }
+        Bitmap bitmap = Bitmap.createBitmap(
+                width + rowPadding / pixelStride, height,
+                Bitmap.Config.RGB_565);
+        bitmap.copyPixelsFromBuffer(planes[0].getBuffer());
         img.close();
 
         return bitmap;
-    }
-
-    @Override
-    public List<PictureSize> getSupportedPreviewSizes() {
-        return mSupportedPreviewSizes;
-    }
-
-    @Override
-    public boolean supportsPreviewSize(final int width, final int height) {
-        if (mSupportedPreviewSizes != null) {
-            for (PictureSize size : mSupportedPreviewSizes) {
-                if (width == size.getWidth() && height == size.getHeight()) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    @Override
-    public PictureSize getPreviewSize() {
-        return mPreviewSize;
-    }
-
-    @Override
-    public synchronized void setPreviewSize(final PictureSize size) {
-        mPreviewSize = size;
-        if (mIsCasting) {
-            restartScreenCast();
-        }
-    }
-
-    @Override
-    public double getPreviewMaxFrameRate() {
-        return mMaxFps;
-    }
-
-    @Override
-    public void setPreviewFrameRate(final double max) {
-        mMaxFps = max;
-        mFrameInterval = (long) (1 / max) * 1000L;
     }
 }

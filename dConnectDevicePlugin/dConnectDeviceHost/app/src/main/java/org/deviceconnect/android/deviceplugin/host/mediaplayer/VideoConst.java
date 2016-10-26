@@ -4,7 +4,7 @@
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
  */
-package org.deviceconnect.android.deviceplugin.host.recorder.video;
+package org.deviceconnect.android.deviceplugin.host.mediaplayer;
 
 /**
  * 映像録画Broadcastで使用する定数を定義.
@@ -63,6 +63,9 @@ public final class VideoConst {
 
     /** ファイル名. */
     public static final String EXTRA_FILE_NAME = "filename";
+
+    /** フレームレート. */
+    public static final String EXTRA_FRAME_RATE = "frameRate";
 
     /** コールバック */
     public static final String EXTRA_CALLBACK = "callback";

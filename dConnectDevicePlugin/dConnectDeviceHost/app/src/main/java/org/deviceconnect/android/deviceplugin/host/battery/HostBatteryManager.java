@@ -4,7 +4,7 @@
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
  */
-package org.deviceconnect.android.deviceplugin.host.manager;
+package org.deviceconnect.android.deviceplugin.host.battery;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -152,7 +152,7 @@ public class HostBatteryManager {
      * 
      * @param intent Batteryの変化で取得できたIntent
      */
-    public void setBatteryRequest(final Intent intent) {
+    private void setBatteryRequest(final Intent intent) {
         String mAction = intent.getAction();
 
         if (Intent.ACTION_BATTERY_CHANGED.equals(mAction) || Intent.ACTION_BATTERY_LOW.equals(mAction)
@@ -211,7 +211,7 @@ public class HostBatteryManager {
 
     /**
      * プラグの状態を取得.
-     * 
+     *
      * @return statusPlugged プラグの状態
      */
     public int getStatusPlugged() {

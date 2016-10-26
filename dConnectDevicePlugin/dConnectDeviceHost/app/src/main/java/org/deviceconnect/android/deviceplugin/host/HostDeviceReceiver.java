@@ -5,13 +5,11 @@
  http://opensource.org/licenses/mit-license.php
  */
 
-package org.deviceconnect.android.deviceplugin.host.recorder;
+package org.deviceconnect.android.deviceplugin.host;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-
-import org.deviceconnect.android.deviceplugin.host.HostDeviceService;
 
 /**
  * 変化を通知するBroadcast Receiver.

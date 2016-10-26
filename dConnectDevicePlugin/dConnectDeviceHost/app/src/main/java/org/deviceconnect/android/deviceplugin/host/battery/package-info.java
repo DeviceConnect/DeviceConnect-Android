@@ -8,4 +8,4 @@
 /**
  * ホストデバイスプラグイン側 Manager関連.
  */
-package org.deviceconnect.android.deviceplugin.host.manager;
+package org.deviceconnect.android.deviceplugin.host.battery;

@@ -31,6 +31,9 @@ public class HostBatteryManager {
     /** バッテリーのスケール. */
     private int mValueScale;
 
+    /** チャージフラグ. */
+    private boolean mChargingFlag;
+
     /** バッテリーの状態 不明. */
     public static final int BATTERY_STATUS_UNKNOWN = 1;
 
@@ -185,6 +188,8 @@ public class HostBatteryManager {
 
         } else if (Intent.ACTION_POWER_CONNECTED.equals(mAction) || Intent.ACTION_POWER_DISCONNECTED.equals(mAction)) {
 
+            mChargingFlag = Intent.ACTION_POWER_CONNECTED.equals(mAction);
+
             // プラグの状態を取得
             int plugged = intent.getIntExtra("plugged", 0);
             switch (plugged) {
@@ -236,6 +241,13 @@ public class HostBatteryManager {
         return mValueScale;
     }
 
+    /**
+     * バッテリーチャージ状態を取得.
+     * @return batteryCharging バッテリーチャージ状態
+     */
+    public boolean isChargingFlag() {
+        return mChargingFlag;
+    }
 
     /**
      * Register broadcast receiver for battery charge event.

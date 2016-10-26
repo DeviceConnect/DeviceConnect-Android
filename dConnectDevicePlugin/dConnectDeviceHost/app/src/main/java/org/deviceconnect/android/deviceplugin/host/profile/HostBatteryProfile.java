@@ -26,8 +26,6 @@ import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
 import java.util.List;
 
-import static android.R.attr.action;
-
 /**
  * Battery Profile.
  * 
@@ -243,11 +241,7 @@ public class HostBatteryProfile extends BatteryProfile {
                 Intent mIntent = EventManager.createEventMessage(event);
                 HostBatteryProfile.setAttribute(mIntent, HostBatteryProfile.ATTRIBUTE_ON_CHARGING_CHANGE);
                 Bundle charging = new Bundle();
-                if (Intent.ACTION_POWER_CONNECTED.equals(action)) {
-                    HostBatteryProfile.setCharging(charging, true);
-                } else {
-                    HostBatteryProfile.setCharging(charging, false);
-                }
+                HostBatteryProfile.setCharging(charging, getBatteryManager().isChargingFlag());
                 HostBatteryProfile.setBattery(mIntent, charging);
                 sendEvent(mIntent, event.getAccessToken());
             }

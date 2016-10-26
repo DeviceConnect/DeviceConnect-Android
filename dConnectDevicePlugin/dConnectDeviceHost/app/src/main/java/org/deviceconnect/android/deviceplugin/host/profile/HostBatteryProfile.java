@@ -65,9 +65,8 @@ public class HostBatteryProfile extends BatteryProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            int mStatus = getBatteryManager().getBatteryStatus();
             setResult(response, IntentDConnectMessage.RESULT_OK);
-            setCharging(response, getBatteryChargingStatus(mStatus));
+            setCharging(response, getBatteryManager().isChargingFlag());
             return true;
         }
     };
@@ -83,9 +82,7 @@ public class HostBatteryProfile extends BatteryProfile {
                 MessageUtils.setUnknownError(response, "Battery level is unknown.");
             } else {
                 setLevel(response, mLevel / (float) mScale);
-                int mStatus = getBatteryManager().getBatteryStatus();
-                setCharging(response, getBatteryChargingStatus(mStatus));
-
+                setCharging(response, getBatteryManager().isChargingFlag());
                 setResult(response, IntentDConnectMessage.RESULT_OK);
             }
             return true;
@@ -188,27 +185,12 @@ public class HostBatteryProfile extends BatteryProfile {
         addApi(mDeleteOnBatteryChangeApi);
     }
 
-    /**
-     * Get status of charging.
-     * 
-     * @param mStatus BatteryStatus
-     * @return true:charging false:not charging
-     */
-    private boolean getBatteryChargingStatus(final int mStatus) {
-        switch (mStatus) {
-        case HostBatteryManager.BATTERY_STATUS_CHARGING:
-        case HostBatteryManager.BATTERY_STATUS_FULL:
-            return true;
-        case HostBatteryManager.BATTERY_STATUS_UNKNOWN:
-        case HostBatteryManager.BATTERY_STATUS_DISCHARGING:
-        case HostBatteryManager.BATTERY_STATUS_NOT_CHARGING:
-        default:
-            return false;
-        }
-    }
-
     private HostBatteryManager getBatteryManager() {
         return mHostBatteryManager;
+    }
+
+    private double getLevel() {
+        return ((double) (getBatteryManager().getBatteryLevel())) / ((double) getBatteryManager().getBatteryScale());
     }
 
     private final HostBatteryManager.BatteryChargingEventListener mBatteryChargingEventListener = new HostBatteryManager.BatteryChargingEventListener() {
@@ -219,13 +201,11 @@ public class HostBatteryProfile extends BatteryProfile {
 
             for (int i = 0; i < events.size(); i++) {
                 Event event = events.get(i);
-                Intent mIntent = EventManager.createEventMessage(event);
-                HostBatteryProfile.setAttribute(mIntent, HostBatteryProfile.ATTRIBUTE_ON_BATTERY_CHANGE);
+                Intent intent = EventManager.createEventMessage(event);
                 Bundle battery = new Bundle();
-                double level = ((double) (getBatteryManager().getBatteryLevel())) / ((double) getBatteryManager().getBatteryScale());
-                HostBatteryProfile.setLevel(battery, level);
-                HostBatteryProfile.setBattery(mIntent, battery);
-                sendEvent(mIntent, event.getAccessToken());
+                HostBatteryProfile.setLevel(battery, getLevel());
+                HostBatteryProfile.setBattery(intent, battery);
+                sendEvent(intent, event.getAccessToken());
             }
         }
     };
@@ -238,12 +218,11 @@ public class HostBatteryProfile extends BatteryProfile {
 
             for (int i = 0; i < events.size(); i++) {
                 Event event = events.get(i);
-                Intent mIntent = EventManager.createEventMessage(event);
-                HostBatteryProfile.setAttribute(mIntent, HostBatteryProfile.ATTRIBUTE_ON_CHARGING_CHANGE);
+                Intent intent = EventManager.createEventMessage(event);
                 Bundle charging = new Bundle();
                 HostBatteryProfile.setCharging(charging, getBatteryManager().isChargingFlag());
-                HostBatteryProfile.setBattery(mIntent, charging);
-                sendEvent(mIntent, event.getAccessToken());
+                HostBatteryProfile.setBattery(intent, charging);
+                sendEvent(intent, event.getAccessToken());
             }
         }
     };

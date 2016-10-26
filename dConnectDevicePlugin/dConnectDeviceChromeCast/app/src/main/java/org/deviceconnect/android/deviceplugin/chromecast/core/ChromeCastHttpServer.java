@@ -240,7 +240,8 @@ public class ChromeCastHttpServer extends NanoHTTPD {
                         }
                     }
                     // ipv6を除外
-                    if (ipStr.indexOf("::") == -1 && (status == NetworkStatus.WIFI
+                    if (ipStr.indexOf("127.0.0.1") == -1
+                            && ipStr.indexOf("::") == -1 && (status == NetworkStatus.WIFI
                             || status == NetworkStatus.ETHERNET)) {
                         localAddresses.addFirst(ip);
                     }

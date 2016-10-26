@@ -113,12 +113,12 @@ public class HueDeviceService extends DConnectMessageService {
         }
 
         @Override
-        public void onBridgeConnected(final PHBridge bridge) {
-            String ipAddress = bridge.getResourceCache().getBridgeConfiguration().getIpAddress();
+        public void onBridgeConnected(PHBridge phBridge, String s) {
+            String ipAddress = phBridge.getResourceCache().getBridgeConfiguration().getIpAddress();
 
             PHHueSDK phHueSDK = PHHueSDK.getInstance();
-            phHueSDK.setSelectedBridge(bridge);
-            phHueSDK.enableHeartbeat(bridge, PHHueSDK.HB_INTERVAL);
+            phHueSDK.setSelectedBridge(phBridge);
+            phHueSDK.enableHeartbeat(phBridge, PHHueSDK.HB_INTERVAL);
             phHueSDK.getLastHeartbeat().put(ipAddress, System.currentTimeMillis());
 
             DConnectService service = getServiceProvider().getService(ipAddress);

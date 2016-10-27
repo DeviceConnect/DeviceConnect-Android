@@ -12,7 +12,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.ImageFormat;
+import android.graphics.PixelFormat;
 import android.hardware.display.DisplayManager;
 import android.hardware.display.VirtualDisplay;
 import android.media.Image;
@@ -25,7 +25,6 @@ import android.os.Looper;
 import android.os.ResultReceiver;
 import android.support.annotation.NonNull;
 import android.util.DisplayMetrics;
-import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceCameraRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDevicePreviewServer;
@@ -228,6 +227,13 @@ public class HostDeviceScreenCast extends HostDevicePreviewServer implements Hos
 
     @Override
     public boolean isSupportedPictureSize(int width, int height) {
+        if (mSupportedPictureSizes != null) {
+            for (PictureSize size : mSupportedPictureSizes) {
+                if (width == size.getWidth() && height == size.getHeight()) {
+                    return true;
+                }
+            }
+        }
         return false;
     }
 
@@ -414,7 +420,7 @@ public class HostDeviceScreenCast extends HostDevicePreviewServer implements Hos
         int w = size.getWidth();
         int h = size.getHeight();
 
-        mImageReader = ImageReader.newInstance(w, h, ImageFormat.RGB_565, 10);
+        mImageReader = ImageReader.newInstance(w, h, PixelFormat.RGBA_8888, 10);
         mVirtualDisplay = mMediaProjection.createVirtualDisplay(
             "Android Host Screen",
             w,
@@ -522,7 +528,7 @@ public class HostDeviceScreenCast extends HostDevicePreviewServer implements Hos
 
         Bitmap bitmap = Bitmap.createBitmap(
                 width + rowPadding / pixelStride, height,
-                Bitmap.Config.RGB_565);
+                Bitmap.Config.ARGB_8888);
         bitmap.copyPixelsFromBuffer(planes[0].getBuffer());
         img.close();
 

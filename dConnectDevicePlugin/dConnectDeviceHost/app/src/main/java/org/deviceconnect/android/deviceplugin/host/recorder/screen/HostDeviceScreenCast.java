@@ -9,10 +9,8 @@ package org.deviceconnect.android.deviceplugin.host.recorder.screen;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.ImageFormat;
 import android.hardware.display.DisplayManager;
@@ -21,14 +19,25 @@ import android.media.Image;
 import android.media.ImageReader;
 import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.ResultReceiver;
+import android.support.annotation.NonNull;
 import android.util.DisplayMetrics;
+import android.util.Log;
 
+import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceCameraRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDevicePreviewServer;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.MixedReplaceMediaServer;
+import org.deviceconnect.android.provider.FileManager;
 
 import java.io.ByteArrayOutputStream;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.logging.Logger;
 
 import static android.R.attr.max;
@@ -39,14 +48,11 @@ import static android.R.attr.max;
  * @author NTT DOCOMO, INC.
  */
 @TargetApi(21)
-public class HostDeviceScreenCast extends HostDevicePreviewServer {
-
-    public static final String ACTION_PERMISSION =
-        HostDeviceScreenCast.class.getPackage().getName() + ".permission";
-
-    static final String RESULT_CODE = "result_code";
+public class HostDeviceScreenCast extends HostDevicePreviewServer implements HostDeviceCameraRecorder {
 
     static final String RESULT_DATA = "result_data";
+
+    static final String EXTRA_CALLBACK = "callback";
 
     private static final String ID = "screen";
 
@@ -55,6 +61,15 @@ public class HostDeviceScreenCast extends HostDevicePreviewServer {
     private static final String MIME_TYPE = "video/x-mjpeg";
 
     private static final double DEFAULT_MAX_FPS = 10.0d;
+
+    /** ファイル名に付けるプレフィックス. */
+    private static final String FILENAME_PREFIX = "android_screen_";
+
+    /** ファイルの拡張子. */
+    private static final String FILE_EXTENSION = ".jpg";
+
+    /** 日付のフォーマット. */
+    private SimpleDateFormat mSimpleDateFormat = new SimpleDateFormat("yyyyMMdd_kkmmss", Locale.JAPAN);
 
     /**
      * マイムタイプ一覧を定義.
@@ -83,31 +98,36 @@ public class HostDeviceScreenCast extends HostDevicePreviewServer {
 
     private ImageReader mImageReader;
 
+    private FileManager mFileMgr;
+
     private boolean mIsCasting;
 
     private Thread mThread;
 
     private final List<PictureSize> mSupportedPreviewSizes = new ArrayList<>();
+    private final List<PictureSize> mSupportedPictureSizes = new ArrayList<>();
 
     private PictureSize mPreviewSize;
-
-    private BroadcastReceiver mPermissionReceiver;
+    private PictureSize mPictureSize;
 
     private long mFrameInterval;
 
     private double mMaxFps;
 
-    public HostDeviceScreenCast(final Context context) {
+    private RecorderState mState;
+
+    public HostDeviceScreenCast(final Context context, final FileManager fileMgr) {
         super(context, 2000);
         mContext = context;
+        mFileMgr = fileMgr;
         mManager = (MediaProjectionManager) context.getSystemService(Context.MEDIA_PROJECTION_SERVICE);
 
         DisplayMetrics metrics = context.getResources().getDisplayMetrics();
         PictureSize size = new PictureSize(metrics.widthPixels, metrics.heightPixels);
         mDisplayDensityDpi = metrics.densityDpi;
         initSupportedPreviewSizes(size);
-        mPreviewSize = mSupportedPreviewSizes.get(0);
 
+        mState = RecorderState.INACTTIVE;
         mMaxFps = DEFAULT_MAX_FPS;
         setMaxFrameRate(mMaxFps);
     }
@@ -121,7 +141,10 @@ public class HostDeviceScreenCast extends HostDevicePreviewServer {
             float scale = i / ((float) num);
             PictureSize previewSize = new PictureSize((int) (w * scale), (int) (h * scale));
             mSupportedPreviewSizes.add(previewSize);
+            mSupportedPictureSizes.add(previewSize);
         }
+        mPreviewSize = mSupportedPreviewSizes.get(0);
+        mPictureSize = mSupportedPictureSizes.get(num - 1);
     }
 
     @Override
@@ -151,18 +174,17 @@ public class HostDeviceScreenCast extends HostDevicePreviewServer {
 
     @Override
     public RecorderState getState() {
-        return mIsCasting ? RecorderState.RECORDING : RecorderState.INACTTIVE;
+        return mState;
     }
-
 
     @Override
     public PictureSize getPictureSize() {
-        throw new UnsupportedOperationException();
+        return mPictureSize;
     }
 
     @Override
     public void setPictureSize(final PictureSize size) {
-        throw new UnsupportedOperationException();
+        mPictureSize = size;
     }
 
     @Override
@@ -186,7 +208,7 @@ public class HostDeviceScreenCast extends HostDevicePreviewServer {
     @Override
     public void setMaxFrameRate(double frameRate) {
         mMaxFps = frameRate;
-        mFrameInterval = (long) (1 / max) * 1000L;
+        mFrameInterval =  1000L / max;
     }
 
     @Override
@@ -196,7 +218,7 @@ public class HostDeviceScreenCast extends HostDevicePreviewServer {
 
     @Override
     public List<PictureSize> getSupportedPictureSizes() {
-        throw new UnsupportedOperationException();
+        return mSupportedPictureSizes;
     }
 
     @Override
@@ -221,7 +243,6 @@ public class HostDeviceScreenCast extends HostDevicePreviewServer {
         return false;
     }
 
-
     @Override
     public void startWebServer(final OnWebServerStartCallback callback) {
         mLogger.info("Starting web server...");
@@ -229,32 +250,26 @@ public class HostDeviceScreenCast extends HostDevicePreviewServer {
             if (mServer == null) {
                 mServer = new MixedReplaceMediaServer();
                 mServer.setServerName("HostDevicePlugin ScreenCast Server");
-                mServer.setContentType("image/jpg");
+                mServer.setContentType(MIME_TYPE);
                 final String ip = mServer.start();
 
-                if (mPermissionReceiver != null) {
-                    mContext.unregisterReceiver(mPermissionReceiver);
-                }
-                mPermissionReceiver = new BroadcastReceiver() {
+                Intent intent = new Intent();
+                intent.setClass(mContext, PermissionReceiverActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                intent.putExtra(EXTRA_CALLBACK, new ResultReceiver(new Handler(Looper.getMainLooper())) {
                     @Override
-                    public void onReceive(final Context context, final Intent intent) {
-                        if (ACTION_PERMISSION.equals(intent.getAction())) {
-                            int resultCode = intent.getIntExtra(RESULT_CODE, -1);
-                            if (resultCode == Activity.RESULT_OK) {
-                                Intent data = intent.getParcelableExtra(RESULT_DATA);
-                                setupMediaProjection(resultCode, data);
-                                startScreenCast();
-                                callback.onStart(ip);
-                            } else {
-                                callback.onFail();
-                            }
+                    protected void onReceiveResult(final int resultCode, final Bundle resultData) {
+                        if (resultCode == Activity.RESULT_OK) {
+                            Intent data = resultData.getParcelable(RESULT_DATA);
+                            setupMediaProjection(resultCode, data);
+                            startScreenCast();
+                            callback.onStart(ip);
+                        } else {
+                            callback.onFail();
                         }
                     }
-                };
-                IntentFilter filter = new IntentFilter();
-                filter.addAction(ACTION_PERMISSION);
-                mContext.registerReceiver(mPermissionReceiver, filter);
-                requestPermission();
+                });
+                mContext.startActivity(intent);
             } else {
                 callback.onStart(mServer.getUrl());
             }
@@ -266,10 +281,6 @@ public class HostDeviceScreenCast extends HostDevicePreviewServer {
     public void stopWebServer() {
         mLogger.info("Stopping web server...");
         synchronized (mLockObj) {
-            if (mPermissionReceiver != null) {
-                mContext.unregisterReceiver(mPermissionReceiver);
-                mPermissionReceiver = null;
-            }
             stopScreenCast();
             if (mServer != null) {
                 mServer.stop();
@@ -279,20 +290,130 @@ public class HostDeviceScreenCast extends HostDevicePreviewServer {
         mLogger.info("Stopped web server.");
     }
 
-    private void requestPermission() {
+    @Override
+    public void takePhoto(final OnCameraEventListener listener) {
+        mState = RecorderState.RECORDING;
+
         Intent intent = new Intent();
         intent.setClass(mContext, PermissionReceiverActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        intent.putExtra(EXTRA_CALLBACK, new ResultReceiver(new Handler(Looper.getMainLooper())) {
+            @Override
+            protected void onReceiveResult(final int resultCode, final Bundle resultData) {
+                if (resultCode == Activity.RESULT_OK) {
+                    Intent data = resultData.getParcelable(RESULT_DATA);
+                    if (!mIsCasting) {
+                        setupMediaProjection(resultCode, data);
+                        setupVirtualDisplay(mPictureSize, new VirtualDisplay.Callback() {
+                            @Override
+                            public void onPaused() {
+                                mLogger.info("VirtualDisplay.Callback.onPaused");
+                            }
+
+                            @Override
+                            public void onResumed() {
+                                mLogger.info("VirtualDisplay.Callback.onResumed");
+                                new Thread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        takePhotoInternal(listener);
+                                        releaseVirtualDisplay();
+                                    }
+                                }).start();
+                            }
+
+                            @Override
+                            public void onStopped() {
+                                mLogger.info("VirtualDisplay.Callback.onStopped");
+                            }
+                        });
+                    } else {
+                        new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                takePhotoInternal(listener);
+                            }
+                        }).start();
+                    }
+                } else {
+                    mState = RecorderState.INACTTIVE;
+                    listener.onFailedTakePhoto();
+                }
+            }
+        });
         mContext.startActivity(intent);
     }
 
-    private void setupMediaProjection(int resultCode, Intent data) {
+    private void takePhotoInternal(final OnCameraEventListener listener) {
+        long t = System.currentTimeMillis();
+        Bitmap bitmap = getScreenshot();
+        while (bitmap == null && (System.currentTimeMillis() - t) < 5000) {
+            bitmap = getScreenshot();
+        }
+        if (bitmap == null) {
+            listener.onFailedTakePhoto();
+            return;
+        }
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+        byte[] media = baos.toByteArray();
+        if (media == null) {
+            mState = RecorderState.INACTTIVE;
+            listener.onFailedTakePhoto();
+            return;
+        }
+
+        mFileMgr.saveFile(createNewFileName(), media, new FileManager.SaveFileCallback() {
+            @Override
+            public void onSuccess(@NonNull final String uri) {
+                mState = RecorderState.INACTTIVE;
+                listener.onTakePhoto(uri, null);
+            }
+
+            @Override
+            public void onFail(@NonNull final Throwable throwable) {
+                mState = RecorderState.INACTTIVE;
+                listener.onFailedTakePhoto();
+            }
+        });
+    }
+
+    private String createNewFileName() {
+        return FILENAME_PREFIX + mSimpleDateFormat.format(new Date()) + FILE_EXTENSION;
+    }
+
+    private void setupMediaProjection(final int resultCode, final Intent data) {
         mMediaProjection = mManager.getMediaProjection(resultCode, data);
     }
 
     private void setupVirtualDisplay() {
-        int w = mPreviewSize.getWidth();
-        int h = mPreviewSize.getHeight();
+        setupVirtualDisplay(mPreviewSize, new VirtualDisplay.Callback() {
+            @Override
+            public void onPaused() {
+                mLogger.info("VirtualDisplay.Callback.onPaused");
+                stopScreenCast();
+            }
+
+            @Override
+            public void onResumed() {
+                mLogger.info("VirtualDisplay.Callback.onResumed");
+                if (mIsCasting) {
+                    startScreenCast();
+                }
+            }
+
+            @Override
+            public void onStopped() {
+                mLogger.info("VirtualDisplay.Callback.onStopped");
+            }
+        });
+    }
+
+    private void setupVirtualDisplay(final PictureSize size, final VirtualDisplay.Callback callback) {
+        int w = size.getWidth();
+        int h = size.getHeight();
+
         mImageReader = ImageReader.newInstance(w, h, ImageFormat.RGB_565, 10);
         mVirtualDisplay = mMediaProjection.createVirtualDisplay(
             "Android Host Screen",
@@ -300,32 +421,28 @@ public class HostDeviceScreenCast extends HostDevicePreviewServer {
             h,
             mDisplayDensityDpi,
             DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
-            mImageReader.getSurface(),
-            new VirtualDisplay.Callback() {
-                @Override
-                public void onPaused() {
-                    mLogger.info("VirtualDisplay.Callback.onPaused");
-                    stopScreenCast();
-                }
+            mImageReader.getSurface(), callback, null);
+    }
 
-                @Override
-                public void onResumed() {
-                    mLogger.info("VirtualDisplay.Callback.onResumed");
-                    startScreenCast();
-                }
+    private void releaseVirtualDisplay() {
+        if (mVirtualDisplay != null) {
+            mVirtualDisplay.release();
+            mVirtualDisplay = null;
+        }
 
-                @Override
-                public void onStopped() {
-                    mLogger.info("VirtualDisplay.Callback.onStopped");
-                }
-            }, null);
+        if (mImageReader != null) {
+            mImageReader.close();
+            mImageReader = null;
+        }
     }
 
     private void startScreenCast() {
         if (mIsCasting) {
+            mLogger.info("MediaProjection is already running.");
             return;
         }
         mIsCasting = true;
+
         setupVirtualDisplay();
         mThread = new Thread(new Runnable() {
             @Override
@@ -374,9 +491,7 @@ public class HostDeviceScreenCast extends HostDevicePreviewServer {
             }
             mThread = null;
         }
-        if (mVirtualDisplay != null) {
-            mVirtualDisplay.release();
-        }
+        releaseVirtualDisplay();
     }
 
     private void restartScreenCast() {
@@ -384,7 +499,7 @@ public class HostDeviceScreenCast extends HostDevicePreviewServer {
         startScreenCast();
     }
 
-    private Bitmap getScreenshot() {
+    private synchronized Bitmap getScreenshot() {
         Image image = mImageReader.acquireLatestImage();
         if (image == null) {
             return null;
@@ -404,6 +519,7 @@ public class HostDeviceScreenCast extends HostDevicePreviewServer {
         int pixelStride = planes[0].getPixelStride();
         int rowStride = planes[0].getRowStride();
         int rowPadding = rowStride - pixelStride * width;
+
         Bitmap bitmap = Bitmap.createBitmap(
                 width + rowPadding / pixelStride, height,
                 Bitmap.Config.RGB_565);

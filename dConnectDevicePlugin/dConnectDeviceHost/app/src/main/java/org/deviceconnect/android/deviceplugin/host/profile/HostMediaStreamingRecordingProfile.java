@@ -13,11 +13,11 @@ import android.support.annotation.NonNull;
 
 import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.host.HostDeviceService;
+import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceCameraRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDevicePreviewServer;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorderManager;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceStreamRecorder;
-import org.deviceconnect.android.deviceplugin.host.recorder.camera.HostDeviceCameraRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.CapabilityUtil;
 import org.deviceconnect.android.deviceplugin.host.recorder.video.HostDeviceVideoRecorder;
 import org.deviceconnect.android.event.Event;
@@ -276,8 +276,9 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                 return true;
             }
 
-            if (recorder.getState() != HostDeviceRecorder.RecorderState.INACTTIVE) {
-                MessageUtils.setIllegalDeviceStateError(response, recorder.getName()
+            HostDeviceRecorder r = (HostDeviceRecorder) recorder;
+            if (r.getState() != HostDeviceRecorder.RecorderState.INACTTIVE) {
+                MessageUtils.setIllegalDeviceStateError(response, r.getName()
                         + " is already running.");
                 return true;
             }

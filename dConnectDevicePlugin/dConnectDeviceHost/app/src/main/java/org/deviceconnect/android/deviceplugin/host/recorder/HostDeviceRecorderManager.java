@@ -17,7 +17,7 @@ import android.os.Build;
 import org.deviceconnect.android.deviceplugin.host.HostDeviceService;
 import org.deviceconnect.android.deviceplugin.host.mediaplayer.VideoConst;
 import org.deviceconnect.android.deviceplugin.host.recorder.audio.HostDeviceAudioRecorder;
-import org.deviceconnect.android.deviceplugin.host.recorder.camera.HostDeviceCameraRecorder;
+import org.deviceconnect.android.deviceplugin.host.recorder.camera.HostDevicePhotoRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.screen.HostDeviceScreenCast;
 import org.deviceconnect.android.deviceplugin.host.recorder.video.HostDeviceVideoRecorder;
 import org.deviceconnect.android.provider.FileManager;
@@ -50,25 +50,25 @@ public class HostDeviceRecorderManager {
     }
 
     public void createRecorders(final FileManager fileMgr) {
-        List<HostDeviceCameraRecorder> photoRecorders = new ArrayList<>();
+        List<HostDevicePhotoRecorder> photoRecorders = new ArrayList<>();
         List<HostDeviceVideoRecorder> videoRecorders = new ArrayList<>();
         for (int cameraId = 0; cameraId < Camera.getNumberOfCameras(); cameraId++) {
             Camera.CameraInfo cameraInfo = new Camera.CameraInfo();
             Camera.getCameraInfo(cameraId, cameraInfo);
-            HostDeviceCameraRecorder.CameraFacing facing;
+            HostDevicePhotoRecorder.CameraFacing facing;
             switch (cameraInfo.facing) {
                 case Camera.CameraInfo.CAMERA_FACING_BACK:
-                    facing = HostDeviceCameraRecorder.CameraFacing.BACK;
+                    facing = HostDevicePhotoRecorder.CameraFacing.BACK;
                     break;
                 case Camera.CameraInfo.CAMERA_FACING_FRONT:
-                    facing = HostDeviceCameraRecorder.CameraFacing.FRONT;
+                    facing = HostDevicePhotoRecorder.CameraFacing.FRONT;
                     break;
                 default:
-                    facing = HostDeviceCameraRecorder.CameraFacing.UNKNOWN;
+                    facing = HostDevicePhotoRecorder.CameraFacing.UNKNOWN;
                     break;
             }
 
-            photoRecorders.add(new HostDeviceCameraRecorder(mHostDeviceService, cameraId, facing, fileMgr));
+            photoRecorders.add(new HostDevicePhotoRecorder(mHostDeviceService, cameraId, facing, fileMgr));
             videoRecorders.add(new HostDeviceVideoRecorder(mHostDeviceService, cameraId, facing));
         }
 
@@ -85,7 +85,7 @@ public class HostDeviceRecorderManager {
         recorders.addAll(videoRecorders);
         recorders.add(new HostDeviceAudioRecorder(mHostDeviceService));
         if (isSupportedMediaProjection()) {
-            recorders.add(new HostDeviceScreenCast(mHostDeviceService));
+            recorders.add(new HostDeviceScreenCast(mHostDeviceService, fileMgr));
         }
         mRecorders = recorders.toArray(new HostDeviceRecorder[recorders.size()]);
     }
@@ -120,7 +120,7 @@ public class HostDeviceRecorderManager {
 
     public HostDeviceCameraRecorder getCameraRecorder(final String id) {
         if (id == null) {
-            return (HostDeviceCameraRecorder) mDefaultPhotoRecorder;
+            return (HostDevicePhotoRecorder) mDefaultPhotoRecorder;
         }
         for (HostDeviceRecorder recorder : mRecorders) {
             if (id.equals(recorder.getId()) && recorder instanceof HostDeviceCameraRecorder) {

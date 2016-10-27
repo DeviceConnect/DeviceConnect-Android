@@ -11,6 +11,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.media.projection.MediaProjectionManager;
 import android.os.Bundle;
+import android.os.ResultReceiver;
 import android.view.Window;
 
 /**
@@ -46,11 +47,12 @@ public class PermissionReceiverActivity extends Activity {
         if (requestCode != REQUEST_CODE) {
             return;
         }
-        Intent result = new Intent(HostDeviceScreenCast.ACTION_PERMISSION);
-        result.putExtra(HostDeviceScreenCast.RESULT_CODE, resultCode);
-        result.putExtra(HostDeviceScreenCast.RESULT_DATA, data);
-        sendBroadcast(result);
+
+        Bundle response = new Bundle();
+        response.putParcelable(HostDeviceScreenCast.RESULT_DATA, data);
+
+        ResultReceiver callback = getIntent().getParcelableExtra(HostDeviceScreenCast.EXTRA_CALLBACK);
+        callback.send(Activity.RESULT_OK, response);
         finish();
     }
-
 }

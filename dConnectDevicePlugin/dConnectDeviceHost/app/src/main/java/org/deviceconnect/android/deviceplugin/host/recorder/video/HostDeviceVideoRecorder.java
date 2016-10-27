@@ -21,7 +21,7 @@ import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.mediaplayer.VideoConst;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceStreamRecorder;
-import org.deviceconnect.android.deviceplugin.host.recorder.camera.HostDeviceCameraRecorder;
+import org.deviceconnect.android.deviceplugin.host.recorder.camera.HostDevicePhotoRecorder;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -66,7 +66,7 @@ public class HostDeviceVideoRecorder implements HostDeviceRecorder, HostDeviceSt
 
     private Context mContext;
     private int mCameraId;
-    private HostDeviceCameraRecorder.CameraFacing mFacing;
+    private HostDevicePhotoRecorder.CameraFacing mFacing;
 
     private boolean mIsInitialized;
 
@@ -77,7 +77,7 @@ public class HostDeviceVideoRecorder implements HostDeviceRecorder, HostDeviceSt
     private double mMaxFrameRate;
 
     public HostDeviceVideoRecorder(final Context context, final int cameraId,
-                                   final HostDeviceCameraRecorder.CameraFacing facing) {
+                                   final HostDevicePhotoRecorder.CameraFacing facing) {
         mContext = context;
         mCameraId = cameraId;
         mFacing = facing;

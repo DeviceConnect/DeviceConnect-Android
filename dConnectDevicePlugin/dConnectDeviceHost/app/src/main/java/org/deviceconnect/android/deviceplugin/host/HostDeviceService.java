@@ -13,8 +13,8 @@ import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.IBinder;
 
-import org.deviceconnect.android.deviceplugin.host.file.FileDataManager;
 import org.deviceconnect.android.deviceplugin.host.battery.HostBatteryManager;
+import org.deviceconnect.android.deviceplugin.host.file.FileDataManager;
 import org.deviceconnect.android.deviceplugin.host.mediaplayer.HostMediaPlayerManager;
 import org.deviceconnect.android.deviceplugin.host.profile.HostBatteryProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostCanvasProfile;
@@ -32,8 +32,8 @@ import org.deviceconnect.android.deviceplugin.host.profile.HostSettingsProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostSystemProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostTouchProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostVibrationProfile;
+import org.deviceconnect.android.deviceplugin.host.recorder.HostDevicePreviewServer;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorderManager;
-import org.deviceconnect.android.deviceplugin.host.recorder.camera.HostDeviceCameraRecorder;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.event.cache.MemoryCacheController;
@@ -139,7 +139,7 @@ public class HostDeviceService extends DConnectMessageService {
         }
 
         String action = intent.getAction();
-        if (HostDeviceCameraRecorder.DELETE_PREVIEW_ACTION.equals(action)) {
+        if (HostDevicePreviewServer.DELETE_PREVIEW_ACTION.equals(action)) {
             return stopWebServer(intent);
         } else if ("android.intent.action.NEW_OUTGOING_CALL".equals(action)) {
             return onReceivedOutGoingCall(intent);
@@ -205,7 +205,7 @@ public class HostDeviceService extends DConnectMessageService {
     }
 
     private int stopWebServer(final Intent intent) {
-        mRecorderMgr.stopWebServer(intent.getStringExtra(HostDeviceCameraRecorder.EXTRA_CAMERA_ID));
+        mRecorderMgr.stopWebServer(intent.getStringExtra(HostDevicePreviewServer.EXTRA_CAMERA_ID));
         return START_STICKY;
     }
 

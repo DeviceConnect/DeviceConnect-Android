@@ -6,7 +6,6 @@
  */
 package org.deviceconnect.android.deviceplugin.host.recorder.screen;
 
-
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
@@ -156,6 +155,10 @@ public class HostDeviceScreenCast extends HostDevicePreviewServer implements Hos
     @Override
     public void clean() {
         stopWebServer();
+        if (mMediaProjection != null) {
+            mMediaProjection.stop();
+            mMediaProjection = null;
+        }
     }
 
     @Override
@@ -383,6 +386,7 @@ public class HostDeviceScreenCast extends HostDevicePreviewServer implements Hos
             }
         }
         if (bitmap == null) {
+            mState = RecorderState.INACTTIVE;
             listener.onFailedTakePhoto();
             return;
         }
@@ -429,6 +433,12 @@ public class HostDeviceScreenCast extends HostDevicePreviewServer implements Hos
                         Intent data = resultData.getParcelable(RESULT_DATA);
                         if (data != null) {
                             mMediaProjection = mManager.getMediaProjection(resultCode, data);
+                            mMediaProjection.registerCallback(new MediaProjection.Callback() {
+                                @Override
+                                public void onStop() {
+                                    clean();
+                                }
+                            }, new Handler(Looper.getMainLooper()));
                         }
                     }
 
@@ -447,21 +457,14 @@ public class HostDeviceScreenCast extends HostDevicePreviewServer implements Hos
         setupVirtualDisplay(mPreviewSize, new VirtualDisplay.Callback() {
             @Override
             public void onPaused() {
-                mLogger.info("VirtualDisplay.Callback.onPaused");
-                stopScreenCast();
             }
 
             @Override
             public void onResumed() {
-                mLogger.info("VirtualDisplay.Callback.onResumed");
-                if (mIsCasting) {
-                    startScreenCast();
-                }
             }
 
             @Override
             public void onStopped() {
-                mLogger.info("VirtualDisplay.Callback.onStopped");
             }
         });
     }

@@ -8,8 +8,10 @@ package org.deviceconnect.android.deviceplugin.host.recorder.screen;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.PixelFormat;
 import android.hardware.display.DisplayManager;
@@ -24,6 +26,7 @@ import android.os.Looper;
 import android.os.ResultReceiver;
 import android.support.annotation.NonNull;
 import android.util.DisplayMetrics;
+import android.view.WindowManager;
 
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDevicePhotoRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDevicePreviewServer;
@@ -115,6 +118,8 @@ public class HostDeviceScreenCast extends HostDevicePreviewServer implements Hos
     private RecorderState mState;
 
     private Handler mHandler = new Handler(Looper.getMainLooper());
+
+    private BroadcastReceiver mConfigChangeReceiver;
 
     public HostDeviceScreenCast(final Context context, final FileManager fileMgr) {
         super(context, 2000);
@@ -268,11 +273,13 @@ public class HostDeviceScreenCast extends HostDevicePreviewServer implements Hos
                     public void onAllowed() {
                         sendNotification();
                         startScreenCast();
+                        registerConfigChangeReceiver();
                         callback.onStart(ip);
                     }
 
                     @Override
                     public void onDisallowed() {
+                        stopWebServer();
                         callback.onFail();
                     }
                 });
@@ -289,6 +296,7 @@ public class HostDeviceScreenCast extends HostDevicePreviewServer implements Hos
         synchronized (mLockObj) {
             hideNotification();
             stopScreenCast();
+            unregisterConfigChangeReceiver();
             if (mServer != null) {
                 mServer.stop();
                 mServer = null;
@@ -473,6 +481,21 @@ public class HostDeviceScreenCast extends HostDevicePreviewServer implements Hos
         int w = size.getWidth();
         int h = size.getHeight();
 
+        WindowManager wm = (WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE);
+        DisplayMetrics dm = new DisplayMetrics();
+        wm.getDefaultDisplay().getMetrics(dm);
+        if (dm.widthPixels > dm.heightPixels) {
+            if (w < h) {
+                w = size.getHeight();
+                h = size.getWidth();
+            }
+        } else {
+            if (w > h) {
+                w = size.getHeight();
+                h = size.getWidth();
+            }
+        }
+
         mImageReader = ImageReader.newInstance(w, h, PixelFormat.RGBA_8888, 4);
         mVirtualDisplay = mMediaProjection.createVirtualDisplay(
             "Android Host Screen",
@@ -587,6 +610,25 @@ public class HostDeviceScreenCast extends HostDevicePreviewServer implements Hos
         img.close();
 
         return bitmap;
+    }
+
+    private void registerConfigChangeReceiver() {
+        mConfigChangeReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(final Context context, final Intent intent) {
+                restartScreenCast();
+            }
+        };
+        IntentFilter filter = new IntentFilter(
+                "android.intent.action.CONFIGURATION_CHANGED");
+        mContext.registerReceiver(mConfigChangeReceiver, filter);
+    }
+
+    private void unregisterConfigChangeReceiver() {
+        if (mConfigChangeReceiver != null) {
+            mContext.unregisterReceiver(mConfigChangeReceiver);
+            mConfigChangeReceiver = null;
+        }
     }
 
     private interface PermissionCallback {

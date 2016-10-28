@@ -13,7 +13,7 @@ import android.support.annotation.NonNull;
 
 import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.host.HostDeviceService;
-import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceCameraRecorder;
+import org.deviceconnect.android.deviceplugin.host.recorder.HostDevicePhotoRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDevicePreviewServer;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorderManager;
@@ -71,7 +71,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                                 setRecorderState(info, RecorderState.INACTIVE);
                                 break;
                         }
-                        if (recorder instanceof HostDeviceCameraRecorder || recorder instanceof HostDeviceVideoRecorder) {
+                        if (recorder instanceof HostDevicePhotoRecorder || recorder instanceof HostDeviceVideoRecorder) {
                             HostDeviceRecorder.PictureSize size = recorder.getPictureSize();
                             setRecorderImageWidth(info, size.getWidth());
                             setRecorderImageHeight(info, size.getHeight());
@@ -121,7 +121,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                 public void onSuccess() {
                     setResult(response, DConnectMessage.RESULT_OK);
                     setMIMEType(response, recorder.getSupportedMimeTypes());
-                    if (recorder instanceof HostDeviceCameraRecorder) {
+                    if (recorder instanceof HostDevicePhotoRecorder) {
                         setSupportedImageSizes(response, recorder.getSupportedPictureSizes());
                     }
                     if (recorder instanceof HostDevicePreviewServer) {
@@ -270,7 +270,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             final String target = getTarget(request);
             final String serviceId = getServiceID(request);
 
-            final HostDeviceCameraRecorder recorder = mRecorderMgr.getCameraRecorder(target);
+            final HostDevicePhotoRecorder recorder = mRecorderMgr.getCameraRecorder(target);
             if (recorder == null) {
                 MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
                 return true;
@@ -286,7 +286,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             init(new PermissionUtility.PermissionRequestCallback() {
                 @Override
                 public void onSuccess() {
-                    recorder.takePhoto(new HostDeviceCameraRecorder.OnCameraEventListener() {
+                    recorder.takePhoto(new HostDevicePhotoRecorder.OnPhotoEventListener() {
                         @Override
                         public void onTakePhoto(final String uri, final String filePath) {
                             setResult(response, DConnectMessage.RESULT_OK);

@@ -12,7 +12,7 @@ import android.hardware.Camera;
 import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
-import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceCameraRecorder;
+import org.deviceconnect.android.deviceplugin.host.recorder.HostDevicePhotoRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDevicePreviewServer;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.MixedReplaceMediaServer;
 import org.deviceconnect.android.provider.FileManager;
@@ -26,7 +26,7 @@ import java.util.List;
  * @author NTT DOCOMO, INC.
  */
 @SuppressWarnings("deprecation")
-public class HostDevicePhotoRecorder extends HostDevicePreviewServer implements HostDeviceCameraRecorder {
+public class HostDeviceCameraRecorder extends HostDevicePreviewServer implements HostDevicePhotoRecorder {
 
     private static final boolean DEBUG = BuildConfig.DEBUG;
     private static final String TAG = "HOST";
@@ -85,8 +85,8 @@ public class HostDevicePhotoRecorder extends HostDevicePreviewServer implements 
 
     private RecorderState mState;
 
-    public HostDevicePhotoRecorder(final Context context, final int cameraId,
-                                   final CameraFacing facing, final FileManager fileMgr) {
+    public HostDeviceCameraRecorder(final Context context, final int cameraId,
+                                    final CameraFacing facing, final FileManager fileMgr) {
         super(context, NOTIFICATION_ID + cameraId);
 
         mFacing = facing;
@@ -280,7 +280,7 @@ public class HostDevicePhotoRecorder extends HostDevicePreviewServer implements 
      * @param listener 写真撮影の結果を通知するリスナー
      */
     @Override
-    public void takePhoto(final OnCameraEventListener listener) {
+    public void takePhoto(final OnPhotoEventListener listener) {
         if (!mIsInitialized) {
             listener.onFailedTakePhoto();
             return;

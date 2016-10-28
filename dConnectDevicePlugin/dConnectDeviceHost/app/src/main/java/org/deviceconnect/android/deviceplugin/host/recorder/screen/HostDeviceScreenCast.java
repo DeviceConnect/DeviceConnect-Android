@@ -26,7 +26,7 @@ import android.os.ResultReceiver;
 import android.support.annotation.NonNull;
 import android.util.DisplayMetrics;
 
-import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceCameraRecorder;
+import org.deviceconnect.android.deviceplugin.host.recorder.HostDevicePhotoRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDevicePreviewServer;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.MixedReplaceMediaServer;
 import org.deviceconnect.android.provider.FileManager;
@@ -47,7 +47,7 @@ import static android.R.attr.max;
  * @author NTT DOCOMO, INC.
  */
 @TargetApi(21)
-public class HostDeviceScreenCast extends HostDevicePreviewServer implements HostDeviceCameraRecorder {
+public class HostDeviceScreenCast extends HostDevicePreviewServer implements HostDevicePhotoRecorder {
 
     static final String RESULT_DATA = "result_data";
 
@@ -114,6 +114,8 @@ public class HostDeviceScreenCast extends HostDevicePreviewServer implements Hos
     private double mMaxFps;
 
     private RecorderState mState;
+
+    private Handler mHandler = new Handler(Looper.getMainLooper());
 
     public HostDeviceScreenCast(final Context context, final FileManager fileMgr) {
         super(context, 2000);
@@ -258,24 +260,19 @@ public class HostDeviceScreenCast extends HostDevicePreviewServer implements Hos
                 mServer.setServerName("HostDevicePlugin ScreenCast Server");
                 mServer.setContentType(MIME_TYPE);
                 final String ip = mServer.start();
-
-                Intent intent = new Intent();
-                intent.setClass(mContext, PermissionReceiverActivity.class);
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                intent.putExtra(EXTRA_CALLBACK, new ResultReceiver(new Handler(Looper.getMainLooper())) {
+                requestPermission(new PermissionCallback() {
                     @Override
-                    protected void onReceiveResult(final int resultCode, final Bundle resultData) {
-                        if (resultCode == Activity.RESULT_OK) {
-                            Intent data = resultData.getParcelable(RESULT_DATA);
-                            setupMediaProjection(resultCode, data);
-                            startScreenCast();
-                            callback.onStart(ip);
-                        } else {
-                            callback.onFail();
-                        }
+                    public void onAllowed() {
+                        sendNotification();
+                        startScreenCast();
+                        callback.onStart(ip);
+                    }
+
+                    @Override
+                    public void onDisallowed() {
+                        callback.onFail();
                     }
                 });
-                mContext.startActivity(intent);
             } else {
                 callback.onStart(mServer.getUrl());
             }
@@ -287,6 +284,7 @@ public class HostDeviceScreenCast extends HostDevicePreviewServer implements Hos
     public void stopWebServer() {
         mLogger.info("Stopping web server...");
         synchronized (mLockObj) {
+            hideNotification();
             stopScreenCast();
             if (mServer != null) {
                 mServer.stop();
@@ -297,64 +295,92 @@ public class HostDeviceScreenCast extends HostDevicePreviewServer implements Hos
     }
 
     @Override
-    public void takePhoto(final OnCameraEventListener listener) {
+    public void takePhoto(final OnPhotoEventListener listener) {
         mState = RecorderState.RECORDING;
 
-        Intent intent = new Intent();
-        intent.setClass(mContext, PermissionReceiverActivity.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        intent.putExtra(EXTRA_CALLBACK, new ResultReceiver(new Handler(Looper.getMainLooper())) {
-            @Override
-            protected void onReceiveResult(final int resultCode, final Bundle resultData) {
-                if (resultCode == Activity.RESULT_OK) {
-                    Intent data = resultData.getParcelable(RESULT_DATA);
-                    if (!mIsCasting) {
-                        setupMediaProjection(resultCode, data);
-                        setupVirtualDisplay(mPictureSize, new VirtualDisplay.Callback() {
-                            @Override
-                            public void onPaused() {
-                                mLogger.info("VirtualDisplay.Callback.onPaused");
-                            }
+        if (!mIsCasting) {
+            requestPermission(new PermissionCallback() {
+                @Override
+                public void onAllowed() {
+                    takePhoto(listener, null);
+                }
 
-                            @Override
-                            public void onResumed() {
-                                mLogger.info("VirtualDisplay.Callback.onResumed");
-                                new Thread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        takePhotoInternal(listener);
-                                        releaseVirtualDisplay();
-                                    }
-                                }).start();
-                            }
-
-                            @Override
-                            public void onStopped() {
-                                mLogger.info("VirtualDisplay.Callback.onStopped");
-                            }
-                        });
-                    } else {
-                        new Thread(new Runnable() {
-                            @Override
-                            public void run() {
-                                takePhotoInternal(listener);
-                            }
-                        }).start();
-                    }
-                } else {
+                @Override
+                public void onDisallowed() {
                     mState = RecorderState.INACTTIVE;
                     listener.onFailedTakePhoto();
                 }
-            }
-        });
-        mContext.startActivity(intent);
+            });
+        } else {
+            stopScreenCast();
+
+            mHandler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    takePhoto(listener, new FinishCallback() {
+                        @Override
+                        public void onFinish() {
+                            mHandler.postDelayed(new Runnable() {
+                                public void run() {
+                                    startScreenCast();
+                                }
+                            }, 500);
+                        }
+                    });
+                }
+            }, 500);
+        }
     }
 
-    private void takePhotoInternal(final OnCameraEventListener listener) {
+    private void takePhoto(final OnPhotoEventListener listener, final FinishCallback callback) {
+        setupVirtualDisplay(mPictureSize, new VirtualDisplay.Callback() {
+            @Override
+            public void onPaused() {
+            }
+
+            @Override
+            public void onResumed() {
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        takePhotoInternal(new OnPhotoEventListener() {
+                            @Override
+                            public void onTakePhoto(final String uri, final String filePath) {
+                                listener.onTakePhoto(uri, filePath);
+                                releaseVirtualDisplay();
+                            }
+
+                            @Override
+                            public void onFailedTakePhoto() {
+                                listener.onFailedTakePhoto();
+                                releaseVirtualDisplay();
+                            }
+                        });
+                    }
+                }).start();
+            }
+
+            @Override
+            public void onStopped() {
+                if (callback != null) {
+                    callback.onFinish();
+                }
+            }
+        });
+    }
+
+    private void takePhotoInternal(final OnPhotoEventListener listener) {
         long t = System.currentTimeMillis();
         Bitmap bitmap = getScreenshot();
         while (bitmap == null && (System.currentTimeMillis() - t) < 5000) {
             bitmap = getScreenshot();
+            if (bitmap == null) {
+                try {
+                    Thread.sleep(1);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
         }
         if (bitmap == null) {
             listener.onFailedTakePhoto();
@@ -389,8 +415,32 @@ public class HostDeviceScreenCast extends HostDevicePreviewServer implements Hos
         return FILENAME_PREFIX + mSimpleDateFormat.format(new Date()) + FILE_EXTENSION;
     }
 
-    private void setupMediaProjection(final int resultCode, final Intent data) {
-        mMediaProjection = mManager.getMediaProjection(resultCode, data);
+    private void requestPermission(final PermissionCallback callback) {
+        if (mMediaProjection != null) {
+            callback.onAllowed();
+        } else {
+            Intent intent = new Intent();
+            intent.setClass(mContext, PermissionReceiverActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            intent.putExtra(EXTRA_CALLBACK, new ResultReceiver(new Handler(Looper.getMainLooper())) {
+                @Override
+                protected void onReceiveResult(final int resultCode, final Bundle resultData) {
+                    if (resultCode == Activity.RESULT_OK) {
+                        Intent data = resultData.getParcelable(RESULT_DATA);
+                        if (data != null) {
+                            mMediaProjection = mManager.getMediaProjection(resultCode, data);
+                        }
+                    }
+
+                    if (mMediaProjection != null) {
+                        callback.onAllowed();
+                    } else {
+                        callback.onDisallowed();
+                    }
+                }
+            });
+            mContext.startActivity(intent);
+        }
     }
 
     private void setupVirtualDisplay() {
@@ -420,7 +470,7 @@ public class HostDeviceScreenCast extends HostDevicePreviewServer implements Hos
         int w = size.getWidth();
         int h = size.getHeight();
 
-        mImageReader = ImageReader.newInstance(w, h, PixelFormat.RGBA_8888, 10);
+        mImageReader = ImageReader.newInstance(w, h, PixelFormat.RGBA_8888, 4);
         mVirtualDisplay = mMediaProjection.createVirtualDisplay(
             "Android Host Screen",
             w,
@@ -437,6 +487,7 @@ public class HostDeviceScreenCast extends HostDevicePreviewServer implements Hos
         }
 
         if (mImageReader != null) {
+            mImageReader.setOnImageAvailableListener(null, null);
             mImageReader.close();
             mImageReader = null;
         }
@@ -454,9 +505,8 @@ public class HostDeviceScreenCast extends HostDevicePreviewServer implements Hos
             @Override
             public void run() {
                 mLogger.info("Server URL: " + mServer.getUrl());
-                sendNotification();
-                while (mIsCasting) {
-                    try {
+                try {
+                    while (mIsCasting) {
                         long start = System.currentTimeMillis();
 
                         Bitmap bitmap = getScreenshot();
@@ -473,11 +523,11 @@ public class HostDeviceScreenCast extends HostDevicePreviewServer implements Hos
                         if (interval > 0) {
                             Thread.sleep(interval);
                         }
-                    } catch (Throwable e) {
-                        break;
                     }
+                } catch (Throwable e) {
+                    mLogger.warning("MediaProjection is broken." + e.getMessage());
+                    stopWebServer();
                 }
-                hideNotification();
             }
         });
         mThread.start();
@@ -488,6 +538,7 @@ public class HostDeviceScreenCast extends HostDevicePreviewServer implements Hos
             return;
         }
         mIsCasting = false;
+
         if (mThread != null) {
             try {
                 mThread.interrupt();
@@ -533,5 +584,14 @@ public class HostDeviceScreenCast extends HostDevicePreviewServer implements Hos
         img.close();
 
         return bitmap;
+    }
+
+    private interface PermissionCallback {
+        void onAllowed();
+        void onDisallowed();
+    }
+
+    private interface FinishCallback {
+        void onFinish();
     }
 }

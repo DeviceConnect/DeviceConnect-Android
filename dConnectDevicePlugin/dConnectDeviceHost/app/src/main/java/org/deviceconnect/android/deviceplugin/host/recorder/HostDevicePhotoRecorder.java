@@ -1,10 +1,10 @@
 package org.deviceconnect.android.deviceplugin.host.recorder;
 
-public interface HostDeviceCameraRecorder {
+public interface HostDevicePhotoRecorder {
 
-    void takePhoto(OnCameraEventListener listener);
+    void takePhoto(OnPhotoEventListener listener);
 
-    interface OnCameraEventListener {
+    interface OnPhotoEventListener {
         void onTakePhoto(String uri, String filePath);
         void onFailedTakePhoto();
     }

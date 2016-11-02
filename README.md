@@ -24,6 +24,7 @@ In this guide I will continue to discuss the following.
 | Project Name|Content  |
 |:-----------|:---------|
 |dConnectDeviceAllJoyn|Device Plug-in for AllJoyn.|
+|dConnectDeviceAWSIoT|Plug-in for AWSIoT.|
 |dConnectDeviceChromeCast|Device Plug-in for ChromeCast.|
 |dConnectDeviceFPLUG|Device Plug-in for F-PLUG.|
 |dConnectDeviceFaBo|Device Plug-in for FaBo.|
@@ -36,14 +37,15 @@ In this guide I will continue to discuss the following.
 |dConnectDeviceHVCP|Device Plug-in for HVC-P.|
 |dConnectDeviceIRKit|Device Plug-in for IRKit.|
 |dConnectDeviceKadecot|Device Plug-in for Kadecot.|
-|dConnectDeviceLinking|Device Plug-in for Linking|
+|dConnectDeviceLinking|Device Plug-in for Linking.|
 |dConnectDevicePebble|Device Plug-in for Pebble.|
 |dConnectDeviceSonyCamera|Device Plug-in for SonyCamera such as QX10.|
 |dConnectDeviceSonySW|Device Plug-in for SonySmartWatch<br>※SmartWatch3 is not supported.|
+|dConnectDeviceSlackMessageHook|Plug-in for Slack.|
 |dConnectDeviceSphero|Device Plug-in for Sphero.|
 |dConnectDeviceTheta|Device Plug-in for THETA.|
 |dConnectDeviceUVC|Device Plug-in for UVC Camera.|
-|dConnectDeviceWear|Device Plug-in for AndroidWear.|
+|dConnectDeviceAndroidWear|Device Plug-in for AndroidWear.|
 |dConnectDeviceWebRTC|Device Plug-in for WebRTC.|
 |dConnectDeviceTest|Device Plug-in for test of DeviceConnect.|
 |dConnectDevicePluginSDK|SDK for creating DevicePlugin. dConnectSDKForAndroid necessary.|
@@ -88,6 +90,8 @@ People who want to develop the DeviceConnectManager and device Plug-ins, please 
 * [UVC](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/UVC-Build)
 * [AndroidWear](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/AndroidWear-Build)
 * [WebRTC](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/WebRTC-Build)
+* [AWSIoT](https://github.com/TakayukiHoshi1984/DeviceConnect-Android/wiki/AWSIoT-Build)
+* [SlackMessageHook](https://github.com/TakayukiHoshi1984/DeviceConnect-Android/wiki/SlackBot-Build)
 
 　In addition, you can get the apk from [here] (https://github.com/DeviceConnect/DeviceConnect-Docs/tree/master/Bin/Android).
 　With regard to the installation method, you can run from the command line of the command as follows.<br>
@@ -135,6 +139,8 @@ If Kore response is returned in the following, such as JSON, I can confirm that 
  {
      "product":"Device Connect Manager",
      "version":"x.x",
+     "name":"Manager-0702",
+     "uuid":"xxxx-yyyyy-zzz-aaaa",
      "result":0,
 }
  ```
@@ -163,10 +169,8 @@ At that time, this function because there is a possibility that a security hole,
 Application and using the DeviceConnect, regard the development of the application, please refer to the following pages.
 
 * [Application Development Manual(AndroidStudio)](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Application-Manual-for-Android-Studio)
-* [Application Development Manual(Eclipse)](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Application-Manual-for-Eclipse)
 
 <br>
 If you want to develop a device plug-ins using the Device Connect Manager, please see this Application Development Manual.
 
 * [Device Plug-in development manual(AndroidStudio)](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/DevicePlugin-Manual-for-Android-Studio)
-* [Device Plug-in development manual(Eclipse)](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/DevicePlugin-Manual-for-Eclipse)

@@ -73,6 +73,8 @@ public class DConnectLaunchActivity extends Activity {
     private DConnectSettings mSettings = DConnectSettings.getInstance();
 
     private Runnable mBehavior;
+    /** Bindされているかどうか. */
+    private boolean isBind = false;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -178,7 +180,10 @@ public class DConnectLaunchActivity extends Activity {
     protected void onPause() {
         super.onPause();
         onActivityResult(0, RESULT_CANCELED, null);
-        unbindService(mServiceConnection);
+        if (isBind) {
+            unbindService(mServiceConnection);
+            isBind = false;
+        }
         finish();
     }
 
@@ -226,7 +231,7 @@ public class DConnectLaunchActivity extends Activity {
     private void bindManagerService() {
         Intent bindIntent = new Intent(IDConnectService.class.getName());
         bindIntent.setPackage(getPackageName());
-        bindService(bindIntent, mServiceConnection, Context.BIND_AUTO_CREATE);
+        isBind = bindService(bindIntent, mServiceConnection, Context.BIND_AUTO_CREATE);
     }
 
     private void startManager() {

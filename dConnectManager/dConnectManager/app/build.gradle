@@ -17,7 +17,7 @@ android {
 
     defaultConfig {
         applicationId "org.deviceconnect.android.manager"
-        minSdkVersion 19
+        minSdkVersion 14
         targetSdkVersion 23
         versionCode 1
         versionName getVersionName()
@@ -54,8 +54,8 @@ android {
 
     productFlavors {
         DeviceWebApi {
-            versionCode 14
-            versionName "2.0.4"
+            versionCode 15
+            versionName "2.0.5"
             buildConfigField "String", "URL_HELP_HTML", "\"file:///android_asset/html/help-dwa/index.html\""
             buildConfigField "String", "URL_DEMO_HTML", "\"file:///android_asset/html/demo/index.html\""
         }

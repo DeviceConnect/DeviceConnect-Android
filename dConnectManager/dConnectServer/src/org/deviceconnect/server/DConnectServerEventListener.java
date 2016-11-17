@@ -52,6 +52,11 @@ public interface DConnectServerEventListener {
      */
     void onWebSocketDisconnected(String webSocketId);
 
+    /**
+     * WebSocketからのメッセージを受信した時に呼び出されます.
+     * @param webSocket メッセージを受信したWebSocket
+     * @param message 受信したメッセージ
+     */
     void onWebSocketMessage(DConnectWebSocket webSocket, String message);
 
     /**

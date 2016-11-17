@@ -39,6 +39,9 @@ public final class DConnectServerConfig {
     /** IPのホワイトリスト. */
     private ArrayList<String> mIpWhiteList;
 
+    /** ファイルなどのキャッシュをおくフォルダへのパス. */
+    private String mCachePath;
+
     /**
      * 最大コネクション数を取得する.
      * 
@@ -64,6 +67,14 @@ public final class DConnectServerConfig {
      */
     public String getDocumentRootPath() {
         return mDocumentRootPath;
+    }
+
+    /**
+     * キャッシュ置き場へのパスを取得する.
+     * @return キャッシュ置き場へのパス
+     */
+    public String getCachePath() {
+        return mCachePath;
     }
 
     /**
@@ -115,6 +126,7 @@ public final class DConnectServerConfig {
         this.mIsSsl = builder.mIsSsl;
         this.mPort = builder.mPort;
         this.mHost = builder.mHost;
+        this.mCachePath = builder.mCachePath;
         this.mIpWhiteList = builder.mIpWhiteList;
     }
 
@@ -134,6 +146,9 @@ public final class DConnectServerConfig {
 
         /** ドキュメントルートのパス. */
         private String mDocumentRootPath;
+
+        /** ファイルなどのキャッシュをおくフォルダへのパス. */
+        private String mCachePath;
 
         /** SSLを使うかのフラグ. */
         private boolean mIsSsl;
@@ -246,6 +261,19 @@ public final class DConnectServerConfig {
             }
 
             this.mDocumentRootPath = documentRootPath;
+            return this;
+        }
+
+        /**
+         * 一時的なキャッシュ置き場へのパスを設定する.
+         * @param cachePath キャッシュ置き場へのパス
+         * @return ビルダー。
+         */
+        public Builder cachePath(final String cachePath) {
+            if (cachePath == null) {
+                throw new IllegalArgumentException("cachePath root must be not null.");
+            }
+            mCachePath = cachePath;
             return this;
         }
 

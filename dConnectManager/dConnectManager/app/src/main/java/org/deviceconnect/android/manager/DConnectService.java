@@ -28,10 +28,10 @@ import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 import org.deviceconnect.server.DConnectServer;
 import org.deviceconnect.server.DConnectServerConfig;
 import org.deviceconnect.server.nanohttpd.DConnectServerNanoHttpd;
+import org.deviceconnect.server.websocket.DConnectWebSocket;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -126,7 +126,10 @@ public class DConnectService extends DConnectMessageService {
         if (ACTION_DISCONNECT_WEB_SOCKET.equals(action)) {
             String webSocketId = intent.getStringExtra(EXTRA_WEBSOCKET_ID);
             if (webSocketId != null) {
-                mRESTfulServer.disconnectWebSocket(webSocketId);
+                DConnectWebSocket webSocket = mRESTfulServer.getWebSocket(webSocketId);
+                if (webSocket != null) {
+                    webSocket.disconnect();
+                }
             }
             return START_STICKY;
         }
@@ -190,25 +193,26 @@ public class DConnectService extends DConnectMessageService {
                     if (key != null && mRESTfulServer != null && mRESTfulServer.isRunning()) {
                         WebSocketInfo info = getWebSocketInfo(key);
                         if (info == null) {
-                            mLogger.warning("sendEvent: webSocket is not found: key = " + key);
+                            mLogger.warning("sendMessage: webSocket is not found: key = " + key);
                             return;
                         }
 
                         try {
                             if (BuildConfig.DEBUG) {
-                                mLogger.info(String.format("sendEvent: %s extra: %s", key, event.getExtras()));
+                                mLogger.info(String.format("sendMessage: %s extra: %s", key, event.getExtras()));
                             }
                             JSONObject root = new JSONObject();
                             DConnectUtil.convertBundleToJSON(root, event.getExtras());
-
-                            mRESTfulServer.sendEvent(info.getRawId(), root.toString());
-                        } catch (JSONException e) {
-                            mLogger.warning("JSONException in sendEvent: " + e.toString());
-                        } catch (IOException e) {
-                            mLogger.warning("IOException in sendEvent: " + e.toString());
-                            if (mWebServerListener != null) {
-                                mWebServerListener.onWebSocketDisconnected(info.getRawId());
+                            DConnectWebSocket webSocket = mRESTfulServer.getWebSocket(info.getRawId());
+                            if (webSocket != null && mRESTfulServer.isRunning()) {
+                                webSocket.sendMessage(root.toString());
+                            } else {
+                                if (mWebServerListener != null) {
+                                    mWebServerListener.onWebSocketDisconnected(info.getRawId());
+                                }
                             }
+                        } catch (JSONException e) {
+                            mLogger.warning("JSONException in sendMessage: " + e.toString());
                         }
                     }
                 }
@@ -229,7 +233,10 @@ public class DConnectService extends DConnectMessageService {
                 public void run() {
                     WebSocketInfo info = getWebSocketInfo(receiverId);
                     if (info != null) {
-                        mRESTfulServer.disconnectWebSocket(info.getRawId());
+                        DConnectWebSocket webSocket = mRESTfulServer.getWebSocket(info.getRawId());
+                        if (webSocket != null) {
+                            webSocket.disconnect();
+                        }
                     } else {
                         mLogger.warning("sendDisconnectWebSocket: WebSocketInfo is not found: key = " + receiverId);
                     }
@@ -260,9 +267,11 @@ public class DConnectService extends DConnectMessageService {
 
                 DConnectServerConfig.Builder builder = new DConnectServerConfig.Builder();
                 builder.port(mSettings.getPort()).isSsl(mSettings.isSSL())
-                        .documentRootPath(getFilesDir().getAbsolutePath());
+                        .documentRootPath(getFilesDir().getAbsolutePath())
+                        .cachePath(mFileMgr.getBasePath().getAbsolutePath());
 
                 if (!mSettings.allowExternalIP()) {
+                    // ローカルからのアクセスは、デフォルトで許可する
                     ArrayList<String> list = new ArrayList<>();
                     list.add("127.0.0.1");
                     list.add("::1");

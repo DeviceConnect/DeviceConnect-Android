@@ -6,38 +6,21 @@
  */
 package org.deviceconnect.server.http;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.io.InputStream;
 
 /**
  * Httpレスポンスのデータを保持するクラス.
- * <p>
- * デフォルトでステータスコードはOK(200)に設定されている。
- * </p>
- * 
+ *
  * @author NTT DOCOMO, INC.
  */
-public final class HttpResponse {
-
-    /** Content-Type. */
-    private String mContentType;
-
-    /** body. */
-    private byte[] mBody;
-
-    /** ヘッダー群. */
-    private Map<String, String> mHeaders;
-
-    /** ステータスコード. */
-    private StatusCode mCode;
+public interface HttpResponse {
 
     /**
      * HTTPレスポンスのステータスコード定数.
      * 
      * @author NTT DOCOMO, INC.
-     * 
      */
-    public static enum StatusCode {
+    enum StatusCode {
         /** Continue. */
         CONTINUE(100),
         /** Switching Protocols. */
@@ -125,7 +108,7 @@ public final class HttpResponse {
          * 
          * @param code ステータスコード値
          */
-        private StatusCode(final int code) {
+        StatusCode(final int code) {
             mStatusCode = code;
         }
 
@@ -140,48 +123,30 @@ public final class HttpResponse {
     }
 
     /**
-     * コンストラクタ.
-     */
-    public HttpResponse() {
-        mHeaders = new HashMap<String, String>();
-        mCode = StatusCode.OK;
-    }
-
-    /**
-     * Content-Typeを取得する.
-     * 
-     * @return Content-Type
-     */
-    public String getContentType() {
-        return mContentType;
-    }
-
-    /**
      * Content-Typeを設定する.
      * 
      * @param contentType 設定するContent-Type
      */
-    public void setContentType(final String contentType) {
-        this.mContentType = contentType;
-    }
+    void setContentType(final String contentType);
 
     /**
-     * Bodyを取得する.
-     * 
-     * @return Bodyのデータ
+     * Content-Lengthを設定する.
+     * @param contentLength コンテンツのサイズ
      */
-    public byte[] getBody() {
-        return mBody;
-    }
+    void setContentLength(final int contentLength);
 
     /**
-     * Bodyを設定する.
+     * Bodyにデータを設定する.
      * 
      * @param body 設定するBodyのデータ
      */
-    public void setBody(final byte[] body) {
-        this.mBody = body;
-    }
+    void setBody(final byte[] body);
+
+    /**
+     * Bodyにデータを設定する.
+     * @param in 設定するデータのストリーム
+     */
+    void setBody(final InputStream in);
 
     /**
      * レスポンスにヘッダーを追加する.
@@ -190,45 +155,12 @@ public final class HttpResponse {
      * @param name ヘッダー名
      * @param value 値
      */
-    public void addHeader(final String name, final String value) {
-
-        if (name == null || value == null) {
-            String argName = name == null ? "name" : "value";
-            throw new IllegalArgumentException(argName + " must not be null.");
-        }
-
-        // Content-Typeは別に変数としてセットさせるため、ヘッダーには入れさせない
-        if ("content-type".equals(name.toLowerCase())) {
-            return;
-        }
-
-        mHeaders.put(name, value);
-    }
-
-    /**
-     * ヘッダーを取得する.
-     * 
-     * @return ヘッダーのマップオブジェクト。
-     */
-    public Map<String, String> getHeaders() {
-        return mHeaders;
-    }
-
-    /**
-     * ステータスコードを取得する.
-     * 
-     * @return ステータスコード
-     */
-    public StatusCode getCode() {
-        return mCode;
-    }
+    void addHeader(final String name, final String value);
 
     /**
      * ステータスコードを設定する.
      * 
      * @param code ステータスコード
      */
-    public void setCode(final StatusCode code) {
-        this.mCode = code;
-    }
+    void setCode(final StatusCode code);
 }

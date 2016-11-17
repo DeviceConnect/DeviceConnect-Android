@@ -103,13 +103,13 @@ public final class DConnectUtil {
      * @return DConnectメソッド
      */
     public static String convertHttpMethod2DConnectMethod(final String method) {
-        if (DConnectMessage.METHOD_GET.equals(method)) {
+        if (DConnectMessage.METHOD_GET.equalsIgnoreCase(method)) {
             return IntentDConnectMessage.ACTION_GET;
-        } else if (DConnectMessage.METHOD_POST.equals(method)) {
+        } else if (DConnectMessage.METHOD_POST.equalsIgnoreCase(method)) {
             return IntentDConnectMessage.ACTION_POST;
-        } else if (DConnectMessage.METHOD_PUT.equals(method)) {
+        } else if (DConnectMessage.METHOD_PUT.equalsIgnoreCase(method)) {
             return IntentDConnectMessage.ACTION_PUT;
-        } else if (DConnectMessage.METHOD_DELETE.equals(method)) {
+        } else if (DConnectMessage.METHOD_DELETE.equalsIgnoreCase(method)) {
             return IntentDConnectMessage.ACTION_DELETE;
         }
         return null;

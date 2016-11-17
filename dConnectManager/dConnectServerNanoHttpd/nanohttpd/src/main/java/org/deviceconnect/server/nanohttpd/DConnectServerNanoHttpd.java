@@ -7,6 +7,7 @@
 package org.deviceconnect.server.nanohttpd;
 
 import android.content.Context;
+import android.util.Log;
 
 import org.deviceconnect.server.DConnectServer;
 import org.deviceconnect.server.DConnectServerConfig;
@@ -18,26 +19,41 @@ import org.deviceconnect.server.nanohttpd.security.Firewall;
 import org.deviceconnect.server.nanohttpd.util.KeyStoreManager;
 import org.deviceconnect.server.websocket.DConnectWebSocket;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.DataOutput;
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.RandomAccessFile;
+import java.lang.reflect.Field;
 import java.net.Socket;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.charset.Charset;
 import java.security.GeneralSecurityException;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.StringTokenizer;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.SimpleFormatter;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.net.ssl.SSLServerSocketFactory;
 
@@ -53,42 +69,70 @@ import fi.iki.elonen.NanoWSD;
  */
 public class DConnectServerNanoHttpd extends DConnectServer {
 
-    /** ログ用タグ. */
+    /**
+     * ログ出力用フラグ.
+     */
+    private static final boolean DEBUG = BuildConfig.DEBUG;
+
+    /**
+     * ログ用タグ.
+     */
     private static final String TAG = "DConnectServerNanoHttpd";
 
-    /** バージョン. */
-    private static final String VERSION = "1.0.1";
+    private static final int MAX_HEADER_SIZE = 1024;
+    private static final int REQUEST_BUFFER_LEN = 512;
+    private static final int MEMORY_STORE_LIMIT = 1024;
 
-    /** WebSocketのKeepAlive処理のインターバル. */
+    private static final String CONTENT_DISPOSITION_REGEX = "([ |\t]*Content-Disposition[ |\t]*:)(.*)";
+    private static final Pattern CONTENT_DISPOSITION_PATTERN = Pattern.compile(CONTENT_DISPOSITION_REGEX, Pattern.CASE_INSENSITIVE);
+
+    private static final String CONTENT_TYPE_REGEX = "([ |\t]*content-type[ |\t]*:)(.*)";
+    private static final Pattern CONTENT_TYPE_PATTERN = Pattern.compile(CONTENT_TYPE_REGEX, Pattern.CASE_INSENSITIVE);
+
+    private static final String CONTENT_DISPOSITION_ATTRIBUTE_REGEX = "[ |\t]*([a-zA-Z]*)[ |\t]*=[ |\t]*['|\"]([^\"^']*)['|\"]";
+    private static final Pattern CONTENT_DISPOSITION_ATTRIBUTE_PATTERN = Pattern.compile(CONTENT_DISPOSITION_ATTRIBUTE_REGEX);
+
+    /**
+     * バージョン.
+     */
+    private static final String VERSION = "2.0.0";
+
+    /**
+     * WebSocketのKeepAlive処理のインターバル.
+     */
     private static final int WEBSOCKET_KEEP_ALIVE_INTERVAL = 3000;
 
-    /** サーバーオブジェクト. */
+    /**
+     * サーバーオブジェクト.
+     */
     private NanoServer mServer;
 
-    /** コンテキストオブジェクト. */
+    /**
+     * コンテキストオブジェクト.
+     */
     private Context mContext;
-
-    /** WebSocket一覧. */
-    private List<NanoWebSocket> mWebSockets = new ArrayList<>();
 
     /**
      * Keep-Aliveの状態定数.
      *
      * @author NTT DOCOMO, INC.
-     *
      */
     private enum KeepAliveState {
-        /** クライアントの返事待ち状態. */
+        /**
+         * クライアントの返事待ち状態.
+         */
         WAITING_PONG,
 
-        /** pong受信完了状態. */
+        /**
+         * pong受信完了状態.
+         */
         GOT_PONG,
     }
 
     /**
      * 設定値を元にサーバーを構築します.
-     * 
-     * @param config サーバー設定。
+     *
+     * @param config  サーバー設定。
      * @param context コンテキストオブジェクト。
      */
     public DConnectServerNanoHttpd(final DConnectServerConfig config, final Context context) {
@@ -122,6 +166,7 @@ public class DConnectServerNanoHttpd extends DConnectServer {
         }
 
         mServer = new NanoServer(mConfig.getHost(), mConfig.getPort());
+        mServer.setTempFileManagerFactory(new NanoTempFileManagerFactory(mConfig.getCachePath()));
 
         if (mConfig.isSsl()) {
             SSLServerSocketFactory factory = createServerSocketFactory();
@@ -162,18 +207,12 @@ public class DConnectServerNanoHttpd extends DConnectServer {
             return;
         }
 
-        if (mSockets != null) {
+        synchronized (mSockets) {
             for (Entry<String, DConnectWebSocket> data : mSockets.entrySet()) {
-                if (data.getValue() instanceof NanoWSD.WebSocket) {
-                    try {
-                        ((NanoWSD.WebSocket) data.getValue()).close(NanoWSD.WebSocketFrame.CloseCode.NormalClosure, "Server was shutdown.", false);
-                    } catch (IOException e) {
-                        mLogger.warning("Exception in the DConnectServerNanoHttpd#shutdown() method. " + e.toString());
-                    }
-                }
+                data.getValue().disconnect();
             }
-            mSockets.clear();
         }
+        mSockets.clear();
 
         mServer.stop();
         mServer = null;
@@ -185,27 +224,13 @@ public class DConnectServerNanoHttpd extends DConnectServer {
     }
 
     @Override
-    public void disconnectWebSocket(final String webSocketId) {
-        for (NanoWebSocket socket : mWebSockets) {
-            if (webSocketId.equals(socket.getId())) {
-                try {
-                    socket.close(NanoWSD.WebSocketFrame.CloseCode.GoingAway, "User disconnect", false);
-                } catch (IOException e) {
-                    mLogger.warning("Exception in the DConnectServerNanoHttpd#disconnectWebSocket() method. " + e.toString());
-                }
-                return;
-            }
-        }
-    }
-
-    @Override
     public String getVersion() {
         return VERSION;
     }
 
     /**
      * 証明書を読み込みFactoryクラスを生成する.
-     * 
+     *
      * @return 読み込み成功時はSSLServerSocketFactoryを、その他はnullを返す。
      */
     private SSLServerSocketFactory createServerSocketFactory() {
@@ -226,7 +251,7 @@ public class DConnectServerNanoHttpd extends DConnectServer {
 
     /**
      * 設定されたドキュメントルートが正しいかチェックする.
-     * 
+     *
      * @return 正しい場合true、不正な場合falseを返す。
      */
     private boolean checkDocumentRoot() {
@@ -241,28 +266,24 @@ public class DConnectServerNanoHttpd extends DConnectServer {
 
     /**
      * NanoWSDの実継承クラス.
-     * 
+     *
      * @author NTT DOCOMO, INC.
-     * 
      */
     private class NanoServer extends NanoWSD {
-
-        /** WebSocketのコネクションカウンター. */
-        private int mWebSocketCount;
-
-        /** Firewall. */
+        /**
+         * Firewall.
+         */
         private Firewall mFirewall;
 
         /**
          * コンストラクタ.
+         *
          * @param hostname ホスト名
-         * @param port ポート
+         * @param port     ポート
          */
-        public NanoServer(final String hostname, final int port) {
+        NanoServer(final String hostname, final int port) {
             super(hostname, port);
-
             mFirewall = new Firewall(mConfig.getIPWhiteList());
-
             mimeTypes();
         }
 
@@ -277,52 +298,466 @@ public class DConnectServerNanoHttpd extends DConnectServer {
 
         @Override
         public Response serve(final IHTTPSession session) {
-            Response nanoRes;
-            do {
-                if (isWebsocketRequested(session)) {
-                    nanoRes = parseOpenWebSocket(session);
-                    break;
+            if (isWebsocketRequested(session)) {
+                Map<String, String> headers = session.getHeaders();
+                if (!NanoWSD.HEADER_WEBSOCKET_VERSION_VALUE.equalsIgnoreCase(headers.get(NanoWSD.HEADER_WEBSOCKET_VERSION))) {
+                    return newFixedLengthResponse(Response.Status.BAD_REQUEST, NanoHTTPD.MIME_PLAINTEXT,
+                            "Invalid Websocket-Version " + headers.get(NanoWSD.HEADER_WEBSOCKET_VERSION));
                 }
 
-                if (session.getMethod() == Method.GET) {
-                    nanoRes = checkStaticFile(session);
-                    if (nanoRes != null) {
-                        break;
-                    }
+                if (!headers.containsKey(NanoWSD.HEADER_WEBSOCKET_KEY)) {
+                    return newFixedLengthResponse(Response.Status.BAD_REQUEST, NanoHTTPD.MIME_PLAINTEXT, "Missing Websocket-Key");
                 }
 
-                HttpRequest req = new HttpRequest();
-                nanoRes = createRequest(session, req);
+                // TODO: WebSocketの最大個数をチェックする
+                WebSocket webSocket = openWebSocket(session);
+                Response handshakeResponse = webSocket.getHandshakeResponse();
+                try {
+                    handshakeResponse.addHeader(NanoWSD.HEADER_WEBSOCKET_ACCEPT, makeAcceptKey(headers.get(NanoWSD.HEADER_WEBSOCKET_KEY)));
+                } catch (NoSuchAlgorithmException e) {
+                    return newFixedLengthResponse(Response.Status.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT,
+                            "The SHA-1 Algorithm required for websockets is not available on the server.");
+                }
+
+                if (headers.containsKey(NanoWSD.HEADER_WEBSOCKET_PROTOCOL)) {
+                    handshakeResponse.addHeader(NanoWSD.HEADER_WEBSOCKET_PROTOCOL, headers.get(NanoWSD.HEADER_WEBSOCKET_PROTOCOL).split(",")[0]);
+                }
+
+                return handshakeResponse;
+            } else {
+                Response nanoRes = serveHttp(session);
+                addCORSHeaders(session.getHeaders(), nanoRes);
+                return nanoRes;
+            }
+        }
+
+        @Override
+        protected Response serveHttp(final IHTTPSession session) {
+            if (session.getMethod() == Method.OPTIONS) {
+                // クロスドメイン対応としてOPTIONSがきたらDevice Connect で対応しているメソッドを返す
+                // Device Connect 対応外のメソッドだがエラーにはしないのでここで処理を終了。
+                Response res = newFixedLengthResponse(Status.OK, NanoHTTPD.MIME_PLAINTEXT, "");
+                res.addHeader("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE");
+                return res;
+            }
+
+            if (session.getMethod() == Method.GET) {
+                Response nanoRes = checkStaticFile(session);
                 if (nanoRes != null) {
-                    // Device Connect 用のリクエストが生成できない場合は何かしらのエラー、
-                    // または別対応が入るのでdConnectManagerへの通知はしない。
-                    break;
+                    return nanoRes;
+                }
+            }
+
+            try {
+                HttpRequest.Method method = HttpRequest.Method.valueFrom(session.getMethod().name());
+                if (method == null) {
+                    return newFixedLengthResponse(Status.NOT_IMPLEMENTED, NanoHTTPD.MIME_PLAINTEXT, "Not allowed HTTP method.");
                 }
 
-                HttpResponse res = new HttpResponse();
-                if (mListener != null && mListener.onReceivedHttpRequest(req, res)) {
-                    nanoRes = newFixedLengthResponse(res);
+                DConnectHttpRequest request = new DConnectHttpRequest();
+                request.setMethod(method);
+                request.setUri(session.getUri());
+                request.setQuery(session.getParms());
+                request.setHeaders(session.getHeaders());
+                request.setQueryString(session.getQueryParameterString());
+
+                parseBody(session, request);
+
+                DConnectHttpResponse response = new DConnectHttpResponse();
+                if (mListener != null && mListener.onReceivedHttpRequest(request, response)) {
+                    return newFixedLengthResponse(response);
                 } else {
-                    nanoRes = super.serve(session);
+                    return newFixedLengthResponse(Response.Status.NOT_FOUND, NanoHTTPD.MIME_PLAINTEXT, "Not Found");
                 }
-            } while (false);
-
-            addCORSHeaders(session.getHeaders(), nanoRes);
-
-            return nanoRes;
+            } catch (IOException ioe) {
+                return newFixedLengthResponse(Response.Status.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT,
+                        "SERVER INTERNAL ERROR: IOException: " + ioe.getMessage());
+            } catch (ResponseException re) {
+                return newFixedLengthResponse(re.getStatus(), NanoHTTPD.MIME_PLAINTEXT, re.getMessage());
+            }
         }
 
         @Override
         protected WebSocket openWebSocket(final IHTTPSession handshake) {
-            // ここでコネクション数制限をかけてnullを返しても、呼び出しもとで
-            // nullチェックをしていないため、更に上位の場所で制限をかける。
             return new NanoWebSocket(handshake);
         }
 
         /**
+         * Httpリクエストのbodyを解析して、DConnectHttpRequestに値を格納します.
+         *
+         * @param session Httpリクエストのセッションデータ
+         * @param request Httpリクエストを格納するインスタンス
+         * @throws IOException セッションのアクセスに失敗した場合
+         * @throws ResponseException レスポンスの作成に失敗した場合
+         */
+        private void parseBody(final IHTTPSession session, final DConnectHttpRequest request) throws IOException, ResponseException {
+            Map<String, String> headers = session.getHeaders();
+            if (!session.getMethod().equals(Method.PUT)
+                    && !session.getMethod().equals(Method.POST)
+                    && !headers.containsKey("content-length")) {
+                return;
+            }
+
+            Map<String, String> files = new HashMap<>();
+            RandomAccessFile randomAccessFile = null;
+            try {
+                long size = getBodySize(session);
+                ByteArrayOutputStream baos = null;
+                DataOutput requestDataOutput;
+
+                // Store the request in memory or a file, depending on size
+                if (size < MEMORY_STORE_LIMIT) {
+                    baos = new ByteArrayOutputStream();
+                    requestDataOutput = new DataOutputStream(baos);
+                } else {
+                    randomAccessFile = getTmpBucket(session);
+                    requestDataOutput = randomAccessFile;
+                }
+
+                InputStream inputStream = session.getInputStream();
+                int len = 0;
+                byte[] buf = new byte[REQUEST_BUFFER_LEN];
+                while (len >= 0 && size > 0) {
+                    len = inputStream.read(buf, 0, (int) Math.min(size, REQUEST_BUFFER_LEN));
+                    size -= len;
+                    if (len > 0) {
+                        requestDataOutput.write(buf, 0, len);
+                    }
+                }
+
+                ByteBuffer tmpBuf;
+                if (baos != null) {
+                    tmpBuf = ByteBuffer.wrap(baos.toByteArray(), 0, baos.size());
+                } else {
+                    tmpBuf = randomAccessFile.getChannel().map(FileChannel.MapMode.READ_ONLY, 0, randomAccessFile.length());
+                    randomAccessFile.seek(0);
+                }
+
+                if (Method.POST.equals(session.getMethod()) || Method.PUT.equals(session.getMethod())) {
+                    ContentType contentType = new ContentType(session.getHeaders().get("content-type"));
+                    if (contentType.isMultipart()) {
+                        String boundary = contentType.getBoundary();
+                        if (boundary == null) {
+                            throw new ResponseException(Response.Status.BAD_REQUEST,
+                                    "BAD REQUEST: Content type is multipart/form-data but boundary missing. Usage: GET /example/file.html");
+                        }
+                        decodeMultipartFormData(session, contentType, tmpBuf, request.getQueryParameters(), files);
+                    } else {
+                        byte[] postBytes = new byte[tmpBuf.remaining()];
+                        tmpBuf.get(postBytes);
+                        String postLine = new String(postBytes, contentType.getEncoding()).trim();
+                        if ("application/x-www-form-urlencoded".equalsIgnoreCase(contentType.getContentType())) {
+                            decodeParms(postLine, request.getQueryParameters());
+                        } else if (postLine.length() != 0) {
+                            files.put("postData", postLine);
+                        }
+                    }
+                }
+
+                request.setFiles(files);
+            } finally {
+                if (randomAccessFile != null) {
+                    try {
+                        randomAccessFile.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+
+        /**
+         * Content-Lengthのサイズを取得する.
+         * <p>
+         * Content-Lengthが存在しない場合には、0を返却する。
+         * </p>
+         * @param session Httpリクエストのセッションデータ
+         * @return Content-Lengthのサイズ
+         */
+        private long getBodySize(final IHTTPSession session) {
+            long size = 0;
+            if (session.getHeaders().containsKey("content-length")) {
+                size = Integer.parseInt(session.getHeaders().get("content-length"));
+            }
+            return size;
+        }
+
+        /**
+         * TempFileManagerのインスタンスを取得する.
+         * <p>
+         * TempFileManagerのインスタンスはprivateになっているために通常はアクセスできない。
+         * その問題を回避するためにリフレクションを使用している。
+         * </p>
+         * <p>
+         * MEMO: RetroGuardなどでミニファイされた場合には、動作しなくなるので注意
+         * </p>
+         * @param session Httpリクエストのセッションデータ
+         * @return TempFileManagerのインスタンス
+         */
+        private TempFileManager getTempFileManager(final IHTTPSession session) {
+            try {
+                Class c = HTTPSession.class;
+                Field fld = c.getDeclaredField("tempFileManager");
+                fld.setAccessible(true);
+                return (TempFileManager) fld.get(session);
+            } catch (NoSuchFieldException e) {
+                return null;
+            } catch (IllegalAccessException e) {
+                return null;
+            }
+        }
+
+        /**
+         * multipartで送られてきデータを一時的に格納するファイルを作成する.
+         * @param session Httpリクエストのセッションデータ
+         * @return 一時的なファイル
+         */
+        private RandomAccessFile getTmpBucket(final IHTTPSession session) {
+            try {
+                TempFileManager mgr = getTempFileManager(session);
+                if (mgr == null) {
+                    throw new RuntimeException("Cannot get a TempFileManager.");
+                }
+                TempFile tempFile = mgr.createTempFile(null);
+                return new RandomAccessFile(tempFile.getName(), "rw");
+            } catch (Exception e) {
+                throw new Error(e); // we won't recover, so throw an error
+            }
+        }
+
+
+        /**
+         * Find the byte positions where multipart boundaries start. This reads
+         * a large block at a time and uses a temporary buffer to optimize
+         * (memory mapped) file access.
+         */
+        private int[] getBoundaryPositions(final ByteBuffer b, final byte[] boundary) {
+            int[] res = new int[0];
+            if (b.remaining() < boundary.length) {
+                return res;
+            }
+
+            int search_window_pos = 0;
+            byte[] search_window = new byte[4 * 1024 + boundary.length];
+
+            int first_fill = (b.remaining() < search_window.length) ? b.remaining() : search_window.length;
+            b.get(search_window, 0, first_fill);
+            int new_bytes = first_fill - boundary.length;
+
+            do {
+                // Search the search_window
+                for (int j = 0; j < new_bytes; j++) {
+                    for (int i = 0; i < boundary.length; i++) {
+                        if (search_window[j + i] != boundary[i])
+                            break;
+                        if (i == boundary.length - 1) {
+                            // Match found, add it to results
+                            int[] new_res = new int[res.length + 1];
+                            System.arraycopy(res, 0, new_res, 0, res.length);
+                            new_res[res.length] = search_window_pos + j;
+                            res = new_res;
+                        }
+                    }
+                }
+                search_window_pos += new_bytes;
+
+                // Copy the end of the buffer to the start
+                System.arraycopy(search_window, search_window.length - boundary.length, search_window, 0, boundary.length);
+
+                // Refill search_window
+                new_bytes = search_window.length - boundary.length;
+                new_bytes = (b.remaining() < new_bytes) ? b.remaining() : new_bytes;
+                b.get(search_window, boundary.length, new_bytes);
+            } while (new_bytes > 0);
+            return res;
+        }
+
+        /**
+         * 改行コードまでオフセットを移動する.
+         * @param partHeaderBuff データ
+         * @param index オフセット
+         * @return 移動したインデックス
+         */
+        private int scipOverNewLine(final byte[] partHeaderBuff, int index) {
+            while (partHeaderBuff[index] != '\n') {
+                index++;
+            }
+            return ++index;
+        }
+
+        /**
+         * Decodes parameters in percent-encoded URI-format ( e.g.
+         * "name=Jack%20Daniels&pass=Single%20Malt" ) and adds them to given
+         * Map. NOTE: this doesn't support multiple identical keys due to the
+         * simplicity of Map.
+         */
+        private void decodeParms(final String parms, final Map<String, String> p) {
+            if (parms == null) {
+                return;
+            }
+
+            StringTokenizer st = new StringTokenizer(parms, "&");
+            while (st.hasMoreTokens()) {
+                String e = st.nextToken();
+                int sep = e.indexOf('=');
+                if (sep >= 0) {
+                    p.put(decodePercent(e.substring(0, sep)).trim(), decodePercent(e.substring(sep + 1)));
+                } else {
+                    p.put(decodePercent(e).trim(), "");
+                }
+            }
+        }
+
+        /**
+         * multipartをデコードする.
+         * @param session Httpリクエストのセッションデータ
+         * @param contentType コンテントタイプ
+         * @param fbuf bodyデータ
+         * @param parms queryデータ
+         * @param files multipartのファイルパスを格納するマップ
+         * @throws ResponseException レスポンスの作成に失敗した場合
+         */
+        private void decodeMultipartFormData(final IHTTPSession session, final ContentType contentType, final ByteBuffer fbuf,
+                                             final Map<String, String>  parms, final Map<String, String> files) throws ResponseException {
+            int pcount = 0;
+            try {
+                int[] boundaryIdxs = getBoundaryPositions(fbuf, contentType.getBoundary().getBytes());
+                if (boundaryIdxs.length < 2) {
+                    throw new ResponseException(Response.Status.BAD_REQUEST,
+                            "BAD REQUEST: Content type is multipart/form-data but contains less than two boundary strings.");
+                }
+
+                byte[] partHeaderBuff = new byte[MAX_HEADER_SIZE];
+                for (int boundaryIdx = 0; boundaryIdx < boundaryIdxs.length - 1; boundaryIdx++) {
+                    fbuf.position(boundaryIdxs[boundaryIdx]);
+                    int len = (fbuf.remaining() < MAX_HEADER_SIZE) ? fbuf.remaining() : MAX_HEADER_SIZE;
+                    fbuf.get(partHeaderBuff, 0, len);
+                    BufferedReader in =
+                            new BufferedReader(new InputStreamReader(
+                                    new ByteArrayInputStream(partHeaderBuff, 0, len),
+                                        Charset.forName(contentType.getEncoding())), len);
+
+                    int headerLines = 0;
+                    // First line is boundary string
+                    String mpline = in.readLine();
+                    headerLines++;
+                    if (mpline == null || !mpline.contains(contentType.getBoundary())) {
+                        throw new ResponseException(Response.Status.BAD_REQUEST,
+                                "BAD REQUEST: Content type is multipart/form-data but chunk does not start with boundary.");
+                    }
+
+                    String partName = null, fileName = null, partContentType = null;
+                    // Parse the reset of the header lines
+                    mpline = in.readLine();
+                    headerLines++;
+                    while (mpline != null && mpline.trim().length() > 0) {
+                        Matcher matcher = CONTENT_DISPOSITION_PATTERN.matcher(mpline);
+                        if (matcher.matches()) {
+                            String attributeString = matcher.group(2);
+                            matcher = CONTENT_DISPOSITION_ATTRIBUTE_PATTERN.matcher(attributeString);
+                            while (matcher.find()) {
+                                String key = matcher.group(1);
+                                if ("name".equalsIgnoreCase(key)) {
+                                    partName = matcher.group(2);
+                                } else if ("filename".equalsIgnoreCase(key)) {
+                                    fileName = matcher.group(2);
+                                    // add these two line to support multiple
+                                    // files uploaded using the same field Id
+                                    if (!fileName.isEmpty()) {
+                                        if (pcount > 0)
+                                            partName = partName + String.valueOf(pcount++);
+                                        else
+                                            pcount++;
+                                    }
+                                }
+                            }
+                        }
+                        matcher = CONTENT_TYPE_PATTERN.matcher(mpline);
+                        if (matcher.matches()) {
+                            partContentType = matcher.group(2).trim();
+                        }
+                        mpline = in.readLine();
+                        headerLines++;
+                    }
+                    int partHeaderLength = 0;
+                    while (headerLines-- > 0) {
+                        partHeaderLength = scipOverNewLine(partHeaderBuff, partHeaderLength);
+                    }
+                    // Read the part data
+                    if (partHeaderLength >= len - 4) {
+                        throw new ResponseException(Response.Status.INTERNAL_ERROR, "Multipart header size exceeds MAX_HEADER_SIZE.");
+                    }
+                    int partDataStart = boundaryIdxs[boundaryIdx] + partHeaderLength;
+                    int partDataEnd = boundaryIdxs[boundaryIdx + 1] - 4;
+
+                    fbuf.position(partDataStart);
+                    if (partContentType == null) {
+                        // Read the part into a string
+                        byte[] data_bytes = new byte[partDataEnd - partDataStart];
+                        fbuf.get(data_bytes);
+                        parms.put(partName, new String(data_bytes, contentType.getEncoding()));
+                    } else {
+                        // Read it into a file
+                        String path = saveTmpFile(session, fbuf, partDataStart, partDataEnd - partDataStart, fileName);
+                        if (!files.containsKey(partName)) {
+                            files.put(partName, path);
+                        } else {
+                            int count = 2;
+                            while (files.containsKey(partName + count)) {
+                                count++;
+                            }
+                            files.put(partName + count, path);
+                        }
+                        parms.put(partName, fileName);
+                    }
+                }
+            } catch (ResponseException re) {
+                throw re;
+            } catch (Exception e) {
+                throw new ResponseException(Response.Status.INTERNAL_ERROR, e.toString());
+            }
+        }
+
+        /**
+         * Retrieves the content of a sent file and saves it to a temporary
+         * file. The full path to the saved file is returned.
+         */
+        private String saveTmpFile(final IHTTPSession session, final ByteBuffer b, final int offset, final int len, final String filename_hint) {
+            String path = "";
+            if (len > 0) {
+                FileOutputStream fileOutputStream = null;
+                try {
+                    TempFileManager mgr = getTempFileManager(session);
+                    if (mgr == null) {
+                        throw new RuntimeException("Cannot get a TempFileManager.");
+                    }
+                    TempFile tempFile = mgr.createTempFile(filename_hint);
+                    ByteBuffer src = b.duplicate();
+                    fileOutputStream = new FileOutputStream(tempFile.getName());
+                    FileChannel dest = fileOutputStream.getChannel();
+                    src.position(offset).limit(offset + len);
+                    dest.write(src.slice());
+                    path = tempFile.getName();
+                } catch (Exception e) { // Catch exception if any
+                    throw new Error(e); // we won't recover, so throw an error
+                } finally {
+                    if (fileOutputStream != null) {
+                        try {
+                            fileOutputStream.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
+            return path;
+        }
+
+        /**
          * レスポンスにCORSヘッダーを追加します.
+         *
          * @param queryHeaders リクエストデータにあるヘッダー一覧
-         * @param nanoRes CORSヘッダーを格納するレスポンスデータ
+         * @param nanoRes      CORSヘッダーを格納するレスポンスデータ
          * @return CORSヘッダーを格納したレスポンスデータ
          */
         private Response addCORSHeaders(final Map<String, String> queryHeaders, final Response nanoRes) {
@@ -344,51 +779,14 @@ public class DConnectServerNanoHttpd extends DConnectServer {
         }
 
         /**
-         * WebSocketへの昇格処理を行う.
-         * @param session リクエストデータ
-         * @return レスポンスデータ
-         */
-        private Response parseOpenWebSocket(IHTTPSession session) {
-            Response nanoRes;
-
-            if (!countupWebSocket()) {
-                nanoRes = newFixedLengthResponse(Status.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT,
-                        "Server can't create more connections.");
-                return nanoRes;
-            }
-
-            // WebSocketを開く処理&レスポンスはNanoWSDに任せ、
-            // セッションキーが送られてから独自のセッション管理を行う。
-            nanoRes = super.serve(session);
-
-            if (nanoRes.getStatus() != Status.SWITCH_PROTOCOL) {
-                // 不正なWebSocketのリクエストの場合はカウントを取り消す
-                countdownWebSocket();
-            }
-
-            return nanoRes;
-        }
-
-        /**
          * HttpResponseからNanoHTTPD.Responseに変換する.
+         *
          * @param res HttResponse
          * @return 変換されたNanoHTTPD.Response
          */
-        private Response newFixedLengthResponse(final HttpResponse res) {
-            Response nanoRes;
-            ByteArrayInputStream stream;
-            int length;
-
-            if (res.getBody() != null) {
-                stream = new ByteArrayInputStream(res.getBody());
-                length = res.getBody().length;
-            } else {
-                stream = new ByteArrayInputStream(new byte[0]);
-                length = 0;
-            }
-
-            nanoRes = newFixedLengthResponse(getStatus(res.getCode()), res.getContentType(), stream, length);
-
+        private Response newFixedLengthResponse(final DConnectHttpResponse res) {
+            HttpResponse.StatusCode statusCode = res.getStatusCode();
+            Response nanoRes = newFixedLengthResponse(getStatus(statusCode), res.getContentType(), res.getInputStream(), res.getContentLength());
             Map<String, String> headers = res.getHeaders();
             for (Entry<String, String> head : headers.entrySet()) {
                 nanoRes.addHeader(head.getKey(), head.getValue());
@@ -404,7 +802,6 @@ public class DConnectServerNanoHttpd extends DConnectServer {
          */
         private Status getStatus(final HttpResponse.StatusCode code) {
             int codeNum = code.getCode();
-
             for (Status status : Status.values()) {
                 if (status.getRequestStatus() == codeNum) {
                     return status;
@@ -415,10 +812,12 @@ public class DConnectServerNanoHttpd extends DConnectServer {
         }
 
         /**
-         * 静的コンテンツへのリクエストかどうかをチェックする.
-         * 
+         * 静的コンテンツへのリクエストかどうかをチェックし、静的コンテンツへのアクセスの場合にはレスポンスを返却します.
+         * <p>
+         *     静的コンテンツ以外のアクセスの場合には、nullを返却します。
+         * </p>
          * @param session HTTPリクエストデータ
-         * @return Device Connect へのリクエストの場合はnullを返す。
+         * @return 静的コンテンツの場合はResponseのインスタンス、それ以外の場合はnull
          */
         private Response checkStaticFile(final IHTTPSession session) {
             Response retValue = null;
@@ -434,6 +833,11 @@ public class DConnectServerNanoHttpd extends DConnectServer {
                 // MIMEタイプがファイルで無い場合はdConnectへのリクエストかどうかの
                 // チェックに回す。
                 if (mime == null) {
+                    break;
+                }
+
+                // ドキュメントルートが設定されていない場合には、静的コンテンツへのアクセスはない。
+                if (mConfig.getDocumentRootPath() == null) {
                     break;
                 }
 
@@ -476,155 +880,21 @@ public class DConnectServerNanoHttpd extends DConnectServer {
 
         /**
          * URIからMIMEタイプを推測する.
-         * 
+         *
          * @param uri リクエストURI
          * @return MIMEタイプが推測できた場合MIMEタイプ文字列を、その他はnullを返す
          */
         private String getMimeTypeFromURI(final String uri) {
-
             int dot = uri.lastIndexOf('.');
-            String mime = null;
             if (dot >= 0) {
-                mime = MIME_TYPES.get(uri.substring(dot + 1).toLowerCase(Locale.ENGLISH));
+                return MIME_TYPES.get(uri.substring(dot + 1).toLowerCase(Locale.ENGLISH));
             }
-
-            return mime;
-        }
-
-        /**
-         * WebSocketのコネクションカウンタを1増やす.
-         * 
-         * @return コネクション数が上限に達していない場合true、上限に達した場合はfalseを返す
-         */
-        private synchronized boolean countupWebSocket() {
-            if (mConfig.getMaxWebSocketConnectionSize() <= mWebSocketCount) {
-                mLogger.exiting(getClass().getName(), "countupWebSocket", false);
-                return false;
-            }
-            mWebSocketCount++;
-            return true;
-        }
-
-        /**
-         * WebSocketのコネクションカウンタを1減らす.
-         */
-        private synchronized void countdownWebSocket() {
-            if (mWebSocketCount > 0) {
-                mWebSocketCount--;
-            }
-        }
-
-        /**
-         * IHTTPSessionからHttpRequestを生成する.
-         * 
-         * @param session リクエストデータ
-         * @param req リクエストデータ
-         * @return Device Connect 用リクエストデータ。Device Connect へリクエストを渡さない場合はnullを返す。
-         */
-        private Response createRequest(final IHTTPSession session, final HttpRequest req) {
-            String method = null;
-            switch (session.getMethod()) {
-            case GET:
-                method = HttpRequest.HTTP_METHOD_GET;
-                break;
-            case POST:
-                method = HttpRequest.HTTP_METHOD_POST;
-                break;
-            case DELETE:
-                method = HttpRequest.HTTP_METHOD_DELETE;
-                break;
-            case PUT:
-                method = HttpRequest.HTTP_METHOD_PUT;
-                break;
-            case OPTIONS:
-                // クロスドメイン対応としてOPTIONSがきたらDevice Connect で対応しているメソッドを返す
-                // Device Connect 対応外のメソッドだがエラーにはしないのでここで処理を終了。
-                Response res = newFixedLengthResponse(Status.OK, NanoHTTPD.MIME_PLAINTEXT, "");
-                res.addHeader("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE");
-                return res;
-            default:
-                mLogger.warning("This http method is not treated by Device Connect  : " + session.getMethod());
-                break;
-            }
-
-            if (method == null) {
-                return newFixedLengthResponse(Status.NOT_IMPLEMENTED, NanoHTTPD.MIME_PLAINTEXT, "Not allowed HTTP method.");
-            }
-
-            if (!session.getHeaders().containsKey("host")) {
-                return newFixedLengthResponse(Status.BAD_REQUEST, NanoHTTPD.MIME_PLAINTEXT, "Bad Request.");
-            }
-
-            String http = mConfig.isSsl() ? "https://" : "http://";
-            String uri = http + session.getHeaders().get("host") + session.getUri();
-            if (session.getQueryParameterString() != null && session.getQueryParameterString().length() != 0) {
-                uri += "?" + session.getQueryParameterString();
-            }
-
-            req.setBody(parseBody(session));
-            req.setMethod(method);
-            req.setUri(uri);
-            req.setHeaders(session.getHeaders());
-
-            return null;
-        }
-
-        /**
-         * リクエストからBodyを抜き出す.
-         * 
-         * @param session リクエストデータ
-         * @return HTTPリクエストのBodyデータ
-         */
-        private byte[] parseBody(final IHTTPSession session) {
-            // NanoHTTPDのparseBodyではマルチパートの場合に自動的に一時ファイルに
-            // データを格納するようになっているため、独自にBodyを抜き出す。
-
-            if (!(session instanceof HTTPSession)) {
-                mLogger.warning("session is not HTTPSession.");
-                return null;
-            }
-            
-            Map<String, String> headers = session.getHeaders();
-            if (!session.getMethod().equals(Method.PUT) 
-                    && !session.getMethod().equals(Method.POST)
-                    && !headers.containsKey("content-length")) {
-                return null;
-            }
-
-            long size = 0;
-            if (headers.containsKey("content-length")) {
-                size = Integer.parseInt(headers.get("content-length"));
-            }
-
-            try {
-                int len = 0;
-                byte[] buf = new byte[512];
-                InputStream is = session.getInputStream();
-                ByteArrayOutputStream bout = new ByteArrayOutputStream();
-
-                while (len >= 0 && size > 0) {
-                    len = is.read(buf, 0, (int) Math.min(size, 512));
-                    size -= len;
-                    if (len > 0) {
-                        bout.write(buf, 0, len);
-                    }
-                }
-
-                if (size != 0) {
-                    throw new RuntimeException("Invalid content-length.");
-                }
-
-                return bout.toByteArray();
-            } catch (IOException e) {
-                mLogger.warning("Exception in the NanoServer#parseBody() method. " + e.toString());
-            }
-
             return null;
         }
 
         /**
          * ファイルが読み込み可能なファイルかチェックする.
-         * 
+         *
          * @param file チェック対象のファイル。
          * @return 読み込めるファイルの場合trueを、その他はfalseを返す。
          */
@@ -647,36 +917,42 @@ public class DConnectServerNanoHttpd extends DConnectServer {
 
     /**
      * NanoWSD.WebSocketの実装クラス.
-     * 
+     *
      * @author NTT DOCOMO, INC.
      */
     private class NanoWebSocket extends NanoWSD.WebSocket implements DConnectWebSocket {
 
-        /** KeepAlive実行用のタイマー. */
+        /**
+         * KeepAlive実行用のタイマー.
+         */
         private Timer mKeepAliveTimer;
 
-        /** Keep-Aliveのタスク. */
+        /**
+         * Keep-Aliveのタスク.
+         */
         private final KeepAliveTask mKeepAliveTask;
 
-        /** ID. */
+        /**
+         * WebSocketを識別するID.
+         */
         private final UUID mId = UUID.randomUUID();
 
         /**
          * コンストラクタ.
+         *
          * @param handshakeRequest リクエスト
          */
-        public NanoWebSocket(final IHTTPSession handshakeRequest) {
+        NanoWebSocket(final IHTTPSession handshakeRequest) {
             super(handshakeRequest);
             mKeepAliveTask = new KeepAliveTask();
             mKeepAliveTimer = new Timer();
-            mKeepAliveTimer.scheduleAtFixedRate(mKeepAliveTask, WEBSOCKET_KEEP_ALIVE_INTERVAL,
-                    WEBSOCKET_KEEP_ALIVE_INTERVAL);
+            mKeepAliveTimer.scheduleAtFixedRate(mKeepAliveTask,
+                    WEBSOCKET_KEEP_ALIVE_INTERVAL, WEBSOCKET_KEEP_ALIVE_INTERVAL);
 
             mSockets.put(getId(), this);
             if (mListener != null) {
                 mListener.onWebSocketConnected(this);
             }
-            mWebSockets.add(this);
         }
 
         // Implements DConnectWebSocket
@@ -702,11 +978,11 @@ public class DConnectServerNanoHttpd extends DConnectServer {
         }
 
         @Override
-        public void sendEvent(final String event) {
+        public void sendMessage(final String message) {
             try {
-                send(event);
+                send(message);
             } catch (IOException e) {
-                mLogger.warning("Exception in the NanoWebSocket#sendEvent() method. " + e.toString());
+                mLogger.warning("Exception in the NanoWebSocket#sendMessage() method. " + e.toString());
                 if (mListener != null) {
                     mListener.onError(DConnectServerError.SEND_EVENT_FAILED);
                     mListener.onWebSocketDisconnected(getId());
@@ -715,8 +991,12 @@ public class DConnectServerNanoHttpd extends DConnectServer {
         }
 
         @Override
-        public void disconnectWebSocket() {
-            closeWebSocket();
+        public void disconnect() {
+            try {
+                close(NanoWSD.WebSocketFrame.CloseCode.NormalClosure, "Disconnect WebSocket.", false);
+            } catch (IOException e) {
+                mLogger.warning("Exception in the NanoWebSocket#disconnect() method. " + e.toString());
+            }
         }
 
         // Implements NanoWSD.WebSocket
@@ -749,7 +1029,13 @@ public class DConnectServerNanoHttpd extends DConnectServer {
 
         @Override
         protected void onClose(final NanoWSD.WebSocketFrame.CloseCode code, final String reason, final boolean initiatedByRemote) {
-            closeWebSocket();
+            mLogger.fine("WebSocket closed. id = " + getId());
+
+            mSockets.remove(getId());
+            if (mListener != null) {
+                mListener.onWebSocketDisconnected(getId());
+            }
+            mKeepAliveTimer.cancel();
         }
 
         @Override
@@ -757,53 +1043,40 @@ public class DConnectServerNanoHttpd extends DConnectServer {
             mLogger.warning("Exception in the NanoWebSocket#onException() method. " + e.toString());
         }
 
-
-        private void closeWebSocket() {
-            mSockets.remove(getId());
-            mLogger.fine("WebSocket closed. id = " + getId());
-            if (mListener != null) {
-                mListener.onWebSocketDisconnected(getId());
-            }
-            if (mServer != null) {
-                mServer.countdownWebSocket();
-            }
-
-            mKeepAliveTimer.cancel();
-        }
-
         /**
          * Keep-Alive用タイマータスク.
-         * 
+         *
          * @author NTT DOCOMO, INC.
-         * 
          */
         private class KeepAliveTask extends TimerTask {
 
-            /** 処理状態. */
+            /**
+             * 処理状態.
+             */
             private KeepAliveState mState;
 
             /**
              * コンストラクタ.
              */
-            public KeepAliveTask() {
+            KeepAliveTask() {
                 setState(KeepAliveState.GOT_PONG);
             }
 
             /**
              * 状態を変更する.
-             * 
+             *
              * @param state 状態
              */
-            public void setState(final KeepAliveState state) {
+            void setState(final KeepAliveState state) {
                 mState = state;
             }
 
             /**
              * 状態を取得する.
-             * 
+             *
              * @return 状態
              */
-            public KeepAliveState getState() {
+            KeepAliveState getState() {
                 return mState;
             }
 
@@ -825,6 +1098,79 @@ public class DConnectServerNanoHttpd extends DConnectServer {
                     cancel();
                 }
             }
+        }
+    }
+
+    /**
+     * NanoHTTPDが使用するファイルを管理するクラスを作成するファクトリー.
+     *
+     */
+    private class NanoTempFileManagerFactory implements NanoHTTPD.TempFileManagerFactory {
+        /**
+         * 一時的にファイルを保持するフォルダへのパス.
+         */
+        private final File mCacheDir;
+
+        /**
+         * コンストラクタ.
+         * @param dir 一時的にファイルを保持するフォルダへのパス.
+         */
+        NanoTempFileManagerFactory(final String dir) {
+            mCacheDir = new File(dir);
+        }
+
+        @Override
+        public NanoHTTPD.TempFileManager create() {
+            return new NanoTempFileManager(mCacheDir);
+        }
+    }
+
+    /**
+     * NanoHTTPDが使用するファイルを管理するクラス.
+     */
+    private class NanoTempFileManager implements NanoHTTPD.TempFileManager {
+        /**
+         * 一時的にファイルを保持するフォルダへのパス.
+         */
+        private final File mCacheDir;
+
+        /**
+         * 一時的に作成したファイル一覧.
+         */
+        private final List<NanoHTTPD.TempFile> mTempFiles = new ArrayList<>();
+
+        /**
+         * コンストラクタ.
+         * @param cacheDir 一時的にファイルを保持するフォルダへのパス.
+         */
+        NanoTempFileManager(final File cacheDir) {
+            mCacheDir = cacheDir;
+            if (!cacheDir.exists()) {
+                if (!cacheDir.mkdirs()) {
+                    if (DEBUG) {
+                        Log.e(TAG, "Failed to create a dir. path=" + cacheDir);
+                    }
+                }
+            }
+        }
+
+        @Override
+        public void clear() {
+            for (NanoHTTPD.TempFile file : mTempFiles) {
+                try {
+                    file.delete();
+                } catch (Exception ignored) {
+                    ignored.printStackTrace();
+                }
+            }
+            mTempFiles.clear();
+        }
+
+        @Override
+        public NanoHTTPD.TempFile createTempFile(final String filename_hint) throws Exception {
+            NanoHTTPD.DefaultTempFile tempFile = new NanoHTTPD.DefaultTempFile(mCacheDir);
+            mTempFiles.add(tempFile);
+            return tempFile;
         }
     }
 }

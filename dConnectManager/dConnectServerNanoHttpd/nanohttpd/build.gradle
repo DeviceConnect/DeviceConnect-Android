@@ -32,6 +32,6 @@ android {
 
     dependencies {
         compile fileTree(dir: 'libs', include: ['*.jar'])
-        compile 'com.nanohttpd:nanohttpd-websocket:2.2.0'
+        compile group: 'org.nanohttpd', name: 'nanohttpd-websocket', version: '2.3.0'
     }
 }

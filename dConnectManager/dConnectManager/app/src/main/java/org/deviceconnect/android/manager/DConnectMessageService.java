@@ -664,7 +664,11 @@ public abstract class DConnectMessageService extends Service
      * @param response 返却するレスポンス
      */
     public void sendResponse(final Intent request, final Intent response) {
-        sendBroadcast(createResponseIntent(request, response));
+        Intent intent = createResponseIntent(request, response);
+        if (intent.getComponent() == null) {
+            return;
+        }
+        sendBroadcast(intent);
     }
 
     /**

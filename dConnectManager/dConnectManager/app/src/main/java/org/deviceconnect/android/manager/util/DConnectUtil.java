@@ -18,13 +18,11 @@ import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
 
-import org.apache.http.NameValuePair;
-import org.apache.http.message.BasicNameValuePair;
 import org.deviceconnect.android.manager.DConnectSettings;
 import org.deviceconnect.android.manager.profile.DConnectFilesProfile;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
-import org.deviceconnect.message.intent.util.JSONFactory;
+import org.deviceconnect.utils.JSONUtils;
 import org.deviceconnect.utils.URIBuilder;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -32,7 +30,6 @@ import org.json.JSONObject;
 import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Random;
 import java.util.UUID;
@@ -120,7 +117,7 @@ public final class DConnectUtil {
      * @param uri ファイルへのContentUri
      * @return URI
      */
-    public static String createUri(final String uri) {
+    private static String createUri(final String uri) {
         DConnectSettings settings = DConnectSettings.getInstance();
         URIBuilder builder = new URIBuilder();
         if (settings.isSSL()) {
@@ -131,10 +128,7 @@ public final class DConnectUtil {
         builder.setHost(settings.getHost());
         builder.setPort(settings.getPort());
         builder.setProfile(DConnectFilesProfile.PROFILE_NAME);
-
-        ArrayList<NameValuePair> params = new ArrayList<NameValuePair>();
-        params.add(new BasicNameValuePair("uri", uri));
-        builder.setParameters(params);
+        builder.addParameter("uri", uri);
 
         return builder.toString();
     }
@@ -173,10 +167,7 @@ public final class DConnectUtil {
      * @return content://から始まる場合はtrue、それ以外はfalse
      */
     private static boolean startWithContent(final String uri) {
-        if (uri == null) {
-            return false;
-        }
-        return (uri.startsWith("content://"));
+        return uri != null && (uri.startsWith("content://"));
     }
 
     /**
@@ -187,7 +178,7 @@ public final class DConnectUtil {
      */
     public static void convertBundleToJSON(
             final JSONObject root, final Bundle b) throws JSONException {
-        JSONFactory.convertBundleToJSON(root, b);
+        JSONUtils.convertBundleToJSON(root, b);
         convertUri(root);
     }
 

@@ -1,40 +1,22 @@
 /*
  DConnectResponseMessage.java
- Copyright (c) 2014 NTT DOCOMO,INC.
+ Copyright (c) 2016 NTT DOCOMO,INC.
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
  */
-package org.deviceconnect.message.basic.message;
+package org.deviceconnect.message;
 
-import java.util.logging.Logger;
+import android.content.Intent;
 
-import org.deviceconnect.message.DConnectMessage;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-/**
- * レスポンスメッセージ.
- * @author NTT DOCOMO, INC.
- */
 public class DConnectResponseMessage extends BasicDConnectMessage {
-
-    /**
-     * シリアルバージョン.
-     */
-    private static final long serialVersionUID = 1L;
-
-    /**
-     * ロガーインスタンス.
-     */
-    private Logger mLog = Logger.getLogger("org.deviceconnect.sdk");
-
     /**
      * コンストラクタ.
      */
     public DConnectResponseMessage() {
         super();
-        mLog.entering(DConnectMessage.class.getName(), "DConnectResonseMessage");
-        mLog.exiting(DConnectMessage.class.getName(), "DConnectResonseMessage");
     }
 
     /**
@@ -44,8 +26,6 @@ public class DConnectResponseMessage extends BasicDConnectMessage {
     public DConnectResponseMessage(final int result) {
         super();
         setResult(result);
-        mLog.entering(DConnectMessage.class.getName(), "DConnectResonseMessage");
-        mLog.exiting(DConnectMessage.class.getName(), "DConnectResonseMessage");
     }
 
     /**
@@ -56,8 +36,6 @@ public class DConnectResponseMessage extends BasicDConnectMessage {
      */
     public DConnectResponseMessage(final String json) throws JSONException {
         super(json);
-        mLog.entering(DConnectMessage.class.getName(), "DConnectResonseMessage", json);
-        mLog.exiting(DConnectMessage.class.getName(), "DConnectResonseMessage");
     }
 
     /**
@@ -68,8 +46,14 @@ public class DConnectResponseMessage extends BasicDConnectMessage {
      */
     public DConnectResponseMessage(final JSONObject json) throws JSONException {
         super(json);
-        mLog.entering(DConnectMessage.class.getName(), "DConnectResonseMessage", json);
-        mLog.exiting(DConnectMessage.class.getName(), "DConnectResonseMessage");
+    }
+
+    /**
+     * メッセージをIntentから生成する.
+     * @param intent メッセージIntent
+     */
+    public DConnectResponseMessage(final Intent intent) throws JSONException {
+        super(intent);
     }
 
     /**
@@ -78,22 +62,6 @@ public class DConnectResponseMessage extends BasicDConnectMessage {
      */
     public DConnectResponseMessage(final DConnectMessage message) {
         super(message);
-    }
-
-    /**
-     * サービスIDを取得する.
-     * @return サービスID
-     */
-    public String getServiceId() {
-        return getString(EXTRA_SERVICE_ID);
-    }
-
-    /**
-     * サービスIDを設定する.
-     * @param id サービスID
-     */
-    public void setServiceId(final String id) {
-        put(EXTRA_SERVICE_ID, id);
     }
 
     /**
@@ -144,4 +112,35 @@ public class DConnectResponseMessage extends BasicDConnectMessage {
         put(EXTRA_RESULT, message);
     }
 
+    /**
+     * バージョン名を取得する.
+     * @return バージョン名
+     */
+    public String getVersion() {
+        return getString(EXTRA_VERSION);
+    }
+
+    /**
+     * バージョン名を設定する.
+     * @param version バージョン名
+     */
+    public void setVersion(final String version) {
+        put(EXTRA_VERSION, version);
+    }
+
+    /**
+     * プロダクト名を取得する.
+     * @return プロダクト名
+     */
+    public String getProduct() {
+        return getString(EXTRA_PRODUCT);
+    }
+
+    /**
+     * プロダクト名を設定する.
+     * @param product プロダクト名
+     */
+    public void setProduct(final String product) {
+        put(EXTRA_PRODUCT, product);
+    }
 }

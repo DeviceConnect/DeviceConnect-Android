@@ -1,62 +1,222 @@
 /*
- JSONFactory.java
- Copyright (c) 2014 NTT DOCOMO,INC.
+ BasicDConnectMessage.java
+ Copyright (c) 2016 NTT DOCOMO,INC.
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
  */
-package org.deviceconnect.message.intent.util;
+package org.deviceconnect.message;
 
-import java.util.List;
+import android.content.Intent;
+import android.os.Bundle;
+import android.os.Parcelable;
 
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import android.os.Bundle;
-import android.os.Parcelable;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-/**
- * JSONファクトリークラス.
- * JSONデータを生成する機能を提供する。
- * 
- *
- * @author NTT DOCOMO, INC.
- */
-public final class JSONFactory {
+class BasicDConnectMessage extends HashMap<String, Object> implements DConnectMessage {
 
     /**
-     * ユーティリティクラスなのでprivate.
+     * シリアルバージョン.
      */
-    private JSONFactory() {
-    }
-    
+    private static final long serialVersionUID = 1L;
+
     /**
-     * BundleをJSONObjectに変換する.
-     * 
-     * @param bundle 変換するBundle
-     * @return 変換後のJSONデータ
-     * @throws JSONException JSONへの変換に失敗した場合に発生
+     * 空っぽのメッセージを生成する.
      */
-    public static JSONObject convertBundleToJSON(final Bundle bundle) throws JSONException {
-        JSONObject json = new JSONObject();
-        convertBundleToJSON(json, bundle);
-        return json;
+    BasicDConnectMessage() {
     }
 
     /**
-     * BundleからJSONObjectに変換する.
-     * @param root JSONObjectに変換したデータを格納するオブジェクト
-     * @param b 変換するBundle
-     * @throws JSONException JSONへの変換に失敗した場合に発生
+     * メッセージをMapから生成する.
+     *
+     * @param map メッセージMap
      */
+    BasicDConnectMessage(final Map<String, Object> map) {
+        super(map);
+    }
+
+    /**
+     * メッセージをJSONから生成する.
+     *
+     * @param json メッセージJSON
+     * @throws JSONException JSONエラー.
+     */
+    BasicDConnectMessage(final String json) throws JSONException {
+        this(new JSONObject(json));
+    }
+
+    /**
+     * メッセージをJSONから生成する.
+     *
+     * @param json メッセージJSON
+     * @throws JSONException JSONエラー.
+     */
+    @SuppressWarnings("unchecked")
+    BasicDConnectMessage(final JSONObject json) throws JSONException {
+        this((Map<String, Object>) parseJSONObject(json));
+    }
+
+    /**
+     * メッセージをIntentから生成する.
+     * @param intent メッセージIntent
+     */
+    BasicDConnectMessage(final Intent intent) throws JSONException {
+        this((JSONObject) parseIntent(intent));
+    }
+
+    /**
+     * Stringを取得する.
+     * @param key キー
+     * @return 値
+     */
+    public String getString(final String key) {
+        if (!containsKey(key)) {
+            return null;
+        }
+
+        Object value = get(key);
+        if (value != null && !(value instanceof String)) {
+            return null;
+        }
+        return (String) value;
+    }
+
+    /**
+     * intを取得する.
+     * @param key キー
+     * @return 値
+     */
+    public int getInt(final String key) {
+        if (!containsKey(key)) {
+            return 0;
+        }
+
+        Object value = get(key);
+        if (value == null || !(value instanceof Integer)) {
+            return 0;
+        }
+        return (Integer) value;
+    }
+
+    /**
+     * booleanを取得する.
+     * @param key キー
+     * @return 値
+     */
+    public boolean getBoolean(final String key) {
+        if (!containsKey(key)) {
+            return false;
+        }
+
+        Object value = get(key);
+        if (value == null || !(value instanceof Boolean)) {
+            return false;
+        }
+        return (Boolean) value;
+    }
+
+    /**
+     * doubleを取得する.
+     * @param key キー
+     * @return 値
+     */
+    public float getFloat(final String key) {
+        if (!containsKey(key)) {
+            return 0;
+        }
+
+        Object value = get(key);
+        if (value == null || !(value instanceof Float)) {
+            return 0f;
+        }
+        return (Float) value;
+    }
+
+    @Override
+    public List<Object> getList(final String key) {
+        if (!containsKey(key)) {
+            return null;
+        }
+
+        Object value = get(key);
+        if (value == null ||  !(value instanceof List<?>)) {
+            return null;
+        }
+        return castListObject((List<?>) value);
+    }
+
+    @Override
+    public String toString(int indent) {
+        return "";
+    }
+
+    /**
+     * JSONObjectをパースしてオブジェクトとして返却する.
+     * @param json パース対象JSONObject
+     * @return オブジェクト
+     * @throws JSONException JSONエラーが発生した場合
+     */
+    private static Object parseJSONObject(final Object json) throws JSONException {
+
+        Object object;
+
+        if (json == JSONObject.NULL) {
+            return null;
+        } else if (json instanceof JSONObject) {
+            JSONObject jsonObject = (JSONObject) json;
+
+            Map<String, Object> map = new HashMap<>();
+            JSONArray names = jsonObject.names();
+            if (names != null) {
+                int length = names.length();
+                for (int i = 0; i < length; i++) {
+                    String name = names.getString(i);
+                    map.put(name, parseJSONObject(jsonObject.get(name)));
+                }
+            }
+
+            object = map;
+        } else if (json instanceof JSONArray) {
+            JSONArray jsonArray = (JSONArray) json;
+
+            int length = jsonArray.length();
+            List<Object> array = new ArrayList<>(length);
+            for (int i = 0; i < length; i++) {
+                array.add(parseJSONObject(jsonArray.get(i)));
+            }
+
+            object = array;
+        } else {
+            object = json;
+        }
+
+        return object;
+    }
+
+    private static JSONObject parseIntent(final Intent intent) {
+        JSONObject obj = new JSONObject();
+        try {
+            convertBundleToJSON(obj, intent.getExtras());
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return obj;
+    }
+
     public static void convertBundleToJSON(
             final JSONObject root, final Bundle b) throws JSONException {
-        
+
         if (root == null || b == null) {
             return;
         }
-        
+
         for (String key : b.keySet()) {
             Object value = b.get(key);
             if (key.equals(IntentDConnectMessage.EXTRA_REQUEST_CODE)) {
@@ -237,7 +397,7 @@ public final class JSONFactory {
 
     /**
      * 指定したObjectがプリミティブ型のラッパークラスであるかどうかをチェックする.
-     * 
+     *
      * @param obj チェックするオブジェクト
      * @return プリミティブ型のラッパークラスである場合はtrue、そうでない場合はfalse
      */
@@ -245,5 +405,15 @@ public final class JSONFactory {
         return obj instanceof Byte || obj instanceof Short || obj instanceof Integer
                 || obj instanceof Long || obj instanceof Float || obj instanceof Double
                 || obj instanceof Character || obj instanceof Boolean;
+    }
+
+    /**
+     * List<Object>へキャストする.
+     * @param list リスト
+     * @return キャストされたリスト
+     */
+    @SuppressWarnings("unchecked")
+    private List<Object> castListObject(final List<?> list) {
+        return (List<Object>) list;
     }
 }

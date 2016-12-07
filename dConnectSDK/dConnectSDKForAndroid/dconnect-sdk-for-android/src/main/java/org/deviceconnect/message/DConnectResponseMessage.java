@@ -11,6 +11,10 @@ import android.content.Intent;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+/**
+ * Device Connect Managerからのレスポンスメッセージ.
+ * @author NTT DOCOMO, INC.
+ */
 public class DConnectResponseMessage extends BasicDConnectMessage {
     /**
      * コンストラクタ.

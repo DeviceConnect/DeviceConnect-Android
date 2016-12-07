@@ -7,19 +7,22 @@
 package org.deviceconnect.message;
 
 import android.content.Intent;
-import android.os.Bundle;
-import android.os.Parcelable;
 
-import org.deviceconnect.message.intent.message.IntentDConnectMessage;
+import org.deviceconnect.utils.JSONUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * 共通で使用するメッセージ.
+ * @author NTT DOCOMO, INC.
+ */
 class BasicDConnectMessage extends HashMap<String, Object> implements DConnectMessage {
 
     /**
@@ -60,15 +63,16 @@ class BasicDConnectMessage extends HashMap<String, Object> implements DConnectMe
      */
     @SuppressWarnings("unchecked")
     BasicDConnectMessage(final JSONObject json) throws JSONException {
-        this((Map<String, Object>) parseJSONObject(json));
+        convertJSONToMap(json, this);
     }
+
 
     /**
      * メッセージをIntentから生成する.
      * @param intent メッセージIntent
      */
     BasicDConnectMessage(final Intent intent) throws JSONException {
-        this((JSONObject) parseIntent(intent));
+        this(parseIntent(intent));
     }
 
     /**
@@ -133,10 +137,10 @@ class BasicDConnectMessage extends HashMap<String, Object> implements DConnectMe
         }
 
         Object value = get(key);
-        if (value == null || !(value instanceof Float)) {
+        if (value == null || !(value instanceof Number)) {
             return 0f;
         }
-        return (Float) value;
+        return ((Number) value).floatValue();
     }
 
     @Override
@@ -146,265 +150,183 @@ class BasicDConnectMessage extends HashMap<String, Object> implements DConnectMe
         }
 
         Object value = get(key);
-        if (value == null ||  !(value instanceof List<?>)) {
+        if (value == null || !(value instanceof List<?>)) {
             return null;
         }
         return castListObject((List<?>) value);
     }
 
     @Override
-    public String toString(int indent) {
-        return "";
-    }
-
-    /**
-     * JSONObjectをパースしてオブジェクトとして返却する.
-     * @param json パース対象JSONObject
-     * @return オブジェクト
-     * @throws JSONException JSONエラーが発生した場合
-     */
-    private static Object parseJSONObject(final Object json) throws JSONException {
-
-        Object object;
-
-        if (json == JSONObject.NULL) {
+    public DConnectMessage getMessage(final String key) {
+        if (!containsKey(key)) {
             return null;
-        } else if (json instanceof JSONObject) {
-            JSONObject jsonObject = (JSONObject) json;
-
-            Map<String, Object> map = new HashMap<>();
-            JSONArray names = jsonObject.names();
-            if (names != null) {
-                int length = names.length();
-                for (int i = 0; i < length; i++) {
-                    String name = names.getString(i);
-                    map.put(name, parseJSONObject(jsonObject.get(name)));
-                }
-            }
-
-            object = map;
-        } else if (json instanceof JSONArray) {
-            JSONArray jsonArray = (JSONArray) json;
-
-            int length = jsonArray.length();
-            List<Object> array = new ArrayList<>(length);
-            for (int i = 0; i < length; i++) {
-                array.add(parseJSONObject(jsonArray.get(i)));
-            }
-
-            object = array;
-        } else {
-            object = json;
         }
 
-        return object;
+        Object value = get(key);
+        if (value == null || !(value instanceof DConnectMessage)) {
+            return null;
+        }
+        return (DConnectMessage) value;
+    }
+
+    @Override
+    public String toString(final int indent) {
+        final StringBuilder builder = new StringBuilder();
+        AbstractMessageParser parser = new AbstractMessageParser() {
+            private boolean mFirstKey;
+            private int mParseInArray;
+            private int mFirstArrayValue;
+            private int mIndent;
+
+            @Override
+            public void startParse() {
+            }
+
+            @Override
+            public void onKey(final String key) {
+                if (!mFirstKey) {
+                    builder.append(",");
+                }
+                appendIndentSpace();
+
+                mFirstKey = false;
+                builder.append("\"");
+                builder.append(key);
+                builder.append("\"");
+                builder.append(":");
+            }
+            @Override
+            public void onValue(final Object value) {
+                if ((mParseInArray & (1 << mIndent)) != 0) {
+                    if ((mFirstArrayValue & (1 << mIndent)) != 0) {
+                        builder.append(",");
+                    }
+                    appendIndentSpace();
+                }
+                mFirstArrayValue |= (1 << mIndent);
+                if (Integer.class.isInstance(value)
+                        || Float.class.isInstance(value)
+                        || Double.class.isInstance(value)
+                        || Long.class.isInstance(value)
+                        || Byte.class.isInstance(value)
+                        || Short.class.isInstance(value)
+                        || Boolean.class.isInstance(value)) {
+                    builder.append(value);
+                } else if (value == null) {
+                    builder.append("null");
+                } else {
+                    builder.append("\"");
+                    builder.append(value);
+                    builder.append("\"");
+                }
+            }
+            @Override
+            public void startMap() {
+                appendIndentSpace();
+                builder.append("{");
+
+                mFirstKey = true;
+                mIndent++;
+            }
+            @Override
+            public void endMap() {
+                mFirstArrayValue &= ~(1 << mIndent);
+                mIndent--;
+                mFirstArrayValue |= (1 << mIndent);
+
+                appendIndentSpace();
+                builder.append("}");
+            }
+            @Override
+            public void startArray() {
+                mIndent++;
+                if ((mFirstArrayValue & (1 << mIndent)) != 0) {
+                    builder.append(",");
+                }
+                mParseInArray |= (1 << mIndent);
+                builder.append("[");
+            }
+            @Override
+            public void endArray() {
+                mParseInArray &= ~(1 << mIndent);
+                mFirstArrayValue &= ~(1 << mIndent);
+                mIndent--;
+                mFirstArrayValue |= (1 << mIndent);
+
+                appendIndentSpace();
+                builder.append("]");
+            }
+            @Override
+            public void endParse() {
+            }
+
+            private void appendIndentSpace() {
+                if (indent <= 0) {
+                    return;
+                }
+                if (builder.length() > 0) {
+                    appendBreakLine();
+                }
+                for (int i = 0; i < mIndent * indent; i++) {
+                    builder.append(" ");
+                }
+            }
+            private void appendBreakLine() {
+                if (indent <= 0) {
+                    return;
+                }
+                builder.append("\n");
+            }
+        };
+        parser.parse(this);
+
+        return builder.toString();
+    }
+
+    private static void convertJSONToMap(final JSONObject root, final DConnectMessage message) throws JSONException {
+        if (root == null || message == null) {
+            return;
+        }
+
+        Iterator it = root.keys();
+        while (it.hasNext()) {
+            String key = (String) it.next();
+            Object object = root.get(key);
+            if (object instanceof JSONObject) {
+                DConnectMessage m = new BasicDConnectMessage();
+                convertJSONToMap((JSONObject) object, m);
+                message.put(key, m);
+            } else if (object instanceof JSONArray) {
+                JSONArray jsonArray = (JSONArray) object;
+
+                int length = jsonArray.length();
+                List<Object> array = new ArrayList<>(length);
+                for (int i = 0; i < length; i++) {
+                    Object obj = jsonArray.get(i);
+                    if (obj instanceof JSONObject) {
+                        DConnectMessage m = new BasicDConnectMessage();
+                        convertJSONToMap((JSONObject) obj, m);
+                        array.add(m);
+                    } else {
+                        array.add(obj);
+                    }
+                }
+
+                message.put(key, array);
+            } else {
+                message.put(key, object);
+            }
+        }
     }
 
     private static JSONObject parseIntent(final Intent intent) {
         JSONObject obj = new JSONObject();
         try {
-            convertBundleToJSON(obj, intent.getExtras());
+            JSONUtils.convertBundleToJSON(obj, intent.getExtras());
         } catch (JSONException e) {
             e.printStackTrace();
         }
         return obj;
-    }
-
-    public static void convertBundleToJSON(
-            final JSONObject root, final Bundle b) throws JSONException {
-
-        if (root == null || b == null) {
-            return;
-        }
-
-        for (String key : b.keySet()) {
-            Object value = b.get(key);
-            if (key.equals(IntentDConnectMessage.EXTRA_REQUEST_CODE)) {
-                // request_codeはRESTfulにはいらないので削除しておく
-                continue;
-            } else if (value instanceof Integer[] || value instanceof Long[] || value instanceof Short[]
-                    || value instanceof Byte[] || value instanceof Character[] || value instanceof Float[]
-                    || value instanceof Double[] || value instanceof Boolean[] || value instanceof String[]) {
-                Object[] bb = (Object[]) value;
-                JSONArray array = new JSONArray();
-                for (int i = 0; i < bb.length; i++) {
-                    array.put(bb[i]);
-                }
-                root.put(key, array);
-            } else if (value instanceof Integer) {
-                root.put(key, ((Integer) value).intValue());
-            } else if (value instanceof int[]) {
-                int[] bb = (int[]) value;
-                JSONArray array = new JSONArray();
-                for (int i = 0; i < bb.length; i++) {
-                    array.put(bb[i]);
-                }
-                root.put(key, array);
-            } else if (value instanceof Short) {
-                root.put(key, ((Short) value).shortValue());
-            } else if (value instanceof short[]) {
-                short[] bb = (short[]) value;
-                JSONArray array = new JSONArray();
-                for (int i = 0; i < bb.length; i++) {
-                    array.put(bb[i]);
-                }
-                root.put(key, array);
-            } else if (value instanceof Character) {
-                root.put(key, ((Character) value).charValue());
-            } else if (value instanceof char[]) {
-                char[] bb = (char[]) value;
-                JSONArray array = new JSONArray();
-                for (int i = 0; i < bb.length; i++) {
-                    array.put(bb[i]);
-                }
-                root.put(key, array);
-            } else if (value instanceof Byte) {
-                root.put(key, ((Byte) value).byteValue());
-            } else if (value instanceof byte[]) {
-                byte[] bb = (byte[]) value;
-                JSONArray array = new JSONArray();
-                for (int i = 0; i < bb.length; i++) {
-                    array.put(bb[i]);
-                }
-                root.put(key, array);
-            } else if (value instanceof Long) {
-                root.put(key, ((Long) value).longValue());
-            } else if (value instanceof long[]) {
-                long[] bb = (long[]) value;
-                JSONArray array = new JSONArray();
-                for (int i = 0; i < bb.length; i++) {
-                    array.put(bb[i]);
-                }
-                root.put(key, array);
-            } else if (value instanceof Float) {
-                root.put(key, ((Float) value).floatValue());
-            } else if (value instanceof float[]) {
-                float[] bb = (float[]) value;
-                JSONArray array = new JSONArray();
-                for (int i = 0; i < bb.length; i++) {
-                    array.put(bb[i]);
-                }
-                root.put(key, array);
-            } else if (value instanceof Double) {
-                root.put(key, ((Double) value).doubleValue());
-            } else if (value instanceof double[]) {
-                double[] bb = (double[]) value;
-                JSONArray array = new JSONArray();
-                for (int i = 0; i < bb.length; i++) {
-                    array.put(bb[i]);
-                }
-                root.put(key, array);
-            } else if (value instanceof Boolean) {
-                root.put(key, ((Boolean) value).booleanValue());
-            } else if (value instanceof boolean[]) {
-                boolean[] bb = (boolean[]) value;
-                JSONArray array = new JSONArray();
-                for (int i = 0; i < bb.length; i++) {
-                    array.put(bb[i]);
-                }
-                root.put(key, array);
-            } else if (value instanceof String) {
-                root.put(key, (String) value);
-            } else if (value instanceof Bundle) {
-                JSONObject obj = new JSONObject();
-                convertBundleToJSON(obj, (Bundle) value);
-                root.put(key, obj);
-            } else if (value instanceof Bundle[]) {
-                Bundle[] bb = (Bundle[]) value;
-                JSONArray array = new JSONArray();
-                for (int i = 0; i < bb.length; i++) {
-                    JSONObject obj = new JSONObject();
-                    convertBundleToJSON(obj, bb[i]);
-                    array.put(obj);
-                }
-                root.put(key, array);
-            } else if (value instanceof Parcelable[]) {
-                Parcelable[] bb = (Parcelable[]) value;
-                JSONArray array = new JSONArray();
-                for (int i = 0; i < bb.length; i++) {
-                    JSONObject obj = new JSONObject();
-                    if (bb[i] instanceof Bundle) {
-                        convertBundleToJSON(obj, (Bundle) bb[i]);
-                    }
-                    array.put(obj);
-                }
-                root.put(key, array);
-            } else if (value instanceof Object[]) {
-                // プリミティブ型のラッパークラスの配列がObject[]として扱われる場合への対処
-                Object[] bb = (Object[]) value;
-                if (isPrimitiveWrapperArray(bb)) {
-                    JSONArray array = new JSONArray();
-                    for (int i = 0; i < bb.length; i++) {
-                        array.put(bb[i]);
-                    }
-                    root.put(key, array);
-                }
-            } else if (value instanceof List<?>) {
-                List<?> bb = (List<?>) value;
-                JSONArray array = new JSONArray();
-                for (int i = 0; i < bb.size(); i++) {
-                    Object v = bb.get(i);
-                    if (v instanceof Bundle) {
-                        JSONObject obj = new JSONObject();
-                        convertBundleToJSON(obj, (Bundle) bb.get(i));
-                        array.put(obj);
-                    } else if (v instanceof Parcelable) {
-                        JSONObject obj = new JSONObject();
-                        convertBundleToJSON(obj, (Bundle) bb.get(i));
-                        array.put(obj);
-                    } else {
-                        array.put(bb.get(i));
-                    }
-                }
-                root.put(key, array);
-            }
-        }
-    }
-
-    /**
-     * 指定したObject[]がプリミティブ型のラッパークラスの配列であるかどうかをチェックする.
-     * <p>
-     * なお、配列のすべての要素の型が同一でない場合、falseを返す.
-     * 例えば、以下のような場合.
-     * </p>
-     * <pre>
-     * {new Integer(0), new Double(0.0d)} // falseを返す
-     * </pre>
-     * @param array チェックするオブジェクト配列
-     * @return プリミティブ型のラッパークラスの配列である場合はtrue、そうでない場合はfalse
-     */
-    private static boolean isPrimitiveWrapperArray(final Object[] array) {
-        String classNameCache = null;
-        for (int i = 0; i < array.length; i++) {
-            Object obj = array[i];
-            if (obj != null) {
-                if (isPrimitiveWrapper(obj)) {
-                    String className = obj.getClass().getName();
-                    if (classNameCache != null) {
-                        if (!classNameCache.equals(className)) {
-                            return false;
-                        }
-                    } else {
-                        classNameCache = className;
-                    }
-                } else {
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
-
-    /**
-     * 指定したObjectがプリミティブ型のラッパークラスであるかどうかをチェックする.
-     *
-     * @param obj チェックするオブジェクト
-     * @return プリミティブ型のラッパークラスである場合はtrue、そうでない場合はfalse
-     */
-    private static boolean isPrimitiveWrapper(final Object obj) {
-        return obj instanceof Byte || obj instanceof Short || obj instanceof Integer
-                || obj instanceof Long || obj instanceof Float || obj instanceof Double
-                || obj instanceof Character || obj instanceof Boolean;
     }
 
     /**

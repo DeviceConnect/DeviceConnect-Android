@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * メッセージ.
+ * Device Connect Managerで使用するメッセージ.
  * @author NTT DOCOMO, INC.
  */
 public interface DConnectMessage extends Map<String, Object> {
@@ -205,6 +205,14 @@ public interface DConnectMessage extends Map<String, Object> {
      * @return 値
      */
     List<Object> getList(String key);
+
+    /**
+     * {@code DConnectMessage}を取得する.
+     *
+     * @param key キー
+     * @return 値
+     */
+    DConnectMessage getMessage(String key);
 
     /**
      * メッセージを文字列にして返却する.

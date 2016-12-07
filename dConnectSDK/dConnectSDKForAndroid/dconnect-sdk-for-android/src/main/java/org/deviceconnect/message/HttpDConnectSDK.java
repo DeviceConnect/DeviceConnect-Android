@@ -18,6 +18,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.security.KeyManagementException;
@@ -34,6 +35,10 @@ import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
+/**
+ * HTTP通信を使用してDevice Connect Managerと通信を行うSDKクラス.
+ * @author NTT DOCOMO, INC.
+ */
 class HttpDConnectSDK extends DConnectSDK {
     /**
      * デバック用フラグ.
@@ -230,8 +235,18 @@ class HttpDConnectSDK extends DConnectSDK {
     @Override
     protected DConnectResponseMessage sendRequest(final Method method, final String uri,
                                                   final Map<String, String> headers, final byte[] body) {
+        if (method == null) {
+            throw new NullPointerException("method is null.");
+        }
+
+        if (uri == null) {
+            throw new NullPointerException("uri is null.");
+        }
+
         try {
             return createMessage(connect(method, uri, headers, body));
+        } catch (MalformedURLException e) {
+            throw new IllegalArgumentException("uri is invalid.");
         } catch (SocketTimeoutException e) {
             return createTimeout();
         } catch (Exception e) {
@@ -243,12 +258,22 @@ class HttpDConnectSDK extends DConnectSDK {
 
     @Override
     public void connectWebSocket(final OnWebSocketListener listener) {
+        if (listener == null) {
+            throw new NullPointerException("listener is null.");
+        }
+
+        if (getOrigin() == null) {
+            throw new IllegalStateException("origin is not set.");
+        }
+
         if (mWebSocketClient != null) {
             return;
         }
+
+        // TODO: WebSocketの接続に失敗した時にmWebSocketClientを初期化しないと接続できない。
         mWebSocketClient = new DConnectWebSocketClient();
         mWebSocketClient.setOnWebSocketListener(listener);
-        mWebSocketClient.connect();
+        mWebSocketClient.connect(getOrigin(), getAccessToken());
     }
 
     @Override
@@ -261,6 +286,15 @@ class HttpDConnectSDK extends DConnectSDK {
 
     @Override
     public void addEventListener(final String uri, final OnEventListener listener) {
+
+        if (uri == null) {
+            throw new NullPointerException("uri is null.");
+        }
+
+        if (listener == null) {
+            throw new NullPointerException("listener is null.");
+        }
+
         put(uri, null, new OnResponseListener() {
             @Override
             public void onResponse(final DConnectResponseMessage response) {
@@ -274,7 +308,14 @@ class HttpDConnectSDK extends DConnectSDK {
 
     @Override
     public void removeEventListener(final String uri) {
-        delete(uri, null);
+        if (uri == null) {
+            throw new NullPointerException("uri is null.");
+        }
+        delete(uri, new OnResponseListener() {
+            @Override
+            public void onResponse(final DConnectResponseMessage response) {
+            }
+        });
         if (mWebSocketClient != null) {
             mWebSocketClient.removeEventListener(uri);
         }

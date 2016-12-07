@@ -9,13 +9,13 @@ package org.deviceconnect.message;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.deviceconnect.profile.AvailabilityProfileConstants;
 import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
+import org.deviceconnect.profile.ServiceInformationProfileConstants;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -24,7 +24,8 @@ import java.util.concurrent.Executors;
  * Device Connect Managerへのアクセスを行う便利クラス.
  * <h3>サンプルコード</h3>
  * <pre>
- * final DConnectSDK sdk = DConnectSDKFactory.create(context, DConnectSDKFactory.TYPE_HTTP);
+ * // sdkは、できるだけ使い回すこと。
+ * final DConnectSDK sdk = DConnectSDKFactory.create(context, DConnectSDKFactory.Type.HTTP);
  *
  * String[] scopes = {
  *      "serviceDiscovery",
@@ -43,6 +44,23 @@ import java.util.concurrent.Executors;
  *          // Local OAuthの認証に失敗
  *     }
  * });
+ *
+ * // 省略・・・
+ *
+ * DConnectSDK.URIBuilder builder = sdk.createURIBuilder();
+ * builder.setProfile("battery");
+ * builder.setServiceId("serviceId");
+ * sdk.get(builder.toString(), new OnResponseListener() {
+ *     @Override
+ *     public void onResponse(DConnectResponseMessage response) {
+ *         if (response.getResult() == DConnectMessage.RESULT_OK) {
+ *             float level = response.getFloat("level");
+ *         } else {
+ *             // エラー
+ *         }
+ *     }
+ * });
+ *
  * </pre>
  * @author NTT DOCOMO, INC.
  */
@@ -115,6 +133,8 @@ public abstract class DConnectSDK {
      */
     private ExecutorService mExecutorService = Executors.newFixedThreadPool(1);
 
+    DConnectSDK() {}
+
     /**
      * Device Connect Managerのホスト名を取得する.
      * <p>
@@ -135,6 +155,12 @@ public abstract class DConnectSDK {
      * @param host Device Connect Managerのホスト名
      */
     public void setHost(final String host) {
+        if (host == null) {
+            throw new NullPointerException("host is null.");
+        }
+        if (host.isEmpty()) {
+            throw new IllegalArgumentException("host is empty.");
+        }
         mHost = host;
     }
 
@@ -153,7 +179,10 @@ public abstract class DConnectSDK {
      * </p>
      * @param port Device Connect Managerのポート番号
      */
-    public void setPort(int port) {
+    public void setPort(final int port) {
+        if (port < 0 || port > 65535) {
+            throw new IllegalArgumentException("port is invalid. port=" + port);
+        }
         mPort = port;
     }
 
@@ -173,7 +202,13 @@ public abstract class DConnectSDK {
      * </p>
      * @param origin アプリケーションのOrigin
      */
-    public void setOrigin(String origin) {
+    public void setOrigin(final String origin) {
+        if (origin == null) {
+            throw new NullPointerException("origin is null.");
+        }
+        if (origin.isEmpty()) {
+            throw new IllegalArgumentException("origin is empty.");
+        }
         mOrigin = origin;
     }
 
@@ -193,7 +228,7 @@ public abstract class DConnectSDK {
      * SSL使用フラグを設定するする.
      * @param SSL trueの場合はSSLを使用する、それ以外の場合は使用しない。
      */
-    public void setSSL(boolean SSL) {
+    public void setSSL(final boolean SSL) {
         mSSL = SSL;
     }
 
@@ -215,18 +250,26 @@ public abstract class DConnectSDK {
      * </p>
      * @param accessToken アクセストークン
      */
-    public void setAccessToken(String accessToken) {
+    public void setAccessToken(final String accessToken) {
+        if (accessToken == null) {
+            throw new NullPointerException("accessToken is null.");
+        }
+        if (accessToken.isEmpty()) {
+            throw new IllegalArgumentException("accessToken is empty.");
+        }
         mAccessToken = accessToken;
     }
 
     /**
      * イベント受信用のWebSocketを Device Connect Managerへ接続する.
      * <p>
-     * すでに接続されている場合には、無視します。
+     * すでに接続されている場合には、無視します。<br>
+     * この関数でWebSocketを開いたあとは、必ず{@link #disconnectWebSocket()}を呼び出して、
+     * WebSocketを切断してください。
      * </p>
      * <h3>サンプルコード</h3>
      * <pre>
-     * DConnectSDK sdk = DConnectSDKFactory.create(context, DConnectSDKFactory.TYPE_HTTP);
+     * DConnectSDK sdk = DConnectSDKFactory.create(context, DConnectSDKFactory.Type.HTTP);
      * sdk.connectWebSocket(new OnWebSocketListener() {
      *
      * });
@@ -247,17 +290,17 @@ public abstract class DConnectSDK {
      * イベントを登録する.
      * <h3>サンプルコード</h3>
      * <pre>
-     * DConnectSDK sdk = DConnectSDKFactory.create(context, DConnectSDKFactory.TYPE_HTTP);
-     * DConnectSDK.URIBuilder builder = new sdk.URIBuilder();
+     * DConnectSDK sdk = DConnectSDKFactory.create(context, DConnectSDKFactory.Type.HTTP);
+     * DConnectSDK.URIBuilder builder = sdk.createURIBuilder();
      * builder.setProfile("battery");
      * builder.setServiceId("serviceId");
      * sdk.addEventListener(builder.build(), new OnEventListener() {
      *      @Override
      *      public void onResponse(DConnectResponseMessage response) {
      *          if (response.getResult() == DConnectMessage.RESULT_OK) {
-     *              // 登録成功
+     *              // イベント登録成功
      *          } else {
-     *              // 登録失敗
+     *              // イベント登録失敗
      *          }
      *      }
      *      @Override
@@ -292,11 +335,29 @@ public abstract class DConnectSDK {
     protected abstract DConnectResponseMessage sendRequest(final Method method, final String uri, final Map<String, String> headers, final byte[] body);
 
     /**
+     * URIBuilderを生成する.
+     * <h3>サンプルコード</h3>
+     * <pre>
+     * DConnectSDK sdk = DConnectSDKFactory.create(context, DConnectSDKFactory.Type.HTTP);
+     * DConnectSDK.URIBuilder builder = sdk.createURIBuilder();
+     * builder.setProfile("battery");
+     * builder.setServiceId("serviceId");
+     * </pre>
+     * @return URIBuilderのインスタンス
+     */
+    public URIBuilder createURIBuilder() {
+        return new URIBuilder();
+    }
+
+    /**
      * GETメソッドで指定したURIにアクセスし、レスポンスを取得する.
      * @param uri アクセス先のURI
      * @return レスポンス
      */
     public DConnectResponseMessage get(final String uri) {
+        if (uri == null) {
+            throw new NullPointerException("uri is null.");
+        }
         return sendRequest(Method.GET, uri, null, null);
     }
 
@@ -306,11 +367,13 @@ public abstract class DConnectSDK {
      * @param listener レスポンスを通知するリスナー
      */
     public void get(final String uri, final OnResponseListener listener) {
+        if (uri == null) {
+            throw new NullPointerException("uri is null.");
+        }
         mExecutorService.submit(new Runnable() {
             @Override
             public void run() {
                 DConnectResponseMessage response = get(uri);
-                // TODO 別スレッドにするか検討
                 if (listener != null) {
                     listener.onResponse(response);
                 }
@@ -325,6 +388,9 @@ public abstract class DConnectSDK {
      * @return レスポンス
      */
     public DConnectResponseMessage put(final String uri, final byte[] data) {
+        if (uri == null) {
+            throw new NullPointerException("uri is null.");
+        }
         return sendRequest(Method.PUT, uri, null, data);
     }
 
@@ -335,6 +401,10 @@ public abstract class DConnectSDK {
      * @param listener レスポンスを通知するリスナー
      */
     public void put(final String uri, final byte[] data, final OnResponseListener listener) {
+        if (uri == null) {
+            throw new NullPointerException("uri is null.");
+        }
+
         mExecutorService.submit(new Runnable() {
             @Override
             public void run() {
@@ -353,6 +423,9 @@ public abstract class DConnectSDK {
      * @return レスポンス
      */
     public DConnectResponseMessage post(final String uri, final byte[] data) {
+        if (uri == null) {
+            throw new NullPointerException("uri is null.");
+        }
         return sendRequest(Method.POST, uri, null, data);
     }
 
@@ -363,6 +436,9 @@ public abstract class DConnectSDK {
      * @param listener レスポンスを通知するリスナー
      */
     public void post(final String uri, final byte[] data, final OnResponseListener listener) {
+        if (uri == null) {
+            throw new NullPointerException("uri is null.");
+        }
         mExecutorService.submit(new Runnable() {
             @Override
             public void run() {
@@ -380,6 +456,9 @@ public abstract class DConnectSDK {
      * @return レスポンス
      */
     public DConnectResponseMessage delete(final String uri) {
+        if (uri == null) {
+            throw new NullPointerException("uri is null.");
+        }
         return sendRequest(Method.DELETE, uri, null, null);
     }
 
@@ -389,6 +468,9 @@ public abstract class DConnectSDK {
      * @param listener レスポンスを通知するリスナー
      */
     public void delete(final String uri, final OnResponseListener listener) {
+        if (uri == null) {
+            throw new NullPointerException("uri is null.");
+        }
         mExecutorService.submit(new Runnable() {
             @Override
             public void run() {
@@ -408,7 +490,7 @@ public abstract class DConnectSDK {
      * </p>
      * <h3>サンプルコード</h3>
      * <pre>
-     * DConnectSDK sdk = DConnectSDKFactory.create(context, DConnectSDKFactory.TYPE_HTTP);
+     * DConnectSDK sdk = DConnectSDKFactory.create(context, DConnectSDKFactory.Type.HTTP);
      *
      * DConnectResponseMessage response = sdk.availability();
      * if (response.getResult() == DConnectMessage.RESULT_OK) {
@@ -436,7 +518,7 @@ public abstract class DConnectSDK {
      * </p>
      * <h3>サンプルコード</h3>
      * <pre>
-     * DConnectSDK sdk = DConnectSDKFactory.create(context, DConnectSDKFactory.TYPE_HTTP);
+     * DConnectSDK sdk = DConnectSDKFactory.create(context, DConnectSDKFactory.Type.HTTP);
      *
      * DConnectResponseMessage response = sdk.availability(new OnResponseListener() {
      *     @Override
@@ -472,7 +554,7 @@ public abstract class DConnectSDK {
      * </p>
      * <h3>サンプルコード</h3>
      * <pre>
-     * DConnectSDK sdk = DConnectSDKFactory.create(context, DConnectSDKFactory.TYPE_HTTP);
+     * DConnectSDK sdk = DConnectSDKFactory.create(context, DConnectSDKFactory.Type.HTTP);
      *
      * String[] scopes = {
      *      "serviceDiscovery",
@@ -509,7 +591,7 @@ public abstract class DConnectSDK {
      * </p>
      * <h3>サンプルコード</h3>
      * <pre>
-     * final DConnectSDK sdk = DConnectSDKFactory.create(context, DConnectSDKFactory.TYPE_HTTP);
+     * final DConnectSDK sdk = DConnectSDKFactory.create(context, DConnectSDKFactory.Type.HTTP);
      *
      * String[] scopes = {
      *      "serviceDiscovery",
@@ -563,7 +645,7 @@ public abstract class DConnectSDK {
      * ServiceDiscoveryプロファイルにアクセスし、Device Connect Managerに接続されているサービス一覧を取得する.
      * <h3>サンプルコード</h3>
      * <pre>
-     * DConnectSDK sdk = DConnectSDKFactory.create(context, DConnectSDKFactory.TYPE_HTTP);
+     * DConnectSDK sdk = DConnectSDKFactory.create(context, DConnectSDKFactory.Type.HTTP);
      * sdk.setAccessToken("xxxxxxx");
      *
      * DConnectResponseMessage response = sdk.serviceDiscovery();
@@ -589,7 +671,7 @@ public abstract class DConnectSDK {
      * 非同期にServiceDiscoveryプロファイルにアクセスし、Device Connect Managerに接続されているサービス一覧をリスナーに通知する.
      * <h3>サンプルコード</h3>
      * <pre>
-     * DConnectSDK sdk = DConnectSDKFactory.create(context, DConnectSDKFactory.TYPE_HTTP);
+     * DConnectSDK sdk = DConnectSDKFactory.create(context, DConnectSDKFactory.Type.HTTP);
      * sdk.setAccessToken("xxxxxxx");
      *
      * DConnectResponseMessage response = sdk.serviceDiscovery(new OnResponseListener() {
@@ -611,6 +693,29 @@ public abstract class DConnectSDK {
             @Override
             public void run() {
                 DConnectResponseMessage result = serviceDiscovery();
+                if (listener != null) {
+                    listener.onResponse(result);
+                }
+            }
+        });
+    }
+
+    public DConnectResponseMessage getServiceInformation(final String serviceId) {
+        try {
+            URIBuilder builder = new URIBuilder();
+            builder.setProfile(ServiceInformationProfileConstants.PROFILE_NAME);
+            builder.setServiceId(serviceId);
+            return get(builder.build().toASCIIString());
+        } catch (URISyntaxException e) {
+            return createErrorMessage(DConnectMessage.ErrorCode.INVALID_REQUEST_PARAMETER.getCode(), e.getMessage());
+        }
+    }
+
+    public void getServiceInformation(final String serviceId, final OnResponseListener listener) {
+        mExecutorService.submit(new Runnable() {
+            @Override
+            public void run() {
+                DConnectResponseMessage result = getServiceInformation(serviceId);
                 if (listener != null) {
                     listener.onResponse(result);
                 }
@@ -665,10 +770,6 @@ public abstract class DConnectSDK {
         return createErrorMessage(DConnectMessage.ErrorCode.TIMEOUT.getCode(), DConnectMessage.ErrorCode.TIMEOUT.toString());
     }
 
-    public URIBuilder createURIBuilder() {
-        return new URIBuilder();
-    }
-
     /**
      * 指定された情報からAPIへのURLを提供するクラス.
      *
@@ -714,7 +815,7 @@ public abstract class DConnectSDK {
         /**
          * パラメータ.
          */
-        private List<NameValuePair> mParameters = new ArrayList<>();
+        private Map<String, String> mParameters = new HashMap<>();
 
         /**
          * API.
@@ -833,6 +934,12 @@ public abstract class DConnectSDK {
          * @return {@link URIBuilder} インスタンス
          */
         public synchronized URIBuilder setHost(final String host) {
+            if (host == null) {
+                throw new NullPointerException("host is null.");
+            }
+            if (host.isEmpty()) {
+                throw new IllegalArgumentException("host is empty.");
+            }
             mHost = host;
             return this;
         }
@@ -853,6 +960,9 @@ public abstract class DConnectSDK {
          * @return {@link URIBuilder} インスタンス
          */
         public synchronized URIBuilder setPort(final int port) {
+            if (port < 0 || port > 65535) {
+                throw new IllegalArgumentException("port is invalid. port=" + port);
+            }
             mPort = port;
             return this;
         }
@@ -1000,7 +1110,7 @@ public abstract class DConnectSDK {
         /**
          * サービスIDを取得する.
          * <p>
-         *     設定されていない場合にはnullを返却する。
+         * 設定されていない場合にはnullを返却する。
          * </p>
          * @return サービスID
          */
@@ -1010,27 +1120,44 @@ public abstract class DConnectSDK {
 
         /**
          * 指定したクエリパラメータを取得する.
+         * <p>
+         * 指定されたクエリパラメータが存在しない場合にはnullを返却する。
+         * </p>
          * @param name クエリパラメータ名
          * @return クエリパラメータ
          */
         public synchronized String getParameter(final String name) {
-            for (NameValuePair pair : mParameters) {
-                if (pair.getName().equals(name)) {
-                    return pair.getValue();
-                }
-            }
-            return null;
+            return mParameters.get(name);
         }
 
         /**
-         * キーバリューでパラメータを追加する.
+         * キーバリューでクエリパラメータを追加する.
          *
-         * @param name  キー
+         * @param key  キー
          * @param value バリュー
          * @return {@link URIBuilder} インスタンス
          */
-        public synchronized URIBuilder addParameter(final String name, final String value) {
-            mParameters.add(new NameValuePair(name, value));
+        public synchronized URIBuilder addParameter(final String key, final String value) {
+            if (key == null) {
+                throw new NullPointerException("key is null.");
+            }
+            if (value == null) {
+                throw new NullPointerException("value is null.");
+            }
+            mParameters.put(key, value);
+            return this;
+        }
+
+        /**
+         * 指定されたクエリパラメータを削除する.
+         * @param key クエリパラメータ名
+         * @return {@link URIBuilder} インスタンス
+         */
+        public synchronized URIBuilder removeParameter(final String key) {
+            if (key == null) {
+                throw new NullPointerException("key is null.");
+            }
+            mParameters.remove(key);
             return this;
         }
 
@@ -1098,55 +1225,29 @@ public abstract class DConnectSDK {
             return builder.toString();
         }
 
-        private String concatenateString(final List<URIBuilder.NameValuePair> list) {
+        private String concatenateString(final Map<String, String> map) {
             String string = "";
-            for (URIBuilder.NameValuePair pair : list) {
+            for (Map.Entry<String, String> e : map.entrySet()) {
                 if (string.length() > 0) {
                     string += "&";
                 }
-                string += pair.getName() + "=" + pair.getValue();
+                string += e.getKey() + "=" + e.getValue();
             }
             return string;
         }
 
-        private String concatenateStringWithEncode(final List<URIBuilder.NameValuePair> list, final String charset) {
+        private String concatenateStringWithEncode(final Map<String, String> map, final String charset) {
             try {
                 String string = "";
-                for (URIBuilder.NameValuePair pair : list) {
+                for (Map.Entry<String, String> e : map.entrySet()) {
                     if (string.length() > 0) {
                         string += "&";
                     }
-                    string += pair.getName() + "=" + URLEncoder.encode(pair.getValue(), charset);
+                    string += e.getKey() + "=" + URLEncoder.encode(e.getValue(), charset);
                 }
                 return string;
             } catch (UnsupportedEncodingException e) {
                 return "";
-            }
-        }
-
-        class NameValuePair {
-            private String mName;
-            private String mValue;
-
-            NameValuePair(final String name, final String value) {
-                mName = name;
-                mValue = value;
-            }
-
-            public String getName() {
-                return mName;
-            }
-
-            public void setName(String name) {
-                mName = name;
-            }
-
-            public String getValue() {
-                return mValue;
-            }
-
-            public void setValue(String value) {
-                mValue = value;
             }
         }
     }

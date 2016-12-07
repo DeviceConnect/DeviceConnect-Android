@@ -6,16 +6,14 @@
  */
 package org.deviceconnect.utils;
 
+import org.deviceconnect.message.DConnectMessage;
+
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Logger;
-
-import org.apache.http.NameValuePair;
-import org.apache.http.client.utils.URLEncodedUtils;
-import org.apache.http.message.BasicNameValuePair;
-import org.deviceconnect.message.DConnectMessage;
 
 /**
  * 指定された情報からAPIへのURLを提供するクラス.
@@ -36,7 +34,6 @@ import org.deviceconnect.message.DConnectMessage;
  * URI uri = builder.build();
  * }
  * </pre>
- * 
  * 
  * @author NTT DOCOMO, INC.
  */
@@ -69,18 +66,15 @@ public class URIBuilder {
 
     /** API. */
     private String mApi = DConnectMessage.DEFAULT_API;
-    
+
     /** プロファイル. */
     private String mProfile;
+
     /** インターフェース. */
     private String mInterface;
+
     /** アトリビュート. */
     private String mAttribute;
-
-    /**
-     * ロガー.
-     */
-    private Logger mLogger = Logger.getLogger("org.deviceconnect.sdk");
 
     /**
      * コンストラクタ.
@@ -110,12 +104,11 @@ public class URIBuilder {
         mPath = uri.getPath();
 
         String query = uri.getQuery();
-        mLogger.fine("uri query: " + query);
         if (query != null) {
             String[] params = query.split("&");
             for (String param : params) {
                 String[] splitted = param.split("=");
-                if (splitted != null && splitted.length == 2) {
+                if (splitted.length == 2) {
                     addParameter(splitted[0], splitted[1]);
                 } else {
                     addParameter(splitted[0], "");
@@ -324,9 +317,9 @@ public class URIBuilder {
      */
     public synchronized URIBuilder addParameter(final String name, final String value) {
         if (mParameters == null) {
-            mParameters = new ArrayList<NameValuePair>();
+            mParameters = new ArrayList<>();
         }
-        mParameters.add(new BasicNameValuePair(name, value));
+        mParameters.add(new NameValuePair(name, value));
         return this;
     }
 
@@ -348,8 +341,7 @@ public class URIBuilder {
      * @throws URISyntaxException URIフォーマットが不正な場合
      */
     public URI build() throws URISyntaxException {
-        URI uri = new URI(toString(true));
-        return uri;
+        return new URI(toString(true));
     }
 
     /**
@@ -395,7 +387,7 @@ public class URIBuilder {
         if (mParameters != null && mParameters.size() > 0) {
             if (ascii) {
                 builder.append("?");
-                builder.append(URLEncodedUtils.format(mParameters, "UTF-8"));
+                builder.append(encode(mParameters, "UTF-8"));
             } else {
                 for (int i = 0; i < mParameters.size(); i++) {
                     NameValuePair pair = mParameters.get(i);
@@ -414,6 +406,43 @@ public class URIBuilder {
         }
 
         return builder.toString();
+    }
 
+    private String encode(final List<NameValuePair> list, final String charset) {
+        try {
+            String string = "";
+            for (NameValuePair pair : list) {
+                string += pair.getName() + "=" + URLEncoder.encode(pair.getValue(), charset);
+            }
+            return string;
+        } catch (UnsupportedEncodingException e) {
+            return "";
+        }
+    }
+
+    public class NameValuePair {
+        private String mName;
+        private String mValue;
+
+        public NameValuePair(final String name, final String value) {
+            mName = name;
+            mValue = value;
+        }
+
+        public String getName() {
+            return mName;
+        }
+
+        public void setName(String name) {
+            mName = name;
+        }
+
+        public String getValue() {
+            return mValue;
+        }
+
+        public void setValue(String value) {
+            mValue = value;
+        }
     }
 }

@@ -15,15 +15,33 @@ import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 import org.json.JSONException;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * Intentを使用してDevice Connect Managerと通信を行うSDKクラス.
+ * @author NTT DOCOMO, INC.
+ */
 class IntentDConnectSDK extends DConnectSDK {
     /**
      * レスポンスを格納するマップ.
      */
     private static Map<Integer, Intent> sResponseMap = new ConcurrentHashMap<>();
+
+    /**
+     * イベントを配送するSDKを登録するリスト.
+     */
+    private static final List<IntentDConnectSDK> sEventList = Collections.synchronizedList(new ArrayList<IntentDConnectSDK>());
+
+    /**
+     * リスナーを登録するマップ.
+     */
+    private Map<String, HttpDConnectSDK.OnEventListener> mListenerMap = new HashMap<>();
 
     /**
      * コンテキスト.
@@ -54,32 +72,69 @@ class IntentDConnectSDK extends DConnectSDK {
         mContext = context;
     }
 
-    public void setManagerPackageName(String managerPackageName) {
+    /**
+     * 接続先のDevice Connect Managerのパッケージ名を設定する.
+     * @param managerPackageName パッケージ名
+     */
+    public void setManagerPackageName(final String managerPackageName) {
         mManagerPackageName = managerPackageName;
     }
 
-    public void setManagerClassName(String managerClassName) {
+    /**
+     * 接続先のDevcie Connect Managerのクラス名を設定する.
+     * @param managerClassName クラス名
+     */
+    public void setManagerClassName(final String managerClassName) {
         mManagerClassName = managerClassName;
     }
 
     @Override
-    public void connectWebSocket(OnWebSocketListener listener) {
-
+    public void connectWebSocket(final OnWebSocketListener listener) {
+        if (listener != null) {
+            listener.onOpen();
+        }
+        sEventList.add(IntentDConnectSDK.this);
     }
 
     @Override
     public void disconnectWebSocket() {
-
+        sEventList.remove(IntentDConnectSDK.this);
     }
 
     @Override
-    public void addEventListener(String uri, OnEventListener listener) {
+    public void addEventListener(final String uri, final OnEventListener listener) {
 
+        if (uri == null) {
+            throw new NullPointerException("uri is null.");
+        }
+
+        if (listener == null) {
+            throw new NullPointerException("listener is null.");
+        }
+
+        put(uri, null, new OnResponseListener() {
+            @Override
+            public void onResponse(final DConnectResponseMessage response) {
+                if (response.getResult() == DConnectMessage.RESULT_OK) {
+                    mListenerMap.put(convertUriToPath(uri), listener);
+                }
+                listener.onResponse(response);
+            }
+        });
     }
 
     @Override
-    public void removeEventListener(String uri) {
+    public void removeEventListener(final String uri) {
+        if (uri == null) {
+            throw new NullPointerException("uri is null.");
+        }
 
+        delete(uri, new OnResponseListener() {
+            @Override
+            public void onResponse(final DConnectResponseMessage response) {
+            }
+        });
+        mListenerMap.remove(convertUriToPath(uri));
     }
 
     @Override
@@ -141,6 +196,16 @@ class IntentDConnectSDK extends DConnectSDK {
         } catch (IOException e) {
             return createTimeout();
         }
+    }
+
+    /**
+     * URIからパスを抽出する.
+     * @param uri パスを抽出するURI
+     * @return パス
+     */
+    private String convertUriToPath(final String uri) {
+        Uri u = Uri.parse(uri);
+        return u.getPath().toLowerCase();
     }
 
     /**
@@ -208,6 +273,37 @@ class IntentDConnectSDK extends DConnectSDK {
         return sResponseMap.remove(requestCode);
     }
 
+    private void onReceivedEvent(final Intent intent) {
+        try {
+            DConnectSDK.OnEventListener l = mListenerMap.get(createPath(intent));
+            if (l != null) {
+                l.onMessage(new DConnectEventMessage(intent));
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private String createPath(final Intent intent) {
+        String profile = intent.getStringExtra(DConnectMessage.EXTRA_PROFILE);
+        String interfaces = intent.getStringExtra(DConnectMessage.EXTRA_INTERFACE);
+        String attribute = intent.getStringExtra(DConnectMessage.EXTRA_ATTRIBUTE);
+        String uri = "/gotapi";
+        if (profile != null) {
+            uri += "/";
+            uri += profile;
+        }
+        if (interfaces != null) {
+            uri += "/";
+            uri += interfaces;
+        }
+        if (attribute != null) {
+            uri += "/";
+            uri += attribute;
+        }
+        return uri.toLowerCase();
+    }
+
     /**
      * レスポンスを追加する.
      *
@@ -221,6 +317,11 @@ class IntentDConnectSDK extends DConnectSDK {
                 sResponseMap.put(requestCode, intent);
             }
         } else if (IntentDConnectMessage.ACTION_EVENT.equals(action)) {
+            synchronized (sEventList) {
+                for (IntentDConnectSDK sdk : sEventList) {
+                    sdk.onReceivedEvent(intent);
+                }
+            }
         }
     }
 }

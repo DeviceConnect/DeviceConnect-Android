@@ -22,7 +22,7 @@
     <string name="display_scope_filedescriptor">filedescriptor</string>
     <string name="display_scope_file">file</string>
     <string name="display_scope_mediaplayer">mediaplayer</string>
-    <string name="display_scope_mediastream_recording">mediastreamrecording</string>
+    <string name="display_scope_mediastreamrecording">mediastreamrecording</string>
     <string name="display_scope_servicediscovery">servicediscovery</string>
     <string name="display_scope_serviceinformation">serviceinformation</string>
     <string name="display_scope_notification">notification</string>

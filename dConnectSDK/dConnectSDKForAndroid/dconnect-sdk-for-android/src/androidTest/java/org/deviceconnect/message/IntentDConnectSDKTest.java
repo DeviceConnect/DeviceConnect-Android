@@ -4,6 +4,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.test.InstrumentationRegistry;
@@ -350,7 +351,7 @@ public class IntentDConnectSDKTest {
     public void get_uri_null() {
         DConnectSDK sdk = getSDK();
         try {
-            sdk.get(null);
+            sdk.get((Uri) null);
             fail("No NullPointerException occurred.");
         } catch (NullPointerException e) {
             // テスト成功
@@ -637,7 +638,7 @@ public class IntentDConnectSDKTest {
     public void addEventListener_uri_null() {
         DConnectSDK sdk = getSDK();
         try {
-            sdk.addEventListener(null, new DConnectSDK.OnEventListener() {
+            sdk.addEventListener((Uri) null, new DConnectSDK.OnEventListener() {
                 @Override
                 public void onMessage(final DConnectEventMessage message) {
                 }
@@ -655,7 +656,7 @@ public class IntentDConnectSDKTest {
     public void removeEventListener_uri_null() {
         DConnectSDK sdk = getSDK();
         try {
-            sdk.removeEventListener(null);
+            sdk.removeEventListener((Uri) null);
             fail("No NullPointerException occurred.");
         } catch (NullPointerException e) {
             // テスト成功

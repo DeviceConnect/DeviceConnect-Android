@@ -1,5 +1,6 @@
 package org.deviceconnect.message;
 
+import android.content.Context;
 import android.net.Uri;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
@@ -18,7 +19,13 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
@@ -56,6 +63,50 @@ public class HttpDConnectSDKTest {
         if (mTestServer != null) {
             mTestServer.stop();
         }
+    }
+
+    private void writeFile(final File file, final byte[] data) {
+        FileOutputStream out = null;
+        try {
+            out = new FileOutputStream(file);
+            out.write(data);
+            out.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (out != null) {
+                try {
+                    out.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    private byte[] getFile(final File file) {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        FileInputStream fis = null;
+        try {
+            fis = new FileInputStream(file);
+            int len;
+            byte[] buf = new byte[1024];
+            while ((len = fis.read(buf)) != -1) {
+                out.write(buf, 0, len);
+            }
+            fis.close();
+        } catch (IOException e) {
+            return null;
+        } finally {
+            if (fis != null) {
+                try {
+                    fis.close();
+                } catch (IOException e) {
+                    return null;
+                }
+            }
+        }
+        return out.toByteArray();
     }
 
     private NanoHTTPD.Response newJsonResponse(final JSONObject jsonObject) {
@@ -331,11 +382,9 @@ public class HttpDConnectSDKTest {
 
         int idx = 0;
         for (Object obj : response.getList(ServiceDiscoveryProfileConstants.PARAM_SERVICES)) {
-            Map service = (Map) obj;
-            String id = (String) service.get(ServiceDiscoveryProfileConstants.PARAM_ID);
-            String name = (String) service.get(ServiceDiscoveryProfileConstants.PARAM_NAME);
-            assertThat(id, is(aservices[idx][0]));
-            assertThat(name, is(aservices[idx][1]));
+            DConnectMessage service = (DConnectMessage) obj;
+            assertThat(service.getString(ServiceDiscoveryProfileConstants.PARAM_ID), is(aservices[idx][0]));
+            assertThat(service.getString(ServiceDiscoveryProfileConstants.PARAM_NAME), is(aservices[idx][1]));
         }
     }
 
@@ -381,7 +430,7 @@ public class HttpDConnectSDKTest {
     public void get_uri_null() {
         DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
         try {
-            sdk.get(null);
+            sdk.get((Uri) null);
             fail("No NullPointerException occurred.");
         } catch (NullPointerException e) {
             // テスト成功
@@ -467,7 +516,7 @@ public class HttpDConnectSDKTest {
     public void get_listener_uri_null() {
         DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
         try {
-            sdk.get(null, new DConnectSDK.OnResponseListener() {
+            sdk.get((Uri) null, new DConnectSDK.OnResponseListener() {
                 @Override
                 public void onResponse(final DConnectResponseMessage response) {
                 }
@@ -480,13 +529,21 @@ public class HttpDConnectSDKTest {
 
     @Test
     public void post() {
+        Context context = InstrumentationRegistry.getTargetContext();
+        String path = context.getFilesDir() + "/test.dat";
+        final byte[] fileData = "This is a test.".getBytes();
+        writeFile(new File(path), fileData);
+
         final String version = "1.1";
         final String product = "test-manager";
         final String name = "manager";
         final String uuid = "uuid";
         final String key = "key";
         final String value = "value";
-        String body = key + "="  + value;
+        final Map<String, String> data = new HashMap<>();
+        data.put(key, value);
+        data.put("data", path);
+
         mTestServer.setServerCallback(new TestServer.ServerCallback() {
             @Override
             public NanoHTTPD.Response serve(final String uri, final NanoHTTPD.Method method, final Map<String, String> headers,
@@ -498,6 +555,11 @@ public class HttpDConnectSDKTest {
                 String v = parms.get(key);
                 if (!value.equals(v)) {
                     return newBadRequest("body is invalid.");
+                }
+
+                File file = new File(files.get("data"));
+                if (!file.isFile() || !Arrays.equals(fileData, getFile(file))) {
+                    return newBadRequest("data is invalie.");
                 }
 
                 try {
@@ -515,7 +577,7 @@ public class HttpDConnectSDKTest {
         });
 
         DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
-        DConnectResponseMessage response = sdk.post("http://localhost:4035/gotapi/availability", body.getBytes());
+        DConnectResponseMessage response = sdk.post("http://localhost:4035/gotapi/availability", data);
         assertThat(response, notNullValue());
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
         assertThat(response.getString(AvailabilityProfileConstants.PARAM_VERSION), is(version));
@@ -528,7 +590,7 @@ public class HttpDConnectSDKTest {
     public void post_uri_null() {
         DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
         try {
-            sdk.post(null, null);
+            sdk.post((Uri) null, null);
             fail("No NullPointerException occurred.");
         } catch (NullPointerException e) {
             // テスト成功
@@ -566,7 +628,8 @@ public class HttpDConnectSDKTest {
         final String uuid = "uuid";
         final String key = "key";
         final String value = "value";
-        String body = key + "="  + value;
+        final Map<String, String> data = new HashMap<>();
+        data.put(key, value);
         final DConnectResponseMessage[] response = new DConnectResponseMessage[1];
         mTestServer.setServerCallback(new TestServer.ServerCallback() {
             @Override
@@ -596,7 +659,7 @@ public class HttpDConnectSDKTest {
         });
 
         DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
-        sdk.post("http://localhost:4035/gotapi/availability", body.getBytes(), new DConnectSDK.OnResponseListener() {
+        sdk.post("http://localhost:4035/gotapi/availability", data, new DConnectSDK.OnResponseListener() {
             @Override
             public void onResponse(final DConnectResponseMessage r) {
                 response[0] = r;
@@ -626,7 +689,8 @@ public class HttpDConnectSDKTest {
         final String uuid = "uuid";
         final String key = "key";
         final String value = "value";
-        String body = key + "="  + value;
+        final Map<String, String> data = new HashMap<>();
+        data.put(key, value);
 
         mTestServer.setServerCallback(new TestServer.ServerCallback() {
             @Override
@@ -656,7 +720,7 @@ public class HttpDConnectSDKTest {
         });
 
         DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
-        DConnectResponseMessage response = sdk.put("http://localhost:4035/gotapi/availability", body.getBytes());
+        DConnectResponseMessage response = sdk.put("http://localhost:4035/gotapi/availability", data);
         assertThat(response, notNullValue());
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
         assertThat(response.getString(AvailabilityProfileConstants.PARAM_VERSION), is(version));
@@ -927,7 +991,7 @@ public class HttpDConnectSDKTest {
         builder.setAttribute(attribute);
         builder.setServiceId(serviceId);
 
-        sdk.addEventListener(builder.toASCIIString(), new DConnectSDK.OnEventListener() {
+        sdk.addEventListener(builder.build(), new DConnectSDK.OnEventListener() {
             @Override
             public void onMessage(final DConnectEventMessage message) {
                 event[0] = message;
@@ -985,7 +1049,7 @@ public class HttpDConnectSDKTest {
     public void addEventListener_uri_null() {
         DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
         try {
-            sdk.addEventListener(null, new DConnectSDK.OnEventListener() {
+            sdk.addEventListener((Uri) null, new DConnectSDK.OnEventListener() {
                 @Override
                 public void onMessage(final DConnectEventMessage message) {
                 }
@@ -1003,7 +1067,7 @@ public class HttpDConnectSDKTest {
     public void removeEventListener_uri_null() {
         DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
         try {
-            sdk.removeEventListener(null);
+            sdk.removeEventListener((Uri) null);
             fail("No NullPointerException occurred.");
         } catch (NullPointerException e) {
             // テスト成功

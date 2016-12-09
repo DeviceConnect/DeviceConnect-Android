@@ -318,7 +318,7 @@ public interface DConnectMessage extends Map<String, Object> {
          * @param code エラーコード
          * @param message エラーメッセージ
          */
-        private ErrorCode(final int code, final String message) {
+        ErrorCode(final int code, final String message) {
             this.mCode = code;
             this.mMessage = message;
         }

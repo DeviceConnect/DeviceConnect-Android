@@ -7,10 +7,14 @@
 package org.deviceconnect.message;
 
 import android.net.Uri;
+import android.util.Log;
 
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
+import org.deviceconnect.sdk.BuildConfig;
+import org.java_websocket.WebSocket;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.drafts.Draft_17;
+import org.java_websocket.framing.Framedata;
 import org.java_websocket.handshake.ServerHandshake;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -24,6 +28,16 @@ import java.util.Map;
  * @author NTT DOCOMO, INC.
  */
 class DConnectWebSocketClient {
+
+    /**
+     * デバッグフラグ.
+     */
+    private static final boolean DEBUG = BuildConfig.DEBUG;
+
+    /**
+     * デバッグ用タグ.
+     */
+    private static final String TAG = "DConnectSDK";
 
     /**
      * Device Connect Managerのイベントを配送するリスナーを格納するマップ.
@@ -71,11 +85,15 @@ class DConnectWebSocketClient {
 
     /**
      * Device Connect ManagerのWebSocketサーバに接続を行う.
+     * @param uri サーバへのURI
      * @param origin オリジン
      * @param accessToken アクセストークン
      */
-    synchronized void connect(final String origin, final String accessToken) {
+    synchronized void connect(final String uri, final String origin, final String accessToken) {
         if (mWebSocketClient != null) {
+            if (DEBUG) {
+                Log.w(TAG, "WebSocketClient is already connected.");
+            }
             return;
         }
 
@@ -84,8 +102,7 @@ class DConnectWebSocketClient {
             headers.put(IntentDConnectMessage.EXTRA_ORIGIN, origin);
         }
 
-        URI uri = URI.create("ws://localhost:4035/gotapi/websocket");
-        mWebSocketClient = new WebSocketClient(uri, new Draft_17(), headers, mTimeout) {
+        mWebSocketClient = new WebSocketClient(URI.create(uri), new Draft_17(), headers, mTimeout) {
             @Override
             public void onMessage(final String message) {
                 try {
@@ -98,7 +115,8 @@ class DConnectWebSocketClient {
                             }
                         } else {
                             if (mOnWebSocketListener != null) {
-                                mOnWebSocketListener.onError(null);
+                                RuntimeException ex = new RuntimeException();
+                                mOnWebSocketListener.onError(ex);
                             }
                         }
                     } else {
@@ -108,7 +126,13 @@ class DConnectWebSocketClient {
                         }
                     }
                 } catch (JSONException e) {
-                    e.printStackTrace();
+                    if (DEBUG) {
+                        Log.w(TAG, "The message from Device Connect Manager is invalid.", e);
+                    }
+
+                    if (mOnWebSocketListener != null) {
+                        mOnWebSocketListener.onError(e);
+                    }
                 }
             }
 
@@ -122,6 +146,16 @@ class DConnectWebSocketClient {
                 if (mOnWebSocketListener != null) {
                     mOnWebSocketListener.onClose();
                 }
+            }
+
+            @Override
+            public void onWebsocketPing(final WebSocket conn, final Framedata f) {
+                super.onWebsocketPing(conn, f);
+            }
+
+            @Override
+            public void onWebsocketPong(final WebSocket conn, final Framedata f) {
+                super.onWebsocketPong(conn, f);
             }
 
             @Override
@@ -161,9 +195,8 @@ class DConnectWebSocketClient {
      * @param uri パスを抽出するURI
      * @return パス
      */
-    private String convertUriToPath(final String uri) {
-        Uri u = Uri.parse(uri);
-        return u.getPath().toLowerCase();
+    private String convertUriToPath(final Uri uri) {
+        return uri.getPath().toLowerCase();
     }
 
     /**
@@ -181,7 +214,7 @@ class DConnectWebSocketClient {
      * @param uri 登録イベントのURI
      * @param listener 通知リスナー
      */
-    void addEventListener(final String uri, final HttpDConnectSDK.OnEventListener listener) {
+    void addEventListener(final Uri uri, final HttpDConnectSDK.OnEventListener listener) {
         mListenerMap.put(convertUriToPath(uri), listener);
     }
 
@@ -189,7 +222,7 @@ class DConnectWebSocketClient {
      * イベント通知リスナーを削除する.
      * @param uri 解除するイベントのURI
      */
-    void removeEventListener(final String uri) {
+    void removeEventListener(final Uri uri) {
         mListenerMap.remove(convertUriToPath(uri));
     }
 

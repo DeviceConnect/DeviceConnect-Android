@@ -6,16 +6,23 @@
  */
 package org.deviceconnect.message;
 
+import android.content.ContentResolver;
+import android.content.Context;
+import android.net.Uri;
 import android.os.Build;
 import android.util.Log;
 
 import org.deviceconnect.sdk.BuildConfig;
 import org.json.JSONException;
 
+import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -27,6 +34,7 @@ import java.security.SecureRandom;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Map;
+import java.util.Random;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
@@ -34,6 +42,8 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
+
+import static android.R.attr.key;
 
 /**
  * HTTP通信を使用してDevice Connect Managerと通信を行うSDKクラス.
@@ -48,7 +58,7 @@ class HttpDConnectSDK extends DConnectSDK {
     /**
      * デバック用タグを定義します.
      */
-    private static final String TAG = "DConnect";
+    private static final String TAG = "DConnectSDK";
 
     /**
      * バッファサイズを定義します.
@@ -76,13 +86,27 @@ class HttpDConnectSDK extends DConnectSDK {
     private DConnectWebSocketClient mWebSocketClient;
 
     /**
+     * マルチパートのバウンダリーに付加するハイフンを定義.
+     */
+    private final static String TWO_HYPHEN = "--";
+
+    /**
+     * マルチパートの改行コードを定義.
+     */
+    private final static String EOL = "\r\n";
+
+    private Context mContext;
+
+    /**
      * {@link DConnectSDKFactory}で生成させるためにpackageスコープにしておく。
      */
-    HttpDConnectSDK() {
+    HttpDConnectSDK(final Context context) {
+        mContext = context;
     }
 
     /**
      * 勝手サーバ証明書を許諾するHttpsURLConnectionを生成する.
+     *
      * @param url 接続先のURL
      * @return HttpsURLConnectionのインスタンス
      * @throws IOException HttpsURLConnectionの生成に失敗した場合に発生
@@ -123,17 +147,124 @@ class HttpDConnectSDK extends DConnectSDK {
     }
 
     /**
+     * マルチパートを指定したストリームに書き込む.
+     * <p>
+     * writeFlagがfalseの場合には、コンテンツのデータはストリームに書き込まない。<br>
+     * Content-Lengthのサイズを算出する時に使用します。
+     * </p>
+     * @param out マルチパートを書き込むストリーム
+     * @param dataMap マルチパートに書き込むデータ
+     * @param boundary マルチパートのバウンダリー
+     * @param writeFlag コンテンツデータを書き込むフラグ
+     * @return コンテンツデータサイズ
+     * @throws IOException ファイルのオープンやストリームの書き込みに失敗した場合に発生
+     */
+    private int writeMultipart(final OutputStream out, final Map<String, String> dataMap, final String boundary, final boolean writeFlag) throws IOException {
+        int contentLength = 0;
+        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(out, "UTF-8"));
+        for (Map.Entry<String, String> data : dataMap.entrySet()) {
+            String key = data.getKey();
+            String val = data.getValue();
+
+            File file = new File(val);
+            if (val.startsWith("content://")) {
+                Uri uri = Uri.parse(val);
+
+                writer.write(String.format("%s%s%s", TWO_HYPHEN, boundary, EOL));
+                writer.write(String.format("Content-Disposition: form-data; name=\"%s\"; filename=\"%s\"%s", key, uri.getLastPathSegment(), EOL));
+                writer.write(String.format("Content-Type: application/octet-stream%s", EOL));
+                writer.write(String.format("Content-Transfer-Encoding: binary%s", EOL));
+                writer.write(EOL);
+                writer.flush();
+
+                ContentResolver resolver = mContext.getContentResolver();
+                InputStream in = null;
+                int len;
+                byte[] buffer = new byte[4096];
+                try {
+                    in = resolver.openInputStream(uri);
+                    while ((len = in.read(buffer)) != -1) {
+                        if (writeFlag) {
+                            out.write(buffer, 0, len);
+                        }
+                        contentLength += len;
+                    }
+                } finally {
+                    if (in != null) {
+                        in.close();
+                    }
+                }
+
+                writer.write(EOL);
+            } else if (!file.isFile()) {
+                writer.write(String.format("%s%s%s", TWO_HYPHEN, boundary, EOL));
+                writer.write(String.format("Content-Disposition: form-data; name=\"%s\"%s", key, EOL));
+                writer.write(EOL);
+                writer.write(val);
+                writer.write(EOL);
+            } else {
+                contentLength += file.length();
+
+                writer.write(String.format("%s%s%s", TWO_HYPHEN, boundary, EOL));
+                writer.write(String.format("Content-Disposition: form-data; name=\"%s\"; filename=\"%s\"%s", key, file.getName(), EOL));
+                writer.write(String.format("Content-Type: application/octet-stream%s", EOL));
+                writer.write(String.format("Content-Transfer-Encoding: binary%s", EOL));
+                writer.write(EOL);
+                writer.flush();
+
+                if (writeFlag) {
+                    int len;
+                    byte[] buffer = new byte[4096];
+                    FileInputStream fis = null;
+                    try {
+                        fis = new FileInputStream(file);
+                        while ((len = fis.read(buffer)) != -1) {
+                            out.write(buffer, 0, len);
+                        }
+                    } finally {
+                        if (fis != null) {
+                            fis.close();
+                        }
+                    }
+                }
+
+                writer.write(EOL);
+            }
+            writer.flush();
+        }
+
+        writer.write(String.format("%s%s%s%s", TWO_HYPHEN, boundary, TWO_HYPHEN, EOL));
+        writer.flush();
+
+        return contentLength;
+    }
+
+    /**
+     * マルチパートのContent-Lengthを算出する.
+     * @param dataMap マルチパートに書き込むデータ
+     * @param boundary マルチパートのバウンダリー
+     * @return コンテンツのサイズ
+     * @throws IOException ファイルの読み込みに失敗した場合に発生
+     */
+    private int calcMultipart(final Map<String, String> dataMap, final String boundary) throws IOException {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        int contentLength = writeMultipart(out, dataMap, boundary, false);
+        return contentLength + out.size();
+    }
+
+    /**
      * 指定したURIに接続を行い通信結果を返却する.
+     *
      * @param method HTTPメソッド
      * @param uri 通信先のURI
      * @param headers HTTPリクエストに追加するヘッダーリスト(ヘッダーを追加しない場合にはnull)
-     * @param body HTTPリクエストに追加するボディデータ(ボディを追加しない場合にはnull)
+     * @param dataMap HTTPリクエストに追加するボディデータ(ボディを追加しない場合にはnull)
      * @return 通信結果
      * @throws IOException HttpsURLConnectionの生成に失敗した場合に発生
      * @throws NoSuchAlgorithmException SSLの暗号化に失敗した場合に発生
      * @throws KeyManagementException Keyの管理に失敗した場合の発生
      */
-    private byte[] connect(final Method method, final String uri, final Map<String, String> headers, final byte[] body)
+    private byte[] connect(final Method method, final String uri, final Map<String, String> headers, final Map<String, String> dataMap)
             throws IOException, NoSuchAlgorithmException, KeyManagementException {
         if (DEBUG) {
             Log.d(TAG, "connect: method=" + method + " uri=" + uri);
@@ -142,11 +273,13 @@ class HttpDConnectSDK extends DConnectSDK {
                     Log.d(TAG, "header: " + key + "=" + headers.get(key));
                 }
             }
-            if (body != null) {
-                Log.d(TAG, "body: " + body.length);
+            if (dataMap != null) {
+                Log.d(TAG, "body: " + dataMap);
             }
         }
 
+        int contentLength = 0;
+        String boundary = String.format("%x", new Random().hashCode());
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         HttpURLConnection conn = null;
         try {
@@ -167,6 +300,7 @@ class HttpDConnectSDK extends DConnectSDK {
             }
 
             // GotAPI 1.1からヘッダーにオリジンが必須になったので、ここで追加を行う
+            // 参考: http://technical.openmobilealliance.org/Technical/technical-information/release-program/current-releases/generic-open-terminal-api-framework-1-1
             if (getOrigin() != null) {
                 conn.setRequestProperty(DConnectMessage.HEADER_GOTAPI_ORIGIN, getOrigin());
             }
@@ -177,21 +311,26 @@ class HttpDConnectSDK extends DConnectSDK {
                 conn.setRequestProperty("Connection", "close");
             }
 
+            // マルチパートのデータを生成する
+            if (dataMap != null && !dataMap.isEmpty()) {
+                contentLength = calcMultipart(dataMap, boundary);
+                if (contentLength > 0) {
+                    conn.setRequestProperty("Content-Type", String.format("multipart/form-data; boundary=%s", boundary));
+                    conn.setRequestProperty("Content-Length", String.valueOf(contentLength));
+                }
+            }
+
             conn.connect();
 
-            if (body != null && (Method.POST.equals(method) || Method.PUT.equals(method))) {
+            // コンテンツサイズが0以上の場合には、データを書き込む
+            if (contentLength > 0 && (Method.POST.equals(method) || Method.PUT.equals(method))) {
                 OutputStream os = conn.getOutputStream();
-                os.write(body);
+                writeMultipart(os, dataMap, boundary, true);
                 os.flush();
                 os.close();
             }
 
             int resp = conn.getResponseCode();
-
-            if (DEBUG) {
-                Log.d(TAG, "response code=" + resp);
-            }
-
             if (resp == SUCCESS_RESPONSE_CODE) {
                 InputStream in = conn.getInputStream();
                 int len;
@@ -233,8 +372,8 @@ class HttpDConnectSDK extends DConnectSDK {
     }
 
     @Override
-    protected DConnectResponseMessage sendRequest(final Method method, final String uri,
-                                                  final Map<String, String> headers, final byte[] body) {
+    protected DConnectResponseMessage sendRequest(final Method method, final Uri uri,
+                                                  final Map<String, String> headers, final Map<String, String> body) {
         if (method == null) {
             throw new NullPointerException("method is null.");
         }
@@ -244,7 +383,7 @@ class HttpDConnectSDK extends DConnectSDK {
         }
 
         try {
-            return createMessage(connect(method, uri, headers, body));
+            return createMessage(connect(method, uri.toString(), headers, body));
         } catch (MalformedURLException e) {
             throw new IllegalArgumentException("uri is invalid.");
         } catch (SocketTimeoutException e) {
@@ -270,10 +409,14 @@ class HttpDConnectSDK extends DConnectSDK {
             return;
         }
 
+        URIBuilder builder = createURIBuilder();
+        builder.setScheme(isSSL() ? "wss" : "ws");
+        builder.setPath("/gotapi/websocket");
+
         // TODO: WebSocketの接続に失敗した時にmWebSocketClientを初期化しないと接続できない。
         mWebSocketClient = new DConnectWebSocketClient();
         mWebSocketClient.setOnWebSocketListener(listener);
-        mWebSocketClient.connect(getOrigin(), getAccessToken());
+        mWebSocketClient.connect(builder.toString(), getOrigin(), getAccessToken());
     }
 
     @Override
@@ -285,7 +428,7 @@ class HttpDConnectSDK extends DConnectSDK {
     }
 
     @Override
-    public void addEventListener(final String uri, final OnEventListener listener) {
+    public void addEventListener(final Uri uri, final OnEventListener listener) {
 
         if (uri == null) {
             throw new NullPointerException("uri is null.");
@@ -307,7 +450,7 @@ class HttpDConnectSDK extends DConnectSDK {
     }
 
     @Override
-    public void removeEventListener(final String uri) {
+    public void removeEventListener(final Uri uri) {
         if (uri == null) {
             throw new NullPointerException("uri is null.");
         }

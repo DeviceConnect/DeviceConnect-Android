@@ -6,6 +6,8 @@
  */
 package org.deviceconnect.message;
 
+import android.net.Uri;
+
 import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.deviceconnect.profile.AvailabilityProfileConstants;
 import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
@@ -24,7 +26,7 @@ import java.util.concurrent.Executors;
  * Device Connect Managerへのアクセスを行う便利クラス.
  * <h3>サンプルコード</h3>
  * <pre>
- * // sdkは、できるだけ使い回すこと。
+ * // sdkは、使い回すこと。
  * final DConnectSDK sdk = DConnectSDKFactory.create(context, DConnectSDKFactory.Type.HTTP);
  *
  * String[] scopes = {
@@ -37,6 +39,8 @@ import java.util.concurrent.Executors;
  *     @Override
  *     public void onResponse(String clientId, String accessToken) {
  *          // Local OAuthの認証に成功
+ *          // 必要に応じて、アクセストークンはファイルなどに保存して使いまわすこと。
+ *          // 取得したアクセストークンをSDKに設定
  *         sdk.setAccessToken(accessToken);
  *     }
  *     @Override
@@ -49,8 +53,8 @@ import java.util.concurrent.Executors;
  *
  * DConnectSDK.URIBuilder builder = sdk.createURIBuilder();
  * builder.setProfile("battery");
- * builder.setServiceId("serviceId");
- * sdk.get(builder.toString(), new OnResponseListener() {
+ * builder.setServiceId(serviceId);
+ * sdk.get(builder.build(), new OnResponseListener() {
  *     @Override
  *     public void onResponse(DConnectResponseMessage response) {
  *         if (response.getResult() == DConnectMessage.RESULT_OK) {
@@ -304,21 +308,29 @@ public abstract class DConnectSDK {
      *          }
      *      }
      *      @Override
-     *      public void onMessage(DConnectMessage message) {
+     *      public void onMessage(DConnectEventMessage message) {
      *          // イベント
      *      }
      * });
      * </pre>
-     * @param uri 追加するイベントへのURI
+     * @param uri 登録するイベントへのURI
      * @param listener イベント通知リスナー
      */
-    public abstract void addEventListener(final String uri, final OnEventListener listener);
+    public void addEventListener(final String uri, final OnEventListener listener) {
+        addEventListener(Uri.parse(uri), listener);
+    }
+
+    public abstract void addEventListener(final Uri uri, final OnEventListener listener);
 
     /**
      * イベントを解除する.
-     * @param uri
+     * @param uri 削除するイベントへのURI
      */
-    public abstract void removeEventListener(final String uri);
+    public void removeEventListener(final String uri) {
+        removeEventListener(Uri.parse(uri));
+    }
+
+    public abstract void removeEventListener(final Uri uri);
 
     /**
      * Device Connect Managerとの通信を行う.
@@ -332,7 +344,7 @@ public abstract class DConnectSDK {
      * @param body リクエストに追加するボディデータ
      * @return レスポンス
      */
-    protected abstract DConnectResponseMessage sendRequest(final Method method, final String uri, final Map<String, String> headers, final byte[] body);
+    protected abstract DConnectResponseMessage sendRequest(final Method method, final Uri uri, final Map<String, String> headers, final Map<String, String> body);
 
     /**
      * URIBuilderを生成する.
@@ -351,10 +363,42 @@ public abstract class DConnectSDK {
 
     /**
      * GETメソッドで指定したURIにアクセスし、レスポンスを取得する.
+     * <h3>サンプルコード</h3>
+     * <pre>
+     * DConnectSDK sdk = DConnectSDKFactory.create(context, DConnectSDKFactory.Type.HTTP);
+     * DConnectResponseMessage response = sdk.get("http://localhost:4035/gotapi/availability");
+     * if (response.getResult() == DConnectMessage.RESULT_OK) {
+     *     // Device Connect Manager起動中
+     * }
+     * </pre>
      * @param uri アクセス先のURI
      * @return レスポンス
      */
     public DConnectResponseMessage get(final String uri) {
+        if (uri == null) {
+            throw new NullPointerException("uri is null.");
+        }
+        return get(Uri.parse(uri));
+    }
+
+    /**
+     * GETメソッドで指定したURIにアクセスし、レスポンスを取得する.
+     * <h3>サンプルコード</h3>
+     * <pre>
+     * DConnectSDK sdk = DConnectSDKFactory.create(context, DConnectSDKFactory.Type.HTTP);
+     *
+     * DConnectSDK.URIBuilder builder = sdk.createURIBuilder();
+     * builder.setProfile("availability");
+     *
+     * DConnectResponseMessage response = sdk.get(builder.build());
+     * if (response.getResult() == DConnectMessage.RESULT_OK) {
+     *     // Device Connect Manager起動中
+     * }
+     * </pre>
+     * @param uri アクセス先のURI
+     * @return レスポンス
+     */
+    public DConnectResponseMessage get(final Uri uri) {
         if (uri == null) {
             throw new NullPointerException("uri is null.");
         }
@@ -367,6 +411,18 @@ public abstract class DConnectSDK {
      * @param listener レスポンスを通知するリスナー
      */
     public void get(final String uri, final OnResponseListener listener) {
+        if (uri == null) {
+            throw new NullPointerException("uri is null.");
+        }
+        get(Uri.parse(uri), listener);
+    }
+
+    /**
+     * 非同期にGETメソッドで指定したURIにアクセスし、レスポンスをリスナーに通知する.
+     * @param uri アクセス先のURI
+     * @param listener レスポンスを通知するリスナー
+     */
+    public void get(final Uri uri, final OnResponseListener listener) {
         if (uri == null) {
             throw new NullPointerException("uri is null.");
         }
@@ -387,7 +443,20 @@ public abstract class DConnectSDK {
      * @param data 送信するボディデータ
      * @return レスポンス
      */
-    public DConnectResponseMessage put(final String uri, final byte[] data) {
+    public DConnectResponseMessage put(final String uri, final Map<String, String> data) {
+        if (uri == null) {
+            throw new NullPointerException("uri is null.");
+        }
+        return put(Uri.parse(uri), data);
+    }
+
+    /**
+     * PUTメソッドで指定したURIにアクセスし、レスポンスを取得する.
+     * @param uri アクセス先のURI
+     * @param data 送信するボディデータ
+     * @return レスポンス
+     */
+    public DConnectResponseMessage put(final Uri uri, final Map<String, String> data) {
         if (uri == null) {
             throw new NullPointerException("uri is null.");
         }
@@ -400,7 +469,20 @@ public abstract class DConnectSDK {
      * @param data 送信するボディデータ
      * @param listener レスポンスを通知するリスナー
      */
-    public void put(final String uri, final byte[] data, final OnResponseListener listener) {
+    public void put(final String uri, final Map<String, String> data, final OnResponseListener listener) {
+        if (uri == null) {
+            throw new NullPointerException("uri is null.");
+        }
+        put(Uri.parse(uri), data, listener);
+    }
+
+    /**
+     * 非同期にPUTメソッドで指定したURIにアクセスし、レスポンスをリスナーに通知する.
+     * @param uri アクセス先のURI
+     * @param data 送信するボディデータ
+     * @param listener レスポンスを通知するリスナー
+     */
+    public void put(final Uri uri, final Map<String, String> data, final OnResponseListener listener) {
         if (uri == null) {
             throw new NullPointerException("uri is null.");
         }
@@ -418,11 +500,52 @@ public abstract class DConnectSDK {
 
     /**
      * POSTメソッドで指定したURIにアクセスし、レスポンスを取得する.
+     * <p>
+     * dataに渡すMapにファイルパスを格納するとファイルのデータをDevice Connect Managerに送る。<br>
+     * ファイルパス以外は、key-valueの値をDevice Connect Managerに送る。
+     * </p>
+     * <p>
+     * dataにnullが指定された場合には、データは何もつけずにDevice Connect Managerにアクセスする。
+     * </p>
      * @param uri アクセス先のURI
      * @param data 送信するボディデータ
      * @return レスポンス
      */
-    public DConnectResponseMessage post(final String uri, final byte[] data) {
+    public DConnectResponseMessage post(final String uri, final Map<String, String> data) {
+        if (uri == null) {
+            throw new NullPointerException("uri is null.");
+        }
+        return post(Uri.parse(uri), data);
+    }
+
+    /**
+     * POSTメソッドで指定したURIにアクセスし、レスポンスを取得する.
+     * <p>
+     * dataに渡すMapにファイルパスを格納するとファイルのデータをDevice Connect Managerに送る。<br>
+     * ファイルパス以外は、key-valueの値をDevice Connect Managerに送る。
+     * </p>
+     * <p>
+     * dataにnullが指定された場合には、データは何もつけずにDevice Connect Managerにアクセスする。
+     * </p>
+     * <h3>サンプルコード</h3>
+     * <pre>
+     * Map&lt;String, String&gt; dataMap = new HashMap&lt;&gt;();
+     * dataMap.put("mode", "scales");
+     * dataMap.put("data", "/data/data/0/org.mycompany.sample/files/sample.png");
+     *
+     * DConnectSDK sdk = DConnectSDKFactory.create(context, DConnectSDKFactory.Type.HTTP);
+     * DConnectSDK.URIBuilder builder = sdk.createURIBuilder();
+     * builder.setProfile("canvas");
+     * builder.setAttribute("drawImage");
+     * builder.setServiceId(hostServiceId);
+     *
+     * DConnectResponseMessage response = sdk.post(builder.build(), dataMap);
+     * </pre>
+     * @param uri アクセス先のURI
+     * @param data 送信するボディデータ
+     * @return レスポンス
+     */
+    public DConnectResponseMessage post(final Uri uri, final Map<String, String> data) {
         if (uri == null) {
             throw new NullPointerException("uri is null.");
         }
@@ -431,11 +554,26 @@ public abstract class DConnectSDK {
 
     /**
      * 非同期にPOSTメソッドで指定したURIにアクセスし、レスポンスをリスナーに通知する.
+     *
      * @param uri アクセス先のURI
      * @param data 送信するボディデータ
      * @param listener レスポンスを通知するリスナー
      */
-    public void post(final String uri, final byte[] data, final OnResponseListener listener) {
+    public void post(final String uri, final Map<String, String> data, final OnResponseListener listener) {
+        if (uri == null) {
+            throw new NullPointerException("uri is null.");
+        }
+        post(Uri.parse(uri), data, listener);
+    }
+
+    /**
+     * 非同期にPOSTメソッドで指定したURIにアクセスし、レスポンスをリスナーに通知する.
+     *
+     * @param uri アクセス先のURI
+     * @param data 送信するボディデータ
+     * @param listener レスポンスを通知するリスナー
+     */
+    public void post(final Uri uri, final Map<String, String> data, final OnResponseListener listener) {
         if (uri == null) {
             throw new NullPointerException("uri is null.");
         }
@@ -459,6 +597,18 @@ public abstract class DConnectSDK {
         if (uri == null) {
             throw new NullPointerException("uri is null.");
         }
+        return delete(Uri.parse(uri));
+    }
+
+    /**
+     * DELETEメソッドで指定したURIにアクセスし、レスポンスを取得する.
+     * @param uri アクセス先のURI
+     * @return レスポンス
+     */
+    public DConnectResponseMessage delete(final Uri uri) {
+        if (uri == null) {
+            throw new NullPointerException("uri is null.");
+        }
         return sendRequest(Method.DELETE, uri, null, null);
     }
 
@@ -468,6 +618,18 @@ public abstract class DConnectSDK {
      * @param listener レスポンスを通知するリスナー
      */
     public void delete(final String uri, final OnResponseListener listener) {
+        if (uri == null) {
+            throw new NullPointerException("uri is null.");
+        }
+        delete(Uri.parse(uri), listener);
+    }
+
+    /**
+     * 非同期にDELETEメソッドで指定したURIにアクセスし、レスポンスをリスナーに通知する.
+     * @param uri アクセス先のURI
+     * @param listener レスポンスを通知するリスナー
+     */
+    public void delete(final Uri uri, final OnResponseListener listener) {
         if (uri == null) {
             throw new NullPointerException("uri is null.");
         }
@@ -502,13 +664,9 @@ public abstract class DConnectSDK {
      * @return レスポンス
      */
     public DConnectResponseMessage availability() {
-        try {
-            URIBuilder builder = new URIBuilder();
-            builder.setProfile(AvailabilityProfileConstants.PROFILE_NAME);
-            return get(builder.build().toASCIIString());
-        } catch (URISyntaxException e) {
-            return createErrorMessage(DConnectMessage.ErrorCode.INVALID_REQUEST_PARAMETER.getCode(), e.getMessage());
-        }
+        URIBuilder builder = new URIBuilder();
+        builder.setProfile(AvailabilityProfileConstants.PROFILE_NAME);
+        return get(builder.build());
     }
 
     /**
@@ -532,7 +690,6 @@ public abstract class DConnectSDK {
      * });
      * </pre>
      * @param listener 結果を通知するリスナー
-     * @return レスポンス
      */
     public void availability(final OnResponseListener listener) {
         mExecutorService.submit(new Runnable() {
@@ -614,7 +771,6 @@ public abstract class DConnectSDK {
      * @param appName アプリケーション名
      * @param scopes アクセスするプロファイル一覧
      * @param listener Local OAuthのレスポンスを通知するリスナー
-     * @return レスポンス
      */
     public void authorization(final String appName, final String[] scopes, final OnAuthorizationListener listener) {
         mExecutorService.submit(new Runnable() {
@@ -651,6 +807,13 @@ public abstract class DConnectSDK {
      * DConnectResponseMessage response = sdk.serviceDiscovery();
      * if (response.getResult() == DConnectMessage.RESULT_OK) {
      *     // サービス一覧の取得に成功
+     *     List&lt;Object&gt; services = response.getList(ServiceDiscoveryProfileConstants.PARAM_SERVICES);
+     *     for (Object obj : services) {
+     *         DConnectMessage service = (DConnectMessage) obj;
+     *         String serviceId = service.getString(ServiceDiscoveryProfileConstants.PARAM_ID);
+     *         String name = service.getString(ServiceDiscoveryProfileConstants.PARAM_NAME);
+     *         boolean online = service.getBoolean(ServiceDiscoveryProfileConstants.PARAM_ONLINE);
+     *     }
      * } else {
      *     // サービス一覧の取得に失敗
      * }
@@ -658,13 +821,9 @@ public abstract class DConnectSDK {
      * @return レスポンス
      */
     public DConnectResponseMessage serviceDiscovery() {
-        try {
-            URIBuilder builder = new URIBuilder();
-            builder.setProfile(ServiceDiscoveryProfileConstants.PROFILE_NAME);
-            return get(builder.build().toASCIIString());
-        } catch (URISyntaxException e) {
-            return createErrorMessage(DConnectMessage.ErrorCode.INVALID_REQUEST_PARAMETER.getCode(), e.getMessage());
-        }
+        URIBuilder builder = new URIBuilder();
+        builder.setProfile(ServiceDiscoveryProfileConstants.PROFILE_NAME);
+        return get(builder.build());
     }
 
     /**
@@ -686,7 +845,6 @@ public abstract class DConnectSDK {
      * });
      * </pre>
      * @param listener レスポンスを通知するリスナー
-     * @return レスポンス
      */
     public void serviceDiscovery(final OnResponseListener listener) {
         mExecutorService.submit(new Runnable() {
@@ -700,18 +858,31 @@ public abstract class DConnectSDK {
         });
     }
 
+    /**
+     * ServiceInformationプロファイルにアクセスし、サービスの情報を取得する.
+     * @param serviceId サービスID
+     * @return レスポンス
+     */
     public DConnectResponseMessage getServiceInformation(final String serviceId) {
-        try {
-            URIBuilder builder = new URIBuilder();
-            builder.setProfile(ServiceInformationProfileConstants.PROFILE_NAME);
-            builder.setServiceId(serviceId);
-            return get(builder.build().toASCIIString());
-        } catch (URISyntaxException e) {
-            return createErrorMessage(DConnectMessage.ErrorCode.INVALID_REQUEST_PARAMETER.getCode(), e.getMessage());
+        if (serviceId == null) {
+            throw new NullPointerException("serviceId is null.");
         }
+        URIBuilder builder = new URIBuilder();
+        builder.setProfile(ServiceInformationProfileConstants.PROFILE_NAME);
+        builder.setServiceId(serviceId);
+        return get(builder.build());
     }
 
+    /**
+     * 非同期にServiceInformationプロファイルにアクセスし、サービスの情報を取得する.
+     * @param serviceId サービスID
+     * @param listener レスポンスを通知するリスナー
+     * @return レスポンス
+     */
     public void getServiceInformation(final String serviceId, final OnResponseListener listener) {
+        if (serviceId == null) {
+            throw new NullPointerException("serviceId is null.");
+        }
         mExecutorService.submit(new Runnable() {
             @Override
             public void run() {
@@ -724,28 +895,20 @@ public abstract class DConnectSDK {
     }
 
     private DConnectResponseMessage createCreateClient() {
-        try {
-            URIBuilder builder = new URIBuilder();
-            builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
-            builder.setAttribute(AuthorizationProfileConstants.ATTRIBUTE_GRANT);
-            return get(builder.build().toASCIIString());
-        } catch (URISyntaxException e) {
-            return createErrorMessage(DConnectMessage.ErrorCode.INVALID_REQUEST_PARAMETER.getCode(), e.getMessage());
-        }
+        URIBuilder builder = new URIBuilder();
+        builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
+        builder.setAttribute(AuthorizationProfileConstants.ATTRIBUTE_GRANT);
+        return get(builder.build());
     }
 
     private DConnectResponseMessage createAccessToken(String clientId, String appName, String[] scopes) {
-        try {
-            URIBuilder builder = new URIBuilder();
-            builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
-            builder.setAttribute(AuthorizationProfileConstants.ATTRIBUTE_ACCESS_TOKEN);
-            builder.addParameter(AuthorizationProfileConstants.PARAM_CLIENT_ID, clientId);
-            builder.addParameter(AuthorizationProfileConstants.PARAM_APPLICATION_NAME, appName);
-            builder.addParameter(AuthorizationProfileConstants.PARAM_SCOPE, combineStr(scopes));
-            return get(builder.build().toASCIIString());
-        } catch (URISyntaxException e) {
-            return createErrorMessage(DConnectMessage.ErrorCode.INVALID_REQUEST_PARAMETER.getCode(), e.getMessage());
-        }
+        URIBuilder builder = new URIBuilder();
+        builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
+        builder.setAttribute(AuthorizationProfileConstants.ATTRIBUTE_ACCESS_TOKEN);
+        builder.addParameter(AuthorizationProfileConstants.PARAM_CLIENT_ID, clientId);
+        builder.addParameter(AuthorizationProfileConstants.PARAM_APPLICATION_NAME, appName);
+        builder.addParameter(AuthorizationProfileConstants.PARAM_SCOPE, combineStr(scopes));
+        return get(builder.build());
     }
 
     private String combineStr(final String[] scopes) {
@@ -1162,13 +1325,12 @@ public abstract class DConnectSDK {
         }
 
         /**
-         * {@link URI} オブジェクトを取得する.
+         * {@link Uri} オブジェクトを取得する.
          *
-         * @return {@link URI} オブジェクト
-         * @throws URISyntaxException URIフォーマットが不正な場合
+         * @return {@link Uri} オブジェクト
          */
-        public URI build() throws URISyntaxException {
-            return new URI(toString(true));
+        public Uri build() {
+            return Uri.parse(toString(true));
         }
 
         /**
@@ -1252,22 +1414,73 @@ public abstract class DConnectSDK {
         }
     }
 
+    /**
+     * 非同期でDevice Connect Managerからのレスポンスを受け取るためのリスナー.
+     * @author NTT DOCOMO, INC.
+     */
     public interface OnResponseListener {
+        /**
+         * レスポンスを受け取った時に通知される.
+         * @param response レスポンス
+         */
         void onResponse(DConnectResponseMessage response);
     }
 
+    /**
+     * Device Connect Managerからイベントを受け取るためのリスナー.
+     * @author NTT DOCOMO, INC.
+     */
     public interface OnEventListener extends OnResponseListener {
+        /**
+         * イベントを通知する.
+         * @param message イベントメッセージ
+         */
         void onMessage(DConnectEventMessage message);
     }
 
+    /**
+     * 非同期でDevice Connect Managerの認証結果を受け取るリスナー.
+     * @author NTT DOCOMO, INC.
+     */
     public interface OnAuthorizationListener {
+        /**
+         * 認証に成功した結果を通知する.
+         * <p>
+         * このリスナーで受け取ったアクセストークンを使うことで、Device Connect Manager
+         * の各プロファイルにアクセスすることができるようになります。
+         * </p>
+         * @param clientId クライアントID
+         * @param accessToken アクセストークン
+         */
         void onResponse(String clientId, String accessToken);
+
+        /**
+         * 認証に失敗した結果を通知する.
+         * @param errorCode エラーコード
+         * @param errorMessage エラーメッセージ
+         */
         void onError(int errorCode, String errorMessage);
     }
 
+    /**
+     * WebSocketとの接続状態を通知するリスナー.
+     * @author NTT DOCOMO, INC.
+     */
     public interface OnWebSocketListener {
+        /**
+         * 接続確立を通知する.
+         */
         void onOpen();
+
+        /**
+         * 接続切断を通知する.
+         */
         void onClose();
+
+        /**
+         * 接続のエラーが発生したことを通知する.
+         * @param e 発生した時の例外
+         */
         void onError(Exception e);
     }
 }

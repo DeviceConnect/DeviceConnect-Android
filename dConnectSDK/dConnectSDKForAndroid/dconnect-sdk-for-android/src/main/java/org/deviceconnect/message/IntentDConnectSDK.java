@@ -102,7 +102,7 @@ class IntentDConnectSDK extends DConnectSDK {
     }
 
     @Override
-    public void addEventListener(final String uri, final OnEventListener listener) {
+    public void addEventListener(final Uri uri, final OnEventListener listener) {
 
         if (uri == null) {
             throw new NullPointerException("uri is null.");
@@ -124,7 +124,7 @@ class IntentDConnectSDK extends DConnectSDK {
     }
 
     @Override
-    public void removeEventListener(final String uri) {
+    public void removeEventListener(final Uri uri) {
         if (uri == null) {
             throw new NullPointerException("uri is null.");
         }
@@ -138,11 +138,11 @@ class IntentDConnectSDK extends DConnectSDK {
     }
 
     @Override
-    protected DConnectResponseMessage sendRequest(final Method method, final String uri, final Map<String, String> headers, final byte[] body) {
+    protected DConnectResponseMessage sendRequest(final Method method, final Uri uri,
+                                                  final Map<String, String> headers, final Map<String, String> body) {
         final int requestCode = UUID.randomUUID().hashCode();
 
-        Uri u = Uri.parse(uri);
-        String[] paths = parsePath(u);
+        String[] paths = parsePath(uri);
         String api;
         String profile;
         String interfaces = null;
@@ -175,14 +175,20 @@ class IntentDConnectSDK extends DConnectSDK {
         if (attribute != null) {
             request.putExtra(IntentDConnectMessage.EXTRA_ATTRIBUTE, attribute);
         }
-        if (u.getQueryParameterNames() != null) {
-            for (String key : u.getQueryParameterNames()) {
-                request.putExtra(key, u.getQueryParameter(key));
+        if (uri.getQueryParameterNames() != null) {
+            for (String key : uri.getQueryParameterNames()) {
+                request.putExtra(key, uri.getQueryParameter(key));
             }
         }
         if (getOrigin() != null) {
             request.putExtra(IntentDConnectMessage.EXTRA_ORIGIN, getOrigin());
         }
+        if (body != null) {
+            for (Map.Entry<String, String> data : body.entrySet()) {
+                request.putExtra(data.getKey(), data.getValue());
+            }
+        }
+
         request.putExtra(IntentDConnectMessage.EXTRA_REQUEST_CODE, requestCode);
         request.putExtra(IntentDConnectMessage.EXTRA_RECEIVER,
                 new ComponentName(mContext, DConnectMessageReceiver.class));
@@ -203,9 +209,8 @@ class IntentDConnectSDK extends DConnectSDK {
      * @param uri パスを抽出するURI
      * @return パス
      */
-    private String convertUriToPath(final String uri) {
-        Uri u = Uri.parse(uri);
-        return u.getPath().toLowerCase();
+    private String convertUriToPath(final Uri uri) {
+        return uri.getPath().toLowerCase();
     }
 
     /**

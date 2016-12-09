@@ -3,12 +3,12 @@
              xmlns:tools="http://schemas.android.com/tools"
              android:layout_width="match_parent"
              android:layout_height="match_parent"
-             tools:context=".activity.SettingsActivity">
+             tools:context=".activity.PluginListActivity">
 
-    <fragment
-        android:id="@+id/activity_settings_category_fragment"
-        class="org.deviceconnect.android.uiapp.fragment.SettingsFragment"
+
+    <ListView
+        android:id="@+id/list_view"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        android:layout_height="wrap_content"/>
 
 </FrameLayout>

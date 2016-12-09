@@ -1,39 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">Device Connectサンプル</string>
-    <string name="action_settings">設定</string>
-    
-    <string name="plugins_title">デバイスプラグイン一覧</string>
-    <string name="plugins_error">送信失敗</string>
+    <string name="app_name">Device Connect サンプル</string>
+    <string name="action_menu_refresh">更新</string>
+    <string name="action_menu_settings">設定</string>
+    <string name="action_menu_plugins">プラグインリスト</string>
 
-    <string name="fragment_extra_request">リクエスト</string>
-    <string name="fragment_extra_response">レスポンス</string>
-    <string name="fragment_extra_send">送信</string>
-    
-    <string name="fragment_phone_result">レスポンス</string>
-    
-    <string name="fragment_vibration_pattern">パターン</string>
-    <string name="fragment_vibration_result">レスポンス</string>
-    
-    <string name="fragment_orientation_result">レスポンス</string>
-    <string name="fragment_orientation_event">イベント</string>
-   
-    <string name="register_event">イベント登録</string>
-    <string name="unregister_event">イベント解除</string>
-    
-    <string-array name="notification_type_list">
-        <item>0: 音声通話着信</item>
-        <item>1: メール着信</item>
-        <item>2: SMS着信</item>
-        <item>3: イベント</item>
-    </string-array>
-    <string-array name="service_names">
-        <item>リモートカメラ</item>
-        <item>クラウド連携</item>
-        <item>通知</item>
-        <item>チャイルドウォッチャー</item>
-        <item>ゲームコントローラー</item>
-    </string-array>
+    <string name="activity_api_send_request">リクエスト送信</string>
+    <string name="activity_api_select_file">ファイル選択</string>
+
+    <string name="manager">Device Connect Manager</string>
+    <string name="ssl_disabled">Disable</string>
+    <string name="ssl_enabled">Enable</string>
+    <string name="ssl">SSL</string>
+
+    <string name="default_host">localhost</string>
+    <string name="host">Host</string>
+    <string name="default_port">4035</string>
+    <string name="port">Port</string>
+
+    <string name="about">About</string>
+    <string name="terms_of_service">利用規約</string>
+    <string name="privacy_policy">プライバシーポリシー</string>
+    <string name="open_source_licenses">Open Source Licenses</string>
+    <string name="open_source_licenses_summary">Legal information about licenses</string>
+    <string name="app_information_summary">Version %1$s</string>
 
 </resources>

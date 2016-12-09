@@ -6,102 +6,91 @@
  */
 package org.deviceconnect.android.uiapp;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.logging.SimpleFormatter;
-
-import org.deviceconnect.android.logger.AndroidHandler;
-
 import android.app.Application;
-import android.content.SharedPreferences;
-import android.preference.PreferenceManager;
+
+import org.deviceconnect.android.uiapp.utils.Settings;
+import org.deviceconnect.message.DConnectSDK;
+import org.deviceconnect.message.DConnectSDKFactory;
+import org.deviceconnect.profile.AuthorizationProfileConstants;
+import org.deviceconnect.profile.BatteryProfileConstants;
+import org.deviceconnect.profile.CanvasProfileConstants;
+import org.deviceconnect.profile.ConnectProfileConstants;
+import org.deviceconnect.profile.DeviceOrientationProfileConstants;
+import org.deviceconnect.profile.FileDescriptorProfileConstants;
+import org.deviceconnect.profile.FileProfileConstants;
+import org.deviceconnect.profile.HumanDetectProfileConstants;
+import org.deviceconnect.profile.KeyEventProfileConstants;
+import org.deviceconnect.profile.LightProfileConstants;
+import org.deviceconnect.profile.MediaPlayerProfileConstants;
+import org.deviceconnect.profile.MediaStreamRecordingProfileConstants;
+import org.deviceconnect.profile.NotificationProfileConstants;
+import org.deviceconnect.profile.PhoneProfileConstants;
+import org.deviceconnect.profile.ProximityProfileConstants;
+import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
+import org.deviceconnect.profile.ServiceInformationProfileConstants;
+import org.deviceconnect.profile.SettingsProfileConstants;
+import org.deviceconnect.profile.SystemProfileConstants;
+import org.deviceconnect.profile.TouchProfileConstants;
+import org.deviceconnect.profile.VibrationProfileConstants;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * Bluetooth Device Application.
+ *
  */
 public class DConnectApplication extends Application {
 
     /**
-     * ロガー.
+     * Device Connect Managerとアクセスするインターフェース.
      */
-    private Logger mLogger = Logger.getLogger("deviceconnect");
+    private DConnectSDK mDConnectSK;
+
+    /**
+     * Local OAuthに使用するスコープ一覧.
+     */
+    public static final List<String> SCOPES = new ArrayList<String>() {
+        {
+            add(AuthorizationProfileConstants.PROFILE_NAME);
+            add(BatteryProfileConstants.PROFILE_NAME);
+            add(CanvasProfileConstants.PROFILE_NAME);
+            add(ConnectProfileConstants.PROFILE_NAME);
+            add(DeviceOrientationProfileConstants.PROFILE_NAME);
+            add(FileDescriptorProfileConstants.PROFILE_NAME);
+            add(FileProfileConstants.PROFILE_NAME);
+            add(HumanDetectProfileConstants.PROFILE_NAME);
+            add(KeyEventProfileConstants.PROFILE_NAME);
+            add(LightProfileConstants.PROFILE_NAME);
+            add(MediaPlayerProfileConstants.PROFILE_NAME);
+            add(MediaStreamRecordingProfileConstants.PROFILE_NAME);
+            add(ServiceDiscoveryProfileConstants.PROFILE_NAME);
+            add(ServiceInformationProfileConstants.PROFILE_NAME);
+            add(NotificationProfileConstants.PROFILE_NAME);
+            add(PhoneProfileConstants.PROFILE_NAME);
+            add(ProximityProfileConstants.PROFILE_NAME);
+            add(SettingsProfileConstants.PROFILE_NAME);
+            add(SystemProfileConstants.PROFILE_NAME);
+            add(TouchProfileConstants.PROFILE_NAME);
+            add(VibrationProfileConstants.PROFILE_NAME);
+        }
+    };
 
     @Override
     public void onCreate() {
         super.onCreate();
+        Settings.getInstance().load(this);
+    }
 
-        if (BuildConfig.DEBUG) {
-            AndroidHandler handler = new AndroidHandler("deviceconnect.uiapp");
-            handler.setFormatter(new SimpleFormatter());
-            handler.setLevel(Level.INFO);
-            mLogger.addHandler(handler);
-            mLogger.setLevel(Level.INFO);
-        } else {
-            mLogger.setLevel(Level.OFF);
+    public DConnectSDK getDConnectSK() {
+        if (mDConnectSK == null) {
+            mDConnectSK = DConnectSDKFactory.create(this, DConnectSDKFactory.Type.HTTP);
+            mDConnectSK.setHost(Settings.getInstance().getHostName());
+            mDConnectSK.setPort(Settings.getInstance().getPort());
+            String accessToken = Settings.getInstance().getAccessToken();
+            if (accessToken != null) {
+                mDConnectSK.setAccessToken(accessToken);
+            }
         }
-    }
-
-    /**
-     * アクセストークンを取得する.
-     * アクセストークンがない場合にはnullを返却する。
-     * @return アクセストークン
-     */
-    public String getAccessToken() {
-        SharedPreferences prefs = PreferenceManager
-            .getDefaultSharedPreferences(getApplicationContext());
-        String accessToken = prefs.getString(
-            getString(R.string.key_settings_dconn_access_token), null);
-        return accessToken;
-    }
-
-    /**
-     * クライアントIDを取得する.
-     * @return クライアントID
-     */
-    public String getClientId() {
-        SharedPreferences prefs = PreferenceManager
-            .getDefaultSharedPreferences(getApplicationContext());
-        String clientId = prefs.getString(
-            getString(R.string.key_settings_dconn_client_id), null);
-        return clientId;
-    }
-
-    /**
-     * SSLフラグを取得する.
-     * @return SSLを使用する場合はtrue、それ以外はfalse
-     */
-    public boolean isSSL() {
-        final SharedPreferences prefs = PreferenceManager
-            .getDefaultSharedPreferences(getApplicationContext());
-        boolean isSSL = prefs.getBoolean(
-            getString(R.string.key_settings_dconn_ssl), false);
-        return isSSL;
-    }
-
-    /**
-     * ホスト名を取得する.
-     * @return ホスト名
-     */
-    public String getHostName() {
-        final SharedPreferences prefs = PreferenceManager
-            .getDefaultSharedPreferences(getApplicationContext());
-        String host = prefs.getString(
-            getString(R.string.key_settings_dconn_host),
-            getString(R.string.default_host));
-        return host;
-    }
-
-    /**
-     * ホートを取得する.
-     * @return ポート番号
-     */
-    public int getPort() {
-        final SharedPreferences prefs = PreferenceManager
-            .getDefaultSharedPreferences(getApplicationContext());
-
-        int port = Integer.parseInt(prefs.getString(
-            getString(R.string.key_settings_dconn_port),
-            getString(R.string.default_port)));
-        return port;
+        return mDConnectSK;
     }
 }

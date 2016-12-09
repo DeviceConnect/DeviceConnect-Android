@@ -12,18 +12,4 @@
     <string name="key_settings_dconn_client_id">settings_client_id</string>
     <string name="key_settings_dconn_access_token">settings_access_token</string>
 
-    <string name="key_connection_service_wifi">connection_service_wifi</string>
-    <string name="key_connection_service_bluetooth">connection_service_bluetooth</string>
-    <string name="key_connection_service_bluetooth_discoverable">connection_service_bluetooth_discoverable</string>
-    <string name="key_connection_service_ble">connection_service_ble</string>
-
-    <string name="key_system_profile_version">system_profile_version</string>
-    <string name="key_system_profile_list">system_profile_list</string>
-
-    <string name="key_battery_profile_list">battery_profile_list</string>
-    <string name="key_battery_profile_level">battery_profile_level</string>
-    <string name="key_battery_profile_charging">battery_profile_charging</string>
-    <string name="key_battery_profile_chargingtime">battery_profile_chargingtime</string>
-    <string name="key_battery_profile_dischargingtime">battery_profile_dischargingtime</string>
-
 </resources>

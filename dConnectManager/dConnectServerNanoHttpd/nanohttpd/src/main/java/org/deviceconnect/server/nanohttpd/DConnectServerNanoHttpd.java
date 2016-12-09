@@ -98,7 +98,7 @@ public class DConnectServerNanoHttpd extends DConnectServer {
     private static final String VERSION = "2.0.0";
 
     /**
-     * WebSocketのKeepAlive処理のインターバル.
+     * WebSocketのKeepAlive処理のインターバル(ms).
      */
     private static final int WEBSOCKET_KEEP_ALIVE_INTERVAL = 3000;
 
@@ -1087,7 +1087,7 @@ public class DConnectServerNanoHttpd extends DConnectServer {
                     synchronized (this) {
                         if (mState == KeepAliveState.GOT_PONG) {
                             setState(KeepAliveState.WAITING_PONG);
-                            ping("".getBytes());
+                            ping("DConnectServer".getBytes());
                         } else {
                             close(NanoWSD.WebSocketFrame.CloseCode.GoingAway, "Client is dead.", false);
                         }

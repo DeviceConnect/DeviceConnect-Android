@@ -143,6 +143,7 @@ class DConnectWebSocketClient {
 
             @Override
             public void onClose(final int code, final String reason, final boolean remote) {
+                DConnectWebSocketClient.this.close();
                 if (mOnWebSocketListener != null) {
                     mOnWebSocketListener.onClose();
                 }
@@ -207,6 +208,7 @@ class DConnectWebSocketClient {
             mWebSocketClient.close();
             mWebSocketClient = null;
         }
+        isEstablishedWebSocket = false;
     }
 
     /**

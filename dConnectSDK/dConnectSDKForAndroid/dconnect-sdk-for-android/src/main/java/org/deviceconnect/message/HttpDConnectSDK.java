@@ -43,8 +43,6 @@ import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
-import static android.R.attr.key;
-
 /**
  * HTTP通信を使用してDevice Connect Managerと通信を行うSDKクラス.
  * @author NTT DOCOMO, INC.
@@ -83,7 +81,7 @@ class HttpDConnectSDK extends DConnectSDK {
     /**
      * WebSocketと接続を行うクラス.
      */
-    private DConnectWebSocketClient mWebSocketClient;
+    private DConnectWebSocketClient mWebSocketClient = new DConnectWebSocketClient();
 
     /**
      * マルチパートのバウンダリーに付加するハイフンを定義.
@@ -405,26 +403,17 @@ class HttpDConnectSDK extends DConnectSDK {
             throw new IllegalStateException("origin is not set.");
         }
 
-        if (mWebSocketClient != null) {
-            return;
-        }
-
         URIBuilder builder = createURIBuilder();
         builder.setScheme(isSSL() ? "wss" : "ws");
         builder.setPath("/gotapi/websocket");
 
-        // TODO: WebSocketの接続に失敗した時にmWebSocketClientを初期化しないと接続できない。
-        mWebSocketClient = new DConnectWebSocketClient();
         mWebSocketClient.setOnWebSocketListener(listener);
         mWebSocketClient.connect(builder.toString(), getOrigin(), getAccessToken());
     }
 
     @Override
     public void disconnectWebSocket() {
-        if (mWebSocketClient != null) {
-            mWebSocketClient.close();
-            mWebSocketClient = null;
-        }
+        mWebSocketClient.close();
     }
 
     @Override
@@ -441,7 +430,7 @@ class HttpDConnectSDK extends DConnectSDK {
         put(uri, null, new OnResponseListener() {
             @Override
             public void onResponse(final DConnectResponseMessage response) {
-                if (response.getResult() == DConnectMessage.RESULT_OK && mWebSocketClient != null) {
+                if (response.getResult() == DConnectMessage.RESULT_OK) {
                     mWebSocketClient.addEventListener(uri, listener);
                 }
                 listener.onResponse(response);

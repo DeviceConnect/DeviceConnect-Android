@@ -204,7 +204,7 @@ public class SlackMessageHookDeviceService extends DConnectMessageService implem
                     }
                     m.appendTail(sb);
                     message.putString("text", sb.toString());
-                    //　メッセージタイプ
+                    // メッセージタイプ
                     String messageType = null;
                     // Dから始まるChannelIDはDirectMessage
                     if (channel.startsWith("D")) {

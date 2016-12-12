@@ -10,6 +10,11 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 
+import org.deviceconnect.profile.AuthorizationProfileConstants;
+import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
+import org.deviceconnect.profile.ServiceInformationProfileConstants;
+import org.deviceconnect.profile.SystemProfileConstants;
+
 import java.util.HashSet;
 import java.util.Set;
 
@@ -42,7 +47,22 @@ public class SettingData {
     private SettingData(Context context) {
         this.context = context;
         load();
+
+        if (scopes == null) {
+            scopes = new HashSet<>();
+            scopes.add(SystemProfileConstants.PROFILE_NAME);
+            scopes.add(AuthorizationProfileConstants.PROFILE_NAME);
+            scopes.add(ServiceDiscoveryProfileConstants.PROFILE_NAME);
+            scopes.add(ServiceInformationProfileConstants.PROFILE_NAME);
+            scopes.add("messageHook");
+            // TODO: debug用
+            scopes.add("battery");
+            scopes.add("mediaPlayer");
+            scopes.add("mediaStreamRecording");
+            save();
+        }
     }
+
     /**
      * 共通のインスタンスを返す.
      *
@@ -88,5 +108,9 @@ public class SettingData {
         serviceId = preferences.getString("serviceId", null);
         serviceName = preferences.getString("serviceName", null);
         scopes = preferences.getStringSet("scopes", null);
+    }
+
+    public String[] getScopes() {
+        return scopes.toArray(new String[scopes.size()]);
     }
 }

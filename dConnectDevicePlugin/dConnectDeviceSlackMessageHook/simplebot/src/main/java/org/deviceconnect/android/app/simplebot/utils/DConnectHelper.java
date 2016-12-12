@@ -6,38 +6,29 @@
  */
 package org.deviceconnect.android.app.simplebot.utils;
 
+import android.content.Context;
 import android.os.AsyncTask;
-import android.os.Handler;
 import android.util.Log;
 
-import org.apache.http.HttpHost;
-import org.apache.http.HttpResponse;
 import org.deviceconnect.android.app.simplebot.BuildConfig;
+import org.deviceconnect.android.app.simplebot.R;
+import org.deviceconnect.android.app.simplebot.data.SettingData;
+import org.deviceconnect.message.DConnectEventMessage;
 import org.deviceconnect.message.DConnectMessage;
-import org.deviceconnect.message.basic.message.BasicDConnectMessage;
-import org.deviceconnect.message.basic.message.DConnectResponseMessage;
-import org.deviceconnect.message.http.event.CloseHandler;
-import org.deviceconnect.message.http.event.HttpEventManager;
-import org.deviceconnect.message.http.impl.factory.HttpMessageFactory;
+import org.deviceconnect.message.DConnectResponseMessage;
+import org.deviceconnect.message.DConnectSDK;
+import org.deviceconnect.message.DConnectSDKFactory;
+import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 import org.deviceconnect.profile.ServiceInformationProfileConstants;
-import org.deviceconnect.utils.AuthProcesser;
-import org.deviceconnect.utils.URIBuilder;
-import org.json.JSONObject;
 
-import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * dConnectヘルパークラス
@@ -57,18 +48,21 @@ public class DConnectHelper {
     public abstract class DConnectHelperException extends Exception {
         public int errorCode = 0;
     }
+
     /** Resultが不正 */
     public class DConnectInvalidResultException extends DConnectHelperException {}
+
     /** 認証失敗 */
     public class DConnectAuthFailedException extends DConnectHelperException {}
 
-    /** 接続先情報 */
-    private HttpHost targetHost = new HttpHost("localhost", 4035, "http");
-    /**  */
-    private String origin;
-
     /** イベントハンドラー */
     private EventHandler eventHandler = null;
+
+    /** Device Connect ManagerへアクセスするためのSDK. */
+    private DConnectSDK mDConnectSDK;
+
+    /** コンテキスト. */
+    private Context mContext;
 
     /** 処理完了コールバック */
     public interface FinishCallback<Result> {
@@ -86,7 +80,7 @@ public class DConnectHelper {
          * イベントが発生した時に呼ばれます.
          * @param event イベント
          */
-        void onEvent(JSONObject event);
+        void onEvent(DConnectEventMessage event);
     }
 
     /**
@@ -146,6 +140,18 @@ public class DConnectHelper {
     //---------------------------------------------------------------------------------------
     //region Methods
 
+    public void setContext(Context context) {
+        mContext = context;
+
+        mDConnectSDK = DConnectSDKFactory.create(context, DConnectSDKFactory.Type.HTTP);
+        mDConnectSDK.setOrigin(context.getPackageName());
+
+        SettingData setting = SettingData.getInstance(context);
+        if (setting.accessToken != null) {
+            mDConnectSDK.setAccessToken(setting.accessToken);
+        }
+    }
+
     /**
      * イベントハンドラーを設定する
      * @param handler ハンドラー
@@ -159,123 +165,101 @@ public class DConnectHelper {
      * @param ssl SSL通信を行う場合true
      * @param host ホスト名
      * @param port ポート番号
-     * @param origin Origin
      */
-    public void setHostInfo(boolean ssl, String host, int port, String origin) {
-        String scheme;
-        if (ssl) {
-            scheme = "https";
-        } else {
-            scheme = "http";
-        }
-        targetHost = new HttpHost(host, port, scheme);
-        this.origin = origin;
+    public void setHostInfo(boolean ssl, String host, int port) {
+        mDConnectSDK.setSSL(ssl);
+        mDConnectSDK.setHost(host);
+        mDConnectSDK.setPort(port);
     }
 
     /**
      * ServiceDiscoveryを実行
-     * @param accessToken AccessToken
      * @param callback コールバック
      */
-    public void serviceDiscovery(String accessToken, final FinishCallback<List<ServiceInfo>> callback) {
+    public void serviceDiscovery(final FinishCallback<List<ServiceInfo>> callback) {
         if (BuildConfig.DEBUG) Log.d(TAG, "serviceDiscovery");
-        // 接続情報
-        ConnectionParam connectionParam = new ConnectionParam(
-                targetHost,
-                "GET",
-                ServiceDiscoveryProfileConstants.PROFILE_NAME,
-                null,
-                origin
-        );
-        // パラメータ
-        Map<String, String> params = new HashMap<>();
-        if (accessToken != null) {
-            params.put(DConnectMessage.EXTRA_ACCESS_TOKEN, accessToken);
-        }
-        // 接続
-        new HttpTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, new TaskParam(connectionParam, params) {
+
+        mDConnectSDK.serviceDiscovery(new DConnectSDK.OnResponseListener() {
             @Override
-            public void callBack(DConnectMessage message) {
-                // コールバックがないので処理する意味がない
-                if (callback == null) {
-                    return;
+            public void onResponse(final DConnectResponseMessage response) {
+                if (response.getResult() == DConnectMessage.RESULT_ERROR) {
+                    switch (DConnectMessage.ErrorCode.getInstance(response.getErrorCode())) {
+                        case AUTHORIZATION:
+                        case EXPIRED_ACCESS_TOKEN:
+                        case EMPTY_ACCESS_TOKEN:
+                        case SCOPE:
+                        case NOT_FOUND_CLIENT_ID:
+                            auth(new FinishCallback<AuthInfo>() {
+                                @Override
+                                public void onFinish(AuthInfo authInfo, Exception error) {
+                                    if (error == null) {
+                                        serviceDiscovery(callback);
+                                    } else {
+                                        DConnectHelperException e = new DConnectInvalidResultException();
+                                        e.errorCode = response.getInt(DConnectMessage.EXTRA_ERROR_CODE);
+                                        callback.onFinish(null, e);
+                                    }
+                                }
+                            });
+                            return;
+                    }
                 }
-                // エラーチェック
-                int result = message.getInt(DConnectMessage.EXTRA_RESULT);
-                if (result == DConnectMessage.RESULT_ERROR) {
+
+                if (response.getResult() == DConnectMessage.RESULT_OK) {
+                    // サービスリストを取得
+                    List<Object> services = response.getList(ServiceDiscoveryProfileConstants.PARAM_SERVICES);
+                    if (services == null) {
+                        // サービスがない場合
+                        callback.onFinish(null, null);
+                        return;
+                    }
+                    // 詰め直しして返却
+                    List<ServiceInfo> list = new ArrayList<>();
+                    for (Object object: services) {
+                        @SuppressWarnings("unchecked")
+                        Map<String, Object> service = (Map<String, Object>) object;
+                        @SuppressWarnings("unchecked")
+                        ServiceInfo info = new ServiceInfo(
+                                service.get(ServiceDiscoveryProfileConstants.PARAM_ID).toString(),
+                                service.get(ServiceDiscoveryProfileConstants.PARAM_NAME).toString(),
+                                (List<String>) service.get(ServiceDiscoveryProfileConstants.PARAM_SCOPES));
+                        list.add(info);
+                    }
+                    callback.onFinish(list, null);
+                } else {
                     DConnectHelperException e = new DConnectInvalidResultException();
-                    e.errorCode = message.getInt(DConnectMessage.EXTRA_ERROR_CODE);
+                    e.errorCode = response.getInt(DConnectMessage.EXTRA_ERROR_CODE);
                     callback.onFinish(null, e);
-                    return;
                 }
-                // サービスリストを取得
-                List<Object> services = message.getList(
-                        ServiceDiscoveryProfileConstants.PARAM_SERVICES);
-                if (services == null) {
-                    // サービスがない？
-                    callback.onFinish(null, null);
-                    return;
-                }
-                // 詰め直しして返却
-                List<ServiceInfo> list = new ArrayList<>();
-                for (Object object: services) {
-                    @SuppressWarnings("unchecked")
-                    Map<String, Object> service = (Map<String, Object>) object;
-                    @SuppressWarnings("unchecked")
-                    ServiceInfo info = new ServiceInfo(
-                            service.get(ServiceDiscoveryProfileConstants.PARAM_ID).toString(),
-                            service.get(ServiceDiscoveryProfileConstants.PARAM_NAME).toString(),
-                            (List<String>) service.get(ServiceDiscoveryProfileConstants.PARAM_SCOPES));
-                    list.add(info);
-                }
-                callback.onFinish(list, null);
             }
         });
     }
 
     /**
      * ServiceInformationを実行
-     * @param accessToken AccessToken
      * @param serviceId ServiceID
      * @param callback コールバック
      */
-    public void serviceInformation(String accessToken, String serviceId, final FinishCallback<Map<String, List<APIInfo>>> callback) {
+    public void serviceInformation(String serviceId, final FinishCallback<Map<String, List<APIInfo>>> callback) {
         if (BuildConfig.DEBUG) Log.d(TAG, "serviceInformation");
-        // 接続情報
-        ConnectionParam connectionParam = new ConnectionParam(
-                targetHost,
-                "GET",
-                ServiceInformationProfileConstants.PROFILE_NAME,
-                null,
-                origin
-        );
-        // パラメータ
-        Map<String, String> params = new HashMap<>();
-        if (accessToken != null) {
-            params.put(DConnectMessage.EXTRA_ACCESS_TOKEN, accessToken);
-        }
-        params.put(DConnectMessage.EXTRA_SERVICE_ID, serviceId);
-        // 接続
-        new HttpTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, new TaskParam(connectionParam, params) {
+
+        mDConnectSDK.getServiceInformation(serviceId, new DConnectSDK.OnResponseListener() {
             @Override
-            public void callBack(DConnectMessage message) {
-                // コールバックがないので処理する意味がない
-                if (callback == null) {
-                    return;
-                }
+            public void onResponse(final DConnectResponseMessage response) {
                 // エラーチェック
-                int result = message.getInt(DConnectMessage.EXTRA_RESULT);
+                int result = response.getInt(DConnectMessage.EXTRA_RESULT);
                 if (result == DConnectMessage.RESULT_ERROR) {
                     DConnectHelperException e = new DConnectInvalidResultException();
-                    e.errorCode = message.getInt(DConnectMessage.EXTRA_ERROR_CODE);
+                    e.errorCode = response.getInt(DConnectMessage.EXTRA_ERROR_CODE);
                     callback.onFinish(null, e);
                     return;
                 }
+
                 // APIリストを取得
                 @SuppressWarnings("unchecked")
-                Map<String, Map<String, Object>> prifiles = (Map<String, Map<String, Object>>)message.get(ServiceInformationProfileConstants.PARAM_SUPPORT_APIS);
+                Map<String, Map<String, Object>> prifiles = (Map<String, Map<String, Object>>)response.get(ServiceInformationProfileConstants.PARAM_SUPPORT_APIS);
                 if (prifiles == null) {
-                    // サービスがない？
+                    // サービスがない場合
                     callback.onFinish(null, null);
                     return;
                 }
@@ -331,53 +315,43 @@ public class DConnectHelper {
         });
     }
 
+    private void auth(final FinishCallback<AuthInfo> callback) {
+        final SettingData setting = SettingData.getInstance(mContext);
+        String appName = mContext.getString(R.string.app_name);
+        String scopes[] = setting.getScopes();
+        auth(appName, scopes, callback);
+    }
+
     /**
      * 認証
      * @param appName アプリ名
-     * @param clientId ClientID
      * @param scopes スコープ
      * @param callback 完了コールバック
      */
-    public void auth(String appName, String clientId, String[] scopes, final FinishCallback<AuthInfo> callback) {
+    public void auth(String appName, String[] scopes, final FinishCallback<AuthInfo> callback) {
         if (BuildConfig.DEBUG) Log.d(TAG, "auth");
-        boolean isSSL = "https".equals(targetHost.getSchemeName());
-        String host = targetHost.getHostName();
-        int port = targetHost.getPort();
 
-        final Handler handler = new Handler();
-        final AuthProcesser.AuthorizationHandler authHandler = new AuthProcesser.AuthorizationHandler() {
+        mDConnectSDK.authorization(appName, scopes, new DConnectSDK.OnAuthorizationListener() {
             @Override
-            public void onAuthorized(final String clientId, final String accessToken) {
-                if (callback != null) {
-                    handler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            callback.onFinish(new AuthInfo(clientId, accessToken), null);
-                        }
-                    });
-                }
-            }
-            @Override
-            public void onAuthFailed(final DConnectMessage.ErrorCode error) {
-                if (callback != null) {
-                    handler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            DConnectHelperException e = new DConnectAuthFailedException();
-                            e.errorCode = error.getCode();
-                            if (BuildConfig.DEBUG) Log.e(TAG, "Error on auth:" + error);
-                            callback.onFinish(null, e);
-                        }
-                    });
-                }
-            }
-        };
+            public void onResponse(final String clientId, final String accessToken) {
+                mDConnectSDK.setAccessToken(accessToken);
 
-        if (clientId == null) {
-            AuthProcesser.asyncAuthorize(host, port, isSSL, origin, appName, scopes, authHandler);
-        } else {
-            AuthProcesser.asyncRefreshToken(host, port, isSSL, clientId, origin, appName, scopes, authHandler);
-        }
+                SettingData setting = SettingData.getInstance(mContext);
+                setting.clientId = clientId;
+                setting.accessToken = accessToken;
+                setting.save();
+
+                callback.onFinish(new AuthInfo(clientId, accessToken), null);
+            }
+
+            @Override
+            public void onError(final int errorCode, final String errorMessage) {
+                DConnectHelperException e = new DConnectAuthFailedException();
+                e.errorCode = errorCode;
+                if (BuildConfig.DEBUG) Log.e(TAG, "Error on auth:" + errorCode);
+                callback.onFinish(null, e);
+            }
+        });
     }
 
     /**
@@ -385,74 +359,57 @@ public class DConnectHelper {
      * @param profile Profile
      * @param attribute Attribute
      * @param serviceId ServiceID
-     * @param accessToken AccessToken
-     * @param clientId ClientID
      * @param callback Callback
      */
-    public void registerEvent(String profile, String attribute, String serviceId, String accessToken, String clientId, boolean unregist, final FinishCallback<Void> callback) {
+    public void registerEvent(String profile, String attribute, String serviceId, boolean unregist, final FinishCallback<Void> callback) {
         if (BuildConfig.DEBUG) Log.d(TAG, "registerEvent:" + profile + ":" + attribute);
-        // 接続情報
-        String method = "PUT";
-        if (unregist) {
-            method = "DELETE";
-        }
-        ConnectionParam connectionParam = new ConnectionParam(
-                targetHost,
-                method,
-                profile,
-                attribute,
-                origin
-        );
-        // パラメータ
-        Map<String, String> params = new HashMap<>();
-        if (accessToken != null) {
-            params.put(DConnectMessage.EXTRA_ACCESS_TOKEN, accessToken);
-        }
-        params.put(DConnectMessage.EXTRA_SERVICE_ID, serviceId);
-        params.put(DConnectMessage.EXTRA_SESSION_KEY, clientId);
-        // 接続
-        new EventTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, new TaskParam(connectionParam, params) {
-            @Override
-            public void callBack(DConnectMessage message) {
-                // コールバックがないので処理する意味がない
-                if (callback == null) {
-                    return;
+
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
+        builder.setProfile(profile);
+        builder.setAttribute(attribute);
+        builder.setServiceId(serviceId);
+
+        if (!unregist) {
+            mDConnectSDK.addEventListener(builder.build(), new DConnectSDK.OnEventListener() {
+                @Override
+                public void onMessage(DConnectEventMessage message) {
+                    eventHandler.onEvent(message);
                 }
-                // エラーチェック
-                int result = message.getInt(DConnectMessage.EXTRA_RESULT);
-                if (result == DConnectMessage.RESULT_ERROR) {
-                    DConnectHelperException e = new DConnectInvalidResultException();
-                    e.errorCode = message.getInt(DConnectMessage.EXTRA_ERROR_CODE);
-                    callback.onFinish(null, e);
-                    return;
+
+                @Override
+                public void onResponse(final DConnectResponseMessage response) {
+                    // エラーチェック
+                    int result = response.getResult();
+                    if (result == DConnectMessage.RESULT_ERROR) {
+                        DConnectHelperException e = new DConnectInvalidResultException();
+                        e.errorCode = response.getErrorCode();
+                        callback.onFinish(null, e);
+                        return;
+                    }
+                    callback.onFinish(null, null);
                 }
-                callback.onFinish(null, null);
-            }
-        });
+            });
+        } else {
+            mDConnectSDK.removeEventListener(builder.build());
+        }
     }
 
     /**
      * メッセージ送信
      * @param serviceId ServiceID
-     * @param accessToken AccessToken
      * @param channelId ChannelID
      * @param text Text
      */
-    public void sendMessage(String serviceId, String accessToken, String channelId, String text, String resource, final FinishCallback<Void> callback) {
+    public void sendMessage(String serviceId, String channelId, String text, String resource, final FinishCallback<Void> callback) {
         if (BuildConfig.DEBUG) Log.d(TAG, "sendMessage:" + channelId + ":" + text);
         // 接続情報
         ConnectionParam connectionParam = new ConnectionParam(
-                targetHost,
                 "POST",
                 "messageHook",
-                "message",
-                origin
+                "message"
         );
         // パラメータ
         Map<String, String> params = new HashMap<>();
-        if (accessToken != null) {
-            params.put(DConnectMessage.EXTRA_ACCESS_TOKEN, accessToken);
-        }
         params.put(DConnectMessage.EXTRA_SERVICE_ID, serviceId);
         if (text != null) {
             params.put("text", text);
@@ -488,28 +445,23 @@ public class DConnectHelper {
      * @param method Method
      * @param path Path
      * @param serviceId ServiceID
-     * @param accessToken AccessToken
      * @param params パラメータ
      * @param callback Callback
      */
-    public void sendRequest(String method, String path, String serviceId, String accessToken, Map<String, String> params, final FinishCallback<Map<String, Object>> callback) {
+    public void sendRequest(String method, String path, String serviceId, Map<String, String> params, final FinishCallback<Map<String, Object>> callback) {
         if (BuildConfig.DEBUG) Log.d(TAG, "sendRequest");
+
         // 接続情報
         ConnectionParam connectionParam = new ConnectionParam(
-                targetHost,
                 method,
-                path,
-                origin
+                path
         );
         // パラメータ
         if (params == null) {
             params = new HashMap<>();
         }
-        if (accessToken != null) {
-            params.put(DConnectMessage.EXTRA_ACCESS_TOKEN, accessToken);
-        }
         params.put(DConnectMessage.EXTRA_SERVICE_ID, serviceId);
-        // 接続
+
         new HttpTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, new TaskParam(connectionParam, params) {
             @Override
             public void callBack(DConnectMessage message) {
@@ -532,29 +484,69 @@ public class DConnectHelper {
 
     /**
      * WebSocketを開く
-     * @param sessionKey SessionKey
-     * @return 成功時true
      */
-    public boolean openWebsocket(String sessionKey) {
-        boolean isSSL = "https".equals(targetHost.getSchemeName());
-        String host = targetHost.getHostName();
-        int port = targetHost.getPort();
-
-        return HttpEventManager.INSTANCE.connect(host, port, isSSL, sessionKey, new CloseHandler() {
-            @Override
-            public void onClosed() {
-                Log.d(TAG, "ws closed");
-                // TODO: 再接続処理
-            }
-        });
+    public void openWebSocket() {
+        mActiveWebSocket = true;
+        connectWebSocket();
     }
 
     /**
      * WebSocketを閉じる
      */
-    public void closeWebsocket() {
-        HttpEventManager.INSTANCE.disconnect();
+    public void closeWebSocket() {
+        mActiveWebSocket = false;
+        mDConnectSDK.disconnectWebSocket();
     }
+
+    private void test() {
+        SettingData setting = SettingData.getInstance(mContext);
+        DConnectHelper.INSTANCE.registerEvent("messageHook", "message", setting.serviceId, false, new DConnectHelper.FinishCallback<Void>() {
+            @Override
+            public void onFinish(Void aVoid, Exception error) {
+                if (error != null) {
+                    mExecutor.schedule(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (mActiveWebSocket) {
+                                test();
+                            }
+                        }
+                    }, 5, TimeUnit.SECONDS);
+                }
+            }
+        });
+    }
+
+    private void connectWebSocket() {
+        mDConnectSDK.connectWebSocket(new DConnectSDK.OnWebSocketListener() {
+            @Override
+            public void onOpen() {
+                test();
+            }
+
+            @Override
+            public void onClose() {
+                if (mActiveWebSocket) {
+                    mExecutor.schedule(new Runnable() {
+                        @Override
+                        public void run() {
+                            Log.e("ABC", "retry");
+                            if (mActiveWebSocket) {
+                                connectWebSocket();
+                            }
+                        }
+                    }, 5, TimeUnit.SECONDS);
+                }
+            }
+
+            @Override
+            public void onError(Exception e) {
+            }
+        });
+    }
+
+    private boolean mActiveWebSocket;
+    private ScheduledExecutorService mExecutor = Executors.newSingleThreadScheduledExecutor();
 
 
     //endregion
@@ -565,24 +557,18 @@ public class DConnectHelper {
      * 接続情報
      */
     private class ConnectionParam {
-        public HttpHost host;
         public String profileName;
         public String attributeName;
-        public String origin;
         public String method;
         public String path;
-        public ConnectionParam(HttpHost host, String method, String profileName, String attributeName, String origin) {
-            this.host = host;
+        public ConnectionParam(String method, String profileName, String attributeName) {
             this.method = method;
             this.profileName = profileName;
             this.attributeName = attributeName;
-            this.origin = origin;
         }
-        public ConnectionParam(HttpHost host, String method, String path, String origin) {
-            this.host = host;
+        public ConnectionParam(String method, String path) {
             this.method = method;
             this.path = path;
-            this.origin = origin;
         }
     }
 
@@ -611,178 +597,102 @@ public class DConnectHelper {
         /** パラメータ */
         TaskParam param = null;
 
-        /**
-         * Background処理.
-         *
-         * @param params Params
-         */
-        @Override
-        protected DConnectMessage doInBackground(TaskParam... params) {
+        private DConnectResponseMessage executeRequest() {
+            DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
 
-            param = params[0];
-            DConnectMessage message = new DConnectResponseMessage(DConnectMessage.RESULT_ERROR);
+            ConnectionParam conn = param.connection;
+            if (conn.path == null) {
+                builder.setProfile(conn.profileName);
+                builder.setAttribute(conn.attributeName);
+            } else {
+                builder.setPath(conn.path);
+            }
 
-            HttpURLConnection con = null;
-            InputStream stream = null;
-
-            try {
-                // URI作成
-                URIBuilder builder = new URIBuilder();
-                ConnectionParam connectionParam = param.connection;
-                builder.setScheme(connectionParam.host.getSchemeName());
-                builder.setHost(connectionParam.host.getHostName());
-                builder.setPort(connectionParam.host.getPort());
-                if (connectionParam.path == null) {
-                    builder.setProfile(connectionParam.profileName);
-                    builder.setAttribute(connectionParam.attributeName);
-                } else {
-                    builder.setPath(connectionParam.path);
-                }
-                // Query作成
-                StringBuilder query = new StringBuilder();
-                boolean isQuery = connectionParam.method.equals("GET") ||
-                        connectionParam.method.equals("DELETE");
-                if (isQuery) {
-                    // GET/DELETEはQueryをURIに付加
-                    for (String key: param.params.keySet()) {
-                        builder.addParameter(key, param.params.get(key));
-                    }
-                } else {
-                    // 他はQueryをBodyに
-                    for (String key: param.params.keySet()) {
-                        if (query.length() > 0) {
-                            query.append("&");
-                        }
-                        query.append(key);
-                        query.append("=");
-                        query.append(URLEncoder.encode(param.params.get(key), "UTF-8"));
-                    }
-                }
-                URL url = builder.build().toURL();
-                if (BuildConfig.DEBUG) Log.d(TAG, url.toString());
-
-                // 接続
-                con = (HttpURLConnection)url.openConnection();
-                con.setRequestMethod(connectionParam.method);
-                con.setInstanceFollowRedirects(false);
-
-                // Origin
-                if (connectionParam.origin != null) {
-                    con.setRequestProperty(DConnectMessage.HEADER_GOTAPI_ORIGIN, connectionParam.origin);
-                }
-
-                if (!isQuery) {
-                    // POSTなどはQueryをBodyに
-                    con.setRequestProperty("Content-Type",
-                            "application/x-www-form-urlencoded");
-                    con.setDoOutput(true);
-                    BufferedOutputStream bo = new BufferedOutputStream(con.getOutputStream());
-                    DataOutputStream wr = new DataOutputStream(bo);
-                    wr.writeBytes (query.toString());
-                    wr.flush ();
-                    wr.close ();
-                    if (BuildConfig.DEBUG) Log.d(TAG, query.toString());
-                }
-
-                // 接続
-                con.connect();
-
-                // レスポンス取得
-                stream = con.getInputStream();
-                BufferedReader streamReader = new BufferedReader(new InputStreamReader(stream, "UTF-8"));
-                StringBuilder responseStrBuilder = new StringBuilder();
-                String inputStr;
-                while ((inputStr = streamReader.readLine()) != null)
-                    responseStrBuilder.append(inputStr);
-                if (con.getResponseCode() == 200) {
-                    message = new BasicDConnectMessage(responseStrBuilder.toString());
-                } else {
-                    Log.e(TAG, "Invalid response code:" + con.getResponseCode());
-                }
-            } catch (Exception e) {
-                Log.e(TAG, "Error on HttpConnection", e);
-            } finally {
-                if (stream != null) {
-                    try {
-                        stream.close();
-                    } catch (IOException e) {
-                        Log.e(TAG, "stream close error", e);
-                    }
-                }
-                if (con != null) {
-                    con.disconnect();
+            boolean isQuery = conn.method.equals("GET") || conn.method.equals("DELETE");
+            if (isQuery) {
+                // GET/DELETEはQueryをURIに付加
+                for (String key: param.params.keySet()) {
+                    builder.addParameter(key, param.params.get(key));
                 }
             }
-            if (BuildConfig.DEBUG) Log.d(TAG, message.toString());
+
+            DConnectResponseMessage message = new DConnectResponseMessage(DConnectMessage.RESULT_ERROR);
+            if (conn.method.equals("GET")) {
+                message = mDConnectSDK.get(builder.build());
+            } else if (conn.method.equals("PUT")) {
+                message = mDConnectSDK.put(builder.build(), param.params);
+            } else if (conn.method.equals("POST")) {
+                message = mDConnectSDK.post(builder.build(), param.params);
+            } else if (conn.method.equals("DELETE")) {
+                message = mDConnectSDK.delete(builder.build());
+            }
+
             return message;
+        }
+
+        /**
+         * 実行するパスから使用するプロファイルを抽出してスコープに追加します.
+         */
+        private void addNewProfileName() {
+            SettingData setting = SettingData.getInstance(mContext);
+            ConnectionParam conn = param.connection;
+            if (conn.path == null) {
+                if (conn.profileName != null) {
+                    setting.scopes.add(conn.profileName);
+                }
+            } else {
+                String[] segments = conn.path.split("/");
+                if (segments.length > 1) {
+                    setting.scopes.add(segments[1]);
+                }
+            }
+            setting.save();
+        }
+
+        /**
+         * Local OAuthを実行します.
+         * @return 実行結果
+         */
+        private DConnectResponseMessage authorization() {
+            final SettingData setting = SettingData.getInstance(mContext);
+            String appName = mContext.getString(R.string.app_name);
+            String scopes[] = setting.getScopes();
+            DConnectResponseMessage response = mDConnectSDK.authorization(appName, scopes);
+            if (response.getResult() == DConnectMessage.RESULT_OK) {
+                String accessToken = response.getString(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN);
+                mDConnectSDK.setAccessToken(accessToken);
+                setting.accessToken = accessToken;
+                setting.save();
+            }
+            return response;
+        }
+
+        @Override
+        protected DConnectMessage doInBackground(TaskParam... params) {
+            param = params[0];
+
+            DConnectResponseMessage response = executeRequest();
+            if (response.getResult() == DConnectMessage.RESULT_ERROR) {
+                switch (DConnectMessage.ErrorCode.getInstance(response.getErrorCode())) {
+                    case SCOPE:
+                        addNewProfileName();
+                    case AUTHORIZATION:
+                    case EXPIRED_ACCESS_TOKEN:
+                    case EMPTY_ACCESS_TOKEN:
+                    case NOT_FOUND_CLIENT_ID: {
+                        DConnectResponseMessage resp = authorization();
+                        if (resp.getResult() == DConnectMessage.RESULT_OK) {
+                            response = executeRequest();
+                        }
+                    }   break;
+                }
+            }
+
+            return response;
         }
 
         @Override
         protected void onPostExecute(DConnectMessage message) {
-            param.callBack(message);
-        }
-    }
-
-
-    /**
-     * EventTask
-     */
-    private class EventTask extends AsyncTask<TaskParam, Void, DConnectMessage> {
-
-        /** パラメータ */
-        TaskParam param = null;
-
-        /**
-         * Background処理.
-         *
-         * @param params Params
-         */
-        @Override
-        protected DConnectMessage doInBackground(TaskParam... params) {
-
-            param = params[0];
-            DConnectMessage message = new DConnectResponseMessage(DConnectMessage.RESULT_ERROR);
-            // パラメータ
-            URIBuilder builder = new URIBuilder();
-            ConnectionParam connectionParam = param.connection;
-            builder.setScheme(connectionParam.host.getSchemeName());
-            builder.setHost(connectionParam.host.getHostName());
-            builder.setPort(connectionParam.host.getPort());
-            builder.setProfile(connectionParam.profileName);
-            builder.setAttribute(connectionParam.attributeName);
-            for (String key: param.params.keySet()) {
-                builder.addParameter(key, param.params.get(key));
-            }
-            if (connectionParam.origin != null) {
-                HttpEventManager.INSTANCE.setOrigin(connectionParam.origin);
-            }
-            // 接続
-            try {
-                HttpResponse response;
-                if (connectionParam.method.equals("PUT")) {
-                    // イベント登録
-                    response = HttpEventManager.INSTANCE.registerEvent(builder, new org.deviceconnect.message.event.EventHandler() {
-                        @Override
-                        public void onEvent(final JSONObject event) {
-                            if (event != null && eventHandler != null) {
-                                eventHandler.onEvent(event);
-                            }
-                        }
-                    });
-                } else {
-                    // イベント解除
-                    response = HttpEventManager.INSTANCE.unregisterEvent(builder);
-                }
-                message = (new HttpMessageFactory()).newDConnectMessage(response);
-            } catch (IOException e) {
-                Log.e(TAG, "error", e);
-            }
-            return message;
-        }
-
-        @Override
-        protected void onPostExecute(DConnectMessage message) {
-            if (BuildConfig.DEBUG) Log.d(TAG, message.toString());
             param.callBack(message);
         }
     }

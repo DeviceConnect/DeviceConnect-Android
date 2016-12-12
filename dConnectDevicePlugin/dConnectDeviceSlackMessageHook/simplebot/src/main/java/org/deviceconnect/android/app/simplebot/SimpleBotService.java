@@ -10,7 +10,6 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
-import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.util.Log;
@@ -22,8 +21,8 @@ import org.deviceconnect.android.app.simplebot.data.ResultData;
 import org.deviceconnect.android.app.simplebot.data.SettingData;
 import org.deviceconnect.android.app.simplebot.utils.DConnectHelper;
 import org.deviceconnect.android.app.simplebot.utils.Utils;
-import org.json.JSONException;
-import org.json.JSONObject;
+import org.deviceconnect.message.DConnectEventMessage;
+import org.deviceconnect.message.DConnectMessage;
 
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -34,14 +33,15 @@ import java.util.regex.Pattern;
  */
 public class SimpleBotService extends Service {
 
-    /** サービス停止アクション */
+    /**
+     * サービス停止アクション
+     */
     public static final String SERVICE_STOP_ACTION = "org.deviceconnect.android.app.simplebot.service_stop";
 
-    /** デバッグタグ */
+    /**
+     * デバッグタグ
+     */
     private static final String TAG = "SimpleBotService";
-
-    /** Handler */
-    private Handler handler;
 
     @Nullable
     @Override
@@ -55,7 +55,7 @@ public class SimpleBotService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        handler = new Handler();
+        if (BuildConfig.DEBUG) Log.d(TAG, "service started...");
         connect();
     }
 
@@ -74,27 +74,9 @@ public class SimpleBotService extends Service {
     }
 
     /**
-     * サービス起動時.
-     *
-     * @param intent Intent
-     * @param flags Flags
-     * @param startId StartID
-     * @return Command Command
-     */
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        if (BuildConfig.DEBUG) Log.d(TAG, "onStartCommand");
-        if (intent == null)
-            return super.onStartCommand(null, flags, startId);
-
-        return super.onStartCommand(intent, flags, startId);
-    }
-
-    /**
      * 接続
      */
     private void connect() {
-
         // アクティブじゃない場合は終了
         final Context context = getApplicationContext();
         final SettingData setting = SettingData.getInstance(context);
@@ -107,17 +89,17 @@ public class SimpleBotService extends Service {
         // イベントハンドラー登録
         DConnectHelper.INSTANCE.setEventHandler(new DConnectHelper.EventHandler() {
             @Override
-            public void onEvent(JSONObject event) {
+            public void onEvent(DConnectEventMessage event) {
                 handleEvent(event);
             }
         });
 
         // イベント登録
-        Utils.registEvent(context, false, new DConnectHelper.FinishCallback<Void>() {
+        Utils.registerEvent(context, false, new DConnectHelper.FinishCallback<Void>() {
             @Override
             public void onFinish(Void aVoid, Exception error) {
                 if (error != null) {
-                    Log.e(TAG, "Error on registEvent", error);
+                    Log.e(TAG, "Error on registerEvent", error);
                     // 設定をOFFにする
                     setting.active = false;
                     setting.save();
@@ -137,7 +119,7 @@ public class SimpleBotService extends Service {
 
         // イベント解除
         final Context context = getApplicationContext();
-        Utils.registEvent(context, true, new DConnectHelper.FinishCallback<Void>() {
+        Utils.registerEvent(context, true, new DConnectHelper.FinishCallback<Void>() {
             @Override
             public void onFinish(Void aVoid, Exception error) {
                 if (error != null) {
@@ -145,36 +127,35 @@ public class SimpleBotService extends Service {
                 }
             }
         });
+
+        // WebSocket切断
+        DConnectHelper.INSTANCE.closeWebSocket();
     }
 
     /**
      * イベント処理
+     *
      * @param event イベント
      */
-    private void handleEvent(JSONObject event) {
+    private void handleEvent(DConnectEventMessage event) {
         if (BuildConfig.DEBUG) Log.d(TAG, event.toString());
-        if (!event.has("message")) {
+        if (!event.keySet().contains("message")) {
             return;
         }
         ResultData.Result result = new ResultData.Result();
-        try {
-            JSONObject message = event.getJSONObject("message");
-            // Direct or Mentionのみ処理する
-            if (!message.has("messageType") ||
-                    !(message.getString("messageType").contains("direct") ||
-                    message.getString("messageType").contains("mention"))) {
-                return;
-            }
-            // textとchannelIdを取得
-            if (message.has("text")) {
-                result.text = message.getString("text");
-                result.channel = message.getString("channelId");
-                result.from = message.getString("from");
-            } else {
-                return;
-            }
-        } catch (JSONException e) {
-            Log.e(TAG, "error", e);
+        DConnectMessage message = event.getMessage("message");
+        // Direct or Mentionのみ処理する
+        if (!message.keySet().contains("messageType") ||
+                !(message.getString("messageType").contains("direct") ||
+                        message.getString("messageType").contains("mention"))) {
+            return;
+        }
+        // textとchannelIdを取得
+        if (message.keySet().contains("text")) {
+            result.text = message.getString("text");
+            result.channel = message.getString("channelId");
+            result.from = message.getString("from");
+        } else {
             return;
         }
 
@@ -184,8 +165,7 @@ public class SimpleBotService extends Service {
         if (cursor.moveToFirst()) {
             do {
                 // 各コマンドを判定
-                DataManager.Data data = dm.convertData(cursor);
-                result.data = data;
+                result.data = dm.convertData(cursor);
                 if (handleData(result)) {
                     break;
                 }
@@ -196,6 +176,7 @@ public class SimpleBotService extends Service {
 
     /**
      * 各コマンドを処理
+     *
      * @param result 結果
      * @return 処理した場合はtrue
      */
@@ -213,15 +194,15 @@ public class SimpleBotService extends Service {
             return false;
         }
         // 一致
-        if (BuildConfig.DEBUG) Log.d(TAG, "match:" +  data.keyword);
+        if (BuildConfig.DEBUG) Log.d(TAG, "match:" + data.keyword);
         // パラメータ作成
         final Map<String, String> params = Utils.jsonToMap(data.body);
         if (params != null) {
-            for (String key: params.keySet()) {
+            for (String key : params.keySet()) {
                 String val = params.get(key);
                 // groupをパラメータに渡す
-                for (int i=0; i<matcher.groupCount()+1; i++) {
-                    val = val.replace("$"+i, matcher.group(i));
+                for (int i = 0; i < matcher.groupCount() + 1; i++) {
+                    val = val.replace("$" + i, matcher.group(i));
                     if (BuildConfig.DEBUG) Log.d(TAG, matcher.group(i));
                 }
                 params.put(key, val);
@@ -229,35 +210,29 @@ public class SimpleBotService extends Service {
             if (BuildConfig.DEBUG) Log.d(TAG, params.toString());
         }
 
-        // このタイミングでToken確認画面が出たことがあったのでMainスレッドで処理。
-        handler.post(new Runnable() {
-            @Override
-            public void run() {
-                // 受付メッセージ送信
-                if ((data.accept != null && data.accept.length() > 0) || (data.acceptUri != null && data.acceptUri.length() > 0)) {
-                    Utils.sendMessage(context, result.channel, data.accept, data.acceptUri, new DConnectHelper.FinishCallback<Void>() {
-                        @Override
-                        public void onFinish(Void aVoid, Exception error) {
-                            if (error != null) {
-                                Log.e(TAG, "Error on sendMessage", error);
-                            }
-                        }
-                    });
-                }
-
-                // リクエスト送信
-                Utils.sendRequest(context, result.data.method, result.data.path, result.data.serviceId, params, new DConnectHelper.FinishCallback<Map<String, Object>>() {
-                    @Override
-                    public void onFinish(Map<String, Object> stringObjectMap, Exception error) {
-                        if (error == null) {
-                            if (BuildConfig.DEBUG) Log.d(TAG, stringObjectMap.toString());
-                            sendResponse(result, result.data.success, result.data.successUri, stringObjectMap);
-                        } else {
-                            if (BuildConfig.DEBUG) Log.e(TAG, "Error on sendRequest", error);
-                            sendResponse(result, result.data.error, result.data.errorUri, stringObjectMap);
-                        }
+        // 受付メッセージ送信
+        if ((data.accept != null && data.accept.length() > 0) || (data.acceptUri != null && data.acceptUri.length() > 0)) {
+            Utils.sendMessage(context, result.channel, data.accept, data.acceptUri, new DConnectHelper.FinishCallback<Void>() {
+                @Override
+                public void onFinish(Void aVoid, Exception error) {
+                    if (error != null) {
+                        Log.e(TAG, "Error on sendMessage", error);
                     }
-                });
+                }
+            });
+        }
+
+        // リクエスト送信
+        Utils.sendRequest(context, result.data.method, result.data.path, result.data.serviceId, params, new DConnectHelper.FinishCallback<Map<String, Object>>() {
+            @Override
+            public void onFinish(Map<String, Object> stringObjectMap, Exception error) {
+                if (error == null) {
+                    if (BuildConfig.DEBUG) Log.d(TAG, stringObjectMap.toString());
+                    sendResponse(result, result.data.success, result.data.successUri, stringObjectMap);
+                } else {
+                    if (BuildConfig.DEBUG) Log.e(TAG, "Error on sendRequest", error);
+                    sendResponse(result, result.data.error, result.data.errorUri, stringObjectMap);
+                }
             }
         });
 
@@ -266,9 +241,10 @@ public class SimpleBotService extends Service {
 
     /**
      * 処理結果を送信
-     * @param result 結果
-     * @param text Text
-     * @param uri リソースURI
+     *
+     * @param result   結果
+     * @param text     Text
+     * @param uri      リソースURI
      * @param response Response
      */
     private void sendResponse(ResultData.Result result, String text, String uri, Map<String, Object> response) {
@@ -309,5 +285,4 @@ public class SimpleBotService extends Service {
             }
         });
     }
-
 }

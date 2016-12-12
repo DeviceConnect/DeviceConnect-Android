@@ -83,14 +83,22 @@ public class DConnectApplication extends Application {
 
     public DConnectSDK getDConnectSK() {
         if (mDConnectSK == null) {
-            mDConnectSK = DConnectSDKFactory.create(this, DConnectSDKFactory.Type.HTTP);
-            mDConnectSK.setHost(Settings.getInstance().getHostName());
-            mDConnectSK.setPort(Settings.getInstance().getPort());
-            String accessToken = Settings.getInstance().getAccessToken();
-            if (accessToken != null) {
-                mDConnectSK.setAccessToken(accessToken);
-            }
+            initDConnectSDK(Settings.getInstance().getSDKType());
         }
         return mDConnectSK;
+    }
+
+    public void initDConnectSDK(final String type) {
+        if (type.equals(getString(R.string.activity_settings_sdk_entry1))) {
+            mDConnectSK = DConnectSDKFactory.create(this, DConnectSDKFactory.Type.HTTP);
+        } else {
+            mDConnectSK = DConnectSDKFactory.create(this, DConnectSDKFactory.Type.INTENT);
+        }
+        mDConnectSK.setHost(Settings.getInstance().getHostName());
+        mDConnectSK.setPort(Settings.getInstance().getPort());
+        String accessToken = Settings.getInstance().getAccessToken();
+        if (accessToken != null) {
+            mDConnectSK.setAccessToken(accessToken);
+        }
     }
 }

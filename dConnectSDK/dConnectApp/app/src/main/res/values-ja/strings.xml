@@ -25,5 +25,9 @@
     <string name="open_source_licenses">Open Source Licenses</string>
     <string name="open_source_licenses_summary">Legal information about licenses</string>
     <string name="app_information_summary">Version %1$s</string>
+    <string name="activity_api_request">リクエスト</string>
+    <string name="activity_api_response">レスポンス</string>
+    <string name="activity_settings_sdk_title">通信タイプ</string>
+    <string name="activity_settings_sdk">Device Connect SDK</string>
 
 </resources>

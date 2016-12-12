@@ -22,8 +22,8 @@
         android:gravity="center_horizontal"
         android:ellipsize="middle"
         android:singleLine="true"
-        android:text="000000"
-        android:textSize="14dp"/>
+        android:text="@color/service_name_color"
+        android:textAppearance="?android:attr/textAppearanceSmall"/>
 
     <ImageView
         android:id="@+id/item_type"

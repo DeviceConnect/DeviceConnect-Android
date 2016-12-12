@@ -20,6 +20,16 @@
             android:title="@string/port"/>
     </PreferenceCategory>
 
+    <PreferenceCategory android:title="@string/activity_settings_sdk">
+        <ListPreference
+            android:defaultValue="@string/activity_settings_sdk_entry1"
+            android:entries="@array/activity_settings_sdk_entries"
+            android:entryValues="@array/activity_settings_sdk_entries"
+            android:key="@string/key_settings_dconn_sdk"
+            android:title="@string/activity_settings_sdk_title"/>
+    </PreferenceCategory>
+
+
     <PreferenceCategory android:title="@string/about">
         <PreferenceScreen
             android:key="@string/key_settings_about_oss"

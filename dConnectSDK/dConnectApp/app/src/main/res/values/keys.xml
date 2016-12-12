@@ -8,6 +8,7 @@
     <string name="key_settings_dconn_ssl">settings_dconn_ssl</string>
     <string name="key_settings_dconn_host">settings_dconn_host</string>
     <string name="key_settings_dconn_port">settings_dconn_port</string>
+    <string name="key_settings_dconn_sdk">settings_dconn_sdk</string>
 
     <string name="key_settings_dconn_client_id">settings_client_id</string>
     <string name="key_settings_dconn_access_token">settings_access_token</string>

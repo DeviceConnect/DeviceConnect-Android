@@ -144,7 +144,7 @@ public class ServiceListActivity extends BasicActivity {
     private List<DCService> generateServiceList(final DConnectResponseMessage response) {
         List<Object> services = response.getList(ServiceDiscoveryProfileConstants.PARAM_SERVICES);
         if (services == null) {
-            return null;
+            return new ArrayList<>();
         }
 
         List<DCService> tempServices = new ArrayList<>();

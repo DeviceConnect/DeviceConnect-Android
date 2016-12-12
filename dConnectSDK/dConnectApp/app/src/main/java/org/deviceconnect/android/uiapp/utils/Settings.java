@@ -89,4 +89,11 @@ public final class Settings {
                 mContext.getString(R.string.default_port)));
         return port;
     }
+
+    public String getSDKType() {
+        String type = mPreferences.getString(
+                mContext.getString(R.string.key_settings_dconn_sdk),
+                mContext.getString(R.string.activity_settings_sdk_entry1));
+        return type;
+    }
 }

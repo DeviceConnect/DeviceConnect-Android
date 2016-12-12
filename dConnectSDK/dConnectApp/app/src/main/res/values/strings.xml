@@ -8,6 +8,8 @@
 
     <string name="activity_api_send_request">Send Request</string>
     <string name="activity_api_select_file">Select File</string>
+    <string name="activity_api_request">Request</string>
+    <string name="activity_api_response">Response</string>
 
     <string name="manager">Device Connect Manager</string>
     <string name="ssl_disabled">Disable</string>
@@ -18,6 +20,18 @@
     <string name="host">Host</string>
     <string name="default_port">4035</string>
     <string name="port">Port</string>
+
+    <string name="activity_settings_sdk">Device Connect SDK</string>
+    <string name="activity_settings_sdk_title">Type of Connection</string>
+    <string name="sdk_type_http" translatable="false">HTTP</string>
+    <string name="sdk_type_intent" translatable="false">Intent</string>
+    <string name="activity_settings_sdk_entry1" translatable="false">HTTP</string>
+    <string name="activity_settings_sdk_entry2" translatable="false">Intent</string>
+
+    <string-array name="activity_settings_sdk_entries">
+        <item>@string/activity_settings_sdk_entry1</item>
+        <item>@string/activity_settings_sdk_entry2</item>
+    </string-array>
 
     <string name="about">About</string>
     <string name="terms_of_service">Terms of Service</string>

@@ -213,7 +213,7 @@ public class MessageParser {
         }
     }
 
-    private interface OnClickLinkListener {
+    public interface OnClickLinkListener {
         void onClick(final String uri);
     }
 }

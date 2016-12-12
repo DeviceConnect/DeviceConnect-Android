@@ -12,11 +12,14 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.preference.CheckBoxPreference;
 import android.preference.EditTextPreference;
+import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceScreen;
 
+import org.deviceconnect.android.uiapp.DConnectApplication;
 import org.deviceconnect.android.uiapp.R;
+import org.deviceconnect.android.uiapp.utils.Settings;
 
 /**
  * 設定画面フラグメント.
@@ -53,18 +56,29 @@ public class SettingsFragment extends PreferenceFragment
                 getPreferenceScreen().findPreference(getString(R.string.key_settings_dconn_port));
         editPortPreferences.setOnPreferenceChangeListener(this);
         editPortPreferences.setSummary(editPortPreferences.getText());
+
+        ListPreference listPreference = (ListPreference)
+                getPreferenceScreen().findPreference(getString(R.string.key_settings_dconn_sdk));
+        listPreference.setSummary(Settings.getInstance().getSDKType());
+        listPreference.setOnPreferenceChangeListener(this);
     }
 
     @Override
     public boolean onPreferenceChange(final Preference preference, final Object newValue) {
+        if (getString(R.string.key_settings_dconn_sdk).equals(preference.getKey())) {
+            if (newValue != null) {
+                preference.setSummary((CharSequence) newValue);
+                DConnectApplication app = (DConnectApplication) getActivity().getApplication();
+                app.initDConnectSDK((String) newValue);
+                return true;
+            }
+        }
         return false;
     }
 
     @Override
     public boolean onPreferenceTreeClick(final PreferenceScreen preferenceScreen, final Preference preference) {
-        boolean result = super.onPreferenceTreeClick(preferenceScreen, preference);
-
-        if (getString(R.string.key_settings_about_oss).equals(preference.getKey())) {
+       if (getString(R.string.key_settings_about_oss).equals(preference.getKey())) {
 //            mOssFragment.show(getFragmentManager(), null);
         } else if (getString(R.string.key_settings_about_privacypolicy).equals(preference.getKey())) {
             Bundle policyArgs = new Bundle();
@@ -82,7 +96,6 @@ public class SettingsFragment extends PreferenceFragment
             fragment.show(getFragmentManager(), null);
         }
 
-        return result;
+        return super.onPreferenceTreeClick(preferenceScreen, preference);
     }
-
 }

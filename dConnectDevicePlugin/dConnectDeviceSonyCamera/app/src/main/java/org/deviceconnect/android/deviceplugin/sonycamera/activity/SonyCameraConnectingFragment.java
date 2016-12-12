@@ -6,31 +6,15 @@ http://opensource.org/licenses/mit-license.php
  */
 package org.deviceconnect.android.deviceplugin.sonycamera.activity;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.logging.Logger;
-
-import org.deviceconnect.android.activity.IntentHandlerActivity;
-import org.deviceconnect.android.activity.PermissionUtility;
-import org.deviceconnect.android.deviceplugin.sonycamera.R;
-import org.deviceconnect.android.deviceplugin.sonycamera.utils.DConnectMessageHandler;
-import org.deviceconnect.android.deviceplugin.sonycamera.utils.DConnectUtil;
-import org.deviceconnect.android.deviceplugin.sonycamera.utils.UserSettings;
-import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
-import org.deviceconnect.message.DConnectMessage;
-
 import android.Manifest;
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
@@ -42,11 +26,11 @@ import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.IBinder;
 import android.os.Looper;
 import android.os.ResultReceiver;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -55,6 +39,20 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import org.deviceconnect.android.activity.IntentHandlerActivity;
+import org.deviceconnect.android.activity.PermissionUtility;
+import org.deviceconnect.android.deviceplugin.sonycamera.R;
+import org.deviceconnect.android.deviceplugin.sonycamera.SonyCameraDeviceService;
+import org.deviceconnect.android.deviceplugin.sonycamera.utils.DConnectUtil;
+import org.deviceconnect.android.deviceplugin.sonycamera.utils.UserSettings;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.logging.Logger;
 
 /**
  * Sony Camera 接続処理用フラグメント.
@@ -142,59 +140,6 @@ public class SonyCameraConnectingFragment extends SonyCameraBaseFragment {
     }
 
     /**
-     * 周りに存在するWiFiを探索する.
-     * <p>
-     * 探索結果は、WiFiDeviceListFragmentに表示する。
-     * </p>
-     */
-    private void searchSonyCamera() {
-        mLogger.entering(this.getClass().getName(), "searchSonyCamera");
-
-        if (isShowProgressDialog()) {
-            mLogger.exiting(this.getClass().getName(), "searchSonyCamera", null);
-            return;
-        }
-
-        showProgressDialog();
-
-        DConnectUtil.asyncSearchDevice(new DConnectMessageHandler() {
-            @Override
-            public void handleMessage(final DConnectMessage message) {
-
-                if (message == null) {
-                    return;
-                }
-
-                int result = message.getInt(DConnectMessage.EXTRA_RESULT);
-                if (result == DConnectMessage.RESULT_OK) {
-                    List<Object> services = message.getList(ServiceDiscoveryProfile.PARAM_SERVICES);
-                    if (services.size() == 0) {
-                        searchSonyCamera();
-                    } else {
-                        dismissProgressDialog();
-                        for (int i = 0; i < services.size(); i++) {
-                            HashMap<?, ?> service = (HashMap<?, ?>) services.get(i);
-                            String name = (String) service.get(ServiceDiscoveryProfile.PARAM_NAME);
-                            if (name != null && name.equals("Sony Camera")) {
-                                String id = (String) service.get(ServiceDiscoveryProfile.PARAM_ID);
-                                if (mServiceIdView != null) {
-                                    mServiceIdView.setText(R.string.sonycamera_connect);
-                                    setServiceId(id);
-                                }
-                            }
-                        }
-                    }
-                } else {
-                    mLogger.warning("error: result=" + result);
-                    mServiceIdView.setText(R.string.sonycamera_not_found);
-                }
-            }
-        });
-
-        mLogger.exiting(this.getClass().getName(), "searchSonyCamera");
-    }
-
-    /**
      * SonyCameraデバイスに接続を行います.
      */
     private void connectSonyCamera() {
@@ -204,7 +149,7 @@ public class SonyCameraConnectingFragment extends SonyCameraBaseFragment {
             WifiInfo wifiInfo = mWifiMgr.getConnectionInfo();
             mServiceIdView.setText(R.string.sonycamera_connecting);
             if (DConnectUtil.checkSSID(wifiInfo.getSSID())) {
-                searchSonyCamera();
+                mServiceIdView.setText(R.string.sonycamera_already_connect);
             } else {
                 searchSonyCameraWifi();
             }

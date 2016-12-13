@@ -29,7 +29,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Botサービス
+ * SimpleBotサービス.
+ *
+ * @author NTT DOCOMO, INC.
  */
 public class SimpleBotService extends Service {
 
@@ -49,9 +51,6 @@ public class SimpleBotService extends Service {
         return null;
     }
 
-    /**
-     * サービス作成時.
-     */
     @Override
     public void onCreate() {
         super.onCreate();
@@ -59,22 +58,22 @@ public class SimpleBotService extends Service {
         connect();
     }
 
-    /**
-     * サービス終了時.
-     */
     @Override
     public void onDestroy() {
-        super.onDestroy();
-        disconnect();
         if (BuildConfig.DEBUG) Log.d(TAG, "service destroyed...");
+
+        disconnect();
+
         // サービス停止を通知
         Intent broadcastIntent = new Intent();
         broadcastIntent.setAction(SERVICE_STOP_ACTION);
         getBaseContext().sendBroadcast(broadcastIntent);
+
+        super.onDestroy();
     }
 
     /**
-     * 接続
+     * Device Connect Managerと接続を行う.
      */
     private void connect() {
         // アクティブじゃない場合は終了
@@ -95,7 +94,7 @@ public class SimpleBotService extends Service {
         });
 
         // イベント登録
-        Utils.registerEvent(context, false, new DConnectHelper.FinishCallback<Void>() {
+        Utils.registerEvent(context, new DConnectHelper.FinishCallback<Void>() {
             @Override
             public void onFinish(Void aVoid, Exception error) {
                 if (error != null) {
@@ -111,29 +110,17 @@ public class SimpleBotService extends Service {
     }
 
     /**
-     * 切断
+     * Device Connect Managerとの接続を切断する.
      */
     private void disconnect() {
         // イベントハンドラー登録
         DConnectHelper.INSTANCE.setEventHandler(null);
-
         // イベント解除
-        final Context context = getApplicationContext();
-        Utils.registerEvent(context, true, new DConnectHelper.FinishCallback<Void>() {
-            @Override
-            public void onFinish(Void aVoid, Exception error) {
-                if (error != null) {
-                    Log.e(TAG, "Error on unregistEvent", error);
-                }
-            }
-        });
-
-        // WebSocket切断
-        DConnectHelper.INSTANCE.closeWebSocket();
+        Utils.unregisterEvent(getApplicationContext());
     }
 
     /**
-     * イベント処理
+     * messageHookからのイベントを受領し処理を行う.
      *
      * @param event イベント
      */
@@ -175,7 +162,7 @@ public class SimpleBotService extends Service {
     }
 
     /**
-     * 各コマンドを処理
+     * 各コマンドを処理する.
      *
      * @param result 結果
      * @return 処理した場合はtrue
@@ -210,7 +197,7 @@ public class SimpleBotService extends Service {
             if (BuildConfig.DEBUG) Log.d(TAG, params.toString());
         }
 
-        // 受付メッセージ送信
+        // Slackに受付メッセージ送信する.
         if ((data.accept != null && data.accept.length() > 0) || (data.acceptUri != null && data.acceptUri.length() > 0)) {
             Utils.sendMessage(context, result.channel, data.accept, data.acceptUri, new DConnectHelper.FinishCallback<Void>() {
                 @Override
@@ -223,6 +210,8 @@ public class SimpleBotService extends Service {
         }
 
         // リクエスト送信
+        // コマンドに記載されたリクエストをDevice Connect Managerに送信する
+        // 実行した結果を、メッセージとしてSlackに送信する。
         Utils.sendRequest(context, result.data.method, result.data.path, result.data.serviceId, params, new DConnectHelper.FinishCallback<Map<String, Object>>() {
             @Override
             public void onFinish(Map<String, Object> stringObjectMap, Exception error) {
@@ -240,7 +229,7 @@ public class SimpleBotService extends Service {
     }
 
     /**
-     * 処理結果を送信
+     * Slackに処理結果を送信する.
      *
      * @param result   結果
      * @param text     Text

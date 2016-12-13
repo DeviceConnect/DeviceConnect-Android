@@ -14,6 +14,8 @@ import android.net.NetworkInfo;
 
 /**
  * サービス起動に関わるBroadcastIntentを受け取るReceiver.
+ *
+ * @author NTT DOCOMO, INC.
  */
 public class StartupReceiver extends BroadcastReceiver {
 

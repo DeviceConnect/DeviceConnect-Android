@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -44,17 +45,6 @@ public class DConnectHelper {
     /** デバッグタグ */
     private static final String TAG = "DConnectHelper";
 
-    /** DConnectHelperの基底Exception */
-    public abstract class DConnectHelperException extends Exception {
-        public int errorCode = 0;
-    }
-
-    /** Resultが不正 */
-    public class DConnectInvalidResultException extends DConnectHelperException {}
-
-    /** 認証失敗 */
-    public class DConnectAuthFailedException extends DConnectHelperException {}
-
     /** イベントハンドラー */
     private EventHandler eventHandler = null;
 
@@ -63,6 +53,27 @@ public class DConnectHelper {
 
     /** コンテキスト. */
     private Context mContext;
+
+    /**
+     * リトライを行う間隔(SECOND).
+     */
+    private static final int RETRY_INTERVAL = 10;
+
+    /**
+     * イベントが有効化フラグ.
+     * イベントが有効の場合にはtrue、それ以外はfalse。
+     */
+    private boolean mActiveWebSocket;
+
+    /**
+     * リトライを行うためのスレッド管理クラス.
+     */
+    private ScheduledExecutorService mExecutor = Executors.newSingleThreadScheduledExecutor();
+
+    /**
+     * リトライ用スレッド.
+     */
+    private ScheduledFuture mRetryFuture;
 
     /** 処理完了コールバック */
     public interface FinishCallback<Result> {
@@ -136,6 +147,17 @@ public class DConnectHelper {
         }
     }
 
+    /** DConnectHelperの基底Exception */
+    public abstract class DConnectHelperException extends Exception {
+        public int errorCode = 0;
+    }
+
+    /** Resultが不正 */
+    public class DConnectInvalidResultException extends DConnectHelperException {}
+
+    /** 認証失敗 */
+    public class DConnectAuthFailedException extends DConnectHelperException {}
+
     //endregion
     //---------------------------------------------------------------------------------------
     //region Methods
@@ -143,17 +165,22 @@ public class DConnectHelper {
     public void setContext(Context context) {
         mContext = context;
 
-        mDConnectSDK = DConnectSDKFactory.create(context, DConnectSDKFactory.Type.HTTP);
-        mDConnectSDK.setOrigin(context.getPackageName());
+        if (context == null) {
+            mDConnectSDK = null;
+        } else {
+            mDConnectSDK = DConnectSDKFactory.create(context, DConnectSDKFactory.Type.HTTP);
+            mDConnectSDK.setOrigin(context.getPackageName());
 
-        SettingData setting = SettingData.getInstance(context);
-        if (setting.accessToken != null) {
-            mDConnectSDK.setAccessToken(setting.accessToken);
+            SettingData setting = SettingData.getInstance(context);
+            if (setting.accessToken != null) {
+                mDConnectSDK.setAccessToken(setting.accessToken);
+            }
         }
     }
 
     /**
-     * イベントハンドラーを設定する
+     * イベントハンドラーを設定する.
+     *
      * @param handler ハンドラー
      */
     public void setEventHandler(EventHandler handler) {
@@ -161,7 +188,8 @@ public class DConnectHelper {
     }
 
     /**
-     * 接続先情報を設定する
+     * 接続先情報を設定する.
+     *
      * @param ssl SSL通信を行う場合true
      * @param host ホスト名
      * @param port ポート番号
@@ -173,7 +201,8 @@ public class DConnectHelper {
     }
 
     /**
-     * ServiceDiscoveryを実行
+     * ServiceDiscoveryを実行する.
+     *
      * @param callback コールバック
      */
     public void serviceDiscovery(final FinishCallback<List<ServiceInfo>> callback) {
@@ -236,36 +265,57 @@ public class DConnectHelper {
     }
 
     /**
-     * ServiceInformationを実行
+     * ServiceInformationを実行する.
+     *
      * @param serviceId ServiceID
      * @param callback コールバック
      */
-    public void serviceInformation(String serviceId, final FinishCallback<Map<String, List<APIInfo>>> callback) {
+    public void serviceInformation(final String serviceId, final FinishCallback<Map<String, List<APIInfo>>> callback) {
         if (BuildConfig.DEBUG) Log.d(TAG, "serviceInformation");
 
         mDConnectSDK.getServiceInformation(serviceId, new DConnectSDK.OnResponseListener() {
             @Override
             public void onResponse(final DConnectResponseMessage response) {
-                // エラーチェック
                 int result = response.getInt(DConnectMessage.EXTRA_RESULT);
                 if (result == DConnectMessage.RESULT_ERROR) {
-                    DConnectHelperException e = new DConnectInvalidResultException();
-                    e.errorCode = response.getInt(DConnectMessage.EXTRA_ERROR_CODE);
-                    callback.onFinish(null, e);
-                    return;
+                    switch (DConnectMessage.ErrorCode.getInstance(response.getErrorCode())) {
+                        case AUTHORIZATION:
+                        case EXPIRED_ACCESS_TOKEN:
+                        case EMPTY_ACCESS_TOKEN:
+                        case SCOPE:
+                        case NOT_FOUND_CLIENT_ID:
+                            auth(new FinishCallback<AuthInfo>() {
+                                @Override
+                                public void onFinish(AuthInfo authInfo, Exception error) {
+                                    if (error == null) {
+                                        serviceInformation(serviceId, callback);
+                                    } else {
+                                        DConnectHelperException e = new DConnectInvalidResultException();
+                                        e.errorCode = response.getInt(DConnectMessage.EXTRA_ERROR_CODE);
+                                        callback.onFinish(null, e);
+                                    }
+                                }
+                            });
+                            return;
+                        default:
+                            DConnectHelperException e = new DConnectInvalidResultException();
+                            e.errorCode = response.getInt(DConnectMessage.EXTRA_ERROR_CODE);
+                            callback.onFinish(null, e);
+                            break;
+                    }
                 }
 
                 // APIリストを取得
                 @SuppressWarnings("unchecked")
-                Map<String, Map<String, Object>> prifiles = (Map<String, Map<String, Object>>)response.get(ServiceInformationProfileConstants.PARAM_SUPPORT_APIS);
-                if (prifiles == null) {
+                Map<String, Map<String, Object>> profiles = (Map<String, Map<String, Object>>)response.get(ServiceInformationProfileConstants.PARAM_SUPPORT_APIS);
+                if (profiles == null) {
                     // サービスがない場合
                     callback.onFinish(null, null);
                     return;
                 }
                 // 詰め直しして返却
                 Map<String, List<APIInfo>> res = new HashMap<>();
-                for (Map.Entry<String, Map<String, Object>> profile: prifiles.entrySet()) {
+                for (Map.Entry<String, Map<String, Object>> profile: profiles.entrySet()) {
                     List<APIInfo> list = new ArrayList<>();
                     String profileName = profile.getKey();
                     if (!(profile.getValue() instanceof Map)) {
@@ -323,7 +373,8 @@ public class DConnectHelper {
     }
 
     /**
-     * 認証
+     * Local OAuth認証を行う.
+     *
      * @param appName アプリ名
      * @param scopes スコープ
      * @param callback 完了コールバック
@@ -355,47 +406,8 @@ public class DConnectHelper {
     }
 
     /**
-     * イベント登録
-     * @param profile Profile
-     * @param attribute Attribute
-     * @param serviceId ServiceID
-     * @param callback Callback
-     */
-    public void registerEvent(String profile, String attribute, String serviceId, boolean unregist, final FinishCallback<Void> callback) {
-        if (BuildConfig.DEBUG) Log.d(TAG, "registerEvent:" + profile + ":" + attribute);
-
-        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
-        builder.setProfile(profile);
-        builder.setAttribute(attribute);
-        builder.setServiceId(serviceId);
-
-        if (!unregist) {
-            mDConnectSDK.addEventListener(builder.build(), new DConnectSDK.OnEventListener() {
-                @Override
-                public void onMessage(DConnectEventMessage message) {
-                    eventHandler.onEvent(message);
-                }
-
-                @Override
-                public void onResponse(final DConnectResponseMessage response) {
-                    // エラーチェック
-                    int result = response.getResult();
-                    if (result == DConnectMessage.RESULT_ERROR) {
-                        DConnectHelperException e = new DConnectInvalidResultException();
-                        e.errorCode = response.getErrorCode();
-                        callback.onFinish(null, e);
-                        return;
-                    }
-                    callback.onFinish(null, null);
-                }
-            });
-        } else {
-            mDConnectSDK.removeEventListener(builder.build());
-        }
-    }
-
-    /**
-     * メッセージ送信
+     * メッセージ送信する.
+     *
      * @param serviceId ServiceID
      * @param channelId ChannelID
      * @param text Text
@@ -419,6 +431,7 @@ public class DConnectHelper {
             params.put("resource", resource);
             params.put("mimeType", "image");
         }
+
         // 接続
         new HttpTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, new TaskParam(connectionParam, params) {
             @Override
@@ -441,7 +454,8 @@ public class DConnectHelper {
     }
 
     /**
-     * リクエスト送信
+     * リクエスト送信する.
+     *
      * @param method Method
      * @param path Path
      * @param serviceId ServiceID
@@ -483,59 +497,49 @@ public class DConnectHelper {
     }
 
     /**
-     * WebSocketを開く
+     * WebSocketを開く.
      */
-    public void openWebSocket() {
+    public synchronized void openWebSocket() {
         mActiveWebSocket = true;
         connectWebSocket();
     }
 
     /**
-     * WebSocketを閉じる
+     * WebSocketを閉じる.
      */
-    public void closeWebSocket() {
+    public synchronized void closeWebSocket() {
         mActiveWebSocket = false;
+        unregisterEvent();
         mDConnectSDK.disconnectWebSocket();
+        if (mRetryFuture != null) {
+            mRetryFuture.cancel(false);
+        }
     }
 
-    private void test() {
-        SettingData setting = SettingData.getInstance(mContext);
-        DConnectHelper.INSTANCE.registerEvent("messageHook", "message", setting.serviceId, false, new DConnectHelper.FinishCallback<Void>() {
-            @Override
-            public void onFinish(Void aVoid, Exception error) {
-                if (error != null) {
-                    mExecutor.schedule(new Runnable() {
-                        @Override
-                        public void run() {
-                            if (mActiveWebSocket) {
-                                test();
-                            }
-                        }
-                    }, 5, TimeUnit.SECONDS);
-                }
-            }
-        });
-    }
-
+    /**
+     * WebSocketの接続処理を行う.
+     * <p>
+     * 接続が切れた場合には、{@link #RETRY_INTERVAL}秒後に再接続を試みる。
+     * </p>
+     */
     private void connectWebSocket() {
         mDConnectSDK.connectWebSocket(new DConnectSDK.OnWebSocketListener() {
             @Override
             public void onOpen() {
-                test();
+                registerEvent();
             }
 
             @Override
             public void onClose() {
                 if (mActiveWebSocket) {
-                    mExecutor.schedule(new Runnable() {
+                    mRetryFuture = mExecutor.schedule(new Runnable() {
                         @Override
                         public void run() {
-                            Log.e("ABC", "retry");
                             if (mActiveWebSocket) {
                                 connectWebSocket();
                             }
                         }
-                    }, 5, TimeUnit.SECONDS);
+                    }, RETRY_INTERVAL, TimeUnit.SECONDS);
                 }
             }
 
@@ -545,9 +549,80 @@ public class DConnectHelper {
         });
     }
 
-    private boolean mActiveWebSocket;
-    private ScheduledExecutorService mExecutor = Executors.newSingleThreadScheduledExecutor();
+    /**
+     * イベント登録・解除する.
+     * @param profile Profile
+     * @param attribute Attribute
+     * @param serviceId ServiceID
+     * @param unregist 登録の場合はtrue、解除の場合はfalse
+     * @param callback Callback
+     */
+    private void registerEvent(String profile, String attribute, String serviceId, boolean unregist, final FinishCallback<Void> callback) {
+        if (BuildConfig.DEBUG) Log.d(TAG, "registerEvent:" + profile + ":" + attribute);
 
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
+        builder.setProfile(profile);
+        builder.setAttribute(attribute);
+        builder.setServiceId(serviceId);
+
+        if (!unregist) {
+            mDConnectSDK.addEventListener(builder.build(), new DConnectSDK.OnEventListener() {
+                @Override
+                public void onMessage(DConnectEventMessage message) {
+                    eventHandler.onEvent(message);
+                }
+
+                @Override
+                public void onResponse(final DConnectResponseMessage response) {
+                    // エラーチェック
+                    int result = response.getResult();
+                    if (result == DConnectMessage.RESULT_ERROR) {
+                        DConnectHelperException e = new DConnectInvalidResultException();
+                        e.errorCode = response.getErrorCode();
+                        callback.onFinish(null, e);
+                        return;
+                    }
+                    callback.onFinish(null, null);
+                }
+            });
+        } else {
+            mDConnectSDK.removeEventListener(builder.build());
+        }
+    }
+
+    /**
+     * messageHookプロファイルにイベントの登録する.
+     */
+    private void registerEvent() {
+        SettingData setting = SettingData.getInstance(mContext);
+        DConnectHelper.INSTANCE.registerEvent("messageHook", "message", setting.serviceId, false, new DConnectHelper.FinishCallback<Void>() {
+            @Override
+            public void onFinish(Void aVoid, Exception error) {
+                if (error != null) {
+                    mExecutor.schedule(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (mActiveWebSocket) {
+                                registerEvent();
+                            }
+                        }
+                    }, RETRY_INTERVAL, TimeUnit.SECONDS);
+                }
+            }
+        });
+    }
+
+    /**
+     * messageHookプロファイルへのイベントの解除する.
+     */
+    private void unregisterEvent() {
+        SettingData setting = SettingData.getInstance(mContext);
+        DConnectHelper.INSTANCE.registerEvent("messageHook", "message", setting.serviceId, true, new DConnectHelper.FinishCallback<Void>() {
+            @Override
+            public void onFinish(Void aVoid, Exception error) {
+            }
+        });
+    }
 
     //endregion
     //---------------------------------------------------------------------------------------

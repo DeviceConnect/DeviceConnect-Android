@@ -308,7 +308,8 @@ public class Utils {
     //region Connection
 
     /**
-     * 接続処理
+     * 接続処理を行う.
+     *
      * @param context context
      * @param callback 終了コールバック
      */
@@ -360,7 +361,8 @@ public class Utils {
     }
 
     /**
-     * サービス一覧を取得
+     * サービス一覧を取得する.
+     *
      * @param context context
      * @param callback 終了コールバック
      */
@@ -389,7 +391,8 @@ public class Utils {
     }
 
     /**
-     * サービス情報を取得
+     * サービス情報を取得する.
+     *
      * @param context context
      * @param callback 終了コールバック
      */
@@ -418,37 +421,35 @@ public class Utils {
     }
 
     /**
-     * イベントを登録
+     * イベントを登録する.
      * @param context context
      * @param callback 終了コールバック
      */
-    public static void registerEvent(final Context context, final boolean unregist, final DConnectHelper.FinishCallback<Void> callback) {
+    public static void registerEvent(final Context context, final DConnectHelper.FinishCallback<Void> callback) {
         DConnectHelper.FinishCallback<DConnectHelper.AuthInfo> finishCallback = new DConnectHelper.FinishCallback<DConnectHelper.AuthInfo>() {
             @Override
             public void onFinish(final DConnectHelper.AuthInfo authInfo, Exception error) {
                 if (error == null) {
-                    // 登録
-                    SettingData setting = SettingData.getInstance(context);
-                    DConnectHelper.INSTANCE.registerEvent("messageHook", "message", setting.serviceId, unregist, new DConnectHelper.FinishCallback<Void>() {
-                        @Override
-                        public void onFinish(Void aVoid, Exception error) {
-                            if (error == null) {
-                                // WebSocket接続
-                                if (!unregist) {
-                                    DConnectHelper.INSTANCE.openWebSocket();
-                                }
-                                callback.onFinish(null, null);
-                            } else {
-                                if (retryCheck(context, error)) {
-                                    registerEvent(context, unregist, callback);
-                                } else {
-                                    callback.onFinish(null, error);
-                                }
-                            }
-                        }
-                    });
+                    DConnectHelper.INSTANCE.openWebSocket();
+                    callback.onFinish(null, null);
                 } else {
                     callback.onFinish(null, error);
+                }
+            }
+        };
+        Utils.connect(context, finishCallback);
+    }
+
+    /**
+     * イベントを解除する.
+     * @param context context
+     */
+    public static void unregisterEvent(Context context) {
+        DConnectHelper.FinishCallback<DConnectHelper.AuthInfo> finishCallback = new DConnectHelper.FinishCallback<DConnectHelper.AuthInfo>() {
+            @Override
+            public void onFinish(final DConnectHelper.AuthInfo authInfo, Exception error) {
+                if (error == null) {
+                    DConnectHelper.INSTANCE.closeWebSocket();
                 }
             }
         };

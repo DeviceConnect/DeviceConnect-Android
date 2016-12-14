@@ -21,6 +21,13 @@ public interface DConnectWebSocket {
     void sendMessage(String message);
 
     /**
+     * クライアントにバイナリーを送信します.
+     *
+     * @param buffer バイナリー
+     */
+    void sendMessage(byte[] buffer);
+
+    /**
      * WebSocketを切断します.
      */
     void disconnect();
@@ -42,4 +49,10 @@ public interface DConnectWebSocket {
      * @return オリジン
      */
     String getClientOrigin();
+
+    /**
+     * WebSocketが接続されているかを取得します.
+     * @return 接続中の場合はtrue、それ以外はfalse
+     */
+    boolean isOpen();
 }

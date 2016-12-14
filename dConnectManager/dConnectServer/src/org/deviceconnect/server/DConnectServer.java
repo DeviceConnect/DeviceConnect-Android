@@ -83,6 +83,14 @@ public abstract class DConnectServer {
     public abstract String getVersion();
 
     /**
+     * 設定されたコンフィグ情報を取得します.
+     * @return DConnectServerConfigのインスタンス
+     */
+    public DConnectServerConfig getConfig() {
+        return mConfig;
+    }
+
+    /**
      * イベントリスナーを設定します.
      * 
      * @param listener リスナーオブジェクト
@@ -101,5 +109,13 @@ public abstract class DConnectServer {
      */
     public DConnectWebSocket getWebSocket(final String webSocketId) {
         return mSockets.get(webSocketId);
+    }
+
+    /**
+     * 接続されているWebSocketの一覧を取得します.
+     * @return DConnectWebSocketのマップ
+     */
+    public Map<String, DConnectWebSocket> getWebSockets() {
+        return mSockets;
     }
 }

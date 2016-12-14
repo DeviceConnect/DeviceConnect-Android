@@ -166,8 +166,13 @@ public class DConnectServerNanoHttpd extends DConnectServer {
         }
 
         mServer = new NanoServer(mConfig.getHost(), mConfig.getPort());
-        mServer.setTempFileManagerFactory(new NanoTempFileManagerFactory(mConfig.getCachePath()));
 
+        // キャッシュのパスが設定されていた場合には、指定したフォルダを使用する
+        if (mConfig.getCachePath() != null) {
+            mServer.setTempFileManagerFactory(new NanoTempFileManagerFactory(mConfig.getCachePath()));
+        }
+
+        // SSLが有効になっている場合には、SSL用の設定を行う
         if (mConfig.isSsl()) {
             SSLServerSocketFactory factory = createServerSocketFactory();
             if (factory == null) {
@@ -695,7 +700,9 @@ public class DConnectServerNanoHttpd extends DConnectServer {
                         // Read the part into a string
                         byte[] data_bytes = new byte[partDataEnd - partDataStart];
                         fbuf.get(data_bytes);
-                        parms.put(partName, new String(data_bytes, contentType.getEncoding()));
+                        // MEMO: デフォルトの文字コードでマルチパートの文字列は取得する
+//                        parms.put(partName, new String(data_bytes, contentType.getEncoding()));
+                        parms.put(partName, new String(data_bytes, mConfig.getCharset()));
                     } else {
                         // Read it into a file
                         String path = saveTmpFile(session, fbuf, partDataStart, partDataEnd - partDataStart, fileName);
@@ -980,7 +987,24 @@ public class DConnectServerNanoHttpd extends DConnectServer {
         @Override
         public void sendMessage(final String message) {
             try {
-                send(message);
+                if (isOpen()) {
+                    send(message);
+                }
+            } catch (IOException e) {
+                mLogger.warning("Exception in the NanoWebSocket#sendMessage() method. " + e.toString());
+                if (mListener != null) {
+                    mListener.onError(DConnectServerError.SEND_EVENT_FAILED);
+                    mListener.onWebSocketDisconnected(getId());
+                }
+            }
+        }
+
+        @Override
+        public void sendMessage(final byte[] payload) {
+            try {
+                if (isOpen()) {
+                    send(payload);
+                }
             } catch (IOException e) {
                 mLogger.warning("Exception in the NanoWebSocket#sendMessage() method. " + e.toString());
                 if (mListener != null) {

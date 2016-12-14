@@ -42,6 +42,9 @@ public final class DConnectServerConfig {
     /** ファイルなどのキャッシュをおくフォルダへのパス. */
     private String mCachePath;
 
+    /** 文字コード. */
+    private String mCharset = "UTF-8";
+
     /**
      * 最大コネクション数を取得する.
      * 
@@ -105,6 +108,14 @@ public final class DConnectServerConfig {
     }
 
     /**
+     * 文字コードを取得する.
+     * @return 文字コード
+     */
+    public String getCharset() {
+        return mCharset;
+    }
+
+    /**
      * IPのホワイトリストを取得する.
      * 
      * @return IPのホワイトリスト。
@@ -128,6 +139,7 @@ public final class DConnectServerConfig {
         this.mHost = builder.mHost;
         this.mCachePath = builder.mCachePath;
         this.mIpWhiteList = builder.mIpWhiteList;
+        this.mCharset = builder.mCharset;
     }
 
     /**
@@ -161,6 +173,9 @@ public final class DConnectServerConfig {
 
         /** IPのホワイトリスト. */
         private ArrayList<String> mIpWhiteList;
+
+        /** 文字コード. */
+        private String mCharset = "UTF-8";
 
         /**
          * DConnectServerConfigのインスタンスを設定された設定値で生成する.
@@ -285,6 +300,16 @@ public final class DConnectServerConfig {
          */
         public Builder ipWhiteList(final ArrayList<String> ipWhiteList) {
             this.mIpWhiteList = ipWhiteList;
+            return this;
+        }
+
+        /**
+         * 文字コードを設定する.
+         * @param charset 文字コード
+         * @return ビルダー。
+         */
+        public Builder charset(final String charset) {
+            mCharset = charset;
             return this;
         }
     }

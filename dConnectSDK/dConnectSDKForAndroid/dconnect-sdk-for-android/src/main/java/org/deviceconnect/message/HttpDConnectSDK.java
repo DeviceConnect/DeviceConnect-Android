@@ -6,8 +6,6 @@
  */
 package org.deviceconnect.message;
 
-import android.content.ContentResolver;
-import android.content.Context;
 import android.net.Uri;
 import android.os.Build;
 import android.util.Log;
@@ -69,12 +67,12 @@ class HttpDConnectSDK extends DConnectSDK {
     private static final int SUCCESS_RESPONSE_CODE = 200;
 
     /**
-     * 接続のタイムアウト.
+     * 接続のタイムアウト(ms).
      */
     private static final int CONNECT_TIMEOUT = 10 * 1000;
 
     /**
-     * 読み込みのタイムアウト時間.
+     * 読み込みのタイムアウト時間(ms).
      */
     private static final int READ_TIMEOUT = 30 * 1000;
 
@@ -93,13 +91,10 @@ class HttpDConnectSDK extends DConnectSDK {
      */
     private final static String EOL = "\r\n";
 
-    private Context mContext;
-
     /**
      * {@link DConnectSDKFactory}で生成させるためにpackageスコープにしておく。
      */
-    HttpDConnectSDK(final Context context) {
-        mContext = context;
+    HttpDConnectSDK() {
     }
 
     /**
@@ -157,50 +152,35 @@ class HttpDConnectSDK extends DConnectSDK {
      * @return コンテンツデータサイズ
      * @throws IOException ファイルのオープンやストリームの書き込みに失敗した場合に発生
      */
-    private int writeMultipart(final OutputStream out, final Map<String, String> dataMap, final String boundary, final boolean writeFlag) throws IOException {
+    private int writeMultipart(final OutputStream out, final Map<String, Object> dataMap, final String boundary, final boolean writeFlag) throws IOException {
         int contentLength = 0;
         BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(out, "UTF-8"));
-        for (Map.Entry<String, String> data : dataMap.entrySet()) {
+        for (Map.Entry<String, Object> data : dataMap.entrySet()) {
             String key = data.getKey();
-            String val = data.getValue();
+            Object val = data.getValue();
 
-            File file = new File(val);
-            if (val.startsWith("content://")) {
-                Uri uri = Uri.parse(val);
-
-                writer.write(String.format("%s%s%s", TWO_HYPHEN, boundary, EOL));
-                writer.write(String.format("Content-Disposition: form-data; name=\"%s\"; filename=\"%s\"%s", key, uri.getLastPathSegment(), EOL));
-                writer.write(String.format("Content-Type: application/octet-stream%s", EOL));
-                writer.write(String.format("Content-Transfer-Encoding: binary%s", EOL));
-                writer.write(EOL);
-                writer.flush();
-
-                ContentResolver resolver = mContext.getContentResolver();
-                InputStream in = null;
-                int len;
-                byte[] buffer = new byte[4096];
-                try {
-                    in = resolver.openInputStream(uri);
-                    while ((len = in.read(buffer)) != -1) {
-                        if (writeFlag) {
-                            out.write(buffer, 0, len);
-                        }
-                        contentLength += len;
-                    }
-                } finally {
-                    if (in != null) {
-                        in.close();
-                    }
-                }
-
-                writer.write(EOL);
-            } else if (!file.isFile()) {
+            if (val instanceof String) {
                 writer.write(String.format("%s%s%s", TWO_HYPHEN, boundary, EOL));
                 writer.write(String.format("Content-Disposition: form-data; name=\"%s\"%s", key, EOL));
                 writer.write(EOL);
-                writer.write(val);
+                writer.write((String) val);
                 writer.write(EOL);
-            } else {
+            } else if (val instanceof byte[]) {
+                contentLength += ((byte[]) val).length;
+
+                writer.write(String.format("%s%s%s", TWO_HYPHEN, boundary, EOL));
+                writer.write(String.format("Content-Disposition: form-data; name=\"%s\"%s", key, EOL));
+                writer.write(EOL);
+                writer.flush();
+
+                if (writeFlag) {
+                    out.write((byte[]) val);
+                }
+
+                writer.write(EOL);
+            } else if (val instanceof File) {
+                File file = (File) val;
+
                 contentLength += file.length();
 
                 writer.write(String.format("%s%s%s", TWO_HYPHEN, boundary, EOL));
@@ -221,12 +201,18 @@ class HttpDConnectSDK extends DConnectSDK {
                         }
                     } finally {
                         if (fis != null) {
-                            fis.close();
+                            try {
+                                fis.close();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
                         }
                     }
                 }
 
                 writer.write(EOL);
+            } else {
+                throw new IllegalArgumentException("data is not String or File. value=" + val);
             }
             writer.flush();
         }
@@ -238,31 +224,18 @@ class HttpDConnectSDK extends DConnectSDK {
     }
 
     /**
-     * マルチパートのContent-Lengthを算出する.
-     * @param dataMap マルチパートに書き込むデータ
-     * @param boundary マルチパートのバウンダリー
-     * @return コンテンツのサイズ
-     * @throws IOException ファイルの読み込みに失敗した場合に発生
-     */
-    private int calcMultipart(final Map<String, String> dataMap, final String boundary) throws IOException {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        int contentLength = writeMultipart(out, dataMap, boundary, false);
-        return contentLength + out.size();
-    }
-
-    /**
      * 指定したURIに接続を行い通信結果を返却する.
      *
      * @param method HTTPメソッド
      * @param uri 通信先のURI
      * @param headers HTTPリクエストに追加するヘッダーリスト(ヘッダーを追加しない場合にはnull)
-     * @param dataMap HTTPリクエストに追加するボディデータ(ボディを追加しない場合にはnull)
+     * @param body HTTPリクエストに追加するボディデータ(ボディを追加しない場合にはnull)
      * @return 通信結果
      * @throws IOException HttpsURLConnectionの生成に失敗した場合に発生
      * @throws NoSuchAlgorithmException SSLの暗号化に失敗した場合に発生
      * @throws KeyManagementException Keyの管理に失敗した場合の発生
      */
-    private byte[] connect(final Method method, final String uri, final Map<String, String> headers, final Map<String, String> dataMap)
+    private byte[] connect(final Method method, final String uri, final Map<String, String> headers, final Object body)
             throws IOException, NoSuchAlgorithmException, KeyManagementException {
         if (DEBUG) {
             Log.d(TAG, "connect: method=" + method + " uri=" + uri);
@@ -271,12 +244,11 @@ class HttpDConnectSDK extends DConnectSDK {
                     Log.d(TAG, "header: " + key + "=" + headers.get(key));
                 }
             }
-            if (dataMap != null) {
-                Log.d(TAG, "body: " + dataMap);
+            if (body != null) {
+                Log.d(TAG, "body: " + body);
             }
         }
 
-        int contentLength = 0;
         String boundary = String.format("%x", new Random().hashCode());
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         HttpURLConnection conn = null;
@@ -309,21 +281,23 @@ class HttpDConnectSDK extends DConnectSDK {
                 conn.setRequestProperty("Connection", "close");
             }
 
-            // マルチパートのデータを生成する
-            if (dataMap != null && !dataMap.isEmpty()) {
-                contentLength = calcMultipart(dataMap, boundary);
-                if (contentLength > 0) {
-                    conn.setRequestProperty("Content-Type", String.format("multipart/form-data; boundary=%s", boundary));
-                    conn.setRequestProperty("Content-Length", String.valueOf(contentLength));
-                }
+            // マルチパートのContentTypeを設定する
+            if (body != null && body instanceof Map) {
+                conn.setRequestProperty("Content-Type", String.format("multipart/form-data; boundary=%s", boundary));
             }
 
             conn.connect();
 
-            // コンテンツサイズが0以上の場合には、データを書き込む
-            if (contentLength > 0 && (Method.POST.equals(method) || Method.PUT.equals(method))) {
+            // Bodyにデータが存在する場合には、データを書き込む
+            if (body != null && (Method.POST.equals(method) || Method.PUT.equals(method))) {
                 OutputStream os = conn.getOutputStream();
-                writeMultipart(os, dataMap, boundary, true);
+                if (body instanceof byte[]) {
+                    os.write((byte[]) body);
+                } else if (body instanceof String) {
+                    os.write(((String) body).getBytes());
+                } else if (body instanceof Map<?, ?>) {
+                    writeMultipart(os, (Map<String, Object>) body, boundary, true);
+                }
                 os.flush();
                 os.close();
             }
@@ -371,7 +345,7 @@ class HttpDConnectSDK extends DConnectSDK {
 
     @Override
     protected DConnectResponseMessage sendRequest(final Method method, final Uri uri,
-                                                  final Map<String, String> headers, final Map<String, String> body) {
+                                                  final Map<String, String> headers, final Object body) {
         if (method == null) {
             throw new NullPointerException("method is null.");
         }

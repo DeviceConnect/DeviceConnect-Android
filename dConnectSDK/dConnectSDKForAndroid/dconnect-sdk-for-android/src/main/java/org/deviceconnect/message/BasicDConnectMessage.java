@@ -109,6 +109,19 @@ class BasicDConnectMessage extends HashMap<String, Object> implements DConnectMe
         return (Integer) value;
     }
 
+    @Override
+    public long getLong(String key) {
+        if (!containsKey(key)) {
+            return 0;
+        }
+
+        Object value = get(key);
+        if (value == null || !(value instanceof Long)) {
+            return 0;
+        }
+        return (Long) value;
+    }
+
     /**
      * booleanを取得する.
      * @param key キー
@@ -141,6 +154,19 @@ class BasicDConnectMessage extends HashMap<String, Object> implements DConnectMe
             return 0f;
         }
         return ((Number) value).floatValue();
+    }
+
+    @Override
+    public double getDouble(String key) {
+        if (!containsKey(key)) {
+            return 0;
+        }
+
+        Object value = get(key);
+        if (value == null || !(value instanceof Number)) {
+            return 0f;
+        }
+        return ((Number) value).doubleValue();
     }
 
     @Override

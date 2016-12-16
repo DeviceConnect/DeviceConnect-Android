@@ -183,6 +183,13 @@ public interface DConnectMessage extends Map<String, Object> {
     int getInt(String key);
 
     /**
+     * longを取得する.
+     * @param key キー
+     * @return 値
+     */
+    long getLong(String key);
+
+    /**
      * booleanを取得する.
      *
      * @param key キー
@@ -191,12 +198,20 @@ public interface DConnectMessage extends Map<String, Object> {
     boolean getBoolean(String key);
 
     /**
-     * doubleを取得する.
+     * floatを取得する.
      *
      * @param key キー
      * @return 値
      */
     float getFloat(String key);
+
+    /**
+     * doubleを取得する.
+     *
+     * @param key キー
+     * @return 値
+     */
+    double getDouble(String key);
 
     /**
      * {@code List<Object>}を取得する.

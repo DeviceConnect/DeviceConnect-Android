@@ -540,9 +540,9 @@ public class HttpDConnectSDKTest {
         final String uuid = "uuid";
         final String key = "key";
         final String value = "value";
-        final Map<String, String> data = new HashMap<>();
+        final Map<String, Object> data = new HashMap<>();
         data.put(key, value);
-        data.put("data", path);
+        data.put("data", new File(path));
 
         mTestServer.setServerCallback(new TestServer.ServerCallback() {
             @Override
@@ -628,7 +628,7 @@ public class HttpDConnectSDKTest {
         final String uuid = "uuid";
         final String key = "key";
         final String value = "value";
-        final Map<String, String> data = new HashMap<>();
+        final Map<String, Object> data = new HashMap<>();
         data.put(key, value);
         final DConnectResponseMessage[] response = new DConnectResponseMessage[1];
         mTestServer.setServerCallback(new TestServer.ServerCallback() {
@@ -689,7 +689,7 @@ public class HttpDConnectSDKTest {
         final String uuid = "uuid";
         final String key = "key";
         final String value = "value";
-        final Map<String, String> data = new HashMap<>();
+        final Map<String, Object> data = new HashMap<>();
         data.put(key, value);
 
         mTestServer.setServerCallback(new TestServer.ServerCallback() {

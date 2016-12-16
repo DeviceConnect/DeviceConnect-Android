@@ -14,6 +14,7 @@ import android.net.Uri;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 import org.json.JSONException;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -139,7 +140,7 @@ class IntentDConnectSDK extends DConnectSDK {
 
     @Override
     protected DConnectResponseMessage sendRequest(final Method method, final Uri uri,
-                                                  final Map<String, String> headers, final Map<String, String> body) {
+                                                  final Map<String, String> headers, final Object body) {
         final int requestCode = UUID.randomUUID().hashCode();
 
         String[] paths = parsePath(uri);
@@ -183,9 +184,18 @@ class IntentDConnectSDK extends DConnectSDK {
         if (getOrigin() != null) {
             request.putExtra(IntentDConnectMessage.EXTRA_ORIGIN, getOrigin());
         }
-        if (body != null) {
-            for (Map.Entry<String, String> data : body.entrySet()) {
-                request.putExtra(data.getKey(), data.getValue());
+        if (body != null && body instanceof Map) {
+            for (Map.Entry<String, Object> data : ((Map<String, Object>)body).entrySet()) {
+                String key = data.getKey();
+                Object val = data.getValue();
+
+                if (val instanceof String) {
+                    request.putExtra(key, (String) val);
+                } else if (val instanceof byte[]) {
+                    request.putExtra(key, (byte[]) val);
+                } else if (val instanceof File) {
+                    request.putExtra(key, (File) val);
+                }
             }
         }
 

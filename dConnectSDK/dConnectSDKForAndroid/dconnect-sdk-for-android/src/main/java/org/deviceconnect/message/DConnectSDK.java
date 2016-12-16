@@ -268,14 +268,23 @@ public abstract class DConnectSDK {
      * イベント受信用のWebSocketを Device Connect Managerへ接続する.
      * <p>
      * すでに接続されている場合には、無視します。<br>
-     * この関数でWebSocketを開いたあとは、必ず{@link #disconnectWebSocket()}を呼び出して、
-     * WebSocketを切断してください。
+     * この関数でWebSocketを開いたあとは、必ず{@link #disconnectWebSocket()}を呼び出して、WebSocketを切断してください。
      * </p>
      * <h3>サンプルコード</h3>
      * <pre>
      * DConnectSDK sdk = DConnectSDKFactory.create(context, DConnectSDKFactory.Type.HTTP);
      * sdk.connectWebSocket(new OnWebSocketListener() {
+     *     @Override
+     *     public void onOpen() {
+     *     }
      *
+     *     @Override
+     *     void onClose() {
+     *     }
+     *
+     *     @Override
+     *     void onError(Exception e) {
+     *     }
      * });
      * </pre>
      * @param listener WebSocket状態通知リスナー
@@ -344,7 +353,7 @@ public abstract class DConnectSDK {
      * @param body リクエストに追加するボディデータ
      * @return レスポンス
      */
-    protected abstract DConnectResponseMessage sendRequest(final Method method, final Uri uri, final Map<String, String> headers, final Map<String, String> body);
+    protected abstract DConnectResponseMessage sendRequest(final Method method, final Uri uri, final Map<String, String> headers, final Object body);
 
     /**
      * URIBuilderを生成する.
@@ -443,7 +452,7 @@ public abstract class DConnectSDK {
      * @param data 送信するボディデータ
      * @return レスポンス
      */
-    public DConnectResponseMessage put(final String uri, final Map<String, String> data) {
+    public DConnectResponseMessage put(final String uri, final Object data) {
         if (uri == null) {
             throw new NullPointerException("uri is null.");
         }
@@ -456,7 +465,7 @@ public abstract class DConnectSDK {
      * @param data 送信するボディデータ
      * @return レスポンス
      */
-    public DConnectResponseMessage put(final Uri uri, final Map<String, String> data) {
+    public DConnectResponseMessage put(final Uri uri, final Object data) {
         if (uri == null) {
             throw new NullPointerException("uri is null.");
         }
@@ -469,7 +478,7 @@ public abstract class DConnectSDK {
      * @param data 送信するボディデータ
      * @param listener レスポンスを通知するリスナー
      */
-    public void put(final String uri, final Map<String, String> data, final OnResponseListener listener) {
+    public void put(final String uri, final Object data, final OnResponseListener listener) {
         if (uri == null) {
             throw new NullPointerException("uri is null.");
         }
@@ -482,7 +491,7 @@ public abstract class DConnectSDK {
      * @param data 送信するボディデータ
      * @param listener レスポンスを通知するリスナー
      */
-    public void put(final Uri uri, final Map<String, String> data, final OnResponseListener listener) {
+    public void put(final Uri uri, final Object data, final OnResponseListener listener) {
         if (uri == null) {
             throw new NullPointerException("uri is null.");
         }
@@ -501,8 +510,12 @@ public abstract class DConnectSDK {
     /**
      * POSTメソッドで指定したURIにアクセスし、レスポンスを取得する.
      * <p>
-     * dataに渡すMapにファイルパスを格納するとファイルのデータをDevice Connect Managerに送る。<br>
-     * ファイルパス以外は、key-valueの値をDevice Connect Managerに送る。
+     * 引数のdataにStringを渡した場合には、ボディに文字列を入れてDevice Connect Managerに送信する。
+     * </p>
+     * <p>
+     * 引数のdataにMapを渡した場合には、ボディにマルチパートを格納してDevice Connect Managerに送信する。<br>
+     * MapにFileを格納するとファイルのデータをDevice Connect Managerに送る。<br>
+     * File以外は、key-valueの値をDevice Connect Managerに送る。
      * </p>
      * <p>
      * dataにnullが指定された場合には、データは何もつけずにDevice Connect Managerにアクセスする。
@@ -511,7 +524,7 @@ public abstract class DConnectSDK {
      * @param data 送信するボディデータ
      * @return レスポンス
      */
-    public DConnectResponseMessage post(final String uri, final Map<String, String> data) {
+    public DConnectResponseMessage post(final String uri, final Object data) {
         if (uri == null) {
             throw new NullPointerException("uri is null.");
         }
@@ -521,17 +534,24 @@ public abstract class DConnectSDK {
     /**
      * POSTメソッドで指定したURIにアクセスし、レスポンスを取得する.
      * <p>
-     * dataに渡すMapにファイルパスを格納するとファイルのデータをDevice Connect Managerに送る。<br>
-     * ファイルパス以外は、key-valueの値をDevice Connect Managerに送る。
+     * 引数のdataにMapを渡した場合には、ボディにマルチパートを格納してDevice Connect Managerに送信する。<br>
+     * MapにFileを格納するとファイルのデータをDevice Connect Managerに送る。<br>
+     * File以外は、key-valueの値をDevice Connect Managerに送る。
+     * </p>
+     * <p>
+     * 引数のdataにStringを渡した場合には、ボディに文字列を入れてDevice Connect Managerに送信する。
+     * </p>
+     * <p>
+     * 引数のdataにbyte[]を渡した場合には、ボディにバイナリを入れてDevice Connect Managerに送信する。
      * </p>
      * <p>
      * dataにnullが指定された場合には、データは何もつけずにDevice Connect Managerにアクセスする。
      * </p>
-     * <h3>サンプルコード</h3>
+     * <h3>サンプルコード1</h3>
      * <pre>
      * Map&lt;String, String&gt; dataMap = new HashMap&lt;&gt;();
      * dataMap.put("mode", "scales");
-     * dataMap.put("data", "/data/data/0/org.mycompany.sample/files/sample.png");
+     * dataMap.put("data", new File("/data/data/0/org.mycompany.sample/files/sample.png"));
      *
      * DConnectSDK sdk = DConnectSDKFactory.create(context, DConnectSDKFactory.Type.HTTP);
      * DConnectSDK.URIBuilder builder = sdk.createURIBuilder();
@@ -540,12 +560,26 @@ public abstract class DConnectSDK {
      * builder.setServiceId(hostServiceId);
      *
      * DConnectResponseMessage response = sdk.post(builder.build(), dataMap);
+     * if (response.getResult() == DConnectMessage.RESULT_OK) {
+     * }
+     * </pre>
+     * <h3>サンプルコード2</h3>
+     * <pre>
+     * DConnectSDK sdk = DConnectSDKFactory.create(context, DConnectSDKFactory.Type.HTTP);
+     * DConnectSDK.URIBuilder builder = sdk.createURIBuilder();
+     * builder.setProfile("canvas");
+     * builder.setAttribute("drawImage");
+     * builder.setServiceId(hostServiceId);
+     *
+     * DConnectResponseMessage response = sdk.post(builder.build(), "テストデータ");
+     * if (response.getResult() == DConnectMessage.RESULT_OK) {
+     * }
      * </pre>
      * @param uri アクセス先のURI
      * @param data 送信するボディデータ
      * @return レスポンス
      */
-    public DConnectResponseMessage post(final Uri uri, final Map<String, String> data) {
+    public DConnectResponseMessage post(final Uri uri, final Object data) {
         if (uri == null) {
             throw new NullPointerException("uri is null.");
         }
@@ -559,7 +593,7 @@ public abstract class DConnectSDK {
      * @param data 送信するボディデータ
      * @param listener レスポンスを通知するリスナー
      */
-    public void post(final String uri, final Map<String, String> data, final OnResponseListener listener) {
+    public void post(final String uri, final Object data, final OnResponseListener listener) {
         if (uri == null) {
             throw new NullPointerException("uri is null.");
         }
@@ -573,7 +607,7 @@ public abstract class DConnectSDK {
      * @param data 送信するボディデータ
      * @param listener レスポンスを通知するリスナー
      */
-    public void post(final Uri uri, final Map<String, String> data, final OnResponseListener listener) {
+    public void post(final Uri uri, final Object data, final OnResponseListener listener) {
         if (uri == null) {
             throw new NullPointerException("uri is null.");
         }
@@ -901,7 +935,7 @@ public abstract class DConnectSDK {
         return get(builder.build());
     }
 
-    private DConnectResponseMessage createAccessToken(String clientId, String appName, String[] scopes) {
+    private DConnectResponseMessage createAccessToken(final String clientId, final String appName, final String[] scopes) {
         URIBuilder builder = new URIBuilder();
         builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
         builder.setAttribute(AuthorizationProfileConstants.ATTRIBUTE_ACCESS_TOKEN);

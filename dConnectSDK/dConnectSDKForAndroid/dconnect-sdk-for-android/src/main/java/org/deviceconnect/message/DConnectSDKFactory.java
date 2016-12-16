@@ -58,7 +58,7 @@ public final class DConnectSDKFactory {
         DConnectSDK sdk;
         switch (type) {
             case HTTP:
-                sdk = new HttpDConnectSDK(context);
+                sdk = new HttpDConnectSDK();
                 break;
             case INTENT:
                 sdk =  new IntentDConnectSDK(context);

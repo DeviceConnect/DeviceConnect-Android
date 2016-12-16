@@ -97,7 +97,7 @@ public class DConnectResponseMessage extends BasicDConnectMessage {
      * @param error エラーコード
      */
     public void setErrorCode(final int error) {
-        put(EXTRA_RESULT, error);
+        put(EXTRA_ERROR_CODE, error);
     }
 
     /**
@@ -113,7 +113,7 @@ public class DConnectResponseMessage extends BasicDConnectMessage {
      * @param message エラーメッセージ
      */
     public void setErrorMessage(final String message) {
-        put(EXTRA_RESULT, message);
+        put(EXTRA_ERROR_MESSAGE, message);
     }
 
     /**

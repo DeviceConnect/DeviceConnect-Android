@@ -305,6 +305,9 @@ public final class DConnectServerConfig {
 
         /**
          * 文字コードを設定する.
+         * <p>
+         * デフォルトでは、UTF-8が設定してあります。
+         * </p>
          * @param charset 文字コード
          * @return ビルダー。
          */

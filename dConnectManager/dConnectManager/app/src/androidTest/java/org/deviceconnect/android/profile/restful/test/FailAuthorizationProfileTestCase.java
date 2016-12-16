@@ -8,18 +8,17 @@ package org.deviceconnect.android.profile.restful.test;
 
 import android.support.test.runner.AndroidJUnit4;
 
-import org.apache.http.client.methods.HttpDelete;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpPut;
-import org.apache.http.client.methods.HttpUriRequest;
+import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.DConnectMessage.ErrorCode;
+import org.deviceconnect.message.DConnectResponseMessage;
+import org.deviceconnect.message.DConnectSDK;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
-import org.deviceconnect.utils.URIBuilder;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.core.Is.is;
+import static org.junit.Assert.assertThat;
 
 /**
  * Authorizationプロファイルの異常系テスト.
@@ -39,7 +38,7 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     @Override
-    protected boolean isSearchDevices() {
+    protected boolean isSearchServices() {
         return false;
     }
 
@@ -63,17 +62,14 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testGetCreateClientUndefinedAttribute() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
         builder.setAttribute(AuthorizationProfileConstants.ATTRIBUTE_GRANT);
         builder.addParameter("def", "def");
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request, false);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
     }
 
     /**
@@ -90,16 +86,13 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testGetCreateClientInvalidMethodPost() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
         builder.setAttribute(AuthorizationProfileConstants.ATTRIBUTE_GRANT);
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject root = sendRequest(request, false);
-            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
     }
 
     /**
@@ -116,16 +109,13 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testGetCreateClientInvalidMethodPut() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
         builder.setAttribute(AuthorizationProfileConstants.ATTRIBUTE_GRANT);
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request, false);
-            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
     }
 
     /**
@@ -142,16 +132,13 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testGetCreateClientInvalidMethodDelete() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
         builder.setAttribute(AuthorizationProfileConstants.ATTRIBUTE_GRANT);
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request, false);
-            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
     }
 
     /**
@@ -159,7 +146,7 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /authorization/accesstoken?scope=xxxx&applicationName=xxxx
+     * Path: /authorization/accessToken?scope=xxxx&applicationName=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -168,20 +155,17 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testGetRequestAccessTokenNoClientId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
         builder.setAttribute(AuthorizationProfileConstants.ATTRIBUTE_ACCESS_TOKEN);
         builder.addParameter(AuthorizationProfileConstants.PARAM_SCOPE, "battery");
         builder.addParameter(AuthorizationProfileConstants.PARAM_APPLICATION_NAME,
                 TEST_APPLICATION_NAME);
 
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request, false);
-            assertResultError(ErrorCode.INVALID_REQUEST_PARAMETER.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.INVALID_REQUEST_PARAMETER.getCode()));
     }
 
     /**
@@ -189,7 +173,7 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /authorization/accesstoken?clintId=&scope=xxxx&applicationName=xxxx
+     * Path: /authorization/accessToken?clintId=&scope=xxxx&applicationName=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -198,7 +182,7 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testGetRequestAccessTokenEmptyClientId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
         builder.setAttribute(AuthorizationProfileConstants.ATTRIBUTE_ACCESS_TOKEN);
         builder.addParameter(AuthorizationProfileConstants.PARAM_CLIENT_ID, "");
@@ -206,13 +190,10 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
         builder.addParameter(AuthorizationProfileConstants.PARAM_APPLICATION_NAME,
                 TEST_APPLICATION_NAME);
 
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request, false);
-            assertResultError(ErrorCode.INVALID_REQUEST_PARAMETER.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.INVALID_REQUEST_PARAMETER.getCode()));
     }
 
     /**
@@ -220,7 +201,7 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /authorization/accesstoken?scope=xxxx&applicationName=xxxx
+     * Path: /authorization/accessToken?scope=xxxx&applicationName=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -231,7 +212,7 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
     public void testGetRequestAccessTokenNotRegisteredClientId() {
         final String clientId = "not_registered_client_id";
 
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
         builder.setAttribute(AuthorizationProfileConstants.ATTRIBUTE_ACCESS_TOKEN);
         builder.addParameter(AuthorizationProfileConstants.PARAM_CLIENT_ID, clientId);
@@ -239,13 +220,10 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
         builder.addParameter(AuthorizationProfileConstants.PARAM_APPLICATION_NAME,
                 TEST_APPLICATION_NAME);
 
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request, false);
-            assertResultError(ErrorCode.AUTHORIZATION.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.AUTHORIZATION.getCode()));
     }
 
     /**
@@ -253,7 +231,7 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /authorization/accesstoken?clientId=xxxx&applicationName=xxxx
+     * Path: /authorization/accessToken?clientId=xxxx&applicationName=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -262,22 +240,19 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testGetRequestAccessTokenNoScope() {
-        String client = createClient();
+        String clientId = createClient();
 
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
         builder.setAttribute(AuthorizationProfileConstants.ATTRIBUTE_ACCESS_TOKEN);
-        builder.addParameter(AuthorizationProfileConstants.PARAM_CLIENT_ID, client);
+        builder.addParameter(AuthorizationProfileConstants.PARAM_CLIENT_ID, clientId);
         builder.addParameter(AuthorizationProfileConstants.PARAM_APPLICATION_NAME,
                 TEST_APPLICATION_NAME);
 
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request, false);
-            assertResultError(ErrorCode.INVALID_REQUEST_PARAMETER.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.INVALID_REQUEST_PARAMETER.getCode()));
     }
 
     /**
@@ -285,7 +260,7 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /authorization/accesstoken?
+     * Path: /authorization/accessToken?
      *           clientId=xxxx&grantType=authorization_code&scope=&applicationName=xxxx
      * </pre>
      * <pre>
@@ -297,7 +272,7 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
     public void testGetRequestAccessTokenEmptyScope() {
         String client = createClient();
 
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
         builder.setAttribute(AuthorizationProfileConstants.ATTRIBUTE_ACCESS_TOKEN);
         builder.addParameter(AuthorizationProfileConstants.PARAM_CLIENT_ID, client);
@@ -305,13 +280,10 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
         builder.addParameter(AuthorizationProfileConstants.PARAM_APPLICATION_NAME,
                 TEST_APPLICATION_NAME);
 
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request, false);
-            assertResultError(ErrorCode.INVALID_REQUEST_PARAMETER.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.INVALID_REQUEST_PARAMETER.getCode()));
     }
 
     /**
@@ -319,7 +291,7 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /authorization/accesstoken?clientId=xxxx&scope=xxxx
+     * Path: /authorization/accessToken?clientId=xxxx&scope=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -330,19 +302,16 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
     public void testGetRequestAccessTokenNoApplicationName() {
         String client = createClient();
 
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
         builder.setAttribute(AuthorizationProfileConstants.ATTRIBUTE_ACCESS_TOKEN);
         builder.addParameter(AuthorizationProfileConstants.PARAM_CLIENT_ID, client);
         builder.addParameter(AuthorizationProfileConstants.PARAM_SCOPE, "battery");
 
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request, false);
-            assertResultError(ErrorCode.INVALID_REQUEST_PARAMETER.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.INVALID_REQUEST_PARAMETER.getCode()));
     }
 
     /**
@@ -350,7 +319,7 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /authorization/accesstoken?
+     * Path: /authorization/accessToken?
      *           clientId=xxxx&grantType=authorization_code&scope=&applicationName
      * </pre>
      * <pre>
@@ -362,20 +331,17 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
     public void testGetRequestAccessTokenEmptyApplicationName() {
         String client = createClient();
 
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
         builder.setAttribute(AuthorizationProfileConstants.ATTRIBUTE_ACCESS_TOKEN);
         builder.addParameter(AuthorizationProfileConstants.PARAM_CLIENT_ID, client);
         builder.addParameter(AuthorizationProfileConstants.PARAM_SCOPE, "battery");
         builder.addParameter(AuthorizationProfileConstants.PARAM_APPLICATION_NAME, "");
 
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request, false);
-            assertResultError(ErrorCode.INVALID_REQUEST_PARAMETER.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.INVALID_REQUEST_PARAMETER.getCode()));
     }
 
     /**
@@ -383,7 +349,7 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /authorization/accesstoken?
+     * Path: /authorization/accessToken?
      *           clientId=xxxx&scope=xxxx&applicationName=xxxx&abc=abc
      * </pre>
      * <pre>
@@ -396,7 +362,7 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
     public void testGetRequestAccessTokenUndefinedAttribute() {
         String client = createClient();
 
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
         builder.setAttribute(AuthorizationProfileConstants.ATTRIBUTE_ACCESS_TOKEN);
         builder.addParameter(AuthorizationProfileConstants.PARAM_CLIENT_ID, client);
@@ -405,13 +371,9 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
                 TEST_APPLICATION_NAME);
         builder.addParameter("abc", "abc");
 
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request, false);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
     }
 
     /**
@@ -419,7 +381,7 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /authorization/accesstoken?
+     * Path: /authorization/accessToken?
      *           clientId=xxxx&scope=xxxx&applicationName=xxxx
      * </pre>
      * <pre>
@@ -431,20 +393,18 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
     public void testGetRequestAccessTokenInvalidMethodPost() {
         String client = createClient();
 
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
         builder.setAttribute(AuthorizationProfileConstants.ATTRIBUTE_ACCESS_TOKEN);
         builder.addParameter(AuthorizationProfileConstants.PARAM_CLIENT_ID, client);
         builder.addParameter(AuthorizationProfileConstants.PARAM_SCOPE, "battery");
         builder.addParameter(AuthorizationProfileConstants.PARAM_APPLICATION_NAME,
                 TEST_APPLICATION_NAME);
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject root = sendRequest(request, false);
-            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_SUPPORT_ACTION.getCode()));
     }
 
     /**
@@ -452,7 +412,7 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /authorization/accesstoken?
+     * Path: /authorization/accessToken?
      *           clientId=xxxx&scope=xxxx&applicationName=xxxx
      * </pre>
      * <pre>
@@ -464,20 +424,18 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
     public void testGetRequestAccessTokenInvalidMethodPut() {
         String client = createClient();
 
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
         builder.setAttribute(AuthorizationProfileConstants.ATTRIBUTE_ACCESS_TOKEN);
         builder.addParameter(AuthorizationProfileConstants.PARAM_CLIENT_ID, client);
         builder.addParameter(AuthorizationProfileConstants.PARAM_SCOPE, "battery");
         builder.addParameter(AuthorizationProfileConstants.PARAM_APPLICATION_NAME,
                 TEST_APPLICATION_NAME);
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request, false);
-            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_SUPPORT_ACTION.getCode()));
     }
 
     /**
@@ -485,7 +443,7 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /authorization/accesstoken?
+     * Path: /authorization/accessToken?
      *           clientId=xxxx&scope=xxxx&applicationName=xxxx
      * </pre>
      * <pre>
@@ -497,20 +455,17 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
     public void testGetRequestAccessTokenInvalidMethodDelete() {
         String client = createClient();
 
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
         builder.setAttribute(AuthorizationProfileConstants.ATTRIBUTE_ACCESS_TOKEN);
         builder.addParameter(AuthorizationProfileConstants.PARAM_CLIENT_ID, client);
         builder.addParameter(AuthorizationProfileConstants.PARAM_SCOPE, "battery");
         builder.addParameter(AuthorizationProfileConstants.PARAM_APPLICATION_NAME,
                 TEST_APPLICATION_NAME);
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request, false);
-            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
-    }
 
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_SUPPORT_ACTION.getCode()));
+    }
 }

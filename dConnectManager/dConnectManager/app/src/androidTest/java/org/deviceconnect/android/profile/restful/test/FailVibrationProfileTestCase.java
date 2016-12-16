@@ -8,20 +8,19 @@ package org.deviceconnect.android.profile.restful.test;
 
 import android.support.test.runner.AndroidJUnit4;
 
-import org.apache.http.client.methods.HttpDelete;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpPut;
-import org.apache.http.client.methods.HttpUriRequest;
+import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.DConnectMessage.ErrorCode;
+import org.deviceconnect.message.DConnectResponseMessage;
+import org.deviceconnect.message.DConnectSDK;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.deviceconnect.profile.DConnectProfileConstants;
 import org.deviceconnect.profile.VibrationProfileConstants;
-import org.deviceconnect.utils.URIBuilder;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.core.Is.is;
+import static org.junit.Assert.assertThat;
 
 /**
  * Vibrationプロファイルの異常系テスト.
@@ -44,17 +43,16 @@ public class FailVibrationProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testPutVibrateNoServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(VibrationProfileConstants.PROFILE_NAME);
         builder.setAttribute(VibrationProfileConstants.ATTRIBUTE_VIBRATE);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.EMPTY_SERVICE_ID.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -71,18 +69,17 @@ public class FailVibrationProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testPutVibrateEmptyServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(VibrationProfileConstants.PROFILE_NAME);
         builder.setAttribute(VibrationProfileConstants.ATTRIBUTE_VIBRATE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -99,18 +96,17 @@ public class FailVibrationProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testPutVibrateInvalidServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(VibrationProfileConstants.PROFILE_NAME);
         builder.setAttribute(VibrationProfileConstants.ATTRIBUTE_VIBRATE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -128,19 +124,16 @@ public class FailVibrationProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testPutVibrateUndefinedAttribute() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(VibrationProfileConstants.PROFILE_NAME);
         builder.setAttribute(VibrationProfileConstants.ATTRIBUTE_VIBRATE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter("abc", "abc");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
     }
 
     /**
@@ -158,19 +151,18 @@ public class FailVibrationProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testPutVibrateDuplicatedServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(VibrationProfileConstants.PROFILE_NAME);
         builder.setAttribute(VibrationProfileConstants.ATTRIBUTE_VIBRATE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -187,18 +179,17 @@ public class FailVibrationProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testPutVibrateInvalidMethodGet() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(VibrationProfileConstants.PROFILE_NAME);
         builder.setAttribute(VibrationProfileConstants.ATTRIBUTE_VIBRATE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_SUPPORT_ACTION.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -215,18 +206,17 @@ public class FailVibrationProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testPutVibrateInvalidMethodPost() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(VibrationProfileConstants.PROFILE_NAME);
         builder.setAttribute(VibrationProfileConstants.ATTRIBUTE_VIBRATE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_SUPPORT_ACTION.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -243,17 +233,16 @@ public class FailVibrationProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testDeleteVibrateNoServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(VibrationProfileConstants.PROFILE_NAME);
         builder.setAttribute(VibrationProfileConstants.ATTRIBUTE_VIBRATE);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.EMPTY_SERVICE_ID.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -270,18 +259,17 @@ public class FailVibrationProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testDeleteVibrateEmptyServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(VibrationProfileConstants.PROFILE_NAME);
         builder.setAttribute(VibrationProfileConstants.ATTRIBUTE_VIBRATE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -289,7 +277,7 @@ public class FailVibrationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /vibration/vibrate?serviceId=123456789&mediId=xxxx
+     * Path: /vibration/vibrate?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -298,18 +286,17 @@ public class FailVibrationProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testDeleteVibrateInvalidServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(VibrationProfileConstants.PROFILE_NAME);
         builder.setAttribute(VibrationProfileConstants.ATTRIBUTE_VIBRATE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -327,19 +314,16 @@ public class FailVibrationProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testDeleteVibrateUndefinedAttribute() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(VibrationProfileConstants.PROFILE_NAME);
         builder.setAttribute(VibrationProfileConstants.ATTRIBUTE_VIBRATE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter("abc", "abc");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
     }
 
     /**
@@ -357,19 +341,18 @@ public class FailVibrationProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testDeleteVibrateDuplicatedServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(VibrationProfileConstants.PROFILE_NAME);
         builder.setAttribute(VibrationProfileConstants.ATTRIBUTE_VIBRATE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -386,18 +369,17 @@ public class FailVibrationProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testDeleteVibrateInvalidMethodGet() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(VibrationProfileConstants.PROFILE_NAME);
         builder.setAttribute(VibrationProfileConstants.ATTRIBUTE_VIBRATE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_SUPPORT_ACTION.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -414,17 +396,16 @@ public class FailVibrationProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testDeleteVibrateInvalidMethodPost() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(VibrationProfileConstants.PROFILE_NAME);
         builder.setAttribute(VibrationProfileConstants.ATTRIBUTE_VIBRATE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_SUPPORT_ACTION.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 }

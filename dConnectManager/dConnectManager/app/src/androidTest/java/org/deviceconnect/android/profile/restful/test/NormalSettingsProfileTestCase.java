@@ -8,18 +8,19 @@ package org.deviceconnect.android.profile.restful.test;
 
 import android.support.test.runner.AndroidJUnit4;
 
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPut;
-import org.apache.http.client.methods.HttpUriRequest;
+import org.deviceconnect.android.profile.SettingsProfile;
 import org.deviceconnect.android.test.plugin.profile.TestSettingsProfileConstants;
+import org.deviceconnect.message.DConnectMessage;
+import org.deviceconnect.message.DConnectResponseMessage;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.deviceconnect.profile.DConnectProfileConstants;
 import org.deviceconnect.profile.SettingsProfileConstants;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.core.Is.is;
+import static org.junit.Assert.assertThat;
 
 
 /**
@@ -34,7 +35,7 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /settings/volume?deviceid=xxxx&kind=1
+     * Path: /settings/volume?serviceId=xxxx&kind=1
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -55,15 +56,11 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
         builder.append(SettingsProfileConstants.PARAM_KIND + "=1");
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        builder.append("&");
-        builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.get(builder.toString());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getFloat(SettingsProfile.PARAM_LEVEL), is(0.5f));
     }
 
     /**
@@ -71,12 +68,12 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /settings/volume?deviceid=xxxx&kind=2
+     * Path: /settings/volume?serviceId=xxxx&kind=2
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・levelが50で返ってくること。
+     * ・levelが0.5で返ってくること。
      * </pre>
      */
     @Test
@@ -92,15 +89,11 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
         builder.append(SettingsProfileConstants.PARAM_KIND + "=2");
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        builder.append("&");
-        builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.get(builder.toString());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getFloat(SettingsProfile.PARAM_LEVEL), is(0.5f));
     }
 
     /**
@@ -108,12 +101,12 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /settings/volume?deviceid=xxxx&kind=3
+     * Path: /settings/volume?serviceId=xxxx&kind=3
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・levelが50で返ってくること。
+     * ・levelが0.5で返ってくること。
      * </pre>
      */
     @Test
@@ -129,15 +122,11 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
         builder.append(SettingsProfileConstants.PARAM_KIND + "=3");
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        builder.append("&");
-        builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.get(builder.toString());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getFloat(SettingsProfile.PARAM_LEVEL), is(0.5f));
     }
 
     /**
@@ -145,12 +134,12 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /settings/volume?deviceid=xxxx&kind=4
+     * Path: /settings/volume?serviceId=xxxx&kind=4
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・levelが50で返ってくること。
+     * ・levelが0.5で返ってくること。
      * </pre>
      */
     @Test
@@ -166,15 +155,11 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
         builder.append(SettingsProfileConstants.PARAM_KIND + "=4");
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        builder.append("&");
-        builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.get(builder.toString());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getFloat(SettingsProfile.PARAM_LEVEL), is(0.5f));
     }
 
     /**
@@ -182,12 +167,12 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /settings/volume?deviceid=xxxx&kind=5
+     * Path: /settings/volume?serviceId=xxxx&kind=5
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・levelが50で返ってくること。
+     * ・levelが0.5で返ってくること。
      * </pre>
      */
     @Test
@@ -203,15 +188,11 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
         builder.append(SettingsProfileConstants.PARAM_KIND + "=5");
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        builder.append("&");
-        builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.get(builder.toString());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getFloat(SettingsProfile.PARAM_LEVEL), is(0.5f));
     }
 
     /**
@@ -219,7 +200,7 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /settings/volume?deviceid=xxxx&kind=1&level=xxx
+     * Path: /settings/volume?serviceId=xxxx&kind=1&level=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -241,15 +222,10 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
         builder.append(SettingsProfileConstants.PARAM_LEVEL + "=" + TestSettingsProfileConstants.LEVEL);
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        builder.append("&");
-        builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.toString(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
     }
 
     /**
@@ -257,7 +233,7 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /settings/volume?deviceid=xxxx&kind=2&level=xxx
+     * Path: /settings/volume?serviceId=xxxx&kind=2&level=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -279,15 +255,10 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
         builder.append(SettingsProfileConstants.PARAM_LEVEL + "=" + TestSettingsProfileConstants.LEVEL);
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        builder.append("&");
-        builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.toString(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
     }
 
     /**
@@ -295,7 +266,7 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /settings/volume?deviceid=xxxx&kind=3&level=xxx
+     * Path: /settings/volume?serviceId=xxxx&kind=3&level=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -317,15 +288,10 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
         builder.append(SettingsProfileConstants.PARAM_LEVEL + "=" + TestSettingsProfileConstants.LEVEL);
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        builder.append("&");
-        builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.toString(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
     }
 
     /**
@@ -333,7 +299,7 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /settings/volume?deviceid=xxxx&kind=4&level=xxx
+     * Path: /settings/volume?serviceId=xxxx&kind=4&level=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -355,15 +321,10 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
         builder.append(SettingsProfileConstants.PARAM_LEVEL + "=" + TestSettingsProfileConstants.LEVEL);
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        builder.append("&");
-        builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.toString(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
     }
 
     /**
@@ -371,7 +332,7 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /settings/volume?deviceid=xxxx&kind=5&level=xxx
+     * Path: /settings/volume?serviceId=xxxx&kind=5&level=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -393,15 +354,10 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
         builder.append(SettingsProfileConstants.PARAM_LEVEL + "=" + TestSettingsProfileConstants.LEVEL);
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        builder.append("&");
-        builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.toString(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
     }
 
     /**
@@ -409,7 +365,7 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /settings/date?deviceid=xxxx
+     * Path: /settings/date?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -427,15 +383,11 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        builder.append("&");
-        builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.get(builder.toString());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getString(SettingsProfile.PARAM_DATE), is("2014-01-01T01:01:01+09:00"));
     }
 
     /**
@@ -443,7 +395,7 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /settings/date?deviceid=xxxx&date=xxxx
+     * Path: /settings/date?serviceId=xxxx&date=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -462,15 +414,10 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
         builder.append(SettingsProfileConstants.PARAM_DATE + "=" + TestSettingsProfileConstants.DATE);
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        builder.append("&");
-        builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.toString(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
     }
 
     /**
@@ -478,12 +425,12 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /settings/display/light?deviceid=xxxx
+     * Path: /settings/display/light?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・levelが50で返ってくること。
+     * ・levelが0.5で返ってくること。
      * </pre>
      */
     @Test
@@ -497,15 +444,11 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        builder.append("&");
-        builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.get(builder.toString());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getFloat(SettingsProfile.PARAM_LEVEL), is(0.5f));
     }
 
     /**
@@ -513,7 +456,7 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /settings/display/light?deviceid=xxxx&level=xxxx
+     * Path: /settings/display/light?serviceId=xxxx&level=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -533,15 +476,10 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
         builder.append(SettingsProfileConstants.PARAM_LEVEL + "=" + TestSettingsProfileConstants.LEVEL);
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        builder.append("&");
-        builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.toString(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
     }
 
     /**
@@ -549,12 +487,12 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /settings/display/sleep?deviceid=xxxx
+     * Path: /settings/display/sleep?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・levelが50で返ってくること。
+     * ・levelが0.5で返ってくること。
      * </pre>
      */
     @Test
@@ -568,15 +506,11 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        builder.append("&");
-        builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.get(builder.toString());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getFloat(SettingsProfile.PARAM_LEVEL), is(0.5f));
     }
 
     /**
@@ -584,7 +518,7 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /settings/display/sleep?deviceid=xxxx&kind=1&level=xxxx
+     * Path: /settings/display/sleep?serviceId=xxxx&kind=1&level=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -604,15 +538,10 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
         builder.append(SettingsProfileConstants.PARAM_TIME + "=1");
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        builder.append("&");
-        builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.toString(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
     }
 
 }

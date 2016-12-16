@@ -8,21 +8,19 @@ package org.deviceconnect.android.profile.restful.test;
 
 import android.support.test.runner.AndroidJUnit4;
 
-import org.apache.http.client.methods.HttpDelete;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpPut;
-import org.apache.http.client.methods.HttpUriRequest;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.DConnectMessage.ErrorCode;
+import org.deviceconnect.message.DConnectResponseMessage;
+import org.deviceconnect.message.DConnectSDK;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.deviceconnect.profile.DConnectProfileConstants;
 import org.deviceconnect.profile.MediaStreamRecordingProfileConstants;
-import org.deviceconnect.utils.URIBuilder;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.core.Is.is;
+import static org.junit.Assert.assertThat;
 
 /**
  * MediaStreamRecordingプロファイルの異常系テスト.
@@ -31,12 +29,14 @@ import org.junit.runner.RunWith;
 @RunWith(AndroidJUnit4.class)
 public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTestCase {
 
+    // TODO 説明がおかしい
+
     /**
      * serviceIdを指定せずに再生コンテンツの変更要求を送信するテスト.
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /mediastream_recording/mediarecorder
+     * Path: /mediaStreamRecording/mediaRecorder
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -45,17 +45,16 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      */
     @Test
     public void testGetMediaRecorderNoServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_MEDIARECORDER);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.EMPTY_SERVICE_ID.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -63,7 +62,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /mediastream_recording/mediarecorder?serviceId=
+     * Path: /mediaStreamRecording/mediaRecorder?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -72,18 +71,17 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      */
     @Test
     public void testGetMediaRecorderEmptyServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_MEDIARECORDER);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -91,7 +89,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /mediastream_recording/mediarecorder?serviceId=123456789
+     * Path: /mediaStreamRecording/mediaRecorder?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -100,18 +98,17 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      */
     @Test
     public void testGetMediaRecorderInvalidServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_MEDIARECORDER);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -119,7 +116,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /mediastream_recording/mediarecorder?serviceId=123456789&serviceId=xxx&mediaId=xxxx
+     * Path: /mediaStreamRecording/mediaRecorder?serviceId=123456789&serviceId=xxx&mediaId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -129,19 +126,18 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      */
     @Test
     public void testGetMediaRecorderDuplicatedServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_MEDIARECORDER);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -149,7 +145,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /mediastream_recording/mediarecorder?serviceId=xxxx
+     * Path: /mediaStreamRecording/mediaRecorder?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -158,18 +154,17 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      */
     @Test
     public void testMediaRecorderInvalidMethodPost() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_MEDIARECORDER);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_SUPPORT_ACTION.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -177,7 +172,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /mediastream_recording/mediarecorder?serviceId=xxxx
+     * Path: /mediaStreamRecording/mediaRecorder?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -186,18 +181,17 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      */
     @Test
     public void testMediaRecorderInvalidMethodPut() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_MEDIARECORDER);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_SUPPORT_ACTION.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -205,7 +199,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /mediastream_recording/mediarecorder?serviceId=xxxx
+     * Path: /mediaStreamRecording/mediaRecorder?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -214,18 +208,17 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      */
     @Test
     public void testMediaRecorderInvalidMethodDelete() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_MEDIARECORDER);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_SUPPORT_ACTION.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -233,7 +226,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /mediastream_recording/takephoto
+     * Path: /mediaStreamRecording/takePhoto
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -242,17 +235,16 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      */
     @Test
     public void testPostTakePhotoNoServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_TAKE_PHOTO);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.EMPTY_SERVICE_ID.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -260,7 +252,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /mediastream_recording/takephoto?serviceId=
+     * Path: /mediaStreamRecording/takePhoto?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -269,18 +261,17 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      */
     @Test
     public void testPostTakePhotoEmptyServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_TAKE_PHOTO);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -288,7 +279,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /mediastream_recording/takephoto?serviceId=123456789
+     * Path: /mediaStreamRecording/takePhoto?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -297,18 +288,17 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      */
     @Test
     public void testPostTakePhotoInvalidServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_TAKE_PHOTO);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -316,7 +306,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /mediastream_recording/takephoto?serviceId=123456789&serviceId=xxx&mediaId=xxxx
+     * Path: /mediaStreamRecording/takePhoto?serviceId=123456789&serviceId=xxx&mediaId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -326,19 +316,18 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      */
     @Test
     public void testPostTakePhotoDuplicatedServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_TAKE_PHOTO);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -346,7 +335,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /mediastream_recording/takephoto?serviceId=xxxx
+     * Path: /mediaStreamRecording/takePhoto?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -355,18 +344,17 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      */
     @Test
     public void testTakePhotoInvalidMethodGet() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_TAKE_PHOTO);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_SUPPORT_ACTION.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -374,7 +362,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /mediastream_recording/takephoto?serviceId=xxxx
+     * Path: /mediaStreamRecording/takePhoto?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -383,18 +371,17 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      */
     @Test
     public void testTakePhotoInvalidMethodPut() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_TAKE_PHOTO);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_SUPPORT_ACTION.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -402,7 +389,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /mediastream_recording/takephoto?serviceId=xxxx
+     * Path: /mediaStreamRecording/takePhoto?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -411,18 +398,17 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      */
     @Test
     public void testTakePhotoInvalidMethodDelete() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_TAKE_PHOTO);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_SUPPORT_ACTION.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -430,7 +416,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /mediastream_recording/record
+     * Path: /mediaStreamRecording/record
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -439,17 +425,16 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      */
     @Test
     public void testPostRecordNoServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_RECORD);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.EMPTY_SERVICE_ID.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -457,7 +442,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /mediastream_recording/record?serviceId=
+     * Path: /mediaStreamRecording/record?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -466,18 +451,17 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      */
     @Test
     public void testPostRecordEmptyServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_RECORD);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -485,7 +469,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /mediastream_recording/record?serviceId=123456789
+     * Path: /mediaStreamRecording/record?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -494,18 +478,17 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      */
     @Test
     public void testPostRecordInvalidServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_RECORD);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -513,7 +496,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /mediastream_recording/record?serviceId=123456789&serviceId=xxx&mediaId=xxxx
+     * Path: /mediaStreamRecording/record?serviceId=123456789&serviceId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -523,19 +506,18 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      */
     @Test
     public void testPostRecordDuplicatedServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_RECORD);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -543,7 +525,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /mediastream_recording/record?serviceId=xxxx
+     * Path: /mediaStreamRecording/record?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -552,18 +534,17 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      */
     @Test
     public void testRecordInvalidMethodPost() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_RECORD);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_SUPPORT_ACTION.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -571,7 +552,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /mediastream_recording/record?serviceId=xxxx
+     * Path: /mediaStreamRecording/record?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -580,18 +561,17 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      */
     @Test
     public void testRecordInvalidMethodPut() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_RECORD);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_SUPPORT_ACTION.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -599,7 +579,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /mediastream_recording/record?serviceId=xxxx
+     * Path: /mediaStreamRecording/record?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -608,18 +588,17 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      */
     @Test
     public void testRecordInvalidMethodDelete() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_RECORD);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_SUPPORT_ACTION.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -627,7 +606,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /mediastream_recording/pause
+     * Path: /mediaStreamRecording/pause
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -636,17 +615,16 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      */
     @Test
     public void testPutPauseNoServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_PAUSE);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.EMPTY_SERVICE_ID.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -654,7 +632,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /mediastream_recording/pause?serviceId=
+     * Path: /mediaStreamRecording/pause?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -663,18 +641,17 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      */
     @Test
     public void testPutPauseEmptyServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_PAUSE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -682,7 +659,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /mediastream_recording/pause?serviceId=123456789
+     * Path: /mediaStreamRecording/pause?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -691,18 +668,17 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      */
     @Test
     public void testPutPauseInvalidServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_PAUSE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -710,7 +686,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /mediastream_recording/pause?serviceId=123456789&serviceId=xxx&mediaId=xxxx
+     * Path: /mediaStreamRecording/pause?serviceId=123456789&serviceId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -720,19 +696,18 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      */
     @Test
     public void testPutPauseDuplicatedServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_PAUSE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -740,7 +715,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /mediastream_recording/pause?serviceId=xxxx
+     * Path: /mediaStreamRecording/pause?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -749,18 +724,17 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      */
     @Test
     public void testPauseInvalidMethodGet() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_PAUSE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_SUPPORT_ACTION.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -768,7 +742,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /mediastream_recording/pause?serviceId=xxxx
+     * Path: /mediaStreamRecording/pause?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -777,18 +751,17 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      */
     @Test
     public void testPauseInvalidMethodPost() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_PAUSE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_SUPPORT_ACTION.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -796,7 +769,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /mediastream_recording/pause?serviceId=xxxx
+     * Path: /mediaStreamRecording/pause?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -805,18 +778,17 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      */
     @Test
     public void testPauseInvalidMethodDelete() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_PAUSE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_SUPPORT_ACTION.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -824,7 +796,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /mediastream_recording/resume
+     * Path: /mediaStreamRecording/resume
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -833,17 +805,16 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      */
     @Test
     public void testPutResumeNoServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_RESUME);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.EMPTY_SERVICE_ID.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -851,7 +822,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /mediastream_recording/resume?serviceId=
+     * Path: /mediaStreamRecording/resume?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -860,18 +831,17 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      */
     @Test
     public void testPutResumeEmptyServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_RESUME);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -879,7 +849,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /mediastream_recording/resume?serviceId=123456789
+     * Path: /mediaStreamRecording/resume?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -888,18 +858,17 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      */
     @Test
     public void testPutResumeInvalidServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_RESUME);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -907,7 +876,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /mediastream_recording/resume?serviceId=123456789&serviceId=xxx&mediaId=xxxx
+     * Path: /mediaStreamRecording/resume?serviceId=123456789&serviceId=xxx&mediaId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -917,19 +886,18 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      */
     @Test
     public void testPutResumeDuplicatedServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_RESUME);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -937,7 +905,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /mediastream_recording/resume?serviceId=xxxx
+     * Path: /mediaStreamRecording/resume?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -946,18 +914,17 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      */
     @Test
     public void testResumeInvalidMethodGet() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_RESUME);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_SUPPORT_ACTION.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -965,7 +932,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /mediastream_recording/resume?serviceId=xxxx
+     * Path: /mediaStreamRecording/resume?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -974,18 +941,17 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      */
     @Test
     public void testResumeInvalidMethodPost() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_RESUME);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_SUPPORT_ACTION.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -993,7 +959,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /mediastream_recording/resume?serviceId=xxxx
+     * Path: /mediaStreamRecording/resume?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1002,18 +968,17 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      */
     @Test
     public void testResumeInvalidMethodDelete() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_RESUME);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_SUPPORT_ACTION.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1021,7 +986,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /mediastream_recording/stop
+     * Path: /mediaStreamRecording/stop
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1030,17 +995,16 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      */
     @Test
     public void testPutStopNoServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_STOP);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.EMPTY_SERVICE_ID.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1048,7 +1012,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /mediastream_recording/stop?serviceId=
+     * Path: /mediaStreamRecording/stop?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1057,18 +1021,17 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      */
     @Test
     public void testPutStopEmptyServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_STOP);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1076,7 +1039,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /mediastream_recording/stop?serviceId=123456789
+     * Path: /mediaStreamRecording/stop?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1085,18 +1048,17 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      */
     @Test
     public void testPutStopInvalidServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_STOP);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1104,7 +1066,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /mediastream_recording/stop?serviceId=123456789&serviceId=xxx&mediaId=xxxx
+     * Path: /mediaStreamRecording/stop?serviceId=123456789&serviceId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1114,19 +1076,18 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      */
     @Test
     public void testPutStopDuplicatedServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_STOP);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1134,7 +1095,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /mediastream_recording/stop?serviceId=xxxx
+     * Path: /mediaStreamRecording/stop?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1143,18 +1104,17 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      */
     @Test
     public void testStopInvalidMethodGet() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_STOP);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_SUPPORT_ACTION.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1162,7 +1122,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /mediastream_recording/stop?serviceId=xxxx
+     * Path: /mediaStreamRecording/stop?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1171,18 +1131,17 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      */
     @Test
     public void testStopInvalidMethodPost() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_STOP);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_SUPPORT_ACTION.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1190,7 +1149,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /mediastream_recording/stop?serviceId=xxxx
+     * Path: /mediaStreamRecording/stop?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1199,18 +1158,17 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      */
     @Test
     public void testStopInvalidMethodDelete() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_STOP);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_SUPPORT_ACTION.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1218,7 +1176,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /mediastream_recording/options
+     * Path: /mediaStreamRecording/options
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1227,17 +1185,16 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      */
     @Test
     public void testGetOptionsNoServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_OPTIONS);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.EMPTY_SERVICE_ID.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1245,7 +1202,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /mediastream_recording/options?serviceId=
+     * Path: /mediaStreamRecording/options?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1254,18 +1211,17 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      */
     @Test
     public void testGetOptionsEmptyServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_OPTIONS);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1273,7 +1229,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /mediastream_recording/options?serviceId=123456789
+     * Path: /mediaStreamRecording/options?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1282,18 +1238,17 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      */
     @Test
     public void testGetOptionsInvalidServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_OPTIONS);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1301,7 +1256,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /mediastream_recording/options?serviceId=123456789&serviceId=xxx&mediaId=xxxx
+     * Path: /mediaStreamRecording/options?serviceId=123456789&serviceId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1311,19 +1266,18 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      */
     @Test
     public void testGetOptionsDuplicatedServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_OPTIONS);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1331,7 +1285,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /mediastream_recording/options?serviceId=xxxx
+     * Path: /mediaStreamRecording/options?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1340,18 +1294,17 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      */
     @Test
     public void testOptionsInvalidMethodPost() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_OPTIONS);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_SUPPORT_ACTION.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1359,7 +1312,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /mediastream_recording/options?serviceId=xxxx
+     * Path: /mediaStreamRecording/options?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1368,26 +1321,25 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      */
     @Test
     public void testOptionsInvalidMethodDelete() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_OPTIONS);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_SUPPORT_ACTION.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * serviceIdが無い状態でonphoto属性のコールバック解除テストを行う.
+     * serviceIdが無い状態でonPhoto属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /mediastream_recording/onphoto?sessionKey=xxxx
+     * Path: /mediaStreamRecording/onPhoto
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1396,26 +1348,24 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      */
     @Test
     public void testPutOnPhotoNoServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_PHOTO);
-
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.EMPTY_SERVICE_ID.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * serviceIdが空状態でonphoto属性のコールバック解除テストを行う.
+     * serviceIdが空状態でonPhoto属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /mediastream_recording/onphoto?serviceId=&sessionKey=xxxx
+     * Path: /mediaStreamRecording/onPhoto?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1424,27 +1374,25 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      */
     @Test
     public void testPutOnPhotoEmptyServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_PHOTO);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
-
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * 存在しないserviceIdでonphoto属性のコールバック解除テストを行う.
+     * 存在しないserviceIdでonPhoto属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /mediastream_recording/onphoto?serviceId=123456789&sessionKey=xxxx
+     * Path: /mediaStreamRecording/onPhoto?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1453,27 +1401,25 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      */
     @Test
     public void testPutOnPhotoInvalidServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_PHOTO);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * serviceIdを2重に指定してonphoto属性のコールバック解除テストを行う.
+     * serviceIdを2重に指定してonPhoto属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /mediastream_recording/onphoto?serviceId=123456789&serviceId=xxx&sessionKey=xxxx
+     * Path: /mediaStreamRecording/onPhoto?serviceId=123456789&serviceId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1483,28 +1429,26 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      */
     @Test
     public void testPutOnPhotoDuplicatedServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_PHOTO);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * serviceIdが無い状態でonphoto属性のコールバック解除テストを行う.
+     * serviceIdが無い状態でonPhoto属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /mediastream_recording/onphoto?sessionKey=xxxx
+     * Path: /mediaStreamRecording/onPhoto
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1513,26 +1457,24 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      */
     @Test
     public void testDeleteOnPhotoNoServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_PHOTO);
-
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.EMPTY_SERVICE_ID.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * serviceIdが空状態でonphoto属性のコールバック解除テストを行う.
+     * serviceIdが空状態でonPhoto属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /mediastream_recording/onphoto?serviceId=&sessionKey=xxxx
+     * Path: /mediaStreamRecording/onPhoto?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1541,27 +1483,25 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      */
     @Test
     public void testDeleteOnPhotoEmptyServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_PHOTO);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
-
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * 存在しないserviceIdでonphoto属性のコールバック解除テストを行う.
+     * 存在しないserviceIdでonPhoto属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /mediastream_recording/onphoto?serviceId=123456789&sessionKey=xxxx
+     * Path: /mediaStreamRecording/onPhoto?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1570,27 +1510,25 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      */
     @Test
     public void testDeleteOnPhotoInvalidServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_PHOTO);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * serviceIdを2重に指定してonphoto属性のコールバック解除テストを行う.
+     * serviceIdを2重に指定してonPhoto属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /mediastream_recording/onphoto?serviceId=123456789&serviceId=xxx&sessionKey=xxxx
+     * Path: /mediaStreamRecording/onPhoto?serviceId=123456789&serviceId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1600,28 +1538,26 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      */
     @Test
     public void testDeleteOnPhotoDuplicatedServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_PHOTO);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * メソッドにPOSTを指定してonphoto属性のリクエストテストを行う.
+     * メソッドにPOSTを指定してonPhoto属性のリクエストテストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /mediastream_recording/onphoto?serviceId=xxxx&sessionKey=xxxx
+     * Path: /mediaStreamRecording/onPhoto?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1630,27 +1566,25 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      */
     @Test
     public void testDeleteOnPhotoInvalidMethodPost() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_PHOTO);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_SUPPORT_ACTION.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * serviceIdが無い状態でonrecordingchange属性のコールバック解除テストを行う.
+     * serviceIdが無い状態でonRecordingChange属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /mediastream_recording/onrecordingchange?sessionKey=xxxx
+     * Path: /mediaStreamRecording/onRecordingChange
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1659,26 +1593,24 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      */
     @Test
     public void testPutOnRecordingChangeNoServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_RECORDING_CHANGE);
-
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.EMPTY_SERVICE_ID.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * serviceIdが空状態でonrecordingchange属性のコールバック解除テストを行う.
+     * serviceIdが空状態でonRecordingChange属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /mediastream_recording/onrecordingchange?serviceId=&sessionKey=xxxx
+     * Path: /mediaStreamRecording/onRecordingChange?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1687,27 +1619,25 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      */
     @Test
     public void testPutOnRecordingChangeEmptyServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_RECORDING_CHANGE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
-
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * 存在しないserviceIdでonrecordingchange属性のコールバック解除テストを行う.
+     * 存在しないserviceIdでonRecordingChange属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /mediastream_recording/onrecordingchange?serviceId=123456789&sessionKey=xxxx
+     * Path: /mediaStreamRecording/onRecordingChange?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1716,27 +1646,25 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      */
     @Test
     public void testPutOnRecordingChangeInvalidServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_RECORDING_CHANGE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * serviceIdを2重に指定してonrecordingchange属性のコールバック解除テストを行う.
+     * serviceIdを2重に指定してonRecordingChange属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /mediastream_recording/onrecordingchange?serviceId=123456789&serviceId=xxx&sessionKey=xxxx
+     * Path: /mediaStreamRecording/onRecordingChange?serviceId=123456789&serviceId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1746,28 +1674,26 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      */
     @Test
     public void testPutOnRecordingChangeDuplicatedServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_RECORDING_CHANGE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * serviceIdが無い状態でonrecordingchange属性のコールバック解除テストを行う.
+     * serviceIdが無い状態でonRecordingChange属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /mediastream_recording/onrecordingchange?sessionKey=xxxx
+     * Path: /mediaStreamRecording/onRecordingChange
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1776,26 +1702,24 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      */
     @Test
     public void testDeleteOnRecordingChangeNoServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_RECORDING_CHANGE);
-
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.EMPTY_SERVICE_ID.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * serviceIdが空状態でonrecordingchange属性のコールバック解除テストを行う.
+     * serviceIdが空状態でonRecordingChange属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /mediastream_recording/onrecordingchange?serviceId=&sessionKey=xxxx
+     * Path: /mediaStreamRecording/onRecordingChange?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1804,27 +1728,25 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      */
     @Test
     public void testDeleteOnRecordingChangeEmptyServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_RECORDING_CHANGE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
-
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * 存在しないserviceIdでonrecordingchange属性のコールバック解除テストを行う.
+     * 存在しないserviceIdでonRecordingChange属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /mediastream_recording/onrecordingchange?serviceId=123456789&sessionKey=xxxx
+     * Path: /mediaStreamRecording/onRecordingChange?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1833,27 +1755,25 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      */
     @Test
     public void testDeleteOnRecordingChangeInvalidServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_RECORDING_CHANGE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * serviceIdを2重に指定してonrecordingchange属性のコールバック解除テストを行う.
+     * serviceIdを2重に指定してonRecordingChange属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /mediastream_recording/onrecordingchange?serviceId=123456789&serviceId=xxx&sessionKey=xxxx
+     * Path: /mediaStreamRecording/onRecordingChange?serviceId=123456789&serviceId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1863,28 +1783,26 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      */
     @Test
     public void testDeleteOnRecordingChangeDuplicatedServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_RECORDING_CHANGE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * メソッドにPOSTを指定してonrecordingchange属性のリクエストテストを行う.
+     * メソッドにPOSTを指定してonRecordingChange属性のリクエストテストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /mediastream_recording/onrecordingchange?serviceId=xxxx&sessionKey=xxxx
+     * Path: /mediaStreamRecording/onRecordingChange?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1893,27 +1811,25 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      */
     @Test
     public void testDeleteOnRecordingChangeInvalidMethodPost() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_RECORDING_CHANGE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_SUPPORT_ACTION.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * serviceIdが無い状態でondataavailable属性のコールバック解除テストを行う.
+     * serviceIdが無い状態でonDataAvailable属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /mediastream_recording/ondataavailable?sessionKey=xxxx
+     * Path: /mediaStreamRecording/onDataAvailable
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1922,26 +1838,24 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      */
     @Test
     public void testPutOnDataAvailableNoServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_RECORDING_CHANGE);
-
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.EMPTY_SERVICE_ID.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * serviceIdが空状態でondataavailable属性のコールバック解除テストを行う.
+     * serviceIdが空状態でonDataAvailable属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /mediastream_recording/ondataavailable?serviceId=&sessionKey=xxxx
+     * Path: /mediaStreamRecording/onDataAvailable?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1950,27 +1864,25 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      */
     @Test
     public void testPutOnDataAvailableEmptyServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_RECORDING_CHANGE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
-
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * 存在しないserviceIdでondataavailable属性のコールバック解除テストを行う.
+     * 存在しないserviceIdでonDataAvailable属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /mediastream_recording/ondataavailable?serviceId=123456789&sessionKey=xxxx
+     * Path: /mediaStreamRecording/onDataAvailable?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1979,27 +1891,25 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      */
     @Test
     public void testPutOnDataAvailableInvalidServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_RECORDING_CHANGE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * serviceIdを2重に指定してondataavailable属性のコールバック解除テストを行う.
+     * serviceIdを2重に指定してonDataAvailable属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /mediastream_recording/ondataavailable?serviceId=123456789&serviceId=xxx&sessionKey=xxxx
+     * Path: /mediaStreamRecording/onDataAvailable?serviceId=123456789&serviceId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -2009,28 +1919,26 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      */
     @Test
     public void testPutOnDataAvailableDuplicatedServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_RECORDING_CHANGE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * serviceIdが無い状態でondataavailable属性のコールバック解除テストを行う.
+     * serviceIdが無い状態でonDataAvailable属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /mediastream_recording/ondataavailable?sessionKey=xxxx
+     * Path: /mediaStreamRecording/onDataAvailable
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -2039,26 +1947,24 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      */
     @Test
     public void testDeleteOnDataAvailableNoServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_RECORDING_CHANGE);
-
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.EMPTY_SERVICE_ID.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * serviceIdが空状態でondataavailable属性のコールバック解除テストを行う.
+     * serviceIdが空状態でonDataAvailable属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /mediastream_recording/ondataavailable?serviceId=&sessionKey=xxxx
+     * Path: /mediaStreamRecording/onDataAvailable?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -2067,27 +1973,25 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      */
     @Test
     public void testDeleteOnDataAvailableEmptyServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_RECORDING_CHANGE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
-
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * 存在しないserviceIdでondataavailable属性のコールバック解除テストを行う.
+     * 存在しないserviceIdでonDataAvailable属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /mediastream_recording/ondataavailable?serviceId=123456789&sessionKey=xxxx
+     * Path: /mediaStreamRecording/onDataAvailable?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -2096,27 +2000,25 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      */
     @Test
     public void testDeleteOnDataAvailableInvalidServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_RECORDING_CHANGE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * serviceIdを2重に指定してondataavailable属性のコールバック解除テストを行う.
+     * serviceIdを2重に指定してonDataAvailable属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /mediastream_recording/ondataavailable?serviceId=123456789&serviceId=xxx&sessionKey=xxxx
+     * Path: /mediaStreamRecording/onDataAvailable?serviceId=123456789&serviceId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -2126,28 +2028,26 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      */
     @Test
     public void testDeleteOnDataAvailableDuplicatedServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_RECORDING_CHANGE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * メソッドにPOSTを指定してondataavailable属性のリクエストテストを行う.
+     * メソッドにPOSTを指定してonDataAvailable属性のリクエストテストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /mediastream_recording/ondataavailable?serviceId=xxxx&sessionKey=xxxx
+     * Path: /mediaStreamRecording/onDataAvailable?serviceId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -2156,18 +2056,16 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      */
     @Test
     public void testDeleteOnDataAvailableInvalidMethodPost() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_RECORDING_CHANGE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_SUPPORT_ACTION.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 }

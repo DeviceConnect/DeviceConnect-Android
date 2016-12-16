@@ -8,18 +8,21 @@ package org.deviceconnect.android.profile.restful.test;
 
 import android.support.test.runner.AndroidJUnit4;
 
-import org.apache.http.client.methods.HttpDelete;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpUriRequest;
+import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.android.test.plugin.profile.TestSystemProfileConstants;
+import org.deviceconnect.message.DConnectMessage;
+import org.deviceconnect.message.DConnectResponseMessage;
+import org.deviceconnect.message.DConnectSDK;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.deviceconnect.profile.SystemProfileConstants;
-import org.deviceconnect.utils.URIBuilder;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import java.util.List;
+
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.core.Is.is;
+import static org.junit.Assert.assertThat;
 
 
 /**
@@ -29,11 +32,6 @@ import org.junit.runner.RunWith;
 @RunWith(AndroidJUnit4.class)
 public class NormalSystemProfileTestCase extends RESTfulDConnectTestCase
     implements TestSystemProfileConstants {
-
-    @After
-    public void tearDown() throws Exception {
-        super.tearDown();
-    }
 
     /**
      * デバイスのシステムプロファイルを取得する.
@@ -57,12 +55,20 @@ public class NormalSystemProfileTestCase extends RESTfulDConnectTestCase
         builder.append("/" + SystemProfileConstants.PROFILE_NAME);
         builder.append("?");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
+
+        DConnectResponseMessage response = mDConnectSDK.get(builder.toString());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getString(SystemProfile.PARAM_VERSION), is(notNullValue()));
+
+        List supports = response.getList(SystemProfile.PARAM_SUPPORTS);
+        assertThat(supports, is(notNullValue()));
+
+        List plugins = response.getList(SystemProfile.PARAM_PLUGINS);
+        assertThat(supports, is(notNullValue()));
+        for (Object obj : plugins) {
+            DConnectMessage plugin = (DConnectMessage) obj;
+            // TODO プラグイン情報チェック
         }
     }
 
@@ -77,20 +83,16 @@ public class NormalSystemProfileTestCase extends RESTfulDConnectTestCase
      * 【期待する動作】
      * ・resultに0が返ってくること。
      * </pre>
-     * @throws JSONException JSON解析に失敗した場合
      */
     @Test
-    public void testDeleteSystemEvents() throws JSONException {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+    public void testDeleteSystemEvents() {
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(SystemProfileConstants.PROFILE_NAME);
         builder.setAttribute(SystemProfileConstants.ATTRIBUTE_EVENTS);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.toString());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
     }
 }

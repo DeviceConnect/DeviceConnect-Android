@@ -8,24 +8,23 @@ package org.deviceconnect.android.profile.restful.test;
 
 import android.support.test.runner.AndroidJUnit4;
 
-import junit.framework.Assert;
-
-import org.apache.http.client.methods.HttpDelete;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpPut;
-import org.apache.http.client.methods.HttpUriRequest;
+import org.deviceconnect.android.profile.NotificationProfile;
 import org.deviceconnect.android.test.plugin.profile.TestNotificationProfileConstants;
 import org.deviceconnect.message.DConnectMessage;
+import org.deviceconnect.message.DConnectResponseMessage;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.deviceconnect.profile.DConnectProfileConstants;
 import org.deviceconnect.profile.NotificationProfileConstants;
 import org.json.JSONException;
-import org.json.JSONObject;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.core.Is.is;
+import static org.junit.Assert.assertThat;
 
 
 /**
@@ -41,18 +40,19 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /notification/notify?deviceid=xxxx&type=0&body=xxxx
+     * Path: /notification/notify?serviceId=xxxx&type=0&body=xxxx
      * </pre>
      * 
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・notificationidに1が返ってくること。
+     * ・notificationIdに1が返ってくること。
      * </pre>
      */
     @Test
     public void testPostNotifyType001() {
         final int type = 0;
+
         StringBuilder builder = new StringBuilder();
         builder.append(DCONNECT_MANAGER_URI);
         builder.append("/" + NotificationProfileConstants.PROFILE_NAME);
@@ -65,13 +65,11 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append(NotificationProfileConstants.PARAM_BODY + "=test-message");
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getString(NotificationProfile.PARAM_NOTIFICATION_ID), is("1"));
     }
 
     /**
@@ -80,18 +78,19 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /notification/notify?deviceid=xxxx&type=1&body=xxxx
+     * Path: /notification/notify?serviceId=xxxx&type=1&body=xxxx
      * </pre>
      * 
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・notificationidに2が返ってくること。
+     * ・notificationIdに2が返ってくること。
      * </pre>
      */
     @Test
     public void testPostNotifyType002() {
         final int type = 1;
+
         StringBuilder builder = new StringBuilder();
         builder.append(DCONNECT_MANAGER_URI);
         builder.append("/" + NotificationProfileConstants.PROFILE_NAME);
@@ -104,13 +103,11 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append(NotificationProfileConstants.PARAM_BODY + "=test-message");
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getString(NotificationProfile.PARAM_NOTIFICATION_ID), is("2"));
     }
 
     /**
@@ -119,18 +116,19 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /notification/notify?deviceid=xxxx&type=2&body=xxxx
+     * Path: /notification/notify?serviceId=xxxx&type=2&body=xxxx
      * </pre>
      * 
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・notificationidに3が返ってくること。
+     * ・notificationIdに3が返ってくること。
      * </pre>
      */
     @Test
     public void testPostNotifyType003() {
         final int type = 2;
+
         StringBuilder builder = new StringBuilder();
         builder.append(DCONNECT_MANAGER_URI);
         builder.append("/" + NotificationProfileConstants.PROFILE_NAME);
@@ -143,13 +141,11 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append(NotificationProfileConstants.PARAM_BODY + "=test-message");
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getString(NotificationProfile.PARAM_NOTIFICATION_ID), is("3"));
     }
 
     /**
@@ -158,18 +154,19 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /notification/notify?deviceid=xxxx&type=3&body=xxxx
+     * Path: /notification/notify?serviceId=xxxx&type=3&body=xxxx
      * </pre>
      * 
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・notificationidに4が返ってくること。
+     * ・notificationIdに4が返ってくること。
      * </pre>
      */
     @Test
     public void testPostNotifyType004() {
         final int type = 3;
+
         StringBuilder builder = new StringBuilder();
         builder.append(DCONNECT_MANAGER_URI);
         builder.append("/" + NotificationProfileConstants.PROFILE_NAME);
@@ -182,13 +179,11 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append(NotificationProfileConstants.PARAM_BODY + "=test-message");
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getString(NotificationProfile.PARAM_NOTIFICATION_ID), is("4"));
     }
 
     /**
@@ -197,18 +192,19 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /notification/notify?deviceid=xxxx&type=0&dir=auto&body=xxxx
+     * Path: /notification/notify?serviceId=xxxx&type=0&dir=auto&body=xxxx
      * </pre>
      * 
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・notificationidに1が返ってくること。
+     * ・notificationIdに1が返ってくること。
      * </pre>
      */
     @Test
     public void testPostNotifyDir001() {
         final int type = 0;
+
         StringBuilder builder = new StringBuilder();
         builder.append(DCONNECT_MANAGER_URI);
         builder.append("/" + NotificationProfileConstants.PROFILE_NAME);
@@ -223,13 +219,11 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append(NotificationProfileConstants.PARAM_BODY + "=test-message");
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getString(NotificationProfile.PARAM_NOTIFICATION_ID), is("1"));
     }
 
     /**
@@ -238,13 +232,13 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /notification/notify?deviceid=xxxx&type=0&dir=rtl&body=xxxx
+     * Path: /notification/notify?serviceId=xxxx&type=0&dir=rtl&body=xxxx
      * </pre>
      * 
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・notificationidに1が返ってくること。
+     * ・notificationIdに1が返ってくること。
      * </pre>
      */
     @Test
@@ -264,13 +258,11 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append(NotificationProfileConstants.PARAM_BODY + "=test-message");
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getString(NotificationProfile.PARAM_NOTIFICATION_ID), is("1"));
     }
 
     /**
@@ -279,13 +271,13 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /notification/notify?deviceid=xxxx&type=0&dir=ltr&body=xxxx
+     * Path: /notification/notify?serviceId=xxxx&type=0&dir=ltr&body=xxxx
      * </pre>
      * 
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・notificationidに1が返ってくること。
+     * ・notificationIdに1が返ってくること。
      * </pre>
      */
     @Test
@@ -305,13 +297,11 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append(NotificationProfileConstants.PARAM_BODY + "=test-message");
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getString(NotificationProfile.PARAM_NOTIFICATION_ID), is("1"));
     }
 
     /**
@@ -326,7 +316,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・notificationidに1が返ってくること。
+     * ・notificationIdに1が返ってくること。
      * </pre>
      */
     @Test
@@ -341,17 +331,13 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append(NotificationProfileConstants.PARAM_TYPE + "=0");
         builder.append("&");
         builder.append(NotificationProfileConstants.PARAM_DIR + "=auto");
-
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        try {
-            HttpPost request = new HttpPost(builder.toString());
 
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+        DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getString(NotificationProfile.PARAM_NOTIFICATION_ID), is("1"));
     }
 
     /**
@@ -366,7 +352,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・notificationidに1が返ってくること。
+     * ・notificationIdに1が返ってくること。
      * </pre>
      */
     @Test
@@ -381,17 +367,13 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append(NotificationProfileConstants.PARAM_TYPE + "=0");
         builder.append("&");
         builder.append(NotificationProfileConstants.PARAM_LANG + "=jp-JP");
-
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        try {
-            HttpPost request = new HttpPost(builder.toString());
 
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+        DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getString(NotificationProfile.PARAM_NOTIFICATION_ID), is("1"));
     }
 
     /**
@@ -406,7 +388,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・notificationidに1が返ってくること。
+     * ・notificationIdに1が返ってくること。
      * </pre>
      */
     @Test
@@ -423,17 +405,13 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append(NotificationProfileConstants.PARAM_DIR + "=auto");
         builder.append("&");
         builder.append(NotificationProfileConstants.PARAM_LANG + "=jp-JP");
-
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        try {
-            HttpPost request = new HttpPost(builder.toString());
 
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+        DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getString(NotificationProfile.PARAM_NOTIFICATION_ID), is("1"));
     }
 
     /**
@@ -448,7 +426,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・notificationidに1が返ってくること。
+     * ・notificationIdに1が返ってくること。
      * </pre>
      */
     @Test
@@ -463,17 +441,13 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append(NotificationProfileConstants.PARAM_TYPE + "=0");
         builder.append("&");
         builder.append(NotificationProfileConstants.PARAM_BODY + "=test_body");
-
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        try {
-            HttpPost request = new HttpPost(builder.toString());
 
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+        DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getString(NotificationProfile.PARAM_NOTIFICATION_ID), is("1"));
     }
 
     /**
@@ -488,7 +462,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・notificationidに1が返ってくること。
+     * ・notificationIdに1が返ってくること。
      * </pre>
      */
     @Test
@@ -505,17 +479,13 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append(NotificationProfileConstants.PARAM_DIR + "=auto");
         builder.append("&");
         builder.append(NotificationProfileConstants.PARAM_BODY + "=test_body");
-
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        try {
-            HttpPost request = new HttpPost(builder.toString());
 
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+        DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getString(NotificationProfile.PARAM_NOTIFICATION_ID), is("1"));
     }
 
     /**
@@ -530,7 +500,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・notificationidに1が返ってくること。
+     * ・notificationIdに1が返ってくること。
      * </pre>
      */
     @Test
@@ -547,17 +517,13 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append(NotificationProfileConstants.PARAM_LANG + "=jp-JP");
         builder.append("&");
         builder.append(NotificationProfileConstants.PARAM_BODY + "=test_body");
-
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        try {
-            HttpPost request = new HttpPost(builder.toString());
 
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+        DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getString(NotificationProfile.PARAM_NOTIFICATION_ID), is("1"));
     }
 
     /**
@@ -572,7 +538,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・notificationidに1が返ってくること。
+     * ・notificationIdに1が返ってくること。
      * </pre>
      */
     @Test
@@ -591,17 +557,13 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append(NotificationProfileConstants.PARAM_LANG + "=jp-JP");
         builder.append("&");
         builder.append(NotificationProfileConstants.PARAM_BODY + "=test_body");
-
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        try {
-            HttpPost request = new HttpPost(builder.toString());
 
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+        DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getString(NotificationProfile.PARAM_NOTIFICATION_ID), is("1"));
     }
 
     /**
@@ -616,7 +578,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・notificationidに1が返ってくること。
+     * ・notificationIdに1が返ってくること。
      * </pre>
      */
     @Test
@@ -631,17 +593,13 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append(NotificationProfileConstants.PARAM_TYPE + "=0");
         builder.append("&");
         builder.append(NotificationProfileConstants.PARAM_TAG + "=tag1,tag2,tag3");
-
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        try {
-            HttpPost request = new HttpPost(builder.toString());
 
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+        DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getString(NotificationProfile.PARAM_NOTIFICATION_ID), is("1"));
     }
 
     /**
@@ -656,7 +614,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・notificationidに1が返ってくること。
+     * ・notificationIdに1が返ってくること。
      * </pre>
      */
     @Test
@@ -673,17 +631,13 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append(NotificationProfileConstants.PARAM_DIR + "=auto");
         builder.append("&");
         builder.append(NotificationProfileConstants.PARAM_TAG + "=tag1,tag2,tag3");
-
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        try {
-            HttpPost request = new HttpPost(builder.toString());
 
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+        DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getString(NotificationProfile.PARAM_NOTIFICATION_ID), is("1"));
     }
 
     /**
@@ -698,7 +652,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・notificationidに1が返ってくること。
+     * ・notificationIdに1が返ってくること。
      * </pre>
      */
     @Test
@@ -715,17 +669,13 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append(NotificationProfileConstants.PARAM_LANG + "=jp-JP");
         builder.append("&");
         builder.append(NotificationProfileConstants.PARAM_TAG + "=tag1,tag2,tag3");
-
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        try {
-            HttpPost request = new HttpPost(builder.toString());
 
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+        DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getString(NotificationProfile.PARAM_NOTIFICATION_ID), is("1"));
     }
 
     /**
@@ -740,7 +690,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・notificationidに1が返ってくること。
+     * ・notificationIdに1が返ってくること。
      * </pre>
      */
     @Test
@@ -759,17 +709,13 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append(NotificationProfileConstants.PARAM_LANG + "=jp-JP");
         builder.append("&");
         builder.append(NotificationProfileConstants.PARAM_TAG + "=tag1,tag2,tag3");
-
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        try {
-            HttpPost request = new HttpPost(builder.toString());
 
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+        DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getString(NotificationProfile.PARAM_NOTIFICATION_ID), is("1"));
     }
 
     /**
@@ -784,7 +730,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・notificationidに1が返ってくること。
+     * ・notificationIdに1が返ってくること。
      * </pre>
      */
     @Test
@@ -801,17 +747,13 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append(NotificationProfileConstants.PARAM_BODY + "=test_body");
         builder.append("&");
         builder.append(NotificationProfileConstants.PARAM_TAG + "=tag1,tag2,tag3");
-
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        try {
-            HttpPost request = new HttpPost(builder.toString());
 
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+        DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getString(NotificationProfile.PARAM_NOTIFICATION_ID), is("1"));
     }
 
     /**
@@ -826,7 +768,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・notificationidに1が返ってくること。
+     * ・notificationIdに1が返ってくること。
      * </pre>
      */
     @Test
@@ -845,17 +787,13 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append(NotificationProfileConstants.PARAM_BODY + "=test_body");
         builder.append("&");
         builder.append(NotificationProfileConstants.PARAM_TAG + "=tag1,tag2,tag3");
-
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        try {
-            HttpPost request = new HttpPost(builder.toString());
 
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+        DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getString(NotificationProfile.PARAM_NOTIFICATION_ID), is("1"));
     }
 
     /**
@@ -870,7 +808,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・notificationidに1が返ってくること。
+     * ・notificationIdに1が返ってくること。
      * </pre>
      */
     @Test
@@ -889,17 +827,13 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append(NotificationProfileConstants.PARAM_BODY + "=test_body");
         builder.append("&");
         builder.append(NotificationProfileConstants.PARAM_TAG + "=tag1,tag2,tag3");
-
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        try {
-            HttpPost request = new HttpPost(builder.toString());
 
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+        DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getString(NotificationProfile.PARAM_NOTIFICATION_ID), is("1"));
     }
 
     /**
@@ -914,7 +848,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・notificationidに1が返ってくること。
+     * ・notificationIdに1が返ってくること。
      * </pre>
      */
     @Test
@@ -935,17 +869,13 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append(NotificationProfileConstants.PARAM_BODY + "=test_body");
         builder.append("&");
         builder.append(NotificationProfileConstants.PARAM_TAG + "=tag1,tag2,tag3");
-
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        try {
-            HttpPost request = new HttpPost(builder.toString());
 
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+        DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getString(NotificationProfile.PARAM_NOTIFICATION_ID), is("1"));
     }
 
     /**
@@ -960,7 +890,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・notificationidに1が返ってくること。
+     * ・notificationIdに1が返ってくること。
      * </pre>
      */
     @Test
@@ -983,12 +913,11 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         }
         Map<String, Object> body = new HashMap<>();
         body.put(NotificationProfileConstants.PARAM_ICON, data);
-        try {
-            JSONObject root = sendRequest("POST", builder.toString(), null, body);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), body);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getString(NotificationProfile.PARAM_NOTIFICATION_ID), is("1"));
     }
 
     /**
@@ -1003,7 +932,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・notificationidに1が返ってくること。
+     * ・notificationIdに1が返ってくること。
      * </pre>
      */
     @Test
@@ -1028,12 +957,11 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         }
         Map<String, Object> body = new HashMap<>();
         body.put(NotificationProfileConstants.PARAM_ICON, data);
-        try {
-            JSONObject root = sendRequest("POST", builder.toString(), null, body);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), body);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getString(NotificationProfile.PARAM_NOTIFICATION_ID), is("1"));
     }
 
     /**
@@ -1048,7 +976,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・notificationidに1が返ってくること。
+     * ・notificationIdに1が返ってくること。
      * </pre>
      */
     @Test
@@ -1073,12 +1001,11 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         }
         Map<String, Object> body = new HashMap<>();
         body.put(NotificationProfileConstants.PARAM_ICON, data);
-        try {
-            JSONObject root = sendRequest("POST", builder.toString(), null, body);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), body);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getString(NotificationProfile.PARAM_NOTIFICATION_ID), is("1"));
     }
 
     /**
@@ -1093,7 +1020,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・notificationidに1が返ってくること。
+     * ・notificationIdに1が返ってくること。
      * </pre>
      */
     @Test
@@ -1120,12 +1047,11 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         }
         Map<String, Object> body = new HashMap<>();
         body.put(NotificationProfileConstants.PARAM_ICON, data);
-        try {
-            JSONObject root = sendRequest("POST", builder.toString(), null, body);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), body);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getString(NotificationProfile.PARAM_NOTIFICATION_ID), is("1"));
     }
 
     /**
@@ -1140,7 +1066,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・notificationidに1が返ってくること。
+     * ・notificationIdに1が返ってくること。
      * </pre>
      */
     @Test
@@ -1165,12 +1091,11 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         }
         Map<String, Object> body = new HashMap<>();
         body.put(NotificationProfileConstants.PARAM_ICON, data);
-        try {
-            JSONObject root = sendRequest("POST", builder.toString(), null, body);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), body);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getString(NotificationProfile.PARAM_NOTIFICATION_ID), is("1"));
     }
 
     /**
@@ -1185,7 +1110,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・notificationidに1が返ってくること。
+     * ・notificationIdに1が返ってくること。
      * </pre>
      */
     @Test
@@ -1212,12 +1137,11 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         }
         Map<String, Object> body = new HashMap<>();
         body.put(NotificationProfileConstants.PARAM_ICON, data);
-        try {
-            JSONObject root = sendRequest("POST", builder.toString(), null, body);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), body);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getString(NotificationProfile.PARAM_NOTIFICATION_ID), is("1"));
     }
 
     /**
@@ -1232,7 +1156,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・notificationidに1が返ってくること。
+     * ・notificationIdに1が返ってくること。
      * </pre>
      */
     @Test
@@ -1259,12 +1183,11 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         }
         Map<String, Object> body = new HashMap<>();
         body.put(NotificationProfileConstants.PARAM_ICON, data);
-        try {
-            JSONObject root = sendRequest("POST", builder.toString(), null, body);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), body);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getString(NotificationProfile.PARAM_NOTIFICATION_ID), is("1"));
     }
 
     /**
@@ -1279,7 +1202,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・notificationidに1が返ってくること。
+     * ・notificationIdに1が返ってくること。
      * </pre>
      */
     @Test
@@ -1308,12 +1231,11 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         }
         Map<String, Object> body = new HashMap<>();
         body.put(NotificationProfileConstants.PARAM_ICON, data);
-        try {
-            JSONObject root = sendRequest("POST", builder.toString(), null, body);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), body);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getString(NotificationProfile.PARAM_NOTIFICATION_ID), is("1"));
     }
 
     /**
@@ -1328,7 +1250,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・notificationidに1が返ってくること。
+     * ・notificationIdに1が返ってくること。
      * </pre>
      */
     @Test
@@ -1353,12 +1275,11 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         }
         Map<String, Object> body = new HashMap<>();
         body.put(NotificationProfileConstants.PARAM_ICON, data);
-        try {
-            JSONObject root = sendRequest("POST", builder.toString(), null, body);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), body);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getString(NotificationProfile.PARAM_NOTIFICATION_ID), is("1"));
     }
 
     /**
@@ -1373,7 +1294,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・notificationidに1が返ってくること。
+     * ・notificationIdに1が返ってくること。
      * </pre>
      */
     @Test
@@ -1400,12 +1321,11 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         }
         Map<String, Object> body = new HashMap<>();
         body.put(NotificationProfileConstants.PARAM_ICON, data);
-        try {
-            JSONObject root = sendRequest("POST", builder.toString(), null, body);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), body);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getString(NotificationProfile.PARAM_NOTIFICATION_ID), is("1"));
     }
 
     /**
@@ -1420,7 +1340,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・notificationidに1が返ってくること。
+     * ・notificationIdに1が返ってくること。
      * </pre>
      */
     @Test
@@ -1447,12 +1367,11 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         }
         Map<String, Object> body = new HashMap<>();
         body.put(NotificationProfileConstants.PARAM_ICON, data);
-        try {
-            JSONObject root = sendRequest("POST", builder.toString(), null, body);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), body);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getString(NotificationProfile.PARAM_NOTIFICATION_ID), is("1"));
     }
 
     /**
@@ -1467,7 +1386,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・notificationidに1が返ってくること。
+     * ・notificationIdに1が返ってくること。
      * </pre>
      */
     @Test
@@ -1496,12 +1415,11 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         }
         Map<String, Object> body = new HashMap<>();
         body.put(NotificationProfileConstants.PARAM_ICON, data);
-        try {
-            JSONObject root = sendRequest("POST", builder.toString(), null, body);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), body);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getString(NotificationProfile.PARAM_NOTIFICATION_ID), is("1"));
     }
 
     /**
@@ -1516,7 +1434,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・notificationidに1が返ってくること。
+     * ・notificationIdに1が返ってくること。
      * </pre>
      */
     @Test
@@ -1543,12 +1461,11 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         }
         Map<String, Object> body = new HashMap<>();
         body.put(NotificationProfileConstants.PARAM_ICON, data);
-        try {
-            JSONObject root = sendRequest("POST", builder.toString(), null, body);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), body);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getString(NotificationProfile.PARAM_NOTIFICATION_ID), is("1"));
     }
 
     /**
@@ -1563,7 +1480,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・notificationidに1が返ってくること。
+     * ・notificationIdに1が返ってくること。
      * </pre>
      */
     @Test
@@ -1592,12 +1509,11 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         }
         Map<String, Object> body = new HashMap<>();
         body.put(NotificationProfileConstants.PARAM_ICON, data);
-        try {
-            JSONObject root = sendRequest("POST", builder.toString(), null, body);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), body);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getString(NotificationProfile.PARAM_NOTIFICATION_ID), is("1"));
     }
 
     /**
@@ -1612,7 +1528,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・notificationidに1が返ってくること。
+     * ・notificationIdに1が返ってくること。
      * </pre>
      */
     @Test
@@ -1641,12 +1557,11 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         }
         Map<String, Object> body = new HashMap<>();
         body.put(NotificationProfileConstants.PARAM_ICON, data);
-        try {
-            JSONObject root = sendRequest("POST", builder.toString(), null, body);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), body);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getString(NotificationProfile.PARAM_NOTIFICATION_ID), is("1"));
     }
 
     /**
@@ -1661,7 +1576,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・notificationidに1が返ってくること。
+     * ・notificationIdに1が返ってくること。
      * </pre>
      */
     @Test
@@ -1692,12 +1607,11 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         }
         Map<String, Object> body = new HashMap<>();
         body.put(NotificationProfileConstants.PARAM_ICON, data);
-        try {
-            JSONObject root = sendRequest("POST", builder.toString(), null, body);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), body);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getString(NotificationProfile.PARAM_NOTIFICATION_ID), is("1"));
     }
 
     /**
@@ -1706,7 +1620,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /notification/notify?deviceid=xxxx&notificationId=xxxx
+     * Path: /notification/notify?serviceId=xxxx&notificationId=xxxx
      * </pre>
      * 
      * <pre>
@@ -1727,13 +1641,10 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
                 + TestNotificationProfileConstants.NOTIFICATION_ID[0]);
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.toString());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
     }
 
     /**
@@ -1742,7 +1653,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /notification/onclick?serviceId=xxxx&sessionKey=xxxx
+     * Path: /notification/onClick?serviceId=xxxx
      * </pre>
      * 
      * <pre>
@@ -1766,7 +1677,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /notification/onshow?serviceId=xxxx&sessionKey=xxxx
+     * Path: /notification/onClick?serviceId=xxxx
      * </pre>
      * 
      * <pre>
@@ -1785,7 +1696,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /notification/onshow?serviceId=xxxx&sessionKey=xxxx
+     * Path: /notification/onShow?serviceId=xxxx
      * </pre>
      * 
      * <pre>
@@ -1809,7 +1720,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /notification/onshow?serviceId=xxxx&sessionKey=xxxx
+     * Path: /notification/onShow?serviceId=xxxx
      * </pre>
      * 
      * <pre>
@@ -1828,7 +1739,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /notification/onclose?serviceId=xxxx&sessionKey=xxxx
+     * Path: /notification/onClose?serviceId=xxxx
      * </pre>
      * 
      * <pre>
@@ -1852,7 +1763,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /notification/onclose?serviceId=xxxx&sessionKey=xxxx
+     * Path: /notification/onClose?serviceId=xxxx
      * </pre>
      * 
      * <pre>
@@ -1871,7 +1782,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /notification/onerror?serviceId=xxxx&sessionKey=xxxx
+     * Path: /notification/onError?serviceId=xxxx
      * </pre>
      * 
      * <pre>
@@ -1895,7 +1806,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /notification/onerror?serviceId=xxxx&sessionKey=xxxx
+     * Path: /notification/onerror?serviceId=xxxx
      * </pre>
      * 
      * <pre>
@@ -1923,10 +1834,10 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        HttpUriRequest request = new HttpPut(builder.toString());
-        JSONObject root = sendRequest(request);
-        Assert.assertNotNull("root is null.", root);
-        Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.toString(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
     }
 
     /**
@@ -1943,14 +1854,10 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            Assert.assertNotNull("root is null.", root);
-            Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.toString());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
     }
 
 }

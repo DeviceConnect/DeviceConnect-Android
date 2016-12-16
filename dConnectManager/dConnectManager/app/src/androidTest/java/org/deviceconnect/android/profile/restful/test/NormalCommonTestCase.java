@@ -8,25 +8,21 @@ package org.deviceconnect.android.profile.restful.test;
 
 import android.support.test.runner.AndroidJUnit4;
 
-import org.apache.http.NameValuePair;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpPut;
-import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.protocol.HTTP;
+import org.deviceconnect.message.DConnectMessage;
+import org.deviceconnect.message.DConnectResponseMessage;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.deviceconnect.profile.DConnectProfileConstants;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.core.Is.is;
+import static org.junit.Assert.assertThat;
 
 /**
  * プロファイル共通の正常系テスト.
@@ -67,18 +63,28 @@ public class NormalCommonTestCase extends RESTfulDConnectTestCase {
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         builder.append("&key3=" + URLEncoder.encode(value, "UTF-8"));
         builder.append("&key4=" + URLEncoder.encode(value, "UTF-8"));
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-            assertEquals("GET /unique/test/ping", root.getString("path"));
-            assertEquals(value, root.getString("key1"));
-            assertEquals(value, root.getString("key2"));
-            assertEquals(value, root.getString("key3"));
-            assertEquals(value, root.getString("key4"));
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.get(builder.toString());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getString("path"), is("GET /unique/test/ping"));
+        assertThat(response.getString("key1"), is(value));
+        assertThat(response.getString("key2"), is(value));
+        assertThat(response.getString("key3"), is(value));
+        assertThat(response.getString("key4"), is(value));
+//
+//        try {
+//            HttpUriRequest request = new HttpGet(builder.toString());
+//            JSONObject root = sendRequest(request);
+//            assertResultOK(root);
+//            assertEquals("GET /unique/test/ping", root.getString("path"));
+//            assertEquals(value, root.getString("key1"));
+//            assertEquals(value, root.getString("key2"));
+//            assertEquals(value, root.getString("key3"));
+//            assertEquals(value, root.getString("key4"));
+//        } catch (JSONException e) {
+//            fail("Exception in JSONObject." + e.getMessage());
+//        }
     }
 
     /**
@@ -105,17 +111,26 @@ public class NormalCommonTestCase extends RESTfulDConnectTestCase {
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=unknown");
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        try {
-            HttpPost request = new HttpPost(builder.toString());
-            List<NameValuePair> params = new ArrayList<NameValuePair>();
-            params.add(new BasicNameValuePair(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId()));
-            params.add(new BasicNameValuePair(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken()));
-            request.setEntity(new UrlEncodedFormEntity(params, HTTP.UTF_8));
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        Map<String, Object> data = new HashMap<>();
+        data.put(DConnectProfileConstants.PARAM_SERVICE_ID, URLEncoder.encode(getServiceId(), "UTF-8"));
+        data.put(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, URLEncoder.encode(getAccessToken(), "UTF-8"));
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), data);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+
+//        try {
+//            HttpPost request = new HttpPost(builder.toString());
+//            List<NameValuePair> params = new ArrayList<NameValuePair>();
+//            params.add(new BasicNameValuePair(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId()));
+//            params.add(new BasicNameValuePair(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken()));
+//            request.setEntity(new UrlEncodedFormEntity(params, HTTP.UTF_8));
+//            JSONObject root = sendRequest(request);
+//            assertResultOK(root);
+//        } catch (JSONException e) {
+//            fail("Exception in JSONObject." + e.getMessage());
+//        }
     }
 
     /**
@@ -123,7 +138,7 @@ public class NormalCommonTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /battery?serviceId&accessToken=xxxx
+     * Path: /unique/test/ping?serviceId=unknown&accessToken=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -142,16 +157,25 @@ public class NormalCommonTestCase extends RESTfulDConnectTestCase {
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=unknown");
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        try {
-            HttpPut request = new HttpPut(builder.toString());
-            List<NameValuePair> params = new ArrayList<NameValuePair>();
-            params.add(new BasicNameValuePair(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId()));
-            params.add(new BasicNameValuePair(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken()));
-            request.setEntity(new UrlEncodedFormEntity(params, HTTP.UTF_8));
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        Map<String, Object> data = new HashMap<>();
+        data.put(DConnectProfileConstants.PARAM_SERVICE_ID, URLEncoder.encode(getServiceId(), "UTF-8"));
+        data.put(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, URLEncoder.encode(getAccessToken(), "UTF-8"));
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.toString(), data);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+
+//        try {
+//            HttpPut request = new HttpPut(builder.toString());
+//            List<NameValuePair> params = new ArrayList<NameValuePair>();
+//            params.add(new BasicNameValuePair(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId()));
+//            params.add(new BasicNameValuePair(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken()));
+//            request.setEntity(new UrlEncodedFormEntity(params, HTTP.UTF_8));
+//            JSONObject root = sendRequest(request);
+//            assertResultOK(root);
+//        } catch (JSONException e) {
+//            fail("Exception in JSONObject." + e.getMessage());
+//        }
     }
 }

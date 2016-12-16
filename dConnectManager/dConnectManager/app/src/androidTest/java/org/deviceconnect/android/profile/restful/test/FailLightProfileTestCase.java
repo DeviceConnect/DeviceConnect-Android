@@ -9,20 +9,19 @@ package org.deviceconnect.android.profile.restful.test;
 import android.graphics.Color;
 import android.support.test.runner.AndroidJUnit4;
 
-import org.apache.http.client.methods.HttpDelete;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpPut;
-import org.apache.http.client.methods.HttpUriRequest;
 import org.deviceconnect.android.profile.AuthorizationProfile;
 import org.deviceconnect.android.profile.LightProfile;
 import org.deviceconnect.android.test.plugin.profile.TestLightProfileConstants;
+import org.deviceconnect.message.DConnectMessage;
+import org.deviceconnect.message.DConnectResponseMessage;
+import org.deviceconnect.message.DConnectSDK;
 import org.deviceconnect.profile.DConnectProfileConstants;
-import org.deviceconnect.utils.URIBuilder;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.core.Is.is;
+import static org.junit.Assert.assertThat;
 
 /**
  * Lightプロファイルの異常系テスト.
@@ -43,16 +42,15 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
      */
     @Test
     public void testGetLightNoServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(LightProfile.PROFILE_NAME);
         builder.addParameter(AuthorizationProfile.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject response = sendRequest(request);
-            assertResultError(response);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(DConnectMessage.ErrorCode.EMPTY_SERVICE_ID.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -67,17 +65,16 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
      */
     @Test
     public void testGetLightEmptyServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(LightProfile.PROFILE_NAME);
         builder.addParameter(AuthorizationProfile.PARAM_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject response = sendRequest(request);
-            assertResultError(response);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(DConnectMessage.ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -92,17 +89,16 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
      */
     @Test
     public void testGetLightInvalidServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(LightProfile.PROFILE_NAME);
         builder.addParameter(AuthorizationProfile.PARAM_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject response = sendRequest(request);
-            assertResultError(response);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(DConnectMessage.ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -118,18 +114,17 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
      */
     @Test
     public void testGetLightDuplicatedServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(LightProfile.PROFILE_NAME);
         builder.addParameter(AuthorizationProfile.PARAM_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject response = sendRequest(request);
-            assertResultError(response);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(DConnectMessage.ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -146,20 +141,19 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
      */
     @Test
     public void testPostLightNoServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(LightProfile.PROFILE_NAME);
         builder.addParameter(AuthorizationProfile.PARAM_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(LightProfile.PARAM_LIGHT_ID, LIGHT_ID);
         builder.addParameter(LightProfile.PARAM_COLOR, convertColor(LIGHT_COLOR));
         builder.addParameter(LightProfile.PARAM_BRIGHTNESS, String.valueOf(LIGHT_BRIGHTNESS));
         builder.addParameter(LightProfile.PARAM_FLASHING, convertFlashing(LIGHT_FLASHING));
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject response = sendRequest(request);
-            assertResultError(response);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(DConnectMessage.ErrorCode.EMPTY_SERVICE_ID.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -176,7 +170,7 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
      */
     @Test
     public void testPostLightEmptyServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(LightProfile.PROFILE_NAME);
         builder.addParameter(AuthorizationProfile.PARAM_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
@@ -184,13 +178,12 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
         builder.addParameter(LightProfile.PARAM_COLOR, convertColor(LIGHT_COLOR));
         builder.addParameter(LightProfile.PARAM_BRIGHTNESS, String.valueOf(LIGHT_BRIGHTNESS));
         builder.addParameter(LightProfile.PARAM_FLASHING, convertFlashing(LIGHT_FLASHING));
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject response = sendRequest(request);
-            assertResultError(response);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(DConnectMessage.ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -207,7 +200,7 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
      */
     @Test
     public void testPostLightInvalidServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(LightProfile.PROFILE_NAME);
         builder.addParameter(AuthorizationProfile.PARAM_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
@@ -215,13 +208,12 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
         builder.addParameter(LightProfile.PARAM_COLOR, convertColor(LIGHT_COLOR));
         builder.addParameter(LightProfile.PARAM_BRIGHTNESS, String.valueOf(LIGHT_BRIGHTNESS));
         builder.addParameter(LightProfile.PARAM_FLASHING, convertFlashing(LIGHT_FLASHING));
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject response = sendRequest(request);
-            assertResultError(response);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(DConnectMessage.ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -239,7 +231,7 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
      */
     @Test
     public void testPostLightDuplicatedServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(LightProfile.PROFILE_NAME);
         builder.addParameter(AuthorizationProfile.PARAM_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
@@ -248,13 +240,12 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
         builder.addParameter(LightProfile.PARAM_COLOR, convertColor(LIGHT_COLOR));
         builder.addParameter(LightProfile.PARAM_BRIGHTNESS, String.valueOf(LIGHT_BRIGHTNESS));
         builder.addParameter(LightProfile.PARAM_FLASHING, convertFlashing(LIGHT_FLASHING));
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject response = sendRequest(request);
-            assertResultError(response);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(DConnectMessage.ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -271,20 +262,19 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
      */
     @Test
     public void testPostLightNoLightId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(LightProfile.PROFILE_NAME);
         builder.addParameter(AuthorizationProfile.PARAM_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(LightProfile.PARAM_COLOR, convertColor(LIGHT_COLOR));
         builder.addParameter(LightProfile.PARAM_BRIGHTNESS, String.valueOf(LIGHT_BRIGHTNESS));
         builder.addParameter(LightProfile.PARAM_FLASHING, convertFlashing(LIGHT_FLASHING));
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject response = sendRequest(request);
-            assertResultError(response);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(DConnectMessage.ErrorCode.INVALID_REQUEST_PARAMETER.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -301,7 +291,7 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
      */
     @Test
     public void testPostLightEmptyLightId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(LightProfile.PROFILE_NAME);
         builder.addParameter(AuthorizationProfile.PARAM_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
@@ -309,13 +299,14 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
         builder.addParameter(LightProfile.PARAM_COLOR, convertColor(LIGHT_COLOR));
         builder.addParameter(LightProfile.PARAM_BRIGHTNESS, String.valueOf(LIGHT_BRIGHTNESS));
         builder.addParameter(LightProfile.PARAM_FLASHING, convertFlashing(LIGHT_FLASHING));
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject response = sendRequest(request);
-            assertResultOK(response);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        // TODO lightIdは省略可になったはず・・・・
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(DConnectMessage.ErrorCode.INVALID_REQUEST_PARAMETER.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -332,7 +323,7 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
      */
     @Test
     public void testPostLightInvalidLightId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(LightProfile.PROFILE_NAME);
         builder.addParameter(AuthorizationProfile.PARAM_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
@@ -340,13 +331,12 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
         builder.addParameter(LightProfile.PARAM_COLOR, convertColor(LIGHT_COLOR));
         builder.addParameter(LightProfile.PARAM_BRIGHTNESS, String.valueOf(LIGHT_BRIGHTNESS));
         builder.addParameter(LightProfile.PARAM_FLASHING, convertFlashing(LIGHT_FLASHING));
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject response = sendRequest(request);
-            assertResultOK(response);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(DConnectMessage.ErrorCode.INVALID_REQUEST_PARAMETER.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -359,12 +349,12 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
      * <pre>
      * 【期待する動作】
      * ・先に定義された属性が優先されること。
-     * ・resultに0が返ってくること。
+     * ・resultに1が返ってくること。
      * </pre>
      */
     @Test
     public void testPostLightDuplicatedLightId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(LightProfile.PROFILE_NAME);
         builder.addParameter(AuthorizationProfile.PARAM_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
@@ -373,13 +363,12 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
         builder.addParameter(LightProfile.PARAM_COLOR, convertColor(LIGHT_COLOR));
         builder.addParameter(LightProfile.PARAM_BRIGHTNESS, String.valueOf(LIGHT_BRIGHTNESS));
         builder.addParameter(LightProfile.PARAM_FLASHING, convertFlashing(LIGHT_FLASHING));
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject response = sendRequest(request);
-            assertResultOK(response);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(DConnectMessage.ErrorCode.INVALID_REQUEST_PARAMETER.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -396,7 +385,7 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
      */
     @Test
     public void testPostLightEmptyColor() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(LightProfile.PROFILE_NAME);
         builder.addParameter(AuthorizationProfile.PARAM_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
@@ -404,13 +393,12 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
         builder.addParameter(LightProfile.PARAM_COLOR, "");
         builder.addParameter(LightProfile.PARAM_BRIGHTNESS, String.valueOf(LIGHT_BRIGHTNESS));
         builder.addParameter(LightProfile.PARAM_FLASHING, convertFlashing(LIGHT_FLASHING));
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject response = sendRequest(request);
-            assertResultError(response);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(DConnectMessage.ErrorCode.INVALID_REQUEST_PARAMETER.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -427,7 +415,7 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
      */
     @Test
     public void testPostLightDuplicatedColor() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(LightProfile.PROFILE_NAME);
         builder.addParameter(AuthorizationProfile.PARAM_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
@@ -436,13 +424,12 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
         builder.addParameter(LightProfile.PARAM_COLOR, convertColor(LIGHT_COLOR));
         builder.addParameter(LightProfile.PARAM_BRIGHTNESS, String.valueOf(LIGHT_BRIGHTNESS));
         builder.addParameter(LightProfile.PARAM_FLASHING, convertFlashing(LIGHT_FLASHING));
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject response = sendRequest(request);
-            assertResultError(response);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(DConnectMessage.ErrorCode.INVALID_REQUEST_PARAMETER.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -459,7 +446,7 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
      */
     @Test
     public void testPostLightInvalidColor1() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(LightProfile.PROFILE_NAME);
         builder.addParameter(AuthorizationProfile.PARAM_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
@@ -467,13 +454,12 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
         builder.addParameter(LightProfile.PARAM_COLOR, "あいうえお");
         builder.addParameter(LightProfile.PARAM_BRIGHTNESS, String.valueOf(LIGHT_BRIGHTNESS));
         builder.addParameter(LightProfile.PARAM_FLASHING, convertFlashing(LIGHT_FLASHING));
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject response = sendRequest(request);
-            assertResultError(response);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(DConnectMessage.ErrorCode.INVALID_REQUEST_PARAMETER.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -490,7 +476,7 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
      */
     @Test
     public void testPostLightInvalidColor2() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(LightProfile.PROFILE_NAME);
         builder.addParameter(AuthorizationProfile.PARAM_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
@@ -498,13 +484,12 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
         builder.addParameter(LightProfile.PARAM_COLOR, "FFFFFFF");
         builder.addParameter(LightProfile.PARAM_BRIGHTNESS, String.valueOf(LIGHT_BRIGHTNESS));
         builder.addParameter(LightProfile.PARAM_FLASHING, convertFlashing(LIGHT_FLASHING));
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject response = sendRequest(request);
-            assertResultError(response);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(DConnectMessage.ErrorCode.INVALID_REQUEST_PARAMETER.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -521,7 +506,7 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
      */
     @Test
     public void testPostLightInvalidColor3() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(LightProfile.PROFILE_NAME);
         builder.addParameter(AuthorizationProfile.PARAM_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
@@ -529,13 +514,12 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
         builder.addParameter(LightProfile.PARAM_COLOR, "ZZZZZZ");
         builder.addParameter(LightProfile.PARAM_BRIGHTNESS, String.valueOf(LIGHT_BRIGHTNESS));
         builder.addParameter(LightProfile.PARAM_FLASHING, convertFlashing(LIGHT_FLASHING));
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject response = sendRequest(request);
-            assertResultError(response);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(DConnectMessage.ErrorCode.INVALID_REQUEST_PARAMETER.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -552,7 +536,7 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
      */
     @Test
     public void testPostLightEmptyBrightness() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(LightProfile.PROFILE_NAME);
         builder.addParameter(AuthorizationProfile.PARAM_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
@@ -560,13 +544,12 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
         builder.addParameter(LightProfile.PARAM_COLOR, convertColor(LIGHT_COLOR));
         builder.addParameter(LightProfile.PARAM_BRIGHTNESS, "");
         builder.addParameter(LightProfile.PARAM_FLASHING, convertFlashing(LIGHT_FLASHING));
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject response = sendRequest(request);
-            assertResultError(response);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(DConnectMessage.ErrorCode.INVALID_REQUEST_PARAMETER.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -583,7 +566,7 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
      */
     @Test
     public void testPostLightDuplicatedBrightness() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(LightProfile.PROFILE_NAME);
         builder.addParameter(AuthorizationProfile.PARAM_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
@@ -592,13 +575,12 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
         builder.addParameter(LightProfile.PARAM_BRIGHTNESS, "aaa");
         builder.addParameter(LightProfile.PARAM_BRIGHTNESS, String.valueOf(LIGHT_BRIGHTNESS));
         builder.addParameter(LightProfile.PARAM_FLASHING, convertFlashing(LIGHT_FLASHING));
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject response = sendRequest(request);
-            assertResultError(response);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(DConnectMessage.ErrorCode.INVALID_REQUEST_PARAMETER.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -615,7 +597,7 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
      */
     @Test
     public void testPostLightInvalidBrightness1() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(LightProfile.PROFILE_NAME);
         builder.addParameter(AuthorizationProfile.PARAM_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
@@ -623,13 +605,12 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
         builder.addParameter(LightProfile.PARAM_COLOR, convertColor(LIGHT_COLOR));
         builder.addParameter(LightProfile.PARAM_BRIGHTNESS, "-1");
         builder.addParameter(LightProfile.PARAM_FLASHING, convertFlashing(LIGHT_FLASHING));
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject response = sendRequest(request);
-            assertResultError(response);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(DConnectMessage.ErrorCode.INVALID_REQUEST_PARAMETER.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -646,7 +627,7 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
      */
     @Test
     public void testPostLightInvalidBrightness2() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(LightProfile.PROFILE_NAME);
         builder.addParameter(AuthorizationProfile.PARAM_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
@@ -654,13 +635,12 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
         builder.addParameter(LightProfile.PARAM_COLOR, convertColor(LIGHT_COLOR));
         builder.addParameter(LightProfile.PARAM_BRIGHTNESS, "1.1");
         builder.addParameter(LightProfile.PARAM_FLASHING, convertFlashing(LIGHT_FLASHING));
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject response = sendRequest(request);
-            assertResultError(response);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(DConnectMessage.ErrorCode.INVALID_REQUEST_PARAMETER.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -677,7 +657,7 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
      */
     @Test
     public void testPostLightInvalidBrightness3() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(LightProfile.PROFILE_NAME);
         builder.addParameter(AuthorizationProfile.PARAM_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
@@ -685,13 +665,12 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
         builder.addParameter(LightProfile.PARAM_COLOR, convertColor(LIGHT_COLOR));
         builder.addParameter(LightProfile.PARAM_BRIGHTNESS, "あいうえお");
         builder.addParameter(LightProfile.PARAM_FLASHING, convertFlashing(LIGHT_FLASHING));
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject response = sendRequest(request);
-            assertResultError(response);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(DConnectMessage.ErrorCode.INVALID_REQUEST_PARAMETER.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -708,7 +687,7 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
      */
     @Test
     public void testPostLightEmptyFlashing() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(LightProfile.PROFILE_NAME);
         builder.addParameter(AuthorizationProfile.PARAM_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
@@ -716,13 +695,12 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
         builder.addParameter(LightProfile.PARAM_COLOR, convertColor(LIGHT_COLOR));
         builder.addParameter(LightProfile.PARAM_BRIGHTNESS, String.valueOf(LIGHT_BRIGHTNESS));
         builder.addParameter(LightProfile.PARAM_FLASHING, "");
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject response = sendRequest(request);
-            assertResultOK(response);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(DConnectMessage.ErrorCode.INVALID_REQUEST_PARAMETER.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -739,7 +717,7 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
      */
     @Test
     public void testPostLightDuplicatedFlashing() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(LightProfile.PROFILE_NAME);
         builder.addParameter(AuthorizationProfile.PARAM_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
@@ -748,13 +726,12 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
         builder.addParameter(LightProfile.PARAM_BRIGHTNESS, String.valueOf(LIGHT_BRIGHTNESS));
         builder.addParameter(LightProfile.PARAM_FLASHING, "");
         builder.addParameter(LightProfile.PARAM_FLASHING, convertFlashing(LIGHT_FLASHING));
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject response = sendRequest(request);
-            assertResultOK(response);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(DConnectMessage.ErrorCode.INVALID_REQUEST_PARAMETER.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -771,7 +748,7 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
      */
     @Test
     public void testPostLightInvalidFlashing1() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(LightProfile.PROFILE_NAME);
         builder.addParameter(AuthorizationProfile.PARAM_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
@@ -779,13 +756,12 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
         builder.addParameter(LightProfile.PARAM_COLOR, convertColor(LIGHT_COLOR));
         builder.addParameter(LightProfile.PARAM_BRIGHTNESS, String.valueOf(LIGHT_BRIGHTNESS));
         builder.addParameter(LightProfile.PARAM_FLASHING, "-1");
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject response = sendRequest(request);
-            assertResultError(response);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(DConnectMessage.ErrorCode.INVALID_REQUEST_PARAMETER.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -802,7 +778,7 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
      */
     @Test
     public void testPostLightInvalidFlashing2() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(LightProfile.PROFILE_NAME);
         builder.addParameter(AuthorizationProfile.PARAM_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
@@ -810,13 +786,12 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
         builder.addParameter(LightProfile.PARAM_COLOR, convertColor(LIGHT_COLOR));
         builder.addParameter(LightProfile.PARAM_BRIGHTNESS, String.valueOf(LIGHT_BRIGHTNESS));
         builder.addParameter(LightProfile.PARAM_FLASHING, "あいうえお");
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject response = sendRequest(request);
-            assertResultError(response);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(DConnectMessage.ErrorCode.INVALID_REQUEST_PARAMETER.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -833,7 +808,7 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
      */
     @Test
     public void testPostLightInvalidFlashing3() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(LightProfile.PROFILE_NAME);
         builder.addParameter(AuthorizationProfile.PARAM_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
@@ -841,13 +816,12 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
         builder.addParameter(LightProfile.PARAM_COLOR, convertColor(LIGHT_COLOR));
         builder.addParameter(LightProfile.PARAM_BRIGHTNESS, String.valueOf(LIGHT_BRIGHTNESS));
         builder.addParameter(LightProfile.PARAM_FLASHING, "100,,100");
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject response = sendRequest(request);
-            assertResultError(response);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(DConnectMessage.ErrorCode.INVALID_REQUEST_PARAMETER.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -864,7 +838,7 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
      */
     @Test
     public void testPostLightInvalidFlashing4() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(LightProfile.PROFILE_NAME);
         builder.addParameter(AuthorizationProfile.PARAM_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
@@ -872,13 +846,12 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
         builder.addParameter(LightProfile.PARAM_COLOR, convertColor(LIGHT_COLOR));
         builder.addParameter(LightProfile.PARAM_BRIGHTNESS, String.valueOf(LIGHT_BRIGHTNESS));
         builder.addParameter(LightProfile.PARAM_FLASHING, "100,-100,100");
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject response = sendRequest(request);
-            assertResultError(response);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(DConnectMessage.ErrorCode.INVALID_REQUEST_PARAMETER.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -890,12 +863,12 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
      * </pre>
      * <pre>
      * 【期待する動作】
-     * ・resultに0が返ってくること。
+     * ・resultに1が返ってくること。
      * </pre>
      */
     @Test
     public void testPostLightInvalidFlashing5() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(LightProfile.PROFILE_NAME);
         builder.addParameter(AuthorizationProfile.PARAM_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
@@ -903,13 +876,12 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
         builder.addParameter(LightProfile.PARAM_COLOR, convertColor(LIGHT_COLOR));
         builder.addParameter(LightProfile.PARAM_BRIGHTNESS, String.valueOf(LIGHT_BRIGHTNESS));
         builder.addParameter(LightProfile.PARAM_FLASHING, "100,100,100,");
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject response = sendRequest(request);
-            assertResultOK(response);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(DConnectMessage.ErrorCode.INVALID_REQUEST_PARAMETER.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -926,17 +898,16 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
      */
     @Test
     public void testDeleteLightNoServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(LightProfile.PROFILE_NAME);
         builder.addParameter(AuthorizationProfile.PARAM_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(LightProfile.PARAM_LIGHT_ID, LIGHT_ID);
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject response = sendRequest(request);
-            assertResultError(response);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(DConnectMessage.ErrorCode.EMPTY_SERVICE_ID.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -953,18 +924,17 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
      */
     @Test
     public void testDeleteLightEmptyServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(LightProfile.PROFILE_NAME);
         builder.addParameter(AuthorizationProfile.PARAM_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(LightProfile.PARAM_LIGHT_ID, LIGHT_ID);
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject response = sendRequest(request);
-            assertResultError(response);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(DConnectMessage.ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -981,18 +951,17 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
      */
     @Test
     public void testDeleteLightInvalidServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(LightProfile.PROFILE_NAME);
         builder.addParameter(AuthorizationProfile.PARAM_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(LightProfile.PARAM_LIGHT_ID, LIGHT_ID);
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject response = sendRequest(request);
-            assertResultError(response);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(DConnectMessage.ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1009,19 +978,18 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
      */
     @Test
     public void testDeleteLightDuplicatedServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(LightProfile.PROFILE_NAME);
         builder.addParameter(AuthorizationProfile.PARAM_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(LightProfile.PARAM_LIGHT_ID, LIGHT_ID);
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject response = sendRequest(request);
-            assertResultError(response);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(DConnectMessage.ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1038,17 +1006,18 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
      */
     @Test
     public void testDeleteLightNoLightId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(LightProfile.PROFILE_NAME);
         builder.addParameter(AuthorizationProfile.PARAM_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject response = sendRequest(request);
-            assertResultError(response);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        // TODO lightIdは省略可になったはず・・・・
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(DConnectMessage.ErrorCode.INVALID_REQUEST_PARAMETER.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1060,23 +1029,22 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
      * </pre>
      * <pre>
      * 【期待する動作】
-     * ・resultに0が返ってくること。
+     * ・resultに1が返ってくること。
      * </pre>
      */
     @Test
     public void testDeleteLightEmptyLightId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(LightProfile.PROFILE_NAME);
         builder.addParameter(AuthorizationProfile.PARAM_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(LightProfile.PARAM_LIGHT_ID, "");
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject response = sendRequest(request);
-            assertResultOK(response);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(DConnectMessage.ErrorCode.INVALID_REQUEST_PARAMETER.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1088,23 +1056,22 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
      * </pre>
      * <pre>
      * 【期待する動作】
-     * ・resultに0が返ってくること。
+     * ・resultに1が返ってくること。
      * </pre>
      */
     @Test
     public void testDeleteLightInvalidLightId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(LightProfile.PROFILE_NAME);
         builder.addParameter(AuthorizationProfile.PARAM_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(LightProfile.PARAM_LIGHT_ID, "123456789");
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject response = sendRequest(request);
-            assertResultOK(response);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(DConnectMessage.ErrorCode.INVALID_REQUEST_PARAMETER.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1116,28 +1083,24 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
      * </pre>
      * <pre>
      * 【期待する動作】
-     * ・resultに0が返ってくること。
+     * ・resultに1が返ってくること。
      * </pre>
      */
     @Test
     public void testDeleteLightDuplicatedLightId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(LightProfile.PROFILE_NAME);
         builder.addParameter(AuthorizationProfile.PARAM_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(LightProfile.PARAM_LIGHT_ID, "123456789");
         builder.addParameter(LightProfile.PARAM_LIGHT_ID, LIGHT_ID);
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject response = sendRequest(request);
-            assertResultOK(response);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(DConnectMessage.ErrorCode.INVALID_REQUEST_PARAMETER.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
-
-
-
 
     /**
      * serviceIdを指定せずにライト情報更新要求を送信するテスト.
@@ -1153,7 +1116,7 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
      */
     @Test
     public void testPutLightNoServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(LightProfile.PROFILE_NAME);
         builder.addParameter(AuthorizationProfile.PARAM_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(LightProfile.PARAM_LIGHT_ID, LIGHT_ID);
@@ -1161,13 +1124,12 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
         builder.addParameter(LightProfile.PARAM_COLOR, convertColor(LIGHT_COLOR));
         builder.addParameter(LightProfile.PARAM_BRIGHTNESS, String.valueOf(LIGHT_BRIGHTNESS));
         builder.addParameter(LightProfile.PARAM_FLASHING, convertFlashing(LIGHT_FLASHING));
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject response = sendRequest(request);
-            assertResultError(response);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(DConnectMessage.ErrorCode.EMPTY_SERVICE_ID.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1184,7 +1146,7 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
      */
     @Test
     public void testPutLightEmptyServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(LightProfile.PROFILE_NAME);
         builder.addParameter(AuthorizationProfile.PARAM_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
@@ -1193,13 +1155,12 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
         builder.addParameter(LightProfile.PARAM_COLOR, convertColor(LIGHT_COLOR));
         builder.addParameter(LightProfile.PARAM_BRIGHTNESS, String.valueOf(LIGHT_BRIGHTNESS));
         builder.addParameter(LightProfile.PARAM_FLASHING, convertFlashing(LIGHT_FLASHING));
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject response = sendRequest(request);
-            assertResultError(response);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(DConnectMessage.ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1216,7 +1177,7 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
      */
     @Test
     public void testPutLightInvalidServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(LightProfile.PROFILE_NAME);
         builder.addParameter(AuthorizationProfile.PARAM_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
@@ -1225,13 +1186,12 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
         builder.addParameter(LightProfile.PARAM_COLOR, convertColor(LIGHT_COLOR));
         builder.addParameter(LightProfile.PARAM_BRIGHTNESS, String.valueOf(LIGHT_BRIGHTNESS));
         builder.addParameter(LightProfile.PARAM_FLASHING, convertFlashing(LIGHT_FLASHING));
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject response = sendRequest(request);
-            assertResultError(response);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(DConnectMessage.ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1249,7 +1209,7 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
      */
     @Test
     public void testPutLightDuplicatedServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(LightProfile.PROFILE_NAME);
         builder.addParameter(AuthorizationProfile.PARAM_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
@@ -1259,13 +1219,12 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
         builder.addParameter(LightProfile.PARAM_COLOR, convertColor(LIGHT_COLOR));
         builder.addParameter(LightProfile.PARAM_BRIGHTNESS, String.valueOf(LIGHT_BRIGHTNESS));
         builder.addParameter(LightProfile.PARAM_FLASHING, convertFlashing(LIGHT_FLASHING));
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject response = sendRequest(request);
-            assertResultError(response);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(DConnectMessage.ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1282,7 +1241,7 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
      */
     @Test
     public void testPutLightNoLightId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(LightProfile.PROFILE_NAME);
         builder.addParameter(AuthorizationProfile.PARAM_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
@@ -1290,13 +1249,14 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
         builder.addParameter(LightProfile.PARAM_COLOR, convertColor(LIGHT_COLOR));
         builder.addParameter(LightProfile.PARAM_BRIGHTNESS, String.valueOf(LIGHT_BRIGHTNESS));
         builder.addParameter(LightProfile.PARAM_FLASHING, convertFlashing(LIGHT_FLASHING));
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject response = sendRequest(request);
-            assertResultError(response);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        // TODO
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(DConnectMessage.ErrorCode.INVALID_REQUEST_PARAMETER.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1308,12 +1268,12 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
      * </pre>
      * <pre>
      * 【期待する動作】
-     * ・resultに0が返ってくること。
+     * ・resultに1が返ってくること。
      * </pre>
      */
     @Test
     public void testPutLightEmptyLightId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(LightProfile.PROFILE_NAME);
         builder.addParameter(AuthorizationProfile.PARAM_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
@@ -1322,13 +1282,12 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
         builder.addParameter(LightProfile.PARAM_COLOR, convertColor(LIGHT_COLOR));
         builder.addParameter(LightProfile.PARAM_BRIGHTNESS, String.valueOf(LIGHT_BRIGHTNESS));
         builder.addParameter(LightProfile.PARAM_FLASHING, convertFlashing(LIGHT_FLASHING));
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject response = sendRequest(request);
-            assertResultOK(response);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(DConnectMessage.ErrorCode.INVALID_REQUEST_PARAMETER.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1340,12 +1299,12 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
      * </pre>
      * <pre>
      * 【期待する動作】
-     * ・resultに0が返ってくること。
+     * ・resultに1が返ってくること。
      * </pre>
      */
     @Test
     public void testPutLightInvalidLightId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(LightProfile.PROFILE_NAME);
         builder.addParameter(AuthorizationProfile.PARAM_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
@@ -1354,13 +1313,12 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
         builder.addParameter(LightProfile.PARAM_COLOR, convertColor(LIGHT_COLOR));
         builder.addParameter(LightProfile.PARAM_BRIGHTNESS, String.valueOf(LIGHT_BRIGHTNESS));
         builder.addParameter(LightProfile.PARAM_FLASHING, convertFlashing(LIGHT_FLASHING));
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject response = sendRequest(request);
-            assertResultOK(response);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(DConnectMessage.ErrorCode.INVALID_REQUEST_PARAMETER.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1373,12 +1331,12 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
      * <pre>
      * 【期待する動作】
      * ・先に定義された属性が優先されること。
-     * ・resultに0が返ってくること。
+     * ・resultに1が返ってくること。
      * </pre>
      */
     @Test
     public void testPutLightDuplicatedLightId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(LightProfile.PROFILE_NAME);
         builder.addParameter(AuthorizationProfile.PARAM_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
@@ -1388,13 +1346,12 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
         builder.addParameter(LightProfile.PARAM_COLOR, convertColor(LIGHT_COLOR));
         builder.addParameter(LightProfile.PARAM_BRIGHTNESS, String.valueOf(LIGHT_BRIGHTNESS));
         builder.addParameter(LightProfile.PARAM_FLASHING, convertFlashing(LIGHT_FLASHING));
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject response = sendRequest(request);
-            assertResultOK(response);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(DConnectMessage.ErrorCode.INVALID_REQUEST_PARAMETER.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1411,7 +1368,7 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
      */
     @Test
     public void testPutLightNoName() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(LightProfile.PROFILE_NAME);
         builder.addParameter(AuthorizationProfile.PARAM_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
@@ -1419,13 +1376,12 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
         builder.addParameter(LightProfile.PARAM_COLOR, convertColor(LIGHT_COLOR));
         builder.addParameter(LightProfile.PARAM_BRIGHTNESS, String.valueOf(LIGHT_BRIGHTNESS));
         builder.addParameter(LightProfile.PARAM_FLASHING, convertFlashing(LIGHT_FLASHING));
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject response = sendRequest(request);
-            assertResultError(response);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(DConnectMessage.ErrorCode.INVALID_REQUEST_PARAMETER.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1442,7 +1398,7 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
      */
     @Test
     public void testPutLightEmptyName() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(LightProfile.PROFILE_NAME);
         builder.addParameter(AuthorizationProfile.PARAM_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
@@ -1451,13 +1407,12 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
         builder.addParameter(LightProfile.PARAM_NAME, "");
         builder.addParameter(LightProfile.PARAM_BRIGHTNESS, String.valueOf(LIGHT_BRIGHTNESS));
         builder.addParameter(LightProfile.PARAM_FLASHING, convertFlashing(LIGHT_FLASHING));
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject response = sendRequest(request);
-            assertResultOK(response);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(DConnectMessage.ErrorCode.INVALID_REQUEST_PARAMETER.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1474,7 +1429,7 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
      */
     @Test
     public void testPutLightDuplicatedName() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(LightProfile.PROFILE_NAME);
         builder.addParameter(AuthorizationProfile.PARAM_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
@@ -1484,13 +1439,12 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
         builder.addParameter(LightProfile.PARAM_COLOR, convertColor(LIGHT_COLOR));
         builder.addParameter(LightProfile.PARAM_BRIGHTNESS, String.valueOf(LIGHT_BRIGHTNESS));
         builder.addParameter(LightProfile.PARAM_FLASHING, convertFlashing(LIGHT_FLASHING));
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject response = sendRequest(request);
-            assertResultOK(response);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(DConnectMessage.ErrorCode.INVALID_REQUEST_PARAMETER.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1507,7 +1461,7 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
      */
     @Test
     public void testPutLightEmptyColor() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(LightProfile.PROFILE_NAME);
         builder.addParameter(AuthorizationProfile.PARAM_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
@@ -1516,13 +1470,12 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
         builder.addParameter(LightProfile.PARAM_NAME, LIGHT_NEW_NAME);
         builder.addParameter(LightProfile.PARAM_BRIGHTNESS, String.valueOf(LIGHT_BRIGHTNESS));
         builder.addParameter(LightProfile.PARAM_FLASHING, convertFlashing(LIGHT_FLASHING));
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject response = sendRequest(request);
-            assertResultError(response);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(DConnectMessage.ErrorCode.INVALID_REQUEST_PARAMETER.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1539,7 +1492,7 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
      */
     @Test
     public void testPutLightDuplicatedColor() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(LightProfile.PROFILE_NAME);
         builder.addParameter(AuthorizationProfile.PARAM_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
@@ -1549,13 +1502,12 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
         builder.addParameter(LightProfile.PARAM_COLOR, convertColor(LIGHT_COLOR));
         builder.addParameter(LightProfile.PARAM_BRIGHTNESS, String.valueOf(LIGHT_BRIGHTNESS));
         builder.addParameter(LightProfile.PARAM_FLASHING, convertFlashing(LIGHT_FLASHING));
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject response = sendRequest(request);
-            assertResultError(response);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(DConnectMessage.ErrorCode.INVALID_REQUEST_PARAMETER.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1572,7 +1524,7 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
      */
     @Test
     public void testPutLightInvalidColor1() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(LightProfile.PROFILE_NAME);
         builder.addParameter(AuthorizationProfile.PARAM_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
@@ -1581,13 +1533,12 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
         builder.addParameter(LightProfile.PARAM_COLOR, "あいうえお");
         builder.addParameter(LightProfile.PARAM_BRIGHTNESS, String.valueOf(LIGHT_BRIGHTNESS));
         builder.addParameter(LightProfile.PARAM_FLASHING, convertFlashing(LIGHT_FLASHING));
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject response = sendRequest(request);
-            assertResultError(response);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(DConnectMessage.ErrorCode.INVALID_REQUEST_PARAMETER.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1604,7 +1555,7 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
      */
     @Test
     public void testPutLightInvalidColor2() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(LightProfile.PROFILE_NAME);
         builder.addParameter(AuthorizationProfile.PARAM_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
@@ -1613,13 +1564,12 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
         builder.addParameter(LightProfile.PARAM_COLOR, "FFFFFFF");
         builder.addParameter(LightProfile.PARAM_BRIGHTNESS, String.valueOf(LIGHT_BRIGHTNESS));
         builder.addParameter(LightProfile.PARAM_FLASHING, convertFlashing(LIGHT_FLASHING));
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject response = sendRequest(request);
-            assertResultError(response);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(DConnectMessage.ErrorCode.INVALID_REQUEST_PARAMETER.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1636,7 +1586,7 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
      */
     @Test
     public void testPutLightInvalidColor3() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(LightProfile.PROFILE_NAME);
         builder.addParameter(AuthorizationProfile.PARAM_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
@@ -1645,13 +1595,12 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
         builder.addParameter(LightProfile.PARAM_COLOR, "ZZZZZZ");
         builder.addParameter(LightProfile.PARAM_BRIGHTNESS, String.valueOf(LIGHT_BRIGHTNESS));
         builder.addParameter(LightProfile.PARAM_FLASHING, convertFlashing(LIGHT_FLASHING));
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject response = sendRequest(request);
-            assertResultError(response);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(DConnectMessage.ErrorCode.INVALID_REQUEST_PARAMETER.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1668,7 +1617,7 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
      */
     @Test
     public void testPutLightEmptyBrightness() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(LightProfile.PROFILE_NAME);
         builder.addParameter(AuthorizationProfile.PARAM_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
@@ -1677,13 +1626,12 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
         builder.addParameter(LightProfile.PARAM_COLOR, convertColor(LIGHT_COLOR));
         builder.addParameter(LightProfile.PARAM_BRIGHTNESS, "");
         builder.addParameter(LightProfile.PARAM_FLASHING, convertFlashing(LIGHT_FLASHING));
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject response = sendRequest(request);
-            assertResultError(response);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(DConnectMessage.ErrorCode.INVALID_REQUEST_PARAMETER.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1700,7 +1648,7 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
      */
     @Test
     public void testPutLightDuplicatedBrightness() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(LightProfile.PROFILE_NAME);
         builder.addParameter(AuthorizationProfile.PARAM_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
@@ -1710,13 +1658,12 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
         builder.addParameter(LightProfile.PARAM_BRIGHTNESS, "aaa");
         builder.addParameter(LightProfile.PARAM_BRIGHTNESS, String.valueOf(LIGHT_BRIGHTNESS));
         builder.addParameter(LightProfile.PARAM_FLASHING, convertFlashing(LIGHT_FLASHING));
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject response = sendRequest(request);
-            assertResultError(response);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(DConnectMessage.ErrorCode.INVALID_REQUEST_PARAMETER.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1733,7 +1680,7 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
      */
     @Test
     public void testPutLightInvalidBrightness1() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(LightProfile.PROFILE_NAME);
         builder.addParameter(AuthorizationProfile.PARAM_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
@@ -1742,13 +1689,12 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
         builder.addParameter(LightProfile.PARAM_COLOR, convertColor(LIGHT_COLOR));
         builder.addParameter(LightProfile.PARAM_BRIGHTNESS, "-1");
         builder.addParameter(LightProfile.PARAM_FLASHING, convertFlashing(LIGHT_FLASHING));
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject response = sendRequest(request);
-            assertResultError(response);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(DConnectMessage.ErrorCode.INVALID_REQUEST_PARAMETER.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1765,7 +1711,7 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
      */
     @Test
     public void testPutLightInvalidBrightness2() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(LightProfile.PROFILE_NAME);
         builder.addParameter(AuthorizationProfile.PARAM_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
@@ -1774,13 +1720,12 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
         builder.addParameter(LightProfile.PARAM_COLOR, convertColor(LIGHT_COLOR));
         builder.addParameter(LightProfile.PARAM_BRIGHTNESS, "1.1");
         builder.addParameter(LightProfile.PARAM_FLASHING, convertFlashing(LIGHT_FLASHING));
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject response = sendRequest(request);
-            assertResultError(response);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(DConnectMessage.ErrorCode.INVALID_REQUEST_PARAMETER.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1797,7 +1742,7 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
      */
     @Test
     public void testPutLightInvalidBrightness3() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(LightProfile.PROFILE_NAME);
         builder.addParameter(AuthorizationProfile.PARAM_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
@@ -1806,13 +1751,12 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
         builder.addParameter(LightProfile.PARAM_COLOR, convertColor(LIGHT_COLOR));
         builder.addParameter(LightProfile.PARAM_BRIGHTNESS, "あいうえお");
         builder.addParameter(LightProfile.PARAM_FLASHING, convertFlashing(LIGHT_FLASHING));
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject response = sendRequest(request);
-            assertResultError(response);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(DConnectMessage.ErrorCode.INVALID_REQUEST_PARAMETER.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1824,12 +1768,12 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
      * </pre>
      * <pre>
      * 【期待する動作】
-     * ・resultに0が返ってくること。
+     * ・resultに1が返ってくること。
      * </pre>
      */
     @Test
     public void testPutLightEmptyFlashing() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(LightProfile.PROFILE_NAME);
         builder.addParameter(AuthorizationProfile.PARAM_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
@@ -1838,13 +1782,12 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
         builder.addParameter(LightProfile.PARAM_COLOR, convertColor(LIGHT_COLOR));
         builder.addParameter(LightProfile.PARAM_BRIGHTNESS, String.valueOf(LIGHT_BRIGHTNESS));
         builder.addParameter(LightProfile.PARAM_FLASHING, "");
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject response = sendRequest(request);
-            assertResultOK(response);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(DConnectMessage.ErrorCode.INVALID_REQUEST_PARAMETER.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1861,7 +1804,7 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
      */
     @Test
     public void testPutLightDuplicatedFlashing() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(LightProfile.PROFILE_NAME);
         builder.addParameter(AuthorizationProfile.PARAM_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
@@ -1871,13 +1814,12 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
         builder.addParameter(LightProfile.PARAM_BRIGHTNESS, String.valueOf(LIGHT_BRIGHTNESS));
         builder.addParameter(LightProfile.PARAM_FLASHING, "");
         builder.addParameter(LightProfile.PARAM_FLASHING, convertFlashing(LIGHT_FLASHING));
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject response = sendRequest(request);
-            assertResultOK(response);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(DConnectMessage.ErrorCode.INVALID_REQUEST_PARAMETER.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1894,7 +1836,7 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
      */
     @Test
     public void testPutLightInvalidFlashing1() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(LightProfile.PROFILE_NAME);
         builder.addParameter(AuthorizationProfile.PARAM_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
@@ -1903,13 +1845,12 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
         builder.addParameter(LightProfile.PARAM_COLOR, convertColor(LIGHT_COLOR));
         builder.addParameter(LightProfile.PARAM_BRIGHTNESS, String.valueOf(LIGHT_BRIGHTNESS));
         builder.addParameter(LightProfile.PARAM_FLASHING, "-1");
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject response = sendRequest(request);
-            assertResultError(response);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(DConnectMessage.ErrorCode.INVALID_REQUEST_PARAMETER.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1926,7 +1867,7 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
      */
     @Test
     public void testPutLightInvalidFlashing2() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(LightProfile.PROFILE_NAME);
         builder.addParameter(AuthorizationProfile.PARAM_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
@@ -1935,13 +1876,12 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
         builder.addParameter(LightProfile.PARAM_COLOR, convertColor(LIGHT_COLOR));
         builder.addParameter(LightProfile.PARAM_BRIGHTNESS, String.valueOf(LIGHT_BRIGHTNESS));
         builder.addParameter(LightProfile.PARAM_FLASHING, "あいうえお");
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject response = sendRequest(request);
-            assertResultError(response);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(DConnectMessage.ErrorCode.INVALID_REQUEST_PARAMETER.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1958,7 +1898,7 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
      */
     @Test
     public void testPutLightInvalidFlashing3() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(LightProfile.PROFILE_NAME);
         builder.addParameter(AuthorizationProfile.PARAM_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
@@ -1967,13 +1907,12 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
         builder.addParameter(LightProfile.PARAM_COLOR, convertColor(LIGHT_COLOR));
         builder.addParameter(LightProfile.PARAM_BRIGHTNESS, String.valueOf(LIGHT_BRIGHTNESS));
         builder.addParameter(LightProfile.PARAM_FLASHING, "100,,100");
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject response = sendRequest(request);
-            assertResultError(response);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(DConnectMessage.ErrorCode.INVALID_REQUEST_PARAMETER.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1990,7 +1929,7 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
      */
     @Test
     public void testPutLightInvalidFlashing4() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(LightProfile.PROFILE_NAME);
         builder.addParameter(AuthorizationProfile.PARAM_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
@@ -1999,13 +1938,12 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
         builder.addParameter(LightProfile.PARAM_COLOR, convertColor(LIGHT_COLOR));
         builder.addParameter(LightProfile.PARAM_BRIGHTNESS, String.valueOf(LIGHT_BRIGHTNESS));
         builder.addParameter(LightProfile.PARAM_FLASHING, "100,-100,100");
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject response = sendRequest(request);
-            assertResultError(response);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(DConnectMessage.ErrorCode.INVALID_REQUEST_PARAMETER.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -2022,7 +1960,7 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
      */
     @Test
     public void testPutLightInvalidFlashing5() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(LightProfile.PROFILE_NAME);
         builder.addParameter(AuthorizationProfile.PARAM_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
@@ -2031,13 +1969,12 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
         builder.addParameter(LightProfile.PARAM_COLOR, convertColor(LIGHT_COLOR));
         builder.addParameter(LightProfile.PARAM_BRIGHTNESS, String.valueOf(LIGHT_BRIGHTNESS));
         builder.addParameter(LightProfile.PARAM_FLASHING, "100,100,100,");
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject response = sendRequest(request);
-            assertResultOK(response);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(DConnectMessage.ErrorCode.INVALID_REQUEST_PARAMETER.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -2064,22 +2001,6 @@ public class FailLightProfileTestCase extends RESTfulDConnectTestCase implements
                 sb.append(",");
             }
             sb.append(flashing[i]);
-        }
-        return sb.toString();
-    }
-
-    /**
-     * ライトIDリストから文字列を作成する.
-     * @param lightIds ライトIDリスト
-     * @return ライトIDリストの文字列
-     */
-    private String convertLightIds(final String[] lightIds) {
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < lightIds.length; i++) {
-            if (i != 0) {
-                sb.append(",");
-            }
-            sb.append(lightIds[i]);
         }
         return sb.toString();
     }

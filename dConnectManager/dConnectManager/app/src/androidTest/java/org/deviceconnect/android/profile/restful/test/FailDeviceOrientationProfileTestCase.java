@@ -8,19 +8,19 @@ package org.deviceconnect.android.profile.restful.test;
 
 import android.support.test.runner.AndroidJUnit4;
 
-import org.apache.http.client.methods.HttpDelete;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpPut;
-import org.apache.http.client.methods.HttpUriRequest;
+import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.DConnectMessage.ErrorCode;
+import org.deviceconnect.message.DConnectResponseMessage;
+import org.deviceconnect.message.DConnectSDK;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.deviceconnect.profile.DConnectProfileConstants;
 import org.deviceconnect.profile.DeviceOrientationProfileConstants;
-import org.deviceconnect.utils.URIBuilder;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.core.Is.is;
+import static org.junit.Assert.assertThat;
 
 /**
  * DeviceOrientationプロファイルの異常系テスト.
@@ -30,11 +30,11 @@ import org.junit.runner.RunWith;
 public class FailDeviceOrientationProfileTestCase extends RESTfulDConnectTestCase {
 
     /**
-     * serviceIdが無い状態でondeviceorientation属性のコールバック登録テストを行う.
+     * serviceIdが無い状態でonDeviceOrientation属性のコールバック登録テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /deviceorientation/ondeviceorientation
+     * Path: /deviceOrientation/onDeviceOrientation
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -43,26 +43,24 @@ public class FailDeviceOrientationProfileTestCase extends RESTfulDConnectTestCas
      */
     @Test
     public void testPutOnDeviceOrientation001() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(DeviceOrientationProfileConstants.PROFILE_NAME);
         builder.setAttribute(DeviceOrientationProfileConstants.ATTRIBUTE_ON_DEVICE_ORIENTATION);
-
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.EMPTY_SERVICE_ID.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * serviceIdが空状態でondeviceorientation属性のコールバック登録テストを行う.
+     * serviceIdが空状態でonDeviceOrientation属性のコールバック登録テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /deviceorientation/ondeviceorientation?serviceId=
+     * Path: /deviceOrientation/onDeviceOrientation?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -71,27 +69,25 @@ public class FailDeviceOrientationProfileTestCase extends RESTfulDConnectTestCas
      */
     @Test
     public void testPutOnDeviceOrientation002() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(DeviceOrientationProfileConstants.PROFILE_NAME);
         builder.setAttribute(DeviceOrientationProfileConstants.ATTRIBUTE_ON_DEVICE_ORIENTATION);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
-
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * 存在しないserviceIdでondeviceorientation属性のコールバック登録テストを行う.
+     * 存在しないserviceIdでonDeviceOrientation属性のコールバック登録テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /deviceorientation/ondeviceorientation?serviceId=123456789
+     * Path: /deviceOrientation/onDeviceOrientation?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -100,27 +96,25 @@ public class FailDeviceOrientationProfileTestCase extends RESTfulDConnectTestCas
      */
     @Test
     public void testPutOnDeviceOrientation003() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(DeviceOrientationProfileConstants.PROFILE_NAME);
         builder.setAttribute(DeviceOrientationProfileConstants.ATTRIBUTE_ON_DEVICE_ORIENTATION);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * 定義にない属性を指定してondeviceorientation属性のコールバック登録テストを行う.
+     * 定義にない属性を指定してonDeviceOrientation属性のコールバック登録テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /deviceorientation/ondeviceorientation?serviceId=xxxxx&abc=abc
+     * Path: /deviceOrientation/onDeviceOrientation?serviceId=xxxxx&abc=abc
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -130,28 +124,24 @@ public class FailDeviceOrientationProfileTestCase extends RESTfulDConnectTestCas
      */
     @Test
     public void testPutOnDeviceOrientation004() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(DeviceOrientationProfileConstants.PROFILE_NAME);
         builder.setAttribute(DeviceOrientationProfileConstants.ATTRIBUTE_ON_DEVICE_ORIENTATION);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter("abc", "abc");
-
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
     }
 
     /**
-     * serviceIdを2重に指定してondeviceorientation属性のコールバック登録テストを行う.
+     * serviceIdを2重に指定してonDeviceOrientation属性のコールバック登録テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /deviceorientation/ondeviceorientation?serviceId=123456789&serviceId=xxx
+     * Path: /deviceOrientation/onDeviceOrientation?serviceId=123456789&serviceId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -161,28 +151,26 @@ public class FailDeviceOrientationProfileTestCase extends RESTfulDConnectTestCas
      */
     @Test
     public void testPutOnDeviceOrientation005() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(DeviceOrientationProfileConstants.PROFILE_NAME);
         builder.setAttribute(DeviceOrientationProfileConstants.ATTRIBUTE_ON_DEVICE_ORIENTATION);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * serviceIdが無い状態でondeviceorientation属性のコールバック解除テストを行う.
+     * serviceIdが無い状態でonDeviceOrientation属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /deviceorientation/ondeviceorientation
+     * Path: /deviceOrientation/onDeviceOrientation
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -191,26 +179,24 @@ public class FailDeviceOrientationProfileTestCase extends RESTfulDConnectTestCas
      */
     @Test
     public void testDeleteOnDeviceOrientation001() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(DeviceOrientationProfileConstants.PROFILE_NAME);
         builder.setAttribute(DeviceOrientationProfileConstants.ATTRIBUTE_ON_DEVICE_ORIENTATION);
-
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.EMPTY_SERVICE_ID.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * serviceIdが空状態でondeviceorientation属性のコールバック解除テストを行う.
+     * serviceIdが空状態でonDeviceOrientation属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /deviceorientation/ondeviceorientation?serviceId=
+     * Path: /deviceOrientation/onDeviceOrientation?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -219,27 +205,25 @@ public class FailDeviceOrientationProfileTestCase extends RESTfulDConnectTestCas
      */
     @Test
     public void testDeleteOnDeviceOrientation002() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(DeviceOrientationProfileConstants.PROFILE_NAME);
         builder.setAttribute(DeviceOrientationProfileConstants.ATTRIBUTE_ON_DEVICE_ORIENTATION);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
-
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * 存在しないserviceIdでondeviceorientation属性のコールバック解除テストを行う.
+     * 存在しないserviceIdでonDeviceOrientation属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /deviceorientation/ondeviceorientation?serviceId=123456789
+     * Path: /deviceOrientation/onDeviceOrientation?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -248,27 +232,25 @@ public class FailDeviceOrientationProfileTestCase extends RESTfulDConnectTestCas
      */
     @Test
     public void testDeleteOnDeviceOrientation003() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(DeviceOrientationProfileConstants.PROFILE_NAME);
         builder.setAttribute(DeviceOrientationProfileConstants.ATTRIBUTE_ON_DEVICE_ORIENTATION);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * 定義にない属性を指定してondeviceorientation属性のコールバック解除テストを行う.
+     * 定義にない属性を指定してonDeviceOrientation属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /deviceorientation/ondeviceorientation?serviceId=xxxxx&abc=abc
+     * Path: /deviceOrientation/onDeviceOrientation?serviceId=xxxxx&abc=abc
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -278,28 +260,24 @@ public class FailDeviceOrientationProfileTestCase extends RESTfulDConnectTestCas
      */
     @Test
     public void testDeleteOnDeviceOrientation004() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(DeviceOrientationProfileConstants.PROFILE_NAME);
         builder.setAttribute(DeviceOrientationProfileConstants.ATTRIBUTE_ON_DEVICE_ORIENTATION);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter("abc", "abc");
-
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
     }
 
     /**
-     * serviceIdを2重に指定してondeviceorientation属性のコールバック解除テストを行う.
+     * serviceIdを2重に指定してonDeviceOrientation属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /deviceorientation/ondeviceorientation?serviceId=123456789&serviceId=xxx
+     * Path: /deviceOrientation/onDeviceOrientation?serviceId=123456789&serviceId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -309,28 +287,26 @@ public class FailDeviceOrientationProfileTestCase extends RESTfulDConnectTestCas
      */
     @Test
     public void testDeleteOnDeviceOrientation005() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(DeviceOrientationProfileConstants.PROFILE_NAME);
         builder.setAttribute(DeviceOrientationProfileConstants.ATTRIBUTE_ON_DEVICE_ORIENTATION);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * メソッドをPOSTに指定して/deviceorientation/ondeviceorientationにアクセスするテストを行う.
+     * メソッドをPOSTに指定して/deviceOrientation/onDeviceOrientationにアクセスするテストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /deviceorientation/ondeviceorientation?serviceId=xxxx&sessionKey=xxxx
+     * Path: /deviceOrientation/onDeviceOrientation?serviceId=xxxx&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -338,19 +314,17 @@ public class FailDeviceOrientationProfileTestCase extends RESTfulDConnectTestCas
      * </pre>
      */
     @Test
-    public void testOnDeviceOrientationInvalidMethodPost() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+    public void testonDeviceOrientationInvalidMethodPost() {
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(DeviceOrientationProfileConstants.PROFILE_NAME);
         builder.setAttribute(DeviceOrientationProfileConstants.ATTRIBUTE_ON_DEVICE_ORIENTATION);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_SUPPORT_ACTION.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 }

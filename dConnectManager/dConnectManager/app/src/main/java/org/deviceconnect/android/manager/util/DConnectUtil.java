@@ -18,12 +18,9 @@ import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
 
-import org.deviceconnect.android.manager.DConnectSettings;
-import org.deviceconnect.android.manager.profile.DConnectFilesProfile;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 import org.deviceconnect.utils.JSONUtils;
-import org.deviceconnect.utils.URIBuilder;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -118,19 +115,20 @@ public final class DConnectUtil {
      * @return URI
      */
     private static String createUri(final String uri) {
-        DConnectSettings settings = DConnectSettings.getInstance();
-        URIBuilder builder = new URIBuilder();
-        if (settings.isSSL()) {
-            builder.setScheme("https");
-        } else {
-            builder.setScheme("http");
-        }
-        builder.setHost(settings.getHost());
-        builder.setPort(settings.getPort());
-        builder.setProfile(DConnectFilesProfile.PROFILE_NAME);
-        builder.addParameter("uri", uri);
-
-        return builder.toString();
+//        DConnectSettings settings = DConnectSettings.getInstance();
+//        DConnectSDK.URIBuilder builder = new URIBuilder();
+//        if (settings.isSSL()) {
+//            builder.setScheme("https");
+//        } else {
+//            builder.setScheme("http");
+//        }
+//        builder.setHost(settings.getHost());
+//        builder.setPort(settings.getPort());
+//        builder.setProfile(DConnectFilesProfile.PROFILE_NAME);
+//        builder.addParameter("uri", uri);
+//
+//        return builder.toString();
+        return null;
     }
 
     /**

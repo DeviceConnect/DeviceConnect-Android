@@ -8,19 +8,18 @@ package org.deviceconnect.android.profile.restful.test;
 
 import android.support.test.runner.AndroidJUnit4;
 
-import org.apache.http.client.methods.HttpDelete;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpPut;
-import org.apache.http.client.methods.HttpUriRequest;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.DConnectMessage.ErrorCode;
+import org.deviceconnect.message.DConnectResponseMessage;
+import org.deviceconnect.message.DConnectSDK;
 import org.deviceconnect.profile.DConnectProfileConstants;
 import org.deviceconnect.profile.ProximityProfileConstants;
-import org.deviceconnect.utils.URIBuilder;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.core.Is.is;
+import static org.junit.Assert.assertThat;
 
 /**
  * Promixityプロファイルの異常系テスト.
@@ -30,11 +29,11 @@ import org.junit.runner.RunWith;
 public class FailProximityProfileTestCase extends RESTfulDConnectTestCase {
 
     /**
-     * serviceIdが無い状態でondeviceproximity属性のコールバック解除テストを行う.
+     * serviceIdが無い状態でonDeviceProximity属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /proximity/ondeviceproximity?sessionKey=xxxx
+     * Path: /proximity/onDeviceProximity
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -43,26 +42,24 @@ public class FailProximityProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testPutOnDeviceProximityChangeNoServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(ProximityProfileConstants.PROFILE_NAME);
         builder.setAttribute(ProximityProfileConstants.ATTRIBUTE_ON_DEVICE_PROXIMITY);
-
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.EMPTY_SERVICE_ID.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * serviceIdが空状態でondeviceproximity属性のコールバック解除テストを行う.
+     * serviceIdが空状態でonDeviceProximity属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /proximity/ondeviceproximity?serviceId=&sessionKey=xxxx
+     * Path: /proximity/onDeviceProximity?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -71,27 +68,25 @@ public class FailProximityProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testPutOnDeviceProximityChangeEmptyServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(ProximityProfileConstants.PROFILE_NAME);
         builder.setAttribute(ProximityProfileConstants.ATTRIBUTE_ON_DEVICE_PROXIMITY);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
-
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * 存在しないserviceIdでondeviceproximity属性のコールバック解除テストを行う.
+     * 存在しないserviceIdでonDeviceProximity属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /proximity/ondeviceproximity?serviceId=123456789&sessionKey=xxxx
+     * Path: /proximity/onDeviceProximity?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -100,27 +95,25 @@ public class FailProximityProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testPutOnDeviceProximityChangeInvalidServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(ProximityProfileConstants.PROFILE_NAME);
         builder.setAttribute(ProximityProfileConstants.ATTRIBUTE_ON_DEVICE_PROXIMITY);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * serviceIdを2重に指定してondeviceproximity属性のコールバック解除テストを行う.
+     * serviceIdを2重に指定してonDeviceProximity属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /proximity/ondeviceproximity?serviceId=123456789&serviceId=xxx&sessionKey=xxxx
+     * Path: /proximity/onDeviceProximity?serviceId=123456789&serviceId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -130,28 +123,26 @@ public class FailProximityProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testPutOnDeviceProximityChangeDuplicatedServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(ProximityProfileConstants.PROFILE_NAME);
         builder.setAttribute(ProximityProfileConstants.ATTRIBUTE_ON_DEVICE_PROXIMITY);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * serviceIdが無い状態でondeviceproximity属性のコールバック解除テストを行う.
+     * serviceIdが無い状態でonDeviceProximity属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /proximity/ondeviceproximity?sessionKey=xxxx
+     * Path: /proximity/onDeviceProximity
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -160,26 +151,24 @@ public class FailProximityProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testDeleteOnDeviceProximityChangeNoServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(ProximityProfileConstants.PROFILE_NAME);
         builder.setAttribute(ProximityProfileConstants.ATTRIBUTE_ON_DEVICE_PROXIMITY);
-
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.EMPTY_SERVICE_ID.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * serviceIdが空状態でondeviceproximity属性のコールバック解除テストを行う.
+     * serviceIdが空状態でonDeviceProximity属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /proximity/ondeviceproximity?serviceId=&sessionKey=xxxx
+     * Path: /proximity/onDeviceProximity?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -188,27 +177,25 @@ public class FailProximityProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testDeleteOnDeviceProximityChangeEmptyServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(ProximityProfileConstants.PROFILE_NAME);
         builder.setAttribute(ProximityProfileConstants.ATTRIBUTE_ON_DEVICE_PROXIMITY);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
-
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * 存在しないserviceIdでondeviceproximity属性のコールバック解除テストを行う.
+     * 存在しないserviceIdでonDeviceProximity属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /proximity/ondeviceproximity?serviceId=123456789&sessionKey=xxxx
+     * Path: /proximity/onDeviceProximity?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -217,27 +204,25 @@ public class FailProximityProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testDeleteOnDeviceProximityChangeInvalidServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(ProximityProfileConstants.PROFILE_NAME);
         builder.setAttribute(ProximityProfileConstants.ATTRIBUTE_ON_DEVICE_PROXIMITY);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * serviceIdを2重に指定してondeviceproximity属性のコールバック解除テストを行う.
+     * serviceIdを2重に指定してonDeviceProximity属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /proximity/ondeviceproximity?serviceId=123456789&serviceId=xxx&sessionKey=xxxx
+     * Path: /proximity/onDeviceProximity?serviceId=123456789&serviceId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -247,28 +232,26 @@ public class FailProximityProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testDeleteOnDeviceProximityChangeDuplicatedServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(ProximityProfileConstants.PROFILE_NAME);
         builder.setAttribute(ProximityProfileConstants.ATTRIBUTE_ON_DEVICE_PROXIMITY);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * メソッドにPOSTを指定してondeviceproximity属性のリクエストテストを行う.
+     * メソッドにPOSTを指定してonDeviceProximity属性のリクエストテストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /proximity/ondeviceproximity?serviceId=xxxx&sessionKey=xxxx
+     * Path: /proximity/onDeviceProximity?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -277,27 +260,25 @@ public class FailProximityProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testDeleteOnDeviceProximityChangeInvalidMethodPost() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(ProximityProfileConstants.PROFILE_NAME);
         builder.setAttribute(ProximityProfileConstants.ATTRIBUTE_ON_DEVICE_PROXIMITY);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_SUPPORT_ACTION.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * serviceIdが無い状態でonuserproximity属性のコールバック解除テストを行う.
+     * serviceIdが無い状態でonUserProximity属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /proximity/onuserproximity?sessionKey=xxxx
+     * Path: /proximity/onUserProximity
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -306,26 +287,24 @@ public class FailProximityProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testPutOnUserProximityChangeNoServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(ProximityProfileConstants.PROFILE_NAME);
         builder.setAttribute(ProximityProfileConstants.ATTRIBUTE_ON_USER_PROXIMITY);
-
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.EMPTY_SERVICE_ID.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * serviceIdが空状態でonuserproximity属性のコールバック解除テストを行う.
+     * serviceIdが空状態でonUserProximity属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /proximity/onuserproximity?serviceId=&sessionKey=xxxx
+     * Path: /proximity/onUserProximity?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -334,27 +313,25 @@ public class FailProximityProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testPutOnUserProximityChangeEmptyServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(ProximityProfileConstants.PROFILE_NAME);
         builder.setAttribute(ProximityProfileConstants.ATTRIBUTE_ON_USER_PROXIMITY);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
-
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * 存在しないserviceIdでonuserproximity属性のコールバック解除テストを行う.
+     * 存在しないserviceIdでonUserProximity属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /proximity/onuserproximity?serviceId=123456789&sessionKey=xxxx
+     * Path: /proximity/onUserProximity?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -363,27 +340,25 @@ public class FailProximityProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testPutOnUserProximityChangeInvalidServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(ProximityProfileConstants.PROFILE_NAME);
         builder.setAttribute(ProximityProfileConstants.ATTRIBUTE_ON_USER_PROXIMITY);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * serviceIdを2重に指定してonuserproximity属性のコールバック解除テストを行う.
+     * serviceIdを2重に指定してonUserProximity属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /proximity/onuserproximity?serviceId=123456789&serviceId=xxx&sessionKey=xxxx
+     * Path: /proximity/onUserProximity?serviceId=123456789&serviceId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -393,28 +368,26 @@ public class FailProximityProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testPutOnUserProximityChangeDuplicatedServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(ProximityProfileConstants.PROFILE_NAME);
         builder.setAttribute(ProximityProfileConstants.ATTRIBUTE_ON_USER_PROXIMITY);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * serviceIdが無い状態でonuserproximity属性のコールバック解除テストを行う.
+     * serviceIdが無い状態でonUserProximity属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /proximity/onuserproximity?sessionKey=xxxx
+     * Path: /proximity/onUserProximity
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -423,26 +396,24 @@ public class FailProximityProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testDeleteOnUserProximityChangeNoServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(ProximityProfileConstants.PROFILE_NAME);
         builder.setAttribute(ProximityProfileConstants.ATTRIBUTE_ON_USER_PROXIMITY);
-
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.EMPTY_SERVICE_ID.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * serviceIdが空状態でonuserproximity属性のコールバック解除テストを行う.
+     * serviceIdが空状態でonUserProximity属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /proximity/onuserproximity?serviceId=&sessionKey=xxxx
+     * Path: /proximity/onUserProximity?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -451,27 +422,25 @@ public class FailProximityProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testDeleteOnUserProximityChangeEmptyServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(ProximityProfileConstants.PROFILE_NAME);
         builder.setAttribute(ProximityProfileConstants.ATTRIBUTE_ON_USER_PROXIMITY);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
-
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * 存在しないserviceIdでonuserproximity属性のコールバック解除テストを行う.
+     * 存在しないserviceIdでonUserProximity属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /proximity/onuserproximity?serviceId=123456789&sessionKey=xxxx
+     * Path: /proximity/onUserProximity?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -480,27 +449,25 @@ public class FailProximityProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testDeleteOnUserProximityChangeInvalidServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(ProximityProfileConstants.PROFILE_NAME);
         builder.setAttribute(ProximityProfileConstants.ATTRIBUTE_ON_USER_PROXIMITY);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * serviceIdを2重に指定してonuserproximity属性のコールバック解除テストを行う.
+     * serviceIdを2重に指定してonUserProximity属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /proximity/onuserproximity?serviceId=123456789&serviceId=xxx&sessionKey=xxxx
+     * Path: /proximity/onUserProximity?serviceId=123456789&serviceId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -510,28 +477,26 @@ public class FailProximityProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testDeleteOnUserProximityChangeDuplicatedServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(ProximityProfileConstants.PROFILE_NAME);
         builder.setAttribute(ProximityProfileConstants.ATTRIBUTE_ON_USER_PROXIMITY);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * メソッドにPOSTを指定してonuserproximity属性のリクエストテストを行う.
+     * メソッドにPOSTを指定してonUserProximity属性のリクエストテストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /proximity/onuserproximity?serviceId=xxxx&sessionKey=xxxx
+     * Path: /proximity/onUserProximity?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -540,19 +505,16 @@ public class FailProximityProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testDeleteOnUserProximityChangeInvalidMethodPost() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(ProximityProfileConstants.PROFILE_NAME);
         builder.setAttribute(ProximityProfileConstants.ATTRIBUTE_ON_USER_PROXIMITY);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
-    }
 
+        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_SUPPORT_ACTION.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
+    }
 }

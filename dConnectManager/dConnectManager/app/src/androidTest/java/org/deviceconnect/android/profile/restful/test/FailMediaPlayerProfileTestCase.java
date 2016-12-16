@@ -8,21 +8,20 @@ package org.deviceconnect.android.profile.restful.test;
 
 import android.support.test.runner.AndroidJUnit4;
 
-import org.apache.http.client.methods.HttpDelete;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpPut;
-import org.apache.http.client.methods.HttpUriRequest;
 import org.deviceconnect.android.test.plugin.profile.TestMediaPlayerProfileConstants;
+import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.DConnectMessage.ErrorCode;
+import org.deviceconnect.message.DConnectResponseMessage;
+import org.deviceconnect.message.DConnectSDK;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.deviceconnect.profile.DConnectProfileConstants;
 import org.deviceconnect.profile.MediaPlayerProfileConstants;
-import org.deviceconnect.utils.URIBuilder;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.core.Is.is;
+import static org.junit.Assert.assertThat;
 
 
 /**
@@ -38,7 +37,7 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /media_player/media?mediaId=xxxx
+     * Path: /mediaPlayer/media?mediaId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -47,18 +46,17 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      */
     @Test
     public void testPutMediaNoServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_MEDIA);
         builder.addParameter(MediaPlayerProfileConstants.PARAM_MEDIA_ID, TEST_MEDIA_ID);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.EMPTY_SERVICE_ID.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -66,7 +64,7 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /media_player/media?serviceId=&mediaId=xxxx
+     * Path: /mediaPlayer/media?serviceId=&mediaId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -75,19 +73,18 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      */
     @Test
     public void testPutMediaEmptyServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_MEDIA);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(MediaPlayerProfileConstants.PARAM_MEDIA_ID, TEST_MEDIA_ID);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -95,7 +92,7 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /media_player/media?serviceId=123456789&mediaId=xxxx
+     * Path: /mediaPlayer/media?serviceId=123456789&mediaId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -104,19 +101,18 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      */
     @Test
     public void testPutMediaInvalidServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_MEDIA);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(MediaPlayerProfileConstants.PARAM_MEDIA_ID, TEST_MEDIA_ID);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -124,7 +120,7 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /media_player/media?serviceId=123456789&serviceId=xxx&mediaId=xxxx
+     * Path: /mediaPlayer/media?serviceId=123456789&serviceId=xxx&mediaId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -134,20 +130,19 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      */
     @Test
     public void testPutMediaDuplicatedServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_MEDIA);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(MediaPlayerProfileConstants.PARAM_MEDIA_ID, TEST_MEDIA_ID);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -155,7 +150,7 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /media_player/media?serviceId=xxxx
+     * Path: /mediaPlayer/media?serviceId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -164,18 +159,17 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      */
     @Test
     public void testPutMediaNoMediaId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_MEDIA);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.INVALID_REQUEST_PARAMETER.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.INVALID_REQUEST_PARAMETER.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -183,7 +177,7 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /media_player/media
+     * Path: /mediaPlayer/media
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -192,18 +186,17 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      */
     @Test
     public void testGetMediaNoServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_MEDIA);
         builder.addParameter(MediaPlayerProfileConstants.PARAM_MEDIA_ID, TEST_MEDIA_ID);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.EMPTY_SERVICE_ID.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -211,7 +204,7 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /media_player/media?serviceId=
+     * Path: /mediaPlayer/media?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -220,19 +213,18 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      */
     @Test
     public void testGetMediaEmptyServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_MEDIA);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(MediaPlayerProfileConstants.PARAM_MEDIA_ID, TEST_MEDIA_ID);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -240,7 +232,7 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /media_player/media?serviceId=123456789
+     * Path: /mediaPlayer/media?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -249,19 +241,18 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      */
     @Test
     public void testGetMediaInvalidServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_MEDIA);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(MediaPlayerProfileConstants.PARAM_MEDIA_ID, TEST_MEDIA_ID);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -269,7 +260,7 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /media_player/media?serviceId=123456789&serviceId=xxx&mediaId=xxxx
+     * Path: /mediaPlayer/media?serviceId=123456789&serviceId=xxx&mediaId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -279,20 +270,19 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      */
     @Test
     public void testGetMediaDuplicatedServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_MEDIA);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(MediaPlayerProfileConstants.PARAM_MEDIA_ID, TEST_MEDIA_ID);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -300,7 +290,7 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /media_player/media?serviceId=xxxx
+     * Path: /mediaPlayer/media?serviceId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -309,19 +299,18 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      */
     @Test
     public void testMediaInvalidMethodPost() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_MEDIA);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(MediaPlayerProfileConstants.PARAM_MEDIA_ID, TEST_MEDIA_ID);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_SUPPORT_ACTION.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -329,7 +318,7 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /media_player/media?serviceId=xxxx
+     * Path: /mediaPlayer/media?serviceId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -338,19 +327,18 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      */
     @Test
     public void testMediaInvalidMethodDelete() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_MEDIA);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(MediaPlayerProfileConstants.PARAM_MEDIA_ID, TEST_MEDIA_ID);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_SUPPORT_ACTION.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -358,7 +346,7 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /media_player/media_list
+     * Path: /mediaPlayer/mediaList
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -367,18 +355,17 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      */
     @Test
     public void testGetMediaListNoServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_MEDIA_LIST);
         builder.addParameter(MediaPlayerProfileConstants.PARAM_MEDIA_ID, TEST_MEDIA_ID);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.EMPTY_SERVICE_ID.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -386,7 +373,7 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /media_player/media_list?serviceId=
+     * Path: /mediaPlayer/mediaList?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -395,18 +382,17 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      */
     @Test
     public void testGetMediaListEmptyServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_MEDIA_LIST);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -414,7 +400,7 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /media_player/media_list?serviceId=123456789
+     * Path: /mediaPlayer/mediaList?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -423,18 +409,17 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      */
     @Test
     public void testGetMediaListInvalidServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_MEDIA_LIST);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -442,7 +427,7 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /media_player/media_list?serviceId=123456789&serviceId=xxx&mediaId=xxxx
+     * Path: /mediaPlayer/mediaList?serviceId=123456789&serviceId=xxx&mediaId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -452,19 +437,18 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      */
     @Test
     public void testGetMediaListDuplicatedServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_MEDIA_LIST);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -472,7 +456,7 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /media_player/media_list?serviceId=xxxx
+     * Path: /mediaPlayer/mediaList?serviceId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -481,18 +465,17 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      */
     @Test
     public void testMediaListInvalidMethodPost() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_MEDIA_LIST);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_SUPPORT_ACTION.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -500,7 +483,7 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /media_player/media_list?serviceId=xxxx
+     * Path: /mediaPlayer/mediaList?serviceId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -509,19 +492,18 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      */
     @Test
     public void testMediaListInvalidMethodPut() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_MEDIA_LIST);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(MediaPlayerProfileConstants.PARAM_MEDIA_ID, TEST_MEDIA_ID);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_SUPPORT_ACTION.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -529,7 +511,7 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /media_player/media_list?serviceId=xxxx
+     * Path: /mediaPlayer/mediaList?serviceId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -538,18 +520,17 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      */
     @Test
     public void testMediaListInvalidMethodDelete() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_MEDIA_LIST);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_SUPPORT_ACTION.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -557,7 +538,7 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /media_player/play_status?mediaId=xxxx&status=xxxx
+     * Path: /mediaPlayer/playStatus?mediaId=xxx&status=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -566,19 +547,18 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      */
     @Test
     public void testPutPlayStatusNoServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_SEEK);
         builder.addParameter(MediaPlayerProfileConstants.PARAM_MEDIA_ID, TEST_MEDIA_ID);
         builder.addParameter(MediaPlayerProfileConstants.PARAM_STATUS, TEST_STATUS);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.EMPTY_SERVICE_ID.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -586,7 +566,7 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /media_player/play_status?serviceId=&mediaId=xxxx&status=xxxx
+     * Path: /mediaPlayer/playStatus?serviceId=&mediaId=xxx&status=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -595,20 +575,19 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      */
     @Test
     public void testPutPlayStatusEmptyServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_SEEK);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(MediaPlayerProfileConstants.PARAM_MEDIA_ID, TEST_MEDIA_ID);
         builder.addParameter(MediaPlayerProfileConstants.PARAM_STATUS, TEST_STATUS);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -616,7 +595,7 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /media_player/play_status?serviceId=123456789&mediaId=xxxx&status=xxxx
+     * Path: /mediaPlayer/playStatus?serviceId=123456789&mediaId=xxx&status=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -625,20 +604,19 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      */
     @Test
     public void testPutPlayStatusInvalidServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_SEEK);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(MediaPlayerProfileConstants.PARAM_MEDIA_ID, TEST_MEDIA_ID);
         builder.addParameter(MediaPlayerProfileConstants.PARAM_STATUS, TEST_STATUS);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -646,7 +624,7 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /media_player/play_status?serviceId=123456789&serviceId=xxx&mediaId=xxxx&status=xxxx
+     * Path: /mediaPlayer/playStatus?serviceId=123456789&serviceId=xxx&mediaId=xxx&status=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -656,7 +634,7 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      */
     @Test
     public void testPutPlayStatusDuplicatedServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_SEEK);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
@@ -664,13 +642,12 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
         builder.addParameter(MediaPlayerProfileConstants.PARAM_MEDIA_ID, TEST_MEDIA_ID);
         builder.addParameter(MediaPlayerProfileConstants.PARAM_STATUS, TEST_STATUS);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -678,7 +655,7 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /media_player/play_status?serviceId=xxxx&status=xxxx
+     * Path: /mediaPlayer/playStatus?serviceId=xxx&status=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -687,19 +664,18 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      */
     @Test
     public void testPutPlayStatusNoMediaId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_SEEK);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(MediaPlayerProfileConstants.PARAM_STATUS, TEST_STATUS);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.INVALID_REQUEST_PARAMETER.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.INVALID_REQUEST_PARAMETER.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -707,7 +683,7 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /media_player/play_status?serviceId=xxxx&status=xxxx
+     * Path: /mediaPlayer/playStatus?serviceId=xxx&status=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -716,19 +692,18 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      */
     @Test
     public void testPutPlayStatusNoStatus() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_SEEK);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(MediaPlayerProfileConstants.PARAM_MEDIA_ID, TEST_MEDIA_ID);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.INVALID_REQUEST_PARAMETER.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.INVALID_REQUEST_PARAMETER.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -736,7 +711,7 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /media_player/play
+     * Path: /mediaPlayer/play
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -745,27 +720,24 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      */
     @Test
     public void testGetPlayStatusNoServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_SEEK);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
-    }
 
-    
+        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.EMPTY_SERVICE_ID.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
+    }
 
     /**
      * serviceIdが空状態でコンテンツ再生状態の変更要求を送信するテスト.
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /media_player/play_status?serviceId=
+     * Path: /mediaPlayer/playStatus?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -774,18 +746,17 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      */
     @Test
     public void testGetPlayStatusEmptyServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_SEEK);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -793,7 +764,7 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /media_player/play_status?serviceId=123456789
+     * Path: /mediaPlayer/playStatus?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -802,18 +773,17 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      */
     @Test
     public void testGetPlayStatusInvalidServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_SEEK);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -821,7 +791,7 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /media_player/play_status?serviceId=123456789&serviceId=xxx&mediaId=xxxx&status=xxxx
+     * Path: /mediaPlayer/playStatus?serviceId=123456789&serviceId=xxx&mediaId=xxx&status=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -831,19 +801,18 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      */
     @Test
     public void testGetPlayStatusDuplicatedServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_SEEK);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -851,7 +820,7 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /media_player/play_status?serviceId=xxxx
+     * Path: /mediaPlayer/playStatus?serviceId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -860,20 +829,19 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      */
     @Test
     public void testPlayStatusInvalidMethodPost() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_SEEK);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(MediaPlayerProfileConstants.PARAM_MEDIA_ID, TEST_MEDIA_ID);
         builder.addParameter(MediaPlayerProfileConstants.PARAM_STATUS, TEST_STATUS);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_SUPPORT_ACTION.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -881,7 +849,7 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /media_player/play_status?serviceId=xxxx
+     * Path: /mediaPlayer/playStatus?serviceId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -890,20 +858,19 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      */
     @Test
     public void testPlayStatusInvalidMethodDelete() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_SEEK);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(MediaPlayerProfileConstants.PARAM_MEDIA_ID, TEST_MEDIA_ID);
         builder.addParameter(MediaPlayerProfileConstants.PARAM_STATUS, TEST_STATUS);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_SUPPORT_ACTION.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -911,7 +878,7 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /media_player/play
+     * Path: /mediaPlayer/play
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -920,17 +887,16 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      */
     @Test
     public void testPutPlayNoServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_PLAY);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.EMPTY_SERVICE_ID.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -938,7 +904,7 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /media_player/play?serviceId=
+     * Path: /mediaPlayer/play?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -947,18 +913,17 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      */
     @Test
     public void testPutPlayEmptyServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_PLAY);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -966,7 +931,7 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /media_player/play?serviceId=123456789
+     * Path: /mediaPlayer/play?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -975,18 +940,17 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      */
     @Test
     public void testPutPlayInvalidServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_PLAY);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -994,7 +958,7 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /media_player/play?serviceId=123456789&serviceId=xxx
+     * Path: /mediaPlayer/play?serviceId=123456789&serviceId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1004,19 +968,18 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      */
     @Test
     public void testPutPlayDuplicatedServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_PLAY);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1024,7 +987,7 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /media_player/stop
+     * Path: /mediaPlayer/stop
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1033,17 +996,16 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      */
     @Test
     public void testPutStopNoServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_STOP);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.EMPTY_SERVICE_ID.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1051,7 +1013,7 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /media_player/stop?serviceId=
+     * Path: /mediaPlayer/stop?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1060,18 +1022,17 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      */
     @Test
     public void testPutStopEmptyServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_STOP);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1079,7 +1040,7 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /media_player/stop?serviceId=123456789
+     * Path: /mediaPlayer/stop?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1088,18 +1049,17 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      */
     @Test
     public void testPutStopInvalidServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_STOP);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1107,7 +1067,7 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /media_player/stop?serviceId=123456789&serviceId=xxx
+     * Path: /mediaPlayer/stop?serviceId=123456789&serviceId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1117,19 +1077,18 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      */
     @Test
     public void testPutStopDuplicatedServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_STOP);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1137,7 +1096,7 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /media_player/pause
+     * Path: /mediaPlayer/pause
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1146,17 +1105,16 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      */
     @Test
     public void testPutPauseNoServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_PAUSE);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.EMPTY_SERVICE_ID.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1164,7 +1122,7 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /media_player/pause?serviceId=
+     * Path: /mediaPlayer/pause?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1173,18 +1131,17 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      */
     @Test
     public void testPutPauseEmptyServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_PAUSE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1192,7 +1149,7 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /media_player/pause?serviceId=123456789
+     * Path: /mediaPlayer/pause?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1201,18 +1158,17 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      */
     @Test
     public void testPutPauseInvalidServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_PAUSE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1220,7 +1176,7 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /media_player/pause?serviceId=123456789&serviceId=xxx
+     * Path: /mediaPlayer/pause?serviceId=123456789&serviceId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1230,19 +1186,18 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      */
     @Test
     public void testPutPauseDuplicatedServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_PAUSE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1250,7 +1205,7 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /media_player/resume
+     * Path: /mediaPlayer/resume
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1259,17 +1214,16 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      */
     @Test
     public void testPutResumeNoServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_RESUME);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.EMPTY_SERVICE_ID.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1277,7 +1231,7 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /media_player/resume?serviceId=
+     * Path: /mediaPlayer/resume?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1286,18 +1240,17 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      */
     @Test
     public void testPutResumeEmptyServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_RESUME);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1305,7 +1258,7 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /media_player/resume?serviceId=123456789
+     * Path: /mediaPlayer/resume?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1314,18 +1267,17 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      */
     @Test
     public void testPutResumeInvalidServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_RESUME);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1333,7 +1285,7 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /media_player/resume?serviceId=123456789&serviceId=xxx
+     * Path: /mediaPlayer/resume?serviceId=123456789&serviceId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1343,19 +1295,18 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      */
     @Test
     public void testPutResumeDuplicatedServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_RESUME);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1363,7 +1314,7 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /media_player/seek?mediaId=xxxx&pos=xxxx
+     * Path: /mediaPlayer/seek?mediaId=xxx&pos=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1372,18 +1323,17 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      */
     @Test
     public void testPutSeekNoServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_SEEK);
         builder.addParameter(MediaPlayerProfileConstants.PARAM_POS, String.valueOf(0));
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.EMPTY_SERVICE_ID.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1391,7 +1341,7 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /media_player/seek?serviceId=&pos=xxxx
+     * Path: /mediaPlayer/seek?serviceId=&pos=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1400,19 +1350,18 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      */
     @Test
     public void testPutSeekEmptyServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_SEEK);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(MediaPlayerProfileConstants.PARAM_POS, String.valueOf(0));
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1420,7 +1369,7 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /media_player/seek?serviceId=123456789&pos=xxxx
+     * Path: /mediaPlayer/seek?serviceId=123456789&pos=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1429,19 +1378,18 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      */
     @Test
     public void testPutSeekInvalidServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_SEEK);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(MediaPlayerProfileConstants.PARAM_POS, String.valueOf(0));
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1449,7 +1397,7 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /media_player/seek?serviceId=123456789&serviceId=xxx&pos=xxxx
+     * Path: /mediaPlayer/seek?serviceId=123456789&serviceId=xxx&pos=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1459,20 +1407,19 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      */
     @Test
     public void testPutSeekDuplicatedServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_SEEK);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(MediaPlayerProfileConstants.PARAM_POS, String.valueOf(0));
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1480,7 +1427,7 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /media_player/seek?serviceId=xxx
+     * Path: /mediaPlayer/seek?serviceId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1489,18 +1436,17 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      */
     @Test
     public void testPutSeekNoPos() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_SEEK);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.INVALID_REQUEST_PARAMETER.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.INVALID_REQUEST_PARAMETER.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1508,7 +1454,7 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /media_player/seek
+     * Path: /mediaPlayer/seek
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1517,17 +1463,16 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      */
     @Test
     public void testGetSeekNoServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_SEEK);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.EMPTY_SERVICE_ID.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1535,7 +1480,7 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /media_player/seek?serviceId=
+     * Path: /mediaPlayer/seek?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1544,18 +1489,17 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      */
     @Test
     public void testGetSeekEmptyServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_SEEK);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1563,7 +1507,7 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /media_player/seek?serviceId=123456789
+     * Path: /mediaPlayer/seek?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1572,18 +1516,17 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      */
     @Test
     public void testGetSeekInvalidServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_SEEK);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1591,7 +1534,7 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /media_player/seek?serviceId=123456789&serviceId=xxx&mediaId=xxxx&status=xxxx
+     * Path: /mediaPlayer/seek?serviceId=123456789&serviceId=xxx&mediaId=xxx&status=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1601,19 +1544,18 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      */
     @Test
     public void testGetSeekDuplicatedServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_SEEK);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1621,7 +1563,7 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /media_player/seek?serviceId=xxxx
+     * Path: /mediaPlayer/seek?serviceId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1630,19 +1572,18 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      */
     @Test
     public void testSeekInvalidMethodPost() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_SEEK);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(MediaPlayerProfileConstants.PARAM_POS, String.valueOf(0));
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_SUPPORT_ACTION.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1650,7 +1591,7 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /media_player/seek?serviceId=xxxx
+     * Path: /mediaPlayer/seek?serviceId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1659,19 +1600,18 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      */
     @Test
     public void testSeekInvalidMethodDelete() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_SEEK);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(MediaPlayerProfileConstants.PARAM_POS, String.valueOf(0));
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_SUPPORT_ACTION.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1679,7 +1619,7 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /media_player/volume?volume=xxxx
+     * Path: /mediaPlayer/volume?volume=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1688,18 +1628,17 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      */
     @Test
     public void testPutVolumeNoServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_VOLUME);
         builder.addParameter(MediaPlayerProfileConstants.PARAM_MEDIA_ID, TEST_MEDIA_ID);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.EMPTY_SERVICE_ID.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1707,7 +1646,7 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /media_player/volume?serviceId=&volume=xxxx
+     * Path: /mediaPlayer/volume?serviceId=&volume=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1716,19 +1655,18 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      */
     @Test
     public void testPutVolumeEmptyServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_VOLUME);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(MediaPlayerProfileConstants.PARAM_MEDIA_ID, TEST_MEDIA_ID);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1736,7 +1674,7 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /media_player/volume?serviceId=123456789&volume=xxxx
+     * Path: /mediaPlayer/volume?serviceId=123456789&volume=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1745,19 +1683,18 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      */
     @Test
     public void testPutVolumeInvalidServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_VOLUME);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(MediaPlayerProfileConstants.PARAM_MEDIA_ID, TEST_MEDIA_ID);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1765,7 +1702,7 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /media_player/volume?serviceId=123456789&serviceId=xxx&volume=xxxx
+     * Path: /mediaPlayer/volume?serviceId=123456789&serviceId=xxx&volume=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1775,28 +1712,27 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      */
     @Test
     public void testPutVolumeDuplicatedServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_VOLUME);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(MediaPlayerProfileConstants.PARAM_MEDIA_ID, TEST_MEDIA_ID);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * serviceIdを指定せずに再生音量の変更要求を送信するテスト.
+     * volumeを指定せずに再生音量の変更要求を送信するテスト.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /media_player/volume?volume=xxxx
+     * Path: /mediaPlayer/volume?volume=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1805,18 +1741,17 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      */
     @Test
     public void testPutVolumeNoVolume() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_VOLUME);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.INVALID_REQUEST_PARAMETER.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.INVALID_REQUEST_PARAMETER.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1824,7 +1759,7 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /media_player/volume?volume=xxxx
+     * Path: /mediaPlayer/volume?volume=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1833,17 +1768,16 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      */
     @Test
     public void testGetVolumeNoServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_VOLUME);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.EMPTY_SERVICE_ID.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1851,7 +1785,7 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /media_player/volume?serviceId=&volume=xxxx
+     * Path: /mediaPlayer/volume?serviceId=&volume=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1860,18 +1794,17 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      */
     @Test
     public void testGetVolumeEmptyServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_VOLUME);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1879,7 +1812,7 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /media_player/volume?serviceId=123456789&volume=xxxx
+     * Path: /mediaPlayer/volume?serviceId=123456789&volume=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1888,18 +1821,17 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      */
     @Test
     public void testGetVolumeInvalidServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_VOLUME);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1907,7 +1839,7 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /media_player/volume?serviceId=123456789&serviceId=xxx&volume=xxxx
+     * Path: /mediaPlayer/volume?serviceId=123456789&serviceId=xxx&volume=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1917,19 +1849,18 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      */
     @Test
     public void testGetVolumeDuplicatedServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_VOLUME);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1937,7 +1868,7 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /media_player/volume?serviceId=xxxx
+     * Path: /mediaPlayer/volume?serviceId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1946,18 +1877,17 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      */
     @Test
     public void testVolumeInvalidMethodPost() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_VOLUME);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_SUPPORT_ACTION.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1965,7 +1895,7 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /media_player/volume?serviceId=xxxx
+     * Path: /mediaPlayer/volume?serviceId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1974,17 +1904,16 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      */
     @Test
     public void testVolumeInvalidMethodDelete() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_VOLUME);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_SUPPORT_ACTION.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 }

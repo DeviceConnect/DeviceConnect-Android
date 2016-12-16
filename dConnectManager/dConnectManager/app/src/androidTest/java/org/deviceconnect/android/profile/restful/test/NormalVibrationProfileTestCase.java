@@ -8,22 +8,20 @@ package org.deviceconnect.android.profile.restful.test;
 
 import android.support.test.runner.AndroidJUnit4;
 
-import org.apache.http.NameValuePair;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpDelete;
-import org.apache.http.client.methods.HttpPut;
-import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.message.BasicNameValuePair;
+import org.deviceconnect.message.DConnectMessage;
+import org.deviceconnect.message.DConnectResponseMessage;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.deviceconnect.profile.DConnectProfileConstants;
 import org.deviceconnect.profile.VibrationProfileConstants;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.core.Is.is;
+import static org.junit.Assert.assertThat;
 
 /**
  * Vibratorプロファイルの正常系テスト.
@@ -37,7 +35,7 @@ public class NormalVibrationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /vibration/vibrate?deviceid=xxxx
+     * Path: /vibration/vibrate?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -53,22 +51,14 @@ public class NormalVibrationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("?");
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&" + AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
 
-            // パターンのデータを追加
-            ArrayList<NameValuePair> params = new ArrayList<NameValuePair>();
-            params.add(new BasicNameValuePair(VibrationProfileConstants.PARAM_PATTERN,
-                    "100,100,100,100"));
-            ((HttpPut) request).setEntity(new UrlEncodedFormEntity(params, "UTF-8"));
+        // パターンのデータを追加
+        Map<String, Object> body = new HashMap<>();
+        body.put(VibrationProfileConstants.PARAM_PATTERN, "100,100,100,100");
 
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        } catch (UnsupportedEncodingException e) {
-            fail("Exception in UnsupportedEncoding." + e.getMessage());
-        }
+        DConnectResponseMessage response = mDConnectSDK.put(builder.toString(), body);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
     }
 
     /**
@@ -76,7 +66,7 @@ public class NormalVibrationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /vibration/vibrate?deviceid=xxxx&pattern=xxxx
+     * Path: /vibration/vibrate?serviceId=xxxx&pattern=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -95,13 +85,10 @@ public class NormalVibrationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append(VibrationProfileConstants.PARAM_PATTERN + "=500,500,500");
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.toString(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
     }
 
     /**
@@ -109,7 +96,7 @@ public class NormalVibrationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /vibration/vibrate?deviceid=xxxx
+     * Path: /vibration/vibrate?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -126,12 +113,9 @@ public class NormalVibrationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.toString());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
     }
 }

@@ -86,7 +86,6 @@ public class IntentDConnectTestCase extends DConnectTestCase {
         super.tearDown();
     }
 
-    @Override
     protected String createClient() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_GET);
         request.putExtra(DConnectMessage.EXTRA_PROFILE, AuthorizationProfileConstants.PROFILE_NAME);
@@ -100,7 +99,8 @@ public class IntentDConnectTestCase extends DConnectTestCase {
 
 
     @Override
-    protected String requestAccessToken(final String clientId, final String[] scopes) {
+    protected String requestAccessToken(final String[] scopes) {
+        String clientId = createClient();
         StringBuilder paramScope = new StringBuilder();
         for (int i = 0; i < scopes.length; i++) {
             if (i > 0) {
@@ -121,7 +121,7 @@ public class IntentDConnectTestCase extends DConnectTestCase {
     }
 
     @Override
-    protected List<DeviceInfo> searchDevices() {
+    protected List<ServiceInfo> searchServices() {
         Intent intent = new Intent(IntentDConnectMessage.ACTION_GET);
         intent.putExtra(DConnectMessage.EXTRA_PROFILE,
                 ServiceDiscoveryProfileConstants.PROFILE_NAME);
@@ -129,14 +129,14 @@ public class IntentDConnectTestCase extends DConnectTestCase {
         Intent response = sendRequest(intent);
         assertResultOK(response);
 
-        List<DeviceInfo> services = new ArrayList<>();
+        List<ServiceInfo> services = new ArrayList<>();
         Parcelable[] servicesExtra = response.getParcelableArrayExtra(
                 ServiceDiscoveryProfileConstants.PARAM_SERVICES);
         for (Parcelable p : servicesExtra) {
             Bundle obj = (Bundle) p;
             String serviceId = obj.getString(ServiceDiscoveryProfileConstants.PARAM_ID);
             String deviceName = obj.getString(ServiceDiscoveryProfileConstants.PARAM_NAME);
-            services.add(new DeviceInfo(serviceId, deviceName));
+            services.add(new ServiceInfo(serviceId, deviceName));
         }
         return services;
     }

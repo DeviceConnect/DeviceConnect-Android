@@ -7,7 +7,6 @@ import android.os.AsyncTask;
 import org.deviceconnect.android.manager.DConnectSettings;
 import org.deviceconnect.android.manager.profile.AuthorizationProfile;
 import org.deviceconnect.message.DConnectMessage;
-import org.deviceconnect.utils.URIBuilder;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -37,17 +36,18 @@ public abstract class Authorization extends AsyncTask<Void, Void, List<ServiceCo
     }
 
     protected String getUri(final String path, final Map<String, String> params) {
-        URIBuilder builder = new URIBuilder();
-        builder.setScheme(mSettings.isSSL() ? "https" : "http");
-        builder.setHost("localhost");
-        builder.setPort(mSettings.getPort());
-        builder.setPath(path);
-        if (params != null) {
-            for (String key : params.keySet()) {
-                builder.addParameter(key, params.get(key));
-            }
-        }
-        return builder.toString();
+//        DConnectSDK.URIBuilder builder = new URIBuilder();
+//        builder.setScheme(mSettings.isSSL() ? "https" : "http");
+//        builder.setHost("localhost");
+//        builder.setPort(mSettings.getPort());
+//        builder.setPath(path);
+//        if (params != null) {
+//            for (String key : params.keySet()) {
+//                builder.addParameter(key, params.get(key));
+//            }
+//        }
+//        return builder.toString();
+        return null;
     }
 
     private String executeGrant() {

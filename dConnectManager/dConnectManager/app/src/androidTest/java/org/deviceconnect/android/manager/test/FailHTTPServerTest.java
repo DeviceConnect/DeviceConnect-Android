@@ -8,20 +8,20 @@ package org.deviceconnect.android.manager.test;
 
 import android.support.test.runner.AndroidJUnit4;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpHead;
-import org.apache.http.client.methods.HttpUriRequest;
 import org.deviceconnect.android.profile.restful.test.RESTfulDConnectTestCase;
-import org.deviceconnect.android.profile.restful.test.TestURIBuilder;
+import org.deviceconnect.android.test.http.HttpUtil;
+import org.deviceconnect.message.DConnectResponseMessage;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.deviceconnect.profile.DConnectProfileConstants;
-import org.deviceconnect.utils.URIBuilder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.IOException;
+
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.core.Is.is;
+import static org.junit.Assert.assertThat;
 
 
 /**
@@ -49,10 +49,8 @@ public class FailHTTPServerTest extends RESTfulDConnectTestCase {
      */
     @Test
     public void testHttpMethodHead() throws IOException {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
-        HttpUriRequest request = new HttpHead(builder.toString());
-        HttpResponse response = requestHttpResponse(request);
-        assertEquals(HttpStatus.SC_NOT_IMPLEMENTED, response.getStatusLine().getStatusCode());
+        byte[] buf = HttpUtil.connect("HEAD", DCONNECT_MANAGER_URI, null, null);
+        assertThat(buf, is(nullValue()));
     }
 
     /**
@@ -74,6 +72,7 @@ public class FailHTTPServerTest extends RESTfulDConnectTestCase {
         for (int i = 0; i < VERY_LONG_SERVICE_ID_LENGTH; i++) {
             serviceId.append("0");
         }
+
         StringBuilder builder = new StringBuilder();
         builder.append(DCONNECT_MANAGER_URI);
         builder.append("/battery");
@@ -81,9 +80,8 @@ public class FailHTTPServerTest extends RESTfulDConnectTestCase {
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         builder.append("&");
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + serviceId.toString());
-        HttpUriRequest request = new HttpGet(builder.toString());
-        HttpResponse response = requestHttpResponse(request);
-        assertEquals(HttpStatus.SC_REQUEST_TOO_LONG, response.getStatusLine().getStatusCode());
-    }
 
+        DConnectResponseMessage response = mDConnectSDK.get(builder.toString());
+        assertThat(response, is(notNullValue()));
+    }
 }

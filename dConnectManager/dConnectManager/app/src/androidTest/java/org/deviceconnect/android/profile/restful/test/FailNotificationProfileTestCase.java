@@ -8,21 +8,19 @@ package org.deviceconnect.android.profile.restful.test;
 
 import android.support.test.runner.AndroidJUnit4;
 
-import org.apache.http.client.methods.HttpDelete;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpPut;
-import org.apache.http.client.methods.HttpUriRequest;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.DConnectMessage.ErrorCode;
+import org.deviceconnect.message.DConnectResponseMessage;
+import org.deviceconnect.message.DConnectSDK;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.deviceconnect.profile.DConnectProfileConstants;
 import org.deviceconnect.profile.NotificationProfileConstants;
-import org.deviceconnect.utils.URIBuilder;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.core.Is.is;
+import static org.junit.Assert.assertThat;
 
 /**
  * Notificationプロファイルの異常系テスト.
@@ -35,7 +33,7 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * serviceIdを指定せずに通知を送信するテストを行う.
      * <pre>
      * 【HTTP通信】
-     * Method: PUT
+     * Method: POST
      * Path: /notification/notify?type=0
      * </pre>
      * <pre>
@@ -45,25 +43,24 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testPostNotifyNoServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         builder.addParameter(NotificationProfileConstants.PARAM_TYPE, "0");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.EMPTY_SERVICE_ID.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
      * serviceIdが空状態で通知を送信するテストを行う.
      * <pre>
      * 【HTTP通信】
-     * Method: PUT
+     * Method: POST
      * Path: /notification/notify?serviceId=&type=0
      * </pre>
      * <pre>
@@ -73,26 +70,25 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testPostNotifyEmptyServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(NotificationProfileConstants.PARAM_TYPE, "0");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
      * 存在しないserviceIdで通知を送信するテストを行う.
      * <pre>
      * 【HTTP通信】
-     * Method: PUT
+     * Method: POST
      * Path: /notification/notify?serviceId=123456789&type=0
      * </pre>
      * <pre>
@@ -102,26 +98,25 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testPostNotifyInvalidServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(NotificationProfileConstants.PARAM_TYPE, "0");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
      * 定義にない属性を指定して通知を送信するテストを行う.
      * <pre>
      * 【HTTP通信】
-     * Method: PUT
+     * Method: POST
      * Path: /notification/notify?serviceId=xxxx&type=0&abc=abc
      * </pre>
      * <pre>
@@ -132,7 +127,7 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testPostNotifyUndefinedAttribute() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -140,20 +135,17 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.addParameter(NotificationProfileConstants.PARAM_TYPE, "0");
         builder.addParameter("abc", "abc");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
     }
 
     /**
      * serviceIdを2重に指定して通知を送信するテストを行う.
      * <pre>
      * 【HTTP通信】
-     * Method: PUT
+     * Method: POST
      * Path: /notification/notify?serviceId=123456789&serviceId=xxx&type=0
      * </pre>
      * <pre>
@@ -164,20 +156,19 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testPostNotifyDuplicatedServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(NotificationProfileConstants.PARAM_TYPE, "0");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -194,19 +185,18 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testPostNotifyInvalidMethodGet() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(NotificationProfileConstants.PARAM_TYPE, "0");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_SUPPORT_ACTION.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -223,19 +213,18 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testPostNotifyInvalidMethodPut() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(NotificationProfileConstants.PARAM_TYPE, "0");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_SUPPORT_ACTION.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -252,18 +241,17 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testDeleteNotifyNoServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         builder.addParameter(NotificationProfileConstants.PARAM_TYPE, "0");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.EMPTY_SERVICE_ID.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -280,19 +268,18 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testDeleteNotifyEmptyServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(NotificationProfileConstants.PARAM_TYPE, "0");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -309,19 +296,18 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testDeleteNotifyInvalidServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(NotificationProfileConstants.PARAM_TYPE, "0");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -339,20 +325,17 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testDeleteNotifyUndefinedAttribute() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(NotificationProfileConstants.PARAM_NOTIFICATION_ID, "0");
         builder.addParameter("abc", "abc");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
     }
 
     /**
@@ -370,28 +353,27 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testDeleteNotifyDuplicatedServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(NotificationProfileConstants.PARAM_TYPE, "0");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * serviceIdが無い状態でonclick属性のコールバック解除テストを行う.
+     * serviceIdが無い状態でonClick属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /notification/onclick?sessionKey=xxxx
+     * Path: /notification/onClick
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -400,27 +382,24 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testPutOnClickChangeNoServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_CLICK);
-
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.EMPTY_SERVICE_ID.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * serviceIdが空状態でonclick属性のコールバック解除テストを行う.
+     * serviceIdが空状態でonClick属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /notification/onclick?serviceId=&sessionKey=xxxx
+     * Path: /notification/onClick?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -429,28 +408,25 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testPutOnClickChangeEmptyServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_CLICK);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
-
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * 存在しないserviceIdでonclick属性のコールバック解除テストを行う.
+     * 存在しないserviceIdでonClick属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /notification/onclick?serviceId=123456789&sessionKey=xxxx
+     * Path: /notification/onClick?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -459,28 +435,25 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testPutOnClickChangeInvalidServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_CLICK);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * serviceIdを2重に指定してonclick属性のコールバック解除テストを行う.
+     * serviceIdを2重に指定してonClick属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /notification/onclick?serviceId=123456789&serviceId=xxx&sessionKey=xxxx
+     * Path: /notification/onClick?serviceId=123456789&serviceId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -490,29 +463,26 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testPutOnClickChangeDuplicatedServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_CLICK);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * serviceIdが無い状態でonclick属性のコールバック解除テストを行う.
+     * serviceIdが無い状態でonClick属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /notification/onclick?sessionKey=xxxx
+     * Path: /notification/onClick
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -521,27 +491,24 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testDeleteOnClickChangeNoServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_CLICK);
-
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.EMPTY_SERVICE_ID.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * serviceIdが空状態でonclick属性のコールバック解除テストを行う.
+     * serviceIdが空状態でonClick属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /notification/onclick?serviceId=&sessionKey=xxxx
+     * Path: /notification/onClick?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -550,28 +517,25 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testDeleteOnClickChangeEmptyServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_CLICK);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
-
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * 存在しないserviceIdでonclick属性のコールバック解除テストを行う.
+     * 存在しないserviceIdでonClick属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /notification/onclick?serviceId=123456789&sessionKey=xxxx
+     * Path: /notification/onClick?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -580,28 +544,25 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testDeleteOnClickChangeInvalidServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_CLICK);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * serviceIdを2重に指定してonclick属性のコールバック解除テストを行う.
+     * serviceIdを2重に指定してonClick属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /notification/onclick?serviceId=123456789&serviceId=xxx&sessionKey=xxxx
+     * Path: /notification/onClick?serviceId=123456789&serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -611,29 +572,26 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testDeleteOnClickChangeDuplicatedServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_CLICK);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * メソッドにPOSTを指定してonclick属性のリクエストテストを行う.
+     * メソッドにPOSTを指定してonClick属性のリクエストテストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /notification/onclick?serviceId=xxxx&sessionKey=xxxx
+     * Path: /notification/onClick?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -642,28 +600,25 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testDeleteOnClickChangeInvalidMethodPost() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_CLICK);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_SUPPORT_ACTION.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * serviceIdが無い状態でonshow属性のコールバック解除テストを行う.
+     * serviceIdが無い状態でonShow属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /notification/onshow?sessionKey=xxxx
+     * Path: /notification/onShow
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -672,27 +627,24 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testPutOnShowChangeNoServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_SHOW);
-
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.EMPTY_SERVICE_ID.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * serviceIdが空状態でonshow属性のコールバック解除テストを行う.
+     * serviceIdが空状態でonShow属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /notification/onshow?serviceId=&sessionKey=xxxx
+     * Path: /notification/onShow?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -701,28 +653,25 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testPutOnShowChangeEmptyServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_SHOW);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
-
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * 存在しないserviceIdでonshow属性のコールバック解除テストを行う.
+     * 存在しないserviceIdでonShow属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /notification/onshow?serviceId=123456789&sessionKey=xxxx
+     * Path: /notification/onShow?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -731,28 +680,25 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testPutOnShowChangeInvalidServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_SHOW);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * serviceIdを2重に指定してonshow属性のコールバック解除テストを行う.
+     * serviceIdを2重に指定してonShow属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /notification/onshow?serviceId=123456789&serviceId=xxx&sessionKey=xxxx
+     * Path: /notification/onShow?serviceId=123456789&serviceId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -762,29 +708,26 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testPutOnShowChangeDuplicatedServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_SHOW);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * serviceIdが無い状態でonshow属性のコールバック解除テストを行う.
+     * serviceIdが無い状態でonShow属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /notification/onshow?sessionKey=xxxx
+     * Path: /notification/onShow?
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -793,27 +736,24 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testDeleteOnShowChangeNoServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_SHOW);
-
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.EMPTY_SERVICE_ID.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * serviceIdが空状態でonshow属性のコールバック解除テストを行う.
+     * serviceIdが空状態でonShow属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /notification/onshow?serviceId=&sessionKey=xxxx
+     * Path: /notification/onShow?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -822,28 +762,25 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testDeleteOnShowChangeEmptyServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_SHOW);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
-
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * 存在しないserviceIdでonshow属性のコールバック解除テストを行う.
+     * 存在しないserviceIdでonShow属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /notification/onshow?serviceId=123456789&sessionKey=xxxx
+     * Path: /notification/onShow?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -852,28 +789,25 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testDeleteOnShowChangeInvalidServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_SHOW);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * serviceIdを2重に指定してonshow属性のコールバック解除テストを行う.
+     * serviceIdを2重に指定してonShow属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /notification/onshow?serviceId=123456789&serviceId=xxx&sessionKey=xxxx
+     * Path: /notification/onShow?serviceId=123456789&serviceId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -883,29 +817,26 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testDeleteOnShowChangeDuplicatedServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_SHOW);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * メソッドにPOSTを指定してonshow属性のリクエストテストを行う.
+     * メソッドにPOSTを指定してonShow属性のリクエストテストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /notification/onshow?serviceId=xxxx&sessionKey=xxxx
+     * Path: /notification/onShow?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -914,28 +845,25 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testDeleteOnShowChangeInvalidMethodPost() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_SHOW);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_SUPPORT_ACTION.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * serviceIdが無い状態でonclose属性のコールバック解除テストを行う.
+     * serviceIdが無い状態でonClose属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /notification/onclose?sessionKey=xxxx
+     * Path: /notification/onClose
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -944,27 +872,24 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testPutOnCloseChangeNoServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_CLOSE);
-
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.EMPTY_SERVICE_ID.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * serviceIdが空状態でonclose属性のコールバック解除テストを行う.
+     * serviceIdが空状態でonClose属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /notification/onclose?serviceId=&sessionKey=xxxx
+     * Path: /notification/onClose?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -973,28 +898,25 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testPutOnCloseChangeEmptyServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_CLOSE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
-
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * 存在しないserviceIdでonclose属性のコールバック解除テストを行う.
+     * 存在しないserviceIdでonClose属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /notification/onclose?serviceId=123456789&sessionKey=xxxx
+     * Path: /notification/onClose?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1003,28 +925,25 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testPutOnCloseChangeInvalidServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_CLOSE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * serviceIdを2重に指定してonclose属性のコールバック解除テストを行う.
+     * serviceIdを2重に指定してonClose属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /notification/onclose?serviceId=123456789&serviceId=xxx&sessionKey=xxxx
+     * Path: /notification/onClose?serviceId=123456789&serviceId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1034,29 +953,26 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testPutOnCloseChangeDuplicatedServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_CLOSE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * serviceIdが無い状態でonclose属性のコールバック解除テストを行う.
+     * serviceIdが無い状態でonClose属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /notification/onclose?sessionKey=xxxx
+     * Path: /notification/onClose
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1065,27 +981,24 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testDeleteOnCloseChangeNoServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_CLOSE);
-
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.EMPTY_SERVICE_ID.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * serviceIdが空状態でonclose属性のコールバック解除テストを行う.
+     * serviceIdが空状態でonClose属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /notification/onclose?serviceId=&sessionKey=xxxx
+     * Path: /notification/onClose?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1094,28 +1007,25 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testDeleteOnCloseChangeEmptyServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_CLOSE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
-
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * 存在しないserviceIdでonclose属性のコールバック解除テストを行う.
+     * 存在しないserviceIdでonClose属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /notification/onclose?serviceId=123456789&sessionKey=xxxx
+     * Path: /notification/onClose?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1124,28 +1034,25 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testDeleteOnCloseChangeInvalidServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_CLOSE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * serviceIdを2重に指定してonclose属性のコールバック解除テストを行う.
+     * serviceIdを2重に指定してonClose属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /notification/onclose?serviceId=123456789&serviceId=xxx&sessionKey=xxxx
+     * Path: /notification/onClose?serviceId=123456789&serviceId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1155,29 +1062,26 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testDeleteOnCloseChangeDuplicatedServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_CLOSE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * メソッドにPOSTを指定してonclose属性のリクエストテストを行う.
+     * メソッドにPOSTを指定してonClose属性のリクエストテストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /notification/onclose?serviceId=xxxx&sessionKey=xxxx
+     * Path: /notification/onClose?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1186,28 +1090,25 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testDeleteOnCloseChangeInvalidMethodPost() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_CLOSE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_SUPPORT_ACTION.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * serviceIdが無い状態でonerror属性のコールバック解除テストを行う.
+     * serviceIdが無い状態でonError属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /notification/onerror?sessionKey=xxxx
+     * Path: /notification/onError?
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1216,27 +1117,24 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testPutOnErrorChangeNoServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_ERROR);
-
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.EMPTY_SERVICE_ID.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * serviceIdが空状態でonerror属性のコールバック解除テストを行う.
+     * serviceIdが空状態でonError属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /notification/onerror?serviceId=&sessionKey=xxxx
+     * Path: /notification/onError?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1245,28 +1143,25 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testPutOnErrorChangeEmptyServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_ERROR);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
-
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * 存在しないserviceIdでonerror属性のコールバック解除テストを行う.
+     * 存在しないserviceIdでonError属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /notification/onerror?serviceId=123456789&sessionKey=xxxx
+     * Path: /notification/onError?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1275,28 +1170,25 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testPutOnErrorChangeInvalidServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_ERROR);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * serviceIdを2重に指定してonerror属性のコールバック解除テストを行う.
+     * serviceIdを2重に指定してonError属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /notification/onerror?serviceId=123456789&serviceId=xxx&sessionKey=xxxx
+     * Path: /notification/onError?serviceId=123456789&serviceId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1306,29 +1198,26 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testPutOnErrorChangeDuplicatedServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_ERROR);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * serviceIdが無い状態でonerror属性のコールバック解除テストを行う.
+     * serviceIdが無い状態でonError属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /notification/onerror?sessionKey=xxxx
+     * Path: /notification/onError
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1337,27 +1226,24 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testDeleteOnErrorChangeNoServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_ERROR);
-
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.EMPTY_SERVICE_ID.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * serviceIdが空状態でonerror属性のコールバック解除テストを行う.
+     * serviceIdが空状態でonError属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /notification/onerror?serviceId=&sessionKey=xxxx
+     * Path: /notification/onError?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1366,28 +1252,25 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testDeleteOnErrorChangeEmptyServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_ERROR);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
-
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * 存在しないserviceIdでonerror属性のコールバック解除テストを行う.
+     * 存在しないserviceIdでonError属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /notification/onerror?serviceId=123456789&sessionKey=xxxx
+     * Path: /notification/onError?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1396,28 +1279,25 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testDeleteOnErrorChangeInvalidServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_ERROR);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * serviceIdを2重に指定してonerror属性のコールバック解除テストを行う.
+     * serviceIdを2重に指定してonError属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /notification/onerror?serviceId=123456789&serviceId=xxx&sessionKey=xxxx
+     * Path: /notification/onError?serviceId=123456789&serviceId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1427,29 +1307,26 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testDeleteOnErrorChangeDuplicatedServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_ERROR);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
-     * メソッドにPOSTを指定してonerror属性のリクエストテストを行う.
+     * メソッドにPOSTを指定してonError属性のリクエストテストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /notification/onerror?serviceId=xxxx&sessionKey=xxxx
+     * Path: /notification/onError?serviceId=xxxx&
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1458,19 +1335,16 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testDeleteOnErrorChangeInvalidMethodPost() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_ERROR);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_SUPPORT_ACTION.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 }

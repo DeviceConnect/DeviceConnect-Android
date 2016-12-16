@@ -16,6 +16,7 @@ import android.util.Log;
 
 import org.deviceconnect.android.test.plugin.profile.TestServiceDiscoveryProfileConstants;
 import org.deviceconnect.android.test.plugin.profile.TestSystemProfileConstants;
+import org.deviceconnect.message.DConnectSDK;
 import org.deviceconnect.profile.BatteryProfileConstants;
 import org.deviceconnect.profile.ConnectProfileConstants;
 import org.deviceconnect.profile.DeviceOrientationProfileConstants;
@@ -70,6 +71,12 @@ public abstract class DConnectTestCase extends AndroidTestCase {
 
     /** HMACの生成キー. */
     private static final SecretKey HMAC_KEY;
+
+    /**
+     * DeviceConnectManagerへアクセスするインターフェース.
+     */
+    protected DConnectSDK mDConnectSDK;
+
 
     static {
         RANDOM = new Random();
@@ -130,7 +137,7 @@ public abstract class DConnectTestCase extends AndroidTestCase {
     private static final int BUF_SIZE = 8192;
 
     /** デバイス一覧. */
-    private List<DeviceInfo> mDevices;
+    private List<ServiceInfo> mServiceInfoList;
 
     /** プラグイン一覧. */
     private List<PluginInfo> mPlugins;
@@ -153,48 +160,32 @@ public abstract class DConnectTestCase extends AndroidTestCase {
     }
 
     /**
-     * バイト配列のアサート文.
-     * @param expected 期待するバイト配列
-     * @param actual 実際のバイト倍列
+     * DConnectSDKを取得します.
+     * @return DConnectSDKのインスタンス
      */
-    protected static void assertEquals(final byte[] expected, final byte[] actual) {
-        assertEquals(expected.length, actual.length);
-        for (int i = 0; i < expected.length; i++) {
-            assertEquals(expected[i], actual[i]);
-        }
+    protected DConnectSDK getDConnectSDK() {
+        return mDConnectSDK;
     }
 
     /**
-     * dConnectManagerに対してクライアント作成リクエストを送信する.
+     * Device Connect Managerに対してアクセストークン取得リクエストを送信する.
      * <p>
-     * レスポンスとしてクライアントIDを受信できなかった場合はnullを返すこと.
+     * レスポンスとしてアクセストークンを受信できなかった場合はnullを返す。
      * </p>
-     * 
-     * @return クライアントID
-     */
-    protected abstract String createClient();
-
-    /**
-     * dConnectManagerに対してアクセストークン取得リクエストを送信する.
-     * <p>
-     * レスポンスとしてアクセストークンを受信できなかった場合はnullを返すこと.
-     * </p>
-     * 
-     * @param clientId クライアントID
      * @param scopes スコープ指定
      * @return アクセストークン
      */
-    protected abstract String requestAccessToken(String clientId, String[] scopes);
+    protected abstract String requestAccessToken(String[] scopes);
 
     /**
-     * dConnectManagerから最新のデバイス一覧を取得する.
-     * @return dConnectManagerから取得した最新のデバイス一覧
+     * Device Connect Managerから最新のデバイス一覧を取得する.
+     * @return Device Connect Managerから取得した最新のデバイス一覧
      */
-    protected abstract List<DeviceInfo> searchDevices();
+    protected abstract List<ServiceInfo> searchServices();
 
     /**
-     * dConnectManagerから最新のプラグイン一覧を取得する.
-     * @return dConnectManagerから取得した最新のプラグイン一覧
+     * Device Connect Managerから最新のプラグイン一覧を取得する.
+     * @return Device Connect Managerから取得した最新のプラグイン一覧
      */
     protected abstract List<PluginInfo> searchPlugins();
 
@@ -217,20 +208,17 @@ public abstract class DConnectTestCase extends AndroidTestCase {
         intent.setData(Uri.parse("gotapi://start/server"));
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         getContext().startActivity(intent);
-
         long timeout = 30 * 1000;
         final long interval = 250;
         while (true) {
-            try {
-                isManagerAvailable();
+            if (isManagerAvailable()) {
                 break;
-            } catch (IllegalStateException e) {
-                timeout -= interval;
-                if (timeout <= 0) {
-                    fail("Manager launching timeout.");
-                }
-                Thread.sleep(interval);
             }
+            timeout -= interval;
+            if (timeout <= 0) {
+                fail("Manager launching timeout.");
+            }
+            Thread.sleep(interval);
         }
     }
 
@@ -284,22 +272,18 @@ public abstract class DConnectTestCase extends AndroidTestCase {
         setContext(InstrumentationRegistry.getContext());
         waitForManager();
         if (isLocalOAuth()) {
-            // クライアントID取得
-            if (sClientId == null) {
-                String clientId = createClient();
-                assertNotNull(clientId);
-                sClientId = clientId;
-            }
             // アクセストークン取得
             if (sAccessToken == null) {
-                sAccessToken = requestAccessToken(sClientId, PROFILES);
+                sAccessToken = requestAccessToken(PROFILES);
+                mDConnectSDK.setAccessToken(sAccessToken);
                 assertNotNull(sAccessToken);
             }
             Thread.sleep(2000);
         }
-        if (isSearchDevices()) {
+
+        if (isSearchServices()) {
             // テストデバイスプラグインを探す
-            setDevices(searchDevices());
+            setServiceInfoList(searchServices());
             setPlugins(searchPlugins());
         }
     }
@@ -316,7 +300,7 @@ public abstract class DConnectTestCase extends AndroidTestCase {
      * 各テストメソッド実行前に、デバイス一覧取得を行うかどうかの設定を取得する.
      * @return テスト実行前にデバイス一覧取得を行う場合はtrue、そうでない場合はfalse
      */
-    protected boolean isSearchDevices() {
+    protected boolean isSearchServices() {
         return true;
     }
 
@@ -334,8 +318,8 @@ public abstract class DConnectTestCase extends AndroidTestCase {
      * @return サービスID
      */
     protected String getServiceIdByName(final String deviceName) {
-        for (int i = 0; i < mDevices.size(); i++) {
-            DeviceInfo obj = mDevices.get(i);
+        for (int i = 0; i < mServiceInfoList.size(); i++) {
+            ServiceInfo obj = mServiceInfoList.get(i);
             if (deviceName.equals(obj.getDeviceName())) {
                 return obj.getServiceId();
             }
@@ -370,8 +354,8 @@ public abstract class DConnectTestCase extends AndroidTestCase {
      * デバイス一覧をキャッシュする.
      * @param services デバイス一覧
      */
-    protected void setDevices(final List<DeviceInfo> services) {
-        this.mDevices = services;
+    protected void setServiceInfoList(final List<ServiceInfo> services) {
+        mServiceInfoList = services;
     }
 
     /**
@@ -379,7 +363,7 @@ public abstract class DConnectTestCase extends AndroidTestCase {
      * @param plugins プラグイン一覧
      */
     protected void setPlugins(final List<PluginInfo> plugins) {
-        this.mPlugins = plugins;
+        mPlugins = plugins;
     }
 
     /**
@@ -466,9 +450,9 @@ public abstract class DConnectTestCase extends AndroidTestCase {
     }
 
     /**
-     * デバイス情報.
+     * サービス情報.
      */
-    protected static class DeviceInfo {
+    protected static class ServiceInfo {
 
         /**
          * サービスID.
@@ -485,7 +469,7 @@ public abstract class DConnectTestCase extends AndroidTestCase {
          * @param serviceId サービスID
          * @param deviceName デバイス名
          */
-        public DeviceInfo(final String serviceId, final String deviceName) {
+        public ServiceInfo(final String serviceId, final String deviceName) {
             this.mServiceId = serviceId;
             this.mDeviceName = deviceName;
         }

@@ -8,22 +8,19 @@ package org.deviceconnect.android.profile.restful.test;
 
 import android.support.test.runner.AndroidJUnit4;
 
-import junit.framework.Assert;
-
-import org.apache.http.client.methods.HttpDelete;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPut;
-import org.apache.http.client.methods.HttpUriRequest;
 import org.deviceconnect.message.DConnectMessage;
+import org.deviceconnect.message.DConnectResponseMessage;
+import org.deviceconnect.message.DConnectSDK;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.deviceconnect.profile.DConnectProfileConstants;
 import org.deviceconnect.profile.ProximityProfileConstants;
-import org.deviceconnect.utils.URIBuilder;
 import org.json.JSONException;
-import org.json.JSONObject;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.core.Is.is;
+import static org.junit.Assert.assertThat;
 
 
 /**
@@ -34,11 +31,11 @@ import org.junit.runner.RunWith;
 public class NormalProximityProfileTestCase extends RESTfulDConnectTestCase {
 
     /**
-     * メソッドにGETを指定してondeviceproximity属性のリクエストテストを行う.
+     * メソッドにGETを指定してonDeviceProximity属性のリクエストテストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /proximity/ondeviceproximity?serviceId=xxxx&sessionKey=xxxx
+     * Path: /proximity/onDeviceProximity?serviceId=xxxx&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -47,19 +44,16 @@ public class NormalProximityProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testGetOnDeviceProximityChange() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(ProximityProfileConstants.PROFILE_NAME);
         builder.setAttribute(ProximityProfileConstants.ATTRIBUTE_ON_DEVICE_PROXIMITY);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        // TODO パラメータチェック
     }
 
     /**
@@ -67,7 +61,7 @@ public class NormalProximityProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /proximity/ondeviceproximity?deviceid=xxxx&session_key=xxxx
+     * Path: /proximity/onDeviceProximity?deviceid=xxxx&session_key=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -88,7 +82,7 @@ public class NormalProximityProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /proximity/ondeviceproximity?deviceid=xxxx&session_key=xxxx
+     * Path: /proximity/onDeviceProximity?deviceid=xxxx&session_key=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -101,11 +95,11 @@ public class NormalProximityProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * メソッドにGETを指定してonuserproximity属性のリクエストテストを行う.
+     * メソッドにGETを指定してonUserProximity属性のリクエストテストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /proximity/onuserproximity?serviceId=xxxx&sessionKey=xxxx
+     * Path: /proximity/onUserProximity?serviceId=xxxx&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -114,19 +108,16 @@ public class NormalProximityProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testGetOnUserProximityChange() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(ProximityProfileConstants.PROFILE_NAME);
         builder.setAttribute(ProximityProfileConstants.ATTRIBUTE_ON_USER_PROXIMITY);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        // TODO パラメータチェック
     }
 
     /**
@@ -134,7 +125,7 @@ public class NormalProximityProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /proximity/onuserproximity?deviceid=xxxx&session_key=xxxx
+     * Path: /proximity/onUserProximity?deviceid=xxxx&session_key=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -155,7 +146,7 @@ public class NormalProximityProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /proximity/onuserproximity?deviceid=xxxx&session_key=xxxx
+     * Path: /proximity/onUserProximity?deviceid=xxxx&session_key=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -181,11 +172,10 @@ public class NormalProximityProfileTestCase extends RESTfulDConnectTestCase {
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        HttpUriRequest request = new HttpPut(builder.toString());
-        JSONObject root = sendRequest(request);
-        Assert.assertNotNull("root is null.", root);
-        Assert.assertEquals(DConnectMessage.RESULT_OK,
-                root.getInt(DConnectMessage.EXTRA_RESULT));
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.toString(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
     }
 
     /**
@@ -201,15 +191,10 @@ public class NormalProximityProfileTestCase extends RESTfulDConnectTestCase {
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            Assert.assertNotNull("root is null.", root);
-            Assert.assertEquals(DConnectMessage.RESULT_OK,
-                    root.getInt(DConnectMessage.EXTRA_RESULT));
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.toString());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
     }
 
 }

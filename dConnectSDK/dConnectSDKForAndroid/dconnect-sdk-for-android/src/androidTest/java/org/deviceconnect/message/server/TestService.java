@@ -32,7 +32,9 @@ public class TestService extends Service {
 
     @Override
     public int onStartCommand(final Intent intent, final int flags, final int startId) {
-        mServiceCallback.onReceivedRequest(this, intent);
+        if (mServiceCallback != null) {
+            mServiceCallback.onReceivedRequest(this, intent);
+        }
         return super.onStartCommand(intent, flags, startId);
     }
 

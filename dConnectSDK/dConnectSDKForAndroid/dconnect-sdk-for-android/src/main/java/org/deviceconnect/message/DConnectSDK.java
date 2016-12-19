@@ -6,6 +6,9 @@
  */
 package org.deviceconnect.message;
 
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
 import android.net.Uri;
 
 import org.deviceconnect.profile.AuthorizationProfileConstants;
@@ -69,6 +72,11 @@ import java.util.concurrent.Executors;
  * @author NTT DOCOMO, INC.
  */
 public abstract class DConnectSDK {
+    /**
+     * Device Connect Manager起動確認用ActivityへのComponentName.
+     */
+    private static final ComponentName MANAGER_LAUNCH_ACTIVITY = new ComponentName("org.deviceconnect.android.manager",
+            "org.deviceconnect.android.manager.DConnectLaunchActivity");
 
     /**
      * メソッド.
@@ -329,6 +337,11 @@ public abstract class DConnectSDK {
         addEventListener(Uri.parse(uri), listener);
     }
 
+    /**
+     * イベントを登録する.
+     * @param uri 登録するイベントへのURI
+     * @param listener イベント通知リスナー
+     */
     public abstract void addEventListener(final Uri uri, final OnEventListener listener);
 
     /**
@@ -339,7 +352,83 @@ public abstract class DConnectSDK {
         removeEventListener(Uri.parse(uri));
     }
 
+    /**
+     * イベントを削除する.
+     * @param uri 削除するイベントへのURI
+     */
     public abstract void removeEventListener(final Uri uri);
+
+    /**
+     * Device Connect Managerを起動する.
+     * <p>
+     * Device Connect Managerを起動するために一瞬透明なActivityが起動するので、
+     * Activityが一時停止されることに注意すること。
+     * </p>
+     * <h3>サンプルコード</h3>
+     * <pre>
+     * DConnectSDK sdk = DConnectSDKFactory.create(context, DConnectSDKFactory.Type.HTTP);
+     * DConnectResponseMessage response = sdk.availability();
+     * if (response.getResult() == DConnectMessage.RESULT_ERROR) {
+     *     sdk.startManager(context);
+     * }
+     * </pre>
+     * @param context コンテキスト
+     */
+    public void startManager(final Context context) {
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setComponent(MANAGER_LAUNCH_ACTIVITY);
+        intent.addCategory(Intent.CATEGORY_DEFAULT);
+        intent.addCategory(Intent.CATEGORY_BROWSABLE);
+        intent.setData(Uri.parse("gotapi://start/server"));
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        context.startActivity(intent);
+    }
+
+    /**
+     * Device Connect Manager起動確認用のActivityを起動する.
+     * @param context コンテキスト
+     */
+    public void startManagerWithActivity(final Context context) {
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setComponent(MANAGER_LAUNCH_ACTIVITY);
+        intent.addCategory(Intent.CATEGORY_DEFAULT);
+        intent.addCategory(Intent.CATEGORY_BROWSABLE);
+        intent.setData(Uri.parse("gotapi://start/activity"));
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        context.startActivity(intent);
+    }
+
+    /**
+     * Device Connect Managerを停止する.
+     * <p>
+     * Device Connect Managerを停止するために一瞬透明なActivityが起動するので、
+     * Activityが一時停止されることに注意すること。
+     * </p>
+     * @param context コンテキスト
+     */
+    public void stopManager(final Context context) {
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setComponent(MANAGER_LAUNCH_ACTIVITY);
+        intent.addCategory(Intent.CATEGORY_DEFAULT);
+        intent.addCategory(Intent.CATEGORY_BROWSABLE);
+        intent.setData(Uri.parse("gotapi://stop/server"));
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        context.startActivity(intent);
+    }
+
+    /**
+     * Device Connect Manager停止確認用のActivityを起動する.
+     * @param context コンテキスト
+     */
+    public void stopManagerWithActivity(final Context context) {
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setComponent(MANAGER_LAUNCH_ACTIVITY);
+        intent.addCategory(Intent.CATEGORY_DEFAULT);
+        intent.addCategory(Intent.CATEGORY_BROWSABLE);
+        intent.setData(Uri.parse("gotapi://stop/activity"));
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        context.startActivity(intent);
+    }
 
     /**
      * Device Connect Managerとの通信を行う.

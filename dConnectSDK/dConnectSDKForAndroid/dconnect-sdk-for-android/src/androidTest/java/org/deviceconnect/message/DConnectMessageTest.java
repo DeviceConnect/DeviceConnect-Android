@@ -29,6 +29,7 @@ public class DConnectMessageTest {
             test.put("test2", test2);
 
             JSONArray array = new JSONArray();
+            array.put(1);
 
             JSONObject jsonObject = new JSONObject();
             jsonObject.put("key", "value");
@@ -41,8 +42,14 @@ public class DConnectMessageTest {
             assertThat(message.getString("key"), is("value"));
 
             DConnectMessage t = message.getMessage("test");
+            List a = message.getList("array");
             assertThat(t, is(notNullValue()));
             assertThat(t.getString("key1"), is("value1"));
+            assertThat(t.getMessage("test2"), is(notNullValue()));
+            assertThat(t.getMessage("test2").getString("key2"), is("value2"));
+            assertThat(a, is(notNullValue()));
+            assertThat(a.size(), is(1));
+            assertThat((Integer) a.get(0), is(1));
         } catch (JSONException e) {
             fail(e.getMessage());
         }

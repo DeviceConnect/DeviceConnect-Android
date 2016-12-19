@@ -421,7 +421,7 @@ public class DConnectHelper {
                 "message"
         );
         // パラメータ
-        Map<String, String> params = new HashMap<>();
+        Map<String, Object> params = new HashMap<>();
         params.put(DConnectMessage.EXTRA_SERVICE_ID, serviceId);
         if (text != null) {
             params.put("text", text);
@@ -462,7 +462,7 @@ public class DConnectHelper {
      * @param params パラメータ
      * @param callback Callback
      */
-    public void sendRequest(String method, String path, String serviceId, Map<String, String> params, final FinishCallback<Map<String, Object>> callback) {
+    public void sendRequest(String method, String path, String serviceId, Map<String, Object> params, final FinishCallback<Map<String, Object>> callback) {
         if (BuildConfig.DEBUG) Log.d(TAG, "sendRequest");
 
         // 接続情報
@@ -654,11 +654,11 @@ public class DConnectHelper {
         /** 接続情報 */
         public ConnectionParam connection;
         /** その他パラメータ */
-        public Map<String, String> params;
+        public Map<String, Object> params;
         /** コールバック */
         public void callBack(DConnectMessage message) {}
 
-        public TaskParam(ConnectionParam url, Map<String, String > params) {
+        public TaskParam(ConnectionParam url, Map<String, Object > params) {
             this.connection = url;
             this.params = params;
         }
@@ -687,7 +687,7 @@ public class DConnectHelper {
             if (isQuery) {
                 // GET/DELETEはQueryをURIに付加
                 for (String key: param.params.keySet()) {
-                    builder.addParameter(key, param.params.get(key));
+                    builder.addParameter(key, (String) param.params.get(key));
                 }
             }
 

@@ -183,10 +183,10 @@ public class SimpleBotService extends Service {
         // 一致
         if (BuildConfig.DEBUG) Log.d(TAG, "match:" + data.keyword);
         // パラメータ作成
-        final Map<String, String> params = Utils.jsonToMap(data.body);
+        final Map<String, Object> params = Utils.jsonToMap(data.body);
         if (params != null) {
             for (String key : params.keySet()) {
-                String val = params.get(key);
+                String val = (String) params.get(key);
                 // groupをパラメータに渡す
                 for (int i = 0; i < matcher.groupCount() + 1; i++) {
                     val = val.replace("$" + i, matcher.group(i));

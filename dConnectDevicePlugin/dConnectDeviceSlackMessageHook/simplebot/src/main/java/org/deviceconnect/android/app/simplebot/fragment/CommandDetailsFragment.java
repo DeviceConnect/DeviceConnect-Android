@@ -459,7 +459,7 @@ public class CommandDetailsFragment extends Fragment implements View.OnClickList
         }
 
         // 設定済みのBodyデータをパース
-        Map<String, String> bodyJson = Utils.jsonToMap(commandData.body);
+        Map<String, Object> bodyJson = Utils.jsonToMap(commandData.body);
 
         // 入力ダイアログ作成
         final Context context = getActivity();
@@ -507,7 +507,7 @@ public class CommandDetailsFragment extends Fragment implements View.OnClickList
 
             // 設定済みのBodyデータを反映
             if (bodyJson != null && bodyJson.containsKey(param.name)) {
-                editView.setText(bodyJson.get(param.name));
+                editView.setText((String) bodyJson.get(param.name));
             }
 
             rootLayout.addView(layout);

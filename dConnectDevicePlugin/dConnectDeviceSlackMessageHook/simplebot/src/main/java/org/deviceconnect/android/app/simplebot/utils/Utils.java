@@ -68,7 +68,7 @@ public class Utils {
      * @param json Json
      * @return Map
      */
-    public static Map<String, String> jsonToMap(String json) {
+    public static Map<String, Object> jsonToMap(String json) {
         if (json == null) {
             return null;
         }
@@ -76,7 +76,7 @@ public class Utils {
             JSONObject jsonObj = new JSONObject(json);
             Iterator<String> keys = jsonObj.keys();
             // 今回は文字列限定
-            Map<String, String> params = new HashMap<>();
+            Map<String, Object> params = new HashMap<>();
             while (keys.hasNext()) {
                 String key = keys.next();
                 String val = jsonObj.getString(key);
@@ -490,7 +490,7 @@ public class Utils {
      * @param params パラメータ
      * @param callback 終了コールバック
      */
-    public static void sendRequest(final Context context, final String method, final String path, final String serviceId, final Map<String, String> params, final DConnectHelper.FinishCallback<Map<String, Object>> callback) {
+    public static void sendRequest(final Context context, final String method, final String path, final String serviceId, final Map<String, Object> params, final DConnectHelper.FinishCallback<Map<String, Object>> callback) {
         final DConnectHelper.FinishCallback<DConnectHelper.AuthInfo> finishCallback = new DConnectHelper.FinishCallback<DConnectHelper.AuthInfo>() {
             @Override
             public void onFinish(DConnectHelper.AuthInfo authInfo, Exception error) {

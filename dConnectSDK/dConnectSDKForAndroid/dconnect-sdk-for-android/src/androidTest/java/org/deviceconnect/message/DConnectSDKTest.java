@@ -12,6 +12,11 @@ import static org.junit.Assert.assertThat;
 
 @RunWith(AndroidJUnit4.class)
 public class DConnectSDKTest {
+    @Test
+    public void getHost() {
+        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
+        assertThat(sdk.getHost(), is("localhost"));
+    }
 
     @Test
     public void setHost() {
@@ -41,6 +46,12 @@ public class DConnectSDKTest {
         } catch (IllegalArgumentException e) {
             // テスト成功
         }
+    }
+
+    @Test
+    public void getPort() {
+        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
+        assertThat(sdk.getPort(), is(4035));
     }
 
     @Test

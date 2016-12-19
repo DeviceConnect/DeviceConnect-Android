@@ -102,7 +102,7 @@ public class HttpDConnectSDKTest {
                 try {
                     fis.close();
                 } catch (IOException e) {
-                    return null;
+                    e.printStackTrace();
                 }
             }
         }

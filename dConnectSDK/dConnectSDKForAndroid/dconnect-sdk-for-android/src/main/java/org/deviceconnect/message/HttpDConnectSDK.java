@@ -373,10 +373,6 @@ class HttpDConnectSDK extends DConnectSDK {
             throw new NullPointerException("listener is null.");
         }
 
-        if (getOrigin() == null) {
-            throw new IllegalStateException("origin is not set.");
-        }
-
         URIBuilder builder = createURIBuilder();
         builder.setScheme(isSSL() ? "wss" : "ws");
         builder.setPath("/gotapi/websocket");

@@ -18,6 +18,8 @@ import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
 
+import org.deviceconnect.android.manager.DConnectSettings;
+import org.deviceconnect.android.manager.profile.DConnectFilesProfile;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 import org.deviceconnect.utils.JSONUtils;
@@ -25,6 +27,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Iterator;
@@ -115,20 +118,21 @@ public final class DConnectUtil {
      * @return URI
      */
     private static String createUri(final String uri) {
-//        DConnectSettings settings = DConnectSettings.getInstance();
-//        DConnectSDK.URIBuilder builder = new URIBuilder();
-//        if (settings.isSSL()) {
-//            builder.setScheme("https");
-//        } else {
-//            builder.setScheme("http");
-//        }
-//        builder.setHost(settings.getHost());
-//        builder.setPort(settings.getPort());
-//        builder.setProfile(DConnectFilesProfile.PROFILE_NAME);
-//        builder.addParameter("uri", uri);
-//
-//        return builder.toString();
-        return null;
+        DConnectSettings settings = DConnectSettings.getInstance();
+        StringBuilder builder = new StringBuilder();
+        builder.append(settings.isSSL() ? "https://" : "http://");
+        builder.append(settings.getHost());
+        builder.append(":");
+        builder.append(settings.getPort());
+        builder.append("/gotapi/");
+        builder.append(DConnectFilesProfile.PROFILE_NAME);
+        builder.append("?uri=");
+        try {
+            builder.append(URLEncoder.encode(uri, "UTF-8"));
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException("Failed to convert a uri.");
+        }
+        return builder.toString();
     }
 
     /**
@@ -144,7 +148,7 @@ public final class DConnectUtil {
      */
     private static void convertUri(final JSONObject root) throws JSONException {
         @SuppressWarnings("unchecked") // Using legacy API
-        Iterator<String> it = root.keys();
+                Iterator<String> it = root.keys();
         while (it.hasNext()) {
             String key = it.next();
             Object value = root.opt(key);

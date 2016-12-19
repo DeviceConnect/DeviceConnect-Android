@@ -36,18 +36,26 @@ public abstract class Authorization extends AsyncTask<Void, Void, List<ServiceCo
     }
 
     protected String getUri(final String path, final Map<String, String> params) {
-//        DConnectSDK.URIBuilder builder = new URIBuilder();
-//        builder.setScheme(mSettings.isSSL() ? "https" : "http");
-//        builder.setHost("localhost");
-//        builder.setPort(mSettings.getPort());
-//        builder.setPath(path);
-//        if (params != null) {
-//            for (String key : params.keySet()) {
-//                builder.addParameter(key, params.get(key));
-//            }
-//        }
-//        return builder.toString();
-        return null;
+        StringBuilder builder = new StringBuilder();
+        builder.append(mSettings.isSSL() ? "https://" : "http://");
+        builder.append("localhost:");
+        builder.append(mSettings.getPort());
+        builder.append(path);
+        if (params != null) {
+            boolean first = true;
+            for (String key : params.keySet()) {
+                if (first) {
+                    builder.append("?");
+                } else {
+                    builder.append("&");
+                }
+                builder.append(key);
+                builder.append("=");
+                builder.append(params.get(key));
+                first = false;
+            }
+        }
+        return builder.toString();
     }
 
     private String executeGrant() {

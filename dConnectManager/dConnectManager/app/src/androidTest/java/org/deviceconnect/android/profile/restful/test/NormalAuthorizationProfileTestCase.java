@@ -46,7 +46,11 @@ public class NormalAuthorizationProfileTestCase extends RESTfulDConnectTestCase 
         return "abc";
     }
 
-
+    /**
+     * スコープを連結する.
+     * @param scopes 連結するスコープ
+     * @return 連結した文字列
+     */
     private String combineStr(final String[] scopes) {
         StringBuilder builder = new StringBuilder();
         for (int i = 0; i < scopes.length; i++) {
@@ -190,6 +194,8 @@ public class NormalAuthorizationProfileTestCase extends RESTfulDConnectTestCase 
         assertThat(response1.getString(AuthorizationProfile.PARAM_CLIENT_ID), is(notNullValue()));
 
         String clientId = response1.getString(AuthorizationProfile.PARAM_CLIENT_ID);
+        assertThat(clientId, is(notNullValue()));
+
         String appName = "JUnit Test";
         String[] scopes = {
                 BatteryProfile.PROFILE_NAME,

@@ -53,7 +53,6 @@ public class NormalProximityProfileTestCase extends RESTfulDConnectTestCase {
         DConnectResponseMessage response = mDConnectSDK.get(builder.build());
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
-        // TODO パラメータチェック
     }
 
     /**
@@ -117,7 +116,6 @@ public class NormalProximityProfileTestCase extends RESTfulDConnectTestCase {
         DConnectResponseMessage response = mDConnectSDK.get(builder.build());
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
-        // TODO パラメータチェック
     }
 
     /**

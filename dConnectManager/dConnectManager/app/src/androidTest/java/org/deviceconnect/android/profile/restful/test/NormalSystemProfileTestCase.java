@@ -8,7 +8,6 @@ package org.deviceconnect.android.profile.restful.test;
 
 import android.support.test.runner.AndroidJUnit4;
 
-import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.android.test.plugin.profile.TestSystemProfileConstants;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.DConnectResponseMessage;
@@ -17,8 +16,6 @@ import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.deviceconnect.profile.SystemProfileConstants;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.util.List;
 
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.core.Is.is;
@@ -43,9 +40,6 @@ public class NormalSystemProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・versionにString型の値が返ってくること。
-     * ・supportsにJSONArray型の値が返ってくること。
-     * ・pluginsにテスト用デバイスプラグインの情報が含まれていること。
      * </pre>
      */
     @Test
@@ -59,17 +53,6 @@ public class NormalSystemProfileTestCase extends RESTfulDConnectTestCase
         DConnectResponseMessage response = mDConnectSDK.get(builder.toString());
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
-        assertThat(response.getString(SystemProfile.PARAM_VERSION), is(notNullValue()));
-
-        List supports = response.getList(SystemProfile.PARAM_SUPPORTS);
-        assertThat(supports, is(notNullValue()));
-
-        List plugins = response.getList(SystemProfile.PARAM_PLUGINS);
-        assertThat(supports, is(notNullValue()));
-        for (Object obj : plugins) {
-            DConnectMessage plugin = (DConnectMessage) obj;
-            // TODO プラグイン情報チェック
-        }
     }
 
     /**

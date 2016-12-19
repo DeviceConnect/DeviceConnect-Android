@@ -41,10 +41,6 @@ public class NormalLightProfileTestCase extends RESTfulDConnectTestCase implemen
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・lightsにライト情報が格納されていること。
-     * ・lightIdにライトID(test_light_id)が格納されていること。
-     * ・nameにライト名(test_light_name)が格納されていること。
-     * ・onにライトの状態が格納されていること。
      * </pre>
      */
     @Test
@@ -57,11 +53,6 @@ public class NormalLightProfileTestCase extends RESTfulDConnectTestCase implemen
         DConnectResponseMessage response = mDConnectSDK.get(builder.build());
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
-        assertThat(response.getList(LightProfile.PARAM_LIGHTS), is(notNullValue()));
-        for (Object obj : response.getList(LightProfile.PARAM_LIGHTS)) {
-            DConnectMessage light = (DConnectMessage) obj;
-            // TODO
-        }
     }
 
     /**
@@ -170,22 +161,6 @@ public class NormalLightProfileTestCase extends RESTfulDConnectTestCase implemen
                 sb.append(",");
             }
             sb.append(flashing[i]);
-        }
-        return sb.toString();
-    }
-
-    /**
-     * ライトIDリストから文字列を作成する.
-     * @param lightIds ライトIDリスト
-     * @return ライトIDリストの文字列
-     */
-    private String convertLightIds(final String[] lightIds) {
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < lightIds.length; i++) {
-            if (i != 0) {
-                sb.append(",");
-            }
-            sb.append(lightIds[i]);
         }
         return sb.toString();
     }

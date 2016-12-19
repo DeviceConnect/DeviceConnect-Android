@@ -90,7 +90,7 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
         builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
         builder.setAttribute(AuthorizationProfileConstants.ATTRIBUTE_GRANT);
 
-        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
+        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
     }

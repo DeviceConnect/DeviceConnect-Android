@@ -125,8 +125,6 @@ public class NormalFileDescriptorProfileTestCase extends RESTfulDConnectTestCase
         DConnectResponseMessage response = mDConnectSDK.get(builder.toString());
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
-        assertThat(response.getInt(FileDescriptorProfile.PARAM_SIZE), is(notNullValue()));
-        assertThat(response.getString(FileDescriptorProfile.PARAM_FILE_DATA), is(notNullValue()));
     }
 
     /**
@@ -161,8 +159,6 @@ public class NormalFileDescriptorProfileTestCase extends RESTfulDConnectTestCase
         DConnectResponseMessage response = mDConnectSDK.get(builder.toString());
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
-        assertThat(response.getInt(FileDescriptorProfile.PARAM_SIZE), is(notNullValue()));
-        assertThat(response.getString(FileDescriptorProfile.PARAM_FILE_DATA), is(notNullValue()));
     }
 
     /**

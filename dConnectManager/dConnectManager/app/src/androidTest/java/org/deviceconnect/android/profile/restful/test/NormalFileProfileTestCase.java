@@ -8,7 +8,6 @@ package org.deviceconnect.android.profile.restful.test;
 
 import android.support.test.runner.AndroidJUnit4;
 
-import org.deviceconnect.android.profile.FileProfile;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.DConnectResponseMessage;
 import org.deviceconnect.message.DConnectSDK;
@@ -54,7 +53,6 @@ public class NormalFileProfileTestCase extends RESTfulDConnectTestCase {
         DConnectResponseMessage response = mDConnectSDK.get(builder.build());
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
-        assertThat(response.getList(FileProfile.PARAM_FILES), is(notNullValue()));
     }
 
     /**
@@ -67,7 +65,6 @@ public class NormalFileProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・
      * </pre>
      */
     @Test
@@ -111,15 +108,6 @@ public class NormalFileProfileTestCase extends RESTfulDConnectTestCase {
         DConnectResponseMessage response = mDConnectSDK.get(builder.build());
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
-
-
-//        try {
-//            HttpUriRequest request = new HttpGet(builder.toString());
-//            JSONObject root = sendRequest(request);
-//            assertResultOK(root);
-//        } catch (JSONException e) {
-//            fail("Exception in JSONObject." + e.getMessage());
-//        }
     }
 
     /**
@@ -153,7 +141,7 @@ public class NormalFileProfileTestCase extends RESTfulDConnectTestCase {
         Map<String, Object> body = new HashMap<>();
         body.put(FileProfileConstants.PARAM_DATA, data);
 
-        DConnectResponseMessage response = sendRequest("POST", builder.toString(), null, body);
+        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), body);
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
     }
@@ -161,7 +149,7 @@ public class NormalFileProfileTestCase extends RESTfulDConnectTestCase {
     /**
      * ファイルの削除を行う.
      * <pre>
-     * Method: Delete
+     * Method: DELETE
      * Path: /file/remove?serviceId=xxxx&filename=xxxx
      * </pre>
      * <pre>

@@ -34,10 +34,6 @@ public class NormalBatteryProfileTestCase extends IntentDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・chargingがfalseで返ってくること。
-     * ・chargingtimeが50000.0で返ってくること。
-     * ・dischargingtimeが10000.0で返ってくること。
-     * ・levelが0.5で返ってくること。
      * </pre>
      */
     @Test
@@ -63,7 +59,6 @@ public class NormalBatteryProfileTestCase extends IntentDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・chargingがfalseで返ってくること。
      * </pre>
      */
     @Test
@@ -89,7 +84,6 @@ public class NormalBatteryProfileTestCase extends IntentDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・chargingTimeが50000.0で返ってくること。
      * </pre>
      */
     @Test
@@ -115,7 +109,6 @@ public class NormalBatteryProfileTestCase extends IntentDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・dischargingTimeが10000.0で返ってくること。
      * </pre>
      */
     @Test
@@ -141,7 +134,6 @@ public class NormalBatteryProfileTestCase extends IntentDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・levelが0.5で返ってくること。
      * </pre>
      */
     @Test
@@ -156,18 +148,17 @@ public class NormalBatteryProfileTestCase extends IntentDConnectTestCase {
     }
 
     /**
-     * onchargingchange属性のコールバック登録テストを行う.
+     * onChargingChange属性のコールバック登録テストを行う.
      * <pre>
      * 【Intent通信】
      * Action: PUT
      * Profile: battery
      * Interface: なし
-     * Attribute: onchargingchange
+     * Attribute: onChargingChange
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・コールバック登録後にイベントを受信すること。
      * </pre>
      */
     @Test
@@ -182,13 +173,13 @@ public class NormalBatteryProfileTestCase extends IntentDConnectTestCase {
     }
 
     /**
-     * onchargingchange属性のコールバック解除テストを行う.
+     * onChargingChange属性のコールバック解除テストを行う.
      * <pre>
      * 【Intent通信】
      * Action: DELETE
      * Profile: battery
      * Interface: なし
-     * Attribute: onchargingchange
+     * Attribute: onChargingChange
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -207,13 +198,13 @@ public class NormalBatteryProfileTestCase extends IntentDConnectTestCase {
     }
 
     /**
-     * onbatterychange属性のコールバック登録テストを行う.
+     * onBatteryChange属性のコールバック登録テストを行う.
      * <pre>
      * 【Intent通信】
      * Action: PUT
      * Profile: battery
      * Interface: なし
-     * Attribute: onbatterychange
+     * Attribute: onBatteryChange
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -233,13 +224,13 @@ public class NormalBatteryProfileTestCase extends IntentDConnectTestCase {
     }
 
     /**
-     * onbatterychange属性のコールバック解除テストを行う.
+     * onBatteryChange属性のコールバック解除テストを行う.
      * <pre>
      * 【Intent通信】
      * Action: DELETE
      * Profile: battery
      * Interface: なし
-     * Attribute: onbatterychange
+     * Attribute: onBatteryChange
      * </pre>
      * <pre>
      * 【期待する動作】

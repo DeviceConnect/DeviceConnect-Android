@@ -38,7 +38,6 @@ public class FailSystemProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・versionにString型の値が返ってくること。
      * </pre>
      */
     @Test

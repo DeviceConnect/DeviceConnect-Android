@@ -33,8 +33,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 
 /**
@@ -50,7 +48,7 @@ public class IntentDConnectTestCase extends DConnectTestCase {
     private static final int POLLING_WAIT_TIME = 250;
 
     /** デフォルトのタイムアウト時間(ms). */
-    private static final int DEFAULT_RESTFUL_TIMEOUT = 10000;
+    private static final int DEFAULT_RESTFUL_TIMEOUT = 5000;
 
     /** タイムアウト時間. */
     private int mTimeout = DEFAULT_RESTFUL_TIMEOUT;
@@ -114,7 +112,7 @@ public class IntentDConnectTestCase extends DConnectTestCase {
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, AuthorizationProfileConstants.ATTRIBUTE_ACCESS_TOKEN);
         request.putExtra(AuthorizationProfileConstants.PARAM_CLIENT_ID, clientId);
         request.putExtra(AuthorizationProfileConstants.PARAM_SCOPE, paramScope.toString());
-        request.putExtra(AuthorizationProfileConstants.PARAM_APPLICATION_NAME, "dConnectManagerTest");
+        request.putExtra(AuthorizationProfileConstants.PARAM_APPLICATION_NAME, "JUnit Test");
 
         Intent response = sendRequest(request, false);
         return response.getStringExtra(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN);
@@ -241,53 +239,12 @@ public class IntentDConnectTestCase extends DConnectTestCase {
     }
 
     /**
-     * イベントメッセージを待つ.
-     * タイムアウトした場合には、nullを返却する。
-     * @return 送られてきたイベントを返却する。
-     */
-    protected Intent waitForEvent() {
-        final CountDownLatch latch = new CountDownLatch(1);
-        final Intent[] event = new Intent[1];
-        final BroadcastReceiver eventReceiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(final Context context, final Intent intent) {
-                String action = intent.getAction();
-                if (TEST_ACTION_EVENT.equals(action)) {
-                    event[0] = intent;
-                    latch.countDown();
-                }
-            }
-        };
-        IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction(TEST_ACTION_EVENT);
-        getApplicationContext().registerReceiver(eventReceiver, intentFilter);
-
-        try {
-            latch.await(mTimeout, TimeUnit.MILLISECONDS);
-        } catch (InterruptedException e) {
-            return event[0];
-        } finally {
-            getApplicationContext().unregisterReceiver(eventReceiver);
-        }
-        return event[0];
-    }
-
-    /**
      * resultの値が{@link DConnectMessage#RESULT_OK}であることをチェックする.
      * 
      * @param response レスポンス
      */
     protected static void assertResultOK(final Intent response) {
         assertResult(DConnectMessage.RESULT_OK, response);
-    }
-
-    /**
-     * resultの値が{@link DConnectMessage#RESULT_ERROR}であることをチェックする.
-     * 
-     * @param response レスポンス
-     */
-    protected static void assertResultError(final Intent response) {
-        assertResult(DConnectMessage.RESULT_ERROR, response);
     }
 
     /**

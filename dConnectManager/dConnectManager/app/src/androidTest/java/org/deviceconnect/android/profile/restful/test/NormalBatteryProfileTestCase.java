@@ -8,7 +8,6 @@ package org.deviceconnect.android.profile.restful.test;
 
 import android.support.test.runner.AndroidJUnit4;
 
-import org.deviceconnect.android.profile.BatteryProfile;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.DConnectResponseMessage;
 import org.deviceconnect.message.DConnectSDK;
@@ -37,10 +36,6 @@ public class NormalBatteryProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・chargingがfalseで返ってくること。
-     * ・chargingTimeが50000で返ってくること。
-     * ・dischargingTimeが10000で返ってくること。
-     * ・levelが0.5で返ってくること。
      * </pre>
      */
     @Test
@@ -53,10 +48,6 @@ public class NormalBatteryProfileTestCase extends RESTfulDConnectTestCase {
         DConnectResponseMessage response = mDConnectSDK.get(builder.build());
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
-        assertThat(response.getBoolean(BatteryProfile.PARAM_CHARGING), is(false));
-        assertThat(response.getInt(BatteryProfile.PARAM_CHARGING_TIME), is(50000));
-        assertThat(response.getInt(BatteryProfile.PARAM_DISCHARGING_TIME), is(10000));
-        assertThat(response.getFloat(BatteryProfile.PARAM_LEVEL), is(0.5f));
     }
 
     /**
@@ -69,7 +60,6 @@ public class NormalBatteryProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・levelが0.5で返ってくること。
      * </pre>
      */
     @Test
@@ -83,7 +73,6 @@ public class NormalBatteryProfileTestCase extends RESTfulDConnectTestCase {
         DConnectResponseMessage response = mDConnectSDK.get(builder.build());
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
-        assertThat(response.getFloat(BatteryProfile.PARAM_LEVEL), is(0.5f));
     }
 
     /**
@@ -96,7 +85,6 @@ public class NormalBatteryProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・chargingがfalseで返ってくること。
      * </pre>
      */
     @Test
@@ -110,7 +98,6 @@ public class NormalBatteryProfileTestCase extends RESTfulDConnectTestCase {
         DConnectResponseMessage response = mDConnectSDK.get(builder.build());
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
-        assertThat(response.getBoolean(BatteryProfile.PARAM_CHARGING), is(false));
     }
 
     /**
@@ -123,7 +110,6 @@ public class NormalBatteryProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・chargingTimeが50000で返ってくること。
      * </pre>
      */
     @Test
@@ -137,7 +123,6 @@ public class NormalBatteryProfileTestCase extends RESTfulDConnectTestCase {
         DConnectResponseMessage response = mDConnectSDK.get(builder.build());
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
-        assertThat(response.getInt(BatteryProfile.PARAM_CHARGING_TIME), is(50000));
     }
 
     /**
@@ -150,7 +135,6 @@ public class NormalBatteryProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・dischargingTimeが10000で返ってくること。
      * </pre>
      */
     @Test
@@ -164,7 +148,6 @@ public class NormalBatteryProfileTestCase extends RESTfulDConnectTestCase {
         DConnectResponseMessage response = mDConnectSDK.get(builder.build());
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
-        assertThat(response.getInt(BatteryProfile.PARAM_DISCHARGING_TIME), is(10000));
     }
 
     /**

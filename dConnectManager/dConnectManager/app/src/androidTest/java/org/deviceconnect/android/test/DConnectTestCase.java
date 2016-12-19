@@ -208,9 +208,11 @@ public abstract class DConnectTestCase extends AndroidTestCase {
         intent.setData(Uri.parse("gotapi://start/server"));
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         getContext().startActivity(intent);
+
         long timeout = 30 * 1000;
         final long interval = 250;
         while (true) {
+            Thread.sleep(interval);
             if (isManagerAvailable()) {
                 break;
             }
@@ -218,7 +220,6 @@ public abstract class DConnectTestCase extends AndroidTestCase {
             if (timeout <= 0) {
                 fail("Manager launching timeout.");
             }
-            Thread.sleep(interval);
         }
     }
 
@@ -275,8 +276,10 @@ public abstract class DConnectTestCase extends AndroidTestCase {
             // アクセストークン取得
             if (sAccessToken == null) {
                 sAccessToken = requestAccessToken(PROFILES);
-                mDConnectSDK.setAccessToken(sAccessToken);
                 assertNotNull(sAccessToken);
+            }
+            if (mDConnectSDK != null) {
+                mDConnectSDK.setAccessToken(sAccessToken);
             }
             Thread.sleep(2000);
         }

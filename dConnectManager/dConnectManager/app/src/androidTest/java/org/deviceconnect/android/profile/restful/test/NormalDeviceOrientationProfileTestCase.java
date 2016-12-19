@@ -8,7 +8,6 @@ package org.deviceconnect.android.profile.restful.test;
 
 import android.support.test.runner.AndroidJUnit4;
 
-import org.deviceconnect.android.profile.DeviceOrientationProfile;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.DConnectResponseMessage;
 import org.deviceconnect.message.DConnectSDK;
@@ -52,7 +51,6 @@ public class NormalDeviceOrientationProfileTestCase extends RESTfulDConnectTestC
         DConnectResponseMessage response = mDConnectSDK.get(builder.build());
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
-        assertThat(response.getMessage(DeviceOrientationProfile.PARAM_ORIENTATION), is(notNullValue()));
     }
 
     /**
@@ -65,7 +63,6 @@ public class NormalDeviceOrientationProfileTestCase extends RESTfulDConnectTestC
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・コールバック登録後にイベントを受信すること。
      * </pre>
      */
     @Test

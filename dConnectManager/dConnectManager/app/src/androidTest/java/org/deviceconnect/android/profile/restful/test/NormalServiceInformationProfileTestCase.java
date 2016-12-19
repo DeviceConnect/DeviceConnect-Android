@@ -37,7 +37,6 @@ public class NormalServiceInformationProfileTestCase extends RESTfulDConnectTest
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・versionにStringが返ってくること。
      * </pre>
      */
     @Test
@@ -53,6 +52,5 @@ public class NormalServiceInformationProfileTestCase extends RESTfulDConnectTest
         DConnectResponseMessage response = mDConnectSDK.get(builder.toString());
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
-        // TODO パラメータチェック
     }
 }

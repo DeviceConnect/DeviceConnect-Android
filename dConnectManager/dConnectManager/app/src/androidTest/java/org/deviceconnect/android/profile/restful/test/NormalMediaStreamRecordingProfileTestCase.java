@@ -8,7 +8,6 @@ package org.deviceconnect.android.profile.restful.test;
 
 import android.support.test.runner.AndroidJUnit4;
 
-import org.deviceconnect.android.profile.MediaStreamRecordingProfile;
 import org.deviceconnect.android.test.plugin.profile.TestMediaStreamRecordingProfileConstants;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.DConnectResponseMessage;
@@ -18,8 +17,6 @@ import org.deviceconnect.profile.MediaStreamRecordingProfileConstants;
 import org.json.JSONException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.util.List;
 
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.core.Is.is;
@@ -43,16 +40,6 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・recordersに長さ1のBundle配列が格納されていること。
-     * ・recorder[0].idが"test_camera_0"であること。
-     * ・recorder[0].stateが"inactive"であること。
-     * ・recorder[0].imageWidthが1920であること。
-     * ・recorder[0].imageHeightが1080であること。
-     * ・recorder[0].previewWidthが640であること。
-     * ・recorder[0].previewHeightが480であること。
-     * ・recorder[0].previewMaxFrameRateが30.0であること。
-     * ・recorder[0].mimeTypeが"video/mp4"であること。
-     * ・recorder[0].configが"test_config"であること。
      * </pre>
      */
     @Test
@@ -69,21 +56,6 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
         DConnectResponseMessage response = mDConnectSDK.get(builder.toString());
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
-
-        List recorders = response.getList(MediaStreamRecordingProfile.PARAM_RECORDERS);
-        assertThat(recorders, is(notNullValue()));
-        assertThat(recorders.size(), is(1));
-
-        DConnectMessage recorder =  (DConnectMessage) recorders.get(0);
-        assertThat(recorder.getString(MediaStreamRecordingProfile.PARAM_ID), is("test_camera_0"));
-        assertThat(recorder.getString(MediaStreamRecordingProfile.PARAM_STATE), is("inactive"));
-        assertThat(recorder.getInt(MediaStreamRecordingProfile.PARAM_IMAGE_WIDTH), is(1920));
-        assertThat(recorder.getInt(MediaStreamRecordingProfile.PARAM_IMAGE_HEIGHT), is(1080));
-        assertThat(recorder.getInt(MediaStreamRecordingProfile.PARAM_PREVIEW_WIDTH), is(640));
-        assertThat(recorder.getInt(MediaStreamRecordingProfile.PARAM_PREVIEW_HEIGHT), is(480));
-        assertThat(recorder.getFloat(MediaStreamRecordingProfile.PARAM_PREVIEW_MAX_FRAME_RATE), is(30.0f));
-        assertThat(recorder.getString(MediaStreamRecordingProfile.PARAM_MIME_TYPE), is("video/mp4"));
-        assertThat(recorder.getString(MediaStreamRecordingProfile.PARAM_CONFIG), is("test_config"));
     }
 
     /**
@@ -96,7 +68,6 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・uriが"test.mp4"であること。
      * </pre>
      */
     @Test
@@ -114,7 +85,6 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
         DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), null);
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
-        assertThat(response.getString(MediaStreamRecordingProfile.PARAM_URI), is(notNullValue()));
     }
 
     /**
@@ -127,7 +97,6 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・uriが"test.mp4"であること。
      * </pre>
      */
     @Test
@@ -147,7 +116,6 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
         DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), null);
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
-        assertThat(response.getString(MediaStreamRecordingProfile.PARAM_URI), is(notNullValue()));
     }
 
     /**
@@ -160,7 +128,6 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・uriが"test.mp4"であること。
      * </pre>
      */
     @Test
@@ -177,8 +144,6 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
         DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), null);
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
-        assertThat(response.getString(MediaStreamRecordingProfile.PARAM_URI), is(notNullValue()));
-        // TODO URI比較
     }
 
     /**
@@ -191,7 +156,6 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・uriが"test.mp4"であること。
      * </pre>
      */
     @Test
@@ -211,8 +175,6 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
         DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), null);
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
-        assertThat(response.getString(MediaStreamRecordingProfile.PARAM_URI), is(notNullValue()));
-        // TODO URI比較
     }
 
     /**
@@ -225,7 +187,6 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・uriが"test.mp4"であること。
      * </pre>
      */
     @Test
@@ -244,8 +205,6 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
         DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), null);
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
-        assertThat(response.getString(MediaStreamRecordingProfile.PARAM_URI), is(notNullValue()));
-        // TODO URI比較
     }
 
     /**
@@ -258,7 +217,6 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・uriが"test.mp4"であること。
      * </pre>
      */
     @Test
@@ -280,8 +238,6 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
         DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), null);
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
-        assertThat(response.getString(MediaStreamRecordingProfile.PARAM_URI), is(notNullValue()));
-        // TODO URI比較
     }
 
     /**
@@ -450,7 +406,6 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
         DConnectResponseMessage response = mDConnectSDK.get(builder.toString());
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
-        // TODO 各パラメータチェック
     }
 
     /**
@@ -482,7 +437,6 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
         DConnectResponseMessage response = mDConnectSDK.get(builder.toString());
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
-        // TODO 各パラメータチェック
     }
 
     /**
@@ -537,7 +491,6 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
         DConnectResponseMessage response = mDConnectSDK.put(builder.toString(), null);
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
-        // TODO 各パラメータチェック
     }
 
     /**
@@ -644,7 +597,6 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
         DConnectResponseMessage response = mDConnectSDK.put(builder.toString(), null);
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
-        // TODO 各パラメータチェック
     }
 
     /**
@@ -713,14 +665,5 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
         DConnectResponseMessage response = mDConnectSDK.delete(builder.toString());
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
-    }
-
-    /**
-     * メディアIDで指定したファイルのURIを取得する.
-     * @param mediaId メディアID
-     * @return ファイルのURI
-     */
-    private String getFileURI(final String mediaId) {
-        return DCONNECT_MANAGER_URI + "/files?uri=" + mediaId;
     }
 }

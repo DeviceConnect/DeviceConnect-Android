@@ -8,7 +8,6 @@ package org.deviceconnect.android.profile.restful.test;
 
 import android.support.test.runner.AndroidJUnit4;
 
-import org.deviceconnect.android.profile.ConnectProfile;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.DConnectResponseMessage;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
@@ -38,7 +37,6 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultが0で返ってくること。
-     * ・enableがtrueで返ってくること。
      * </pre>
      */
     @Test
@@ -55,7 +53,6 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
         DConnectResponseMessage response = mDConnectSDK.get(builder.toString());
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
-        assertThat(response.getBoolean(ConnectProfile.PARAM_ENABLE), is(true));
     }
 
     /**
@@ -180,7 +177,6 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultが0で返ってくること。
-     * ・enableがtrueで返ってくること。
      * </pre>
      */
     @Test
@@ -197,7 +193,6 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
         DConnectResponseMessage response = mDConnectSDK.get(builder.toString());
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
-        assertThat(response.getBoolean(ConnectProfile.PARAM_ENABLE), is(true));
     }
 
     /**
@@ -380,7 +375,6 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultが0で返ってくること。
-     * ・enableがtrueで返ってくること。
      * </pre>
      */
     @Test
@@ -397,7 +391,6 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
         DConnectResponseMessage response = mDConnectSDK.get(builder.toString());
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
-        assertThat(response.getBoolean(ConnectProfile.PARAM_ENABLE), is(true));
     }
 
     /**
@@ -522,7 +515,6 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultが0で返ってくること。
-     * ・enableがtrueで返ってくること。
      * </pre>
      */
     @Test
@@ -539,7 +531,6 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
         DConnectResponseMessage response = mDConnectSDK.get(builder.toString());
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
-        assertThat(response.getBoolean(ConnectProfile.PARAM_ENABLE), is(true));
     }
 
     /**

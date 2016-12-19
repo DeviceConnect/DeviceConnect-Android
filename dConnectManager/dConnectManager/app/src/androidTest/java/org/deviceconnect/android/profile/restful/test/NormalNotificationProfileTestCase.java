@@ -8,7 +8,6 @@ package org.deviceconnect.android.profile.restful.test;
 
 import android.support.test.runner.AndroidJUnit4;
 
-import org.deviceconnect.android.profile.NotificationProfile;
 import org.deviceconnect.android.test.plugin.profile.TestNotificationProfileConstants;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.DConnectResponseMessage;
@@ -46,7 +45,6 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・notificationIdに1が返ってくること。
      * </pre>
      */
     @Test
@@ -69,7 +67,6 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), null);
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
-        assertThat(response.getString(NotificationProfile.PARAM_NOTIFICATION_ID), is("1"));
     }
 
     /**
@@ -84,7 +81,6 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・notificationIdに2が返ってくること。
      * </pre>
      */
     @Test
@@ -107,7 +103,6 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), null);
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
-        assertThat(response.getString(NotificationProfile.PARAM_NOTIFICATION_ID), is("2"));
     }
 
     /**
@@ -122,7 +117,6 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・notificationIdに3が返ってくること。
      * </pre>
      */
     @Test
@@ -145,7 +139,6 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), null);
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
-        assertThat(response.getString(NotificationProfile.PARAM_NOTIFICATION_ID), is("3"));
     }
 
     /**
@@ -160,7 +153,6 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・notificationIdに4が返ってくること。
      * </pre>
      */
     @Test
@@ -183,7 +175,6 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), null);
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
-        assertThat(response.getString(NotificationProfile.PARAM_NOTIFICATION_ID), is("4"));
     }
 
     /**
@@ -198,7 +189,6 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・notificationIdに1が返ってくること。
      * </pre>
      */
     @Test
@@ -223,7 +213,6 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), null);
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
-        assertThat(response.getString(NotificationProfile.PARAM_NOTIFICATION_ID), is("1"));
     }
 
     /**
@@ -238,7 +227,6 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・notificationIdに1が返ってくること。
      * </pre>
      */
     @Test
@@ -262,7 +250,6 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), null);
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
-        assertThat(response.getString(NotificationProfile.PARAM_NOTIFICATION_ID), is("1"));
     }
 
     /**
@@ -277,7 +264,6 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・notificationIdに1が返ってくること。
      * </pre>
      */
     @Test
@@ -301,7 +287,6 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), null);
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
-        assertThat(response.getString(NotificationProfile.PARAM_NOTIFICATION_ID), is("1"));
     }
 
     /**
@@ -316,7 +301,6 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・notificationIdに1が返ってくること。
      * </pre>
      */
     @Test
@@ -337,7 +321,6 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), null);
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
-        assertThat(response.getString(NotificationProfile.PARAM_NOTIFICATION_ID), is("1"));
     }
 
     /**
@@ -352,7 +335,6 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・notificationIdに1が返ってくること。
      * </pre>
      */
     @Test
@@ -373,7 +355,6 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), null);
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
-        assertThat(response.getString(NotificationProfile.PARAM_NOTIFICATION_ID), is("1"));
     }
 
     /**
@@ -388,7 +369,6 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・notificationIdに1が返ってくること。
      * </pre>
      */
     @Test
@@ -411,7 +391,6 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), null);
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
-        assertThat(response.getString(NotificationProfile.PARAM_NOTIFICATION_ID), is("1"));
     }
 
     /**
@@ -426,7 +405,6 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・notificationIdに1が返ってくること。
      * </pre>
      */
     @Test
@@ -447,7 +425,6 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), null);
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
-        assertThat(response.getString(NotificationProfile.PARAM_NOTIFICATION_ID), is("1"));
     }
 
     /**
@@ -462,7 +439,6 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・notificationIdに1が返ってくること。
      * </pre>
      */
     @Test
@@ -485,7 +461,6 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), null);
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
-        assertThat(response.getString(NotificationProfile.PARAM_NOTIFICATION_ID), is("1"));
     }
 
     /**
@@ -500,7 +475,6 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・notificationIdに1が返ってくること。
      * </pre>
      */
     @Test
@@ -523,7 +497,6 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), null);
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
-        assertThat(response.getString(NotificationProfile.PARAM_NOTIFICATION_ID), is("1"));
     }
 
     /**
@@ -538,7 +511,6 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・notificationIdに1が返ってくること。
      * </pre>
      */
     @Test
@@ -563,7 +535,6 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), null);
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
-        assertThat(response.getString(NotificationProfile.PARAM_NOTIFICATION_ID), is("1"));
     }
 
     /**
@@ -578,7 +549,6 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・notificationIdに1が返ってくること。
      * </pre>
      */
     @Test
@@ -599,7 +569,6 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), null);
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
-        assertThat(response.getString(NotificationProfile.PARAM_NOTIFICATION_ID), is("1"));
     }
 
     /**
@@ -614,7 +583,6 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・notificationIdに1が返ってくること。
      * </pre>
      */
     @Test
@@ -637,7 +605,6 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), null);
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
-        assertThat(response.getString(NotificationProfile.PARAM_NOTIFICATION_ID), is("1"));
     }
 
     /**
@@ -652,7 +619,6 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・notificationIdに1が返ってくること。
      * </pre>
      */
     @Test
@@ -675,7 +641,6 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), null);
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
-        assertThat(response.getString(NotificationProfile.PARAM_NOTIFICATION_ID), is("1"));
     }
 
     /**
@@ -690,7 +655,6 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・notificationIdに1が返ってくること。
      * </pre>
      */
     @Test
@@ -715,7 +679,6 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), null);
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
-        assertThat(response.getString(NotificationProfile.PARAM_NOTIFICATION_ID), is("1"));
     }
 
     /**
@@ -730,7 +693,6 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・notificationIdに1が返ってくること。
      * </pre>
      */
     @Test
@@ -753,7 +715,6 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), null);
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
-        assertThat(response.getString(NotificationProfile.PARAM_NOTIFICATION_ID), is("1"));
     }
 
     /**
@@ -768,7 +729,6 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・notificationIdに1が返ってくること。
      * </pre>
      */
     @Test
@@ -793,7 +753,6 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), null);
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
-        assertThat(response.getString(NotificationProfile.PARAM_NOTIFICATION_ID), is("1"));
     }
 
     /**
@@ -808,7 +767,6 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・notificationIdに1が返ってくること。
      * </pre>
      */
     @Test
@@ -833,7 +791,6 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), null);
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
-        assertThat(response.getString(NotificationProfile.PARAM_NOTIFICATION_ID), is("1"));
     }
 
     /**
@@ -848,7 +805,6 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・notificationIdに1が返ってくること。
      * </pre>
      */
     @Test
@@ -875,7 +831,6 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), null);
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
-        assertThat(response.getString(NotificationProfile.PARAM_NOTIFICATION_ID), is("1"));
     }
 
     /**
@@ -890,7 +845,6 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・notificationIdに1が返ってくること。
      * </pre>
      */
     @Test
@@ -917,7 +871,6 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), body);
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
-        assertThat(response.getString(NotificationProfile.PARAM_NOTIFICATION_ID), is("1"));
     }
 
     /**
@@ -932,7 +885,6 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・notificationIdに1が返ってくること。
      * </pre>
      */
     @Test
@@ -961,7 +913,6 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), body);
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
-        assertThat(response.getString(NotificationProfile.PARAM_NOTIFICATION_ID), is("1"));
     }
 
     /**
@@ -976,7 +927,6 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・notificationIdに1が返ってくること。
      * </pre>
      */
     @Test
@@ -1005,7 +955,6 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), body);
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
-        assertThat(response.getString(NotificationProfile.PARAM_NOTIFICATION_ID), is("1"));
     }
 
     /**
@@ -1020,7 +969,6 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・notificationIdに1が返ってくること。
      * </pre>
      */
     @Test
@@ -1051,7 +999,6 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), body);
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
-        assertThat(response.getString(NotificationProfile.PARAM_NOTIFICATION_ID), is("1"));
     }
 
     /**
@@ -1066,7 +1013,6 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・notificationIdに1が返ってくること。
      * </pre>
      */
     @Test
@@ -1095,7 +1041,6 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), body);
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
-        assertThat(response.getString(NotificationProfile.PARAM_NOTIFICATION_ID), is("1"));
     }
 
     /**
@@ -1110,7 +1055,6 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・notificationIdに1が返ってくること。
      * </pre>
      */
     @Test
@@ -1141,7 +1085,6 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), body);
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
-        assertThat(response.getString(NotificationProfile.PARAM_NOTIFICATION_ID), is("1"));
     }
 
     /**
@@ -1156,7 +1099,6 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・notificationIdに1が返ってくること。
      * </pre>
      */
     @Test
@@ -1187,7 +1129,6 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), body);
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
-        assertThat(response.getString(NotificationProfile.PARAM_NOTIFICATION_ID), is("1"));
     }
 
     /**
@@ -1202,7 +1143,6 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・notificationIdに1が返ってくること。
      * </pre>
      */
     @Test
@@ -1235,7 +1175,6 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), body);
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
-        assertThat(response.getString(NotificationProfile.PARAM_NOTIFICATION_ID), is("1"));
     }
 
     /**
@@ -1250,7 +1189,6 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・notificationIdに1が返ってくること。
      * </pre>
      */
     @Test
@@ -1279,7 +1217,6 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), body);
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
-        assertThat(response.getString(NotificationProfile.PARAM_NOTIFICATION_ID), is("1"));
     }
 
     /**
@@ -1294,7 +1231,6 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・notificationIdに1が返ってくること。
      * </pre>
      */
     @Test
@@ -1325,7 +1261,6 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), body);
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
-        assertThat(response.getString(NotificationProfile.PARAM_NOTIFICATION_ID), is("1"));
     }
 
     /**
@@ -1340,7 +1275,6 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・notificationIdに1が返ってくること。
      * </pre>
      */
     @Test
@@ -1371,7 +1305,6 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), body);
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
-        assertThat(response.getString(NotificationProfile.PARAM_NOTIFICATION_ID), is("1"));
     }
 
     /**
@@ -1386,7 +1319,6 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・notificationIdに1が返ってくること。
      * </pre>
      */
     @Test
@@ -1419,7 +1351,6 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), body);
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
-        assertThat(response.getString(NotificationProfile.PARAM_NOTIFICATION_ID), is("1"));
     }
 
     /**
@@ -1434,7 +1365,6 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・notificationIdに1が返ってくること。
      * </pre>
      */
     @Test
@@ -1465,7 +1395,6 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), body);
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
-        assertThat(response.getString(NotificationProfile.PARAM_NOTIFICATION_ID), is("1"));
     }
 
     /**
@@ -1480,7 +1409,6 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・notificationIdに1が返ってくること。
      * </pre>
      */
     @Test
@@ -1513,7 +1441,6 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), body);
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
-        assertThat(response.getString(NotificationProfile.PARAM_NOTIFICATION_ID), is("1"));
     }
 
     /**
@@ -1528,7 +1455,6 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・notificationIdに1が返ってくること。
      * </pre>
      */
     @Test
@@ -1561,7 +1487,6 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), body);
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
-        assertThat(response.getString(NotificationProfile.PARAM_NOTIFICATION_ID), is("1"));
     }
 
     /**
@@ -1576,7 +1501,6 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・notificationIdに1が返ってくること。
      * </pre>
      */
     @Test
@@ -1611,7 +1535,6 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), body);
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
-        assertThat(response.getString(NotificationProfile.PARAM_NOTIFICATION_ID), is("1"));
     }
 
     /**

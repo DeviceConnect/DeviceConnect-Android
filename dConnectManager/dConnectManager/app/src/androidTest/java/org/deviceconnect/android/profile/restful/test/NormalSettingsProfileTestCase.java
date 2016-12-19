@@ -8,7 +8,6 @@ package org.deviceconnect.android.profile.restful.test;
 
 import android.support.test.runner.AndroidJUnit4;
 
-import org.deviceconnect.android.profile.SettingsProfile;
 import org.deviceconnect.android.test.plugin.profile.TestSettingsProfileConstants;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.DConnectResponseMessage;
@@ -40,7 +39,6 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・levelが0.5で返ってくること。
      * </pre>
      */
     @Test
@@ -60,7 +58,6 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
         DConnectResponseMessage response = mDConnectSDK.get(builder.toString());
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
-        assertThat(response.getFloat(SettingsProfile.PARAM_LEVEL), is(0.5f));
     }
 
     /**
@@ -73,7 +70,6 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・levelが0.5で返ってくること。
      * </pre>
      */
     @Test
@@ -93,7 +89,6 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
         DConnectResponseMessage response = mDConnectSDK.get(builder.toString());
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
-        assertThat(response.getFloat(SettingsProfile.PARAM_LEVEL), is(0.5f));
     }
 
     /**
@@ -106,7 +101,6 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・levelが0.5で返ってくること。
      * </pre>
      */
     @Test
@@ -126,7 +120,6 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
         DConnectResponseMessage response = mDConnectSDK.get(builder.toString());
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
-        assertThat(response.getFloat(SettingsProfile.PARAM_LEVEL), is(0.5f));
     }
 
     /**
@@ -139,7 +132,6 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・levelが0.5で返ってくること。
      * </pre>
      */
     @Test
@@ -159,7 +151,6 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
         DConnectResponseMessage response = mDConnectSDK.get(builder.toString());
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
-        assertThat(response.getFloat(SettingsProfile.PARAM_LEVEL), is(0.5f));
     }
 
     /**
@@ -172,7 +163,6 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・levelが0.5で返ってくること。
      * </pre>
      */
     @Test
@@ -192,7 +182,6 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
         DConnectResponseMessage response = mDConnectSDK.get(builder.toString());
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
-        assertThat(response.getFloat(SettingsProfile.PARAM_LEVEL), is(0.5f));
     }
 
     /**
@@ -370,7 +359,6 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・dateが"2014-01-01T01:01:01+09:00"で返ってくること。
      * </pre>
      */
     @Test
@@ -387,7 +375,6 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
         DConnectResponseMessage response = mDConnectSDK.get(builder.toString());
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
-        assertThat(response.getString(SettingsProfile.PARAM_DATE), is("2014-01-01T01:01:01+09:00"));
     }
 
     /**
@@ -430,7 +417,6 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・levelが0.5で返ってくること。
      * </pre>
      */
     @Test
@@ -448,7 +434,6 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
         DConnectResponseMessage response = mDConnectSDK.get(builder.toString());
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
-        assertThat(response.getFloat(SettingsProfile.PARAM_LEVEL), is(0.5f));
     }
 
     /**
@@ -492,7 +477,6 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・levelが0.5で返ってくること。
      * </pre>
      */
     @Test
@@ -510,7 +494,6 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
         DConnectResponseMessage response = mDConnectSDK.get(builder.toString());
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
-        assertThat(response.getFloat(SettingsProfile.PARAM_LEVEL), is(0.5f));
     }
 
     /**

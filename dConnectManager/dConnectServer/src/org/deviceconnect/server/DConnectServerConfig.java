@@ -6,7 +6,7 @@
  */
 package org.deviceconnect.server;
 
-import java.util.ArrayList;
+import java.util.List;
 
 /**
  * サーバーの設定情報.
@@ -37,7 +37,7 @@ public final class DConnectServerConfig {
     private String mHost;
 
     /** IPのホワイトリスト. */
-    private ArrayList<String> mIpWhiteList;
+    private List<String> mIpWhiteList;
 
     /** ファイルなどのキャッシュをおくフォルダへのパス. */
     private String mCachePath;
@@ -120,7 +120,7 @@ public final class DConnectServerConfig {
      * 
      * @return IPのホワイトリスト。
      */
-    public ArrayList<String> getIPWhiteList() {
+    public List<String> getIPWhiteList() {
         return mIpWhiteList;
     }
 
@@ -172,7 +172,7 @@ public final class DConnectServerConfig {
         private String mHost;
 
         /** IPのホワイトリスト. */
-        private ArrayList<String> mIpWhiteList;
+        private List<String> mIpWhiteList;
 
         /** 文字コード. */
         private String mCharset = "UTF-8";
@@ -294,11 +294,13 @@ public final class DConnectServerConfig {
 
         /**
          * IPのホワイトリストを設定する.
-         * 
+         * <p>
+         * 空のリストが設定された場合には、ホワイトリストは無視します。
+         * </p>
          * @param ipWhiteList IPのホワイトリスト。
          * @return ビルダー。
          */
-        public Builder ipWhiteList(final ArrayList<String> ipWhiteList) {
+        public Builder ipWhiteList(final List<String> ipWhiteList) {
             this.mIpWhiteList = ipWhiteList;
             return this;
         }

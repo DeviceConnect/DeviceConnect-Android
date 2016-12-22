@@ -17,10 +17,13 @@ import org.deviceconnect.android.deviceplugin.awsiot.cores.util.HttpUtil;
 import org.deviceconnect.android.deviceplugin.awsiot.remote.BuildConfig;
 import org.deviceconnect.android.profile.AuthorizationProfile;
 import org.deviceconnect.message.DConnectMessage;
-import org.deviceconnect.utils.URIBuilder;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -39,6 +42,7 @@ public class DConnectHelper {
     /** シングルトンなManagerのインスタンス. */
     public static final DConnectHelper INSTANCE = new DConnectHelper();
 
+    /** Local OAuth情報. */
     private AuthInfo mAuthInfo;
 
     private Map<String, String> mDefaultHeader = new HashMap<>();
@@ -86,6 +90,10 @@ public class DConnectHelper {
 
     private AWSIotPrefUtil mPrefUtil;
 
+    private boolean mSSL;
+    private String mHost = "localhost";
+    private int mPort = 4035;
+
     private DConnectHelper() {
         mDefaultHeader.put(DConnectMessage.HEADER_GOTAPI_ORIGIN, "http://org.deviceconnect.android.deviceplugin.awsiot");
 
@@ -97,14 +105,65 @@ public class DConnectHelper {
         }
     }
 
+    /**
+     * SSLフラグを取得する.
+     * @return SSLが有効の場合はtrue、それ以外はfalse
+     */
+    public boolean isSSL() {
+        return mSSL;
+    }
+
+    /**
+     * SSLフラグを設定する.
+     * @param SSL SSLが有効の場合はtrue、それ以外はfalse
+     */
+    public void setSSL(final boolean SSL) {
+        mSSL = SSL;
+    }
+
+    /**
+     * Host名を取得する.
+     * @return ホスト名
+     */
+    public String getHost() {
+        return mHost;
+    }
+
+    /**
+     * Host名を設定する.
+     * @param host ホスト名
+     */
+    public void setHost(final String host) {
+        mHost = host;
+    }
+
+    /**
+     * ポート番号を取得する.
+     * @return ポート番号
+     */
+    public int getPort() {
+        return mPort;
+    }
+
+    /**
+     * ポート番号を設定する.
+     * @param port ポート番号
+     */
+    public void setPort(int port) {
+        mPort = port;
+    }
+
+    /**
+     * リクエストを送信する.
+     * @param request リクエスト
+     * @param conversionCallback 変換通知コールバック
+     * @param callback 処理完了コールバック
+     */
     public void sendRequest(final String request, final ConversionCallback conversionCallback, final FinishCallback callback) {
         try {
             String method = null;
 
             URIBuilder builder = new URIBuilder();
-            builder.setScheme("http");
-            builder.setHost("localhost");
-            builder.setPort(4035);
 
             Map<String, String> body = new HashMap<>();
             body.put(AWSIotUtil.PARAM_SELF_FLAG, "true");
@@ -159,30 +218,60 @@ public class DConnectHelper {
         }
     }
 
+    /**
+     * リクエストを送信する.
+     * @param method メソッド
+     * @param uri URI
+     * @param callback 処理完了通知コールバック
+     */
     public void sendRequest(final String method, final String uri, final FinishCallback callback) {
         sendRequest(method, uri, new HashMap<String, String>(), callback);
     }
 
+    /**
+     * availabilityを要求する.
+     * @param callback 処理完了通知コールバック
+     */
     public void availability(final FinishCallback callback) {
         sendRequest("GET", "http://localhost:4035/gotapi/availability", callback);
     }
 
+    /**
+     * serviceDiscoveryを要求する.
+     * @param callback 処理完了通知コールバック
+     */
     public void serviceDiscovery(final FinishCallback callback) {
         sendRequest("GET", "http://localhost:4035/gotapi/servicediscovery", callback);
     }
 
+    /**
+     * _selfOnlyをつけてserviceDiscoveryを要求する.
+     * @param callback 処理完了通知コールバック
+     */
     public void serviceDiscoverySelfOnly(final FinishCallback callback) {
         Map<String, String> param = new HashMap<>();
         param.put("_selfOnly", "true");
         sendRequest("GET", "http://localhost:4035/gotapi/servicediscovery", param, callback);
     }
 
+    /**
+     * serviceInformationを要求する.
+     * @param serviceId サービスID
+     * @param callback 処理完了通知コールバック
+     */
     public void serviceInformation(final String serviceId, final FinishCallback callback) {
         Map<String, String> param = new HashMap<>();
         param.put("serviceId", serviceId);
         sendRequest("GET", "http://localhost:4035/gotapi/serviceinformation", param, callback);
     }
 
+    /**
+     * リクエストを送信する.
+     * @param method メソッド
+     * @param uri URI
+     * @param body 送信するボディ
+     * @param callback 処理完了通知コールバック
+     */
     private void sendRequest(final String method, final String uri, final Map<String, String> body, final FinishCallback callback) {
         new HttpTask(method, uri, mDefaultHeader, body) {
             @Override
@@ -283,9 +372,6 @@ public class DConnectHelper {
             }
 
             URIBuilder builder = new URIBuilder();
-            builder.setScheme("http");
-            builder.setHost("localhost");
-            builder.setPort(4035);
             builder.setProfile(AuthorizationProfile.PROFILE_NAME);
             builder.setAttribute(AuthorizationProfile.ATTRIBUTE_ACCESS_TOKEN);
             builder.addParameter(AuthorizationProfile.PARAM_CLIENT_ID, clientId);
@@ -317,9 +403,6 @@ public class DConnectHelper {
 
         private String executeGrant() {
             URIBuilder builder = new URIBuilder();
-            builder.setScheme("http");
-            builder.setHost("localhost");
-            builder.setPort(4035);
             builder.setProfile(AuthorizationProfile.PROFILE_NAME);
             builder.setAttribute(AuthorizationProfile.ATTRIBUTE_GRANT);
 
@@ -416,5 +499,429 @@ public class DConnectHelper {
          * @param error エラー
          */
         void onFinish(String response, Exception error);
+    }
+
+    private class URIBuilder {
+
+        /**
+         * スキーム.
+         */
+        private String mScheme = isSSL() ? "https" : "http";
+
+        /**
+         * ホスト.
+         */
+        private String mHost = DConnectHelper.this.getHost();
+
+        /**
+         * ポート番号.
+         */
+        private int mPort = DConnectHelper.this.getPort();
+
+        /**
+         * パス.
+         */
+        private String mPath;
+
+        /**
+         * パラメータ.
+         */
+        private Map<String, String> mParameters = new HashMap<>();
+
+        /**
+         * API.
+         */
+        private String mApi = DConnectMessage.DEFAULT_API;
+
+        /**
+         * プロファイル.
+         */
+        private String mProfile;
+
+        /**
+         * インターフェース.
+         */
+        private String mInterface;
+
+        /**
+         * アトリビュート.
+         */
+        private String mAttribute;
+
+        /**
+         * コンストラクタ.
+         */
+        URIBuilder() {
+        }
+
+        /**
+         * URIから {@link URIBuilder} クラスを生成する.
+         *
+         * @param uri URI
+         * @throws URISyntaxException URIフォーマットが不正な場合
+         */
+        URIBuilder(final String uri) throws URISyntaxException {
+            this(new URI(uri));
+        }
+
+        /**
+         * URIから {@link URIBuilder} クラスを生成する.
+         *
+         * @param uri URI
+         */
+        URIBuilder(final URI uri) {
+            mScheme = uri.getScheme();
+            mHost = uri.getHost();
+            mPort = uri.getPort();
+            mPath = uri.getPath();
+
+            String query = uri.getQuery();
+            if (query != null) {
+                String[] params = query.split("&");
+                for (String param : params) {
+                    String[] splitted = param.split("=");
+                    if (splitted.length == 2) {
+                        addParameter(splitted[0], splitted[1]);
+                    } else {
+                        addParameter(splitted[0], "");
+                    }
+                }
+            }
+        }
+
+        @Override
+        public synchronized String toString() {
+            return toString(true);
+        }
+
+        /**
+         * スキームを取得する.
+         *
+         * @return スキーム
+         */
+        public synchronized String getScheme() {
+            return mScheme;
+        }
+
+        /**
+         * スキームを設定する.
+         *
+         * @param scheme スキーム
+         * @return {@link URIBuilder} インスタンス
+         */
+        public synchronized URIBuilder setScheme(final String scheme) {
+            mScheme = scheme;
+            return this;
+        }
+
+        /**
+         * ホスト名を取得する.
+         *
+         * @return ホスト名
+         */
+        public synchronized String getHost() {
+            return mHost;
+        }
+
+        /**
+         * ホスト名を設定する.
+         *
+         * @param host ホスト名
+         * @return {@link URIBuilder} インスタンス
+         */
+        public synchronized URIBuilder setHost(final String host) {
+            if (host == null) {
+                throw new NullPointerException("host is null.");
+            }
+            if (host.isEmpty()) {
+                throw new IllegalArgumentException("host is empty.");
+            }
+            mHost = host;
+            return this;
+        }
+
+        /**
+         * ポート番号を取得する. ポート番号が指定されていない場合は-1を返す
+         *
+         * @return ポート番号
+         */
+        public synchronized int getPort() {
+            return mPort;
+        }
+
+        /**
+         * ポート番号を設定する.
+         *
+         * @param port ポート番号
+         * @return {@link URIBuilder} インスタンス
+         */
+        public synchronized URIBuilder setPort(final int port) {
+            if (port < 0 || port > 65535) {
+                throw new IllegalArgumentException("port is invalid. port=" + port);
+            }
+            mPort = port;
+            return this;
+        }
+
+        /**
+         * パスを取得する.
+         *
+         * @return パス
+         */
+        public synchronized String getPath() {
+            return mPath;
+        }
+
+        /**
+         * APIのパスを文字列で設定する.
+         * このパラメータが設定されている場合はビルド時に api、profile、interface、attribute は無視される。
+         *
+         * @param path パス
+         * @return {@link URIBuilder} インスタンス
+         */
+        public synchronized URIBuilder setPath(final String path) {
+            mPath = path;
+            return this;
+        }
+
+        /**
+         * APIを取得する.
+         *
+         * @return API
+         */
+        public synchronized String getApi() {
+            return mApi;
+        }
+
+        /**
+         * APIを取得する.
+         * パスが設定されている場合には、このパラメータは無視される。
+         *
+         * @param api API
+         * @return {@link URIBuilder} インスタンス
+         */
+        public synchronized URIBuilder setApi(final String api) {
+            mApi = api;
+            return this;
+        }
+
+        /**
+         * プロファイルを取得する.
+         *
+         * @return プロファイル
+         */
+        public synchronized String getProfile() {
+            return mProfile;
+        }
+
+        /**
+         * プロファイルを設定する.
+         * <p>
+         * パスが設定されている場合には、このパラメータは無視される。
+         *
+         * @param profile プロファイル
+         * @return {@link URIBuilder} インスタンス
+         */
+        public synchronized URIBuilder setProfile(final String profile) {
+            mProfile = profile;
+            return this;
+        }
+
+        /**
+         * インターフェースを取得する.
+         *
+         * @return インターフェース
+         */
+        public synchronized String getInterface() {
+            return mInterface;
+        }
+
+        /**
+         * インターフェースを設定する.
+         * <p>
+         * パスが設定されている場合には、このパラメータは無視される。
+         *
+         * @param inter インターフェース
+         * @return {@link URIBuilder} インスタンス
+         */
+        public synchronized URIBuilder setInterface(final String inter) {
+            mInterface = inter;
+            return this;
+        }
+
+        /**
+         * アトリビュートを取得する.
+         *
+         * @return アトリビュート
+         */
+        public synchronized String getAttribute() {
+            return mAttribute;
+        }
+
+        /**
+         * アトリビュートを設定する.
+         * <p>
+         * {@link #setPath}でパスが設定されている場合には、このパラメータは無視される。
+         *
+         * @param attribute アトリビュート
+         * @return {@link URIBuilder} インスタンス
+         */
+        public synchronized URIBuilder setAttribute(final String attribute) {
+            mAttribute = attribute;
+            return this;
+        }
+
+        /**
+         * サービスIDを設定する.
+         * @param serviceId サービスID
+         * @return {@link URIBuilder} インスタンス
+         */
+        public synchronized URIBuilder setServiceId(final String serviceId) {
+            addParameter(DConnectMessage.EXTRA_SERVICE_ID, serviceId);
+            return this;
+        }
+
+        /**
+         * サービスIDを取得する.
+         * <p>
+         * 設定されていない場合にはnullを返却する。
+         * </p>
+         * @return サービスID
+         */
+        public synchronized String getServiceId() {
+            return getParameter(DConnectMessage.EXTRA_SERVICE_ID);
+        }
+
+        /**
+         * 指定したクエリパラメータを取得する.
+         * <p>
+         * 指定されたクエリパラメータが存在しない場合にはnullを返却する。
+         * </p>
+         * @param name クエリパラメータ名
+         * @return クエリパラメータ
+         */
+        public synchronized String getParameter(final String name) {
+            return mParameters.get(name);
+        }
+
+        /**
+         * キーバリューでクエリパラメータを追加する.
+         *
+         * @param key  キー
+         * @param value バリュー
+         * @return {@link URIBuilder} インスタンス
+         */
+        public synchronized URIBuilder addParameter(final String key, final String value) {
+            if (key == null) {
+                throw new NullPointerException("key is null.");
+            }
+            if (value == null) {
+                throw new NullPointerException("value is null.");
+            }
+            mParameters.put(key, value);
+            return this;
+        }
+
+        /**
+         * 指定されたクエリパラメータを削除する.
+         * @param key クエリパラメータ名
+         * @return {@link URIBuilder} インスタンス
+         */
+        public synchronized URIBuilder removeParameter(final String key) {
+            if (key == null) {
+                throw new NullPointerException("key is null.");
+            }
+            mParameters.remove(key);
+            return this;
+        }
+
+        /**
+         * {@link Uri} オブジェクトを取得する.
+         *
+         * @return {@link Uri} オブジェクト
+         */
+        public Uri build() {
+            return Uri.parse(toString(true));
+        }
+
+        /**
+         * URIを文字列にして取得する.
+         *
+         * @param ascii ASCII変換の有無
+         * @return URIを表す文字列
+         */
+        private synchronized String toString(final boolean ascii) {
+            StringBuilder builder = new StringBuilder();
+
+            if (mScheme != null) {
+                builder.append(mScheme);
+                builder.append("://");
+            }
+            if (mHost != null) {
+                builder.append(mHost);
+            }
+            if (mPort > 0) {
+                builder.append(":");
+                builder.append(mPort);
+            }
+            if (mPath != null) {
+                builder.append(mPath);
+            } else {
+                if (mApi != null) {
+                    builder.append("/");
+                    builder.append(mApi);
+                }
+                if (mProfile != null) {
+                    builder.append("/");
+                    builder.append(mProfile);
+                }
+                if (mInterface != null) {
+                    builder.append("/");
+                    builder.append(mInterface);
+                }
+                if (mAttribute != null) {
+                    builder.append("/");
+                    builder.append(mAttribute);
+                }
+            }
+
+            if (mParameters != null && mParameters.size() > 0) {
+                if (ascii) {
+                    builder.append("?");
+                    builder.append(concatenateStringWithEncode(mParameters, "UTF-8"));
+                } else {
+                    builder.append("?");
+                    builder.append(concatenateString(mParameters));
+                }
+            }
+
+            return builder.toString();
+        }
+
+        private String concatenateString(final Map<String, String> map) {
+            String string = "";
+            for (Map.Entry<String, String> e : map.entrySet()) {
+                if (string.length() > 0) {
+                    string += "&";
+                }
+                string += e.getKey() + "=" + e.getValue();
+            }
+            return string;
+        }
+
+        private String concatenateStringWithEncode(final Map<String, String> map, final String charset) {
+            try {
+                String string = "";
+                for (Map.Entry<String, String> e : map.entrySet()) {
+                    if (string.length() > 0) {
+                        string += "&";
+                    }
+                    string += e.getKey() + "=" + URLEncoder.encode(e.getValue(), charset);
+                }
+                return string;
+            } catch (UnsupportedEncodingException e) {
+                return "";
+            }
+        }
     }
 }

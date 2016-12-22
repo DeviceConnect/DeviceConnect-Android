@@ -103,6 +103,10 @@ public class DConnectService extends DConnectMessageService {
                 new ServiceDiscoveryConverter(),
                 new ServiceInformationConverter()
         };
+
+        if (mSettings.isManagerStartFlag()) {
+            startInternal();
+        }
     }
 
     @Override

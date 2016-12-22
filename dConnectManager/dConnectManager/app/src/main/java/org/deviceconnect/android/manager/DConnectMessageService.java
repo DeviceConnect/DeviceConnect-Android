@@ -185,7 +185,6 @@ public abstract class DConnectMessageService extends Service
 
     @Override
     public void onDestroy() {
-        mPluginMgr.setEventListener(null);
         stopDConnect();
         LocalOAuth2Main.destroy();
         super.onDestroy();
@@ -194,7 +193,7 @@ public abstract class DConnectMessageService extends Service
     @Override
     public int onStartCommand(final Intent intent, final int flags, final int startId) {
         if (!mRunningFlag) {
-            return START_STICKY;
+            return START_NOT_STICKY;
         }
 
         if (intent == null) {
@@ -520,9 +519,6 @@ public abstract class DConnectMessageService extends Service
      * DConnectManagerを起動する。
      */
     protected synchronized void startDConnect() {
-        // 設定の更新
-        mSettings.load(this);
-
         if (BuildConfig.DEBUG) {
             mLogger.info("DConnectManager#Settings");
             mLogger.info("    SSL: " + mSettings.isSSL());
@@ -553,7 +549,9 @@ public abstract class DConnectMessageService extends Service
     protected synchronized void stopDConnect() {
         mRunningFlag = false;
 
-        mPluginMgr.setEventListener(null);
+        if (mPluginMgr != null) {
+            mPluginMgr.setEventListener(null);
+        }
 
         if (mRequestManager != null) {
             mRequestManager.shutdown();
@@ -691,14 +689,5 @@ public abstract class DConnectMessageService extends Service
 
     public boolean usesLocalOAuth() {
         return mSettings.isUseALocalOAuth();
-    }
-
-    public boolean isIgnoredProfile(final String profileName) {
-        for (String name : DConnectLocalOAuth.IGNORE_PROFILES) {
-            if (name.equalsIgnoreCase(profileName)) { // MEMO パスの大文字小文字を無視
-                return true;
-            }
-        }
-        return false;
     }
 }

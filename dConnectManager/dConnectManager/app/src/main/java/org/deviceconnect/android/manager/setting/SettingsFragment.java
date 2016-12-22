@@ -118,6 +118,8 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
         }
 
         SharedPreferences sp = getPreferenceManager().getSharedPreferences();
+        // サーバーのON/OFF
+        boolean power = sp.getBoolean(getString(R.string.key_settings_dconn_server_on_off), false);
         String keyword = sp.getString(getString(R.string.key_settings_dconn_keyword), DConnectSettings.DEFAULT_KEYWORD);
         if (keyword.length() <= 0) {
             keyword = DConnectUtil.createKeyword();
@@ -212,6 +214,8 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
         editHostPreferences.setEnabled(false);
         editDocPreferences.setEnabled(false);
         editWebHostPreferences.setEnabled(false);
+
+        setUIEnabled(power);
     }
 
     @Override
@@ -605,6 +609,7 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
                         try {
                             boolean running = mDConnectService.isRunning();
                             setUIEnabled(!running);
+
                             SwitchPreference serverPreferences = (SwitchPreference) getPreferenceScreen()
                                     .findPreference(getString(R.string.key_settings_dconn_server_on_off));
                             serverPreferences.setChecked(running);

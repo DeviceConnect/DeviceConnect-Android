@@ -1,3 +1,9 @@
+/*
+ DConnectMessageTest.java
+ Copyright (c) 2016 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.message;
 
 import android.support.test.runner.AndroidJUnit4;
@@ -15,9 +21,22 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.core.IsNull.notNullValue;
 import static org.junit.Assert.assertThat;
 
+/**
+ * DConnectMessageのテスト.
+ *
+ * @author NTT DOCOMO, INC.
+ */
 @RunWith(AndroidJUnit4.class)
 public class DConnectMessageTest {
 
+    /**
+     * JSONからDConnectMessageを生成することを確認する。
+     * <pre>
+     * 【期待する動作】
+     * ・BasicDConnectMessageのインスタンスが生成されること。
+     * ・JSONの階層がBasicDConnectMessageに反映されていること。
+     * </pre>
+     */
     @Test
     public void BasicDConnectMessage() {
         try {
@@ -55,6 +74,14 @@ public class DConnectMessageTest {
         }
     }
 
+    /**
+     * JSONからDConnectMessageを生成することを確認する。
+     * <pre>
+     * 【期待する動作】
+     * ・BasicDConnectMessageのインスタンスが生成されること。
+     * ・数値の配列が生成されていること。
+     * </pre>
+     */
     @Test
     public void BasicDConnectMessage_array1() {
         try {
@@ -81,6 +108,14 @@ public class DConnectMessageTest {
         }
     }
 
+    /**
+     * JSONからDConnectMessageを生成することを確認する。
+     * <pre>
+     * 【期待する動作】
+     * ・BasicDConnectMessageのインスタンスが生成されること。
+     * ・空の配列が生成されていること。
+     * </pre>
+     */
     @Test
     public void BasicDConnectMessage_array2() {
         try {

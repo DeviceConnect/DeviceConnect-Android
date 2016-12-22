@@ -1,3 +1,9 @@
+/*
+ IntentDConnectSDKTest.java
+ Copyright (c) 2016 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.message;
 
 import android.content.ComponentName;
@@ -29,12 +35,18 @@ import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static junit.framework.Assert.fail;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.core.IsNull.notNullValue;
 import static org.junit.Assert.assertThat;
 
+/**
+ * IntentDConnectSDKのテスト.
+ *
+ * @author NTT DOCOMO, INC.
+ */
 @RunWith(AndroidJUnit4.class)
 public class IntentDConnectSDKTest {
 
@@ -92,6 +104,18 @@ public class IntentDConnectSDKTest {
         unbind();
     }
 
+    /**
+     * availabilityを呼び出し、レスポンスを受け取れることを確認する。
+     * <pre>
+     * 【期待する動作】
+     * ・DConnectResponseMessageが返却されること。
+     * ・resultに0が返却されること。
+     * ・productにtest-managerが返却されること。
+     * ・versionに1.1が返却されること。
+     * ・nameにmanagerが返却されること。
+     * ・uuidにuuidが返却されること。
+     * </pre>
+     */
     @Test
     public void availability() {
         final String version = "1.1";
@@ -136,6 +160,18 @@ public class IntentDConnectSDKTest {
         assertThat(response.getString(AvailabilityProfileConstants.PARAM_UUID), is(uuid));
     }
 
+    /**
+     * authorizationを呼び出し、レスポンスを受け取れることを確認する。
+     * <pre>
+     * 【期待する動作】
+     * ・OnResponseListenerにDConnectResponseMessageが返却されること。
+     * ・resultに0が返却されること。
+     * ・versionに1.1が返却されること。
+     * ・accessTokenにtest-accessTokeが返却されること。
+     * ・expireに1999が返却されること。
+     * ・scopesに配列が返却されること。
+     * </pre>
+     */
     @Test
     public void authorization() {
         final String appName = "test";
@@ -223,6 +259,17 @@ public class IntentDConnectSDKTest {
         assertThat(response.getList(AuthorizationProfileConstants.PARAM_SCOPES), is(notNullValue()));
     }
 
+    /**
+     * serviceDiscoveryを呼び出し、レスポンスを受け取れることを確認する。
+     * <pre>
+     * 【期待する動作】
+     * ・DConnectResponseMessageが返却されること。
+     * ・resultに0が返却されること。
+     * ・versionに1.1が返却されること。
+     * ・servicesに配列が返却されること。
+     * ・servicesの中身に指定されたデバイス情報が格納されていること。
+     * </pre>
+     */
     @Test
     public void serviceDiscovery() {
         final String version = "1.1";
@@ -303,6 +350,18 @@ public class IntentDConnectSDKTest {
         }
     }
 
+    /**
+     * getを呼び出し、レスポンスを受け取れることを確認する。
+     * <pre>
+     * 【期待する動作】
+     * ・DConnectResponseMessageが返却されること。
+     * ・resultに0が返却されること。
+     * ・productにtest-managerが返却されること。
+     * ・versionに1.1が返却されること。
+     * ・nameにmanagerが返却されること。
+     * ・uuidにuuidが返却されること。
+     * </pre>
+     */
     @Test
     public void get() {
         final String version = "1.1";
@@ -347,6 +406,13 @@ public class IntentDConnectSDKTest {
         assertThat(response.getString(AvailabilityProfileConstants.PARAM_UUID), is(uuid));
     }
 
+    /**
+     * uriにnullを設定して、getを呼び出す。
+     * <pre>
+     * 【期待する動作】
+     * ・NullPointerExceptionが発生すること。
+     * </pre>
+     */
     @Test
     public void get_uri_null() {
         DConnectSDK sdk = getSDK();
@@ -358,6 +424,13 @@ public class IntentDConnectSDKTest {
         }
     }
 
+    /**
+     * uriにから文字列を設定して、getを呼び出す。
+     * <pre>
+     * 【期待する動作】
+     * ・IllegalArgumentExceptionが発生すること。
+     * </pre>
+     */
     @Test
     public void get_uri_empty() {
         DConnectSDK sdk = getSDK();
@@ -369,6 +442,13 @@ public class IntentDConnectSDKTest {
         }
     }
 
+    /**
+     * uriにから不正なURIを設定して、getを呼び出す。
+     * <pre>
+     * 【期待する動作】
+     * ・IllegalArgumentExceptionが発生すること。
+     * </pre>
+     */
     @Test
     public void get_uri_illegal() {
         DConnectSDK sdk = getSDK();
@@ -380,6 +460,18 @@ public class IntentDConnectSDKTest {
         }
     }
 
+    /**
+     * getを呼び出し、OnResponseListenerにレスポンスが通知されることを確認する。
+     * <pre>
+     * 【期待する動作】
+     * ・OnResponseListenerにDConnectResponseMessageが返却されること。
+     * ・resultに0が返却されること。
+     * ・productにtest-managerが返却されること。
+     * ・versionに1.1が返却されること。
+     * ・nameにmanagerが返却されること。
+     * ・uuidにuuidが返却されること。
+     * </pre>
+     */
     @Test
     public void get_listener() {
         final CountDownLatch latch = new CountDownLatch(1);
@@ -387,7 +479,7 @@ public class IntentDConnectSDKTest {
         final String product = "test-manager";
         final String name = "manager";
         final String uuid = "uuid";
-        final DConnectResponseMessage[] response = new DConnectResponseMessage[1];
+        final AtomicReference<DConnectResponseMessage> result = new AtomicReference<>();
 
         mService.setServiceCallback(new TestService.ServiceCallback() {
             @Override
@@ -420,8 +512,8 @@ public class IntentDConnectSDKTest {
         DConnectSDK sdk = getSDK();
         sdk.get("http://localhost:4035/gotapi/availability", new DConnectSDK.OnResponseListener() {
             @Override
-            public void onResponse(final DConnectResponseMessage r) {
-                response[0] = r;
+            public void onResponse(final DConnectResponseMessage response) {
+                result.set(response);
                 latch.countDown();
             }
         });
@@ -432,14 +524,22 @@ public class IntentDConnectSDKTest {
             fail("timeout");
         }
 
-        assertThat(response[0], is(notNullValue()));
-        assertThat(response[0].getResult(), is(DConnectMessage.RESULT_OK));
-        assertThat(response[0].getString(AvailabilityProfileConstants.PARAM_VERSION), is(version));
-        assertThat(response[0].getString(AvailabilityProfileConstants.PARAM_PRODUCT), is(product));
-        assertThat(response[0].getString(AvailabilityProfileConstants.PARAM_NAME), is(name));
-        assertThat(response[0].getString(AvailabilityProfileConstants.PARAM_UUID), is(uuid));
+        DConnectResponseMessage response = result.get();
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getString(AvailabilityProfileConstants.PARAM_VERSION), is(version));
+        assertThat(response.getString(AvailabilityProfileConstants.PARAM_PRODUCT), is(product));
+        assertThat(response.getString(AvailabilityProfileConstants.PARAM_NAME), is(name));
+        assertThat(response.getString(AvailabilityProfileConstants.PARAM_UUID), is(uuid));
     }
 
+    /**
+     * WebSocketを接続する。
+     * <pre>
+     * 【期待する動作】
+     * ・OnWebSocketListener#onOpenが呼び出されること。
+     * </pre>
+     */
     @Test
     public void connectWebSocket() {
         final CountDownLatch latch = new CountDownLatch(1);
@@ -475,6 +575,13 @@ public class IntentDConnectSDKTest {
         assertThat(result[0], is(true));
     }
 
+    /**
+     * addEventListenerを行いイベントを受け取れることを確認する。
+     * <pre>
+     * 【期待する動作】
+     * ・DConnectEventMessageが受け取れること。
+     * </pre>
+     */
     @Test
     public void addEventListener() {
         final CountDownLatch latch = new CountDownLatch(1);
@@ -619,6 +726,13 @@ public class IntentDConnectSDKTest {
         assertThat(acceleration.getFloat(DeviceOrientationProfileConstants.PARAM_Z), is(accelZ));
     }
 
+    /**
+     * OnEventListenerにnullを設定してaddEventListenerを行う。
+     * <pre>
+     * 【期待する動作】
+     * ・NullPointerExceptionが発生すること。
+     * </pre>
+     */
     @Test
     public void addEventListener_listener_null() {
         DConnectSDK sdk = getSDK();
@@ -634,6 +748,13 @@ public class IntentDConnectSDKTest {
         }
     }
 
+    /**
+     * uriにnullを設定してaddEventListenerを行う。
+     * <pre>
+     * 【期待する動作】
+     * ・NullPointerExceptionが発生すること。
+     * </pre>
+     */
     @Test
     public void addEventListener_uri_null() {
         DConnectSDK sdk = getSDK();
@@ -652,6 +773,13 @@ public class IntentDConnectSDKTest {
         }
     }
 
+    /**
+     * uriにnullを設定してremoveEventListenerを行う。
+     * <pre>
+     * 【期待する動作】
+     * ・NullPointerExceptionが発生すること。
+     * </pre>
+     */
     @Test
     public void removeEventListener_uri_null() {
         DConnectSDK sdk = getSDK();

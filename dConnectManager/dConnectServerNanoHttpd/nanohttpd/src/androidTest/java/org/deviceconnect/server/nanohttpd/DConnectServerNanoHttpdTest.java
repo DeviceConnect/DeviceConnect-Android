@@ -1,3 +1,9 @@
+/*
+ DConnectServerNanoHttpdTest.java
+ Copyright (c) 2016 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.server.nanohttpd;
 
 import android.content.Context;
@@ -45,6 +51,11 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 
+/**
+ * DConnectServerNanoHttpdサーバのテスト.
+ *
+ * @author NTT DOCOMO, INC.
+ */
 @RunWith(AndroidJUnit4.class)
 public class DConnectServerNanoHttpdTest {
 
@@ -52,6 +63,13 @@ public class DConnectServerNanoHttpdTest {
         return InstrumentationRegistry.getTargetContext();
     }
 
+    /**
+     * DConnectServerConfigにnullを設定して、DConnectServerNanoHttpdを作成する。
+     * <pre>
+     * 【期待する動作】
+     * ・IllegalArgumentExceptionが派生すること。
+     * </pre>
+     */
     @Test
     public void DConnectServerNanoHttpd_config_null() {
         try {
@@ -62,6 +80,13 @@ public class DConnectServerNanoHttpdTest {
         }
     }
 
+    /**
+     * Contextにnullを設定して、DConnectServerNanoHttpdを作成する。
+     * <pre>
+     * 【期待する動作】
+     * ・IllegalArgumentExceptionが派生すること。
+     * </pre>
+     */
     @Test
     public void DConnectServerNanoHttpd_context_null() {
         try {
@@ -73,6 +98,15 @@ public class DConnectServerNanoHttpdTest {
         }
     }
 
+    /**
+     * DConnectServerNanoHttpdを作成する。
+     * <pre>
+     * 【期待する動作】
+     * ・DConnectServerNanoHttpdのインスタンスが作成できること。
+     * ・DConnectServerNanoHttpdのサーバ起動し、DConnectServerEventListener#onServerLaunchedに通知が来ること。
+     * ・DConnectServerNanoHttpdにHTTP通信して、レスポンスのステータスコードに200が返却されること。
+     * </pre>
+     */
     @Test
     public void DConnectServerNanoHttpd() {
         final CountDownLatch latch = new CountDownLatch(1);
@@ -82,6 +116,8 @@ public class DConnectServerNanoHttpdTest {
         File file = getContext().getFilesDir();
         DConnectServerConfig config = new DConnectServerConfig.Builder().port(4035).documentRootPath(file.getPath()).build();
         DConnectServer server = new DConnectServerNanoHttpd(config, getContext());
+        assertThat(server, is(notNullValue()));
+
         server.setServerEventListener(new DConnectServerEventListener() {
             @Override
             public boolean onReceivedHttpRequest(final HttpRequest req, final HttpResponse res) {
@@ -146,12 +182,22 @@ public class DConnectServerNanoHttpdTest {
         }
     }
 
+    /**
+     * 不正なdocumentPathを設定して、DConnectServerNanoHttpdを作成する。
+     * <pre>
+     * 【期待する動作】
+     * ・DConnectServerNanoHttpdのインスタンスが作成できること。
+     * ・DConnectServerNanoHttpdのサーバ起動に失敗し、DConnectServerEventListener#onErrorに通知がくること。
+     * </pre>
+     */
     @Test
     public void DConnectServerNanoHttpd_invalid_document_path() {
         final CountDownLatch latch = new CountDownLatch(1);
         final AtomicReference<DConnectServerError> result = new AtomicReference<>();
         DConnectServerConfig config = new DConnectServerConfig.Builder().port(4035).documentRootPath("abc").build();
         DConnectServer server = new DConnectServerNanoHttpd(config, getContext());
+        assertThat(server, is(notNullValue()));
+
         server.setServerEventListener(new DConnectServerEventListener() {
             @Override
             public boolean onReceivedHttpRequest(final HttpRequest req, final HttpResponse res) {
@@ -199,6 +245,13 @@ public class DConnectServerNanoHttpdTest {
         }
     }
 
+    /**
+     * DConnectServerNanoHttpdにサポートされていないHTTPメソッド(PATCH)を指定して通信を行う。
+     * <pre>
+     * 【期待する動作】
+     * ・DConnectServerNanoHttpdにHTTP通信して、レスポンスのステータスコードに200以外が返却されること。
+     * </pre>
+     */
     @Test
     public void DConnectServerNanoHttpd_not_support_method() {
         final CountDownLatch latch = new CountDownLatch(1);
@@ -254,6 +307,13 @@ public class DConnectServerNanoHttpdTest {
         }
     }
 
+    /**
+     * DConnectServerNanoHttpdに複数のスレッドから通信を行う。
+     * <pre>
+     * 【期待する動作】
+     * ・各スレッドからDConnectServerNanoHttpdにHTTP通信して、レスポンスのステータスコードに200が返却されること。
+     * </pre>
+     */
     @Test
     public void DConnectServerNanoHttpd_many_connections() {
         final int count = 8;
@@ -327,6 +387,13 @@ public class DConnectServerNanoHttpdTest {
         }
     }
 
+    /**
+     * ホワイトリストに自分自身のIPを指定せずにDConnectServerNanoHttpdを起動し、HTTP通信を行う。
+     * <pre>
+     * 【期待する動作】
+     * ・ホワイトリストに弾かれ、DConnectServerNanoHttpdへの通信が失敗すること。
+     * </pre>
+     */
     @Test
     public void DConnectServerNanoHttpd_white_list() {
         final CountDownLatch latch = new CountDownLatch(1);
@@ -389,6 +456,13 @@ public class DConnectServerNanoHttpdTest {
         }
     }
 
+    /**
+     * 8K byteを超えるHTTPヘッダーを指定して、HTTP通信を行う。
+     * <pre>
+     * 【期待する動作】
+     * ・DConnectServerNanoHttpdにHTTP通信して、レスポンスのステータスコードに200が返却されること。
+     * </pre>
+     */
     @Test
     public void DConnectServerNanoHttpd_big_headers() {
         StringBuilder v = new StringBuilder();
@@ -466,6 +540,13 @@ public class DConnectServerNanoHttpdTest {
         }
     }
 
+    /**
+     * HTTPボディにデータを指定して、HTTP通信を行う。
+     * <pre>
+     * 【期待する動作】
+     * ・DConnectServerNanoHttpdにHTTP通信して、レスポンスのステータスコードに200が返却されること。
+     * </pre>
+     */
     @Test
     public void DConnectServerNanoHttpd_body() {
         final CountDownLatch latch = new CountDownLatch(1);
@@ -539,6 +620,13 @@ public class DConnectServerNanoHttpdTest {
         }
     }
 
+    /**
+     * SSLを有効にして、DConnectServerNanoHttpdを起動し、HTTP通信を行う。
+     * <pre>
+     * 【期待する動作】
+     * ・DConnectServerNanoHttpdにHTTPs通信して、レスポンスのステータスコードに200が返却されること。
+     * </pre>
+     */
     @Test
     public void DConnectServerNanoHttpd_ssl() {
         final CountDownLatch latch = new CountDownLatch(1);
@@ -612,6 +700,13 @@ public class DConnectServerNanoHttpdTest {
         }
     }
 
+    /**
+     * SSLを有効にして、DConnectServerNanoHttpdを起動し、HTTPボディにデータを設定し、HTTP通信を行う。
+     * <pre>
+     * 【期待する動作】
+     * ・DConnectServerNanoHttpdにHTTPs通信して、レスポンスのステータスコードに200が返却されること。
+     * </pre>
+     */
     @Test
     public void DConnectServerNanoHttpd_ssl_body() {
         final CountDownLatch latch = new CountDownLatch(1);
@@ -685,6 +780,13 @@ public class DConnectServerNanoHttpdTest {
         }
     }
 
+    /**
+     * DConnectServerNanoHttpdを起動し、WebSocket通信を行う。
+     * <pre>
+     * 【期待する動作】
+     * ・DConnectServerNanoHttpdにWebSocketの接続ができること。
+     * </pre>
+     */
     @Test
     public void DConnectServerNanoHttpd_websocket() {
         final CountDownLatch latch = new CountDownLatch(1);
@@ -762,6 +864,13 @@ public class DConnectServerNanoHttpdTest {
         }
     }
 
+    /**
+     * SSLを有効にして、DConnectServerNanoHttpdを起動し、WebSocket通信を行う。
+     * <pre>
+     * 【期待する動作】
+     * ・DConnectServerNanoHttpdにSSLに対応したWebSocketの接続ができること。
+     * </pre>
+     */
     @Test
     public void DConnectServerNanoHttpd_ssl_websocket() {
         final CountDownLatch latch = new CountDownLatch(1);
@@ -845,7 +954,6 @@ public class DConnectServerNanoHttpdTest {
             server.shutdown();
         }
     }
-
 
     private SSLSocketFactory createSSLSocketFactory() throws NoSuchAlgorithmException, KeyManagementException {
         KeyManager[] keyManagers = null;

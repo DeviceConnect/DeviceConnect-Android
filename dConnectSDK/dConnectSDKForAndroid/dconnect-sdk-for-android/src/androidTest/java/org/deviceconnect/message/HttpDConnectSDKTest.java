@@ -1,3 +1,9 @@
+/*
+ HttpDConnectSDKTest.java
+ Copyright (c) 2016 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.message;
 
 import android.content.Context;
@@ -30,16 +36,25 @@ import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 import fi.iki.elonen.NanoHTTPD;
 import fi.iki.elonen.NanoWSD;
 
+import static android.R.attr.key;
+import static android.R.attr.value;
 import static fi.iki.elonen.NanoHTTPD.newFixedLengthResponse;
 import static junit.framework.Assert.fail;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.core.IsNull.notNullValue;
 import static org.junit.Assert.assertThat;
 
+/**
+ * HttpDConnectSDKのテスト.
+ *
+ * @author NTT DOCOMO, INC.
+ */
 @RunWith(AndroidJUnit4.class)
 public class HttpDConnectSDKTest {
 
@@ -125,6 +140,18 @@ public class HttpDConnectSDKTest {
         return newFixedLengthResponse(NanoHTTPD.Response.Status.BAD_REQUEST, NanoHTTPD.MIME_PLAINTEXT, message);
     }
 
+    /**
+     * availabilityを呼び出し、レスポンスを受け取れることを確認する。
+     * <pre>
+     * 【期待する動作】
+     * ・DConnectResponseMessageが返却されること。
+     * ・resultに0が返却されること。
+     * ・productにtest-managerが返却されること。
+     * ・versionに1.1が返却されること。
+     * ・nameにmanagerが返却されること。
+     * ・uuidにuuidが返却されること。
+     * </pre>
+     */
     @Test
     public void availability() {
         final String version = "1.1";
@@ -169,6 +196,17 @@ public class HttpDConnectSDKTest {
         assertThat(response.getString(AvailabilityProfileConstants.PARAM_UUID), is(uuid));
     }
 
+    /**
+     * availabilityを呼び出し、OnResponseListenerにレスポンスが通知されることを確認する。
+     * <pre>
+     * 【期待する動作】
+     * ・OnResponseListenerにDConnectResponseMessageが返却されること。
+     * ・resultに0が返却されること。
+     * ・versionに1.1が返却されること。
+     * ・nameにmanagerが返却されること。
+     * ・uuidにuuidが返却されること。
+     * </pre>
+     */
     @Test
     public void availability_listener() {
         final CountDownLatch latch = new CountDownLatch(1);
@@ -176,7 +214,7 @@ public class HttpDConnectSDKTest {
         final String product = "test-manager";
         final String name = "manager";
         final String uuid = "uuid";
-        final DConnectResponseMessage[] response = new DConnectResponseMessage[1];
+        final AtomicReference<DConnectResponseMessage> result = new AtomicReference<>();
 
         mTestServer.setServerCallback(new TestServer.ServerCallback() {
             @Override
@@ -209,7 +247,7 @@ public class HttpDConnectSDKTest {
         sdk.availability(new DConnectSDK.OnResponseListener() {
             @Override
             public void onResponse(final DConnectResponseMessage r) {
-                response[0] = r;
+                result.set(r);
                 latch.countDown();
             }
         });
@@ -220,14 +258,27 @@ public class HttpDConnectSDKTest {
             fail("timeout");
         }
 
-        assertThat(response[0], is(notNullValue()));
-        assertThat(response[0].getResult(), is(DConnectMessage.RESULT_OK));
-        assertThat(response[0].getString(DConnectProfileConstants.PARAM_VERSION), is(version));
-        assertThat(response[0].getString(DConnectProfileConstants.PARAM_PRODUCT), is(product));
-        assertThat(response[0].getString(AvailabilityProfileConstants.PARAM_NAME), is(name));
-        assertThat(response[0].getString(AvailabilityProfileConstants.PARAM_UUID), is(uuid));
+        DConnectResponseMessage response = result.get();
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getString(DConnectProfileConstants.PARAM_VERSION), is(version));
+        assertThat(response.getString(DConnectProfileConstants.PARAM_PRODUCT), is(product));
+        assertThat(response.getString(AvailabilityProfileConstants.PARAM_NAME), is(name));
+        assertThat(response.getString(AvailabilityProfileConstants.PARAM_UUID), is(uuid));
     }
 
+    /**
+     * authorizationを呼び出し、レスポンスを受け取れることを確認する。
+     * <pre>
+     * 【期待する動作】
+     * ・OnResponseListenerにDConnectResponseMessageが返却されること。
+     * ・resultに0が返却されること。
+     * ・versionに1.1が返却されること。
+     * ・accessTokenにtest-accessTokeが返却されること。
+     * ・expireに1999が返却されること。
+     * ・scopesに配列が返却されること。
+     * </pre>
+     */
     @Test
     public void authorization() {
         final String appName = "test";
@@ -313,7 +364,128 @@ public class HttpDConnectSDKTest {
         assertThat(response.getList(AuthorizationProfileConstants.PARAM_SCOPES), is(notNullValue()));
     }
 
+    /**
+     * authorizationを呼び出し、OnAuthorizationListenerにレスポンスが通知されることを確認する。
+     * <pre>
+     * 【期待する動作】
+     * ・OnAuthorizationListenerに通知が来ること。
+     * ・clientIdにtest-clientIdが返却されること。
+     * ・accessTokenにtest-accessTokenが返却されること。
+     * </pre>
+     */
+    @Test
+    public void authorization_listener() {
+        final CountDownLatch latch = new CountDownLatch(1);
+        final String appName = "test";
+        final String version = "1.1";
+        final String product = "test-manager";
+        final String clientId = "test-clientId";
+        final String accessToken = "test-accessToken";
+        final String profile = "battery";
+        final int expirePeriod = 1000;
+        final int expire = 1999;
+        final String[] scopes = {
+                "serviceDiscovery",
+                "serviceInformation",
+                "battery"
+        };
+        final AtomicReference<String> resultClientId = new AtomicReference<>();
+        final AtomicReference<String> resultAccessToken = new AtomicReference<>();
 
+        mTestServer.setServerCallback(new TestServer.ServerCallback() {
+            @Override
+            public NanoHTTPD.Response serve(final String uri, final NanoHTTPD.Method method, final Map<String, String> headers,
+                                            final Map<String, String> parms, final Map<String, String> files) {
+                if (!method.equals(NanoHTTPD.Method.GET)) {
+                    return newBadRequest("Method is not GET.");
+                }
+
+                try {
+                    Uri u = Uri.parse(uri);
+                    if ("/gotapi/authorization/grant".equalsIgnoreCase(u.getPath())) {
+                        JSONObject jsonObject = new JSONObject();
+                        jsonObject.put(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
+                        jsonObject.put(DConnectProfileConstants.PARAM_VERSION, version);
+                        jsonObject.put(DConnectProfileConstants.PARAM_PRODUCT, product);
+                        jsonObject.put(AuthorizationProfileConstants.PARAM_CLIENT_ID, clientId);
+                        return newJsonResponse(jsonObject);
+                    } else if ("/gotapi/authorization/accessToken".equalsIgnoreCase(u.getPath())) {
+
+                        String name = parms.get(AuthorizationProfileConstants.PARAM_APPLICATION_NAME);
+                        if (!appName.equals(name)) {
+                            return newBadRequest("appName is invalid. appName=" + name);
+                        }
+
+                        String cid = parms.get(AuthorizationProfileConstants.PARAM_CLIENT_ID);
+                        if (!clientId.equals(cid)) {
+                            return newBadRequest("clientId is invalid. clientId=" + cid);
+                        }
+
+                        String ss = parms.get(AuthorizationProfileConstants.PARAM_SCOPE);
+                        for (String s : scopes) {
+                            if (!ss.contains(s)) {
+                                return newBadRequest("scope is invalid. scope=" + ss);
+                            }
+                        }
+
+                        JSONArray scopes = new JSONArray();
+
+                        JSONObject scope1 = new JSONObject();
+                        scope1.put(AuthorizationProfileConstants.PARAM_SCOPE, profile);
+                        scope1.put(AuthorizationProfileConstants.PARAM_EXPIRE_PERIOD, expirePeriod);
+                        scopes.put(scope1);
+
+                        JSONObject jsonObject = new JSONObject();
+                        jsonObject.put(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
+                        jsonObject.put(DConnectProfileConstants.PARAM_VERSION, version);
+                        jsonObject.put(DConnectProfileConstants.PARAM_PRODUCT, product);
+                        jsonObject.put(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, accessToken);
+                        jsonObject.put(AuthorizationProfileConstants.PARAM_SCOPES, scopes);
+                        jsonObject.put(AuthorizationProfileConstants.PARAM_EXPIRE, expire);
+                        return newJsonResponse(jsonObject);
+                    } else {
+                        return newBadRequest("Path is not Authorization Profile.");
+                    }
+                } catch (JSONException e) {
+                    return newInternalServerError(e.getMessage());
+                }
+            }
+        });
+
+        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
+        sdk.authorization(appName, scopes, new DConnectSDK.OnAuthorizationListener() {
+            @Override
+            public void onResponse(final String clientId, final String accessToken) {
+                resultClientId.set(clientId);
+                resultAccessToken.set(accessToken);
+                latch.countDown();
+            }
+            @Override
+            public void onError(final int errorCode, final String errorMessage) {
+            }
+        });
+
+        try {
+            latch.await(10, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            fail("timeout");
+        }
+
+        assertThat(resultClientId.get(), is(clientId));
+        assertThat(resultAccessToken.get(), is(accessToken));
+    }
+
+    /**
+     * serviceDiscoveryを呼び出し、レスポンスを受け取れることを確認する。
+     * <pre>
+     * 【期待する動作】
+     * ・DConnectResponseMessageが返却されること。
+     * ・resultに0が返却されること。
+     * ・versionに1.1が返却されること。
+     * ・servicesに配列が返却されること。
+     * ・servicesの中身に指定されたデバイス情報が格納されていること。
+     * </pre>
+     */
     @Test
     public void serviceDiscovery() {
         final String version = "1.1";
@@ -388,6 +560,119 @@ public class HttpDConnectSDKTest {
         }
     }
 
+
+    /**
+     * serviceDiscoveryを呼び出し、OnResponseListenerにレスポンスが通知されることを確認する。
+     * <pre>
+     * 【期待する動作】
+     * ・OnResponseListenerにDConnectResponseMessageが返却されること。
+     * ・resultに0が返却されること。
+     * ・versionに1.1が返却されること。
+     * ・servicesに配列が返却されること。
+     * ・servicesの中身に指定されたデバイス情報が格納されていること。
+     * </pre>
+     */
+    @Test
+    public void serviceDiscovery_listener() {
+        final CountDownLatch latch = new CountDownLatch(1);
+        final String version = "1.1";
+        final String product = "test-manager";
+        final String accessToken = "test-accessToken";
+        final String[][] aservices = {
+                {
+                        "serviceId1",
+                        "test-service1",
+                        ServiceDiscoveryProfileConstants.NetworkType.WIFI.getValue(),
+                        "true",
+                        "config1"
+                }
+        };
+        final AtomicReference<DConnectResponseMessage> result = new AtomicReference<>();
+
+        mTestServer.setServerCallback(new TestServer.ServerCallback() {
+            @Override
+            public NanoHTTPD.Response serve(final String uri, final NanoHTTPD.Method method, final Map<String, String> headers,
+                                            final Map<String, String> parms, final Map<String, String> files) {
+                if (!method.equals(NanoHTTPD.Method.GET)) {
+                    return newBadRequest("Method is not GET.");
+                }
+
+                Uri u = Uri.parse(uri);
+                if (!"/gotapi/serviceDiscovery".equalsIgnoreCase(u.getPath())) {
+                    return newBadRequest("uri is invalid. uri=" + uri);
+                }
+
+                String at = parms.get(DConnectMessage.EXTRA_ACCESS_TOKEN);
+                if (!accessToken.equals(at)) {
+                    return newBadRequest("accessToken is invalid. accessToken=" + at);
+                }
+
+                try {
+                    JSONArray services = new JSONArray();
+
+                    for (String[] a : aservices) {
+                        JSONObject service = new JSONObject();
+                        service.put(ServiceDiscoveryProfileConstants.PARAM_ID, a[0]);
+                        service.put(ServiceDiscoveryProfileConstants.PARAM_NAME, a[1]);
+                        service.put(ServiceDiscoveryProfileConstants.PARAM_TYPE, a[2]);
+                        service.put(ServiceDiscoveryProfileConstants.PARAM_ONLINE, "true".equals(a[3]));
+                        service.put(ServiceDiscoveryProfileConstants.PARAM_CONFIG, a[4]);
+                        services.put(service);
+                    }
+
+                    JSONObject jsonObject = new JSONObject();
+                    jsonObject.put(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
+                    jsonObject.put(DConnectProfileConstants.PARAM_VERSION, version);
+                    jsonObject.put(DConnectProfileConstants.PARAM_PRODUCT, product);
+                    jsonObject.put(ServiceDiscoveryProfileConstants.PARAM_SERVICES, services);
+                    return newJsonResponse(jsonObject);
+                } catch (JSONException e) {
+                    return newInternalServerError(e.getMessage());
+                }
+            }
+        });
+
+        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
+        sdk.setAccessToken(accessToken);
+        sdk.serviceDiscovery(new DConnectSDK.OnResponseListener() {
+            @Override
+            public void onResponse(DConnectResponseMessage response) {
+                result.set(response);
+                latch.countDown();
+            }
+        });
+
+        try {
+            latch.await(10, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            fail("timeout");
+        }
+
+        DConnectResponseMessage response = result.get();
+        assertThat(response.getString(DConnectProfileConstants.PARAM_VERSION), is(version));
+        assertThat(response.getString(DConnectProfileConstants.PARAM_PRODUCT), is(product));
+        assertThat(response.getList(ServiceDiscoveryProfileConstants.PARAM_SERVICES), is(notNullValue()));
+
+        int idx = 0;
+        for (Object obj : response.getList(ServiceDiscoveryProfileConstants.PARAM_SERVICES)) {
+            DConnectMessage service = (DConnectMessage) obj;
+            assertThat(service.getString(ServiceDiscoveryProfileConstants.PARAM_ID), is(aservices[idx][0]));
+            assertThat(service.getString(ServiceDiscoveryProfileConstants.PARAM_NAME), is(aservices[idx][1]));
+        }
+    }
+
+    /**
+     * getを呼び出し、レスポンスを受け取れることを確認する。
+     * <pre>
+     * 【期待する動作】
+     * ・DConnectResponseMessageが返却されること。
+     * ・resultに0が返却されること。
+     * ・productにtest-managerが返却されること。
+     * ・versionに1.1が返却されること。
+     * ・nameにmanagerが返却されること。
+     * ・uuidにuuidが返却されること。
+     * </pre>
+     */
     @Test
     public void get() {
         final String version = "1.1";
@@ -426,6 +711,13 @@ public class HttpDConnectSDKTest {
         assertThat(response.getString(AvailabilityProfileConstants.PARAM_UUID), is(uuid));
     }
 
+    /**
+     * uriにnullを設定して、getを呼び出す。
+     * <pre>
+     * 【期待する動作】
+     * ・NullPointerExceptionが発生すること。
+     * </pre>
+     */
     @Test
     public void get_uri_null() {
         DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
@@ -437,6 +729,13 @@ public class HttpDConnectSDKTest {
         }
     }
 
+    /**
+     * uriにから文字列を設定して、getを呼び出す。
+     * <pre>
+     * 【期待する動作】
+     * ・IllegalArgumentExceptionが発生すること。
+     * </pre>
+     */
     @Test
     public void get_uri_empty() {
         DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
@@ -448,6 +747,13 @@ public class HttpDConnectSDKTest {
         }
     }
 
+    /**
+     * uriにから不正なURIを設定して、getを呼び出す。
+     * <pre>
+     * 【期待する動作】
+     * ・IllegalArgumentExceptionが発生すること。
+     * </pre>
+     */
     @Test
     public void get_uri_illegal() {
         DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
@@ -459,6 +765,18 @@ public class HttpDConnectSDKTest {
         }
     }
 
+    /**
+     * getを呼び出し、OnResponseListenerにレスポンスが通知されることを確認する。
+     * <pre>
+     * 【期待する動作】
+     * ・OnResponseListenerにDConnectResponseMessageが返却されること。
+     * ・resultに0が返却されること。
+     * ・productにtest-managerが返却されること。
+     * ・versionに1.1が返却されること。
+     * ・nameにmanagerが返却されること。
+     * ・uuidにuuidが返却されること。
+     * </pre>
+     */
     @Test
     public void get_listener() {
         final CountDownLatch latch = new CountDownLatch(1);
@@ -466,7 +784,7 @@ public class HttpDConnectSDKTest {
         final String product = "test-manager";
         final String name = "manager";
         final String uuid = "uuid";
-        final DConnectResponseMessage[] response = new DConnectResponseMessage[1];
+        final AtomicReference<DConnectResponseMessage> result = new AtomicReference<>();
         mTestServer.setServerCallback(new TestServer.ServerCallback() {
             @Override
             public NanoHTTPD.Response serve(final String uri, final NanoHTTPD.Method method, final Map<String, String> headers,
@@ -492,8 +810,8 @@ public class HttpDConnectSDKTest {
         DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
         sdk.get("http://localhost:4035/gotapi/availability", new DConnectSDK.OnResponseListener() {
             @Override
-            public void onResponse(final DConnectResponseMessage r) {
-                response[0] = r;
+            public void onResponse(final DConnectResponseMessage response) {
+                result.set(response);
                 latch.countDown();
             }
         });
@@ -504,29 +822,27 @@ public class HttpDConnectSDKTest {
             fail("timeout");
         }
 
-        assertThat(response[0], notNullValue());
-        assertThat(response[0].getResult(), is(DConnectMessage.RESULT_OK));
-        assertThat(response[0].getString(AvailabilityProfileConstants.PARAM_VERSION), is(version));
-        assertThat(response[0].getString(AvailabilityProfileConstants.PARAM_PRODUCT), is(product));
-        assertThat(response[0].getString(AvailabilityProfileConstants.PARAM_NAME), is(name));
-        assertThat(response[0].getString(AvailabilityProfileConstants.PARAM_UUID), is(uuid));
+        DConnectResponseMessage response = result.get();
+        assertThat(response, notNullValue());
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getString(AvailabilityProfileConstants.PARAM_VERSION), is(version));
+        assertThat(response.getString(AvailabilityProfileConstants.PARAM_PRODUCT), is(product));
+        assertThat(response.getString(AvailabilityProfileConstants.PARAM_NAME), is(name));
+        assertThat(response.getString(AvailabilityProfileConstants.PARAM_UUID), is(uuid));
     }
 
-    @Test
-    public void get_listener_uri_null() {
-        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
-        try {
-            sdk.get((Uri) null, new DConnectSDK.OnResponseListener() {
-                @Override
-                public void onResponse(final DConnectResponseMessage response) {
-                }
-            });
-            fail("No NullPointerException occurred.");
-        } catch (NullPointerException e) {
-            // テスト成功
-        }
-    }
-
+    /**
+     * postを呼び出し、レスポンスを受け取れることを確認する。
+     * <pre>
+     * 【期待する動作】
+     * ・DConnectResponseMessageが返却されること。
+     * ・resultに0が返却されること。
+     * ・productにtest-managerが返却されること。
+     * ・versionに1.1が返却されること。
+     * ・nameにmanagerが返却されること。
+     * ・uuidにuuidが返却されること。
+     * </pre>
+     */
     @Test
     public void post() {
         Context context = InstrumentationRegistry.getTargetContext();
@@ -586,7 +902,13 @@ public class HttpDConnectSDKTest {
         assertThat(response.getString(AvailabilityProfileConstants.PARAM_UUID), is(uuid));
     }
 
-    @Test
+    /**
+     * uriにnullを設定して、postを呼び出す。
+     * <pre>
+     * 【期待する動作】
+     * ・NullPointerExceptionが発生すること。
+     * </pre>
+     */    @Test
     public void post_uri_null() {
         DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
         try {
@@ -597,6 +919,13 @@ public class HttpDConnectSDKTest {
         }
     }
 
+    /**
+     * uriにから文字列を設定して、postを呼び出す。
+     * <pre>
+     * 【期待する動作】
+     * ・IllegalArgumentExceptionが発生すること。
+     * </pre>
+     */
     @Test
     public void post_uri_empty() {
         DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
@@ -608,6 +937,13 @@ public class HttpDConnectSDKTest {
         }
     }
 
+    /**
+     * uriにから不正なURIを設定して、postを呼び出す。
+     * <pre>
+     * 【期待する動作】
+     * ・IllegalArgumentExceptionが発生すること。
+     * </pre>
+     */
     @Test
     public void post_uri_illegal() {
         DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
@@ -619,6 +955,18 @@ public class HttpDConnectSDKTest {
         }
     }
 
+    /**
+     * postを呼び出し、OnResponseListenerにレスポンスが通知されることを確認する。
+     * <pre>
+     * 【期待する動作】
+     * ・OnResponseListenerにDConnectResponseMessageが返却されること。
+     * ・resultに0が返却されること。
+     * ・productにtest-managerが返却されること。
+     * ・versionに1.1が返却されること。
+     * ・nameにmanagerが返却されること。
+     * ・uuidにuuidが返却されること。
+     * </pre>
+     */
     @Test
     public void post_listener() {
         final CountDownLatch latch = new CountDownLatch(1);
@@ -630,7 +978,7 @@ public class HttpDConnectSDKTest {
         final String value = "value";
         final Map<String, Object> data = new HashMap<>();
         data.put(key, value);
-        final DConnectResponseMessage[] response = new DConnectResponseMessage[1];
+        final AtomicReference<DConnectResponseMessage> result = new AtomicReference<>();
         mTestServer.setServerCallback(new TestServer.ServerCallback() {
             @Override
             public NanoHTTPD.Response serve(final String uri, final NanoHTTPD.Method method, final Map<String, String> headers,
@@ -661,8 +1009,8 @@ public class HttpDConnectSDKTest {
         DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
         sdk.post("http://localhost:4035/gotapi/availability", data, new DConnectSDK.OnResponseListener() {
             @Override
-            public void onResponse(final DConnectResponseMessage r) {
-                response[0] = r;
+            public void onResponse(final DConnectResponseMessage response) {
+                result.set(response);
                 latch.countDown();
             }
         });
@@ -673,31 +1021,42 @@ public class HttpDConnectSDKTest {
             fail("timeout");
         }
 
-        assertThat(response[0], notNullValue());
-        assertThat(response[0].getResult(), is(DConnectMessage.RESULT_OK));
-        assertThat(response[0].getString(AvailabilityProfileConstants.PARAM_VERSION), is(version));
-        assertThat(response[0].getString(AvailabilityProfileConstants.PARAM_PRODUCT), is(product));
-        assertThat(response[0].getString(AvailabilityProfileConstants.PARAM_NAME), is(name));
-        assertThat(response[0].getString(AvailabilityProfileConstants.PARAM_UUID), is(uuid));
+        DConnectResponseMessage response = result.get();
+        assertThat(response, notNullValue());
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getString(AvailabilityProfileConstants.PARAM_VERSION), is(version));
+        assertThat(response.getString(AvailabilityProfileConstants.PARAM_PRODUCT), is(product));
+        assertThat(response.getString(AvailabilityProfileConstants.PARAM_NAME), is(name));
+        assertThat(response.getString(AvailabilityProfileConstants.PARAM_UUID), is(uuid));
     }
 
+    /**
+     * deleteを呼び出し、レスポンスを受け取れることを確認する。
+     * <pre>
+     * 【期待する動作】
+     * ・DConnectResponseMessageが返却されること。
+     * ・resultに0が返却されること。
+     * ・productにtest-managerが返却されること。
+     * ・versionに1.1が返却されること。
+     * ・nameにmanagerが返却されること。
+     * ・uuidにuuidが返却されること。
+     * </pre>
+     */
     @Test
-    public void put() {
+    public void delete() {
         final String version = "1.1";
         final String product = "test-manager";
         final String name = "manager";
         final String uuid = "uuid";
         final String key = "key";
         final String value = "value";
-        final Map<String, Object> data = new HashMap<>();
-        data.put(key, value);
 
         mTestServer.setServerCallback(new TestServer.ServerCallback() {
             @Override
             public NanoHTTPD.Response serve(final String uri, final NanoHTTPD.Method method, final Map<String, String> headers,
                                             final Map<String, String> parms, final Map<String, String> files) {
-                if (!method.equals(NanoHTTPD.Method.PUT)) {
-                    return newBadRequest("Method is not PUT.");
+                if (!method.equals(NanoHTTPD.Method.DELETE)) {
+                    return newBadRequest("Method is not DELETE.");
                 }
 
                 String v = parms.get(key);
@@ -720,7 +1079,7 @@ public class HttpDConnectSDKTest {
         });
 
         DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
-        DConnectResponseMessage response = sdk.put("http://localhost:4035/gotapi/availability", data);
+        DConnectResponseMessage response = sdk.delete("http://localhost:4035/gotapi/availability?" + key + "=" + value);
         assertThat(response, notNullValue());
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
         assertThat(response.getString(AvailabilityProfileConstants.PARAM_VERSION), is(version));
@@ -729,10 +1088,137 @@ public class HttpDConnectSDKTest {
         assertThat(response.getString(AvailabilityProfileConstants.PARAM_UUID), is(uuid));
     }
 
+    /**
+     * uriにnullを設定して、deleteを呼び出す。
+     * <pre>
+     * 【期待する動作】
+     * ・NullPointerExceptionが発生すること。
+     * </pre>
+     */
+    @Test
+    public void delete_uri_null() {
+        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
+        try {
+            sdk.delete((Uri) null);
+            fail("No NullPointerException occurred.");
+        } catch (NullPointerException e) {
+            // テスト成功
+        }
+    }
+
+    /**
+     * uriにから文字列を設定して、deleteを呼び出す。
+     * <pre>
+     * 【期待する動作】
+     * ・IllegalArgumentExceptionが発生すること。
+     * </pre>
+     */
+    @Test
+    public void delete_uri_empty() {
+        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
+        try {
+            sdk.delete("");
+            fail("No IllegalArgumentException occurred.");
+        } catch (IllegalArgumentException e) {
+            // テスト成功
+        }
+    }
+
+    /**
+     * uriにから不正なURIを設定して、deleteを呼び出す。
+     * <pre>
+     * 【期待する動作】
+     * ・IllegalArgumentExceptionが発生すること。
+     * </pre>
+     */
+    @Test
+    public void delete_uri_illegal() {
+        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
+        try {
+            sdk.delete("test");
+            fail("No IllegalArgumentException occurred.");
+        } catch (IllegalArgumentException e) {
+            // テスト成功
+        }
+    }
+
+    /**
+     * deleteを呼び出し、OnResponseListenerにレスポンスが通知されることを確認する。
+     * <pre>
+     * 【期待する動作】
+     * ・OnResponseListenerにDConnectResponseMessageが返却されること。
+     * ・resultに0が返却されること。
+     * ・productにtest-managerが返却されること。
+     * ・versionに1.1が返却されること。
+     * ・nameにmanagerが返却されること。
+     * ・uuidにuuidが返却されること。
+     * </pre>
+     */
+    @Test
+    public void delete_listener() {
+        final CountDownLatch latch = new CountDownLatch(1);
+        final String version = "1.1";
+        final String product = "test-manager";
+        final String name = "manager";
+        final String uuid = "uuid";
+        final AtomicReference<DConnectResponseMessage> result = new AtomicReference<>();
+        mTestServer.setServerCallback(new TestServer.ServerCallback() {
+            @Override
+            public NanoHTTPD.Response serve(final String uri, final NanoHTTPD.Method method, final Map<String, String> headers,
+                                            final Map<String, String> parms, final Map<String, String> files) {
+                if (!method.equals(NanoHTTPD.Method.DELETE)) {
+                    return newBadRequest("Method is not DELETE.");
+                }
+
+                try {
+                    JSONObject jsonObject = new JSONObject();
+                    jsonObject.put(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
+                    jsonObject.put(AvailabilityProfileConstants.PARAM_VERSION, version);
+                    jsonObject.put(AvailabilityProfileConstants.PARAM_PRODUCT, product);
+                    jsonObject.put(AvailabilityProfileConstants.PARAM_NAME, name);
+                    jsonObject.put(AvailabilityProfileConstants.PARAM_UUID, uuid);
+                    return newJsonResponse(jsonObject);
+                } catch (JSONException e) {
+                    return newInternalServerError(e.getMessage());
+                }
+            }
+        });
+
+        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
+        sdk.delete("http://localhost:4035/gotapi/availability?" + key +"=" + value, new DConnectSDK.OnResponseListener() {
+            @Override
+            public void onResponse(final DConnectResponseMessage response) {
+                result.set(response);
+                latch.countDown();
+            }
+        });
+
+        try {
+            latch.await(1000, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            fail("timeout");
+        }
+
+        DConnectResponseMessage response = result.get();
+        assertThat(response, notNullValue());
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getString(AvailabilityProfileConstants.PARAM_VERSION), is(version));
+        assertThat(response.getString(AvailabilityProfileConstants.PARAM_PRODUCT), is(product));
+        assertThat(response.getString(AvailabilityProfileConstants.PARAM_NAME), is(name));
+        assertThat(response.getString(AvailabilityProfileConstants.PARAM_UUID), is(uuid));
+    }
+
+    /**
+     * WebSocketを接続する。
+     * <pre>
+     * 【期待する動作】
+     * ・OnWebSocketListener#onOpenが呼び出されること。
+     * </pre>
+     */
     @Test
     public void connectWebSocket() {
         final CountDownLatch latch = new CountDownLatch(1);
-        final boolean[] result = new boolean[1];
+        final AtomicBoolean result = new AtomicBoolean();
         final String accessToken = "test-accessToken";
 
         mTestServer.setWebSocketCallback(new TestServer.WebSocketCallback() {
@@ -791,7 +1277,7 @@ public class HttpDConnectSDKTest {
         sdk.connectWebSocket(new DConnectSDK.OnWebSocketListener() {
             @Override
             public void onOpen() {
-                result[0] = true;
+                result.set(true);
                 latch.countDown();
             }
 
@@ -813,9 +1299,16 @@ public class HttpDConnectSDKTest {
             sdk.disconnectWebSocket();
         }
 
-        assertThat(result[0], is(true));
+        assertThat(result.get(), is(true));
     }
 
+    /**
+     * OnWebSocketListenerにnullを設定してWebSocketを接続する。
+     * <pre>
+     * 【期待する動作】
+     * ・NullPointerExceptionが発生すること。
+     * </pre>
+     */
     @Test
     public void connectWebSocket_listener_null() {
         final String accessToken = "test-accessToken";
@@ -829,12 +1322,19 @@ public class HttpDConnectSDKTest {
         }
     }
 
+    /**
+     * addEventListenerを行いイベントを受け取れることを確認する。
+     * <pre>
+     * 【期待する動作】
+     * ・DConnectEventMessageが受け取れること。
+     * </pre>
+     */
     @Test
     public void addEventListener() {
         final CountDownLatch latch = new CountDownLatch(1);
         final CountDownLatch latch2 = new CountDownLatch(1);
-        final boolean[] result = new boolean[1];
-        final DConnectEventMessage[] event = new DConnectEventMessage[1];
+        final AtomicBoolean result = new AtomicBoolean();
+        final AtomicReference<DConnectEventMessage> event = new AtomicReference<>();
         final String version = "1.1";
         final String product = "test-manager";
         final String accessToken = "test-accessToken";
@@ -905,7 +1405,7 @@ public class HttpDConnectSDKTest {
         sdk.connectWebSocket(new DConnectSDK.OnWebSocketListener() {
             @Override
             public void onOpen() {
-                result[0] = true;
+                result.set(true);
                 latch.countDown();
             }
 
@@ -925,7 +1425,7 @@ public class HttpDConnectSDKTest {
             sdk.disconnectWebSocket();
             fail("timeout");
         }
-        assertThat(result[0], is(true));
+        assertThat(result.get(), is(true));
 
         mTestServer.setServerCallback(new TestServer.ServerCallback() {
             @Override
@@ -994,13 +1494,13 @@ public class HttpDConnectSDKTest {
         sdk.addEventListener(builder.build(), new DConnectSDK.OnEventListener() {
             @Override
             public void onMessage(final DConnectEventMessage message) {
-                event[0] = message;
+                event.set(message);
                 latch2.countDown();
             }
 
             @Override
             public void onResponse(final DConnectResponseMessage response) {
-                result[0] = true;
+                result.set(true);
             }
         });
 
@@ -1013,12 +1513,13 @@ public class HttpDConnectSDKTest {
             sdk.disconnectWebSocket();
         }
 
-        assertThat(event[0], is(notNullValue()));
-        assertThat(event[0].getString(DConnectMessage.EXTRA_PROFILE), is(profile));
-        assertThat(event[0].getString(DConnectMessage.EXTRA_ATTRIBUTE), is(attribute));
-        assertThat(event[0].getString(DConnectMessage.EXTRA_SERVICE_ID), is(serviceId));
+        DConnectEventMessage e = event.get();
+        assertThat(e, is(notNullValue()));
+        assertThat(e.getString(DConnectMessage.EXTRA_PROFILE), is(profile));
+        assertThat(e.getString(DConnectMessage.EXTRA_ATTRIBUTE), is(attribute));
+        assertThat(e.getString(DConnectMessage.EXTRA_SERVICE_ID), is(serviceId));
 
-        DConnectMessage orientation = event[0].getMessage(DeviceOrientationProfileConstants.PARAM_ORIENTATION);
+        DConnectMessage orientation = e.getMessage(DeviceOrientationProfileConstants.PARAM_ORIENTATION);
         assertThat(orientation, is(notNullValue()));
         assertThat(orientation.getInt(DeviceOrientationProfileConstants.PARAM_INTERVAL), is(interval));
 
@@ -1030,6 +1531,13 @@ public class HttpDConnectSDKTest {
         assertThat(acceleration.getFloat(DeviceOrientationProfileConstants.PARAM_Z), is(accelZ));
     }
 
+    /**
+     * OnEventListenerにnullを設定してaddEventListenerを行う。
+     * <pre>
+     * 【期待する動作】
+     * ・NullPointerExceptionが発生すること。
+     * </pre>
+     */
     @Test
     public void addEventListener_listener_null() {
         DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
@@ -1045,6 +1553,13 @@ public class HttpDConnectSDKTest {
         }
     }
 
+    /**
+     * uriにnullを設定してaddEventListenerを行う。
+     * <pre>
+     * 【期待する動作】
+     * ・NullPointerExceptionが発生すること。
+     * </pre>
+     */
     @Test
     public void addEventListener_uri_null() {
         DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
@@ -1063,6 +1578,13 @@ public class HttpDConnectSDKTest {
         }
     }
 
+    /**
+     * uriにnullを設定してremoveEventListenerを行う。
+     * <pre>
+     * 【期待する動作】
+     * ・NullPointerExceptionが発生すること。
+     * </pre>
+     */
     @Test
     public void removeEventListener_uri_null() {
         DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);

@@ -91,7 +91,9 @@ class IntentDConnectSDK extends DConnectSDK {
 
     @Override
     public void connectWebSocket(final OnWebSocketListener listener) {
-        if (listener != null) {
+        if (listener == null) {
+            throw new NullPointerException("listener is null.");
+        } else {
             listener.onOpen();
         }
         sEventList.add(IntentDConnectSDK.this);

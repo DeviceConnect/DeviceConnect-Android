@@ -212,7 +212,7 @@ class HttpDConnectSDK extends DConnectSDK {
 
                 writer.write(EOL);
             } else {
-                throw new IllegalArgumentException("data is not String or File. value=" + val);
+                throw new IllegalArgumentException("data is not String or File. key=" + key + " value=" + val);
             }
             writer.flush();
         }

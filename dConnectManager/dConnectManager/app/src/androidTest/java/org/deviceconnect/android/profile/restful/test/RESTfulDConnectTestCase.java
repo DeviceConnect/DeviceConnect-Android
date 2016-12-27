@@ -21,7 +21,6 @@ import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 import org.deviceconnect.profile.SystemProfileConstants;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -132,12 +131,6 @@ public class RESTfulDConnectTestCase extends DConnectTestCase {
      * @return レスポンス
      */
     protected final DConnectResponseMessage sendRequest(final String method, final String uri, final Map<String, String> headers, final Object body) {
-        Map<String, String> requestHeaders = headers;
-        if (requestHeaders == null) {
-            requestHeaders = new HashMap<>();
-        }
-        requestHeaders.put(DConnectMessage.HEADER_GOTAPI_ORIGIN, getOrigin());
-
         String nonce = toHexString(generateRandom(16));
         String requestUri = uri;
         Map requestBody = null;
@@ -163,7 +156,7 @@ public class RESTfulDConnectTestCase extends DConnectTestCase {
         } else if (method.equalsIgnoreCase("PUT")) {
             return mDConnectSDK.put(requestUri, requestBody);
         } else if (method.equalsIgnoreCase("POST")) {
-            return mDConnectSDK.put(requestUri, requestBody);
+            return mDConnectSDK.post(requestUri, requestBody);
         } else if (method.equalsIgnoreCase("DELETE")) {
             return mDConnectSDK.delete(requestUri);
         } else {

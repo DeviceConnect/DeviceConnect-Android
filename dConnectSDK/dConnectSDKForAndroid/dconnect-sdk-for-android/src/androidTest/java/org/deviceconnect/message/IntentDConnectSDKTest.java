@@ -29,12 +29,20 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static junit.framework.Assert.fail;
@@ -92,6 +100,50 @@ public class IntentDConnectSDKTest {
         intentSDK.setManagerPackageName(packageName);
         intentSDK.setManagerClassName(TestBroadcastReceiver.class.getName());
         return intentSDK;
+    }
+
+    private void writeFile(final File file, final byte[] data) {
+        FileOutputStream out = null;
+        try {
+            out = new FileOutputStream(file);
+            out.write(data);
+            out.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (out != null) {
+                try {
+                    out.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    private byte[] getFile(final File file) {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        FileInputStream fis = null;
+        try {
+            fis = new FileInputStream(file);
+            int len;
+            byte[] buf = new byte[1024];
+            while ((len = fis.read(buf)) != -1) {
+                out.write(buf, 0, len);
+            }
+            fis.close();
+        } catch (IOException e) {
+            return null;
+        } finally {
+            if (fis != null) {
+                try {
+                    fis.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return out.toByteArray();
     }
 
     @Before
@@ -160,6 +212,78 @@ public class IntentDConnectSDKTest {
         assertThat(response.getString(AvailabilityProfileConstants.PARAM_UUID), is(uuid));
     }
 
+    /**
+     * 非同期にavailabilityを呼び出し、レスポンスを受け取れることを確認する。
+     * <pre>
+     * 【期待する動作】
+     * ・DConnectResponseMessageが返却されること。
+     * ・resultに0が返却されること。
+     * ・productにtest-managerが返却されること。
+     * ・versionに1.1が返却されること。
+     * ・nameにmanagerが返却されること。
+     * ・uuidにuuidが返却されること。
+     * </pre>
+     */
+    @Test
+    public void availability_listener() {
+        final String version = "1.1";
+        final String product = "test";
+        final String name = "name";
+        final String uuid = "uuid";
+        final AtomicReference<DConnectResponseMessage> result = new AtomicReference<>();
+        final CountDownLatch latch = new CountDownLatch(1);
+
+        mService.setServiceCallback(new TestService.ServiceCallback() {
+            @Override
+            public void onReceivedRequest(final Context context, final Intent intent) {
+                ComponentName cn = (ComponentName) intent.getExtras().get(IntentDConnectMessage.EXTRA_RECEIVER);
+                int requestCode = intent.getIntExtra(IntentDConnectMessage.EXTRA_REQUEST_CODE, -1);
+                String method = intent.getAction();
+
+                Intent response = new Intent();
+                response.setComponent(cn);
+                response.setAction(IntentDConnectMessage.ACTION_RESPONSE);
+                response.putExtra(IntentDConnectMessage.EXTRA_REQUEST_CODE, requestCode);
+
+                if (!method.equals(IntentDConnectMessage.ACTION_GET)) {
+                    response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_ERROR);
+                    response.putExtra(DConnectMessage.EXTRA_ERROR_CODE, 1);
+                    response.putExtra(DConnectMessage.EXTRA_ERROR_MESSAGE, "");
+                } else {
+                    response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
+                    response.putExtra(DConnectProfileConstants.PARAM_VERSION, version);
+                    response.putExtra(DConnectProfileConstants.PARAM_PRODUCT, product);
+                    response.putExtra(AvailabilityProfileConstants.PARAM_NAME, name);
+                    response.putExtra(AvailabilityProfileConstants.PARAM_UUID, uuid);
+                }
+
+                context.sendBroadcast(response);
+            }
+        });
+
+        DConnectSDK sdk = getSDK();
+        sdk.availability(new DConnectSDK.OnResponseListener() {
+            @Override
+            public void onResponse(final DConnectResponseMessage response) {
+                result.set(response);
+                latch.countDown();
+            }
+        });
+
+        try {
+            latch.await(10, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            fail("timeout");
+        }
+
+        DConnectResponseMessage response = result.get();
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getString(DConnectProfileConstants.PARAM_VERSION), is(version));
+        assertThat(response.getString(DConnectProfileConstants.PARAM_PRODUCT), is(product));
+        assertThat(response.getString(AvailabilityProfileConstants.PARAM_NAME), is(name));
+        assertThat(response.getString(AvailabilityProfileConstants.PARAM_UUID), is(uuid));
+    }
     /**
      * authorizationを呼び出し、レスポンスを受け取れることを確認する。
      * <pre>
@@ -260,6 +384,123 @@ public class IntentDConnectSDKTest {
     }
 
     /**
+     * 非同期にauthorizationを呼び出し、clientIdとaccessTokenが取得できることを確認する。
+     * <pre>
+     * 【期待する動作】
+     * ・OnResponseListenerにDConnectResponseMessageが返却されること。
+     * ・resultに0が返却されること。
+     * ・versionに1.1が返却されること。
+     * ・accessTokenにtest-accessTokeが返却されること。
+     * ・expireに1999が返却されること。
+     * ・scopesに配列が返却されること。
+     * </pre>
+     */
+    @Test
+    public void authorization_listener() {
+        final String appName = "test";
+        final String version = "1.1";
+        final String product = "test-manager";
+        final String clientId = "test-clientId";
+        final String accessToken = "test-accessToken";
+        final String profile = "battery";
+        final int expirePeriod = 1000;
+        final int expire = 1999;
+        final String[] scopes = {
+                "serviceDiscovery",
+                "serviceInformation",
+                "battery"
+        };
+        final AtomicReference<String> resultClientId = new AtomicReference<>();
+        final AtomicReference<String> resultAccessToken = new AtomicReference<>();
+        final CountDownLatch latch = new CountDownLatch(1);
+
+        mService.setServiceCallback(new TestService.ServiceCallback() {
+            @Override
+            public void onReceivedRequest(final Context context, final Intent intent) {
+                ComponentName cn = (ComponentName) intent.getExtras().get(IntentDConnectMessage.EXTRA_RECEIVER);
+                int requestCode = intent.getIntExtra(IntentDConnectMessage.EXTRA_REQUEST_CODE, -1);
+                String method = intent.getAction();
+
+                Intent response = new Intent();
+                response.setComponent(cn);
+                response.setAction(IntentDConnectMessage.ACTION_RESPONSE);
+                response.putExtra(IntentDConnectMessage.EXTRA_REQUEST_CODE, requestCode);
+
+                if (!method.equals(IntentDConnectMessage.ACTION_GET)) {
+                    response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_ERROR);
+                    response.putExtra(DConnectMessage.EXTRA_ERROR_CODE, 1);
+                    response.putExtra(DConnectMessage.EXTRA_ERROR_MESSAGE, "");
+                } else {
+                    String p = intent.getStringExtra(IntentDConnectMessage.EXTRA_PROFILE);
+                    String a = intent.getStringExtra(IntentDConnectMessage.EXTRA_ATTRIBUTE);
+
+                    if (!AuthorizationProfileConstants.PROFILE_NAME.equalsIgnoreCase(p)) {
+                        response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_ERROR);
+                        response.putExtra(DConnectMessage.EXTRA_ERROR_CODE, 1);
+                        response.putExtra(DConnectMessage.EXTRA_ERROR_MESSAGE, "");
+                    } else if (AuthorizationProfileConstants.ATTRIBUTE_GRANT.equalsIgnoreCase(a)) {
+                        response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
+                        response.putExtra(DConnectProfileConstants.PARAM_VERSION, version);
+                        response.putExtra(DConnectProfileConstants.PARAM_PRODUCT, product);
+                        response.putExtra(AuthorizationProfileConstants.PARAM_CLIENT_ID, clientId);
+                    } else if (AuthorizationProfileConstants.ATTRIBUTE_ACCESS_TOKEN.equalsIgnoreCase(a)) {
+
+                        String cid = intent.getStringExtra(AuthorizationProfileConstants.PARAM_CLIENT_ID);
+                        if (!clientId.equals(cid)) {
+                            response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_ERROR);
+                            response.putExtra(DConnectMessage.EXTRA_ERROR_CODE, 1);
+                            response.putExtra(DConnectMessage.EXTRA_ERROR_MESSAGE, "");
+                        } else {
+                            List<Bundle> scopes = new ArrayList<>();
+
+                            Bundle scope1 = new Bundle();
+                            scope1.putString(AuthorizationProfileConstants.PARAM_SCOPE, profile);
+                            scope1.putLong(AuthorizationProfileConstants.PARAM_EXPIRE_PERIOD, expirePeriod);
+                            scopes.add(scope1);
+
+                            Bundle[] s = new Bundle[scopes.size()];
+                            scopes.toArray(s);
+
+                            response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
+                            response.putExtra(DConnectProfileConstants.PARAM_VERSION, version);
+                            response.putExtra(DConnectProfileConstants.PARAM_PRODUCT, product);
+                            response.putExtra(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, accessToken);
+                            response.putExtra(AuthorizationProfileConstants.PARAM_SCOPES, s);
+                            response.putExtra(AuthorizationProfileConstants.PARAM_EXPIRE, expire);
+                        }
+                    }
+                }
+
+                context.sendBroadcast(response);
+            }
+        });
+
+        DConnectSDK sdk = getSDK();
+        sdk.authorization(appName, scopes, new DConnectSDK.OnAuthorizationListener() {
+            @Override
+            public void onResponse(String clientId, String accessToken) {
+                resultClientId.set(clientId);
+                resultAccessToken.set(accessToken);
+                latch.countDown();
+            }
+
+            @Override
+            public void onError(int errorCode, String errorMessage) {
+                latch.countDown();
+            }
+        });
+
+        try {
+            latch.await(10, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            fail("timeout");
+        }
+
+        assertThat(resultClientId.get(), is(clientId));
+        assertThat(resultAccessToken.get(), is(accessToken));
+    }
+
+    /**
      * serviceDiscoveryを呼び出し、レスポンスを受け取れることを確認する。
      * <pre>
      * 【期待する動作】
@@ -351,6 +592,114 @@ public class IntentDConnectSDKTest {
     }
 
     /**
+     * 非同期にserviceDiscoveryを呼び出し、レスポンスを受け取れることを確認する。
+     * <pre>
+     * 【期待する動作】
+     * ・DConnectResponseMessageが返却されること。
+     * ・resultに0が返却されること。
+     * ・versionに1.1が返却されること。
+     * ・servicesに配列が返却されること。
+     * ・servicesの中身に指定されたデバイス情報が格納されていること。
+     * </pre>
+     */
+    @Test
+    public void serviceDiscovery_listener() {
+        final String version = "1.1";
+        final String product = "test-manager";
+        final String accessToken = "test-accessToken";
+        final String[][] aservices = {
+                {
+                        "serviceId1",
+                        "test-service1",
+                        ServiceDiscoveryProfileConstants.NetworkType.WIFI.getValue(),
+                        "true",
+                        "config1"
+                }
+        };
+        final AtomicReference<DConnectResponseMessage> result = new AtomicReference<>();
+        final CountDownLatch latch = new CountDownLatch(1);
+
+        mService.setServiceCallback(new TestService.ServiceCallback() {
+            @Override
+            public void onReceivedRequest(final Context context, final Intent intent) {
+                ComponentName cn = (ComponentName) intent.getExtras().get(IntentDConnectMessage.EXTRA_RECEIVER);
+                int requestCode = intent.getIntExtra(IntentDConnectMessage.EXTRA_REQUEST_CODE, -1);
+                String method = intent.getAction();
+
+                Intent response = new Intent();
+                response.setComponent(cn);
+                response.setAction(IntentDConnectMessage.ACTION_RESPONSE);
+                response.putExtra(IntentDConnectMessage.EXTRA_REQUEST_CODE, requestCode);
+
+                if (!method.equals(IntentDConnectMessage.ACTION_GET)) {
+                    response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_ERROR);
+                    response.putExtra(DConnectMessage.EXTRA_ERROR_CODE, 1);
+                    response.putExtra(DConnectMessage.EXTRA_ERROR_MESSAGE, "");
+                } else {
+                    String p = intent.getStringExtra(IntentDConnectMessage.EXTRA_PROFILE);
+
+                    if (!ServiceDiscoveryProfileConstants.PROFILE_NAME.equalsIgnoreCase(p)) {
+                        response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_ERROR);
+                        response.putExtra(DConnectMessage.EXTRA_ERROR_CODE, 1);
+                        response.putExtra(DConnectMessage.EXTRA_ERROR_MESSAGE, "");
+                    } else {
+                        List<Bundle> services = new ArrayList<>();
+
+                        for (String[] a : aservices) {
+                            Bundle service = new Bundle();
+                            service.putString(ServiceDiscoveryProfileConstants.PARAM_ID, a[0]);
+                            service.putString(ServiceDiscoveryProfileConstants.PARAM_NAME, a[1]);
+                            service.putString(ServiceDiscoveryProfileConstants.PARAM_TYPE, a[2]);
+                            service.putBoolean(ServiceDiscoveryProfileConstants.PARAM_ONLINE, "true".equals(a[3]));
+                            service.putString(ServiceDiscoveryProfileConstants.PARAM_CONFIG, a[4]);
+                            services.add(service);
+                        }
+
+                        Bundle[] ss = new Bundle[services.size()];
+                        services.toArray(ss);
+
+                        response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
+                        response.putExtra(DConnectProfileConstants.PARAM_VERSION, version);
+                        response.putExtra(DConnectProfileConstants.PARAM_PRODUCT, product);
+                        response.putExtra(ServiceDiscoveryProfileConstants.PARAM_SERVICES, ss);
+                    }
+                }
+
+                context.sendBroadcast(response);
+            }
+        });
+        DConnectSDK sdk = getSDK();
+        sdk.setAccessToken(accessToken);
+
+        sdk.serviceDiscovery(new DConnectSDK.OnResponseListener() {
+            @Override
+            public void onResponse(final DConnectResponseMessage response) {
+                result.set(response);
+                latch.countDown();
+            }
+        });
+
+        try {
+            latch.await(10, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            fail("timeout");
+        }
+
+        DConnectResponseMessage response = result.get();
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getList(ServiceDiscoveryProfileConstants.PARAM_SERVICES), is(notNullValue()));
+
+        int idx = 0;
+        for (Object obj : response.getList(ServiceDiscoveryProfileConstants.PARAM_SERVICES)) {
+            Map service = (Map) obj;
+            String id = (String) service.get(ServiceDiscoveryProfileConstants.PARAM_ID);
+            String name = (String) service.get(ServiceDiscoveryProfileConstants.PARAM_NAME);
+            assertThat(id, is(aservices[idx][0]));
+            assertThat(name, is(aservices[idx][1]));
+        }
+    }
+
+    /**
      * getを呼び出し、レスポンスを受け取れることを確認する。
      * <pre>
      * 【期待する動作】
@@ -384,7 +733,7 @@ public class IntentDConnectSDKTest {
                 if (!method.equals(IntentDConnectMessage.ACTION_GET)) {
                     response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_ERROR);
                     response.putExtra(DConnectMessage.EXTRA_ERROR_CODE, 1);
-                    response.putExtra(DConnectMessage.EXTRA_ERROR_MESSAGE, "");
+                    response.putExtra(DConnectMessage.EXTRA_ERROR_MESSAGE, "action is invalid.");
                 } else {
                     response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
                     response.putExtra(DConnectProfileConstants.PARAM_VERSION, version);
@@ -496,7 +845,7 @@ public class IntentDConnectSDKTest {
                 if (!method.equals(IntentDConnectMessage.ACTION_GET)) {
                     response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_ERROR);
                     response.putExtra(DConnectMessage.EXTRA_ERROR_CODE, 1);
-                    response.putExtra(DConnectMessage.EXTRA_ERROR_MESSAGE, "");
+                    response.putExtra(DConnectMessage.EXTRA_ERROR_MESSAGE, "action is invalid.");
                 } else {
                     response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
                     response.putExtra(DConnectProfileConstants.PARAM_VERSION, version);
@@ -534,6 +883,78 @@ public class IntentDConnectSDKTest {
     }
 
     /**
+     * postを呼び出し、レスポンスを受け取れることを確認する。
+     * <pre>
+     * 【期待する動作】
+     * ・DConnectResponseMessageが返却されること。
+     * ・resultに0が返却されること。
+     * ・productにtest-managerが返却されること。
+     * ・versionに1.1が返却されること。
+     * ・nameにmanagerが返却されること。
+     * ・uuidにuuidが返却されること。
+     * </pre>
+     */
+    @Test
+    public void post() {
+        Context context = InstrumentationRegistry.getTargetContext();
+        String path = context.getFilesDir() + "/test.dat";
+        final byte[] fileData = "This is a test.".getBytes();
+        writeFile(new File(path), fileData);
+
+        final String version = "1.1";
+        final String product = "test-manager";
+        final String name = "manager";
+        final String uuid = "uuid";
+        final String key = "key";
+        final String value = "value";
+        final Map<String, Object> data = new HashMap<>();
+        data.put(key, value);
+        data.put("data", new File(path));
+
+        mService.setServiceCallback(new TestService.ServiceCallback() {
+            @Override
+            public void onReceivedRequest(final Context context, final Intent intent) {
+                ComponentName cn = (ComponentName) intent.getExtras().get(IntentDConnectMessage.EXTRA_RECEIVER);
+                int requestCode = intent.getIntExtra(IntentDConnectMessage.EXTRA_REQUEST_CODE, -1);
+                String method = intent.getAction();
+
+                Intent response = new Intent();
+                response.setComponent(cn);
+                response.setAction(IntentDConnectMessage.ACTION_RESPONSE);
+                response.putExtra(IntentDConnectMessage.EXTRA_REQUEST_CODE, requestCode);
+
+                File file = (File) intent.getExtras().get("data");
+                if (!file.isFile() || !Arrays.equals(fileData, getFile(file))) {
+                    response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_ERROR);
+                    response.putExtra(DConnectMessage.EXTRA_ERROR_CODE, 1);
+                    response.putExtra(DConnectMessage.EXTRA_ERROR_MESSAGE, "data is invalid.");
+                } else if (!method.equals(IntentDConnectMessage.ACTION_POST)) {
+                    response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_ERROR);
+                    response.putExtra(DConnectMessage.EXTRA_ERROR_CODE, 1);
+                    response.putExtra(DConnectMessage.EXTRA_ERROR_MESSAGE, "action is invalid.");
+                } else {
+                    response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
+                    response.putExtra(DConnectProfileConstants.PARAM_VERSION, version);
+                    response.putExtra(DConnectProfileConstants.PARAM_PRODUCT, product);
+                    response.putExtra(AvailabilityProfileConstants.PARAM_NAME, name);
+                    response.putExtra(AvailabilityProfileConstants.PARAM_UUID, uuid);
+                }
+
+                context.sendBroadcast(response);
+            }
+        });
+
+        DConnectSDK sdk = getSDK();
+        DConnectResponseMessage response = sdk.post("http://localhost:4035/gotapi/availability", data);
+        assertThat(response, notNullValue());
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getString(AvailabilityProfileConstants.PARAM_VERSION), is(version));
+        assertThat(response.getString(AvailabilityProfileConstants.PARAM_PRODUCT), is(product));
+        assertThat(response.getString(AvailabilityProfileConstants.PARAM_NAME), is(name));
+        assertThat(response.getString(AvailabilityProfileConstants.PARAM_UUID), is(uuid));
+    }
+
+    /**
      * WebSocketを接続する。
      * <pre>
      * 【期待する動作】
@@ -543,7 +964,7 @@ public class IntentDConnectSDKTest {
     @Test
     public void connectWebSocket() {
         final CountDownLatch latch = new CountDownLatch(1);
-        final boolean[] result = new boolean[1];
+        final AtomicBoolean result = new AtomicBoolean();
         final String accessToken = "test-accessToken";
 
         DConnectSDK sdk = getSDK();
@@ -551,7 +972,7 @@ public class IntentDConnectSDKTest {
         sdk.connectWebSocket(new DConnectSDK.OnWebSocketListener() {
             @Override
             public void onOpen() {
-                result[0] = true;
+                result.set(true);
                 latch.countDown();
             }
 
@@ -572,7 +993,27 @@ public class IntentDConnectSDKTest {
             fail();
         }
 
-        assertThat(result[0], is(true));
+        assertThat(result.get(), is(true));
+    }
+
+    /**
+     * OnWebSocketListenerにnullを設定してWebSocketを接続する。
+     * <pre>
+     * 【期待する動作】
+     * ・NullPointerExceptionが発生すること。
+     * </pre>
+     */
+    @Test
+    public void connectWebSocket_listener_null() {
+        final String accessToken = "test-accessToken";
+        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.INTENT);
+        sdk.setAccessToken(accessToken);
+        try {
+            sdk.connectWebSocket(null);
+            fail("No NullPointerException occurred.");
+        } catch (NullPointerException e) {
+            // テスト成功
+        }
     }
 
     /**

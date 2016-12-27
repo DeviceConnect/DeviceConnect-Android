@@ -17,6 +17,7 @@ import org.deviceconnect.profile.AvailabilityProfileConstants;
 import org.deviceconnect.profile.DConnectProfileConstants;
 import org.deviceconnect.profile.DeviceOrientationProfileConstants;
 import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
+import org.deviceconnect.profile.ServiceInformationProfileConstants;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -659,6 +660,146 @@ public class HttpDConnectSDKTest {
             assertThat(service.getString(ServiceDiscoveryProfileConstants.PARAM_ID), is(aservices[idx][0]));
             assertThat(service.getString(ServiceDiscoveryProfileConstants.PARAM_NAME), is(aservices[idx][1]));
         }
+    }
+
+    /**
+     * serviceInformationを呼び出し、OnResponseListenerにレスポンスが通知されることを確認する。
+     * <pre>
+     * 【期待する動作】
+     * ・OnResponseListenerにDConnectResponseMessageが返却されること。
+     * ・resultに0が返却されること。
+     * ・versionに1.1が返却されること。
+     * ・servicesに配列が返却されること。
+     * ・servicesの中身に指定されたデバイス情報が格納されていること。
+     * </pre>
+     */
+    @Test
+    public void serviceInformation() {
+        final String version = "1.1";
+        final String product = "test-manager";
+        final String accessToken = "test-accessToken";
+        final String serviceId = "test-serviceId";
+
+        mTestServer.setServerCallback(new TestServer.ServerCallback() {
+            @Override
+            public NanoHTTPD.Response serve(final String uri, final NanoHTTPD.Method method, final Map<String, String> headers,
+                                            final Map<String, String> parms, final Map<String, String> files) {
+                if (!method.equals(NanoHTTPD.Method.GET)) {
+                    return newBadRequest("Method is not GET.");
+                }
+
+                Uri u = Uri.parse(uri);
+                if (!"/gotapi/serviceInformation".equalsIgnoreCase(u.getPath())) {
+                    return newBadRequest("uri is invalid. uri=" + uri);
+                }
+
+                String at = parms.get(DConnectMessage.EXTRA_ACCESS_TOKEN);
+                if (!accessToken.equals(at)) {
+                    return newBadRequest("accessToken is invalid. accessToken=" + at);
+                }
+
+                try {
+                    JSONArray supports = new JSONArray();
+                    JSONArray supportApis = new JSONArray();
+
+                    JSONObject jsonObject = new JSONObject();
+                    jsonObject.put(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
+                    jsonObject.put(DConnectProfileConstants.PARAM_VERSION, version);
+                    jsonObject.put(DConnectProfileConstants.PARAM_PRODUCT, product);
+                    jsonObject.put(ServiceInformationProfileConstants.PARAM_SUPPORTS, supports);
+                    jsonObject.put(ServiceInformationProfileConstants.PARAM_SUPPORT_APIS, supportApis);
+                    return newJsonResponse(jsonObject);
+                } catch (JSONException e) {
+                    return newInternalServerError(e.getMessage());
+                }
+            }
+        });
+
+        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
+        sdk.setAccessToken(accessToken);
+        DConnectResponseMessage response = sdk.getServiceInformation(serviceId);
+        assertThat(response.getString(DConnectProfileConstants.PARAM_VERSION), is(version));
+        assertThat(response.getString(DConnectProfileConstants.PARAM_PRODUCT), is(product));
+        assertThat(response.getList(ServiceInformationProfileConstants.PARAM_SUPPORTS), is(notNullValue()));
+        assertThat(response.getList(ServiceInformationProfileConstants.PARAM_SUPPORT_APIS), is(notNullValue()));
+    }
+
+    /**
+     * serviceInformationを呼び出し、OnResponseListenerにレスポンスが通知されることを確認する。
+     * <pre>
+     * 【期待する動作】
+     * ・OnResponseListenerにDConnectResponseMessageが返却されること。
+     * ・resultに0が返却されること。
+     * ・versionに1.1が返却されること。
+     * ・servicesに配列が返却されること。
+     * ・servicesの中身に指定されたデバイス情報が格納されていること。
+     * </pre>
+     */
+    @Test
+    public void serviceInformation_listener() {
+        final CountDownLatch latch = new CountDownLatch(1);
+        final String version = "1.1";
+        final String product = "test-manager";
+        final String accessToken = "test-accessToken";
+        final String serviceId = "test-serviceId";
+        final AtomicReference<DConnectResponseMessage> result = new AtomicReference<>();
+
+        mTestServer.setServerCallback(new TestServer.ServerCallback() {
+            @Override
+            public NanoHTTPD.Response serve(final String uri, final NanoHTTPD.Method method, final Map<String, String> headers,
+                                            final Map<String, String> parms, final Map<String, String> files) {
+                if (!method.equals(NanoHTTPD.Method.GET)) {
+                    return newBadRequest("Method is not GET.");
+                }
+
+                Uri u = Uri.parse(uri);
+                if (!"/gotapi/serviceInformation".equalsIgnoreCase(u.getPath())) {
+                    return newBadRequest("uri is invalid. uri=" + uri);
+                }
+
+                String at = parms.get(DConnectMessage.EXTRA_ACCESS_TOKEN);
+                if (!accessToken.equals(at)) {
+                    return newBadRequest("accessToken is invalid. accessToken=" + at);
+                }
+
+                try {
+                    JSONArray supports = new JSONArray();
+                    JSONArray supportApis = new JSONArray();
+
+                    JSONObject jsonObject = new JSONObject();
+                    jsonObject.put(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
+                    jsonObject.put(DConnectProfileConstants.PARAM_VERSION, version);
+                    jsonObject.put(DConnectProfileConstants.PARAM_PRODUCT, product);
+                    jsonObject.put(ServiceInformationProfileConstants.PARAM_SUPPORTS, supports);
+                    jsonObject.put(ServiceInformationProfileConstants.PARAM_SUPPORT_APIS, supportApis);
+                    return newJsonResponse(jsonObject);
+                } catch (JSONException e) {
+                    return newInternalServerError(e.getMessage());
+                }
+            }
+        });
+
+        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
+        sdk.setAccessToken(accessToken);
+        sdk.getServiceInformation(serviceId, new DConnectSDK.OnResponseListener() {
+            @Override
+            public void onResponse(DConnectResponseMessage response) {
+                result.set(response);
+                latch.countDown();
+            }
+        });
+
+        try {
+            latch.await(10, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            fail("timeout");
+        }
+
+        DConnectResponseMessage response = result.get();
+        assertThat(response.getString(DConnectProfileConstants.PARAM_VERSION), is(version));
+        assertThat(response.getString(DConnectProfileConstants.PARAM_PRODUCT), is(product));
+        assertThat(response.getList(ServiceInformationProfileConstants.PARAM_SUPPORTS), is(notNullValue()));
+        assertThat(response.getList(ServiceInformationProfileConstants.PARAM_SUPPORT_APIS), is(notNullValue()));
     }
 
     /**

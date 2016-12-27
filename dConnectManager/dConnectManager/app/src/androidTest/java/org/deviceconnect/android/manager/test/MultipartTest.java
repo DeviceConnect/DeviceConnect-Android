@@ -82,7 +82,7 @@ public class MultipartTest extends RESTfulDConnectTestCase {
 
         Map<String, Object> body = new HashMap<>();
         body.put(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-        body.put(DConnectProfileConstants.PARAM_SESSION_KEY, getClientId());
+        body.put(DConnectProfileConstants.PARAM_SESSION_KEY, "clientId");
         body.put(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
 
         DConnectResponseMessage response = sendRequest("PUT", builder.build().toString(), null, body);

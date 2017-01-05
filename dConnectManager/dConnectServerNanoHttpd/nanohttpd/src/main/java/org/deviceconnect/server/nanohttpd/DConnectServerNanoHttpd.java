@@ -62,6 +62,8 @@ import fi.iki.elonen.NanoHTTPD.IHTTPSession;
 import fi.iki.elonen.NanoHTTPD.Response.Status;
 import fi.iki.elonen.NanoWSD;
 
+import static fi.iki.elonen.NanoHTTPD.Response.Status.BAD_REQUEST;
+
 /**
  * Device Connect サーバー NanoHTTPD.
  * 
@@ -335,15 +337,23 @@ public class DConnectServerNanoHttpd extends DConnectServer {
 
         @Override
         public Response serve(final IHTTPSession session) {
+            if (!checkHeaderSize(session)) {
+                // NanoHTTPDでは、バッファサイズを超えたHTTPヘッダーが送られてくると
+                // 挙動がおかしくなるのでここでエラーを返却して対応する。
+                Response response = newFixedLengthResponse(Status.BAD_REQUEST, NanoHTTPD.MIME_PLAINTEXT, "Request Entity Too Large");
+                response.closeConnection(true);
+                return response;
+            }
+
             if (isWebsocketRequested(session)) {
                 Map<String, String> headers = session.getHeaders();
                 if (!NanoWSD.HEADER_WEBSOCKET_VERSION_VALUE.equalsIgnoreCase(headers.get(NanoWSD.HEADER_WEBSOCKET_VERSION))) {
-                    return newFixedLengthResponse(Response.Status.BAD_REQUEST, NanoHTTPD.MIME_PLAINTEXT,
+                    return newFixedLengthResponse(BAD_REQUEST, NanoHTTPD.MIME_PLAINTEXT,
                             "Invalid Websocket-Version " + headers.get(NanoWSD.HEADER_WEBSOCKET_VERSION));
                 }
 
                 if (!headers.containsKey(NanoWSD.HEADER_WEBSOCKET_KEY)) {
-                    return newFixedLengthResponse(Response.Status.BAD_REQUEST, NanoHTTPD.MIME_PLAINTEXT, "Missing Websocket-Key");
+                    return newFixedLengthResponse(BAD_REQUEST, NanoHTTPD.MIME_PLAINTEXT, "Missing Websocket-Key");
                 }
 
                 // TODO: WebSocketの最大個数をチェックする
@@ -420,6 +430,60 @@ public class DConnectServerNanoHttpd extends DConnectServer {
         }
 
         /**
+         * ヘッダーサイズを確認する.
+         * @param session HTTPセッション
+         * @return ヘッダーサイズがバッファよりも大きい場合にはtrue、それ以外はfalse
+         */
+        private boolean checkHeaderSize(final IHTTPSession session) {
+            try {
+                int splitbyte = getSplitbyte(session);
+                int rlen = getRlen(session);
+                if (splitbyte == 0 && rlen == HTTPSession.BUFSIZE) {
+                    return false;
+                }
+            } catch (NoSuchFieldException e) {
+                return false;
+            } catch (IllegalAccessException e) {
+                return false;
+            }
+            return true;
+        }
+
+        /**
+         * HTTPSession#splitbyteの値を取得する.
+         * <p>
+         * privateのフィールドにアクセスして、値を取得します。
+         * </p>
+         * @param session HTTPセッション
+         * @return splitbyteの値
+         * @throws NoSuchFieldException
+         * @throws IllegalAccessException
+         */
+        private int getSplitbyte(final IHTTPSession session) throws NoSuchFieldException, IllegalAccessException {
+            Class c = session.getClass();
+            Field fld = c.getDeclaredField("splitbyte");
+            fld.setAccessible(true);
+            return (Integer) fld.get(session);
+        }
+
+        /**
+         * HTTPSession#rlenの値を取得する.
+         * <p>
+         * privateのフィールドにアクセスして、値を取得します。
+         * </p>
+         * @param session HTTPセッション
+         * @return splitbyteの値
+         * @throws NoSuchFieldException
+         * @throws IllegalAccessException
+         */
+        private int getRlen(final IHTTPSession session) throws NoSuchFieldException, IllegalAccessException {
+            Class c = session.getClass();
+            Field fld = c.getDeclaredField("rlen");
+            fld.setAccessible(true);
+            return (Integer) fld.get(session);
+        }
+
+        /**
          * Httpリクエストのbodyを解析して、DConnectHttpRequestに値を格納します.
          *
          * @param session Httpリクエストのセッションデータ
@@ -475,7 +539,7 @@ public class DConnectServerNanoHttpd extends DConnectServer {
                     if (contentType.isMultipart()) {
                         String boundary = contentType.getBoundary();
                         if (boundary == null) {
-                            throw new ResponseException(Response.Status.BAD_REQUEST,
+                            throw new ResponseException(BAD_REQUEST,
                                     "BAD REQUEST: Content type is multipart/form-data but boundary missing. Usage: GET /example/file.html");
                         }
                         decodeMultipartFormData(session, contentType, tmpBuf, request.getQueryParameters(), files);
@@ -660,7 +724,7 @@ public class DConnectServerNanoHttpd extends DConnectServer {
             try {
                 int[] boundaryIdxs = getBoundaryPositions(fbuf, contentType.getBoundary().getBytes());
                 if (boundaryIdxs.length < 2) {
-                    throw new ResponseException(Response.Status.BAD_REQUEST,
+                    throw new ResponseException(BAD_REQUEST,
                             "BAD REQUEST: Content type is multipart/form-data but contains less than two boundary strings.");
                 }
 
@@ -679,7 +743,7 @@ public class DConnectServerNanoHttpd extends DConnectServer {
                     String mpline = in.readLine();
                     headerLines++;
                     if (mpline == null || !mpline.contains(contentType.getBoundary())) {
-                        throw new ResponseException(Response.Status.BAD_REQUEST,
+                        throw new ResponseException(BAD_REQUEST,
                                 "BAD REQUEST: Content type is multipart/form-data but chunk does not start with boundary.");
                     }
 

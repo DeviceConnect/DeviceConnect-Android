@@ -1200,6 +1200,12 @@ public abstract class DConnectSDK {
          * @return {@link URIBuilder} インスタンス
          */
         public synchronized URIBuilder setScheme(final String scheme) {
+            if (scheme == null) {
+                throw new NullPointerException("scheme is null.");
+            }
+            if (scheme.isEmpty()) {
+                throw new IllegalArgumentException("scheme is empty.");
+            }
             mScheme = scheme;
             return this;
         }

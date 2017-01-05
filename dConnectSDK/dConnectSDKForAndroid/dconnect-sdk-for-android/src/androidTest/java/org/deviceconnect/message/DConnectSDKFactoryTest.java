@@ -12,8 +12,6 @@ import android.support.test.runner.AndroidJUnit4;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import static junit.framework.Assert.fail;
-
 /**
  * DConnectSDKFactoryのテスト.
  *
@@ -29,14 +27,9 @@ public class DConnectSDKFactoryTest {
      * ・NullPointerExceptionが派生すること。
      * </pre>
      */
-    @Test
+    @Test(expected = NullPointerException.class)
     public void create_context_null() {
-        try {
-            DConnectSDK sdk = DConnectSDKFactory.create(null, DConnectSDKFactory.Type.HTTP);
-            fail("No NullPointerException occurred.");
-        } catch (NullPointerException e) {
-            // テスト成功
-        }
+        DConnectSDKFactory.create(null, DConnectSDKFactory.Type.HTTP);
     }
 
     /**
@@ -46,13 +39,8 @@ public class DConnectSDKFactoryTest {
      * ・NullPointerExceptionが派生すること。
      * </pre>
      */
-    @Test
+    @Test(expected = NullPointerException.class)
     public void create_type_null() {
-        try {
-            DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), null);
-            fail("No NullPointerException occurred.");
-        } catch (NullPointerException e) {
-            // テスト成功
-        }
+        DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), null);
     }
 }

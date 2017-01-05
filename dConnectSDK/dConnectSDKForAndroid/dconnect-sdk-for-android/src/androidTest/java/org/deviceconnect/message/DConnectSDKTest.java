@@ -12,7 +12,6 @@ import android.support.test.runner.AndroidJUnit4;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import static junit.framework.Assert.fail;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
@@ -58,15 +57,10 @@ public class DConnectSDKTest {
      * ・NullPointerExceptionが発生すること。
      * </pre>
      */
-    @Test
+    @Test(expected = NullPointerException.class)
     public void setHost_null() {
         DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
-        try {
-            sdk.setHost(null);
-            fail("No NullPointerException occurred.");
-        } catch (NullPointerException e) {
-            // テスト成功
-        }
+        sdk.setHost(null);
     }
 
     /**
@@ -76,15 +70,10 @@ public class DConnectSDKTest {
      * ・IllegalArgumentExceptionが発生すること。
      * </pre>
      */
-    @Test
+    @Test(expected = IllegalArgumentException.class)
     public void setHost_empty() {
         DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
-        try {
-            sdk.setHost("");
-            fail("No IllegalArgumentException occurred.");
-        } catch (IllegalArgumentException e) {
-            // テスト成功
-        }
+        sdk.setHost("");
     }
 
     /**
@@ -122,15 +111,10 @@ public class DConnectSDKTest {
      * ・IllegalArgumentExceptionが発生すること。
      * </pre>
      */
-    @Test
+    @Test(expected = IllegalArgumentException.class)
     public void setPort_negative() {
         DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
-        try {
-            sdk.setPort(-1);
-            fail("No IllegalArgumentException occurred.");
-        } catch (IllegalArgumentException e) {
-            // テスト成功
-        }
+        sdk.setPort(-1);
     }
 
     /**
@@ -140,15 +124,10 @@ public class DConnectSDKTest {
      * ・IllegalArgumentExceptionが発生すること。
      * </pre>
      */
-    @Test
+    @Test(expected = IllegalArgumentException.class)
     public void setPort_65536() {
         DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
-        try {
-            sdk.setPort(65536);
-            fail("No IllegalArgumentException occurred.");
-        } catch (IllegalArgumentException e) {
-            // テスト成功
-        }
+        sdk.setPort(65536);
     }
 
     /**
@@ -173,15 +152,10 @@ public class DConnectSDKTest {
      * ・NullPointerExceptionが発生すること。
      * </pre>
      */
-    @Test
+    @Test(expected = NullPointerException.class)
     public void setOrigin_null() {
         DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
-        try {
-            sdk.setOrigin(null);
-            fail("No NullPointerException occurred.");
-        } catch (NullPointerException e) {
-            // テスト成功
-        }
+        sdk.setOrigin(null);
     }
 
     /**
@@ -191,15 +165,10 @@ public class DConnectSDKTest {
      * ・IllegalArgumentExceptionが発生すること。
      * </pre>
      */
-    @Test
+    @Test(expected = IllegalArgumentException.class)
     public void setOrigin_empty() {
         DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
-        try {
-            sdk.setOrigin("");
-            fail("No IllegalArgumentException occurred.");
-        } catch (IllegalArgumentException e) {
-            // テスト成功
-        }
+        sdk.setOrigin("");
     }
 
     /**
@@ -224,15 +193,10 @@ public class DConnectSDKTest {
      * ・NullPointerExceptionが発生すること。
      * </pre>
      */
-    @Test
+    @Test(expected = NullPointerException.class)
     public void setAccessToken_null() {
         DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
-        try {
-            sdk.setAccessToken(null);
-            fail("No NullPointerException occurred.");
-        } catch (NullPointerException e) {
-            // テスト成功
-        }
+        sdk.setAccessToken(null);
     }
 
     /**
@@ -242,14 +206,9 @@ public class DConnectSDKTest {
      * ・IllegalArgumentExceptionが発生すること。
      * </pre>
      */
-    @Test
+    @Test(expected = IllegalArgumentException.class)
     public void setAccessToken_empty() {
         DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
-        try {
-            sdk.setAccessToken("");
-            fail("No IllegalArgumentException occurred.");
-        } catch (IllegalArgumentException e) {
-            // テスト成功
-        }
+        sdk.setAccessToken("");
     }
 }

@@ -762,15 +762,10 @@ public class IntentDConnectSDKTest {
      * ・NullPointerExceptionが発生すること。
      * </pre>
      */
-    @Test
+    @Test(expected = NullPointerException.class)
     public void get_uri_null() {
         DConnectSDK sdk = getSDK();
-        try {
-            sdk.get((Uri) null);
-            fail("No NullPointerException occurred.");
-        } catch (NullPointerException e) {
-            // テスト成功
-        }
+        sdk.get((Uri) null);
     }
 
     /**
@@ -780,15 +775,10 @@ public class IntentDConnectSDKTest {
      * ・IllegalArgumentExceptionが発生すること。
      * </pre>
      */
-    @Test
+    @Test(expected = IllegalArgumentException.class)
     public void get_uri_empty() {
         DConnectSDK sdk = getSDK();
-        try {
-            sdk.get("");
-            fail("No IllegalArgumentException occurred.");
-        } catch (IllegalArgumentException e) {
-            // テスト成功
-        }
+        sdk.get("");
     }
 
     /**
@@ -798,15 +788,10 @@ public class IntentDConnectSDKTest {
      * ・IllegalArgumentExceptionが発生すること。
      * </pre>
      */
-    @Test
+    @Test(expected = IllegalArgumentException.class)
     public void get_uri_illegal() {
         DConnectSDK sdk = getSDK();
-        try {
-            sdk.get("test");
-            fail("No IllegalArgumentException occurred.");
-        } catch (IllegalArgumentException e) {
-            // テスト成功
-        }
+        sdk.get("test");
     }
 
     /**
@@ -1003,17 +988,12 @@ public class IntentDConnectSDKTest {
      * ・NullPointerExceptionが発生すること。
      * </pre>
      */
-    @Test
+    @Test(expected = NullPointerException.class)
     public void connectWebSocket_listener_null() {
         final String accessToken = "test-accessToken";
         DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.INTENT);
         sdk.setAccessToken(accessToken);
-        try {
-            sdk.connectWebSocket(null);
-            fail("No NullPointerException occurred.");
-        } catch (NullPointerException e) {
-            // テスト成功
-        }
+        sdk.connectWebSocket(null);
     }
 
     /**
@@ -1174,19 +1154,14 @@ public class IntentDConnectSDKTest {
      * ・NullPointerExceptionが発生すること。
      * </pre>
      */
-    @Test
+    @Test(expected = NullPointerException.class)
     public void addEventListener_listener_null() {
         DConnectSDK sdk = getSDK();
         DConnectSDK.URIBuilder builder = sdk.createURIBuilder();
         builder.setProfile("deviceOrientation");
         builder.setAttribute("onDeviceOrientation");
         builder.setServiceId("serviceId");
-        try {
-            sdk.addEventListener(builder.toASCIIString(), null);
-            fail("No NullPointerException occurred.");
-        } catch (NullPointerException e) {
-            // テスト成功
-        }
+        sdk.addEventListener(builder.toASCIIString(), null);
     }
 
     /**
@@ -1196,22 +1171,17 @@ public class IntentDConnectSDKTest {
      * ・NullPointerExceptionが発生すること。
      * </pre>
      */
-    @Test
+    @Test(expected = NullPointerException.class)
     public void addEventListener_uri_null() {
         DConnectSDK sdk = getSDK();
-        try {
-            sdk.addEventListener((Uri) null, new DConnectSDK.OnEventListener() {
-                @Override
-                public void onMessage(final DConnectEventMessage message) {
-                }
-                @Override
-                public void onResponse(final DConnectResponseMessage response) {
-                }
-            });
-            fail("No NullPointerException occurred.");
-        } catch (NullPointerException e) {
-            // テスト成功
-        }
+        sdk.addEventListener((Uri) null, new DConnectSDK.OnEventListener() {
+            @Override
+            public void onMessage(final DConnectEventMessage message) {
+            }
+            @Override
+            public void onResponse(final DConnectResponseMessage response) {
+            }
+        });
     }
 
     /**
@@ -1221,14 +1191,9 @@ public class IntentDConnectSDKTest {
      * ・NullPointerExceptionが発生すること。
      * </pre>
      */
-    @Test
+    @Test(expected = NullPointerException.class)
     public void removeEventListener_uri_null() {
         DConnectSDK sdk = getSDK();
-        try {
-            sdk.removeEventListener((Uri) null);
-            fail("No NullPointerException occurred.");
-        } catch (NullPointerException e) {
-            // テスト成功
-        }
+        sdk.removeEventListener((Uri) null);
     }
 }

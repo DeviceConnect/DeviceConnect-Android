@@ -12,8 +12,8 @@ import android.support.test.runner.AndroidJUnit4;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import static junit.framework.Assert.fail;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.core.IsNull.notNullValue;
 import static org.junit.Assert.assertThat;
 
@@ -68,16 +68,11 @@ public class URIBuilderTest {
      * ・NullPointerExceptionが発生すること。
      * </pre>
      */
-    @Test
+    @Test(expected = NullPointerException.class)
     public void uriBuilder_host_null() {
         DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
         DConnectSDK.URIBuilder builder = sdk.createURIBuilder();
-        try {
-            builder.setHost(null);
-            fail("No NullPointerException occurred.");
-        } catch (NullPointerException e) {
-            // テスト成功
-        }
+        builder.setHost(null);
     }
 
     /**
@@ -87,16 +82,11 @@ public class URIBuilderTest {
      * ・IllegalArgumentExceptionが発生すること。
      * </pre>
      */
-    @Test
+    @Test(expected = IllegalArgumentException.class)
     public void uriBuilder_host_empty() {
         DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
         DConnectSDK.URIBuilder builder = sdk.createURIBuilder();
-        try {
-            builder.setHost("");
-            fail("No IllegalArgumentException occurred.");
-        } catch (IllegalArgumentException e) {
-            // テスト成功
-        }
+        builder.setHost("");
     }
 
     /**
@@ -122,16 +112,11 @@ public class URIBuilderTest {
      * ・IllegalArgumentExceptionが発生すること。
      * </pre>
      */
-    @Test
+    @Test(expected = IllegalArgumentException.class)
     public void uriBuilder_port_negative() {
         DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
         DConnectSDK.URIBuilder builder = sdk.createURIBuilder();
-        try {
-            builder.setPort(-1);
-            fail("No IllegalArgumentException occurred.");
-        } catch (IllegalArgumentException e) {
-            // テスト成功
-        }
+        builder.setPort(-1);
     }
 
     /**
@@ -141,16 +126,11 @@ public class URIBuilderTest {
      * ・IllegalArgumentExceptionが発生すること。
      * </pre>
      */
-    @Test
+    @Test(expected = IllegalArgumentException.class)
     public void uriBuilder_port_65536() {
         DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
         DConnectSDK.URIBuilder builder = sdk.createURIBuilder();
-        try {
-            builder.setPort(65536);
-            fail("No IllegalArgumentException occurred.");
-        } catch (IllegalArgumentException e) {
-            // テスト成功
-        }
+        builder.setPort(65536);
     }
 
     /**
@@ -178,18 +158,13 @@ public class URIBuilderTest {
      * ・NullPointerExceptionが発生すること。
      * </pre>
      */
-    @Test
+    @Test(expected = NullPointerException.class)
     public void uriBuilder_accessToken_null() {
         DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
         sdk.setAccessToken("test-accessToken");
 
         DConnectSDK.URIBuilder builder = sdk.createURIBuilder();
-        try {
-            builder.setAccessToken(null);
-            fail("No NullPointerException occurred.");
-        } catch (NullPointerException e) {
-            // テスト成功
-        }
+        builder.setAccessToken(null);
     }
 
     /**
@@ -217,18 +192,13 @@ public class URIBuilderTest {
      * ・NullPointerExceptionが発生すること。
      * </pre>
      */
-    @Test
+    @Test(expected = NullPointerException.class)
     public void uriBuilder_serviceId_null() {
         DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
         sdk.setAccessToken("test-accessToken");
 
         DConnectSDK.URIBuilder builder = sdk.createURIBuilder();
-        try {
-            builder.setServiceId(null);
-            fail("No NullPointerException occurred.");
-        } catch (NullPointerException e) {
-            // テスト成功
-        }
+        builder.setServiceId(null);
     }
 
     /**
@@ -257,19 +227,14 @@ public class URIBuilderTest {
      * ・NullPointerExceptionが発生すること。
      * </pre>
      */
-    @Test
+    @Test(expected = NullPointerException.class)
     public void uriBuilder_addParameter_key_null() {
         final String value = "value";
         DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
         sdk.setAccessToken("test-accessToken");
 
         DConnectSDK.URIBuilder builder = sdk.createURIBuilder();
-        try {
-            builder.addParameter(null, value);
-            fail("No NullPointerException occurred.");
-        } catch (NullPointerException e) {
-            // テスト成功
-        }
+        builder.addParameter(null, value);
     }
 
     /**
@@ -279,18 +244,145 @@ public class URIBuilderTest {
      * ・NullPointerExceptionが発生すること。
      * </pre>
      */
-    @Test
+    @Test(expected = NullPointerException.class)
     public void uriBuilder_addParameter_value_null() {
         final String key = "key";
         DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
         sdk.setAccessToken("test-accessToken");
 
         DConnectSDK.URIBuilder builder = sdk.createURIBuilder();
-        try {
-            builder.addParameter(key, null);
-            fail("No NullPointerException occurred.");
-        } catch (NullPointerException e) {
-            // テスト成功
-        }
+        builder.addParameter(key, null);
+    }
+
+    /**
+     * 同じkeyに対してaddParameterを行う。
+     * <pre>
+     * 【期待する動作】
+     * ・後から設定されたvalueが設定されていること。
+     * </pre>
+     */
+    @Test
+    public void uriBuilder_addParameter_duplicate() {
+        final String key = "key";
+        final String value1 = "value1";
+        final String value2 = "value2";
+        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
+        sdk.setAccessToken("test-accessToken");
+
+        DConnectSDK.URIBuilder builder = sdk.createURIBuilder();
+        builder.addParameter(key, value1);
+        builder.addParameter(key, value2);
+
+        assertThat(builder.getParameter(key), is(value2));
+    }
+
+    /**
+     * keyに対してremoveParameterを行い、値が削除されていることを確認する。
+     * <pre>
+     * 【期待する動作】
+     * ・削除したkeyに対してgetParameterを行い値が取得できないこと。
+     * </pre>
+     */
+    @Test
+    public void uriBuilder_removeParameter() {
+        final String key = "key";
+        final String value = "value";
+        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
+        sdk.setAccessToken("test-accessToken");
+
+        DConnectSDK.URIBuilder builder = sdk.createURIBuilder();
+        builder.addParameter(key, value);
+        assertThat(builder.getParameter(key), is(value));
+        builder.removeParameter(key);
+        assertThat(builder.getParameter(key), is(nullValue()));
+    }
+
+    /**
+     * profileが設定できることを確認する。
+     * <pre>
+     * 【期待する動作】
+     * ・設定したプロファイルがgetProfileで取得できること。
+     * </pre>
+     */
+    @Test
+    public void uriBuilder_profile() {
+        final String profile = "profile";
+
+        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
+        sdk.setAccessToken("test-accessToken");
+
+        DConnectSDK.URIBuilder builder = sdk.createURIBuilder();
+        builder.setProfile(profile);
+
+        assertThat(builder.getProfile(), is(profile));
+    }
+
+    /**
+     * interfaceが設定できることを確認する。
+     * <pre>
+     * 【期待する動作】
+     * ・設定したプロファイルがgetInterfaceで取得できること。
+     * </pre>
+     */
+    @Test
+    public void uriBuilder_interface() {
+        final String inter = "inter";
+
+        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
+        sdk.setAccessToken("test-accessToken");
+
+        DConnectSDK.URIBuilder builder = sdk.createURIBuilder();
+        builder.setInterface(inter);
+
+        assertThat(builder.getInterface(), is(inter));
+    }
+
+    /**
+     * attributeが設定できることを確認する。
+     * <pre>
+     * 【期待する動作】
+     * ・設定したプロファイルがgetAttributeで取得できること。
+     * </pre>
+     */
+    @Test
+    public void uriBuilder_attribute() {
+        final String attribute = "attribute";
+
+        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
+        sdk.setAccessToken("test-accessToken");
+
+        DConnectSDK.URIBuilder builder = sdk.createURIBuilder();
+        builder.setAttribute(attribute);
+
+        assertThat(builder.getAttribute(), is(attribute));
+    }
+
+    /**
+     * attributeが設定できることを確認する。
+     * <pre>
+     * 【期待する動作】
+     * ・設定したプロファイルがgetAttributeで取得できること。
+     * </pre>
+     */
+    @Test
+    public void uriBuilder_toString() {
+        final String host = "test.com";
+        final int port = 12345;
+        final String profile = "profile";
+        final String attribute = "attribute";
+        final String accessToken = "test-accessToken";
+
+        final String uri = "http://" + host + ":" + port + "/gotapi/" + profile + "/" + attribute + "?accessToken=" + accessToken;
+
+        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
+        sdk.setAccessToken(accessToken);
+
+        DConnectSDK.URIBuilder builder = sdk.createURIBuilder();
+        builder.setHost(host);
+        builder.setPort(port);
+        builder.setProfile(profile);
+        builder.setAttribute(attribute);
+
+        assertThat(builder.toString(), is(uri));
     }
 }

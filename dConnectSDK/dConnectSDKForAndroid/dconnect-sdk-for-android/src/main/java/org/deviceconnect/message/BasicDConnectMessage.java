@@ -7,6 +7,7 @@
 package org.deviceconnect.message;
 
 import android.content.Intent;
+import android.util.Log;
 
 import org.deviceconnect.utils.JSONUtils;
 import org.json.JSONArray;
@@ -106,7 +107,7 @@ class BasicDConnectMessage extends HashMap<String, Object> implements DConnectMe
         if (value == null || !(value instanceof Integer)) {
             return 0;
         }
-        return (Integer) value;
+        return ((Number) value).intValue();
     }
 
     @Override
@@ -119,7 +120,7 @@ class BasicDConnectMessage extends HashMap<String, Object> implements DConnectMe
         if (value == null || !(value instanceof Long)) {
             return 0;
         }
-        return (Long) value;
+        return ((Number) value).longValue();
     }
 
     /**

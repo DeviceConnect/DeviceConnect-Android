@@ -119,37 +119,6 @@ public class FailSettingsProfileTestCase extends RESTfulDConnectTestCase
     }
 
     /**
-     * serviceIdを2重に指定して音量取得要求を送信するテストを行う.
-     * <pre>
-     * 【HTTP通信】
-     * Method: GET
-     * Path: /settings/sound/volume?serviceId=123456789&serviceId=xxx&kind=xxxx
-     * </pre>
-     * <pre>
-     * 【期待する動作】
-     * ・先に定義された属性が優先されること。
-     * ・resultに1が返ってくること。
-     * </pre>
-     */
-    @Test
-    public void testGetSoundVolumeDuplicatedServiceId() {
-        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
-        builder.setProfile(SettingsProfileConstants.PROFILE_NAME);
-        builder.setInterface(SettingsProfileConstants.INTERFACE_SOUND);
-        builder.setAttribute(SettingsProfileConstants.ATTRIBUTE_VOLUME);
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(SettingsProfileConstants.PARAM_KIND, String.valueOf(VOLUME_KIND));
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-
-        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
-        assertThat(response, is(notNullValue()));
-        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
-        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
-        assertThat(response.getErrorMessage(), is(notNullValue()));
-    }
-
-    /**
      * serviceIdを指定せずに音量取得要求を送信するテストを行う.
      * <pre>
      * 【HTTP通信】
@@ -230,38 +199,6 @@ public class FailSettingsProfileTestCase extends RESTfulDConnectTestCase
         builder.addParameter(SettingsProfileConstants.PARAM_KIND, String.valueOf(VOLUME_KIND));
         builder.addParameter(SettingsProfileConstants.PARAM_LEVEL, String.valueOf(LEVEL));
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-
-        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
-        assertThat(response, is(notNullValue()));
-        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
-        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
-        assertThat(response.getErrorMessage(), is(notNullValue()));
-    }
-
-    /**
-     * serviceIdを2重に指定して音量取得要求を送信するテストを行う.
-     * <pre>
-     * 【HTTP通信】
-     * Method: PUT
-     * Path: /settings/sound/volume?serviceId=123456789&serviceId=xxx&kind=xxxx
-     * </pre>
-     * <pre>
-     * 【期待する動作】
-     * ・先に定義された属性が優先されること。
-     * ・resultに1が返ってくること。
-     * </pre>
-     */
-    @Test
-    public void testPutSoundVolumeDuplicatedServiceId() {
-        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
-        builder.setProfile(SettingsProfileConstants.PROFILE_NAME);
-        builder.setInterface(SettingsProfileConstants.INTERFACE_SOUND);
-        builder.setAttribute(SettingsProfileConstants.ATTRIBUTE_VOLUME);
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(SettingsProfileConstants.PARAM_KIND, String.valueOf(VOLUME_KIND));
-        builder.addParameter(SettingsProfileConstants.PARAM_LEVEL, String.valueOf(LEVEL));
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
 
         DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
         assertThat(response, is(notNullValue()));
@@ -411,35 +348,6 @@ public class FailSettingsProfileTestCase extends RESTfulDConnectTestCase
     }
 
     /**
-     * serviceIdを2重に指定して日時取得要求を送信するテストを行う.
-     * <pre>
-     * 【HTTP通信】
-     * Method: GET
-     * Path: /settings/date?serviceId=123456789&serviceId=xxx&kind=xxxx
-     * </pre>
-     * <pre>
-     * 【期待する動作】
-     * ・先に定義された属性が優先されること。
-     * ・resultに1が返ってくること。
-     * </pre>
-     */
-    @Test
-    public void testGetDateDuplicatedServiceId() {
-        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
-        builder.setProfile(SettingsProfileConstants.PROFILE_NAME);
-        builder.setAttribute(SettingsProfileConstants.ATTRIBUTE_DATE);
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-
-        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
-        assertThat(response, is(notNullValue()));
-        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
-        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
-        assertThat(response.getErrorMessage(), is(notNullValue()));
-    }
-
-    /**
      * serviceIdを指定せずに日時取得要求を送信するテストを行う.
      * <pre>
      * 【HTTP通信】
@@ -513,36 +421,6 @@ public class FailSettingsProfileTestCase extends RESTfulDConnectTestCase
         builder.setAttribute(SettingsProfileConstants.ATTRIBUTE_DATE);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(SettingsProfileConstants.PARAM_DATE, DATE);
-
-        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
-        assertThat(response, is(notNullValue()));
-        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
-        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
-        assertThat(response.getErrorMessage(), is(notNullValue()));
-    }
-
-    /**
-     * serviceIdを2重に指定して日時取得要求を送信するテストを行う.
-     * <pre>
-     * 【HTTP通信】
-     * Method: PUT
-     * Path: /settings/date?serviceId=123456789&serviceId=xxx&kind=xxxx
-     * </pre>
-     * <pre>
-     * 【期待する動作】
-     * ・先に定義された属性が優先されること。
-     * ・resultに1が返ってくること。
-     * </pre>
-     */
-    @Test
-    public void testPutDateDuplicatedServiceId() {
-        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
-        builder.setProfile(SettingsProfileConstants.PROFILE_NAME);
-        builder.setAttribute(SettingsProfileConstants.ATTRIBUTE_DATE);
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(SettingsProfileConstants.PARAM_DATE, DATE);
 
         DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
@@ -692,36 +570,6 @@ public class FailSettingsProfileTestCase extends RESTfulDConnectTestCase
     }
 
     /**
-     * serviceIdを2重に指定してバックライト明度取得要求を送信するテストを行う.
-     * <pre>
-     * 【HTTP通信】
-     * Method: GET
-     * Path: /settings/display/light?serviceId=123456789&serviceId=xxx&kind=xxxx
-     * </pre>
-     * <pre>
-     * 【期待する動作】
-     * ・先に定義された属性が優先されること。
-     * ・resultに1が返ってくること。
-     * </pre>
-     */
-    @Test
-    public void testGetDisplayLightDuplicatedServiceId() {
-        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
-        builder.setProfile(SettingsProfileConstants.PROFILE_NAME);
-        builder.setInterface(SettingsProfileConstants.INTERFACE_DISPLAY);
-        builder.setAttribute(SettingsProfileConstants.ATTRIBUTE_LIGHT);
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-
-        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
-        assertThat(response, is(notNullValue()));
-        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
-        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
-        assertThat(response.getErrorMessage(), is(notNullValue()));
-    }
-
-    /**
      * serviceIdを指定せずにバックライト明度取得要求を送信するテストを行う.
      * <pre>
      * 【HTTP通信】
@@ -798,37 +646,6 @@ public class FailSettingsProfileTestCase extends RESTfulDConnectTestCase
         builder.setAttribute(SettingsProfileConstants.ATTRIBUTE_LIGHT);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(SettingsProfileConstants.PARAM_LEVEL, String.valueOf(LEVEL));
-
-        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
-        assertThat(response, is(notNullValue()));
-        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
-        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
-        assertThat(response.getErrorMessage(), is(notNullValue()));
-    }
-
-    /**
-     * serviceIdを2重に指定してバックライト明度取得要求を送信するテストを行う.
-     * <pre>
-     * 【HTTP通信】
-     * Method: PUT
-     * Path: /settings/display/light?serviceId=123456789&serviceId=xxx&kind=xxxx
-     * </pre>
-     * <pre>
-     * 【期待する動作】
-     * ・先に定義された属性が優先されること。
-     * ・resultに1が返ってくること。
-     * </pre>
-     */
-    @Test
-    public void testPutDisplayLightDuplicatedServiceId() {
-        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
-        builder.setProfile(SettingsProfileConstants.PROFILE_NAME);
-        builder.setInterface(SettingsProfileConstants.INTERFACE_DISPLAY);
-        builder.setAttribute(SettingsProfileConstants.ATTRIBUTE_LIGHT);
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(SettingsProfileConstants.PARAM_LEVEL, String.valueOf(LEVEL));
 
         DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
@@ -980,36 +797,6 @@ public class FailSettingsProfileTestCase extends RESTfulDConnectTestCase
     }
 
     /**
-     * serviceIdを2重に指定してバックライト明度取得要求を送信するテストを行う.
-     * <pre>
-     * 【HTTP通信】
-     * Method: GET
-     * Path: /settings/display/sleep?serviceId=123456789&serviceId=xxx&kind=xxxx
-     * </pre>
-     * <pre>
-     * 【期待する動作】
-     * ・先に定義された属性が優先されること。
-     * ・resultに1が返ってくること。
-     * </pre>
-     */
-    @Test
-    public void testGetDisplaySleepDuplicatedServiceId() {
-        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
-        builder.setProfile(SettingsProfileConstants.PROFILE_NAME);
-        builder.setInterface(SettingsProfileConstants.INTERFACE_DISPLAY);
-        builder.setAttribute(SettingsProfileConstants.ATTRIBUTE_SLEEP);
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-
-        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
-        assertThat(response, is(notNullValue()));
-        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
-        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
-        assertThat(response.getErrorMessage(), is(notNullValue()));
-    }
-
-    /**
      * serviceIdを指定せずにバックライト明度取得要求を送信するテストを行う.
      * <pre>
      * 【HTTP通信】
@@ -1086,37 +873,6 @@ public class FailSettingsProfileTestCase extends RESTfulDConnectTestCase
         builder.setAttribute(SettingsProfileConstants.ATTRIBUTE_SLEEP);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(SettingsProfileConstants.PARAM_TIME, String.valueOf(TIME));
-
-        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
-        assertThat(response, is(notNullValue()));
-        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
-        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
-        assertThat(response.getErrorMessage(), is(notNullValue()));
-    }
-
-    /**
-     * serviceIdを2重に指定してバックライト明度取得要求を送信するテストを行う.
-     * <pre>
-     * 【HTTP通信】
-     * Method: PUT
-     * Path: /settings/display/sleep?serviceId=123456789&serviceId=xxx&kind=xxxx
-     * </pre>
-     * <pre>
-     * 【期待する動作】
-     * ・先に定義された属性が優先されること。
-     * ・resultに1が返ってくること。
-     * </pre>
-     */
-    @Test
-    public void testPutDisplaySleepDuplicatedServiceId() {
-        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
-        builder.setProfile(SettingsProfileConstants.PROFILE_NAME);
-        builder.setInterface(SettingsProfileConstants.INTERFACE_DISPLAY);
-        builder.setAttribute(SettingsProfileConstants.ATTRIBUTE_SLEEP);
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(SettingsProfileConstants.PARAM_TIME, String.valueOf(TIME));
 
         DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);

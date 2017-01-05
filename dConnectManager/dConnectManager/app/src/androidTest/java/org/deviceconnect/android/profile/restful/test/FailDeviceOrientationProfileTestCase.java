@@ -137,35 +137,6 @@ public class FailDeviceOrientationProfileTestCase extends RESTfulDConnectTestCas
     }
 
     /**
-     * serviceIdを2重に指定してonDeviceOrientation属性のコールバック登録テストを行う.
-     * <pre>
-     * 【HTTP通信】
-     * Method: PUT
-     * Path: /deviceOrientation/onDeviceOrientation?serviceId=123456789&serviceId=xxx
-     * </pre>
-     * <pre>
-     * 【期待する動作】
-     * ・先に定義された属性が優先されること。
-     * ・resultに1が返ってくること。
-     * </pre>
-     */
-    @Test
-    public void testPutOnDeviceOrientation005() {
-        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
-        builder.setProfile(DeviceOrientationProfileConstants.PROFILE_NAME);
-        builder.setAttribute(DeviceOrientationProfileConstants.ATTRIBUTE_ON_DEVICE_ORIENTATION);
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-
-        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
-        assertThat(response, is(notNullValue()));
-        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
-        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
-        assertThat(response.getErrorMessage(), is(notNullValue()));
-    }
-
-    /**
      * serviceIdが無い状態でonDeviceOrientation属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
@@ -272,34 +243,6 @@ public class FailDeviceOrientationProfileTestCase extends RESTfulDConnectTestCas
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
     }
 
-    /**
-     * serviceIdを2重に指定してonDeviceOrientation属性のコールバック解除テストを行う.
-     * <pre>
-     * 【HTTP通信】
-     * Method: DELETE
-     * Path: /deviceOrientation/onDeviceOrientation?serviceId=123456789&serviceId=xxx
-     * </pre>
-     * <pre>
-     * 【期待する動作】
-     * ・先に定義された属性が優先されること。
-     * ・resultに1が返ってくること。
-     * </pre>
-     */
-    @Test
-    public void testDeleteOnDeviceOrientation005() {
-        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
-        builder.setProfile(DeviceOrientationProfileConstants.PROFILE_NAME);
-        builder.setAttribute(DeviceOrientationProfileConstants.ATTRIBUTE_ON_DEVICE_ORIENTATION);
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-
-        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
-        assertThat(response, is(notNullValue()));
-        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
-        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
-        assertThat(response.getErrorMessage(), is(notNullValue()));
-    }
 
     /**
      * メソッドをPOSTに指定して/deviceOrientation/onDeviceOrientationにアクセスするテストを行う.

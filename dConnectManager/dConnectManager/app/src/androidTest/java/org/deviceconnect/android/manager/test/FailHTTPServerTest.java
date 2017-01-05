@@ -10,15 +10,14 @@ import android.support.test.runner.AndroidJUnit4;
 
 import org.deviceconnect.android.profile.restful.test.RESTfulDConnectTestCase;
 import org.deviceconnect.android.test.http.HttpUtil;
-import org.deviceconnect.message.DConnectResponseMessage;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.deviceconnect.profile.DConnectProfileConstants;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.IOException;
+import java.util.HashMap;
 
-import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
@@ -34,7 +33,7 @@ public class FailHTTPServerTest extends RESTfulDConnectTestCase {
     /**
      * {@link #testHTTPHeaderOver8KB()}のサービスID.
      */
-    private static final int VERY_LONG_SERVICE_ID_LENGTH = 10000;
+    private static final int VERY_LONG_SERVICE_ID_LENGTH = 8 * 1024;
 
     /**
      * HEADメソッドでHTTPサーバにアクセスする異常系テストを行う.
@@ -67,7 +66,7 @@ public class FailHTTPServerTest extends RESTfulDConnectTestCase {
      */
     @Test
     public void testHTTPHeaderOver8KB() throws IOException {
-        // HTTPヘッダのサイズを8KBにするために、10000文字のサービスIDを設定する
+        // HTTPヘッダのサイズを8KBにするために、8192文字のサービスIDを設定する
         StringBuilder serviceId = new StringBuilder();
         for (int i = 0; i < VERY_LONG_SERVICE_ID_LENGTH; i++) {
             serviceId.append("0");
@@ -78,10 +77,11 @@ public class FailHTTPServerTest extends RESTfulDConnectTestCase {
         builder.append("/battery");
         builder.append("?");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        builder.append("&");
-        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + serviceId.toString());
 
-        DConnectResponseMessage response = mDConnectSDK.get(builder.toString());
-        assertThat(response, is(notNullValue()));
+        HashMap<String, String> headers = new HashMap<>();
+        headers.put(DConnectProfileConstants.PARAM_SERVICE_ID, serviceId.toString());
+
+        byte[] buf = HttpUtil.connect("GET", builder.toString(), headers, null);
+        assertThat(buf, is(nullValue()));
     }
 }

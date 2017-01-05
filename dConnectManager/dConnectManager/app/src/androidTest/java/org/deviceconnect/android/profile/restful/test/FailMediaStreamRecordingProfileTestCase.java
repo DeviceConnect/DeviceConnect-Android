@@ -29,10 +29,8 @@ import static org.junit.Assert.assertThat;
 @RunWith(AndroidJUnit4.class)
 public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTestCase {
 
-    // TODO 説明がおかしい
-
     /**
-     * serviceIdを指定せずに再生コンテンツの変更要求を送信するテスト.
+     * serviceIdを指定せずにMediaRecorderの取得要求を送信するテスト.
      * <pre>
      * 【HTTP通信】
      * Method: GET
@@ -58,7 +56,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
     }
 
     /**
-     * serviceIdが空状態で再生コンテンツの変更要求を送信するテスト.
+     * serviceIdが空状態でMediaRecorderの取得要求を送信するテスト.
      * <pre>
      * 【HTTP通信】
      * Method: GET
@@ -85,7 +83,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
     }
 
     /**
-     * 存在しないserviceIdで再生コンテンツの変更要求を送信するテスト.
+     * 存在しないserviceIdでMediaRecorderの取得要求を送信するテスト.
      * <pre>
      * 【HTTP通信】
      * Method: GET
@@ -112,36 +110,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
     }
 
     /**
-     * serviceIdを2重に指定して再生コンテンツの変更要求を送信するテスト.
-     * <pre>
-     * 【HTTP通信】
-     * Method: GET
-     * Path: /mediaStreamRecording/mediaRecorder?serviceId=123456789&serviceId=xxx&mediaId=xxxx
-     * </pre>
-     * <pre>
-     * 【期待する動作】
-     * ・先に定義された属性が優先されること。
-     * ・resultに1が返ってくること。
-     * </pre>
-     */
-    @Test
-    public void testGetMediaRecorderDuplicatedServiceId() {
-        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
-        builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
-        builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_MEDIARECORDER);
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-
-        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
-        assertThat(response, is(notNullValue()));
-        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
-        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
-        assertThat(response.getErrorMessage(), is(notNullValue()));
-    }
-
-    /**
-     * メソッドにPOSTを指定して再生コンテンツの変更要求を送信するテスト.
+     * メソッドにPOSTを指定してMediaRecorderの取得要求を送信するテスト.
      * <pre>
      * 【HTTP通信】
      * Method: POST
@@ -168,7 +137,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
     }
 
     /**
-     * メソッドにPUTを指定して再生コンテンツの変更要求を送信するテスト.
+     * メソッドにPUTを指定してMediaRecorderの取得要求を送信するテスト.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
@@ -195,7 +164,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
     }
 
     /**
-     * メソッドにDELETEを指定して再生コンテンツの変更要求を送信するテスト.
+     * メソッドにDELETEを指定してMediaRecorderの取得要求を送信するテスト.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
@@ -222,7 +191,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
     }
 
     /**
-     * serviceIdを指定せずに再生コンテンツの変更要求を送信するテスト.
+     * serviceIdを指定せずに写真撮影要求を送信するテスト.
      * <pre>
      * 【HTTP通信】
      * Method: POST
@@ -248,7 +217,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
     }
 
     /**
-     * serviceIdが空状態で再生コンテンツの変更要求を送信するテスト.
+     * serviceIdが空状態で写真撮影要求を送信するテスト.
      * <pre>
      * 【HTTP通信】
      * Method: POST
@@ -275,7 +244,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
     }
 
     /**
-     * 存在しないserviceIdで再生コンテンツの変更要求を送信するテスト.
+     * 存在しないserviceIdで写真撮影要求を送信するテスト.
      * <pre>
      * 【HTTP通信】
      * Method: POST
@@ -302,36 +271,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
     }
 
     /**
-     * serviceIdを2重に指定して再生コンテンツの変更要求を送信するテスト.
-     * <pre>
-     * 【HTTP通信】
-     * Method: POST
-     * Path: /mediaStreamRecording/takePhoto?serviceId=123456789&serviceId=xxx&mediaId=xxxx
-     * </pre>
-     * <pre>
-     * 【期待する動作】
-     * ・先に定義された属性が優先されること。
-     * ・resultに1が返ってくること。
-     * </pre>
-     */
-    @Test
-    public void testPostTakePhotoDuplicatedServiceId() {
-        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
-        builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
-        builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_TAKE_PHOTO);
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-
-        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
-        assertThat(response, is(notNullValue()));
-        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
-        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
-        assertThat(response.getErrorMessage(), is(notNullValue()));
-    }
-
-    /**
-     * メソッドにGETを指定して再生コンテンツの変更要求を送信するテスト.
+     * メソッドにGETを指定して写真撮影要求を送信するテスト.
      * <pre>
      * 【HTTP通信】
      * Method: GET
@@ -358,7 +298,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
     }
 
     /**
-     * メソッドにPUTを指定して再生コンテンツの変更要求を送信するテスト.
+     * メソッドにPUTを指定して写真撮影要求を送信するテスト.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
@@ -385,7 +325,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
     }
 
     /**
-     * メソッドにDELETEを指定して再生コンテンツの変更要求を送信するテスト.
+     * メソッドにDELETEを指定して写真撮影要求を送信するテスト.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
@@ -412,7 +352,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
     }
 
     /**
-     * serviceIdを指定せずに再生コンテンツの変更要求を送信するテスト.
+     * serviceIdを指定せずにレコーディング開始要求を送信するテスト.
      * <pre>
      * 【HTTP通信】
      * Method: POST
@@ -438,7 +378,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
     }
 
     /**
-     * serviceIdが空状態で再生コンテンツの変更要求を送信するテスト.
+     * serviceIdが空状態でレコーディング開始要求を送信するテスト.
      * <pre>
      * 【HTTP通信】
      * Method: POST
@@ -465,7 +405,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
     }
 
     /**
-     * 存在しないserviceIdで再生コンテンツの変更要求を送信するテスト.
+     * 存在しないserviceIdでレコーディング開始要求を送信するテスト.
      * <pre>
      * 【HTTP通信】
      * Method: POST
@@ -492,36 +432,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
     }
 
     /**
-     * serviceIdを2重に指定して再生コンテンツの変更要求を送信するテスト.
-     * <pre>
-     * 【HTTP通信】
-     * Method: POST
-     * Path: /mediaStreamRecording/record?serviceId=123456789&serviceId=xxx
-     * </pre>
-     * <pre>
-     * 【期待する動作】
-     * ・先に定義された属性が優先されること。
-     * ・resultに1が返ってくること。
-     * </pre>
-     */
-    @Test
-    public void testPostRecordDuplicatedServiceId() {
-        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
-        builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
-        builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_RECORD);
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-
-        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
-        assertThat(response, is(notNullValue()));
-        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
-        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
-        assertThat(response.getErrorMessage(), is(notNullValue()));
-    }
-
-    /**
-     * メソッドにGETを指定して再生コンテンツの変更要求を送信するテスト.
+     * メソッドにGETを指定してレコーディング開始要求を送信するテスト.
      * <pre>
      * 【HTTP通信】
      * Method: GET
@@ -533,7 +444,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * </pre>
      */
     @Test
-    public void testRecordInvalidMethodPost() {
+    public void testRecordInvalidMethodGet() {
         DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_RECORD);
@@ -548,7 +459,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
     }
 
     /**
-     * メソッドにPUTを指定して再生コンテンツの変更要求を送信するテスト.
+     * メソッドにPUTを指定してレコーディング開始要求を送信するテスト.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
@@ -575,7 +486,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
     }
 
     /**
-     * メソッドにDELETEを指定して再生コンテンツの変更要求を送信するテスト.
+     * メソッドにDELETEを指定してレコーディング開始要求を送信するテスト.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
@@ -602,7 +513,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
     }
 
     /**
-     * serviceIdを指定せずに再生コンテンツの変更要求を送信するテスト.
+     * serviceIdを指定せずにレコーディング一時停止要求を送信するテスト.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
@@ -628,7 +539,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
     }
 
     /**
-     * serviceIdが空状態で再生コンテンツの変更要求を送信するテスト.
+     * serviceIdが空状態でレコーディング一時停止要求を送信するテスト.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
@@ -655,7 +566,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
     }
 
     /**
-     * 存在しないserviceIdで再生コンテンツの変更要求を送信するテスト.
+     * 存在しないserviceIdでレコーディング一時停止要求を送信するテスト.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
@@ -682,36 +593,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
     }
 
     /**
-     * serviceIdを2重に指定して再生コンテンツの変更要求を送信するテスト.
-     * <pre>
-     * 【HTTP通信】
-     * Method: PUT
-     * Path: /mediaStreamRecording/pause?serviceId=123456789&serviceId=xxx
-     * </pre>
-     * <pre>
-     * 【期待する動作】
-     * ・先に定義された属性が優先されること。
-     * ・resultに1が返ってくること。
-     * </pre>
-     */
-    @Test
-    public void testPutPauseDuplicatedServiceId() {
-        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
-        builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
-        builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_PAUSE);
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-
-        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
-        assertThat(response, is(notNullValue()));
-        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
-        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
-        assertThat(response.getErrorMessage(), is(notNullValue()));
-    }
-
-    /**
-     * メソッドにGETを指定して再生コンテンツの変更要求を送信するテスト.
+     * メソッドにGETを指定してレコーディング一時停止要求を送信するテスト.
      * <pre>
      * 【HTTP通信】
      * Method: GET
@@ -738,7 +620,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
     }
 
     /**
-     * メソッドにPOSTを指定して再生コンテンツの変更要求を送信するテスト.
+     * メソッドにPOSTを指定してレコーディング一時停止要求を送信するテスト.
      * <pre>
      * 【HTTP通信】
      * Method: POST
@@ -765,7 +647,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
     }
 
     /**
-     * メソッドにDELETEを指定して再生コンテンツの変更要求を送信するテスト.
+     * メソッドにDELETEを指定してレコーディング一時停止要求を送信するテスト.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
@@ -792,7 +674,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
     }
 
     /**
-     * serviceIdを指定せずに再生コンテンツの変更要求を送信するテスト.
+     * serviceIdを指定せずにレコーディング再開要求を送信するテスト.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
@@ -818,7 +700,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
     }
 
     /**
-     * serviceIdが空状態で再生コンテンツの変更要求を送信するテスト.
+     * serviceIdが空状態でレコーディング再開要求を送信するテスト.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
@@ -845,7 +727,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
     }
 
     /**
-     * 存在しないserviceIdで再生コンテンツの変更要求を送信するテスト.
+     * 存在しないserviceIdでレコーディング再開要求を送信するテスト.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
@@ -872,36 +754,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
     }
 
     /**
-     * serviceIdを2重に指定して再生コンテンツの変更要求を送信するテスト.
-     * <pre>
-     * 【HTTP通信】
-     * Method: PUT
-     * Path: /mediaStreamRecording/resume?serviceId=123456789&serviceId=xxx&mediaId=xxxx
-     * </pre>
-     * <pre>
-     * 【期待する動作】
-     * ・先に定義された属性が優先されること。
-     * ・resultに1が返ってくること。
-     * </pre>
-     */
-    @Test
-    public void testPutResumeDuplicatedServiceId() {
-        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
-        builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
-        builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_RESUME);
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-
-        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
-        assertThat(response, is(notNullValue()));
-        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
-        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
-        assertThat(response.getErrorMessage(), is(notNullValue()));
-    }
-
-    /**
-     * メソッドにGETを指定して再生コンテンツの変更要求を送信するテスト.
+     * メソッドにGETを指定してレコーディング再開要求を送信するテスト.
      * <pre>
      * 【HTTP通信】
      * Method: GET
@@ -928,7 +781,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
     }
 
     /**
-     * メソッドにPOSTを指定して再生コンテンツの変更要求を送信するテスト.
+     * メソッドにPOSTを指定してレコーディング再開要求を送信するテスト.
      * <pre>
      * 【HTTP通信】
      * Method: POST
@@ -955,7 +808,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
     }
 
     /**
-     * メソッドにDELETEを指定して再生コンテンツの変更要求を送信するテスト.
+     * メソッドにDELETEを指定してレコーディング再開要求を送信するテスト.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
@@ -982,7 +835,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
     }
 
     /**
-     * serviceIdを指定せずに再生コンテンツの変更要求を送信するテスト.
+     * serviceIdを指定せずにレコーディング停止要求を送信するテスト.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
@@ -1008,7 +861,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
     }
 
     /**
-     * serviceIdが空状態で再生コンテンツの変更要求を送信するテスト.
+     * serviceIdが空状態でレコーディング停止要求を送信するテスト.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
@@ -1035,7 +888,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
     }
 
     /**
-     * 存在しないserviceIdで再生コンテンツの変更要求を送信するテスト.
+     * 存在しないserviceIdでレコーディング停止要求を送信するテスト.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
@@ -1062,36 +915,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
     }
 
     /**
-     * serviceIdを2重に指定して再生コンテンツの変更要求を送信するテスト.
-     * <pre>
-     * 【HTTP通信】
-     * Method: PUT
-     * Path: /mediaStreamRecording/stop?serviceId=123456789&serviceId=xxx
-     * </pre>
-     * <pre>
-     * 【期待する動作】
-     * ・先に定義された属性が優先されること。
-     * ・resultに1が返ってくること。
-     * </pre>
-     */
-    @Test
-    public void testPutStopDuplicatedServiceId() {
-        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
-        builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
-        builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_STOP);
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-
-        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
-        assertThat(response, is(notNullValue()));
-        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
-        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
-        assertThat(response.getErrorMessage(), is(notNullValue()));
-    }
-
-    /**
-     * メソッドにGETを指定して再生コンテンツの変更要求を送信するテスト.
+     * メソッドにGETを指定してレコーディング停止要求を送信するテスト.
      * <pre>
      * 【HTTP通信】
      * Method: GET
@@ -1118,7 +942,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
     }
 
     /**
-     * メソッドにPOSTを指定して再生コンテンツの変更要求を送信するテスト.
+     * メソッドにPOSTを指定してレコーディング停止要求を送信するテスト.
      * <pre>
      * 【HTTP通信】
      * Method: POST
@@ -1145,7 +969,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
     }
 
     /**
-     * メソッドにDELETEを指定して再生コンテンツの変更要求を送信するテスト.
+     * メソッドにDELETEを指定してレコーディング停止要求を送信するテスト.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
@@ -1172,7 +996,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
     }
 
     /**
-     * serviceIdを指定せずに再生コンテンツの変更要求を送信するテスト.
+     * serviceIdを指定せずに設定パラメータ取得要求を送信するテスト.
      * <pre>
      * 【HTTP通信】
      * Method: GET
@@ -1198,7 +1022,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
     }
 
     /**
-     * serviceIdが空状態で再生コンテンツの変更要求を送信するテスト.
+     * serviceIdが空状態で設定パラメータ取得要求を送信するテスト.
      * <pre>
      * 【HTTP通信】
      * Method: GET
@@ -1225,7 +1049,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
     }
 
     /**
-     * 存在しないserviceIdで再生コンテンツの変更要求を送信するテスト.
+     * 存在しないserviceIdで設定パラメータ取得要求を送信するテスト.
      * <pre>
      * 【HTTP通信】
      * Method: GET
@@ -1252,36 +1076,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
     }
 
     /**
-     * serviceIdを2重に指定して再生コンテンツの変更要求を送信するテスト.
-     * <pre>
-     * 【HTTP通信】
-     * Method: GET
-     * Path: /mediaStreamRecording/options?serviceId=123456789&serviceId=xxx
-     * </pre>
-     * <pre>
-     * 【期待する動作】
-     * ・先に定義された属性が優先されること。
-     * ・resultに1が返ってくること。
-     * </pre>
-     */
-    @Test
-    public void testGetOptionsDuplicatedServiceId() {
-        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
-        builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
-        builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_OPTIONS);
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-
-        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
-        assertThat(response, is(notNullValue()));
-        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
-        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
-        assertThat(response.getErrorMessage(), is(notNullValue()));
-    }
-
-    /**
-     * メソッドにPOSTを指定して再生コンテンツの変更要求を送信するテスト.
+     * メソッドにPOSTを指定して設定パラメータ取得要求を送信するテスト.
      * <pre>
      * 【HTTP通信】
      * Method: POST
@@ -1308,7 +1103,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
     }
 
     /**
-     * メソッドにDELETEを指定して再生コンテンツの変更要求を送信するテスト.
+     * メソッドにDELETEを指定して設定パラメータ取得要求を送信するテスト.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
@@ -1415,35 +1210,6 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
     }
 
     /**
-     * serviceIdを2重に指定してonPhoto属性のコールバック解除テストを行う.
-     * <pre>
-     * 【HTTP通信】
-     * Method: PUT
-     * Path: /mediaStreamRecording/onPhoto?serviceId=123456789&serviceId=xxx
-     * </pre>
-     * <pre>
-     * 【期待する動作】
-     * ・先に定義された属性が優先されること。
-     * ・resultに1が返ってくること。
-     * </pre>
-     */
-    @Test
-    public void testPutOnPhotoDuplicatedServiceId() {
-        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
-        builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
-        builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_PHOTO);
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-        builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-
-        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
-        assertThat(response, is(notNullValue()));
-        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
-        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
-        assertThat(response.getErrorMessage(), is(notNullValue()));
-    }
-
-    /**
      * serviceIdが無い状態でonPhoto属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
@@ -1514,35 +1280,6 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_PHOTO);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-
-        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
-        assertThat(response, is(notNullValue()));
-        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
-        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
-        assertThat(response.getErrorMessage(), is(notNullValue()));
-    }
-
-    /**
-     * serviceIdを2重に指定してonPhoto属性のコールバック解除テストを行う.
-     * <pre>
-     * 【HTTP通信】
-     * Method: DELETE
-     * Path: /mediaStreamRecording/onPhoto?serviceId=123456789&serviceId=xxx
-     * </pre>
-     * <pre>
-     * 【期待する動作】
-     * ・先に定義された属性が優先されること。
-     * ・resultに1が返ってくること。
-     * </pre>
-     */
-    @Test
-    public void testDeleteOnPhotoDuplicatedServiceId() {
-        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
-        builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
-        builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_PHOTO);
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
 
         DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
@@ -1660,35 +1397,6 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
     }
 
     /**
-     * serviceIdを2重に指定してonRecordingChange属性のコールバック解除テストを行う.
-     * <pre>
-     * 【HTTP通信】
-     * Method: PUT
-     * Path: /mediaStreamRecording/onRecordingChange?serviceId=123456789&serviceId=xxx
-     * </pre>
-     * <pre>
-     * 【期待する動作】
-     * ・先に定義された属性が優先されること。
-     * ・resultに1が返ってくること。
-     * </pre>
-     */
-    @Test
-    public void testPutOnRecordingChangeDuplicatedServiceId() {
-        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
-        builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
-        builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_RECORDING_CHANGE);
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-        builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-
-        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
-        assertThat(response, is(notNullValue()));
-        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
-        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
-        assertThat(response.getErrorMessage(), is(notNullValue()));
-    }
-
-    /**
      * serviceIdが無い状態でonRecordingChange属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
@@ -1759,35 +1467,6 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_RECORDING_CHANGE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-
-        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
-        assertThat(response, is(notNullValue()));
-        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
-        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
-        assertThat(response.getErrorMessage(), is(notNullValue()));
-    }
-
-    /**
-     * serviceIdを2重に指定してonRecordingChange属性のコールバック解除テストを行う.
-     * <pre>
-     * 【HTTP通信】
-     * Method: DELETE
-     * Path: /mediaStreamRecording/onRecordingChange?serviceId=123456789&serviceId=xxx
-     * </pre>
-     * <pre>
-     * 【期待する動作】
-     * ・先に定義された属性が優先されること。
-     * ・resultに1が返ってくること。
-     * </pre>
-     */
-    @Test
-    public void testDeleteOnRecordingChangeDuplicatedServiceId() {
-        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
-        builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
-        builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_RECORDING_CHANGE);
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
 
         DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
@@ -1905,35 +1584,6 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
     }
 
     /**
-     * serviceIdを2重に指定してonDataAvailable属性のコールバック解除テストを行う.
-     * <pre>
-     * 【HTTP通信】
-     * Method: PUT
-     * Path: /mediaStreamRecording/onDataAvailable?serviceId=123456789&serviceId=xxx
-     * </pre>
-     * <pre>
-     * 【期待する動作】
-     * ・先に定義された属性が優先されること。
-     * ・resultに1が返ってくること。
-     * </pre>
-     */
-    @Test
-    public void testPutOnDataAvailableDuplicatedServiceId() {
-        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
-        builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
-        builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_RECORDING_CHANGE);
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-        builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-
-        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
-        assertThat(response, is(notNullValue()));
-        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
-        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
-        assertThat(response.getErrorMessage(), is(notNullValue()));
-    }
-
-    /**
      * serviceIdが無い状態でonDataAvailable属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
@@ -2004,35 +1654,6 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_RECORDING_CHANGE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-
-        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
-        assertThat(response, is(notNullValue()));
-        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
-        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
-        assertThat(response.getErrorMessage(), is(notNullValue()));
-    }
-
-    /**
-     * serviceIdを2重に指定してonDataAvailable属性のコールバック解除テストを行う.
-     * <pre>
-     * 【HTTP通信】
-     * Method: DELETE
-     * Path: /mediaStreamRecording/onDataAvailable?serviceId=123456789&serviceId=xxx
-     * </pre>
-     * <pre>
-     * 【期待する動作】
-     * ・先に定義された属性が優先されること。
-     * ・resultに1が返ってくること。
-     * </pre>
-     */
-    @Test
-    public void testDeleteOnDataAvailableDuplicatedServiceId() {
-        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
-        builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
-        builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_RECORDING_CHANGE);
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
 
         DConnectResponseMessage response = mDConnectSDK.delete(builder.build());

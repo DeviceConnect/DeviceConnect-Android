@@ -116,36 +116,6 @@ public class FailPhoneProfileTestCase extends RESTfulDConnectTestCase
     }
 
     /**
-     * serviceIdを2重に指定して通話発信要求を送信するテストを行う.
-     * <pre>
-     * 【HTTP通信】
-     * Method: POST
-     * Path: /phone/call?serviceId=123456789&serviceId=xxx&phoneNumber=xxxx
-     * </pre>
-     * <pre>
-     * 【期待する動作】
-     * ・先に定義された属性が優先されること。
-     * ・resultに1が返ってくること。
-     * </pre>
-     */
-    @Test
-    public void testPostCallDuplicatedServiceId() {
-        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
-        builder.setProfile(PhoneProfileConstants.PROFILE_NAME);
-        builder.setAttribute(PhoneProfileConstants.ATTRIBUTE_CALL);
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-        builder.addParameter(PhoneProfileConstants.PARAM_PHONE_NUMBER, PHONE_NUMBER);
-
-        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
-        assertThat(response, is(notNullValue()));
-        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
-        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
-        assertThat(response.getErrorMessage(), is(notNullValue()));
-    }
-
-    /**
      * phoneNumberを指定せずに通話発信要求を送信するテストを行う.
      * <pre>
      * 【HTTP通信】
@@ -330,36 +300,6 @@ public class FailPhoneProfileTestCase extends RESTfulDConnectTestCase
         builder.setAttribute(PhoneProfileConstants.ATTRIBUTE_CALL);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(PhoneProfileConstants.PARAM_MODE, String.valueOf(MODE));
-
-        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
-        assertThat(response, is(notNullValue()));
-        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
-        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
-        assertThat(response.getErrorMessage(), is(notNullValue()));
-    }
-
-    /**
-     * serviceIdを2重に指定して電話設定要求を送信するテストを行う.
-     * <pre>
-     * 【HTTP通信】
-     * Method: PUT
-     * Path: /phone/call?serviceId=123456789&serviceId=xxx&phoneNumber=xxxx
-     * </pre>
-     * <pre>
-     * 【期待する動作】
-     * ・先に定義された属性が優先されること。
-     * ・resultに1が返ってくること。
-     * </pre>
-     */
-    @Test
-    public void testPutSetDuplicatedServiceId() {
-        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
-        builder.setProfile(PhoneProfileConstants.PROFILE_NAME);
-        builder.setAttribute(PhoneProfileConstants.ATTRIBUTE_CALL);
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(PhoneProfileConstants.PARAM_MODE, String.valueOf(MODE));
 
         DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
@@ -561,35 +501,6 @@ public class FailPhoneProfileTestCase extends RESTfulDConnectTestCase
     }
 
     /**
-     * serviceIdを2重に指定してonConnect属性のコールバック解除テストを行う.
-     * <pre>
-     * 【HTTP通信】
-     * Method: PUT
-     * Path: /phone/onConnect?serviceId=123456789&serviceId=xxx&
-     * </pre>
-     * <pre>
-     * 【期待する動作】
-     * ・先に定義された属性が優先されること。
-     * ・resultに1が返ってくること。
-     * </pre>
-     */
-    @Test
-    public void testPutOnConnectDuplicatedServiceId() {
-        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
-        builder.setProfile(PhoneProfileConstants.PROFILE_NAME);
-        builder.setAttribute(PhoneProfileConstants.ATTRIBUTE_ON_CONNECT);
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-        builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-
-        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
-        assertThat(response, is(notNullValue()));
-        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
-        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
-        assertThat(response.getErrorMessage(), is(notNullValue()));
-    }
-
-    /**
      * serviceIdが無い状態でonConnect属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
@@ -660,35 +571,6 @@ public class FailPhoneProfileTestCase extends RESTfulDConnectTestCase
         builder.setProfile(PhoneProfileConstants.PROFILE_NAME);
         builder.setAttribute(PhoneProfileConstants.ATTRIBUTE_ON_CONNECT);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-
-        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
-        assertThat(response, is(notNullValue()));
-        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
-        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
-        assertThat(response.getErrorMessage(), is(notNullValue()));
-    }
-
-    /**
-     * serviceIdを2重に指定してonConnect属性のコールバック解除テストを行う.
-     * <pre>
-     * 【HTTP通信】
-     * Method: DELETE
-     * Path: /phone/onConnect?serviceId=123456789&serviceId=xxx&
-     * </pre>
-     * <pre>
-     * 【期待する動作】
-     * ・先に定義された属性が優先されること。
-     * ・resultに1が返ってくること。
-     * </pre>
-     */
-    @Test
-    public void testDeleteOnConnectDuplicatedServiceId() {
-        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
-        builder.setProfile(PhoneProfileConstants.PROFILE_NAME);
-        builder.setAttribute(PhoneProfileConstants.ATTRIBUTE_ON_CONNECT);
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
 
         DConnectResponseMessage response = mDConnectSDK.delete(builder.build());

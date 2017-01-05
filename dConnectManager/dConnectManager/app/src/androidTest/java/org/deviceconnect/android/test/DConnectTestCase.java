@@ -271,6 +271,7 @@ public abstract class DConnectTestCase extends AndroidTestCase {
     @Before
     public void setUp() throws Exception {
         setContext(InstrumentationRegistry.getContext());
+        mDConnectSDK.setOrigin(getOrigin());
         waitForManager();
         if (isLocalOAuth()) {
             // アクセストークン取得
@@ -281,7 +282,6 @@ public abstract class DConnectTestCase extends AndroidTestCase {
             if (mDConnectSDK != null) {
                 mDConnectSDK.setAccessToken(sAccessToken);
             }
-            Thread.sleep(2000);
         }
 
         if (isSearchServices()) {

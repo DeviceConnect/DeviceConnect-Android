@@ -115,10 +115,6 @@ public class FailBatteryProfileTestCase extends RESTfulDConnectTestCase {
      * 【期待する動作】
      * ・定義にない属性は無視されること。
      * ・resultが0で返ってくること。
-     * ・chargingがfalseで返ってくること。
-     * ・chargingTimeが50000で返ってくること。
-     * ・dischargingTimeが10000で返ってくること。
-     * ・levelが0.5で返ってくること。
      * </pre>
      */
     @Test
@@ -132,37 +128,6 @@ public class FailBatteryProfileTestCase extends RESTfulDConnectTestCase {
         DConnectResponseMessage response = mDConnectSDK.get(builder.build());
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
-        assertThat(response.getBoolean(BatteryProfile.PARAM_CHARGING), is(false));
-        assertThat(response.getInt(BatteryProfile.PARAM_CHARGING_TIME), is(50000));
-        assertThat(response.getInt(BatteryProfile.PARAM_DISCHARGING_TIME), is(10000));
-        assertThat(response.getFloat(BatteryProfile.PARAM_LEVEL), is(0.5f));
-    }
-
-    /**
-     * serviceIdを2重に指定してバッテリー全属性取得テストを行う.
-     * <pre>
-     * 【HTTP通信】
-     * Method: GET
-     * Path: /battery?serviceId=123456789&serviceId=xxx
-     * </pre>
-     * <pre>
-     * 【期待する動作】
-     * ・先に定義された属性が優先されること。
-     * ・resultに1が返ってくること。
-     * </pre>
-     */
-    @Test
-    public void testGetBatteryDuplicatedServiceId() {
-        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
-        builder.setProfile(BatteryProfileConstants.PROFILE_NAME);
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-
-        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
-        assertThat(response, is(notNullValue()));
-        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
-        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
     }
 
     /**
@@ -347,34 +312,6 @@ public class FailBatteryProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * serviceIdを2重に指定してcharging属性取得テストを行う.
-     * <pre>
-     * 【HTTP通信】
-     * Method: GET
-     * Path: /battery/charging?serviceId=123456789&serviceId=xxx
-     * </pre>
-     * <pre>
-     * 【期待する動作】
-     * ・先に定義された属性が優先されること。
-     * ・resultに1が返ってくること。
-     * </pre>
-     */
-    @Test
-    public void testGetBatteryChargingDuplicatedServiceId() {
-        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
-        builder.setProfile(BatteryProfileConstants.PROFILE_NAME);
-        builder.setAttribute(BatteryProfileConstants.ATTRIBUTE_CHARGING);
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-
-        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
-        assertThat(response, is(notNullValue()));
-        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
-        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
-    }
-
-    /**
      * メソッドにPOSTを指定してcharging属性取得テストを行う.
      * <pre>
      * 【HTTP通信】
@@ -555,35 +492,6 @@ public class FailBatteryProfileTestCase extends RESTfulDConnectTestCase {
         DConnectResponseMessage response = mDConnectSDK.get(builder.build());
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
-        assertThat(response.getInt(BatteryProfile.PARAM_CHARGING_TIME), is(50000));
-    }
-
-    /**
-     * serviceIdを2重に指定してchargingTime属性取得テストを行う.
-     * <pre>
-     * 【HTTP通信】
-     * Method: GET
-     * Path: /battery/chargingTime?serviceId=123456789&serviceId=xxx
-     * </pre>
-     * <pre>
-     * 【期待する動作】
-     * ・先に定義された属性が優先されること。
-     * ・resultに1が返ってくること。
-     * </pre>
-     */
-    @Test
-    public void testGetBatteryChargingTimeDuplicatedServiceId() {
-        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
-        builder.setProfile(BatteryProfileConstants.PROFILE_NAME);
-        builder.setAttribute(BatteryProfileConstants.ATTRIBUTE_CHARGING_TIME);
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-
-        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
-        assertThat(response, is(notNullValue()));
-        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
-        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
     }
 
     /**
@@ -767,35 +675,6 @@ public class FailBatteryProfileTestCase extends RESTfulDConnectTestCase {
         DConnectResponseMessage response = mDConnectSDK.get(builder.build());
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
-        assertThat(response.getInt(BatteryProfile.PARAM_DISCHARGING_TIME), is(10000));
-    }
-
-    /**
-     * serviceIdを2重に指定してdischargingTime属性取得テストを行う.
-     * <pre>
-     * 【HTTP通信】
-     * Method: GET
-     * Path: /battery/dischargingTime?serviceId=123456789&serviceId=xxx
-     * </pre>
-     * <pre>
-     * 【期待する動作】
-     * ・先に定義された属性が優先されること。
-     * ・resultに1が返ってくること。
-     * </pre>
-     */
-    @Test
-    public void testGetBatteryDischargingTimeDuplicatedServiceId() {
-        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
-        builder.setProfile(BatteryProfileConstants.PROFILE_NAME);
-        builder.setAttribute(BatteryProfileConstants.ATTRIBUTE_DISCHARGING_TIME);
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-
-        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
-        assertThat(response, is(notNullValue()));
-        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
-        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
     }
 
     /**
@@ -820,7 +699,7 @@ public class FailBatteryProfileTestCase extends RESTfulDConnectTestCase {
 
         DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
         assertThat(response, is(notNullValue()));
-        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
         assertThat(response.getErrorCode(), is(ErrorCode.NOT_SUPPORT_ACTION.getCode()));
     }
 
@@ -846,7 +725,7 @@ public class FailBatteryProfileTestCase extends RESTfulDConnectTestCase {
 
         DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
         assertThat(response, is(notNullValue()));
-        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
         assertThat(response.getErrorCode(), is(ErrorCode.NOT_SUPPORT_ACTION.getCode()));
     }
 
@@ -872,7 +751,7 @@ public class FailBatteryProfileTestCase extends RESTfulDConnectTestCase {
 
         DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
         assertThat(response, is(notNullValue()));
-        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
         assertThat(response.getErrorCode(), is(ErrorCode.NOT_SUPPORT_ACTION.getCode()));
     }
 
@@ -897,7 +776,7 @@ public class FailBatteryProfileTestCase extends RESTfulDConnectTestCase {
 
         DConnectResponseMessage response = mDConnectSDK.get(builder.build());
         assertThat(response, is(notNullValue()));
-        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
         assertThat(response.getErrorCode(), is(ErrorCode.EMPTY_SERVICE_ID.getCode()));
     }
 
@@ -923,7 +802,7 @@ public class FailBatteryProfileTestCase extends RESTfulDConnectTestCase {
 
         DConnectResponseMessage response = mDConnectSDK.get(builder.build());
         assertThat(response, is(notNullValue()));
-        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
         assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
     }
 
@@ -949,7 +828,7 @@ public class FailBatteryProfileTestCase extends RESTfulDConnectTestCase {
 
         DConnectResponseMessage response = mDConnectSDK.get(builder.build());
         assertThat(response, is(notNullValue()));
-        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
         assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
     }
 
@@ -979,35 +858,6 @@ public class FailBatteryProfileTestCase extends RESTfulDConnectTestCase {
         DConnectResponseMessage response = mDConnectSDK.get(builder.build());
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
-        assertThat(response.getFloat(BatteryProfile.PARAM_LEVEL), is(0.5f));
-    }
-
-    /**
-     * serviceIdを2重に指定してlevel属性取得テストを行う.
-     * <pre>
-     * 【HTTP通信】
-     * Method: GET
-     * Path: /battery/level?serviceId=123456789&serviceId=xxx
-     * </pre>
-     * <pre>
-     * 【期待する動作】
-     * ・先に定義された属性が優先されること。
-     * ・resultに1が返ってくること。
-     * </pre>
-     */
-    @Test
-    public void testGetBatteryLevelDuplicatedServiceId() {
-        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
-        builder.setProfile(BatteryProfileConstants.PROFILE_NAME);
-        builder.setAttribute(BatteryProfileConstants.ATTRIBUTE_LEVEL);
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-
-        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
-        assertThat(response, is(notNullValue()));
-        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
-        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
     }
 
     /**
@@ -1193,34 +1043,6 @@ public class FailBatteryProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * serviceIdを2重に指定してonChargingChange属性取得テストを行う.
-     * <pre>
-     * 【HTTP通信】
-     * Method: PUT
-     * Path: /battery/onChargingChange?serviceId=123456789&serviceId=xxx
-     * </pre>
-     * <pre>
-     * 【期待する動作】
-     * ・先に定義された属性が優先されること。
-     * ・resultに1が返ってくること。
-     * </pre>
-     */
-    @Test
-    public void testPutBatteryOnChargingChangeDuplicatedServiceId() {
-        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
-        builder.setProfile(BatteryProfileConstants.PROFILE_NAME);
-        builder.setAttribute(BatteryProfileConstants.ATTRIBUTE_ON_CHARGING_CHANGE);
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-
-        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
-        assertThat(response, is(notNullValue()));
-        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
-        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
-    }
-
-    /**
      * serviceIdが無い状態でonChargingChange属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
@@ -1342,8 +1164,8 @@ public class FailBatteryProfileTestCase extends RESTfulDConnectTestCase {
         DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(BatteryProfileConstants.PROFILE_NAME);
         builder.setAttribute(BatteryProfileConstants.ATTRIBUTE_ON_CHARGING_CHANGE);
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
 
         DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
@@ -1483,34 +1305,6 @@ public class FailBatteryProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * serviceIdを2重に指定してonBatteryChange属性取得テストを行う.
-     * <pre>
-     * 【HTTP通信】
-     * Method: PUT
-     * Path: /battery/onBatteryChange?serviceId=123456789&serviceId=xxx
-     * </pre>
-     * <pre>
-     * 【期待する動作】
-     * ・先に定義された属性が優先されること。
-     * ・resultに1が返ってくること。
-     * </pre>
-     */
-    @Test
-    public void testPutBatteryOnBatteryChangeDuplicatedServiceId() {
-        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
-        builder.setProfile(BatteryProfileConstants.PROFILE_NAME);
-        builder.setAttribute(BatteryProfileConstants.ATTRIBUTE_ON_BATTERY_CHANGE);
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-
-        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
-        assertThat(response, is(notNullValue()));
-        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
-        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
-    }
-
-    /**
      * serviceIdが無い状態でonChargingTimeChange属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
@@ -1612,34 +1406,6 @@ public class FailBatteryProfileTestCase extends RESTfulDConnectTestCase {
         DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
-    }
-
-    /**
-     * serviceIdを2重に指定してonBatteryChange属性のコールバック解除テストを行う.
-     * <pre>
-     * 【HTTP通信】
-     * Method: DELETE
-     * Path: /battery/onBatteryChange?serviceId=123456789&serviceId=xxx
-     * </pre>
-     * <pre>
-     * 【期待する動作】
-     * ・先に定義された属性が優先されること。
-     * ・resultに1が返ってくること。
-     * </pre>
-     */
-    @Test
-    public void testDeleteBatteryOnBatteryChangeDuplicatedServiceId() {
-        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
-        builder.setProfile(BatteryProfileConstants.PROFILE_NAME);
-        builder.setAttribute(BatteryProfileConstants.ATTRIBUTE_ON_BATTERY_CHANGE);
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-
-        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
-        assertThat(response, is(notNullValue()));
-        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
-        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
     }
 
     /**

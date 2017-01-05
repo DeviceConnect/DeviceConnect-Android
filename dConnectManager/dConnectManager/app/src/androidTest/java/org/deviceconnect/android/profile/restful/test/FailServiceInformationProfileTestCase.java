@@ -30,7 +30,7 @@ import static org.junit.Assert.assertThat;
 @RunWith(AndroidJUnit4.class)
 public class FailServiceInformationProfileTestCase extends RESTfulDConnectTestCase {
     /**
-     * serviceIdを指定せずにデバイスのシステムプロファイルを取得する.
+     * serviceIdを指定せずにサービス情報を取得する.
      * <pre>
      * 【HTTP通信】
      * Method: GET
@@ -55,7 +55,7 @@ public class FailServiceInformationProfileTestCase extends RESTfulDConnectTestCa
     }
 
     /**
-     * serviceIdに空文字を指定してデバイスのシステムプロファイルを取得する.
+     * serviceIdに空文字を指定してサービス情報を取得する.
      * <pre>
      * 【HTTP通信】
      * Method: GET
@@ -81,7 +81,7 @@ public class FailServiceInformationProfileTestCase extends RESTfulDConnectTestCa
     }
 
     /**
-     * 存在しないserviceIdを指定してデバイスのシステムプロファイルを取得する.
+     * 存在しないserviceIdを指定してサービス情報を取得する.
      * <pre>
      * 【HTTP通信】
      * Method: GET
@@ -107,7 +107,7 @@ public class FailServiceInformationProfileTestCase extends RESTfulDConnectTestCa
     }
 
     /**
-     * 未定義のパラメータを指定してデバイスのシステムプロファイルを取得する.
+     * 未定義のパラメータを指定してサービス情報を取得する.
      * <pre>
      * 【HTTP通信】
      * Method: GET
@@ -133,35 +133,7 @@ public class FailServiceInformationProfileTestCase extends RESTfulDConnectTestCa
     }
 
     /**
-     * serviceIdを2重に指定してデバイスのシステムプロファイルを取得する.
-     * <pre>
-     * 【HTTP通信】
-     * Method: GET
-     * Path: /serviceInformation?serviceId=xxxx
-     * </pre>
-     * <pre>
-     * 【期待する動作】
-     * ・先に定義された属性が優先されること。
-     * ・resultに1が返ってくること。
-     * </pre>
-     */
-    @Test
-    public void testGetServiceInformationDuplicatedServiceId() {
-        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
-        builder.setProfile(ServiceInformationProfileConstants.PROFILE_NAME);
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-
-        DConnectResponseMessage response = mDConnectSDK.get(builder.toString());
-        assertThat(response, is(notNullValue()));
-        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
-        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
-        assertThat(response.getErrorMessage(), is(notNullValue()));
-    }
-
-    /**
-     * POSTメソッドでデバイスのシステムプロファイルを取得する.
+     * POSTメソッドでサービス情報を取得する.
      * <pre>
      * 【HTTP通信】
      * Method: POST
@@ -187,7 +159,7 @@ public class FailServiceInformationProfileTestCase extends RESTfulDConnectTestCa
     }
 
     /**
-     * PUTメソッドでデバイスのシステムプロファイルを取得する.
+     * PUTメソッドでサービス情報を取得する.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
@@ -213,7 +185,7 @@ public class FailServiceInformationProfileTestCase extends RESTfulDConnectTestCa
     }
 
     /**
-     * DELETEメソッドでデバイスのシステムプロファイルを取得する.
+     * DELETEメソッドでサービス情報を取得する.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE

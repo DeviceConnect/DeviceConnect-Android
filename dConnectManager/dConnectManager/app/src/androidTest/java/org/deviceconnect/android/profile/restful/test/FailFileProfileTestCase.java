@@ -143,35 +143,6 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * serviceIdを2重に指定してファイル一覧取得テストを行う.
-     * <pre>
-     * 【HTTP通信】
-     * Method: GET
-     * Path: /file/list?serviceId=123456789&serviceId=xxx
-     * </pre>
-     * <pre>
-     * 【期待する動作】
-     * ・先に定義された属性が優先されること。
-     * ・resultに1が返ってくること。
-     * </pre>
-     */
-    @Test
-    public void testGetListDuplicatedServiceId() {
-        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
-        builder.setProfile(FileProfileConstants.PROFILE_NAME);
-        builder.setAttribute(FileProfileConstants.ATTRIBUTE_LIST);
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-
-        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
-        assertThat(response, is(notNullValue()));
-        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
-        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
-        assertThat(response.getErrorMessage(), is(notNullValue()));
-    }
-
-    /**
      * メソッドにPOSTを指定してファイル一覧取得テストを行う.
      * <pre>
      * 【HTTP通信】
@@ -365,37 +336,6 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
         DConnectResponseMessage response = mDConnectSDK.get(builder.build());
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
-    }
-
-    /**
-     * serviceIdを2重に指定してファイル受信テストを行う.
-     * <pre>
-     * 【HTTP通信】
-     * Method: GET
-     * Path: /file/receive?serviceId=123456789&serviceId=xxx&path=xxxx
-     * </pre>
-     * <pre>
-     * 【期待する動作】
-     * ・先に定義された属性が優先されること。
-     * ・resultに1が返ってくること。
-     * </pre>
-     */
-    @Test
-    public void testGetReceiveDuplicatedServiceId() {
-        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
-        builder.setProfile(FileProfileConstants.PROFILE_NAME);
-        builder.setAttribute(FileProfileConstants.ATTRIBUTE_RECEIVE);
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-        builder.addParameter(FileProfileConstants.PARAM_PATH,
-                TestFileProfileConstants.PATH);
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-
-        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
-        assertThat(response, is(notNullValue()));
-        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
-        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
-        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -662,45 +602,6 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * serviceIdを2重に指定してファイル送信テストを行う.
-     * <pre>
-     * 【HTTP通信】
-     * Method: GET
-     * Path: /file/send?serviceId=123456789&serviceId=xxx&path=xxxx
-     * </pre>
-     * <pre>
-     * 【期待する動作】
-     * ・先に定義された属性が優先されること。
-     * ・resultに1が返ってくること。
-     * </pre>
-     */
-    @Test
-    public void testPostSendDuplicatedServiceId() {
-        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
-        builder.setProfile(FileProfileConstants.PROFILE_NAME);
-        builder.setAttribute(FileProfileConstants.ATTRIBUTE_SEND);
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-        builder.addParameter(FileProfileConstants.PARAM_PATH,
-                TestFileProfileConstants.PATH);
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-
-        String name = "test.png";
-        byte[] data = getBytesFromAssets(name);
-        if (data == null) {
-            fail("Cannot find the file." + name);
-        }
-        Map<String, Object> body = new HashMap<>();
-        body.put(FileProfileConstants.PARAM_DATA, data);
-
-        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), body);
-        assertThat(response, is(notNullValue()));
-        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
-        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
-        assertThat(response.getErrorMessage(), is(notNullValue()));
-    }
-
-    /**
      * パラメータdataを指定せずにファイル送信テストを行う.
      * <pre>
      * 【HTTP通信】
@@ -907,37 +808,6 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
         DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
-    }
-
-    /**
-     * serviceIdを2重に指定してファイル削除テストを行う.
-     * <pre>
-     * 【HTTP通信】
-     * Method: DELETE
-     * Path: /file/remove?serviceId=123456789&serviceId=xxx&path=xxxx
-     * </pre>
-     * <pre>
-     * 【期待する動作】
-     * ・先に定義された属性が優先されること。
-     * ・resultに1が返ってくること。
-     * </pre>
-     */
-    @Test
-    public void testDeleteRemoveDuplicatedServiceId() {
-        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
-        builder.setProfile(FileProfileConstants.PROFILE_NAME);
-        builder.setAttribute(FileProfileConstants.ATTRIBUTE_REMOVE);
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-        builder.addParameter(FileProfileConstants.PARAM_PATH,
-                TestFileProfileConstants.PATH);
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-
-        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
-        assertThat(response, is(notNullValue()));
-        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
-        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
-        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1178,36 +1048,6 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * serviceIdを2重に指定してディレクトリ作成テストを行う.
-     * <pre>
-     * 【HTTP通信】
-     * Method: POST
-     * Path: /file/mkdir?serviceId=12345678&serviceId=xxxx&path=xxxx
-     * </pre>
-     * <pre>
-     * 【期待する動作】
-     * ・resultに1が返ってくること。
-     * </pre>
-     */
-    @Test
-    public void testPostMkdirDuplicatedServiceId() {
-        final String name = "test";
-        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
-        builder.setProfile(FileProfileConstants.PROFILE_NAME);
-        builder.setAttribute(FileProfileConstants.ATTRIBUTE_MKDIR);
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "12345678");
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-        builder.addParameter(FileProfileConstants.PARAM_PATH, name);
-        builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-
-        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
-        assertThat(response, is(notNullValue()));
-        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
-        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
-        assertThat(response.getErrorMessage(), is(notNullValue()));
-    }
-
-    /**
      * メソッドにGETを指定してディレクトリ作成テストを行う.
      * <pre>
      * 【HTTP通信】
@@ -1406,38 +1246,6 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
         DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
-        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
-        assertThat(response.getErrorMessage(), is(notNullValue()));
-    }
-
-    /**
-     * serviceIdを2重に指定してディレクトリ削除テストを行う.
-     * <pre>
-     * 【HTTP通信】
-     * Method: DELETE
-     * Path: /file/rmdir?serviceId=12345678&serviceId=xxxx&path=xxxx
-     * </pre>
-     * <pre>
-     * 【期待する動作】
-     * ・resultに1が返ってくること。
-     * </pre>
-     */
-    @Test
-    public void testDeleteRmdirDuplicatedServiceId() {
-        final String name = "test";
-        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
-        builder.setProfile(FileProfileConstants.PROFILE_NAME);
-        builder.setAttribute(FileProfileConstants.ATTRIBUTE_RMDIR);
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "12345678");
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-        builder.addParameter(FileProfileConstants.PARAM_PATH, name);
-        builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-
-        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
-        assertThat(response, is(notNullValue()));
-        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
-        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
-        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**

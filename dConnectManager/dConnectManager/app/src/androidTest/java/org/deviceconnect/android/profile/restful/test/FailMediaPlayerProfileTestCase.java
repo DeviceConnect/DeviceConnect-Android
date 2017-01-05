@@ -116,36 +116,6 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
     }
 
     /**
-     * serviceIdを2重に指定して再生コンテンツの変更要求を送信するテスト.
-     * <pre>
-     * 【HTTP通信】
-     * Method: PUT
-     * Path: /mediaPlayer/media?serviceId=123456789&serviceId=xxx&mediaId=xxx
-     * </pre>
-     * <pre>
-     * 【期待する動作】
-     * ・先に定義された属性が優先されること。
-     * ・resultに1が返ってくること。
-     * </pre>
-     */
-    @Test
-    public void testPutMediaDuplicatedServiceId() {
-        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
-        builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
-        builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_MEDIA);
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-        builder.addParameter(MediaPlayerProfileConstants.PARAM_MEDIA_ID, TEST_MEDIA_ID);
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-
-        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
-        assertThat(response, is(notNullValue()));
-        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
-        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
-        assertThat(response.getErrorMessage(), is(notNullValue()));
-    }
-
-    /**
      * mediaIdを指定せずに再生コンテンツの変更要求を送信するテスト.
      * <pre>
      * 【HTTP通信】
@@ -245,36 +215,6 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_MEDIA);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(MediaPlayerProfileConstants.PARAM_MEDIA_ID, TEST_MEDIA_ID);
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-
-        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
-        assertThat(response, is(notNullValue()));
-        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
-        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
-        assertThat(response.getErrorMessage(), is(notNullValue()));
-    }
-
-    /**
-     * serviceIdを2重に指定して再生コンテンツの変更要求を送信するテスト.
-     * <pre>
-     * 【HTTP通信】
-     * Method: GET
-     * Path: /mediaPlayer/media?serviceId=123456789&serviceId=xxx&mediaId=xxx
-     * </pre>
-     * <pre>
-     * 【期待する動作】
-     * ・先に定義された属性が優先されること。
-     * ・resultに1が返ってくること。
-     * </pre>
-     */
-    @Test
-    public void testGetMediaDuplicatedServiceId() {
-        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
-        builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
-        builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_MEDIA);
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(MediaPlayerProfileConstants.PARAM_MEDIA_ID, TEST_MEDIA_ID);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
 
@@ -413,35 +353,6 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_MEDIA_LIST);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-
-        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
-        assertThat(response, is(notNullValue()));
-        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
-        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
-        assertThat(response.getErrorMessage(), is(notNullValue()));
-    }
-
-    /**
-     * serviceIdを2重に指定して再生コンテンツ一覧の取得要求を送信するテスト.
-     * <pre>
-     * 【HTTP通信】
-     * Method: GET
-     * Path: /mediaPlayer/mediaList?serviceId=123456789&serviceId=xxx&mediaId=xxx
-     * </pre>
-     * <pre>
-     * 【期待する動作】
-     * ・先に定義された属性が優先されること。
-     * ・resultに1が返ってくること。
-     * </pre>
-     */
-    @Test
-    public void testGetMediaListDuplicatedServiceId() {
-        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
-        builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
-        builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_MEDIA_LIST);
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
 
         DConnectResponseMessage response = mDConnectSDK.get(builder.build());
@@ -620,37 +531,6 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
     }
 
     /**
-     * serviceIdを2重に指定してコンテンツ再生状態の変更要求を送信するテスト.
-     * <pre>
-     * 【HTTP通信】
-     * Method: PUT
-     * Path: /mediaPlayer/playStatus?serviceId=123456789&serviceId=xxx&mediaId=xxx&status=xxx
-     * </pre>
-     * <pre>
-     * 【期待する動作】
-     * ・先に定義された属性が優先されること。
-     * ・resultに1が返ってくること。
-     * </pre>
-     */
-    @Test
-    public void testPutPlayStatusDuplicatedServiceId() {
-        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
-        builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
-        builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_SEEK);
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-        builder.addParameter(MediaPlayerProfileConstants.PARAM_MEDIA_ID, TEST_MEDIA_ID);
-        builder.addParameter(MediaPlayerProfileConstants.PARAM_STATUS, TEST_STATUS);
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-
-        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
-        assertThat(response, is(notNullValue()));
-        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
-        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
-        assertThat(response.getErrorMessage(), is(notNullValue()));
-    }
-
-    /**
      * mediaIdを指定せずにコンテンツ再生状態の変更要求を送信するテスト.
      * <pre>
      * 【HTTP通信】
@@ -777,35 +657,6 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_SEEK);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-
-        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
-        assertThat(response, is(notNullValue()));
-        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
-        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
-        assertThat(response.getErrorMessage(), is(notNullValue()));
-    }
-
-    /**
-     * serviceIdを2重に指定してコンテンツ再生状態の変更要求を送信するテスト.
-     * <pre>
-     * 【HTTP通信】
-     * Method: GET
-     * Path: /mediaPlayer/playStatus?serviceId=123456789&serviceId=xxx&mediaId=xxx&status=xxx
-     * </pre>
-     * <pre>
-     * 【期待する動作】
-     * ・先に定義された属性が優先されること。
-     * ・resultに1が返ってくること。
-     * </pre>
-     */
-    @Test
-    public void testGetPlayStatusDuplicatedServiceId() {
-        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
-        builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
-        builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_SEEK);
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
 
         DConnectResponseMessage response = mDConnectSDK.get(builder.build());
@@ -954,35 +805,6 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
     }
 
     /**
-     * serviceIdを2重に指定して再生要求を送信するテスト.
-     * <pre>
-     * 【HTTP通信】
-     * Method: PUT
-     * Path: /mediaPlayer/play?serviceId=123456789&serviceId=xxx
-     * </pre>
-     * <pre>
-     * 【期待する動作】
-     * ・先に定義された属性が優先されること。
-     * ・resultに1が返ってくること。
-     * </pre>
-     */
-    @Test
-    public void testPutPlayDuplicatedServiceId() {
-        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
-        builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
-        builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_PLAY);
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-
-        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
-        assertThat(response, is(notNullValue()));
-        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
-        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
-        assertThat(response.getErrorMessage(), is(notNullValue()));
-    }
-
-    /**
      * serviceIdを指定せずに停止要求を送信するテスト.
      * <pre>
      * 【HTTP通信】
@@ -1053,35 +875,6 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_STOP);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-
-        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
-        assertThat(response, is(notNullValue()));
-        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
-        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
-        assertThat(response.getErrorMessage(), is(notNullValue()));
-    }
-
-    /**
-     * serviceIdを2重に指定して停止要求を送信するテスト.
-     * <pre>
-     * 【HTTP通信】
-     * Method: PUT
-     * Path: /mediaPlayer/stop?serviceId=123456789&serviceId=xxx
-     * </pre>
-     * <pre>
-     * 【期待する動作】
-     * ・先に定義された属性が優先されること。
-     * ・resultに1が返ってくること。
-     * </pre>
-     */
-    @Test
-    public void testPutStopDuplicatedServiceId() {
-        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
-        builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
-        builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_STOP);
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
 
         DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
@@ -1172,35 +965,6 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
     }
 
     /**
-     * serviceIdを2重に指定して一時停止要求を送信するテスト.
-     * <pre>
-     * 【HTTP通信】
-     * Method: PUT
-     * Path: /mediaPlayer/pause?serviceId=123456789&serviceId=xxx
-     * </pre>
-     * <pre>
-     * 【期待する動作】
-     * ・先に定義された属性が優先されること。
-     * ・resultに1が返ってくること。
-     * </pre>
-     */
-    @Test
-    public void testPutPauseDuplicatedServiceId() {
-        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
-        builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
-        builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_PAUSE);
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-
-        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
-        assertThat(response, is(notNullValue()));
-        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
-        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
-        assertThat(response.getErrorMessage(), is(notNullValue()));
-    }
-
-    /**
      * serviceIdを指定せずに一時停止解除要求を送信するテスト.
      * <pre>
      * 【HTTP通信】
@@ -1271,35 +1035,6 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_RESUME);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-
-        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
-        assertThat(response, is(notNullValue()));
-        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
-        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
-        assertThat(response.getErrorMessage(), is(notNullValue()));
-    }
-
-    /**
-     * serviceIdを2重に指定して一時停止解除要求を送信するテスト.
-     * <pre>
-     * 【HTTP通信】
-     * Method: PUT
-     * Path: /mediaPlayer/resume?serviceId=123456789&serviceId=xxx
-     * </pre>
-     * <pre>
-     * 【期待する動作】
-     * ・先に定義された属性が優先されること。
-     * ・resultに1が返ってくること。
-     * </pre>
-     */
-    @Test
-    public void testPutResumeDuplicatedServiceId() {
-        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
-        builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
-        builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_RESUME);
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
 
         DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
@@ -1382,36 +1117,6 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_SEEK);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(MediaPlayerProfileConstants.PARAM_POS, String.valueOf(0));
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-
-        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
-        assertThat(response, is(notNullValue()));
-        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
-        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
-        assertThat(response.getErrorMessage(), is(notNullValue()));
-    }
-
-    /**
-     * serviceIdを2重に指定して再生位置の変更要求を送信するテスト.
-     * <pre>
-     * 【HTTP通信】
-     * Method: PUT
-     * Path: /mediaPlayer/seek?serviceId=123456789&serviceId=xxx&pos=xxx
-     * </pre>
-     * <pre>
-     * 【期待する動作】
-     * ・先に定義された属性が優先されること。
-     * ・resultに1が返ってくること。
-     * </pre>
-     */
-    @Test
-    public void testPutSeekDuplicatedServiceId() {
-        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
-        builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
-        builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_SEEK);
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(MediaPlayerProfileConstants.PARAM_POS, String.valueOf(0));
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
 
@@ -1520,35 +1225,6 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_SEEK);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-
-        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
-        assertThat(response, is(notNullValue()));
-        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
-        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
-        assertThat(response.getErrorMessage(), is(notNullValue()));
-    }
-
-    /**
-     * serviceIdを2重に指定して再生位置の変更要求を送信するテスト.
-     * <pre>
-     * 【HTTP通信】
-     * Method: GET
-     * Path: /mediaPlayer/seek?serviceId=123456789&serviceId=xxx&mediaId=xxx&status=xxx
-     * </pre>
-     * <pre>
-     * 【期待する動作】
-     * ・先に定義された属性が優先されること。
-     * ・resultに1が返ってくること。
-     * </pre>
-     */
-    @Test
-    public void testGetSeekDuplicatedServiceId() {
-        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
-        builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
-        builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_SEEK);
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
 
         DConnectResponseMessage response = mDConnectSDK.get(builder.build());
@@ -1698,36 +1374,6 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
     }
 
     /**
-     * serviceIdを2重に指定して再生音量の変更要求を送信するテスト.
-     * <pre>
-     * 【HTTP通信】
-     * Method: PUT
-     * Path: /mediaPlayer/volume?serviceId=123456789&serviceId=xxx&volume=xxx
-     * </pre>
-     * <pre>
-     * 【期待する動作】
-     * ・先に定義された属性が優先されること。
-     * ・resultに1が返ってくること。
-     * </pre>
-     */
-    @Test
-    public void testPutVolumeDuplicatedServiceId() {
-        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
-        builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
-        builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_VOLUME);
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-        builder.addParameter(MediaPlayerProfileConstants.PARAM_MEDIA_ID, TEST_MEDIA_ID);
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-
-        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
-        assertThat(response, is(notNullValue()));
-        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
-        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
-        assertThat(response.getErrorMessage(), is(notNullValue()));
-    }
-
-    /**
      * volumeを指定せずに再生音量の変更要求を送信するテスト.
      * <pre>
      * 【HTTP通信】
@@ -1825,35 +1471,6 @@ public class FailMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_VOLUME);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-
-        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
-        assertThat(response, is(notNullValue()));
-        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
-        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
-        assertThat(response.getErrorMessage(), is(notNullValue()));
-    }
-
-    /**
-     * serviceIdを2重に指定して再生音量の取得要求を送信するテスト.
-     * <pre>
-     * 【HTTP通信】
-     * Method: GET
-     * Path: /mediaPlayer/volume?serviceId=123456789&serviceId=xxx&volume=xxx
-     * </pre>
-     * <pre>
-     * 【期待する動作】
-     * ・先に定義された属性が優先されること。
-     * ・resultに1が返ってくること。
-     * </pre>
-     */
-    @Test
-    public void testGetVolumeDuplicatedServiceId() {
-        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
-        builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
-        builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_VOLUME);
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
 
         DConnectResponseMessage response = mDConnectSDK.get(builder.build());

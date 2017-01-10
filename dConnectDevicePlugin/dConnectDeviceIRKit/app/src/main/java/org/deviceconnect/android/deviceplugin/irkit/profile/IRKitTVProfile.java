@@ -242,15 +242,19 @@ public class IRKitTVProfile extends DConnectProfile {
             MessageUtils.setInvalidRequestParameterError(response, "Invalid ServiceId");
             return send;
         }
+        VirtualProfileData vData = null;
         for (VirtualProfileData req : requests) {
             if (req.getUri().equalsIgnoreCase(uri)
                     && req.getMethod().equals(method)
                     && req.getIr() != null) {
-                send = ((VirtualService) getService()).sendIR(req.getIr(), response);
+                vData = req;
                 break;
-            } else {
-                MessageUtils.setInvalidRequestParameterError(response, "IR is not registered for that request");
             }
+        }
+        if (vData != null) {
+            send = ((VirtualService) getService()).sendIR(vData.getIr(), response);
+        } else {
+            MessageUtils.setInvalidRequestParameterError(response, "IR is not registered for that request");
         }
         return send;
     }

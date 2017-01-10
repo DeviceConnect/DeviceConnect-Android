@@ -1,4 +1,4 @@
-apply plugin: 'com.android.application'
+apply plugin: 'com.android.library'
 
 android {
     compileSdkVersion 23
@@ -16,15 +16,8 @@ android {
     }
 
     defaultConfig {
-        applicationId "org.deviceconnect.android.deviceplugin.host"
         minSdkVersion 14
         targetSdkVersion 23
-        versionCode 1
-        versionName getVersionName()
-        manifestPlaceholders = [
-                appIcon: "@drawable/dconnect_icon",
-                appName: "@string/app_name"
-        ]
     }
 
     signingConfigs {
@@ -51,15 +44,8 @@ android {
         exclude 'META-INF/NOTICE'
     }
 
-    productFlavors {
-        DeviceWebApi {
-            versionCode 6
-            versionName "2.0.0"
-            manifestPlaceholders = [
-                    appIcon: "@drawable/ic_launcher",
-                    appName: "@string/app_name_for_device_web_api"
-            ]
-        }
+    configurations {
+        androidTestCompile.exclude group: 'com.android.support', module: 'support-annotations'
     }
 
     tasks.withType(JavaCompile) {
@@ -69,5 +55,5 @@ android {
 
 dependencies {
     compile fileTree(include: '*.jar', dir: 'libs')
-    compile project(':dconnect-device-plugin-sdk')
+    compile project(':dconnect-device-plugin-linking')
 }

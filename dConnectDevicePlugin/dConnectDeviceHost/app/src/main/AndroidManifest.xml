@@ -26,14 +26,9 @@
     <uses-feature android:name="android.hardware.camera.autofocus"/>
     <uses-feature android:name="android.hardware.camera.flash"/>
 
-    <application
-        android:name=".HostDeviceApplication"
-        android:allowBackup="true"
-        android:icon="${appIcon}"
-        android:label="${appName}"
-        android:theme="@style/AppTheme">
+    <application>
         <activity
-            android:name=".setting.HostSettingActivity"
+            android:name="org.deviceconnect.android.deviceplugin.host.setting.HostSettingActivity"
             android:label="@string/app_name"
             android:launchMode="singleTask"/>
 
@@ -64,7 +59,7 @@
         </receiver>
 
         <!-- BroadcastReceiver for Host -->
-        <receiver android:name=".HostDeviceReceiver">
+        <receiver android:name="org.deviceconnect.android.deviceplugin.host.HostDeviceReceiver">
             <intent-filter>
                 <!-- Connection Profile -->
                 <action android:name="android.net.wifi.WIFI_STATE_CHANGED"/>
@@ -81,53 +76,48 @@
             </intent-filter>
         </receiver>
 
-        <provider
-            android:name="org.deviceconnect.android.provider.FileProvider"
-            android:authorities="org.deviceconnect.android.deviceplugin.host.provider"
-            android:exported="true"/>
-
         <service
             android:name="org.deviceconnect.android.deviceplugin.host.HostDeviceService"
             android:exported="false"/>
 
         <activity
-            android:name=".activity.BluetoothManageActivity"
+            android:name="org.deviceconnect.android.deviceplugin.host.activity.BluetoothManageActivity"
             android:excludeFromRecents="true"
             android:exported="false"
             android:theme="@android:style/Theme.Translucent.NoTitleBar"/>
 
         <activity
-            android:name=".video.VideoRecorderActivity"
+            android:name="org.deviceconnect.android.deviceplugin.host.video.VideoRecorderActivity"
             android:exported="false"
             android:screenOrientation="landscape"/>
 
         <activity
-            android:name=".video.VideoPlayer"
+            android:name="org.deviceconnect.android.deviceplugin.host.video.VideoPlayer"
             android:exported="false"
             android:launchMode="singleInstance"
             android:screenOrientation="landscape"/>
 
         <activity
-            android:name=".audio.AudioRecorderActivity"
+            android:name="org.deviceconnect.android.deviceplugin.host.audio.AudioRecorderActivity"
             android:exported="false"/>
 
         <activity
-            android:name=".activity.CanvasProfileActivity"
+            android:name="org.deviceconnect.android.deviceplugin.host.activity.CanvasProfileActivity"
             android:exported="false"
             android:launchMode="singleTask"/>
 
         <activity
-            android:name=".activity.TouchProfileActivity"
+            android:name="org.deviceconnect.android.deviceplugin.host.activity.TouchProfileActivity"
             android:exported="false"
             android:label="@string/app_name"/>
 
         <activity
-            android:name=".activity.KeyEventProfileActivity"
+            android:name="org.deviceconnect.android.deviceplugin.host.activity.KeyEventProfileActivity"
             android:exported="false"
             android:label="@string/app_name"/>
 
         <activity
-            android:name=".screen.PermissionReceiverActivity"
+            android:name="org.deviceconnect.android.deviceplugin.host.screen.PermissionReceiverActivity"
             android:exported="false"
             android:label="@string/app_name"
             android:theme="@android:style/Theme.Translucent"/>

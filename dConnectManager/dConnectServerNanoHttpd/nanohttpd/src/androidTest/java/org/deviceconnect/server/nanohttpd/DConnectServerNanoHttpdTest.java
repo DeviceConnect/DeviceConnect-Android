@@ -70,14 +70,9 @@ public class DConnectServerNanoHttpdTest {
      * ・IllegalArgumentExceptionが派生すること。
      * </pre>
      */
-    @Test
+    @Test(expected = IllegalArgumentException.class)
     public void DConnectServerNanoHttpd_config_null() {
-        try {
-            new DConnectServerNanoHttpd(null, getContext());
-            fail("No IllegalArgumentException occurred.");
-        } catch (IllegalArgumentException e) {
-            // 成功
-        }
+        new DConnectServerNanoHttpd(null, getContext());
     }
 
     /**
@@ -87,15 +82,10 @@ public class DConnectServerNanoHttpdTest {
      * ・IllegalArgumentExceptionが派生すること。
      * </pre>
      */
-    @Test
+    @Test(expected = IllegalArgumentException.class)
     public void DConnectServerNanoHttpd_context_null() {
-        try {
-            DConnectServerConfig config = new DConnectServerConfig.Builder().port(4035).documentRootPath("").build();
-            new DConnectServerNanoHttpd(config, null);
-            fail("No IllegalArgumentException occurred.");
-        } catch (IllegalArgumentException e) {
-            // 成功
-        }
+        DConnectServerConfig config = new DConnectServerConfig.Builder().port(4035).documentRootPath("").build();
+        new DConnectServerNanoHttpd(config, null);
     }
 
     /**
@@ -182,6 +172,92 @@ public class DConnectServerNanoHttpdTest {
         }
     }
 
+
+    /**
+     * DConnectServerNanoHttpdを作成する。
+     * <pre>
+     * 【期待する動作】
+     * ・DConnectServerNanoHttpdのインスタンスが作成できること。
+     * ・DConnectServerNanoHttpdのサーバ起動し、DConnectServerEventListener#onServerLaunchedに通知が来ること。
+     * ・DConnectServerNanoHttpdにHTTP通信して、レスポンスのステータスコードに200が返却されること。
+     * </pre>
+     */
+    @Test
+    public void DConnectServerNanoHttpd_duplicate_key_value() {
+        final CountDownLatch latch = new CountDownLatch(1);
+        final String path = "/root/path";
+        final String key = "key";
+        final String value1 = "value1";
+        final String value2 = "value2";
+        File file = getContext().getFilesDir();
+        DConnectServerConfig config = new DConnectServerConfig.Builder().port(4035).documentRootPath(file.getPath()).build();
+        DConnectServer server = new DConnectServerNanoHttpd(config, getContext());
+        assertThat(server, is(notNullValue()));
+
+        server.setServerEventListener(new DConnectServerEventListener() {
+            @Override
+            public boolean onReceivedHttpRequest(final HttpRequest req, final HttpResponse res) {
+                res.setCode(HttpResponse.StatusCode.OK);
+
+                HttpRequest.Method method = req.getMethod();
+                if (!HttpRequest.Method.GET.equals(method)) {
+                    res.setCode(HttpResponse.StatusCode.BAD_REQUEST);
+                }
+
+                String uri = req.getUri();
+                if (!path.equals(uri)) {
+                    res.setCode(HttpResponse.StatusCode.BAD_REQUEST);
+                }
+
+                String v = req.getQueryParameters().get(key);
+                if (!value2.equals(v)) {
+                    res.setCode(HttpResponse.StatusCode.BAD_REQUEST);
+                }
+
+                return true;
+            }
+
+            @Override
+            public void onError(final DConnectServerError errorCode) {
+            }
+
+            @Override
+            public void onServerLaunched() {
+                latch.countDown();
+            }
+
+            @Override
+            public void onWebSocketConnected(final DConnectWebSocket webSocket) {
+            }
+
+            @Override
+            public void onWebSocketDisconnected(final String webSocketId) {
+            }
+
+            @Override
+            public void onWebSocketMessage(final DConnectWebSocket webSocket, final String message) {
+            }
+
+            @Override
+            public void onResetEventSessionKey(final String sessionKey) {
+            }
+        });
+        server.start();
+
+        try {
+            latch.await(10, TimeUnit.SECONDS);
+
+            HttpUtils.Response response = HttpUtils.get("http://localhost:4035" + path + "?" + key + "=" + value1 + "&" + key + "=" + value2);
+            assertThat(response, is(notNullValue()));
+            assertThat(response.getStatusCode(), is(200));
+            assertThat(response.getBody(), is(notNullValue()));
+        } catch (InterruptedException e) {
+            fail("timeout");
+        } finally {
+            server.shutdown();
+        }
+    }
+
     /**
      * 不正なdocumentPathを設定して、DConnectServerNanoHttpdを作成する。
      * <pre>
@@ -249,7 +325,7 @@ public class DConnectServerNanoHttpdTest {
      * DConnectServerNanoHttpdにサポートされていないHTTPメソッド(PATCH)を指定して通信を行う。
      * <pre>
      * 【期待する動作】
-     * ・DConnectServerNanoHttpdにHTTP通信して、レスポンスのステータスコードに200以外が返却されること。
+     * ・DConnectServerNanoHttpdにHTTP通信して、レスポンスのステータスコードに501が返却されること。
      * </pre>
      */
     @Test
@@ -298,7 +374,7 @@ public class DConnectServerNanoHttpdTest {
 
             HttpUtils.Response response = HttpUtils.connect("PATCH", "http://localhost:4035" + path, null, null);
             assertThat(response, is(notNullValue()));
-            assertThat(response.getStatusCode(), is(not(200)));
+            assertThat(response.getStatusCode(), is(501));
             assertThat(response.getBody(), is(nullValue()));
         } catch (InterruptedException e) {
             fail("timeout");
@@ -316,7 +392,7 @@ public class DConnectServerNanoHttpdTest {
      */
     @Test
     public void DConnectServerNanoHttpd_many_connections() {
-        final int count = 8;
+        final int count = 1000;
         final CountDownLatch latch = new CountDownLatch(count);
         final CountDownLatch launchLatch = new CountDownLatch(1);
         final String path = "/root/path";
@@ -460,7 +536,7 @@ public class DConnectServerNanoHttpdTest {
      * 8K byteを超えるHTTPヘッダーを指定して、HTTP通信を行う。
      * <pre>
      * 【期待する動作】
-     * ・DConnectServerNanoHttpdにHTTP通信して、レスポンスのステータスコードに200が返却されること。
+     * ・DConnectServerNanoHttpdにHTTP通信して、レスポンスのステータスコードに200以外が返却されること。
      * </pre>
      */
     @Test
@@ -789,6 +865,7 @@ public class DConnectServerNanoHttpdTest {
      */
     @Test
     public void DConnectServerNanoHttpd_websocket() {
+        final CountDownLatch serverLaunchLatch = new CountDownLatch(1);
         final CountDownLatch latch = new CountDownLatch(1);
         final AtomicReference<String> result = new AtomicReference<>();
         final String msg = "test-message";
@@ -808,6 +885,7 @@ public class DConnectServerNanoHttpdTest {
 
             @Override
             public void onServerLaunched() {
+                serverLaunchLatch.countDown();
             }
 
             @Override
@@ -828,6 +906,12 @@ public class DConnectServerNanoHttpdTest {
             }
         });
         server.start();
+
+        try {
+            serverLaunchLatch.await(10, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            fail("timeout");
+        }
 
         String uri = "http://localhost:4035";
         WebSocketClient client = new WebSocketClient(URI.create(uri), new Draft_17(), null, 10000) {
@@ -873,6 +957,7 @@ public class DConnectServerNanoHttpdTest {
      */
     @Test
     public void DConnectServerNanoHttpd_ssl_websocket() {
+        final CountDownLatch serverLaunchLatch = new CountDownLatch(1);
         final CountDownLatch latch = new CountDownLatch(1);
         final AtomicReference<String> result = new AtomicReference<>();
         final String msg = "test-message";
@@ -892,6 +977,7 @@ public class DConnectServerNanoHttpdTest {
 
             @Override
             public void onServerLaunched() {
+                serverLaunchLatch.countDown();
             }
 
             @Override
@@ -912,6 +998,12 @@ public class DConnectServerNanoHttpdTest {
             }
         });
         server.start();
+
+        try {
+            serverLaunchLatch.await(10, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            fail("timeout");
+        }
 
         try {
             String uri = "https://localhost:4035";

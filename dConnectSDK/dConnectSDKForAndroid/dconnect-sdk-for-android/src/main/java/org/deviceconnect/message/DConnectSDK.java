@@ -26,8 +26,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- * Device Connect Managerへのアクセスを行う便利クラス.
- * <h3>サンプルコード</h3>
+ * <p>
+ * Device Connect Managerへのアクセスを行うクラス.
+ * </p>
+ * <span style="margin:0;padding:2px;background:#029EBC;color:#EBF7FA;line-height:140%;font-weight:bold;">サンプルコード</span>
  * <pre>
  * // sdkは、使い回すこと。
  * final DConnectSDK sdk = DConnectSDKFactory.create(context, DConnectSDKFactory.Type.HTTP);
@@ -39,14 +41,14 @@ import java.util.concurrent.Executors;
  * };
  *
  * DConnectResponseMessage response = sdk.authorization("SampleApp", scopes, new OnAuthorizationListener() {
- *     @Override
+ *     <code>@</code>Override
  *     public void onResponse(String clientId, String accessToken) {
  *          // Local OAuthの認証に成功
  *          // 必要に応じて、アクセストークンはファイルなどに保存して使いまわすこと。
  *          // 取得したアクセストークンをSDKに設定
  *         sdk.setAccessToken(accessToken);
  *     }
- *     @Override
+ *     <code>@</code>Override
  *     public void onError(int errorCode, String errorMessage) {
  *          // Local OAuthの認証に失敗
  *     }
@@ -58,7 +60,7 @@ import java.util.concurrent.Executors;
  * builder.setProfile("battery");
  * builder.setServiceId(serviceId);
  * sdk.get(builder.build(), new OnResponseListener() {
- *     @Override
+ *     <code>@</code>Override
  *     public void onResponse(DConnectResponseMessage response) {
  *         if (response.getResult() == DConnectMessage.RESULT_OK) {
  *             float level = response.getFloat("level");
@@ -67,7 +69,6 @@ import java.util.concurrent.Executors;
  *         }
  *     }
  * });
- *
  * </pre>
  * @author NTT DOCOMO, INC.
  */
@@ -143,7 +144,7 @@ public abstract class DConnectSDK {
     /**
      * 通信を行うスレッド.
      */
-    private ExecutorService mExecutorService = Executors.newFixedThreadPool(1);
+    private ExecutorService mExecutorService = Executors.newFixedThreadPool(4);
 
     DConnectSDK() {}
 
@@ -226,18 +227,16 @@ public abstract class DConnectSDK {
 
     /**
      * SSL使用フラグを取得する.
-     * <p>
-     *     trueの場合はSSLを使用する。
-     *     falseの場合にはSSLを使用しない。
-     * </p>
-     * @return SSL使用フラグ trueの場合はSSLを使用する、それ以外の場合は使用しない。
+     *
+     * @return trueの場合はSSLを使用する、それ以外の場合は使用しない。
      */
     public boolean isSSL() {
         return mSSL;
     }
 
     /**
-     * SSL使用フラグを設定するする.
+     * SSL使用フラグを設定する.
+     *
      * @param SSL trueの場合はSSLを使用する、それ以外の場合は使用しない。
      */
     public void setSSL(final boolean SSL) {
@@ -247,7 +246,8 @@ public abstract class DConnectSDK {
     /**
      * アクセストークンを取得する.
      * <p>
-     *     設定されていない場合にはnullを返却します。
+     *     設定されていない場合には{@code null}を返却します。<br>
+     *     デフォルトでは、何も設定されていないので{@code null}を返却します。
      * </p>
      * @return アクセストークン
      */
@@ -278,19 +278,19 @@ public abstract class DConnectSDK {
      * すでに接続されている場合には、無視します。<br>
      * この関数でWebSocketを開いたあとは、必ず{@link #disconnectWebSocket()}を呼び出して、WebSocketを切断してください。
      * </p>
-     * <h3>サンプルコード</h3>
+     * <span style="margin:0;padding:2px;background:#029EBC;color:#EBF7FA;line-height:140%;font-weight:bold;">サンプルコード</span>
      * <pre>
      * DConnectSDK sdk = DConnectSDKFactory.create(context, DConnectSDKFactory.Type.HTTP);
      * sdk.connectWebSocket(new OnWebSocketListener() {
-     *     @Override
+     *     <code>@</code>Override
      *     public void onOpen() {
      *     }
      *
-     *     @Override
+     *     <code>@</code>Override
      *     void onClose() {
      *     }
      *
-     *     @Override
+     *     <code>@</code>Override
      *     void onError(Exception e) {
      *     }
      * });
@@ -309,14 +309,17 @@ public abstract class DConnectSDK {
 
     /**
      * イベントを登録する.
-     * <h3>サンプルコード</h3>
+     * <p>
+     * イベントの登録成功・失敗やイベントメッセージは、第２引数のlistenerに通知されます。
+     * </p>
+     * <span style="margin:0;padding:2px;background:#029EBC;color:#EBF7FA;line-height:140%;font-weight:bold;">サンプルコード</span>
      * <pre>
      * DConnectSDK sdk = DConnectSDKFactory.create(context, DConnectSDKFactory.Type.HTTP);
      * DConnectSDK.URIBuilder builder = sdk.createURIBuilder();
      * builder.setProfile("battery");
      * builder.setServiceId("serviceId");
      * sdk.addEventListener(builder.build(), new OnEventListener() {
-     *      @Override
+     *      <code>@</code>Override
      *      public void onResponse(DConnectResponseMessage response) {
      *          if (response.getResult() == DConnectMessage.RESULT_OK) {
      *              // イベント登録成功
@@ -324,7 +327,7 @@ public abstract class DConnectSDK {
      *              // イベント登録失敗
      *          }
      *      }
-     *      @Override
+     *      <code>@</code>Override
      *      public void onMessage(DConnectEventMessage message) {
      *          // イベント
      *      }
@@ -364,7 +367,7 @@ public abstract class DConnectSDK {
      * Device Connect Managerを起動するために一瞬透明なActivityが起動するので、
      * Activityが一時停止されることに注意すること。
      * </p>
-     * <h3>サンプルコード</h3>
+     * <span style="margin:0;padding:2px;background:#029EBC;color:#EBF7FA;line-height:140%;font-weight:bold;">サンプルコード</span>
      * <pre>
      * DConnectSDK sdk = DConnectSDKFactory.create(context, DConnectSDKFactory.Type.HTTP);
      * DConnectResponseMessage response = sdk.availability();
@@ -446,7 +449,8 @@ public abstract class DConnectSDK {
 
     /**
      * URIBuilderを生成する.
-     * <h3>サンプルコード</h3>
+     * <br>
+     * <span style="margin:0;padding:2px;background:#029EBC;color:#EBF7FA;line-height:140%;font-weight:bold;">サンプルコード</span>
      * <pre>
      * DConnectSDK sdk = DConnectSDKFactory.create(context, DConnectSDKFactory.Type.HTTP);
      * DConnectSDK.URIBuilder builder = sdk.createURIBuilder();
@@ -461,7 +465,11 @@ public abstract class DConnectSDK {
 
     /**
      * GETメソッドで指定したURIにアクセスし、レスポンスを取得する.
-     * <h3>サンプルコード</h3>
+     * <p>
+     * Device Connect Managerに同期的にアクセスを行う為にUIスレッドなどから呼び出すとエラーになります。<br>
+     * 非同期的に呼び出したい場合には、{@link #get(String, OnResponseListener)}を使用してください。
+     * </p>
+     * <span style="margin:0;padding:2px;background:#029EBC;color:#EBF7FA;line-height:140%;font-weight:bold;">サンプルコード</span>
      * <pre>
      * DConnectSDK sdk = DConnectSDKFactory.create(context, DConnectSDKFactory.Type.HTTP);
      * DConnectResponseMessage response = sdk.get("http://localhost:4035/gotapi/availability");
@@ -481,7 +489,11 @@ public abstract class DConnectSDK {
 
     /**
      * GETメソッドで指定したURIにアクセスし、レスポンスを取得する.
-     * <h3>サンプルコード</h3>
+     * <p>
+     * Device Connect Managerに同期的にアクセスを行う為にUIスレッドなどから呼び出すとエラーになります。<br>
+     * 非同期的に呼び出したい場合には、{@link #get(String, OnResponseListener)}を使用してください。
+     * </p>
+     * <span style="margin:0;padding:2px;background:#029EBC;color:#EBF7FA;line-height:140%;font-weight:bold;">サンプルコード</span>
      * <pre>
      * DConnectSDK sdk = DConnectSDKFactory.create(context, DConnectSDKFactory.Type.HTTP);
      *
@@ -636,7 +648,7 @@ public abstract class DConnectSDK {
      * <p>
      * dataにnullが指定された場合には、データは何もつけずにDevice Connect Managerにアクセスする。
      * </p>
-     * <h3>サンプルコード1</h3>
+     * <span style="margin:0;padding:2px;background:#029EBC;color:#EBF7FA;line-height:140%;font-weight:bold;">サンプルコード1</span>
      * <pre>
      * Map&lt;String, String&gt; dataMap = new HashMap&lt;&gt;();
      * dataMap.put("mode", "scales");
@@ -652,7 +664,7 @@ public abstract class DConnectSDK {
      * if (response.getResult() == DConnectMessage.RESULT_OK) {
      * }
      * </pre>
-     * <h3>サンプルコード2</h3>
+     * <span style="margin:0;padding:2px;background:#029EBC;color:#EBF7FA;line-height:140%;font-weight:bold;">サンプルコード2</span>
      * <pre>
      * DConnectSDK sdk = DConnectSDKFactory.create(context, DConnectSDKFactory.Type.HTTP);
      * DConnectSDK.URIBuilder builder = sdk.createURIBuilder();
@@ -773,7 +785,7 @@ public abstract class DConnectSDK {
      * この関数のレスポンスからDevice Connect Managerの有効・無効を確認します。<br>
      * この関数の中で、Device Connect Managerへの通信処理が発生しますので、UIスレッドから呼び出すことはできません。
      * </p>
-     * <h3>サンプルコード</h3>
+     * <span style="margin:0;padding:2px;background:#029EBC;color:#EBF7FA;line-height:140%;font-weight:bold;">サンプルコード</span>
      * <pre>
      * DConnectSDK sdk = DConnectSDKFactory.create(context, DConnectSDKFactory.Type.HTTP);
      *
@@ -797,12 +809,12 @@ public abstract class DConnectSDK {
      * <p>
      * この関数のレスポンスからDevice Connect Managerの有効・無効を確認します。<br>
      * </p>
-     * <h3>サンプルコード</h3>
+     * <span style="margin:0;padding:2px;background:#029EBC;color:#EBF7FA;line-height:140%;font-weight:bold;">サンプルコード</span>
      * <pre>
      * DConnectSDK sdk = DConnectSDKFactory.create(context, DConnectSDKFactory.Type.HTTP);
      *
      * DConnectResponseMessage response = sdk.availability(new OnResponseListener() {
-     *     @Override
+     *     <code>@</code>Override
      *     public void onResponse(DConnectResponseMessage response) {
      *          if (response.getResult() == DConnectMessage.RESULT_OK) {
      *              // Device Connect Managerが有効
@@ -832,7 +844,7 @@ public abstract class DConnectSDK {
      * ユーザに使用許可ダイアログを表示して確認を行います。<br>
      * この関数の中で、Device Connect Managerへの通信処理が発生しますので、UIスレッドから呼び出すことはできません。
      * </p>
-     * <h3>サンプルコード</h3>
+     * <span style="margin:0;padding:2px;background:#029EBC;color:#EBF7FA;line-height:140%;font-weight:bold;">サンプルコード</span>
      * <pre>
      * DConnectSDK sdk = DConnectSDKFactory.create(context, DConnectSDKFactory.Type.HTTP);
      *
@@ -869,7 +881,7 @@ public abstract class DConnectSDK {
      * <p>
      * ユーザに使用許可ダイアログを表示して確認を行います。<br>
      * </p>
-     * <h3>サンプルコード</h3>
+     * <span style="margin:0;padding:2px;background:#029EBC;color:#EBF7FA;line-height:140%;font-weight:bold;">サンプルコード</span>
      * <pre>
      * final DConnectSDK sdk = DConnectSDKFactory.create(context, DConnectSDKFactory.Type.HTTP);
      *
@@ -880,12 +892,12 @@ public abstract class DConnectSDK {
      * };
      *
      * DConnectResponseMessage response = sdk.authorization("SampleApp", scopes, new OnAuthorizationListener() {
-     *     @Override
+     *     <code>@</code>Override
      *     public void onResponse(String clientId, String accessToken) {
      *          // Local OAuthの認証に成功
      *         sdk.setAccessToken(accessToken);
      *     }
-     *     @Override
+     *     <code>@</code>Override
      *     public void onError(int errorCode, String errorMessage) {
      *          // Local OAuthの認証に失敗
      *     }
@@ -922,7 +934,7 @@ public abstract class DConnectSDK {
 
     /**
      * ServiceDiscoveryプロファイルにアクセスし、Device Connect Managerに接続されているサービス一覧を取得する.
-     * <h3>サンプルコード</h3>
+     * <span style="margin:0;padding:2px;background:#029EBC;color:#EBF7FA;line-height:140%;font-weight:bold;">サンプルコード</span>
      * <pre>
      * DConnectSDK sdk = DConnectSDKFactory.create(context, DConnectSDKFactory.Type.HTTP);
      * sdk.setAccessToken("xxxxxxx");
@@ -951,13 +963,13 @@ public abstract class DConnectSDK {
 
     /**
      * 非同期にServiceDiscoveryプロファイルにアクセスし、Device Connect Managerに接続されているサービス一覧をリスナーに通知する.
-     * <h3>サンプルコード</h3>
+     * <span style="margin:0;padding:2px;background:#029EBC;color:#EBF7FA;line-height:140%;font-weight:bold;">サンプルコード</span>
      * <pre>
      * DConnectSDK sdk = DConnectSDKFactory.create(context, DConnectSDKFactory.Type.HTTP);
      * sdk.setAccessToken("xxxxxxx");
      *
      * DConnectResponseMessage response = sdk.serviceDiscovery(new OnResponseListener() {
-     *     @Override
+     *     <code>@</code>Override
      *     public void onResponse(DConnectResponseMessage response) {
      *          if (response.getResult() == DConnectMessage.RESULT_OK) {
      *              // サービス一覧の取得に成功
@@ -1000,7 +1012,6 @@ public abstract class DConnectSDK {
      * 非同期にServiceInformationプロファイルにアクセスし、サービスの情報を取得する.
      * @param serviceId サービスID
      * @param listener レスポンスを通知するリスナー
-     * @return レスポンス
      */
     public void getServiceInformation(final String serviceId, final OnResponseListener listener) {
         if (serviceId == null) {
@@ -1060,10 +1071,10 @@ public abstract class DConnectSDK {
      * 指定された情報からAPIへのURLを提供するクラス.
      *
      * <p>
-     * Host、Port、AccessTokenは、DConnectSDKで設定された値がデフォルトで入っています。
+     * Host、Port、AccessTokenは、DConnectSDKに設定された値がデフォルトで入っています。
      * </p>
      *
-     * <h3>サンプルコード</h3>
+     * <span style="margin:0;padding:2px;background:#029EBC;color:#EBF7FA;line-height:140%;font-weight:bold;">サンプルコード</span>
      * <pre>
      * URIBuilder builder = sdk.createURIBuilder();
      * builder.setProfile(BatteryProfileConstants.PROFILE_NAME)

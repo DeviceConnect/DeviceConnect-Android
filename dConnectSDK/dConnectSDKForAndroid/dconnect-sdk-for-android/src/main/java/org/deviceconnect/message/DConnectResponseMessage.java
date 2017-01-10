@@ -17,7 +17,7 @@ import org.json.JSONObject;
  */
 public class DConnectResponseMessage extends BasicDConnectMessage {
     /**
-     * コンストラクタ.
+     * 空のレスポンスメッセージを生成する.
      */
     public DConnectResponseMessage() {
         super();
@@ -33,36 +33,39 @@ public class DConnectResponseMessage extends BasicDConnectMessage {
     }
 
     /**
-     * メッセージをJSONから生成する.
+     * Device Connect レスポンスメッセージをJSONから生成する.
      *
      * @param json メッセージJSON
-     * @throws JSONException JSONエラー.
+     * @throws JSONException JSONへの変換に失敗した場合に発生.
      */
     public DConnectResponseMessage(final String json) throws JSONException {
         super(json);
     }
 
     /**
-     * メッセージをJSONから生成する.
+     * Device Connect レスポンスメッセージをJSONから生成する.
      *
      * @param json メッセージJSON
-     * @throws JSONException JSONエラー.
+     * @throws JSONException JSONへの変換に失敗した場合に発生.
      */
     public DConnectResponseMessage(final JSONObject json) throws JSONException {
         super(json);
     }
 
     /**
-     * メッセージをIntentから生成する.
+     * Device Connect メッセージをIntentから生成する.
+     *
      * @param intent メッセージIntent
+     * @throws JSONException JSONへの変換に失敗した場合に発生.
      */
     public DConnectResponseMessage(final Intent intent) throws JSONException {
         super(intent);
     }
 
     /**
-     * コンストラクタ.
-     * @param message メッセージ
+     * 指定されたメッセージをコピーしてレスポンスメッセージを生成する.
+     *
+     * @param message コピーするメッセージ
      */
     public DConnectResponseMessage(final DConnectMessage message) {
         super(message);

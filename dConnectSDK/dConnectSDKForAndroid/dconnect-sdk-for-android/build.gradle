@@ -1,11 +1,14 @@
 apply plugin: 'com.android.library'
 
+repositories {
+    mavenCentral()
+}
+
 dependencies {
     compile fileTree(include: '*.jar', dir: 'libs')
-    compile group: 'org.java-websocket', name: 'Java-WebSocket', version: '1.3.0'
     androidTestCompile 'com.android.support.test:testing-support-lib:0.1'
     androidTestCompile 'org.hamcrest:hamcrest-library:1.3'
-    androidTestCompile group: 'org.nanohttpd', name: 'nanohttpd-websocket', version: '2.3.0'
+    androidTestCompile 'org.nanohttpd:nanohttpd-websocket:2.3.0'
 }
 
 android {

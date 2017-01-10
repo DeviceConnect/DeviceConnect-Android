@@ -12,6 +12,7 @@ import android.content.Intent;
 
 /**
  * Device Connect ManagerからのIntentを待ち受けるBroadcastReceiverクラス.
+ *
  * @author NTT DOCOMO, INC.
  */
 public class DConnectMessageReceiver extends BroadcastReceiver {

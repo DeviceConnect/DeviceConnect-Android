@@ -17,35 +17,37 @@ import org.json.JSONObject;
  */
 public class DConnectEventMessage extends BasicDConnectMessage {
     /**
-     * コンストラクタ.
+     * 空のイベントメッセージを生成する.
      */
     public DConnectEventMessage() {
         super();
     }
 
     /**
-     * メッセージをJSONから生成する.
+     * Device Connect イベントメッセージをJSONから生成する.
      *
      * @param json メッセージJSON
-     * @throws JSONException JSONエラー.
+     * @throws JSONException JSONへの変換に失敗した場合に発生.
      */
     public DConnectEventMessage(final String json) throws JSONException {
         super(json);
     }
 
     /**
-     * メッセージをJSONから生成する.
+     * Device Connect イベントメッセージをJSONから生成する.
      *
      * @param json メッセージJSON
-     * @throws JSONException JSONエラー.
+     * @throws JSONException JSONへの変換に失敗した場合に発生.
      */
     public DConnectEventMessage(final JSONObject json) throws JSONException {
         super(json);
     }
 
     /**
-     * メッセージをIntentから生成する.
+     * Device Connect イベントメッセージをIntentから生成する.
+     *
      * @param intent メッセージIntent
+     * @throws JSONException JSONへの変換に失敗した場合に発生.
      */
     public DConnectEventMessage(final Intent intent) throws JSONException {
         super(intent);

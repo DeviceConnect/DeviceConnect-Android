@@ -66,6 +66,11 @@ class IntentDConnectSDK extends DConnectSDK {
     private String mManagerClassName = "org.deviceconnect.android.manager.DConnectBroadcastReceiver";
 
     /**
+     * イベントを通知するリスナー.
+     */
+    private OnWebSocketListener mOnWebSocketListener;
+
+    /**
      * コンストラクタ.
      * @param context コンテキスト
      */
@@ -94,13 +99,18 @@ class IntentDConnectSDK extends DConnectSDK {
         if (listener == null) {
             throw new NullPointerException("listener is null.");
         } else {
+            mOnWebSocketListener = listener;
+            sEventList.add(IntentDConnectSDK.this);
             listener.onOpen();
         }
-        sEventList.add(IntentDConnectSDK.this);
     }
 
     @Override
     public void disconnectWebSocket() {
+        if (mOnWebSocketListener != null) {
+            mOnWebSocketListener.onClose();
+            mOnWebSocketListener = null;
+        }
         sEventList.remove(IntentDConnectSDK.this);
     }
 

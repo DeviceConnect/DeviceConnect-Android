@@ -19,9 +19,20 @@ import org.java_websocket.handshake.ServerHandshake;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
 import java.net.URI;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.HashMap;
 import java.util.Map;
+
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 
 /**
  * WebSocketクライアントを管理するクラス.
@@ -89,7 +100,7 @@ class DConnectWebSocketClient {
      * @param origin オリジン
      * @param accessToken アクセストークン
      */
-    synchronized void connect(final String uri, final String origin, final String accessToken) {
+    void connect(final String uri, final String origin, final String accessToken) {
         if (mWebSocketClient != null) {
             if (DEBUG) {
                 Log.w(TAG, "WebSocketClient is already connected.");
@@ -166,6 +177,18 @@ class DConnectWebSocketClient {
                 }
             }
         };
+
+        if (uri.startsWith("wss")) {
+            try {
+                SSLSocketFactory factory = createSSLSocketFactory();
+                mWebSocketClient.setSocket(factory.createSocket());
+            } catch (NoSuchAlgorithmException | KeyManagementException | IOException e) {
+                if (mOnWebSocketListener != null) {
+                    mOnWebSocketListener.onError(e);
+                }
+                return;
+            }
+        }
         mWebSocketClient.connect();
     }
 
@@ -203,7 +226,7 @@ class DConnectWebSocketClient {
     /**
      * WebSocketを切断する.
      */
-    synchronized void close() {
+    void close() {
         if (mWebSocketClient != null) {
             mWebSocketClient.close();
             mWebSocketClient = null;
@@ -234,5 +257,27 @@ class DConnectWebSocketClient {
      */
     private void sendAccessToken(final String accessToken) {
         mWebSocketClient.send("{\"" + DConnectMessage.EXTRA_ACCESS_TOKEN + "\":\"" + accessToken + "\"}");
+    }
+
+    private SSLSocketFactory createSSLSocketFactory() throws NoSuchAlgorithmException, KeyManagementException {
+        TrustManager[] transManagers = {
+                new X509TrustManager() {
+                    @Override
+                    public void checkClientTrusted(final X509Certificate[] chain, final String authType) throws CertificateException {
+                    }
+
+                    @Override
+                    public void checkServerTrusted(final X509Certificate[] chain, final String authType) throws CertificateException {
+                    }
+
+                    @Override
+                    public X509Certificate[] getAcceptedIssuers() {
+                        return new X509Certificate[0];
+                    }
+                }
+        };
+        SSLContext sslcontext = SSLContext.getInstance("SSL");
+        sslcontext.init(null, transManagers, new SecureRandom());
+        return sslcontext.getSocketFactory();
     }
 }

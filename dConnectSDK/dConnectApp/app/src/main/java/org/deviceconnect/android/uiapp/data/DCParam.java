@@ -1,5 +1,7 @@
 package org.deviceconnect.android.uiapp.data;
 
+import java.util.List;
+
 public class DCParam {
     boolean mRequired;
     String mName;
@@ -7,6 +9,7 @@ public class DCParam {
     String mFormat;
     Number mMin;
     Number mMax;
+    List mEnum;
 
     boolean mSend;
     String mValue;
@@ -73,5 +76,13 @@ public class DCParam {
 
     public void setSend(boolean send) {
         mSend = send;
+    }
+
+    public List getEnum() {
+        return mEnum;
+    }
+
+    public void setEnum(List anEnum) {
+        mEnum = anEnum;
     }
 }

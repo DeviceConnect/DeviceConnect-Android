@@ -155,6 +155,9 @@ public class BasicActivity extends Activity {
                                     api.setPath("/gotapi/" + profileName + path);
                                     DConnectMessage m = methods.getMessage(method);
                                     if (m != null) {
+                                        String xType = m.getString("x-type");
+                                        api.setXType(xType);
+
                                         List<Object> params = m.getList("parameters");
                                         if (params != null) {
                                             for (Object o : params) {
@@ -164,6 +167,9 @@ public class BasicActivity extends Activity {
                                                 pa.setRequired(param.getBoolean("required"));
                                                 pa.setType(param.getString("type"));
                                                 pa.setFormat(param.getString("format"));
+                                                pa.setEnum(param.getList("enum"));
+                                                pa.setMax((Number) param.get("maximum"));
+                                                pa.setMin((Number) param.get("minimum"));
                                                 api.addParameter(pa);
                                             }
                                         }

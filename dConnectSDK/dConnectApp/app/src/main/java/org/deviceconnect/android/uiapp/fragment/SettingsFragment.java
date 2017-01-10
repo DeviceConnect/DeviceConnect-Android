@@ -10,16 +10,28 @@ package org.deviceconnect.android.uiapp.fragment;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.preference.CheckBoxPreference;
 import android.preference.EditTextPreference;
 import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceScreen;
+import android.preference.SwitchPreference;
 
 import org.deviceconnect.android.uiapp.DConnectApplication;
 import org.deviceconnect.android.uiapp.R;
 import org.deviceconnect.android.uiapp.utils.Settings;
+import org.deviceconnect.message.DConnectMessage;
+import org.deviceconnect.message.DConnectResponseMessage;
+import org.deviceconnect.message.DConnectSDK;
+import org.deviceconnect.message.DConnectSDKFactory;
+
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 設定画面フラグメント.
@@ -27,10 +39,16 @@ import org.deviceconnect.android.uiapp.utils.Settings;
 public class SettingsFragment extends PreferenceFragment
         implements Preference.OnPreferenceChangeListener {
 
+    private DConnectSDK mDConnectSDK;
+    private ScheduledExecutorService mExecutor = Executors.newSingleThreadScheduledExecutor();
+    private ScheduledFuture mFuture;
+    private Handler mHandler = new Handler(Looper.getMainLooper());
+
     @Override
     public void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         addPreferencesFromResource(R.xml.settings);
+
 
         PreferenceScreen versionPreferences = (PreferenceScreen)
                 getPreferenceScreen().findPreference(
@@ -64,8 +82,35 @@ public class SettingsFragment extends PreferenceFragment
     }
 
     @Override
+    public void onResume() {
+        super.onResume();
+        mDConnectSDK = DConnectSDKFactory.create(getActivity(), DConnectSDKFactory.Type.HTTP);
+        mDConnectSDK.setSSL(Settings.getInstance().isSSL());
+        startMonitoring();
+    }
+
+    @Override
+    public void onPause() {
+        mDConnectSDK = null;
+        stopMonitoring();
+        super.onPause();
+    }
+
+    @Override
     public boolean onPreferenceChange(final Preference preference, final Object newValue) {
-        if (getString(R.string.key_settings_dconn_sdk).equals(preference.getKey())) {
+        if (getString(R.string.key_settings_dconn_launch).equals(preference.getKey())) {
+            if (mDConnectSDK == null) {
+                return false;
+            }
+
+            Boolean result = (Boolean) newValue;
+            if (result) {
+                mDConnectSDK.startManager(getActivity());
+            } else {
+                mDConnectSDK.stopManager(getActivity());
+            }
+            return false;
+        } else if (getString(R.string.key_settings_dconn_sdk).equals(preference.getKey())) {
             if (newValue != null) {
                 preference.setSummary((CharSequence) newValue);
                 DConnectApplication app = (DConnectApplication) getActivity().getApplication();
@@ -73,12 +118,12 @@ public class SettingsFragment extends PreferenceFragment
                 return true;
             }
         }
-        return false;
+        return true;
     }
 
     @Override
     public boolean onPreferenceTreeClick(final PreferenceScreen preferenceScreen, final Preference preference) {
-       if (getString(R.string.key_settings_about_oss).equals(preference.getKey())) {
+        if (getString(R.string.key_settings_about_oss).equals(preference.getKey())) {
 //            mOssFragment.show(getFragmentManager(), null);
         } else if (getString(R.string.key_settings_about_privacypolicy).equals(preference.getKey())) {
             Bundle policyArgs = new Bundle();
@@ -97,5 +142,46 @@ public class SettingsFragment extends PreferenceFragment
         }
 
         return super.onPreferenceTreeClick(preferenceScreen, preference);
+    }
+
+    private void startMonitoring() {
+        mFuture = mExecutor.scheduleAtFixedRate(new Runnable() {
+            @Override
+            public void run() {
+                final boolean result = checkManager();
+                mHandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (getActivity() != null) {
+                            setManagerLaunch(result);
+                        }
+                    }
+                });
+            }
+        }, 0, 3, TimeUnit.SECONDS);
+    }
+
+    private void stopMonitoring() {
+        if (mFuture != null) {
+            mFuture.cancel(true);
+            mFuture = null;
+        }
+    }
+
+    private void setManagerLaunch(final boolean flag) {
+        SwitchPreference sw = (SwitchPreference)
+                getPreferenceScreen().findPreference(getString(R.string.key_settings_dconn_launch));
+        sw.setOnPreferenceChangeListener(null);
+        sw.setChecked(flag);
+        sw.setOnPreferenceChangeListener(this);
+    }
+
+    private boolean checkManager() {
+        if (mDConnectSDK == null) {
+            return false;
+        }
+
+        DConnectResponseMessage response = mDConnectSDK.availability();
+        return response != null && response.getResult() == DConnectMessage.RESULT_OK;
     }
 }

@@ -10,6 +10,8 @@
     <string name="key_settings_dconn_port">settings_dconn_port</string>
     <string name="key_settings_dconn_sdk">settings_dconn_sdk</string>
 
+    <string name="key_settings_dconn_launch">settings_dconn_launch</string>
+
     <string name="key_settings_dconn_client_id">settings_client_id</string>
     <string name="key_settings_dconn_access_token">settings_access_token</string>
 

@@ -3,88 +3,109 @@ package org.deviceconnect.android.uiapp.activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.widget.ImageView;
 
 import org.deviceconnect.android.uiapp.R;
-import org.deviceconnect.message.DConnectMessage;
+import org.deviceconnect.android.uiapp.utils.MixedReplaceMediaClient;
 
 import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.URL;
+import java.io.InputStream;
 
 public class ImageActivity extends BasicActivity {
+
+    private MixedReplaceMediaClient mMixedReplaceMediaClient;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_image);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
 
         Intent intent = getIntent();
         if (intent != null) {
             final String uri = intent.getStringExtra("uri");
             if (uri != null) {
-                AsyncTask<Void, Bitmap, Bitmap> task = new AsyncTask<Void, Bitmap, Bitmap>() {
-                    @Override
-                    protected Bitmap doInBackground(Void... params) {
-                        return createBitmap(uri);
-                    }
-
-                    @Override
-                    protected void onPostExecute(Bitmap bitmap) {
-                        if (bitmap != null) {
-                            ImageView imageView = (ImageView) findViewById(R.id.image);
-                            imageView.setImageBitmap(bitmap);
-                        }
-                    }
-                };
-                task.execute();
+                getBitmap(uri);
             }
         }
+    }
+
+    @Override
+    protected void onPause() {
+        if (mMixedReplaceMediaClient != null) {
+            mMixedReplaceMediaClient.stop();
+        }
+        super.onPause();
     }
 
     private String getOrigin() {
         return getPackageName();
     }
 
-    private Bitmap createBitmap(String uri) {
-        return getBitmapFormUri(uri);
+    private void getBitmap(final String uri) {
+        if (uri.startsWith("content://")) {
+            getBitmapForContentProvider(uri);
+        } else {
+            test(uri);
+        }
     }
 
-    private Bitmap getBitmapFormUri(String uri) {
-        HttpURLConnection conn = null;
-        try {
-            conn = (HttpURLConnection) new URL(uri).openConnection();
-            conn.setConnectTimeout(10 * 1000);
-            conn.setReadTimeout(10 * 1000);
-            conn.setRequestMethod("GET");
-            conn.setDoInput(true);
-            conn.setDoOutput(false);
-
-            if (getOrigin() != null) {
-                conn.setRequestProperty(DConnectMessage.HEADER_GOTAPI_ORIGIN, getOrigin());
+    private void getBitmapForContentProvider(final String uri) {
+        AsyncTask<Void, Bitmap, Bitmap> task = new AsyncTask<Void, Bitmap, Bitmap>() {
+            @Override
+            protected Bitmap doInBackground(Void... params) {
+                try {
+                    return MediaStore.Images.Media.getBitmap(getContentResolver(), Uri.parse(uri));
+                } catch (IOException e) {
+                    return null;
+                }
             }
 
-            if (Build.VERSION.SDK_INT > 13 && Build.VERSION.SDK_INT < 19) {
-                conn.setRequestProperty("Connection", "close");
+            @Override
+            protected void onPostExecute(Bitmap bitmap) {
+                if (bitmap != null) {
+                    ImageView imageView = (ImageView) findViewById(R.id.image);
+                    imageView.setImageBitmap(bitmap);
+                }
+            }
+        };
+        task.execute();
+    }
+
+    private void test(final String uri) {
+        mMixedReplaceMediaClient = new MixedReplaceMediaClient(uri);
+        mMixedReplaceMediaClient.setOrigin(getOrigin());
+        mMixedReplaceMediaClient.setOnMixedReplaceMediaListener(new MixedReplaceMediaClient.OnMixedReplaceMediaListener() {
+            @Override
+            public void onConnected() {
             }
 
-            conn.connect();
+            @Override
+            public void onReceivedData(final InputStream in) {
+                final Bitmap bitmap = BitmapFactory.decodeStream(in);
+                if (bitmap != null) {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            ImageView imageView = (ImageView) findViewById(R.id.image);
+                            imageView.setImageBitmap(bitmap);
+                        }
+                    });
+                }
+            }
 
-            int resp = conn.getResponseCode();
-            if (resp == 200) {
-                return BitmapFactory.decodeStream(conn.getInputStream());
-            } else {
-                return null;
+            @Override
+            public void onError(MixedReplaceMediaClient.MixedReplaceMediaError error) {
             }
-        } catch (IOException e) {
-            return null;
-        } finally {
-            if (conn != null) {
-                conn.disconnect();
-            }
-        }
+        });
+        mMixedReplaceMediaClient.start();
     }
 }

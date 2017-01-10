@@ -85,6 +85,7 @@ public class DConnectApplication extends Application {
         if (mDConnectSK == null) {
             initDConnectSDK(Settings.getInstance().getSDKType());
         }
+        mDConnectSK.setSSL(Settings.getInstance().isSSL());
         return mDConnectSK;
     }
 

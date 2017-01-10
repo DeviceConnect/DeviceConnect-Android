@@ -3,7 +3,6 @@ package org.deviceconnect.android.uiapp.activity;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -123,7 +122,6 @@ public class ServiceListActivity extends BasicActivity {
 
                                 @Override
                                 public void onError(final int errorCode, final String errorMessage) {
-                                    Log.e("ABC", "error");
                                 }
                             });
                             break;

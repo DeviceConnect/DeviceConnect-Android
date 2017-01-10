@@ -10,8 +10,13 @@
     <string name="activity_api_select_file">Select File</string>
     <string name="activity_api_request">Request</string>
     <string name="activity_api_response">Response</string>
+    <string name="activity_api_parameter_error">Required parameter is not set.</string>
+    <string name="activity_api_send_param">Send</string>
 
     <string name="manager">Device Connect Manager</string>
+    <string name="manager_launch">Launch</string>
+    <string name="manager_on">ON</string>
+    <string name="manager_off">OFF</string>
     <string name="ssl_disabled">Disable</string>
     <string name="ssl_enabled">Enable</string>
     <string name="ssl">SSL</string>
@@ -23,10 +28,10 @@
 
     <string name="activity_settings_sdk">Device Connect SDK</string>
     <string name="activity_settings_sdk_title">Type of Connection</string>
-    <string name="sdk_type_http" translatable="false">HTTP</string>
-    <string name="sdk_type_intent" translatable="false">Intent</string>
-    <string name="activity_settings_sdk_entry1" translatable="false">HTTP</string>
-    <string name="activity_settings_sdk_entry2" translatable="false">Intent</string>
+    <string name="sdk_type_http">HTTP</string>
+    <string name="sdk_type_intent">Intent</string>
+    <string name="activity_settings_sdk_entry1">HTTP</string>
+    <string name="activity_settings_sdk_entry2">Intent</string>
 
     <string-array name="activity_settings_sdk_entries">
         <item>@string/activity_settings_sdk_entry1</item>

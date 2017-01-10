@@ -90,14 +90,19 @@ public class ProfileActivity extends BasicActivity {
         public View getView(final int position, final View convertView, final ViewGroup parent) {
             View view = convertView;
             if (view == null) {
-                view = getLayoutInflater().inflate(R.layout.item_profile_list, null);
+                view = getLayoutInflater().inflate(R.layout.item_api, null);
             }
 
             DCApi api = mApiList.get(position);
 
-            TextView textView = (TextView) view.findViewById(R.id.item_name);
-            if (textView != null) {
-                textView.setText(api.getMethod() + " " + api.getPath());
+            TextView methodView = (TextView) view.findViewById(R.id.item_method);
+            if (methodView != null) {
+                methodView.setText(api.getMethod().getValue());
+            }
+
+            TextView pathView = (TextView) view.findViewById(R.id.item_path);
+            if (pathView != null) {
+                pathView.setText(api.getPath());
             }
 
             return view;

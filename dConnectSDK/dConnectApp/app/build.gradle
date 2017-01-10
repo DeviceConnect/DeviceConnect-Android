@@ -30,5 +30,6 @@ dependencies {
     compile fileTree(include: '*.jar', dir: 'libs')
     compile project(':dconnect-sdk-for-android')
     compile 'org.jetbrains:annotations-java5:15.0'
+    compile 'org.synchronoss.cloud:nio-multipart-parser:1.0.1'
 }
 

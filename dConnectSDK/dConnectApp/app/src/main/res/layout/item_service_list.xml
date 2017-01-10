@@ -21,7 +21,6 @@
         android:layout_centerHorizontal="true"
         android:gravity="center_horizontal"
         android:ellipsize="middle"
-        android:singleLine="true"
         android:text="@color/service_name_color"
         android:textAppearance="?android:attr/textAppearanceSmall"/>
 

@@ -34,6 +34,7 @@ public class DCApi {
     private Method mMethod;
     private String mPath;
     private List<DCParam> mDCParams = new ArrayList<>();
+    private String mXType;
 
     public Method getMethod() {
         return mMethod;
@@ -65,5 +66,13 @@ public class DCApi {
 
     public List<DCParam> getParameters() {
         return mDCParams;
+    }
+
+    public String getXType() {
+        return mXType;
+    }
+
+    public void setXType(String XType) {
+        mXType = XType;
     }
 }

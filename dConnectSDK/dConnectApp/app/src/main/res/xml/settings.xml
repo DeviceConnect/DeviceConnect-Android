@@ -2,6 +2,11 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
     <PreferenceCategory android:title="@string/manager">
+        <SwitchPreference
+            android:key="@string/key_settings_dconn_launch"
+            android:switchTextOff="@string/manager_off"
+            android:switchTextOn="@string/manager_on"
+            android:title="@string/manager_launch" />
         <CheckBoxPreference
             android:key="@string/key_settings_dconn_ssl"
             android:summaryOff="@string/ssl_disabled"

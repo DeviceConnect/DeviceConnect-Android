@@ -11,6 +11,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 
+import org.deviceconnect.message.entity.Entity;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.deviceconnect.profile.AvailabilityProfileConstants;
 import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
@@ -365,7 +366,7 @@ public abstract class DConnectSDK {
      * Device Connect Managerを起動する.
      * <p>
      * Device Connect Managerを起動するために一瞬透明なActivityが起動するので、
-     * Activityが一時停止されることに注意すること。
+     * Activityが一時停止されることに注意する必要があります。
      * </p>
      * <span style="margin:0;padding:2px;background:#029EBC;color:#EBF7FA;line-height:140%;font-weight:bold;">サンプルコード</span>
      * <pre>
@@ -445,7 +446,7 @@ public abstract class DConnectSDK {
      * @param body リクエストに追加するボディデータ
      * @return レスポンス
      */
-    protected abstract DConnectResponseMessage sendRequest(final Method method, final Uri uri, final Map<String, String> headers, final Object body);
+    protected abstract DConnectResponseMessage sendRequest(final Method method, final Uri uri, final Map<String, String> headers, final Entity body);
 
     /**
      * URIBuilderを生成する.
@@ -553,7 +554,7 @@ public abstract class DConnectSDK {
      * @param data 送信するボディデータ
      * @return レスポンス
      */
-    public DConnectResponseMessage put(final String uri, final Object data) {
+    public DConnectResponseMessage put(final String uri, final Entity data) {
         if (uri == null) {
             throw new NullPointerException("uri is null.");
         }
@@ -566,7 +567,7 @@ public abstract class DConnectSDK {
      * @param data 送信するボディデータ
      * @return レスポンス
      */
-    public DConnectResponseMessage put(final Uri uri, final Object data) {
+    public DConnectResponseMessage put(final Uri uri, final Entity data) {
         if (uri == null) {
             throw new NullPointerException("uri is null.");
         }
@@ -579,7 +580,7 @@ public abstract class DConnectSDK {
      * @param data 送信するボディデータ
      * @param listener レスポンスを通知するリスナー
      */
-    public void put(final String uri, final Object data, final OnResponseListener listener) {
+    public void put(final String uri, final Entity data, final OnResponseListener listener) {
         if (uri == null) {
             throw new NullPointerException("uri is null.");
         }
@@ -592,7 +593,7 @@ public abstract class DConnectSDK {
      * @param data 送信するボディデータ
      * @param listener レスポンスを通知するリスナー
      */
-    public void put(final Uri uri, final Object data, final OnResponseListener listener) {
+    public void put(final Uri uri, final Entity data, final OnResponseListener listener) {
         if (uri == null) {
             throw new NullPointerException("uri is null.");
         }
@@ -611,21 +612,24 @@ public abstract class DConnectSDK {
     /**
      * POSTメソッドで指定したURIにアクセスし、レスポンスを取得する.
      * <p>
-     * 引数のdataにStringを渡した場合には、ボディに文字列を入れてDevice Connect Managerに送信する。
+     * 引数のdataに{@link org.deviceconnect.message.entity.MultipartEntity MultipartEntity}を渡した場合には、ボディにマルチパートを格納してDevice Connect Managerに送信する。<br>
+     * {@link org.deviceconnect.message.entity.MultipartEntity MultipartEntity}には、{@link org.deviceconnect.message.entity.BinaryEntity BinaryEntity}、
+     * {@link org.deviceconnect.message.entity.FileEntity FileEntity}、{@link org.deviceconnect.message.entity.StringEntity StringEntity}をマルチパートに格納することができます。
      * </p>
      * <p>
-     * 引数のdataにMapを渡した場合には、ボディにマルチパートを格納してDevice Connect Managerに送信する。<br>
-     * MapにFileを格納するとファイルのデータをDevice Connect Managerに送る。<br>
-     * File以外は、key-valueの値をDevice Connect Managerに送る。
+     * 引数のdataに{@link org.deviceconnect.message.entity.StringEntity StringEntity}を渡した場合には、ボディに文字列を入れてDevice Connect Managerに送信する。
      * </p>
      * <p>
-     * dataにnullが指定された場合には、データは何もつけずにDevice Connect Managerにアクセスする。
+     * 引数のdataに{@link org.deviceconnect.message.entity.BinaryEntity BinaryEntity}を渡した場合には、ボディにバイナリを入れてDevice Connect Managerに送信する。
+     * </p>
+     * <p>
+     * dataに{@code null}が指定された場合には、データは何もつけずにDevice Connect Managerにアクセスする。
      * </p>
      * @param uri アクセス先のURI
      * @param data 送信するボディデータ
      * @return レスポンス
      */
-    public DConnectResponseMessage post(final String uri, final Object data) {
+    public DConnectResponseMessage post(final String uri, final Entity data) {
         if (uri == null) {
             throw new NullPointerException("uri is null.");
         }
@@ -635,24 +639,24 @@ public abstract class DConnectSDK {
     /**
      * POSTメソッドで指定したURIにアクセスし、レスポンスを取得する.
      * <p>
-     * 引数のdataにMapを渡した場合には、ボディにマルチパートを格納してDevice Connect Managerに送信する。<br>
-     * MapにFileを格納するとファイルのデータをDevice Connect Managerに送る。<br>
-     * File以外は、key-valueの値をDevice Connect Managerに送る。
+     * 引数のdataに{@link org.deviceconnect.message.entity.MultipartEntity MultipartEntity}を渡した場合には、ボディにマルチパートを格納してDevice Connect Managerに送信する。<br>
+     * {@link org.deviceconnect.message.entity.MultipartEntity MultipartEntity}には、{@link org.deviceconnect.message.entity.BinaryEntity BinaryEntity}、
+     * {@link org.deviceconnect.message.entity.FileEntity FileEntity}、{@link org.deviceconnect.message.entity.StringEntity StringEntity}をマルチパートに格納することができます。
      * </p>
      * <p>
-     * 引数のdataにStringを渡した場合には、ボディに文字列を入れてDevice Connect Managerに送信する。
+     * 引数のdataに{@link org.deviceconnect.message.entity.StringEntity StringEntity}を渡した場合には、ボディに文字列を入れてDevice Connect Managerに送信する。
      * </p>
      * <p>
-     * 引数のdataにbyte[]を渡した場合には、ボディにバイナリを入れてDevice Connect Managerに送信する。
+     * 引数のdataに{@link org.deviceconnect.message.entity.BinaryEntity BinaryEntity}を渡した場合には、ボディにバイナリを入れてDevice Connect Managerに送信する。
      * </p>
      * <p>
-     * dataにnullが指定された場合には、データは何もつけずにDevice Connect Managerにアクセスする。
+     * dataに{@code null}が指定された場合には、データは何もつけずにDevice Connect Managerにアクセスする。
      * </p>
      * <span style="margin:0;padding:2px;background:#029EBC;color:#EBF7FA;line-height:140%;font-weight:bold;">サンプルコード1</span>
      * <pre>
-     * Map&lt;String, String&gt; dataMap = new HashMap&lt;&gt;();
-     * dataMap.put("mode", "scales");
-     * dataMap.put("data", new File("/data/data/0/org.mycompany.sample/files/sample.png"));
+     * MultipartEntity dataMap = new MultipartEntity();
+     * dataMap.add("mode", "scales");
+     * dataMap.add("data", new FileEntity(new File("/data/data/0/org.mycompany.sample/files/sample.png")));
      *
      * DConnectSDK sdk = DConnectSDKFactory.create(context, DConnectSDKFactory.Type.HTTP);
      * DConnectSDK.URIBuilder builder = sdk.createURIBuilder();
@@ -662,6 +666,7 @@ public abstract class DConnectSDK {
      *
      * DConnectResponseMessage response = sdk.post(builder.build(), dataMap);
      * if (response.getResult() == DConnectMessage.RESULT_OK) {
+     *     // 成功時の処理
      * }
      * </pre>
      * <span style="margin:0;padding:2px;background:#029EBC;color:#EBF7FA;line-height:140%;font-weight:bold;">サンプルコード2</span>
@@ -672,15 +677,16 @@ public abstract class DConnectSDK {
      * builder.setAttribute("drawImage");
      * builder.setServiceId(hostServiceId);
      *
-     * DConnectResponseMessage response = sdk.post(builder.build(), "テストデータ");
+     * DConnectResponseMessage response = sdk.post(builder.build(), new StringEntity("テストデータ"));
      * if (response.getResult() == DConnectMessage.RESULT_OK) {
+     *     // 成功時の処理
      * }
      * </pre>
      * @param uri アクセス先のURI
      * @param data 送信するボディデータ
      * @return レスポンス
      */
-    public DConnectResponseMessage post(final Uri uri, final Object data) {
+    public DConnectResponseMessage post(final Uri uri, final Entity data) {
         if (uri == null) {
             throw new NullPointerException("uri is null.");
         }
@@ -694,7 +700,7 @@ public abstract class DConnectSDK {
      * @param data 送信するボディデータ
      * @param listener レスポンスを通知するリスナー
      */
-    public void post(final String uri, final Object data, final OnResponseListener listener) {
+    public void post(final String uri, final Entity data, final OnResponseListener listener) {
         if (uri == null) {
             throw new NullPointerException("uri is null.");
         }
@@ -708,7 +714,7 @@ public abstract class DConnectSDK {
      * @param data 送信するボディデータ
      * @param listener レスポンスを通知するリスナー
      */
-    public void post(final Uri uri, final Object data, final OnResponseListener listener) {
+    public void post(final Uri uri, final Entity data, final OnResponseListener listener) {
         if (uri == null) {
             throw new NullPointerException("uri is null.");
         }

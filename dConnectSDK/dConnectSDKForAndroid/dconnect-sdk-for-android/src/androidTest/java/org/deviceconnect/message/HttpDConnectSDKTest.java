@@ -11,6 +11,9 @@ import android.net.Uri;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
+import org.deviceconnect.message.entity.FileEntity;
+import org.deviceconnect.message.entity.MultipartEntity;
+import org.deviceconnect.message.entity.StringEntity;
 import org.deviceconnect.message.server.TestServer;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.deviceconnect.profile.AvailabilityProfileConstants;
@@ -32,7 +35,6 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
@@ -982,9 +984,9 @@ public class HttpDConnectSDKTest {
         final String uuid = "uuid";
         final String key = "key";
         final String value = "value";
-        final Map<String, Object> data = new HashMap<>();
-        data.put(key, value);
-        data.put("data", new File(path));
+        final MultipartEntity data = new MultipartEntity();
+        data.add(key, new StringEntity(value));
+        data.add("data", new FileEntity(new File(path)));
 
         mTestServer.setServerCallback(new TestServer.ServerCallback() {
             @Override
@@ -1088,8 +1090,8 @@ public class HttpDConnectSDKTest {
         final String uuid = "uuid";
         final String key = "key";
         final String value = "value";
-        final Map<String, Object> data = new HashMap<>();
-        data.put(key, value);
+        final MultipartEntity data = new MultipartEntity();
+        data.add(key, new StringEntity(value));
         final AtomicReference<DConnectResponseMessage> result = new AtomicReference<>();
         mTestServer.setServerCallback(new TestServer.ServerCallback() {
             @Override

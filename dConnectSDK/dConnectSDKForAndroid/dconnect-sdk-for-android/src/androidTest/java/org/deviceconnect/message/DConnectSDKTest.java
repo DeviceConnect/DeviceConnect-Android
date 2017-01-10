@@ -6,6 +6,7 @@
  */
 package org.deviceconnect.message;
 
+import android.content.Context;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
@@ -210,5 +211,31 @@ public class DConnectSDKTest {
     public void setAccessToken_empty() {
         DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
         sdk.setAccessToken("");
+    }
+
+    /**
+     * {@link DConnectSDK#startManager(Context)}の引数コンテキストに{@code null}を指定して実行する。
+     * <pre>
+     * 【期待する動作】
+     * ・NullPointerExceptionが発生すること。
+     * </pre>
+     */
+    @Test(expected = NullPointerException.class)
+    public void startManager_context_is_null() {
+        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
+        sdk.startManager(null);
+    }
+
+    /**
+     * {@link DConnectSDK#stopManager(Context)}の引数コンテキストに{@code null}を指定して実行する。
+     * <pre>
+     * 【期待する動作】
+     * ・NullPointerExceptionが発生すること。
+     * </pre>
+     */
+    @Test(expected = NullPointerException.class)
+    public void stopManager_context_is_null() {
+        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
+        sdk.stopManager(null);
     }
 }

@@ -11,10 +11,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 
+import org.deviceconnect.message.entity.BinaryEntity;
+import org.deviceconnect.message.entity.Entity;
+import org.deviceconnect.message.entity.FileEntity;
+import org.deviceconnect.message.entity.MultipartEntity;
+import org.deviceconnect.message.entity.StringEntity;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 import org.json.JSONException;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -152,7 +156,7 @@ class IntentDConnectSDK extends DConnectSDK {
 
     @Override
     protected DConnectResponseMessage sendRequest(final Method method, final Uri uri,
-                                                  final Map<String, String> headers, final Object body) {
+                                                  final Map<String, String> headers, final Entity body) {
         final int requestCode = UUID.randomUUID().hashCode();
 
         String[] paths = parsePath(uri);
@@ -196,17 +200,16 @@ class IntentDConnectSDK extends DConnectSDK {
         if (getOrigin() != null) {
             request.putExtra(IntentDConnectMessage.EXTRA_ORIGIN, getOrigin());
         }
-        if (body != null && body instanceof Map) {
-            for (Map.Entry<String, Object> data : ((Map<String, Object>)body).entrySet()) {
+        if (body != null && body instanceof MultipartEntity) {
+            for (Map.Entry<String, Entity> data : (((MultipartEntity) body).getContent()).entrySet()) {
                 String key = data.getKey();
-                Object val = data.getValue();
-
-                if (val instanceof String) {
-                    request.putExtra(key, (String) val);
-                } else if (val instanceof byte[]) {
-                    request.putExtra(key, (byte[]) val);
-                } else if (val instanceof File) {
-                    request.putExtra(key, (File) val);
+                Entity val = data.getValue();
+                if (val instanceof StringEntity) {
+                    request.putExtra(key, ((StringEntity) val).getContent());
+                } else if (val instanceof BinaryEntity) {
+                    request.putExtra(key, ((BinaryEntity) val).getContent());
+                } else if (val instanceof FileEntity) {
+                    request.putExtra(key, ((FileEntity) val).getContent());
                 }
             }
         }

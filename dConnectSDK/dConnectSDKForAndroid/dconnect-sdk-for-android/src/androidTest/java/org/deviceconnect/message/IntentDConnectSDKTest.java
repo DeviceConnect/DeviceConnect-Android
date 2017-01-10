@@ -16,6 +16,9 @@ import android.os.IBinder;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
+import org.deviceconnect.message.entity.FileEntity;
+import org.deviceconnect.message.entity.MultipartEntity;
+import org.deviceconnect.message.entity.StringEntity;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 import org.deviceconnect.message.server.TestBroadcastReceiver;
 import org.deviceconnect.message.server.TestService;
@@ -36,7 +39,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
@@ -892,9 +894,9 @@ public class IntentDConnectSDKTest {
         final String uuid = "uuid";
         final String key = "key";
         final String value = "value";
-        final Map<String, Object> data = new HashMap<>();
-        data.put(key, value);
-        data.put("data", new File(path));
+        final MultipartEntity data = new MultipartEntity();
+        data.add(key, new StringEntity(value));
+        data.add("data", new FileEntity(new File(path)));
 
         mService.setServiceCallback(new TestService.ServiceCallback() {
             @Override

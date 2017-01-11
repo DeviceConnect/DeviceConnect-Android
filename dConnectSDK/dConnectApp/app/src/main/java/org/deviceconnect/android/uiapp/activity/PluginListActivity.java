@@ -21,12 +21,12 @@ import org.deviceconnect.android.uiapp.data.DCDevicePlugin;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.DConnectResponseMessage;
 import org.deviceconnect.message.DConnectSDK;
+import org.deviceconnect.message.entity.MultipartEntity;
+import org.deviceconnect.message.entity.StringEntity;
 import org.deviceconnect.profile.SystemProfileConstants;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * デバイスプラグイン一覧を表示するためのActivity.
@@ -76,8 +76,8 @@ public class PluginListActivity extends Activity {
         builder.setInterface(SystemProfileConstants.INTERFACE_DEVICE);
         builder.setAttribute(SystemProfileConstants.ATTRIBUTE_WAKEUP);
 
-        Map<String, String> data = new HashMap<>();
-        data.put(SystemProfileConstants.PARAM_PLUGIN_ID, plugin.getId());
+        MultipartEntity data = new MultipartEntity();
+        data.add(SystemProfileConstants.PARAM_PLUGIN_ID, new StringEntity(plugin.getId()));
 
         getSDK().put(builder.build(), data, new DConnectSDK.OnResponseListener() {
             @Override

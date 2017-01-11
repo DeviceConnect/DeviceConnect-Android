@@ -1,6 +1,7 @@
 package org.deviceconnect.android.uiapp.activity;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.Editable;
@@ -33,7 +34,13 @@ import org.deviceconnect.message.DConnectEventMessage;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.DConnectResponseMessage;
 import org.deviceconnect.message.DConnectSDK;
+import org.deviceconnect.message.entity.BinaryEntity;
+import org.deviceconnect.message.entity.MultipartEntity;
+import org.deviceconnect.message.entity.StringEntity;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -561,6 +568,28 @@ public class ApiActivity extends BasicActivity {
         textView.setMovementMethod(method);
     }
 
+    private byte[] getContent(final String uri) {
+        InputStream in = null;
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        try {
+            in = getContentResolver().openInputStream(Uri.parse(uri));
+            int len;
+            byte[] buf = new byte[4096];
+            while ((len = in.read(buf)) > 0) {
+                out.write(buf, 0, len);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                in.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return out.toByteArray();
+    }
+
     private void executeNotBodyApi(final DCApi api, final DConnectSDK.OnResponseListener listener) {
         DConnectSDK.URIBuilder builder = getSDK().createURIBuilder();
         builder.setPath(api.getPath());
@@ -586,11 +615,15 @@ public class ApiActivity extends BasicActivity {
         DConnectSDK.URIBuilder builder = getSDK().createURIBuilder();
         builder.setPath(api.getPath());
 
-        Map<String, Object> data = new HashMap<>();
+        MultipartEntity data = new MultipartEntity();
         List<DCParam> paramList = api.getParameters();
         for (DCParam param :paramList) {
             if (param.isSend()) {
-                data.put(param.getName(), param.getValue());
+                if ("file".equals(param.getType())) {
+                    data.add(param.getName(), new BinaryEntity(getContent(param.getValue())));
+                } else {
+                    data.add(param.getName(), new StringEntity(param.getValue()));
+                }
             }
         }
 

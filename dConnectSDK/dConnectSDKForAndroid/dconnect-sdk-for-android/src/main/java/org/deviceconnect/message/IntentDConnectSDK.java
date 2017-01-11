@@ -290,7 +290,7 @@ class IntentDConnectSDK extends DConnectSDK {
         while (sResponseMap.get(requestCode) == null && (mSoTimeout == 0
                 || mSoTimeout > System.currentTimeMillis() - parseStart)) {
             try {
-                Thread.sleep(1000);
+                Thread.sleep(200);
             } catch (InterruptedException e) {
                 throw new IOException(e);
             }

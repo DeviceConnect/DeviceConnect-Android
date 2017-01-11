@@ -27,9 +27,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- * <p>
  * Device Connect Managerへのアクセスを行うクラス.
- * </p>
+ * <div>
  * <span style="margin:0;padding:2px;background:#029EBC;color:#EBF7FA;line-height:140%;font-weight:bold;">サンプルコード</span>
  * <pre>
  * // sdkは、使い回すこと。
@@ -71,6 +70,7 @@ import java.util.concurrent.Executors;
  *     }
  * });
  * </pre>
+ * </div>
  * @author NTT DOCOMO, INC.
  */
 public abstract class DConnectSDK {
@@ -167,6 +167,8 @@ public abstract class DConnectSDK {
      * 別のホストにあるDevice Connect Managerにアクセスする場合には、設定をしなおしてください。<br>
      * </p>
      * @param host Device Connect Managerのホスト名
+     * @throws NullPointerException hostに{@code null}が指定された場合に発生
+     * @throws IllegalArgumentException hostに空文字などが指定された場合に発生
      */
     public void setHost(final String host) {
         if (host == null) {
@@ -192,6 +194,7 @@ public abstract class DConnectSDK {
      * デフォルトでは、4035が設定してあります。
      * </p>
      * @param port Device Connect Managerのポート番号
+     * @throws IllegalArgumentException portの値が0以下または、65536以上の場合に発生
      */
     public void setPort(final int port) {
         if (port < 0 || port > 65535) {
@@ -211,10 +214,12 @@ public abstract class DConnectSDK {
     /**
      * アプリケーションのOriginを設定する.
      * <p>
-     * アプリケーションのOriginを変更したい場合には、ここで変更します。<br>
+     * アプリケーションのOriginを変更したい場合には、このメソッドで変更します。<br>
      * デフォルトでは、アプリケーションのパッケージ名が設定してあります。
      * </p>
      * @param origin アプリケーションのOrigin
+     * @throws NullPointerException originに{@code null}が指定された場合に発生
+     * @throws IllegalArgumentException originに空文字などが指定された場合に発生
      */
     public void setOrigin(final String origin) {
         if (origin == null) {
@@ -247,8 +252,8 @@ public abstract class DConnectSDK {
     /**
      * アクセストークンを取得する.
      * <p>
-     *     設定されていない場合には{@code null}を返却します。<br>
-     *     デフォルトでは、何も設定されていないので{@code null}を返却します。
+     * 設定されていない場合には{@code null}を返却します。<br>
+     * デフォルトでは、何も設定されていないので{@code null}を返却します。
      * </p>
      * @return アクセストークン
      */
@@ -262,6 +267,8 @@ public abstract class DConnectSDK {
      * アクセストークンを取得する方法は、{@link #authorization(String, String[])}を参照してください。
      * </p>
      * @param accessToken アクセストークン
+     * @throws NullPointerException accessTokenに{@code null}が指定された場合に発生
+     * @throws IllegalArgumentException accessTokenに空文字などが指定された場合に発生
      */
     public void setAccessToken(final String accessToken) {
         if (accessToken == null) {
@@ -276,9 +283,10 @@ public abstract class DConnectSDK {
     /**
      * イベント受信用のWebSocketを Device Connect Managerへ接続する.
      * <p>
-     * すでに接続されている場合には、無視します。<br>
+     * すでに接続されている場合には、処理は行わずに無視します。<br>
      * この関数でWebSocketを開いたあとは、必ず{@link #disconnectWebSocket()}を呼び出して、WebSocketを切断してください。
      * </p>
+     * <div>
      * <span style="margin:0;padding:2px;background:#029EBC;color:#EBF7FA;line-height:140%;font-weight:bold;">サンプルコード</span>
      * <pre>
      * DConnectSDK sdk = DConnectSDKFactory.create(context, DConnectSDKFactory.Type.HTTP);
@@ -296,6 +304,7 @@ public abstract class DConnectSDK {
      *     }
      * });
      * </pre>
+     * </div>
      * @param listener WebSocket状態通知リスナー
      */
     public abstract void connectWebSocket(final OnWebSocketListener listener);
@@ -313,6 +322,7 @@ public abstract class DConnectSDK {
      * <p>
      * イベントの登録成功・失敗やイベントメッセージは、第２引数のlistenerに通知されます。
      * </p>
+     * <div>
      * <span style="margin:0;padding:2px;background:#029EBC;color:#EBF7FA;line-height:140%;font-weight:bold;">サンプルコード</span>
      * <pre>
      * DConnectSDK sdk = DConnectSDKFactory.create(context, DConnectSDKFactory.Type.HTTP);
@@ -330,10 +340,11 @@ public abstract class DConnectSDK {
      *      }
      *      <code>@</code>Override
      *      public void onMessage(DConnectEventMessage message) {
-     *          // イベント
+     *          // イベントの通知
      *      }
      * });
      * </pre>
+     * </div>
      * @param uri 登録するイベントへのURI
      * @param listener イベント通知リスナー
      */
@@ -368,6 +379,11 @@ public abstract class DConnectSDK {
      * Device Connect Managerを起動するために一瞬透明なActivityが起動するので、
      * Activityが一時停止されることに注意する必要があります。
      * </p>
+     * <p>
+     * Device Connect Managerの設定において、外部からの自動起動/終了が無効の場合には、
+     * Device Connect Managerの起動画面が表示されます。
+     * </p>
+     * <div>
      * <span style="margin:0;padding:2px;background:#029EBC;color:#EBF7FA;line-height:140%;font-weight:bold;">サンプルコード</span>
      * <pre>
      * DConnectSDK sdk = DConnectSDKFactory.create(context, DConnectSDKFactory.Type.HTTP);
@@ -376,6 +392,7 @@ public abstract class DConnectSDK {
      *     sdk.startManager(context);
      * }
      * </pre>
+     * </div>
      * @param context コンテキスト
      */
     public void startManager(final Context context) {
@@ -407,6 +424,10 @@ public abstract class DConnectSDK {
      * <p>
      * Device Connect Managerを停止するために一瞬透明なActivityが起動するので、
      * Activityが一時停止されることに注意すること。
+     * </p>
+     * <p>
+     * Device Connect Managerの設定において、外部からの自動起動/終了が無効の場合には、
+     * Device Connect Managerの停止画面が表示されます。
      * </p>
      * @param context コンテキスト
      */
@@ -450,7 +471,7 @@ public abstract class DConnectSDK {
 
     /**
      * URIBuilderを生成する.
-     * <br>
+     * <div>
      * <span style="margin:0;padding:2px;background:#029EBC;color:#EBF7FA;line-height:140%;font-weight:bold;">サンプルコード</span>
      * <pre>
      * DConnectSDK sdk = DConnectSDKFactory.create(context, DConnectSDKFactory.Type.HTTP);
@@ -458,6 +479,7 @@ public abstract class DConnectSDK {
      * builder.setProfile("battery");
      * builder.setServiceId("serviceId");
      * </pre>
+     * </div>
      * @return URIBuilderのインスタンス
      */
     public URIBuilder createURIBuilder() {
@@ -470,6 +492,7 @@ public abstract class DConnectSDK {
      * Device Connect Managerに同期的にアクセスを行う為にUIスレッドなどから呼び出すとエラーになります。<br>
      * 非同期的に呼び出したい場合には、{@link #get(String, OnResponseListener)}を使用してください。
      * </p>
+     * <div>
      * <span style="margin:0;padding:2px;background:#029EBC;color:#EBF7FA;line-height:140%;font-weight:bold;">サンプルコード</span>
      * <pre>
      * DConnectSDK sdk = DConnectSDKFactory.create(context, DConnectSDKFactory.Type.HTTP);
@@ -478,6 +501,7 @@ public abstract class DConnectSDK {
      *     // Device Connect Manager起動中
      * }
      * </pre>
+     * </div>
      * @param uri アクセス先のURI
      * @return レスポンス
      */
@@ -494,6 +518,7 @@ public abstract class DConnectSDK {
      * Device Connect Managerに同期的にアクセスを行う為にUIスレッドなどから呼び出すとエラーになります。<br>
      * 非同期的に呼び出したい場合には、{@link #get(String, OnResponseListener)}を使用してください。
      * </p>
+     * <div>
      * <span style="margin:0;padding:2px;background:#029EBC;color:#EBF7FA;line-height:140%;font-weight:bold;">サンプルコード</span>
      * <pre>
      * DConnectSDK sdk = DConnectSDKFactory.create(context, DConnectSDKFactory.Type.HTTP);
@@ -506,6 +531,7 @@ public abstract class DConnectSDK {
      *     // Device Connect Manager起動中
      * }
      * </pre>
+     * </div>
      * @param uri アクセス先のURI
      * @return レスポンス
      */
@@ -652,6 +678,7 @@ public abstract class DConnectSDK {
      * <p>
      * dataに{@code null}が指定された場合には、データは何もつけずにDevice Connect Managerにアクセスする。
      * </p>
+     * <div>
      * <span style="margin:0;padding:2px;background:#029EBC;color:#EBF7FA;line-height:140%;font-weight:bold;">サンプルコード1</span>
      * <pre>
      * MultipartEntity dataMap = new MultipartEntity();
@@ -669,6 +696,8 @@ public abstract class DConnectSDK {
      *     // 成功時の処理
      * }
      * </pre>
+     * </div>
+     * <div>
      * <span style="margin:0;padding:2px;background:#029EBC;color:#EBF7FA;line-height:140%;font-weight:bold;">サンプルコード2</span>
      * <pre>
      * DConnectSDK sdk = DConnectSDKFactory.create(context, DConnectSDKFactory.Type.HTTP);
@@ -682,6 +711,7 @@ public abstract class DConnectSDK {
      *     // 成功時の処理
      * }
      * </pre>
+     * </div>
      * @param uri アクセス先のURI
      * @param data 送信するボディデータ
      * @return レスポンス
@@ -791,6 +821,7 @@ public abstract class DConnectSDK {
      * この関数のレスポンスからDevice Connect Managerの有効・無効を確認します。<br>
      * この関数の中で、Device Connect Managerへの通信処理が発生しますので、UIスレッドから呼び出すことはできません。
      * </p>
+     * <div>
      * <span style="margin:0;padding:2px;background:#029EBC;color:#EBF7FA;line-height:140%;font-weight:bold;">サンプルコード</span>
      * <pre>
      * DConnectSDK sdk = DConnectSDKFactory.create(context, DConnectSDKFactory.Type.HTTP);
@@ -802,6 +833,7 @@ public abstract class DConnectSDK {
      *     // Device Connect Managerが無効
      * }
      * </pre>
+     * </div>
      * @return レスポンス
      */
     public DConnectResponseMessage availability() {
@@ -815,6 +847,7 @@ public abstract class DConnectSDK {
      * <p>
      * この関数のレスポンスからDevice Connect Managerの有効・無効を確認します。<br>
      * </p>
+     * <div>
      * <span style="margin:0;padding:2px;background:#029EBC;color:#EBF7FA;line-height:140%;font-weight:bold;">サンプルコード</span>
      * <pre>
      * DConnectSDK sdk = DConnectSDKFactory.create(context, DConnectSDKFactory.Type.HTTP);
@@ -830,6 +863,7 @@ public abstract class DConnectSDK {
      *     }
      * });
      * </pre>
+     * </div>
      * @param listener 結果を通知するリスナー
      */
     public void availability(final OnResponseListener listener) {
@@ -850,6 +884,7 @@ public abstract class DConnectSDK {
      * ユーザに使用許可ダイアログを表示して確認を行います。<br>
      * この関数の中で、Device Connect Managerへの通信処理が発生しますので、UIスレッドから呼び出すことはできません。
      * </p>
+     * <div>
      * <span style="margin:0;padding:2px;background:#029EBC;color:#EBF7FA;line-height:140%;font-weight:bold;">サンプルコード</span>
      * <pre>
      * DConnectSDK sdk = DConnectSDKFactory.create(context, DConnectSDKFactory.Type.HTTP);
@@ -869,6 +904,7 @@ public abstract class DConnectSDK {
      *     // Local OAuthの認証に失敗
      * }
      * </pre>
+     * </div>
      * @param appName アプリケーション名
      * @param scopes アクセスするプロファイル一覧
      * @return レスポンス
@@ -887,6 +923,7 @@ public abstract class DConnectSDK {
      * <p>
      * ユーザに使用許可ダイアログを表示して確認を行います。<br>
      * </p>
+     * <div>
      * <span style="margin:0;padding:2px;background:#029EBC;color:#EBF7FA;line-height:140%;font-weight:bold;">サンプルコード</span>
      * <pre>
      * final DConnectSDK sdk = DConnectSDKFactory.create(context, DConnectSDKFactory.Type.HTTP);
@@ -909,6 +946,7 @@ public abstract class DConnectSDK {
      *     }
      * });
      * </pre>
+     * </div>
      * @param appName アプリケーション名
      * @param scopes アクセスするプロファイル一覧
      * @param listener Local OAuthのレスポンスを通知するリスナー
@@ -940,6 +978,7 @@ public abstract class DConnectSDK {
 
     /**
      * ServiceDiscoveryプロファイルにアクセスし、Device Connect Managerに接続されているサービス一覧を取得する.
+     * <div>
      * <span style="margin:0;padding:2px;background:#029EBC;color:#EBF7FA;line-height:140%;font-weight:bold;">サンプルコード</span>
      * <pre>
      * DConnectSDK sdk = DConnectSDKFactory.create(context, DConnectSDKFactory.Type.HTTP);
@@ -959,6 +998,7 @@ public abstract class DConnectSDK {
      *     // サービス一覧の取得に失敗
      * }
      * </pre>
+     * </div>
      * @return レスポンス
      */
     public DConnectResponseMessage serviceDiscovery() {
@@ -969,6 +1009,7 @@ public abstract class DConnectSDK {
 
     /**
      * 非同期にServiceDiscoveryプロファイルにアクセスし、Device Connect Managerに接続されているサービス一覧をリスナーに通知する.
+     * <div>
      * <span style="margin:0;padding:2px;background:#029EBC;color:#EBF7FA;line-height:140%;font-weight:bold;">サンプルコード</span>
      * <pre>
      * DConnectSDK sdk = DConnectSDKFactory.create(context, DConnectSDKFactory.Type.HTTP);
@@ -985,6 +1026,7 @@ public abstract class DConnectSDK {
      *     }
      * });
      * </pre>
+     * </div>
      * @param listener レスポンスを通知するリスナー
      */
     public void serviceDiscovery(final OnResponseListener listener) {
@@ -1075,11 +1117,10 @@ public abstract class DConnectSDK {
 
     /**
      * 指定された情報からAPIへのURLを提供するクラス.
-     *
      * <p>
      * Host、Port、AccessTokenは、DConnectSDKに設定された値がデフォルトで入っています。
      * </p>
-     *
+     * <div>
      * <span style="margin:0;padding:2px;background:#029EBC;color:#EBF7FA;line-height:140%;font-weight:bold;">サンプルコード</span>
      * <pre>
      * URIBuilder builder = sdk.createURIBuilder();
@@ -1090,7 +1131,7 @@ public abstract class DConnectSDK {
      * URI uri = builder.build();
      * String uriStr = builder.toString(true);
      * </pre>
-     *
+     * </div>
      * @author NTT DOCOMO, INC.
      */
     public class URIBuilder {
@@ -1188,7 +1229,7 @@ public abstract class DConnectSDK {
          * {@inheritDoc}
          */
         @Override
-        public synchronized String toString() {
+        public String toString() {
             return toString(false);
         }
 
@@ -1206,7 +1247,7 @@ public abstract class DConnectSDK {
          *
          * @return スキーム
          */
-        public synchronized String getScheme() {
+        public String getScheme() {
             return mScheme;
         }
 
@@ -1216,7 +1257,7 @@ public abstract class DConnectSDK {
          * @param scheme スキーム
          * @return {@link URIBuilder} インスタンス
          */
-        public synchronized URIBuilder setScheme(final String scheme) {
+        public URIBuilder setScheme(final String scheme) {
             if (scheme == null) {
                 throw new NullPointerException("scheme is null.");
             }
@@ -1232,17 +1273,19 @@ public abstract class DConnectSDK {
          *
          * @return ホスト名
          */
-        public synchronized String getHost() {
+        public String getHost() {
             return mHost;
         }
 
         /**
          * ホスト名を設定する.
-         *
+         * <p>
+         * {@link DConnectSDK#setHost(String)}で設定された値がでデフォルトでは設定されています。
+         * </p>
          * @param host ホスト名
          * @return {@link URIBuilder} インスタンス
          */
-        public synchronized URIBuilder setHost(final String host) {
+        public URIBuilder setHost(final String host) {
             if (host == null) {
                 throw new NullPointerException("host is null.");
             }
@@ -1258,17 +1301,19 @@ public abstract class DConnectSDK {
          *
          * @return ポート番号
          */
-        public synchronized int getPort() {
+        public int getPort() {
             return mPort;
         }
 
         /**
          * ポート番号を設定する.
-         *
+         * <p>
+         * {@link DConnectSDK#setPort(int)}で設定された値がでデフォルトでは設定されています。
+         * </p>
          * @param port ポート番号
          * @return {@link URIBuilder} インスタンス
          */
-        public synchronized URIBuilder setPort(final int port) {
+        public URIBuilder setPort(final int port) {
             if (port < 0 || port > 65535) {
                 throw new IllegalArgumentException("port is invalid. port=" + port);
             }
@@ -1281,18 +1326,19 @@ public abstract class DConnectSDK {
          *
          * @return パス
          */
-        public synchronized String getPath() {
+        public String getPath() {
             return mPath;
         }
 
         /**
          * APIのパスを文字列で設定する.
+         * <p>
          * このパラメータが設定されている場合はビルド時に api、profile、interface、attribute は無視される。
-         *
+         * </p>
          * @param path パス
          * @return {@link URIBuilder} インスタンス
          */
-        public synchronized URIBuilder setPath(final String path) {
+        public URIBuilder setPath(final String path) {
             mPath = path;
             return this;
         }
@@ -1302,18 +1348,20 @@ public abstract class DConnectSDK {
          *
          * @return API
          */
-        public synchronized String getApi() {
+        public String getApi() {
             return mApi;
         }
 
         /**
          * APIを取得する.
-         * パスが設定されている場合には、このパラメータは無視される。
-         *
+         * <p>
+         * パスが設定されている場合には、このパラメータは無視される。<br>
+         * デフォルトでは、gotapiが設定されています。
+         * </p>
          * @param api API
          * @return {@link URIBuilder} インスタンス
          */
-        public synchronized URIBuilder setApi(final String api) {
+        public URIBuilder setApi(final String api) {
             mApi = api;
             return this;
         }
@@ -1323,19 +1371,19 @@ public abstract class DConnectSDK {
          *
          * @return プロファイル
          */
-        public synchronized String getProfile() {
+        public String getProfile() {
             return mProfile;
         }
 
         /**
          * プロファイルを設定する.
          * <p>
-         * パスが設定されている場合には、このパラメータは無視される。
-         *
+         * {@link #setPath}でパスが設定されている場合には、このパラメータは無視される。<br>
+         * </p>
          * @param profile プロファイル
          * @return {@link URIBuilder} インスタンス
          */
-        public synchronized URIBuilder setProfile(final String profile) {
+        public URIBuilder setProfile(final String profile) {
             mProfile = profile;
             return this;
         }
@@ -1345,19 +1393,20 @@ public abstract class DConnectSDK {
          *
          * @return インターフェース
          */
-        public synchronized String getInterface() {
+        public String getInterface() {
             return mInterface;
         }
 
         /**
          * インターフェースを設定する.
          * <p>
-         * パスが設定されている場合には、このパラメータは無視される。
-         *
+         * {@link #setPath}でパスが設定されている場合には、このパラメータは無視される。<br>
+         * {@code null}が設定された場合には、インターフェースは省略されます。
+         * </p>
          * @param inter インターフェース
          * @return {@link URIBuilder} インスタンス
          */
-        public synchronized URIBuilder setInterface(final String inter) {
+        public URIBuilder setInterface(final String inter) {
             mInterface = inter;
             return this;
         }
@@ -1367,19 +1416,20 @@ public abstract class DConnectSDK {
          *
          * @return アトリビュート
          */
-        public synchronized String getAttribute() {
+        public String getAttribute() {
             return mAttribute;
         }
 
         /**
          * アトリビュートを設定する.
          * <p>
-         * {@link #setPath}でパスが設定されている場合には、このパラメータは無視される。
-         *
+         * {@link #setPath}でパスが設定されている場合には、このパラメータは無視される。<br>
+         * {@code null}が設定された場合には、アトリビュートは省略されます。
+         * </p>
          * @param attribute アトリビュート
          * @return {@link URIBuilder} インスタンス
          */
-        public synchronized URIBuilder setAttribute(final String attribute) {
+        public URIBuilder setAttribute(final String attribute) {
             mAttribute = attribute;
             return this;
         }
@@ -1393,7 +1443,7 @@ public abstract class DConnectSDK {
          * @param accessToken アクセストークン
          * @return {@link URIBuilder} インスタンス
          */
-        public synchronized URIBuilder setAccessToken(final String accessToken) {
+        public URIBuilder setAccessToken(final String accessToken) {
             addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, accessToken);
             return this;
         }
@@ -1402,7 +1452,7 @@ public abstract class DConnectSDK {
          * アクセストークンを取得する.
          * @return アクセストークン
          */
-        public synchronized String getAccessToken() {
+        public String getAccessToken() {
             return getParameter(DConnectMessage.EXTRA_ACCESS_TOKEN);
         }
 
@@ -1411,7 +1461,7 @@ public abstract class DConnectSDK {
          * @param serviceId サービスID
          * @return {@link URIBuilder} インスタンス
          */
-        public synchronized URIBuilder setServiceId(final String serviceId) {
+        public URIBuilder setServiceId(final String serviceId) {
             addParameter(DConnectMessage.EXTRA_SERVICE_ID, serviceId);
             return this;
         }
@@ -1423,7 +1473,7 @@ public abstract class DConnectSDK {
          * </p>
          * @return サービスID
          */
-        public synchronized String getServiceId() {
+        public String getServiceId() {
             return getParameter(DConnectMessage.EXTRA_SERVICE_ID);
         }
 
@@ -1435,7 +1485,7 @@ public abstract class DConnectSDK {
          * @param name クエリパラメータ名
          * @return クエリパラメータ
          */
-        public synchronized String getParameter(final String name) {
+        public String getParameter(final String name) {
             return mParameters.get(name);
         }
 
@@ -1446,7 +1496,7 @@ public abstract class DConnectSDK {
          * @param value バリュー
          * @return {@link URIBuilder} インスタンス
          */
-        public synchronized URIBuilder addParameter(final String key, final String value) {
+        public URIBuilder addParameter(final String key, final String value) {
             if (key == null) {
                 throw new NullPointerException("key is null.");
             }
@@ -1462,7 +1512,7 @@ public abstract class DConnectSDK {
          * @param key クエリパラメータ名
          * @return {@link URIBuilder} インスタンス
          */
-        public synchronized URIBuilder removeParameter(final String key) {
+        public URIBuilder removeParameter(final String key) {
             if (key == null) {
                 throw new NullPointerException("key is null.");
             }
@@ -1485,7 +1535,7 @@ public abstract class DConnectSDK {
          * @param ascii ASCII変換の有無
          * @return URIを表す文字列
          */
-        private synchronized String toString(final boolean ascii) {
+        private String toString(final boolean ascii) {
             StringBuilder builder = new StringBuilder();
 
             if (mScheme != null) {

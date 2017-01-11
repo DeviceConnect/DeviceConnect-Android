@@ -174,7 +174,9 @@ class HttpDConnectSDK extends DConnectSDK {
                 contentLength += (((BinaryEntity) val).getContent()).length;
 
                 writer.write(String.format("%s%s%s", TWO_HYPHEN, boundary, EOL));
-                writer.write(String.format("Content-Disposition: form-data; name=\"%s\"%s", key, EOL));
+                writer.write(String.format("Content-Disposition: form-data; name=\"%s\"; filename=\"%s\"%s", key, ((BinaryEntity) val).getName(), EOL));
+                writer.write(String.format("Content-Type: application/octet-stream%s", EOL));
+                writer.write(String.format("Content-Transfer-Encoding: binary%s", EOL));
                 writer.write(EOL);
                 writer.flush();
 

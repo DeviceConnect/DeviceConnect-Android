@@ -33,6 +33,10 @@
                 android:name="org.deviceconnect.android.deviceplugin.name"
                 android:value="@string/linking_app_name"/>
 
+            <meta-data
+                android:name="org.deviceconnect.android.deviceplugin.icon"
+                android:resource="@mipmap/ic_launcher"/>
+
             <intent-filter>
                 <!-- uninstall notification -->
                 <action android:name="android.intent.action.PACKAGE_FULLY_REMOVED"/>

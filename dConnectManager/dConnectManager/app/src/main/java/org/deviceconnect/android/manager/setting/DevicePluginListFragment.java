@@ -10,11 +10,9 @@ import android.app.Fragment;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
-import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -25,7 +23,6 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import org.deviceconnect.android.manager.BuildConfig;
 import org.deviceconnect.android.manager.DConnectApplication;
 import org.deviceconnect.android.manager.DevicePlugin;
 import org.deviceconnect.android.manager.DevicePluginManager;
@@ -61,34 +58,15 @@ public class DevicePluginListFragment extends Fragment {
     /**
      * Create a PluginContainer from Device Plug-in.
      * @param pm PackageManager.
-     * @param app ApplicationInfo.
+     * @param plugin ApplicationInfo.
      * @return Instance of DeviceContainer
      */
-    private PluginContainer createContainer(final PackageManager pm, final ApplicationInfo app) {
+    private PluginContainer createContainer(final PackageManager pm, final DevicePlugin plugin) {
         PluginContainer container = new PluginContainer();
-        if (app.packageName.equals(getActivity().getPackageName())) {
-            container.setLabel(getString(R.string.linking_app_name));
-        } else {
-            container.setLabel(app.loadLabel(pm).toString());
-        }
-        container.setPackageName(app.packageName);
-        try {
-            container.setIcon(pm.getApplicationIcon(app.packageName));
-        } catch (PackageManager.NameNotFoundException e) {
-            // do nothing.
-            if (BuildConfig.DEBUG) {
-                Log.d("Manager", "Icon is not found.");
-            }
-        }
-        try {
-            PackageInfo info = pm.getPackageInfo(app.packageName, PackageManager.GET_META_DATA);
-            container.setVersion(info.versionName);
-        } catch (PackageManager.NameNotFoundException e) {
-            // do nothing.
-            if (BuildConfig.DEBUG) {
-                Log.d("Manager", "VersionName is not found.");
-            }
-        }
+        container.setLabel(plugin.getDeviceName());
+        container.setPluginId(plugin.getPluginId());
+        container.setIcon(plugin.getPluginIcon());
+        container.setVersion(plugin.getVersionName());
         return container;
     }
 
@@ -104,7 +82,7 @@ public class DevicePluginListFragment extends Fragment {
         for (DevicePlugin plugin : manager.getDevicePlugins()) {
             try {
                 ApplicationInfo info = pm.getApplicationInfo(plugin.getPackageName(), 0);
-                containers.add(createContainer(pm, info));
+                containers.add(createContainer(pm, plugin));
             } catch (PackageManager.NameNotFoundException e) {
                 continue;
             }
@@ -174,7 +152,7 @@ public class DevicePluginListFragment extends Fragment {
     private void openDevicePluginInformation(final PluginContainer container) {
         Intent intent = new Intent();
         intent.setClass(getActivity(), DevicePluginInfoActivity.class);
-        intent.putExtra(DevicePluginInfoActivity.PACKAGE_NAME, container.getPackageName());
+        intent.putExtra(DevicePluginInfoActivity.PLUGIN_ID, container.getPluginId());
         startActivity(intent);
     }
 
@@ -184,8 +162,8 @@ public class DevicePluginListFragment extends Fragment {
     static class PluginContainer {
         /** Label. */
         private String mLabel;
-        /** Package name. */
-        private String mPackageName;
+        /** Plug-in Id. */
+        private String mPluginId;
         /** Version. */
         private String mVersion;
         /** Icon. */
@@ -214,21 +192,21 @@ public class DevicePluginListFragment extends Fragment {
         }
 
         /**
-         * Get plug-in package name.
+         * Get plug-in id.
          * 
-         * @return Plug-in package name.
+         * @return Plug-in id.
          */
-        public String getPackageName() {
-            return mPackageName;
+        public String getPluginId() {
+            return mPluginId;
         }
 
         /**
-         * Set plug-in package name.
+         * Set plug-in id.
          * 
-         * @param name Plug-in package name.
+         * @param pluginId Plug-in id.
          */
-        public void setPackageName(final String name) {
-            mPackageName = name;
+        public void setPluginId(final String pluginId) {
+            mPluginId = pluginId;
         }
 
         /**

@@ -7,6 +7,7 @@
 package org.deviceconnect.android.manager;
 
 import android.content.ComponentName;
+import android.graphics.drawable.Drawable;
 
 import org.deviceconnect.android.manager.util.VersionName;
 
@@ -24,10 +25,12 @@ public class DevicePlugin {
     private String mClassName;
     /** デバイスプラグインのバージョン名. */
     private String mVersionName;
-    /** プラグインD. */
+    /** プラグインID. */
     private String mPluginId;
     /** デバイスプラグイン名. */
     private String mDeviceName;
+    /* プラグインアイコン. */
+    private Drawable mPluginIcon;
     /** Class name of service for restart. */
     private String mStartServiceClassName;
     /* プラグインSDKバージョン名. */
@@ -166,14 +169,38 @@ public class DevicePlugin {
         return false;
     }
 
+    /**
+     * デバイスプラグインSDKのバージョンを設定する.
+     * @param pluginSdkVersionName デバイスプラグインSDKのバージョン
+     */
     public void setPluginSdkVersionName(final VersionName pluginSdkVersionName) {
         mPluginSdkVersionName = pluginSdkVersionName;
     }
 
+    /**
+     * デバイスプラグインSDKのバージョンを取得する.
+     * @return デバイスプラグインSDKのバージョン
+     */
     public VersionName getPluginSdkVersionName() {
         return mPluginSdkVersionName;
     }
-    
+
+    /**
+     * デバイスプラグインのアイコンデータを設定する.
+     * @param icon デバイスプラグインのアイコンデータ
+     */
+    public void setPluginIcon(final Drawable icon) {
+        mPluginIcon = icon;
+    }
+
+    /**
+     * デバイスプラグインのアイコンデータを取得する.
+     * @return デバイスプラグインのアイコンデータ
+     */
+    public Drawable getPluginIcon() {
+        return mPluginIcon;
+    }
+
     @Override
     public String toString() {
         return "ServiceId: " + mPluginId + "DeviceName: " + mDeviceName

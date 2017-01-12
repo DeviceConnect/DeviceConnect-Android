@@ -36,7 +36,15 @@
         <receiver android:name=".HostDeviceProvider">
             <meta-data
                 android:name="org.deviceconnect.android.deviceplugin"
-                android:resource="@xml/deviceplugin"/>
+                android:resource="@xml/org_deviceconnect_android_deviceplugin_host"/>
+
+            <meta-data
+                android:name="org.deviceconnect.android.deviceplugin.name"
+                android:value="@string/app_name_for_device_web_api"/>
+
+            <meta-data
+                android:name="org.deviceconnect.android.deviceplugin.icon"
+                android:resource="@drawable/ic_launcher"/>
 
             <intent-filter>
                 <action android:name="org.deviceconnect.action.GET"/>

@@ -12,7 +12,6 @@ import android.app.Fragment;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
-import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
@@ -31,6 +30,7 @@ import org.deviceconnect.android.localoauth.DevicePluginXmlProfileLocale;
 import org.deviceconnect.android.localoauth.DevicePluginXmlUtil;
 import org.deviceconnect.android.manager.DConnectApplication;
 import org.deviceconnect.android.manager.DevicePlugin;
+import org.deviceconnect.android.manager.DevicePluginManager;
 import org.deviceconnect.android.manager.R;
 import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
@@ -52,6 +52,9 @@ public class DevicePluginInfoFragment extends Fragment {
     /** デバイスプラグインのパッケージ名. */
     private String mPackageName;
 
+    /** デバイスプラグインのプラグインID. */
+    private String mPlaginId;
+
     @Override
     public void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -63,23 +66,21 @@ public class DevicePluginInfoFragment extends Fragment {
                              final Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_deviceplugin_info, container, false);
 
-        mPackageName = getArguments().getString(DevicePluginInfoActivity.PACKAGE_NAME);
+        mPlaginId = getArguments().getString(DevicePluginInfoActivity.PLUGIN_ID);
 
-        PackageManager pm = getActivity().getPackageManager();
         String name = null;
         Drawable icon = null;
         String versionName = null;
-        try {
-            ApplicationInfo app = pm.getApplicationInfo(mPackageName, 0);
-            if (mPackageName.equals(getActivity().getPackageName())) {
-                name = getString(R.string.linking_app_name);
-            } else {
-                name = app.loadLabel(pm).toString();
-            }            icon = pm.getApplicationIcon(app.packageName);
-            PackageInfo info = pm.getPackageInfo(app.packageName, PackageManager.GET_META_DATA);
-            versionName = info.versionName;
-        } catch (PackageManager.NameNotFoundException e) {
-            e.printStackTrace();
+        DConnectApplication apps = (DConnectApplication) getActivity().getApplication();
+        DevicePluginManager manager = apps.getDevicePluginManager();
+        for (DevicePlugin plugin : manager.getDevicePlugins()) {
+            if (mPlaginId.equals(plugin.getPluginId())) {
+                mPackageName = plugin.getPackageName();
+                name = plugin.getDeviceName();
+                icon = plugin.getPluginIcon();
+                versionName = plugin.getVersionName();
+                break;
+            }
         }
 
         TextView nameView = (TextView) view.findViewById(R.id.plugin_package_name);
@@ -175,7 +176,7 @@ public class DevicePluginInfoFragment extends Fragment {
         List<DevicePlugin> plugins = app.getDevicePluginManager().getDevicePlugins();
         for (DevicePlugin plugin : plugins) {
             if (mPackageName.equals(plugin.getPackageName())
-                    && plugin.getPluginId() != null) {
+                    && mPlaginId.equals(plugin.getPluginId())) {
                 Intent request = new Intent();
                 request.setComponent(plugin.getComponentName());
                 request.setAction(IntentDConnectMessage.ACTION_PUT);

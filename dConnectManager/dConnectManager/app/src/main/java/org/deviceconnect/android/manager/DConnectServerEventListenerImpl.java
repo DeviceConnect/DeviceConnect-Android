@@ -7,13 +7,14 @@
 package org.deviceconnect.android.manager;
 
 import android.app.Service;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 
 import org.deviceconnect.android.localoauth.ClientPackageInfo;
 import org.deviceconnect.android.localoauth.LocalOAuth2Main;
 import org.deviceconnect.android.manager.event.EventBroker;
-import org.deviceconnect.android.manager.profile.DConnectFilesProfile;
 import org.deviceconnect.android.manager.util.DConnectUtil;
 import org.deviceconnect.android.provider.FileManager;
 import org.deviceconnect.message.DConnectMessage;
@@ -150,9 +151,11 @@ class DConnectServerEventListenerImpl implements DConnectServerEventListener {
 
     @Override
     public void onWebSocketMessage(final DConnectWebSocket webSocket, final String message) {
-        try {
+        if (BuildConfig.DEBUG) {
             mLogger.info("onWebSocketMessage: message = " + message);
+        }
 
+        try {
             JSONObject json = new JSONObject(message);
             String uri = webSocket.getUri();
             String origin = webSocket.getClientOrigin();
@@ -208,8 +211,7 @@ class DConnectServerEventListenerImpl implements DConnectServerEventListener {
     }
 
     @Override
-    public boolean onReceivedHttpRequest(final HttpRequest request,
-                                         final HttpResponse response) {
+    public boolean onReceivedHttpRequest(final HttpRequest request, final HttpResponse response) {
         final int requestCode = UUID.randomUUID().hashCode();
 
         String[] paths = parsePath(request);
@@ -261,6 +263,24 @@ class DConnectServerEventListenerImpl implements DConnectServerEventListener {
             return true;
         }
 
+        // filesの時は、Device Connect Managerまでは渡さずに、ここで処理を行う
+        if ("files".equalsIgnoreCase(profile)) {
+            if (request.getMethod().equals(HttpRequest.Method.GET)) {
+                String uri = parameters.get("uri");
+                try {
+                    ContentResolver r = mContext.getContentResolver();
+                    response.setBody(r.openInputStream(Uri.parse(uri)));
+                    response.setContentLength(-1);
+                    response.setCode(StatusCode.OK);
+                } catch (Exception e) {
+                    response.setCode(StatusCode.NOT_FOUND);
+                }
+            } else {
+                response.setCode(StatusCode.BAD_REQUEST);
+            }
+            return true;
+        }
+
         Intent intent = new Intent(action);
         intent.setClass(mContext, DConnectService.class);
         intent.putExtra(IntentDConnectMessage.EXTRA_API, api);
@@ -307,7 +327,7 @@ class DConnectServerEventListenerImpl implements DConnectServerEventListener {
                 // ここのエラーはタイムアウトの場合のみ
                 setTimeoutResponse(response);
             } else {
-                convertResponse(response, profile, resp);
+                convertResponse(response, resp);
             }
         } catch (JSONException e) {
             setJSONFormatError(response);
@@ -558,29 +578,15 @@ class DConnectServerEventListenerImpl implements DConnectServerEventListener {
     /**
      * HTTPのレスポンスを組み立てる.
      * @param response 返答を格納するレスポンス
-     * @param prof profile
      * @param resp response用のIntent
      * @throws JSONException JSONの解析に失敗した場合
      * @throws UnsupportedEncodingException 文字列のエンコードに失敗した場合
      */
-    private void convertResponse(final HttpResponse response, final String prof, final Intent resp)
+    private void convertResponse(final HttpResponse response, final Intent resp)
             throws JSONException, UnsupportedEncodingException {
-        if (DConnectFilesProfile.PROFILE_NAME.equals(prof)) {
-            byte[] data = resp.getByteArrayExtra(DConnectFilesProfile.PARAM_DATA);
-            if (data == null) {
-                response.setCode(StatusCode.NOT_FOUND);
-            } else {
-                String mimeType = resp.getStringExtra(DConnectFilesProfile.PARAM_MIME_TYPE);
-                if (mimeType != null) {
-                    response.setContentType(mimeType);
-                }
-                response.setBody(data);
-            }
-        } else {
-            JSONObject root = new JSONObject();
-            DConnectUtil.convertBundleToJSON(root, resp.getExtras());
-            response.setContentType(CONTENT_TYPE_JSON);
-            response.setBody(root.toString().getBytes("UTF-8"));
-        }
+        JSONObject root = new JSONObject();
+        DConnectUtil.convertBundleToJSON(root, resp.getExtras());
+        response.setContentType(CONTENT_TYPE_JSON);
+        response.setBody(root.toString().getBytes("UTF-8"));
     }
 }

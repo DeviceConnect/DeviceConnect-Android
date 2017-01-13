@@ -30,7 +30,6 @@ import org.deviceconnect.android.manager.policy.OriginValidator;
 import org.deviceconnect.android.manager.profile.AuthorizationProfile;
 import org.deviceconnect.android.manager.profile.DConnectAvailabilityProfile;
 import org.deviceconnect.android.manager.profile.DConnectDeliveryProfile;
-import org.deviceconnect.android.manager.profile.DConnectFilesProfile;
 import org.deviceconnect.android.manager.profile.DConnectServiceDiscoveryProfile;
 import org.deviceconnect.android.manager.profile.DConnectSystemProfile;
 import org.deviceconnect.android.manager.request.DConnectRequest;
@@ -173,7 +172,6 @@ public abstract class DConnectMessageService extends Service
         addProfile(new AuthorizationProfile());
         addProfile(new DConnectAvailabilityProfile());
         addProfile(new DConnectServiceDiscoveryProfile(null, mPluginMgr));
-        addProfile(new DConnectFilesProfile(this));
         addProfile(new DConnectSystemProfile(this, mPluginMgr));
 
         // dConnect Managerで処理せず、登録されたデバイスプラグインに処理させるプロファイル

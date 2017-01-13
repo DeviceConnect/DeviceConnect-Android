@@ -19,7 +19,6 @@ import android.os.Build;
 import android.os.Bundle;
 
 import org.deviceconnect.android.manager.DConnectSettings;
-import org.deviceconnect.android.manager.profile.DConnectFilesProfile;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 import org.deviceconnect.utils.JSONUtils;
@@ -134,8 +133,7 @@ public final class DConnectUtil {
         builder.append(settings.getHost());
         builder.append(":");
         builder.append(settings.getPort());
-        builder.append("/gotapi/");
-        builder.append(DConnectFilesProfile.PROFILE_NAME);
+        builder.append("/gotapi/files");
         builder.append("?uri=");
         try {
             builder.append(URLEncoder.encode(uri, "UTF-8"));

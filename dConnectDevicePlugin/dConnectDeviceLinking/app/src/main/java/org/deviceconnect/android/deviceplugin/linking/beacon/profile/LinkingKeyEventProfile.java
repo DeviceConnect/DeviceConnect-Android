@@ -12,10 +12,11 @@ import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.linking.BuildConfig;
 import org.deviceconnect.android.deviceplugin.linking.LinkingApplication;
+import org.deviceconnect.android.deviceplugin.linking.LinkingDestroy;
 import org.deviceconnect.android.deviceplugin.linking.LinkingDevicePluginService;
 import org.deviceconnect.android.deviceplugin.linking.beacon.LinkingBeaconManager;
+import org.deviceconnect.android.deviceplugin.linking.beacon.data.ButtonData;
 import org.deviceconnect.android.deviceplugin.linking.beacon.data.LinkingBeacon;
-import org.deviceconnect.android.deviceplugin.linking.LinkingDestroy;
 import org.deviceconnect.android.deviceplugin.linking.beacon.service.LinkingBeaconService;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventError;
@@ -25,13 +26,14 @@ import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.KeyEventProfile;
 import org.deviceconnect.android.profile.api.DConnectApi;
 import org.deviceconnect.android.profile.api.DeleteApi;
+import org.deviceconnect.android.profile.api.GetApi;
 import org.deviceconnect.android.profile.api.PutApi;
 import org.deviceconnect.message.DConnectMessage;
 
 import java.util.List;
 
 public class LinkingKeyEventProfile extends KeyEventProfile implements LinkingDestroy {
-
+    private static final int TIMEOUT = 30 * 1000;
     private static final String TAG = "LinkingPlugIn";
 
     public LinkingKeyEventProfile(final DConnectMessageService service) {
@@ -39,6 +41,7 @@ public class LinkingKeyEventProfile extends KeyEventProfile implements LinkingDe
         LinkingBeaconManager mgr = app.getLinkingBeaconManager();
         mgr.addOnBeaconButtonEventListener(mListener);
 
+        addApi(mGetOnDown);
         addApi(mPutOnDown);
         addApi(mDeleteOnDown);
     }
@@ -47,6 +50,78 @@ public class LinkingKeyEventProfile extends KeyEventProfile implements LinkingDe
         @Override
         public void onClickButton(final LinkingBeacon beacon, final int keyCode, final long timeStamp) {
             notifyKeyEvent(beacon, keyCode, timeStamp);
+        }
+    };
+
+    private final DConnectApi mGetOnDown = new GetApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_DOWN;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            LinkingBeaconManager mgr = getLinkingBeaconManager();
+            LinkingBeacon beacon = ((LinkingBeaconService) getService()).getLinkingBeacon();
+
+            ButtonData button = beacon.getButtonData();
+            if (button != null && System.currentTimeMillis() - button.getTimeStamp() < TIMEOUT) {
+                setKeyEvent(response, createKeyEvent(button.getKeyCode(), button.getTimeStamp()));
+                mgr.startBeaconScanWithTimeout(TIMEOUT);
+                return true;
+            }
+
+            mgr.addOnBeaconButtonEventListener(new OnBeaconButtonEventListenerImpl(mgr, beacon) {
+                @Override
+                public void onClickButton(final LinkingBeacon beacon, final int keyCode, final long timeStamp) {
+                    if (mCleanupFlag || !beacon.equals(mBeacon)) {
+                        return;
+                    }
+
+                    if (BuildConfig.DEBUG) {
+                        Log.i(TAG, "onClickButton: beacon=" + beacon.getDisplayName() + " button=" + keyCode);
+                    }
+
+                    setKeyEvent(response, createKeyEvent(keyCode, timeStamp));
+                    sendResponse(response);
+                    cleanup();
+                }
+
+                @Override
+                public void onDisableScan(final String message) {
+                    if (mCleanupFlag) {
+                        return;
+                    }
+
+                    if (BuildConfig.DEBUG) {
+                        Log.i(TAG, "onClickButton: disable scan.");
+                    }
+
+                    MessageUtils.setIllegalDeviceStateError(response, message);
+                    sendResponse(response);
+                }
+
+                @Override
+                public void onCleanup() {
+                    mBeaconManager.removeOnBeaconButtonEventListener(this);
+                }
+
+                @Override
+                public void onTimeout() {
+                    if (mCleanupFlag) {
+                        return;
+                    }
+
+                    if (BuildConfig.DEBUG) {
+                        Log.i(TAG, "onClickButton: timeout");
+                    }
+
+                    MessageUtils.setTimeoutError(response);
+                    sendResponse(response);
+                }
+            });
+            mgr.startBeaconScanWithTimeout(10 * 1000);
+            return false;
         }
     };
 
@@ -150,5 +225,12 @@ public class LinkingKeyEventProfile extends KeyEventProfile implements LinkingDe
     private LinkingApplication getLinkingApplication() {
         LinkingDevicePluginService service = (LinkingDevicePluginService) getContext();
         return (LinkingApplication) service.getApplication();
+    }
+
+    private abstract class OnBeaconButtonEventListenerImpl extends TimeoutSchedule implements
+            LinkingBeaconManager.OnBeaconButtonEventListener, Runnable {
+        OnBeaconButtonEventListenerImpl(final LinkingBeaconManager mgr, final LinkingBeacon beacon) {
+            super(mgr, beacon);
+        }
     }
 }

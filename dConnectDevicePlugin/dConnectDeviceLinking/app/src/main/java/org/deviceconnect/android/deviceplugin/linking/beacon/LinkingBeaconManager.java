@@ -14,6 +14,7 @@ import org.deviceconnect.android.deviceplugin.linking.BuildConfig;
 import org.deviceconnect.android.deviceplugin.linking.R;
 import org.deviceconnect.android.deviceplugin.linking.beacon.data.AtmosphericPressureData;
 import org.deviceconnect.android.deviceplugin.linking.beacon.data.BatteryData;
+import org.deviceconnect.android.deviceplugin.linking.beacon.data.ButtonData;
 import org.deviceconnect.android.deviceplugin.linking.beacon.data.GattData;
 import org.deviceconnect.android.deviceplugin.linking.beacon.data.HumidityData;
 import org.deviceconnect.android.deviceplugin.linking.beacon.data.LinkingBeacon;
@@ -542,6 +543,16 @@ public class LinkingBeaconManager {
         if (intent.getExtras().containsKey(LinkingBeaconUtil.BUTTON_ID)) {
             long timeStamp = intent.getLongExtra(LinkingBeaconUtil.TIME_STAMP, 0);
             int keyCode = intent.getIntExtra(LinkingBeaconUtil.BUTTON_ID, -1);
+
+            ButtonData button = beacon.getButtonData();
+            if (button == null) {
+                button = new ButtonData();
+                beacon.setButtonData(button);
+            }
+
+            button.setTimeStamp(timeStamp);
+            button.setKeyCode(keyCode);
+
             notifyBeaconButtonEventListener(beacon, timeStamp, keyCode);
         }
     }

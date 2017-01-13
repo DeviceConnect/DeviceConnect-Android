@@ -307,6 +307,14 @@ public final class DConnectSettings {
     }
 
     /**
+     * Webサーバの起動フラグを取得する.
+     * @return Webサーバを起動している場合はtrue、それ以外はfalse
+     */
+    public boolean isWebServerStartFlag() {
+        return mPreferences.getBoolean(mContext.getString(R.string.key_settings_web_server_on_off), false);
+    }
+
+    /**
      * 監視するインターバルを取得する.
      * @return インターバル
      */

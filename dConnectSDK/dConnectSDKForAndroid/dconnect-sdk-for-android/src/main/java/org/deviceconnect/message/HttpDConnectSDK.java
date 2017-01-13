@@ -74,7 +74,7 @@ class HttpDConnectSDK extends DConnectSDK {
     /**
      * 接続のタイムアウト(ms).
      */
-    private static final int CONNECT_TIMEOUT = 10 * 1000;
+    private static final int CONNECT_TIMEOUT = 30 * 1000;
 
     /**
      * 読み込みのタイムアウト時間(ms).
@@ -231,6 +231,7 @@ class HttpDConnectSDK extends DConnectSDK {
             fis = new FileInputStream(file);
             while ((len = fis.read(buf)) > 0) {
                 out.write(buf, 0, len);
+                out.flush();
             }
         } finally {
             if (fis != null) {

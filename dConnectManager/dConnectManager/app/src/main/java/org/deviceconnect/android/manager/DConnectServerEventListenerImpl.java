@@ -127,9 +127,9 @@ class DConnectServerEventListenerImpl implements DConnectServerEventListener {
     }
 
     @Override
-    public void onWebSocketDisconnected(final String webSocketId) {
+    public void onWebSocketDisconnected(final DConnectWebSocket webSocket) {
         if (BuildConfig.DEBUG) {
-            mLogger.info("onWebSocketDisconnected: id = " + webSocketId);
+            mLogger.info("onWebSocketDisconnected: id = " + webSocket.getId());
         }
 
         DConnectService service = (DConnectService) mContext;
@@ -137,7 +137,7 @@ class DConnectServerEventListenerImpl implements DConnectServerEventListener {
         EventBroker eventBroker = service.getEventBroker();
         WebSocketInfo disconnected = null;
         for (WebSocketInfo info : app.getWebSocketInfoManager().getWebSocketInfos()) {
-            if (info.getRawId().equals(webSocketId)) {
+            if (info.getRawId().equals(webSocket.getId())) {
                 disconnected = info;
                 break;
             }
@@ -204,13 +204,6 @@ class DConnectServerEventListenerImpl implements DConnectServerEventListener {
             getWebSocketInfoManager().addWebSocketInfo(eventKey, origin + uri, webSocket.getId());
         } catch (JSONException e) {
             mLogger.warning("onWebSocketMessage: Failed to parse message as JSON object: " + message);
-        }
-    }
-
-    @Override
-    public void onResetEventSessionKey(final String sessionKey) {
-        if (BuildConfig.DEBUG) {
-            mLogger.info("onResetEventSessionKey: sessionKey :" + sessionKey);
         }
     }
 

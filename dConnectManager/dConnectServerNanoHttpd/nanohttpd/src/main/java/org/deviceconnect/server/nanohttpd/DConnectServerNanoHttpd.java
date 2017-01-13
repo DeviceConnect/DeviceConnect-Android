@@ -89,7 +89,7 @@ public class DConnectServerNanoHttpd extends DConnectServer {
     /**
      * リクエストを読み込むためのバッファサイズを定義.
      */
-    private static final int REQUEST_BUFFER_LEN = 512;
+    private static final int REQUEST_BUFFER_LEN = 1024;
 
     /**
      * メモリ上に格納しておく上限サイズを定義.
@@ -199,6 +199,13 @@ public class DConnectServerNanoHttpd extends DConnectServer {
             return;
         }
 
+        if (!checkCacheDir()) {
+            if (mListener != null) {
+                mListener.onError(DConnectServerError.LAUNCH_FAILED);
+            }
+            return;
+        }
+
         mServer = new NanoServer(mConfig.getHost(), mConfig.getPort());
 
         // キャッシュのパスが設定されていた場合には、指定したフォルダを使用する
@@ -297,10 +304,31 @@ public class DConnectServerNanoHttpd extends DConnectServer {
         boolean retVal = true;
         File documentRoot = new File(mConfig.getDocumentRootPath());
         if (!documentRoot.exists() || !documentRoot.isDirectory()) {
-            mLogger.warning("Invalid document root path : " + documentRoot.getPath());
+            mLogger.warning("Invalid document root path: " + documentRoot.getPath());
             retVal = false;
         }
         return retVal;
+    }
+
+    /**
+     * 設定されたキャッシュ用フォルダが正しいかチェックする.
+     * <p>
+     * キャッシュ用フォルダが設定されていない場合には、正しいとしてtrueを返却する。
+     * </p>
+     * @return 正しい場合true、不正な場合falseを返す。
+     */
+    private boolean checkCacheDir() {
+        if (mConfig.getCachePath() == null) {
+            return true;
+        }
+        File cacheDir = new File(mConfig.getCachePath());
+        if (!cacheDir.exists()) {
+            if (!cacheDir.mkdirs()) {
+                mLogger.warning("Invalid cache path: " + cacheDir.getPath());
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
@@ -505,7 +533,6 @@ public class DConnectServerNanoHttpd extends DConnectServer {
                 long size = getBodySize(session);
                 ByteArrayOutputStream baos = null;
                 DataOutput requestDataOutput;
-
                 // Store the request in memory or a file, depending on size
                 if (size < MEMORY_STORE_LIMIT) {
                     baos = new ByteArrayOutputStream();
@@ -626,7 +653,6 @@ public class DConnectServerNanoHttpd extends DConnectServer {
             }
         }
 
-
         /**
          * Find the byte positions where multipart boundaries start. This reads
          * a large block at a time and uses a temporary buffer to optimize
@@ -719,7 +745,7 @@ public class DConnectServerNanoHttpd extends DConnectServer {
          * @throws ResponseException レスポンスの作成に失敗した場合
          */
         private void decodeMultipartFormData(final IHTTPSession session, final ContentType contentType, final ByteBuffer fbuf,
-                                             final Map<String, String>  parms, final Map<String, String> files) throws ResponseException {
+                                             final Map<String, String> parms, final Map<String, String> files) throws ResponseException {
             int pcount = 0;
             try {
                 int[] boundaryIdxs = getBoundaryPositions(fbuf, contentType.getBoundary().getBytes());
@@ -1090,7 +1116,7 @@ public class DConnectServerNanoHttpd extends DConnectServer {
                 mLogger.warning("Exception in the NanoWebSocket#sendMessage() method. " + e.toString());
                 if (mListener != null) {
                     mListener.onError(DConnectServerError.SEND_EVENT_FAILED);
-                    mListener.onWebSocketDisconnected(getId());
+                    mListener.onWebSocketDisconnected(this);
                 }
             }
         }
@@ -1105,7 +1131,7 @@ public class DConnectServerNanoHttpd extends DConnectServer {
                 mLogger.warning("Exception in the NanoWebSocket#sendMessage() method. " + e.toString());
                 if (mListener != null) {
                     mListener.onError(DConnectServerError.SEND_EVENT_FAILED);
-                    mListener.onWebSocketDisconnected(getId());
+                    mListener.onWebSocketDisconnected(this);
                 }
             }
         }
@@ -1153,7 +1179,7 @@ public class DConnectServerNanoHttpd extends DConnectServer {
 
             mSockets.remove(getId());
             if (mListener != null) {
-                mListener.onWebSocketDisconnected(getId());
+                mListener.onWebSocketDisconnected(this);
             }
             mKeepAliveTimer.cancel();
         }
@@ -1203,7 +1229,6 @@ public class DConnectServerNanoHttpd extends DConnectServer {
             @Override
             public void run() {
                 try {
-
                     synchronized (this) {
                         if (mState == KeepAliveState.GOT_PONG) {
                             setState(KeepAliveState.WAITING_PONG);
@@ -1212,7 +1237,6 @@ public class DConnectServerNanoHttpd extends DConnectServer {
                             close(NanoWSD.WebSocketFrame.CloseCode.GoingAway, "Client is dead.", false);
                         }
                     }
-
                 } catch (IOException e) {
                     // 例外が発生したらタスクを終了し、タイムアウトに任せる
                     cancel();
@@ -1224,6 +1248,7 @@ public class DConnectServerNanoHttpd extends DConnectServer {
     /**
      * NanoHTTPDが使用するファイルを管理するクラスを作成するファクトリー.
      *
+     * @author NTT DOCOMO, INC.
      */
     private class NanoTempFileManagerFactory implements NanoHTTPD.TempFileManagerFactory {
         /**
@@ -1247,6 +1272,8 @@ public class DConnectServerNanoHttpd extends DConnectServer {
 
     /**
      * NanoHTTPDが使用するファイルを管理するクラス.
+     *
+     * @author NTT DOCOMO, INC.
      */
     private class NanoTempFileManager implements NanoHTTPD.TempFileManager {
         /**

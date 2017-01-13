@@ -10,14 +10,13 @@ import android.support.test.runner.AndroidJUnit4;
 
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.DConnectResponseMessage;
+import org.deviceconnect.message.entity.MultipartEntity;
+import org.deviceconnect.message.entity.StringEntity;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.deviceconnect.profile.DConnectProfileConstants;
 import org.deviceconnect.profile.VibrationProfileConstants;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.util.HashMap;
-import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.core.Is.is;
@@ -53,8 +52,8 @@ public class NormalVibrationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("&" + AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
 
         // パターンのデータを追加
-        Map<String, Object> body = new HashMap<>();
-        body.put(VibrationProfileConstants.PARAM_PATTERN, "100,100,100,100");
+        MultipartEntity body = new MultipartEntity();
+        body.add(VibrationProfileConstants.PARAM_PATTERN, new StringEntity("100,100,100,100"));
 
         DConnectResponseMessage response = mDConnectSDK.put(builder.toString(), body);
         assertThat(response, is(notNullValue()));

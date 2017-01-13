@@ -41,6 +41,7 @@ public abstract class DConnectServer {
      * コンストラクタ. サーバーを生成します
      * 
      * @param config サーバー設定情報。
+     * @throws NullPointerException configに{@code null}が設定された場合に発生
      */
     public DConnectServer(final DConnectServerConfig config) {
         if (config == null) {
@@ -102,7 +103,7 @@ public abstract class DConnectServer {
     /**
      * 指定したIDのWebSocketを取得します.
      * <p>
-     *     指定されたIDのWebSocketが存在しない場合にはnullを返却します。
+     *     指定されたIDのWebSocketが存在しない場合には{@code null}を返却します。
      * </p>
      * @param webSocketId webSocketのID
      * @return DConnectWebSocketのインスタンス

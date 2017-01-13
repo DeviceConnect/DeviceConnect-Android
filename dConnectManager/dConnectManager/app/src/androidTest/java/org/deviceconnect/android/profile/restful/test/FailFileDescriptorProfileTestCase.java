@@ -13,14 +13,13 @@ import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.DConnectMessage.ErrorCode;
 import org.deviceconnect.message.DConnectResponseMessage;
 import org.deviceconnect.message.DConnectSDK;
+import org.deviceconnect.message.entity.MultipartEntity;
+import org.deviceconnect.message.entity.StringEntity;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.deviceconnect.profile.DConnectProfileConstants;
 import org.deviceconnect.profile.FileDescriptorProfileConstants;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.util.HashMap;
-import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.core.Is.is;
@@ -878,8 +877,8 @@ public class FailFileDescriptorProfileTestCase extends RESTfulDConnectTestCase {
         builder.addParameter("abc", "abc");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
 
-        Map<String, Object> body = new HashMap<>();
-        body.put(FileDescriptorProfileConstants.PARAM_DATA, "test".getBytes());
+        MultipartEntity body = new MultipartEntity();
+        body.add(FileDescriptorProfileConstants.PARAM_DATA, new StringEntity("test"));
 
         DConnectResponseMessage response = mDConnectSDK.put(builder.build(), body);
         assertThat(response, is(notNullValue()));

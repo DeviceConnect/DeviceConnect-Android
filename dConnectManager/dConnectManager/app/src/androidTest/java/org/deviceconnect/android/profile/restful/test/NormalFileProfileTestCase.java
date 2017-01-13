@@ -11,13 +11,12 @@ import android.support.test.runner.AndroidJUnit4;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.DConnectResponseMessage;
 import org.deviceconnect.message.DConnectSDK;
+import org.deviceconnect.message.entity.BinaryEntity;
+import org.deviceconnect.message.entity.MultipartEntity;
 import org.deviceconnect.profile.DConnectProfileConstants;
 import org.deviceconnect.profile.FileProfileConstants;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.util.HashMap;
-import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.core.Is.is;
@@ -138,8 +137,8 @@ public class NormalFileProfileTestCase extends RESTfulDConnectTestCase {
         if (data == null) {
             fail("Cannot find the file." + name);
         }
-        Map<String, Object> body = new HashMap<>();
-        body.put(FileProfileConstants.PARAM_DATA, data);
+        MultipartEntity body = new MultipartEntity();
+        body.add(FileProfileConstants.PARAM_DATA, new BinaryEntity(data));
 
         DConnectResponseMessage response = mDConnectSDK.post(builder.build(), body);
         assertThat(response, is(notNullValue()));

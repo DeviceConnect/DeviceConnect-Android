@@ -12,14 +12,13 @@ import org.deviceconnect.android.profile.FileDescriptorProfile;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.DConnectResponseMessage;
 import org.deviceconnect.message.DConnectSDK;
+import org.deviceconnect.message.entity.MultipartEntity;
+import org.deviceconnect.message.entity.StringEntity;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.deviceconnect.profile.DConnectProfileConstants;
 import org.deviceconnect.profile.FileDescriptorProfileConstants;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.util.HashMap;
-import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.core.Is.is;
@@ -187,8 +186,8 @@ public class NormalFileDescriptorProfileTestCase extends RESTfulDConnectTestCase
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
 
-        Map<String, Object> body = new HashMap<>();
-        body.put(FileDescriptorProfile.PARAM_DATA, "test".getBytes());
+        MultipartEntity body = new MultipartEntity();
+        body.add(FileDescriptorProfile.PARAM_DATA, new StringEntity("test"));
 
         DConnectResponseMessage response = sendRequest("PUT", builder.toString(), null, body);
         assertThat(response, is(notNullValue()));
@@ -223,8 +222,8 @@ public class NormalFileDescriptorProfileTestCase extends RESTfulDConnectTestCase
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
 
-        Map<String, Object> body = new HashMap<>();
-        body.put(FileDescriptorProfile.PARAM_DATA, "test".getBytes());
+        MultipartEntity body = new MultipartEntity();
+        body.add(FileDescriptorProfile.PARAM_DATA, new StringEntity("test"));
 
         DConnectResponseMessage response = sendRequest("PUT", builder.toString(), null, body);
         assertThat(response, is(notNullValue()));

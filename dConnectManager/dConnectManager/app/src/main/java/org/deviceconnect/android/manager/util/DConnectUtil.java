@@ -78,6 +78,11 @@ public final class DConnectUtil {
         return builder.toString();
     }
 
+    /**
+     * Device Connect Managerの名前を生成する.
+     *
+     * @return Device Connect Managerの名前
+     */
     public static String createName() {
         StringBuilder builder = new StringBuilder();
         builder.append("Manager-");
@@ -90,6 +95,11 @@ public final class DConnectUtil {
         return builder.toString();
     }
 
+    /**
+     * Device Connect Managerの識別子を生成する.
+     *
+     * @return Device Connect Managerの識別子
+     */
     public static String createUuid() {
         return UUID.randomUUID().toString();
     }
@@ -148,7 +158,7 @@ public final class DConnectUtil {
      */
     private static void convertUri(final JSONObject root) throws JSONException {
         @SuppressWarnings("unchecked") // Using legacy API
-                Iterator<String> it = root.keys();
+        Iterator<String> it = root.keys();
         while (it.hasNext()) {
             String key = it.next();
             Object value = root.opt(key);
@@ -213,7 +223,6 @@ public final class DConnectUtil {
                 (ipAddress >> 16 & 0xff), (ipAddress >> 24 & 0xff));
     }
 
-
     /**
      * Checks whether permission allow by user.
      * @param context context of application
@@ -233,6 +242,11 @@ public final class DConnectUtil {
         }
     }
 
+    /**
+     * 指定されたDrawableをグレースケール変換をする.
+     * @param drawable 変換するDrawable
+     * @return 変換後のDrawable
+     */
     public static Drawable convertToGrayScale(final Drawable drawable) {
         Drawable clone = drawable.getConstantState().newDrawable().mutate();
         ColorMatrix matrix = new ColorMatrix();

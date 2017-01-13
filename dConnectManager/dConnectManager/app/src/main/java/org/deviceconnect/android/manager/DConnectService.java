@@ -212,7 +212,7 @@ public class DConnectService extends DConnectMessageService {
                                 webSocket.sendMessage(root.toString());
                             } else {
                                 if (mWebServerListener != null) {
-                                    mWebServerListener.onWebSocketDisconnected(info.getRawId());
+                                    mWebServerListener.onWebSocketDisconnected(webSocket);
                                 }
                             }
                         } catch (JSONException e) {

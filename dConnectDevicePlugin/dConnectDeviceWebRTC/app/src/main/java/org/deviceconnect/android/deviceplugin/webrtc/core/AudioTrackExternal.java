@@ -92,7 +92,7 @@ public class AudioTrackExternal extends WebRtcAudioTrackModule {
             }
 
             @Override
-            public void onWebSocketDisconnected(final String webSocketId) {
+            public void onWebSocketDisconnected(final DConnectWebSocket webSocket) {
                 if (DEBUG) {
                     Log.i(TAG, "AudioTrackExternal#onWebSocketDisconnected: ");
                 }
@@ -102,13 +102,6 @@ public class AudioTrackExternal extends WebRtcAudioTrackModule {
             public void onWebSocketMessage(final DConnectWebSocket webSocket, final String message) {
                 if (DEBUG) {
                     Log.i(TAG, "AudioTrackExternal#onWebSocketMessage: ");
-                }
-            }
-
-            @Override
-            public void onResetEventSessionKey(final String sessionKey) {
-                if (DEBUG) {
-                    Log.i(TAG, "AudioTrackExternal#onResetEventSessionKey: ");
                 }
             }
         });

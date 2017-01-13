@@ -232,7 +232,7 @@ public abstract class DConnectMessageService extends Service
      * リクエスト用Intentを受領したときの処理を行う.
      * @param request リクエスト用Intent
      */
-    public void onRequestReceive(final Intent request) {
+    private void onRequestReceive(final Intent request) {
         // リクエストコードが定義されていない場合には無視
         int requestCode = getRequestCode(request);
         if (requestCode == ERROR_CODE) {
@@ -317,10 +317,6 @@ public abstract class DConnectMessageService extends Service
         }
     }
 
-    protected String parseProfileName(final Intent request) {
-        return request.getStringExtra(DConnectMessage.EXTRA_PROFILE);
-    }
-
     /**
      * レスポンス受信ハンドラー.
      * @param response レスポンス用Intent
@@ -380,19 +376,6 @@ public abstract class DConnectMessageService extends Service
      */
     public void addRequest(final DConnectRequest request) {
         mRequestManager.addRequest(request);
-    }
-
-    @Override
-    public List<DConnectProfile> getProfileList() {
-        return new ArrayList<>(mProfileMap.values());
-    }
-
-    @Override
-    public void addProfile(final DConnectProfile profile) {
-        if (profile != null) {
-            profile.setContext(this);
-            mProfileMap.put(profile.getProfileName(), profile);
-        }
     }
 
     private void loadProfileSpecs() {
@@ -456,6 +439,19 @@ public abstract class DConnectMessageService extends Service
     }
 
     @Override
+    public List<DConnectProfile> getProfileList() {
+        return new ArrayList<>(mProfileMap.values());
+    }
+
+    @Override
+    public void addProfile(final DConnectProfile profile) {
+        if (profile != null) {
+            profile.setContext(this);
+            mProfileMap.put(profile.getProfileName(), profile);
+        }
+    }
+
+    @Override
     public void removeProfile(final DConnectProfile profile) {
         if (profile != null) {
             mProfileMap.remove(profile.getProfileName());
@@ -472,6 +468,10 @@ public abstract class DConnectMessageService extends Service
 
     private DConnectProfile getProfile(final Intent request) {
         return getProfile(DConnectProfile.getProfile(request));
+    }
+
+    protected String parseProfileName(final Intent request) {
+        return request.getStringExtra(DConnectMessage.EXTRA_PROFILE);
     }
 
     private int getRequestCode(final Intent response) {

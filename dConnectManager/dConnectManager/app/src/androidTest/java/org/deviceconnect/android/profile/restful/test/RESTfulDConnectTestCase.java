@@ -16,6 +16,8 @@ import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.DConnectResponseMessage;
 import org.deviceconnect.message.DConnectSDK;
 import org.deviceconnect.message.DConnectSDKFactory;
+import org.deviceconnect.message.entity.Entity;
+import org.deviceconnect.message.entity.MultipartEntity;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 import org.deviceconnect.profile.SystemProfileConstants;
@@ -133,7 +135,7 @@ public class RESTfulDConnectTestCase extends DConnectTestCase {
     protected final DConnectResponseMessage sendRequest(final String method, final String uri, final Map<String, String> headers, final Object body) {
         String nonce = toHexString(generateRandom(16));
         String requestUri = uri;
-        Map requestBody = null;
+        Entity requestBody = null;
         if (body != null) {
             if (method.equalsIgnoreCase("GET") || method.equalsIgnoreCase("DELETE")) {
                 requestUri += "?" + nonce;
@@ -147,7 +149,7 @@ public class RESTfulDConnectTestCase extends DConnectTestCase {
                     requestUri += "&" + body;
                 }
             } else {
-                requestBody = (Map) body;
+                requestBody = (MultipartEntity) body;
             }
         }
 

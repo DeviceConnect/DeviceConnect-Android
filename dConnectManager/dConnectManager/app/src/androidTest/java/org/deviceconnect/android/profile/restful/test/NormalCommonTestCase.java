@@ -10,6 +10,8 @@ import android.support.test.runner.AndroidJUnit4;
 
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.DConnectResponseMessage;
+import org.deviceconnect.message.entity.MultipartEntity;
+import org.deviceconnect.message.entity.StringEntity;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.deviceconnect.profile.DConnectProfileConstants;
 import org.junit.Test;
@@ -17,8 +19,6 @@ import org.junit.runner.RunWith;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-import java.util.HashMap;
-import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.core.Is.is;
@@ -112,9 +112,9 @@ public class NormalCommonTestCase extends RESTfulDConnectTestCase {
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
 
-        Map<String, Object> data = new HashMap<>();
-        data.put(DConnectProfileConstants.PARAM_SERVICE_ID, URLEncoder.encode(getServiceId(), "UTF-8"));
-        data.put(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, URLEncoder.encode(getAccessToken(), "UTF-8"));
+        MultipartEntity data = new MultipartEntity();
+        data.add(DConnectProfileConstants.PARAM_SERVICE_ID, new StringEntity(URLEncoder.encode(getServiceId(), "UTF-8")));
+        data.add(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, new StringEntity(URLEncoder.encode(getAccessToken(), "UTF-8")));
 
         DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), data);
         assertThat(response, is(notNullValue()));
@@ -158,9 +158,9 @@ public class NormalCommonTestCase extends RESTfulDConnectTestCase {
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
 
-        Map<String, Object> data = new HashMap<>();
-        data.put(DConnectProfileConstants.PARAM_SERVICE_ID, URLEncoder.encode(getServiceId(), "UTF-8"));
-        data.put(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, URLEncoder.encode(getAccessToken(), "UTF-8"));
+        MultipartEntity data = new MultipartEntity();
+        data.add(DConnectProfileConstants.PARAM_SERVICE_ID, new StringEntity(URLEncoder.encode(getServiceId(), "UTF-8")));
+        data.add(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, new StringEntity(URLEncoder.encode(getAccessToken(), "UTF-8")));
 
         DConnectResponseMessage response = mDConnectSDK.put(builder.toString(), data);
         assertThat(response, is(notNullValue()));

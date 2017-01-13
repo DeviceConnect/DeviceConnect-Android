@@ -11,15 +11,14 @@ import android.support.test.runner.AndroidJUnit4;
 import org.deviceconnect.android.test.plugin.profile.TestNotificationProfileConstants;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.DConnectResponseMessage;
+import org.deviceconnect.message.entity.BinaryEntity;
+import org.deviceconnect.message.entity.MultipartEntity;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.deviceconnect.profile.DConnectProfileConstants;
 import org.deviceconnect.profile.NotificationProfileConstants;
 import org.json.JSONException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.util.HashMap;
-import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.core.Is.is;
@@ -865,8 +864,8 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         if (data == null) {
             fail("Cannot find the file." + name);
         }
-        Map<String, Object> body = new HashMap<>();
-        body.put(NotificationProfileConstants.PARAM_ICON, data);
+        MultipartEntity body = new MultipartEntity();
+        body.add(NotificationProfileConstants.PARAM_ICON, new BinaryEntity(data));
 
         DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), body);
         assertThat(response, is(notNullValue()));
@@ -907,8 +906,8 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         if (data == null) {
             fail("Cannot find the file." + name);
         }
-        Map<String, Object> body = new HashMap<>();
-        body.put(NotificationProfileConstants.PARAM_ICON, data);
+        MultipartEntity body = new MultipartEntity();
+        body.add(NotificationProfileConstants.PARAM_ICON, new BinaryEntity(data));
 
         DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), body);
         assertThat(response, is(notNullValue()));
@@ -949,8 +948,8 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         if (data == null) {
             fail("Cannot find the file." + name);
         }
-        Map<String, Object> body = new HashMap<>();
-        body.put(NotificationProfileConstants.PARAM_ICON, data);
+        MultipartEntity body = new MultipartEntity();
+        body.add(NotificationProfileConstants.PARAM_ICON, new BinaryEntity(data));
 
         DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), body);
         assertThat(response, is(notNullValue()));
@@ -993,8 +992,8 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         if (data == null) {
             fail("Cannot find the file." + name);
         }
-        Map<String, Object> body = new HashMap<>();
-        body.put(NotificationProfileConstants.PARAM_ICON, data);
+        MultipartEntity body = new MultipartEntity();
+        body.add(NotificationProfileConstants.PARAM_ICON, new BinaryEntity(data));
 
         DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), body);
         assertThat(response, is(notNullValue()));
@@ -1035,8 +1034,8 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         if (data == null) {
             fail("Cannot find the file." + name);
         }
-        Map<String, Object> body = new HashMap<>();
-        body.put(NotificationProfileConstants.PARAM_ICON, data);
+        MultipartEntity body = new MultipartEntity();
+        body.add(NotificationProfileConstants.PARAM_ICON, new BinaryEntity(data));
 
         DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), body);
         assertThat(response, is(notNullValue()));
@@ -1079,8 +1078,8 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         if (data == null) {
             fail("Cannot find the file." + name);
         }
-        Map<String, Object> body = new HashMap<>();
-        body.put(NotificationProfileConstants.PARAM_ICON, data);
+        MultipartEntity body = new MultipartEntity();
+        body.add(NotificationProfileConstants.PARAM_ICON, new BinaryEntity(data));
 
         DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), body);
         assertThat(response, is(notNullValue()));
@@ -1123,8 +1122,8 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         if (data == null) {
             fail("Cannot find the file." + name);
         }
-        Map<String, Object> body = new HashMap<>();
-        body.put(NotificationProfileConstants.PARAM_ICON, data);
+        MultipartEntity body = new MultipartEntity();
+        body.add(NotificationProfileConstants.PARAM_ICON, new BinaryEntity(data));
 
         DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), body);
         assertThat(response, is(notNullValue()));
@@ -1169,8 +1168,8 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         if (data == null) {
             fail("Cannot find the file." + name);
         }
-        Map<String, Object> body = new HashMap<>();
-        body.put(NotificationProfileConstants.PARAM_ICON, data);
+        MultipartEntity body = new MultipartEntity();
+        body.add(NotificationProfileConstants.PARAM_ICON, new BinaryEntity(data));
 
         DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), body);
         assertThat(response, is(notNullValue()));
@@ -1211,8 +1210,8 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         if (data == null) {
             fail("Cannot find the file." + name);
         }
-        Map<String, Object> body = new HashMap<>();
-        body.put(NotificationProfileConstants.PARAM_ICON, data);
+        MultipartEntity body = new MultipartEntity();
+        body.add(NotificationProfileConstants.PARAM_ICON, new BinaryEntity(data));
 
         DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), body);
         assertThat(response, is(notNullValue()));
@@ -1255,8 +1254,8 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         if (data == null) {
             fail("Cannot find the file." + name);
         }
-        Map<String, Object> body = new HashMap<>();
-        body.put(NotificationProfileConstants.PARAM_ICON, data);
+        MultipartEntity body = new MultipartEntity();
+        body.add(NotificationProfileConstants.PARAM_ICON, new BinaryEntity(data));
 
         DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), body);
         assertThat(response, is(notNullValue()));
@@ -1299,8 +1298,8 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         if (data == null) {
             fail("Cannot find the file." + name);
         }
-        Map<String, Object> body = new HashMap<>();
-        body.put(NotificationProfileConstants.PARAM_ICON, data);
+        MultipartEntity body = new MultipartEntity();
+        body.add(NotificationProfileConstants.PARAM_ICON, new BinaryEntity(data));
 
         DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), body);
         assertThat(response, is(notNullValue()));
@@ -1345,8 +1344,8 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         if (data == null) {
             fail("Cannot find the file." + name);
         }
-        Map<String, Object> body = new HashMap<>();
-        body.put(NotificationProfileConstants.PARAM_ICON, data);
+        MultipartEntity body = new MultipartEntity();
+        body.add(NotificationProfileConstants.PARAM_ICON, new BinaryEntity(data));
 
         DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), body);
         assertThat(response, is(notNullValue()));
@@ -1389,8 +1388,8 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         if (data == null) {
             fail("Cannot find the file." + name);
         }
-        Map<String, Object> body = new HashMap<>();
-        body.put(NotificationProfileConstants.PARAM_ICON, data);
+        MultipartEntity body = new MultipartEntity();
+        body.add(NotificationProfileConstants.PARAM_ICON, new BinaryEntity(data));
 
         DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), body);
         assertThat(response, is(notNullValue()));
@@ -1435,8 +1434,8 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         if (data == null) {
             fail("Cannot find the file." + name);
         }
-        Map<String, Object> body = new HashMap<>();
-        body.put(NotificationProfileConstants.PARAM_ICON, data);
+        MultipartEntity body = new MultipartEntity();
+        body.add(NotificationProfileConstants.PARAM_ICON, new BinaryEntity(data));
 
         DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), body);
         assertThat(response, is(notNullValue()));
@@ -1481,8 +1480,8 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         if (data == null) {
             fail("Cannot find the file." + name);
         }
-        Map<String, Object> body = new HashMap<>();
-        body.put(NotificationProfileConstants.PARAM_ICON, data);
+        MultipartEntity body = new MultipartEntity();
+        body.add(NotificationProfileConstants.PARAM_ICON, new BinaryEntity(data));
 
         DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), body);
         assertThat(response, is(notNullValue()));
@@ -1529,8 +1528,8 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         if (data == null) {
             fail("Cannot find the file." + name);
         }
-        Map<String, Object> body = new HashMap<>();
-        body.put(NotificationProfileConstants.PARAM_ICON, data);
+        MultipartEntity body = new MultipartEntity();
+        body.add(NotificationProfileConstants.PARAM_ICON, new BinaryEntity(data));
 
         DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), body);
         assertThat(response, is(notNullValue()));

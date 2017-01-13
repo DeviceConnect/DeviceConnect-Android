@@ -24,6 +24,10 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.net.URI;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
@@ -31,12 +35,16 @@ import java.security.SecureRandom;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.atomic.AtomicReferenceArray;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
@@ -58,6 +66,8 @@ import static org.junit.Assert.assertThat;
  */
 @RunWith(AndroidJUnit4.class)
 public class DConnectServerNanoHttpdTest {
+
+    public static final String HTTP_LOCALHOST_4035 = "http://localhost:4035";
 
     private Context getContext() {
         return InstrumentationRegistry.getTargetContext();
@@ -145,15 +155,11 @@ public class DConnectServerNanoHttpdTest {
             }
 
             @Override
-            public void onWebSocketDisconnected(final String webSocketId) {
+            public void onWebSocketDisconnected(final DConnectWebSocket webSocket) {
             }
 
             @Override
             public void onWebSocketMessage(final DConnectWebSocket webSocket, final String message) {
-            }
-
-            @Override
-            public void onResetEventSessionKey(final String sessionKey) {
             }
         });
         server.start();
@@ -161,7 +167,7 @@ public class DConnectServerNanoHttpdTest {
         try {
             latch.await(10, TimeUnit.SECONDS);
 
-            HttpUtils.Response response = HttpUtils.get("http://localhost:4035" + path + "?" + key + "=" + value);
+            HttpUtils.Response response = HttpUtils.get(HTTP_LOCALHOST_4035 + path + "?" + key + "=" + value);
             assertThat(response, is(notNullValue()));
             assertThat(response.getStatusCode(), is(200));
             assertThat(response.getBody(), is(notNullValue()));
@@ -231,15 +237,11 @@ public class DConnectServerNanoHttpdTest {
             }
 
             @Override
-            public void onWebSocketDisconnected(final String webSocketId) {
+            public void onWebSocketDisconnected(final DConnectWebSocket webSocket) {
             }
 
             @Override
             public void onWebSocketMessage(final DConnectWebSocket webSocket, final String message) {
-            }
-
-            @Override
-            public void onResetEventSessionKey(final String sessionKey) {
             }
         });
         server.start();
@@ -247,7 +249,7 @@ public class DConnectServerNanoHttpdTest {
         try {
             latch.await(10, TimeUnit.SECONDS);
 
-            HttpUtils.Response response = HttpUtils.get("http://localhost:4035" + path + "?" + key + "=" + value1 + "&" + key + "=" + value2);
+            HttpUtils.Response response = HttpUtils.get(HTTP_LOCALHOST_4035 + path + "?" + key + "=" + value1 + "&" + key + "=" + value2);
             assertThat(response, is(notNullValue()));
             assertThat(response.getStatusCode(), is(200));
             assertThat(response.getBody(), is(notNullValue()));
@@ -296,15 +298,11 @@ public class DConnectServerNanoHttpdTest {
             }
 
             @Override
-            public void onWebSocketDisconnected(final String webSocketId) {
+            public void onWebSocketDisconnected(final DConnectWebSocket webSocket) {
             }
 
             @Override
             public void onWebSocketMessage(final DConnectWebSocket webSocket, final String message) {
-            }
-
-            @Override
-            public void onResetEventSessionKey(final String sessionKey) {
             }
         });
         server.start();
@@ -356,15 +354,11 @@ public class DConnectServerNanoHttpdTest {
             }
 
             @Override
-            public void onWebSocketDisconnected(final String webSocketId) {
+            public void onWebSocketDisconnected(final DConnectWebSocket webSocket) {
             }
 
             @Override
             public void onWebSocketMessage(final DConnectWebSocket webSocket, final String message) {
-            }
-
-            @Override
-            public void onResetEventSessionKey(final String sessionKey) {
             }
         });
         server.start();
@@ -372,7 +366,7 @@ public class DConnectServerNanoHttpdTest {
         try {
             latch.await(10, TimeUnit.SECONDS);
 
-            HttpUtils.Response response = HttpUtils.connect("PATCH", "http://localhost:4035" + path, null, null);
+            HttpUtils.Response response = HttpUtils.connect("PATCH", HTTP_LOCALHOST_4035 + path, null, null);
             assertThat(response, is(notNullValue()));
             assertThat(response.getStatusCode(), is(501));
             assertThat(response.getBody(), is(nullValue()));
@@ -407,6 +401,11 @@ public class DConnectServerNanoHttpdTest {
             @Override
             public boolean onReceivedHttpRequest(final HttpRequest req, final HttpResponse res) {
                 res.setCode(HttpResponse.StatusCode.OK);
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
                 latch.countDown();
                 return true;
             }
@@ -425,15 +424,11 @@ public class DConnectServerNanoHttpdTest {
             }
 
             @Override
-            public void onWebSocketDisconnected(final String webSocketId) {
+            public void onWebSocketDisconnected(final DConnectWebSocket webSocket) {
             }
 
             @Override
             public void onWebSocketMessage(final DConnectWebSocket webSocket, final String message) {
-            }
-
-            @Override
-            public void onResetEventSessionKey(final String sessionKey) {
             }
         });
         server.start();
@@ -444,18 +439,27 @@ public class DConnectServerNanoHttpdTest {
             fail("Failed to launch the server.");
         }
 
-        ExecutorService es = Executors.newFixedThreadPool(8);
+        final AtomicReferenceArray<HttpUtils.Response> array = new AtomicReferenceArray<>(count);
+
+        ExecutorService es = Executors.newFixedThreadPool(64);
         for (int i = 0; i < count; i++) {
+            final int index = i;
             es.submit(new Runnable() {
                 @Override
                 public void run() {
-                    HttpUtils.Response response = HttpUtils.get("http://localhost:4035" + path + "?" + key + "=" + value);
+                    HttpUtils.Response response = HttpUtils.get(HTTP_LOCALHOST_4035 + path + "?" + key + "=" + value);
+                    array.set(index, response);
                 }
             });
         }
 
         try {
-            latch.await(10, TimeUnit.SECONDS);
+            latch.await(60, TimeUnit.SECONDS);
+            assertThat(array.length(), is(count));
+            for (int i = 0; i < count; i++) {
+                assertThat(array.get(i), is(notNullValue()));
+                assertThat(array.get(i).getStatusCode(), is(200));
+            }
         } catch (InterruptedException e) {
             fail("timeout");
         } finally {
@@ -505,15 +509,11 @@ public class DConnectServerNanoHttpdTest {
             }
 
             @Override
-            public void onWebSocketDisconnected(final String webSocketId) {
+            public void onWebSocketDisconnected(final DConnectWebSocket webSocket) {
             }
 
             @Override
             public void onWebSocketMessage(final DConnectWebSocket webSocket, final String message) {
-            }
-
-            @Override
-            public void onResetEventSessionKey(final String sessionKey) {
             }
         });
         server.start();
@@ -521,8 +521,9 @@ public class DConnectServerNanoHttpdTest {
         try {
             latch.await(10, TimeUnit.SECONDS);
 
-            HttpUtils.Response response = HttpUtils.get("http://localhost:4035" + path + "?" + key + "=" + value);
-            assertThat(response, is(nullValue()));
+            HttpUtils.Response response = HttpUtils.get(HTTP_LOCALHOST_4035 + path + "?" + key + "=" + value);
+            assertThat(response, is(notNullValue()));
+            assertThat(response.getStatusCode(), is(not(200)));
         } catch (InterruptedException e) {
             fail("timeout");
         } catch (Exception e) {
@@ -590,15 +591,11 @@ public class DConnectServerNanoHttpdTest {
             }
 
             @Override
-            public void onWebSocketDisconnected(final String webSocketId) {
+            public void onWebSocketDisconnected(final DConnectWebSocket webSocket) {
             }
 
             @Override
             public void onWebSocketMessage(final DConnectWebSocket webSocket, final String message) {
-            }
-
-            @Override
-            public void onResetEventSessionKey(final String sessionKey) {
             }
         });
         server.start();
@@ -606,7 +603,7 @@ public class DConnectServerNanoHttpdTest {
         try {
             latch.await(10, TimeUnit.SECONDS);
 
-            HttpUtils.Response response = HttpUtils.get("http://localhost:4035" + path + "?" + key + "=" + value);
+            HttpUtils.Response response = HttpUtils.get(HTTP_LOCALHOST_4035 + path + "?" + key + "=" + value);
             assertThat(response.getStatusCode(), is(not(200)));
             assertThat(response.getBody(), is(nullValue()));
         } catch (InterruptedException e) {
@@ -669,15 +666,11 @@ public class DConnectServerNanoHttpdTest {
             }
 
             @Override
-            public void onWebSocketDisconnected(final String webSocketId) {
+            public void onWebSocketDisconnected(final DConnectWebSocket webSocket) {
             }
 
             @Override
             public void onWebSocketMessage(final DConnectWebSocket webSocket, final String message) {
-            }
-
-            @Override
-            public void onResetEventSessionKey(final String sessionKey) {
             }
         });
         server.start();
@@ -685,10 +678,179 @@ public class DConnectServerNanoHttpdTest {
         try {
             latch.await(10, TimeUnit.SECONDS);
 
-            HttpUtils.Response response = HttpUtils.post("http://localhost:4035" + path, key + "=" + value);
+            HttpUtils.Response response = HttpUtils.post(HTTP_LOCALHOST_4035 + path, key + "=" + value);
             assertThat(response, is(notNullValue()));
             assertThat(response.getStatusCode(), is(200));
             assertThat(response.getBody(), is(notNullValue()));
+        } catch (InterruptedException e) {
+            fail("timeout");
+        } finally {
+            server.shutdown();
+        }
+    }
+
+    /**
+     * HTTPボディに1GBのデータを指定して、HTTP通信を行う。
+     * <pre>
+     * 【期待する動作】
+     * ・DConnectServerNanoHttpdにHTTP通信して、レスポンスのステータスコードに200が返却されること。
+     * </pre>
+     */
+    @Test
+    public void DConnectServerNanoHttpd_big_body() {
+        final CountDownLatch latch = new CountDownLatch(1);
+        final String path = "/root/path";
+        final String key = "key";
+        final String value = "value";
+        final String fileNameKey = "fileName";
+        final File writeFile = writeBigFile("bigData.dat", 1024 * 1024 * 512);
+
+        final Map<String, Object> data = new HashMap<>();
+        data.put(key, value);
+        data.put(fileNameKey, writeFile);
+
+        File file = getContext().getFilesDir();
+        DConnectServerConfig config = new DConnectServerConfig.Builder().port(4035).documentRootPath(file.getPath()).build();
+        DConnectServer server = new DConnectServerNanoHttpd(config, getContext());
+        server.setServerEventListener(new DConnectServerEventListener() {
+            @Override
+            public boolean onReceivedHttpRequest(final HttpRequest req, final HttpResponse res) {
+                res.setCode(HttpResponse.StatusCode.OK);
+
+                HttpRequest.Method method = req.getMethod();
+                if (!HttpRequest.Method.POST.equals(method)) {
+                    res.setCode(HttpResponse.StatusCode.BAD_REQUEST);
+                }
+
+                String uri = req.getUri();
+                if (!path.equals(uri)) {
+                    res.setCode(HttpResponse.StatusCode.BAD_REQUEST);
+                }
+
+                String v = req.getQueryParameters().get(key);
+                if (!value.equals(v)) {
+                    res.setCode(HttpResponse.StatusCode.BAD_REQUEST);
+                }
+
+                String path = req.getFiles().get(fileNameKey);
+                File file = new File(path);
+                if (writeFile.length() != file.length()) {
+                    res.setCode(HttpResponse.StatusCode.BAD_REQUEST);
+                }
+
+                return true;
+            }
+
+            @Override
+            public void onError(final DConnectServerError errorCode) {
+            }
+
+            @Override
+            public void onServerLaunched() {
+                latch.countDown();
+            }
+
+            @Override
+            public void onWebSocketConnected(final DConnectWebSocket webSocket) {
+            }
+
+            @Override
+            public void onWebSocketDisconnected(final DConnectWebSocket webSocket) {
+            }
+
+            @Override
+            public void onWebSocketMessage(final DConnectWebSocket webSocket, final String message) {
+            }
+        });
+        server.start();
+
+        try {
+            latch.await(10, TimeUnit.SECONDS);
+
+            HttpUtils.Response response = HttpUtils.post(HTTP_LOCALHOST_4035 + path, data);
+            assertThat(response, is(notNullValue()));
+            assertThat(response.getStatusCode(), is(200));
+            assertThat(response.getBody(), is(notNullValue()));
+        } catch (InterruptedException e) {
+            fail("timeout");
+        } finally {
+            server.shutdown();
+        }
+    }
+
+    /**
+     * HTTPボディにデータを指定して、HTTP通信を行う。
+     * <pre>
+     * 【期待する動作】
+     * ・DConnectServerNanoHttpdにHTTP通信して、レスポンスのステータスコードに200が返却されること。
+     * </pre>
+     */
+    @Test
+    public void DConnectServerNanoHttpd_big_response() {
+        final CountDownLatch latch = new CountDownLatch(1);
+        final String path = "/root/path";
+        final int fileSize = 1024 * 1024 * 1024;
+        final File writeFile = writeBigFile("bigData.dat", fileSize);
+
+        File file = getContext().getFilesDir();
+        DConnectServerConfig config = new DConnectServerConfig.Builder().port(4035).documentRootPath(file.getPath()).build();
+        DConnectServer server = new DConnectServerNanoHttpd(config, getContext());
+        server.setServerEventListener(new DConnectServerEventListener() {
+            @Override
+            public boolean onReceivedHttpRequest(final HttpRequest req, final HttpResponse res) {
+                res.setCode(HttpResponse.StatusCode.OK);
+
+                HttpRequest.Method method = req.getMethod();
+                if (!HttpRequest.Method.GET.equals(method)) {
+                    res.setCode(HttpResponse.StatusCode.BAD_REQUEST);
+                }
+
+                String uri = req.getUri();
+                if (!path.equals(uri)) {
+                    res.setCode(HttpResponse.StatusCode.BAD_REQUEST);
+                }
+
+                res.setContentLength((int) writeFile.length());
+                try {
+                    res.setBody(new FileInputStream(writeFile));
+                } catch (FileNotFoundException e) {
+                    res.setCode(HttpResponse.StatusCode.BAD_REQUEST);
+                }
+
+                return true;
+            }
+
+            @Override
+            public void onError(final DConnectServerError errorCode) {
+            }
+
+            @Override
+            public void onServerLaunched() {
+                latch.countDown();
+            }
+
+            @Override
+            public void onWebSocketConnected(final DConnectWebSocket webSocket) {
+            }
+
+            @Override
+            public void onWebSocketDisconnected(final DConnectWebSocket webSocket) {
+            }
+
+            @Override
+            public void onWebSocketMessage(final DConnectWebSocket webSocket, final String message) {
+            }
+        });
+        server.start();
+
+        try {
+            latch.await(10, TimeUnit.SECONDS);
+
+            HttpUtils.Response response = HttpUtils.get(HTTP_LOCALHOST_4035 + path);
+            assertThat(response, is(notNullValue()));
+            assertThat(response.getStatusCode(), is(200));
+            assertThat(response.getBody(), is(notNullValue()));
+            assertThat((int) response.getBody().length(), is(fileSize));
         } catch (InterruptedException e) {
             fail("timeout");
         } finally {
@@ -749,15 +911,11 @@ public class DConnectServerNanoHttpdTest {
             }
 
             @Override
-            public void onWebSocketDisconnected(final String webSocketId) {
+            public void onWebSocketDisconnected(final DConnectWebSocket webSocket) {
             }
 
             @Override
             public void onWebSocketMessage(final DConnectWebSocket webSocket, final String message) {
-            }
-
-            @Override
-            public void onResetEventSessionKey(final String sessionKey) {
             }
         });
         server.start();
@@ -829,15 +987,11 @@ public class DConnectServerNanoHttpdTest {
             }
 
             @Override
-            public void onWebSocketDisconnected(final String webSocketId) {
+            public void onWebSocketDisconnected(final DConnectWebSocket webSocket) {
             }
 
             @Override
             public void onWebSocketMessage(final DConnectWebSocket webSocket, final String message) {
-            }
-
-            @Override
-            public void onResetEventSessionKey(final String sessionKey) {
             }
         });
         server.start();
@@ -893,16 +1047,12 @@ public class DConnectServerNanoHttpdTest {
             }
 
             @Override
-            public void onWebSocketDisconnected(final String webSocketId) {
+            public void onWebSocketDisconnected(final DConnectWebSocket webSocket) {
             }
 
             @Override
             public void onWebSocketMessage(final DConnectWebSocket webSocket, final String message) {
                 webSocket.sendMessage(message);
-            }
-
-            @Override
-            public void onResetEventSessionKey(final String sessionKey) {
             }
         });
         server.start();
@@ -985,16 +1135,12 @@ public class DConnectServerNanoHttpdTest {
             }
 
             @Override
-            public void onWebSocketDisconnected(final String webSocketId) {
+            public void onWebSocketDisconnected(final DConnectWebSocket webSocket) {
             }
 
             @Override
             public void onWebSocketMessage(final DConnectWebSocket webSocket, final String message) {
                 webSocket.sendMessage(message);
-            }
-
-            @Override
-            public void onResetEventSessionKey(final String sessionKey) {
             }
         });
         server.start();
@@ -1068,5 +1214,40 @@ public class DConnectServerNanoHttpdTest {
         SSLContext sslcontext = SSLContext.getInstance("SSL");
         sslcontext.init(keyManagers, transManagers, new SecureRandom());
         return sslcontext.getSocketFactory();
+    }
+
+    private File writeBigFile(final String fileName, final int size) {
+        File file = getContext().getFilesDir();
+        FileOutputStream out = null;
+        File dstFile = new File(file, fileName);
+        try {
+            byte[] buf = new byte[10240];
+            Arrays.fill(buf, (byte) 0x01);
+
+            out = new FileOutputStream(dstFile);
+            int count = 0;
+            int len = 4096;
+            while (count < size) {
+                out.write(buf, 0, len);
+                count += len;
+                if (count + len > size) {
+                    len = size - count;
+                    if (len <= 0) {
+                        break;
+                    }
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (out != null) {
+                try {
+                    out.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return dstFile;
     }
 }

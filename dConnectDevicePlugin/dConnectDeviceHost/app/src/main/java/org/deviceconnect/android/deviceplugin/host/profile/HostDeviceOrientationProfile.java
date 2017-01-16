@@ -81,6 +81,17 @@ public class HostDeviceOrientationProfile extends DeviceOrientationProfile imple
     /** 前回の加速度の計測時間を保持する. */
     private long mAccelLastTime;
 
+    /** イベント送信間隔設定用. */
+    private long mEventSendInterval;
+
+    /** イベント送信間隔計測用. */
+    private long mLastEventSendTime;
+
+    /**
+     * Device Orientationのデフォルト送信間隔を定義.
+     */
+    private static final long DEVICE_ORIENTATION_INTERVAL_TIME = 200;
+
     /**
      * Device Orientationのキャッシュを残す時間を定義する.
      */
@@ -109,6 +120,14 @@ public class HostDeviceOrientationProfile extends DeviceOrientationProfile imple
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
             String serviceId = getServiceID(request);
+
+            try {
+                String interval = request.getStringExtra(PARAM_INTERVAL);
+                mEventSendInterval = Long.parseLong(interval);
+            } catch (NumberFormatException e) {
+                mEventSendInterval = DEVICE_ORIENTATION_INTERVAL_TIME;
+            }
+
             // イベントの登録
             EventError error = EventManager.INSTANCE.addEvent(request);
             if (error == EventError.NONE) {
@@ -382,15 +401,19 @@ public class HostDeviceOrientationProfile extends DeviceOrientationProfile imple
                 return;
             }
 
-            List<Event> events = EventManager.INSTANCE.getEventList(mServiceId,
-                    DeviceOrientationProfile.PROFILE_NAME, null,
-                    DeviceOrientationProfile.ATTRIBUTE_ON_DEVICE_ORIENTATION);
+            long interval = System.currentTimeMillis() - mLastEventSendTime;
+            if (interval > mEventSendInterval) {
+                List<Event> events = EventManager.INSTANCE.getEventList(mServiceId,
+                        DeviceOrientationProfile.PROFILE_NAME, null,
+                        DeviceOrientationProfile.ATTRIBUTE_ON_DEVICE_ORIENTATION);
 
-            for (int i = 0; i < events.size(); i++) {
-                Event event = events.get(i);
-                Intent intent = EventManager.createEventMessage(event);
-                intent.putExtra(DeviceOrientationProfile.PARAM_ORIENTATION, orientation);
-                sendEvent(intent, event.getAccessToken());
+                for (int i = 0; i < events.size(); i++) {
+                    Event event = events.get(i);
+                    Intent intent = EventManager.createEventMessage(event);
+                    intent.putExtra(DeviceOrientationProfile.PARAM_ORIENTATION, orientation);
+                    sendEvent(intent, event.getAccessToken());
+                }
+                mLastEventSendTime = System.currentTimeMillis();
             }
         }
     }

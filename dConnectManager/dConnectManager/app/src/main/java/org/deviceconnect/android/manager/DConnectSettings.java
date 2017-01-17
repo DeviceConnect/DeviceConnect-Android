@@ -24,7 +24,7 @@ public final class DConnectSettings {
     /** デフォルトのポート番号を定義. */
     private static final int DEFAULT_PORT = 4035;
     /** Webサーバのデフォルトポート番号を定義. */
-    private static final int DEFALUT_WEB_PORT = 8080;
+    private static final int DEFAULT_WEB_PORT = 8080;
     /** デフォルトのインターバルを定義. */
     private static final int DEFAULT_INTERVAL = 1000 * 60 * 5;
     /** デフォルトのキーワード. */
@@ -64,6 +64,16 @@ public final class DConnectSettings {
         mContext = context;
         mPreferences = context.getSharedPreferences(context.getPackageName() + "_preferences",
                 Context.MODE_PRIVATE);
+
+        String name = getManagerName();
+        if (name == null) {
+            setManagerName(DConnectUtil.createName());
+        }
+
+        String uuid = getManagerUUID();
+        if (uuid == null) {
+            setManagerUUID(DConnectUtil.createUuid());
+        }
     }
 
     /**
@@ -278,13 +288,55 @@ public final class DConnectSettings {
     }
 
     /**
+     * Managerの名前を取得する.
+     * <p>
+     * Managerの名前が未設定の場合には{@code null}を返却する.
+     * </p>
+     * @return Manager名
+     */
+    public String getManagerName() {
+        return mPreferences.getString(mContext.getString(R.string.key_settings_dconn_name), null);
+    }
+
+    /**
+     * Managerの名前を設定する.
+     * @param name Manager名
+     */
+    public void setManagerName(final String name) {
+        SharedPreferences.Editor editor = mPreferences.edit();
+        editor.putString(mContext.getString(R.string.key_settings_dconn_name), name);
+        editor.apply();
+    }
+
+    /**
+     * Managerの識別子を取得する.
+     * <p>
+     * Managerの識別子が未設定の場合には{@code null}を返却する.
+     * </p>
+     * @return Managerの識別子
+     */
+    public String getManagerUUID() {
+        return mPreferences.getString(mContext.getString(R.string.key_settings_dconn_uuid), null);
+    }
+
+    /**
+     * Managerの識別子を設定する.
+     * @param uuid Managerの識別子
+     */
+    public void setManagerUUID(final String uuid) {
+        SharedPreferences.Editor editor = mPreferences.edit();
+        editor.putString(mContext.getString(R.string.key_settings_dconn_uuid), uuid);
+        editor.apply();
+    }
+
+    /**
      * Webサーバのポート番号を取得する.
      * @return ポート番号
      */
     public int getWebPort() {
         return Integer.parseInt(mPreferences.getString(
                     mContext.getString(R.string.key_settings_web_server_port),
-                    String.valueOf(DEFALUT_WEB_PORT)));
+                    String.valueOf(DEFAULT_WEB_PORT)));
     }
 
     /**

@@ -37,6 +37,13 @@ class DConnectHttpResponse implements HttpResponse {
         return mHeaders;
     }
 
+    /**
+     * コンテンツデータへのInputStreamを返します.
+     * <p>
+     * NanoHTTPD側で、InputStream#close()が呼び出されるので、注意すること。
+     * </p>
+     * @return コンテンツデータのストリーム
+     */
     InputStream getInputStream() {
         if (mInputStream == null) {
             return new ByteArrayInputStream(new byte[0]);

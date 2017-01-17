@@ -134,10 +134,9 @@ class DConnectServerEventListenerImpl implements DConnectServerEventListener {
         }
 
         DConnectService service = (DConnectService) mContext;
-        DConnectApplication app = (DConnectApplication) service.getApplication();
         EventBroker eventBroker = service.getEventBroker();
         WebSocketInfo disconnected = null;
-        for (WebSocketInfo info : app.getWebSocketInfoManager().getWebSocketInfos()) {
+        for (WebSocketInfo info : getWebSocketInfoManager().getWebSocketInfos()) {
             if (info.getRawId().equals(webSocket.getId())) {
                 disconnected = info;
                 break;
@@ -145,7 +144,7 @@ class DConnectServerEventListenerImpl implements DConnectServerEventListener {
         }
         if (disconnected != null) {
             eventBroker.removeEventSession(disconnected.getReceiverId());
-            app.getWebSocketInfoManager().removeWebSocketInfo(disconnected.getReceiverId());
+            getWebSocketInfoManager().removeWebSocketInfo(disconnected.getReceiverId());
         }
     }
 

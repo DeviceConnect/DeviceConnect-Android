@@ -128,4 +128,10 @@
         <description lang="en">Touch event.</description>
     </profile>
 
+    <profile name="light">
+        <name lang="ja-JP">ライト</name>
+        <description lang="ja-JP">ライト用のプロファイルです。</description>
+        <name lang="en-US">Light</name>
+        <description lang="en-US">Profile for Light</description>
+    </profile>
 </deviceplugin-provider>

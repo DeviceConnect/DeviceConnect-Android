@@ -23,6 +23,7 @@ import org.deviceconnect.android.deviceplugin.host.profile.HostDeviceOrientation
 import org.deviceconnect.android.deviceplugin.host.profile.HostFileDescriptorProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostFileProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostKeyEventProfile;
+import org.deviceconnect.android.deviceplugin.host.profile.HostLightProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostMediaPlayerProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostMediaStreamingRecordingProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostNotificationProfile;
@@ -121,6 +122,7 @@ public class HostDeviceService extends DConnectMessageService {
         hostService.addProfile(new HostSettingsProfile());
         hostService.addProfile(new HostTouchProfile());
         hostService.addProfile(new HostVibrationProfile());
+        hostService.addProfile(new HostLightProfile(this, mRecorderMgr));
         getServiceProvider().addService(hostService);
     }
 

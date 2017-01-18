@@ -44,11 +44,7 @@ public abstract class Authorization extends AsyncTask<Void, Void, List<ServiceCo
         if (params != null) {
             boolean first = true;
             for (String key : params.keySet()) {
-                if (first) {
-                    builder.append("?");
-                } else {
-                    builder.append("&");
-                }
+                builder.append(first ? "?" : "&");
                 builder.append(key);
                 builder.append("=");
                 builder.append(params.get(key));

@@ -534,7 +534,6 @@ public abstract class DConnectMessageService extends Service
                 mSettings.requireOrigin(), mSettings.isBlockingOrigin());
 
         mPluginMgr.setEventListener(this);
-        mPluginMgr.createDevicePluginList();
 
         showNotification();
 

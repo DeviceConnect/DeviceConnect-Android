@@ -8,15 +8,19 @@ package org.deviceconnect.android.manager.util;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.graphics.ColorMatrix;
 import android.graphics.ColorMatrixColorFilter;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.PowerManager;
+import android.provider.Settings;
 
 import org.deviceconnect.android.manager.DConnectSettings;
 import org.deviceconnect.message.DConnectMessage;
@@ -272,7 +276,9 @@ public final class DConnectUtil {
 
     /**
      * 指定された文字列をMD5の文字列に変換する.
-     * MD5への変換に失敗した場合にはnullを返却する。
+     * <p>
+     * MD5への変換に失敗した場合には{@code null}を返却する。
+     * </p>
      * @param s MD5にする文字列
      * @return MD5にされた文字列
      * @throws UnsupportedEncodingException 文字列の解析に失敗した場合
@@ -283,5 +289,58 @@ public final class DConnectUtil {
         MessageDigest digest = java.security.MessageDigest.getInstance("MD5");
         digest.update(s.getBytes("ASCII"));
         return hexToString(digest.digest());
+    }
+
+    /**
+     * 指定されたContextのアプリケーションがDozeモードが有効になっているかを確認する.
+     * <p>
+     * Android M以前のOSでは、常にtrueを返却します。
+     * </p>
+     * @param context コンテキスト
+     * @return Dozeモードが有効の場合はtrue、それ以外はfalse
+     */
+    public static boolean isDozeMode(final Context context) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            return true;
+        } else {
+            PowerManager powerManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
+            return powerManager.isIgnoringBatteryOptimizations(context.getPackageName());
+        }
+    }
+
+    /**
+     * Dozeモードの解除要求を行う.
+     * <p>
+     * Dozeモードの解除には必ずユーザの許諾が必要になります。
+     * </p>
+     * <p>
+     * Android M以前のOSの場合には、このメソッドは処理を行いません。
+     * </p>
+     * @param context コンテキスト
+     */
+    public static void startConfirmIgnoreDozeMode(final Context context) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            Intent intent = new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
+            intent.setData(Uri.parse("package:" + context.getPackageName()));
+            context.startActivity(intent);
+        }
+    }
+
+    /**
+     * Dozeモードの設定画面を開きます.
+     * <p>
+     * Dozeモードの解除には必ずユーザの許諾が必要になります。
+     * </p>
+     * <p>
+     * Android M以前のOSの場合には、このメソッドは処理を行いません。
+     * </p>
+     * @param context コンテキスト
+     */
+    public static void startDozeModeSettingActivity(final Context context) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            Intent intent = new Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            context.startActivity(intent);
+        }
     }
 }

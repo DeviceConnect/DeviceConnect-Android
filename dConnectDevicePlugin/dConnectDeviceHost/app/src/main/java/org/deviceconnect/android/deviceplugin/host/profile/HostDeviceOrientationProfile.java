@@ -81,20 +81,16 @@ public class HostDeviceOrientationProfile extends DeviceOrientationProfile imple
     /** 前回の加速度の計測時間を保持する. */
     private long mAccelLastTime;
 
-    /** イベント送信間隔設定用. */
-    private long mEventSendInterval;
+    /** センサー情報処理間隔設定用. */
+    private long mSensorInterval;
 
     /** イベント送信間隔計測用. */
-    private long mLastEventSendTime;
+    private long mLastEventSendTime = 0;
 
-    /**
-     * Device Orientationのデフォルト送信間隔を定義.
-     */
+    /** Device Orientationのデフォルト送信間隔を定義. */
     private static final long DEVICE_ORIENTATION_INTERVAL_TIME = 200;
 
-    /**
-     * Device Orientationのキャッシュを残す時間を定義する.
-     */
+    /** Device Orientationのキャッシュを残す時間を定義する. */
     private static final long DEVICE_ORIENTATION_CACHE_TIME = 100;
 
     private final DConnectApi mGetOnDeviceOrientationApi = new GetApi() {
@@ -123,9 +119,9 @@ public class HostDeviceOrientationProfile extends DeviceOrientationProfile imple
 
             try {
                 String interval = request.getStringExtra(PARAM_INTERVAL);
-                mEventSendInterval = Long.parseLong(interval);
+                mSensorInterval = Long.parseLong(interval);
             } catch (NumberFormatException e) {
-                mEventSendInterval = DEVICE_ORIENTATION_INTERVAL_TIME;
+                mSensorInterval = DEVICE_ORIENTATION_INTERVAL_TIME;
             }
 
             // イベントの登録
@@ -282,8 +278,7 @@ public class HostDeviceOrientationProfile extends DeviceOrientationProfile imple
                 .getSensorList(Sensor.TYPE_ACCELEROMETER);
         if (sensors.size() > 0) {
             Sensor sensor = sensors.get(0);
-            mSensorManager.registerListener(this, sensor,
-                    SensorManager.SENSOR_DELAY_NORMAL);
+            mSensorManager.registerListener(this, sensor, (int)mSensorInterval * 1000);
         } else {
             MessageUtils.setNotSupportAttributeError(response);
             return;
@@ -293,8 +288,7 @@ public class HostDeviceOrientationProfile extends DeviceOrientationProfile imple
                 .getSensorList(Sensor.TYPE_GRAVITY);
         if (sensors.size() > 0) {
             Sensor sensor = sensors.get(0);
-            mSensorManager.registerListener(this, sensor,
-                    SensorManager.SENSOR_DELAY_NORMAL);
+            mSensorManager.registerListener(this, sensor, (int)mSensorInterval * 1000);
         } else {
             MessageUtils.setNotSupportAttributeError(response);
             return;
@@ -303,8 +297,7 @@ public class HostDeviceOrientationProfile extends DeviceOrientationProfile imple
         sensors = mSensorManager.getSensorList(Sensor.TYPE_GYROSCOPE);
         if (sensors.size() > 0) {
             Sensor sensor = sensors.get(0);
-            mSensorManager.registerListener(this, sensor,
-                    SensorManager.SENSOR_DELAY_NORMAL);
+            mSensorManager.registerListener(this, sensor, (int)mSensorInterval * 1000);
         } else {
             MessageUtils.setNotSupportAttributeError(response);
             return;
@@ -332,7 +325,10 @@ public class HostDeviceOrientationProfile extends DeviceOrientationProfile imple
      * @return Orientationのデータ
      */
     private Bundle createOrientation() {
-        long interval = System.currentTimeMillis() - mAccelLastTime;
+        long interval = System.currentTimeMillis() - mLastEventSendTime;
+        if (interval < 0) {
+            interval = 0;
+        }
 
         Bundle orientation = new Bundle();
         Bundle a1 = new Bundle();
@@ -402,7 +398,7 @@ public class HostDeviceOrientationProfile extends DeviceOrientationProfile imple
             }
 
             long interval = System.currentTimeMillis() - mLastEventSendTime;
-            if (interval > mEventSendInterval) {
+            if (interval > mSensorInterval) {
                 List<Event> events = EventManager.INSTANCE.getEventList(mServiceId,
                         DeviceOrientationProfile.PROFILE_NAME, null,
                         DeviceOrientationProfile.ATTRIBUTE_ON_DEVICE_ORIENTATION);

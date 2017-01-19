@@ -235,7 +235,7 @@ public class ServiceListActivity extends Activity implements AlertDialogFragment
         } else {
             animateGuide(new AnimationUtil.AnimationAdapter() {
                 @Override
-                public void onAnimationEnd(Animator animation) {
+                public void onAnimationEnd(final Animator animation) {
                     mPageIndex++;
                     visibleGuide();
                 }
@@ -279,7 +279,7 @@ public class ServiceListActivity extends Activity implements AlertDialogFragment
         if (guideView != null) {
             AnimationUtil.animateAlpha(guideView, new AnimationUtil.AnimationAdapter() {
                 @Override
-                public void onAnimationEnd(Animator animation) {
+                public void onAnimationEnd(final Animator animation) {
                     guideView.setVisibility(View.GONE);
                 }
             });

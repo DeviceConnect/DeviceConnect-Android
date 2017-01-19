@@ -73,6 +73,9 @@
     <string name="activity_settings_doze_mode_title">Doze mode</string>
     <string name="activity_settings_doze_mode_summary_off">Battery optimization is disabled. It doesn\'t save battery power, because not change to doze mode.</string>
     <string name="activity_settings_doze_mode_summary_on">Battery optimization is enabled. This application will stop working because Doze mode will be restricted to save battery power.</string>
+    <string name="activity_settings_wake_lock_title">WakeLock</string>
+    <string name="activity_settings_wake_lock_summary_off">WakeLock is disabled.</string>
+    <string name="activity_settings_wake_lock_summary_on">WakeLock is enabled.</string>
 
     <string name="activity_settings_web_server_settings">Setting of Web Server</string>
     <string name="activity_settings_web_server">Web Server</string>

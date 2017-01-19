@@ -95,12 +95,14 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
     public void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         addPreferencesFromResource(R.xml.settings_dconnect_manager);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            addPreferencesFromResource(R.xml.settings_power_saving_doze_mode);
-        }
         addPreferencesFromResource(R.xml.settings_dconnect_device_plugin);
         addPreferencesFromResource(R.xml.settings_dconnect_settings);
         addPreferencesFromResource(R.xml.settings_dconnect_security);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            addPreferencesFromResource(R.xml.settings_power_saving_doze_mode);
+        } else {
+            addPreferencesFromResource(R.xml.settings_power_saving);
+        }
         addPreferencesFromResource(R.xml.settings_web_server);
         addPreferencesFromResource(R.xml.settings_dconnect_about);
         setHasOptionsMenu(true);
@@ -273,6 +275,18 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
                 dozeModePreference.setOnPreferenceChangeListener(this);
             }
         }
+
+        // WakeLock
+        CheckBoxPreference wakeLockPreference = (CheckBoxPreference) getPreferenceScreen()
+                .findPreference(getString(R.string.key_settings_wake_lock));
+        if (wakeLockPreference != null) {
+            if (wakeLockPreference.isChecked()) {
+                wakeLockPreference.setSummary(R.string.activity_settings_wake_lock_summary_on);
+            } else {
+                wakeLockPreference.setSummary(R.string.activity_settings_wake_lock_summary_off);
+            }
+            wakeLockPreference.setOnPreferenceChangeListener(this);
+        }
     }
 
     @Override
@@ -322,6 +336,8 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
                 requiredOrigin((Boolean) newValue);
             } else if (getString(R.string.key_settings_doze_mode).equals(key)) {
                 switchDozeMode((Boolean) newValue);
+            } else if (getString(R.string.key_settings_wake_lock).equals(key)) {
+                switchWakeLock((Boolean) newValue);
             }
         }
         return true;
@@ -530,6 +546,40 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
             DConnectUtil.startConfirmIgnoreDozeMode(getActivity());
         } else {
             DConnectUtil.startDozeModeSettingActivity(getActivity());
+        }
+    }
+
+    /**
+     * WakeLockの切り替えを行います.
+     * @param checked 有効にするの場合はtrue、無効にする場合はfalse
+     */
+    private void switchWakeLock(final boolean checked) {
+        CheckBoxPreference pref = (CheckBoxPreference) getPreferenceScreen()
+                .findPreference(getString(R.string.key_settings_wake_lock));
+        if (pref != null) {
+            if (checked) {
+                pref.setSummary(R.string.activity_settings_wake_lock_summary_on);
+                if (mDConnectService != null) {
+                    try {
+                        mDConnectService.acquireWakeLock();
+                    } catch (RemoteException e) {
+                        if (BuildConfig.DEBUG) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            } else {
+                pref.setSummary(R.string.activity_settings_wake_lock_summary_off);
+                if (mDConnectService != null) {
+                    try {
+                        mDConnectService.releaseWakeLock();
+                    } catch (RemoteException e) {
+                        if (BuildConfig.DEBUG) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
         }
     }
 

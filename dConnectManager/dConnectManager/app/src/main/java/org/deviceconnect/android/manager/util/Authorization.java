@@ -1,3 +1,9 @@
+/*
+ Authorization.java
+ Copyright (c) 2017 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.manager.util;
 
 import android.content.Context;
@@ -14,10 +20,26 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Authorizationプロファイルの処理を行うタスク.
+ *
+ * @author NTT DOCOMO, INC.
+ */
 public abstract class Authorization extends AsyncTask<Void, Void, List<ServiceContainer>> {
 
+    /**
+     * Authorizationプロファイルのレスポンスを保存するファイルの名前.
+     */
     private static final String FILE_NAME = "__authorization__.dat";
+
+    /**
+     * clientIdのキー名.
+     */
     private static final String KEY_CLIENT_ID = "clientId";
+
+    /**
+     * accessTokenのキー名.
+     */
     private static final String KEY_ACCESS_TOKEN = "accessToken";
 
     private DConnectSettings mSettings;

@@ -32,6 +32,7 @@ public final class DConnectSettings {
 
     /** 情報を共有するプリファレンス. */
     private SharedPreferences mPreferences;
+
     /** コンテキスト. */
     private Context mContext;
 
@@ -327,6 +328,14 @@ public final class DConnectSettings {
         SharedPreferences.Editor editor = mPreferences.edit();
         editor.putString(mContext.getString(R.string.key_settings_dconn_uuid), uuid);
         editor.apply();
+    }
+
+    /**
+     * WakeLockが有効・無効を取得する.
+     * @return trueの場合はWakeLockが有効、それ以外はWakeLockが無効
+     */
+    public boolean enableWakLock() {
+        return mPreferences.getBoolean(mContext.getString(R.string.key_settings_wake_lock), true);
     }
 
     /**

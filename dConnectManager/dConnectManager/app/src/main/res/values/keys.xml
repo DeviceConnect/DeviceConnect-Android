@@ -29,4 +29,5 @@
     <string name="key_settings_dconn_websocket">key_settings_dconn_websocket</string>
     <string name="key_settings_event_keep_alive_on_off">key_settings_event_keep_alive_on_off</string>
     <string name="key_settings_doze_mode">key_settings_doze_mode</string>
+    <string name="key_settings_wake_lock">key_settings_wake_lock</string>
 </resources>

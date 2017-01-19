@@ -12,6 +12,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.ConnectivityManager;
 import android.os.IBinder;
+import android.os.PowerManager;
 import android.os.RemoteException;
 
 import org.deviceconnect.android.compat.MessageConverter;
@@ -41,6 +42,9 @@ import java.util.concurrent.Executors;
  * @author NTT DOCOMO, INC.
  */
 public class DConnectService extends DConnectMessageService {
+
+    private static final String TAG_WAKE_LOCK = "DeviceConnectManager";
+
     public static final String ACTION_DISCONNECT_WEB_SOCKET = "disconnect.WebSocket";
     public static final String ACTION_SETTINGS_KEEP_ALIVE = "settings.KeepAlive";
     public static final String EXTRA_WEBSOCKET_ID = "webSocketId";
@@ -69,8 +73,14 @@ public class DConnectService extends DConnectMessageService {
     /** イベントKeep Alive管理クラス. */
     private KeepAliveManager mKeepAliveManager;
 
+    /** リクエストのパスを変換するクラス群. */
     private MessageConverter[] mRequestConverters;
+
+    /** レスポンスのパスを変換するクラス群. */
     private MessageConverter[] mResponseConverters;
+
+    /** WakeLockのインスタンス. */
+    private PowerManager.WakeLock mWakeLock;
 
     @Override
     public IBinder onBind(final Intent intent) {
@@ -190,10 +200,10 @@ public class DConnectService extends DConnectMessageService {
     @Override
     public void sendEvent(final String receiver, final Intent event) {
         if (receiver == null || receiver.length() <= 0) {
-            final String key = event.getStringExtra(IntentDConnectMessage.EXTRA_SESSION_KEY);
             mEventSender.execute(new Runnable() {
                 @Override
                 public void run() {
+                    String key = event.getStringExtra(IntentDConnectMessage.EXTRA_SESSION_KEY);
                     if (key != null && mRESTfulServer != null && mRESTfulServer.isRunning()) {
                         WebSocketInfo info = getWebSocketInfo(key);
                         if (info == null) {
@@ -249,10 +259,19 @@ public class DConnectService extends DConnectMessageService {
         }
     }
 
+    /**
+     * {@link EventBroker}を取得する.
+     * @return EventBrokerのインスタンス
+     */
     public EventBroker getEventBroker() {
         return mEventBroker;
     }
 
+    /**
+     * 指定されたreceiverIdのWebSocketの情報を取得する.
+     * @param receiverId WebSocketの識別子
+     * @return WebSocketの情報。指定された識別子のWebSocketが存在しない場合は{@code null}を返す。
+     */
     private WebSocketInfo getWebSocketInfo(final String receiverId) {
         return ((DConnectApplication) getApplication()).getWebSocketInfoManager().getWebSocketInfo(receiverId);
     }
@@ -264,6 +283,12 @@ public class DConnectService extends DConnectMessageService {
         mEventSender.execute(new Runnable() {
             @Override
             public void run() {
+                if (mRESTfulServer != null) {
+                    return;
+                }
+
+                acquireWakeLock();
+
                 mSettings.load(getApplicationContext());
 
                 mWebServerListener = new DConnectServerEventListenerImpl(DConnectService.this);
@@ -290,15 +315,13 @@ public class DConnectService extends DConnectMessageService {
                     mLogger.info("External IP: " + mSettings.allowExternalIP());
                 }
 
-                if (mRESTfulServer == null) {
-                    mRESTfulServer = new DConnectServerNanoHttpd(builder.build(), getApplicationContext());
-                    mRESTfulServer.setServerEventListener(mWebServerListener);
-                    mRESTfulServer.start();
+                mRESTfulServer = new DConnectServerNanoHttpd(builder.build(), getApplicationContext());
+                mRESTfulServer.setServerEventListener(mWebServerListener);
+                mRESTfulServer.start();
 
-                    IntentFilter filter = new IntentFilter();
-                    filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
-                    registerReceiver(mWiFiReceiver, filter);
-                }
+                IntentFilter filter = new IntentFilter();
+                filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
+                registerReceiver(mWiFiReceiver, filter);
             }
         });
     }
@@ -310,6 +333,8 @@ public class DConnectService extends DConnectMessageService {
         mEventSender.execute(new Runnable() {
             @Override
             public void run() {
+                releaseWakeLock();
+
                 if (mRESTfulServer != null) {
                     unregisterReceiver(mWiFiReceiver);
                     mRESTfulServer.shutdown();
@@ -346,6 +371,31 @@ public class DConnectService extends DConnectMessageService {
     }
 
     /**
+     * WakeLockを登録にする.
+     * <p>
+     * {@link DConnectSettings#enableWakLock()}が{@code false}で、
+     * {@link #mWakeLock}が{@code null}の場合のみ新しいWakeLocをします。
+     * </p>
+     */
+    private void acquireWakeLock() {
+        if (mSettings.enableWakLock() && mWakeLock == null) {
+            PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
+            mWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG_WAKE_LOCK);
+            mWakeLock.acquire();
+        }
+    }
+
+    /**
+     * WakeLockを解除する.
+     */
+    private void releaseWakeLock() {
+        if (mWakeLock != null) {
+            mWakeLock.release();
+            mWakeLock = null;
+        }
+    }
+
+    /**
      * バインドするためのスタブクラス.
      */
     private final IDConnectService mBinder = new IDConnectService.Stub()  {
@@ -367,6 +417,28 @@ public class DConnectService extends DConnectMessageService {
         @Override
         public void stop() throws RemoteException {
             stopInternal();
+        }
+
+        @Override
+        public void acquireWakeLock() throws RemoteException {
+            mEventSender.submit(new Runnable() {
+                @Override
+                public void run() {
+                    if (mRunningFlag) {
+                        DConnectService.this.acquireWakeLock();
+                    }
+                }
+            });
+        }
+
+        @Override
+        public void releaseWakeLock() throws RemoteException {
+            mEventSender.submit(new Runnable() {
+                @Override
+                public void run() {
+                    DConnectService.this.releaseWakeLock();
+                }
+            });
         }
     };
 

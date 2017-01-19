@@ -70,8 +70,11 @@
     <string name="activity_settings_uuid">UUID</string>
     <string name="activity_settings_power_saving">省電力</string>
     <string name="activity_settings_doze_mode_title">Dozeモード</string>
-    <string name="activity_settings_doze_mode_summary_off">電池の最適化が無効になっています。\nDozeモードにならないために電池を消費します。</string>
-    <string name="activity_settings_doze_mode_summary_on">電池の最適化が有効になっています。\nDozeモードになったときにアプリが停止します。</string>
+    <string name="activity_settings_doze_mode_summary_off">電池の最適化が無効になっています。\n端末がDozeモードになってもアプリが停止しないために電池を消費します。</string>
+    <string name="activity_settings_doze_mode_summary_on">電池の最適化が有効になっています。\n端末がDozeモードになったときにアプリが停止します。</string>
+    <string name="activity_settings_wake_lock_title">WakeLock</string>
+    <string name="activity_settings_wake_lock_summary_off">WakeLockが無効になっています。\n端末がスリープした時に応答ができないことがあります。</string>
+    <string name="activity_settings_wake_lock_summary_on">WakeLockが有効になっています。\n端末がスリープしても動作する代わりに電池を消費します。</string>
 
     <string name="activity_settings_web_server_settings">Webサーバ設定</string>
     <string name="activity_settings_web_server">Webサーバ</string>

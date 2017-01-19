@@ -287,7 +287,9 @@ public class DConnectService extends DConnectMessageService {
                     return;
                 }
 
-                acquireWakeLock();
+                if (mSettings.enableWakLock()) {
+                    acquireWakeLock();
+                }
 
                 mSettings.load(getApplicationContext());
 
@@ -378,7 +380,10 @@ public class DConnectService extends DConnectMessageService {
      * </p>
      */
     private void acquireWakeLock() {
-        if (mSettings.enableWakLock() && mWakeLock == null) {
+        if (mWakeLock == null) {
+            if (BuildConfig.DEBUG) {
+                mLogger.info("DConnectService acquire WakeLock.");
+            }
             PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
             mWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG_WAKE_LOCK);
             mWakeLock.acquire();
@@ -390,6 +395,9 @@ public class DConnectService extends DConnectMessageService {
      */
     private void releaseWakeLock() {
         if (mWakeLock != null) {
+            if (BuildConfig.DEBUG) {
+                mLogger.info("DConnectService release WakeLock.");
+            }
             mWakeLock.release();
             mWakeLock = null;
         }

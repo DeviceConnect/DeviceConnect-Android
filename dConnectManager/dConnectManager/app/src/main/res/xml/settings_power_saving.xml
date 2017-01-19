@@ -2,7 +2,7 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
     <PreferenceCategory android:title="@string/activity_settings_power_saving" >
         <CheckBoxPreference
-            android:defaultValue="true"
+            android:defaultValue="false"
             android:key="@string/key_settings_wake_lock"
             android:summary="@string/activity_settings_wake_lock_summary_on"
             android:title="@string/activity_settings_wake_lock_title" />

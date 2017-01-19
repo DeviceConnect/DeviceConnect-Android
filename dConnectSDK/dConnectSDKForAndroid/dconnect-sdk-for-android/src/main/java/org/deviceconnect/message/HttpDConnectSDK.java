@@ -355,7 +355,7 @@ class HttpDConnectSDK extends DConnectSDK {
      */
     private DConnectResponseMessage createMessage(final byte[] result) {
         if (result == null) {
-            return createErrorMessage(DConnectMessage.ErrorCode.UNKNOWN.getCode(), "Failed to connect a manager.");
+            return new DConnectResponseMessage(DConnectMessage.ErrorCode.ACCESS_FAILED);
         }
         try {
             return new DConnectResponseMessage(new String(result, "UTF-8"));
@@ -382,7 +382,7 @@ class HttpDConnectSDK extends DConnectSDK {
         } catch (MalformedURLException e) {
             throw new IllegalArgumentException("uri is invalid.");
         } catch (SocketTimeoutException e) {
-            return createTimeout();
+            return createTimeoutResponse();
         } catch (Exception e) {
             return createErrorMessage(DConnectMessage.ErrorCode.UNKNOWN.getCode(), e.getMessage());
         } catch (OutOfMemoryError e) {

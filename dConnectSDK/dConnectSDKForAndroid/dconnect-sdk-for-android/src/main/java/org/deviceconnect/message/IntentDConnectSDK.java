@@ -225,7 +225,7 @@ class IntentDConnectSDK extends DConnectSDK {
         } catch (JSONException e) {
             return createErrorMessage(DConnectMessage.ErrorCode.UNKNOWN.getCode(), e.getMessage());
         } catch (IOException e) {
-            return createTimeout();
+            return createTimeoutResponse();
         }
     }
 

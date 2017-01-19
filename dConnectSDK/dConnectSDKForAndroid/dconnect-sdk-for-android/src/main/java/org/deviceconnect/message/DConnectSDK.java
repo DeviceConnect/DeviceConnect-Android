@@ -16,6 +16,7 @@ import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.deviceconnect.profile.AvailabilityProfileConstants;
 import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 import org.deviceconnect.profile.ServiceInformationProfileConstants;
+import org.deviceconnect.utils.HmacUtils;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
@@ -23,6 +24,7 @@ import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -81,6 +83,16 @@ public abstract class DConnectSDK {
             "org.deviceconnect.android.manager.DConnectLaunchActivity");
 
     /**
+     * HMACを生成するためのキーのサイズを定義する.
+     */
+    private static final int HMAC_KEY_BYTES = 16;
+
+    /**
+     * nonceの値に格納する文字列のサイズを定義する.
+     */
+    private static final int NONCE_BYTES = 16;
+
+    /**
      * メソッド.
      */
     enum Method {
@@ -131,8 +143,8 @@ public abstract class DConnectSDK {
     /**
      * SSL使用フラグ.
      * <p>
-     *     trueの場合はSSLを使用する。
-     *     falseの場合にはSSLを使用しない。
+     * trueの場合はSSLを使用する。<br>
+     * falseの場合にはSSLを使用しない。
      * </p>
      */
     private boolean mSSL;
@@ -141,6 +153,20 @@ public abstract class DConnectSDK {
      * アクセストークン.
      */
     private String mAccessToken;
+
+    /**
+     * サーバを識別するHMACキー.
+     */
+    private String mHmacKey;
+
+    /**
+     * サーバの妥当性確認フラグ.
+     * <p>
+     * truの場合は、Device Connect Managerの妥当性を確認する。<br>
+     * falseの場合には、妥当性の確認は行わない。
+     * </p>
+     */
+    private boolean mEnabledAntiSpoofing;
 
     /**
      * 通信を行うスレッド.
@@ -374,6 +400,28 @@ public abstract class DConnectSDK {
     public abstract void removeEventListener(final Uri uri);
 
     /**
+     * サーバからのレスポンス受信時にサーバの認証を行うかどうかを設定する.
+     * <p>
+     * サーバ認証を行うためのHMACのキーをDConnectSDKの内部で保持するために、
+     * 別のDConnectSDKのインスタンスを作成した場合には、もう一度、{@link #startManager(Context)}
+     * を呼び出して、HMACのキーを生成し直す必要があります。
+     * </p>
+     * @param enable サーバの認証を行う場合はtrue、そうでない場合はfalse
+     */
+    public void setAntiSpoofing(final boolean enable) {
+        mEnabledAntiSpoofing = enable;
+    }
+
+    /**
+     * サーバからのレスポンス受信時にサーバの認証を行うかどうかのフラグを取得する.
+     *
+     * @return サーバの認証を行う場合はtrue、そうでない場合はfalse
+     */
+    public boolean isEnabledAntiSpoofing() {
+        return mEnabledAntiSpoofing;
+    };
+
+    /**
      * Device Connect Managerを起動する.
      * <p>
      * Device Connect Managerを起動するために一瞬透明なActivityが起動するので、
@@ -382,6 +430,16 @@ public abstract class DConnectSDK {
      * <p>
      * Device Connect Managerの設定において、外部からの自動起動/終了が無効の場合には、
      * Device Connect Managerの起動画面が表示されます。
+     * </p>
+     * <p>
+     * {@link #setAntiSpoofing(boolean)}に{@code true}が設定されている場合には、
+     * 内部でDevice Connect Managerの妥当性を確認するためのHMACのキーを生成し、Device Connect Managerに渡します。<br>
+     * このHMACのキーを元にDevice Connect ManagerはレスポンスにHMACを付加して返却してきます。<br>
+     * {@link #get(String, OnResponseListener)}などの処理中で、レスポンスからHMACを取得して、
+     * 起動した時に生成したHMACのキーから同じHMACが生成できるかを確認します。<br>
+     * 同じHMACが生成できない場合には、このメソッドで起動したDevice Connect Managerからのレスポンスとします。<br>
+     * DConnectSDKが違う場合には、HMACのキーが異なるので、Device Connect Managerの妥当性を確認する場合には、
+     * DConnectSDKのインスタンスは使い回す必要があります。
      * </p>
      * <div>
      * <span style="margin:0;padding:2px;background:#029EBC;color:#EBF7FA;line-height:140%;font-weight:bold;">サンプルコード</span>
@@ -396,13 +454,7 @@ public abstract class DConnectSDK {
      * @param context コンテキスト
      */
     public void startManager(final Context context) {
-        Intent intent = new Intent(Intent.ACTION_VIEW);
-        intent.setComponent(MANAGER_LAUNCH_ACTIVITY);
-        intent.addCategory(Intent.CATEGORY_DEFAULT);
-        intent.addCategory(Intent.CATEGORY_BROWSABLE);
-        intent.setData(Uri.parse("gotapi://start/server"));
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        context.startActivity(intent);
+        startManager(context, "gotapi://start/server");
     }
 
     /**
@@ -410,13 +462,60 @@ public abstract class DConnectSDK {
      * @param context コンテキスト
      */
     public void startManagerWithActivity(final Context context) {
+        startManager(context, "gotapi://start/activity");
+    }
+
+    /**
+     * Device Connect Managerの起動処理を行う。
+     * @param context コンテキスト
+     * @param uri 起動URI
+     */
+    private void startManager(final Context context, final String uri) {
+        mHmacKey = isEnabledAntiSpoofing() ? generateRandom(HMAC_KEY_BYTES) : "";
+
         Intent intent = new Intent(Intent.ACTION_VIEW);
         intent.setComponent(MANAGER_LAUNCH_ACTIVITY);
         intent.addCategory(Intent.CATEGORY_DEFAULT);
         intent.addCategory(Intent.CATEGORY_BROWSABLE);
-        intent.setData(Uri.parse("gotapi://start/activity"));
+        intent.setData(Uri.parse(uri + "?origin=" + mOrigin + "&key=" + mHmacKey));
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         context.startActivity(intent);
+    }
+
+    /**
+     * 送れてきたHMACが正しいか確認を行う.
+     * <p>
+     * origin、nonceとmHmacKeyからHMACを生成して、Device Connect Managerの返り値と一致するかを確認します。<br>
+     * 値が一致する場合には、正しいDevice Connect Managerから返り値と認識します。
+     * </p>
+     * @param nonce HMACを生成するために使用したシード
+     * @param hmac Device Connect Managerから送られてきたHMAC
+     * @return HMACが一致する場合にはtrue、それ以外はfalse
+     */
+    private boolean checkHmac(final String nonce, final String hmac) {
+        String hmacKey = mHmacKey;
+        if (hmacKey == null || hmacKey.isEmpty()) {
+            return true;
+        }
+        if (hmac == null) {
+            return false;
+        }
+        String expectedHmac = HmacUtils.generateHmac(getOrigin(), nonce, hmacKey);
+        return hmac.equals(expectedHmac);
+    }
+
+    /**
+     * ランダムな文字列を生成する.
+     * @param byteSize 文字数
+     * @return ランダムな文字列
+     */
+    private String generateRandom(final int byteSize) {
+        StringBuilder builder = new StringBuilder();
+        Random random = new Random();
+        for (int i = 0; i < byteSize; i++) {
+            builder.append(Integer.toHexString(random.nextInt(255)));
+        }
+        return builder.toString();
     }
 
     /**
@@ -432,13 +531,7 @@ public abstract class DConnectSDK {
      * @param context コンテキスト
      */
     public void stopManager(final Context context) {
-        Intent intent = new Intent(Intent.ACTION_VIEW);
-        intent.setComponent(MANAGER_LAUNCH_ACTIVITY);
-        intent.addCategory(Intent.CATEGORY_DEFAULT);
-        intent.addCategory(Intent.CATEGORY_BROWSABLE);
-        intent.setData(Uri.parse("gotapi://stop/server"));
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        context.startActivity(intent);
+        stopManager(context, "gotapi://stop/server");
     }
 
     /**
@@ -446,11 +539,20 @@ public abstract class DConnectSDK {
      * @param context コンテキスト
      */
     public void stopManagerWithActivity(final Context context) {
+        stopManager(context, "gotapi://stop/activity");
+    }
+
+    /**
+     * Device Connect Managerを停止する.
+     * @param context コンテキスト
+     * @param uri Device Connect Managerの停止URI
+     */
+    private void stopManager(final Context context, final String uri) {
         Intent intent = new Intent(Intent.ACTION_VIEW);
         intent.setComponent(MANAGER_LAUNCH_ACTIVITY);
         intent.addCategory(Intent.CATEGORY_DEFAULT);
         intent.addCategory(Intent.CATEGORY_BROWSABLE);
-        intent.setData(Uri.parse("gotapi://stop/activity"));
+        intent.setData(Uri.parse(uri));
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         context.startActivity(intent);
     }
@@ -468,6 +570,41 @@ public abstract class DConnectSDK {
      * @return レスポンス
      */
     protected abstract DConnectResponseMessage sendRequest(final Method method, final Uri uri, final Map<String, String> headers, final Entity body);
+
+    /**
+     * Device Connect Managerとの通信を行う.
+     * <p>
+     * {@link #isEnabledAntiSpoofing()}がtrueの場合には、HMACの確認を行い不正なサーバにアクセスしていないか確認を行います。<br>
+     * ただし、HMACを作成するためのキーは、DConnectSDKが保持しているので、別のDConnectSDKのインスタンスを使用した場合には、エラーになる。
+     * </p>
+     * @param method メソッド
+     * @param uri アクセス先のURI
+     * @param headers リクエストに追加するヘッダー
+     * @param body リクエストに追加するボディデータ
+     * @return レスポンス
+     */
+    private DConnectResponseMessage sendRequestInternal(final Method method, final Uri uri, final Map<String, String> headers, final Entity body) {
+        if (isEnabledAntiSpoofing()) {
+            String nonce = generateRandom(NONCE_BYTES);
+
+            StringBuilder u = new StringBuilder();
+            u.append(uri.toString());
+            u.append((uri.getQuery() == null) ? "?" : "&");
+            u.append("nonce=");
+            u.append(nonce);
+
+            DConnectResponseMessage response = sendRequest(method, Uri.parse(u.toString()), headers, body);
+            if (!checkHmac(nonce, response.getString("hmac"))) {
+                DConnectResponseMessage msg = new DConnectResponseMessage(DConnectMessage.RESULT_ERROR);
+                msg.setErrorCode(DConnectMessage.ErrorCode.INVALID_SERVER.getCode());
+                msg.setErrorMessage(DConnectMessage.ErrorCode.INVALID_SERVER.toString());
+                return msg;
+            }
+            return response;
+        } else {
+            return sendRequest(method, uri, headers, body);
+        }
+    }
 
     /**
      * URIBuilderを生成する.
@@ -539,7 +676,7 @@ public abstract class DConnectSDK {
         if (uri == null) {
             throw new NullPointerException("uri is null.");
         }
-        return sendRequest(Method.GET, uri, null, null);
+        return sendRequestInternal(Method.GET, uri, null, null);
     }
 
     /**
@@ -597,7 +734,7 @@ public abstract class DConnectSDK {
         if (uri == null) {
             throw new NullPointerException("uri is null.");
         }
-        return sendRequest(Method.PUT, uri, null, data);
+        return sendRequestInternal(Method.PUT, uri, null, data);
     }
 
     /**
@@ -720,7 +857,7 @@ public abstract class DConnectSDK {
         if (uri == null) {
             throw new NullPointerException("uri is null.");
         }
-        return sendRequest(Method.POST, uri, null, data);
+        return sendRequestInternal(Method.POST, uri, null, data);
     }
 
     /**
@@ -780,7 +917,7 @@ public abstract class DConnectSDK {
         if (uri == null) {
             throw new NullPointerException("uri is null.");
         }
-        return sendRequest(Method.DELETE, uri, null, null);
+        return sendRequestInternal(Method.DELETE, uri, null, null);
     }
 
     /**
@@ -1111,8 +1248,8 @@ public abstract class DConnectSDK {
         return message;
     }
 
-    DConnectResponseMessage createTimeout() {
-        return createErrorMessage(DConnectMessage.ErrorCode.TIMEOUT.getCode(), DConnectMessage.ErrorCode.TIMEOUT.toString());
+    DConnectResponseMessage createTimeoutResponse() {
+        return new DConnectResponseMessage(DConnectMessage.ErrorCode.TIMEOUT);
     }
 
     /**

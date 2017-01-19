@@ -33,6 +33,16 @@ public class DConnectResponseMessage extends BasicDConnectMessage {
     }
 
     /**
+     * エラーコードを指定してメッセージを生成する.
+     * @param errorCode エラーコード
+     */
+    public DConnectResponseMessage(final ErrorCode errorCode) {
+        setResult(RESULT_ERROR);
+        setErrorCode(errorCode.getCode());
+        setErrorMessage(errorCode.toString());
+    }
+
+    /**
      * Device Connect レスポンスメッセージをJSONから生成する.
      *
      * @param json メッセージJSON

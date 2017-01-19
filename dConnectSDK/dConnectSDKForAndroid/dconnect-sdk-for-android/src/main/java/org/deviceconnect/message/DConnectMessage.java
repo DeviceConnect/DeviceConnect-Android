@@ -242,41 +242,60 @@ public interface DConnectMessage extends Map<String, Object> {
      */
     enum ErrorCode {
         /**
+         * Device Connect Managerへのアクセスに失敗した.
+         */
+        ACCESS_FAILED(-1, "Failed to connect to the Device Connect Manager."),
+
+        /**
+         * 不正なサーバからのレスポンスを受信した.
+         */
+        INVALID_SERVER(-2, "Received a response from an invalid server."),
+
+        /**
          * 原因不明のエラー.
          */
         UNKNOWN(1, "Unknown error was encountered."),
+
         /**
          * サポートされていないプロファイルにアクセスされた.
          */
         NOT_SUPPORT_PROFILE(2, "Non-supported Profile was accessed."),
+
         /**
          * サポートされていないアクションが指定された.
          */
         NOT_SUPPORT_ACTION(3, "Non-supported HTTP method was used."),
+
         /**
          * サポートされていない属性・インターフェースが指定された.
          */
         NOT_SUPPORT_ATTRIBUTE(4, "Non-supported attribute was used."),
+
         /**
          * serviceIdが設定されていない.
          */
         EMPTY_SERVICE_ID(5, "Service ID is required."),
+
         /**
          * サービスが発見できなかった.
          */
         NOT_FOUND_SERVICE(6, "Service was not found."),
+
         /**
          * タイムアウトが発生した.
          */
         TIMEOUT(7, "Response timeout."),
+
         /**
          * 未知のインターフェース・属性にアクセスされた.
          */
         UNKNOWN_ATTRIBUTE(8, "Illegal or nonexistent attribute or interface was accessed."),
+
         /**
          * バッテリー低下で操作不能.
          */
         LOW_BATTERY(9, "No enough battery to control the device."),
+
         /**
          * 不正なパラメータを受信した.
          */
@@ -286,14 +305,17 @@ public interface DConnectMessage extends Map<String, Object> {
          * 認証エラー.
          */
         AUTHORIZATION(11, "Authorization error."),
+
         /**
          * アクセストークンの有効期限切れ.
          */
         EXPIRED_ACCESS_TOKEN(12, "Access token expired."),
+
         /**
          * アクセストークンが設定されていない.
          */
         EMPTY_ACCESS_TOKEN(13, "Access token was required."),
+
         /**
          * スコープ外にアクセス要求がなされた.
          */
@@ -308,10 +330,12 @@ public interface DConnectMessage extends Map<String, Object> {
          * デバイスの状態異常エラー.
          */
         ILLEGAL_DEVICE_STATE(16, "State of device is illegality."),
+
         /**
          * サーバーの状態異常エラー.
          */
         ILLEGAL_SERVER_STATE(17, "State of server is illegality."),
+
         /**
          * リクエストの発行元が不正.
          */
@@ -359,15 +383,12 @@ public interface DConnectMessage extends Map<String, Object> {
          * @return ErrorCodeのインスタンス
          */
         public static ErrorCode getInstance(final int code) {
-
             for (ErrorCode eCode : values()) {
                 if (eCode.mCode == code) {
                     return eCode;
                 }
             }
-
             return UNKNOWN;
         }
     }
-
 }

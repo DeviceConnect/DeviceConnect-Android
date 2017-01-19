@@ -19,6 +19,7 @@ import android.preference.Preference;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceScreen;
 import android.preference.SwitchPreference;
+import android.util.Log;
 
 import org.deviceconnect.android.uiapp.DConnectApplication;
 import org.deviceconnect.android.uiapp.R;
@@ -26,7 +27,6 @@ import org.deviceconnect.android.uiapp.utils.Settings;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.DConnectResponseMessage;
 import org.deviceconnect.message.DConnectSDK;
-import org.deviceconnect.message.DConnectSDKFactory;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -48,7 +48,6 @@ public class SettingsFragment extends PreferenceFragment
     public void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         addPreferencesFromResource(R.xml.settings);
-
 
         PreferenceScreen versionPreferences = (PreferenceScreen)
                 getPreferenceScreen().findPreference(
@@ -84,8 +83,7 @@ public class SettingsFragment extends PreferenceFragment
     @Override
     public void onResume() {
         super.onResume();
-        mDConnectSDK = DConnectSDKFactory.create(getActivity(), DConnectSDKFactory.Type.HTTP);
-        mDConnectSDK.setSSL(Settings.getInstance().isSSL());
+        mDConnectSDK = ((DConnectApplication) getActivity().getApplication()).getDConnectSK();
         startMonitoring();
     }
 
@@ -103,10 +101,13 @@ public class SettingsFragment extends PreferenceFragment
                 return false;
             }
 
+            Log.e("ABC", "startManager aaaaa:");
             Boolean result = (Boolean) newValue;
             if (result) {
+                Log.e("ABC", "startManager aaaaa bbb:");
                 mDConnectSDK.startManager(getActivity());
             } else {
+                Log.e("ABC", "startManager aaaaa ccc:");
                 mDConnectSDK.stopManager(getActivity());
             }
             return false;
@@ -158,7 +159,7 @@ public class SettingsFragment extends PreferenceFragment
                     }
                 });
             }
-        }, 0, 3, TimeUnit.SECONDS);
+        }, 1, 3, TimeUnit.SECONDS);
     }
 
     private void stopMonitoring() {

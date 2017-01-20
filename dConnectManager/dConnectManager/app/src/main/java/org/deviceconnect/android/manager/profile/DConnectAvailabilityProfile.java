@@ -37,8 +37,10 @@ public class DConnectAvailabilityProfile extends DConnectProfile implements Avai
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
             SharedPreferences sp = getContext().getSharedPreferences(getContext().getPackageName() + "_preferences", Context.MODE_PRIVATE);
-            setName(response, sp.getString(getContext().getString(R.string.key_settings_dconn_name), null));
-            setUuid(response, sp.getString(getContext().getString(R.string.key_settings_dconn_uuid), null));
+            if (sp.getBoolean(getContext().getString(R.string.key_settings_dconn_availability_visible_name), false)) {
+                setName(response, sp.getString(getContext().getString(R.string.key_settings_dconn_name), null));
+            }
+
             setResult(response, DConnectMessage.RESULT_OK);
             return true;
         }
@@ -48,7 +50,4 @@ public class DConnectAvailabilityProfile extends DConnectProfile implements Avai
         response.putExtra(PARAM_NAME, name);
     }
 
-    public static void setUuid(final Intent response, final String uuid) {
-        response.putExtra(PARAM_UUID, uuid);
-    }
 }

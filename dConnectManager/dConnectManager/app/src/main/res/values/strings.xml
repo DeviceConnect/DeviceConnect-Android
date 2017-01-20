@@ -69,6 +69,11 @@
     <string name="activity_settings_manage_websocket">List of WebSocket</string>
     <string name="activity_settings_name">Name</string>
     <string name="activity_settings_uuid">UUID</string>
+    <string name="activity_settings_manager_name_visible">Show Manager\'s name</string>
+    <string name="activity_settings_manager_name_visible_on"> name in Availability.</string>
+    <string name="activity_settings_manager_name_visible_off">Do not show names in Availability.</string>
+    <string name="activity_settings_availability_warning_message">Show the Manager\'s name with Availability API.\n\nBy http://localhost:4035/gotapi/availability,\n you can get the name of Manager.\n\nDo you may be enabled?</string>
+
 
     <string name="activity_settings_web_server_settings">Setting of Web Server</string>
     <string name="activity_settings_web_server">Web Server</string>
@@ -111,6 +116,7 @@
     <string name="key_settings_web_server_document_root_path">key_settings_web_server_document_root_path</string>
     <string name="key_settings_dconn_websocket">key_settings_dconn_websocket</string>
     <string name="key_settings_event_keep_alive_on_off">key_settings_event_keep_alive_on_off</string>
+    <string name="key_settings_dconn_availability_visible_name">key_settings_dconn_availability_visible_name</string>
 
     <!-- ================= WhitelistActivity ================= -->
     <string name="activity_whitelist_title">Whitelist of Origin</string>

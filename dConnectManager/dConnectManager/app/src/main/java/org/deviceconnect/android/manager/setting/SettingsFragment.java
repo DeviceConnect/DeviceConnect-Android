@@ -70,6 +70,10 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
      * Webサーバ起動確認ダイアログのタグを定義します.
      */
     private static final String TAG_WEB_SERVER = "WebServer";
+    /**
+     * Availabilityの表示のOn/OFF設定ダイアログのタグを定義します.
+     */
+    private static final String TAG_AVAILABILITY = "availability";
 
     /** SSL設定チェックボックス. */
     private CheckBoxPreference mCheckBoxSslPreferences;
@@ -85,6 +89,9 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
     private CheckBoxPreference mCheckBoxRequireOriginPreferences;
     /** Originブロック設定チェックボックス. */
     private CheckBoxPreference mCheckBoxOriginBlockingPreferences;
+    /** Manager名の表示オンオフのチェックボックス. */
+    private CheckBoxPreference mCheckBoxManagerNameVisiblePreferences;
+
     /** ポート監視設定チェックボックス。 */
     private CheckBoxPreference mObserverPreferences;
     /** Webサーバのポート設定テキストエディッタ. */
@@ -196,6 +203,9 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
         // ポート監視設定のON/OFF
         mObserverPreferences = (CheckBoxPreference) getPreferenceScreen()
                 .findPreference(getString(R.string.key_settings_dconn_observer_on_off));
+        /** Manager名の表示オンオフのチェックボックス. */
+        mCheckBoxManagerNameVisiblePreferences = (CheckBoxPreference) getPreferenceScreen()
+                .findPreference(getString(R.string.key_settings_dconn_availability_visible_name));
 
         // ドキュメントルートパス
         EditTextPreference editDocPreferences = (EditTextPreference)
@@ -285,6 +295,8 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
             } else if (getString(R.string.key_settings_dconn_local_oauth).equals(key)
                     || getString(R.string.key_settings_dconn_whitelist_origin_blocking).equals(key)) {
                 requiredOrigin((Boolean) newValue);
+            } else if (getString(R.string.key_settings_dconn_availability_visible_name).equals(key)) {
+                switchVisibleManagerName((Boolean) newValue);
             }
         }
         return true;
@@ -342,6 +354,8 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
             }
         } else if (TAG_REQUIRE_ORIGIN.equals(tag)) {
             mCheckBoxRequireOriginPreferences.setChecked(true);
+        } else if (TAG_AVAILABILITY.equals(tag)) {
+            mCheckBoxManagerNameVisiblePreferences.setChecked(true);
         }
     }
 
@@ -359,6 +373,8 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
         } else if (TAG_REQUIRE_ORIGIN.equals(tag)) {
             mCheckBoxOauthPreferences.setChecked(false);
             mCheckBoxOriginBlockingPreferences.setChecked(false);
+        } else if (TAG_AVAILABILITY.equals(tag)) {
+            mCheckBoxManagerNameVisiblePreferences.setChecked(false);
         }
     }
 
@@ -484,6 +500,21 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
         }
     }
 
+    /**
+     * AvailabilityにManagerの名前を表示することを警告するダイアログを表示する.
+     * @param checked trueの場合は有効、falseの場合は無効
+     */
+    private void switchVisibleManagerName(final boolean checked) {
+        if (checked) {
+            String title = getString(R.string.activity_settings_warning);
+            String message = getString(R.string.activity_settings_availability_warning_message);
+            String positive = getString(R.string.activity_settings_yes);
+            String negative = getString(R.string.activity_settings_no);
+            AlertDialogFragment dialog = AlertDialogFragment.create(TAG_AVAILABILITY,
+                    title, message, positive, negative);
+            dialog.show(getFragmentManager(), TAG_AVAILABILITY);
+        }
+    }
     /**
      * Originの設定を要求する.
      * @param checked trueの場合は有効、falseの場合は無効
@@ -691,6 +722,7 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
         mCheckBoxExternalStartAndStartPreferences.setOnPreferenceChangeListener(this);
         mCheckBoxRequireOriginPreferences.setOnPreferenceChangeListener(this);
         mCheckBoxOriginBlockingPreferences.setOnPreferenceChangeListener(this);
+        mCheckBoxManagerNameVisiblePreferences.setOnPreferenceChangeListener(this);
         mObserverPreferences.setOnPreferenceChangeListener(this);
         mWebPortPreferences.setOnPreferenceChangeListener(this);
         SwitchPreference serverPreferences = (SwitchPreference) getPreferenceScreen()

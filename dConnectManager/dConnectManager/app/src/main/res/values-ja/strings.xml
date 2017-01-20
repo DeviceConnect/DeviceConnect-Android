@@ -68,6 +68,11 @@
     <string name="activity_settings_manage_websocket">WebSocket管理</string>
     <string name="activity_settings_name">名前</string>
     <string name="activity_settings_uuid">UUID</string>
+    <string name="activity_settings_manager_name_visible">Managerの名前を表示</string>
+    <string name="activity_settings_manager_name_visible_on">Availabilityに名前を表示する。</string>
+    <string name="activity_settings_manager_name_visible_off">Availabilityに名前を表示しない。</string>
+    <string name="activity_settings_availability_warning_message">AvailabilityAPIでManagerの名前を表示します。\n\nhttp://localhost:4035/gotapi/availability\nにより、Managerの名前が取得できるようになります。\n\n有効にしてもよろしいでしょうか？</string>
+
 
     <string name="activity_settings_web_server_settings">Webサーバ設定</string>
     <string name="activity_settings_web_server">Webサーバ</string>
@@ -110,6 +115,7 @@
     <string name="key_settings_web_server_document_root_path">key_settings_web_server_document_root_path</string>
     <string name="key_settings_dconn_websocket">key_settings_dconn_websocket</string>
     <string name="key_settings_event_keep_alive_on_off">key_settings_event_keep_alive_on_off</string>
+    <string name="key_settings_dconn_availability_visible_name">key_settings_dconn_availability_visible_name</string>
 
     <!-- ================= WhitelistActivity ================= -->
     <string name="activity_whitelist_title">Originホワイトリスト</string>

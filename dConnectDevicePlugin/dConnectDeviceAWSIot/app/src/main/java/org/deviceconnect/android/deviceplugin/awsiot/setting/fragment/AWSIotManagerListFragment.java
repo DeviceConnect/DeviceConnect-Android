@@ -54,6 +54,24 @@ public class AWSIotManagerListFragment extends Fragment {
     /** LOG Tag */
     private static final String TAG = AWSIotManagerListFragment.class.getCanonicalName();
 
+    /**
+     * Manager error type.
+     */
+    private enum ErrorManagerType {
+        /**
+         * No error.
+         */
+        NONE,
+        /**
+         * Manager off.
+         */
+        MANAGER_OFF,
+        /**
+         * Manager old.
+         */
+        MANAGER_OLD
+    }
+
     /** Adapter. */
     private ManagerAdapter mManagerAdapter;
 
@@ -61,7 +79,7 @@ public class AWSIotManagerListFragment extends Fragment {
     private RDCMListManager mRDCMListManager;
 
     /** Device Connect Manager enable flag. */
-    private boolean mMyManagerEnable = false;
+    private ErrorManagerType mMyManagerEnable = ErrorManagerType.NONE;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -75,7 +93,7 @@ public class AWSIotManagerListFragment extends Fragment {
         ManagerListUpdateDialogFragment dialog = new ManagerListUpdateDialogFragment();
         dialog.show(getFragmentManager(),"AvailabilityDialog");
 
-        availability();
+        getSystem();
 
         List<RemoteDeviceConnectManager> managers = new ArrayList<>();
         mManagerAdapter = new ManagerAdapter(getActivity(), managers);
@@ -119,23 +137,27 @@ public class AWSIotManagerListFragment extends Fragment {
         boolean ret = true;
         switch (item.getItemId()) {
             case R.id.menu_awsiot_info:
-                if (mMyManagerEnable) {
+                if (mMyManagerEnable == ErrorManagerType.MANAGER_OLD) {
+                    showManagerCheckDialog(R.string.setting_manager_old_warning);
+                } else if (mMyManagerEnable == ErrorManagerType.MANAGER_OFF){
+                    showManagerCheckDialog(R.string.setting_manager_off_warning);
+                } else {
                     AWSIotInformationFragment infoFragment = new AWSIotInformationFragment();
                     transaction.add(R.id.container, infoFragment);
                     transaction.addToBackStack("ManagerList");
                     transaction.commit();
-                } else {
-                    showManagerCheckDialog();
                 }
                 break;
             case R.id.menu_device_auth:
-                if (mMyManagerEnable) {
+                if (mMyManagerEnable == ErrorManagerType.MANAGER_OLD) {
+                    showManagerCheckDialog(R.string.setting_manager_old_warning);
+                } else if (mMyManagerEnable == ErrorManagerType.MANAGER_OFF){
+                    showManagerCheckDialog(R.string.setting_manager_off_warning);
+                } else {
                     AWSIotDeviceAuthenticationFragment deviceAuthFragment = new AWSIotDeviceAuthenticationFragment();
                     transaction.add(R.id.container, deviceAuthFragment);
                     transaction.addToBackStack("ManagerList");
                     transaction.commit();
-                } else {
-                    showManagerCheckDialog();
                 }
                 break;
             case R.id.menu_logout:
@@ -221,8 +243,8 @@ public class AWSIotManagerListFragment extends Fragment {
         }
     }
 
-    private void availability() {
-        DConnectHelper.INSTANCE.availability(new DConnectHelper.FinishCallback() {
+    private void getSystem() {
+        DConnectHelper.INSTANCE.getSystem(new DConnectHelper.FinishCallback() {
             @Override
             public void onFinish(String response, Exception error) {
                 ManagerListUpdateDialogFragment dialog = (ManagerListUpdateDialogFragment) getFragmentManager().findFragmentByTag("AvailabilityDialog");
@@ -237,25 +259,25 @@ public class AWSIotManagerListFragment extends Fragment {
                     JSONObject jsonObject = new JSONObject(response);
                     int result = jsonObject.getInt("result");
                     if (result == 0) {
-                        mMyManagerEnable = true;
+                        mMyManagerEnable = ErrorManagerType.NONE;
                         AWSIotPrefUtil pref = ((AWSIotSettingActivity) getContext()).getPrefUtil();
                         String name = jsonObject.optString("name");
                         String uuid = jsonObject.optString("uuid");
-                        if (name == null || uuid == null) {
-                            String prefName = pref.getManagerName();
-                            name = "TEST";
-                            if (prefName.matches(name)) {
-                                uuid = pref.getManagerUuid();
+                        if (name == null || uuid == null
+                                || (name != null && name.length() == 0)
+                                || (uuid != null && uuid.length() == 0)) {
+                            mMyManagerEnable = ErrorManagerType.MANAGER_OLD;
+                            if (dialog != null) {
+                                dialog.dismiss();
                             }
-                            if (uuid == null) {
-                                uuid = UUID.randomUUID().toString();
-                            }
+                            showManagerCheckDialog(R.string.setting_manager_old_warning);
+                            return;
                         }
                         pref.setManagerName(name);
                         pref.setManagerUuid(uuid);
                     } else {
-                        mMyManagerEnable = false;
-                        showManagerCheckDialog();
+                        mMyManagerEnable = ErrorManagerType.MANAGER_OFF;
+                        showManagerCheckDialog(R.string.setting_manager_off_warning);
                     }
                 } catch (JSONException e) {
                     Log.e(TAG, "", e);
@@ -290,10 +312,10 @@ public class AWSIotManagerListFragment extends Fragment {
         }
     }
 
-    private void showManagerCheckDialog() {
+    private void showManagerCheckDialog(final int messageResource) {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         builder.setTitle(R.string.setting_confirm_title)
-                .setMessage(R.string.setting_manager_off_warning)
+                .setMessage(messageResource)
                 .setPositiveButton(R.string.webview_js_alert_positive_btn, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {

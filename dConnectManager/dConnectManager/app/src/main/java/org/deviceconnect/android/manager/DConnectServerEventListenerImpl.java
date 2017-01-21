@@ -283,6 +283,7 @@ public class DConnectServerEventListenerImpl implements DConnectServerEventListe
         String method = request.getMethod();
 
         String api = null;
+        String httpMethod = null;
         String profile = null;
         String interfaces = null;
         String attribute = null;
@@ -296,17 +297,36 @@ public class DConnectServerEventListenerImpl implements DConnectServerEventListe
         if (segments.size() == SEGMENT_PROFILE) {
             api = segments.get(0);
             profile = segments.get(1);
-        } else if (segments.size() == SEGMENT_ATTRIBUTE) {
+        } else if (!isMethod(segments.get(1)) && segments.size() == SEGMENT_ATTRIBUTE) {
+            // パスが3つあり、HTTPメソッドがパスに指定されていない
             api = segments.get(0);
             profile = segments.get(1);
             attribute = segments.get(2);
-        } else if (segments.size() == SEGMENT_INTERFACES) {
+        } else if (isMethod(segments.get(1)) && segments.size() == SEGMENT_ATTRIBUTE) {
+            // パスが3つあり、HTTPメソッドがパスに指定される
+            api = segments.get(0);
+            httpMethod = segments.get(1);
+            profile = segments.get(2);
+        } else if (!isMethod(segments.get(1)) && segments.size() == SEGMENT_INTERFACES) {
+            // パスが4つあり、HTTPメソッドがパスに指定されていない
             api = segments.get(0);
             profile = segments.get(1);
             interfaces = segments.get(2);
             attribute = segments.get(3);
+        } else if (isMethod(segments.get(1)) && segments.size() == SEGMENT_INTERFACES) {
+            // パスが4つあり、HTTPメソッドがパスに指定される
+            api = segments.get(0);
+            httpMethod = segments.get(1);
+            profile = segments.get(2);
+            attribute = segments.get(3);
+        } else if (isMethod(segments.get(1)) && segments.size() == SEGMENT_INTERFACES) {
+            // パスが5つあり、HTTPメソッドがパスに指定される
+            api = segments.get(0);
+            httpMethod = segments.get(1);
+            profile = segments.get(2);
+            interfaces = segments.get(3);
+            attribute = segments.get(4);
         }
-
         if (api == null || !api.equals("gotapi")) {
             // ルートが存在しない、もしくはgotapiでない場合は404
             response.setCode(StatusCode.NOT_FOUND);
@@ -331,6 +351,22 @@ public class DConnectServerEventListenerImpl implements DConnectServerEventListe
             response.setCode(StatusCode.NOT_IMPLEMENTED);
             return true;
         }
+
+        // URLにmethodが指定されている場合は、そちらのHTTPメソッドを優先する
+        if (httpMethod != null && action.equals(IntentDConnectMessage.ACTION_GET)) {
+            action = DConnectUtil.convertHttpMethod2DConnectMethod(httpMethod.toUpperCase());
+        } else if (httpMethod != null && !action.equals(IntentDConnectMessage.ACTION_GET)) {
+            // 元々のHTTPリクエストがGET以外の場合はエラーを返す.
+            try {
+                setInvalidURL(response);
+            } catch (UnsupportedEncodingException e) {
+                setErrorResponse(response);
+            } catch (JSONException e) {
+                setErrorResponse(response);
+            }
+            return true;
+        }
+
 
         Intent intent = new Intent(action);
         intent.setClass(mContext, DConnectService.class);
@@ -442,7 +478,23 @@ public class DConnectServerEventListenerImpl implements DConnectServerEventListe
         response.setContentType(CONTENT_TYPE_JSON);
         response.setBody(root.toString().getBytes("UTF-8"));
     }
-
+    /**
+     * URLが不正の場合のエラーレスポンスを作成する.
+     * @param response レスポンスを格納するインスタンス
+     * @throws JSONException JSON変換に失敗した場合には発生
+     * @throws UnsupportedEncodingException 文字コード(UTF8)がサポートされていない場合に発生
+     */
+    private void setInvalidURL(final HttpResponse response)
+            throws JSONException, UnsupportedEncodingException {
+        JSONObject root = new JSONObject();
+        root.put(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_ERROR);
+        root.put(DConnectMessage.EXTRA_ERROR_CODE,
+                DConnectMessage.ErrorCode.INVALID_URL.getCode());
+        root.put(DConnectMessage.EXTRA_ERROR_MESSAGE,
+                DConnectMessage.ErrorCode.INVALID_URL.toString());
+        response.setContentType(CONTENT_TYPE_JSON);
+        response.setBody(root.toString().getBytes("UTF-8"));
+    }
     /**
      * エラーのレスポンスを作成する.
      * <p>
@@ -737,5 +789,18 @@ public class DConnectServerEventListenerImpl implements DConnectServerEventListe
             response.setContentType(CONTENT_TYPE_JSON);
             response.setBody(root.toString().getBytes("UTF-8"));
         }
+    }
+
+    /**
+     * DeviceConnectがサポートしているOne ShotのHTTPメソッドかどうか.
+     * @param method HTTPメソッド
+     * @return true:DeviceConnectがサポートしているOne shotのHTTPメソッドである。<br>
+     *         false:DeviceConnectがサポートしているOne shotのHTTPメソッドではない。
+     */
+    private boolean isMethod(final String method) {
+        return method.toUpperCase().equals(DConnectMessage.METHOD_GET)
+                || method.toUpperCase().equals(DConnectMessage.METHOD_POST)
+                || method.toUpperCase().equals(DConnectMessage.METHOD_PUT)
+                || method.toUpperCase().equals(DConnectMessage.METHOD_DELETE);
     }
 }

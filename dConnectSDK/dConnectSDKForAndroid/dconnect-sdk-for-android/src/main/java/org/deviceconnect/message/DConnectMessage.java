@@ -292,7 +292,11 @@ public interface DConnectMessage extends Map<String, Object> {
         /**
          * リクエストの発行元が不正.
          */
-        INVALID_ORIGIN(18, "Origin of request is invalid.");
+        INVALID_ORIGIN(18, "Origin of request is invalid."),
+        /**
+         * リクエストURLが不正.
+         */
+        INVALID_URL(19, "Request url is invalid.");
 
         /**
          * エラーコード.

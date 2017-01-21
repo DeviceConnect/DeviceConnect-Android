@@ -512,4 +512,22 @@ public final class MessageUtils {
         setError(response, ErrorCode.INVALID_ORIGIN, message);
     }
 
+    /**
+     * レスポンスのエラーコードに 不正URLエラー を設定する.
+     *
+     * @param response レスポンスパラメータ
+     */
+    public static void setInvalidURLError(final Intent response) {
+        setError(response, ErrorCode.INVALID_URL);
+    }
+
+    /**
+     * レスポンスのエラーコードに 不正URLエラー を設定し、指定されたエラーメッセージを設定する.
+     *
+     * @param response レスポンスパラメータ
+     * @param message エラーメッセージ　
+     */
+    public static void setInvalidURLError(final Intent response, final String message) {
+        setError(response, ErrorCode.INVALID_URL, message);
+    }
 }

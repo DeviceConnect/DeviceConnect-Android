@@ -71,6 +71,7 @@ public class DConnectService implements DConnectProfileProvider, ServiceDiscover
     /**
      * コンストラクタ.
      * @param id サービスID
+     * @throws NullPointerException idに<code>null</code>が指定された場合
      */
     public DConnectService(final String id) {
         if (id == null) {

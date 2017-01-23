@@ -58,8 +58,9 @@ project.androidVariants.all { variant ->
         }
 
         exclude '**/org/deviceconnect/android/localoauth/**'
-        exclude '**/org/restlet/**'
+        exclude '**/org/deviceconnect/android/compat/**'
         exclude '**/org/deviceconnect/android/logger/**'
+        exclude '**/org/restlet/**'
         exclude '**/BuildConfig.java'
         exclude '**/R.java'
     }

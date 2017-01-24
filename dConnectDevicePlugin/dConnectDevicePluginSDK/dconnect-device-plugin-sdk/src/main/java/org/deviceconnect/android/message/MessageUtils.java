@@ -530,4 +530,22 @@ public final class MessageUtils {
     public static void setInvalidURLError(final Intent response, final String message) {
         setError(response, ErrorCode.INVALID_URL, message);
     }
+    /**
+     * レスポンスのエラーコードに 不正Profileエラー を設定する.
+     *
+     * @param response レスポンスパラメータ
+     */
+    public static void setInvalidProfileError(final Intent response) {
+        setError(response, ErrorCode.INVALID_PROFILE);
+    }
+
+    /**
+     * レスポンスのエラーコードに 不正Profileエラー を設定し、指定されたエラーメッセージを設定する.
+     *
+     * @param response レスポンスパラメータ
+     * @param message エラーメッセージ　
+     */
+    public static void setInvalidProfileError(final Intent response, final String message) {
+        setError(response, ErrorCode.INVALID_PROFILE, message);
+    }
 }

@@ -343,6 +343,15 @@ public class DConnectServerEventListenerImpl implements DConnectServerEventListe
                 setErrorResponse(response);
             }
             return true;
+        } else if (isMethod(profile)) { //Profile名がhttpMethodの場合
+            try {
+                setInvalidProfile(response);
+            } catch (UnsupportedEncodingException e) {
+                setErrorResponse(response);
+            } catch (JSONException e) {
+                setErrorResponse(response);
+            }
+            return true;
         }
 
         // Httpメソッドに対応するactionを取得
@@ -451,14 +460,9 @@ public class DConnectServerEventListenerImpl implements DConnectServerEventListe
      */
     private void setTimeoutResponse(final HttpResponse response)
             throws JSONException, UnsupportedEncodingException {
-        JSONObject root = new JSONObject();
-        root.put(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_ERROR);
-        root.put(DConnectMessage.EXTRA_ERROR_CODE,
-                DConnectMessage.ErrorCode.TIMEOUT.getCode());
-        root.put(DConnectMessage.EXTRA_ERROR_MESSAGE,
+        setErrorResponseJSON(response,
+                DConnectMessage.ErrorCode.TIMEOUT.getCode(),
                 DConnectMessage.ErrorCode.TIMEOUT.toString());
-        response.setContentType(CONTENT_TYPE_JSON);
-        response.setBody(root.toString().getBytes("UTF-8"));
     }
 
     /**
@@ -469,14 +473,9 @@ public class DConnectServerEventListenerImpl implements DConnectServerEventListe
      */
     private void setEmptyProfile(final HttpResponse response)
             throws JSONException, UnsupportedEncodingException {
-        JSONObject root = new JSONObject();
-        root.put(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_ERROR);
-        root.put(DConnectMessage.EXTRA_ERROR_CODE,
-                DConnectMessage.ErrorCode.NOT_SUPPORT_PROFILE.getCode());
-        root.put(DConnectMessage.EXTRA_ERROR_MESSAGE,
+        setErrorResponseJSON(response,
+                DConnectMessage.ErrorCode.NOT_SUPPORT_PROFILE.getCode(),
                 DConnectMessage.ErrorCode.NOT_SUPPORT_PROFILE.toString());
-        response.setContentType(CONTENT_TYPE_JSON);
-        response.setBody(root.toString().getBytes("UTF-8"));
     }
     /**
      * URLが不正の場合のエラーレスポンスを作成する.
@@ -486,14 +485,21 @@ public class DConnectServerEventListenerImpl implements DConnectServerEventListe
      */
     private void setInvalidURL(final HttpResponse response)
             throws JSONException, UnsupportedEncodingException {
-        JSONObject root = new JSONObject();
-        root.put(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_ERROR);
-        root.put(DConnectMessage.EXTRA_ERROR_CODE,
-                DConnectMessage.ErrorCode.INVALID_URL.getCode());
-        root.put(DConnectMessage.EXTRA_ERROR_MESSAGE,
+        setErrorResponseJSON(response,
+                DConnectMessage.ErrorCode.INVALID_URL.getCode(),
                 DConnectMessage.ErrorCode.INVALID_URL.toString());
-        response.setContentType(CONTENT_TYPE_JSON);
-        response.setBody(root.toString().getBytes("UTF-8"));
+    }
+    /**
+     * Profileが不正の場合のエラーレスポンスを作成する.
+     * @param response レスポンスを格納するインスタンス
+     * @throws JSONException JSON変換に失敗した場合には発生
+     * @throws UnsupportedEncodingException 文字コード(UTF8)がサポートされていない場合に発生
+     */
+    private void setInvalidProfile(final HttpResponse response)
+            throws JSONException, UnsupportedEncodingException {
+        setErrorResponseJSON(response,
+                DConnectMessage.ErrorCode.INVALID_PROFILE.getCode(),
+                DConnectMessage.ErrorCode.INVALID_PROFILE.toString());
     }
     /**
      * エラーのレスポンスを作成する.
@@ -517,7 +523,22 @@ public class DConnectServerEventListenerImpl implements DConnectServerEventListe
         response.setContentType(CONTENT_TYPE_JSON);
         response.setBody(sb.toString().getBytes());
     }
-
+    /**
+     * エラーのレスポンスのテンプレート.
+     * @param response レスポンスを格納するHttpレスポンス
+     * @param code エラーコード
+     * @param message エラーメッセージ
+     */
+    private void setErrorResponseJSON(final HttpResponse response,
+                                      final int code, final String message)
+                                         throws JSONException, UnsupportedEncodingException {
+        JSONObject root = new JSONObject();
+        root.put(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_ERROR);
+        root.put(DConnectMessage.EXTRA_ERROR_CODE, code);
+        root.put(DConnectMessage.EXTRA_ERROR_MESSAGE, message);
+        response.setContentType(CONTENT_TYPE_JSON);
+        response.setBody(root.toString().getBytes("UTF-8"));
+    }
     /**
      * HTTPヘッダーからContent-Typeを取得する.
      * Content-Typeが設定されていない場合にはnullを返却する.

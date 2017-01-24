@@ -296,7 +296,11 @@ public interface DConnectMessage extends Map<String, Object> {
         /**
          * リクエストURLが不正.
          */
-        INVALID_URL(19, "Request url is invalid.");
+        INVALID_URL(19, "Request url is invalid."),
+        /**
+         * Profile名が不正.
+         */
+        INVALID_PROFILE(20, "Profile name is invalid.");
 
         /**
          * エラーコード.

@@ -297,29 +297,29 @@ public class DConnectServerEventListenerImpl implements DConnectServerEventListe
         if (segments.size() == SEGMENT_PROFILE) {
             api = segments.get(0);
             profile = segments.get(1);
-        } else if (!isMethod(segments.get(1)) && segments.size() == SEGMENT_ATTRIBUTE) {
+        } else if (segments.size() == SEGMENT_ATTRIBUTE && !isMethod(segments.get(1))) {
             // パスが3つあり、HTTPメソッドがパスに指定されていない
             api = segments.get(0);
             profile = segments.get(1);
             attribute = segments.get(2);
-        } else if (isMethod(segments.get(1)) && segments.size() == SEGMENT_ATTRIBUTE) {
+        } else if (segments.size() == SEGMENT_ATTRIBUTE && isMethod(segments.get(1))) {
             // パスが3つあり、HTTPメソッドがパスに指定される
             api = segments.get(0);
             httpMethod = segments.get(1);
             profile = segments.get(2);
-        } else if (!isMethod(segments.get(1)) && segments.size() == SEGMENT_INTERFACES) {
+        } else if (segments.size() == SEGMENT_INTERFACES && !isMethod(segments.get(1))) {
             // パスが4つあり、HTTPメソッドがパスに指定されていない
             api = segments.get(0);
             profile = segments.get(1);
             interfaces = segments.get(2);
             attribute = segments.get(3);
-        } else if (isMethod(segments.get(1)) && segments.size() == SEGMENT_INTERFACES) {
+        } else if (segments.size() == SEGMENT_INTERFACES && isMethod(segments.get(1))) {
             // パスが4つあり、HTTPメソッドがパスに指定される
             api = segments.get(0);
             httpMethod = segments.get(1);
             profile = segments.get(2);
             attribute = segments.get(3);
-        } else if (isMethod(segments.get(1)) && segments.size() == SEGMENT_INTERFACES) {
+        } else if (segments.size() == SEGMENT_INTERFACES && isMethod(segments.get(1))) {
             // パスが5つあり、HTTPメソッドがパスに指定される
             api = segments.get(0);
             httpMethod = segments.get(1);
@@ -332,7 +332,6 @@ public class DConnectServerEventListenerImpl implements DConnectServerEventListe
             response.setCode(StatusCode.NOT_FOUND);
             return true;
         }
-
         // プロファイルが存在しない場合にはエラー
         if (profile == null) {
             try {

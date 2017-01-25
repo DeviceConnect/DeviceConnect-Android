@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <link rel="stylesheet" href="../../css/main.css" type="text/css" />
+    <title>WiFiLockについて</title>
+</head>
+<body>
+<div class="heading">スリープ中のWi-Fi接続の維持について</div>
+<div class="content">
+    <p>
+        Android OS はスリープ中のWi-Fi接続の維持について、以下の設定が行えます。
+        <ul>
+            <li>常にON(バッテリー消費が増加)</li>
+            <li>充電時</li>
+            <li>常にOFF(データ使用量が増加)</li>
+        </ul>
+    </p>
+    <p>
+        常にONに設定しているとスリープ状態になってもWi-Fi接続は維持されます。<br>
+    </p>
+    <p>
+        充電時に設定していると充電中は、スリープ状態になってもWi-F-接続は維持されますが、充電していない時にはスリープ状態になるとWi-Fi接続が切断されます。<br>
+        Wi-Fi接続が切断されるので、外部IPから操作することができなくなります。
+    </p>
+    <p>
+        常にOFFに設定しているとスリープ状態になるとWi-Fi接続が切断されます。<br>
+        Wi-Fi接続が切断されるので、外部IPから操作することができなくなります。
+    </p>
+    <p>
+        外部IPから操作する場合には、常にONにしてください。<br>
+        設定は、以下の手順で行えます。
+        <ol>
+            <li>Android端末の設定画面からWi-Fiを開きます。</li>
+            <li>Wi-Fi画面のメニューから設定を開きます。</li>
+            <li>Wi-Fi設定画面にあるスリープ時のWi-Fi接続から設定を行います。</li>
+        </ol>
+        ただし、Android端末によっては、設定画面の構成が異なることがありますので、ご注意ください。
+    </p>
+</div>
+<div class="link">
+    <a href="power_saving_wake_lock.html">前: WakeLockについて</a><br>
+    <a href="../power_saving.html">省電力について</a>
+</div>
+</body>
+</html>

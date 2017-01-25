@@ -16,15 +16,15 @@
             <table class="settings">
                 <tr>
                     <td class="name"><span class="label">ターゲット:</span></td>
-                    <td class="value"><select name="target" onchange="demoTakePhoto.onChangeTarget()"></select></td>
+                    <td class="value"><select class="select-box" name="target" onchange="demoTakePhoto.onChangeTarget()"></select></td>
                 </tr>
                 <tr>
                     <td class="name"><span class="label">撮影サイズ:</span></td>
-                    <td class="value"><select name="imageSize" onchange="demoTakePhoto.onChangeOption()"></select></td>
+                    <td class="value"><select class="select-box" name="imageSize" onchange="demoTakePhoto.onChangeOption()"></select></td>
                 </tr>
                 <tr>
                     <td class="name"><span class="label">プレビューサイズ:</span></td>
-                    <td class="value"><select name="previewSize" onchange="demoTakePhoto.onChangeOption()"></select></td>
+                    <td class="value"><select class="select-box" name="previewSize" onchange="demoTakePhoto.onChangeOption()"></select></td>
                 </tr>
             </table>
         </form>
@@ -35,6 +35,10 @@
         <button onclick="demoTakePhoto.onStartPreview()">プレビュー開始</button>
         <button onclick="demoTakePhoto.onStopPreview()">プレビュー停止</button>
     </div>
-    <div id="photos" style="margin:12px;"></div>
+    <div id="thumbnails" style="margin:12px;"></div>
+    <div id="photos">
+        <div class="back"></div>
+        <img id="photo" crossorigin="anonymous">
+    </div>
 </body>
 </html>

@@ -1099,9 +1099,9 @@ public class DConnectServerNanoHttpd extends DConnectServer {
         @Override
         public String getClientOrigin() {
             NanoHTTPD.IHTTPSession request = getHandshakeRequest();
-            String origin = request.getHeaders().get("origin");
+            String origin = request.getHeaders().get("x-gotapi-origin");
             if (origin == null) {
-                origin = request.getHeaders().get("X-GotAPI-Origin");
+                origin = request.getHeaders().get("origin");
             }
             return origin;
         }

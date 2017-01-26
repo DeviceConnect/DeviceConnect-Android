@@ -86,6 +86,12 @@ public class VideoChatActivity extends Activity {
      */
     public static final String EXTRA_AUDIOCHANNEL = "audioChannel";
 
+    /**
+     * Defined a extra callTimeStamp.
+     * Constant Value: {@value}
+     */
+    public static final String EXTRA_CALL_TIMESTAMP = "callTimeStamp";
+
     private PercentFrameLayout mLocalLayout;
     private PercentFrameLayout mRemoteLayout;
 
@@ -117,6 +123,14 @@ public class VideoChatActivity extends Activity {
 
         Intent intent = getIntent();
         if (intent != null) {
+            long prevTimeStamp = ((WebRTCApplication) getApplication()).getCallTimeStamp();
+            long callTimeStamp = intent.getLongExtra(EXTRA_CALL_TIMESTAMP, 0);
+            if (prevTimeStamp == callTimeStamp) {
+                createWebRTCErrorDialog();
+                return;
+            }
+            ((WebRTCApplication) getApplication()).setCallTimeStamp(callTimeStamp);
+
             PeerConfig config = intent.getParcelableExtra(EXTRA_CONFIG);
             String videoUri = intent.getStringExtra(EXTRA_VIDEO_URI);
             String audioUri = intent.getStringExtra(EXTRA_AUDIO_URI);
@@ -228,6 +242,13 @@ public class VideoChatActivity extends Activity {
      */
     private void openWebRTCErrorDialog() {
         openErrorDialog(R.string.error_failed_to_connect_p2p_msg);
+    }
+
+    /**
+     * Create a error dialog of WebRTC.
+     */
+    private void createWebRTCErrorDialog() {
+        openErrorDialog(R.string.error_failed_to_connect_already_disconnect_msg);
     }
 
     /**

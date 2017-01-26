@@ -16,7 +16,7 @@ android {
     }
 
     defaultConfig {
-        applicationId "app.android.deviceconnect.org.simplebot"
+        applicationId "org.deviceconnect.android.app.simplebot"
         minSdkVersion 14
         targetSdkVersion 23
         versionCode 1
@@ -46,6 +46,10 @@ android {
         exclude 'META-INF/NOTICE.txt'
         exclude 'META-INF/LICENSE.txt'
         exclude 'META-INF/DEPENDENCIES.txt'
+    }
+
+    tasks.withType(JavaCompile) {
+        options.encoding = 'UTF-8'
     }
 }
 

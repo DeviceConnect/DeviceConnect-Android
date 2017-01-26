@@ -46,16 +46,15 @@ android {
         exclude 'META-INF/LICENSE'
         exclude 'META-INF/NOTICE'
     }
+
+    tasks.withType(JavaCompile) {
+        options.encoding = 'UTF-8'
+    }
 }
 
 repositories {
     mavenCentral()
     maven { url "https://oss.sonatype.org/content/groups/public/" }
-}
-
-configurations {
-    // to avoid double inclusion of support libraries
-    all*.exclude group: 'com.getpebble', module: 'pebblekit'
 }
 
 dependencies {

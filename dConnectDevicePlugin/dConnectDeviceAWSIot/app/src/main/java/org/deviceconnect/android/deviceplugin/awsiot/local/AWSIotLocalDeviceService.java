@@ -58,9 +58,7 @@ public class AWSIotLocalDeviceService extends Service {
     }
 
     private void startAWSIot() {
-        if (mAWSIoTLocalManager != null) {
-            mAWSIoTLocalManager.disconnect();
-        }
+        stopAWSIot();
 
         if (DEBUG) {
             Log.i(TAG, "@@@@@@@ AWSIotDeviceService#startAWSIot()");
@@ -78,7 +76,7 @@ public class AWSIotLocalDeviceService extends Service {
         }
 
         if (mAWSIoTLocalManager != null) {
-            mAWSIoTLocalManager.disconnect();
+            mAWSIoTLocalManager.disconnectAWSIoT();
             mAWSIoTLocalManager = null;
         }
     }

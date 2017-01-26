@@ -59,9 +59,6 @@ public class HueFragment01 extends Fragment implements OnClickListener, OnItemCl
      */
     private PHSDKListener mListener = new PHSDKListener() {
 
-        @Override
-        public void onBridgeConnected(final PHBridge b) {
-        }
 
         @Override
         public void onAuthenticationRequired(final PHAccessPoint accessPoint) {
@@ -90,6 +87,11 @@ public class HueFragment01 extends Fragment implements OnClickListener, OnItemCl
 
         @Override
         public void onCacheUpdated(final List<Integer> list, final PHBridge bridge) {
+        }
+
+        @Override
+        public void onBridgeConnected(PHBridge phBridge, String s) {
+
         }
 
         @Override
@@ -180,6 +182,8 @@ public class HueFragment01 extends Fragment implements OnClickListener, OnItemCl
     public void doBridgeSearch() {
         // アクセスポイントのキャッシュクリア
         mPhHueSDK.getAccessPointsFound().clear();
+        // アクセスポイントリストビューのクリア
+        mAdapter.updateData(mPhHueSDK.getAccessPointsFound());
         // ローカルBridgeのUPNP Searchを開始
         PHBridgeSearchManager sm = (PHBridgeSearchManager) mPhHueSDK.getSDKService(PHHueSDK.SEARCH_BRIDGE);
         sm.search(true, true);

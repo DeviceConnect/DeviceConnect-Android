@@ -35,6 +35,11 @@ public class WebRTCApplication extends Application {
      */
     private final Map<PeerConfig, Peer> mPeerMap = new HashMap<>();
 
+    /**
+     * VideoChatActivity call timestamp.
+     */
+    private long mCallTimeStamp = 0;
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -175,5 +180,21 @@ public class WebRTCApplication extends Application {
          * @param peer instance of peer
          */
         void onGetPeer(Peer peer);
+    }
+
+    /**
+     * Set callTimeStamp.
+     * @param timeStamp timestamp.
+     */
+    public void setCallTimeStamp(final long timeStamp) {
+        mCallTimeStamp = timeStamp;
+    }
+
+    /**
+     * Get callTimeStamp;
+     * @return callTimeStamp.
+     */
+    public long getCallTimeStamp() {
+        return mCallTimeStamp;
     }
 }

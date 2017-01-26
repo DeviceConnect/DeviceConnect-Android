@@ -111,6 +111,9 @@ var main = (function(parent, global) {
         var xType = formElem['deviceconnect.type'].value;
         var body = null;
 
+        hideResponseText(nav);
+        hideEventText(nav);
+
         if (xType == 'event') {
             var uri = "http://localhost:4035" + path.toLowerCase() + "?" + createBody(nav).join('&');
 
@@ -161,6 +164,14 @@ var main = (function(parent, global) {
 
     function setEventText(nav, eventText) {
         document.getElementById(nav + '_event').innerHTML = eventText;
+    }
+
+    function hideResponseText(nav) {
+        document.getElementById(nav + '_response').innerHTML = "";
+    }
+
+    function hideEventText(nav) {
+        document.getElementById(nav + '_event').innerHTML = "";
     }
 
     function createDConnectPath(path) {

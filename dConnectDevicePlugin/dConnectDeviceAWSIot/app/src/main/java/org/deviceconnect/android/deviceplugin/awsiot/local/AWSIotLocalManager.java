@@ -31,8 +31,6 @@ public class AWSIotLocalManager {
     private RemoteDeviceConnectManager mRemoteManager;
     private AWSIotWebLocalClientManager mAWSIotWebClientManager;
     private AWSIotWebLocalServerManager mAWSIotWebServerManager;
-    private AWSIotWebSocketClient mAWSIotWebSocketClient;
-    private OnEventListener mOnEventListener;
     private Context mContext;
     private ExecutorService mExecutorService = Executors.newSingleThreadExecutor();
 
@@ -52,21 +50,34 @@ public class AWSIotLocalManager {
         mIot = controller;
         mRemoteManager = remote;
         mPrefUtil = new AWSIotPrefUtil(mContext);
+        mIot.addOnAWSIotEventListener(mOnAWSIotEventListener);
     }
 
     public AWSIotController getAWSIotController() {
         return mIot;
     }
 
-    public void disconnect() {
+    public void connectAWSIoT() {
         if (DEBUG) {
-            Log.i(TAG, "AWSIotLocalManager#disconnect");
+            Log.i(TAG, "AWSIotLocalManager#connectAWSIoT");
         }
 
-        if (mAWSIotWebSocketClient != null) {
-            mAWSIotWebSocketClient.close();
-            mAWSIotWebSocketClient = null;
+        mAWSIotWebClientManager = new AWSIotWebLocalClientManager(mContext, this);
+        mAWSIotWebServerManager = new AWSIotWebLocalServerManager(mContext, this);
+
+        DConnectHelper.INSTANCE.openWebSocket(mOnMessageEventListener);
+
+        subscribeTopic();
+    }
+
+    public void disconnectAWSIoT() {
+        if (DEBUG) {
+            Log.i(TAG, "AWSIotLocalManager#disconnectAWSIoT");
         }
+
+        mIot.removeOnAWSIotEventListener(mOnAWSIotEventListener);
+
+        DConnectHelper.INSTANCE.closeWebSocket();
 
         if (mAWSIotWebClientManager != null) {
             mAWSIotWebClientManager.destroy();
@@ -78,32 +89,13 @@ public class AWSIotLocalManager {
             mAWSIotWebServerManager = null;
         }
 
-        if (mIot != null) {
-           unsubscribeTopic();
-        }
-    }
-
-    public void setOnEventListener(final OnEventListener listener) {
-        mOnEventListener = listener;
-    }
-
-    public void connectAWSIoT() {
-        mAWSIotWebClientManager = new AWSIotWebLocalClientManager(mContext, this);
-        mAWSIotWebServerManager = new AWSIotWebLocalServerManager(mContext, this);
-
-        mAWSIotWebSocketClient = new AWSIotWebSocketClient("http://localhost:4035/websocket", mSessionKey) {
-            @Override
-            public void onMessage(final String message) {
-                publishEvent(message);
-            }
-        };
-        mAWSIotWebSocketClient.connect();
-
-        subscribeTopic();
+        unsubscribeTopic();
     }
 
     public void publish(final String message) {
-        mIot.publish(mRemoteManager.getResponseTopic(), message);
+        if (mIot != null) {
+            mIot.publish(mRemoteManager.getResponseTopic(), message);
+        }
     }
 
     public void publishEvent(final String message) {
@@ -134,17 +126,21 @@ public class AWSIotLocalManager {
     }
 
     private void subscribeTopic() {
-        mIot.subscribe(mRemoteManager.getRequestTopic(), mMessageCallback);
+        if (mIot != null) {
+            mIot.subscribe(mRemoteManager.getRequestTopic(), mMessageCallback);
+        }
     }
 
     private void unsubscribeTopic() {
-        mIot.unsubscribe(mRemoteManager.getRequestTopic());
+        if (mIot != null) {
+            mIot.unsubscribe(mRemoteManager.getRequestTopic());
+        }
     }
 
     private void parseMQTT(final String message) {
         try {
             JSONObject json = new JSONObject(message);
-            int requestCode = json.optInt("requestCode");
+            long requestCode = json.optLong("requestCode");
             JSONObject request = json.optJSONObject(AWSIotUtil.KEY_REQUEST);
             if (request != null) {
                 onReceivedDeviceConnectRequest(requestCode, request.toString());
@@ -164,7 +160,7 @@ public class AWSIotLocalManager {
         }
     }
 
-    private void onReceivedDeviceConnectRequest(final int requestCode, final String request) {
+    private void onReceivedDeviceConnectRequest(final long requestCode, final String request) {
         if (DEBUG) {
             Log.i(TAG, "onReceivedDeviceConnectRequest: request=" + request);
         }
@@ -194,6 +190,13 @@ public class AWSIotLocalManager {
         });
     }
 
+    private final AWSIotWebSocketClient.OnMessageEventListener mOnMessageEventListener = new AWSIotWebSocketClient.OnMessageEventListener() {
+        @Override
+        public void onMessage(final String message) {
+            publishEvent(message);
+        }
+    };
+
     private final AWSIotController.MessageCallback mMessageCallback = new AWSIotController.MessageCallback() {
         @Override
         public void onReceivedMessage(final String topic, final String message, final Exception err) {
@@ -208,10 +211,6 @@ public class AWSIotLocalManager {
                     Log.w(TAG, "", err);
                 }
                 return;
-            }
-
-            if (mOnEventListener != null) {
-                mOnEventListener.onReceivedMessage(topic, message);
             }
 
             if (!topic.equals(mRemoteManager.getRequestTopic())) {
@@ -230,10 +229,14 @@ public class AWSIotLocalManager {
         }
     };
 
-    public interface OnEventListener {
-        void onConnected();
-        void onReconnecting();
-        void onDisconnected();
-        void onReceivedMessage(String topic, String message);
-    }
+    private final AWSIotController.OnAWSIotEventListener mOnAWSIotEventListener = new AWSIotController.OnAWSIotEventListener() {
+        @Override
+        public void onLogin() {
+        }
+
+        @Override
+        public void onConnected() {
+            subscribeTopic();
+        }
+    };
 }

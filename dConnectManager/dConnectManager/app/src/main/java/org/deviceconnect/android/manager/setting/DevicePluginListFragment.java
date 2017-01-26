@@ -107,8 +107,10 @@ public class DevicePluginListFragment extends Fragment {
         }
         Collections.sort(containers, new Comparator<PluginContainer>() {
             @Override
-            public int compare(PluginContainer lhs, PluginContainer rhs) {
-                return lhs.getLabel().compareTo(rhs.getLabel());
+            public int compare(final PluginContainer o1, final PluginContainer o2) {
+                String a = o1.getLabel();
+                String b = o2.getLabel();
+                return a.compareTo(b);
             }
         });
         return containers;

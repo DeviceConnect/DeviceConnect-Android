@@ -14,11 +14,8 @@ var demoTakePhoto = (function(parent, global) {
     }
     parent.init = init;
 
-    function refreshImg(uri, id) {
-        var img = document.getElementById(id);
-        if (img) {
-            img.src = uri + '?' + Date.now();
-        }
+    function refreshImg(uri) {
+        document.body.style.backgroundImage = 'url(' + uri + ')';
     }
 
     function getCameraTarget() {
@@ -50,6 +47,7 @@ var demoTakePhoto = (function(parent, global) {
             mImageSizes = json.imageSizes;
             mPreviewSizes = json.previewSizes;
             createOptions();
+            onStartPreview();
         }, function(errorCode, errorMessage) {
             util.showAlert('カメラ情報の取得に失敗しました。。', errorCode, errorMessage);
         });
@@ -113,7 +111,7 @@ var demoTakePhoto = (function(parent, global) {
         }
         var uri = builder.build();
         dConnect.put(uri, null, null, function(json) {
-            refreshImg(json.uri, 'preview');
+            refreshImg(json.uri);
         }, function(errorCode, errorMessage) {
             util.showAlert('プレビュー開始に失敗しました。', errorCode, errorMessage);
         });
@@ -144,7 +142,7 @@ var demoTakePhoto = (function(parent, global) {
         var elem = document.getElementById('photos');
         elem.style.display = 'block';
         elem.onclick = function() {
-             elem.style.display = 'none';
+            elem.style.display = 'none';
         };
 
         var image = document.getElementById('photo');
@@ -159,7 +157,7 @@ var demoTakePhoto = (function(parent, global) {
     function addPhoto(uri) {
         var elem = document.createElement('img');
         elem.setAttribute('src', uri);
-        elem.setAttribute('class', 'photo')
+        elem.setAttribute('class', 'thumbnail')
         elem.setAttribute('crossorigin', 'anonymous')
         elem.setAttribute('alt', '写真');
         elem.onclick = function() {
@@ -245,6 +243,11 @@ var demoTakePhoto = (function(parent, global) {
         });
     }
     parent.onChangeOption = onChangeOption;
+
+    window.onbeforeunload = function(e) {
+        onStopPreview();
+        return;
+    };
 
     return parent;
 })(demoTakePhoto || {}, this.self || global);

@@ -61,12 +61,13 @@ div.wrapper {
 div.box {
     position: relative;
     background: #fff;
-    height: 40px;
+    height: 32px;
     width: 80%;
     left: 40px;
     padding: 12px;
     border: 1px solid #666;
     border-radius: 24px;
+    font-size: small;
 }
 
 div.box:after {
@@ -93,21 +94,6 @@ div#battery {
     font-size: 200%;
 }
 
-div.photo {
-    text-align: center;
-    margin: 12px;
-}
-
-img#preview {
-    width: 80%;
-    margin: 12px;
-}
-
-img.photo {
-    width: 10%;
-    margin: 12px;
-}
-
 table.settings {
     text-align: center;
     margin-right: auto;
@@ -123,10 +109,8 @@ td.value {
     text-align: left;
 }
 
-td.value select {
-}
-
 span.label {
+    font-size: small;
 }
 
 ul.menu {
@@ -144,36 +128,3 @@ ul.menu {
     text-indent: 5px;
     vertical-align: middle;
 }
-
-div#photos {
-    position: absolute;
-    display: none;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    width: 100%;
-    height: 100%;
-}
-
-div.back {
-    width: 100%;
-    height: 100%;
-
-    background-color: #000;
-    filter: alpha(opacity=60);
-    -moz-opacity: 0.6;
-    opacity: 0.6;
-}
-
-img#photo {
-    position: absolute;
-    border: 6px solid #FFF;
-    width: 80%;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    margin: auto;
-}
-

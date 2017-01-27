@@ -42,7 +42,8 @@ public class DConnectHelper {
     /** シングルトンなManagerのインスタンス. */
     public static final DConnectHelper INSTANCE = new DConnectHelper();
 
-    /** Local OAuth情報. */
+    public static final String ORIGIN = "http://org.deviceconnect.android.deviceplugin.awsiot";
+
     private AuthInfo mAuthInfo;
 
     private Map<String, String> mDefaultHeader = new HashMap<>();
@@ -93,9 +94,11 @@ public class DConnectHelper {
     private boolean mSSL;
     private String mHost = "localhost";
     private int mPort = 4035;
+    private AWSIotWebSocketClient mAWSIotWebSocketClient;
+    private AWSIotWebSocketClient.OnMessageEventListener mOnMessageEventListener;
 
     private DConnectHelper() {
-        mDefaultHeader.put(DConnectMessage.HEADER_GOTAPI_ORIGIN, "http://org.deviceconnect.android.deviceplugin.awsiot");
+        mDefaultHeader.put(DConnectMessage.HEADER_GOTAPI_ORIGIN, ORIGIN);
 
         mPrefUtil = new AWSIotPrefUtil(AWSIotDeviceApplication.getInstance());
         String accessToken = mPrefUtil.getAuthAccessToken();
@@ -153,17 +156,34 @@ public class DConnectHelper {
         mPort = port;
     }
 
-    /**
-     * リクエストを送信する.
-     * @param request リクエスト
-     * @param conversionCallback 変換通知コールバック
-     * @param callback 処理完了コールバック
-     */
+    public void openWebSocket(final AWSIotWebSocketClient.OnMessageEventListener listener) {
+        if (mAWSIotWebSocketClient != null) {
+            mAWSIotWebSocketClient.close();
+        }
+
+        mOnMessageEventListener = listener;
+
+        mAWSIotWebSocketClient = new AWSIotWebSocketClient(mPrefUtil.getAuthAccessToken());
+        mAWSIotWebSocketClient.setOnMessageEventListener(listener);
+        mAWSIotWebSocketClient.connect();
+    }
+
+    public void closeWebSocket() {
+        if (mAWSIotWebSocketClient != null) {
+            mAWSIotWebSocketClient.setOnMessageEventListener(null);
+            mAWSIotWebSocketClient.close();
+            mAWSIotWebSocketClient = null;
+        }
+    }
+
     public void sendRequest(final String request, final ConversionCallback conversionCallback, final FinishCallback callback) {
         try {
             String method = null;
 
             URIBuilder builder = new URIBuilder();
+            builder.setScheme("http");
+            builder.setHost("localhost");
+            builder.setPort(4035);
 
             Map<String, String> body = new HashMap<>();
             body.put(AWSIotUtil.PARAM_SELF_FLAG, "true");
@@ -218,60 +238,30 @@ public class DConnectHelper {
         }
     }
 
-    /**
-     * リクエストを送信する.
-     * @param method メソッド
-     * @param uri URI
-     * @param callback 処理完了通知コールバック
-     */
     public void sendRequest(final String method, final String uri, final FinishCallback callback) {
         sendRequest(method, uri, new HashMap<String, String>(), callback);
     }
 
-    /**
-     * availabilityを要求する.
-     * @param callback 処理完了通知コールバック
-     */
     public void availability(final FinishCallback callback) {
         sendRequest("GET", "http://localhost:4035/gotapi/availability", callback);
     }
 
-    /**
-     * serviceDiscoveryを要求する.
-     * @param callback 処理完了通知コールバック
-     */
     public void serviceDiscovery(final FinishCallback callback) {
         sendRequest("GET", "http://localhost:4035/gotapi/servicediscovery", callback);
     }
 
-    /**
-     * _selfOnlyをつけてserviceDiscoveryを要求する.
-     * @param callback 処理完了通知コールバック
-     */
     public void serviceDiscoverySelfOnly(final FinishCallback callback) {
         Map<String, String> param = new HashMap<>();
         param.put("_selfOnly", "true");
         sendRequest("GET", "http://localhost:4035/gotapi/servicediscovery", param, callback);
     }
 
-    /**
-     * serviceInformationを要求する.
-     * @param serviceId サービスID
-     * @param callback 処理完了通知コールバック
-     */
     public void serviceInformation(final String serviceId, final FinishCallback callback) {
         Map<String, String> param = new HashMap<>();
         param.put("serviceId", serviceId);
         sendRequest("GET", "http://localhost:4035/gotapi/serviceinformation", param, callback);
     }
 
-    /**
-     * リクエストを送信する.
-     * @param method メソッド
-     * @param uri URI
-     * @param body 送信するボディ
-     * @param callback 処理完了通知コールバック
-     */
     private void sendRequest(final String method, final String uri, final Map<String, String> body, final FinishCallback callback) {
         new HttpTask(method, uri, mDefaultHeader, body) {
             @Override
@@ -372,6 +362,9 @@ public class DConnectHelper {
             }
 
             URIBuilder builder = new URIBuilder();
+            builder.setScheme("http");
+            builder.setHost("localhost");
+            builder.setPort(4035);
             builder.setProfile(AuthorizationProfile.PROFILE_NAME);
             builder.setAttribute(AuthorizationProfile.ATTRIBUTE_ACCESS_TOKEN);
             builder.addParameter(AuthorizationProfile.PARAM_CLIENT_ID, clientId);
@@ -393,6 +386,7 @@ public class DConnectHelper {
                     mBody.put("accessToken", accessToken);
                     mPrefUtil.setAuthAccessToken(accessToken);
                     mPrefUtil.setAuthClientId(clientId);
+                    openWebSocket(mOnMessageEventListener);
                     return executeRequest();
                 }
             } catch (JSONException e) {
@@ -403,6 +397,9 @@ public class DConnectHelper {
 
         private String executeGrant() {
             URIBuilder builder = new URIBuilder();
+            builder.setScheme("http");
+            builder.setHost("localhost");
+            builder.setPort(4035);
             builder.setProfile(AuthorizationProfile.PROFILE_NAME);
             builder.setAttribute(AuthorizationProfile.ATTRIBUTE_GRANT);
 

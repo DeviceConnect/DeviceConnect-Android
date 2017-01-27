@@ -33,6 +33,7 @@ import android.widget.TextView;
 
 import org.deviceconnect.android.manager.BuildConfig;
 import org.deviceconnect.android.manager.DConnectApplication;
+import org.deviceconnect.android.manager.DConnectSettings;
 import org.deviceconnect.android.manager.DevicePlugin;
 import org.deviceconnect.android.manager.DevicePluginManager;
 import org.deviceconnect.android.manager.IDConnectService;
@@ -73,10 +74,15 @@ public class ServiceListActivity extends Activity implements AlertDialogFragment
     private Switch mSwitchAction;
     private int mPageIndex;
 
+    private DConnectSettings mSettings;
+
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_service_list);
+
+        mSettings = DConnectSettings.getInstance();
+        mSettings.load(this);
 
         mServiceAdapter = new ServiceAdapter();
 
@@ -229,7 +235,7 @@ public class ServiceListActivity extends Activity implements AlertDialogFragment
         } else {
             animateGuide(new AnimationUtil.AnimationAdapter() {
                 @Override
-                public void onAnimationEnd(Animator animation) {
+                public void onAnimationEnd(final Animator animation) {
                     mPageIndex++;
                     visibleGuide();
                 }
@@ -273,7 +279,7 @@ public class ServiceListActivity extends Activity implements AlertDialogFragment
         if (guideView != null) {
             AnimationUtil.animateAlpha(guideView, new AnimationUtil.AnimationAdapter() {
                 @Override
-                public void onAnimationEnd(Animator animation) {
+                public void onAnimationEnd(final Animator animation) {
                     guideView.setVisibility(View.GONE);
                 }
             });
@@ -293,6 +299,7 @@ public class ServiceListActivity extends Activity implements AlertDialogFragment
 
         mSwitchAction.setEnabled(false);
         try {
+            mSettings.setManagerStartFlag(checked);
             if (checked) {
                 mDConnectService.start();
                 mHandler.postDelayed(new Runnable() {

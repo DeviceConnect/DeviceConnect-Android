@@ -7,4 +7,6 @@ interface IDConnectService {
     void start();
     void stop();
     boolean isRunning();
+    void acquireWakeLock();
+    void releaseWakeLock();
 }

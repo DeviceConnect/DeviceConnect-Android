@@ -5,12 +5,18 @@ import android.media.AudioManager;
 import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.webrtc.BuildConfig;
-import org.deviceconnect.android.deviceplugin.webrtc.util.WebSocketServer;
+import org.deviceconnect.server.DConnectServerConfig;
+import org.deviceconnect.server.DConnectServerError;
+import org.deviceconnect.server.DConnectServerEventListener;
+import org.deviceconnect.server.http.HttpRequest;
+import org.deviceconnect.server.http.HttpResponse;
+import org.deviceconnect.server.nanohttpd.DConnectServerNanoHttpd;
+import org.deviceconnect.server.websocket.DConnectWebSocket;
 import org.webrtc.voiceengine.WebRtcAudioTrackModule;
 
 import java.nio.ByteBuffer;
-
-import fi.iki.elonen.WebSocket;
+import java.util.Map;
+import java.util.UUID;
 
 public class AudioTrackExternal extends WebRtcAudioTrackModule {
     private static final boolean DEBUG = BuildConfig.DEBUG;
@@ -32,48 +38,74 @@ public class AudioTrackExternal extends WebRtcAudioTrackModule {
 
     private ByteBuffer mByteBuffer;
     private AudioTrackThread mTrackThread;
-    private WebSocketServer mWebSocketServer;
 
-    public AudioTrackExternal(Context context, int port) {
+    private final DConnectServerNanoHttpd mServerNanoHttpd;
+
+    /**
+     * path.
+     */
+    private String mPath = "/remote/audio/" + UUID.randomUUID().toString();
+
+    public AudioTrackExternal(final Context context, final int port) {
         mAudioManager = (AudioManager) context.getSystemService(
                 Context.AUDIO_SERVICE);
 
-        WebSocketServer.Config.Builder builder = new WebSocketServer.Config.Builder();
+        DConnectServerConfig.Builder builder = new DConnectServerConfig.Builder();
         builder.port(port).isSsl(false)
+                .cachePath(context.getCacheDir().getAbsolutePath())
                 .documentRootPath(context.getFilesDir().getAbsolutePath());
 
-        mWebSocketServer = new WebSocketServer(builder.build(), context);
-        mWebSocketServer.setServerEventListener(new WebSocketServer.EventListener() {
+        mServerNanoHttpd = new DConnectServerNanoHttpd(builder.build(), context);
+        mServerNanoHttpd.setServerEventListener(new DConnectServerEventListener() {
             @Override
-            public void onLaunched() {
+            public boolean onReceivedHttpRequest(final HttpRequest req, final HttpResponse res) {
                 if (DEBUG) {
-                    Log.i(TAG, "WebSocketServer#onLaunched");
+                    Log.i(TAG, "AudioTrackExternal#onReceivedHttpRequest: ");
                 }
+                return true;
             }
 
             @Override
-            public void onError(final Exception e) {
+            public void onError(final DConnectServerError errorCode) {
                 if (DEBUG) {
-                    Log.i(TAG, "WebSocketServer#onError ", e);
+                    Log.i(TAG, "AudioTrackExternal#onError: " + errorCode);
                 }
                 shutdownWebSocketServer();
             }
 
             @Override
-            public void openSocket(final WebSocket socket) {
+            public void onServerLaunched() {
                 if (DEBUG) {
-                    Log.i(TAG, "WebSocketServer#openSocket " + socket);
+                    Log.i(TAG, "AudioTrackExternal#onServerLaunched: ");
                 }
             }
 
             @Override
-            public void closeSocket(final WebSocket socket) {
+            public void onWebSocketConnected(final DConnectWebSocket webSocket) {
                 if (DEBUG) {
-                    Log.i(TAG, "WebSocketServer#closeSocket " + socket);
+                    Log.i(TAG, "AudioTrackExternal#onWebSocketConnected: " + webSocket);
+                }
+
+                if (!webSocket.getUri().equals(mPath)) {
+                    webSocket.disconnect();
+                }
+            }
+
+            @Override
+            public void onWebSocketDisconnected(final DConnectWebSocket webSocket) {
+                if (DEBUG) {
+                    Log.i(TAG, "AudioTrackExternal#onWebSocketDisconnected: ");
+                }
+            }
+
+            @Override
+            public void onWebSocketMessage(final DConnectWebSocket webSocket, final String message) {
+                if (DEBUG) {
+                    Log.i(TAG, "AudioTrackExternal#onWebSocketMessage: ");
                 }
             }
         });
-        mWebSocketServer.start();
+        mServerNanoHttpd.start();
     }
 
     @Override
@@ -96,11 +128,7 @@ public class AudioTrackExternal extends WebRtcAudioTrackModule {
     }
 
     public String getUrl() {
-        if (mWebSocketServer != null) {
-            return mWebSocketServer.getUrl(WebSocketServer.REMOTE);
-        } else {
-            return null;
-        }
+        return "http://localhost:" + mServerNanoHttpd.getConfig().getPort() + mPath;
     }
 
     public String getMimeType() {
@@ -176,10 +204,7 @@ public class AudioTrackExternal extends WebRtcAudioTrackModule {
     }
 
     private void shutdownWebSocketServer() {
-        if (mWebSocketServer != null) {
-            mWebSocketServer.shutdown();
-            mWebSocketServer = null;
-        }
+        mServerNanoHttpd.shutdown();
     }
 
     private class AudioTrackThread extends Thread {
@@ -212,8 +237,9 @@ public class AudioTrackExternal extends WebRtcAudioTrackModule {
 
                 count++;
                 if (count == T) {
-                    if (mWebSocketServer != null) {
-                        mWebSocketServer.send(buf);
+                    Map<String, DConnectWebSocket> webSocketMap = mServerNanoHttpd.getWebSockets();
+                    for (Map.Entry<String, DConnectWebSocket> e : webSocketMap.entrySet()) {
+                        e.getValue().sendMessage(buf);
                     }
 
                     if ((System.currentTimeMillis() - time) < delayTime) {

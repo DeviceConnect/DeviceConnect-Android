@@ -8,18 +8,17 @@ package org.deviceconnect.android.profile.restful.test;
 
 import android.support.test.runner.AndroidJUnit4;
 
-import org.apache.http.client.methods.HttpDelete;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpPut;
-import org.apache.http.client.methods.HttpUriRequest;
+import org.deviceconnect.message.DConnectMessage;
+import org.deviceconnect.message.DConnectResponseMessage;
+import org.deviceconnect.message.DConnectSDK;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.deviceconnect.profile.DConnectProfileConstants;
-import org.deviceconnect.utils.URIBuilder;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.core.Is.is;
+import static org.junit.Assert.assertThat;
 
 /**
  * 独自プロファイルの正常系テスト.
@@ -71,18 +70,15 @@ public class NormalUniqueProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testGetUnique() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(PROFILE_NAME);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-            assertEquals(createPath(METHOD_GET, null, null), root.getString(PARAM_PATH));
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getString(PARAM_PATH), is(createPath(METHOD_GET, null, null)));
     }
 
     /**
@@ -101,19 +97,16 @@ public class NormalUniqueProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testGetUniquePing() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(PROFILE_NAME);
         builder.setAttribute(ATTIBUTE_PING);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-            assertEquals(createPath(METHOD_GET, null, ATTIBUTE_PING), root.getString(PARAM_PATH));
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getString(PARAM_PATH), is(createPath(METHOD_GET, null, ATTIBUTE_PING)));
     }
 
     /**
@@ -132,20 +125,17 @@ public class NormalUniqueProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testGetUniqueTestPing() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(PROFILE_NAME);
         builder.setInterface(INTERFACE_TEST);
         builder.setAttribute(ATTIBUTE_PING);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-            assertEquals(createPath(METHOD_GET, INTERFACE_TEST, ATTIBUTE_PING), root.getString(PARAM_PATH));
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getString(PARAM_PATH), is(createPath(METHOD_GET, INTERFACE_TEST, ATTIBUTE_PING)));
     }
 
     /**
@@ -164,18 +154,15 @@ public class NormalUniqueProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testPostUnique() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(PROFILE_NAME);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-            assertEquals(createPath(METHOD_POST, null, null), root.getString(PARAM_PATH));
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getString(PARAM_PATH), is(createPath(METHOD_POST, null, null)));
     }
 
     /**
@@ -194,19 +181,16 @@ public class NormalUniqueProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testPostUniquePing() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(PROFILE_NAME);
         builder.setAttribute(ATTIBUTE_PING);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-            assertEquals(createPath(METHOD_POST, null, ATTIBUTE_PING), root.getString(PARAM_PATH));
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getString(PARAM_PATH), is(createPath(METHOD_POST, null, ATTIBUTE_PING)));
     }
 
     /**
@@ -225,20 +209,17 @@ public class NormalUniqueProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testPostUniqueTestPing() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(PROFILE_NAME);
         builder.setInterface(INTERFACE_TEST);
         builder.setAttribute(ATTIBUTE_PING);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-            assertEquals(createPath(METHOD_POST, INTERFACE_TEST, ATTIBUTE_PING), root.getString(PARAM_PATH));
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getString(PARAM_PATH), is(createPath(METHOD_POST, INTERFACE_TEST, ATTIBUTE_PING)));
     }
 
     /**
@@ -257,18 +238,15 @@ public class NormalUniqueProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testPutUnique() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(PROFILE_NAME);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-            assertEquals(createPath(METHOD_PUT, null, null), root.getString(PARAM_PATH));
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getString(PARAM_PATH), is(createPath(METHOD_PUT, null, null)));
     }
 
     /**
@@ -287,19 +265,16 @@ public class NormalUniqueProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testPutUniquePing() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(PROFILE_NAME);
         builder.setAttribute(ATTIBUTE_PING);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-            assertEquals(createPath(METHOD_PUT, null, ATTIBUTE_PING), root.getString(PARAM_PATH));
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getString(PARAM_PATH), is(createPath(METHOD_PUT, null, ATTIBUTE_PING)));
     }
 
     /**
@@ -318,20 +293,17 @@ public class NormalUniqueProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testPutUniqueTestPing() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(PROFILE_NAME);
         builder.setInterface(INTERFACE_TEST);
         builder.setAttribute(ATTIBUTE_PING);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-            assertEquals(createPath(METHOD_PUT, INTERFACE_TEST, ATTIBUTE_PING), root.getString(PARAM_PATH));
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getString(PARAM_PATH), is(createPath(METHOD_PUT, INTERFACE_TEST, ATTIBUTE_PING)));
     }
 
     /**
@@ -350,18 +322,15 @@ public class NormalUniqueProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testDeleteUnique() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(PROFILE_NAME);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-            assertEquals(createPath(METHOD_DELETE, null, null), root.getString(PARAM_PATH));
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getString(PARAM_PATH), is(createPath(METHOD_DELETE, null, null)));
     }
 
     /**
@@ -380,19 +349,16 @@ public class NormalUniqueProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testDeleteUniquePing() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(PROFILE_NAME);
         builder.setAttribute(ATTIBUTE_PING);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-            assertEquals(createPath(METHOD_DELETE, null, ATTIBUTE_PING), root.getString(PARAM_PATH));
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getString(PARAM_PATH), is(createPath(METHOD_DELETE, null, ATTIBUTE_PING)));
     }
 
     /**
@@ -411,20 +377,17 @@ public class NormalUniqueProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testDeleteUniqueTestPing() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(PROFILE_NAME);
         builder.setInterface(INTERFACE_TEST);
         builder.setAttribute(ATTIBUTE_PING);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-            assertEquals(createPath(METHOD_DELETE, INTERFACE_TEST, ATTIBUTE_PING), root.getString(PARAM_PATH));
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getString(PARAM_PATH), is(createPath(METHOD_DELETE, INTERFACE_TEST, ATTIBUTE_PING)));
     }
 
     /**

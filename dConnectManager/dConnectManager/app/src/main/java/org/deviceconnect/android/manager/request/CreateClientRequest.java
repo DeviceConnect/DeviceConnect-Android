@@ -6,6 +6,8 @@
  */
 package org.deviceconnect.android.manager.request;
 
+import android.content.Intent;
+
 import org.deviceconnect.android.localoauth.ClientData;
 import org.deviceconnect.android.localoauth.LocalOAuth2Main;
 import org.deviceconnect.android.localoauth.exception.AuthorizationException;
@@ -14,8 +16,6 @@ import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.DConnectMessage.ErrorCode;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 import org.restlet.ext.oauth.PackageInfoOAuth;
-
-import android.content.Intent;
 
 /**
  * LocalOAuth2にクライアントを作成するためのリクエスト.
@@ -38,8 +38,6 @@ public class CreateClientRequest extends DConnectRequest {
             ClientData client = LocalOAuth2Main.createClient(packageInfo);
             if (client != null) {
                 mResponse.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
-                mResponse.putExtra(DConnectMessage.EXTRA_ERROR_CODE, 0);
-                mResponse.putExtra(DConnectMessage.EXTRA_ERROR_MESSAGE, "");
                 mResponse.putExtra(AuthorizationProfile.PARAM_CLIENT_ID, client.getClientId());
             } else {
                 setAuthorizationError(mResponse, null);

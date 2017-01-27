@@ -98,7 +98,7 @@ public class SlackMessageHookDeviceService extends DConnectMessageService implem
             Executors.newSingleThreadExecutor().submit(new Runnable() {
                 @Override
                 public void run() {
-                    if (SlackManager.INSTANCE.isDisonnecting()) {
+                    if (SlackManager.INSTANCE.isDisconnecting()) {
                         SlackManager.INSTANCE.disconnect(new SlackManager.FinishCallback<Void>() {
                             @Override
                             public void onFinish(final Void aVoid, final Exception error) {

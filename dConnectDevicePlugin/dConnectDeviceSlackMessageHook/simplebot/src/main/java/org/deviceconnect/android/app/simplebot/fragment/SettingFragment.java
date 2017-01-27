@@ -247,13 +247,14 @@ public class SettingFragment extends Fragment implements ShowMenuFragment {
             public void onFinish(List<DConnectHelper.ServiceInfo> serviceInfos, Exception error) {
                 // プログレスダイアログを閉じる
                 dialog.dismiss();
+
                 if (error == null) {
                     // messageHookに対応しているサービスを選別
                     final List<DConnectHelper.ServiceInfo> services = new ArrayList<>();
                     for (DConnectHelper.ServiceInfo service : serviceInfos) {
                         if (service.scopes != null) {
                             for (String scope : service.scopes) {
-                                if ("messageHook".equals(scope)) {
+                                if ("messageHook".equalsIgnoreCase(scope)) {
                                     services.add(service);
                                     break;
                                 }
@@ -275,8 +276,7 @@ public class SettingFragment extends Fragment implements ShowMenuFragment {
                                         selectedInfo = services.get(which);
                                         buttonService.setText(selectedInfo.name);
                                     }
-                                })
-                                .show();
+                                }).show();
                     } else {
                         selectedInfo = null;
                         buttonService.setText(getString(R.string.unset));

@@ -353,7 +353,6 @@ public class SlackManager {
         webSocket = null;
     }
 
-
     //endregion
     //---------------------------------------------------------------------------------------
     //region SendMessage

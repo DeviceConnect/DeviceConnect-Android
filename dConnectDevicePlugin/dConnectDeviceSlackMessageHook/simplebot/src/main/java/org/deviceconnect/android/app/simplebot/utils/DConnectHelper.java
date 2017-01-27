@@ -18,6 +18,8 @@ import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.DConnectResponseMessage;
 import org.deviceconnect.message.DConnectSDK;
 import org.deviceconnect.message.DConnectSDKFactory;
+import org.deviceconnect.message.entity.MultipartEntity;
+import org.deviceconnect.message.entity.StringEntity;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 import org.deviceconnect.profile.ServiceInformationProfileConstants;
@@ -675,6 +677,7 @@ public class DConnectHelper {
         private DConnectResponseMessage executeRequest() {
             DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
 
+            MultipartEntity entity = null;
             ConnectionParam conn = param.connection;
             if (conn.path == null) {
                 builder.setProfile(conn.profileName);
@@ -689,15 +692,20 @@ public class DConnectHelper {
                 for (String key: param.params.keySet()) {
                     builder.addParameter(key, (String) param.params.get(key));
                 }
+            } else {
+                entity = new MultipartEntity();
+                for (String key: param.params.keySet()) {
+                    entity.add(key, new StringEntity((String) param.params.get(key)));
+                }
             }
 
             DConnectResponseMessage message = new DConnectResponseMessage(DConnectMessage.RESULT_ERROR);
             if (conn.method.equals("GET")) {
                 message = mDConnectSDK.get(builder.build());
             } else if (conn.method.equals("PUT")) {
-                message = mDConnectSDK.put(builder.build(), param.params);
+                message = mDConnectSDK.put(builder.build(), entity);
             } else if (conn.method.equals("POST")) {
-                message = mDConnectSDK.post(builder.build(), param.params);
+                message = mDConnectSDK.post(builder.build(), entity);
             } else if (conn.method.equals("DELETE")) {
                 message = mDConnectSDK.delete(builder.build());
             }

@@ -193,6 +193,14 @@ class DConnectWebSocketClient {
     }
 
     /**
+     * WebSocketが接続中かを確認する.
+     * @return 接続中の場合はtrue、それ以外はfalse
+     */
+    boolean isConnected() {
+        return isEstablishedWebSocket;
+    }
+
+    /**
      * イベントのパスを作成する.
      * @param json イベントメッセージ
      * @return パス

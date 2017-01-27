@@ -344,6 +344,12 @@ public abstract class DConnectSDK {
     public abstract void disconnectWebSocket();
 
     /**
+     * イベント受信用のWebSocketがDevice Connect Managerと接続されているかを確認する.
+     * @return 接続されている場合にはtrue、それ以外はfalse
+     */
+    public abstract boolean isConnectedWebSocket();
+
+    /**
      * イベントを登録する.
      * <p>
      * イベントの登録成功・失敗やイベントメッセージは、第２引数のlistenerに通知されます。

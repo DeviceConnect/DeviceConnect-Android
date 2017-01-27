@@ -410,6 +410,11 @@ class HttpDConnectSDK extends DConnectSDK {
     }
 
     @Override
+    public boolean isConnectedWebSocket() {
+        return mWebSocketClient.isConnected();
+    }
+
+    @Override
     public void addEventListener(final Uri uri, final OnEventListener listener) {
 
         if (uri == null) {

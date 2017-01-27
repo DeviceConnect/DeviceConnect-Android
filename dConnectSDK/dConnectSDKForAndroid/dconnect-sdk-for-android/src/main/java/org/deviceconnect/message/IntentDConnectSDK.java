@@ -119,6 +119,11 @@ class IntentDConnectSDK extends DConnectSDK {
     }
 
     @Override
+    public boolean isConnectedWebSocket() {
+        return !sEventList.isEmpty();
+    }
+
+    @Override
     public void addEventListener(final Uri uri, final OnEventListener listener) {
 
         if (uri == null) {

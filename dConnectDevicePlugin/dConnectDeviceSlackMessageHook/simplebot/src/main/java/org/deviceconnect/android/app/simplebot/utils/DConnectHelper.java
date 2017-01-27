@@ -30,7 +30,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -71,11 +70,6 @@ public class DConnectHelper {
      * リトライを行うためのスレッド管理クラス.
      */
     private ScheduledExecutorService mExecutor = Executors.newSingleThreadScheduledExecutor();
-
-    /**
-     * リトライ用スレッド.
-     */
-    private ScheduledFuture mRetryFuture;
 
     /** 処理完了コールバック */
     public interface FinishCallback<Result> {
@@ -200,6 +194,21 @@ public class DConnectHelper {
         mDConnectSDK.setSSL(ssl);
         mDConnectSDK.setHost(host);
         mDConnectSDK.setPort(port);
+    }
+
+    public void availability(final FinishCallback<Void> callback) {
+        if (BuildConfig.DEBUG) Log.d(TAG, "availability");
+
+        mDConnectSDK.availability(new DConnectSDK.OnResponseListener() {
+            @Override
+            public void onResponse(final DConnectResponseMessage response) {
+                Exception e = null;
+                if (response.getResult() == DConnectMessage.RESULT_ERROR) {
+                    e = new Exception(response.getErrorMessage());
+                }
+                callback.onFinish(null, e);
+            }
+        });
     }
 
     /**
@@ -513,9 +522,14 @@ public class DConnectHelper {
         mActiveWebSocket = false;
         unregisterEvent();
         mDConnectSDK.disconnectWebSocket();
-        if (mRetryFuture != null) {
-            mRetryFuture.cancel(false);
-        }
+    }
+
+    /**
+     * WebSocketの接続状態を確認する.
+     * @return 接続されている場合はtrue、それ以外はfalse
+     */
+    public synchronized boolean isOpenWebSocket() {
+        return mActiveWebSocket && mDConnectSDK.isConnectedWebSocket();
     }
 
     /**
@@ -528,25 +542,24 @@ public class DConnectHelper {
         mDConnectSDK.connectWebSocket(new DConnectSDK.OnWebSocketListener() {
             @Override
             public void onOpen() {
+                if (BuildConfig.DEBUG) {
+                    Log.i(TAG, "WebSocket is opened.");
+                }
                 registerEvent();
             }
 
             @Override
             public void onClose() {
-                if (mActiveWebSocket) {
-                    mRetryFuture = mExecutor.schedule(new Runnable() {
-                        @Override
-                        public void run() {
-                            if (mActiveWebSocket) {
-                                connectWebSocket();
-                            }
-                        }
-                    }, RETRY_INTERVAL, TimeUnit.SECONDS);
+                if (BuildConfig.DEBUG) {
+                    Log.i(TAG, "WebSocket is closed.");
                 }
             }
 
             @Override
             public void onError(Exception e) {
+                if (BuildConfig.DEBUG) {
+                    Log.e(TAG, "WebSocket occurred a exception. ", e);
+                }
             }
         });
     }

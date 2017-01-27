@@ -246,6 +246,10 @@ public class SlackManager {
         return connectState == CONNECT_STATE_CONNECTED;
     }
 
+    /**
+     * 切断中かを返します.
+     * @return 切断中ならtrue
+     */
     public boolean isDisconnecting() {
         return (connectState > CONNECT_STATE_DISCONNECTING);
     }

@@ -244,50 +244,59 @@ public class SettingFragment extends Fragment implements ShowMenuFragment {
         // サービス取得
         Utils.fetchServices(context, new DConnectHelper.FinishCallback<List<DConnectHelper.ServiceInfo>>() {
             @Override
-            public void onFinish(List<DConnectHelper.ServiceInfo> serviceInfos, Exception error) {
+            public void onFinish(final List<DConnectHelper.ServiceInfo> serviceInfos, final Exception error) {
                 // プログレスダイアログを閉じる
                 dialog.dismiss();
 
-                if (error == null) {
-                    // messageHookに対応しているサービスを選別
-                    final List<DConnectHelper.ServiceInfo> services = new ArrayList<>();
-                    for (DConnectHelper.ServiceInfo service : serviceInfos) {
-                        if (service.scopes != null) {
-                            for (String scope : service.scopes) {
-                                if ("messageHook".equalsIgnoreCase(scope)) {
-                                    services.add(service);
-                                    break;
-                                }
-                            }
-                        }
+                getActivity().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        checkFetchServices(serviceInfos, error, context);
                     }
-                    if (services.size() > 0) {
-                        // 選択ダイアログ表示
-                        String items[] = new String[services.size()];
-                        for (int i = 0; i < services.size(); i++) {
-                            items[i] = services.get(i).name;
-                        }
-                        new AlertDialog.Builder(context)
-                                .setTitle(getString(R.string.select_service))
-                                .setItems(items, new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
-                                        // 情報取得
-                                        selectedInfo = services.get(which);
-                                        buttonService.setText(selectedInfo.name);
-                                    }
-                                }).show();
-                    } else {
-                        selectedInfo = null;
-                        buttonService.setText(getString(R.string.unset));
-                        Utils.showAlertDialog(context, getString(R.string.service_not_found_and_install));
-                    }
-                } else {
-                    // エラー処理
-                    Utils.showErrorDialog(context, error);
-                }
+                });
             }
         });
+    }
+
+    private void checkFetchServices(List<DConnectHelper.ServiceInfo> serviceInfos, Exception error, Context context) {
+        if (error == null) {
+            // messageHookに対応しているサービスを選別
+            final List<DConnectHelper.ServiceInfo> services = new ArrayList<>();
+            for (DConnectHelper.ServiceInfo service : serviceInfos) {
+                if (service.scopes != null) {
+                    for (String scope : service.scopes) {
+                        if ("messageHook".equalsIgnoreCase(scope)) {
+                            services.add(service);
+                            break;
+                        }
+                    }
+                }
+            }
+            if (services.size() > 0) {
+                // 選択ダイアログ表示
+                String items[] = new String[services.size()];
+                for (int i = 0; i < services.size(); i++) {
+                    items[i] = services.get(i).name;
+                }
+                new AlertDialog.Builder(context)
+                        .setTitle(getString(R.string.select_service))
+                        .setItems(items, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                // 情報取得
+                                selectedInfo = services.get(which);
+                                buttonService.setText(selectedInfo.name);
+                            }
+                        }).show();
+            } else {
+                selectedInfo = null;
+                buttonService.setText(getString(R.string.unset));
+                Utils.showAlertDialog(context, getString(R.string.service_not_found_and_install));
+            }
+        } else {
+            // エラー処理
+            Utils.showErrorDialog(context, error);
+        }
     }
 
     @Override

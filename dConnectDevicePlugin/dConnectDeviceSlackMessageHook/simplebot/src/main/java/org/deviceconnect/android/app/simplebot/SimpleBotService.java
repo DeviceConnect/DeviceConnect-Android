@@ -6,12 +6,18 @@
  */
 package org.deviceconnect.android.app.simplebot;
 
+import android.app.PendingIntent;
 import android.app.Service;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.database.Cursor;
+import android.os.Build;
 import android.os.IBinder;
+import android.os.PowerManager;
 import android.support.annotation.Nullable;
+import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
 import com.x5.template.Chunk;
@@ -25,6 +31,10 @@ import org.deviceconnect.message.DConnectEventMessage;
 import org.deviceconnect.message.DConnectMessage;
 
 import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -45,6 +55,21 @@ public class SimpleBotService extends Service {
      */
     private static final String TAG = "SimpleBotService";
 
+    /**
+     * Notification ID.
+     */
+    private static final int ONGOING_NOTIFICATION_ID = 45632;
+
+    /**
+     * Device Connect Managerと接続を監視するスレッドクラス.
+     */
+    private final ScheduledExecutorService mExecutor = Executors.newSingleThreadScheduledExecutor();
+
+    /**
+     * 監視スレッドをキャンセルするためのオブジェクト.
+     */
+    private ScheduledFuture mScheduledFuture;
+
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
@@ -54,22 +79,101 @@ public class SimpleBotService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        if (BuildConfig.DEBUG) Log.d(TAG, "service started...");
+        if (BuildConfig.DEBUG) {
+            Log.d(TAG, "service started...");
+        }
+
         connect();
+        startMonitoringDeviceConnectManager();
+        showNotification(getString(R.string.connecting_service));
+        registerDozeStateReceiver();
     }
 
     @Override
     public void onDestroy() {
-        if (BuildConfig.DEBUG) Log.d(TAG, "service destroyed...");
+        if (BuildConfig.DEBUG) {
+            Log.d(TAG, "service destroyed...");
+        }
 
+        unregisterDozeStateReceiver();
+        hideNotification();
+        stopMonitoringDeviceConnectManager();
         disconnect();
 
+        notifyStopAction();
+
+        super.onDestroy();
+    }
+
+    /**
+     * サービス停止をBroadcastで通知を行う.
+     */
+    private void notifyStopAction() {
         // サービス停止を通知
         Intent broadcastIntent = new Intent();
         broadcastIntent.setAction(SERVICE_STOP_ACTION);
         getBaseContext().sendBroadcast(broadcastIntent);
+    }
 
-        super.onDestroy();
+    /**
+     * 通知バーにNotificationを表示して、サービスをフォアグランドに登録する.
+     * @param content 通知に表示する文字列
+     */
+    private void showNotification(final String content) {
+        Intent notificationIntent = new Intent(getApplicationContext(), MainActivity.class);
+        PendingIntent pendingIntent = PendingIntent.getActivity(
+                getApplicationContext(), 0, notificationIntent, 0);
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext());
+        builder.setContentIntent(pendingIntent);
+        builder.setTicker(getString(R.string.app_name));
+        builder.setContentTitle(getString(R.string.app_name));
+        builder.setContentText(content);
+        builder.setSmallIcon(R.mipmap.ic_launcher);
+        startForeground(ONGOING_NOTIFICATION_ID, builder.build());
+    }
+
+    /**
+     * 通知バーにNotificationを非表示する.
+     */
+    private void hideNotification() {
+        stopForeground(true);
+    }
+
+    /**
+     * Device Connect Managerの生存確認を開始する.
+     */
+    private void startMonitoringDeviceConnectManager() {
+        if (BuildConfig.DEBUG) {
+            Log.d(TAG, "startMonitoringDeviceConnectManager");
+        }
+
+        mScheduledFuture = mExecutor.scheduleAtFixedRate(new Runnable() {
+            @Override
+            public void run() {
+                if (BuildConfig.DEBUG) {
+                    Log.i(TAG, "Check WebSocket.");
+                }
+
+                if (!DConnectHelper.INSTANCE.isOpenWebSocket()) {
+                    showNotification(getString(R.string.disconnected_service));
+                    connect();
+                }
+            }
+        }, 15, 15, TimeUnit.SECONDS);
+    }
+
+    /**
+     * Device Connect Managerの生存確認を停止する.
+     */
+    private void stopMonitoringDeviceConnectManager() {
+        if (BuildConfig.DEBUG) {
+            Log.d(TAG, "stopMonitoringDeviceConnectManager");
+        }
+
+        if (mScheduledFuture != null) {
+            mScheduledFuture.cancel(true);
+            mScheduledFuture = null;
+        }
     }
 
     /**
@@ -93,17 +197,26 @@ public class SimpleBotService extends Service {
             }
         });
 
-        // イベント登録
-        Utils.registerEvent(context, new DConnectHelper.FinishCallback<Void>() {
+        // Device Connect Managerの生存確認
+        Utils.availability(context, new DConnectHelper.FinishCallback<Void>() {
             @Override
             public void onFinish(Void aVoid, Exception error) {
-                if (error != null) {
-                    Log.e(TAG, "Error on registerEvent", error);
-                    // 設定をOFFにする
-                    setting.active = false;
-                    setting.save();
-                    // サービス終了
-                    stopSelf();
+                if (error == null) {
+                    // イベント登録
+                    Utils.registerEvent(context, new DConnectHelper.FinishCallback<Void>() {
+                        @Override
+                        public void onFinish(Void aVoid, Exception error) {
+                            if (error != null) {
+                                Log.e(TAG, "Error on registerEvent", error);
+                                setting.save();
+                                showNotification(getString(R.string.disconnected_service));
+                            } else {
+                                showNotification(getString(R.string.connected_service));
+                            }
+                        }
+                    });
+                } else {
+                    showNotification(getString(R.string.disconnected_service));
                 }
             }
         });
@@ -124,8 +237,11 @@ public class SimpleBotService extends Service {
      *
      * @param event イベント
      */
-    private void handleEvent(DConnectEventMessage event) {
-        if (BuildConfig.DEBUG) Log.d(TAG, event.toString());
+    private void handleEvent(final DConnectEventMessage event) {
+        if (BuildConfig.DEBUG) {
+            Log.d(TAG, "handleEvent: " + event.toString(4));
+        }
+
         if (!event.keySet().contains("message")) {
             return;
         }
@@ -236,7 +352,7 @@ public class SimpleBotService extends Service {
      * @param uri      リソースURI
      * @param response Response
      */
-    private void sendResponse(ResultData.Result result, String text, String uri, Map<String, Object> response) {
+    private void sendResponse(final ResultData.Result result, final String text, final String uri, final Map<String, Object> response) {
         // レスポンスがない
         if ((text == null || text.length() == 0) && (uri == null || uri.length() == 0)) {
             // 履歴に保存
@@ -258,8 +374,10 @@ public class SimpleBotService extends Service {
             return;
         }
 
-        if (BuildConfig.DEBUG) Log.d(TAG, result.response);
-        if (BuildConfig.DEBUG) Log.d(TAG, result.responseUri);
+        if (BuildConfig.DEBUG) {
+            Log.d(TAG, result.response);
+            Log.d(TAG, result.responseUri);
+        }
 
         // 履歴に保存
         ResultData.INSTANCE.add(result);
@@ -274,4 +392,45 @@ public class SimpleBotService extends Service {
             }
         });
     }
+
+    /**
+     * Dozeモードの検知を行うReceiverの登録を行う.
+     */
+    private void registerDozeStateReceiver() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            IntentFilter intentFilter = new IntentFilter(PowerManager.ACTION_DEVICE_IDLE_MODE_CHANGED);
+            registerReceiver(mDozeStateReceiver, intentFilter);
+        }
+    }
+
+    /**
+     * Dozeモードの検知を行うReceiverの解除を行う.
+     */
+    private void unregisterDozeStateReceiver() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            unregisterReceiver(mDozeStateReceiver);
+        }
+    }
+
+    /**
+     * Dozeモードの検知を行うReceiver.
+     */
+    private BroadcastReceiver mDozeStateReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(final Context context, final Intent intent) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                PowerManager mgr = context.getSystemService(PowerManager.class);
+                if (!mgr.isIgnoringBatteryOptimizations(context.getPackageName())) {
+                    if (mgr.isDeviceIdleMode()) {
+                        stopMonitoringDeviceConnectManager();
+                        disconnect();
+                        showNotification(getString(R.string.disconnected_service));
+                    } else {
+                        connect();
+                        startMonitoringDeviceConnectManager();
+                    }
+                }
+            }
+        }
+    };
 }

@@ -421,6 +421,20 @@ public class Utils {
     }
 
     /**
+     * Device Connect Managerの生存確認を行う.
+     * @param context コンテキスト
+     * @param callback 生存確認結果を通知するコールバック
+     */
+    public static void availability(final Context context, final DConnectHelper.FinishCallback<Void> callback) {
+        DConnectHelper.INSTANCE.availability(new DConnectHelper.FinishCallback<Void>() {
+            @Override
+            public void onFinish(final Void object, final Exception error) {
+                callback.onFinish(null, error);
+            }
+        });
+    }
+
+    /**
      * イベントを登録する.
      * @param context context
      * @param callback 終了コールバック

@@ -1,6 +1,6 @@
 /*
- NormalCommonTestCase.java
- Copyright (c) 2014 NTT DOCOMO,INC.
+ NormalAllGetControlTestCase.java
+ Copyright (c) 2017 NTT DOCOMO,INC.
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
  */
@@ -14,8 +14,6 @@ import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.deviceconnect.profile.DConnectProfileConstants;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.io.UnsupportedEncodingException;
 
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.core.Is.is;
@@ -36,30 +34,30 @@ public class NormalAllGetControlTestCase extends RESTfulDConnectTestCase {
     /**
      * インターフェース名: {@value} .
      */
-    public static final String INTERFACE_TEST = "test";
+    private static final String INTERFACE_TEST = "test";
 
     /**
      * 属性名: {@value} .
      */
-    public static final String ATTRIBUTE_PING = "ping";
+    private static final String ATTRIBUTE_PING = "ping";
 
     /**
      * パラメータ: {@value}.
      */
-    public static final String PARAM_KEY = "key";
+    private static final String PARAM_KEY = "key";
 
     /**
      * テスト値: {@value}.
      */
-    public static final String VALUE_KEY_PROFILE = "PROFILE_OK";
+    private static final String VALUE_KEY_PROFILE = "PROFILE_OK";
     /**
      * テスト値: {@value}.
      */
-    public static final String VALUE_KEY_INTERFACE = "INTERFACE_OK";
+    private static final String VALUE_KEY_INTERFACE = "INTERFACE_OK";
     /**
      * テスト値: {@value}.
      */
-    public static final String VALUE_KEY_ATTRIBUTE = "ATTRIBUTE_OK";
+    private static final String VALUE_KEY_ATTRIBUTE = "ATTRIBUTE_OK";
     /**
      * /profileのとき、methodにGETが指定されている時でも、正常にリクエストが処理されること.
      * <pre>
@@ -73,10 +71,9 @@ public class NormalAllGetControlTestCase extends RESTfulDConnectTestCase {
      * ・デバイスプラグインで指定されているレスポンスがそのまま返されること
      * </pre>
      *
-     * @throws UnsupportedEncodingException URLエンコーディングに失敗した場合
      */
     @Test
-    public void testGetRequestProfile() throws UnsupportedEncodingException {
+    public void testGetRequestProfile() {
         StringBuilder builder = new StringBuilder();
         builder.append(DCONNECT_MANAGER_URI);
         builder.append("/").append(DConnectMessage.METHOD_GET);
@@ -104,10 +101,9 @@ public class NormalAllGetControlTestCase extends RESTfulDConnectTestCase {
      * ・デバイスプラグインで指定されているレスポンスがそのまま返されること
      * </pre>
      *
-     * @throws UnsupportedEncodingException URLエンコーディングに失敗した場合
      */
     @Test
-    public void testGetRequestProfileAttribute() throws UnsupportedEncodingException {
+    public void testGetRequestProfileAttribute() {
         StringBuilder builder = new StringBuilder();
         builder.append(DCONNECT_MANAGER_URI);
         builder.append("/").append(DConnectMessage.METHOD_GET);
@@ -134,11 +130,9 @@ public class NormalAllGetControlTestCase extends RESTfulDConnectTestCase {
      * ・resultに0が返ってくること。
      * ・デバイスプラグインで指定されているレスポンスがそのまま返されること
      * </pre>
-     *
-     * @throws UnsupportedEncodingException URLエンコーディングに失敗した場合
      */
     @Test
-    public void testGetRequestProfileInterfaceAttribute() throws UnsupportedEncodingException {
+    public void testGetRequestProfileInterfaceAttribute() {
         StringBuilder builder = new StringBuilder();
         builder.append(DCONNECT_MANAGER_URI);
         builder.append("/").append(DConnectMessage.METHOD_GET);
@@ -167,10 +161,9 @@ public class NormalAllGetControlTestCase extends RESTfulDConnectTestCase {
      * ・デバイスプラグインで指定されているレスポンスがそのまま返されること
      * </pre>
      *
-     * @throws UnsupportedEncodingException URLエンコーディングに失敗した場合
      */
     @Test
-    public void testPostRequestProfile() throws UnsupportedEncodingException {
+    public void testPostRequestProfile() {
         StringBuilder builder = new StringBuilder();
         builder.append(DCONNECT_MANAGER_URI);
         builder.append("/").append(DConnectMessage.METHOD_POST);
@@ -198,10 +191,9 @@ public class NormalAllGetControlTestCase extends RESTfulDConnectTestCase {
      * ・デバイスプラグインで指定されているレスポンスがそのまま返されること
      * </pre>
      *
-     * @throws UnsupportedEncodingException URLエンコーディングに失敗した場合
      */
     @Test
-    public void testPostRequestProfileAttribute() throws UnsupportedEncodingException {
+    public void testPostRequestProfileAttribute() {
         StringBuilder builder = new StringBuilder();
         builder.append(DCONNECT_MANAGER_URI);
         builder.append("/").append(DConnectMessage.METHOD_POST);
@@ -229,10 +221,9 @@ public class NormalAllGetControlTestCase extends RESTfulDConnectTestCase {
      * ・デバイスプラグインで指定されているレスポンスがそのまま返されること
      * </pre>
      *
-     * @throws UnsupportedEncodingException URLエンコーディングに失敗した場合
      */
     @Test
-    public void testPostRequestProfileInterfaceAttribute() throws UnsupportedEncodingException {
+    public void testPostRequestProfileInterfaceAttribute() {
         StringBuilder builder = new StringBuilder();
         builder.append(DCONNECT_MANAGER_URI);
         builder.append("/").append(DConnectMessage.METHOD_POST);
@@ -261,10 +252,9 @@ public class NormalAllGetControlTestCase extends RESTfulDConnectTestCase {
      * ・デバイスプラグインで指定されているレスポンスがそのまま返されること
      * </pre>
      *
-     * @throws UnsupportedEncodingException URLエンコーディングに失敗した場合
      */
     @Test
-    public void testPutRequestProfile() throws UnsupportedEncodingException {
+    public void testPutRequestProfile() {
         StringBuilder builder = new StringBuilder();
         builder.append(DCONNECT_MANAGER_URI);
         builder.append("/").append(DConnectMessage.METHOD_PUT);
@@ -292,10 +282,9 @@ public class NormalAllGetControlTestCase extends RESTfulDConnectTestCase {
      * ・デバイスプラグインで指定されているレスポンスがそのまま返されること
      * </pre>
      *
-     * @throws UnsupportedEncodingException URLエンコーディングに失敗した場合
      */
     @Test
-    public void testPutRequestProfileAttribute() throws UnsupportedEncodingException {
+    public void testPutRequestProfileAttribute() {
         StringBuilder builder = new StringBuilder();
         builder.append(DCONNECT_MANAGER_URI);
         builder.append("/").append(DConnectMessage.METHOD_PUT);
@@ -323,10 +312,9 @@ public class NormalAllGetControlTestCase extends RESTfulDConnectTestCase {
      * ・デバイスプラグインで指定されているレスポンスがそのまま返されること
      * </pre>
      *
-     * @throws UnsupportedEncodingException URLエンコーディングに失敗した場合
      */
     @Test
-    public void testPutRequestProfileInterfaceAttribute() throws UnsupportedEncodingException {
+    public void testPutRequestProfileInterfaceAttribute() {
         StringBuilder builder = new StringBuilder();
         builder.append(DCONNECT_MANAGER_URI);
         builder.append("/").append(DConnectMessage.METHOD_PUT);
@@ -356,10 +344,9 @@ public class NormalAllGetControlTestCase extends RESTfulDConnectTestCase {
      * ・デバイスプラグインで指定されているレスポンスがそのまま返されること
      * </pre>
      *
-     * @throws UnsupportedEncodingException URLエンコーディングに失敗した場合
      */
     @Test
-    public void testDeleteRequestProfile() throws UnsupportedEncodingException {
+    public void testDeleteRequestProfile() {
         StringBuilder builder = new StringBuilder();
         builder.append(DCONNECT_MANAGER_URI);
         builder.append("/").append(DConnectMessage.METHOD_DELETE);
@@ -387,10 +374,9 @@ public class NormalAllGetControlTestCase extends RESTfulDConnectTestCase {
      * ・デバイスプラグインで指定されているレスポンスがそのまま返されること
      * </pre>
      *
-     * @throws UnsupportedEncodingException URLエンコーディングに失敗した場合
      */
     @Test
-    public void testDeleteRequestProfileAttribute() throws UnsupportedEncodingException {
+    public void testDeleteRequestProfileAttribute() {
         StringBuilder builder = new StringBuilder();
         builder.append(DCONNECT_MANAGER_URI);
         builder.append("/").append(DConnectMessage.METHOD_DELETE);
@@ -418,10 +404,9 @@ public class NormalAllGetControlTestCase extends RESTfulDConnectTestCase {
      * ・デバイスプラグインで指定されているレスポンスがそのまま返されること
      * </pre>
      *
-     * @throws UnsupportedEncodingException URLエンコーディングに失敗した場合
      */
     @Test
-    public void testDeleteRequestProfileInterfaceAttribute() throws UnsupportedEncodingException {
+    public void testDeleteRequestProfileInterfaceAttribute() {
         StringBuilder builder = new StringBuilder();
         builder.append(DCONNECT_MANAGER_URI);
         builder.append("/").append(DConnectMessage.METHOD_DELETE);

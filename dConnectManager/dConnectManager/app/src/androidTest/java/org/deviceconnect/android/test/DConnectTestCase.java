@@ -115,6 +115,7 @@ public abstract class DConnectTestCase extends AndroidTestCase {
             "files",
             "unique",
             "jsonTest",
+            "allGetControl",
             "abc" // 実際には実装しないプロファイル
     };
 

@@ -255,7 +255,7 @@ class DConnectServerEventListenerImpl implements DConnectServerEventListener {
             httpMethod = paths[1];
             profile = paths[2];
             attribute = paths[3];
-        } else if (paths.length == SEGMENT_INTERFACES && isMethod(paths[1])) {
+        } else if (paths.length == (SEGMENT_INTERFACES + 1) && isMethod(paths[1])) {
             // パスが5つあり、HTTPメソッドがパスに指定される
             api = paths[0];
             httpMethod = paths[1];

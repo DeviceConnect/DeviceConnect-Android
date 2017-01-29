@@ -41,25 +41,6 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
      */
     private static final String ATTRIBUTE_PING = "ping";
 
-    /**
-     * パラメータ: {@value}.
-     */
-    private static final String PARAM_KEY = "key";
-
-    /**
-     * テスト値: {@value}.
-     */
-    private static final String VALUE_KEY_PROFILE = "PROFILE_OK";
-    /**
-     * テスト値: {@value}.
-     */
-    private static final String VALUE_KEY_INTERFACE = "INTERFACE_OK";
-    /**
-     * テスト値: {@value}.
-     */
-    private static final String VALUE_KEY_ATTRIBUTE = "ATTRIBUTE_OK";
-
-
     /** Http Method post test. */
     /**
      * HTTPメソッドがPOSTで、/profileのとき、methodにGETが指定されている時にエラー処理されること.

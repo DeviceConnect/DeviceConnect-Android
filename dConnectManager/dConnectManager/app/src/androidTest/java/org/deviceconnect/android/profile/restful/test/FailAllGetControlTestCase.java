@@ -290,7 +290,7 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * HTTPメソッドがPOSTで、 /profileのとき、methodにDELEteが指定されている時にエラー処理されること.
+     * HTTPメソッドがPOSTで、 /profileのとき、methodにDELETEが指定されている時にエラー処理されること.
      * <pre>
      * 【HTTP通信】
      * Method: POST
@@ -1080,7 +1080,7 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN).append("=").append(getAccessToken());
 
-        postInvalidProfile(builder);
+        getInvalidProfile(builder);
     }
 
     /**
@@ -1106,7 +1106,7 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN).append("=").append(getAccessToken());
 
-        putInvalidProfile(builder);
+        getInvalidProfile(builder);
     }
     /**
      * methodが指定されていない時、profile名にDELETEが指定されている場合はエラー処理する.
@@ -1131,7 +1131,7 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN).append("=").append(getAccessToken());
 
-        deleteInvalidProfile(builder);
+        getInvalidProfile(builder);
     }
     /** Method指定時にProfileにHttpメソッドが指定されている. */
     /**
@@ -1160,6 +1160,8 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
 
         getInvalidProfile(builder);
     }
+
+
     /**
      * methodがGETで指定されている時、profile名にGETが指定されている場合はエラー処理する.
      * <pre>
@@ -1238,6 +1240,7 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
 
         getInvalidProfile(builder);
     }
+
     /**
      * methodがGETで指定されている時、profile名にPOSTが指定されている場合はエラー処理する.
      * <pre>
@@ -1258,6 +1261,32 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
         builder.append(DCONNECT_MANAGER_URI);
         builder.append("/").append(DConnectMessage.METHOD_POST);
         builder.append("/").append(DConnectMessage.METHOD_GET);
+        builder.append("?").append(DConnectProfileConstants.PARAM_SERVICE_ID).append("=").append(getServiceId());
+        builder.append("&");
+        builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN).append("=").append(getAccessToken());
+
+        getInvalidProfile(builder);
+    }
+    /**
+     * methodがGETで指定されている時、profile名にPOSTが指定されている場合はエラー処理する.
+     * <pre>
+     * 【HTTP通信】
+     * Method: GET
+     * Path: /POST/POST?serviceId&accessToken=xxxx
+     * </pre>
+     * <pre>
+     * 【期待する動作】
+     * ・resultに1が返ってくること。
+     * ・Invalid profileエラーが返って来ること。
+     * </pre>
+     *
+     */
+    @Test
+    public void testProfileHttpMethodPostPostByAllGetControl() {
+        StringBuilder builder = new StringBuilder();
+        builder.append(DCONNECT_MANAGER_URI);
+        builder.append("/").append(DConnectMessage.METHOD_POST);
+        builder.append("/").append(DConnectMessage.METHOD_POST);
         builder.append("?").append(DConnectProfileConstants.PARAM_SERVICE_ID).append("=").append(getServiceId());
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN).append("=").append(getAccessToken());
@@ -1316,32 +1345,7 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
 
         getInvalidProfile(builder);
     }
-    /**
-     * methodがGETで指定されている時、profile名にPUTが指定されている場合はエラー処理する.
-     * <pre>
-     * 【HTTP通信】
-     * Method: GET
-     * Path: /PUT/PUT?serviceId&accessToken=xxxx
-     * </pre>
-     * <pre>
-     * 【期待する動作】
-     * ・resultに1が返ってくること。
-     * ・Invalid profileエラーが返って来ること。
-     * </pre>
-     *
-     */
-    @Test
-    public void testProfileHttpMethodPutByAllGetControl() {
-        StringBuilder builder = new StringBuilder();
-        builder.append(DCONNECT_MANAGER_URI);
-        builder.append("/").append(DConnectMessage.METHOD_PUT);
-        builder.append("/").append(DConnectMessage.METHOD_PUT);
-        builder.append("?").append(DConnectProfileConstants.PARAM_SERVICE_ID).append("=").append(getServiceId());
-        builder.append("&");
-        builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN).append("=").append(getAccessToken());
 
-        getInvalidProfile(builder);
-    }
     /**
      * methodがGETで指定されている時、profile名にPUTが指定されている場合はエラー処理する.
      * <pre>
@@ -1399,6 +1403,32 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
+     * Path: /PUT/PUT?serviceId&accessToken=xxxx
+     * </pre>
+     * <pre>
+     * 【期待する動作】
+     * ・resultに1が返ってくること。
+     * ・Invalid profileエラーが返って来ること。
+     * </pre>
+     *
+     */
+    @Test
+    public void testProfileHttpMethodPutPutByAllGetControl() {
+        StringBuilder builder = new StringBuilder();
+        builder.append(DCONNECT_MANAGER_URI);
+        builder.append("/").append(DConnectMessage.METHOD_PUT);
+        builder.append("/").append(DConnectMessage.METHOD_PUT);
+        builder.append("?").append(DConnectProfileConstants.PARAM_SERVICE_ID).append("=").append(getServiceId());
+        builder.append("&");
+        builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN).append("=").append(getAccessToken());
+
+        getInvalidProfile(builder);
+    }
+    /**
+     * methodがGETで指定されている時、profile名にPUTが指定されている場合はエラー処理する.
+     * <pre>
+     * 【HTTP通信】
+     * Method: GET
      * Path: /PUT/DELETE?serviceId&accessToken=xxxx
      * </pre>
      * <pre>
@@ -1420,32 +1450,7 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
 
         getInvalidProfile(builder);
     }
-    /**
-     * methodがGETで指定されている時、profile名にDELETEが指定されている場合はエラー処理する.
-     * <pre>
-     * 【HTTP通信】
-     * Method: GET
-     * Path: /DELETE/DELETE?serviceId&accessToken=xxxx
-     * </pre>
-     * <pre>
-     * 【期待する動作】
-     * ・resultに1が返ってくること。
-     * ・Invalid profileエラーが返って来ること。
-     * </pre>
-     *
-     */
-    @Test
-    public void testProfileHttpMethodDeleteByAllGetControl() {
-        StringBuilder builder = new StringBuilder();
-        builder.append(DCONNECT_MANAGER_URI);
-        builder.append("/").append(DConnectMessage.METHOD_DELETE);
-        builder.append("/").append(DConnectMessage.METHOD_DELETE);
-        builder.append("?").append(DConnectProfileConstants.PARAM_SERVICE_ID).append("=").append(getServiceId());
-        builder.append("&");
-        builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN).append("=").append(getAccessToken());
 
-        getInvalidProfile(builder);
-    }
     /**
      * methodがGETで指定されている時、profile名にDELETEが指定されている場合はエラー処理する.
      * <pre>
@@ -1524,7 +1529,32 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
 
         getInvalidProfile(builder);
     }
+    /**
+     * methodがGETで指定されている時、profile名にDELETEが指定されている場合はエラー処理する.
+     * <pre>
+     * 【HTTP通信】
+     * Method: GET
+     * Path: /DELETE/DELETE?serviceId&accessToken=xxxx
+     * </pre>
+     * <pre>
+     * 【期待する動作】
+     * ・resultに1が返ってくること。
+     * ・Invalid profileエラーが返って来ること。
+     * </pre>
+     *
+     */
+    @Test
+    public void testProfileHttpMethodDeleteByAllGetControl() {
+        StringBuilder builder = new StringBuilder();
+        builder.append(DCONNECT_MANAGER_URI);
+        builder.append("/").append(DConnectMessage.METHOD_DELETE);
+        builder.append("/").append(DConnectMessage.METHOD_DELETE);
+        builder.append("?").append(DConnectProfileConstants.PARAM_SERVICE_ID).append("=").append(getServiceId());
+        builder.append("&");
+        builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN).append("=").append(getAccessToken());
 
+        getInvalidProfile(builder);
+    }
     /** private method **/
     /**
      * HttpMethodがPostの状態で全てGETで操作するときのメソッドを投げた場合,
@@ -1575,41 +1605,4 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
         assertThat(response.getInt(DConnectMessage.EXTRA_ERROR_CODE),
                 is(DConnectMessage.ErrorCode.INVALID_PROFILE.getCode()));
     }
-
-    /**
-     * HttpMethodがPostの状態で全てGETで操作するときのメソッドを投げた場合,
-     * Invalid Profileが返って来る時のテスト用メソッド.
-     */
-    private void postInvalidProfile(StringBuilder builder) {
-        DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), null);
-        assertThat(response, is(notNullValue()));
-        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
-        assertThat(response.getInt(DConnectMessage.EXTRA_ERROR_CODE),
-                is(DConnectMessage.ErrorCode.INVALID_PROFILE.getCode()));
-    }
-    /**
-     * HttpMethodがPutの状態で全てGETで操作するときのメソッドを投げた場合,
-     * Invalid Profileが返って来る時のテスト用メソッド.
-     * @param builder URL
-     */
-    private void putInvalidProfile(StringBuilder builder) {
-        DConnectResponseMessage response = mDConnectSDK.put(builder.toString(), null);
-        assertThat(response, is(notNullValue()));
-        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
-        assertThat(response.getInt(DConnectMessage.EXTRA_ERROR_CODE),
-                is(DConnectMessage.ErrorCode.INVALID_PROFILE.getCode()));
-    }
-    /**
-     * HttpMethodがDeleteの状態で全てGETで操作するときのメソッドを投げた場合,
-     * Invalid Profileが返って来る時のテスト用メソッド.
-     * @param builder URL
-     */
-    private void deleteInvalidProfile(StringBuilder builder) {
-        DConnectResponseMessage response = mDConnectSDK.delete(builder.toString());
-        assertThat(response, is(notNullValue()));
-        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
-        assertThat(response.getInt(DConnectMessage.EXTRA_ERROR_CODE),
-                is(DConnectMessage.ErrorCode.INVALID_PROFILE.getCode()));
-    }
-
 }

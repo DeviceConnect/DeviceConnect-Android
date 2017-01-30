@@ -1,3 +1,9 @@
+/*
+ AlertDialogFragment.java
+ Copyright (c) 2016 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.manager.setting;
 
 import android.app.AlertDialog;
@@ -8,6 +14,8 @@ import android.os.Bundle;
 
 /**
  * AlertDialogを表示するためのDialogFragment.
+ *
+ * @author NTT DOCOMO, INC.
  */
 public class AlertDialogFragment extends DialogFragment {
     /**

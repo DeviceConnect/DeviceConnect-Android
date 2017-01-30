@@ -18,10 +18,11 @@ import org.deviceconnect.server.websocket.DConnectWebSocket;
 public interface DConnectServerEventListener {
 
     /**
-     * Httpリクエストの受信時に呼び出されます. <br/>
+     * Httpリクエストの受信時に呼び出されます.
+     * <p>
      * Device Connect のリクエストとして正しくないなどの理由でリクエストの受理を破棄する
      * 場合は、戻り値としてfalseを返すことでサーバーに通常のHTTPリクエストとして処理させます。
-     * 
+     * </p>
      * @param req Httpリクエスト
      * @param res Httpレスポンス
      * @return リクエストを受理する場合はtrue、リクエストを無視する場合はfalseを返す
@@ -48,15 +49,14 @@ public interface DConnectServerEventListener {
 
     /**
      * WebSocketのセッションが切断された時に呼び出されます.
-     * @param webSocketId WebSocket ID
+     * @param webSocket WebSocketのインスタンス
      */
-    void onWebSocketDisconnected(String webSocketId);
-
-    void onWebSocketMessage(DConnectWebSocket webSocket, String message);
+    void onWebSocketDisconnected(DConnectWebSocket webSocket);
 
     /**
-     * WebSocketのsessionKeyがリセットされた時に呼び出されます.
-     * @param sessionKey リセットされたsessionKey
+     * WebSocketからのメッセージを受信した時に呼び出されます.
+     * @param webSocket メッセージを受信したWebSocket
+     * @param message 受信したメッセージ
      */
-    void onResetEventSessionKey(String sessionKey);
+    void onWebSocketMessage(DConnectWebSocket webSocket, String message);
 }

@@ -2,7 +2,7 @@
 <resources>
 
     <string name="app_name">Device Connect Manager</string>
-    <string name="description"></string>
+    <string name="image_content_description">Image Description</string>
 
     <!-- ================= DConnectLaunchActivity ================= -->
     <string name="affinity_launcher_activity" translatable="false">.launcher</string>
@@ -72,8 +72,15 @@
     <string name="activity_settings_manager_name_visible">Show Manager\'s name</string>
     <string name="activity_settings_manager_name_visible_on"> name in Availability.</string>
     <string name="activity_settings_manager_name_visible_off">Do not show names in Availability.</string>
-    <string name="activity_settings_availability_warning_message">Show the Manager\'s name with Availability API.\n\nBy http://localhost:4035/gotapi/availability,\n you can get the name of Manager.\n\nDo you may be enabled?</string>
+    <string name="activity_settings_availability_warning_message">Show the Manager\'s name with Availability API.\n\nBy http://localhost:4035/gotapi/availability,\n allows you to retrieve the Manager\'s name without a confirmation dialog.\n\nDo you may be enabled?</string>
 
+    <string name="activity_settings_power_saving">Power Saving</string>
+    <string name="activity_settings_doze_mode_title">Doze mode</string>
+    <string name="activity_settings_doze_mode_summary_off">Battery optimization is disabled. It doesn\'t save battery power, because not change to doze mode.</string>
+    <string name="activity_settings_doze_mode_summary_on">Battery optimization is enabled. This application will stop working because Doze mode will be restricted to save battery power.</string>
+    <string name="activity_settings_wake_lock_title">WakeLock</string>
+    <string name="activity_settings_wake_lock_summary_off">WakeLock is disabled.</string>
+    <string name="activity_settings_wake_lock_summary_on">WakeLock is enabled.</string>
 
     <string name="activity_settings_web_server_settings">Setting of Web Server</string>
     <string name="activity_settings_web_server">Web Server</string>
@@ -84,39 +91,7 @@
     <string name="activity_settings_web_server_warning_message">Start the web server.\n\nIf you enable this feature you can access from the outside to the file in the SD card.\n\nDo you may be enabled?</string>
     <string name="activity_settings_web_server_warning_positive">OK</string>
     <string name="activity_settings_web_server_warning_negative">Cancel</string>
-    <string name="activity_settings_event_keep_alive_settings">Setting of Event Keep Alive</string>
-
-    <!-- ================= SharedPreferences ================= -->
-
-    <string name="key_settings_about_appinfo">settings_about_appinfo</string>
-    <string name="key_settings_dconn_name">settings_dconn_name</string>
-    <string name="key_settings_dconn_uuid">settings_dconn_uuid</string>
-    <string name="key_settings_dconn_server_on_off">settings_dconn_server_on_off</string>
-    <string name="key_settings_dconn_observer_on_off">settings_dconn_observer_on_off</string>
-    <string name="key_settings_dconn_keyword">settings_dconn_server_keyword</string>
-    <string name="key_settings_dconn_allow_external_start_and_stop">settings_allow_external_start_and_stop</string>
-    <string name="key_settings_dconn_allow_external_ip">settings_dconn_allow_external_ip</string>
-    <string name="key_settings_dconn_require_origin">settings_dconn_require_origin</string>
-    <string name="key_settings_dconn_ssl">settings_dconn_ssl</string>
-    <string name="key_settings_dconn_host">settings_dconn_host</string>
-    <string name="key_settings_dconn_port">settings_dconn_port</string>
-    <string name="key_settings_dconn_local_oauth">settings_dconn_local_oauth</string>
-    <string name="key_settings_list_access_token">settings_list_access_token</string>
-    <string name="key_settings_dconn_observation_interval">key_settings_dconn_observation_interval</string>
-    <string name="key_settings_open_source_licenses">settings_open_source_licenses</string>
-    <string name="key_settings_about_privacypolicy">settings_about_privacypolicy</string>
-    <string name="key_settings_about_tos">settings_about_tos</string>
-    <string name="key_settings_dconn_whitelist">settings_whitelist</string>
-    <string name="key_settings_dconn_whitelist_origin_blocking">settings_whitelist_origin_blocking</string>
-    <string name="key_settings_list_device_plugin">settings_list_device_plugin</string>
-    <string name="key_settings_restart_device_plugin">settings_device_plugin</string>
-    <string name="key_settings_web_server_on_off">key_settings_web_server_on_off</string>
-    <string name="key_settings_web_server_host">key_settings_web_server_host</string>
-    <string name="key_settings_web_server_port">key_settings_web_server_port</string>
-    <string name="key_settings_web_server_document_root_path">key_settings_web_server_document_root_path</string>
-    <string name="key_settings_dconn_websocket">key_settings_dconn_websocket</string>
-    <string name="key_settings_event_keep_alive_on_off">key_settings_event_keep_alive_on_off</string>
-    <string name="key_settings_dconn_availability_visible_name">key_settings_dconn_availability_visible_name</string>
+    <string name="activity_settings_event_keep_alive_settings">Event Keep Alive</string>
 
     <!-- ================= WhitelistActivity ================= -->
     <string name="activity_whitelist_title">Whitelist of Origin</string>
@@ -173,8 +148,8 @@
     <string name="service_web_server">Web Server</string>
 
     <!-- =================     WebViewActivity     ================= -->
-    <string name="webview_js_alert_positive_btn">はい</string>
-    <string name="webview_js_alert_negative_btn">いいえ</string>
+    <string name="webview_js_alert_positive_btn">Yes</string>
+    <string name="webview_js_alert_negative_btn">No</string>
 
     <string name="activity_help_title">Help</string>
 

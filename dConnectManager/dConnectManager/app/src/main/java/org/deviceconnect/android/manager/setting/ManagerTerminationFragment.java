@@ -1,3 +1,9 @@
+/*
+ ManagerTerminationFragment.java
+ Copyright (c) 2016 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.manager.setting;
 
 import android.app.Activity;
@@ -16,6 +22,11 @@ import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
 import java.util.List;
 
+/**
+ * Device Connect Manger終了要求中ダイアログ.
+ *
+ * @author NTT DOCOMO, INC.
+ */
 public class ManagerTerminationFragment extends DialogFragment {
     @Override
     public Dialog onCreateDialog(final Bundle savedInstanceState) {

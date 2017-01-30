@@ -3,8 +3,8 @@
     <item
         android:id="@+id/activity_service_manager_power"
         android:actionViewClass="android.widget.Switch"
-        android:showAsAction="always|withText"
-        android:title="テスト"/>
+        android:showAsAction="always"
+        android:title="@string/app_name"/>
 
     <item
         android:showAsAction="always"

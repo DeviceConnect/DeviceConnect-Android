@@ -21,7 +21,6 @@ import org.deviceconnect.android.event.cache.MemoryCacheController;
 import org.deviceconnect.android.localoauth.CheckAccessTokenResult;
 import org.deviceconnect.android.localoauth.ClientPackageInfo;
 import org.deviceconnect.android.localoauth.LocalOAuth2Main;
-import org.deviceconnect.android.logger.AndroidHandler;
 import org.deviceconnect.android.manager.DevicePluginManager.DevicePluginEventListener;
 import org.deviceconnect.android.manager.event.EventBroker;
 import org.deviceconnect.android.manager.event.EventSessionTable;
@@ -30,7 +29,6 @@ import org.deviceconnect.android.manager.policy.OriginValidator;
 import org.deviceconnect.android.manager.profile.AuthorizationProfile;
 import org.deviceconnect.android.manager.profile.DConnectAvailabilityProfile;
 import org.deviceconnect.android.manager.profile.DConnectDeliveryProfile;
-import org.deviceconnect.android.manager.profile.DConnectFilesProfile;
 import org.deviceconnect.android.manager.profile.DConnectServiceDiscoveryProfile;
 import org.deviceconnect.android.manager.profile.DConnectSystemProfile;
 import org.deviceconnect.android.manager.request.DConnectRequest;
@@ -58,9 +56,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.logging.SimpleFormatter;
 
 /**
  * DConnectMessageを受信するサービス.
@@ -137,16 +133,6 @@ public abstract class DConnectMessageService extends Service
     public void onCreate() {
         super.onCreate();
 
-        if (BuildConfig.DEBUG) {
-            AndroidHandler handler = new AndroidHandler("dconnect.manager");
-            handler.setFormatter(new SimpleFormatter());
-            handler.setLevel(Level.ALL);
-            mLogger.addHandler(handler);
-            mLogger.setLevel(Level.ALL);
-        } else {
-            mLogger.setLevel(Level.OFF);
-        }
-
         // イベント管理クラスの初期化
         EventManager.INSTANCE.setController(new MemoryCacheController());
 
@@ -173,7 +159,6 @@ public abstract class DConnectMessageService extends Service
         addProfile(new AuthorizationProfile());
         addProfile(new DConnectAvailabilityProfile());
         addProfile(new DConnectServiceDiscoveryProfile(null, mPluginMgr));
-        addProfile(new DConnectFilesProfile(this));
         addProfile(new DConnectSystemProfile(this, mPluginMgr));
 
         // dConnect Managerで処理せず、登録されたデバイスプラグインに処理させるプロファイル
@@ -185,7 +170,6 @@ public abstract class DConnectMessageService extends Service
 
     @Override
     public void onDestroy() {
-        mPluginMgr.setEventListener(null);
         stopDConnect();
         LocalOAuth2Main.destroy();
         super.onDestroy();
@@ -194,7 +178,7 @@ public abstract class DConnectMessageService extends Service
     @Override
     public int onStartCommand(final Intent intent, final int flags, final int startId) {
         if (!mRunningFlag) {
-            return START_STICKY;
+            return START_NOT_STICKY;
         }
 
         if (intent == null) {
@@ -233,7 +217,7 @@ public abstract class DConnectMessageService extends Service
      * リクエスト用Intentを受領したときの処理を行う.
      * @param request リクエスト用Intent
      */
-    public void onRequestReceive(final Intent request) {
+    private void onRequestReceive(final Intent request) {
         // リクエストコードが定義されていない場合には無視
         int requestCode = getRequestCode(request);
         if (requestCode == ERROR_CODE) {
@@ -318,10 +302,6 @@ public abstract class DConnectMessageService extends Service
         }
     }
 
-    protected String parseProfileName(final Intent request) {
-        return request.getStringExtra(DConnectMessage.EXTRA_PROFILE);
-    }
-
     /**
      * レスポンス受信ハンドラー.
      * @param response レスポンス用Intent
@@ -381,19 +361,6 @@ public abstract class DConnectMessageService extends Service
      */
     public void addRequest(final DConnectRequest request) {
         mRequestManager.addRequest(request);
-    }
-
-    @Override
-    public List<DConnectProfile> getProfileList() {
-        return new ArrayList<>(mProfileMap.values());
-    }
-
-    @Override
-    public void addProfile(final DConnectProfile profile) {
-        if (profile != null) {
-            profile.setContext(this);
-            mProfileMap.put(profile.getProfileName(), profile);
-        }
     }
 
     private void loadProfileSpecs() {
@@ -457,6 +424,19 @@ public abstract class DConnectMessageService extends Service
     }
 
     @Override
+    public List<DConnectProfile> getProfileList() {
+        return new ArrayList<>(mProfileMap.values());
+    }
+
+    @Override
+    public void addProfile(final DConnectProfile profile) {
+        if (profile != null) {
+            profile.setContext(this);
+            mProfileMap.put(profile.getProfileName(), profile);
+        }
+    }
+
+    @Override
     public void removeProfile(final DConnectProfile profile) {
         if (profile != null) {
             mProfileMap.remove(profile.getProfileName());
@@ -471,10 +451,29 @@ public abstract class DConnectMessageService extends Service
         return mProfileMap.get(name);
     }
 
+    /**
+     * リクエスト用Intentからプロファイルを取得する.
+     * @param request リクエスト用Intent
+     * @return プロファイル
+     */
     private DConnectProfile getProfile(final Intent request) {
         return getProfile(DConnectProfile.getProfile(request));
     }
 
+    /**
+     * リクエスト用Intentからプロファイル名を取得する.
+     * @param request リクエスト用Intent
+     * @return プロファイル名
+     */
+    protected String parseProfileName(final Intent request) {
+        return DConnectProfile.getProfile(request);
+    }
+
+    /**
+     * レスポンス用Intentからリクエストコードを取得する.
+     * @param response レスポンス用Intent
+     * @return リクエストコード
+     */
     private int getRequestCode(final Intent response) {
         return response.getIntExtra(IntentDConnectMessage.EXTRA_REQUEST_CODE, ERROR_CODE);
     }
@@ -519,20 +518,8 @@ public abstract class DConnectMessageService extends Service
     /**
      * DConnectManagerを起動する。
      */
-    protected synchronized void startDConnect() {
-        // 設定の更新
-        mSettings.load(this);
-
-        if (BuildConfig.DEBUG) {
-            mLogger.info("DConnectManager#Settings");
-            mLogger.info("    SSL: " + mSettings.isSSL());
-            mLogger.info("    Host: " + mSettings.getHost());
-            mLogger.info("    Port: " + mSettings.getPort());
-            mLogger.info("    Allow External IP: " + mSettings.allowExternalIP());
-            mLogger.info("    RequireOrigin: " + mSettings.requireOrigin());
-            mLogger.info("    LocalOAuth: " + mSettings.isUseALocalOAuth());
-            mLogger.info("    OriginBlock: " + mSettings.isBlockingOrigin());
-        }
+    protected void startDConnect() {
+        mRunningFlag = true;
 
         mHmacManager = new HmacManager(this);
         mRequestManager = new DConnectRequestManager();
@@ -540,20 +527,19 @@ public abstract class DConnectMessageService extends Service
                 mSettings.requireOrigin(), mSettings.isBlockingOrigin());
 
         mPluginMgr.setEventListener(this);
-        mPluginMgr.createDevicePluginList();
 
         showNotification();
-
-        mRunningFlag = true;
     }
 
     /**
      * DConnectManagerを停止する.
      */
-    protected synchronized void stopDConnect() {
+    protected void stopDConnect() {
         mRunningFlag = false;
 
-        mPluginMgr.setEventListener(null);
+        if (mPluginMgr != null) {
+            mPluginMgr.setEventListener(null);
+        }
 
         if (mRequestManager != null) {
             mRequestManager.shutdown();
@@ -664,7 +650,11 @@ public abstract class DConnectMessageService extends Service
      * @param response 返却するレスポンス
      */
     public void sendResponse(final Intent request, final Intent response) {
-        sendBroadcast(createResponseIntent(request, response));
+        Intent intent = createResponseIntent(request, response);
+        if (intent.getComponent() == null) {
+            return;
+        }
+        sendBroadcast(intent);
     }
 
     /**
@@ -681,20 +671,19 @@ public abstract class DConnectMessageService extends Service
         sendBroadcast(targetIntent);
     }
 
+    /**
+     * オリジン要求設定を取得する.
+     * @return オリジンが必要な場合はtrue、それ以外はfalse
+     */
     public boolean requiresOrigin() {
         return mSettings.requireOrigin();
     }
 
+    /**
+     * Local OAuth要求設定を取得する.
+     * @return Local OAuthが必要な場合はtrue、それ以外はfalse
+     */
     public boolean usesLocalOAuth() {
         return mSettings.isUseALocalOAuth();
-    }
-
-    public boolean isIgnoredProfile(final String profileName) {
-        for (String name : DConnectLocalOAuth.IGNORE_PROFILES) {
-            if (name.equalsIgnoreCase(profileName)) { // MEMO パスの大文字小文字を無視
-                return true;
-            }
-        }
-        return false;
     }
 }

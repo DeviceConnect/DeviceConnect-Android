@@ -7,18 +7,8 @@ http://opensource.org/licenses/mit-license.php
 
 package org.deviceconnect.android.deviceplugin.sonycamera.utils;
 
-import java.io.IOException;
-
-import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.deviceconnect.message.DConnectMessage;
-import org.deviceconnect.message.basic.message.DConnectResponseMessage;
-import org.deviceconnect.message.client.DConnectClient;
-import org.deviceconnect.message.http.impl.client.HttpDConnectClient;
-import org.deviceconnect.message.http.impl.factory.HttpMessageFactory;
+import org.deviceconnect.android.deviceplugin.sonycamera.BuildConfig;
 import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
-
-import android.os.AsyncTask;
 
 /**
  * ユーティリティクラス.
@@ -39,6 +29,16 @@ public final class DConnectUtil {
 
     /** Service Discovery ProfileのURI. */
     private static final String DISCOVERY_URI = BASE_URI + "/" + ServiceDiscoveryProfileConstants.PROFILE_NAME;
+
+    /**
+     * デバック用フラグ.
+     */
+    private static final boolean DEBUG = BuildConfig.DEBUG;
+
+    /**
+     * デバック用タグを定義します.
+     */
+    private static final String TAG = "SONYCAMERA";
 
     /**
      * コンストラクタ. ユーティリティクラスなのでprivateにしておく。
@@ -65,34 +65,5 @@ public final class DConnectUtil {
             }
         }
         return false;
-    }
-
-    /**
-     * 非同期にデバイスを探索する.
-     * 
-     * @param listener 結果を通知するリスナー
-     */
-    public static void asyncSearchDevice(final DConnectMessageHandler listener) {
-        AsyncTask<Void, Void, DConnectMessage> task = new AsyncTask<Void, Void, DConnectMessage>() {
-            @Override
-            protected DConnectMessage doInBackground(final Void... params) {
-                try {
-                    DConnectClient client = new HttpDConnectClient();
-                    HttpGet request = new HttpGet(DISCOVERY_URI);
-                    HttpResponse response = client.execute(request);
-                    return (new HttpMessageFactory()).newDConnectMessage(response);
-                } catch (IOException e) {
-                    return new DConnectResponseMessage(DConnectMessage.RESULT_ERROR);
-                }
-            }
-
-            @Override
-            protected void onPostExecute(final DConnectMessage message) {
-                if (listener != null) {
-                    listener.handleMessage(message);
-                }
-            }
-        };
-        task.execute();
     }
 }

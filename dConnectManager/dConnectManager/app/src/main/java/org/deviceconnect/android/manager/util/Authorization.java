@@ -1,3 +1,9 @@
+/*
+ Authorization.java
+ Copyright (c) 2017 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.manager.util;
 
 import android.content.Context;
@@ -7,7 +13,6 @@ import android.os.AsyncTask;
 import org.deviceconnect.android.manager.DConnectSettings;
 import org.deviceconnect.android.manager.profile.AuthorizationProfile;
 import org.deviceconnect.message.DConnectMessage;
-import org.deviceconnect.utils.URIBuilder;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -15,10 +20,26 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Authorizationプロファイルの処理を行うタスク.
+ *
+ * @author NTT DOCOMO, INC.
+ */
 public abstract class Authorization extends AsyncTask<Void, Void, List<ServiceContainer>> {
 
+    /**
+     * Authorizationプロファイルのレスポンスを保存するファイルの名前.
+     */
     private static final String FILE_NAME = "__authorization__.dat";
+
+    /**
+     * clientIdのキー名.
+     */
     private static final String KEY_CLIENT_ID = "clientId";
+
+    /**
+     * accessTokenのキー名.
+     */
     private static final String KEY_ACCESS_TOKEN = "accessToken";
 
     private DConnectSettings mSettings;
@@ -37,14 +58,19 @@ public abstract class Authorization extends AsyncTask<Void, Void, List<ServiceCo
     }
 
     protected String getUri(final String path, final Map<String, String> params) {
-        URIBuilder builder = new URIBuilder();
-        builder.setScheme(mSettings.isSSL() ? "https" : "http");
-        builder.setHost("localhost");
-        builder.setPort(mSettings.getPort());
-        builder.setPath(path);
+        StringBuilder builder = new StringBuilder();
+        builder.append(mSettings.isSSL() ? "https://" : "http://");
+        builder.append("localhost:");
+        builder.append(mSettings.getPort());
+        builder.append(path);
         if (params != null) {
+            boolean first = true;
             for (String key : params.keySet()) {
-                builder.addParameter(key, params.get(key));
+                builder.append(first ? "?" : "&");
+                builder.append(key);
+                builder.append("=");
+                builder.append(params.get(key));
+                first = false;
             }
         }
         return builder.toString();

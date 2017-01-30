@@ -14,7 +14,6 @@ import android.content.ServiceConnection;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.os.RemoteException;
 import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -63,7 +62,7 @@ public class DConnectLaunchActivity extends Activity {
     /**
      * DConnectServiceを操作するクラス.
      */
-    private IDConnectService mDConnectService;
+    private DConnectService mDConnectService;
 
     /**
      * The logger.
@@ -100,17 +99,18 @@ public class DConnectLaunchActivity extends Activity {
             String host = uri.getHost();
             String path = uri.getPath();
             if (HOST_START.equals(host)) {
+                preventAutoStop();
                 if (!allowExternalStartAndStop() || PATH_ROOT.equals(path) || PATH_ACTIVITY.equals(path)) {
                     mBehavior = new Runnable() {
                         @Override
                         public void run() {
-                            try {
+                            if (mDConnectService != null) {
                                 if (!mDConnectService.isRunning()) {
                                     displayActivity();
                                 } else {
                                     finish();
                                 }
-                            } catch (RemoteException e) {
+                            } else {
                                 finish();
                             }
                         }
@@ -133,13 +133,13 @@ public class DConnectLaunchActivity extends Activity {
                     mBehavior = new Runnable() {
                         @Override
                         public void run() {
-                            try {
+                            if (mDConnectService != null) {
                                 if (mDConnectService.isRunning()) {
                                     displayActivity();
                                 } else {
                                     finish();
                                 }
-                            } catch (RemoteException e) {
+                            } else {
                                 finish();
                             }
                         }
@@ -230,30 +230,25 @@ public class DConnectLaunchActivity extends Activity {
     }
 
     private synchronized void bindManagerService() {
-        Intent bindIntent = new Intent(IDConnectService.class.getName());
-        bindIntent.setPackage(getPackageName());
+        Intent bindIntent = new Intent(getApplicationContext(), DConnectService.class);
         mIsBind = bindService(bindIntent, mServiceConnection, Context.BIND_AUTO_CREATE);
+    }
+
+    private void preventAutoStop() {
+        Intent targetIntent = new Intent();
+        targetIntent.setClass(getApplicationContext(), DConnectService.class);
+        startService(targetIntent);
     }
 
     private void startManager() {
         if (mDConnectService != null) {
-            try {
-                mDConnectService.start();
-            } catch (RemoteException e) {
-                // do nothing
-                mLogger.warning("Failed to start service");
-            }
+            mDConnectService.startInternal();
         }
     }
 
     private void stopManager() {
         if (mDConnectService != null) {
-            try {
-                mDConnectService.stop();
-            } catch (RemoteException e) {
-                // do nothing
-                mLogger.warning("Failed to stop service");
-            }
+            mDConnectService.stopInternal();
         }
     }
 
@@ -273,10 +268,8 @@ public class DConnectLaunchActivity extends Activity {
             }
         });
 
-        try {
+        if (mDConnectService != null) {
             toggleButton(mDConnectService.isRunning());
-        } catch (RemoteException e) {
-            mLogger.warning("Failed to get service");
         }
     }
 
@@ -345,7 +338,7 @@ public class DConnectLaunchActivity extends Activity {
     private final ServiceConnection mServiceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(final ComponentName name, final IBinder service) {
-            mDConnectService = (IDConnectService) service;
+            mDConnectService = ((DConnectService.LocalBinder) service).getDConnectService();
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {

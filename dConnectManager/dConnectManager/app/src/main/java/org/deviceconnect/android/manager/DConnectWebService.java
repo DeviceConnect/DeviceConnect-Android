@@ -13,13 +13,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.ConnectivityManager;
+import android.os.Binder;
 import android.os.Build;
-import android.os.Handler;
 import android.os.IBinder;
-import android.os.RemoteException;
 import android.support.v4.app.NotificationCompat;
 
-import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.manager.setting.SettingActivity;
 import org.deviceconnect.android.manager.util.DConnectUtil;
 import org.deviceconnect.server.DConnectServer;
@@ -45,12 +43,12 @@ public class DConnectWebService extends Service {
     /** DConnectの設定. */
     private DConnectSettings mSettings;
 
-    /** Handler of permission. */
-    private final Handler mHandler = new Handler();
+    /** バインドクラス. */
+    private final IBinder mLocalBinder = new LocalBinder();
 
     @Override
     public IBinder onBind(final Intent intent) {
-        return (IBinder) mBinder;
+        return mLocalBinder;
     }
 
     @Override
@@ -61,8 +59,14 @@ public class DConnectWebService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+
         mSettings = DConnectSettings.getInstance();
         mSettings.load(this);
+
+        // Webサーバの起動フラグがONになっている場合には起動を行う
+        if (mSettings.isWebServerStartFlag()) {
+            startWebServer();
+        }
     }
 
     @Override
@@ -79,7 +83,7 @@ public class DConnectWebService extends Service {
     /**
      * Webサーバを起動する.
      */
-    private synchronized void startWebServer() {
+    public synchronized void startWebServer() {
         if (mWebServer == null) {
             mSettings.load(this);
 
@@ -107,7 +111,7 @@ public class DConnectWebService extends Service {
     /**
      * Webサーバを停止する.
      */
-    private synchronized void stopWebServer() {
+    public synchronized void stopWebServer() {
         if (mWebServer != null) {
             unregisterReceiver(mWiFiReceiver);
             mWebServer.shutdown();
@@ -117,6 +121,10 @@ public class DConnectWebService extends Service {
         if (BuildConfig.DEBUG) {
             mLogger.info("Web Server was Stopped.");
         }
+    }
+
+    public synchronized boolean isRunning() {
+        return mWebServer != null;
     }
 
     /**
@@ -146,45 +154,18 @@ public class DConnectWebService extends Service {
     }
 
     /**
-     * AIDLで接続を行うためのスタブクラス.
+     * DConnectWebServiceとバインドするためのクラス.
      */
-    private final IDConnectWebService mBinder = new IDConnectWebService.Stub()  {
-        @Override
-        public IBinder asBinder() {
-            return null;
+    public class LocalBinder extends Binder {
+        /**
+         * DConnectWebServiceのインスタンスを取得する.
+         *
+         * @return DConnectWebServiceのインスタンス
+         */
+        public DConnectWebService getDConnectWebService() {
+            return DConnectWebService.this;
         }
-
-        @Override
-        public boolean isRunning() throws RemoteException {
-            return mWebServer != null;
-        }
-
-        @Override
-        public void start() throws RemoteException {
-            if (DConnectUtil.isPermission(DConnectWebService.this)) {
-                startWebServer();
-            } else {
-                PermissionUtility.requestPermissions(DConnectWebService.this,
-                        mHandler,
-                        DConnectUtil.PERMISSIONS,
-                        new PermissionUtility.PermissionRequestCallback() {
-                            @Override
-                            public void onSuccess() {
-                                startWebServer();
-                            }
-                            @Override
-                            public void onFail(final String deniedPermission) {
-                                mLogger.warning("Denied Permission. " + deniedPermission);
-                            }
-                        });
-            }
-        }
-
-        @Override
-        public void stop() throws RemoteException {
-            stopWebServer();
-        }
-    };
+    }
 
     /**
      * ネットワークiの接続状態の変化を受け取るレシーバー.

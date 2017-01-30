@@ -8,18 +8,17 @@ package org.deviceconnect.android.profile.restful.test;
 
 import android.support.test.runner.AndroidJUnit4;
 
-import org.apache.http.client.methods.HttpDelete;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpPut;
-import org.apache.http.client.methods.HttpUriRequest;
+import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.DConnectMessage.ErrorCode;
+import org.deviceconnect.message.DConnectResponseMessage;
+import org.deviceconnect.message.DConnectSDK;
 import org.deviceconnect.profile.SystemProfileConstants;
-import org.deviceconnect.utils.URIBuilder;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.core.Is.is;
+import static org.junit.Assert.assertThat;
 
 
 /**
@@ -39,21 +38,17 @@ public class FailSystemProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・versionにString型の値が返ってくること。
      * </pre>
      */
     @Test
     public void testGetSystemUndefinedParameter() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(SystemProfileConstants.PROFILE_NAME);
         builder.addParameter("abc", "abc");
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject resp = sendRequest(request);
-            assertResultOK(resp);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
     }
 
     /**
@@ -70,15 +65,14 @@ public class FailSystemProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testGetSystemInvalidMethodPost() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(SystemProfileConstants.PROFILE_NAME);
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_SUPPORT_ACTION.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -95,15 +89,14 @@ public class FailSystemProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testGetSystemInvalidMethodPut() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(SystemProfileConstants.PROFILE_NAME);
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_SUPPORT_ACTION.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -120,15 +113,14 @@ public class FailSystemProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testGetSystemInvalidMethodDelete() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(SystemProfileConstants.PROFILE_NAME);
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_SUPPORT_ACTION.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -136,7 +128,7 @@ public class FailSystemProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /system/device/events?sessionKey=xxxx
+     * Path: /system/device/events
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -145,18 +137,16 @@ public class FailSystemProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testGetSystemDeviceEventsInvalidMethodGet() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(SystemProfileConstants.PROFILE_NAME);
         builder.setInterface(SystemProfileConstants.INTERFACE_DEVICE);
         builder.setAttribute(SystemProfileConstants.ATTRIBUTE_EVENTS);
 
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.UNKNOWN_ATTRIBUTE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.UNKNOWN_ATTRIBUTE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
     
     /**
@@ -164,7 +154,7 @@ public class FailSystemProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /system/device/events?sessionKey=xxxx
+     * Path: /system/device/events
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -173,18 +163,16 @@ public class FailSystemProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testGetSystemDeviceEventsInvalidMethodPost() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(SystemProfileConstants.PROFILE_NAME);
         builder.setInterface(SystemProfileConstants.INTERFACE_DEVICE);
         builder.setAttribute(SystemProfileConstants.ATTRIBUTE_EVENTS);
 
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.UNKNOWN_ATTRIBUTE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.UNKNOWN_ATTRIBUTE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -192,7 +180,7 @@ public class FailSystemProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /system/device/events?sessionKey=xxxx
+     * Path: /system/device/events
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -201,18 +189,16 @@ public class FailSystemProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testGetSystemDeviceEventsInvalidMethodPut() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(SystemProfileConstants.PROFILE_NAME);
         builder.setInterface(SystemProfileConstants.INTERFACE_DEVICE);
         builder.setAttribute(SystemProfileConstants.ATTRIBUTE_EVENTS);
 
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.UNKNOWN_ATTRIBUTE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.UNKNOWN_ATTRIBUTE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
     
     /**
@@ -229,17 +215,16 @@ public class FailSystemProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testGetSystemDeviceKeywordInvalidMethodGet() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(SystemProfileConstants.PROFILE_NAME);
         builder.setInterface(SystemProfileConstants.INTERFACE_DEVICE);
         builder.setAttribute(SystemProfileConstants.ATTRIBUTE_KEYWORD);
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.UNKNOWN_ATTRIBUTE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.UNKNOWN_ATTRIBUTE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
     
     /**
@@ -256,17 +241,16 @@ public class FailSystemProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testGetSystemDeviceKeywordInvalidMethodPost() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(SystemProfileConstants.PROFILE_NAME);
         builder.setInterface(SystemProfileConstants.INTERFACE_DEVICE);
         builder.setAttribute(SystemProfileConstants.ATTRIBUTE_KEYWORD);
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.UNKNOWN_ATTRIBUTE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.UNKNOWN_ATTRIBUTE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
     
     /**
@@ -283,17 +267,16 @@ public class FailSystemProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testGetSystemDeviceKeywordInvalidMethodDelete() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(SystemProfileConstants.PROFILE_NAME);
         builder.setInterface(SystemProfileConstants.INTERFACE_DEVICE);
         builder.setAttribute(SystemProfileConstants.ATTRIBUTE_KEYWORD);
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.UNKNOWN_ATTRIBUTE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.UNKNOWN_ATTRIBUTE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
     
     /**
@@ -310,18 +293,17 @@ public class FailSystemProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testGetSystemDeviceWakeupInvalidMethodGet() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(SystemProfileConstants.PROFILE_NAME);
         builder.setInterface(SystemProfileConstants.INTERFACE_DEVICE);
         builder.setAttribute(SystemProfileConstants.ATTRIBUTE_WAKEUP);
         builder.addParameter(SystemProfileConstants.PARAM_PLUGIN_ID, getTestPluginId());
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_SUPPORT_ACTION.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
     
     /**
@@ -338,18 +320,17 @@ public class FailSystemProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testGetSystemDeviceWakeupInvalidMethodPost() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(SystemProfileConstants.PROFILE_NAME);
         builder.setInterface(SystemProfileConstants.INTERFACE_DEVICE);
         builder.setAttribute(SystemProfileConstants.ATTRIBUTE_WAKEUP);
         builder.addParameter(SystemProfileConstants.PARAM_PLUGIN_ID, getTestPluginId());
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_SUPPORT_ACTION.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
     
     /**
@@ -366,17 +347,16 @@ public class FailSystemProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testGetSystemDeviceWakeupInvalidMethodDelete() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(SystemProfileConstants.PROFILE_NAME);
         builder.setInterface(SystemProfileConstants.INTERFACE_DEVICE);
         builder.setAttribute(SystemProfileConstants.ATTRIBUTE_WAKEUP);
         builder.addParameter(SystemProfileConstants.PARAM_PLUGIN_ID, getTestPluginId());
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_SUPPORT_ACTION.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 }

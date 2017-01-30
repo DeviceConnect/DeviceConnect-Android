@@ -6,7 +6,7 @@
  */
 package org.deviceconnect.server;
 
-import java.util.ArrayList;
+import java.util.List;
 
 /**
  * サーバーの設定情報.
@@ -37,7 +37,13 @@ public final class DConnectServerConfig {
     private String mHost;
 
     /** IPのホワイトリスト. */
-    private ArrayList<String> mIpWhiteList;
+    private List<String> mIpWhiteList;
+
+    /** ファイルなどのキャッシュをおくフォルダへのパス. */
+    private String mCachePath;
+
+    /** 文字コード. */
+    private String mCharset = "UTF-8";
 
     /**
      * 最大コネクション数を取得する.
@@ -64,6 +70,14 @@ public final class DConnectServerConfig {
      */
     public String getDocumentRootPath() {
         return mDocumentRootPath;
+    }
+
+    /**
+     * キャッシュ置き場へのパスを取得する.
+     * @return キャッシュ置き場へのパス
+     */
+    public String getCachePath() {
+        return mCachePath;
     }
 
     /**
@@ -94,11 +108,19 @@ public final class DConnectServerConfig {
     }
 
     /**
+     * 文字コードを取得する.
+     * @return 文字コード
+     */
+    public String getCharset() {
+        return mCharset;
+    }
+
+    /**
      * IPのホワイトリストを取得する.
      * 
      * @return IPのホワイトリスト。
      */
-    public ArrayList<String> getIPWhiteList() {
+    public List<String> getIPWhiteList() {
         return mIpWhiteList;
     }
 
@@ -115,7 +137,9 @@ public final class DConnectServerConfig {
         this.mIsSsl = builder.mIsSsl;
         this.mPort = builder.mPort;
         this.mHost = builder.mHost;
+        this.mCachePath = builder.mCachePath;
         this.mIpWhiteList = builder.mIpWhiteList;
+        this.mCharset = builder.mCharset;
     }
 
     /**
@@ -135,6 +159,9 @@ public final class DConnectServerConfig {
         /** ドキュメントルートのパス. */
         private String mDocumentRootPath;
 
+        /** ファイルなどのキャッシュをおくフォルダへのパス. */
+        private String mCachePath;
+
         /** SSLを使うかのフラグ. */
         private boolean mIsSsl;
 
@@ -145,7 +172,10 @@ public final class DConnectServerConfig {
         private String mHost;
 
         /** IPのホワイトリスト. */
-        private ArrayList<String> mIpWhiteList;
+        private List<String> mIpWhiteList;
+
+        /** 文字コード. */
+        private String mCharset = "UTF-8";
 
         /**
          * DConnectServerConfigのインスタンスを設定された設定値で生成する.
@@ -250,13 +280,41 @@ public final class DConnectServerConfig {
         }
 
         /**
+         * 一時的なキャッシュ置き場へのパスを設定する.
+         * @param cachePath キャッシュ置き場へのパス
+         * @return ビルダー。
+         */
+        public Builder cachePath(final String cachePath) {
+            if (cachePath == null) {
+                throw new IllegalArgumentException("cachePath root must be not null.");
+            }
+            mCachePath = cachePath;
+            return this;
+        }
+
+        /**
          * IPのホワイトリストを設定する.
-         * 
+         * <p>
+         * 空のリストが設定された場合には、ホワイトリストは無視します。
+         * </p>
          * @param ipWhiteList IPのホワイトリスト。
          * @return ビルダー。
          */
-        public Builder ipWhiteList(final ArrayList<String> ipWhiteList) {
+        public Builder ipWhiteList(final List<String> ipWhiteList) {
             this.mIpWhiteList = ipWhiteList;
+            return this;
+        }
+
+        /**
+         * 文字コードを設定する.
+         * <p>
+         * デフォルトでは、UTF-8が設定してあります。
+         * </p>
+         * @param charset 文字コード
+         * @return ビルダー。
+         */
+        public Builder charset(final String charset) {
+            mCharset = charset;
             return this;
         }
     }

@@ -43,6 +43,9 @@ import java.util.concurrent.Executors;
  */
 public class DConnectService extends DConnectMessageService {
 
+    /**
+     * WakeLockのタグを定義する.
+     */
     private static final String TAG_WAKE_LOCK = "DeviceConnectManager";
 
     public static final String ACTION_DISCONNECT_WEB_SOCKET = "disconnect.WebSocket";

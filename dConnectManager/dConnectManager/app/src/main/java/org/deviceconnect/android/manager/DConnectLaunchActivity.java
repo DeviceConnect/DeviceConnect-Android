@@ -99,6 +99,7 @@ public class DConnectLaunchActivity extends Activity {
             String host = uri.getHost();
             String path = uri.getPath();
             if (HOST_START.equals(host)) {
+                preventAutoStop();
                 if (!allowExternalStartAndStop() || PATH_ROOT.equals(path) || PATH_ACTIVITY.equals(path)) {
                     mBehavior = new Runnable() {
                         @Override
@@ -231,6 +232,12 @@ public class DConnectLaunchActivity extends Activity {
     private synchronized void bindManagerService() {
         Intent bindIntent = new Intent(getApplicationContext(), DConnectService.class);
         mIsBind = bindService(bindIntent, mServiceConnection, Context.BIND_AUTO_CREATE);
+    }
+
+    private void preventAutoStop() {
+        Intent targetIntent = new Intent();
+        targetIntent.setClass(getApplicationContext(), DConnectService.class);
+        startService(targetIntent);
     }
 
     private void startManager() {

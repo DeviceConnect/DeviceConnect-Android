@@ -120,7 +120,7 @@ public class DConnectLaunchActivity extends Activity {
                         @Override
                         public void run() {
                             startManager();
-                            onActivityResult(0, RESULT_OK, null);
+                            setResult(RESULT_OK);
                             finish();
                         }
                     };
@@ -157,7 +157,7 @@ public class DConnectLaunchActivity extends Activity {
                                 mLogger.warning("Cannot stop Device Connect Manager automatically.");
                                 result = RESULT_ERROR;
                             }
-                            onActivityResult(0, result, null);
+                            setResult(result);
                             finish();
                         }
                     };
@@ -180,7 +180,6 @@ public class DConnectLaunchActivity extends Activity {
     @Override
     protected void onPause() {
         super.onPause();
-        onActivityResult(0, RESULT_CANCELED, null);
         if (mIsBind) {
             unbindService(mServiceConnection);
             mIsBind = false;
@@ -268,7 +267,7 @@ public class DConnectLaunchActivity extends Activity {
         cancelButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View v) {
-                onActivityResult(0, RESULT_OK, null);
+                setResult(RESULT_OK);
                 finish();
             }
         });
@@ -303,7 +302,7 @@ public class DConnectLaunchActivity extends Activity {
                 @Override
                 public void onClick(final View v) {
                     stopManager();
-                    onActivityResult(0, RESULT_OK, null);
+                    setResult(RESULT_OK);
                     finish();
                 }
             });
@@ -314,7 +313,7 @@ public class DConnectLaunchActivity extends Activity {
                 @Override
                 public void onClick(final View v) {
                     startManager();
-                    onActivityResult(0, RESULT_OK, null);
+                    setResult(RESULT_OK);
                     finish();
                 }
             });

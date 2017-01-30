@@ -451,14 +451,29 @@ public abstract class DConnectMessageService extends Service
         return mProfileMap.get(name);
     }
 
+    /**
+     * リクエスト用Intentからプロファイルを取得する.
+     * @param request リクエスト用Intent
+     * @return プロファイル
+     */
     private DConnectProfile getProfile(final Intent request) {
         return getProfile(DConnectProfile.getProfile(request));
     }
 
+    /**
+     * リクエスト用Intentからプロファイル名を取得する.
+     * @param request リクエスト用Intent
+     * @return プロファイル名
+     */
     protected String parseProfileName(final Intent request) {
-        return request.getStringExtra(DConnectMessage.EXTRA_PROFILE);
+        return DConnectProfile.getProfile(request);
     }
 
+    /**
+     * レスポンス用Intentからリクエストコードを取得する.
+     * @param response レスポンス用Intent
+     * @return リクエストコード
+     */
     private int getRequestCode(final Intent response) {
         return response.getIntExtra(IntentDConnectMessage.EXTRA_REQUEST_CODE, ERROR_CODE);
     }
@@ -503,10 +518,8 @@ public abstract class DConnectMessageService extends Service
     /**
      * DConnectManagerを起動する。
      */
-    protected synchronized void startDConnect() {
-        if (BuildConfig.DEBUG) {
-            mLogger.info("DConnectSettings: " + mSettings.toString());
-        }
+    protected void startDConnect() {
+        mRunningFlag = true;
 
         mHmacManager = new HmacManager(this);
         mRequestManager = new DConnectRequestManager();
@@ -516,14 +529,12 @@ public abstract class DConnectMessageService extends Service
         mPluginMgr.setEventListener(this);
 
         showNotification();
-
-        mRunningFlag = true;
     }
 
     /**
      * DConnectManagerを停止する.
      */
-    protected synchronized void stopDConnect() {
+    protected void stopDConnect() {
         mRunningFlag = false;
 
         if (mPluginMgr != null) {
@@ -660,10 +671,18 @@ public abstract class DConnectMessageService extends Service
         sendBroadcast(targetIntent);
     }
 
+    /**
+     * オリジン要求設定を取得する.
+     * @return オリジンが必要な場合はtrue、それ以外はfalse
+     */
     public boolean requiresOrigin() {
         return mSettings.requireOrigin();
     }
 
+    /**
+     * Local OAuth要求設定を取得する.
+     * @return Local OAuthが必要な場合はtrue、それ以外はfalse
+     */
     public boolean usesLocalOAuth() {
         return mSettings.isUseALocalOAuth();
     }

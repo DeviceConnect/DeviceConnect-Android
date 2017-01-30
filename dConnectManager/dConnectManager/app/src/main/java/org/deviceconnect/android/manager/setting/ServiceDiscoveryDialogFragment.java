@@ -1,3 +1,9 @@
+/*
+ ServiceDiscoveryDialogFragment.java
+ Copyright (c) 2016 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.manager.setting;
 
 import android.app.Dialog;
@@ -7,6 +13,11 @@ import android.os.Bundle;
 
 import org.deviceconnect.android.manager.R;
 
+/**
+ * ServiceDiscovery実行中を表示するダイアログ.
+ *
+ * @author NTT DOCOMO, INC.
+ */
 public class ServiceDiscoveryDialogFragment extends DialogFragment {
 
     @Override
@@ -24,5 +35,4 @@ public class ServiceDiscoveryDialogFragment extends DialogFragment {
         dismiss();
         super.onPause();
     }
-
 }

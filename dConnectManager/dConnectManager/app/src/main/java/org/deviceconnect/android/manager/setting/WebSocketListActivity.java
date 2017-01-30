@@ -1,3 +1,9 @@
+/*
+ WebSocketListActivity.java
+ Copyright (c) 2016 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.manager.setting;
 
 import android.app.ActionBar;
@@ -24,12 +30,27 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
+/**
+ * WebSocketを管理するためのActivity.
+ *
+ * @author NTT DOCOMO, INC.
+ */
 public class WebSocketListActivity extends Activity implements AlertDialogFragment.OnAlertDialogListener,
         WebSocketInfoManager.OnWebSocketEventListener {
 
+    /**
+     * WebSocket切断確認用ダイアログのタグ名を定義する.
+     */
     private static final String TAG_DELETE_WEB_SOCKET = "delete_web_socket";
 
+    /**
+     * WebSocket管理クラス.
+     */
     private WebSocketInfoAdapter mWebSocketInfoAdapter;
+
+    /**
+     * 切断するWebSocketを一時的に保持するための変数.
+     */
     private WebSocketInfo mWebSocketInfo;
 
     @Override
@@ -92,7 +113,7 @@ public class WebSocketListActivity extends Activity implements AlertDialogFragme
 
     @Override
     public void onNegativeButton(final String tag) {
-
+        // ダイアログを閉じるだけで何もしない
     }
 
     @Override
@@ -106,6 +127,10 @@ public class WebSocketListActivity extends Activity implements AlertDialogFragme
         });
     }
 
+    /**
+     * 指定されたWebSocketを切断するか確認するダイアログを表示する.
+     * @param position 切断するWebSocketのリストの位置
+     */
     private void showDeleteDialog(final int position) {
         mWebSocketInfo = (WebSocketInfo) mWebSocketInfoAdapter.getItem(position);
 
@@ -117,15 +142,35 @@ public class WebSocketListActivity extends Activity implements AlertDialogFragme
         dialog.show(getFragmentManager(), TAG_DELETE_WEB_SOCKET);
     }
 
+    /**
+     * WebSocket管理クラスを取得する.
+     * @return WebSocket管理クラス
+     */
     private WebSocketInfoManager getWebSocketInfoManager() {
         DConnectApplication app = (DConnectApplication) getApplication();
         return app.getWebSocketInfoManager();
     }
 
+    /**
+     * WebSocketリストを表示するためのアダプタ.
+     *
+     * @author NTT DOCOMO, INC.
+     */
     private class WebSocketInfoAdapter extends BaseAdapter {
+        /**
+         * 接続を開始した時間のフォーマットを定義する.
+         */
         private final SimpleDateFormat mDateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm", Locale.JAPAN);
+
+        /**
+         * WebSocketのリスト.
+         */
         private List<WebSocketInfo> mWebSocketInfoList = new ArrayList<>();
 
+        /**
+         * WebSocketのリストを設定する.
+         * @param webSocketInfoList WebSocketのリスト
+         */
         public void setWebSocketInfoList(List<WebSocketInfo> webSocketInfoList) {
             mWebSocketInfoList = webSocketInfoList;
         }

@@ -427,7 +427,6 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
             mDConnectService.startInternal();
         } else {
             mDConnectService.stopInternal();
-            notifyManagerTerminate();
         }
     }
 
@@ -637,13 +636,6 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
      */
     private void restartDevicePlugins() {
         RestartingDialogFragment.show(getActivity());
-    }
-
-    /**
-     * Manager termination notification to all device plug-ins.
-     */
-    private void notifyManagerTerminate() {
-        ManagerTerminationFragment.show(getActivity());
     }
 
     /**

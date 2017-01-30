@@ -123,14 +123,14 @@ class DConnectServerEventListenerImpl implements DConnectServerEventListener {
     @Override
     public void onWebSocketConnected(final DConnectWebSocket webSocket) {
         if (BuildConfig.DEBUG) {
-            mLogger.info("onWebSocketConnected: id = " + webSocket.getId());
+            mLogger.info("onWebSocketConnected: WebSocket = " + webSocket.toString());
         }
     }
 
     @Override
     public void onWebSocketDisconnected(final DConnectWebSocket webSocket) {
         if (BuildConfig.DEBUG) {
-            mLogger.info("onWebSocketDisconnected: id = " + webSocket.getId());
+            mLogger.info("onWebSocketDisconnected: WebSocket = " + webSocket.toString());
         }
 
         DConnectService service = (DConnectService) mContext;
@@ -143,8 +143,8 @@ class DConnectServerEventListenerImpl implements DConnectServerEventListener {
             }
         }
         if (disconnected != null) {
-            eventBroker.removeEventSession(disconnected.getReceiverId());
-            getWebSocketInfoManager().removeWebSocketInfo(disconnected.getReceiverId());
+            eventBroker.removeEventSession(disconnected.getOrigin());
+            getWebSocketInfoManager().removeWebSocketInfo(disconnected.getOrigin());
         }
     }
 

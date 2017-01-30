@@ -96,7 +96,7 @@ public class WebSocketListActivity extends Activity implements AlertDialogFragme
     }
 
     @Override
-    public void onDisconnect(final String sessionKey) {
+    public void onDisconnect(final String origin) {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {

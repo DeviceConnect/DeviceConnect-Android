@@ -1189,6 +1189,11 @@ public class DConnectServerNanoHttpd extends DConnectServer {
             mLogger.warning("Exception in the NanoWebSocket#onException() method. " + e.toString());
         }
 
+        @Override
+        public String toString() {
+            return "{ id=" + getId() + " origin=" + getClientOrigin() + ", uri=" + getUri() + " }";
+        }
+
         /**
          * Keep-Alive用タイマータスク.
          *

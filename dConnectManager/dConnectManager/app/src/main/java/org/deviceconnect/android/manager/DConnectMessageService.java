@@ -21,7 +21,6 @@ import org.deviceconnect.android.event.cache.MemoryCacheController;
 import org.deviceconnect.android.localoauth.CheckAccessTokenResult;
 import org.deviceconnect.android.localoauth.ClientPackageInfo;
 import org.deviceconnect.android.localoauth.LocalOAuth2Main;
-import org.deviceconnect.android.logger.AndroidHandler;
 import org.deviceconnect.android.manager.DevicePluginManager.DevicePluginEventListener;
 import org.deviceconnect.android.manager.event.EventBroker;
 import org.deviceconnect.android.manager.event.EventSessionTable;
@@ -57,9 +56,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.logging.SimpleFormatter;
 
 /**
  * DConnectMessageを受信するサービス.
@@ -135,16 +132,6 @@ public abstract class DConnectMessageService extends Service
     @Override
     public void onCreate() {
         super.onCreate();
-
-        if (BuildConfig.DEBUG) {
-            AndroidHandler handler = new AndroidHandler("dconnect.manager");
-            handler.setFormatter(new SimpleFormatter());
-            handler.setLevel(Level.ALL);
-            mLogger.addHandler(handler);
-            mLogger.setLevel(Level.ALL);
-        } else {
-            mLogger.setLevel(Level.OFF);
-        }
 
         // イベント管理クラスの初期化
         EventManager.INSTANCE.setController(new MemoryCacheController());
@@ -518,14 +505,7 @@ public abstract class DConnectMessageService extends Service
      */
     protected synchronized void startDConnect() {
         if (BuildConfig.DEBUG) {
-            mLogger.info("DConnectManager#Settings");
-            mLogger.info("    SSL: " + mSettings.isSSL());
-            mLogger.info("    Host: " + mSettings.getHost());
-            mLogger.info("    Port: " + mSettings.getPort());
-            mLogger.info("    Allow External IP: " + mSettings.allowExternalIP());
-            mLogger.info("    RequireOrigin: " + mSettings.requireOrigin());
-            mLogger.info("    LocalOAuth: " + mSettings.isUseALocalOAuth());
-            mLogger.info("    OriginBlock: " + mSettings.isBlockingOrigin());
+            mLogger.info("DConnectSettings: " + mSettings.toString());
         }
 
         mHmacManager = new HmacManager(this);

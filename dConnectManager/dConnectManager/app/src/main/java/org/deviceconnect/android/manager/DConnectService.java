@@ -311,10 +311,7 @@ public class DConnectService extends DConnectMessageService {
 
                 if (BuildConfig.DEBUG) {
                     mLogger.info("RESTful Server was Started.");
-                    mLogger.info("Host: " + mSettings.getHost());
-                    mLogger.info("Port: " + mSettings.getPort());
-                    mLogger.info("SSL: " + mSettings.isSSL());
-                    mLogger.info("External IP: " + mSettings.allowExternalIP());
+                    mLogger.info("DConnectSettings: " + mSettings.toString());
                 }
 
                 mRESTfulServer = new DConnectServerNanoHttpd(builder.build(), getApplicationContext());

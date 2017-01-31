@@ -7,7 +7,7 @@ var util = (function(parent, global) {
             'serviceinformation',
             'system',
             'battery',
-            'connect',
+            'connection',
             'deviceorientation',
             'filedescriptor',
             'file',

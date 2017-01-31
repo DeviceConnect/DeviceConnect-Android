@@ -1272,6 +1272,7 @@ var dConnect = (function(parent, global) {
   }
 
   /**
+  /**
    * Android端末上でDevice Connect Managerを起動する.
    * <p>
    * 注意: 起動に成功した場合、起動用Intentを受信するためのActivity起動する.
@@ -1280,19 +1281,23 @@ var dConnect = (function(parent, global) {
    * Activityの実装依存とする.
    * </p>
    * @private
+   * @param state 起動画面を出すか出さないか
    */
-  var startManagerForAndroid = function() {
+  var startManagerForAndroid = function(state) {
     _currentHmacKey = isEnabledAntiSpoofing() ?
                         generateRandom(HMAC_KEY_BYTES) : '';
     var urlScheme = new AndroidURISchemeBuilder();
     var url;
     var origin = encodeURIComponent(location.origin);
+    if (state === undefined) {
+        state = '';
+    }
     if (isFirefox()) {
-      url = uriSchemeName + '://start/'
-              + '?origin=' + origin
-              + '&key=' + _currentHmacKey;
+        url = uriSchemeName + '://start/' + state
+                  + '?origin=' + origin
+                  + '&key=' + _currentHmacKey;
     } else {
-      urlScheme.setPath('start');
+       urlScheme.setPath('start/' + state);
       urlScheme.addParameter('package', 'org.deviceconnect.android.manager');
       urlScheme.addParameter('S.origin', origin);
       urlScheme.addParameter('S.key', _currentHmacKey);
@@ -1306,23 +1311,81 @@ var dConnect = (function(parent, global) {
    * @private
    */
   var startManagerForIOS = function() {
-    window.location.href = uriSchemeName + ':' +
+    window.location.href = uriSchemeName + '://start?url=' +
                   encodeURIComponent(window.location.href);
   };
 
   /**
    * Device Connect Managerを起動する.
    * @memberOf dConnect
+   * @param state 起動画面を出すか出さないか
    */
-  var startManager = function() {
+  var startManager = function(state) {
     var userAgent = navigator.userAgent.toLowerCase();
     if (userAgent.indexOf('android') > -1) {
-      startManagerForAndroid();
+      startManagerForAndroid(state);
     } else if (userAgent.search(/iphone|ipad|ipod/) > -1) {
       startManagerForIOS();
     }
   };
   parent.startManager = startManager;
+
+  /**
+   * Android端末上でDevice Connect Managerを停止する.
+   * <p>
+   * 注意: 停止に成功した場合、停止用Intentを受信するためのActivity起動する.
+   * つまり、このときWebブラウザがバックグラウンドに移動するので注意.
+   * そのActivityの消えるタイミング(自動的に消えるか、もしくはユーザー操作で消すのか)は
+   * Activityの実装依存とする.
+   * </p>
+   * @private
+   * @param state 起動画面を出すか出さないか
+   */
+  var stopManagerForAndroid = function(state) {
+    _currentHmacKey = isEnabledAntiSpoofing() ?
+                        generateRandom(HMAC_KEY_BYTES) : '';
+    var urlScheme = new AndroidURISchemeBuilder();
+    var url;
+    var origin = encodeURIComponent(location.origin);
+    if (state === undefined) {
+        state = '';
+    }
+    if (isFirefox()) {
+        url = uriSchemeName + '://stop/' + state
+              + '?origin=' + origin
+              + '&key=' + _currentHmacKey;
+    } else {
+       urlScheme.setPath('stop/' + state);
+      urlScheme.addParameter('package', 'org.deviceconnect.android.manager');
+      urlScheme.addParameter('S.origin', origin);
+      urlScheme.addParameter('S.key', _currentHmacKey);
+      url = urlScheme.build();
+    }
+    location.href = url;
+  };
+
+  /**
+   * iOS端末上でDevice Connect Managerを停止する.
+   * @private
+   */
+  var stopManagerForIOS = function() {
+    window.location.href = uriSchemeName + '://stop';
+  };
+
+  /**
+   * Device Connect Managerを停止する.
+   * @memberOf dConnect
+   * @param state 停止画面を出すか出さないか
+   */
+  var stopManager = function(state) {
+    var userAgent = navigator.userAgent.toLowerCase();
+    if (userAgent.indexOf('android') > -1) {
+      stopManagerForAndroid(state);
+    } else if (userAgent.search(/iphone|ipad|ipod/) > -1) {
+      stopManagerForIOS();
+    }
+  };
+  parent.stopManager = stopManager;
 
   /**
    * 指定されたURIにリクエストパラメータを追加する.
@@ -1688,7 +1751,7 @@ var dConnect = (function(parent, global) {
         parent.put(uri, null, null, function(json) {
             eventListener[uri.toLowerCase()] = event_cb;
             if (success_cb) {
-                success_cb();
+                success_cb(json);
             }
         }, error_cb);
     };
@@ -1709,7 +1772,7 @@ var dConnect = (function(parent, global) {
         parent.delete(uri, null, function(json) {
             delete eventListener[uri.toLowerCase()];
             if (success_cb) {
-                success_cb();
+                success_cb(json);
             }
         }, error_cb);
     };
@@ -1933,7 +1996,7 @@ var dConnect = (function(parent, global) {
    * @example
    * // Websocketを開く
    * dConnect.connectWebSocket(accessToken, function(eventCode, message) {
-     * });
+   * });
    *
    */
   var connectWebSocket = function(accessToken, cb) {
@@ -1946,8 +2009,6 @@ var dConnect = (function(parent, global) {
     websocket.onopen = function(e) {
       isOpenedWebSocket = true;
 
-      startMonitoringWebsocket(accessToken, cb);
-
       // 本アプリのイベント用WebSocketと1対1で紐づいたセッションキーをDevice Connect Managerに登録してもらう。
       websocket.send('{"accessToken":"' + accessToken + '"}');
       if (cb) {
@@ -1959,6 +2020,7 @@ var dConnect = (function(parent, global) {
       if (!isEstablishedWebSocket) {
         if (json.result === 0) {
           isEstablishedWebSocket = true;
+          startMonitoringWebsocket(accessToken, cb);
           cb(-1, 'established');
         } else {
           cb(2 + json.errorCode, json.errorMessage);
@@ -2104,7 +2166,7 @@ var dConnect = (function(parent, global) {
    * @return {String} URIスキームの文字列表現
    */
   AndroidURISchemeBuilder.prototype.build = function() {
-    var urlScheme = 'intent://' + this.path + '/#Intent;scheme=' +
+    var urlScheme = 'intent://' + this.path + '#Intent;scheme=' +
                             this.scheme + ';';
     for (var key in this.params) {
       urlScheme += key + '=' + this.params[key] + ';';

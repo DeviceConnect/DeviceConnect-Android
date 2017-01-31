@@ -68,11 +68,11 @@
         <name lang="en">Proximity (for test)</name>
         <description lang="en">Receives proximity events. (for test)</description>
     </profile>
-    <profile name="connect" expireperiod="86400000">
+    <profile name="connection" expireperiod="86400000">
         <name lang="ja">接続 (テスト用)</name>
         <description lang="ja">デバイスとの接続機能にアクセスする (テスト用)</description>
-        <name lang="en">Connect (for test)</name>
-        <description lang="en">Connects smart phone to devices. (for test)</description>
+        <name lang="en">Connection (for test)</name>
+        <description lang="en">Connections smart phone to devices. (for test)</description>
     </profile>
     <profile name="mediaStreamRecording" expireperiod="86400000">
         <name lang="ja">メディアレコーディング (テスト用)</name>

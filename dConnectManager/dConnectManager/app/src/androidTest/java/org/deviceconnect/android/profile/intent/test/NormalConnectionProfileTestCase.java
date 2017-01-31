@@ -1,6 +1,6 @@
 /*
- NormalConnectProfileTestCase.java
- Copyright (c) 2014 NTT DOCOMO,INC.
+ NormalConnectionProfileTestCase.java
+ Copyright (c) 2017 NTT DOCOMO,INC.
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
  */
@@ -16,11 +16,11 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 /**
- * Connectプロファイルの正常系テスト.
+ * Connectionプロファイルの正常系テスト.
  * @author NTT DOCOMO, INC.
  */
 @RunWith(AndroidJUnit4.class)
-public class NormalConnectProfileTestCase extends IntentDConnectTestCase {
+public class NormalConnectionProfileTestCase extends IntentDConnectTestCase {
 
     /**
      * WiFi機能有効状態(ON/OFF)取得テストを行う.
@@ -28,7 +28,7 @@ public class NormalConnectProfileTestCase extends IntentDConnectTestCase {
      * <pre>
      * 【Intent通信】
      * Action: GET
-     * Profile: connect
+     * Profile: connection
      * Interface: なし
      * Attribute: wifi
      * </pre>
@@ -54,7 +54,7 @@ public class NormalConnectProfileTestCase extends IntentDConnectTestCase {
      * <pre>
      * 【Intent通信】
      * Action: PUT
-     * Profile: connect
+     * Profile: connection
      * Interface: なし
      * Attribute: wifi
      * </pre>
@@ -80,7 +80,7 @@ public class NormalConnectProfileTestCase extends IntentDConnectTestCase {
      * <pre>
      * 【Intent通信】
      * Action: PUT
-     * Profile: connect
+     * Profile: connection
      * Interface: なし
      * Attribute: wifi
      * </pre>
@@ -106,7 +106,7 @@ public class NormalConnectProfileTestCase extends IntentDConnectTestCase {
      * <pre>
      * 【Intent通信】
      * Action: PUT
-     * Profile: connect
+     * Profile: connection
      * Interface: なし
      * Attribute: onwifichange
      * </pre>
@@ -134,7 +134,7 @@ public class NormalConnectProfileTestCase extends IntentDConnectTestCase {
      * <pre>
      * 【Intent通信】
      * Action: DELETE
-     * Profile: connect
+     * Profile: connection
      * Interface: なし
      * Attribute: onwifichange
      * </pre>
@@ -161,7 +161,7 @@ public class NormalConnectProfileTestCase extends IntentDConnectTestCase {
      * <pre>
      * 【Intent通信】
      * Action: GET
-     * Profile: connect
+     * Profile: connection
      * Interface: なし
      * Attribute: bluetooth
      * </pre>
@@ -187,7 +187,7 @@ public class NormalConnectProfileTestCase extends IntentDConnectTestCase {
      * <pre>
      * 【Intent通信】
      * Action: PUT
-     * Profile: connect
+     * Profile: connection
      * Interface: なし
      * Attribute: bluetooth
      * </pre>
@@ -213,7 +213,7 @@ public class NormalConnectProfileTestCase extends IntentDConnectTestCase {
      * <pre>
      * 【Intent通信】
      * Action: DELETE
-     * Profile: connect
+     * Profile: connection
      * Interface: なし
      * Attribute: bluetooth
      * </pre>
@@ -239,7 +239,7 @@ public class NormalConnectProfileTestCase extends IntentDConnectTestCase {
      * <pre>
      * 【Intent通信】
      * Action: PUT
-     * Profile: connect
+     * Profile: connection
      * Interface: なし
      * Attribute: onbluetoothchange
      * </pre>
@@ -266,7 +266,7 @@ public class NormalConnectProfileTestCase extends IntentDConnectTestCase {
      * <pre>
      * 【Intent通信】
      * Action: DELETE
-     * Profile: connect
+     * Profile: connection
      * Interface: なし
      * Attribute: onbluetoothchange
      * </pre>
@@ -293,7 +293,7 @@ public class NormalConnectProfileTestCase extends IntentDConnectTestCase {
      * <pre>
      * 【Intent通信】
      * Action: PUT
-     * Profile: connect
+     * Profile: connection
      * Interface: bluetooth
      * Attribute: discoverable
      * </pre>
@@ -320,7 +320,7 @@ public class NormalConnectProfileTestCase extends IntentDConnectTestCase {
      * <pre>
      * 【Intent通信】
      * Action: DELETE
-     * Profile: connect
+     * Profile: connection
      * Interface: bluetooth
      * Attribute: discoverable
      * </pre>
@@ -347,7 +347,7 @@ public class NormalConnectProfileTestCase extends IntentDConnectTestCase {
      * <pre>
      * 【Intent通信】
      * Action: GET
-     * Profile: connect
+     * Profile: connection
      * Interface: なし
      * Attribute: nfc
      * </pre>
@@ -373,7 +373,7 @@ public class NormalConnectProfileTestCase extends IntentDConnectTestCase {
      * <pre>
      * 【Intent通信】
      * Action: PUT
-     * Profile: connect
+     * Profile: connection
      * Interface: なし
      * Attribute: nfc
      * </pre>
@@ -399,7 +399,7 @@ public class NormalConnectProfileTestCase extends IntentDConnectTestCase {
      * <pre>
      * 【Intent通信】
      * Action: DELETE
-     * Profile: connect
+     * Profile: connection
      * Interface: なし
      * Attribute: nfc
      * </pre>
@@ -425,7 +425,7 @@ public class NormalConnectProfileTestCase extends IntentDConnectTestCase {
      * <pre>
      * 【Intent通信】
      * Action: PUT
-     * Profile: connect
+     * Profile: connection
      * Interface: なし
      * Attribute: onnfcchange
      * </pre>
@@ -452,7 +452,7 @@ public class NormalConnectProfileTestCase extends IntentDConnectTestCase {
      * <pre>
      * 【Intent通信】
      * Action: DELETE
-     * Profile: connect
+     * Profile: connection
      * Interface: なし
      * Attribute: onnfcchange
      * </pre>
@@ -479,7 +479,7 @@ public class NormalConnectProfileTestCase extends IntentDConnectTestCase {
      * <pre>
      * 【Intent通信】
      * Action: GET
-     * Profile: connect
+     * Profile: connection
      * Interface: なし
      * Attribute: ble
      * </pre>
@@ -505,7 +505,7 @@ public class NormalConnectProfileTestCase extends IntentDConnectTestCase {
      * <pre>
      * 【Intent通信】
      * Action: PUT
-     * Profile: connect
+     * Profile: connection
      * Interface: なし
      * Attribute: ble
      * </pre>
@@ -531,7 +531,7 @@ public class NormalConnectProfileTestCase extends IntentDConnectTestCase {
      * <pre>
      * 【Intent通信】
      * Action: DELETE
-     * Profile: connect
+     * Profile: connection
      * Interface: なし
      * Attribute: ble
      * </pre>
@@ -557,7 +557,7 @@ public class NormalConnectProfileTestCase extends IntentDConnectTestCase {
      * <pre>
      * 【Intent通信】
      * Action: PUT
-     * Profile: connect
+     * Profile: connection
      * Interface: なし
      * Attribute: onblechange
      * </pre>
@@ -584,7 +584,7 @@ public class NormalConnectProfileTestCase extends IntentDConnectTestCase {
      * <pre>
      * 【Intent通信】
      * Action: DELETE
-     * Profile: connect
+     * Profile: connection
      * Interface: なし
      * Attribute: onblechange
      * </pre>

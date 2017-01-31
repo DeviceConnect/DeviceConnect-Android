@@ -1,5 +1,5 @@
 /*
- NormalConnectProfileTestCase.java
+ NormalConnectionProfileTestCase.java
  Copyright (c) 2014 NTT DOCOMO,INC.
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
@@ -21,18 +21,18 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 /**
- * Connectプロファイルの正常系テスト.
+ * Connectionプロファイルの正常系テスト.
  * @author NTT DOCOMO, INC.
  */
 @RunWith(AndroidJUnit4.class)
-public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
+public class NormalConnectionProfileTestCase extends RESTfulDConnectTestCase {
 
     /**
      * WiFi機能有効状態(ON/OFF)取得テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /connect/wifi?deviceid=xxxx
+     * Path: /connection/wifi?deviceid=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -64,7 +64,7 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/wifi?deviceid=xxxx
+     * Path: /connection/wifi?deviceid=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -95,7 +95,7 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/wifi?deviceid=xxxx
+     * Path: /connection/wifi?deviceid=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -126,7 +126,7 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/wifichange?deviceid=xxxx&session_key=xxxx
+     * Path: /connection/wifichange?deviceid=xxxx&session_key=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -157,7 +157,7 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/wifichange?deviceid=xxxx&session_key=xxxx
+     * Path: /connection/wifichange?deviceid=xxxx&session_key=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -188,7 +188,7 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /connect/bluetooth?deviceid=xxxx
+     * Path: /connection/bluetooth?deviceid=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -220,7 +220,7 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/bluetooth?deviceid=xxxx
+     * Path: /connection/bluetooth?deviceid=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -251,7 +251,7 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/bluetooth?deviceid=xxxx
+     * Path: /connection/bluetooth?deviceid=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -282,7 +282,7 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/bluetoothchange?deviceid=xxxx&session_key=xxxx
+     * Path: /connection/bluetoothchange?deviceid=xxxx&session_key=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -313,7 +313,7 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/bluetoothchange?deviceid=xxxx&session_key=xxxx
+     * Path: /connection/bluetoothchange?deviceid=xxxx&session_key=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -344,7 +344,7 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/bluetooth/discoverable?deviceid=xxxx
+     * Path: /connection/bluetooth/discoverable?deviceid=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -376,7 +376,7 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/bluetooth/discoverable?deviceid=xxxx
+     * Path: /connection/bluetooth/discoverable?deviceid=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -408,7 +408,7 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /connect/nfc?deviceid=xxxx
+     * Path: /connection/nfc?deviceid=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -440,7 +440,7 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/nfc?deviceid=xxxx
+     * Path: /connection/nfc?deviceid=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -471,7 +471,7 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/nfc?deviceid=xxxx
+     * Path: /connection/nfc?deviceid=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -502,7 +502,7 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/nfcchange?deviceid=xxxx&session_key=xxxx
+     * Path: /connection/nfcchange?deviceid=xxxx&session_key=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -533,7 +533,7 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/nfcchange?deviceid=xxxx&session_key=xxxx
+     * Path: /connection/nfcchange?deviceid=xxxx&session_key=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -564,7 +564,7 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /connect/ble?deviceid=xxxx
+     * Path: /connection/ble?deviceid=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -596,7 +596,7 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/ble?deviceid=xxxx
+     * Path: /connection/ble?deviceid=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -627,7 +627,7 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/ble?deviceid=xxxx
+     * Path: /connection/ble?deviceid=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -658,7 +658,7 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/blechange?deviceid=xxxx&session_key=xxxx
+     * Path: /connection/blechange?deviceid=xxxx&session_key=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -689,7 +689,7 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/blechange?deviceid=xxxx&session_key=xxxx
+     * Path: /connection/blechange?deviceid=xxxx&session_key=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】

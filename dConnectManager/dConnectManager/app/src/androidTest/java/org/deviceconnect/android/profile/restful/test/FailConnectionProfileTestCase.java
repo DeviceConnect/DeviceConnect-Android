@@ -1,6 +1,6 @@
 /*
- FailConnectProfileTestCase.java
- Copyright (c) 2014 NTT DOCOMO,INC.
+ FailConnectionProfileTestCase.java
+ Copyright (c) 2017 NTT DOCOMO,INC.
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
  */
@@ -24,18 +24,18 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 /**
- * Connectプロファイルの異常系テスト.
+ * Connectionプロファイルの異常系テスト.
  * @author NTT DOCOMO, INC.
  */
 @RunWith(AndroidJUnit4.class)
-public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
+public class FailConnectionProfileTestCase extends RESTfulDConnectTestCase {
 
     /**
      * serviceIdが無い状態でWiFi機能有効状態(ON/OFF)取得テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /connect/wifi
+     * Path: /connection/wifi
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -62,7 +62,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /connect/wifi?serviceId=
+     * Path: /connection/wifi?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -90,7 +90,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /connect/wifi?serviceId=123456789
+     * Path: /connection/wifi?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -118,7 +118,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /connect/wifi?serviceId=xxxxx&abc=abc
+     * Path: /connection/wifi?serviceId=xxxxx&abc=abc
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -149,7 +149,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /connect/wifi?serviceId=123456789&serviceId=xxx
+     * Path: /connection/wifi?serviceId=123456789&serviceId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -179,7 +179,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/wifi
+     * Path: /connection/wifi
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -206,7 +206,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/wifi?serviceId=
+     * Path: /connection/wifi?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -234,7 +234,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/wifi?serviceId=123456789
+     * Path: /connection/wifi?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -262,7 +262,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/wifi?serviceId=xxxxx&abc=abc
+     * Path: /connection/wifi?serviceId=xxxxx&abc=abc
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -292,7 +292,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/wifi?serviceId=123456789&serviceId=xxx
+     * Path: /connection/wifi?serviceId=123456789&serviceId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -322,7 +322,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/wifi
+     * Path: /connection/wifi
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -349,7 +349,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/wifi?serviceId=
+     * Path: /connection/wifi?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -377,7 +377,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/wifi?serviceId=123456789
+     * Path: /connection/wifi?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -405,7 +405,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/wifi?serviceId=xxxxx&abc=abc
+     * Path: /connection/wifi?serviceId=xxxxx&abc=abc
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -435,7 +435,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/wifi?serviceId=123456789&serviceId=xxxx
+     * Path: /connection/wifi?serviceId=123456789&serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -465,7 +465,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /connect/wifi?serviceId=xxxx
+     * Path: /connection/wifi?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -493,7 +493,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/onwifichange
+     * Path: /connection/onwifichange
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -520,7 +520,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/onwifichange?serviceId=
+     * Path: /connection/onwifichange?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -548,7 +548,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/onwifichange?serviceId=123456789
+     * Path: /connection/onwifichange?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -576,7 +576,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/onwifichange?serviceId=xxxxx&abc=abc
+     * Path: /connection/onwifichange?serviceId=xxxxx&abc=abc
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -606,7 +606,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/onwifichange?serviceId=123456789&serviceId=xxx
+     * Path: /connection/onwifichange?serviceId=123456789&serviceId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -636,7 +636,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/onwifichange
+     * Path: /connection/onwifichange
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -663,7 +663,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/onwifichange?serviceId=
+     * Path: /connection/onwifichange?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -691,7 +691,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/onwifichange?serviceId=123456789
+     * Path: /connection/onwifichange?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -719,7 +719,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/onwifichange?serviceId=xxxxx&abc=abc
+     * Path: /connection/onwifichange?serviceId=xxxxx&abc=abc
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -749,7 +749,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/onwifichange?serviceId=123456789&serviceId=xxx
+     * Path: /connection/onwifichange?serviceId=123456789&serviceId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -775,11 +775,11 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * メソッドをPOSTに指定して/connect/onwifichangeにアクセスするテストを行う.
+     * メソッドをPOSTに指定して/connection/onwifichangeにアクセスするテストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /connect/onwifichange?serviceId=xxxx&sessionKey=xxxx
+     * Path: /connection/onwifichange?serviceId=xxxx&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -807,7 +807,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /connect/bluetooth
+     * Path: /connection/bluetooth
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -834,7 +834,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /connect/bluetooth?serviceId=
+     * Path: /connection/bluetooth?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -862,7 +862,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /connect/bluetooth?serviceId=123456789
+     * Path: /connection/bluetooth?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -890,7 +890,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /connect/bluetooth?serviceId=xxxxx&abc=abc
+     * Path: /connection/bluetooth?serviceId=xxxxx&abc=abc
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -921,7 +921,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /connect/bluetooth?serviceId=123456789&serviceId=xxx
+     * Path: /connection/bluetooth?serviceId=123456789&serviceId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -951,7 +951,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/bluetooth
+     * Path: /connection/bluetooth
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -978,7 +978,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/bluetooth?serviceId=
+     * Path: /connection/bluetooth?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1006,7 +1006,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/bluetooth?serviceId=123456789
+     * Path: /connection/bluetooth?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1034,7 +1034,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/bluetooth?serviceId=xxxxx&abc=abc
+     * Path: /connection/bluetooth?serviceId=xxxxx&abc=abc
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1064,7 +1064,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/bluetooth?serviceId=123456789&serviceId=xxx
+     * Path: /connection/bluetooth?serviceId=123456789&serviceId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1094,7 +1094,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/bluetooth
+     * Path: /connection/bluetooth
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1121,7 +1121,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/bluetooth?serviceId=
+     * Path: /connection/bluetooth?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1149,7 +1149,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/bluetooth?serviceId=123456789
+     * Path: /connection/bluetooth?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1177,7 +1177,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/bluetooth?serviceId=xxxxx&abc=abc
+     * Path: /connection/bluetooth?serviceId=xxxxx&abc=abc
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1207,7 +1207,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/bluetooth?serviceId=123456789&serviceId=xxx
+     * Path: /connection/bluetooth?serviceId=123456789&serviceId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1237,7 +1237,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /connect/bluetooth?serviceId=xxxx
+     * Path: /connection/bluetooth?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1265,7 +1265,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/bluetooth/discoverable
+     * Path: /connection/bluetooth/discoverable
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1293,7 +1293,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/bluetooth/discoverable?serviceId=
+     * Path: /connection/bluetooth/discoverable?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1322,7 +1322,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/bluetooth/discoverable?serviceId=123456789
+     * Path: /connection/bluetooth/discoverable?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1351,7 +1351,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/bluetooth/discoverable?serviceId=xxxxx&abc=abc
+     * Path: /connection/bluetooth/discoverable?serviceId=xxxxx&abc=abc
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1382,7 +1382,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/bluetooth/discoverable?serviceId=123456789&serviceId=xxx
+     * Path: /connection/bluetooth/discoverable?serviceId=123456789&serviceId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1413,7 +1413,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/bluetooth/discoverable
+     * Path: /connection/bluetooth/discoverable
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1441,7 +1441,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/bluetooth/discoverable?serviceId=
+     * Path: /connection/bluetooth/discoverable?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1470,7 +1470,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/bluetooth/discoverable?serviceId=123456789
+     * Path: /connection/bluetooth/discoverable?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1499,7 +1499,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/bluetooth/discoverable?serviceId=xxxxx&abc=abc
+     * Path: /connection/bluetooth/discoverable?serviceId=xxxxx&abc=abc
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1530,7 +1530,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/bluetooth/discoverable?serviceId=123456789&serviceId=xxx
+     * Path: /connection/bluetooth/discoverable?serviceId=123456789&serviceId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1561,7 +1561,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/onbluetoothchange
+     * Path: /connection/onbluetoothchange
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1588,7 +1588,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/onbluetoothchange?serviceId=
+     * Path: /connection/onbluetoothchange?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1616,7 +1616,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/onbluetoothchange?serviceId=123456789
+     * Path: /connection/onbluetoothchange?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1644,7 +1644,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/onbluetoothchange?serviceId=xxxxx&abc=abc
+     * Path: /connection/onbluetoothchange?serviceId=xxxxx&abc=abc
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1675,7 +1675,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/onbluetoothchange?serviceId=123456789&serviceId=xxx
+     * Path: /connection/onbluetoothchange?serviceId=123456789&serviceId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1706,7 +1706,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/onbluetoothchange
+     * Path: /connection/onbluetoothchange
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1734,7 +1734,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/onbluetoothchange?serviceId=
+     * Path: /connection/onbluetoothchange?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1763,7 +1763,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/onbluetoothchange?serviceId=123456789
+     * Path: /connection/onbluetoothchange?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1792,7 +1792,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/onbluetoothchange?serviceId=xxxxx&abc=abc
+     * Path: /connection/onbluetoothchange?serviceId=xxxxx&abc=abc
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1823,7 +1823,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/onbluetoothchange?serviceId=123456789&serviceId=xxx
+     * Path: /connection/onbluetoothchange?serviceId=123456789&serviceId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1850,11 +1850,11 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * メソッドをPOSTに指定して/connect/onbluetoothchangeにアクセスするテストを行う.
+     * メソッドをPOSTに指定して/connection/onbluetoothchangeにアクセスするテストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /connect/onbluetoothchange?serviceId=xxxx&sessionKey=xxxx
+     * Path: /connection/onbluetoothchange?serviceId=xxxx&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1883,7 +1883,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /connect/nfc
+     * Path: /connection/nfc
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1910,7 +1910,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /connect/nfc?serviceId=
+     * Path: /connection/nfc?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1938,7 +1938,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /connect/nfc?serviceId=123456789
+     * Path: /connection/nfc?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1966,7 +1966,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /connect/nfc?serviceId=xxxxx&abc=abc
+     * Path: /connection/nfc?serviceId=xxxxx&abc=abc
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1997,7 +1997,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /connect/nfc?serviceId=123456789&serviceId=xxx
+     * Path: /connection/nfc?serviceId=123456789&serviceId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -2027,7 +2027,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/nfc
+     * Path: /connection/nfc
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -2054,7 +2054,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/nfc?serviceId=
+     * Path: /connection/nfc?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -2082,7 +2082,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/nfc?serviceId=123456789
+     * Path: /connection/nfc?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -2110,7 +2110,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/nfc?serviceId=xxxxx&abc=abc
+     * Path: /connection/nfc?serviceId=xxxxx&abc=abc
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -2140,7 +2140,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/nfc?serviceId=123456789&serviceId=xxx
+     * Path: /connection/nfc?serviceId=123456789&serviceId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -2170,7 +2170,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/nfc
+     * Path: /connection/nfc
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -2197,7 +2197,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/nfc?serviceId=
+     * Path: /connection/nfc?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -2225,7 +2225,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/nfc?serviceId=123456789
+     * Path: /connection/nfc?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -2253,7 +2253,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/nfc?serviceId=xxxxx&abc=abc
+     * Path: /connection/nfc?serviceId=xxxxx&abc=abc
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -2283,7 +2283,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/nfc?serviceId=123456789&serviceId=xxx
+     * Path: /connection/nfc?serviceId=123456789&serviceId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -2313,7 +2313,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /connect/nfc?serviceId=xxxx
+     * Path: /connection/nfc?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -2341,7 +2341,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/onnfcchange
+     * Path: /connection/onnfcchange
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -2369,7 +2369,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/onnfcchange?serviceId=
+     * Path: /connection/onnfcchange?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -2398,7 +2398,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/onnfcchange?serviceId=123456789
+     * Path: /connection/onnfcchange?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -2427,7 +2427,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/onnfcchange?serviceId=xxxxx&abc=abc
+     * Path: /connection/onnfcchange?serviceId=xxxxx&abc=abc
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -2458,7 +2458,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/onnfcchange?serviceId=123456789&serviceId=xxx
+     * Path: /connection/onnfcchange?serviceId=123456789&serviceId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -2489,7 +2489,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/onnfcchange
+     * Path: /connection/onnfcchange
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -2517,7 +2517,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/onnfcchange?serviceId=
+     * Path: /connection/onnfcchange?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -2546,7 +2546,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/onnfcchange?serviceId=123456789
+     * Path: /connection/onnfcchange?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -2575,7 +2575,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/onnfcchange?serviceId=xxxxx&abc=abc
+     * Path: /connection/onnfcchange?serviceId=xxxxx&abc=abc
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -2606,7 +2606,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/onnfcchange?serviceId=123456789&serviceId=xxx
+     * Path: /connection/onnfcchange?serviceId=123456789&serviceId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -2633,11 +2633,11 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * メソッドをPOSTに指定して/connect/onnfcchangeにアクセスするテストを行う.
+     * メソッドをPOSTに指定して/connection/onnfcchangeにアクセスするテストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /connect/onnfcchange?serviceId=xxxx&sessionKey=xxxx
+     * Path: /connection/onnfcchange?serviceId=xxxx&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -2666,7 +2666,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /connect/ble
+     * Path: /connection/ble
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -2693,7 +2693,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /connect/ble?serviceId=
+     * Path: /connection/ble?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -2721,7 +2721,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /connect/ble?serviceId=123456789
+     * Path: /connection/ble?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -2749,7 +2749,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /connect/ble?serviceId=xxxxx&abc=abc
+     * Path: /connection/ble?serviceId=xxxxx&abc=abc
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -2780,7 +2780,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /connect/ble?serviceId=123456789&serviceId=xxx
+     * Path: /connection/ble?serviceId=123456789&serviceId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -2810,7 +2810,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/ble
+     * Path: /connection/ble
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -2837,7 +2837,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/ble?serviceId=
+     * Path: /connection/ble?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -2865,7 +2865,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/ble?serviceId=123456789
+     * Path: /connection/ble?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -2893,7 +2893,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/ble?serviceId=xxxxx&abc=abc
+     * Path: /connection/ble?serviceId=xxxxx&abc=abc
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -2923,7 +2923,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/ble?serviceId=123456789&serviceId=xxx
+     * Path: /connection/ble?serviceId=123456789&serviceId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -2953,7 +2953,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/ble
+     * Path: /connection/ble
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -2980,7 +2980,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/ble?serviceId=
+     * Path: /connection/ble?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -3008,7 +3008,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/ble?serviceId=123456789
+     * Path: /connection/ble?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -3036,7 +3036,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/ble?serviceId=xxxxx&abc=abc
+     * Path: /connection/ble?serviceId=xxxxx&abc=abc
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -3066,7 +3066,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/ble?serviceId=123456789&serviceId=xxx
+     * Path: /connection/ble?serviceId=123456789&serviceId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -3096,7 +3096,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /connect/ble?serviceId=xxxx
+     * Path: /connection/ble?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -3124,7 +3124,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/onblechange
+     * Path: /connection/onblechange
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -3152,7 +3152,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/onblechange?serviceId=
+     * Path: /connection/onblechange?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -3181,7 +3181,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/onblechange?serviceId=123456789
+     * Path: /connection/onblechange?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -3210,7 +3210,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/onblechange?serviceId=xxxxx&abc=abc
+     * Path: /connection/onblechange?serviceId=xxxxx&abc=abc
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -3241,7 +3241,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/onblechange?serviceId=123456789&serviceId=xxx
+     * Path: /connection/onblechange?serviceId=123456789&serviceId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -3272,7 +3272,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/onblechange
+     * Path: /connection/onblechange
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -3300,7 +3300,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/onblechange?serviceId=
+     * Path: /connection/onblechange?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -3329,7 +3329,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/onblechange?serviceId=123456789
+     * Path: /connection/onblechange?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -3358,7 +3358,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/onblechange?serviceId=xxxxx&abc=abc
+     * Path: /connection/onblechange?serviceId=xxxxx&abc=abc
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -3389,7 +3389,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/onblechange?serviceId=123456789&serviceId=xxx
+     * Path: /connection/onblechange?serviceId=123456789&serviceId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -3416,11 +3416,11 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * メソッドをPOSTに指定して/connect/onblechangeにアクセスするテストを行う.
+     * メソッドをPOSTに指定して/connection/onblechangeにアクセスするテストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /connect/onblechange?serviceId=xxxx&sessionKey=xxxx
+     * Path: /connection/onblechange?serviceId=xxxx&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】

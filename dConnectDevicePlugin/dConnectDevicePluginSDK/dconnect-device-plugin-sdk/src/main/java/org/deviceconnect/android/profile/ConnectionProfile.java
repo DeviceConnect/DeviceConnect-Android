@@ -1,6 +1,6 @@
 /*
- ConnectProfile.java
- Copyright (c) 2014 NTT DOCOMO,INC.
+ ConnectionProfile.java
+ Copyright (c) 2017 NTT DOCOMO,INC.
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
  */
@@ -9,10 +9,10 @@ package org.deviceconnect.android.profile;
 import android.content.Intent;
 import android.os.Bundle;
 
-import org.deviceconnect.profile.ConnectProfileConstants;
+import org.deviceconnect.profile.ConnectionProfileConstants;
 
 /**
- * Connect プロファイル.
+ * Connection プロファイル.
  * 
  * <p>
  * スマートデバイスとのネットワーク接続情報を提供するAPI.<br>
@@ -23,7 +23,7 @@ import org.deviceconnect.profile.ConnectProfileConstants;
  * 
  * @author NTT DOCOMO, INC.
  */
-public abstract class ConnectProfile extends DConnectProfile implements ConnectProfileConstants {
+public abstract class ConnectionProfile extends DConnectProfile implements ConnectionProfileConstants {
 
     @Override
     public final String getProfileName() {

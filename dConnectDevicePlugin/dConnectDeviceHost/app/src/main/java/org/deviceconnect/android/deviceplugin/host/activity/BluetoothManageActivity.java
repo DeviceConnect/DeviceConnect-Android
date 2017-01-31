@@ -12,7 +12,7 @@ import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 
 import org.deviceconnect.android.message.MessageUtils;
-import org.deviceconnect.android.profile.ConnectProfile;
+import org.deviceconnect.android.profile.ConnectionProfile;
 import org.deviceconnect.message.DConnectMessage;
 
 /**
@@ -38,11 +38,11 @@ public class BluetoothManageActivity extends FragmentActivity {
 
         mRequestParam = new Bundle(getIntent().getExtras());
 
-        if (MessageUtils.getAttribute(getIntent()).equals(ConnectProfile.ATTRIBUTE_BLUETOOTH)) {
+        if (MessageUtils.getAttribute(getIntent()).equals(ConnectionProfile.ATTRIBUTE_BLUETOOTH)) {
             Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivityForResult(enableIntent, 0);
             
-        } else if (MessageUtils.getAttribute(getIntent()).equals(ConnectProfile.ATTRIBUTE_BLE)) {
+        } else if (MessageUtils.getAttribute(getIntent()).equals(ConnectionProfile.ATTRIBUTE_BLE)) {
             Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivityForResult(enableIntent, 0);
         } else {

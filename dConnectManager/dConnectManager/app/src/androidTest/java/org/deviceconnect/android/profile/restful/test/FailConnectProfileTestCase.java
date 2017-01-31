@@ -15,7 +15,7 @@ import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.deviceconnect.message.DConnectMessage.ErrorCode;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
-import org.deviceconnect.profile.ConnectProfileConstants;
+import org.deviceconnect.profile.ConnectionProfileConstants;
 import org.deviceconnect.profile.DConnectProfileConstants;
 import org.deviceconnect.utils.URIBuilder;
 import org.json.JSONException;
@@ -45,8 +45,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testGetWifi001() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_WIFI);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_WIFI);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
@@ -72,8 +72,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testGetWifi002() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_WIFI);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_WIFI);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -100,8 +100,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testGetWifi003() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_WIFI);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_WIFI);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -130,8 +130,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testGetWifi004() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_WIFI);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_WIFI);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter("abc", "abc");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -160,8 +160,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testGetWifi005() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_WIFI);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_WIFI);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -189,8 +189,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testPutWifi001() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_WIFI);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_WIFI);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
@@ -216,8 +216,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testPutWifi002() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_WIFI);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_WIFI);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -244,8 +244,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testPutWifi003() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_WIFI);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_WIFI);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -273,8 +273,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testPutWifi004() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_WIFI);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_WIFI);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter("abc", "abc");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -303,8 +303,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testPutWifi005() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_WIFI);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_WIFI);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -332,8 +332,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testDeleteWifi001() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_WIFI);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_WIFI);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
@@ -359,8 +359,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testDeleteWifi002() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_WIFI);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_WIFI);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -387,8 +387,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testDeleteWifi003() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_WIFI);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_WIFI);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -416,8 +416,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testDeleteWifi004() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_WIFI);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_WIFI);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter("abc", "abc");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -446,8 +446,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testDeleteWifi005() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_WIFI);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_WIFI);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -475,8 +475,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testConnectWifiInvalidMethodPost() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_WIFI);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_WIFI);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -503,8 +503,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testPutOnWifiChange001() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_ON_WIFI_CHANGE);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_ON_WIFI_CHANGE);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
@@ -530,8 +530,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testPutOnWifiChange002() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_ON_WIFI_CHANGE);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_ON_WIFI_CHANGE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -558,8 +558,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testPutOnWifiChange003() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_ON_WIFI_CHANGE);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_ON_WIFI_CHANGE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -587,8 +587,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testPutOnWifiChange004() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_ON_WIFI_CHANGE);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_ON_WIFI_CHANGE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter("abc", "abc");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -617,8 +617,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testPutOnWifiChange005() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_ON_WIFI_CHANGE);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_ON_WIFI_CHANGE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -646,8 +646,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testDeleteOnWifiChange001() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_ON_WIFI_CHANGE);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_ON_WIFI_CHANGE);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
@@ -673,8 +673,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testDeleteOnWifiChange002() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_ON_WIFI_CHANGE);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_ON_WIFI_CHANGE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -701,8 +701,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testDeleteOnWifiChange003() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_ON_WIFI_CHANGE);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_ON_WIFI_CHANGE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -730,8 +730,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testDeleteOnWifiChange004() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_ON_WIFI_CHANGE);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_ON_WIFI_CHANGE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter("abc", "abc");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -760,8 +760,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testDeleteOnWifiChange005() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_ON_WIFI_CHANGE);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_ON_WIFI_CHANGE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -789,8 +789,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testConnectOnWifiChangeInvalidMethodPost() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_ON_WIFI_CHANGE);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_ON_WIFI_CHANGE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -817,8 +817,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testGetBluetooth001() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_BLUETOOTH);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_BLUETOOTH);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
@@ -844,8 +844,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testGetBluetooth002() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_BLUETOOTH);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_BLUETOOTH);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -872,8 +872,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testGetBluetooth003() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_BLUETOOTH);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_BLUETOOTH);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -902,8 +902,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testGetBluetooth004() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_BLUETOOTH);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_BLUETOOTH);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter("abc", "abc");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -932,8 +932,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testGetBluetooth005() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_BLUETOOTH);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_BLUETOOTH);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -961,8 +961,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testPutBluetooth001() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_BLUETOOTH);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_BLUETOOTH);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
@@ -988,8 +988,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testPutBluetooth002() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_BLUETOOTH);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_BLUETOOTH);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -1016,8 +1016,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testPutBluetooth003() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_BLUETOOTH);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_BLUETOOTH);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -1045,8 +1045,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testPutBluetooth004() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_BLUETOOTH);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_BLUETOOTH);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter("abc", "abc");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -1075,8 +1075,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testPutBluetooth005() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_BLUETOOTH);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_BLUETOOTH);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -1104,8 +1104,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testDeleteBluetooth001() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_BLUETOOTH);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_BLUETOOTH);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
@@ -1131,8 +1131,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testDeleteBluetooth002() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_BLUETOOTH);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_BLUETOOTH);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -1159,8 +1159,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testDeleteBluetooth003() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_BLUETOOTH);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_BLUETOOTH);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -1188,8 +1188,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testDeleteBluetooth004() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_BLUETOOTH);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_BLUETOOTH);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter("abc", "abc");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -1218,8 +1218,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testDeleteBluetooth005() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_BLUETOOTH);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_BLUETOOTH);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -1247,8 +1247,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testConnectBluetoothInvalidMethodPost() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_BLUETOOTH);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_BLUETOOTH);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -1275,9 +1275,9 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testPutBluetoothAvailable001() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setInterface(ConnectProfileConstants.INTERFACE_BLUETOOTH);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_DISCOVERABLE);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setInterface(ConnectionProfileConstants.INTERFACE_BLUETOOTH);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_DISCOVERABLE);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
@@ -1303,9 +1303,9 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testPutBluetoothAvailable002() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setInterface(ConnectProfileConstants.INTERFACE_BLUETOOTH);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_DISCOVERABLE);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setInterface(ConnectionProfileConstants.INTERFACE_BLUETOOTH);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_DISCOVERABLE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -1332,9 +1332,9 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testPutBluetoothAvailable003() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setInterface(ConnectProfileConstants.INTERFACE_BLUETOOTH);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_DISCOVERABLE);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setInterface(ConnectionProfileConstants.INTERFACE_BLUETOOTH);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_DISCOVERABLE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -1362,9 +1362,9 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testPutBluetoothAvailable004() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setInterface(ConnectProfileConstants.INTERFACE_BLUETOOTH);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_DISCOVERABLE);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setInterface(ConnectionProfileConstants.INTERFACE_BLUETOOTH);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_DISCOVERABLE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter("abc", "abc");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -1393,9 +1393,9 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testPutBluetoothAvailable005() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setInterface(ConnectProfileConstants.INTERFACE_BLUETOOTH);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_DISCOVERABLE);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setInterface(ConnectionProfileConstants.INTERFACE_BLUETOOTH);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_DISCOVERABLE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -1423,9 +1423,9 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testDeleteBluetoothAvailable001() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setInterface(ConnectProfileConstants.INTERFACE_BLUETOOTH);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_DISCOVERABLE);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setInterface(ConnectionProfileConstants.INTERFACE_BLUETOOTH);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_DISCOVERABLE);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
@@ -1451,9 +1451,9 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testDeleteBluetoothAvailable002() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setInterface(ConnectProfileConstants.INTERFACE_BLUETOOTH);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_DISCOVERABLE);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setInterface(ConnectionProfileConstants.INTERFACE_BLUETOOTH);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_DISCOVERABLE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -1480,9 +1480,9 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testDeleteBluetoothAvailable003() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setInterface(ConnectProfileConstants.INTERFACE_BLUETOOTH);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_DISCOVERABLE);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setInterface(ConnectionProfileConstants.INTERFACE_BLUETOOTH);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_DISCOVERABLE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -1510,9 +1510,9 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testDeleteBluetoothAvailable004() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setInterface(ConnectProfileConstants.INTERFACE_BLUETOOTH);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_DISCOVERABLE);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setInterface(ConnectionProfileConstants.INTERFACE_BLUETOOTH);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_DISCOVERABLE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter("abc", "abc");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -1541,9 +1541,9 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testDeleteBluetoothAvailable005() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setInterface(ConnectProfileConstants.INTERFACE_BLUETOOTH);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_DISCOVERABLE);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setInterface(ConnectionProfileConstants.INTERFACE_BLUETOOTH);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_DISCOVERABLE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -1571,8 +1571,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testPutOnBluetoothChange001() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_ON_BLUETOOTH_CHANGE);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_ON_BLUETOOTH_CHANGE);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
@@ -1598,8 +1598,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testPutOnBluetoothChange002() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_ON_BLUETOOTH_CHANGE);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_ON_BLUETOOTH_CHANGE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -1626,8 +1626,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testPutOnBluetoothChange003() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_ON_BLUETOOTH_CHANGE);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_ON_BLUETOOTH_CHANGE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -1655,8 +1655,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testPutOnBluetoothChange004() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_ON_BLUETOOTH_CHANGE);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_ON_BLUETOOTH_CHANGE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter("abc", "abc");
 
@@ -1686,8 +1686,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testPutOnBluetoothChange005() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_ON_BLUETOOTH_CHANGE);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_ON_BLUETOOTH_CHANGE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
 
@@ -1716,8 +1716,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testDeleteOnBluetoothChange001() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_ON_BLUETOOTH_CHANGE);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_ON_BLUETOOTH_CHANGE);
 
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -1744,8 +1744,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testDeleteOnBluetoothChange002() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_ON_BLUETOOTH_CHANGE);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_ON_BLUETOOTH_CHANGE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
 
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -1773,8 +1773,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testDeleteOnBluetoothChange003() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_ON_BLUETOOTH_CHANGE);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_ON_BLUETOOTH_CHANGE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
 
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -1803,8 +1803,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testDeleteOnBluetoothChange004() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_ON_BLUETOOTH_CHANGE);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_ON_BLUETOOTH_CHANGE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter("abc", "abc");
 
@@ -1834,8 +1834,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testDeleteOnBluetoothChange005() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_ON_BLUETOOTH_CHANGE);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_ON_BLUETOOTH_CHANGE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
 
@@ -1864,8 +1864,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testConnectOnBluetoothChangeInvalidMethodPost() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_ON_BLUETOOTH_CHANGE);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_ON_BLUETOOTH_CHANGE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
 
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -1893,8 +1893,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testGetNFC001() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_NFC);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_NFC);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
@@ -1920,8 +1920,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testGetNFC002() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_NFC);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_NFC);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -1948,8 +1948,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testGetNFC003() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_NFC);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_NFC);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -1978,8 +1978,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testGetNFC004() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_NFC);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_NFC);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter("abc", "abc");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -2008,8 +2008,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testGetNFC005() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_NFC);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_NFC);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -2037,8 +2037,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testPutNFC001() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_NFC);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_NFC);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
@@ -2064,8 +2064,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testPutNFC002() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_NFC);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_NFC);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -2092,8 +2092,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testPutNFC003() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_NFC);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_NFC);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -2121,8 +2121,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testPutNFC004() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_NFC);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_NFC);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter("abc", "abc");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -2151,8 +2151,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testPutNFC005() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_NFC);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_NFC);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -2180,8 +2180,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testDeleteNFC001() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_NFC);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_NFC);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
@@ -2207,8 +2207,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testDeleteNFC002() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_NFC);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_NFC);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -2235,8 +2235,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testDeleteNFC003() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_NFC);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_NFC);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -2264,8 +2264,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testDeleteNFC004() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_NFC);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_NFC);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter("abc", "abc");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -2294,8 +2294,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testDeleteNFC005() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_NFC);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_NFC);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -2323,8 +2323,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testConnectNFCInvalidMethodPost() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_NFC);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_NFC);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -2351,8 +2351,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testPutOnNFCChange001() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_ON_NFC_CHANGE);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_ON_NFC_CHANGE);
 
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -2379,8 +2379,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testPutOnNFCChange002() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_ON_NFC_CHANGE);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_ON_NFC_CHANGE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
 
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -2408,8 +2408,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testPutOnNFCChange003() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_ON_NFC_CHANGE);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_ON_NFC_CHANGE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
 
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -2438,8 +2438,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testPutOnNFCChange004() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_ON_NFC_CHANGE);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_ON_NFC_CHANGE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter("abc", "abc");
 
@@ -2469,8 +2469,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testPutOnNFCChange005() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_ON_NFC_CHANGE);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_ON_NFC_CHANGE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
 
@@ -2499,8 +2499,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testDeleteOnNFCChange001() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_ON_NFC_CHANGE);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_ON_NFC_CHANGE);
 
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -2527,8 +2527,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testDeleteOnNFCChange002() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_ON_NFC_CHANGE);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_ON_NFC_CHANGE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
 
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -2556,8 +2556,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testDeleteOnNFCChange003() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_ON_NFC_CHANGE);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_ON_NFC_CHANGE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
 
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -2586,8 +2586,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testDeleteOnNFCChange004() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_ON_NFC_CHANGE);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_ON_NFC_CHANGE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter("abc", "abc");
 
@@ -2617,8 +2617,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testDeleteOnNFCChange005() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_ON_NFC_CHANGE);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_ON_NFC_CHANGE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
 
@@ -2647,8 +2647,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testConnectOnNFCChangeInvalidMethodPost() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_ON_NFC_CHANGE);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_ON_NFC_CHANGE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
 
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -2676,8 +2676,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testGetBLE001() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_BLE);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_BLE);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
@@ -2703,8 +2703,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testGetBLE002() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_BLE);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_BLE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -2731,8 +2731,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testGetBLE003() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_BLE);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_BLE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -2761,8 +2761,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testGetBLE004() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_BLE);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_BLE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter("abc", "abc");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -2791,8 +2791,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testGetBLE005() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_BLE);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_BLE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -2820,8 +2820,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testPutBLE001() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_BLE);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_BLE);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
@@ -2847,8 +2847,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testPutBLE002() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_BLE);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_BLE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -2875,8 +2875,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testPutBLE003() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_BLE);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_BLE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -2904,8 +2904,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testPutBLE004() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_BLE);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_BLE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter("abc", "abc");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -2934,8 +2934,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testPutBLE005() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_BLE);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_BLE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -2963,8 +2963,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testDeleteBLE001() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_BLE);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_BLE);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
@@ -2990,8 +2990,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testDeleteBLE002() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_BLE);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_BLE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -3018,8 +3018,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testDeleteBLE003() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_BLE);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_BLE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -3047,8 +3047,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testDeleteBLE004() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_BLE);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_BLE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter("abc", "abc");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -3077,8 +3077,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testDeleteBLE005() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_BLE);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_BLE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -3106,8 +3106,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testConnectBLEInvalidMethodPost() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_BLE);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_BLE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -3134,8 +3134,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testPutOnBLEChange001() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_ON_BLE_CHANGE);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_ON_BLE_CHANGE);
 
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -3162,8 +3162,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testPutOnBLEChange002() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_ON_BLE_CHANGE);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_ON_BLE_CHANGE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
 
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -3191,8 +3191,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testPutOnBLEChange003() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_ON_BLE_CHANGE);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_ON_BLE_CHANGE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
 
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -3221,8 +3221,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testPutOnBLEChange004() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_ON_BLE_CHANGE);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_ON_BLE_CHANGE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
 
         builder.addParameter("abc", "abc");
@@ -3252,8 +3252,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testPutOnBLEChange005() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_ON_BLE_CHANGE);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_ON_BLE_CHANGE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
 
@@ -3282,8 +3282,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testDeleteOnBLEChange001() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_ON_BLE_CHANGE);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_ON_BLE_CHANGE);
 
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -3310,8 +3310,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testDeleteOnBLEChange002() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_ON_BLE_CHANGE);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_ON_BLE_CHANGE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
 
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -3339,8 +3339,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testDeleteOnBLEChange003() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_ON_BLE_CHANGE);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_ON_BLE_CHANGE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
 
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -3369,8 +3369,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testDeleteOnBLEChange004() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_ON_BLE_CHANGE);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_ON_BLE_CHANGE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter("abc", "abc");
 
@@ -3400,8 +3400,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testDeleteOnBLEChange005() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_ON_BLE_CHANGE);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_ON_BLE_CHANGE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
 
@@ -3430,8 +3430,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testConnectOnBLEChangeInvalidMethodPost() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
-        builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_ON_BLE_CHANGE);
+        builder.setProfile(ConnectionProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ConnectionProfileConstants.ATTRIBUTE_ON_BLE_CHANGE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
 
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());

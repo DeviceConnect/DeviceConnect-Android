@@ -17,7 +17,7 @@ import android.util.Log;
 import org.deviceconnect.android.test.plugin.profile.TestServiceDiscoveryProfileConstants;
 import org.deviceconnect.android.test.plugin.profile.TestSystemProfileConstants;
 import org.deviceconnect.profile.BatteryProfileConstants;
-import org.deviceconnect.profile.ConnectProfileConstants;
+import org.deviceconnect.profile.ConnectionProfileConstants;
 import org.deviceconnect.profile.DeviceOrientationProfileConstants;
 import org.deviceconnect.profile.FileDescriptorProfileConstants;
 import org.deviceconnect.profile.FileProfileConstants;
@@ -90,7 +90,7 @@ public abstract class DConnectTestCase extends AndroidTestCase {
      */
     protected static final String[] PROFILES = {
             BatteryProfileConstants.PROFILE_NAME,
-            ConnectProfileConstants.PROFILE_NAME,
+            ConnectionProfileConstants.PROFILE_NAME,
             DeviceOrientationProfileConstants.PROFILE_NAME,
             FileDescriptorProfileConstants.PROFILE_NAME,
             FileProfileConstants.PROFILE_NAME,

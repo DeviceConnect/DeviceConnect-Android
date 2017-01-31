@@ -9,7 +9,7 @@ package org.deviceconnect.android.profile.intent.test;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.deviceconnect.profile.BatteryProfileConstants;
-import org.deviceconnect.profile.ConnectProfileConstants;
+import org.deviceconnect.profile.ConnectionProfileConstants;
 import org.deviceconnect.profile.DeviceOrientationProfileConstants;
 import org.deviceconnect.profile.NotificationProfileConstants;
 import org.junit.Test;
@@ -125,7 +125,7 @@ public class NormalAuthorizationProfileTestCase extends IntentDConnectTestCase {
         
         String accessToken = requestAccessToken(clientId, new String[] {
                 BatteryProfileConstants.PROFILE_NAME,
-                ConnectProfileConstants.PROFILE_NAME,
+                ConnectionProfileConstants.PROFILE_NAME,
                 DeviceOrientationProfileConstants.PROFILE_NAME,
         });
         assertNotNull(accessToken);

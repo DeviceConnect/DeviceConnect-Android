@@ -13,7 +13,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
-import org.deviceconnect.profile.ConnectProfileConstants;
+import org.deviceconnect.profile.ConnectionProfileConstants;
 import org.deviceconnect.profile.DConnectProfileConstants;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -44,8 +44,8 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
     public void testGetWifi() {
         StringBuilder builder = new StringBuilder();
         builder.append(DCONNECT_MANAGER_URI);
-        builder.append("/" + ConnectProfileConstants.PROFILE_NAME);
-        builder.append("/" + ConnectProfileConstants.ATTRIBUTE_WIFI);
+        builder.append("/" + ConnectionProfileConstants.PROFILE_NAME);
+        builder.append("/" + ConnectionProfileConstants.ATTRIBUTE_WIFI);
         builder.append("?");
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
@@ -75,8 +75,8 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
     public void testPutWifi() {
         StringBuilder builder = new StringBuilder();
         builder.append(DCONNECT_MANAGER_URI);
-        builder.append("/" + ConnectProfileConstants.PROFILE_NAME);
-        builder.append("/" + ConnectProfileConstants.ATTRIBUTE_WIFI);
+        builder.append("/" + ConnectionProfileConstants.PROFILE_NAME);
+        builder.append("/" + ConnectionProfileConstants.ATTRIBUTE_WIFI);
         builder.append("?");
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
@@ -106,8 +106,8 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
     public void testDeleteWifi() {
         StringBuilder builder = new StringBuilder();
         builder.append(DCONNECT_MANAGER_URI);
-        builder.append("/" + ConnectProfileConstants.PROFILE_NAME);
-        builder.append("/" + ConnectProfileConstants.ATTRIBUTE_WIFI);
+        builder.append("/" + ConnectionProfileConstants.PROFILE_NAME);
+        builder.append("/" + ConnectionProfileConstants.ATTRIBUTE_WIFI);
         builder.append("?");
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
@@ -137,8 +137,8 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
     public void testPutWifiChange() {
         StringBuilder builder = new StringBuilder();
         builder.append(DCONNECT_MANAGER_URI);
-        builder.append("/" + ConnectProfileConstants.PROFILE_NAME);
-        builder.append("/" + ConnectProfileConstants.ATTRIBUTE_ON_WIFI_CHANGE);
+        builder.append("/" + ConnectionProfileConstants.PROFILE_NAME);
+        builder.append("/" + ConnectionProfileConstants.ATTRIBUTE_ON_WIFI_CHANGE);
         builder.append("?");
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
@@ -168,8 +168,8 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
     public void testDeleteWifiChange() {
         StringBuilder builder = new StringBuilder();
         builder.append(DCONNECT_MANAGER_URI);
-        builder.append("/" + ConnectProfileConstants.PROFILE_NAME);
-        builder.append("/" + ConnectProfileConstants.ATTRIBUTE_ON_WIFI_CHANGE);
+        builder.append("/" + ConnectionProfileConstants.PROFILE_NAME);
+        builder.append("/" + ConnectionProfileConstants.ATTRIBUTE_ON_WIFI_CHANGE);
         builder.append("?");
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
@@ -200,8 +200,8 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
     public void testGetBluetooth() {
         StringBuilder builder = new StringBuilder();
         builder.append(DCONNECT_MANAGER_URI);
-        builder.append("/" + ConnectProfileConstants.PROFILE_NAME);
-        builder.append("/" + ConnectProfileConstants.ATTRIBUTE_BLUETOOTH);
+        builder.append("/" + ConnectionProfileConstants.PROFILE_NAME);
+        builder.append("/" + ConnectionProfileConstants.ATTRIBUTE_BLUETOOTH);
         builder.append("?");
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
@@ -231,8 +231,8 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
     public void testPutBluetooth() {
         StringBuilder builder = new StringBuilder();
         builder.append(DCONNECT_MANAGER_URI);
-        builder.append("/" + ConnectProfileConstants.PROFILE_NAME);
-        builder.append("/" + ConnectProfileConstants.ATTRIBUTE_BLUETOOTH);
+        builder.append("/" + ConnectionProfileConstants.PROFILE_NAME);
+        builder.append("/" + ConnectionProfileConstants.ATTRIBUTE_BLUETOOTH);
         builder.append("?");
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
@@ -262,8 +262,8 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
     public void testDeleteBluetooth() {
         StringBuilder builder = new StringBuilder();
         builder.append(DCONNECT_MANAGER_URI);
-        builder.append("/" + ConnectProfileConstants.PROFILE_NAME);
-        builder.append("/" + ConnectProfileConstants.ATTRIBUTE_BLUETOOTH);
+        builder.append("/" + ConnectionProfileConstants.PROFILE_NAME);
+        builder.append("/" + ConnectionProfileConstants.ATTRIBUTE_BLUETOOTH);
         builder.append("?");
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
@@ -293,8 +293,8 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
     public void testPutBluetoothChange() {
         StringBuilder builder = new StringBuilder();
         builder.append(DCONNECT_MANAGER_URI);
-        builder.append("/" + ConnectProfileConstants.PROFILE_NAME);
-        builder.append("/" + ConnectProfileConstants.ATTRIBUTE_ON_BLUETOOTH_CHANGE);
+        builder.append("/" + ConnectionProfileConstants.PROFILE_NAME);
+        builder.append("/" + ConnectionProfileConstants.ATTRIBUTE_ON_BLUETOOTH_CHANGE);
         builder.append("?");
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
@@ -324,8 +324,8 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
     public void testDeleteBluetoothChange() {
         StringBuilder builder = new StringBuilder();
         builder.append(DCONNECT_MANAGER_URI);
-        builder.append("/" + ConnectProfileConstants.PROFILE_NAME);
-        builder.append("/" + ConnectProfileConstants.ATTRIBUTE_ON_BLUETOOTH_CHANGE);
+        builder.append("/" + ConnectionProfileConstants.PROFILE_NAME);
+        builder.append("/" + ConnectionProfileConstants.ATTRIBUTE_ON_BLUETOOTH_CHANGE);
         builder.append("?");
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
@@ -355,9 +355,9 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
     public void testPutBluetoothDiscoverable() {
         StringBuilder builder = new StringBuilder();
         builder.append(DCONNECT_MANAGER_URI);
-        builder.append("/" + ConnectProfileConstants.PROFILE_NAME);
-        builder.append("/" + ConnectProfileConstants.ATTRIBUTE_BLUETOOTH);
-        builder.append("/" + ConnectProfileConstants.ATTRIBUTE_DISCOVERABLE);
+        builder.append("/" + ConnectionProfileConstants.PROFILE_NAME);
+        builder.append("/" + ConnectionProfileConstants.ATTRIBUTE_BLUETOOTH);
+        builder.append("/" + ConnectionProfileConstants.ATTRIBUTE_DISCOVERABLE);
         builder.append("?");
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
@@ -387,9 +387,9 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
     public void testDeleteBluetoothDiscoverable() {
         StringBuilder builder = new StringBuilder();
         builder.append(DCONNECT_MANAGER_URI);
-        builder.append("/" + ConnectProfileConstants.PROFILE_NAME);
-        builder.append("/" + ConnectProfileConstants.ATTRIBUTE_BLUETOOTH);
-        builder.append("/" + ConnectProfileConstants.ATTRIBUTE_DISCOVERABLE);
+        builder.append("/" + ConnectionProfileConstants.PROFILE_NAME);
+        builder.append("/" + ConnectionProfileConstants.ATTRIBUTE_BLUETOOTH);
+        builder.append("/" + ConnectionProfileConstants.ATTRIBUTE_DISCOVERABLE);
         builder.append("?");
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
@@ -420,8 +420,8 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
     public void testGetNFC() {
         StringBuilder builder = new StringBuilder();
         builder.append(DCONNECT_MANAGER_URI);
-        builder.append("/" + ConnectProfileConstants.PROFILE_NAME);
-        builder.append("/" + ConnectProfileConstants.ATTRIBUTE_NFC);
+        builder.append("/" + ConnectionProfileConstants.PROFILE_NAME);
+        builder.append("/" + ConnectionProfileConstants.ATTRIBUTE_NFC);
         builder.append("?");
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
@@ -451,8 +451,8 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
     public void testPutNFC() {
         StringBuilder builder = new StringBuilder();
         builder.append(DCONNECT_MANAGER_URI);
-        builder.append("/" + ConnectProfileConstants.PROFILE_NAME);
-        builder.append("/" + ConnectProfileConstants.ATTRIBUTE_NFC);
+        builder.append("/" + ConnectionProfileConstants.PROFILE_NAME);
+        builder.append("/" + ConnectionProfileConstants.ATTRIBUTE_NFC);
         builder.append("?");
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
@@ -482,8 +482,8 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
     public void testDeleteNFC() {
         StringBuilder builder = new StringBuilder();
         builder.append(DCONNECT_MANAGER_URI);
-        builder.append("/" + ConnectProfileConstants.PROFILE_NAME);
-        builder.append("/" + ConnectProfileConstants.ATTRIBUTE_NFC);
+        builder.append("/" + ConnectionProfileConstants.PROFILE_NAME);
+        builder.append("/" + ConnectionProfileConstants.ATTRIBUTE_NFC);
         builder.append("?");
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
@@ -513,8 +513,8 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
     public void testPutNFCChange() {
         StringBuilder builder = new StringBuilder();
         builder.append(DCONNECT_MANAGER_URI);
-        builder.append("/" + ConnectProfileConstants.PROFILE_NAME);
-        builder.append("/" + ConnectProfileConstants.ATTRIBUTE_ON_NFC_CHANGE);
+        builder.append("/" + ConnectionProfileConstants.PROFILE_NAME);
+        builder.append("/" + ConnectionProfileConstants.ATTRIBUTE_ON_NFC_CHANGE);
         builder.append("?");
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
@@ -544,8 +544,8 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
     public void testDeleteNFCChange() {
         StringBuilder builder = new StringBuilder();
         builder.append(DCONNECT_MANAGER_URI);
-        builder.append("/" + ConnectProfileConstants.PROFILE_NAME);
-        builder.append("/" + ConnectProfileConstants.ATTRIBUTE_ON_NFC_CHANGE);
+        builder.append("/" + ConnectionProfileConstants.PROFILE_NAME);
+        builder.append("/" + ConnectionProfileConstants.ATTRIBUTE_ON_NFC_CHANGE);
         builder.append("?");
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
@@ -576,8 +576,8 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
     public void testGetBLE() {
         StringBuilder builder = new StringBuilder();
         builder.append(DCONNECT_MANAGER_URI);
-        builder.append("/" + ConnectProfileConstants.PROFILE_NAME);
-        builder.append("/" + ConnectProfileConstants.ATTRIBUTE_BLE);
+        builder.append("/" + ConnectionProfileConstants.PROFILE_NAME);
+        builder.append("/" + ConnectionProfileConstants.ATTRIBUTE_BLE);
         builder.append("?");
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
@@ -607,8 +607,8 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
     public void testPutBLE() {
         StringBuilder builder = new StringBuilder();
         builder.append(DCONNECT_MANAGER_URI);
-        builder.append("/" + ConnectProfileConstants.PROFILE_NAME);
-        builder.append("/" + ConnectProfileConstants.ATTRIBUTE_BLE);
+        builder.append("/" + ConnectionProfileConstants.PROFILE_NAME);
+        builder.append("/" + ConnectionProfileConstants.ATTRIBUTE_BLE);
         builder.append("?");
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
@@ -638,8 +638,8 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
     public void testDeleteBLE() {
         StringBuilder builder = new StringBuilder();
         builder.append(DCONNECT_MANAGER_URI);
-        builder.append("/" + ConnectProfileConstants.PROFILE_NAME);
-        builder.append("/" + ConnectProfileConstants.ATTRIBUTE_BLE);
+        builder.append("/" + ConnectionProfileConstants.PROFILE_NAME);
+        builder.append("/" + ConnectionProfileConstants.ATTRIBUTE_BLE);
         builder.append("?");
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
@@ -669,8 +669,8 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
     public void testPutBLEChange() {
         StringBuilder builder = new StringBuilder();
         builder.append(DCONNECT_MANAGER_URI);
-        builder.append("/" + ConnectProfileConstants.PROFILE_NAME);
-        builder.append("/" + ConnectProfileConstants.ATTRIBUTE_ON_BLE_CHANGE);
+        builder.append("/" + ConnectionProfileConstants.PROFILE_NAME);
+        builder.append("/" + ConnectionProfileConstants.ATTRIBUTE_ON_BLE_CHANGE);
         builder.append("?");
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
@@ -700,8 +700,8 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
     public void testDeleteBLEChange() {
         StringBuilder builder = new StringBuilder();
         builder.append(DCONNECT_MANAGER_URI);
-        builder.append("/" + ConnectProfileConstants.PROFILE_NAME);
-        builder.append("/" + ConnectProfileConstants.ATTRIBUTE_ON_BLE_CHANGE);
+        builder.append("/" + ConnectionProfileConstants.PROFILE_NAME);
+        builder.append("/" + ConnectionProfileConstants.ATTRIBUTE_ON_BLE_CHANGE);
         builder.append("?");
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");

@@ -272,7 +272,9 @@ public abstract class DConnectTestCase extends AndroidTestCase {
     @Before
     public void setUp() throws Exception {
         setContext(InstrumentationRegistry.getContext());
-        mDConnectSDK.setOrigin(getOrigin());
+        if (mDConnectSDK != null) {
+            mDConnectSDK.setOrigin(getOrigin());
+        }
         waitForManager();
         if (isLocalOAuth()) {
             // アクセストークン取得

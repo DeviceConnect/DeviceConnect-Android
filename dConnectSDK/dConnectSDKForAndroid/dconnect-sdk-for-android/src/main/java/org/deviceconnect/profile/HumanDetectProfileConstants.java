@@ -10,6 +10,7 @@ package org.deviceconnect.profile;
  * Human Detection Profile API constant group.<br>
  * Parameter name of HumanDetect Profile API, interface names, attribute names, define the profile name.
  *
+ * @deprecated swagger定義ファイルで定数を管理することになったので、このクラスは使用しないこととする。
  * @author NTT DOCOMO, INC.
  */
 public interface HumanDetectProfileConstants extends DConnectProfileConstants {

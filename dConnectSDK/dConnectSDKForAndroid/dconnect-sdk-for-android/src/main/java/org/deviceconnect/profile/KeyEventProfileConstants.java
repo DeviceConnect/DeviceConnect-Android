@@ -11,6 +11,7 @@ package org.deviceconnect.profile;
  * Define parameter name, interface name, attribute and profile name for key
  * event profile API.
  *
+ * @deprecated swagger定義ファイルで定数を管理することになったので、このクラスは使用しないこととする。
  * @author NTT DOCOMO, INC.
  */
 public interface KeyEventProfileConstants extends DConnectProfileConstants {

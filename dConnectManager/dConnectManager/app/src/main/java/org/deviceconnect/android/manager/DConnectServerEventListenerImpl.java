@@ -223,6 +223,10 @@ class DConnectServerEventListenerImpl implements DConnectServerEventListener {
         String profile = null;
         String interfaces = null;
         String attribute = null;
+        boolean existMethod = false;
+        if (paths.length >= SEGMENT_ATTRIBUTE) {
+            existMethod = isMethod(paths[1]);
+        }
 
         long start = System.currentTimeMillis();
 
@@ -233,29 +237,29 @@ class DConnectServerEventListenerImpl implements DConnectServerEventListener {
         if (paths.length == SEGMENT_PROFILE) {
             api = paths[0];
             profile = paths[1];
-        } else if (paths.length == SEGMENT_ATTRIBUTE && !isMethod(paths[1])) {
+        } else if (paths.length == SEGMENT_ATTRIBUTE && !existMethod) {
             // パスが3つあり、HTTPメソッドがパスに指定されていない
             api = paths[0];
             profile = paths[1];
             attribute = paths[2];
-        } else if (paths.length == SEGMENT_ATTRIBUTE && isMethod(paths[1])) {
+        } else if (paths.length == SEGMENT_ATTRIBUTE && existMethod) {
             // パスが3つあり、HTTPメソッドがパスに指定される
             api = paths[0];
             httpMethod = paths[1];
             profile = paths[2];
-        } else if (paths.length == SEGMENT_INTERFACES && !isMethod(paths[1])) {
+        } else if (paths.length == SEGMENT_INTERFACES && !existMethod) {
             // パスが4つあり、HTTPメソッドがパスに指定されていない
             api = paths[0];
             profile = paths[1];
             interfaces = paths[2];
             attribute = paths[3];
-        } else if (paths.length == SEGMENT_INTERFACES && isMethod(paths[1])) {
+        } else if (paths.length == SEGMENT_INTERFACES && existMethod) {
             // パスが4つあり、HTTPメソッドがパスに指定される
             api = paths[0];
             httpMethod = paths[1];
             profile = paths[2];
             attribute = paths[3];
-        } else if (paths.length == (SEGMENT_INTERFACES + 1) && isMethod(paths[1])) {
+        } else if (paths.length == (SEGMENT_INTERFACES + 1) && existMethod) {
             // パスが5つあり、HTTPメソッドがパスに指定される
             api = paths[0];
             httpMethod = paths[1];
@@ -285,12 +289,14 @@ class DConnectServerEventListenerImpl implements DConnectServerEventListener {
         }
 
        // URLにmethodが指定されている場合は、そちらのHTTPメソッドを優先する
-        if (httpMethod != null && action.equals(IntentDConnectMessage.ACTION_GET)) {
-            action = DConnectUtil.convertHttpMethod2DConnectMethod(httpMethod.toUpperCase());
-        } else if (httpMethod != null && !action.equals(IntentDConnectMessage.ACTION_GET)) {
-            // 元々のHTTPリクエストがGET以外の場合はエラーを返す.
-            setInvalidURL(response);
-            return true;
+        if (httpMethod != null) {
+            if (action.equals(IntentDConnectMessage.ACTION_GET)) {
+                action = DConnectUtil.convertHttpMethod2DConnectMethod(httpMethod.toUpperCase());
+            } else {
+                // 元々のHTTPリクエストがGET以外の場合はエラーを返す.
+                setInvalidURL(response);
+                return true;
+            }
         }
         // filesの時は、Device Connect Managerまでは渡さずに、ここで処理を行う
         if ("files".equalsIgnoreCase(profile)) {

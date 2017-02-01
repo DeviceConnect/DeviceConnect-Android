@@ -1,6 +1,6 @@
 /**
- @preserve Device Connect SDK Library v2.1.0
- Copyright (c) 2014 NTT DOCOMO,INC.
+ @preserve Device Connect SDK Library v2.2.0
+ Copyright (c) 2017 NTT DOCOMO,INC.
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
  */
@@ -202,7 +202,12 @@ var dConnect = (function(parent, global) {
       /** エラーコード: サーバの状態異常エラー. */
       ILLEGAL_SERVER_STATE: 17,
       /** エラーコード: 不正オリジンエラー. */
-      INVALID_ORIGIN: 18
+      INVALID_ORIGIN: 18,
+      /** エラーコード: 不正URLエラー. */
+      INVALID_URL: 19,
+      /** エラーコード: 不正Profileエラー. */
+      INVALID_PROFILE: 20
+
     },
 
     /**
@@ -319,14 +324,14 @@ var dConnect = (function(parent, global) {
     },
 
     /**
-     * Connectプロファイルの定数
+     * Connectionプロファイルの定数
      * @namespace
      * @type {Object.<String, String>}
      */
-    connect: {
+    connection: {
       // Profile Name
       /** プロファイル名。 */
-      PROFILE_NAME: 'connect',
+      PROFILE_NAME: 'connection',
 
       // Interface
       /** インターフェース: bluetooth */

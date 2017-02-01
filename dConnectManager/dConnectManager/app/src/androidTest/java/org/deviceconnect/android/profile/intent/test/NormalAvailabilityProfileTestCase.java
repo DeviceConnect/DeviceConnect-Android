@@ -24,7 +24,7 @@ public class NormalAvailabilityProfileTestCase extends IntentDConnectTestCase {
     }
 
     @Override
-    protected boolean isSearchDevices() {
+    protected boolean isSearchServices() {
         return false;
     }
 

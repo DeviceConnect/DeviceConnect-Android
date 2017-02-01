@@ -25,7 +25,7 @@ public class NormalAvailabilityProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     @Override
-    protected boolean isSearchDevices() {
+    protected boolean isSearchServices() {
         return false;
     }
 

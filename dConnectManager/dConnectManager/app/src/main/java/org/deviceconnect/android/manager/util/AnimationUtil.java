@@ -1,3 +1,9 @@
+/*
+ AnimationUtil.java
+ Copyright (c) 2017 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.manager.util;
 
 import android.animation.Animator;
@@ -29,19 +35,19 @@ public final class AnimationUtil {
 
     public static abstract class AnimationAdapter implements Animator.AnimatorListener {
         @Override
-        public void onAnimationStart(Animator animation) {
+        public void onAnimationStart(final Animator animation) {
         }
 
         @Override
-        public void onAnimationEnd(Animator animation) {
+        public void onAnimationEnd(final Animator animation) {
         }
 
         @Override
-        public void onAnimationCancel(Animator animation) {
+        public void onAnimationCancel(final Animator animation) {
         }
 
         @Override
-        public void onAnimationRepeat(Animator animation) {
+        public void onAnimationRepeat(final Animator animation) {
         }
     }
 }

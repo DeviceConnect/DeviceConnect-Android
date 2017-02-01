@@ -58,8 +58,9 @@ project.androidVariants.all { variant ->
         }
 
         exclude '**/org/deviceconnect/android/localoauth/**'
-        exclude '**/org/restlet/**'
+        exclude '**/org/deviceconnect/android/compat/**'
         exclude '**/org/deviceconnect/android/logger/**'
+        exclude '**/org/restlet/**'
         exclude '**/BuildConfig.java'
         exclude '**/R.java'
     }
@@ -74,6 +75,7 @@ repositories {
 dependencies {
     compile fileTree(include: '*.jar', dir: 'libs')
     compile project(':dconnect-sdk-for-android')
+    compile 'com.android.support:support-v4:23.1.0'
 }
 
 configurations {
@@ -96,9 +98,9 @@ uploadArchives {
 }
 
 if (JavaVersion.current().isJava8Compatible()) {
-  allprojects {
-    tasks.withType(Javadoc) {
-      options.addStringOption('Xdoclint:none', '-quiet')
+    allprojects {
+        tasks.withType(Javadoc) {
+            options.addStringOption('Xdoclint:none', '-quiet')
+        }
     }
-  }
 }

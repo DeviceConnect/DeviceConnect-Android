@@ -8,31 +8,31 @@ package org.deviceconnect.android.manager.util;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.graphics.ColorMatrix;
 import android.graphics.ColorMatrixColorFilter;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.PowerManager;
+import android.provider.Settings;
 
-import org.apache.http.NameValuePair;
-import org.apache.http.message.BasicNameValuePair;
 import org.deviceconnect.android.manager.DConnectSettings;
-import org.deviceconnect.android.manager.profile.DConnectFilesProfile;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
-import org.deviceconnect.message.intent.util.JSONFactory;
-import org.deviceconnect.utils.URIBuilder;
+import org.deviceconnect.utils.JSONUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Random;
 import java.util.UUID;
@@ -81,6 +81,11 @@ public final class DConnectUtil {
         return builder.toString();
     }
 
+    /**
+     * Device Connect Managerの名前を生成する.
+     *
+     * @return Device Connect Managerの名前
+     */
     public static String createName() {
         StringBuilder builder = new StringBuilder();
         builder.append("Manager-");
@@ -93,6 +98,11 @@ public final class DConnectUtil {
         return builder.toString();
     }
 
+    /**
+     * Device Connect Managerの識別子を生成する.
+     *
+     * @return Device Connect Managerの識別子
+     */
     public static String createUuid() {
         return UUID.randomUUID().toString();
     }
@@ -103,13 +113,13 @@ public final class DConnectUtil {
      * @return DConnectメソッド
      */
     public static String convertHttpMethod2DConnectMethod(final String method) {
-        if (DConnectMessage.METHOD_GET.equals(method)) {
+        if (DConnectMessage.METHOD_GET.equalsIgnoreCase(method)) {
             return IntentDConnectMessage.ACTION_GET;
-        } else if (DConnectMessage.METHOD_POST.equals(method)) {
+        } else if (DConnectMessage.METHOD_POST.equalsIgnoreCase(method)) {
             return IntentDConnectMessage.ACTION_POST;
-        } else if (DConnectMessage.METHOD_PUT.equals(method)) {
+        } else if (DConnectMessage.METHOD_PUT.equalsIgnoreCase(method)) {
             return IntentDConnectMessage.ACTION_PUT;
-        } else if (DConnectMessage.METHOD_DELETE.equals(method)) {
+        } else if (DConnectMessage.METHOD_DELETE.equalsIgnoreCase(method)) {
             return IntentDConnectMessage.ACTION_DELETE;
         }
         return null;
@@ -120,22 +130,20 @@ public final class DConnectUtil {
      * @param uri ファイルへのContentUri
      * @return URI
      */
-    public static String createUri(final String uri) {
+    private static String createUri(final String uri) {
         DConnectSettings settings = DConnectSettings.getInstance();
-        URIBuilder builder = new URIBuilder();
-        if (settings.isSSL()) {
-            builder.setScheme("https");
-        } else {
-            builder.setScheme("http");
+        StringBuilder builder = new StringBuilder();
+        builder.append(settings.isSSL() ? "https://" : "http://");
+        builder.append(settings.getHost());
+        builder.append(":");
+        builder.append(settings.getPort());
+        builder.append("/gotapi/files");
+        builder.append("?uri=");
+        try {
+            builder.append(URLEncoder.encode(uri, "UTF-8"));
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException("Failed to convert a uri.");
         }
-        builder.setHost(settings.getHost());
-        builder.setPort(settings.getPort());
-        builder.setProfile(DConnectFilesProfile.PROFILE_NAME);
-
-        ArrayList<NameValuePair> params = new ArrayList<NameValuePair>();
-        params.add(new BasicNameValuePair("uri", uri));
-        builder.setParameters(params);
-
         return builder.toString();
     }
 
@@ -173,10 +181,7 @@ public final class DConnectUtil {
      * @return content://から始まる場合はtrue、それ以外はfalse
      */
     private static boolean startWithContent(final String uri) {
-        if (uri == null) {
-            return false;
-        }
-        return (uri.startsWith("content://"));
+        return uri != null && (uri.startsWith("content://"));
     }
 
     /**
@@ -187,7 +192,7 @@ public final class DConnectUtil {
      */
     public static void convertBundleToJSON(
             final JSONObject root, final Bundle b) throws JSONException {
-        JSONFactory.convertBundleToJSON(root, b);
+        JSONUtils.convertBundleToJSON(root, b);
         convertUri(root);
     }
 
@@ -220,7 +225,6 @@ public final class DConnectUtil {
                 (ipAddress >> 16 & 0xff), (ipAddress >> 24 & 0xff));
     }
 
-
     /**
      * Checks whether permission allow by user.
      * @param context context of application
@@ -240,6 +244,11 @@ public final class DConnectUtil {
         }
     }
 
+    /**
+     * 指定されたDrawableをグレースケール変換をする.
+     * @param drawable 変換するDrawable
+     * @return 変換後のDrawable
+     */
     public static Drawable convertToGrayScale(final Drawable drawable) {
         Drawable clone = drawable.getConstantState().newDrawable().mutate();
         ColorMatrix matrix = new ColorMatrix();
@@ -267,7 +276,9 @@ public final class DConnectUtil {
 
     /**
      * 指定された文字列をMD5の文字列に変換する.
-     * MD5への変換に失敗した場合にはnullを返却する。
+     * <p>
+     * MD5への変換に失敗した場合には{@code null}を返却する。
+     * </p>
      * @param s MD5にする文字列
      * @return MD5にされた文字列
      * @throws UnsupportedEncodingException 文字列の解析に失敗した場合
@@ -278,5 +289,58 @@ public final class DConnectUtil {
         MessageDigest digest = java.security.MessageDigest.getInstance("MD5");
         digest.update(s.getBytes("ASCII"));
         return hexToString(digest.digest());
+    }
+
+    /**
+     * 指定されたContextのアプリケーションがDozeモードが有効になっているかを確認する.
+     * <p>
+     * Android M以前のOSでは、常にtrueを返却します。
+     * </p>
+     * @param context コンテキスト
+     * @return Dozeモードが有効の場合はtrue、それ以外はfalse
+     */
+    public static boolean isDozeMode(final Context context) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            return true;
+        } else {
+            PowerManager powerManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
+            return powerManager.isIgnoringBatteryOptimizations(context.getPackageName());
+        }
+    }
+
+    /**
+     * Dozeモードの解除要求を行う.
+     * <p>
+     * Dozeモードの解除には必ずユーザの許諾が必要になります。
+     * </p>
+     * <p>
+     * Android M以前のOSの場合には、このメソッドは処理を行いません。
+     * </p>
+     * @param context コンテキスト
+     */
+    public static void startConfirmIgnoreDozeMode(final Context context) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            Intent intent = new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
+            intent.setData(Uri.parse("package:" + context.getPackageName()));
+            context.startActivity(intent);
+        }
+    }
+
+    /**
+     * Dozeモードの設定画面を開きます.
+     * <p>
+     * Dozeモードの解除には必ずユーザの許諾が必要になります。
+     * </p>
+     * <p>
+     * Android M以前のOSの場合には、このメソッドは処理を行いません。
+     * </p>
+     * @param context コンテキスト
+     */
+    public static void startDozeModeSettingActivity(final Context context) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            Intent intent = new Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            context.startActivity(intent);
+        }
     }
 }

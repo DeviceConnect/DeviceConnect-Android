@@ -137,5 +137,10 @@
         <description lang="en">Dummy profile which is not implemented. (for test)</description>
     </profile>
     <profile name="notLocalizedProfile" expireperiod="86400000"></profile>
-
+    <profile name="allGetControl" expireperiod="86400000">
+        <name lang="ja">全てGETで操作(テスト用)</name>
+        <description lang="ja">DeviceConnectのURLをGETで操作する機能のテスト用プロファイル</description>
+        <name lang="en">All Get Control(for test)</name>
+        <description lang="en">DeviceConnectのURLをGETで操作する機能のテスト用プロファイル</description>
+    </profile>
 </deviceplugin-provider>

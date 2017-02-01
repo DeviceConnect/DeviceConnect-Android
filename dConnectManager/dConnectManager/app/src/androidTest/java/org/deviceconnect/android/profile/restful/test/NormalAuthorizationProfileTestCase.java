@@ -8,12 +8,21 @@ package org.deviceconnect.android.profile.restful.test;
 
 import android.support.test.runner.AndroidJUnit4;
 
-import org.deviceconnect.profile.BatteryProfileConstants;
-import org.deviceconnect.profile.ConnectionProfileConstants;
-import org.deviceconnect.profile.DeviceOrientationProfileConstants;
-import org.deviceconnect.profile.NotificationProfileConstants;
+import org.deviceconnect.android.profile.AuthorizationProfile;
+import org.deviceconnect.android.profile.BatteryProfile;
+import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
+import org.deviceconnect.android.profile.ServiceInformationProfile;
+import org.deviceconnect.message.DConnectMessage;
+import org.deviceconnect.message.DConnectResponseMessage;
+import org.deviceconnect.message.DConnectSDK;
+import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.core.Is.is;
+import static org.hamcrest.core.IsNull.notNullValue;
+import static org.junit.Assert.assertThat;
 
 /**
  * Authorizationプロファイルの正常系テスト.
@@ -28,7 +37,7 @@ public class NormalAuthorizationProfileTestCase extends RESTfulDConnectTestCase 
     }
 
     @Override
-    protected boolean isSearchDevices() {
+    protected boolean isSearchServices() {
         return false;
     }
 
@@ -36,6 +45,23 @@ public class NormalAuthorizationProfileTestCase extends RESTfulDConnectTestCase 
     protected String getOrigin() {
         return "abc";
     }
+
+    /**
+     * スコープを連結する.
+     * @param scopes 連結するスコープ
+     * @return 連結した文字列
+     */
+    private String combineStr(final String[] scopes) {
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < scopes.length; i++) {
+            if (i > 0) {
+                builder.append(",");
+            }
+            builder.append(scopes[i].trim());
+        }
+        return builder.toString();
+    }
+
 
     /**
      * クライアント作成テストを行う.
@@ -52,8 +78,14 @@ public class NormalAuthorizationProfileTestCase extends RESTfulDConnectTestCase 
      */
     @Test
     public void testCreateClient() {
-        String clientId = createClient();
-        assertNotNull(clientId);
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
+        builder.setProfile(AuthorizationProfile.PROFILE_NAME);
+        builder.setAttribute(AuthorizationProfile.ATTRIBUTE_GRANT);
+
+        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getString(AuthorizationProfile.PARAM_CLIENT_ID), is(notNullValue()));
     }
 
     /**
@@ -71,11 +103,23 @@ public class NormalAuthorizationProfileTestCase extends RESTfulDConnectTestCase 
      */
     @Test
     public void testCreateClientOverwrite() {
-        String clientId = createClient();
-        assertNotNull(clientId);
-        String newClientId = createClient();
-        assertNotNull(newClientId);
-        assertFalse(newClientId.equals(clientId));
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
+        builder.setProfile(AuthorizationProfile.PROFILE_NAME);
+        builder.setAttribute(AuthorizationProfile.ATTRIBUTE_GRANT);
+
+        DConnectResponseMessage response1 = mDConnectSDK.get(builder.build());
+        assertThat(response1, is(notNullValue()));
+        assertThat(response1.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response1.getString(AuthorizationProfile.PARAM_CLIENT_ID), is(notNullValue()));
+
+        DConnectResponseMessage response2 = mDConnectSDK.get(builder.build());
+        assertThat(response2, is(notNullValue()));
+        assertThat(response2.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response2.getString(AuthorizationProfile.PARAM_CLIENT_ID), is(notNullValue()));
+
+        String clientId1 = response1.getString(AuthorizationProfile.PARAM_CLIENT_ID);
+        String clientId2 = response2.getString(AuthorizationProfile.PARAM_CLIENT_ID);
+        assertThat(clientId1, is(not(clientId2)));
     }
 
     /**
@@ -84,8 +128,7 @@ public class NormalAuthorizationProfileTestCase extends RESTfulDConnectTestCase 
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /authorization/accesstoken?
-     *           clientId=xxxx&scope=xxxx&applicationName=xxxx
+     * Path: /authorization/accessToken?clientId=xxxx&scope=xxxx&applicationName=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -96,12 +139,32 @@ public class NormalAuthorizationProfileTestCase extends RESTfulDConnectTestCase 
      */
     @Test
     public void testRequestAccessToken() {
-        String clientId = createClient();
-        assertNotNull(clientId);
+        DConnectSDK.URIBuilder builder1 = mDConnectSDK.createURIBuilder();
+        builder1.setProfile(AuthorizationProfile.PROFILE_NAME);
+        builder1.setAttribute(AuthorizationProfile.ATTRIBUTE_GRANT);
 
-        String accessToken = requestAccessToken(clientId,
-                new String[] {NotificationProfileConstants.PROFILE_NAME});
-        assertNotNull(accessToken);
+        DConnectResponseMessage response1 = mDConnectSDK.get(builder1.build());
+        assertThat(response1, is(notNullValue()));
+        assertThat(response1.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response1.getString(AuthorizationProfile.PARAM_CLIENT_ID), is(notNullValue()));
+
+        String clientId = response1.getString(AuthorizationProfile.PARAM_CLIENT_ID);
+        String appName = "JUnit Test";
+        String[] scopes = {
+                BatteryProfile.PROFILE_NAME
+        };
+
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
+        builder.setProfile(AuthorizationProfile.PROFILE_NAME);
+        builder.setAttribute(AuthorizationProfile.ATTRIBUTE_ACCESS_TOKEN);
+        builder.addParameter(AuthorizationProfile.PARAM_CLIENT_ID, clientId);
+        builder.addParameter(AuthorizationProfileConstants.PARAM_APPLICATION_NAME, appName);
+        builder.addParameter(AuthorizationProfileConstants.PARAM_SCOPE, combineStr(scopes));
+
+        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getString(AuthorizationProfile.PARAM_ACCESS_TOKEN), is(notNullValue()));
     }
 
     /**
@@ -110,8 +173,7 @@ public class NormalAuthorizationProfileTestCase extends RESTfulDConnectTestCase 
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /authorization/accesstoken?
-     *           clientId=xxxx&scope=xxxx&applicationName=xxxx
+     * Path: /authorization/accessToken?clientId=xxxx&scope=xxxx&applicationName=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -122,14 +184,35 @@ public class NormalAuthorizationProfileTestCase extends RESTfulDConnectTestCase 
      */
     @Test
     public void testRequestAccessTokenMultiScope() {
-        String clientId = createClient();
-        assertNotNull(clientId);
+        DConnectSDK.URIBuilder builder1 = mDConnectSDK.createURIBuilder();
+        builder1.setProfile(AuthorizationProfile.PROFILE_NAME);
+        builder1.setAttribute(AuthorizationProfile.ATTRIBUTE_GRANT);
 
-        String accessToken = requestAccessToken(clientId, new String[] {
-                BatteryProfileConstants.PROFILE_NAME,
-                ConnectionProfileConstants.PROFILE_NAME,
-                DeviceOrientationProfileConstants.PROFILE_NAME
-        });
-        assertNotNull(accessToken);
+        DConnectResponseMessage response1 = mDConnectSDK.get(builder1.build());
+        assertThat(response1, is(notNullValue()));
+        assertThat(response1.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response1.getString(AuthorizationProfile.PARAM_CLIENT_ID), is(notNullValue()));
+
+        String clientId = response1.getString(AuthorizationProfile.PARAM_CLIENT_ID);
+        assertThat(clientId, is(notNullValue()));
+
+        String appName = "JUnit Test";
+        String[] scopes = {
+                BatteryProfile.PROFILE_NAME,
+                ServiceDiscoveryProfile.PROFILE_NAME,
+                ServiceInformationProfile.PROFILE_NAME
+        };
+
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
+        builder.setProfile(AuthorizationProfile.PROFILE_NAME);
+        builder.setAttribute(AuthorizationProfile.ATTRIBUTE_ACCESS_TOKEN);
+        builder.addParameter(AuthorizationProfile.PARAM_CLIENT_ID, clientId);
+        builder.addParameter(AuthorizationProfileConstants.PARAM_APPLICATION_NAME, appName);
+        builder.addParameter(AuthorizationProfileConstants.PARAM_SCOPE, combineStr(scopes));
+
+        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getString(AuthorizationProfile.PARAM_ACCESS_TOKEN), is(notNullValue()));
     }
 }

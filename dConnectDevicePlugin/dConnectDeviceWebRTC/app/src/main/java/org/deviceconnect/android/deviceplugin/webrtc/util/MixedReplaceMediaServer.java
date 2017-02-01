@@ -45,7 +45,7 @@ public class MixedReplaceMediaServer {
     /**
      * Max value of cache of media.
      */
-    private static final int MAX_MEDIA_CACHE = 2;
+    private static final int MAX_MEDIA_CACHE = 4;
     
     /**
      * Max value of client.
@@ -111,7 +111,7 @@ public class MixedReplaceMediaServer {
     /**
      * List a Server Runnable.
      */
-    private final List<ServerRunnable> mRunnables = Collections.synchronizedList(
+    private final List<ServerRunnable> mServerRunnableList = Collections.synchronizedList(
             new ArrayList<ServerRunnable>());
 
     /**
@@ -242,8 +242,8 @@ public class MixedReplaceMediaServer {
             return;
         }
         if (!mStopFlag) {
-            synchronized (mRunnables) {
-                for (ServerRunnable run : mRunnables) {
+            synchronized (mServerRunnableList) {
+                for (ServerRunnable run : mServerRunnableList) {
                     switch (type) {
                         case LOCAL:
                             run.offerMedia(LOCAL, media);
@@ -252,7 +252,7 @@ public class MixedReplaceMediaServer {
                             run.offerMedia(REMOTE, media);
                             break;
                         default:
-                            break;
+                            throw new RuntimeException("offerMedia'type is unknown.");
                     }
                 }
             }
@@ -276,8 +276,7 @@ public class MixedReplaceMediaServer {
             return false;
         }
 
-        //mPath = UUID.randomUUID().toString();
-        mPath = "ABC";
+        mPath = UUID.randomUUID().toString();
 
         mStopFlag = false;
         new Thread(new Runnable() {
@@ -329,8 +328,8 @@ public class MixedReplaceMediaServer {
         }
         mStopFlag = true;
         mExecutor.shutdown();
-        synchronized (mRunnables) {
-            for (ServerRunnable run : mRunnables) {
+        synchronized (mServerRunnableList) {
+            for (ServerRunnable run : mServerRunnableList) {
                 run.offerMedia(LOCAL, new byte[0]);
             }
         }
@@ -388,7 +387,7 @@ public class MixedReplaceMediaServer {
         @Override
         public void run() {
             mLogger.fine("accept client.");
-            mRunnables.add(this);
+            mServerRunnableList.add(this);
             try {
                 mStream = mSocket.getOutputStream();
 
@@ -401,7 +400,7 @@ public class MixedReplaceMediaServer {
                 String type = decodeHeader(buf, len);
                 int fps = 1000 / mFPS;
 
-                if (mRunnables.size() > MAX_CLIENT_SIZE) {
+                if (mServerRunnableList.size() > MAX_CLIENT_SIZE) {
                     mStream.write(generateServiceUnavailable().getBytes());
                     mStream.flush();
                 } else {
@@ -456,7 +455,7 @@ public class MixedReplaceMediaServer {
                         e.printStackTrace();
                     }
                 }
-                mRunnables.remove(this);
+                mServerRunnableList.remove(this);
             }
         }
         

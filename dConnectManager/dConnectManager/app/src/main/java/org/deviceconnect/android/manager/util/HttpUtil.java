@@ -68,7 +68,7 @@ public final class HttpUtil {
     private static final String METHOD_PUT = "PUT";
 
     /**
-     * GETTメソッドを定義します.
+     * GETメソッドを定義します.
      */
     private static final String METHOD_GET = "GET";
 

@@ -13,7 +13,6 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.provider.BaseColumns;
 
-import org.deviceconnect.android.manager.profile.DConnectFilesProfile;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.deviceconnect.profile.AvailabilityProfileConstants;
 import org.deviceconnect.profile.SystemProfileConstants;
@@ -43,7 +42,6 @@ public class DConnectLocalOAuth {
     public static final String[] IGNORE_PROFILES = {
         AuthorizationProfileConstants.PROFILE_NAME,
         AvailabilityProfileConstants.PROFILE_NAME,
-        DConnectFilesProfile.PROFILE_NAME,
     };
 
     /**
@@ -53,7 +51,6 @@ public class DConnectLocalOAuth {
         AuthorizationProfileConstants.PROFILE_NAME,
         AvailabilityProfileConstants.PROFILE_NAME,
         SystemProfileConstants.PROFILE_NAME,
-        DConnectFilesProfile.PROFILE_NAME,
     };
 
     /** ロガー. */

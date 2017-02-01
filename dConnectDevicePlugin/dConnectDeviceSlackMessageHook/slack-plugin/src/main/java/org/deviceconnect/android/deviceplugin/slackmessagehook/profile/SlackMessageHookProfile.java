@@ -8,6 +8,7 @@ package org.deviceconnect.android.deviceplugin.slackmessagehook.profile;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.slackmessagehook.SlackMessageHookDeviceService;
 import org.deviceconnect.android.deviceplugin.slackmessagehook.slack.SlackManager;

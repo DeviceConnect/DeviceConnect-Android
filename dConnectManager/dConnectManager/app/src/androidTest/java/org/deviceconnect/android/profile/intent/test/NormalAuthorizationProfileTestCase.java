@@ -28,7 +28,7 @@ public class NormalAuthorizationProfileTestCase extends IntentDConnectTestCase {
     }
 
     @Override
-    protected boolean isSearchDevices() {
+    protected boolean isSearchServices() {
         return false;
     }
 
@@ -95,10 +95,7 @@ public class NormalAuthorizationProfileTestCase extends IntentDConnectTestCase {
      */
     @Test
     public void testRequestAccessToken() {
-        String clientId = createClient();
-        assertNotNull(clientId);
-        
-        String accessToken = requestAccessToken(clientId,
+        String accessToken = requestAccessToken(
                 new String[] {NotificationProfileConstants.PROFILE_NAME});
         assertNotNull(accessToken);
     }
@@ -120,10 +117,7 @@ public class NormalAuthorizationProfileTestCase extends IntentDConnectTestCase {
      */
     @Test
     public void testRequestAccessTokenMultiScope() {
-        String clientId = createClient();
-        assertNotNull(clientId);
-        
-        String accessToken = requestAccessToken(clientId, new String[] {
+        String accessToken = requestAccessToken(new String[] {
                 BatteryProfileConstants.PROFILE_NAME,
                 ConnectProfileConstants.PROFILE_NAME,
                 DeviceOrientationProfileConstants.PROFILE_NAME,

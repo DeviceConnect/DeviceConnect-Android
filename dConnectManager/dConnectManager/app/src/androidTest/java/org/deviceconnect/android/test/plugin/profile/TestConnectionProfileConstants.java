@@ -12,6 +12,6 @@ package org.deviceconnect.android.test.plugin.profile;
  * 
  * @author NTT DOCOMO, INC.
  */
-public interface TestConnectProfileConstants {
+public interface TestConnectionProfileConstants {
 
 }

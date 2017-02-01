@@ -1,5 +1,5 @@
 /*
- NormalSettingsProfileTestCase.java
+ NormalSettingProfileTestCase.java
  Copyright (c) 2014 NTT DOCOMO,INC.
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
@@ -9,21 +9,21 @@ package org.deviceconnect.android.profile.intent.test;
 import android.content.Intent;
 import android.support.test.runner.AndroidJUnit4;
 
-import org.deviceconnect.android.test.plugin.profile.TestSettingsProfileConstants;
+import org.deviceconnect.android.test.plugin.profile.TestSettingProfileConstants;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
-import org.deviceconnect.profile.SettingsProfileConstants;
+import org.deviceconnect.profile.SettingProfileConstants;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 
 /**
- * Settingsプロファイルの正常系テスト.
+ * の正常系テスト.
  * @author NTT DOCOMO, INC.
  */
 @RunWith(AndroidJUnit4.class)
-public class NormalSettingsProfileTestCase extends IntentDConnectTestCase
-    implements TestSettingsProfileConstants {
+public class NormalSettingProfileTestCase extends IntentDConnectTestCase
+    implements TestSettingProfileConstants {
 
     /**
      * スマートデバイスの音量取得テストを行う.
@@ -45,10 +45,10 @@ public class NormalSettingsProfileTestCase extends IntentDConnectTestCase
     public void testGetVolume001() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_GET);
         request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
-        request.putExtra(DConnectMessage.EXTRA_PROFILE, SettingsProfileConstants.PROFILE_NAME);
-        request.putExtra(DConnectMessage.EXTRA_INTERFACE, SettingsProfileConstants.INTERFACE_SOUND);
-        request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, SettingsProfileConstants.ATTRIBUTE_VOLUME);
-        request.putExtra(SettingsProfileConstants.PARAM_KIND, SettingsProfileConstants.VolumeKind.ALARM.getValue());
+        request.putExtra(DConnectMessage.EXTRA_PROFILE, SettingProfileConstants.PROFILE_NAME);
+        request.putExtra(DConnectMessage.EXTRA_INTERFACE, SettingProfileConstants.INTERFACE_SOUND);
+        request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, SettingProfileConstants.ATTRIBUTE_VOLUME);
+        request.putExtra(SettingProfileConstants.PARAM_KIND, SettingProfileConstants.VolumeKind.ALARM.getValue());
         Intent response = sendRequest(request);
 
         assertResultOK(response);
@@ -74,10 +74,10 @@ public class NormalSettingsProfileTestCase extends IntentDConnectTestCase
     public void testGetVolume002() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_GET);
         request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
-        request.putExtra(DConnectMessage.EXTRA_PROFILE, SettingsProfileConstants.PROFILE_NAME);
-        request.putExtra(DConnectMessage.EXTRA_INTERFACE, SettingsProfileConstants.INTERFACE_SOUND);
-        request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, SettingsProfileConstants.ATTRIBUTE_VOLUME);
-        request.putExtra(SettingsProfileConstants.PARAM_KIND, SettingsProfileConstants.VolumeKind.CALL.getValue());
+        request.putExtra(DConnectMessage.EXTRA_PROFILE, SettingProfileConstants.PROFILE_NAME);
+        request.putExtra(DConnectMessage.EXTRA_INTERFACE, SettingProfileConstants.INTERFACE_SOUND);
+        request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, SettingProfileConstants.ATTRIBUTE_VOLUME);
+        request.putExtra(SettingProfileConstants.PARAM_KIND, SettingProfileConstants.VolumeKind.CALL.getValue());
         Intent response = sendRequest(request);
 
         assertResultOK(response);
@@ -103,10 +103,10 @@ public class NormalSettingsProfileTestCase extends IntentDConnectTestCase
     public void testGetVolume003() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_GET);
         request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
-        request.putExtra(DConnectMessage.EXTRA_PROFILE, SettingsProfileConstants.PROFILE_NAME);
-        request.putExtra(DConnectMessage.EXTRA_INTERFACE, SettingsProfileConstants.INTERFACE_SOUND);
-        request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, SettingsProfileConstants.ATTRIBUTE_VOLUME);
-        request.putExtra(SettingsProfileConstants.PARAM_KIND, SettingsProfileConstants.VolumeKind.RINGTONE.getValue());
+        request.putExtra(DConnectMessage.EXTRA_PROFILE, SettingProfileConstants.PROFILE_NAME);
+        request.putExtra(DConnectMessage.EXTRA_INTERFACE, SettingProfileConstants.INTERFACE_SOUND);
+        request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, SettingProfileConstants.ATTRIBUTE_VOLUME);
+        request.putExtra(SettingProfileConstants.PARAM_KIND, SettingProfileConstants.VolumeKind.RINGTONE.getValue());
         Intent response = sendRequest(request);
 
         assertResultOK(response);
@@ -132,10 +132,10 @@ public class NormalSettingsProfileTestCase extends IntentDConnectTestCase
     public void testGetVolume004() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_GET);
         request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
-        request.putExtra(DConnectMessage.EXTRA_PROFILE, SettingsProfileConstants.PROFILE_NAME);
-        request.putExtra(DConnectMessage.EXTRA_INTERFACE, SettingsProfileConstants.INTERFACE_SOUND);
-        request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, SettingsProfileConstants.ATTRIBUTE_VOLUME);
-        request.putExtra(SettingsProfileConstants.PARAM_KIND, SettingsProfileConstants.VolumeKind.MAIL.getValue());
+        request.putExtra(DConnectMessage.EXTRA_PROFILE, SettingProfileConstants.PROFILE_NAME);
+        request.putExtra(DConnectMessage.EXTRA_INTERFACE, SettingProfileConstants.INTERFACE_SOUND);
+        request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, SettingProfileConstants.ATTRIBUTE_VOLUME);
+        request.putExtra(SettingProfileConstants.PARAM_KIND, SettingProfileConstants.VolumeKind.MAIL.getValue());
         Intent response = sendRequest(request);
 
         assertResultOK(response);
@@ -161,10 +161,10 @@ public class NormalSettingsProfileTestCase extends IntentDConnectTestCase
     public void testGetVolume005() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_GET);
         request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
-        request.putExtra(DConnectMessage.EXTRA_PROFILE, SettingsProfileConstants.PROFILE_NAME);
-        request.putExtra(DConnectMessage.EXTRA_INTERFACE, SettingsProfileConstants.INTERFACE_SOUND);
-        request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, SettingsProfileConstants.ATTRIBUTE_VOLUME);
-        request.putExtra(SettingsProfileConstants.PARAM_KIND, SettingsProfileConstants.VolumeKind.OTHER.getValue());
+        request.putExtra(DConnectMessage.EXTRA_PROFILE, SettingProfileConstants.PROFILE_NAME);
+        request.putExtra(DConnectMessage.EXTRA_INTERFACE, SettingProfileConstants.INTERFACE_SOUND);
+        request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, SettingProfileConstants.ATTRIBUTE_VOLUME);
+        request.putExtra(SettingProfileConstants.PARAM_KIND, SettingProfileConstants.VolumeKind.OTHER.getValue());
         Intent response = sendRequest(request);
 
         assertResultOK(response);
@@ -190,11 +190,11 @@ public class NormalSettingsProfileTestCase extends IntentDConnectTestCase
     public void testPutVolume001() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_PUT);
         request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
-        request.putExtra(DConnectMessage.EXTRA_PROFILE, SettingsProfileConstants.PROFILE_NAME);
-        request.putExtra(DConnectMessage.EXTRA_INTERFACE, SettingsProfileConstants.INTERFACE_SOUND);
-        request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, SettingsProfileConstants.ATTRIBUTE_VOLUME);
-        request.putExtra(SettingsProfileConstants.PARAM_KIND, SettingsProfileConstants.VolumeKind.ALARM.getValue());
-        request.putExtra(SettingsProfileConstants.PARAM_LEVEL, TestSettingsProfileConstants.LEVEL);
+        request.putExtra(DConnectMessage.EXTRA_PROFILE, SettingProfileConstants.PROFILE_NAME);
+        request.putExtra(DConnectMessage.EXTRA_INTERFACE, SettingProfileConstants.INTERFACE_SOUND);
+        request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, SettingProfileConstants.ATTRIBUTE_VOLUME);
+        request.putExtra(SettingProfileConstants.PARAM_KIND, SettingProfileConstants.VolumeKind.ALARM.getValue());
+        request.putExtra(SettingProfileConstants.PARAM_LEVEL, TestSettingProfileConstants.LEVEL);
         Intent response = sendRequest(request);
 
         assertResultOK(response);
@@ -220,11 +220,11 @@ public class NormalSettingsProfileTestCase extends IntentDConnectTestCase
     public void testPutVolume002() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_PUT);
         request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
-        request.putExtra(DConnectMessage.EXTRA_PROFILE, SettingsProfileConstants.PROFILE_NAME);
-        request.putExtra(DConnectMessage.EXTRA_INTERFACE, SettingsProfileConstants.INTERFACE_SOUND);
-        request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, SettingsProfileConstants.ATTRIBUTE_VOLUME);
-        request.putExtra(SettingsProfileConstants.PARAM_KIND, SettingsProfileConstants.VolumeKind.CALL.getValue());
-        request.putExtra(SettingsProfileConstants.PARAM_LEVEL, TestSettingsProfileConstants.LEVEL);
+        request.putExtra(DConnectMessage.EXTRA_PROFILE, SettingProfileConstants.PROFILE_NAME);
+        request.putExtra(DConnectMessage.EXTRA_INTERFACE, SettingProfileConstants.INTERFACE_SOUND);
+        request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, SettingProfileConstants.ATTRIBUTE_VOLUME);
+        request.putExtra(SettingProfileConstants.PARAM_KIND, SettingProfileConstants.VolumeKind.CALL.getValue());
+        request.putExtra(SettingProfileConstants.PARAM_LEVEL, TestSettingProfileConstants.LEVEL);
         Intent response = sendRequest(request);
 
         assertResultOK(response);
@@ -250,11 +250,11 @@ public class NormalSettingsProfileTestCase extends IntentDConnectTestCase
     public void testPutVolume003() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_PUT);
         request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
-        request.putExtra(DConnectMessage.EXTRA_PROFILE, SettingsProfileConstants.PROFILE_NAME);
-        request.putExtra(DConnectMessage.EXTRA_INTERFACE, SettingsProfileConstants.INTERFACE_SOUND);
-        request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, SettingsProfileConstants.ATTRIBUTE_VOLUME);
-        request.putExtra(SettingsProfileConstants.PARAM_KIND, SettingsProfileConstants.VolumeKind.RINGTONE.getValue());
-        request.putExtra(SettingsProfileConstants.PARAM_LEVEL, TestSettingsProfileConstants.LEVEL);
+        request.putExtra(DConnectMessage.EXTRA_PROFILE, SettingProfileConstants.PROFILE_NAME);
+        request.putExtra(DConnectMessage.EXTRA_INTERFACE, SettingProfileConstants.INTERFACE_SOUND);
+        request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, SettingProfileConstants.ATTRIBUTE_VOLUME);
+        request.putExtra(SettingProfileConstants.PARAM_KIND, SettingProfileConstants.VolumeKind.RINGTONE.getValue());
+        request.putExtra(SettingProfileConstants.PARAM_LEVEL, TestSettingProfileConstants.LEVEL);
         Intent response = sendRequest(request);
 
         assertResultOK(response);
@@ -280,11 +280,11 @@ public class NormalSettingsProfileTestCase extends IntentDConnectTestCase
     public void testPutVolume004() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_PUT);
         request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
-        request.putExtra(DConnectMessage.EXTRA_PROFILE, SettingsProfileConstants.PROFILE_NAME);
-        request.putExtra(DConnectMessage.EXTRA_INTERFACE, SettingsProfileConstants.INTERFACE_SOUND);
-        request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, SettingsProfileConstants.ATTRIBUTE_VOLUME);
-        request.putExtra(SettingsProfileConstants.PARAM_KIND, SettingsProfileConstants.VolumeKind.MAIL.getValue());
-        request.putExtra(SettingsProfileConstants.PARAM_LEVEL, TestSettingsProfileConstants.LEVEL);
+        request.putExtra(DConnectMessage.EXTRA_PROFILE, SettingProfileConstants.PROFILE_NAME);
+        request.putExtra(DConnectMessage.EXTRA_INTERFACE, SettingProfileConstants.INTERFACE_SOUND);
+        request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, SettingProfileConstants.ATTRIBUTE_VOLUME);
+        request.putExtra(SettingProfileConstants.PARAM_KIND, SettingProfileConstants.VolumeKind.MAIL.getValue());
+        request.putExtra(SettingProfileConstants.PARAM_LEVEL, TestSettingProfileConstants.LEVEL);
         Intent response = sendRequest(request);
 
         assertResultOK(response);
@@ -310,11 +310,11 @@ public class NormalSettingsProfileTestCase extends IntentDConnectTestCase
     public void testPutVolume005() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_PUT);
         request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
-        request.putExtra(DConnectMessage.EXTRA_PROFILE, SettingsProfileConstants.PROFILE_NAME);
-        request.putExtra(DConnectMessage.EXTRA_INTERFACE, SettingsProfileConstants.INTERFACE_SOUND);
-        request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, SettingsProfileConstants.ATTRIBUTE_VOLUME);
-        request.putExtra(SettingsProfileConstants.PARAM_KIND, SettingsProfileConstants.VolumeKind.OTHER.getValue());
-        request.putExtra(SettingsProfileConstants.PARAM_LEVEL, TestSettingsProfileConstants.LEVEL);
+        request.putExtra(DConnectMessage.EXTRA_PROFILE, SettingProfileConstants.PROFILE_NAME);
+        request.putExtra(DConnectMessage.EXTRA_INTERFACE, SettingProfileConstants.INTERFACE_SOUND);
+        request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, SettingProfileConstants.ATTRIBUTE_VOLUME);
+        request.putExtra(SettingProfileConstants.PARAM_KIND, SettingProfileConstants.VolumeKind.OTHER.getValue());
+        request.putExtra(SettingProfileConstants.PARAM_LEVEL, TestSettingProfileConstants.LEVEL);
         Intent response = sendRequest(request);
 
         assertResultOK(response);
@@ -339,8 +339,8 @@ public class NormalSettingsProfileTestCase extends IntentDConnectTestCase
     public void testGetDate() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_GET);
         request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
-        request.putExtra(DConnectMessage.EXTRA_PROFILE, SettingsProfileConstants.PROFILE_NAME);
-        request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, SettingsProfileConstants.ATTRIBUTE_DATE);
+        request.putExtra(DConnectMessage.EXTRA_PROFILE, SettingProfileConstants.PROFILE_NAME);
+        request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, SettingProfileConstants.ATTRIBUTE_DATE);
         Intent response = sendRequest(request);
 
         assertResultOK(response);
@@ -365,9 +365,9 @@ public class NormalSettingsProfileTestCase extends IntentDConnectTestCase
     public void testPutDate() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_GET);
         request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
-        request.putExtra(DConnectMessage.EXTRA_PROFILE, SettingsProfileConstants.PROFILE_NAME);
-        request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, SettingsProfileConstants.ATTRIBUTE_DATE);
-        request.putExtra(SettingsProfileConstants.PARAM_DATE, TestSettingsProfileConstants.DATE);
+        request.putExtra(DConnectMessage.EXTRA_PROFILE, SettingProfileConstants.PROFILE_NAME);
+        request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, SettingProfileConstants.ATTRIBUTE_DATE);
+        request.putExtra(SettingProfileConstants.PARAM_DATE, TestSettingProfileConstants.DATE);
         Intent response = sendRequest(request);
 
         assertResultOK(response);
@@ -393,10 +393,10 @@ public class NormalSettingsProfileTestCase extends IntentDConnectTestCase
     public void testGetLight001() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_GET);
         request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
-        request.putExtra(DConnectMessage.EXTRA_PROFILE, SettingsProfileConstants.PROFILE_NAME);
-        request.putExtra(DConnectMessage.EXTRA_INTERFACE, SettingsProfileConstants.INTERFACE_DISPLAY);
-        request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, SettingsProfileConstants.ATTRIBUTE_LIGHT);
-        request.putExtra(SettingsProfileConstants.PARAM_KIND, 1);
+        request.putExtra(DConnectMessage.EXTRA_PROFILE, SettingProfileConstants.PROFILE_NAME);
+        request.putExtra(DConnectMessage.EXTRA_INTERFACE, SettingProfileConstants.INTERFACE_DISPLAY);
+        request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, SettingProfileConstants.ATTRIBUTE_BRIGHTNESS);
+        request.putExtra(SettingProfileConstants.PARAM_KIND, 1);
         Intent response = sendRequest(request);
 
         assertResultOK(response);
@@ -422,10 +422,10 @@ public class NormalSettingsProfileTestCase extends IntentDConnectTestCase
     public void testGetLight002() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_GET);
         request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
-        request.putExtra(DConnectMessage.EXTRA_PROFILE, SettingsProfileConstants.PROFILE_NAME);
-        request.putExtra(DConnectMessage.EXTRA_INTERFACE, SettingsProfileConstants.INTERFACE_DISPLAY);
-        request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, SettingsProfileConstants.ATTRIBUTE_LIGHT);
-        request.putExtra(SettingsProfileConstants.PARAM_KIND, 2);
+        request.putExtra(DConnectMessage.EXTRA_PROFILE, SettingProfileConstants.PROFILE_NAME);
+        request.putExtra(DConnectMessage.EXTRA_INTERFACE, SettingProfileConstants.INTERFACE_DISPLAY);
+        request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, SettingProfileConstants.ATTRIBUTE_BRIGHTNESS);
+        request.putExtra(SettingProfileConstants.PARAM_KIND, 2);
         Intent response = sendRequest(request);
 
         assertResultOK(response);
@@ -451,10 +451,10 @@ public class NormalSettingsProfileTestCase extends IntentDConnectTestCase
     public void testGetLight003() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_GET);
         request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
-        request.putExtra(DConnectMessage.EXTRA_PROFILE, SettingsProfileConstants.PROFILE_NAME);
-        request.putExtra(DConnectMessage.EXTRA_INTERFACE, SettingsProfileConstants.INTERFACE_DISPLAY);
-        request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, SettingsProfileConstants.ATTRIBUTE_LIGHT);
-        request.putExtra(SettingsProfileConstants.PARAM_KIND, 3);
+        request.putExtra(DConnectMessage.EXTRA_PROFILE, SettingProfileConstants.PROFILE_NAME);
+        request.putExtra(DConnectMessage.EXTRA_INTERFACE, SettingProfileConstants.INTERFACE_DISPLAY);
+        request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, SettingProfileConstants.ATTRIBUTE_BRIGHTNESS);
+        request.putExtra(SettingProfileConstants.PARAM_KIND, 3);
         Intent response = sendRequest(request);
 
         assertResultOK(response);
@@ -480,11 +480,11 @@ public class NormalSettingsProfileTestCase extends IntentDConnectTestCase
     public void testPutLight001() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_PUT);
         request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
-        request.putExtra(DConnectMessage.EXTRA_PROFILE, SettingsProfileConstants.PROFILE_NAME);
-        request.putExtra(DConnectMessage.EXTRA_INTERFACE, SettingsProfileConstants.INTERFACE_DISPLAY);
-        request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, SettingsProfileConstants.ATTRIBUTE_LIGHT);
-        request.putExtra(SettingsProfileConstants.PARAM_KIND, 1);
-        request.putExtra(SettingsProfileConstants.PARAM_LEVEL, TestSettingsProfileConstants.LEVEL);
+        request.putExtra(DConnectMessage.EXTRA_PROFILE, SettingProfileConstants.PROFILE_NAME);
+        request.putExtra(DConnectMessage.EXTRA_INTERFACE, SettingProfileConstants.INTERFACE_DISPLAY);
+        request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, SettingProfileConstants.ATTRIBUTE_BRIGHTNESS);
+        request.putExtra(SettingProfileConstants.PARAM_KIND, 1);
+        request.putExtra(SettingProfileConstants.PARAM_LEVEL, TestSettingProfileConstants.LEVEL);
         Intent response = sendRequest(request);
         assertResultOK(response);
     }
@@ -509,11 +509,11 @@ public class NormalSettingsProfileTestCase extends IntentDConnectTestCase
     public void testPutLight002() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_PUT);
         request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
-        request.putExtra(DConnectMessage.EXTRA_PROFILE, SettingsProfileConstants.PROFILE_NAME);
-        request.putExtra(DConnectMessage.EXTRA_INTERFACE, SettingsProfileConstants.INTERFACE_DISPLAY);
-        request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, SettingsProfileConstants.ATTRIBUTE_LIGHT);
-        request.putExtra(SettingsProfileConstants.PARAM_KIND, 2);
-        request.putExtra(SettingsProfileConstants.PARAM_LEVEL, TestSettingsProfileConstants.LEVEL);
+        request.putExtra(DConnectMessage.EXTRA_PROFILE, SettingProfileConstants.PROFILE_NAME);
+        request.putExtra(DConnectMessage.EXTRA_INTERFACE, SettingProfileConstants.INTERFACE_DISPLAY);
+        request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, SettingProfileConstants.ATTRIBUTE_BRIGHTNESS);
+        request.putExtra(SettingProfileConstants.PARAM_KIND, 2);
+        request.putExtra(SettingProfileConstants.PARAM_LEVEL, TestSettingProfileConstants.LEVEL);
         Intent response = sendRequest(request);
         assertResultOK(response);
     }
@@ -538,11 +538,11 @@ public class NormalSettingsProfileTestCase extends IntentDConnectTestCase
     public void testPutLight003() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_PUT);
         request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
-        request.putExtra(DConnectMessage.EXTRA_PROFILE, SettingsProfileConstants.PROFILE_NAME);
-        request.putExtra(DConnectMessage.EXTRA_INTERFACE, SettingsProfileConstants.INTERFACE_DISPLAY);
-        request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, SettingsProfileConstants.ATTRIBUTE_LIGHT);
-        request.putExtra(SettingsProfileConstants.PARAM_KIND, 3);
-        request.putExtra(SettingsProfileConstants.PARAM_LEVEL, TestSettingsProfileConstants.LEVEL);
+        request.putExtra(DConnectMessage.EXTRA_PROFILE, SettingProfileConstants.PROFILE_NAME);
+        request.putExtra(DConnectMessage.EXTRA_INTERFACE, SettingProfileConstants.INTERFACE_DISPLAY);
+        request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, SettingProfileConstants.ATTRIBUTE_BRIGHTNESS);
+        request.putExtra(SettingProfileConstants.PARAM_KIND, 3);
+        request.putExtra(SettingProfileConstants.PARAM_LEVEL, TestSettingProfileConstants.LEVEL);
         Intent response = sendRequest(request);
         assertResultOK(response);
     }
@@ -568,9 +568,9 @@ public class NormalSettingsProfileTestCase extends IntentDConnectTestCase
     public void testGetSleep() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_GET);
         request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
-        request.putExtra(DConnectMessage.EXTRA_PROFILE, SettingsProfileConstants.PROFILE_NAME);
-        request.putExtra(DConnectMessage.EXTRA_INTERFACE, SettingsProfileConstants.INTERFACE_DISPLAY);
-        request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, SettingsProfileConstants.ATTRIBUTE_SLEEP);
+        request.putExtra(DConnectMessage.EXTRA_PROFILE, SettingProfileConstants.PROFILE_NAME);
+        request.putExtra(DConnectMessage.EXTRA_INTERFACE, SettingProfileConstants.INTERFACE_DISPLAY);
+        request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, SettingProfileConstants.ATTRIBUTE_SLEEP);
         Intent response = sendRequest(request);
 
         assertResultOK(response);
@@ -597,10 +597,10 @@ public class NormalSettingsProfileTestCase extends IntentDConnectTestCase
     public void testPutSleep() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_PUT);
         request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
-        request.putExtra(DConnectMessage.EXTRA_PROFILE, SettingsProfileConstants.PROFILE_NAME);
-        request.putExtra(DConnectMessage.EXTRA_INTERFACE, SettingsProfileConstants.INTERFACE_DISPLAY);
-        request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, SettingsProfileConstants.ATTRIBUTE_SLEEP);
-        request.putExtra(SettingsProfileConstants.PARAM_TIME, 1);
+        request.putExtra(DConnectMessage.EXTRA_PROFILE, SettingProfileConstants.PROFILE_NAME);
+        request.putExtra(DConnectMessage.EXTRA_INTERFACE, SettingProfileConstants.INTERFACE_DISPLAY);
+        request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, SettingProfileConstants.ATTRIBUTE_SLEEP);
+        request.putExtra(SettingProfileConstants.PARAM_TIME, 1);
         Intent response = sendRequest(request);
         assertResultOK(response);
     }

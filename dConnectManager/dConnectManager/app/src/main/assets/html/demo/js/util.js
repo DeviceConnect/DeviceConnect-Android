@@ -16,7 +16,7 @@ var util = (function(parent, global) {
             'notification',
             'phone',
             'proximity',
-            'settings',
+            'setting',
             'vibration',
             'light',
             'remotecontroller',

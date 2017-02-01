@@ -45,7 +45,7 @@ import org.deviceconnect.android.deviceplugin.host.profile.HostMediaStreamingRec
 import org.deviceconnect.android.deviceplugin.host.profile.HostNotificationProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostPhoneProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostProximityProfile;
-import org.deviceconnect.android.deviceplugin.host.profile.HostSettingsProfile;
+import org.deviceconnect.android.deviceplugin.host.profile.HostSettingProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostSystemProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostTouchProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostVibrationProfile;
@@ -174,7 +174,7 @@ public class HostDeviceService extends DConnectMessageService {
         hostService.addProfile(new HostNotificationProfile());
         hostService.addProfile(new HostPhoneProfile());
         hostService.addProfile(new HostProximityProfile());
-        hostService.addProfile(new HostSettingsProfile());
+        hostService.addProfile(new HostSettingProfile());
         hostService.addProfile(new HostTouchProfile());
         hostService.addProfile(new HostVibrationProfile());
         getServiceProvider().addService(hostService);

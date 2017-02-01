@@ -30,7 +30,7 @@ import org.deviceconnect.profile.PhoneProfileConstants;
 import org.deviceconnect.profile.ProximityProfileConstants;
 import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 import org.deviceconnect.profile.ServiceInformationProfileConstants;
-import org.deviceconnect.profile.SettingsProfileConstants;
+import org.deviceconnect.profile.SettingProfileConstants;
 import org.deviceconnect.profile.SystemProfileConstants;
 import org.deviceconnect.profile.VibrationProfileConstants;
 import org.junit.Before;
@@ -109,7 +109,7 @@ public abstract class DConnectTestCase extends AndroidTestCase {
             ProximityProfileConstants.PROFILE_NAME,
             ServiceDiscoveryProfileConstants.PROFILE_NAME,
             ServiceInformationProfileConstants.PROFILE_NAME,
-            SettingsProfileConstants.PROFILE_NAME,
+            SettingProfileConstants.PROFILE_NAME,
             SystemProfileConstants.PROFILE_NAME,
             VibrationProfileConstants.PROFILE_NAME,
             "files",

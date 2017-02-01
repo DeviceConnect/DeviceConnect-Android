@@ -1,5 +1,5 @@
 /*
- NormalSettingsProfileTestCase.java
+ NormalSettingProfileTestCase.java
  Copyright (c) 2014 NTT DOCOMO,INC.
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
@@ -8,12 +8,12 @@ package org.deviceconnect.android.profile.restful.test;
 
 import android.support.test.runner.AndroidJUnit4;
 
-import org.deviceconnect.android.test.plugin.profile.TestSettingsProfileConstants;
+import org.deviceconnect.android.test.plugin.profile.TestSettingProfileConstants;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.DConnectResponseMessage;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.deviceconnect.profile.DConnectProfileConstants;
-import org.deviceconnect.profile.SettingsProfileConstants;
+import org.deviceconnect.profile.SettingProfileConstants;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -23,18 +23,18 @@ import static org.junit.Assert.assertThat;
 
 
 /**
- * Settingsプロファイルの正常系テスト.
+ * Settingプロファイルの正常系テスト.
  * @author NTT DOCOMO, INC.
  */
 @RunWith(AndroidJUnit4.class)
-public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
+public class NormalSettingProfileTestCase extends RESTfulDConnectTestCase {
 
     /**
      * スマートデバイスの音量取得テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /settings/volume?serviceId=xxxx&kind=1
+     * Path: /setting/volume?serviceId=xxxx&kind=1
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -45,13 +45,13 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
     public void testGetVolume001() {
         StringBuilder builder = new StringBuilder();
         builder.append(DCONNECT_MANAGER_URI);
-        builder.append("/" + SettingsProfileConstants.PROFILE_NAME);
-        builder.append("/" + SettingsProfileConstants.INTERFACE_SOUND);
-        builder.append("/" + SettingsProfileConstants.ATTRIBUTE_VOLUME);
+        builder.append("/" + SettingProfileConstants.PROFILE_NAME);
+        builder.append("/" + SettingProfileConstants.INTERFACE_SOUND);
+        builder.append("/" + SettingProfileConstants.ATTRIBUTE_VOLUME);
         builder.append("?");
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
-        builder.append(SettingsProfileConstants.PARAM_KIND + "=1");
+        builder.append(SettingProfileConstants.PARAM_KIND + "=1");
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
 
@@ -65,7 +65,7 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /settings/volume?serviceId=xxxx&kind=2
+     * Path: /setting/volume?serviceId=xxxx&kind=2
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -76,13 +76,13 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
     public void testGetVolume002() {
         StringBuilder builder = new StringBuilder();
         builder.append(DCONNECT_MANAGER_URI);
-        builder.append("/" + SettingsProfileConstants.PROFILE_NAME);
-        builder.append("/" + SettingsProfileConstants.INTERFACE_SOUND);
-        builder.append("/" + SettingsProfileConstants.ATTRIBUTE_VOLUME);
+        builder.append("/" + SettingProfileConstants.PROFILE_NAME);
+        builder.append("/" + SettingProfileConstants.INTERFACE_SOUND);
+        builder.append("/" + SettingProfileConstants.ATTRIBUTE_VOLUME);
         builder.append("?");
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
-        builder.append(SettingsProfileConstants.PARAM_KIND + "=2");
+        builder.append(SettingProfileConstants.PARAM_KIND + "=2");
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
 
@@ -96,7 +96,7 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /settings/volume?serviceId=xxxx&kind=3
+     * Path: /setting/volume?serviceId=xxxx&kind=3
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -107,13 +107,13 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
     public void testGetVolume003() {
         StringBuilder builder = new StringBuilder();
         builder.append(DCONNECT_MANAGER_URI);
-        builder.append("/" + SettingsProfileConstants.PROFILE_NAME);
-        builder.append("/" + SettingsProfileConstants.INTERFACE_SOUND);
-        builder.append("/" + SettingsProfileConstants.ATTRIBUTE_VOLUME);
+        builder.append("/" + SettingProfileConstants.PROFILE_NAME);
+        builder.append("/" + SettingProfileConstants.INTERFACE_SOUND);
+        builder.append("/" + SettingProfileConstants.ATTRIBUTE_VOLUME);
         builder.append("?");
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
-        builder.append(SettingsProfileConstants.PARAM_KIND + "=3");
+        builder.append(SettingProfileConstants.PARAM_KIND + "=3");
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
 
@@ -127,7 +127,7 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /settings/volume?serviceId=xxxx&kind=4
+     * Path: /setting/volume?serviceId=xxxx&kind=4
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -138,13 +138,13 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
     public void testGetVolume004() {
         StringBuilder builder = new StringBuilder();
         builder.append(DCONNECT_MANAGER_URI);
-        builder.append("/" + SettingsProfileConstants.PROFILE_NAME);
-        builder.append("/" + SettingsProfileConstants.INTERFACE_SOUND);
-        builder.append("/" + SettingsProfileConstants.ATTRIBUTE_VOLUME);
+        builder.append("/" + SettingProfileConstants.PROFILE_NAME);
+        builder.append("/" + SettingProfileConstants.INTERFACE_SOUND);
+        builder.append("/" + SettingProfileConstants.ATTRIBUTE_VOLUME);
         builder.append("?");
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
-        builder.append(SettingsProfileConstants.PARAM_KIND + "=4");
+        builder.append(SettingProfileConstants.PARAM_KIND + "=4");
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
 
@@ -158,7 +158,7 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /settings/volume?serviceId=xxxx&kind=5
+     * Path: /setting/volume?serviceId=xxxx&kind=5
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -169,13 +169,13 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
     public void testGetVolume005() {
         StringBuilder builder = new StringBuilder();
         builder.append(DCONNECT_MANAGER_URI);
-        builder.append("/" + SettingsProfileConstants.PROFILE_NAME);
-        builder.append("/" + SettingsProfileConstants.INTERFACE_SOUND);
-        builder.append("/" + SettingsProfileConstants.ATTRIBUTE_VOLUME);
+        builder.append("/" + SettingProfileConstants.PROFILE_NAME);
+        builder.append("/" + SettingProfileConstants.INTERFACE_SOUND);
+        builder.append("/" + SettingProfileConstants.ATTRIBUTE_VOLUME);
         builder.append("?");
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
-        builder.append(SettingsProfileConstants.PARAM_KIND + "=5");
+        builder.append(SettingProfileConstants.PARAM_KIND + "=5");
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
 
@@ -189,7 +189,7 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /settings/volume?serviceId=xxxx&kind=1&level=xxx
+     * Path: /setting/volume?serviceId=xxxx&kind=1&level=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -200,15 +200,15 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
     public void testPutVolume001() {
         StringBuilder builder = new StringBuilder();
         builder.append(DCONNECT_MANAGER_URI);
-        builder.append("/" + SettingsProfileConstants.PROFILE_NAME);
-        builder.append("/" + SettingsProfileConstants.INTERFACE_SOUND);
-        builder.append("/" + SettingsProfileConstants.ATTRIBUTE_VOLUME);
+        builder.append("/" + SettingProfileConstants.PROFILE_NAME);
+        builder.append("/" + SettingProfileConstants.INTERFACE_SOUND);
+        builder.append("/" + SettingProfileConstants.ATTRIBUTE_VOLUME);
         builder.append("?");
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
-        builder.append(SettingsProfileConstants.PARAM_KIND + "=1");
+        builder.append(SettingProfileConstants.PARAM_KIND + "=1");
         builder.append("&");
-        builder.append(SettingsProfileConstants.PARAM_LEVEL + "=" + TestSettingsProfileConstants.LEVEL);
+        builder.append(SettingProfileConstants.PARAM_LEVEL + "=" + TestSettingProfileConstants.LEVEL);
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
 
@@ -222,7 +222,7 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /settings/volume?serviceId=xxxx&kind=2&level=xxx
+     * Path: /setting/volume?serviceId=xxxx&kind=2&level=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -233,15 +233,15 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
     public void testPutVolume002() {
         StringBuilder builder = new StringBuilder();
         builder.append(DCONNECT_MANAGER_URI);
-        builder.append("/" + SettingsProfileConstants.PROFILE_NAME);
-        builder.append("/" + SettingsProfileConstants.INTERFACE_SOUND);
-        builder.append("/" + SettingsProfileConstants.ATTRIBUTE_VOLUME);
+        builder.append("/" + SettingProfileConstants.PROFILE_NAME);
+        builder.append("/" + SettingProfileConstants.INTERFACE_SOUND);
+        builder.append("/" + SettingProfileConstants.ATTRIBUTE_VOLUME);
         builder.append("?");
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
-        builder.append(SettingsProfileConstants.PARAM_KIND + "=2");
+        builder.append(SettingProfileConstants.PARAM_KIND + "=2");
         builder.append("&");
-        builder.append(SettingsProfileConstants.PARAM_LEVEL + "=" + TestSettingsProfileConstants.LEVEL);
+        builder.append(SettingProfileConstants.PARAM_LEVEL + "=" + TestSettingProfileConstants.LEVEL);
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
 
@@ -255,7 +255,7 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /settings/volume?serviceId=xxxx&kind=3&level=xxx
+     * Path: /setting/volume?serviceId=xxxx&kind=3&level=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -266,15 +266,15 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
     public void testPutVolume003() {
         StringBuilder builder = new StringBuilder();
         builder.append(DCONNECT_MANAGER_URI);
-        builder.append("/" + SettingsProfileConstants.PROFILE_NAME);
-        builder.append("/" + SettingsProfileConstants.INTERFACE_SOUND);
-        builder.append("/" + SettingsProfileConstants.ATTRIBUTE_VOLUME);
+        builder.append("/" + SettingProfileConstants.PROFILE_NAME);
+        builder.append("/" + SettingProfileConstants.INTERFACE_SOUND);
+        builder.append("/" + SettingProfileConstants.ATTRIBUTE_VOLUME);
         builder.append("?");
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
-        builder.append(SettingsProfileConstants.PARAM_KIND + "=3");
+        builder.append(SettingProfileConstants.PARAM_KIND + "=3");
         builder.append("&");
-        builder.append(SettingsProfileConstants.PARAM_LEVEL + "=" + TestSettingsProfileConstants.LEVEL);
+        builder.append(SettingProfileConstants.PARAM_LEVEL + "=" + TestSettingProfileConstants.LEVEL);
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
 
@@ -288,7 +288,7 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /settings/volume?serviceId=xxxx&kind=4&level=xxx
+     * Path: /setting/volume?serviceId=xxxx&kind=4&level=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -299,15 +299,15 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
     public void testPutVolume004() {
         StringBuilder builder = new StringBuilder();
         builder.append(DCONNECT_MANAGER_URI);
-        builder.append("/" + SettingsProfileConstants.PROFILE_NAME);
-        builder.append("/" + SettingsProfileConstants.INTERFACE_SOUND);
-        builder.append("/" + SettingsProfileConstants.ATTRIBUTE_VOLUME);
+        builder.append("/" + SettingProfileConstants.PROFILE_NAME);
+        builder.append("/" + SettingProfileConstants.INTERFACE_SOUND);
+        builder.append("/" + SettingProfileConstants.ATTRIBUTE_VOLUME);
         builder.append("?");
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
-        builder.append(SettingsProfileConstants.PARAM_KIND + "=4");
+        builder.append(SettingProfileConstants.PARAM_KIND + "=4");
         builder.append("&");
-        builder.append(SettingsProfileConstants.PARAM_LEVEL + "=" + TestSettingsProfileConstants.LEVEL);
+        builder.append(SettingProfileConstants.PARAM_LEVEL + "=" + TestSettingProfileConstants.LEVEL);
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
 
@@ -321,7 +321,7 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /settings/volume?serviceId=xxxx&kind=5&level=xxx
+     * Path: /setting/volume?serviceId=xxxx&kind=5&level=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -332,15 +332,15 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
     public void testPutVolume005() {
         StringBuilder builder = new StringBuilder();
         builder.append(DCONNECT_MANAGER_URI);
-        builder.append("/" + SettingsProfileConstants.PROFILE_NAME);
-        builder.append("/" + SettingsProfileConstants.INTERFACE_SOUND);
-        builder.append("/" + SettingsProfileConstants.ATTRIBUTE_VOLUME);
+        builder.append("/" + SettingProfileConstants.PROFILE_NAME);
+        builder.append("/" + SettingProfileConstants.INTERFACE_SOUND);
+        builder.append("/" + SettingProfileConstants.ATTRIBUTE_VOLUME);
         builder.append("?");
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
-        builder.append(SettingsProfileConstants.PARAM_KIND + "=5");
+        builder.append(SettingProfileConstants.PARAM_KIND + "=5");
         builder.append("&");
-        builder.append(SettingsProfileConstants.PARAM_LEVEL + "=" + TestSettingsProfileConstants.LEVEL);
+        builder.append(SettingProfileConstants.PARAM_LEVEL + "=" + TestSettingProfileConstants.LEVEL);
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
 
@@ -354,7 +354,7 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /settings/date?serviceId=xxxx
+     * Path: /setting/date?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -365,8 +365,8 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
     public void testGetDate() {
         StringBuilder builder = new StringBuilder();
         builder.append(DCONNECT_MANAGER_URI);
-        builder.append("/" + SettingsProfileConstants.PROFILE_NAME);
-        builder.append("/" + SettingsProfileConstants.ATTRIBUTE_DATE);
+        builder.append("/" + SettingProfileConstants.PROFILE_NAME);
+        builder.append("/" + SettingProfileConstants.ATTRIBUTE_DATE);
         builder.append("?");
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
@@ -382,7 +382,7 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /settings/date?serviceId=xxxx&date=xxxx
+     * Path: /setting/date?serviceId=xxxx&date=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -393,12 +393,12 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
     public void testPutDate() {
         StringBuilder builder = new StringBuilder();
         builder.append(DCONNECT_MANAGER_URI);
-        builder.append("/" + SettingsProfileConstants.PROFILE_NAME);
-        builder.append("/" + SettingsProfileConstants.ATTRIBUTE_DATE);
+        builder.append("/" + SettingProfileConstants.PROFILE_NAME);
+        builder.append("/" + SettingProfileConstants.ATTRIBUTE_DATE);
         builder.append("?");
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
-        builder.append(SettingsProfileConstants.PARAM_DATE + "=" + TestSettingsProfileConstants.DATE);
+        builder.append(SettingProfileConstants.PARAM_DATE + "=" + TestSettingProfileConstants.DATE);
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
 
@@ -412,7 +412,7 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /settings/display/light?serviceId=xxxx
+     * Path: /setting/display/light?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -423,9 +423,9 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
     public void testGetDisplayLight() {
         StringBuilder builder = new StringBuilder();
         builder.append(DCONNECT_MANAGER_URI);
-        builder.append("/" + SettingsProfileConstants.PROFILE_NAME);
-        builder.append("/" + SettingsProfileConstants.INTERFACE_DISPLAY);
-        builder.append("/" + SettingsProfileConstants.ATTRIBUTE_LIGHT);
+        builder.append("/" + SettingProfileConstants.PROFILE_NAME);
+        builder.append("/" + SettingProfileConstants.INTERFACE_DISPLAY);
+        builder.append("/" + SettingProfileConstants.ATTRIBUTE_BRIGHTNESS);
         builder.append("?");
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
@@ -441,7 +441,7 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /settings/display/light?serviceId=xxxx&level=xxxx
+     * Path: /setting/display/light?serviceId=xxxx&level=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -452,13 +452,13 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
     public void testPutDisplayLight() {
         StringBuilder builder = new StringBuilder();
         builder.append(DCONNECT_MANAGER_URI);
-        builder.append("/" + SettingsProfileConstants.PROFILE_NAME);
-        builder.append("/" + SettingsProfileConstants.INTERFACE_DISPLAY);
-        builder.append("/" + SettingsProfileConstants.ATTRIBUTE_LIGHT);
+        builder.append("/" + SettingProfileConstants.PROFILE_NAME);
+        builder.append("/" + SettingProfileConstants.INTERFACE_DISPLAY);
+        builder.append("/" + SettingProfileConstants.ATTRIBUTE_BRIGHTNESS);
         builder.append("?");
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
-        builder.append(SettingsProfileConstants.PARAM_LEVEL + "=" + TestSettingsProfileConstants.LEVEL);
+        builder.append(SettingProfileConstants.PARAM_LEVEL + "=" + TestSettingProfileConstants.LEVEL);
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
 
@@ -472,7 +472,7 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /settings/display/sleep?serviceId=xxxx
+     * Path: /setting/display/sleep?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -483,9 +483,9 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
     public void testGetDisplaySleep() {
         StringBuilder builder = new StringBuilder();
         builder.append(DCONNECT_MANAGER_URI);
-        builder.append("/" + SettingsProfileConstants.PROFILE_NAME);
-        builder.append("/" + SettingsProfileConstants.INTERFACE_DISPLAY);
-        builder.append("/" + SettingsProfileConstants.ATTRIBUTE_SLEEP);
+        builder.append("/" + SettingProfileConstants.PROFILE_NAME);
+        builder.append("/" + SettingProfileConstants.INTERFACE_DISPLAY);
+        builder.append("/" + SettingProfileConstants.ATTRIBUTE_SLEEP);
         builder.append("?");
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
@@ -501,7 +501,7 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /settings/display/sleep?serviceId=xxxx&kind=1&level=xxxx
+     * Path: /setting/display/sleep?serviceId=xxxx&kind=1&level=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -512,13 +512,13 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
     public void testPutDisplaySleep() {
         StringBuilder builder = new StringBuilder();
         builder.append(DCONNECT_MANAGER_URI);
-        builder.append("/" + SettingsProfileConstants.PROFILE_NAME);
-        builder.append("/" + SettingsProfileConstants.INTERFACE_DISPLAY);
-        builder.append("/" + SettingsProfileConstants.ATTRIBUTE_SLEEP);
+        builder.append("/" + SettingProfileConstants.PROFILE_NAME);
+        builder.append("/" + SettingProfileConstants.INTERFACE_DISPLAY);
+        builder.append("/" + SettingProfileConstants.ATTRIBUTE_SLEEP);
         builder.append("?");
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
-        builder.append(SettingsProfileConstants.PARAM_TIME + "=1");
+        builder.append(SettingProfileConstants.PARAM_TIME + "=1");
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
 

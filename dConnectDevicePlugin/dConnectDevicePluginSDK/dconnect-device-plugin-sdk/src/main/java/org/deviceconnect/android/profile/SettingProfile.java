@@ -1,5 +1,5 @@
 /*
- SettingsProfile.java
+ SettingProfile.java
  Copyright (c) 2014 NTT DOCOMO,INC.
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
@@ -8,7 +8,7 @@ package org.deviceconnect.android.profile;
 
 import android.content.Intent;
 
-import org.deviceconnect.profile.SettingsProfileConstants;
+import org.deviceconnect.profile.SettingProfileConstants;
 
 /**
  * Settings プロファイル.
@@ -20,7 +20,7 @@ import org.deviceconnect.profile.SettingsProfileConstants;
  *
  * @author NTT DOCOMO, INC.
  */
-public abstract class SettingsProfile extends DConnectProfile implements SettingsProfileConstants {
+public abstract class SettingProfile extends DConnectProfile implements SettingProfileConstants {
 
     @Override
     public final String getProfileName() {

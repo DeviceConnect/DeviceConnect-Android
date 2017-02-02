@@ -36,9 +36,8 @@ import org.deviceconnect.message.DConnectMessage;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
-import java.util.TimeZone;
+import java.util.Locale;
 
 import static android.Manifest.permission.ACCESS_COARSE_LOCATION;
 
@@ -59,131 +58,130 @@ public class HostGeolocationProfile extends GeolocationProfile implements Locati
     /** 前回の位置情報を保持する. */
     private Bundle mLocationCache;
 
-    private final DConnectApi mGetOnGeolocationApi = new GetApi() {
-
-        @Override
-        public String getAttribute() {
-            return ATTRIBUTE_CURRENT_POSITION;
-        }
-
-        @Override
-        public boolean onRequest(final Intent request, final Intent response) {
-            PermissionUtility.requestPermissions(getContext(),
-                    new Handler(Looper.getMainLooper()), new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
-                    new PermissionUtility.PermissionRequestCallback() {
-                        @Override
-                        public void onSuccess() {
-                            long maximumAge = (long) getMaximumAge(request);
-                            if (System.currentTimeMillis() - mLocationLastTime < maximumAge) {
-                                DConnectProfile.setResult(response, DConnectMessage.RESULT_OK);
-                                response.putExtra(GeolocationProfile.PARAM_POSITION, mLocationCache);
-                                sendResponse(response);
-                            } else {
-                                getLocationManager();
-                                getGPS(getHighAccuracy(request), response);
-                            }
-                        }
-
-                        @Override
-                        public void onFail(@NonNull String deniedPermission) {
-                            MessageUtils.setIllegalServerStateError(response,
-                                    "ACCESS_FINE_LOCATION permission not granted.");
-                            sendResponse(response);
-                        }
-                    });
-
-            return false;
-        }
-    };
-
-    private final DConnectApi mPutOnGeolocationApi = new PutApi() {
-
-        @Override
-        public String getAttribute() {
-            return ATTRIBUTE_ON_WATCH_POSITION;
-        }
-
-        @Override
-        public boolean onRequest(final Intent request, final Intent response) {
-            PermissionUtility.requestPermissions(getContext(),
-                    new Handler(Looper.getMainLooper()), new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
-                    new PermissionUtility.PermissionRequestCallback() {
-                        @Override
-                        public void onSuccess() {
-                            getLocationManager();
-                            String serviceId = getServiceID(request);
-                            // イベントの登録
-                            EventError error = EventManager.INSTANCE.addEvent(request);
-                            if (error == EventError.NONE) {
-                                startGPS(getHighAccuracy(request), (int) getInterval(request));
-                                mServiceId = serviceId;
-                                DConnectProfile.setResult(response, DConnectMessage.RESULT_OK);
-                                response.putExtra(DConnectMessage.EXTRA_VALUE,
-                                        "Register OnWatchPosition event");
-                                sendResponse(response);
-                            } else {
-                                MessageUtils.setUnknownError(response, "Can not register event.");
-                            }
-                        }
-
-                        @Override
-                        public void onFail(@NonNull String deniedPermission) {
-                            MessageUtils.setIllegalServerStateError(response,
-                                    "ACCESS_FINE_LOCATION permission not granted.");
-                            sendResponse(response);
-                        }
-                    });
-
-            return false;
-        }
-    };
-
-    private final DConnectApi mDeleteOnGeolocationApi = new DeleteApi() {
-
-        @Override
-        public String getAttribute() {
-            return ATTRIBUTE_ON_WATCH_POSITION;
-        }
-
-        @Override
-        public boolean onRequest(final Intent request, final Intent response) {
-            PermissionUtility.requestPermissions(getContext(),
-                    new Handler(Looper.getMainLooper()), new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
-                    new PermissionUtility.PermissionRequestCallback() {
-                        @Override
-                        public void onSuccess() {
-                            getLocationManager();
-                            // イベントの解除
-                            EventError error = EventManager.INSTANCE.removeEvent(request);
-                            if (error == EventError.NONE) {
-                                stopGPS();
-                                DConnectProfile.setResult(response, DConnectMessage.RESULT_OK);
-                                response.putExtra(DConnectMessage.EXTRA_VALUE,
-                                        "Unregister OnWatchPosition event");
-                                sendResponse(response);
-                            } else {
-                                MessageUtils.setUnknownError(response, "Can not unregister event.");
-                            }
-                        }
-
-                        @Override
-                        public void onFail(@NonNull String deniedPermission) {
-                            MessageUtils.setIllegalServerStateError(response,
-                                    "ACCESS_FINE_LOCATION permission not granted.");
-                            sendResponse(response);
-                        }
-                    });
-
-            return false;
-        }
-    };
-
     /**
      * Constructor.
      */
     public HostGeolocationProfile() {
+        DConnectApi mGetOnGeolocationApi = new GetApi() {
+
+            @Override
+            public String getAttribute() {
+                return ATTRIBUTE_CURRENT_POSITION;
+            }
+
+            @Override
+            public boolean onRequest(final Intent request, final Intent response) {
+                PermissionUtility.requestPermissions(getContext(),
+                        new Handler(Looper.getMainLooper()), new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
+                        new PermissionUtility.PermissionRequestCallback() {
+                            @Override
+                            public void onSuccess() {
+                                long maximumAge = (long) getMaximumAge(request);
+                                if (System.currentTimeMillis() - mLocationLastTime < maximumAge) {
+                                    DConnectProfile.setResult(response, DConnectMessage.RESULT_OK);
+                                    response.putExtra(GeolocationProfile.PARAM_POSITION, mLocationCache);
+                                    sendResponse(response);
+                                } else {
+                                    getLocationManager();
+                                    getGPS(getHighAccuracy(request), response);
+                                }
+                            }
+
+                            @Override
+                            public void onFail(@NonNull String deniedPermission) {
+                                MessageUtils.setIllegalServerStateError(response,
+                                        "ACCESS_FINE_LOCATION permission not granted.");
+                                sendResponse(response);
+                            }
+                        });
+
+                return false;
+            }
+        };
         addApi(mGetOnGeolocationApi);
+
+        DConnectApi mPutOnGeolocationApi = new PutApi() {
+
+            @Override
+            public String getAttribute() {
+                return ATTRIBUTE_ON_WATCH_POSITION;
+            }
+
+            @Override
+            public boolean onRequest(final Intent request, final Intent response) {
+                PermissionUtility.requestPermissions(getContext(),
+                        new Handler(Looper.getMainLooper()), new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
+                        new PermissionUtility.PermissionRequestCallback() {
+                            @Override
+                            public void onSuccess() {
+                                getLocationManager();
+                                String serviceId = getServiceID(request);
+                                // イベントの登録
+                                EventError error = EventManager.INSTANCE.addEvent(request);
+                                if (error == EventError.NONE) {
+                                    startGPS(getHighAccuracy(request), (int) getInterval(request));
+                                    mServiceId = serviceId;
+                                    DConnectProfile.setResult(response, DConnectMessage.RESULT_OK);
+                                    response.putExtra(DConnectMessage.EXTRA_VALUE,
+                                            "Register OnWatchPosition event");
+                                    sendResponse(response);
+                                } else {
+                                    MessageUtils.setUnknownError(response, "Can not register event.");
+                                }
+                            }
+
+                            @Override
+                            public void onFail(@NonNull String deniedPermission) {
+                                MessageUtils.setIllegalServerStateError(response,
+                                        "ACCESS_FINE_LOCATION permission not granted.");
+                                sendResponse(response);
+                            }
+                        });
+
+                return false;
+            }
+        };
         addApi(mPutOnGeolocationApi);
+
+        DConnectApi mDeleteOnGeolocationApi = new DeleteApi() {
+
+            @Override
+            public String getAttribute() {
+                return ATTRIBUTE_ON_WATCH_POSITION;
+            }
+
+            @Override
+            public boolean onRequest(final Intent request, final Intent response) {
+                PermissionUtility.requestPermissions(getContext(),
+                        new Handler(Looper.getMainLooper()), new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
+                        new PermissionUtility.PermissionRequestCallback() {
+                            @Override
+                            public void onSuccess() {
+                                getLocationManager();
+                                // イベントの解除
+                                EventError error = EventManager.INSTANCE.removeEvent(request);
+                                if (error == EventError.NONE) {
+                                    stopGPS();
+                                    DConnectProfile.setResult(response, DConnectMessage.RESULT_OK);
+                                    response.putExtra(DConnectMessage.EXTRA_VALUE,
+                                            "Unregister OnWatchPosition event");
+                                    sendResponse(response);
+                                } else {
+                                    MessageUtils.setUnknownError(response, "Can not unregister event.");
+                                }
+                            }
+
+                            @Override
+                            public void onFail(@NonNull String deniedPermission) {
+                                MessageUtils.setIllegalServerStateError(response,
+                                        "ACCESS_FINE_LOCATION permission not granted.");
+                                sendResponse(response);
+                            }
+                        });
+
+                return false;
+            }
+        };
         addApi(mDeleteOnGeolocationApi);
     }
 
@@ -311,11 +309,8 @@ public class HostGeolocationProfile extends GeolocationProfile implements Locati
         Bundle position = new Bundle();
         setCoordinates(position, coordinates);
         setTimeStamp(position, location.getTime());
-        DateFormat df = new SimpleDateFormat("yyyyMMddHHmmdss.SSSZZZ");
-        df.setTimeZone(TimeZone.getDefault());
-        Date date = new Date(location.getTime());
-        setTimeStampString(position, df.format(date));
-
+        DateFormat df = new SimpleDateFormat("yyyyMMddHHmmdss.SSSZZZ", Locale.getDefault());
+        setTimeStampString(position, df.format(location.getTime()));
         mLocationCache = position;
         mLocationLastTime = location.getTime();
 

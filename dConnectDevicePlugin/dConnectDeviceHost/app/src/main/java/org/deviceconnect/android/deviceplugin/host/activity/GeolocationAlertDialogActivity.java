@@ -11,7 +11,6 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.WindowManager;
 
 import org.deviceconnect.android.deviceplugin.host.R;
 
@@ -21,7 +20,8 @@ import org.deviceconnect.android.deviceplugin.host.R;
  * @author NTT DOCOMO, INC.
  */
 public class GeolocationAlertDialogActivity extends Activity {
-    static Activity mActivity;
+    private Activity mActivity;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

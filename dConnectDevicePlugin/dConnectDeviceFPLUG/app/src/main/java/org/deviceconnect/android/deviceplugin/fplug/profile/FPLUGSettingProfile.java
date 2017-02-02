@@ -1,5 +1,5 @@
 /*
- FPLUGSettingsProfile.java
+ FPLUGSettingProfile.java
  Copyright (c) 2015 NTT DOCOMO,INC.
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
@@ -16,7 +16,7 @@ import org.deviceconnect.android.deviceplugin.fplug.fplug.FPLUGController;
 import org.deviceconnect.android.deviceplugin.fplug.fplug.FPLUGRequestCallback;
 import org.deviceconnect.android.deviceplugin.fplug.fplug.FPLUGResponse;
 import org.deviceconnect.android.message.MessageUtils;
-import org.deviceconnect.android.profile.SettingsProfile;
+import org.deviceconnect.android.profile.SettingProfile;
 import org.deviceconnect.android.profile.api.DConnectApi;
 import org.deviceconnect.android.profile.api.PutApi;
 import org.deviceconnect.message.DConnectMessage;
@@ -27,11 +27,11 @@ import java.util.Date;
 import java.util.Locale;
 
 /**
- * Settings Profile.
+ * Setting Profile.
  *
  * @author NTT DOCOMO, INC.
  */
-public class FPLUGSettingsProfile extends SettingsProfile {
+public class FPLUGSettingProfile extends SettingProfile {
 
     private final static String RFC_3339 = "yyyy-MM-dd'T'HH:mm:ssZ";
 
@@ -82,10 +82,19 @@ public class FPLUGSettingsProfile extends SettingsProfile {
         }
     };
 
-    public FPLUGSettingsProfile() {
+    public FPLUGSettingProfile() {
         addApi(mPutDateApi);
     }
 
+    /**
+     * F-PLUGに対応した日付のフォーマットになっているかの確認.
+     * <pre>
+     *     例)
+     *     2010-09-05T08:30:00.000+03:00
+     * </pre>
+     * @param date
+     * @return
+     */
     private Calendar createCalendar(String date) {
         if (BuildConfig.DEBUG) {
             Log.d("Settings", "date:" + date);

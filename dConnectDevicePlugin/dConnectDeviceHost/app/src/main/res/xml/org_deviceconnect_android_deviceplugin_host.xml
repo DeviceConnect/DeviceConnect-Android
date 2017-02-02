@@ -128,4 +128,11 @@
         <description lang="en">Touch event.</description>
     </profile>
 
+    <profile name="geolocation" expireperiod="86400000">
+        <name lang="ja">位置情報</name>
+        <description lang="ja">位置情報を取得する</description>
+        <name lang="en">Geolocation</name>
+        <description lang="en">Get geolocation.</description>
+    </profile>
+
 </deviceplugin-provider>

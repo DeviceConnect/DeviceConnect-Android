@@ -8,8 +8,8 @@ package org.deviceconnect.profile;
 
 
 /**
- * Settings Profile API 定数群.<br>
- * Settings Profile API のパラメータ名、インタフェース名、属性名、プロファイル名を定義する。
+ * Setting Profile API 定数群.<br>
+ * Setting Profile API のパラメータ名、インタフェース名、属性名、プロファイル名を定義する。
  * @author NTT DOCOMO, INC.
  */
 public interface SettingProfileConstants extends DConnectProfileConstants {

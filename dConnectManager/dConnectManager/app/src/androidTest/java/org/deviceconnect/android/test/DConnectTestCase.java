@@ -226,7 +226,7 @@ public abstract class DConnectTestCase extends AndroidTestCase {
 
     /**
      * 指定されたNONCEからHMACを生成する.
-     * 
+     *
      * @param nonce リクエスト時に送信したNONCE
      * @return HMACのバイト配列
      * @throws NoSuchAlgorithmException 使用するアルゴリズムがサポートされていない場合
@@ -240,16 +240,16 @@ public abstract class DConnectTestCase extends AndroidTestCase {
 
     /**
      * Originを取得する.
-     * 
+     *
      * @return Origin
      */
     protected String getOrigin() {
-        return getContext().getPackageName();
+        return getApplicationContext().getPackageName();
     }
 
     /**
      * クライアントIDのオンメモリ上のキャッシュを取得する.
-     * 
+     *
      * @return クライアントIDのオンメモリ上のキャッシュ
      */
     protected String getClientId() {
@@ -258,7 +258,7 @@ public abstract class DConnectTestCase extends AndroidTestCase {
 
     /**
      * アクセストークンのオンメモリ上のキャッシュを取得する.
-     * 
+     *
      * @return アクセストークンのオンメモリ上のキャッシュ
      */
     protected String getAccessToken() {
@@ -272,9 +272,6 @@ public abstract class DConnectTestCase extends AndroidTestCase {
     @Before
     public void setUp() throws Exception {
         setContext(InstrumentationRegistry.getContext());
-        if (mDConnectSDK != null) {
-            mDConnectSDK.setOrigin(getOrigin());
-        }
         waitForManager();
         if (isLocalOAuth()) {
             // アクセストークン取得

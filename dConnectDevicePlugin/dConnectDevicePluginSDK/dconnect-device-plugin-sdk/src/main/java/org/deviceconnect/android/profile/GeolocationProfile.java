@@ -146,7 +146,12 @@ public class GeolocationProfile extends DConnectProfile implements GeolocationPr
      * @return true or flase.
      */
     public Boolean getHighAccuracy(final Intent request) {
-        return request.getBooleanExtra(PARAM_HIGH_ACCURACY, DEFAULT_HIGH_ACCURACY);
+        Boolean accurary = parseBoolean(request, PARAM_HIGH_ACCURACY);
+        if (accurary == null) {
+            return DEFAULT_HIGH_ACCURACY;
+        } else {
+            return accurary;
+        }
     }
 
     /**

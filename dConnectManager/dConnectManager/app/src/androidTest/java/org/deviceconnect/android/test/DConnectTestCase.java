@@ -244,7 +244,7 @@ public abstract class DConnectTestCase extends AndroidTestCase {
      * @return Origin
      */
     protected String getOrigin() {
-        return getContext().getPackageName();
+        return getApplicationContext().getPackageName();
     }
 
     /**
@@ -272,9 +272,6 @@ public abstract class DConnectTestCase extends AndroidTestCase {
     @Before
     public void setUp() throws Exception {
         setContext(InstrumentationRegistry.getContext());
-        if (mDConnectSDK != null) {
-            mDConnectSDK.setOrigin(getOrigin());
-        }
         waitForManager();
         if (isLocalOAuth()) {
             // アクセストークン取得

@@ -37,6 +37,7 @@ import static org.junit.Assert.assertThat;
 public class RESTfulDConnectTestCase extends DConnectTestCase {
     public void setUp() throws Exception {
         mDConnectSDK = DConnectSDKFactory.create(InstrumentationRegistry.getContext(), DConnectSDKFactory.Type.HTTP);
+        mDConnectSDK.setOrigin(getOrigin());
         super.setUp();
     }
 

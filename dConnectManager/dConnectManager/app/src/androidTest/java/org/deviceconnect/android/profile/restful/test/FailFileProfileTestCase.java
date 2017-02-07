@@ -6,32 +6,25 @@
  */
 package org.deviceconnect.android.profile.restful.test;
 
-import android.content.res.AssetManager;
 import android.support.test.runner.AndroidJUnit4;
 
-import org.apache.http.client.methods.HttpDelete;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpPut;
-import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.entity.mime.MultipartEntity;
-import org.apache.http.entity.mime.content.InputStreamBody;
 import org.deviceconnect.android.test.plugin.profile.TestFileProfileConstants;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.DConnectMessage.ErrorCode;
+import org.deviceconnect.message.DConnectResponseMessage;
+import org.deviceconnect.message.DConnectSDK;
+import org.deviceconnect.message.entity.BinaryEntity;
+import org.deviceconnect.message.entity.MultipartEntity;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.deviceconnect.profile.DConnectProfileConstants;
 import org.deviceconnect.profile.FileProfileConstants;
 import org.deviceconnect.profile.FileProfileConstants.FileType;
-import org.deviceconnect.utils.URIBuilder;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.core.Is.is;
+import static org.junit.Assert.assertThat;
 
 
 /**
@@ -55,17 +48,16 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testGetListNoServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_LIST);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.EMPTY_SERVICE_ID.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -82,18 +74,17 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testGetListEmptyServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_LIST);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -110,18 +101,17 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testGetListInvalidServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_LIST);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -139,49 +129,16 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testGetListUndefinedAttribute() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_LIST);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter("abc", "abc");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
-    }
 
-    /**
-     * serviceIdを2重に指定してファイル一覧取得テストを行う.
-     * <pre>
-     * 【HTTP通信】
-     * Method: GET
-     * Path: /file/list?serviceId=123456789&serviceId=xxx
-     * </pre>
-     * <pre>
-     * 【期待する動作】
-     * ・先に定義された属性が優先されること。
-     * ・resultに1が返ってくること。
-     * </pre>
-     */
-    @Test
-    public void testGetListDuplicatedServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(FileProfileConstants.PROFILE_NAME);
-        builder.setAttribute(FileProfileConstants.ATTRIBUTE_LIST);
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
     }
 
     /**
@@ -198,18 +155,17 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testGetListInvalidMethodPost() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_LIST);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_SUPPORT_ACTION.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -226,18 +182,17 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testGetListInvalidMethodPut() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_LIST);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_SUPPORT_ACTION.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -254,18 +209,17 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testGetListInvalidMethodDelete() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_LIST);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_SUPPORT_ACTION.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -273,7 +227,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /file/receive?mediaId=xxxx
+     * Path: /file/receive?path=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -282,19 +236,18 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testGetReceiveNoServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_RECEIVE);
         builder.addParameter(FileProfileConstants.PARAM_PATH,
                 TestFileProfileConstants.PATH);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.EMPTY_SERVICE_ID.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -302,7 +255,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /file/receive?serviceId=&mediaId=xxxx
+     * Path: /file/receive?serviceId=&path=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -311,20 +264,19 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testGetReceiveEmptyServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_RECEIVE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(FileProfileConstants.PARAM_PATH,
                 TestFileProfileConstants.PATH);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -332,7 +284,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /file/receive?serviceId=123456789&mediaId=xxxx
+     * Path: /file/receive?serviceId=123456789&path=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -341,20 +293,19 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testGetReceiveInvalidServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_RECEIVE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(FileProfileConstants.PARAM_PATH,
                 TestFileProfileConstants.PATH);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -362,7 +313,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /file/receive?serviceId=xxxxx&mediaId=xxxx&abc=abc
+     * Path: /file/receive?serviceId=xxxxx&path=xxxx&abc=abc
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -372,7 +323,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testGetReceiveUndefinedAttribute() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_RECEIVE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
@@ -380,49 +331,14 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
                 TestFileProfileConstants.PATH);
         builder.addParameter("abc", "abc");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
     }
 
     /**
-     * serviceIdを2重に指定してファイル受信テストを行う.
-     * <pre>
-     * 【HTTP通信】
-     * Method: GET
-     * Path: /file/receive?serviceId=123456789&serviceId=xxx&mediaId=xxxx
-     * </pre>
-     * <pre>
-     * 【期待する動作】
-     * ・先に定義された属性が優先されること。
-     * ・resultに1が返ってくること。
-     * </pre>
-     */
-    @Test
-    public void testGetReceiveDuplicatedServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(FileProfileConstants.PROFILE_NAME);
-        builder.setAttribute(FileProfileConstants.ATTRIBUTE_RECEIVE);
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-        builder.addParameter(FileProfileConstants.PARAM_PATH,
-                TestFileProfileConstants.PATH);
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
-    }
-
-    /**
-     * 定義にない属性を指定してファイル受信テストを行う.
+     * パラメータpathの指定なしでファイル受信テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: GET
@@ -431,23 +347,22 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・定義にない属性は無視されること。
-     * ・resultが0で返ってくること。
+     * ・resultが1で返ってくること。
      * </pre>
      */
     @Test
     public void testGetReceiveNoMediaId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_RECEIVE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.INVALID_REQUEST_PARAMETER.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -455,7 +370,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /file/receive?serviceId=xxxx&mediaId=xxxx
+     * Path: /file/receive?serviceId=xxxx&path=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -464,20 +379,19 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testGetReceiveInvalidMethodPost() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_RECEIVE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(FileProfileConstants.PARAM_PATH,
                 TestFileProfileConstants.PATH);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_SUPPORT_ACTION.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -485,7 +399,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /file/receive?serviceId=xxxx&mediaId=xxxx
+     * Path: /file/receive?serviceId=xxxx&path=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -494,20 +408,19 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testGetReceiveInvalidMethodPut() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_RECEIVE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(FileProfileConstants.PARAM_PATH,
                 TestFileProfileConstants.PATH);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_SUPPORT_ACTION.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -515,7 +428,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /file/receive?serviceId=xxxx&mediaId=xxxx
+     * Path: /file/receive?serviceId=xxxx&path=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -524,20 +437,19 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testGetReceiveInvalidMethodDelete() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_RECEIVE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(FileProfileConstants.PARAM_PATH,
                 TestFileProfileConstants.PATH);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_SUPPORT_ACTION.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -545,7 +457,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /file/send?mediaId=xxxx
+     * Path: /file/send?path=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -554,7 +466,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testPostSendNoServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_SEND);
         builder.addParameter(FileProfileConstants.PARAM_PATH,
@@ -566,14 +478,14 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
         if (data == null) {
             fail("Cannot find the file." + name);
         }
-        Map<String, Object> body = new HashMap<>();
-        body.put(FileProfileConstants.PARAM_DATA, data);
-        try {
-            JSONObject response = sendRequest("POST", builder.toString(), null, body);
-            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), response);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+        MultipartEntity body = new MultipartEntity();
+        body.add(FileProfileConstants.PARAM_DATA, new BinaryEntity(data));
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), body);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.EMPTY_SERVICE_ID.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -581,7 +493,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /file/send?serviceId=&mediaId=xxxx
+     * Path: /file/send?serviceId=&path=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -590,7 +502,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testPostSendEmptyServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_SEND);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
@@ -603,14 +515,14 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
         if (data == null) {
             fail("Cannot find the file." + name);
         }
-        Map<String, Object> body = new HashMap<>();
-        body.put(FileProfileConstants.PARAM_DATA, data);
-        try {
-            JSONObject response = sendRequest("POST", builder.toString(), null, body);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), response);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+        MultipartEntity body = new MultipartEntity();
+        body.add(FileProfileConstants.PARAM_DATA, new BinaryEntity(data));
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), body);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -618,7 +530,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /file/send?serviceId=123456789&mediaId=xxxx
+     * Path: /file/send?serviceId=123456789&path=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -627,7 +539,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testPostSendInvalidServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_SEND);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
@@ -640,14 +552,14 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
         if (data == null) {
             fail("Cannot find the file." + name);
         }
-        Map<String, Object> body = new HashMap<>();
-        body.put(FileProfileConstants.PARAM_DATA, data);
-        try {
-            JSONObject response = sendRequest("POST", builder.toString(), null, body);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), response);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+        MultipartEntity body = new MultipartEntity();
+        body.add(FileProfileConstants.PARAM_DATA, new BinaryEntity(data));
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), body);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -655,7 +567,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /file/send?serviceId=xxxxx&mediaId=xxxx&abc=abc
+     * Path: /file/send?serviceId=xxxxx&path=xxxx&abc=abc
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -665,7 +577,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testPostSendUndefinedAttribute() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_SEND);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
@@ -680,57 +592,16 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
         if (data == null) {
             fail("Cannot find the file." + name);
         }
-        Map<String, Object> body = new HashMap<>();
-        body.put(FileProfileConstants.PARAM_DATA, data);
-        try {
-            JSONObject response = sendRequest("POST", builder.toString(), null, body);
-            assertResultOK(response);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+        MultipartEntity body = new MultipartEntity();
+        body.add(FileProfileConstants.PARAM_DATA, new BinaryEntity(data));
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), body);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
     }
 
     /**
-     * serviceIdを2重に指定してファイル送信テストを行う.
-     * <pre>
-     * 【HTTP通信】
-     * Method: GET
-     * Path: /file/send?serviceId=123456789&serviceId=xxx&mediaId=xxxx
-     * </pre>
-     * <pre>
-     * 【期待する動作】
-     * ・先に定義された属性が優先されること。
-     * ・resultに1が返ってくること。
-     * </pre>
-     */
-    @Test
-    public void testPostSendDuplicatedServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(FileProfileConstants.PROFILE_NAME);
-        builder.setAttribute(FileProfileConstants.ATTRIBUTE_SEND);
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-        builder.addParameter(FileProfileConstants.PARAM_PATH,
-                TestFileProfileConstants.PATH);
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-
-        String name = "test.png";
-        byte[] data = getBytesFromAssets(name);
-        if (data == null) {
-            fail("Cannot find the file." + name);
-        }
-        Map<String, Object> body = new HashMap<>();
-        body.put(FileProfileConstants.PARAM_DATA, data);
-        try {
-            JSONObject response = sendRequest("POST", builder.toString(), null, body);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), response);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
-    }
-
-    /**
-     * media属性を指定せずにファイル送信テストを行う.
+     * パラメータdataを指定せずにファイル送信テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: GET
@@ -739,23 +610,22 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【期待する動作】
      * ・定義にない属性は無視されること。
-     * ・resultが0で返ってくること。
+     * ・resultが1で返ってくること。
      * </pre>
      */
     @Test
     public void testPostSendNoMedia() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_SEND);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpPost request = new HttpPost(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.INVALID_REQUEST_PARAMETER.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.INVALID_REQUEST_PARAMETER.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -763,7 +633,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /file/send?serviceId=xxxx&mediaId=xxxx
+     * Path: /file/send?serviceId=xxxx&path=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -772,7 +642,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testPostSendInvalidMethodPut() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_SEND);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
@@ -785,14 +655,14 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
         if (data == null) {
             fail("Cannot find the file." + name);
         }
-        Map<String, Object> body = new HashMap<>();
-        body.put(FileProfileConstants.PARAM_DATA, data);
-        try {
-            JSONObject response = sendRequest("PUT", builder.toString(), null, body);
-            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), response);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+        MultipartEntity body = new MultipartEntity();
+        body.add(FileProfileConstants.PARAM_DATA, new BinaryEntity(data));
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), body);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_SUPPORT_ACTION.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -800,7 +670,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /file/send?serviceId=xxxx&mediaId=xxxx
+     * Path: /file/send?serviceId=xxxx&path=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -809,28 +679,27 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testPostSendInvalidMethodDelete() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_SEND);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(FileProfileConstants.PARAM_PATH,
                 TestFileProfileConstants.PATH);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpDelete request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_SUPPORT_ACTION.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
      * serviceIdが無い状態でファイル削除テストを行う.
      * <pre>
      * 【HTTP通信】
-     * Method: PUT
-     * Path: /file/remove?mediaId=xxxx
+     * Method: DELETE
+     * Path: /file/remove?path=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -839,27 +708,26 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testDeleteRemoveNoServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_REMOVE);
         builder.addParameter(FileProfileConstants.PARAM_PATH,
                 TestFileProfileConstants.PATH);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpDelete request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.EMPTY_SERVICE_ID.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
      * serviceIdが空状態でファイル削除テストを行う.
      * <pre>
      * 【HTTP通信】
-     * Method: PUT
-     * Path: /file/remove?serviceId=&mediaId=xxxx
+     * Method: DELETE
+     * Path: /file/remove?serviceId=&path=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -868,28 +736,27 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testDeleteRemoveEmptyServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_REMOVE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(FileProfileConstants.PARAM_PATH,
                 TestFileProfileConstants.PATH);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpDelete request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
      * 存在しないserviceIdでファイル削除テストを行う.
      * <pre>
      * 【HTTP通信】
-     * Method: PUT
-     * Path: /file/remove?serviceId=123456789&mediaId=xxxx
+     * Method: DELETE
+     * Path: /file/remove?serviceId=123456789&path=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -898,28 +765,27 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testDeleteRemoveInvalidServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_REMOVE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(FileProfileConstants.PARAM_PATH,
                 TestFileProfileConstants.PATH);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpDelete request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
      * 定義にない属性を指定してファイル削除テストを行う.
      * <pre>
      * 【HTTP通信】
-     * Method: PUT
-     * Path: /file/remove?serviceId=xxxxx&mediaId=xxxx&abc=abc
+     * Method: DELETE
+     * Path: /file/remove?serviceId=xxxxx&path=xxxx&abc=abc
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -929,7 +795,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testDeleteRemoveUndefinedAttribute() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_REMOVE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
@@ -937,52 +803,17 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
                 TestFileProfileConstants.PATH);
         builder.addParameter("abc", "abc");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpDelete request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
-    }
 
-    /**
-     * serviceIdを2重に指定してファイル削除テストを行う.
-     * <pre>
-     * 【HTTP通信】
-     * Method: PUT
-     * Path: /file/remove?serviceId=123456789&serviceId=xxx&mediaId=xxxx
-     * </pre>
-     * <pre>
-     * 【期待する動作】
-     * ・先に定義された属性が優先されること。
-     * ・resultに1が返ってくること。
-     * </pre>
-     */
-    @Test
-    public void testDeleteRemoveDuplicatedServiceId() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(FileProfileConstants.PROFILE_NAME);
-        builder.setAttribute(FileProfileConstants.ATTRIBUTE_REMOVE);
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-        builder.addParameter(FileProfileConstants.PARAM_PATH,
-                TestFileProfileConstants.PATH);
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpDelete request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
     }
 
     /**
      * pathを指定せずにファイル削除テストを行う.
      * <pre>
      * 【HTTP通信】
-     * Method: PUT
+     * Method: DELETE
      * Path: /file/remove?serviceId=xxxxx
      * </pre>
      * <pre>
@@ -993,18 +824,17 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testDeleteRemoveNoPath() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_REMOVE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpDelete request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.INVALID_REQUEST_PARAMETER.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1012,7 +842,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /file/remove?serviceId=xxxx&mediaId=xxxx
+     * Path: /file/remove?serviceId=xxxx&path=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1021,20 +851,19 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testDeleteRemoveInvalidMethodGet() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_REMOVE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(FileProfileConstants.PARAM_PATH,
                 TestFileProfileConstants.PATH);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpGet request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_SUPPORT_ACTION.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1042,7 +871,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /file/remove?serviceId=xxxx&mediaId=xxxx
+     * Path: /file/remove?serviceId=xxxx&path=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1051,20 +880,19 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testDeleteRemoveInvalidMethodPut() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_REMOVE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(FileProfileConstants.PARAM_PATH,
                 TestFileProfileConstants.PATH);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpPut request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_SUPPORT_ACTION.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
  
     /**
@@ -1072,7 +900,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /file/remove?serviceId=xxxx&mediaId=xxxx
+     * Path: /file/remove?serviceId=xxxx&path=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1081,7 +909,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testDeleteRemoveInvalidMethodPost() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_REMOVE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
@@ -1094,14 +922,14 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
         if (data == null) {
             fail("Cannot find the file." + name);
         }
-        Map<String, Object> body = new HashMap<>();
-        body.put(FileProfileConstants.PARAM_DATA, data);
-        try {
-            JSONObject response = sendRequest("POST", builder.toString(), null, body);
-            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), response);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+        MultipartEntity body = new MultipartEntity();
+        body.add(FileProfileConstants.PARAM_DATA, new BinaryEntity(data));
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), body);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_SUPPORT_ACTION.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1119,20 +947,17 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testPostMkdirNoServiceId() {
         final String name = "test";
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_MKDIR);
         builder.addParameter(FileProfileConstants.PARAM_PATH, name);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
 
-        try {
-            HttpPost request = new HttpPost(builder.toString());
-            JSONObject root = sendRequest(request);            
-            assertResultError(root);
-            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.EMPTY_SERVICE_ID.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1150,21 +975,18 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testPostMkdirEmptyServiceId() {
         final String name = "test";
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_MKDIR);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(FileProfileConstants.PARAM_PATH, name);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
 
-        try {
-            HttpPost request = new HttpPost(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(root);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1182,21 +1004,18 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testPostMkdirInvalidServiceId() {
         final String name = "test";
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_MKDIR);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "12345678");
         builder.addParameter(FileProfileConstants.PARAM_PATH, name);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
 
-        try {
-            HttpPost request = new HttpPost(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(root);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1214,7 +1033,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testPostMkdirUndefinedAttribute() {
         final String name = "test";
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_MKDIR);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
@@ -1222,46 +1041,9 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         builder.addParameter("abc", "abc");
 
-        try {
-            HttpPost request = new HttpPost(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
-    }
-
-    /**
-     * serviceIdを2重に指定してディレクトリ作成テストを行う.
-     * <pre>
-     * 【HTTP通信】
-     * Method: POST
-     * Path: /file/mkdir?serviceId=12345678&serviceId=xxxx&path=xxxx
-     * </pre>
-     * <pre>
-     * 【期待する動作】
-     * ・resultに1が返ってくること。
-     * </pre>
-     */
-    @Test
-    public void testPostMkdirDuplicatedServiceId() {
-        final String name = "test";
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(FileProfileConstants.PROFILE_NAME);
-        builder.setAttribute(FileProfileConstants.ATTRIBUTE_MKDIR);
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "12345678");
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-        builder.addParameter(FileProfileConstants.PARAM_PATH, name);
-        builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-
-        try {
-            HttpPost request = new HttpPost(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(root);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
     }
 
     /**
@@ -1279,21 +1061,18 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testPostMkdirInvalidMethodGet() {
         final String name = "test";
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_MKDIR);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(FileProfileConstants.PARAM_PATH, name);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
 
-        try {
-            HttpGet request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(root);
-            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_SUPPORT_ACTION.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1311,21 +1090,18 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testPostMkdirInvalidMethodPut() {
         final String name = "test";
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_MKDIR);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(FileProfileConstants.PARAM_PATH, name);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
 
-        try {
-            HttpPut request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(root);
-            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_SUPPORT_ACTION.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1343,21 +1119,18 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testPostMkdirInvalidMethodDelete() {
         final String name = "test";
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_MKDIR);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(FileProfileConstants.PARAM_PATH, name);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
 
-        try {
-            HttpDelete request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(root);
-            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_SUPPORT_ACTION.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1375,20 +1148,17 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testDeleteRmdirNoServiceId() {
         final String name = "test";
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_RMDIR);
         builder.addParameter(FileProfileConstants.PARAM_PATH, name);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
 
-        try {
-            HttpDelete request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(root);
-            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.EMPTY_SERVICE_ID.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1406,21 +1176,18 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testDeleteRmdirEmptyServiceId() {
         final String name = "test";
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_RMDIR);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(FileProfileConstants.PARAM_PATH, name);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
 
-        try {
-            HttpDelete request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(root);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1438,21 +1205,18 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testDeleteRmdirInvalidServiceId() {
         final String name = "test";
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_RMDIR);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "12345678");
         builder.addParameter(FileProfileConstants.PARAM_PATH, name);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
 
-        try {
-            HttpDelete request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(root);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_FOUND_SERVICE.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1470,7 +1234,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testDeleteRmdirUndefinedAttribute() {
         final String name = "test";
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_RMDIR);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
@@ -1478,46 +1242,9 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         builder.addParameter("abc", "abc");
 
-        try {
-            HttpDelete request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
-    }
-
-    /**
-     * serviceIdを2重に指定してディレクトリ削除テストを行う.
-     * <pre>
-     * 【HTTP通信】
-     * Method: DELETE
-     * Path: /file/rmdir?serviceId=12345678&serviceId=xxxx&path=xxxx
-     * </pre>
-     * <pre>
-     * 【期待する動作】
-     * ・resultに1が返ってくること。
-     * </pre>
-     */
-    @Test
-    public void testDeleteRmdirDuplicatedServiceId() {
-        final String name = "test";
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(FileProfileConstants.PROFILE_NAME);
-        builder.setAttribute(FileProfileConstants.ATTRIBUTE_RMDIR);
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "12345678");
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-        builder.addParameter(FileProfileConstants.PARAM_PATH, name);
-        builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-
-        try {
-            HttpDelete request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(root);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
     }
 
     /**
@@ -1535,21 +1262,18 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testDeleteRmdirInvalidMethodGet() {
         final String name = "test";
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_RMDIR);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(FileProfileConstants.PARAM_PATH, name);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
 
-        try {
-            HttpGet request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(root);
-            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_SUPPORT_ACTION.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1567,21 +1291,18 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testDeleteRmdirInvalidMethodPost() {
         final String name = "test";
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_RMDIR);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(FileProfileConstants.PARAM_PATH, name);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
 
-        try {
-            HttpPost request = new HttpPost(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(root);
-            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_SUPPORT_ACTION.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
     /**
@@ -1599,37 +1320,17 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testDeleteRmdirInvalidMethodPut() {
         final String name = "test";
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_RMDIR);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(FileProfileConstants.PARAM_PATH, name);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
 
-        try {
-            HttpPut request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultError(root);
-            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
-    }
-
-    /**
-     * マルチパート送信テスト用ファイルデータを生成する.
-     * 
-     * @return ファイルデータを格納したマルチパート
-     */
-    private MultipartEntity getEntity() {
-        AssetManager manager = getApplicationContext().getAssets();
-        String name = "test.png";
-        MultipartEntity entity = new MultipartEntity();
-        try {
-            entity.addPart(FileProfileConstants.PARAM_DATA, new InputStreamBody(manager.open(name), name));
-        } catch (IOException e) {
-            fail("Failed to obtain the file: " + e.getMessage());
-        }
-        return entity;
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(ErrorCode.NOT_SUPPORT_ACTION.getCode()));
+        assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 }

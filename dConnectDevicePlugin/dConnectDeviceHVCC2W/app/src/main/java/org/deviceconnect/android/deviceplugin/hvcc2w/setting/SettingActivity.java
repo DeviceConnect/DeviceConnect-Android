@@ -7,22 +7,13 @@
 package org.deviceconnect.android.deviceplugin.hvcc2w.setting;
 
 import android.support.v4.app.Fragment;
-import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.hvcc2w.BuildConfig;
 import org.deviceconnect.android.deviceplugin.hvcc2w.setting.fragment.HVCC2WAccountRegisterFragment;
 import org.deviceconnect.android.deviceplugin.hvcc2w.setting.fragment.HVCC2WPairingFragment;
 import org.deviceconnect.android.deviceplugin.hvcc2w.setting.fragment.HVCC2WPushButtonFragment;
 import org.deviceconnect.android.deviceplugin.hvcc2w.setting.fragment.HVCC2WWakeupFragment;
-import org.deviceconnect.android.deviceplugin.hvcc2w.util.DConnectHelper;
-import org.deviceconnect.android.deviceplugin.hvcc2w.util.Utils;
 import org.deviceconnect.android.ui.activity.DConnectSettingPageFragmentActivity;
-
-import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
 
 /**
  * HVC-C2W Setting Activity.

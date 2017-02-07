@@ -93,17 +93,7 @@ public class HueFragment02 extends Fragment implements OnClickListener {
      * hueブリッジのNotificationを受け取るためのリスナー.
      */
     private PHSDKListener mListener = new PHSDKListener() {
-        @Override
-        public void onBridgeConnected(final PHBridge b) {
-            mHueStatus = HueState.AUTHENTICATE_SUCCESS;
-            successAuthorization();
 
-            // 接続.
-            mPhHueSDK.setSelectedBridge(b);
-            mPhHueSDK.enableHeartbeat(b, PHHueSDK.HB_INTERVAL);
-            mPhHueSDK.getLastHeartbeat().put(b.getResourceCache().getBridgeConfiguration().getIpAddress(),
-                    System.currentTimeMillis());
-        }
 
         @Override
         public void onAuthenticationRequired(final PHAccessPoint accessPoint) {
@@ -120,6 +110,18 @@ public class HueFragment02 extends Fragment implements OnClickListener {
 
         @Override
         public void onCacheUpdated(final List<Integer> list, final PHBridge bridge) {
+        }
+
+        @Override
+        public void onBridgeConnected(PHBridge phBridge, String s) {
+            mHueStatus = HueState.AUTHENTICATE_SUCCESS;
+            successAuthorization();
+
+            // 接続.
+            mPhHueSDK.setSelectedBridge(phBridge);
+            mPhHueSDK.enableHeartbeat(phBridge, PHHueSDK.HB_INTERVAL);
+            mPhHueSDK.getLastHeartbeat().put(phBridge.getResourceCache().getBridgeConfiguration().getIpAddress(),
+                    System.currentTimeMillis());
         }
 
         @Override

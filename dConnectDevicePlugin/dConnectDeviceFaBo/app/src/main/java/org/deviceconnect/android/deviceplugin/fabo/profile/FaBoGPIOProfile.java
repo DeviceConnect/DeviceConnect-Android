@@ -322,7 +322,7 @@ public class FaBoGPIOProfile extends GPIOProfile {
 
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                boolean result = EventManager.INSTANCE.removeEvents(getSessionKey(request));
+                boolean result = EventManager.INSTANCE.removeEvents(getOrigin(request));
                 if (result) {
                     ((FaBoDeviceService) getContext()).unregisterOnChange(getServiceID(request));
                     setResult(response, RESULT_OK);

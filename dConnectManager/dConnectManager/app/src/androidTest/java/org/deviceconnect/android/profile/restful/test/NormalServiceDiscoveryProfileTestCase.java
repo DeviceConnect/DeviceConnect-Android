@@ -8,16 +8,21 @@ package org.deviceconnect.android.profile.restful.test;
 
 import android.support.test.runner.AndroidJUnit4;
 
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpUriRequest;
+import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
+import org.deviceconnect.message.DConnectMessage;
+import org.deviceconnect.message.DConnectResponseMessage;
+import org.deviceconnect.message.DConnectSDK;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
-import org.deviceconnect.utils.URIBuilder;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import java.util.List;
+
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.core.Is.is;
+import static org.junit.Assert.assertThat;
 
 
 /**
@@ -28,7 +33,7 @@ import org.junit.runner.RunWith;
 public class NormalServiceDiscoveryProfileTestCase extends RESTfulDConnectTestCase {
 
     @Override
-    protected boolean isSearchDevices() {
+    protected boolean isSearchServices() {
         return false;
     }
 
@@ -37,7 +42,7 @@ public class NormalServiceDiscoveryProfileTestCase extends RESTfulDConnectTestCa
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /servicediscovery
+     * Path: /serviceDiscovery
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -48,33 +53,25 @@ public class NormalServiceDiscoveryProfileTestCase extends RESTfulDConnectTestCa
      */
     @Test
     public void testGetServices() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(ServiceDiscoveryProfileConstants.PROFILE_NAME);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject response = sendRequest(request);
-            assertResultOK(response);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
-    }
 
-    /**
-     * 指定した名前をもつサービスをJSON配列から検索する.
-     * 
-     * @param services サービス一覧
-     * @param name サービス名
-     * @return 見つかったサービス. 見つからなかった場合は<code>null</code>
-     * @throws JSONException JSONオブジェクトの解析に失敗した場合
-     */
-    private JSONObject getServiceByName(final JSONArray services, final String name) throws JSONException {
-        for (int i = 0; i < services.length(); i++) {
-            JSONObject service = services.getJSONObject(i);
-            if (name.equals(service.getString(ServiceDiscoveryProfileConstants.PARAM_NAME))) {
-                return service;
+        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+
+        List<Object> list = response.getList(ServiceDiscoveryProfile.PARAM_SERVICES);
+        assertThat(list, is(notNullValue()));
+        assertThat(list.size(), is(greaterThan(0)));
+        boolean result = false;
+        for (Object obj : list) {
+            DConnectMessage service = (DConnectMessage) obj;
+            String name = service.getString(ServiceDiscoveryProfile.PARAM_NAME);
+            if ("Test Success Device".equals(name)) {
+                result = true;
             }
         }
-        return null;
+        assertThat(result, is(true));
     }
 }

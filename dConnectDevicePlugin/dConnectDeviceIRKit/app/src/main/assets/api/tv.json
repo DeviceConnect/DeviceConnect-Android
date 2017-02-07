@@ -79,7 +79,7 @@
                         "type": "string"
                     },
                     {
-                        "name": "turning",
+                        "name": "tuning",
                         "in": "formData",
                         "required": false,
                         "type": "string",

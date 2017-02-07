@@ -27,27 +27,55 @@ import java.util.Map;
 public class DConnectServiceManager implements DConnectServiceProvider,
     DConnectService.OnStatusChangeListener {
 
+    /**
+     * プラグインがサポートするスペックを管理するクラス.
+     */
     private DConnectPluginSpec mPluginSpec;
 
+    /**
+     * コンテキスト.
+     */
     private Context mContext;
 
+    /**
+     * デバイスプラグインが持っているサービスリスト.
+     */
+    private final Map<String, DConnectService> mDConnectServices
+            = Collections.synchronizedMap(new HashMap<String, DConnectService>());
+
+    /**
+     * サービス通知リスナーリスト.
+     */
+    private final List<DConnectServiceListener> mServiceListeners
+            = Collections.synchronizedList(new ArrayList<DConnectServiceListener>());
+
+    /**
+     * コンテキストを設定する.
+     * @param context コンテキスト
+     */
     public void setContext(final Context context) {
         mContext = context;
     }
 
+    /**
+     * コンテキストを取得する.
+     * @return コンテキスト
+     */
     public Context getContext() {
         return mContext;
     }
 
+    /**
+     * プラグインがサポートするスペックを管理するクラスを設定する.
+     *
+     * @param pluginSpec プラグインがサポートするスペック
+     */
     public void setPluginSpec(final DConnectPluginSpec pluginSpec) {
+        if (pluginSpec == null) {
+            throw new NullPointerException("pluginSpec is null.");
+        }
         mPluginSpec = pluginSpec;
     }
-
-    private final Map<String, DConnectService> mDConnectServices
-        = Collections.synchronizedMap(new HashMap<String, DConnectService>());
-
-    private final List<DConnectServiceListener> mServiceListeners
-        = Collections.synchronizedList(new ArrayList<DConnectServiceListener>());
 
     @Override
     public void addService(final DConnectService service) {
@@ -127,6 +155,11 @@ public class DConnectServiceManager implements DConnectServiceProvider,
         }
     }
 
+    /**
+     * サービスが追加されたことをリスナーに通知する.
+     *
+     * @param service 追加されたサービス
+     */
     private void notifyOnServiceAdded(final DConnectService service) {
         synchronized (mServiceListeners) {
             for (DConnectServiceListener l : mServiceListeners) {
@@ -135,6 +168,11 @@ public class DConnectServiceManager implements DConnectServiceProvider,
         }
     }
 
+    /**
+     * サービスが削除されたことをリスナーに通知する.
+     *
+     * @param service 削除されたサービス
+     */
     private void notifyOnServiceRemoved(final DConnectService service) {
         synchronized (mServiceListeners) {
             for (DConnectServiceListener l : mServiceListeners) {
@@ -143,6 +181,11 @@ public class DConnectServiceManager implements DConnectServiceProvider,
         }
     }
 
+    /**
+     * サービスのステータスが変更されたことをリスナーに通知する.
+     *
+     * @param service ステータスが変更されたサービス
+     */
     private void notifyOnStatusChange(final DConnectService service) {
         synchronized (mServiceListeners) {
             for (DConnectServiceListener l : mServiceListeners) {

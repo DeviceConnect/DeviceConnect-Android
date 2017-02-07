@@ -20,49 +20,21 @@ import java.io.File;
  */
 public final class DConnectSettings {
     /** デフォルトのホスト名を定義. */
-    public static final String DEFAULT_HOST = "localhost";
+    private static final String DEFAULT_HOST = "localhost";
     /** デフォルトのポート番号を定義. */
-    public static final int DEFAULT_PORT = 4035;
+    private static final int DEFAULT_PORT = 4035;
     /** Webサーバのデフォルトポート番号を定義. */
-    public static final int DEFALUT_WEB_PORT = 8080;
+    private static final int DEFAULT_WEB_PORT = 8080;
     /** デフォルトのインターバルを定義. */
-    public static final int DEFAULT_INTERVAL = 1000 * 60 * 5;
+    private static final int DEFAULT_INTERVAL = 1000 * 60 * 5;
     /** デフォルトのキーワード. */
     public static final String DEFAULT_KEYWORD = DConnectUtil.createKeyword();
-    /** ポート番号. */
-    private int mPort = DEFAULT_PORT;
-    /** ホスト名. */
-    private String mHost = DEFAULT_HOST;
-    /** SSL使用フラグ. */
-    private boolean mSSL = false;
 
-    /** 外部IPのアクセス権限. */
-    private boolean mAllowExternalIP = false;
+    /** 情報を共有するプリファレンス. */
+    private SharedPreferences mPreferences;
 
-    /** 外部アプリからの自動起動および自動終了を許可するフラグ. */
-    private boolean mAllowExternalStartAndStop = true;
-
-    /** オリジン要求フラグ. */
-    private boolean mRequireOrigin = true;
-
-    /** LocalOAuthの使用フラグ. */
-    private boolean mUseALocalOAuth = true;
-
-    /** Originブロック機能の使用フラグ. */
-    private boolean mWhitelistEnabled = false;
-
-    /** 監視時間を定義. */
-    private int mObservationInterval;
-
-    /** ドキュメントルートパス. */
-    private String mDocumentRootPath;
-    /** Webサーバのホスト名. */
-    private String mWebHost = DEFAULT_HOST;
-    /** Webサーバのポート番号. */
-    private int mWebPort = DEFALUT_WEB_PORT;
-
-    /** キーワード. */
-    private String mKeyword;
+    /** コンテキスト. */
+    private Context mContext;
 
     /** このクラスの唯一のインスタンス. */
     private static DConnectSettings sInstance;
@@ -90,45 +62,37 @@ public final class DConnectSettings {
      * @param context コンテキスト
      */
     public void load(final Context context) {
-        File file = new File(Environment.getExternalStorageDirectory(), context.getPackageName());
-        if (!file.exists()) {
-            file.mkdir();
+        mContext = context;
+        mPreferences = context.getSharedPreferences(context.getPackageName() + "_preferences",
+                Context.MODE_PRIVATE);
+
+        String name = getManagerName();
+        if (name == null) {
+            setManagerName(DConnectUtil.createName());
         }
 
-        SharedPreferences sp = context.getSharedPreferences(context.getPackageName() + "_preferences",
-                Context.MODE_MULTI_PROCESS);
-        setHost(sp.getString(context.getString(R.string.key_settings_dconn_host), DConnectSettings.DEFAULT_HOST));
-        setDocumentRootPath(sp.getString(context.getString(R.string.key_settings_web_server_document_root_path),
-                file.getAbsolutePath()));
-        setSSL(sp.getBoolean(context.getString(R.string.key_settings_dconn_ssl), false));
-        setUseALocalOAuth(sp.getBoolean(context.getString(R.string.key_settings_dconn_local_oauth), true));
-        setAllowExternalIP(sp.getBoolean(context.getString(R.string.key_settings_dconn_allow_external_ip), false));
-        setAllowExternalStartAndStop(sp.getBoolean(context.getString(R.string.key_settings_dconn_allow_external_start_and_stop), true));
-        setRequireOrigin(sp.getBoolean(context.getString(R.string.key_settings_dconn_require_origin), true));
-        setBlockingOrigin(sp
-                .getBoolean(context.getString(R.string.key_settings_dconn_whitelist_origin_blocking), false));
-        setKeyword(sp.getString(context.getString(R.string.key_settings_dconn_keyword), DEFAULT_KEYWORD));
-        try {
-            setObservationInterval(Integer.parseInt(sp.getString(
-                    context.getString(R.string.key_settings_dconn_observation_interval),
-                    String.valueOf(DEFAULT_INTERVAL))));
-        } catch (NumberFormatException e) {
-            setObservationInterval(DEFAULT_INTERVAL);
+        String uuid = getManagerUUID();
+        if (uuid == null) {
+            setManagerUUID(DConnectUtil.createUuid());
         }
-        try {
-            setPort(Integer.parseInt(sp.getString(
-                    context.getString(R.string.key_settings_dconn_port),
-                    String.valueOf(DEFAULT_PORT))));
-        } catch (NumberFormatException e) {
-            setPort(DEFAULT_PORT);
-        }
-        try {
-            setWebPort(Integer.parseInt(sp.getString(
-                    context.getString(R.string.key_settings_web_server_port),
-                    String.valueOf(DEFALUT_WEB_PORT))));
-        } catch (NumberFormatException e) {
-            setPort(DEFALUT_WEB_PORT);
-        }
+    }
+
+    /**
+     * Managerの起動フラグを取得する.
+     * @return 起動する場合はtrue、それ以外はfalse
+     */
+    public boolean isManagerStartFlag() {
+        return mPreferences.getBoolean(mContext.getString(R.string.key_settings_dconn_server_on_off), false);
+    }
+
+    /**
+     * Managerの起動フラグを設定する.
+     * @param flag 起動フラグ
+     */
+    public void setManagerStartFlag(final boolean flag) {
+        SharedPreferences.Editor editor = mPreferences.edit();
+        editor.putBoolean(mContext.getString(R.string.key_settings_dconn_server_on_off), flag);
+        editor.apply();
     }
 
     /**
@@ -136,7 +100,9 @@ public final class DConnectSettings {
      * @return ポート番号
      */
     public int getPort() {
-        return mPort;
+        return Integer.parseInt(mPreferences.getString(
+                mContext.getString(R.string.key_settings_dconn_port),
+                String.valueOf(DEFAULT_PORT)));
     }
 
     /**
@@ -144,7 +110,9 @@ public final class DConnectSettings {
      * @param port ポート番号
      */
     public void setPort(final int port) {
-        this.mPort = port;
+        SharedPreferences.Editor editor = mPreferences.edit();
+        editor.putString(mContext.getString(R.string.key_settings_dconn_port), String.valueOf(port));
+        editor.apply();
     }
 
     /**
@@ -152,7 +120,8 @@ public final class DConnectSettings {
      * @return ホスト名
      */
     public String getHost() {
-        return mHost;
+        return mPreferences.getString(mContext.getString(R.string.key_settings_dconn_host),
+                DConnectSettings.DEFAULT_HOST);
     }
 
     /**
@@ -160,7 +129,9 @@ public final class DConnectSettings {
      * @param host ホスト名
      */
     public void setHost(final String host) {
-        this.mHost = host;
+        SharedPreferences.Editor editor = mPreferences.edit();
+        editor.putString(mContext.getString(R.string.key_settings_dconn_host), host);
+        editor.apply();
     }
 
     /**
@@ -168,7 +139,14 @@ public final class DConnectSettings {
      * @return ドキュメントルートパス
      */
     public String getDocumentRootPath() {
-        return mDocumentRootPath;
+        File file = new File(Environment.getExternalStorageDirectory(), mContext.getPackageName());
+        if (!file.exists()) {
+            if (!file.mkdirs()) {
+                throw new RuntimeException("Cannot make a folder. path=" + file.getPath());
+            }
+        }
+        return mPreferences.getString(mContext.getString(R.string.key_settings_web_server_document_root_path),
+                file.getAbsolutePath());
     }
 
     /**
@@ -176,7 +154,10 @@ public final class DConnectSettings {
      * @param documentRootPath パス
      */
     public void setDocumentRootPath(final String documentRootPath) {
-        mDocumentRootPath = documentRootPath;
+        SharedPreferences.Editor editor = mPreferences.edit();
+        editor.putString(mContext.getString(R.string.key_settings_web_server_document_root_path),
+                documentRootPath);
+        editor.apply();
     }
 
     /**
@@ -184,7 +165,7 @@ public final class DConnectSettings {
      * @return SSL使用フラグ
      */
     public boolean isSSL() {
-        return mSSL;
+        return mPreferences.getBoolean(mContext.getString(R.string.key_settings_dconn_ssl), false);
     }
 
     /**
@@ -192,7 +173,9 @@ public final class DConnectSettings {
      * @param ssl SSL使用フラグ
      */
     public void setSSL(final boolean ssl) {
-        this.mSSL = ssl;
+        SharedPreferences.Editor editor = mPreferences.edit();
+        editor.putBoolean(mContext.getString(R.string.key_settings_dconn_ssl), ssl);
+        editor.apply();
     }
 
     /**
@@ -200,7 +183,7 @@ public final class DConnectSettings {
      * @return 使用する場合はtrue、それ以外はfalse
      */
     public boolean isUseALocalOAuth() {
-        return mUseALocalOAuth;
+        return mPreferences.getBoolean(mContext.getString(R.string.key_settings_dconn_local_oauth), true);
     }
 
     /**
@@ -208,7 +191,9 @@ public final class DConnectSettings {
      * @param useALocalOAuth 使用する場合はtrue、それ以外はfalse
      */
     public void setUseALocalOAuth(final boolean useALocalOAuth) {
-        this.mUseALocalOAuth = useALocalOAuth;
+        SharedPreferences.Editor editor = mPreferences.edit();
+        editor.putBoolean(mContext.getString(R.string.key_settings_dconn_local_oauth), useALocalOAuth);
+        editor.apply();
     }
 
     /**
@@ -219,18 +204,7 @@ public final class DConnectSettings {
      * @return trueの場合は許可、falseの場合は不許可
      */
     public boolean allowExternalIP() {
-        return mAllowExternalIP;
-    }
-
-    /**
-     * 外部アプリからの自動起動および自動終了を許可するフラグを取得する.
-     * <p>
-     * デフォルトではfalseに設定されている。
-     * </p>
-     * @return trueの場合は許可、falseの場合は不許可
-     */
-    public boolean allowExternalStartAndStop() {
-        return mAllowExternalStartAndStop;
+        return mPreferences.getBoolean(mContext.getString(R.string.key_settings_dconn_allow_external_ip), false);
     }
 
     /**
@@ -241,7 +215,20 @@ public final class DConnectSettings {
      * @param allow trueの場合は許可、falseの場合は不許可
      */
     public void setAllowExternalIP(final boolean allow) {
-        this.mAllowExternalIP = allow;
+        SharedPreferences.Editor editor = mPreferences.edit();
+        editor.putBoolean(mContext.getString(R.string.key_settings_dconn_allow_external_ip), allow);
+        editor.apply();
+    }
+
+    /**
+     * 外部アプリからの自動起動および自動終了を許可するフラグを取得する.
+     * <p>
+     * デフォルトではfalseに設定されている。
+     * </p>
+     * @return trueの場合は許可、falseの場合は不許可
+     */
+    public boolean allowExternalStartAndStop() {
+        return mPreferences.getBoolean(mContext.getString(R.string.key_settings_dconn_allow_external_start_and_stop), true);
     }
 
     /**
@@ -252,7 +239,9 @@ public final class DConnectSettings {
      * @param allow trueの場合は許可、falseの場合は不許可
      */
     public void setAllowExternalStartAndStop(final boolean allow) {
-        this.mAllowExternalStartAndStop = allow;
+        SharedPreferences.Editor editor = mPreferences.edit();
+        editor.putBoolean(mContext.getString(R.string.key_settings_dconn_allow_external_start_and_stop), allow);
+        editor.apply();
     }
 
     /**
@@ -263,7 +252,7 @@ public final class DConnectSettings {
      * @return trueの場合は必要、falseの場合は不要
      */
     public boolean requireOrigin() {
-        return mRequireOrigin;
+        return mPreferences.getBoolean(mContext.getString(R.string.key_settings_dconn_require_origin), true);
     }
 
     /**
@@ -274,7 +263,9 @@ public final class DConnectSettings {
      * @param allow trueの場合は必要、falseの場合は不要
      */
     public void setRequireOrigin(final boolean allow) {
-        this.mRequireOrigin = allow;
+        SharedPreferences.Editor editor = mPreferences.edit();
+        editor.putBoolean(mContext.getString(R.string.key_settings_dconn_require_origin), allow);
+        editor.apply();
     }
 
     /**
@@ -283,7 +274,7 @@ public final class DConnectSettings {
      *      falseの場合は任意のOriginからのアクセスを許可する
      */
     public boolean isBlockingOrigin() {
-        return mWhitelistEnabled;
+        return mPreferences.getBoolean(mContext.getString(R.string.key_settings_dconn_whitelist_origin_blocking), false);
     }
 
     /**
@@ -292,7 +283,59 @@ public final class DConnectSettings {
      *      falseの場合は任意のOriginからのアクセスを許可する
      */
     public void setBlockingOrigin(final boolean enabled) {
-        this.mWhitelistEnabled = enabled;
+        SharedPreferences.Editor editor = mPreferences.edit();
+        editor.putBoolean(mContext.getString(R.string.key_settings_dconn_whitelist_origin_blocking), enabled);
+        editor.apply();
+    }
+
+    /**
+     * Managerの名前を取得する.
+     * <p>
+     * Managerの名前が未設定の場合には{@code null}を返却する.
+     * </p>
+     * @return Manager名
+     */
+    public String getManagerName() {
+        return mPreferences.getString(mContext.getString(R.string.key_settings_dconn_name), null);
+    }
+
+    /**
+     * Managerの名前を設定する.
+     * @param name Manager名
+     */
+    public void setManagerName(final String name) {
+        SharedPreferences.Editor editor = mPreferences.edit();
+        editor.putString(mContext.getString(R.string.key_settings_dconn_name), name);
+        editor.apply();
+    }
+
+    /**
+     * Managerの識別子を取得する.
+     * <p>
+     * Managerの識別子が未設定の場合には{@code null}を返却する.
+     * </p>
+     * @return Managerの識別子
+     */
+    public String getManagerUUID() {
+        return mPreferences.getString(mContext.getString(R.string.key_settings_dconn_uuid), null);
+    }
+
+    /**
+     * Managerの識別子を設定する.
+     * @param uuid Managerの識別子
+     */
+    public void setManagerUUID(final String uuid) {
+        SharedPreferences.Editor editor = mPreferences.edit();
+        editor.putString(mContext.getString(R.string.key_settings_dconn_uuid), uuid);
+        editor.apply();
+    }
+
+    /**
+     * WakeLockが有効・無効を取得する.
+     * @return trueの場合はWakeLockが有効、それ以外はWakeLockが無効
+     */
+    public boolean enableWakLock() {
+        return mPreferences.getBoolean(mContext.getString(R.string.key_settings_wake_lock), true);
     }
 
     /**
@@ -300,7 +343,9 @@ public final class DConnectSettings {
      * @return ポート番号
      */
     public int getWebPort() {
-        return mWebPort;
+        return Integer.parseInt(mPreferences.getString(
+                    mContext.getString(R.string.key_settings_web_server_port),
+                    String.valueOf(DEFAULT_WEB_PORT)));
     }
 
     /**
@@ -308,7 +353,10 @@ public final class DConnectSettings {
      * @param port ポート番号
      */
     public void setWebPort(final int port) {
-        mWebPort = port;
+        SharedPreferences.Editor editor = mPreferences.edit();
+        editor.putString(mContext.getString(R.string.key_settings_web_server_port),
+                String.valueOf(port));
+        editor.apply();
     }
 
     /**
@@ -316,7 +364,15 @@ public final class DConnectSettings {
      * @return ホスト名
      */
     public String getWebHost() {
-        return mWebHost;
+        return DEFAULT_HOST;
+    }
+
+    /**
+     * Webサーバの起動フラグを取得する.
+     * @return Webサーバを起動している場合はtrue、それ以外はfalse
+     */
+    public boolean isWebServerStartFlag() {
+        return mPreferences.getBoolean(mContext.getString(R.string.key_settings_web_server_on_off), false);
     }
 
     /**
@@ -324,7 +380,9 @@ public final class DConnectSettings {
      * @return インターバル
      */
     public int getObservationInterval() {
-        return mObservationInterval;
+        return Integer.parseInt(mPreferences.getString(
+                    mContext.getString(R.string.key_settings_dconn_observation_interval),
+                    String.valueOf(DEFAULT_INTERVAL)));
     }
 
     /**
@@ -332,7 +390,10 @@ public final class DConnectSettings {
      * @param interval インターバル
      */
     public void setObservationInterval(final int interval) {
-        mObservationInterval = interval;
+        SharedPreferences.Editor editor = mPreferences.edit();
+        editor.putString(mContext.getString(R.string.key_settings_dconn_observation_interval),
+                String.valueOf(interval));
+        editor.apply();
     }
 
     /**
@@ -340,7 +401,7 @@ public final class DConnectSettings {
      * @return キーワード
      */
     public String getKeyword() {
-        return mKeyword;
+        return mPreferences.getString(mContext.getString(R.string.key_settings_dconn_keyword), DEFAULT_KEYWORD);
     }
 
     /**
@@ -348,6 +409,8 @@ public final class DConnectSettings {
      * @param keyword キーワード
      */
     public void setKeyword(final String keyword) {
-        mKeyword = keyword;
+        SharedPreferences.Editor editor = mPreferences.edit();
+        editor.putString(mContext.getString(R.string.key_settings_dconn_keyword), keyword);
+        editor.apply();
     }
 }

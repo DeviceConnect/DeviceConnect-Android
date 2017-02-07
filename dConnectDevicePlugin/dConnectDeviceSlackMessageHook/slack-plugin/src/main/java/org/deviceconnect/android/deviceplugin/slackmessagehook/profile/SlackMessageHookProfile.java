@@ -42,6 +42,7 @@ public class SlackMessageHookProfile extends MessageHookProfile {
         addApi(mGetMessageApi);
         addApi(mGetChannelsApi);
         addApi(mPostMessageApi);
+        addApi(mGetOnMessageApi);
         addApi(mOnPutOnMessageReceivedApi);
         addApi(mOnDeleteOnMessageReceivedApi);
     }
@@ -245,7 +246,49 @@ public class SlackMessageHookProfile extends MessageHookProfile {
             return true;
         }
     };
+    /**
+     * 最後に受信したメッセージ取得API
+     */
+    private final DConnectApi mGetOnMessageApi = new GetApi() {
 
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ONMESSAGE;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+
+            // ServiceIDチェック
+            String serviceId = getServiceID(request);
+            if (checkServiceId(serviceId, response)) {
+                return true;
+            }
+
+            // 接続チェック
+            if (!SlackManager.INSTANCE.isConnected()) {
+                MessageUtils.setUnknownError(response, "Not connected to the Slack server");
+                return true;
+            }
+
+            new Thread() {
+                @Override
+                public void run() {
+                    // 最新の履歴を返す
+                    SlackMessageHookDeviceService service = (SlackMessageHookDeviceService) getContext();
+                    List<Bundle> history = service.getHistory();
+                    Bundle bundle = new Bundle();
+                    if (history.size() > 0) {
+                        bundle = history.get(history.size() - 1);
+                    }
+                    response.putExtra("message", bundle);
+                    setResult(response, DConnectMessage.RESULT_OK);
+                    service.sendResponse(response);
+                }
+            }.start();
+            return false;
+        }
+    };
     /**
      * メッセージイベント登録API
      */
@@ -253,7 +296,7 @@ public class SlackMessageHookProfile extends MessageHookProfile {
 
         @Override
         public String getAttribute() {
-            return ATTRIBUTE_MESSAGE;
+            return ATTRIBUTE_ONMESSAGE;
         }
 
         @Override
@@ -286,7 +329,7 @@ public class SlackMessageHookProfile extends MessageHookProfile {
 
         @Override
         public String getAttribute() {
-            return ATTRIBUTE_MESSAGE;
+            return ATTRIBUTE_ONMESSAGE;
         }
 
         @Override

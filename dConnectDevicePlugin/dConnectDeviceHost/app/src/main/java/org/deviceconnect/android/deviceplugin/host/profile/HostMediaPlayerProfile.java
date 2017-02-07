@@ -690,8 +690,8 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
             Cursor cursorVideo = null;
 
             if (mimeType != null) {
-                mVideoFilter = "" + MediaStore.Video.Media.MIME_TYPE + "='" + mimeType + "'";
-                mMusicFilter = "" + MediaStore.Audio.Media.MIME_TYPE + "='" + mimeType + "'";
+                mVideoFilter = "" + MediaStore.Video.Media.MIME_TYPE + " LIKE '" + mimeType + "%'";
+                mMusicFilter = "" + MediaStore.Audio.Media.MIME_TYPE + " LIKE '" + mimeType + "%'";
             }
             if (query != null) {
                 if (!mVideoFilter.equals("")) {

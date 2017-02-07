@@ -15,6 +15,7 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -93,15 +94,23 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
     @Override
     public void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        addPreferencesFromResource(R.xml.settings);
+        addPreferencesFromResource(R.xml.settings_dconnect_manager);
+        addPreferencesFromResource(R.xml.settings_dconnect_device_plugin);
+        addPreferencesFromResource(R.xml.settings_dconnect_settings);
+        addPreferencesFromResource(R.xml.settings_dconnect_security);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            addPreferencesFromResource(R.xml.settings_power_saving_doze_mode);
+        } else {
+            addPreferencesFromResource(R.xml.settings_power_saving);
+        }
+        addPreferencesFromResource(R.xml.settings_web_server);
+        addPreferencesFromResource(R.xml.settings_dconnect_about);
         setHasOptionsMenu(true);
 
         // オープソースのリストを準備
         mOpenSourceList = new ArrayList<>();
         mOpenSourceList.add(OpenSourceLicenseFragment.createOpenSourceSoftware(
                 "android-support-v4.jar", R.raw.andorid_support_v4));
-        mOpenSourceList.add(OpenSourceLicenseFragment.createOpenSourceSoftware(
-                "apache-mime4j-0.7.2.jar", R.raw.apache_mime4j));
         mOpenSourceList.add(OpenSourceLicenseFragment.createOpenSourceSoftware(
                 "android-support-v4-preferencefragment", R.raw.android_support_v4_preferencefragment));
         mOpenSourceList.add(OpenSourceLicenseFragment.createOpenSourceSoftware(
@@ -118,43 +127,53 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
         }
 
         SharedPreferences sp = getPreferenceManager().getSharedPreferences();
+        // サーバーのON/OFF
+        boolean power = sp.getBoolean(getString(R.string.key_settings_dconn_server_on_off), false);
+
+        // キーワード
         String keyword = sp.getString(getString(R.string.key_settings_dconn_keyword), DConnectSettings.DEFAULT_KEYWORD);
         if (keyword.length() <= 0) {
             keyword = DConnectUtil.createKeyword();
         }
 
-        String name = sp.getString(getString(R.string.key_settings_dconn_name), null);
-        if (name == null || name.length() <= 0) {
-            name = DConnectUtil.createName();
-        }
-
-        String uuid = sp.getString(getString(R.string.key_settings_dconn_uuid), null);
-        if (uuid == null || uuid.length() <= 0) {
-            uuid = DConnectUtil.createUuid();
-        }
-
-        EditTextPreference editKeywordPreferences = (EditTextPreference) getPreferenceScreen()
-                .findPreference(getString(R.string.key_settings_dconn_keyword));
-        EditTextPreference editNamePreferences = (EditTextPreference) getPreferenceScreen()
-                .findPreference(getString(R.string.key_settings_dconn_name));
-        PreferenceScreen editUuidPreferences = (PreferenceScreen) getPreferenceScreen()
-                .findPreference(getString(R.string.key_settings_dconn_uuid));
+        // ドキュメントルート
         String docRootPath = sp.getString(getString(R.string.key_settings_web_server_document_root_path), null);
         if (docRootPath == null || docRootPath.length() <= 0) {
             File file = new File(Environment.getExternalStorageDirectory(), getActivity().getPackageName());
             docRootPath = file.getPath();
         }
 
+        // Managerの名前
+        String name = sp.getString(getString(R.string.key_settings_dconn_name), null);
+        if (name == null || name.length() <= 0) {
+            name = DConnectUtil.createName();
+        }
+
+        // ManagerのUUID
+        String uuid = sp.getString(getString(R.string.key_settings_dconn_uuid), null);
+        if (uuid == null || uuid.length() <= 0) {
+            uuid = DConnectUtil.createUuid();
+        }
+
+
+        EditTextPreference editKeywordPreferences = (EditTextPreference) getPreferenceScreen()
+                .findPreference(getString(R.string.key_settings_dconn_keyword));
         editKeywordPreferences.setSummary(keyword);
         editKeywordPreferences.setDefaultValue(keyword);
         editKeywordPreferences.setText(keyword);
         editKeywordPreferences.shouldCommit();
 
+
+        EditTextPreference editNamePreferences = (EditTextPreference) getPreferenceScreen()
+                .findPreference(getString(R.string.key_settings_dconn_name));
         editNamePreferences.setSummary(name);
         editNamePreferences.setDefaultValue(name);
         editNamePreferences.setText(name);
         editNamePreferences.shouldCommit();
 
+
+        PreferenceScreen editUuidPreferences = (PreferenceScreen) getPreferenceScreen()
+                .findPreference(getString(R.string.key_settings_dconn_uuid));
         editUuidPreferences.setSummary(uuid);
         editUuidPreferences.setDefaultValue(uuid);
         editUuidPreferences.shouldCommit();
@@ -212,6 +231,8 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
         editHostPreferences.setEnabled(false);
         editDocPreferences.setEnabled(false);
         editWebHostPreferences.setEnabled(false);
+
+        setUIEnabled(power);
     }
 
     @Override
@@ -228,9 +249,10 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
         mObserverPreferences.setChecked(isObservationServices());
         showIPAddress();
 
-        // サービスとの接続完了まで操作無効
+        // サービスとの接続完了まで操作無効にする
         getPreferenceScreen().setEnabled(false);
 
+        // サービスとの接続
         Intent intent = new Intent(IDConnectService.class.getName());
         intent.setPackage(getActivity().getPackageName());
         getActivity().bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
@@ -238,6 +260,33 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
         Intent intent2 = new Intent(IDConnectWebService.class.getName());
         intent2.setPackage(getActivity().getPackageName());
         getActivity().bindService(intent2, mWebServiceConnection, Context.BIND_AUTO_CREATE);
+
+        // Dozeモード
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            CheckBoxPreference dozeModePreference = (CheckBoxPreference) getPreferenceScreen()
+                    .findPreference(getString(R.string.key_settings_doze_mode));
+            if (dozeModePreference != null) {
+                dozeModePreference.setChecked(!DConnectUtil.isDozeMode(getActivity()));
+                if (DConnectUtil.isDozeMode(getActivity())) {
+                    dozeModePreference.setSummary(R.string.activity_settings_doze_mode_summary_off);
+                } else {
+                    dozeModePreference.setSummary(R.string.activity_settings_doze_mode_summary_on);
+                }
+                dozeModePreference.setOnPreferenceChangeListener(this);
+            }
+        }
+
+        // WakeLock
+        CheckBoxPreference wakeLockPreference = (CheckBoxPreference) getPreferenceScreen()
+                .findPreference(getString(R.string.key_settings_wake_lock));
+        if (wakeLockPreference != null) {
+            if (wakeLockPreference.isChecked()) {
+                wakeLockPreference.setSummary(R.string.activity_settings_wake_lock_summary_on);
+            } else {
+                wakeLockPreference.setSummary(R.string.activity_settings_wake_lock_summary_off);
+            }
+            wakeLockPreference.setOnPreferenceChangeListener(this);
+        }
     }
 
     @Override
@@ -285,6 +334,10 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
             } else if (getString(R.string.key_settings_dconn_local_oauth).equals(key)
                     || getString(R.string.key_settings_dconn_whitelist_origin_blocking).equals(key)) {
                 requiredOrigin((Boolean) newValue);
+            } else if (getString(R.string.key_settings_doze_mode).equals(key)) {
+                switchDozeMode((Boolean) newValue);
+            } else if (getString(R.string.key_settings_wake_lock).equals(key)) {
+                switchWakeLock((Boolean) newValue);
             }
         }
         return true;
@@ -485,6 +538,52 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
     }
 
     /**
+     * Dozeモードの切り替えを行います.
+     * @param checked 有効にするの場合はtrue、無効にする場合はfalse
+     */
+    private void switchDozeMode(final boolean checked) {
+        if (!checked) {
+            DConnectUtil.startConfirmIgnoreDozeMode(getActivity());
+        } else {
+            DConnectUtil.startDozeModeSettingActivity(getActivity());
+        }
+    }
+
+    /**
+     * WakeLockの切り替えを行います.
+     * @param checked 有効にするの場合はtrue、無効にする場合はfalse
+     */
+    private void switchWakeLock(final boolean checked) {
+        CheckBoxPreference pref = (CheckBoxPreference) getPreferenceScreen()
+                .findPreference(getString(R.string.key_settings_wake_lock));
+        if (pref != null) {
+            if (checked) {
+                pref.setSummary(R.string.activity_settings_wake_lock_summary_on);
+                if (mDConnectService != null) {
+                    try {
+                        mDConnectService.acquireWakeLock();
+                    } catch (RemoteException e) {
+                        if (BuildConfig.DEBUG) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            } else {
+                pref.setSummary(R.string.activity_settings_wake_lock_summary_off);
+                if (mDConnectService != null) {
+                    try {
+                        mDConnectService.releaseWakeLock();
+                    } catch (RemoteException e) {
+                        if (BuildConfig.DEBUG) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
      * Originの設定を要求する.
      * @param checked trueの場合は有効、falseの場合は無効
      */
@@ -605,6 +704,7 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
                         try {
                             boolean running = mDConnectService.isRunning();
                             setUIEnabled(!running);
+
                             SwitchPreference serverPreferences = (SwitchPreference) getPreferenceScreen()
                                     .findPreference(getString(R.string.key_settings_dconn_server_on_off));
                             serverPreferences.setChecked(running);
@@ -664,12 +764,18 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
         }
     };
 
+    /**
+     * Device Connect Managerのサービスへのbind状態を確認して、Preferenceを有効にします。
+     */
     private synchronized void checkServiceConnections() {
         if (mDConnectService != null && mWebService != null) {
             enablePreference();
         }
     }
 
+    /**
+     * Preferenceの設定を有効にします.
+     */
     private void enablePreference() {
         // 設定画面の有効化
         getPreferenceScreen().setEnabled(true);
@@ -703,5 +809,4 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
                 .findPreference(getString(R.string.key_settings_event_keep_alive_on_off));
         eventKeepAlive.setOnPreferenceChangeListener(this);
     }
-
 }

@@ -1,0 +1,74 @@
+body {
+    background-size: cover;
+    background-repeat: no-repeat;
+}
+
+img.camera {
+    width: 64px;
+    margin-top: 8px;
+    margin-bottom: 8px;
+}
+
+img#preview {
+    width: 80%;
+    margin: 12px;
+}
+
+div#thumbnails {
+    width: 40px;
+    right: 0;
+}
+
+img.thumbnail {
+    display: block;
+    width: 32px;
+    margin: 4px;
+    border: 4px solid #FFF;
+}
+
+div.menu {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #444;
+    text-align: center;
+}
+
+div.photo {
+    text-align: center;
+    margin: 12px;
+}
+
+div#photos {
+    position: absolute;
+    display: none;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+}
+
+div.back {
+    width: 100%;
+    height: 100%;
+
+    background-color: #000;
+    filter: alpha(opacity=60);
+    -moz-opacity: 0.6;
+    opacity: 0.6;
+}
+
+img#photo {
+    position: absolute;
+    border: 6px solid #FFF;
+    width: 80%;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    margin: auto;
+}
+

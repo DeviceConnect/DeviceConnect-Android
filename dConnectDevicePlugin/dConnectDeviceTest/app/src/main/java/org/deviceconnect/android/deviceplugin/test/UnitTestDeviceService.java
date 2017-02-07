@@ -12,7 +12,7 @@ import android.os.Bundle;
 import org.deviceconnect.android.deviceplugin.test.profile.TestSystemProfile;
 import org.deviceconnect.android.deviceplugin.test.service.UnitTestService;
 import org.deviceconnect.android.event.EventManager;
-import org.deviceconnect.android.event.cache.db.DBCacheController;
+import org.deviceconnect.android.event.cache.MemoryCacheController;
 import org.deviceconnect.android.localoauth.LocalOAuth2Main;
 import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.profile.SystemProfile;
@@ -38,7 +38,7 @@ public class UnitTestDeviceService extends DConnectMessageService {
     @Override
     public void onCreate() {
         super.onCreate();
-        EventManager.INSTANCE.setController(new DBCacheController(this));
+        EventManager.INSTANCE.setController(new MemoryCacheController());
         LocalOAuth2Main.initialize(getApplicationContext());
 
         getServiceProvider().addService(new UnitTestService(SERVICE_ID,

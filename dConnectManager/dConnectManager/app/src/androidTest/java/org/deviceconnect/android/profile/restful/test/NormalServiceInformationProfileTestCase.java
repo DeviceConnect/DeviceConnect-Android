@@ -8,16 +8,17 @@ package org.deviceconnect.android.profile.restful.test;
 
 import android.support.test.runner.AndroidJUnit4;
 
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpUriRequest;
+import org.deviceconnect.message.DConnectMessage;
+import org.deviceconnect.message.DConnectResponseMessage;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.deviceconnect.profile.DConnectProfileConstants;
 import org.deviceconnect.profile.ServiceInformationProfileConstants;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.core.Is.is;
+import static org.junit.Assert.assertThat;
 
 /**
  * Service Informationプロファイルの正常系テスト.
@@ -31,12 +32,11 @@ public class NormalServiceInformationProfileTestCase extends RESTfulDConnectTest
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /serviceinformation?deviceid=xxxx
+     * Path: /serviceInformation?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・versionにStringが返ってくること。
      * </pre>
      */
     @Test
@@ -48,13 +48,9 @@ public class NormalServiceInformationProfileTestCase extends RESTfulDConnectTest
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
-    }
 
+        DConnectResponseMessage response = mDConnectSDK.get(builder.toString());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+    }
 }

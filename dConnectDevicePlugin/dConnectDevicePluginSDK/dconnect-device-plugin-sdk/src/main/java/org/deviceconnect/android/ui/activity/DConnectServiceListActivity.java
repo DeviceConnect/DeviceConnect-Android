@@ -45,7 +45,7 @@ import java.util.logging.Logger;
  * @author NTT DOCOMO, INC.
  */
 public abstract class DConnectServiceListActivity extends FragmentActivity
-    implements DConnectServiceListener{
+    implements DConnectServiceListener {
 
     private DConnectServiceProvider mProvider;
 

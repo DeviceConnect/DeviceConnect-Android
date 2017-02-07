@@ -9,7 +9,6 @@ package org.deviceconnect.server;
 import org.deviceconnect.server.logger.LogHandler;
 import org.deviceconnect.server.websocket.DConnectWebSocket;
 
-import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
@@ -23,6 +22,9 @@ import java.util.logging.SimpleFormatter;
  */
 public abstract class DConnectServer {
 
+    /** デバッグフラグ. */
+    private static final boolean DEBUG = false;
+
     /** サーバーイベントの通知を受けるリスナークラス. */
     protected DConnectServerEventListener mListener;
 
@@ -30,25 +32,21 @@ public abstract class DConnectServer {
     protected final Logger mLogger = Logger.getLogger("dconnect.server");
 
     /** WebSocketのセッション. */
-    protected Map<String, DConnectWebSocket> mSockets;
+    protected final Map<String, DConnectWebSocket> mSockets;
 
     /** サーバー設定情報. */
-    protected DConnectServerConfig mConfig;
-
-    /** デバッグフラグ. */
-    private static final boolean DEBUG = false;
+    protected final DConnectServerConfig mConfig;
 
     /**
      * コンストラクタ. サーバーを生成します
      * 
      * @param config サーバー設定情報。
+     * @throws NullPointerException configに{@code null}が設定された場合に発生
      */
     public DConnectServer(final DConnectServerConfig config) {
-
         if (config == null) {
             throw new IllegalArgumentException("Configuration must not be null.");
         }
-
         mConfig = config;
         mSockets = new ConcurrentHashMap<String, DConnectWebSocket>();
 
@@ -86,10 +84,12 @@ public abstract class DConnectServer {
     public abstract String getVersion();
 
     /**
-     * WebSocketを切断する.
-     * @param webSocketId WebSocketを特定するためのID
+     * 設定されたコンフィグ情報を取得します.
+     * @return DConnectServerConfigのインスタンス
      */
-    public abstract void disconnectWebSocket(String webSocketId);
+    public DConnectServerConfig getConfig() {
+        return mConfig;
+    }
 
     /**
      * イベントリスナーを設定します.
@@ -97,28 +97,26 @@ public abstract class DConnectServer {
      * @param listener リスナーオブジェクト
      */
     public void setServerEventListener(final DConnectServerEventListener listener) {
-        this.mListener = listener;
+        mListener = listener;
     }
 
     /**
-     * 指定されたセッションキーを持つクライアントにWebSocketを通じてイベントメッセージを送る.
-     * 
-     * @param webSocketId WebSocketを特定するためのID
-     * @param event 送信するイベントメッセージ
-     * 
-     * @throws IOException セッションが見つからない場合スローされる
+     * 指定したIDのWebSocketを取得します.
+     * <p>
+     *     指定されたIDのWebSocketが存在しない場合には{@code null}を返却します。
+     * </p>
+     * @param webSocketId webSocketのID
+     * @return DConnectWebSocketのインスタンス
      */
-    public void sendEvent(final String webSocketId, final String event) throws IOException {
-        if (!isRunning()) {
-            throw new RuntimeException("DConnectServer is not running.");
-        }
-
-        DConnectWebSocket socket = mSockets.get(webSocketId);
-        if (socket == null) {
-            throw new IOException("Cannot found socket: id = " + webSocketId);
-        }
-
-        socket.sendEvent(event);
+    public DConnectWebSocket getWebSocket(final String webSocketId) {
+        return mSockets.get(webSocketId);
     }
 
+    /**
+     * 接続されているWebSocketの一覧を取得します.
+     * @return DConnectWebSocketのマップ
+     */
+    public Map<String, DConnectWebSocket> getWebSockets() {
+        return mSockets;
+    }
 }

@@ -108,7 +108,7 @@ public class MemoryCacheController extends BaseCacheController {
         String origin = event.getOrigin();
         String receiver = getReceiverName(event);
         for (Event e : eventList) {
-            if (e.getOrigin().equals(origin) && getReceiverName(e).equals(receiver)) {
+            if (compare(e.getOrigin(), origin) && compare(e.getReceiverName(), receiver)) {
                 // 登録済みの場合はアクセストークンを上書きする
                 e.setAccessToken(event.getAccessToken());
                 e.setUpdateDate(Utils.getCurreTimestamp());
@@ -152,7 +152,7 @@ public class MemoryCacheController extends BaseCacheController {
         String origin = event.getOrigin();
         String receiver = getReceiverName(event);
         for (Event e : eventList) {
-            if (e.getOrigin().equals(origin) && e.getReceiverName().equals(receiver)) {
+            if (compare(e.getOrigin(), origin) && compare(e.getReceiverName(), receiver)) {
                 eventList.remove(e);
                 if (eventList.size() == 0) {
                     events.remove(path);
@@ -180,7 +180,7 @@ public class MemoryCacheController extends BaseCacheController {
             }
             
             for (Event e : eventList) {
-                if (e.getOrigin().equals(origin) && e.getReceiverName().equals(tmpReceiver)) {
+                if (compare(e.getOrigin(), origin) && compare(e.getReceiverName(), tmpReceiver)) {
                     event = e;
                     break;
                 }
@@ -245,7 +245,11 @@ public class MemoryCacheController extends BaseCacheController {
         mEventMap.clear();
         return mEventMap.size() == 0;
     }
-    
+
+    private boolean compare(final String s1, final String s2) {
+        return (s1 == null && s2 == null) || s1!= null && s1.equals(s2);
+    }
+
     /**
      * イベントデータのキャッシュオブジェクトを取得する.
      * Map&lt;serviceId, Map&lt;profile+interface+attribute, List&lt;Event&gt;&gt;&gt;。

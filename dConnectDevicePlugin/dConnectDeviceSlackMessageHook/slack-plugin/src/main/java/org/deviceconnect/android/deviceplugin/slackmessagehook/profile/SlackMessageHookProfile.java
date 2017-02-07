@@ -78,35 +78,11 @@ public class SlackMessageHookProfile extends MessageHookProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-
-            // ServiceIDチェック
-            String serviceId = getServiceID(request);
-            if (checkServiceId(serviceId, response)) {
-                return true;
-            }
-
-            // 接続チェック
-            if (!SlackManager.INSTANCE.isConnected()) {
-                MessageUtils.setUnknownError(response, "Not connected to the Slack server");
-                return true;
-            }
-
-            new Thread() {
-                @Override
-                public void run() {
-                    // 履歴を返す
-                    SlackMessageHookDeviceService service = (SlackMessageHookDeviceService) getContext();
-                    List<Bundle> history = service.getHistory();
-                    Bundle[] bundles = new Bundle[history.size()];
-                    history.toArray(bundles);
-                    response.putExtra(PARAM_MESSAGES, bundles);
-                    setResult(response, DConnectMessage.RESULT_OK);
-                    service.sendResponse(response);
-                }
-            }.start();
-            return false;
+            return getMessage(request, response);
         }
     };
+
+
 
     /**
      * Channelリスト取得API
@@ -247,7 +223,7 @@ public class SlackMessageHookProfile extends MessageHookProfile {
         }
     };
     /**
-     * 最後に受信したメッセージ取得API
+     * メッセージ取得API
      */
     private final DConnectApi mGetOnMessageApi = new GetApi() {
 
@@ -258,35 +234,7 @@ public class SlackMessageHookProfile extends MessageHookProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-
-            // ServiceIDチェック
-            String serviceId = getServiceID(request);
-            if (checkServiceId(serviceId, response)) {
-                return true;
-            }
-
-            // 接続チェック
-            if (!SlackManager.INSTANCE.isConnected()) {
-                MessageUtils.setUnknownError(response, "Not connected to the Slack server");
-                return true;
-            }
-
-            new Thread() {
-                @Override
-                public void run() {
-                    // 最新の履歴を返す
-                    SlackMessageHookDeviceService service = (SlackMessageHookDeviceService) getContext();
-                    List<Bundle> history = service.getHistory();
-                    Bundle bundle = new Bundle();
-                    if (history.size() > 0) {
-                        bundle = history.get(history.size() - 1);
-                    }
-                    response.putExtra("message", bundle);
-                    setResult(response, DConnectMessage.RESULT_OK);
-                    service.sendResponse(response);
-                }
-            }.start();
-            return false;
+            return getMessage(request, response);
         }
     };
     /**
@@ -305,7 +253,6 @@ public class SlackMessageHookProfile extends MessageHookProfile {
                 MessageUtils.setUnknownError(response, "Not connected to the Slack server");
                 return true;
             }
-
             EventError error = EventManager.INSTANCE.addEvent(request);
             switch (error) {
                 case NONE:
@@ -354,5 +301,32 @@ public class SlackMessageHookProfile extends MessageHookProfile {
             return true;
         }
     };
+    private boolean getMessage(Intent request, final Intent response) {
+        // ServiceIDチェック
+        String serviceId = getServiceID(request);
+        if (checkServiceId(serviceId, response)) {
+            return true;
+        }
 
+        // 接続チェック
+        if (!SlackManager.INSTANCE.isConnected()) {
+            MessageUtils.setUnknownError(response, "Not connected to the Slack server");
+            return true;
+        }
+
+        new Thread() {
+            @Override
+            public void run() {
+                // 履歴を返す
+                SlackMessageHookDeviceService service = (SlackMessageHookDeviceService) getContext();
+                List<Bundle> history = service.getHistory();
+                Bundle[] bundles = new Bundle[history.size()];
+                history.toArray(bundles);
+                response.putExtra(PARAM_MESSAGES, bundles);
+                setResult(response, DConnectMessage.RESULT_OK);
+                service.sendResponse(response);
+            }
+        }.start();
+        return false;
+    }
 }

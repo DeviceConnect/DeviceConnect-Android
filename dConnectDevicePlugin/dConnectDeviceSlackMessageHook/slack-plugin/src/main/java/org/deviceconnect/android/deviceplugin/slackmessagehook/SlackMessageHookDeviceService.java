@@ -181,8 +181,8 @@ public class SlackMessageHookDeviceService extends DConnectMessageService implem
 
             // TimeStampは少数以下切り捨て
             double time = ts;
-            message.putLong("timeStamp", (long)time);
-            message.putString("timeStampString", timeStampToText((long) time));
+            message.putLong("timeStamp", (long)time * 1000);
+            message.putString("timeStampString", timeStampToText((long) time * 1000));
             // 送信者情報を変換
             SlackManager.ListInfo info = mUserMap.get(user);
             if (info != null) {
@@ -247,7 +247,7 @@ public class SlackMessageHookDeviceService extends DConnectMessageService implem
                 Intent intent = EventManager.createEventMessage(event);
                 intent.putExtra("message", message);
                 sendEvent(intent, event.getAccessToken());
-            }
+             }
         }
     }
 

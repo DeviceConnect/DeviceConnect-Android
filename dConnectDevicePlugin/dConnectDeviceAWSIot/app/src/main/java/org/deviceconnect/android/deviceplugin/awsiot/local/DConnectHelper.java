@@ -247,8 +247,8 @@ public class DConnectHelper {
     }
     public void getSystem(final FinishCallback callback) {
         Map<String, String> param = new HashMap<>();
-        String accessToken = mAuthInfo.getAccessToken();
-        if (accessToken != null) {
+        if (mAuthInfo != null) {
+            String accessToken = mAuthInfo.getAccessToken();
             param.put("accessToken", accessToken);
         }
         sendRequest("GET", "http://localhost:4035/gotapi/system", param, callback);

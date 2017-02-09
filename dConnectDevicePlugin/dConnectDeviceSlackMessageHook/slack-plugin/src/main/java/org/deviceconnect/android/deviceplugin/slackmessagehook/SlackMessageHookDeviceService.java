@@ -27,10 +27,13 @@ import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.android.service.DConnectService;
 import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -43,6 +46,8 @@ public class SlackMessageHookDeviceService extends DConnectMessageService implem
 
     /** サービスID */
     public static final String SERVICE_ID = "SlackMessageHook";
+    /** タイムスタンプのフォーマット. */
+    private static final SimpleDateFormat SIMPLE_DATE_FORMAT = new SimpleDateFormat("yyyyMMddHHMMSS.sssZ", Locale.getDefault());
 
     /** メッセージ履歴保持時間（秒） */
     private static final int MESSAGE_HOLD_LIMIT = 60;
@@ -165,7 +170,7 @@ public class SlackMessageHookDeviceService extends DConnectMessageService implem
     private void sendMessageEvent(String text, String channel, String user, Double ts, String url, String mimeType) {
         String serviceId = SERVICE_ID;
         String profile = SlackMessageHookProfile.PROFILE_NAME;
-        String attribute = SlackMessageHookProfile.ATTRIBUTE_MESSAGE;
+        String attribute = SlackMessageHookProfile.ATTRIBUTE_ONMESSAGE;
         List<Event> events = EventManager.INSTANCE.getEventList(serviceId, profile, null, attribute);
 
         synchronized (mUserMap) {
@@ -176,8 +181,8 @@ public class SlackMessageHookDeviceService extends DConnectMessageService implem
 
             // TimeStampは少数以下切り捨て
             double time = ts;
-            message.putLong("timeStamp", (long)time);
-
+            message.putLong("timeStamp", (long)time * 1000);
+            message.putString("timeStampString", timeStampToText((long) time * 1000));
             // 送信者情報を変換
             SlackManager.ListInfo info = mUserMap.get(user);
             if (info != null) {
@@ -242,7 +247,7 @@ public class SlackMessageHookDeviceService extends DConnectMessageService implem
                 Intent intent = EventManager.createEventMessage(event);
                 intent.putExtra("message", message);
                 sendEvent(intent, event.getAccessToken());
-            }
+             }
         }
     }
 
@@ -323,4 +328,7 @@ public class SlackMessageHookDeviceService extends DConnectMessageService implem
             }
         }
     };
+    private static String timeStampToText(final long timeStamp) {
+        return SIMPLE_DATE_FORMAT.format(new Date(timeStamp));
+    }
 }

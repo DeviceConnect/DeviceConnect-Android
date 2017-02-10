@@ -440,6 +440,10 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                 return true;
             }
 
+            if (mRecorderMgr.getCameraDevice().isUseFlashLight()) {
+                mRecorderMgr.getCameraDevice().turnOffFlashLight();
+            }
+
             init(new PermissionUtility.PermissionRequestCallback() {
                 @Override
                 public void onSuccess() {

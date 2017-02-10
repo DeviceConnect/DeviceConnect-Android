@@ -260,6 +260,31 @@ public class HostDeviceScreenCast extends HostDevicePreviewServer implements Hos
     }
 
     @Override
+    public boolean isBack() {
+        return false;
+    }
+
+    @Override
+    public void turnOnFlashLight() {
+
+    }
+
+    @Override
+    public void turnOffFlashLight() {
+
+    }
+
+    @Override
+    public boolean isFlashLightState() {
+        return false;
+    }
+
+    @Override
+    public boolean isUseFlashLight() {
+        return false;
+    }
+
+    @Override
     public void startWebServer(final OnWebServerStartCallback callback) {
         mLogger.info("Starting web server...");
         synchronized (mLockObj) {

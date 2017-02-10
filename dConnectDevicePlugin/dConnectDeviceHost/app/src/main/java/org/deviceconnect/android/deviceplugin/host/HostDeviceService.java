@@ -88,6 +88,7 @@ public class HostDeviceService extends DConnectMessageService {
 
     @Override
     public void onCreate() {
+        android.os.Debug.waitForDebugger();
         super.onCreate();
 
         EventManager.INSTANCE.setController(new MemoryCacheController());
@@ -122,7 +123,7 @@ public class HostDeviceService extends DConnectMessageService {
         hostService.addProfile(new HostSettingsProfile());
         hostService.addProfile(new HostTouchProfile());
         hostService.addProfile(new HostVibrationProfile());
-        hostService.addProfile(new HostLightProfile(this));
+        hostService.addProfile(new HostLightProfile(this, mRecorderMgr));
         getServiceProvider().addService(hostService);
     }
 

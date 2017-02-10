@@ -142,6 +142,31 @@ public class HostDeviceAudioRecorder implements HostDeviceRecorder, HostDeviceSt
     }
 
     @Override
+    public boolean isBack() {
+        return false;
+    }
+
+    @Override
+    public void turnOnFlashLight() {
+
+    }
+
+    @Override
+    public void turnOffFlashLight() {
+
+    }
+
+    @Override
+    public boolean isFlashLightState() {
+        return false;
+    }
+
+    @Override
+    public boolean isUseFlashLight() {
+        return false;
+    }
+
+    @Override
     public List<String> getSupportedMimeTypes() {
         return mMimeTypes;
     }

@@ -10,28 +10,16 @@ import android.Manifest;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
-import android.hardware.camera2.CameraAccessException;
-import android.hardware.camera2.CameraCaptureSession;
-import android.hardware.camera2.CameraCharacteristics;
-import android.hardware.camera2.CameraDevice;
-import android.hardware.camera2.CameraManager;
-import android.hardware.camera2.CameraMetadata;
-import android.hardware.camera2.CaptureRequest;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.NonNull;
-import android.support.v4.app.ActivityCompat;
-import android.util.Log;
-import android.util.Size;
-import android.view.Surface;
 
 import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.host.profile.utils.FlashingExecutor;
+import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorderManager;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.LightProfile;
 import org.deviceconnect.android.profile.api.DConnectApi;
@@ -60,17 +48,18 @@ public class HostLightProfile extends LightProfile {
     /** 点滅制御用Map. */
     private Map<String, FlashingExecutor> mFlashingMap = new HashMap<>();
 
-    /** Camera クラスインスタンス（OS 4.x用）.  */
+    /** Camera クラスインスタンス.  */
     private Camera mCamera = null;
-
-    /** Camera 制御用クラスインスタンス (OS 5.x以上用). */
-    private FlashLightUtilForLollipop mFlashUtil = null;
 
     /** ライト点灯/消灯状態. */
     private boolean isOn = false;
 
     /** Contextインスタンス. */
     private Context mContext = null;
+
+    /** HostDeviceRecorderManagerインスタンス. */
+    private HostDeviceRecorderManager mMgr = null;
+
     /**
      * Get Light API.
      */
@@ -91,21 +80,7 @@ public class HostLightProfile extends LightProfile {
                             setConfig(lightParam, "");
                             setLightId(lightParam, HOST_LIGHT_ID);
 
-                            if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.KITKAT) {
-                                Camera.Parameters param = mCamera.getParameters();
-                                String mode = param.getFlashMode();
-                                isOn = mode.equals(Camera.Parameters.FLASH_MODE_TORCH);
-                            } else if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.LOLLIPOP) {
-                                switch (mFlashUtil.mBuilder.get(CaptureRequest.FLASH_MODE)) {
-                                    case CameraMetadata.FLASH_MODE_TORCH:
-                                        isOn = true;
-                                        break;
-                                    case CameraMetadata.FLASH_MODE_OFF:
-                                    default:
-                                        isOn = false;
-                                        break;
-                                }
-                            }
+                            isOn = mMgr.getCameraDevice().isFlashLightState();
                             setOn(lightParam, isOn);
 
                             List<Bundle> lightParams = new ArrayList<>();
@@ -158,13 +133,7 @@ public class HostLightProfile extends LightProfile {
                                 setResult(response, DConnectMessage.RESULT_OK);
                             } else {
                                 isOn = true;
-                                if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.KITKAT) {
-                                    Camera.Parameters param = mCamera.getParameters();
-                                    param.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
-                                    mCamera.setParameters(param);
-                                } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                                    mFlashUtil.setFlashLight(isOn);
-                                }
+                                mMgr.getCameraDevice().turnOnFlashLight();
                                 setResult(response, DConnectMessage.RESULT_OK);
                             }
                             sendResponse(response);
@@ -172,7 +141,7 @@ public class HostLightProfile extends LightProfile {
 
                         @Override
                         public void onFail(@NonNull String deniedPermission) {
-                            MessageUtils.setIllegalServerStateError(response,
+                            MessageUtils.setIllegalDeviceStateError(response,
                                     "CAMERA permission not granted.");
                             sendResponse(response);
                         }
@@ -209,15 +178,8 @@ public class HostLightProfile extends LightProfile {
                         public void onSuccess() {
                             initCameraInstance();
                             isOn = false;
-                            if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.KITKAT) {
-                                Camera.Parameters param = mCamera.getParameters();
-                                param.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
-                                mCamera.setParameters(param);
-                                mCamera.release();
-                                mCamera = null;
-                            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                                mFlashUtil.setFlashLight(isOn);
-                            }
+                            mMgr.getCameraDevice().turnOffFlashLight();
+                            mMgr.getCameraDevice().clean();
                             setResult(response, DConnectMessage.RESULT_OK);
                             sendResponse(response);
                         }
@@ -237,9 +199,11 @@ public class HostLightProfile extends LightProfile {
     /**
      * Constructor.
      * @param context context.
+     * @param manager HostDeviceRecorderManager.
      */
-    public HostLightProfile(final Context context) {
+    public HostLightProfile(final Context context, final HostDeviceRecorderManager manager) {
         mContext = context;
+        mMgr = manager;
         addApi(mGetLightApi);
         addApi(mPostLightApi);
         addApi(mDeleteLightApi);
@@ -264,17 +228,7 @@ public class HostLightProfile extends LightProfile {
      * Cameraインスタンス生成.
      */
     private void initCameraInstance() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            if (mFlashUtil == null) {
-                mFlashUtil = new FlashLightUtilForLollipop(mContext);
-            }
-        } else {
-            if (mCamera == null) {
-                mFlashUtil = null;
-                mCamera = Camera.open();
-                mCamera.startPreview();
-            }
-        }
+        mMgr.initialize();
     }
 
     /**
@@ -290,164 +244,18 @@ public class HostLightProfile extends LightProfile {
         }
         exe.setLightControllable(new FlashingExecutor.LightControllable() {
             @Override
-            public void changeLight(boolean isOn, FlashingExecutor.CompleteListener listener) {
-                if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.KITKAT) {
-                    if (mCamera == null) {
-                        mCamera = Camera.open();
-                        mCamera.startPreview();
-                    }
-                    Camera.Parameters param = mCamera.getParameters();
-                    if (isOn) {
-                        param.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
-                        mCamera.setParameters(param);
-                    } else {
-                        param.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
-                        mCamera.setParameters(param);
-                        mCamera.release();
-                        mCamera = null;
-                    }
-                } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    mFlashUtil.setFlashLight(isOn);
+            public void changeLight(boolean isState, FlashingExecutor.CompleteListener listener) {
+                if (isState) {
+                    isOn = true;
+                    mMgr.getCameraDevice().turnOnFlashLight();
+                } else {
+                    isOn = false;
+                    mMgr.getCameraDevice().turnOffFlashLight();
+                    mMgr.getCameraDevice().clean();
                 }
                 listener.onComplete();
             }
         });
         exe.start(flashing);
-    }
-
-    /**
-     * Camera 制御用クラス (OS 5.x以上用).
-     */
-    public class FlashLightUtilForLollipop {
-        private CameraCaptureSession mSession;
-        private CaptureRequest.Builder mBuilder;
-        private CameraDevice mCameraDevice;
-        private CameraManager mCameraManager;
-        private SurfaceTexture mSurfaceTexture;
-
-        @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-        public FlashLightUtilForLollipop(final Context context) {
-            PermissionUtility.requestPermissions(context,
-                    new Handler(Looper.getMainLooper()), new String[]{Manifest.permission.CAMERA},
-                    new PermissionUtility.PermissionRequestCallback() {
-                @Override
-                public void onSuccess() {
-                    try {
-                        mCameraManager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
-                        CameraCharacteristics cameraCharacteristics = mCameraManager.getCameraCharacteristics(HOST_LIGHT_ID);
-                        boolean flashAvailable = cameraCharacteristics.get(CameraCharacteristics.FLASH_INFO_AVAILABLE);
-                        if (flashAvailable) {
-                            if (ActivityCompat.checkSelfPermission(context, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-                                return;
-                            }
-                            mCameraManager.openCamera(HOST_LIGHT_ID, new MyCameraDeviceStateCallback(), null);
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-
-                @Override
-                public void onFail(@NonNull String deniedPermission) {
-
-                }
-            });
-        }
-
-        class MyCameraDeviceStateCallback extends CameraDevice.StateCallback {
-            @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-            @Override
-            public void onOpened(@NonNull CameraDevice camera) {
-                mCameraDevice = camera;
-                try {
-                    mBuilder = camera.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
-                    //flash on, default is on
-                    mBuilder.set(CaptureRequest.CONTROL_AE_MODE, CameraMetadata.CONTROL_AF_MODE_AUTO);
-                    mBuilder.set(CaptureRequest.FLASH_MODE, CameraMetadata.FLASH_MODE_OFF);
-                    List<Surface> list = new ArrayList<Surface>();
-                    mSurfaceTexture = new SurfaceTexture(1);
-                    Size size = getSmallestSize(mCameraDevice.getId());
-                    mSurfaceTexture.setDefaultBufferSize(size.getWidth(), size.getHeight());
-                    Surface mSurface = new Surface(mSurfaceTexture);
-                    list.add(mSurface);
-                    mBuilder.addTarget(mSurface);
-                    camera.createCaptureSession(list, new MyCameraCaptureSessionStateCallback(), null);
-                } catch (CameraAccessException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            @Override
-            public void onDisconnected(@NonNull CameraDevice camera) {
-
-            }
-
-            @Override
-            public void onError(@NonNull CameraDevice camera, int error) {
-
-            }
-        }
-
-        private Size getSmallestSize(String cameraId) throws CameraAccessException {
-            Size[] outputSizes = mCameraManager.getCameraCharacteristics(cameraId)
-                    .get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)
-                    .getOutputSizes(SurfaceTexture.class);
-            if (outputSizes == null || outputSizes.length == 0) {
-                throw new IllegalStateException(
-                        "Camera " + cameraId + "doesn't support any outputSize.");
-            }
-            Size chosen = outputSizes[0];
-            for (Size s : outputSizes) {
-                if (chosen.getWidth() >= s.getWidth() && chosen.getHeight() >= s.getHeight()) {
-                    chosen = s;
-                }
-            }
-            return chosen;
-        }
-
-        /**
-         * session callback
-         */
-        class MyCameraCaptureSessionStateCallback extends CameraCaptureSession.StateCallback {
-
-            @Override
-            public void onConfigured(@NonNull CameraCaptureSession session) {
-                mSession = session;
-                try {
-                    mSession.setRepeatingRequest(mBuilder.build(), null, null);
-                } catch (CameraAccessException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            @Override
-            public void onConfigureFailed(@NonNull CameraCaptureSession session) {
-
-            }
-        }
-
-        @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-        public void setFlashLight(final boolean isOn) {
-            try {
-                if (isOn) {
-                    mBuilder.set(CaptureRequest.FLASH_MODE, CameraMetadata.FLASH_MODE_TORCH);
-                } else {
-                    mBuilder.set(CaptureRequest.FLASH_MODE, CameraMetadata.FLASH_MODE_OFF);
-                }
-                mSession.setRepeatingRequest(mBuilder.build(), null, null);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-
-        private void close() {
-            if (mCameraDevice == null || mSession == null) {
-                return;
-            }
-            mSession.close();
-            mCameraDevice.close();
-            mCameraDevice = null;
-            mSession = null;
-        }
     }
 }

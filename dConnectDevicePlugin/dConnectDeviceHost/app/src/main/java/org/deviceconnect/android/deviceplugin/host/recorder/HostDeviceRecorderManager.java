@@ -154,6 +154,15 @@ public class HostDeviceRecorderManager {
         return null;
     }
 
+    public HostDeviceRecorder getCameraDevice() {
+        for (HostDeviceRecorder recorder : mRecorders) {
+            if (recorder.isBack()) {
+                return recorder;
+            }
+        }
+        return null;
+    }
+
     public void start() {
         IntentFilter filter = new IntentFilter(VideoConst.SEND_VIDEO_TO_HOSTDP);
         getContext().registerReceiver(mRecorderStateReceiver, filter);

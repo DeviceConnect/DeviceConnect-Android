@@ -202,6 +202,31 @@ public class HostDeviceVideoRecorder implements HostDeviceRecorder, HostDeviceSt
     }
 
     @Override
+    public boolean isBack() {
+        return false;
+    }
+
+    @Override
+    public void turnOnFlashLight() {
+
+    }
+
+    @Override
+    public void turnOffFlashLight() {
+
+    }
+
+    @Override
+    public boolean isFlashLightState() {
+        return false;
+    }
+
+    @Override
+    public boolean isUseFlashLight() {
+        return false;
+    }
+
+    @Override
     public boolean canPauseRecording() {
         return false;
     }

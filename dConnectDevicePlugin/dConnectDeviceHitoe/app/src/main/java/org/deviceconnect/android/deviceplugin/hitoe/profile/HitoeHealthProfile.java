@@ -270,6 +270,20 @@ public class HitoeHealthProfile extends HealthProfile {
                 mDispatcherManager.sendEvent(event, intent);
             }
         }
+        events = EventManager.INSTANCE.getEventList(device.getId(),
+                getProfileName(), null, ATTRIBUTE_ONHEART);
+        synchronized (events) {
+            for (Event event : events) {
+                if (data == null) {
+                    break;
+                }
+
+                Intent intent = EventManager.createEventMessage(event);
+
+                setHeart(intent, getHeartRateBundle(data));
+                mDispatcherManager.sendEvent(event, intent);
+            }
+        }
     }
 
     /**

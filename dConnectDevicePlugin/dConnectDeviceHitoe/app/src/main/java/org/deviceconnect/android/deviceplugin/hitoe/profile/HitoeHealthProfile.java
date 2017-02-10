@@ -63,6 +63,9 @@ public class HitoeHealthProfile extends HealthProfile {
         addApi(mGetHeart);
         addApi(mPutHeart);
         addApi(mDeleteHeart);
+        addApi(mGetOnHeart);
+        addApi(mPutOnHeart);
+        addApi(mDeleteOnHeart);
     }
 
     /**
@@ -76,26 +79,10 @@ public class HitoeHealthProfile extends HealthProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            String serviceId = getServiceID(request);
-            if (serviceId == null) {
-                MessageUtils.setEmptyServiceIdError(response);
-            } else {
-                HitoeManager mgr = getManager();
-                if (mgr == null) {
-                    MessageUtils.setNotFoundServiceError(response);
-                    return true;
-                }
-                HeartRateData data = mgr.getHeartRateData(serviceId);
-                if (data == null) {
-                    MessageUtils.setNotFoundServiceError(response);
-                } else {
-                    setResult(response, DConnectMessage.RESULT_OK);
-                    setHeart(response, getHeartRateBundle(data));
-                }
-            }
-            return true;
+            return getHeart(request, response);
         }
     };
+
 
     /**
      * Register event heartrate.
@@ -108,33 +95,10 @@ public class HitoeHealthProfile extends HealthProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            String serviceId = getServiceID(request);
-            if (serviceId == null) {
-                MessageUtils.setNotFoundServiceError(response, "Not found serviceID");
-            } else {
-                HitoeManager mgr = getManager();
-                if (mgr == null) {
-                    MessageUtils.setNotFoundServiceError(response);
-                    return true;
-                }
-
-                HeartRateData data = mgr.getHeartRateData(serviceId);
-                if (data == null) {
-                    MessageUtils.setNotFoundServiceError(response);
-                } else {
-                    EventError error = EventManager.INSTANCE.addEvent(request);
-                    if (error == EventError.NONE) {
-                        mgr.setHitoeHeartRateEventListener(mHeartRateEventListener);
-                        addEventDispatcher(request);
-                        setResult(response, DConnectMessage.RESULT_OK);
-                    } else {
-                        MessageUtils.setUnknownError(response);
-                    }
-                }
-            }
-            return true;
+            return registerHeartEvent(request, response);
         }
     };
+
 
     /**
      * Unregister event heartrate.
@@ -147,27 +111,144 @@ public class HitoeHealthProfile extends HealthProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            String serviceId = getServiceID(request);
-            if (serviceId == null) {
-                MessageUtils.setEmptyServiceIdError(response);
+            unregisterHeartEvent(request, response);
+            return true;
+        }
+    };
+
+    /**
+     * Get Heart rate.
+     */
+    private final DConnectApi mGetOnHeart = new GetApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ONHEART;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            return getHeart(request, response);
+        }
+    };
+
+
+    /**
+     * Register event heartrate.
+     */
+    private final DConnectApi mPutOnHeart = new PutApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ONHEART;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            return registerHeartEvent(request, response);
+        }
+    };
+
+
+    /**
+     * Unregister event heartrate.
+     */
+    private final DConnectApi mDeleteOnHeart = new DeleteApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ONHEART;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            unregisterHeartEvent(request, response);
+            return true;
+        }
+    };
+
+
+    /**
+     * Get HeartRate Response.
+     * @param request Request Message
+     * @param response Response Message
+     * @return true:sync false:async
+     */
+    private boolean getHeart(Intent request, Intent response) {
+        String serviceId = getServiceID(request);
+        if (serviceId == null) {
+            MessageUtils.setEmptyServiceIdError(response);
+        } else {
+            HitoeManager mgr = getManager();
+            if (mgr == null) {
+                MessageUtils.setNotFoundServiceError(response);
+                return true;
+            }
+            HeartRateData data = mgr.getHeartRateData(serviceId);
+            if (data == null) {
+                MessageUtils.setNotFoundServiceError(response);
             } else {
-                removeEventDispatcher(request);
-                EventError error = EventManager.INSTANCE.removeEvent(request);
+                setResult(response, DConnectMessage.RESULT_OK);
+                setHeart(response, getHeartRateBundle(data));
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Register Heartrate Event.
+     * @param request Request Message
+     * @param response Response Message
+     */
+    private boolean registerHeartEvent(Intent request, Intent response) {
+        String serviceId = getServiceID(request);
+        if (serviceId == null) {
+            MessageUtils.setNotFoundServiceError(response, "Not found serviceID");
+        } else {
+            HitoeManager mgr = getManager();
+            if (mgr == null) {
+                MessageUtils.setNotFoundServiceError(response);
+                return true;
+            }
+
+            HeartRateData data = mgr.getHeartRateData(serviceId);
+            if (data == null) {
+                MessageUtils.setNotFoundServiceError(response);
+            } else {
+                EventError error = EventManager.INSTANCE.addEvent(request);
                 if (error == EventError.NONE) {
+                    mgr.setHitoeHeartRateEventListener(mHeartRateEventListener);
+                    addEventDispatcher(request);
                     setResult(response, DConnectMessage.RESULT_OK);
-                } else if (error == EventError.INVALID_PARAMETER) {
-                    MessageUtils.setInvalidRequestParameterError(response);
-                } else if (error == EventError.FAILED) {
-                    MessageUtils.setUnknownError(response, "Failed to delete event.");
-                } else if (error == EventError.NOT_FOUND) {
-                    MessageUtils.setUnknownError(response, "Not found event.");
                 } else {
                     MessageUtils.setUnknownError(response);
                 }
             }
-            return true;
         }
-    };
+        return true;
+    }
+    /**
+     * Unregister Heartrate Event.
+     * @param request Request Message
+     * @param response Response Message
+     */
+    private void unregisterHeartEvent(Intent request, Intent response) {
+        String serviceId = getServiceID(request);
+        if (serviceId == null) {
+            MessageUtils.setEmptyServiceIdError(response);
+        } else {
+            removeEventDispatcher(request);
+            EventError error = EventManager.INSTANCE.removeEvent(request);
+            if (error == EventError.NONE) {
+                setResult(response, DConnectMessage.RESULT_OK);
+            } else if (error == EventError.INVALID_PARAMETER) {
+                MessageUtils.setInvalidRequestParameterError(response);
+            } else if (error == EventError.FAILED) {
+                MessageUtils.setUnknownError(response, "Failed to delete event.");
+            } else if (error == EventError.NOT_FOUND) {
+                MessageUtils.setUnknownError(response, "Not found event.");
+            } else {
+                MessageUtils.setUnknownError(response);
+            }
+        }
+    }
 
     /**
      * Notify the heart rate event to DeviceConnectManager.

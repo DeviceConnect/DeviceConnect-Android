@@ -27,6 +27,10 @@ public interface HealthProfileConstants extends DConnectProfileConstants {
      * 属性: {@value} .
      */
     String ATTRIBUTE_HEART = "heart";
+    /**
+     * 属性: {@value} .
+     */
+    String ATTRIBUTE_ONHEART = "onHeart";
 
     /**
      * パラメータ: {@value} .

@@ -53,16 +53,6 @@ public interface HostDeviceRecorder {
 
     boolean isSupportedPreviewSize(int width, int height);
 
-    boolean isBack();
-
-    void turnOnFlashLight();
-
-    void turnOffFlashLight();
-
-    boolean isFlashLightState();
-
-    boolean isUseFlashLight();
-
     enum RecorderState {
         INACTTIVE,
         PAUSED,

@@ -19,7 +19,10 @@ import android.support.annotation.NonNull;
 
 import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.host.profile.utils.FlashingExecutor;
+import org.deviceconnect.android.deviceplugin.host.recorder.HostDevicePhotoRecorder;
+import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorderManager;
+import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceStreamRecorder;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.LightProfile;
 import org.deviceconnect.android.profile.api.DConnectApi;
@@ -60,6 +63,9 @@ public class HostLightProfile extends LightProfile {
     /** HostDeviceRecorderManagerインスタンス. */
     private HostDeviceRecorderManager mMgr = null;
 
+    /** HostDevicePhotoRecorderインスタンス. */
+    private HostDevicePhotoRecorder mPhotoRec = null;
+
     /**
      * Get Light API.
      */
@@ -72,7 +78,11 @@ public class HostLightProfile extends LightProfile {
                     new PermissionUtility.PermissionRequestCallback() {
                         @Override
                         public void onSuccess() {
-                            initCameraInstance();
+                            if (!(initCameraInstance())) {
+                                MessageUtils.setIllegalDeviceStateError(response, "Camera device is already running.");
+                                sendResponse(response);
+                                return;
+                            }
 
                             String serviceId = getServiceID(request);
                             Bundle lightParam = new Bundle();
@@ -80,7 +90,7 @@ public class HostLightProfile extends LightProfile {
                             setConfig(lightParam, "");
                             setLightId(lightParam, HOST_LIGHT_ID);
 
-                            isOn = mMgr.getCameraDevice().isFlashLightState();
+                            isOn = mPhotoRec.isFlashLightState();
                             setOn(lightParam, isOn);
 
                             List<Bundle> lightParams = new ArrayList<>();
@@ -127,13 +137,18 @@ public class HostLightProfile extends LightProfile {
                     new PermissionUtility.PermissionRequestCallback() {
                         @Override
                         public void onSuccess() {
-                            initCameraInstance();
+                            if (!(initCameraInstance())) {
+                                MessageUtils.setIllegalDeviceStateError(response, "Camera device is already running.");
+                                sendResponse(response);
+                                return;
+                            }
+
                             if (flashing != null) {
                                 flashing(HOST_LIGHT_ID, flashing);
                                 setResult(response, DConnectMessage.RESULT_OK);
                             } else {
                                 isOn = true;
-                                mMgr.getCameraDevice().turnOnFlashLight();
+                                mPhotoRec.turnOnFlashLight();
                                 setResult(response, DConnectMessage.RESULT_OK);
                             }
                             sendResponse(response);
@@ -176,10 +191,14 @@ public class HostLightProfile extends LightProfile {
                     new PermissionUtility.PermissionRequestCallback() {
                         @Override
                         public void onSuccess() {
-                            initCameraInstance();
+                            if (!(initCameraInstance())) {
+                                MessageUtils.setIllegalDeviceStateError(response, "Camera device is already running.");
+                                sendResponse(response);
+                                return;
+                            }
+
                             isOn = false;
-                            mMgr.getCameraDevice().turnOffFlashLight();
-                            mMgr.getCameraDevice().clean();
+                            mPhotoRec.turnOffFlashLight();
                             setResult(response, DConnectMessage.RESULT_OK);
                             sendResponse(response);
                         }
@@ -226,9 +245,22 @@ public class HostLightProfile extends LightProfile {
 
     /**
      * Cameraインスタンス生成.
+     * @return 正常終了時はtrue, カメラデバイス使用時はfalse.
      */
-    private void initCameraInstance() {
+    private boolean initCameraInstance() {
         mMgr.initialize();
+        mPhotoRec = mMgr.getCameraRecorder(null);
+        if (((HostDeviceRecorder) mPhotoRec).getState() != HostDeviceRecorder.RecorderState.INACTTIVE) {
+            return false;
+        }
+
+        final HostDeviceStreamRecorder recorder = mMgr.getStreamRecorder(null);
+        if (recorder != null) {
+            if (recorder.getState() != HostDeviceRecorder.RecorderState.INACTTIVE) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
@@ -247,11 +279,10 @@ public class HostLightProfile extends LightProfile {
             public void changeLight(boolean isState, FlashingExecutor.CompleteListener listener) {
                 if (isState) {
                     isOn = true;
-                    mMgr.getCameraDevice().turnOnFlashLight();
+                    mPhotoRec.turnOnFlashLight();
                 } else {
                     isOn = false;
-                    mMgr.getCameraDevice().turnOffFlashLight();
-                    mMgr.getCameraDevice().clean();
+                    mPhotoRec.turnOffFlashLight();
                 }
                 listener.onComplete();
             }

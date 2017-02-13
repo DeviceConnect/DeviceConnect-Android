@@ -13,7 +13,7 @@
         "/property": {
             "get": {
                 "x-type": "one-shot",
-                "summary": "",
+                "summary": "スマートデバイスがサポートしているECHONET Lite 機器オブジェクトプロパティの設定内容を取得する。",
                 "description": "",
                 "parameters": [
                     {
@@ -40,7 +40,7 @@
             },
             "put": {
                 "x-type": "one-shot",
-                "summary": "",
+                "summary": "スマートデバイスがサポートしているECHONET Lite 機器オブジェクトプロパティに設定を行う。",
                 "description": "",
                 "parameters": [
                     {

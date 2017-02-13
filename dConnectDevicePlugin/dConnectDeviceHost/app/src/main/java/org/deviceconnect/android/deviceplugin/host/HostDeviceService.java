@@ -88,7 +88,6 @@ public class HostDeviceService extends DConnectMessageService {
 
     @Override
     public void onCreate() {
-        android.os.Debug.waitForDebugger();
         super.onCreate();
 
         EventManager.INSTANCE.setController(new MemoryCacheController());

@@ -18,7 +18,8 @@ import org.deviceconnect.profile.BatteryProfileConstants;
  * スマートデバイスのバッテリー情報を提供するAPI.<br>
  * バッテリー情報を提供するデバイスプラグインは当クラスを継承し、対応APIを実装すること。
  * </p>
- * 
+ *
+ * @deprecated swagger定義ファイルで定数を管理することになったので、このクラスは使用しないこととする。
  * @author NTT DOCOMO, INC.
  */
 public abstract class BatteryProfile extends DConnectProfile implements BatteryProfileConstants {

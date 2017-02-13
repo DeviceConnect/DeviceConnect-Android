@@ -21,7 +21,6 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
-import android.os.RemoteException;
 import android.os.ResultReceiver;
 import android.preference.CheckBoxPreference;
 import android.preference.EditTextPreference;
@@ -31,11 +30,9 @@ import android.preference.PreferenceScreen;
 import android.preference.SwitchPreference;
 import android.view.MenuItem;
 
-import org.deviceconnect.android.manager.BuildConfig;
 import org.deviceconnect.android.manager.DConnectService;
 import org.deviceconnect.android.manager.DConnectSettings;
-import org.deviceconnect.android.manager.IDConnectService;
-import org.deviceconnect.android.manager.IDConnectWebService;
+import org.deviceconnect.android.manager.DConnectWebService;
 import org.deviceconnect.android.manager.R;
 import org.deviceconnect.android.manager.setting.OpenSourceLicenseFragment.OpenSourceSoftware;
 import org.deviceconnect.android.manager.util.DConnectUtil;
@@ -253,13 +250,8 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
         getPreferenceScreen().setEnabled(false);
 
         // サービスとの接続
-        Intent intent = new Intent(IDConnectService.class.getName());
-        intent.setPackage(getActivity().getPackageName());
-        getActivity().bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
-
-        Intent intent2 = new Intent(IDConnectWebService.class.getName());
-        intent2.setPackage(getActivity().getPackageName());
-        getActivity().bindService(intent2, mWebServiceConnection, Context.BIND_AUTO_CREATE);
+        bindDConnectService();
+        bindDConnectWebService();
 
         // Dozeモード
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -385,14 +377,8 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
             mCheckBoxOauthPreferences.setChecked(false);
             mCheckBoxOriginBlockingPreferences.setChecked(false);
         } else if (TAG_WEB_SERVER.equals(tag)) {
-            try {
-                mWebService.start();
-                setWebUIEnabled(false);
-            } catch (RemoteException e) {
-                SwitchPreference webPreferences = (SwitchPreference) getPreferenceScreen()
-                        .findPreference(getString(R.string.key_settings_web_server_on_off));
-                webPreferences.setChecked(false);
-            }
+            mWebService.startWebServer();
+            setWebUIEnabled(false);
         } else if (TAG_REQUIRE_ORIGIN.equals(tag)) {
             mCheckBoxRequireOriginPreferences.setChecked(true);
         }
@@ -416,22 +402,31 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
     }
 
     /**
+     * DConnectServiceにバインドを行う.
+     */
+    private void bindDConnectService() {
+        Intent intent = new Intent(getActivity(), DConnectService.class);
+        getActivity().bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
+    }
+
+    /**
+     * DConnectWebServiceにバインドを行う.
+     */
+    private void bindDConnectWebService() {
+        Intent intent = new Intent(getActivity(), DConnectWebService.class);
+        getActivity().bindService(intent, mWebServiceConnection, Context.BIND_AUTO_CREATE);
+    }
+
+    /**
      * DConnectサーバの有効・無効を設定する.
      * @param checked trueの場合は有効、falseの場合は無効
      */
     private void switchDConnectServer(final boolean checked) {
         setUIEnabled(!checked);
-        try {
-            if (checked) {
-                mDConnectService.start();
-            } else {
-                mDConnectService.stop();
-                notifyManagerTerminate();
-            }
-        } catch (RemoteException e) {
-            if (BuildConfig.DEBUG) {
-                e.printStackTrace();
-            }
+        if (checked) {
+            mDConnectService.startInternal();
+        } else {
+            mDConnectService.stopInternal();
         }
     }
 
@@ -449,13 +444,7 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
                     title, message, positive, negative);
             dialog.show(getFragmentManager(), TAG_WEB_SERVER);
         } else {
-            try {
-                mWebService.stop();
-            } catch (RemoteException e) {
-                if (BuildConfig.DEBUG) {
-                    e.printStackTrace();
-                }
-            }
+            mWebService.stopWebServer();
             setWebUIEnabled(true);
         }
     }
@@ -560,24 +549,12 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
             if (checked) {
                 pref.setSummary(R.string.activity_settings_wake_lock_summary_on);
                 if (mDConnectService != null) {
-                    try {
-                        mDConnectService.acquireWakeLock();
-                    } catch (RemoteException e) {
-                        if (BuildConfig.DEBUG) {
-                            e.printStackTrace();
-                        }
-                    }
+                    mDConnectService.acquireWakeLock();
                 }
             } else {
                 pref.setSummary(R.string.activity_settings_wake_lock_summary_off);
                 if (mDConnectService != null) {
-                    try {
-                        mDConnectService.releaseWakeLock();
-                    } catch (RemoteException e) {
-                        if (BuildConfig.DEBUG) {
-                            e.printStackTrace();
-                        }
-                    }
+                    mDConnectService.releaseWakeLock();
                 }
             }
         }
@@ -662,13 +639,6 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
     }
 
     /**
-     * Manager termination notification to all device plug-ins.
-     */
-    private void notifyManagerTerminate() {
-        ManagerTerminationFragment.show(getActivity());
-    }
-
-    /**
      * Show IP Address.
      */
     private void showIPAddress() {
@@ -688,7 +658,7 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
     /**
      * DConnectServiceを操作するクラス.
      */
-    private IDConnectService mDConnectService;
+    private DConnectService mDConnectService;
 
     /**
      * DConnectServiceと接続するためのクラス.
@@ -696,25 +666,19 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
     private final ServiceConnection mServiceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(final ComponentName name, final IBinder service) {
-            mDConnectService = (IDConnectService) service;
+            mDConnectService = ((DConnectService.LocalBinder) service).getDConnectService();
             if (getActivity() != null) {
                 getActivity().runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        try {
-                            boolean running = mDConnectService.isRunning();
-                            setUIEnabled(!running);
+                        boolean running = mDConnectService.isRunning();
+                        setUIEnabled(!running);
 
-                            SwitchPreference serverPreferences = (SwitchPreference) getPreferenceScreen()
-                                    .findPreference(getString(R.string.key_settings_dconn_server_on_off));
-                            serverPreferences.setChecked(running);
+                        SwitchPreference serverPreferences = (SwitchPreference) getPreferenceScreen()
+                                .findPreference(getString(R.string.key_settings_dconn_server_on_off));
+                        serverPreferences.setChecked(running);
 
-                            checkServiceConnections();
-                        } catch (RemoteException e) {
-                            if (BuildConfig.DEBUG) {
-                                e.printStackTrace();
-                            }
-                        }
+                        checkServiceConnections();
                     }
                 });
             }
@@ -728,7 +692,7 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
     /**
      * DConnectWebServiceを操作するためのクラス.
      */
-    private IDConnectWebService mWebService;
+    private DConnectWebService mWebService;
 
     /**
      * DConnectWebServiceと接続するためのクラス.
@@ -736,24 +700,18 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
     private final ServiceConnection mWebServiceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(final ComponentName name, final IBinder service) {
-            mWebService = (IDConnectWebService) service;
+            mWebService = ((DConnectWebService.LocalBinder) service).getDConnectWebService();
             if (getActivity() != null) {
                 getActivity().runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        try {
-                            boolean running = mWebService.isRunning();
-                            setWebUIEnabled(!running);
-                            SwitchPreference webPreferences = (SwitchPreference) getPreferenceScreen()
-                                    .findPreference(getString(R.string.key_settings_web_server_on_off));
-                            webPreferences.setChecked(running);
+                        boolean running = mWebService.isRunning();
+                        setWebUIEnabled(!running);
+                        SwitchPreference webPreferences = (SwitchPreference) getPreferenceScreen()
+                                .findPreference(getString(R.string.key_settings_web_server_on_off));
+                        webPreferences.setChecked(running);
 
-                            checkServiceConnections();
-                        } catch (RemoteException e) {
-                            if (BuildConfig.DEBUG) {
-                                e.printStackTrace();
-                            }
-                        }
+                        checkServiceConnections();
                     }
                 });
             }

@@ -18,6 +18,7 @@ import org.deviceconnect.profile.SettingsProfileConstants;
  * スマートデバイスの各種設定状態の取得および設定機能を提供するデバイスプラグインは当クラスを継承し、対応APIを実装すること。 <br>
  * </p>
  *
+ * @deprecated swagger定義ファイルで定数を管理することになったので、このクラスは使用しないこととする。
  * @author NTT DOCOMO, INC.
  */
 public abstract class SettingsProfile extends DConnectProfile implements SettingsProfileConstants {

@@ -413,4 +413,17 @@ public final class DConnectSettings {
         editor.putString(mContext.getString(R.string.key_settings_dconn_keyword), keyword);
         editor.apply();
     }
+
+    @Override
+    public String toString() {
+        return "{\n" +
+                "    Host: " + getHost() + "\n" +
+                "    Port: " + getPort() + "\n" +
+                "    SSL: " + isSSL() + "\n" +
+                "    External IP: " + allowExternalIP() + "\n" +
+                "    Local OAuth: " + isUseALocalOAuth() + "\n" +
+                "    Require Origin: " + requireOrigin() + "\n" +
+                "    Blocking Origin: " + isBlockingOrigin() + "\n" +
+        "}";
+    }
 }

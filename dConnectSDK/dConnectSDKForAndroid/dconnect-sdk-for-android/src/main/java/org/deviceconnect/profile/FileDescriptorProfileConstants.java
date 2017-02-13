@@ -11,6 +11,7 @@ package org.deviceconnect.profile;
  * File Descriptor Profile API 定数群.<br>
  * File Descriptor Profile API のパラメータ名、インタフェース名、属性名、プロファイル名を定義する。
  *
+ * @deprecated swagger定義ファイルで定数を管理することになったので、このクラスは使用しないこととする。
  * @author NTT DOCOMO, INC.
  */
 public interface FileDescriptorProfileConstants extends DConnectProfileConstants {

@@ -144,7 +144,7 @@ public class DConnectServerNanoHttpd extends DConnectServer {
     private static final int WEBSOCKET_KEEP_ALIVE_INTERVAL = 3000;
 
     /**
-     * Content-Typeの
+     * application/jsonのContent-Typeを定義.
      */
     private static final String MIME_APPLICATION_JSON = "application/json";
 

@@ -84,7 +84,6 @@ public class HostLightProfile extends LightProfile {
                                 return;
                             }
 
-                            String serviceId = getServiceID(request);
                             Bundle lightParam = new Bundle();
                             setName(lightParam, HOST_DEFAULT_LIGHT_NAME);
                             setConfig(lightParam, "");
@@ -118,7 +117,6 @@ public class HostLightProfile extends LightProfile {
     private final DConnectApi mPostLightApi = new PostApi() {
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            String serviceId = getServiceID(request);
             final String lightId = getLightId(request);
             final long[] flashing = getFlashing(request);
 
@@ -173,7 +171,6 @@ public class HostLightProfile extends LightProfile {
         @TargetApi(Build.VERSION_CODES.LOLLIPOP)
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            String serviceId = getServiceID(request);
             String lightId = getLightId(request);
 
             if (lightId != null && lightId.length() == 0) {

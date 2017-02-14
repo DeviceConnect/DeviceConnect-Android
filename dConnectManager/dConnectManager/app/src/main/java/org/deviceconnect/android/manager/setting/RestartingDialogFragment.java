@@ -1,3 +1,9 @@
+/*
+ RestartingDialogFragment.java
+ Copyright (c) 2016 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.manager.setting;
 
 import android.app.Activity;
@@ -16,6 +22,11 @@ import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
 import java.util.List;
 
+/**
+ * デバイスプラグインの再起動要求中ダイアログ.
+ *
+ * @author NTT DOCOMO, INC.
+ */
 public class RestartingDialogFragment extends DialogFragment {
 
     @Override

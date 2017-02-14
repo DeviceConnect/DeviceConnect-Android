@@ -26,6 +26,10 @@ public interface MessageHookProfileConstants extends DConnectProfileConstants {
      * Attribute: {@value} .
      */
     String ATTRIBUTE_MESSAGE = "message";
+    /**
+     * Attribute: {@value} .
+     */
+    String ATTRIBUTE_ONMESSAGE = "onMessage";
 
     /**
      * Parameter: {@value} .

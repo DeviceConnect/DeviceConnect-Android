@@ -205,6 +205,7 @@ public abstract class DConnectMessageService extends Service implements DConnect
             handler.setLevel(Level.ALL);
             mLogger.addHandler(handler);
             mLogger.setLevel(Level.ALL);
+            mLogger.setUseParentHandlers(false);
         } else {
             mLogger.setLevel(Level.OFF);
         }

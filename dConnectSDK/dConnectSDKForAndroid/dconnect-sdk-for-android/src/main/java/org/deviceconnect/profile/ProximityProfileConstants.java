@@ -9,6 +9,7 @@ package org.deviceconnect.profile;
 /**
  * Proximity Profile API 定数群.<br>
  * Proximity Profile API のパラメータ名、インタフェース名、属性名、プロファイル名を定義する。
+ * @deprecated swagger定義ファイルで定数を管理することになったので、このクラスは使用しないこととする。
  * @author NTT DOCOMO, INC.
  */
 public interface ProximityProfileConstants extends DConnectProfileConstants {

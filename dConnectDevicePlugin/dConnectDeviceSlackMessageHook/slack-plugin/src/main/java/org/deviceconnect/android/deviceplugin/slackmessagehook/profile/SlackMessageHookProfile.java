@@ -253,10 +253,8 @@ public class SlackMessageHookProfile extends MessageHookProfile {
                     // 履歴を返す
                     SlackMessageHookDeviceService service = (SlackMessageHookDeviceService) getContext();
                     List<Bundle> history = service.getHistory();
-                    Bundle[] bundles = new Bundle[1];
                     if (history.size() > 0) {
-                        bundles[0] = history.get(history.size() - 1);
-                        response.putExtra(PARAM_MESSAGES, bundles);
+                        response.putExtra(PARAM_MESSAGE, history.get(history.size() - 1));
                     }
                     setResult(response, DConnectMessage.RESULT_OK);
                     service.sendResponse(response);

@@ -13,7 +13,7 @@
         "/": {
             "get": {
                 "x-type": "one-shot",
-                "summary": "",
+                "summary": "スマートデバイスの温度設定値を取得する。",
                 "description": "",
                 "parameters": [
                     {
@@ -28,7 +28,42 @@
                         "description": ""
                     }
                 }
+            },
+            "put": {
+                "x-type": "one-shot",
+                "summary": "スマートデバイスの温度設定値を設定する。",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "formData",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "temperature",
+                        "in": "formData",
+                        "required": true,
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 50
+                    },
+                    {
+                        "name": "type",
+                        "in": "formData",
+                        "required": false,
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 2
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
             }
         }
+
     }
 }

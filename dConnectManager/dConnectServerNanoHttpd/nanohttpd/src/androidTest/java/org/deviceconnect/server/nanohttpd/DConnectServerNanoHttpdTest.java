@@ -816,7 +816,6 @@ public class DConnectServerNanoHttpdTest {
                 } catch (FileNotFoundException e) {
                     res.setCode(HttpResponse.StatusCode.BAD_REQUEST);
                 }
-
                 return true;
             }
 
@@ -923,7 +922,7 @@ public class DConnectServerNanoHttpdTest {
         try {
             latch.await(10, TimeUnit.SECONDS);
 
-            HttpUtils.Response response = HttpUtils.get("https://localhost:4035" + path + "?" + key + "=" + value);
+            HttpUtils.Response response = HttpUtils.get(HTTP_LOCALHOST_4035 + path + "?" + key + "=" + value);
             assertThat(response, is(notNullValue()));
             assertThat(response.getStatusCode(), is(200));
             assertThat(response.getBody(), is(notNullValue()));
@@ -999,7 +998,7 @@ public class DConnectServerNanoHttpdTest {
         try {
             latch.await(10, TimeUnit.SECONDS);
 
-            HttpUtils.Response response = HttpUtils.post("https://localhost:4035" + path, key + "=" + value);
+            HttpUtils.Response response = HttpUtils.post(HTTP_LOCALHOST_4035 + path, key + "=" + value);
             assertThat(response, is(notNullValue()));
             assertThat(response.getStatusCode(), is(200));
             assertThat(response.getBody(), is(notNullValue()));
@@ -1063,7 +1062,7 @@ public class DConnectServerNanoHttpdTest {
             fail("timeout");
         }
 
-        String uri = "http://localhost:4035";
+        String uri = HTTP_LOCALHOST_4035;
         WebSocketClient client = new WebSocketClient(URI.create(uri), new Draft_17(), null, 10000) {
             @Override
             public void onOpen(final ServerHandshake handshakedata) {
@@ -1152,7 +1151,7 @@ public class DConnectServerNanoHttpdTest {
         }
 
         try {
-            String uri = "https://localhost:4035";
+            String uri = HTTP_LOCALHOST_4035;
             WebSocketClient client = new WebSocketClient(URI.create(uri), new Draft_17(), null, 10000) {
                 @Override
                 public void onOpen(final ServerHandshake handshakedata) {

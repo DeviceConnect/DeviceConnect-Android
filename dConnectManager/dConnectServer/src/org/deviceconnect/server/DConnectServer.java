@@ -6,14 +6,10 @@
  */
 package org.deviceconnect.server;
 
-import org.deviceconnect.server.logger.LogHandler;
 import org.deviceconnect.server.websocket.DConnectWebSocket;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.logging.SimpleFormatter;
 
 /**
  * Device Connect用HTTPサーバー.
@@ -21,15 +17,8 @@ import java.util.logging.SimpleFormatter;
  * @author NTT DOCOMO, INC.
  */
 public abstract class DConnectServer {
-
-    /** デバッグフラグ. */
-    private static final boolean DEBUG = false;
-
     /** サーバーイベントの通知を受けるリスナークラス. */
     protected DConnectServerEventListener mListener;
-
-    /** ロガー. */
-    protected final Logger mLogger = Logger.getLogger("dconnect.server");
 
     /** WebSocketのセッション. */
     protected final Map<String, DConnectWebSocket> mSockets;
@@ -49,14 +38,6 @@ public abstract class DConnectServer {
         }
         mConfig = config;
         mSockets = new ConcurrentHashMap<String, DConnectWebSocket>();
-
-        if (DEBUG) {
-            LogHandler handler = new LogHandler("dconnect.server");
-            handler.setFormatter(new SimpleFormatter());
-            handler.setLevel(Level.ALL);
-            mLogger.addHandler(handler);
-            mLogger.setLevel(Level.WARNING);
-        }
     }
 
     /**

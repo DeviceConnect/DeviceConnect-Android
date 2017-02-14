@@ -1,3 +1,9 @@
+/*
+ ServiceListActivity.java
+ Copyright (c) 2017 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.manager.setting;
 
 import android.animation.Animator;
@@ -14,7 +20,6 @@ import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
-import android.os.RemoteException;
 import android.support.v4.content.res.ResourcesCompat;
 import android.util.Log;
 import android.view.Menu;
@@ -33,10 +38,10 @@ import android.widget.TextView;
 
 import org.deviceconnect.android.manager.BuildConfig;
 import org.deviceconnect.android.manager.DConnectApplication;
+import org.deviceconnect.android.manager.DConnectService;
 import org.deviceconnect.android.manager.DConnectSettings;
 import org.deviceconnect.android.manager.DevicePlugin;
 import org.deviceconnect.android.manager.DevicePluginManager;
-import org.deviceconnect.android.manager.IDConnectService;
 import org.deviceconnect.android.manager.R;
 import org.deviceconnect.android.manager.util.AnimationUtil;
 import org.deviceconnect.android.manager.util.DConnectUtil;
@@ -48,33 +53,92 @@ import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * サービス一覧を表示するActivity.
+ *
+ * @author NTT DOCOMO, INC.
+ */
 public class ServiceListActivity extends Activity implements AlertDialogFragment.OnAlertDialogListener {
 
     private static final boolean DEBUG = BuildConfig.DEBUG;
     private static final String TAG = "Manager";
 
+    /**
+     * サービスがオフラインの時に表示するダイアログのタグ名を定義する.
+     */
     private static final String TAG_OFFLINE = "offline";
 
+    /**
+     * ガイド用の設定を保存するファイル名を定義する.
+     */
     private static final String FILE_NAME = "__service_list__.dat";
+
+    /**
+     * ガイド表示設定用のキーを定義する.
+     */
     private static final String KEY_SHOW_GUIDE = "show_guide";
 
+    /**
+     * ガイド用のレイアウト一覧.
+     */
     private static final int[] GUIDE_ID_LIST = {
             R.id.activity_service_guide_1,
             R.id.activity_service_guide_2,
     };
 
+    /**
+     * サービスアダプタ.
+     */
     private ServiceAdapter mServiceAdapter;
+
+    /**
+     * デバイスプラグイン管理クラス.
+     */
     private DevicePluginManager mDevicePluginManager;
+
+    /**
+     * ガイドの設定を保持するためのクラス.
+     */
     private SharedPreferences mSharedPreferences;
+
+    /**
+     * serviceDiscoveryを実行するクラス.
+     */
     private ServiceDiscovery mServiceDiscovery;
+
+    /**
+     * 選択されたサービスを一時的に格納する変数.
+     */
     private ServiceContainer mSelectedService;
 
+    /**
+     * ハンドラ.
+     */
     private Handler mHandler = new Handler();
 
+    /**
+     * Device Connect Managerの起動スイッチ.
+     */
     private Switch mSwitchAction;
+
+    /**
+     * ガイドの表示ページ.
+     */
     private int mPageIndex;
 
+    /**
+     * Device Connect Managerの設定クラス.
+     */
     private DConnectSettings mSettings;
+
+    /**
+     * DConnectServiceのインスタンス.
+     * <p>
+     * バインドに成功するとDConnectServiceのインスタンスが格納される。<br>
+     * バインドしていない場合には、{@code null}が格納される。
+     * </p>
+     */
+    private DConnectService mDConnectService;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -102,7 +166,7 @@ public class ServiceListActivity extends Activity implements AlertDialogFragment
             btn.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(final View v) {
-                    reload();
+                    reloadServiceList();
                 }
             });
         }
@@ -110,8 +174,8 @@ public class ServiceListActivity extends Activity implements AlertDialogFragment
         DConnectApplication app = (DConnectApplication) getApplication();
         mDevicePluginManager = app.getDevicePluginManager();
 
-        if (load(this)) {
-            showGuide();
+        if (loadGuideSettings(this)) {
+            startGuide();
         }
     }
 
@@ -125,8 +189,7 @@ public class ServiceListActivity extends Activity implements AlertDialogFragment
     public void onResume() {
         super.onResume();
 
-        Intent intent = new Intent(IDConnectService.class.getName());
-        intent.setPackage(getPackageName());
+        Intent intent = new Intent(getApplicationContext(), DConnectService.class);
         bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
 
         if (!hasDevicePlugins()) {
@@ -147,13 +210,7 @@ public class ServiceListActivity extends Activity implements AlertDialogFragment
         });
 
         if (mDConnectService != null) {
-            try {
-                mSwitchAction.setChecked(mDConnectService.isRunning());
-            } catch (RemoteException e) {
-                if (DEBUG) {
-                    Log.e(TAG, "", e);
-                }
-            }
+            mSwitchAction.setChecked(mDConnectService.isRunning());
         }
 
         return true;
@@ -181,7 +238,6 @@ public class ServiceListActivity extends Activity implements AlertDialogFragment
 
     @Override
     public void onNegativeButton(final String tag) {
-
     }
 
     private void setEnableSearchButton(final boolean running) {
@@ -193,22 +249,38 @@ public class ServiceListActivity extends Activity implements AlertDialogFragment
         }
     }
 
+    /**
+     * デバイスプラグインを保有しているかを確認する.
+     * @return デバイスプラグインを保有している場合はtrue、それ以外はfalse
+     */
     private boolean hasDevicePlugins() {
         return mDevicePluginManager.getDevicePlugins().size() > 0;
     }
 
-    private boolean load(final Context context) {
+    /**
+     * ガイド設定の読み込みを行う.
+     * @param context コンテキスト
+     * @return ガイドを表示する場合はtrue、それ以外はfalse
+     */
+    private boolean loadGuideSettings(final Context context) {
         mSharedPreferences = context.getSharedPreferences(FILE_NAME, Context.MODE_PRIVATE);
         return mSharedPreferences.getBoolean(KEY_SHOW_GUIDE, true);
     }
 
-    private void save(final boolean showGuideFlag) {
+    /**
+     * ガイド設定の設定を行う.
+     * @param showGuideFlag ガイドを表示する場合はtrue、それ以外はfalse
+     */
+    private void saveGuideSettings(final boolean showGuideFlag) {
         SharedPreferences.Editor editor = mSharedPreferences.edit();
         editor.putBoolean(KEY_SHOW_GUIDE, showGuideFlag);
         editor.apply();
     }
 
-    private void showGuide() {
+    /**
+     * ガイドを表示を開始する.
+     */
+    private void startGuide() {
         View guideView = findViewById(R.id.activity_service_guide);
         if (guideView != null) {
             guideView.setVisibility(View.VISIBLE);
@@ -229,6 +301,9 @@ public class ServiceListActivity extends Activity implements AlertDialogFragment
         });
     }
 
+    /**
+     * 次のガイドに移動する.
+     */
     private void nextGuide() {
         if (mPageIndex == GUIDE_ID_LIST.length - 1) {
             endGuide();
@@ -243,6 +318,10 @@ public class ServiceListActivity extends Activity implements AlertDialogFragment
         }
     }
 
+    /**
+     * ガイドをアニメーションする.
+     * @param listener アニメーション通知リスナー
+     */
     private void animateGuide(final AnimationUtil.AnimationAdapter listener) {
         for (int i = 0; i < GUIDE_ID_LIST.length; i++) {
             View view = findViewById(GUIDE_ID_LIST[i]);
@@ -252,6 +331,9 @@ public class ServiceListActivity extends Activity implements AlertDialogFragment
         }
     }
 
+    /**
+     * ガイドを表示する.
+     */
     private void visibleGuide() {
         for (int i = 0; i < GUIDE_ID_LIST.length; i++) {
             View view = findViewById(GUIDE_ID_LIST[i]);
@@ -268,6 +350,9 @@ public class ServiceListActivity extends Activity implements AlertDialogFragment
         }
     }
 
+    /**
+     * ガイドの終了処理を行う.
+     */
     private void endGuide() {
         boolean result = true;
         CheckBox checkBox = (CheckBox) findViewById(R.id.activity_service_guide_checkbox);
@@ -285,9 +370,13 @@ public class ServiceListActivity extends Activity implements AlertDialogFragment
             });
         }
 
-        save(result);
+        saveGuideSettings(result);
     }
 
+    /**
+     * DeviceServiceの起動を切り替える.
+     * @param checked trueの場合は起動する、falseの場合は停止する
+     */
     private void switchDConnectServer(final boolean checked) {
         if (mDConnectService == null) {
             return;
@@ -298,60 +387,45 @@ public class ServiceListActivity extends Activity implements AlertDialogFragment
         }
 
         mSwitchAction.setEnabled(false);
-        try {
-            mSettings.setManagerStartFlag(checked);
-            if (checked) {
-                mDConnectService.start();
-                mHandler.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        reload();
-                        mSwitchAction.setEnabled(true);
-                    }
-                }, 1000);
-            } else {
-                mDConnectService.stop();
-                notifyManagerTerminate();
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        mServiceAdapter.mServices = new ArrayList<>();
-                        mServiceAdapter.notifyDataSetInvalidated();
-                        mSwitchAction.setEnabled(true);
-                    }
-                });
-            }
-            setEnableSearchButton(checked);
-        } catch (RemoteException e) {
-            if (DEBUG) {
-                Log.e(TAG, "", e);
-            }
+
+        mSettings.setManagerStartFlag(checked);
+        if (checked) {
+            mDConnectService.startInternal();
+            mHandler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    reloadServiceList();
+                    mSwitchAction.setEnabled(true);
+                }
+            }, 500);
+        } else {
+            mDConnectService.stopInternal();
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    mServiceAdapter.mServices = new ArrayList<>();
+                    mServiceAdapter.notifyDataSetInvalidated();
+                    mSwitchAction.setEnabled(true);
+                }
+            });
         }
+        setEnableSearchButton(checked);
     }
 
-    private void notifyManagerTerminate() {
-        ManagerTerminationFragment.show(this);
-    }
-
-    private void reload() {
+    /**
+     * サービス一覧を再読み込みを行う.
+     */
+    private void reloadServiceList() {
         if (DEBUG) {
-            Log.i(TAG, "reload a device plugin.");
+            Log.i(TAG, "reloadServiceList a device plugin.");
         }
 
-        if (mDConnectService == null) {
+        // DConnectServiceが動作していない
+        if (mDConnectService == null || !mDConnectService.isRunning()) {
             return;
         }
 
-        try {
-            if (!mDConnectService.isRunning()) {
-                return;
-            }
-        } catch (RemoteException e) {
-            if (DEBUG) {
-                Log.w(TAG, "", e);
-            }
-        }
-
+        // 既にserviceDiscoveryが実行されている場合
         if (mServiceDiscovery != null) {
             return;
         }
@@ -395,12 +469,18 @@ public class ServiceListActivity extends Activity implements AlertDialogFragment
         mServiceDiscovery.execute();
     }
 
+    /**
+     * 設定画面を開く.
+     */
     private void openSettings() {
         Intent intent = new Intent();
         intent.setClass(this, SettingActivity.class);
         startActivity(intent);
     }
 
+    /**
+     * ヘルプ画面を開く.
+     */
     private void openHelp() {
         String url = BuildConfig.URL_HELP_HTML;
         Intent intent = new Intent();
@@ -410,6 +490,10 @@ public class ServiceListActivity extends Activity implements AlertDialogFragment
         startActivity(intent);
     }
 
+    /**
+     * サービスの確認画面を開く.
+     * @param position 開くサービスの
+     */
     private void openServiceInfo(final int position) {
         mSelectedService = (ServiceContainer) mServiceAdapter.getItem(position);
         if (mSelectedService.isOnline()) {
@@ -429,14 +513,23 @@ public class ServiceListActivity extends Activity implements AlertDialogFragment
         }
     }
 
+    /**
+     * デバイスプラグインが一つもない場合のダイアログを表示する.
+     */
     private void showNoDevicePlugin() {
         String title = getString(R.string.activity_service_list_no_plugin_title);
         String message = getString(R.string.activity_service_list_no_plugin_message);
         String positive = getString(R.string.activity_service_list_no_plugin_positive);
-        AlertDialogFragment dialog = AlertDialogFragment.create("no", title, message, positive);
-        dialog.show(getFragmentManager(), "no");
+        AlertDialogFragment dialog = AlertDialogFragment.create("no-device-plugin", title, message, positive);
+        dialog.show(getFragmentManager(), "no-device-plugin");
     }
 
+    /**
+     * デバイスプラグインの設定画面を開く.
+     * <p>
+     * {@link #mSelectedService}に格納されているデバイスプラグインの設定画面を開く。
+     * </p>
+     */
     private void openPluginSettings() {
         DConnectApplication app = (DConnectApplication) getApplication();
         DevicePluginManager mgr = app.getDevicePluginManager();
@@ -457,6 +550,11 @@ public class ServiceListActivity extends Activity implements AlertDialogFragment
         }
     }
 
+    /**
+     * 指定されたサービスのパッケージ名を取得する.
+     * @param serviceId サービスID
+     * @return パッケージ名
+     */
     private String getPackageName(final String serviceId) {
         List<DevicePlugin> list = mDevicePluginManager.getDevicePlugins();
         for (DevicePlugin plugin : list) {
@@ -467,28 +565,23 @@ public class ServiceListActivity extends Activity implements AlertDialogFragment
         return null;
     }
 
-    private IDConnectService mDConnectService;
-
+    /**
+     * DConnectServiceとバインドするためのコネクションクラス.
+     */
     private final ServiceConnection mServiceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(final ComponentName name, final IBinder service) {
-            mDConnectService = (IDConnectService) service;
+            mDConnectService = ((DConnectService.LocalBinder) service).getDConnectService();
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    try {
-                        if (mSwitchAction != null) {
-                            mSwitchAction.setChecked(mDConnectService.isRunning());
-                        }
-                        if (mDConnectService.isRunning()) {
-                            reload();
-                        }
-                        setEnableSearchButton(mDConnectService.isRunning());
-                    } catch (RemoteException e) {
-                        if (DEBUG) {
-                            Log.e(TAG, "", e);
-                        }
+                    if (mSwitchAction != null) {
+                        mSwitchAction.setChecked(mDConnectService.isRunning());
                     }
+                    if (mDConnectService.isRunning()) {
+                        reloadServiceList();
+                    }
+                    setEnableSearchButton(mDConnectService.isRunning());
                 }
             });
         }
@@ -498,7 +591,13 @@ public class ServiceListActivity extends Activity implements AlertDialogFragment
         }
     };
 
+    /**
+     * Device Connect Managerに接続されているサービスを表示するためのアダプタークラス.
+     */
     private class ServiceAdapter extends BaseAdapter {
+        /**
+         * サービス一覧.
+         */
         private List<ServiceContainer> mServices = new ArrayList<>();
 
         @Override

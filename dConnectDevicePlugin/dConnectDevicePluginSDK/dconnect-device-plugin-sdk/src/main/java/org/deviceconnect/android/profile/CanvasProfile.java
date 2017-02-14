@@ -17,6 +17,7 @@ import org.deviceconnect.profile.CanvasProfileConstants;
  * スマートデバイスに対してのキャンバス操作機能を提供するAPI.
  * </p>
  *
+ * @deprecated swagger定義ファイルで定数を管理することになったので、このクラスは使用しないこととする。
  * @author NTT DOCOMO, INC.
  */
 public abstract class CanvasProfile extends DConnectProfile implements CanvasProfileConstants {

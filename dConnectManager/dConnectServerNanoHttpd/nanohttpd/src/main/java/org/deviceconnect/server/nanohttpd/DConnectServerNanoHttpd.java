@@ -458,7 +458,8 @@ public class DConnectServerNanoHttpd extends DConnectServer {
                 if (mListener != null && mListener.onReceivedHttpRequest(request, response)) {
                     return newFixedLengthResponse(response);
                 } else {
-                    return newFixedLengthResponse(Response.Status.NOT_FOUND, NanoHTTPD.MIME_PLAINTEXT, "Not Found");
+                    return newFixedLengthResponse(Response.Status.NOT_FOUND, MIME_APPLICATION_JSON,
+                            "{\"result\" : 1, \"errorCode\" : 1, \"errorMessage\" : \"Not found.\"}");
                 }
             } catch (OutOfMemoryError e) {
                 return newFixedLengthResponse(Response.Status.INTERNAL_ERROR, MIME_APPLICATION_JSON,

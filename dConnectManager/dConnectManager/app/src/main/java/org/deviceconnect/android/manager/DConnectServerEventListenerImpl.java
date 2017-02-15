@@ -54,6 +54,8 @@ class DConnectServerEventListenerImpl implements DConnectServerEventListener {
     /** JSONレスポンス用のContent-Type. */
     private static final String CONTENT_TYPE_JSON = "application/json; charset=UTF-8";
 
+    /** HTTPリクエストのセグメント数(APIのみ) {@value}.  */
+    private static final int SEGMENT_API = 1;
     /** HTTPリクエストのセグメント数(Profileのみ) {@value}.  */
     private static final int SEGMENT_PROFILE = 2;
     /** HTTPリクエストのセグメント数(ProfilesとAttribute) {@value}. */
@@ -234,7 +236,9 @@ class DConnectServerEventListenerImpl implements DConnectServerEventListener {
             mLogger.info(String.format("@@@ Request URI: %s %s", method, request.getUri()));
         }
 
-        if (paths.length == SEGMENT_PROFILE) {
+        if (paths.length == SEGMENT_API) {
+            api = paths[0];
+        } else if (paths.length == SEGMENT_PROFILE) {
             api = paths[0];
             profile = paths[1];
         } else if (paths.length == SEGMENT_ATTRIBUTE && !existMethod) {
@@ -267,16 +271,21 @@ class DConnectServerEventListenerImpl implements DConnectServerEventListener {
             interfaces = paths[3];
             attribute = paths[4];
         }
-        if (api == null || !api.equals("gotapi")) {
-            // ルートが存在しない、もしくはgotapiでない場合は404
-            response.setCode(StatusCode.NOT_FOUND);
+
+        if (api == null) {
+            // apiが存在しない場合はエラー
+            response.setCode(StatusCode.BAD_REQUEST);
+            setErrorResponse(response, 19, "api is empty.");
             return true;
         }
+
         // プロファイルが存在しない場合にはエラー
         if (profile == null) {
-            setEmptyProfile(response);
+            response.setCode(StatusCode.BAD_REQUEST);
+            setErrorResponse(response, 19, "profile is empty.");
             return true;
-        } else if (isMethod(profile)) { //Profile名がhttpMethodの場合
+        } else if (isMethod(profile)) { // Profile名がhttpMethodの場合
+            response.setCode(StatusCode.BAD_REQUEST);
             setInvalidProfile(response);
             return true;
         }
@@ -285,6 +294,7 @@ class DConnectServerEventListenerImpl implements DConnectServerEventListener {
         String action = DConnectUtil.convertHttpMethod2DConnectMethod(method);
         if (action == null) {
             response.setCode(StatusCode.NOT_IMPLEMENTED);
+            setErrorResponse(response, 1, "Not implements a http method.");
             return true;
         }
 
@@ -298,7 +308,8 @@ class DConnectServerEventListenerImpl implements DConnectServerEventListener {
                 return true;
             }
         }
-        // filesの時は、Device Connect Managerまでは渡さずに、ここで処理を行う
+
+        // files の時は、Device Connect Managerまでは渡さずに、ここで処理を行う
         if ("files".equalsIgnoreCase(profile)) {
             if (request.getMethod().equals(HttpRequest.Method.GET)) {
                 String uri = parameters.get("uri");
@@ -309,9 +320,11 @@ class DConnectServerEventListenerImpl implements DConnectServerEventListener {
                     response.setCode(StatusCode.OK);
                 } catch (Exception e) {
                     response.setCode(StatusCode.NOT_FOUND);
+                    setErrorResponse(response, 1, "Not found a resource.");
                 }
             } else {
                 response.setCode(StatusCode.BAD_REQUEST);
+                setErrorResponse(response, 1, "Not implements a method.");
            }
             return true;
         }
@@ -645,9 +658,9 @@ class DConnectServerEventListenerImpl implements DConnectServerEventListener {
      *         false:DeviceConnectがサポートしているOne shotのHTTPメソッドではない。
      */
     private boolean isMethod(final String method) {
-        return method.toUpperCase().equals(DConnectMessage.METHOD_GET)
-                || method.toUpperCase().equals(DConnectMessage.METHOD_POST)
-                || method.toUpperCase().equals(DConnectMessage.METHOD_PUT)
-                || method.toUpperCase().equals(DConnectMessage.METHOD_DELETE);
+        return method.equalsIgnoreCase(DConnectMessage.METHOD_GET)
+                || method.equalsIgnoreCase(DConnectMessage.METHOD_POST)
+                || method.equalsIgnoreCase(DConnectMessage.METHOD_PUT)
+                || method.equalsIgnoreCase(DConnectMessage.METHOD_DELETE);
     }
 }

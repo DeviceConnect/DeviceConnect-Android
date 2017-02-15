@@ -8,10 +8,18 @@ package org.deviceconnect.android.deviceplugin.kadecot.profile;
 
 import android.content.Intent;
 
+import org.deviceconnect.android.deviceplugin.kadecot.kadecotdevice.KadecotHomeAirConditioner;
+import org.deviceconnect.android.deviceplugin.kadecot.kadecotdevice.KadecotResult;
+import org.deviceconnect.android.deviceplugin.kadecot.service.KadecotService;
+import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.android.profile.api.GetApi;
 import org.deviceconnect.android.profile.api.PutApi;
 import org.deviceconnect.message.DConnectMessage;
+
+import static org.deviceconnect.android.deviceplugin.kadecot.profile.original.AirConditionerProfile.setTemperatureValue;
+import static org.deviceconnect.android.deviceplugin.kadecot.service.KadecotService.NO_RESULT;
+import static org.deviceconnect.android.deviceplugin.kadecot.service.KadecotService.createInvalidKadecotResponseError;
 
 /**
  * Temperature Profile.
@@ -26,12 +34,8 @@ public class KadecotTemperatureProfile extends DConnectProfile {
         addApi(new GetApi() {
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                String serviceId = (String) request.getExtras().get("serviceId");
-
-                // TODO ここでAPIを実装してください. 以下はサンプルのレスポンス作成処理です.
-                setResult(response, DConnectMessage.RESULT_OK);
-                // WARNING: レスポンスの定義が不正です.
-                return true;
+                getTemperature(request, response);
+                return false;
             }
         });
 
@@ -39,14 +43,8 @@ public class KadecotTemperatureProfile extends DConnectProfile {
         addApi(new PutApi() {
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                String serviceId = (String) request.getExtras().get("serviceId");
-                Integer temperature = parseInteger(request, "temperature");
-                Integer type = parseInteger(request, "type");
-
-                // TODO ここでAPIを実装してください. 以下はサンプルのレスポンス作成処理です.
-                setResult(response, DConnectMessage.RESULT_OK);
-                // WARNING: レスポンスの定義が不正です.
-                return true;
+                putTemperature(request, response);
+                return false;
             }
         });
 
@@ -55,5 +53,80 @@ public class KadecotTemperatureProfile extends DConnectProfile {
     @Override
     public String getProfileName() {
         return "temperature";
+    }
+
+
+    /**
+     * Get air conditioner temperature value.
+     *
+     * @param request Request.
+     * @param response Response.
+     */
+    private void getTemperature(final Intent request, final Intent response) {
+        KadecotResult result = KadecotService.requestKadecotServer(getContext(), response, getServiceID(request),
+                KadecotHomeAirConditioner.TEMPERATUREVALUE_GET);
+        if (result != null) {
+            String propertyName = result.getPropertyName();
+            String propertyValue = result.getPropertyValue();
+            if (propertyName != null && propertyValue != null) {
+                if (propertyName.equals(KadecotHomeAirConditioner.PROP_SETTEMPERATUREVALUE)) {
+                    setResult(response, DConnectMessage.RESULT_OK);
+                    setTemperatureValue(response, propertyValue);
+                } else if (result.getServerResult().equals(NO_RESULT)) {
+                    MessageUtils.setNotSupportAttributeError(response, "This device not support 'get' procedure.");
+                } else {
+                    createInvalidKadecotResponseError(response);
+                }
+            } else {
+                createInvalidKadecotResponseError(response);
+            }
+        }
+        sendResponse(response);
+    }
+
+
+    /**
+     * Put air conditioner temperature value.
+     *
+     * @param request Request.
+     * @param response Response.
+     */
+    protected void putTemperature(final Intent request, final Intent response) {
+        int value = -1;
+        String strValue = request.getStringExtra("temperature");
+        try {
+            value = Integer.parseInt(strValue);
+        } catch (NumberFormatException e) {
+            value = -1;
+        }
+        if (value == -1 || value < 0 || value > 50) {
+            MessageUtils.setInvalidRequestParameterError(response);
+            sendResponse(response);
+            return;
+        }
+
+        KadecotResult result = KadecotService.requestKadecotServer(getContext(),
+                response, getServiceID(request),
+                KadecotHomeAirConditioner.TEMPERATUREVALUE_SET, value);
+        if (result != null) {
+            String propertyName = result.getPropertyName();
+            String propertyValue = result.getPropertyValue();
+            if (propertyName != null && propertyValue != null) {
+                if (propertyName.equals(KadecotHomeAirConditioner.PROP_SETTEMPERATUREVALUE)) {
+                    if (Integer.parseInt(propertyValue) == value) {
+                        setResult(response, DConnectMessage.RESULT_OK);
+                    } else {
+                        setResult(response, DConnectMessage.RESULT_ERROR);
+                    }
+                } else if (result.getServerResult().equals(NO_RESULT)) {
+                    MessageUtils.setNotSupportAttributeError(response, "This device not support 'get' procedure.");
+                } else {
+                    KadecotService.createInvalidKadecotResponseError(response);
+                }
+            } else {
+                KadecotService.createInvalidKadecotResponseError(response);
+            }
+        }
+        sendResponse(response);
     }
 }

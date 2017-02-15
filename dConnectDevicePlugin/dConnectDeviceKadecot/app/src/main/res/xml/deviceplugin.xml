@@ -7,5 +7,6 @@
     <profile name="airConditioner" />
     <profile name="light" />
     <profile name="echonetLite" />
+    <profile name="temperature" />
 
 </deviceplugin-provider>

@@ -195,7 +195,7 @@ class DConnectServerEventListenerImpl implements DConnectServerEventListener {
                 eventKey = json.optString(DConnectMessage.EXTRA_SESSION_KEY);
                 // NOTE: 既存のイベントセッションを破棄する.
                 if (getWebSocketInfoManager().getWebSocketInfo(eventKey) != null) {
-                    ((DConnectService) mContext).sendDisconnectWebSocket(eventKey);
+                    ((DConnectService) mContext).disconnectWebSocketWithReceiverId(eventKey);
                 }
             }
             if (eventKey == null) {

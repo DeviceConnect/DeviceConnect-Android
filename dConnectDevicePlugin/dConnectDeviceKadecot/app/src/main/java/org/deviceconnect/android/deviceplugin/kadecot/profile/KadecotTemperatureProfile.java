@@ -71,7 +71,8 @@ public class KadecotTemperatureProfile extends DConnectProfile {
             if (propertyName != null && propertyValue != null) {
                 if (propertyName.equals(KadecotHomeAirConditioner.PROP_SETTEMPERATUREVALUE)) {
                     setResult(response, DConnectMessage.RESULT_OK);
-                    setTemperatureValue(response, propertyValue);
+                    response.putExtra("temperature", propertyValue);
+                    response.putExtra("type", "1"); //摂氏固定
                 } else if (result.getServerResult().equals(NO_RESULT)) {
                     MessageUtils.setNotSupportAttributeError(response, "This device not support 'get' procedure.");
                 } else {

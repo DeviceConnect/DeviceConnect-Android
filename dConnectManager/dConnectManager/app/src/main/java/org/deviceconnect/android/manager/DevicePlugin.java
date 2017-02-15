@@ -176,7 +176,12 @@ public class DevicePlugin {
     
     @Override
     public String toString() {
-        return "ServiceId: " + mPluginId + "DeviceName: " + mDeviceName
-                + " package: " + mPackageName + " class: " + mClassName;
+        return "{\n" +
+                "    DeviceName: " + getDeviceName() + "\n" +
+                "    ServiceId: " + getPluginId() + "\n" +
+                "    Package: " + getPackageName() + "\n" +
+                "    Class: " + getClassName() + "\n" +
+                "    Version: " + getVersionName() + "\n" +
+                "}";
     }
 }

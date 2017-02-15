@@ -51,6 +51,7 @@ import java.util.TimerTask;
 import java.util.UUID;
 import java.util.logging.Handler;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -80,6 +81,11 @@ public class DConnectServerNanoHttpd extends DConnectServer {
      * ログ用タグ.
      */
     private static final String TAG = "DConnectServerNanoHttpd";
+
+    /**
+     * ロガー.
+     */
+    private final Logger mLogger = Logger.getLogger("dconnect.server");
 
     /**
      * ヘッダーの最大サイズを定義.
@@ -183,6 +189,9 @@ public class DConnectServerNanoHttpd extends DConnectServer {
             handler.setLevel(Level.ALL);
             mLogger.addHandler(handler);
             mLogger.setLevel(Level.WARNING);
+            mLogger.setUseParentHandlers(false);
+        } else {
+            mLogger.setLevel(Level.OFF);
         }
     }
 
@@ -1187,6 +1196,11 @@ public class DConnectServerNanoHttpd extends DConnectServer {
         @Override
         protected void onException(final IOException e) {
             mLogger.warning("Exception in the NanoWebSocket#onException() method. " + e.toString());
+        }
+
+        @Override
+        public String toString() {
+            return "{ id=" + getId() + " origin=" + getClientOrigin() + ", uri=" + getUri() + " }";
         }
 
         /**

@@ -6,11 +6,11 @@
  */
 package org.deviceconnect.android.logger;
 
+import android.util.Log;
+
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
-
-import android.util.Log;
 
 /**
  * Android用ロガークラス.

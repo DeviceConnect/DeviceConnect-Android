@@ -1805,7 +1805,7 @@ public final class LocalOAuth2Main {
         AccessTokenServerResource.init(request, response);
 
         /* 入力値(アプリケーション名はbase64エンコードする) */
-        String base64ApplicationName = Base64.encodeToString(applicationName.getBytes(), Base64.DEFAULT);
+        String base64ApplicationName = Base64.encodeToString(applicationName.getBytes(), Base64.URL_SAFE|Base64.NO_WRAP);
         
         StringRepresentation input = new StringRepresentation("grant_type=authorization_code&code=" + authCode + "&"
                 + AccessTokenServerResource.REDIR_URI + "=" + DUMMY_REDIRECTURI + "&"

@@ -52,6 +52,7 @@ project.androidVariants.all { variant ->
         source = variant.javaCompile.source
         ext.androidJar = "${android.sdkDirectory}/platforms/${android.compileSdkVersion}/android.jar"
         classpath = files(variant.javaCompile.classpath.files) + files(ext.androidJar)
+        destinationDir = new File("${project.getRootDir()}/DeviceConnectSDK-Javadoc/")
 
         options {
             links("http://docs.oracle.com/javase/jp/8/docs/api/");

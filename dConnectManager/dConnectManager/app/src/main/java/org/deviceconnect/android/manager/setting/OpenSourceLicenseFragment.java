@@ -1,3 +1,9 @@
+/*
+ OpenSourceLicenseFragment.java
+ Copyright (c) 2016 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.manager.setting;
 
 import android.app.AlertDialog;
@@ -26,6 +32,8 @@ import java.util.logging.Logger;
 
 /**
  * オープンソースライセンスフラグメント.
+ *
+ * @author NTT DOCOMO, INC.
  */
 public class OpenSourceLicenseFragment extends DialogFragment {
 
@@ -284,7 +292,5 @@ public class OpenSourceLicenseFragment extends DialogFragment {
             bodyView.setText(item.getLicenseText());
             return view;
         }
-
     }
-
 }

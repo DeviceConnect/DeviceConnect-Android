@@ -21,7 +21,6 @@ import org.deviceconnect.android.event.cache.MemoryCacheController;
 import org.deviceconnect.android.localoauth.CheckAccessTokenResult;
 import org.deviceconnect.android.localoauth.ClientPackageInfo;
 import org.deviceconnect.android.localoauth.LocalOAuth2Main;
-import org.deviceconnect.android.logger.AndroidHandler;
 import org.deviceconnect.android.manager.DevicePluginManager.DevicePluginEventListener;
 import org.deviceconnect.android.manager.event.EventBroker;
 import org.deviceconnect.android.manager.event.EventSessionTable;
@@ -57,9 +56,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.logging.SimpleFormatter;
 
 /**
  * DConnectMessageを受信するサービス.
@@ -135,16 +132,6 @@ public abstract class DConnectMessageService extends Service
     @Override
     public void onCreate() {
         super.onCreate();
-
-        if (BuildConfig.DEBUG) {
-            AndroidHandler handler = new AndroidHandler("dconnect.manager");
-            handler.setFormatter(new SimpleFormatter());
-            handler.setLevel(Level.ALL);
-            mLogger.addHandler(handler);
-            mLogger.setLevel(Level.ALL);
-        } else {
-            mLogger.setLevel(Level.OFF);
-        }
 
         // イベント管理クラスの初期化
         EventManager.INSTANCE.setController(new MemoryCacheController());
@@ -464,14 +451,29 @@ public abstract class DConnectMessageService extends Service
         return mProfileMap.get(name);
     }
 
+    /**
+     * リクエスト用Intentからプロファイルを取得する.
+     * @param request リクエスト用Intent
+     * @return プロファイル
+     */
     private DConnectProfile getProfile(final Intent request) {
         return getProfile(DConnectProfile.getProfile(request));
     }
 
+    /**
+     * リクエスト用Intentからプロファイル名を取得する.
+     * @param request リクエスト用Intent
+     * @return プロファイル名
+     */
     protected String parseProfileName(final Intent request) {
-        return request.getStringExtra(DConnectMessage.EXTRA_PROFILE);
+        return DConnectProfile.getProfile(request);
     }
 
+    /**
+     * レスポンス用Intentからリクエストコードを取得する.
+     * @param response レスポンス用Intent
+     * @return リクエストコード
+     */
     private int getRequestCode(final Intent response) {
         return response.getIntExtra(IntentDConnectMessage.EXTRA_REQUEST_CODE, ERROR_CODE);
     }
@@ -516,44 +518,41 @@ public abstract class DConnectMessageService extends Service
     /**
      * DConnectManagerを起動する。
      */
-    protected synchronized void startDConnect() {
-        if (BuildConfig.DEBUG) {
-            mLogger.info("DConnectManager#Settings");
-            mLogger.info("    SSL: " + mSettings.isSSL());
-            mLogger.info("    Host: " + mSettings.getHost());
-            mLogger.info("    Port: " + mSettings.getPort());
-            mLogger.info("    Allow External IP: " + mSettings.allowExternalIP());
-            mLogger.info("    RequireOrigin: " + mSettings.requireOrigin());
-            mLogger.info("    LocalOAuth: " + mSettings.isUseALocalOAuth());
-            mLogger.info("    OriginBlock: " + mSettings.isBlockingOrigin());
-        }
-
+    protected void startDConnect() {
         mHmacManager = new HmacManager(this);
         mRequestManager = new DConnectRequestManager();
         mOriginValidator = new OriginValidator(this,
                 mSettings.requireOrigin(), mSettings.isBlockingOrigin());
-
         mPluginMgr.setEventListener(this);
-
         showNotification();
-
-        mRunningFlag = true;
     }
 
     /**
      * DConnectManagerを停止する.
      */
-    protected synchronized void stopDConnect() {
-        mRunningFlag = false;
-
-        if (mPluginMgr != null) {
-            mPluginMgr.setEventListener(null);
-        }
-
+    protected void stopDConnect() {
+        sendTerminateEvent();
+        mPluginMgr.setEventListener(null);
         if (mRequestManager != null) {
             mRequestManager.shutdown();
         }
         hideNotification();
+    }
+
+    /**
+     * 全デバイスプラグインに対して、Device Connect Manager終了通知を行う.
+     */
+    private void sendTerminateEvent() {
+        List<DevicePlugin> plugins = mPluginMgr.getDevicePlugins();
+        for (DevicePlugin plugin : plugins) {
+            if (plugin.getPluginId() != null) {
+                Intent request = new Intent();
+                request.setComponent(plugin.getComponentName());
+                request.setAction(IntentDConnectMessage.ACTION_MANAGER_TERMINATED);
+                request.putExtra("pluginId", plugin.getPluginId());
+                sendBroadcast(request);
+            }
+        }
     }
 
     /**
@@ -680,10 +679,18 @@ public abstract class DConnectMessageService extends Service
         sendBroadcast(targetIntent);
     }
 
+    /**
+     * オリジン要求設定を取得する.
+     * @return オリジンが必要な場合はtrue、それ以外はfalse
+     */
     public boolean requiresOrigin() {
         return mSettings.requireOrigin();
     }
 
+    /**
+     * Local OAuth要求設定を取得する.
+     * @return Local OAuthが必要な場合はtrue、それ以外はfalse
+     */
     public boolean usesLocalOAuth() {
         return mSettings.isUseALocalOAuth();
     }

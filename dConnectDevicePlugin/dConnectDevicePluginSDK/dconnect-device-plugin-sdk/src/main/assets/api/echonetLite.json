@@ -1,7 +1,7 @@
 {
     "swagger": "2.0",
     "info": {
-        "title": "Temperature Profile",
+        "title": "ECHONETLite Profile",
         "version": "2.0.0",
         "description": ""
     },
@@ -10,10 +10,10 @@
         "multipart/form-data"
     ],
     "paths": {
-        "/": {
+        "/property": {
             "get": {
                 "x-type": "one-shot",
-                "summary": "スマートデバイスの温度設定値を取得する。",
+                "summary": "スマートデバイスがサポートしているECHONET Lite 機器オブジェクトプロパティの設定内容を取得する。",
                 "description": "",
                 "parameters": [
                     {
@@ -21,6 +21,15 @@
                         "in": "query",
                         "required": true,
                         "type": "string"
+                    },
+                    {
+                        "name": "epc",
+                        "in": "query",
+                        "required": true,
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
                     }
                 ],
                 "responses": {
@@ -31,7 +40,7 @@
             },
             "put": {
                 "x-type": "one-shot",
-                "summary": "スマートデバイスの温度設定値を設定する。",
+                "summary": "スマートデバイスがサポートしているECHONET Lite 機器オブジェクトプロパティに設定を行う。",
                 "description": "",
                 "parameters": [
                     {
@@ -41,18 +50,16 @@
                         "type": "string"
                     },
                     {
-                        "name": "temperature",
+                        "name": "epc",
                         "in": "formData",
                         "required": true,
-                        "type": "integer",
-                        "minimum": 0,
-                        "maximum": 50
+                        "type": "string"
                     },
                     {
-                        "name": "type",
+                        "name": "value",
                         "in": "formData",
-                        "required": false,
-                        "type": "integer"
+                        "required": true,
+                        "type": "string"
                     }
                 ],
                 "responses": {
@@ -62,6 +69,5 @@
                 }
             }
         }
-
     }
 }

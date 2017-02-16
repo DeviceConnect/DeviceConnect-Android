@@ -225,10 +225,7 @@ class DConnectServerEventListenerImpl implements DConnectServerEventListener {
         String profile = null;
         String interfaces = null;
         String attribute = null;
-        boolean existMethod = false;
-        if (paths.length >= SEGMENT_ATTRIBUTE) {
-            existMethod = isMethod(paths[1]);
-        }
+        boolean existMethod = isHttpMethodIncluded(paths);
 
         long start = System.currentTimeMillis();
 
@@ -236,40 +233,46 @@ class DConnectServerEventListenerImpl implements DConnectServerEventListener {
             mLogger.info(String.format("@@@ Request URI: %s %s", method, request.getUri()));
         }
 
-        if (paths.length == SEGMENT_API) {
-            api = paths[0];
-        } else if (paths.length == SEGMENT_PROFILE) {
-            api = paths[0];
-            profile = paths[1];
-        } else if (paths.length == SEGMENT_ATTRIBUTE && !existMethod) {
-            // パスが3つあり、HTTPメソッドがパスに指定されていない
-            api = paths[0];
-            profile = paths[1];
-            attribute = paths[2];
-        } else if (paths.length == SEGMENT_ATTRIBUTE && existMethod) {
-            // パスが3つあり、HTTPメソッドがパスに指定される
-            api = paths[0];
-            httpMethod = paths[1];
-            profile = paths[2];
-        } else if (paths.length == SEGMENT_INTERFACES && !existMethod) {
-            // パスが4つあり、HTTPメソッドがパスに指定されていない
-            api = paths[0];
-            profile = paths[1];
-            interfaces = paths[2];
-            attribute = paths[3];
-        } else if (paths.length == SEGMENT_INTERFACES && existMethod) {
-            // パスが4つあり、HTTPメソッドがパスに指定される
-            api = paths[0];
-            httpMethod = paths[1];
-            profile = paths[2];
-            attribute = paths[3];
-        } else if (paths.length == (SEGMENT_INTERFACES + 1) && existMethod) {
-            // パスが5つあり、HTTPメソッドがパスに指定される
-            api = paths[0];
-            httpMethod = paths[1];
-            profile = paths[2];
-            interfaces = paths[3];
-            attribute = paths[4];
+        if (existMethod) {
+            // HTTPメソッドがパスに含まれている
+            if (paths.length == SEGMENT_API) {
+                api = paths[0];
+            } else if (paths.length == SEGMENT_PROFILE) {
+                api = paths[0];
+                profile = paths[1];
+            } else if (paths.length == SEGMENT_ATTRIBUTE) {
+                api = paths[0];
+                httpMethod = paths[1];
+                profile = paths[2];
+            } else if (paths.length == SEGMENT_INTERFACES) {
+                api = paths[0];
+                httpMethod = paths[1];
+                profile = paths[2];
+                attribute = paths[3];
+            } else if (paths.length == (SEGMENT_INTERFACES + 1)) {
+                api = paths[0];
+                httpMethod = paths[1];
+                profile = paths[2];
+                interfaces = paths[3];
+                attribute = paths[4];
+            }
+        } else {
+            // HTTPメソッドがパスに含まれていない
+            if (paths.length == SEGMENT_API) {
+                api = paths[0];
+            } else if (paths.length == SEGMENT_PROFILE) {
+                api = paths[0];
+                profile = paths[1];
+            } else if (paths.length == SEGMENT_ATTRIBUTE) {
+                api = paths[0];
+                profile = paths[1];
+                attribute = paths[2];
+            } else if (paths.length == SEGMENT_INTERFACES) {
+                api = paths[0];
+                profile = paths[1];
+                interfaces = paths[2];
+                attribute = paths[3];
+            }
         }
 
         if (api == null) {
@@ -649,6 +652,15 @@ class DConnectServerEventListenerImpl implements DConnectServerEventListener {
         DConnectUtil.convertBundleToJSON(root, resp.getExtras());
         response.setContentType(CONTENT_TYPE_JSON);
         response.setBody(root.toString().getBytes("UTF-8"));
+    }
+
+    /**
+     * セグメントの中にHttpメソッドが含まれているか確認する.
+     * @param paths セグメント
+     * @return Httpメソッドが含まれている場合はtrue、それ以外はfalse
+     */
+    private boolean isHttpMethodIncluded(final String[] paths) {
+        return paths != null && paths.length >= SEGMENT_ATTRIBUTE && isMethod(paths[1]);
     }
 
     /**

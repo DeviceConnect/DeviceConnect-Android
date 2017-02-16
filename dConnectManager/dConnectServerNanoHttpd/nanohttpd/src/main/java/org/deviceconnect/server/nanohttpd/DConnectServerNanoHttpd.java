@@ -146,7 +146,7 @@ public class DConnectServerNanoHttpd extends DConnectServer {
     /**
      * application/jsonのContent-Typeを定義.
      */
-    private static final String MIME_APPLICATION_JSON = "application/json";
+    private static final String MIME_APPLICATION_JSON = "application/json; charset=UTF-8";
 
     /**
      * サーバーオブジェクト.
@@ -462,13 +462,13 @@ public class DConnectServerNanoHttpd extends DConnectServer {
                             "{\"result\" : 1, \"errorCode\" : 1, \"errorMessage\" : \"Not found.\"}");
                 }
             } catch (OutOfMemoryError e) {
-                return newFixedLengthResponse(Response.Status.INTERNAL_ERROR, MIME_APPLICATION_JSON,
+                return newFixedLengthResponse(Status.BAD_REQUEST, MIME_APPLICATION_JSON,
                         "{\"result\" : 1, \"errorCode\" : 1, \"errorMessage\" : \"Too large request.\"}");
             } catch (IOException ioe) {
                 return newFixedLengthResponse(Response.Status.INTERNAL_ERROR, MIME_APPLICATION_JSON,
                         "{\"result\" : 1, \"errorCode\" : 1, \"errorMessage\" : \"INTERNAL ERROR: IOException. e=" + ioe.getMessage() + "\"}");
             } catch (ResponseException re) {
-                return newFixedLengthResponse(Response.Status.INTERNAL_ERROR, MIME_APPLICATION_JSON,
+                return newFixedLengthResponse(re.getStatus(), MIME_APPLICATION_JSON,
                         "{\"result\" : 1, \"errorCode\" : 1, \"errorMessage\" : \"" + re.getMessage() + "\"}");
             }
         }
@@ -864,7 +864,7 @@ public class DConnectServerNanoHttpd extends DConnectServer {
             } catch (ResponseException re) {
                 throw re;
             } catch (Exception e) {
-                throw new ResponseException(Response.Status.INTERNAL_ERROR, e.toString());
+                throw new ResponseException(Response.Status.INTERNAL_ERROR, "INTERNAL ERROR: Exception. e=" + e.toString());
             }
         }
 

@@ -69,6 +69,11 @@
     <string name="activity_settings_manage_websocket">List of WebSocket</string>
     <string name="activity_settings_name">Name</string>
     <string name="activity_settings_uuid">UUID</string>
+    <string name="activity_settings_manager_name_visible">Show Manager\'s name</string>
+    <string name="activity_settings_manager_name_visible_on"> name in Availability.</string>
+    <string name="activity_settings_manager_name_visible_off">Do not show names in Availability.</string>
+    <string name="activity_settings_availability_warning_message">Show the Manager\'s name with Availability API.\n\nBy http://localhost:4035/gotapi/availability,\n allows you to retrieve the Manager\'s name without a confirmation dialog.\n\nDo you may be enabled?</string>
+
     <string name="activity_settings_power_saving">Power Saving</string>
     <string name="activity_settings_doze_mode_title">Doze mode</string>
     <string name="activity_settings_doze_mode_summary_off">Battery optimization is disabled. It doesn\'t save battery power, because not change to doze mode.</string>

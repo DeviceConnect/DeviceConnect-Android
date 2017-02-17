@@ -338,7 +338,14 @@ class HttpDConnectSDK extends DConnectSDK {
                 if (DEBUG) {
                     Log.w(TAG, "Failed to connect the server. response=" + resp);
                 }
-                return null;
+
+                InputStream in = conn.getErrorStream();
+                int len;
+                byte[] buf = new byte[BUF_SIZE];
+                while ((len = in.read(buf)) > 0) {
+                    baos.write(buf, 0, len);
+                }
+                in.close();
             }
         } finally {
             if (conn != null) {

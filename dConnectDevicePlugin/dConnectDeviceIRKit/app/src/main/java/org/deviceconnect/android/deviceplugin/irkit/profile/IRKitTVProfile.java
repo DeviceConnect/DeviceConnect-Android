@@ -160,7 +160,8 @@ public class IRKitTVProfile extends DConnectProfile {
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
             String tv = "/" + PROFILE_NAME;
-            return sendTVRequest(getServiceID(request), "PUT", tv, response);
+            ;
+            return ((VirtualService) getService()).sendTVRequest(getServiceID(request), "PUT", tv, response);
         }
     };
 
@@ -185,7 +186,7 @@ public class IRKitTVProfile extends DConnectProfile {
                 }
                 control = control + PARAM_TUNING + "=" + request.getExtras().getString(PARAM_TUNING);
             }
-            return sendTVRequest(getServiceID(request), "PUT", control, response);
+            return ((VirtualService) getService()).sendTVRequest(getServiceID(request), "PUT", control, response);
         }
     };
 
@@ -199,7 +200,7 @@ public class IRKitTVProfile extends DConnectProfile {
         public boolean onRequest(final Intent request, final Intent response) {
             String control = "/" + PROFILE_NAME + "/" + ATTRIBUTE_VOLUME
                 + "?" + PARAM_CONTROL + "=" +  request.getExtras().getString(PARAM_CONTROL);
-            return sendTVRequest(getServiceID(request), "PUT", control, response);
+            return ((VirtualService) getService()).sendTVRequest(getServiceID(request), "PUT", control, response);
         }
     };
 
@@ -213,7 +214,7 @@ public class IRKitTVProfile extends DConnectProfile {
         public boolean onRequest(final Intent request, final Intent response) {
             String select = "/" + PROFILE_NAME + "/" + ATTRIBUTE_BROADCASTWAVE
                 + "?" + PARAM_SELECT + "=" +  request.getExtras().getString(PARAM_SELECT);
-            return sendTVRequest(getServiceID(request), "PUT", select, response);
+            return ((VirtualService) getService()).sendTVRequest(getServiceID(request), "PUT", select, response);
         }
     };
 
@@ -221,42 +222,10 @@ public class IRKitTVProfile extends DConnectProfile {
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
             String tv = "/" + PROFILE_NAME;
-            return sendTVRequest(getServiceID(request), "DELETE", tv, response);
+            return ((VirtualService) getService()).sendTVRequest(getServiceID(request), "DELETE", tv, response);
         }
     };
 
-    /**
-     * ライト用の赤外線を送信する.
-     * @param serviceId サービスID
-     * @param method HTTP Method
-     * @param uri URI
-     * @param response レスポンス
-     * @return true:同期　false:非同期
-     */
-    private boolean sendTVRequest(final String serviceId, final String method, final String uri,
-                                  final Intent response) {
-        boolean send = true;
-        IRKitDBHelper helper = new IRKitDBHelper(getContext());
-        List<VirtualProfileData> requests = helper.getVirtualProfiles(serviceId, "TV");
-        if (requests.size() == 0) {
-            MessageUtils.setInvalidRequestParameterError(response, "Invalid ServiceId");
-            return send;
-        }
-        VirtualProfileData vData = null;
-        for (VirtualProfileData req : requests) {
-            if (req.getUri().equalsIgnoreCase(uri)
-                    && req.getMethod().equals(method)
-                    && req.getIr() != null) {
-                vData = req;
-                break;
-            }
-        }
-        if (vData != null) {
-            send = ((VirtualService) getService()).sendIR(vData.getIr(), response);
-        } else {
-            MessageUtils.setInvalidRequestParameterError(response, "IR is not registered for that request");
-        }
-        return send;
-    }
+
 
 }

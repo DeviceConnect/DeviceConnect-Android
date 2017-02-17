@@ -67,7 +67,39 @@ public class VirtualService extends DConnectService {
         }
         return null;
     }
-
+    /**
+     * ライト用の赤外線を送信する.
+     * @param serviceId サービスID
+     * @param method HTTP Method
+     * @param uri URI
+     * @param response レスポンス
+     * @return true:同期　false:非同期
+     */
+    public boolean sendTVRequest(final String serviceId, final String method, final String uri,
+                                        final Intent response) {
+        boolean send = true;
+        IRKitDBHelper helper = new IRKitDBHelper(getContext());
+        List<VirtualProfileData> requests = helper.getVirtualProfiles(serviceId, "TV");
+        if (requests.size() == 0) {
+            MessageUtils.setInvalidRequestParameterError(response, "Invalid ServiceId");
+            return send;
+        }
+        VirtualProfileData vData = null;
+        for (VirtualProfileData req : requests) {
+            if (req.getUri().equalsIgnoreCase(uri)
+                    && req.getMethod().equals(method)
+                    && req.getIr() != null) {
+                vData = req;
+                break;
+            }
+        }
+        if (vData != null) {
+            send = sendIR(vData.getIr(), response);
+        } else {
+            MessageUtils.setInvalidRequestParameterError(response, "IR is not registered for that request");
+        }
+        return send;
+    }
     /**
      * 一つでも赤外線が登録されているかをチェックする.
      * @return true:登録されている, false:登録されていない
@@ -107,4 +139,6 @@ public class VirtualService extends DConnectService {
         });
         return false;
     }
+
+
 }

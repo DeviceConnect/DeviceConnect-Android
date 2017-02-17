@@ -29,7 +29,7 @@ public class IRKitPowerProfile extends DConnectProfile {
         addApi(new PutApi() {
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                return sendPowerRequest(getServiceID(request), "PUT", "/tv", response);
+                return ((VirtualService) getService()).sendTVRequest(getServiceID(request), "PUT", "/tv", response);
             }
         });
 
@@ -40,7 +40,7 @@ public class IRKitPowerProfile extends DConnectProfile {
         addApi(new DeleteApi() {
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                return sendPowerRequest(getServiceID(request), "DELETE", "/tv", response);
+                return ((VirtualService) getService()).sendTVRequest(getServiceID(request), "DELETE", "/tv", response);
             }
         });
 
@@ -51,38 +51,4 @@ public class IRKitPowerProfile extends DConnectProfile {
         return "power";
     }
 
-
-    /**
-     * ライト用の赤外線を送信する.
-     * @param serviceId サービスID
-     * @param method HTTP Method
-     * @param uri URI
-     * @param response レスポンス
-     * @return true:同期　false:非同期
-     */
-    private boolean sendPowerRequest(final String serviceId, final String method, final String uri,
-                                     final Intent response) {
-        boolean send = true;
-        IRKitDBHelper helper = new IRKitDBHelper(getContext());
-        List<VirtualProfileData> requests = helper.getVirtualProfiles(serviceId, "TV");
-        if (requests.size() == 0) {
-            MessageUtils.setInvalidRequestParameterError(response, "Invalid ServiceId");
-            return send;
-        }
-        VirtualProfileData vData = null;
-        for (VirtualProfileData req : requests) {
-            if (req.getUri().equalsIgnoreCase(uri)
-                    && req.getMethod().equals(method)
-                    && req.getIr() != null) {
-                vData = req;
-                break;
-            }
-        }
-        if (vData != null) {
-            send = ((VirtualService) getService()).sendIR(vData.getIr(), response);
-        } else {
-            MessageUtils.setInvalidRequestParameterError(response, "IR is not registered for that request");
-        }
-        return send;
-    }
 }

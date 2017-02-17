@@ -8,6 +8,7 @@ import org.deviceconnect.android.deviceplugin.irkit.data.IRKitDBHelper;
 import org.deviceconnect.android.deviceplugin.irkit.data.VirtualDeviceData;
 import org.deviceconnect.android.deviceplugin.irkit.data.VirtualProfileData;
 import org.deviceconnect.android.deviceplugin.irkit.profile.IRKitLightProfile;
+import org.deviceconnect.android.deviceplugin.irkit.profile.IRKitPowerProfile;
 import org.deviceconnect.android.deviceplugin.irkit.profile.IRKitTVProfile;
 import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.message.MessageUtils;
@@ -40,6 +41,7 @@ public class VirtualService extends DConnectService {
                 addProfile(new IRKitLightProfile());
             } else if (IRKitTVProfile.PROFILE_NAME.equalsIgnoreCase(profile.getProfile())) {
                 addProfile(new IRKitTVProfile());
+                addProfile(new IRKitPowerProfile());
             }
         }
     }

@@ -145,6 +145,9 @@ public class HostDeviceService extends DConnectMessageService {
 
         super.onCreate();
 
+        // Manager同梱のため、LocalOAuthを無効化
+        setUseLocalOAuth(false);
+
         // Get application class instance.
         mApp = (HostDeviceApplication) this.getApplication();
 

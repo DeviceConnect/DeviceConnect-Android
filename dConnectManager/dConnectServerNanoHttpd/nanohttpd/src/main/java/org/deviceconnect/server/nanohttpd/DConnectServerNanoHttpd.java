@@ -383,7 +383,8 @@ public class DConnectServerNanoHttpd extends DConnectServer {
             if (!checkHeaderSize(session)) {
                 // NanoHTTPDでは、バッファサイズを超えたHTTPヘッダーが送られてくると
                 // 挙動がおかしくなるのでここでエラーを返却して対応する。
-                Response response = newFixedLengthResponse(Status.BAD_REQUEST, NanoHTTPD.MIME_PLAINTEXT, "Request Entity Too Large");
+                Response response = newFixedLengthResponse(Status.NOT_IMPLEMENTED, MIME_APPLICATION_JSON,
+                        "{\"result\" : 1, \"errorCode\" : 1, \"errorMessage\" : \"Request Entity Too Large.\"}");
                 response.closeConnection(true);
                 return response;
             }
@@ -470,6 +471,9 @@ public class DConnectServerNanoHttpd extends DConnectServer {
             } catch (ResponseException re) {
                 return newFixedLengthResponse(re.getStatus(), MIME_APPLICATION_JSON,
                         "{\"result\" : 1, \"errorCode\" : 1, \"errorMessage\" : \"" + re.getMessage() + "\"}");
+            } catch (Exception e) {
+                return newFixedLengthResponse(Response.Status.INTERNAL_ERROR, MIME_APPLICATION_JSON,
+                        "{\"result\" : 1, \"errorCode\" : 1, \"errorMessage\" : \"INTERNAL ERROR: Exception. e=" + e.getMessage() + "\"}");
             }
         }
 

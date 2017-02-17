@@ -20,6 +20,8 @@ import org.deviceconnect.server.websocket.DConnectWebSocket;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.drafts.Draft_17;
 import org.java_websocket.handshake.ServerHandshake;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -56,7 +58,6 @@ import static junit.framework.Assert.fail;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 
 /**
@@ -67,7 +68,15 @@ import static org.junit.Assert.assertThat;
 @RunWith(AndroidJUnit4.class)
 public class DConnectServerNanoHttpdTest {
 
-    public static final String HTTP_LOCALHOST_4035 = "http://localhost:4035";
+    /**
+     * HTTP通信用URIを定義.
+     */
+    private static final String HTTP_LOCALHOST_4035 = "http://localhost:4035";
+
+    /**
+     * HTTPS通信用URIを定義.
+     */
+    private static final String HTTPS_LOCALHOST_4035 = "https://localhost:4035";
 
     private Context getContext() {
         return InstrumentationRegistry.getTargetContext();
@@ -180,7 +189,7 @@ public class DConnectServerNanoHttpdTest {
 
 
     /**
-     * DConnectServerNanoHttpdを作成する。
+     * 同じkey=valueの値を送信しても問題ないことを確認する。
      * <pre>
      * 【期待する動作】
      * ・DConnectServerNanoHttpdのインスタンスが作成できること。
@@ -369,7 +378,14 @@ public class DConnectServerNanoHttpdTest {
             HttpUtils.Response response = HttpUtils.connect("PATCH", HTTP_LOCALHOST_4035 + path, null, null);
             assertThat(response, is(notNullValue()));
             assertThat(response.getStatusCode(), is(501));
-            assertThat(response.getBody(), is(nullValue()));
+
+            JSONObject json = response.getJSONObject();
+            assertThat(json, is(notNullValue()));
+            assertThat(json.getInt("result"), is(1));
+            assertThat(json.getInt("errorCode"), is(1));
+            assertThat(json.getString("errorMessage"), is(notNullValue()));
+        } catch (JSONException e) {
+            fail("JSON Format is invalid.");
         } catch (InterruptedException e) {
             fail("timeout");
         } finally {
@@ -454,7 +470,7 @@ public class DConnectServerNanoHttpdTest {
         }
 
         try {
-            latch.await(60, TimeUnit.SECONDS);
+            latch.await(180, TimeUnit.SECONDS);
             assertThat(array.length(), is(count));
             for (int i = 0; i < count; i++) {
                 assertThat(array.get(i), is(notNullValue()));
@@ -475,7 +491,7 @@ public class DConnectServerNanoHttpdTest {
      * </pre>
      */
     @Test
-    public void DConnectServerNanoHttpd_white_list() {
+    public void DConnectServerNanoHttpd_white_list_error() {
         final CountDownLatch latch = new CountDownLatch(1);
         final String path = "/root/path";
         final String key = "key";
@@ -605,7 +621,14 @@ public class DConnectServerNanoHttpdTest {
 
             HttpUtils.Response response = HttpUtils.get(HTTP_LOCALHOST_4035 + path + "?" + key + "=" + value);
             assertThat(response.getStatusCode(), is(not(200)));
-            assertThat(response.getBody(), is(nullValue()));
+
+            JSONObject json = response.getJSONObject();
+            assertThat(json, is(notNullValue()));
+            assertThat(json.getInt("result"), is(1));
+            assertThat(json.getInt("errorCode"), is(1));
+            assertThat(json.getString("errorMessage"), is(notNullValue()));
+        } catch (JSONException e) {
+            fail("JSON Format is invalid.");
         } catch (InterruptedException e) {
             fail("timeout");
         } finally {
@@ -693,17 +716,93 @@ public class DConnectServerNanoHttpdTest {
      * HTTPボディに1GBのデータを指定して、HTTP通信を行う。
      * <pre>
      * 【期待する動作】
-     * ・DConnectServerNanoHttpdにHTTP通信して、レスポンスのステータスコードに200が返却されること。
+     * ・DConnectServerNanoHttpdにHTTP通信して、レスポンスのステータスコードに400が返却されること。
      * </pre>
      */
     @Test
-    public void DConnectServerNanoHttpd_big_body() {
+    public void DConnectServerNanoHttpd_big_body() throws IOException {
         final CountDownLatch latch = new CountDownLatch(1);
         final String path = "/root/path";
         final String key = "key";
         final String value = "value";
         final String fileNameKey = "fileName";
-        final File writeFile = writeBigFile("bigData.dat", 1024 * 1024 * 512);
+        final File writeFile = writeBigFile("bigData", ".dat", 1024);
+
+        final Map<String, Object> data = new HashMap<>();
+        data.put(key, value);
+        data.put(fileNameKey, writeFile);
+
+        File file = getContext().getFilesDir();
+        DConnectServerConfig config = new DConnectServerConfig.Builder().port(4035).documentRootPath(file.getPath()).build();
+        DConnectServer server = new DConnectServerNanoHttpd(config, getContext());
+        server.setServerEventListener(new DConnectServerEventListener() {
+            @Override
+            public boolean onReceivedHttpRequest(final HttpRequest req, final HttpResponse res) {
+                // メモリ不足エラーを発生させる
+                throw new OutOfMemoryError("OutOfMemory");
+            }
+
+            @Override
+            public void onError(final DConnectServerError errorCode) {
+            }
+
+            @Override
+            public void onServerLaunched() {
+                latch.countDown();
+            }
+
+            @Override
+            public void onWebSocketConnected(final DConnectWebSocket webSocket) {
+            }
+
+            @Override
+            public void onWebSocketDisconnected(final DConnectWebSocket webSocket) {
+            }
+
+            @Override
+            public void onWebSocketMessage(final DConnectWebSocket webSocket, final String message) {
+            }
+        });
+        server.start();
+
+        try {
+            latch.await(10, TimeUnit.SECONDS);
+
+            HttpUtils.Response response = HttpUtils.post(HTTP_LOCALHOST_4035 + path, data);
+            assertThat(response, is(notNullValue()));
+            assertThat(response.getStatusCode(), is(400));
+            assertThat(response.getBody(), is(notNullValue()));
+
+            JSONObject json = response.getJSONObject();
+            assertThat(json, is(notNullValue()));
+            assertThat(json.getInt("result"), is(1));
+            assertThat(json.getInt("errorCode"), is(1));
+            assertThat(json.getString("errorMessage"), is("Too large request."));
+        } catch (JSONException e) {
+            fail("response is invalid.");
+        } catch (InterruptedException e) {
+            fail("timeout");
+        } finally {
+            server.shutdown();
+        }
+    }
+
+
+    /**
+     * HTTPボディに壊れたマルチパートのデータを指定して、HTTP通信を行う。
+     * <pre>
+     * 【期待する動作】
+     * ・DConnectServerNanoHttpdにHTTP通信して、レスポンスのステータスコードに400が返却されること。
+     * </pre>
+     */
+    @Test
+    public void DConnectServerNanoHttpd_invalid_multipart() throws IOException {
+        final CountDownLatch latch = new CountDownLatch(1);
+        final String path = "/root/path";
+        final String key = "key";
+        final String value = "value";
+        final String fileNameKey = "fileName";
+        final File writeFile = writeBigFile("bigData", ".dat", 1024);
 
         final Map<String, Object> data = new HashMap<>();
         data.put(key, value);
@@ -737,7 +836,6 @@ public class DConnectServerNanoHttpdTest {
                 if (writeFile.length() != file.length()) {
                     res.setCode(HttpResponse.StatusCode.BAD_REQUEST);
                 }
-
                 return true;
             }
 
@@ -767,10 +865,17 @@ public class DConnectServerNanoHttpdTest {
         try {
             latch.await(10, TimeUnit.SECONDS);
 
-            HttpUtils.Response response = HttpUtils.post(HTTP_LOCALHOST_4035 + path, data);
+            HttpUtils.Response response = HttpUtils.post(HTTP_LOCALHOST_4035 + path, data, true);
             assertThat(response, is(notNullValue()));
-            assertThat(response.getStatusCode(), is(200));
+            assertThat(response.getStatusCode(), is(400));
             assertThat(response.getBody(), is(notNullValue()));
+
+            JSONObject json = response.getJSONObject();
+            assertThat(json, is(notNullValue()));
+            assertThat(json.getInt("result"), is(1));
+            assertThat(json.getInt("errorCode"), is(1));
+        } catch (JSONException e) {
+            fail("response is invalid.");
         } catch (InterruptedException e) {
             fail("timeout");
         } finally {
@@ -779,18 +884,18 @@ public class DConnectServerNanoHttpdTest {
     }
 
     /**
-     * HTTPボディにデータを指定して、HTTP通信を行う。
+     * レスポンスに1GBのボディデータがあるHTTP通信を行う。
      * <pre>
      * 【期待する動作】
      * ・DConnectServerNanoHttpdにHTTP通信して、レスポンスのステータスコードに200が返却されること。
      * </pre>
      */
     @Test
-    public void DConnectServerNanoHttpd_big_response() {
+    public void DConnectServerNanoHttpd_big_response() throws IOException {
         final CountDownLatch latch = new CountDownLatch(1);
         final String path = "/root/path";
-        final int fileSize = 1024 * 1024 * 1024;
-        final File writeFile = writeBigFile("bigData.dat", fileSize);
+        final long fileSize = 1024 * 1024 * 1024;
+        final File writeFile = writeBigFile("bigData", ".dat", fileSize);
 
         File file = getContext().getFilesDir();
         DConnectServerConfig config = new DConnectServerConfig.Builder().port(4035).documentRootPath(file.getPath()).build();
@@ -849,7 +954,65 @@ public class DConnectServerNanoHttpdTest {
             assertThat(response, is(notNullValue()));
             assertThat(response.getStatusCode(), is(200));
             assertThat(response.getBody(), is(notNullValue()));
-            assertThat((int) response.getBody().length(), is(fileSize));
+            assertThat(response.getBody().length(), is(fileSize));
+        } catch (InterruptedException e) {
+            fail("timeout");
+        } finally {
+            server.shutdown();
+        }
+    }
+
+    /**
+     * onReceivedHttpRequestの中で例外を発生させて、通信を行う。
+     * <pre>
+     * 【期待する動作】
+     * ・DConnectServerNanoHttpdにHTTP通信して、レスポンスのステータスコードに500が返却されること。
+     * </pre>
+     */
+    @Test
+    public void DConnectServerNanoHttpd_onReceivedHttpRequest_throw_exception() {
+        final CountDownLatch latch = new CountDownLatch(1);
+        final String path = "/root/path";
+
+        File file = getContext().getFilesDir();
+        DConnectServerConfig config = new DConnectServerConfig.Builder().port(4035).documentRootPath(file.getPath()).build();
+        DConnectServer server = new DConnectServerNanoHttpd(config, getContext());
+        server.setServerEventListener(new DConnectServerEventListener() {
+            @Override
+            public boolean onReceivedHttpRequest(final HttpRequest req, final HttpResponse res) {
+                throw new RuntimeException("Test Error");
+            }
+
+            @Override
+            public void onError(final DConnectServerError errorCode) {
+            }
+
+            @Override
+            public void onServerLaunched() {
+                latch.countDown();
+            }
+
+            @Override
+            public void onWebSocketConnected(final DConnectWebSocket webSocket) {
+            }
+
+            @Override
+            public void onWebSocketDisconnected(final DConnectWebSocket webSocket) {
+            }
+
+            @Override
+            public void onWebSocketMessage(final DConnectWebSocket webSocket, final String message) {
+            }
+        });
+        server.start();
+
+        try {
+            latch.await(10, TimeUnit.SECONDS);
+
+            HttpUtils.Response response = HttpUtils.get(HTTP_LOCALHOST_4035 + path);
+            assertThat(response, is(notNullValue()));
+            assertThat(response.getStatusCode(), is(500));
+            assertThat(response.getBody(), is(notNullValue()));
         } catch (InterruptedException e) {
             fail("timeout");
         } finally {
@@ -922,7 +1085,7 @@ public class DConnectServerNanoHttpdTest {
         try {
             latch.await(10, TimeUnit.SECONDS);
 
-            HttpUtils.Response response = HttpUtils.get(HTTP_LOCALHOST_4035 + path + "?" + key + "=" + value);
+            HttpUtils.Response response = HttpUtils.get(HTTPS_LOCALHOST_4035 + path + "?" + key + "=" + value);
             assertThat(response, is(notNullValue()));
             assertThat(response.getStatusCode(), is(200));
             assertThat(response.getBody(), is(notNullValue()));
@@ -998,7 +1161,7 @@ public class DConnectServerNanoHttpdTest {
         try {
             latch.await(10, TimeUnit.SECONDS);
 
-            HttpUtils.Response response = HttpUtils.post(HTTP_LOCALHOST_4035 + path, key + "=" + value);
+            HttpUtils.Response response = HttpUtils.post(HTTPS_LOCALHOST_4035 + path, key + "=" + value);
             assertThat(response, is(notNullValue()));
             assertThat(response.getStatusCode(), is(200));
             assertThat(response.getBody(), is(notNullValue()));
@@ -1215,22 +1378,22 @@ public class DConnectServerNanoHttpdTest {
         return sslcontext.getSocketFactory();
     }
 
-    private File writeBigFile(final String fileName, final int size) {
+    private File writeBigFile(final String prefix, final String suffix, final long size) throws IOException {
         File file = getContext().getFilesDir();
         FileOutputStream out = null;
-        File dstFile = new File(file, fileName);
+        File dstFile = File.createTempFile(prefix, suffix, file);
         try {
             byte[] buf = new byte[10240];
             Arrays.fill(buf, (byte) 0x01);
 
             out = new FileOutputStream(dstFile);
-            int count = 0;
+            long count = 0;
             int len = 4096;
             while (count < size) {
                 out.write(buf, 0, len);
                 count += len;
                 if (count + len > size) {
-                    len = size - count;
+                    len = (int) (size - count);
                     if (len <= 0) {
                         break;
                     }

@@ -400,7 +400,6 @@ public class ServiceListActivity extends Activity implements AlertDialogFragment
             }, 500);
         } else {
             mDConnectService.stopInternal();
-            notifyManagerTerminate();
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
@@ -411,13 +410,6 @@ public class ServiceListActivity extends Activity implements AlertDialogFragment
             });
         }
         setEnableSearchButton(checked);
-    }
-
-    /**
-     * DConnectServiceの終了ダイアログを通知する.
-     */
-    private void notifyManagerTerminate() {
-        ManagerTerminationFragment.show(this);
     }
 
     /**

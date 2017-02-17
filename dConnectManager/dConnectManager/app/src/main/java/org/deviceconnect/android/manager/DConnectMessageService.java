@@ -519,15 +519,11 @@ public abstract class DConnectMessageService extends Service
      * DConnectManagerを起動する。
      */
     protected void startDConnect() {
-        mRunningFlag = true;
-
         mHmacManager = new HmacManager(this);
         mRequestManager = new DConnectRequestManager();
         mOriginValidator = new OriginValidator(this,
                 mSettings.requireOrigin(), mSettings.isBlockingOrigin());
-
         mPluginMgr.setEventListener(this);
-
         showNotification();
     }
 
@@ -535,16 +531,28 @@ public abstract class DConnectMessageService extends Service
      * DConnectManagerを停止する.
      */
     protected void stopDConnect() {
-        mRunningFlag = false;
-
-        if (mPluginMgr != null) {
-            mPluginMgr.setEventListener(null);
-        }
-
+        sendTerminateEvent();
+        mPluginMgr.setEventListener(null);
         if (mRequestManager != null) {
             mRequestManager.shutdown();
         }
         hideNotification();
+    }
+
+    /**
+     * 全デバイスプラグインに対して、Device Connect Manager終了通知を行う.
+     */
+    private void sendTerminateEvent() {
+        List<DevicePlugin> plugins = mPluginMgr.getDevicePlugins();
+        for (DevicePlugin plugin : plugins) {
+            if (plugin.getPluginId() != null) {
+                Intent request = new Intent();
+                request.setComponent(plugin.getComponentName());
+                request.setAction(IntentDConnectMessage.ACTION_MANAGER_TERMINATED);
+                request.putExtra("pluginId", plugin.getPluginId());
+                sendBroadcast(request);
+            }
+        }
     }
 
     /**

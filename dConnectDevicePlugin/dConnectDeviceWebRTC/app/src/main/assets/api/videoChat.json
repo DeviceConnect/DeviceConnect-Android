@@ -200,7 +200,7 @@
                 }
             }
         },
-        "/incoming": {
+        "/onIncoming": {
             "get": {
                 "x-type": "one-shot",
                 "summary": "",
@@ -336,7 +336,7 @@
                 }
             }
         },
-        "/hangup": {
+        "/onHangup": {
             "get": {
                 "x-type": "one-shot",
                 "summary": "",

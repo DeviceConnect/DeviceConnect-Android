@@ -120,7 +120,7 @@ public class DConnectLaunchActivity extends Activity {
                         @Override
                         public void run() {
                             startManager();
-                            onActivityResult(0, RESULT_OK, null);
+                            setResult(RESULT_OK);
                             finish();
                         }
                     };
@@ -157,7 +157,7 @@ public class DConnectLaunchActivity extends Activity {
                                 mLogger.warning("Cannot stop Device Connect Manager automatically.");
                                 result = RESULT_ERROR;
                             }
-                            onActivityResult(0, result, null);
+                            setResult(result);
                             finish();
                         }
                     };
@@ -180,7 +180,6 @@ public class DConnectLaunchActivity extends Activity {
     @Override
     protected void onPause() {
         super.onPause();
-        onActivityResult(0, RESULT_CANCELED, null);
         if (mIsBind) {
             unbindService(mServiceConnection);
             mIsBind = false;
@@ -234,10 +233,30 @@ public class DConnectLaunchActivity extends Activity {
         mIsBind = bindService(bindIntent, mServiceConnection, Context.BIND_AUTO_CREATE);
     }
 
+    /**
+     * DConnectServiceとのバインド解除時に、OSによってDConnectServiceが破棄されてしまうことを防ぐ.
+     */
     private void preventAutoStop() {
         Intent targetIntent = new Intent();
         targetIntent.setClass(getApplicationContext(), DConnectService.class);
         startService(targetIntent);
+
+        // NOTE: 上記の処理でstartServiceを実行している理由
+        //
+        //     AndroidフレームワークのServiceは、内部的に下記の2つのフラグを持つ.
+        //
+        //         (1) startServiceされたことを示すフラグ
+        //         (2) bindServiceされたことを示すフラグ
+        //
+        //     上記のフラグをもとに、Android OSはServiceを破棄すべきかどうかを下記のように判断する.
+        //
+        //     (1) のフラグのみがONの状態でstopServiceすると、そのServiceを破棄する.
+        //     (2) のフラグのみがONの状態でunbindServiceすると、そのServiceを破棄する.
+        //     (1)(2)両方がONの状態では、stopServiceとbindServiceの両方を実行した場合に限り、破棄する.
+        //
+        //     本画面の場合、画面が閉じられたタイミングでunbindServiceするため、bindServiceするだけでは
+        //     画面を閉じられたタイミングでManagerのサービスが終了してしまう.
+        //     よって、startServiceも実行しておくことで、終了されてしまうことを回避する.
     }
 
     private void startManager() {
@@ -263,7 +282,7 @@ public class DConnectLaunchActivity extends Activity {
         cancelButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View v) {
-                onActivityResult(0, RESULT_OK, null);
+                setResult(RESULT_OK);
                 finish();
             }
         });
@@ -296,7 +315,7 @@ public class DConnectLaunchActivity extends Activity {
                 @Override
                 public void onClick(final View v) {
                     stopManager();
-                    onActivityResult(0, RESULT_OK, null);
+                    setResult(RESULT_OK);
                     finish();
                 }
             });
@@ -307,7 +326,7 @@ public class DConnectLaunchActivity extends Activity {
                 @Override
                 public void onClick(final View v) {
                     startManager();
-                    onActivityResult(0, RESULT_OK, null);
+                    setResult(RESULT_OK);
                     finish();
                 }
             });

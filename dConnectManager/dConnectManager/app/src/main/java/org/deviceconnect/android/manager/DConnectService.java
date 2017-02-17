@@ -145,12 +145,7 @@ public class DConnectService extends DConnectMessageService {
 
         if (ACTION_DISCONNECT_WEB_SOCKET.equals(action)) {
             String webSocketId = intent.getStringExtra(EXTRA_WEBSOCKET_ID);
-            if (webSocketId != null) {
-                DConnectWebSocket webSocket = mRESTfulServer.getWebSocket(webSocketId);
-                if (webSocket != null) {
-                    webSocket.disconnect();
-                }
-            }
+            disconnectWebSocket(webSocketId);
             return START_STICKY;
         }
 
@@ -182,7 +177,7 @@ public class DConnectService extends DConnectMessageService {
         } else if (status.equals("DISCONNECT")) {
             String receiverId = intent.getStringExtra(DConnectService.EXTRA_EVENT_RECEIVER_ID);
             if (receiverId != null) {
-                sendDisconnectWebSocket(receiverId);
+                disconnectWebSocketWithReceiverId(receiverId);
             }
         }
     }
@@ -243,26 +238,41 @@ public class DConnectService extends DConnectMessageService {
     }
 
     /**
-     * 該当セッションキーを持つWebSocket切断要求を送る.
+     * 指定したイベントレシーバーIDに対応するWebSocketを切断する.
+     *
      * @param receiverId イベントレシーバーID.
      */
-    public void sendDisconnectWebSocket(final String receiverId) {
+    public void disconnectWebSocketWithReceiverId(final String receiverId) {
         if (receiverId != null) {
-            mEventSender.execute(new Runnable() {
-                @Override
-                public void run() {
-                    WebSocketInfo info = getWebSocketInfo(receiverId);
-                    if (info != null) {
-                        DConnectWebSocket webSocket = mRESTfulServer.getWebSocket(info.getRawId());
-                        if (webSocket != null) {
-                            webSocket.disconnect();
-                        }
-                    } else {
-                        mLogger.warning("sendDisconnectWebSocket: WebSocketInfo is not found: key = " + receiverId);
+            WebSocketInfo info = getWebSocketInfo(receiverId);
+            if (info != null) {
+                disconnectWebSocket(info.getRawId());
+            } else {
+                mLogger.warning("disconnectWebSocketWithReceiverId: WebSocketInfo is not found: key = " + receiverId);
+            }
+        }
+    }
+
+    /**
+     * WebSocketを切断する.
+     *
+     * NOTE: Android 7以降ではメインスレッド上で切断すると例外が発生する場合があるため、
+     * 別スレッド上で実行している.
+     *
+     * @param webSocketId 内部的に発行したWebSocket ID
+     */
+    private void disconnectWebSocket(final String webSocketId) {
+        mEventSender.execute(new Runnable() {
+            @Override
+            public void run() {
+                if (webSocketId != null) {
+                    DConnectWebSocket webSocket = mRESTfulServer.getWebSocket(webSocketId);
+                    if (webSocket != null) {
+                        webSocket.disconnect();
                     }
                 }
-            });
-        }
+            }
+        });
     }
 
     /**

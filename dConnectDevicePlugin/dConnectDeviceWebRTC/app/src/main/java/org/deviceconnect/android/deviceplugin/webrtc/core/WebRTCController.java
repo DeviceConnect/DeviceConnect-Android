@@ -353,7 +353,7 @@ public class WebRTCController {
     private void sendHangupEvent() {
         List<Event> events = EventManager.INSTANCE.getEventList(
                 WebRTCService.PLUGIN_ID,
-                VideoChatProfile.PROFILE_NAME, null, VideoChatProfile.ATTR_HANGUP);
+                VideoChatProfile.PROFILE_NAME, null, VideoChatProfile.ATTR_ONHANGUP);
         if (events.size() != 0) {
             Bundle arg = new Bundle();
             arg.putString(VideoChatProfile.PARAM_NAME, getAddressId());

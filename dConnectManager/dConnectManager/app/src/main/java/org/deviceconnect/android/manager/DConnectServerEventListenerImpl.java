@@ -195,7 +195,7 @@ class DConnectServerEventListenerImpl implements DConnectServerEventListener {
                 eventKey = json.optString(DConnectMessage.EXTRA_SESSION_KEY);
                 // NOTE: 既存のイベントセッションを破棄する.
                 if (getWebSocketInfoManager().getWebSocketInfo(eventKey) != null) {
-                    ((DConnectService) mContext).sendDisconnectWebSocket(eventKey);
+                    ((DConnectService) mContext).disconnectWebSocketWithReceiverId(eventKey);
                 }
             }
             if (eventKey == null) {
@@ -219,9 +219,14 @@ class DConnectServerEventListenerImpl implements DConnectServerEventListener {
         String method = request.getMethod().name();
 
         String api = null;
+        String httpMethod = null;
         String profile = null;
         String interfaces = null;
         String attribute = null;
+        boolean existMethod = false;
+        if (paths.length >= SEGMENT_ATTRIBUTE) {
+            existMethod = isMethod(paths[1]);
+        }
 
         long start = System.currentTimeMillis();
 
@@ -232,26 +237,47 @@ class DConnectServerEventListenerImpl implements DConnectServerEventListener {
         if (paths.length == SEGMENT_PROFILE) {
             api = paths[0];
             profile = paths[1];
-        } else if (paths.length == SEGMENT_ATTRIBUTE) {
+        } else if (paths.length == SEGMENT_ATTRIBUTE && !existMethod) {
+            // パスが3つあり、HTTPメソッドがパスに指定されていない
             api = paths[0];
             profile = paths[1];
             attribute = paths[2];
-        } else if (paths.length == SEGMENT_INTERFACES) {
+        } else if (paths.length == SEGMENT_ATTRIBUTE && existMethod) {
+            // パスが3つあり、HTTPメソッドがパスに指定される
+            api = paths[0];
+            httpMethod = paths[1];
+            profile = paths[2];
+        } else if (paths.length == SEGMENT_INTERFACES && !existMethod) {
+            // パスが4つあり、HTTPメソッドがパスに指定されていない
             api = paths[0];
             profile = paths[1];
             interfaces = paths[2];
             attribute = paths[3];
+        } else if (paths.length == SEGMENT_INTERFACES && existMethod) {
+            // パスが4つあり、HTTPメソッドがパスに指定される
+            api = paths[0];
+            httpMethod = paths[1];
+            profile = paths[2];
+            attribute = paths[3];
+        } else if (paths.length == (SEGMENT_INTERFACES + 1) && existMethod) {
+            // パスが5つあり、HTTPメソッドがパスに指定される
+            api = paths[0];
+            httpMethod = paths[1];
+            profile = paths[2];
+            interfaces = paths[3];
+            attribute = paths[4];
         }
-
         if (api == null || !api.equals("gotapi")) {
             // ルートが存在しない、もしくはgotapiでない場合は404
             response.setCode(StatusCode.NOT_FOUND);
             return true;
         }
-
         // プロファイルが存在しない場合にはエラー
         if (profile == null) {
             setEmptyProfile(response);
+            return true;
+        } else if (isMethod(profile)) { //Profile名がhttpMethodの場合
+            setInvalidProfile(response);
             return true;
         }
 
@@ -262,6 +288,16 @@ class DConnectServerEventListenerImpl implements DConnectServerEventListener {
             return true;
         }
 
+       // URLにmethodが指定されている場合は、そちらのHTTPメソッドを優先する
+        if (httpMethod != null) {
+            if (action.equals(IntentDConnectMessage.ACTION_GET)) {
+                action = DConnectUtil.convertHttpMethod2DConnectMethod(httpMethod.toUpperCase());
+            } else {
+                // 元々のHTTPリクエストがGET以外の場合はエラーを返す.
+                setInvalidURL(response);
+                return true;
+            }
+        }
         // filesの時は、Device Connect Managerまでは渡さずに、ここで処理を行う
         if ("files".equalsIgnoreCase(profile)) {
             if (request.getMethod().equals(HttpRequest.Method.GET)) {
@@ -276,7 +312,7 @@ class DConnectServerEventListenerImpl implements DConnectServerEventListener {
                 }
             } else {
                 response.setCode(StatusCode.BAD_REQUEST);
-            }
+           }
             return true;
         }
 
@@ -445,7 +481,7 @@ class DConnectServerEventListenerImpl implements DConnectServerEventListener {
      */
     private void setTimeoutResponse(final HttpResponse response) {
         setErrorResponse(response, DConnectMessage.ErrorCode.TIMEOUT);
-    }
+   }
 
     /**
      * プロファイルが空の場合のエラーレスポンスを作成する.
@@ -455,7 +491,20 @@ class DConnectServerEventListenerImpl implements DConnectServerEventListener {
     private void setEmptyProfile(final HttpResponse response) {
         setErrorResponse(response, DConnectMessage.ErrorCode.NOT_SUPPORT_PROFILE);
     }
-
+    /**
+     * URLが不正の場合のエラーレスポンスを作成する.
+     * @param response レスポンスを格納するインスタンス
+     */
+    private void setInvalidURL(final HttpResponse response) {
+        setErrorResponse(response, DConnectMessage.ErrorCode.INVALID_URL);
+    }
+    /**
+     * Profileが不正の場合のエラーレスポンスを作成する.
+     * @param response レスポンスを格納するインスタンス
+     */
+    private void setInvalidProfile(final HttpResponse response){
+        setErrorResponse(response,DConnectMessage.ErrorCode.INVALID_PROFILE);
+    }
     /**
      * 原因不明エラーが発生した場合のエラーレスポンスを作成する.
      *
@@ -587,5 +636,18 @@ class DConnectServerEventListenerImpl implements DConnectServerEventListener {
         DConnectUtil.convertBundleToJSON(root, resp.getExtras());
         response.setContentType(CONTENT_TYPE_JSON);
         response.setBody(root.toString().getBytes("UTF-8"));
+    }
+
+    /**
+     * DeviceConnectがサポートしているOne ShotのHTTPメソッドかどうか.
+     * @param method HTTPメソッド
+     * @return true:DeviceConnectがサポートしているOne shotのHTTPメソッドである。<br>
+     *         false:DeviceConnectがサポートしているOne shotのHTTPメソッドではない。
+     */
+    private boolean isMethod(final String method) {
+        return method.toUpperCase().equals(DConnectMessage.METHOD_GET)
+                || method.toUpperCase().equals(DConnectMessage.METHOD_POST)
+                || method.toUpperCase().equals(DConnectMessage.METHOD_PUT)
+                || method.toUpperCase().equals(DConnectMessage.METHOD_DELETE);
     }
 }

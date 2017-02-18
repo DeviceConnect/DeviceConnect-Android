@@ -37,7 +37,6 @@ import org.deviceconnect.android.deviceplugin.host.profile.HostBatteryProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostCanvasProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostConnectProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostDeviceOrientationProfile;
-import org.deviceconnect.android.deviceplugin.host.profile.HostFileDescriptorProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostFileProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostKeyEventProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostMediaPlayerProfile;
@@ -164,7 +163,6 @@ public class HostDeviceService extends DConnectMessageService {
         hostService.addProfile(new HostCanvasProfile());
         hostService.addProfile(new HostConnectProfile(BluetoothAdapter.getDefaultAdapter()));
         hostService.addProfile(new HostDeviceOrientationProfile());
-        hostService.addProfile(new HostFileDescriptorProfile(mFileDataManager));
         hostService.addProfile(new HostFileProfile(mFileMgr));
         mHostKeyEventProfile = new HostKeyEventProfile();
         hostService.addProfile(mHostKeyEventProfile);

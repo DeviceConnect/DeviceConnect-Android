@@ -24,6 +24,7 @@ import org.deviceconnect.android.profile.api.DConnectApi;
 import org.deviceconnect.android.profile.api.DeleteApi;
 import org.deviceconnect.android.profile.api.GetApi;
 import org.deviceconnect.android.profile.api.PostApi;
+import org.deviceconnect.android.profile.api.PutApi;
 import org.deviceconnect.android.provider.FileManager;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
@@ -48,6 +49,11 @@ public class HostFileProfile extends FileProfile {
     /** Debug Tag. */
     private static final String TAG = "HOST";
 
+    /**
+     * 属性: {@value} .
+     */
+    private String ATTRIBUTE_DIRECTORY = "directory";
+
     /** FileManager. */
     private FileManager mFileManager;
 
@@ -57,11 +63,6 @@ public class HostFileProfile extends FileProfile {
     private ExecutorService mImageService = Executors.newSingleThreadExecutor();
 
     private final DConnectApi mGetReceiveApi = new GetApi() {
-
-        @Override
-        public String getAttribute() {
-            return ATTRIBUTE_RECEIVE;
-        }
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
@@ -90,6 +91,55 @@ public class HostFileProfile extends FileProfile {
         }
     };
 
+    private final DConnectApi mPutMoveApi = new PutApi() {
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            final String oldPath = request.getStringExtra("oldPath");
+            final String newPath = request.getStringExtra("newPath");
+
+            File mFile = null;
+            String filePath = "";
+
+            // パス名の先頭に"/"が含まれている場合
+            if (oldPath.indexOf("/") == 0) {
+                mFile = new File(getFileManager().getBasePath() + oldPath);
+                filePath = getFileManager().getContentUri() + oldPath;
+            } else {
+                mFile = new File(getFileManager().getBasePath() + "/" + oldPath);
+                filePath = getFileManager().getContentUri() + "/" + oldPath;
+            }
+
+            if (mFile.isFile()) {
+                final boolean forceOverwrite = isForce(request, "forceOverwrite");
+                final String path = filePath;
+                mImageService.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        byte[] data = getContentData(path);
+                        if (data != null) {
+                            saveFile(response, newPath, getMIMEType(newPath), data, forceOverwrite, new OnSavedListener() {
+
+                                @Override
+                                public void onSavedListener() {
+                                    removeFile(response, oldPath);
+                                }
+                            });
+                            return;
+                        } else {
+                            MessageUtils.setInvalidRequestParameterError(response, "not found:" + oldPath);
+                        }
+                        sendResponse(response);
+                    }
+                });
+                return false;
+            } else {
+                MessageUtils.setInvalidRequestParameterError(response, "not found:" + oldPath);
+            }
+            return true;
+        }
+    };
+
+
     private final DConnectApi mGetListApi = new GetApi() {
 
         @Override
@@ -102,180 +152,202 @@ public class HostFileProfile extends FileProfile {
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    final String path = getPath(request);
-                    final String order = getOrder(request);
-                    final Integer limit = getLimit(request);
-                    final Integer offset = getOffset(request);
+                    getFileList(request, response);
+                }
+            }).start();
+            return false;
+        }
+    };
+    private final DConnectApi mGetDirectoryApi = new GetApi() {
 
-                    File tmpDir = null;
-                    String mPath = null;
-                    Boolean currentTop = false;
-                    if (path == null) {
-                        // nullの時はTopに指定
-                        tmpDir = getFileManager().getBasePath();
-                        currentTop = true;
-                    } else if (path.equals("/")) {
-                        // /の場合はTopに指定
-                        tmpDir = getFileManager().getBasePath();
-                        currentTop = true;
-                    } else if (path.endsWith("..")) {
-                        // ..の場合は、1つ上のフォルダを指定
-                        String[] mDirs = path.split("/", 0);
-                        mPath = "/";
-                        int mCount = 0;
-                        if (mDirs[0].equals("")) {
-                            mCount = 1;
-                        }
-                        for (int i = mCount; i < mDirs.length - 2; i++) {
-                            mPath += mDirs[i] + "/";
-                        }
-                        if (mDirs.length == 1 || mPath.equals("/")) {
-                            currentTop = true;
-                        }
-                        tmpDir = new File(getFileManager().getBasePath(), mPath);
-                    } else {
-                        // それ以外は、そのフォルダを指定
-                        tmpDir = new File(getFileManager().getBasePath() + "/" + path);
-                        currentTop = false;
-                    }
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_DIRECTORY;
+        }
 
-                    final File finalTmpDir = tmpDir;
-                    final Boolean finalCurrentTop = currentTop;
-                    final String finalMPath = mPath;
-                    getFileManager().checkReadPermission(new FileManager.CheckPermissionCallback() {
-                        @Override
-                        public void onSuccess() {
-                            File[] respFileList = finalTmpDir.listFiles();
-                            if (respFileList == null) {
-                                setResult(response, DConnectMessage.RESULT_ERROR);
-                                MessageUtils.setInvalidRequestParameterError(response,
-                                    "Dir is not exist:" + finalTmpDir);
-                                sendResponse(response);
-                            } else if (order != null && !order.endsWith("desc") && !order.endsWith("asc")) {
-                                MessageUtils.setInvalidRequestParameterError(response);
-                                sendResponse(response);
-                            } else {
-                                // Set arraylist from respFileList
-                                ArrayList<FileAttribute> filelist = new ArrayList<FileAttribute>();
-                                filelist = setArrayList(respFileList, filelist);
-
-                                // Sort
-                                filelist = sortFilelist(order, filelist);
-
-                                List<Bundle> resp = new ArrayList<Bundle>();
-                                Bundle respParam = new Bundle();
-
-                                // ..のフォルダを追加(常時)
-                                if (!finalCurrentTop) {
-                                    String tmpPath = path;
-                                    if (finalMPath != null) {
-                                        tmpPath = finalMPath;
-                                    }
-                                    File parentDir = new File(tmpPath + "/..");
-                                    String path = parentDir.getPath().replaceAll("" + mFileManager.getBasePath(), "");
-                                    String name = parentDir.getName();
-                                    Long size = parentDir.length();
-                                    String mineType = "folder/dir";
-                                    int filetype = 1;
-                                    String date = mDataFormat.format(parentDir.lastModified());
-                                    FileAttribute fa = new FileAttribute(path, name, mineType, filetype, size, date);
-                                    respParam = addResponseParamToArray(fa, respParam);
-                                    resp.add((Bundle) respParam.clone());
-                                }
-
-                                ArrayList<FileAttribute> tmpfilelist = new ArrayList<FileAttribute>();
-                                if (order != null && order.endsWith("desc")) {
-                                    int last = filelist.size();
-                                    for (int i = last - 1; i >= 0; i--) {
-                                        tmpfilelist.add(filelist.get(i));
-                                    }
-                                    filelist = tmpfilelist;
-                                }
-
-                                int counter = 0;
-                                int tmpLimit = 0;
-                                int tmpOffset = 0;
-                                if (limit != null) {
-                                    if (limit >= 0) {
-                                        tmpLimit = limit;
-                                    } else {
-                                        MessageUtils.setInvalidRequestParameterError(response);
-                                        sendResponse(response);
-                                        return;
-                                    }
-                                } else {
-                                    if (request.getStringExtra(PARAM_LIMIT) != null) {
-                                        MessageUtils.setInvalidRequestParameterError(response);
-                                        sendResponse(response);
-                                        return;
-                                    }
-                                }
-                                if (offset != null) {
-                                    if (offset >= 0) {
-                                        tmpOffset = offset;
-                                    } else {
-                                        MessageUtils.setInvalidRequestParameterError(response);
-                                        sendResponse(response);
-                                        return;
-                                    }
-                                } else {
-                                    if (request.getStringExtra(PARAM_OFFSET) != null) {
-                                        MessageUtils.setInvalidRequestParameterError(response);
-                                        sendResponse(response);
-                                        return;
-                                    }
-                                }
-                                if (tmpOffset > filelist.size()) {
-                                    MessageUtils.setInvalidRequestParameterError(response);
-                                    sendResponse(response);
-                                    return;
-                                }
-                                int limitCounter = tmpLimit + tmpOffset;
-
-                                for (FileAttribute fa : filelist) {
-                                    if (limit == null || (limit != null && limitCounter > counter)) {
-                                        respParam = addResponseParamToArray(fa, respParam);
-                                        if (offset == null || (offset != null && counter >= offset)) {
-                                            resp.add((Bundle) respParam.clone());
-                                        }
-                                    }
-                                    counter++;
-                                }
-
-                                // 結果を非同期で返信
-                                setResult(response, IntentDConnectMessage.RESULT_OK);
-                                response.putExtra(PARAM_COUNT, filelist.size());
-                                response.putExtra(PARAM_FILES, resp.toArray(new Bundle[resp.size()]));
-                                sendResponse(response);
-                            }
-                        }
-
-                        @Override
-                        public void onFail() {
-                            MessageUtils.setIllegalServerStateError(response,
-                                "Permission READ_EXTERNAL_STORAGE not granted.");
-                            sendResponse(response);
-                        }
-                    });
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    getFileList(request, response);
                 }
             }).start();
             return false;
         }
     };
 
-    private final DConnectApi mPostSendApi = new PostApi() {
+    /**
+     * ファイルの一覧を返す.
+     * @param request Request Message.
+     * @param response Response Message.
+     */
+    private void getFileList(final Intent request, final Intent response) {
+        final String path = getPath(request);
+        final String order = getOrder(request);
+        final Integer limit = getLimit(request);
+        final Integer offset = getOffset(request);
 
-        @Override
-        public String getAttribute() {
-            return ATTRIBUTE_SEND;
+        File tmpDir = null;
+        String mPath = null;
+        Boolean currentTop = false;
+        if (path == null) {
+            // nullの時はTopに指定
+            tmpDir = getFileManager().getBasePath();
+            currentTop = true;
+        } else if (path.equals("/")) {
+            // /の場合はTopに指定
+            tmpDir = getFileManager().getBasePath();
+            currentTop = true;
+        } else if (path.endsWith("..")) {
+            // ..の場合は、1つ上のフォルダを指定
+            String[] mDirs = path.split("/", 0);
+            mPath = "/";
+            int mCount = 0;
+            if (mDirs[0].equals("")) {
+                mCount = 1;
+            }
+            for (int i = mCount; i < mDirs.length - 2; i++) {
+                mPath += mDirs[i] + "/";
+            }
+            if (mDirs.length == 1 || mPath.equals("/")) {
+                currentTop = true;
+            }
+            tmpDir = new File(getFileManager().getBasePath(), mPath);
+        } else {
+            // それ以外は、そのフォルダを指定
+            tmpDir = new File(getFileManager().getBasePath() + "/" + path);
+            currentTop = false;
         }
 
+        final File finalTmpDir = tmpDir;
+        final Boolean finalCurrentTop = currentTop;
+        final String finalMPath = mPath;
+        getFileManager().checkReadPermission(new FileManager.CheckPermissionCallback() {
+            @Override
+            public void onSuccess() {
+                File[] respFileList = finalTmpDir.listFiles();
+                if (respFileList == null) {
+                    setResult(response, DConnectMessage.RESULT_ERROR);
+                    MessageUtils.setInvalidRequestParameterError(response,
+                        "Dir is not exist:" + finalTmpDir);
+                    sendResponse(response);
+                } else if (order != null && !order.endsWith("desc") && !order.endsWith("asc")) {
+                    MessageUtils.setInvalidRequestParameterError(response);
+                    sendResponse(response);
+                } else {
+                    // Set arraylist from respFileList
+                    ArrayList<FileAttribute> filelist = new ArrayList<FileAttribute>();
+                    filelist = setArrayList(respFileList, filelist);
+
+                    // Sort
+                    filelist = sortFilelist(order, filelist);
+
+                    List<Bundle> resp = new ArrayList<Bundle>();
+                    Bundle respParam = new Bundle();
+
+                    // ..のフォルダを追加(常時)
+                    if (!finalCurrentTop) {
+                        String tmpPath = path;
+                        if (finalMPath != null) {
+                            tmpPath = finalMPath;
+                        }
+                        File parentDir = new File(tmpPath + "/..");
+                        String path = parentDir.getPath().replaceAll("" + mFileManager.getBasePath(), "");
+                        String name = parentDir.getName();
+                        Long size = parentDir.length();
+                        String mineType = "folder/dir";
+                        int filetype = 1;
+                        String date = mDataFormat.format(parentDir.lastModified());
+                        FileAttribute fa = new FileAttribute(path, name, mineType, filetype, size, date);
+                        respParam = addResponseParamToArray(fa, respParam);
+                        resp.add((Bundle) respParam.clone());
+                    }
+
+                    ArrayList<FileAttribute> tmpfilelist = new ArrayList<FileAttribute>();
+                    if (order != null && order.endsWith("desc")) {
+                        int last = filelist.size();
+                        for (int i = last - 1; i >= 0; i--) {
+                            tmpfilelist.add(filelist.get(i));
+                        }
+                        filelist = tmpfilelist;
+                    }
+
+                    int counter = 0;
+                    int tmpLimit = 0;
+                    int tmpOffset = 0;
+                    if (limit != null) {
+                        if (limit >= 0) {
+                            tmpLimit = limit;
+                        } else {
+                            MessageUtils.setInvalidRequestParameterError(response);
+                            sendResponse(response);
+                            return;
+                        }
+                    } else {
+                        if (request.getStringExtra(PARAM_LIMIT) != null) {
+                            MessageUtils.setInvalidRequestParameterError(response);
+                            sendResponse(response);
+                            return;
+                        }
+                    }
+                    if (offset != null) {
+                        if (offset >= 0) {
+                            tmpOffset = offset;
+                        } else {
+                            MessageUtils.setInvalidRequestParameterError(response);
+                            sendResponse(response);
+                            return;
+                        }
+                    } else {
+                        if (request.getStringExtra(PARAM_OFFSET) != null) {
+                            MessageUtils.setInvalidRequestParameterError(response);
+                            sendResponse(response);
+                            return;
+                        }
+                    }
+                    if (tmpOffset > filelist.size()) {
+                        MessageUtils.setInvalidRequestParameterError(response);
+                        sendResponse(response);
+                        return;
+                    }
+                    int limitCounter = tmpLimit + tmpOffset;
+
+                    for (FileAttribute fa : filelist) {
+                        if (limit == null || (limit != null && limitCounter > counter)) {
+                            respParam = addResponseParamToArray(fa, respParam);
+                            if (offset == null || (offset != null && counter >= offset)) {
+                                resp.add((Bundle) respParam.clone());
+                            }
+                        }
+                        counter++;
+                    }
+
+                    // 結果を非同期で返信
+                    setResult(response, IntentDConnectMessage.RESULT_OK);
+                    response.putExtra(PARAM_COUNT, filelist.size());
+                    response.putExtra(PARAM_FILES, resp.toArray(new Bundle[resp.size()]));
+                    sendResponse(response);
+                }
+            }
+
+            @Override
+            public void onFail() {
+                MessageUtils.setIllegalServerStateError(response,
+                    "Permission READ_EXTERNAL_STORAGE not granted.");
+                sendResponse(response);
+            }
+        });
+    }
+
+    private final DConnectApi mPostSendApi = new PostApi() {
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
             final String path = getPath(request);
             final String uri = getURI(request);
             final String mimeType = getMIMEType(request);
             final byte[] data = getData(request);
+            final boolean forceOverwrite = isForce(request, "forceOverwrite");
             if (data == null) {
                 mImageService.execute(new Runnable() {
                     @Override
@@ -286,20 +358,38 @@ public class HostFileProfile extends FileProfile {
                             sendResponse(response);
                             return;
                         }
-                        saveFile(response, path, mimeType, result);
-                        sendResponse(response);
+                        saveFile(response, path, mimeType, result, forceOverwrite, new OnSavedListener() {
+                            @Override
+                            public void onSavedListener() {
+                                sendResponse(response);
+                            }
+                        });
                     }
                 });
                 return false;
             }
 
-            saveFile(response, path, mimeType, data);
+            saveFile(response, path, mimeType, data, forceOverwrite, new OnSavedListener() {
+                @Override
+                public void onSavedListener() {
+                    sendResponse(response);
+                }
+            });
             return false;
         }
     };
 
-    private void saveFile(final Intent response, final String path, final String mimeType, final byte[] data) {
-        getFileManager().saveFile(path, data, new FileManager.SaveFileCallback() {
+    private boolean isForce(final Intent request, final String key) {
+        Boolean force = parseBoolean(request, key);
+        if (force == null) {
+            force = Boolean.FALSE;
+        }
+        return force;
+    }
+
+    private void saveFile(final Intent response, final String path, final String mimeType, final byte[] data, final boolean forceOverwrite,
+                          final OnSavedListener l) {
+        getFileManager().saveFile(path, data, forceOverwrite, new FileManager.SaveFileCallback() {
             @Override
             public void onSuccess(@NonNull final String uri) {
                 String mMineType = mimeType;
@@ -363,52 +453,52 @@ public class HostFileProfile extends FileProfile {
                     mValues.put(MediaStore.Video.Media.DATA, getFileManager().getBasePath() + "/" + path);
                     mContentResolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, mValues);
                 }
+                setResult(response, DConnectMessage.RESULT_OK);
+                if (l != null) {
+                    l.onSavedListener();
+                }
+            }
 
+            @Override
+            public void onFail(@NonNull final Throwable throwable) {
+                setResult(response, DConnectMessage.RESULT_ERROR);
+                MessageUtils.setInvalidRequestParameterError(response, throwable.getMessage());
+                sendResponse(response);
+            }
+        });
+    }
+
+    private DConnectApi mDeleteRemoveApi = new DeleteApi() {
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            final String path = getPath(request);
+            removeFile(response, path);
+            return false;
+        }
+    };
+
+    private void removeFile(final Intent response, final String path) {
+        getFileManager().removeFile(path, new FileManager.RemoveFileCallback() {
+            @Override
+            public void onSuccess() {
                 setResult(response, DConnectMessage.RESULT_OK);
                 sendResponse(response);
             }
 
             @Override
             public void onFail(@NonNull final Throwable throwable) {
-                setResult(response, DConnectMessage.RESULT_ERROR);
-                MessageUtils.setInvalidRequestParameterError(response, "Path is null, you must input path.");
+                MessageUtils.setInvalidRequestParameterError(response, "Failed to remove file: " + path);
                 sendResponse(response);
             }
         });
     }
 
-        private DConnectApi mDeleteRemoveApi = new DeleteApi() {
-
-        @Override
-        public String getAttribute() {
-            return ATTRIBUTE_REMOVE;
-        }
-
-        @Override
-        public boolean onRequest(final Intent request, final Intent response) {
-            final String path = getPath(request);
-            getFileManager().removeFile(path, new FileManager.RemoveFileCallback() {
-                @Override
-                public void onSuccess() {
-                    setResult(response, DConnectMessage.RESULT_OK);
-                    sendResponse(response);
-                }
-
-                @Override
-                public void onFail(@NonNull final Throwable throwable) {
-                    MessageUtils.setInvalidRequestParameterError(response, "Failed to remove file: " + path);
-                    sendResponse(response);
-                }
-            });
-            return false;
-        }
-    };
-
     private final DConnectApi mPostMkdirApi = new PostApi() {
 
         @Override
         public String getAttribute() {
-            return ATTRIBUTE_MKDIR;
+            return ATTRIBUTE_DIRECTORY;
         }
 
         @Override
@@ -451,7 +541,7 @@ public class HostFileProfile extends FileProfile {
 
         @Override
         public String getAttribute() {
-            return ATTRIBUTE_RMDIR;
+            return ATTRIBUTE_DIRECTORY;
         }
 
         @Override
@@ -498,7 +588,9 @@ public class HostFileProfile extends FileProfile {
         super(fileMgr);
         mFileManager = fileMgr;
         addApi(mGetReceiveApi);
+        addApi(mPutMoveApi);
         addApi(mGetListApi);
+        addApi(mGetDirectoryApi);
         addApi(mPostSendApi);
         addApi(mDeleteRemoveApi);
         addApi(mPostMkdirApi);
@@ -623,6 +715,13 @@ public class HostFileProfile extends FileProfile {
         ext = ext.toLowerCase(Locale.getDefault());
         // MIME Typeを返す
         return MimeTypeMap.getSingleton().getMimeTypeFromExtension(ext);
+    }
+
+    /**
+     * 保存後の処理を行う.
+     */
+    private interface OnSavedListener {
+        void onSavedListener();
     }
 
     /**

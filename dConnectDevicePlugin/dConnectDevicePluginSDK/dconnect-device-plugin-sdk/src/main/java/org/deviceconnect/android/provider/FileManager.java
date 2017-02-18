@@ -6,15 +6,6 @@
  */
 package org.deviceconnect.android.provider;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.logging.Logger;
-
-import org.deviceconnect.android.activity.PermissionUtility;
-import org.deviceconnect.android.provider.FileLocationParser.FileLocation;
-
 import android.Manifest;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -28,6 +19,15 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.support.annotation.NonNull;
+
+import org.deviceconnect.android.activity.PermissionUtility;
+import org.deviceconnect.android.provider.FileLocationParser.FileLocation;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.logging.Logger;
 
 /**
  * ファイルを管理するためのクラス.
@@ -299,13 +299,12 @@ public class FileManager {
      * ここで、保存すると返り値にURIが返ってくる。 このURIをFile Profileのuriの値としてDevice Connect
      * Managerに 渡す事で、ファイルのやり取りができるようになる。
      *
-     * TODO 既に同じ名前のファイルが存在する場合の処理を考慮すること。
-     *
      * @param filename ファイル名
      * @param data ファイルデータ
+     * @param forceOverwrite 強制上書きフラグ
      * @param callback コールバック
      */
-    public final void saveFile(@NonNull final String filename, @NonNull final byte[] data,
+    public final void saveFile(@NonNull final String filename, @NonNull final byte[] data, final boolean forceOverwrite,
             @NonNull final SaveFileCallback callback) {
         checkWritePermission(new CheckPermissionCallback() {
             @Override
@@ -319,6 +318,11 @@ public class FileManager {
                 }
                 Uri u = Uri.parse("file://" + new File(tmpPath, filename).getAbsolutePath());
                 ContentResolver contentResolver = mContext.getContentResolver();
+                File existCheck = new File(u.getPath());
+                if (existCheck.exists() && !forceOverwrite) {
+                    callback.onFail(new IOException(filename + " already exists"));
+                    return;
+                }
                 OutputStream out = null;
                 try {
                     out = contentResolver.openOutputStream(u, "w");

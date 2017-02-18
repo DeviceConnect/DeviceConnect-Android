@@ -65,13 +65,6 @@
         <description lang="en">Accesses files in devices.</description>
     </profile>
 
-    <profile name="fileDescriptor" expireperiod="86400000">
-        <name lang="ja">ファイルディスクリプタ</name>
-        <description lang="ja">ファイルディスクリプタ機能にアクセスする</description>
-        <name lang="en">File Descriptor</name>
-        <description lang="en">Accesses file descriptor feature.</description>
-    </profile>
-
     <profile name="proximity" expireperiod="86400000">
         <name lang="ja">近接</name>
         <description lang="ja">デバイスへの近接イベントを取得する</description>

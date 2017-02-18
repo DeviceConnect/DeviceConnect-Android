@@ -177,6 +177,147 @@ public class HostFileProfile extends FileProfile {
         }
     };
 
+    private final DConnectApi mPostSendApi = new PostApi() {
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            final String path = getPath(request);
+            final String uri = getURI(request);
+            final String mimeType = getMIMEType(request);
+            final byte[] data = getData(request);
+            final boolean forceOverwrite = isForce(request, "forceOverwrite");
+            if (data == null) {
+                mImageService.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        byte[] result = getData(uri);
+                        if (result == null) {
+                            MessageUtils.setInvalidRequestParameterError(response, "could not get image from uri.");
+                            sendResponse(response);
+                            return;
+                        }
+                        saveFile(response, path, mimeType, result, forceOverwrite, new OnSavedListener() {
+                            @Override
+                            public void onSavedListener() {
+                                sendResponse(response);
+                            }
+                        });
+                    }
+                });
+                return false;
+            }
+
+            saveFile(response, path, mimeType, data, forceOverwrite, new OnSavedListener() {
+                @Override
+                public void onSavedListener() {
+                    sendResponse(response);
+                }
+            });
+            return false;
+        }
+    };
+    private DConnectApi mDeleteRemoveApi = new DeleteApi() {
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            final String path = getPath(request);
+            removeFile(response, path);
+            return false;
+        }
+    };
+
+
+
+    private final DConnectApi mPostMkdirApi = new PostApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_DIRECTORY;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            final String path = getPath(request);
+            getFileManager().checkWritePermission(new FileManager.CheckPermissionCallback() {
+                @Override
+                public void onSuccess() {
+                    File mBaseDir = mFileManager.getBasePath();
+                    File mMakeDir = new File(mBaseDir, path);
+
+                    if (mMakeDir.isDirectory()) {
+                        setResult(response, DConnectMessage.RESULT_ERROR);
+                        MessageUtils.setInvalidRequestParameterError(response,
+                            "can not make dir, \"" + mMakeDir + "\" already exist.");
+                    } else {
+                        boolean isMakeDir = mMakeDir.mkdirs();
+                        if (isMakeDir) {
+                            setResult(response, DConnectMessage.RESULT_OK);
+                        } else {
+                            setResult(response, DConnectMessage.RESULT_ERROR);
+                            MessageUtils.setInvalidRequestParameterError(response, "can not make dir :" + mMakeDir);
+                        }
+                    }
+                    sendResponse(response);
+                }
+
+                @Override
+                public void onFail() {
+                    MessageUtils.setIllegalServerStateError(response,
+                        "Permission WRITE_EXTERNAL_STORAGE not granted.");
+                    sendResponse(response);
+                }
+            });
+            return false;
+        }
+    };
+
+    private final DConnectApi mDeleteRmdirApi = new DeleteApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_DIRECTORY;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            final String path = getPath(request);
+            final boolean forceRemove = isForce(request, "forceRemove");
+            getFileManager().checkWritePermission(new FileManager.CheckPermissionCallback() {
+                @Override
+                public void onSuccess() {
+                    File mBaseDir = mFileManager.getBasePath();
+                    File mDeleteDir = new File(mBaseDir, path);
+
+                    if (mDeleteDir.isFile()) {
+                        setResult(response, DConnectMessage.RESULT_ERROR);
+                        MessageUtils.setInvalidRequestParameterError(response, mDeleteDir + "is file");
+                    } else {
+                        if (!forceRemove && existFileInDirectory(mDeleteDir)) {
+                            setResult(response, DConnectMessage.RESULT_ERROR);
+                            MessageUtils.setUnknownError(response, "Exist file in directory:" + mDeleteDir);
+                        } else {
+                            boolean isDelete = deleteDirectory(mDeleteDir);
+                            if (isDelete) {
+                                setResult(response, DConnectMessage.RESULT_OK);
+                            } else {
+                                setResult(response, DConnectMessage.RESULT_ERROR);
+                                MessageUtils.setUnknownError(response, "can not delete dir :" + mDeleteDir);
+                            }
+                        }
+                    }
+                    sendResponse(response);
+                }
+
+                @Override
+                public void onFail() {
+                    MessageUtils.setIllegalServerStateError(response,
+                        "Permission WRITE_EXTERNAL_STORAGE not granted.");
+                    sendResponse(response);
+                }
+            });
+            return false;
+        }
+    };
+
     /**
      * ファイルの一覧を返す.
      * @param request Request Message.
@@ -230,7 +371,7 @@ public class HostFileProfile extends FileProfile {
                 if (respFileList == null) {
                     setResult(response, DConnectMessage.RESULT_ERROR);
                     MessageUtils.setInvalidRequestParameterError(response,
-                        "Dir is not exist:" + finalTmpDir);
+                            "Dir is not exist:" + finalTmpDir);
                     sendResponse(response);
                 } else if (order != null && !order.endsWith("desc") && !order.endsWith("asc")) {
                     MessageUtils.setInvalidRequestParameterError(response);
@@ -334,59 +475,12 @@ public class HostFileProfile extends FileProfile {
             @Override
             public void onFail() {
                 MessageUtils.setIllegalServerStateError(response,
-                    "Permission READ_EXTERNAL_STORAGE not granted.");
+                        "Permission READ_EXTERNAL_STORAGE not granted.");
                 sendResponse(response);
             }
         });
     }
-
-    private final DConnectApi mPostSendApi = new PostApi() {
-        @Override
-        public boolean onRequest(final Intent request, final Intent response) {
-            final String path = getPath(request);
-            final String uri = getURI(request);
-            final String mimeType = getMIMEType(request);
-            final byte[] data = getData(request);
-            final boolean forceOverwrite = isForce(request, "forceOverwrite");
-            if (data == null) {
-                mImageService.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        byte[] result = getData(uri);
-                        if (result == null) {
-                            MessageUtils.setInvalidRequestParameterError(response, "could not get image from uri.");
-                            sendResponse(response);
-                            return;
-                        }
-                        saveFile(response, path, mimeType, result, forceOverwrite, new OnSavedListener() {
-                            @Override
-                            public void onSavedListener() {
-                                sendResponse(response);
-                            }
-                        });
-                    }
-                });
-                return false;
-            }
-
-            saveFile(response, path, mimeType, data, forceOverwrite, new OnSavedListener() {
-                @Override
-                public void onSavedListener() {
-                    sendResponse(response);
-                }
-            });
-            return false;
-        }
-    };
-
-    private boolean isForce(final Intent request, final String key) {
-        Boolean force = parseBoolean(request, key);
-        if (force == null) {
-            force = Boolean.FALSE;
-        }
-        return force;
-    }
-
+    // ファイルを保存する.
     private void saveFile(final Intent response, final String path, final String mimeType, final byte[] data, final boolean forceOverwrite,
                           final OnSavedListener l) {
         getFileManager().saveFile(path, data, forceOverwrite, new FileManager.SaveFileCallback() {
@@ -410,8 +504,8 @@ public class HostFileProfile extends FileProfile {
                 }
                 // 音楽データに関してはContents Providerに登録
                 if (mMineType.endsWith("audio/mpeg") || mMineType.endsWith("audio/x-wav")
-                    || mMineType.endsWith("audio/mp4") || mMineType.endsWith("audio/ogg")
-                    || mMineType.endsWith("audio/mp3") || mMineType.endsWith("audio/x-ms-wma")) {
+                        || mMineType.endsWith("audio/mp4") || mMineType.endsWith("audio/ogg")
+                        || mMineType.endsWith("audio/mp3") || mMineType.endsWith("audio/x-ms-wma")) {
 
                     MediaMetadataRetriever mMediaMeta = new MediaMetadataRetriever();
                     mMediaMeta.setDataSource(getFileManager().getBasePath() + "/" + path);
@@ -435,8 +529,8 @@ public class HostFileProfile extends FileProfile {
                     mValues.put(MediaStore.Audio.Media.DATA, getFileManager().getBasePath() + "/" + path);
                     mContentResolver.insert(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, mValues);
                 } else if (mMineType.endsWith("video/mp4") || mMineType.endsWith("video/3gpp")
-                    || mMineType.endsWith("video/3gpp2") || mMineType.endsWith("video/mpeg")
-                    || mMineType.endsWith("video/m4v")) {
+                        || mMineType.endsWith("video/3gpp2") || mMineType.endsWith("video/mpeg")
+                        || mMineType.endsWith("video/m4v")) {
                     MediaMetadataRetriever mMediaMeta = new MediaMetadataRetriever();
                     mMediaMeta.setDataSource(getFileManager().getBasePath() + "/" + path);
                     String mTitle = mMediaMeta.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
@@ -468,16 +562,7 @@ public class HostFileProfile extends FileProfile {
         });
     }
 
-    private DConnectApi mDeleteRemoveApi = new DeleteApi() {
-
-        @Override
-        public boolean onRequest(final Intent request, final Intent response) {
-            final String path = getPath(request);
-            removeFile(response, path);
-            return false;
-        }
-    };
-
+    // ファイルの削除を行う.
     private void removeFile(final Intent response, final String path) {
         getFileManager().removeFile(path, new FileManager.RemoveFileCallback() {
             @Override
@@ -494,90 +579,35 @@ public class HostFileProfile extends FileProfile {
         });
     }
 
-    private final DConnectApi mPostMkdirApi = new PostApi() {
-
-        @Override
-        public String getAttribute() {
-            return ATTRIBUTE_DIRECTORY;
-        }
-
-        @Override
-        public boolean onRequest(final Intent request, final Intent response) {
-            final String path = getPath(request);
-            getFileManager().checkWritePermission(new FileManager.CheckPermissionCallback() {
-                @Override
-                public void onSuccess() {
-                    File mBaseDir = mFileManager.getBasePath();
-                    File mMakeDir = new File(mBaseDir, path);
-
-                    if (mMakeDir.isDirectory()) {
-                        setResult(response, DConnectMessage.RESULT_ERROR);
-                        MessageUtils.setInvalidRequestParameterError(response,
-                            "can not make dir, \"" + mMakeDir + "\" already exist.");
-                    } else {
-                        boolean isMakeDir = mMakeDir.mkdirs();
-                        if (isMakeDir) {
-                            setResult(response, DConnectMessage.RESULT_OK);
-                        } else {
-                            setResult(response, DConnectMessage.RESULT_ERROR);
-                            MessageUtils.setInvalidRequestParameterError(response, "can not make dir :" + mMakeDir);
-                        }
-                    }
-                    sendResponse(response);
-                }
-
-                @Override
-                public void onFail() {
-                    MessageUtils.setIllegalServerStateError(response,
-                        "Permission WRITE_EXTERNAL_STORAGE not granted.");
-                    sendResponse(response);
-                }
-            });
+    // ディレクトリ内部にファイルがあっても削除する.
+    private boolean deleteDirectory(File f) {
+        if (!f.exists()) {
             return false;
         }
-    };
-
-    private final DConnectApi mDeleteRmdirApi = new DeleteApi() {
-
-        @Override
-        public String getAttribute() {
-            return ATTRIBUTE_DIRECTORY;
+        if (f.isFile()) {
+            f.delete();
+        } else if(f.isDirectory()){
+            File[] files = f.listFiles();
+            for(int i = 0; i < files.length; i++) {
+                deleteDirectory(files[i]);
+            }
+            f.delete();
         }
+        return true;
+    }
+    // ディレクトリ内に１つでもファイルが存在するか。true:存在する false:存在しない
+    private boolean existFileInDirectory(final File directory) {
+        return directory.listFiles().length > 0;
+    }
 
-        @Override
-        public boolean onRequest(final Intent request, final Intent response) {
-            final String path = getPath(request);
-            getFileManager().checkWritePermission(new FileManager.CheckPermissionCallback() {
-                @Override
-                public void onSuccess() {
-                    File mBaseDir = mFileManager.getBasePath();
-                    File mDeleteDir = new File(mBaseDir, path);
-
-                    if (mDeleteDir.isFile()) {
-                        setResult(response, DConnectMessage.RESULT_ERROR);
-                        MessageUtils.setInvalidRequestParameterError(response, mDeleteDir + "is file");
-                    } else {
-                        boolean isDelete = mDeleteDir.delete();
-                        if (isDelete) {
-                            setResult(response, DConnectMessage.RESULT_OK);
-                        } else {
-                            setResult(response, DConnectMessage.RESULT_ERROR);
-                            MessageUtils.setUnknownError(response, "can not delete dir :" + mDeleteDir);
-                        }
-                    }
-                    sendResponse(response);
-                }
-
-                @Override
-                public void onFail() {
-                    MessageUtils.setIllegalServerStateError(response,
-                        "Permission WRITE_EXTERNAL_STORAGE not granted.");
-                    sendResponse(response);
-                }
-            });
-            return false;
+    // 強制フラグを取得する.
+    private boolean isForce(final Intent request, final String key) {
+        Boolean force = parseBoolean(request, key);
+        if (force == null) {
+            force = Boolean.FALSE;
         }
-    };
+        return force;
+    }
 
     /**
      * コンストラクタ.

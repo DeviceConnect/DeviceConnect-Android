@@ -25,32 +25,7 @@ public interface FileProfileConstants extends DConnectProfileConstants {
     /**
      * 属性: {@value} .
      */
-    String ATTRIBUTE_RECEIVE = "receive";
-
-    /**
-     * 属性: {@value} .
-     */
-    String ATTRIBUTE_SEND = "send";
-
-    /**
-     * 属性: {@value} .
-     */
     String ATTRIBUTE_LIST = "list";
-
-    /**
-     * 属性: {@value} .
-     */
-    String ATTRIBUTE_RMDIR = "rmdir";
-
-    /**
-     * 属性: {@value} .
-     */
-    String ATTRIBUTE_MKDIR = "mkdir";
-
-    /**
-     * 属性: {@value} .
-     */
-    String ATTRIBUTE_REMOVE = "remove";
 
     /**
      * パス: {@value}.
@@ -60,32 +35,7 @@ public interface FileProfileConstants extends DConnectProfileConstants {
     /**
      * パス: {@value} .
      */
-    String PATH_RECEIVE = PATH_PROFILE + SEPARATOR + ATTRIBUTE_RECEIVE;
-
-    /**
-     * パス: {@value} .
-     */
-    String PATH_SEND = PATH_PROFILE + SEPARATOR + ATTRIBUTE_SEND;
-
-    /**
-     * パス: {@value} .
-     */
     String PATH_LIST = PATH_PROFILE + SEPARATOR + ATTRIBUTE_LIST;
-
-    /**
-     * パス: {@value} .
-     */
-    String PATH_RMDIR = PATH_PROFILE + SEPARATOR + ATTRIBUTE_RMDIR;
-
-    /**
-     * パス: {@value} .
-     */
-    String PATH_MKDIR = PATH_PROFILE + SEPARATOR + ATTRIBUTE_MKDIR;
-
-    /**
-     * パス: {@value} .
-     */
-    String PATH_REMOVE = PATH_PROFILE + SEPARATOR + ATTRIBUTE_REMOVE;
 
     /**
      * パラメータ: {@value} .

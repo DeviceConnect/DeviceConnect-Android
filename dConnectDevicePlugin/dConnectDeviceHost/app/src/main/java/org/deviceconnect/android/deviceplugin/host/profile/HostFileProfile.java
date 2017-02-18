@@ -189,7 +189,14 @@ public class HostFileProfile extends FileProfile {
                 mImageService.execute(new Runnable() {
                     @Override
                     public void run() {
-                        byte[] result = getData(uri);
+                        byte[] result;
+                        try {
+                           result = getData(uri);
+                        } catch (OutOfMemoryError e) {
+                            MessageUtils.setInvalidRequestParameterError(response, e.getMessage());
+                            sendResponse(response);
+                            return;
+                        }
                         if (result == null) {
                             MessageUtils.setInvalidRequestParameterError(response, "could not get image from uri.");
                             sendResponse(response);

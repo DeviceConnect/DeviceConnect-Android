@@ -270,6 +270,63 @@ public class HostFileProfile extends FileProfile {
         }
     };
 
+    private final DConnectApi mPutMvDirApi = new PutApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_DIRECTORY;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            getFileManager().checkWritePermission(new FileManager.CheckPermissionCallback() {
+                @Override
+                public void onSuccess() {
+                    String oldPath = request.getStringExtra("oldPath");
+                    String newPath = request.getStringExtra("newPath");
+                    File mBaseDir = mFileManager.getBasePath();
+                    File mOldDir = new File(mBaseDir, oldPath);
+                    File mNewDir = new File(mBaseDir, newPath);
+                    File tempNewDir = new File(mBaseDir, newPath + "/" + mOldDir.getName());
+
+                    if (!mOldDir.exists()) {
+                        setResult(response, DConnectMessage.RESULT_ERROR);
+                        MessageUtils.setInvalidRequestParameterError(response,
+                                "Not exists, \"" + mOldDir + "\"");
+                    } else if (tempNewDir.exists()) {
+                        setResult(response, DConnectMessage.RESULT_ERROR);
+                        MessageUtils.setInvalidRequestParameterError(response,
+                                "Already exists, \"" + tempNewDir + "\"");
+                    } else if (!mOldDir.isDirectory()) {
+                            setResult(response, DConnectMessage.RESULT_ERROR);
+                            MessageUtils.setInvalidRequestParameterError(response,
+                                    "Not directory, \"" + mOldDir + "\"");
+                    } else if (!mNewDir.isDirectory()) {
+                        setResult(response, DConnectMessage.RESULT_ERROR);
+                        MessageUtils.setInvalidRequestParameterError(response,
+                                "Not directory, \"" + mNewDir + "\"");
+                    } else {
+                        boolean isMoveDir = mOldDir.renameTo(tempNewDir);
+                        if (isMoveDir) {
+                            setResult(response, DConnectMessage.RESULT_OK);
+                        } else {
+                            setResult(response, DConnectMessage.RESULT_ERROR);
+                            MessageUtils.setInvalidRequestParameterError(response, "can not move dir :" + mOldDir + " and " + mNewDir);
+                        }
+                    }
+                    sendResponse(response);
+                }
+
+                @Override
+                public void onFail() {
+                    MessageUtils.setIllegalServerStateError(response,
+                            "Permission WRITE_EXTERNAL_STORAGE not granted.");
+                    sendResponse(response);
+                }
+            });
+            return false;
+        }
+    };
+
     private final DConnectApi mDeleteRmdirApi = new DeleteApi() {
 
         @Override
@@ -624,6 +681,7 @@ public class HostFileProfile extends FileProfile {
         addApi(mPostSendApi);
         addApi(mDeleteRemoveApi);
         addApi(mPostMkdirApi);
+        addApi(mPutMvDirApi);
         addApi(mDeleteRmdirApi);
     }
 

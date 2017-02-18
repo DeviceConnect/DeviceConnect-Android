@@ -37,12 +37,6 @@ public class ThetaFileProfile extends FileProfile {
     private final ThetaDeviceClient mClient;
 
     private final DConnectApi mGetReceiveApi = new GetApi() {
-
-        @Override
-        public String getAttribute() {
-            return ATTRIBUTE_RECEIVE;
-        }
-
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
             String serviceId = getServiceID(request);
@@ -94,98 +88,104 @@ public class ThetaFileProfile extends FileProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            final String serviceId = getServiceID(request);
-            final String path = getPath(request);
-            final String order = getOrder(request);
-            final Integer limit = getLimit(request);
-            final Integer offset = getOffset(request);
-            final String sortDirection;
-            final String sortTargetParam;
-
-            if (path != null && !path.equals("/")) {
-                MessageUtils.setInvalidRequestParameterError(response, "the specified directory is not found.");
-                return true;
-            }
-            if (order != null) {
-                String[] conditions = order.split(",");
-                if (conditions.length != 2) {
-                    MessageUtils.setInvalidRequestParameterError(response, "order is invalid.");
-                    return true;
-                }
-                sortTargetParam = conditions[0];
-                sortDirection = conditions[1];
-                if (!sortTargetParam.equals(PARAM_PATH) && !sortTargetParam.equals(PARAM_FILE_NAME)
-                    && !sortTargetParam.equals(PARAM_MIME_TYPE) && !sortTargetParam.equals(PARAM_UPDATE_DATE)
-                    && !sortTargetParam.equals(PARAM_FILE_SIZE) && !sortTargetParam.equals(PARAM_FILE_TYPE)) {
-                    MessageUtils.setInvalidRequestParameterError(response, "target parameter name is invalid.");
-                    return true;
-                }
-                if (!sortDirection.equals(Order.ASC.getValue()) && !sortDirection.equals(Order.DSEC.getValue())) {
-                    MessageUtils.setInvalidRequestParameterError(response, "direction of order is invalid.");
-                    return true;
-                }
-            } else {
-                sortDirection = null;
-                sortTargetParam = null;
-            }
-
-            mClient.fetchAllObjectList(serviceId, new ThetaDeviceClient.DefaultListener() {
-
-                @Override
-                public void onObjectList(final List<ThetaObject> objList) {
-                    int start = offset != null ? offset : 0;
-                    if (start >= objList.size()) {
-                        MessageUtils.setInvalidRequestParameterError(response, "offset is too large.");
-                        sendResponse(response);
-                        return;
-                    }
-
-                    List<ThetaObject> list = sortObjectList(sortTargetParam, sortDirection, objList);
-                    int end = limit != null ? start + limit : list.size();
-                    if (end > list.size()) {
-                        end = list.size();
-                    }
-                    list = (start < end) ? list.subList(start, end) : new LinkedList<ThetaObject>();
-
-                    List<Bundle> file = new ArrayList<Bundle>();
-                    for (ThetaObject obj : list) {
-                        Bundle b = new Bundle();
-                        setPath(b, "/" + obj.getFileName());
-                        setMIMEType(b, obj.getMimeType());
-                        setFileName(b, obj.getFileName());
-                        setUpdateDate(b, obj.getCreationTime());
-                        //setFileSize(b, obj.mSize); // TODO
-                        file.add(b);
-                    }
-                    setFiles(response, file);
-                    setResult(response, DConnectMessage.RESULT_OK);
-                    sendResponse(response);
-                }
-
-                @Override
-                public void onFailed(final ThetaDeviceException cause) {
-                    switch (cause.getReason()) {
-                        case ThetaDeviceException.NOT_FOUND_THETA:
-                            MessageUtils.setNotFoundServiceError(response);
-                            break;
-                        default:
-                            MessageUtils.setUnknownError(response, cause.getMessage());
-                            break;
-                    }
-                    sendResponse(response);
-                }
-
-            });
-            return false;
+            return getFileList(request, response);
         }
     };
 
-    private final DConnectApi mDeleteRemoveApi = new DeleteApi() {
+    private final DConnectApi mGetDirectoryApi = new GetApi() {
         @Override
-        public String getAttribute() {
-            return ATTRIBUTE_REMOVE;
+        public boolean onRequest(final Intent request, final Intent response) {
+            return getFileList(request, response);
+        }
+    };
+
+    private boolean getFileList(Intent request, final Intent response) {
+        final String serviceId = getServiceID(request);
+        final String path = getPath(request);
+        final String order = getOrder(request);
+        final Integer limit = getLimit(request);
+        final Integer offset = getOffset(request);
+        final String sortDirection;
+        final String sortTargetParam;
+
+        if (path != null && !path.equals("/")) {
+            MessageUtils.setInvalidRequestParameterError(response, "the specified directory is not found.");
+            return true;
+        }
+        if (order != null) {
+            String[] conditions = order.split(",");
+            if (conditions.length != 2) {
+                MessageUtils.setInvalidRequestParameterError(response, "order is invalid.");
+                return true;
+            }
+            sortTargetParam = conditions[0];
+            sortDirection = conditions[1];
+            if (!sortTargetParam.equals(PARAM_PATH) && !sortTargetParam.equals(PARAM_FILE_NAME)
+                && !sortTargetParam.equals(PARAM_MIME_TYPE) && !sortTargetParam.equals(PARAM_UPDATE_DATE)
+                && !sortTargetParam.equals(PARAM_FILE_SIZE) && !sortTargetParam.equals(PARAM_FILE_TYPE)) {
+                MessageUtils.setInvalidRequestParameterError(response, "target parameter name is invalid.");
+                return true;
+            }
+            if (!sortDirection.equals(Order.ASC.getValue()) && !sortDirection.equals(Order.DSEC.getValue())) {
+                MessageUtils.setInvalidRequestParameterError(response, "direction of order is invalid.");
+                return true;
+            }
+        } else {
+            sortDirection = null;
+            sortTargetParam = null;
         }
 
+        mClient.fetchAllObjectList(serviceId, new ThetaDeviceClient.DefaultListener() {
+
+            @Override
+            public void onObjectList(final List<ThetaObject> objList) {
+                int start = offset != null ? offset : 0;
+                if (start >= objList.size()) {
+                    MessageUtils.setInvalidRequestParameterError(response, "offset is too large.");
+                    sendResponse(response);
+                    return;
+                }
+
+                List<ThetaObject> list = sortObjectList(sortTargetParam, sortDirection, objList);
+                int end = limit != null ? start + limit : list.size();
+                if (end > list.size()) {
+                    end = list.size();
+                }
+                list = (start < end) ? list.subList(start, end) : new LinkedList<ThetaObject>();
+
+                List<Bundle> file = new ArrayList<Bundle>();
+                for (ThetaObject obj : list) {
+                    Bundle b = new Bundle();
+                    setPath(b, "/" + obj.getFileName());
+                    setMIMEType(b, obj.getMimeType());
+                    setFileName(b, obj.getFileName());
+                    setUpdateDate(b, obj.getCreationTime());
+                    //setFileSize(b, obj.mSize); // TODO
+                    file.add(b);
+                }
+                setFiles(response, file);
+                setResult(response, DConnectMessage.RESULT_OK);
+                sendResponse(response);
+            }
+
+            @Override
+            public void onFailed(final ThetaDeviceException cause) {
+                switch (cause.getReason()) {
+                    case ThetaDeviceException.NOT_FOUND_THETA:
+                        MessageUtils.setNotFoundServiceError(response);
+                        break;
+                    default:
+                        MessageUtils.setUnknownError(response, cause.getMessage());
+                        break;
+                }
+                sendResponse(response);
+            }
+
+        });
+        return false;
+    }
+
+    private final DConnectApi mDeleteRemoveApi = new DeleteApi() {
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
             final String serviceId = getServiceID(request);
@@ -244,6 +244,7 @@ public class ThetaFileProfile extends FileProfile {
         addApi(mGetReceiveApi);
         addApi(mGetListApi);
         addApi(mDeleteRemoveApi);
+        addApi(mGetDirectoryApi);
     }
 
     private List<ThetaObject> sortObjectList(final String targetParam, final String direction,

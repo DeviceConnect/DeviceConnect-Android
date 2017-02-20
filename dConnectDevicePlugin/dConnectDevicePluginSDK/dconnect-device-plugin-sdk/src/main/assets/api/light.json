@@ -44,7 +44,7 @@
                         "name": "lightId",
                         "in": "formData",
                         "type": "string",
-                        "required": true
+                        "required": false
                     },
                     {
                         "name": "brightness",
@@ -94,7 +94,7 @@
                     {
                         "name": "lightId",
                         "in": "query",
-                        "required": true,
+                        "required": false,
                         "type": "string"
                     }
                 ],
@@ -119,7 +119,7 @@
                         "name": "lightId",
                         "in": "formData",
                         "type": "string",
-                        "required": true
+                        "required": false
                     },
                     {
                         "name": "name",

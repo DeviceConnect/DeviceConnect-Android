@@ -309,7 +309,7 @@ public class HostGeolocationProfile extends GeolocationProfile implements Locati
         Bundle position = new Bundle();
         setCoordinates(position, coordinates);
         setTimeStamp(position, location.getTime());
-        DateFormat df = new SimpleDateFormat("yyyyMMddHHmmdss.SSSZZZ", Locale.getDefault());
+        DateFormat df = new SimpleDateFormat("yyyyMMddHHmmss.SSSZZZ", Locale.getDefault());
         setTimeStampString(position, df.format(location.getTime()));
         mLocationCache = position;
         mLocationLastTime = location.getTime();

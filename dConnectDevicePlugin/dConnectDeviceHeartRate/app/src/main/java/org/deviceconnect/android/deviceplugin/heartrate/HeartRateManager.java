@@ -270,7 +270,20 @@ public class HeartRateManager {
         }
         return getHeartRateData(device);
     }
-
+    /**
+     * Gets the {@link HeartRateDevice} from address.
+     *
+     * @param address address of ble device
+     * @return {@link HeartRateDevice}, or null on error
+     */
+    public HeartRateDevice getHeartRateDevice(final String address) {
+        for (HeartRateDevice device : mRegisterDevices) {
+            if (device.getAddress().equals(address)) {
+                return device;
+            }
+        }
+        return null;
+    }
     /**
      * Gets the {@link HeartRateData} from {@link HeartRateDevice}.
      *

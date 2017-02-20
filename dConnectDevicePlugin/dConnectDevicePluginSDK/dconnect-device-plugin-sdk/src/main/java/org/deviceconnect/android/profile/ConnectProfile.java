@@ -20,7 +20,8 @@ import org.deviceconnect.profile.ConnectProfileConstants;
  * AndroidManifest.xmlに追加する必要の有るパーミッション： wifi: ACCESS_WIFI_STATE,
  * CHANGE_WIFI_STATE bluetooth: BLUETOOTH, BLUETOOTH_ADMIN nfc: NFC
  * </p>
- * 
+ *
+ * @deprecated swagger定義ファイルで定数を管理することになったので、このクラスは使用しないこととする。
  * @author NTT DOCOMO, INC.
  */
 public abstract class ConnectProfile extends DConnectProfile implements ConnectProfileConstants {

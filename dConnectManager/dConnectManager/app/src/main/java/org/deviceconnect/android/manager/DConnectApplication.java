@@ -45,6 +45,7 @@ public class DConnectApplication extends Application {
             handler.setLevel(Level.ALL);
             logger.addHandler(handler);
             logger.setLevel(Level.ALL);
+            logger.setUseParentHandlers(false);
         } else {
             logger.setLevel(Level.OFF);
         }

@@ -12,6 +12,7 @@ package org.deviceconnect.profile;
  * <p>
  * MediaPlayer Profile API のパラメータ名、インタフェース名、属性名、プロファイル名を定義する。
  * </p>
+ * @deprecated swagger定義ファイルで定数を管理することになったので、このクラスは使用しないこととする。
  * @author NTT DOCOMO, INC.
  */
 public interface MediaPlayerProfileConstants extends DConnectProfileConstants {

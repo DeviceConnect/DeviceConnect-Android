@@ -305,10 +305,10 @@ public class WebRTCVideoChatProfile extends VideoChatProfile {
         }
     };
 
-    private final DConnectApi mPutIncomingApi = new PutApi() {
+    private final DConnectApi mPutOnIncomingApi = new PutApi() {
         @Override
         public String getAttribute() {
-            return ATTR_INCOMING;
+            return ATTR_ONINCOMING;
         }
 
         @Override
@@ -329,10 +329,10 @@ public class WebRTCVideoChatProfile extends VideoChatProfile {
         }
     };
 
-    private final DConnectApi mPutHangupApi = new PutApi() {
+    private final DConnectApi mPutOnHangupApi = new PutApi() {
         @Override
         public String getAttribute() {
-            return ATTR_HANGUP;
+            return ATTR_ONHANGUP;
         }
 
         @Override
@@ -390,10 +390,10 @@ public class WebRTCVideoChatProfile extends VideoChatProfile {
         }
     };
 
-    private final DConnectApi mDeleteIncomingApi = new DeleteApi() {
+    private final DConnectApi mDeleteOnIncomingApi = new DeleteApi() {
         @Override
         public String getAttribute() {
-            return ATTR_INCOMING;
+            return ATTR_ONINCOMING;
         }
 
         @Override
@@ -414,10 +414,10 @@ public class WebRTCVideoChatProfile extends VideoChatProfile {
         }
     };
 
-    private final DConnectApi mDeleteHangupApi = new DeleteApi() {
+    private final DConnectApi mDeleteOnHangupApi = new DeleteApi() {
         @Override
         public String getAttribute() {
-            return ATTR_HANGUP;
+            return ATTR_ONHANGUP;
         }
 
         @Override
@@ -431,13 +431,13 @@ public class WebRTCVideoChatProfile extends VideoChatProfile {
         addApi(mGetAddressApi);
         addApi(mPostCallApi);
         addApi(mPutProfileApi);
-        addApi(mPutIncomingApi);
+        addApi(mPutOnIncomingApi);
         addApi(mPutOnCallApi);
-        addApi(mPutHangupApi);
+        addApi(mPutOnHangupApi);
         addApi(mDeleteCallApi);
-        addApi(mDeleteIncomingApi);
+        addApi(mDeleteOnIncomingApi);
         addApi(mDeleteOnCallApi);
-        addApi(mDeleteHangupApi);
+        addApi(mDeleteOnHangupApi);
     }
 
     /**
@@ -646,7 +646,7 @@ public class WebRTCVideoChatProfile extends VideoChatProfile {
 
             List<Event> events = EventManager.INSTANCE.getEventList(
                     WebRTCService.PLUGIN_ID,
-                    PROFILE_NAME, null, ATTR_INCOMING);
+                    PROFILE_NAME, null, ATTR_ONINCOMING);
             if (events.size() != 0) {
                 Bundle arg = new Bundle();
                 arg.putString(PARAM_NAME, address.getName());

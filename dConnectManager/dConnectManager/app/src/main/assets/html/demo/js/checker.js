@@ -240,6 +240,16 @@ var main = (function(parent, global) {
         return util.createTemplate('param_slider', data);
     }
 
+    function createBooleanParam(name, value, on) {
+        var data = {
+            'name' : name,
+            'included' : (on ? 'included' : 'excluded'),
+            'checkbox' : (on ? 'checked disabled' : ''),
+            'inputable' : (on ? '' : 'disabled')
+        };
+        return util.createTemplate('param_boolean', data);
+    }
+
     function createRequest(body) {
         var data = {
             'body' : body
@@ -301,6 +311,9 @@ var main = (function(parent, global) {
                 break;
             case 'file':
                 contentHtml += createFileParam(param.name, on);
+                break;
+            case 'boolean':
+                contentHtml += createBooleanParam(param.name, '', on);
                 break;
             default:
                 console.log("Error: " + param.type);

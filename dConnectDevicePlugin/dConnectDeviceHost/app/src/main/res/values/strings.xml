@@ -19,6 +19,8 @@
     <string name="overlay_preview_content_title">Being captured by the camera</string>
     <string name="overlay_preview_content_message">You can stop the capture by click.</string>
 
+    <string name="host_settings_title">Host Settings</string>
+
     <string name="gps_settings_title">GPS setting</string>
     <string name="gps_settings_body">Since this device plug-in uses the GPS function, please turn on the setting from the GPS setting screen of the terminal.</string>
     <string name="gps_settings_button">Open the setting screen</string>

@@ -19,6 +19,8 @@
     <string name="overlay_preview_content_title">カメラ撮影中</string>
     <string name="overlay_preview_content_message">タップして撮影を停止します。</string>
 
+    <string name="host_settings_title">Host設定</string>
+
     <string name="gps_settings_title">GPS設定</string>
     <string name="gps_settings_body">このデバイスプラグインでは、GPS機能を使用しますので、端末のGPS設定画面より設定をONにしてください。</string>
     <string name="gps_settings_button">設定画面を開く</string>

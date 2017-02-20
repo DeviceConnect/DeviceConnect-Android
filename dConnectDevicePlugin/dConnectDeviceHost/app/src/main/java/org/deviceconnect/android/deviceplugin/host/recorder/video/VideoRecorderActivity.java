@@ -199,8 +199,6 @@ public class VideoRecorderActivity extends Activity implements SurfaceHolder.Cal
         intent.putExtra(VideoConst.EXTRA_RECORDER_ID, mRecorderId);
         intent.putExtra(VideoConst.EXTRA_VIDEO_RECORDER_STATE, state);
         sendBroadcast(intent);
-
-        Log.e("ABC", "AAAAAAAAAAAAAAAAAAAAA " + mRecorderId);
     }
 
     private void initVideoContext() {

@@ -10,6 +10,16 @@ public interface HostDevicePhotoRecorder {
 
     void takePhoto(OnPhotoEventListener listener);
 
+    boolean isBack();
+
+    void turnOnFlashLight();
+
+    void turnOffFlashLight();
+
+    boolean isFlashLightState();
+
+    boolean isUseFlashLight();
+
     interface OnPhotoEventListener {
         void onTakePhoto(String uri, String filePath);
         void onFailedTakePhoto();

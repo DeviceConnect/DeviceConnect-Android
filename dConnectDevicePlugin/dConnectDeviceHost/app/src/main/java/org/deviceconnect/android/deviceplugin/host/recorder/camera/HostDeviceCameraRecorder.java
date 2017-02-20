@@ -94,7 +94,13 @@ public class HostDeviceCameraRecorder extends HostDevicePreviewServer implements
         mMimeType = mMimeTypes.get(0);
         mState = RecorderState.INACTTIVE;
 
-        mCameraOverlay = new CameraOverlay(context, cameraId);
+        if (mCameraOverlay == null) {
+            mCameraOverlay = new CameraOverlay(context, cameraId);
+        } else {
+            if (DEBUG) {
+                Log.d(TAG, "CameraOverlay create fail.");
+            }
+        }
         mCameraOverlay.setFileManager(fileMgr);
         mCameraOverlay.setFacingDirection(facing == CameraFacing.FRONT ? -1 : 1);
     }
@@ -226,6 +232,36 @@ public class HostDeviceCameraRecorder extends HostDevicePreviewServer implements
         }
         return false;
     }
+
+    @Override
+    public boolean isBack() {
+        return mFacing == CameraFacing.BACK;
+    }
+
+    @Override
+    public void turnOnFlashLight() {
+        if (mCameraOverlay != null) {
+            mCameraOverlay.turnOnFlashLight();
+        }
+    }
+
+    @Override
+    public void turnOffFlashLight() {
+        if (mCameraOverlay != null) {
+            mCameraOverlay.turnOffFlashLight();
+        }
+    }
+
+    @Override
+    public boolean isFlashLightState() {
+        return mCameraOverlay != null && mCameraOverlay.isFlashLightState();
+    }
+
+    @Override
+    public boolean isUseFlashLight() {
+        return mCameraOverlay != null && mCameraOverlay.isUseFlashLight();
+    }
+
 
     @Override
     public void startWebServer(final OnWebServerStartCallback callback) {

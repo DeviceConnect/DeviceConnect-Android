@@ -153,4 +153,22 @@ public abstract class SystemProfile extends DConnectProfile implements SystemPro
         String pluginId = request.getStringExtra(PARAM_PLUGIN_ID);
         return pluginId;
     }
+
+    /**
+     * レスポンスにnameを設定する.
+     * @param response レスポンスパラメータ
+     * @param name Managerの名前
+     */
+    public static void setName(final Intent response, final String name) {
+        response.putExtra(PARAM_NAME, name);
+    }
+
+    /**
+     * レスポンスにUUIDを設定する.
+     * @param response レスポンスパラメータ
+     * @param uuid UUID
+     */
+    public static void setUuid(final Intent response, final String uuid) {
+        response.putExtra(PARAM_UUID, uuid);
+    }
 }

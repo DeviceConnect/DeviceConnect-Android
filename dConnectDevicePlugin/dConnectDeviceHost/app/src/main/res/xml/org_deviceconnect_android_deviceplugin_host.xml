@@ -128,7 +128,14 @@
         <description lang="en">Touch event.</description>
     </profile>
 
-    <profile name="geolocation" expireperiod="86400000">
+    <profile name="light" expireperiod="86400000">
+        <name lang="ja-JP">ライト</name>
+        <description lang="ja-JP">ライト用のプロファイルです。</description>
+        <name lang="en-US">Light</name>
+        <description lang="en-US">Profile for Light</description>
+    </profile>
+
+	<profile name="geolocation" expireperiod="86400000">
         <name lang="ja">位置情報</name>
         <description lang="ja">位置情報を取得する</description>
         <name lang="en">Geolocation</name>

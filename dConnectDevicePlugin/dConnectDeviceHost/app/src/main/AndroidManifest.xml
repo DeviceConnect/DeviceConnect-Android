@@ -8,6 +8,7 @@
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE"/>
     <uses-permission android:name="android.permission.CAMERA"/>
+    <uses-permission android:name="android.permission.FLASHLIGHT"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.BATTERY_STATS"/>
     <uses-permission android:name="android.permission.GET_TASKS"/>
@@ -21,6 +22,8 @@
     <uses-permission android:name="android.permission.PROCESS_OUTGOING_CALLS"/>
     <uses-permission android:name="android.permission.RECORD_AUDIO"/>
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
 
     <uses-feature android:name="android.hardware.camera"/>
     <uses-feature android:name="android.hardware.camera.autofocus"/>
@@ -96,18 +99,18 @@
             android:theme="@android:style/Theme.Translucent.NoTitleBar"/>
 
         <activity
-            android:name="org.deviceconnect.android.deviceplugin.host.video.VideoRecorderActivity"
+            android:name="org.deviceconnect.android.deviceplugin.host.recorder.video.VideoRecorderActivity"
             android:exported="false"
             android:screenOrientation="landscape"/>
 
         <activity
-            android:name="org.deviceconnect.android.deviceplugin.host.video.VideoPlayer"
+            android:name="org.deviceconnect.android.deviceplugin.host.mediaplayer.VideoPlayer"
             android:exported="false"
             android:launchMode="singleInstance"
             android:screenOrientation="landscape"/>
 
         <activity
-            android:name="org.deviceconnect.android.deviceplugin.host.audio.AudioRecorderActivity"
+            android:name="org.deviceconnect.android.deviceplugin.host.recorder.audio.AudioRecorderActivity"
             android:exported="false"/>
 
         <activity
@@ -126,10 +129,17 @@
             android:label="@string/app_name_host"/>
 
         <activity
-            android:name="org.deviceconnect.android.deviceplugin.host.screen.PermissionReceiverActivity"
+            android:name="org.deviceconnect.android.deviceplugin.host.recorder.screen.PermissionReceiverActivity"
             android:exported="false"
             android:label="@string/app_name_host"
             android:theme="@android:style/Theme.Translucent"/>
+
+        <activity android:name="org.deviceconnect.android.deviceplugin.host.activity.GeolocationAlertDialogActivity"
+            android:label="@string/gps_settings_body"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar"
+            android:launchMode="singleInstance">
+        </activity>
+
     </application>
 
 </manifest>

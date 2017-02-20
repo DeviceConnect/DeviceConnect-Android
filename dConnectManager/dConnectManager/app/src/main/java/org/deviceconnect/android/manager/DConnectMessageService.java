@@ -533,7 +533,9 @@ public abstract class DConnectMessageService extends Service
     protected void stopDConnect() {
         sendTerminateEvent();
         mPluginMgr.setEventListener(null);
-        mRequestManager.shutdown();
+        if (mRequestManager != null) {
+            mRequestManager.shutdown();
+        }
         hideNotification();
     }
 

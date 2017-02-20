@@ -100,6 +100,7 @@ public class DConnectLaunchActivity extends Activity {
             String host = uri.getHost();
             String path = uri.getPath();
             if (HOST_START.equals(host)) {
+                preventAutoStop();
                 if (!allowExternalStartAndStop() || PATH_ROOT.equals(path) || PATH_ACTIVITY.equals(path)) {
                     mBehavior = new Runnable() {
                         @Override
@@ -120,7 +121,7 @@ public class DConnectLaunchActivity extends Activity {
                         @Override
                         public void run() {
                             startManager();
-                            onActivityResult(0, RESULT_OK, null);
+                            setResult(RESULT_OK);
                             finish();
                         }
                     };
@@ -157,7 +158,7 @@ public class DConnectLaunchActivity extends Activity {
                                 mLogger.warning("Cannot stop Device Connect Manager automatically.");
                                 result = RESULT_ERROR;
                             }
-                            onActivityResult(0, result, null);
+                            setResult(result);
                             finish();
                         }
                     };
@@ -180,7 +181,6 @@ public class DConnectLaunchActivity extends Activity {
     @Override
     protected void onPause() {
         super.onPause();
-        onActivityResult(0, RESULT_CANCELED, null);
         if (mIsBind) {
             unbindService(mServiceConnection);
             mIsBind = false;
@@ -235,6 +235,12 @@ public class DConnectLaunchActivity extends Activity {
         mIsBind = bindService(bindIntent, mServiceConnection, Context.BIND_AUTO_CREATE);
     }
 
+    private void preventAutoStop() {
+        Intent targetIntent = new Intent();
+        targetIntent.setClass(getApplicationContext(), DConnectService.class);
+        startService(targetIntent);
+    }
+
     private void startManager() {
         if (mDConnectService != null) {
             try {
@@ -268,7 +274,7 @@ public class DConnectLaunchActivity extends Activity {
         cancelButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View v) {
-                onActivityResult(0, RESULT_OK, null);
+                setResult(RESULT_OK);
                 finish();
             }
         });
@@ -303,7 +309,7 @@ public class DConnectLaunchActivity extends Activity {
                 @Override
                 public void onClick(final View v) {
                     stopManager();
-                    onActivityResult(0, RESULT_OK, null);
+                    setResult(RESULT_OK);
                     finish();
                 }
             });
@@ -314,7 +320,7 @@ public class DConnectLaunchActivity extends Activity {
                 @Override
                 public void onClick(final View v) {
                     startManager();
-                    onActivityResult(0, RESULT_OK, null);
+                    setResult(RESULT_OK);
                     finish();
                 }
             });

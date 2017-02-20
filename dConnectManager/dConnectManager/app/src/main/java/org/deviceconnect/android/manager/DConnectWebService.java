@@ -61,8 +61,14 @@ public class DConnectWebService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+
         mSettings = DConnectSettings.getInstance();
         mSettings.load(this);
+
+        // Webサーバの起動フラグがONになっている場合には起動を行う
+        if (mSettings.isWebServerStartFlag()) {
+            startWebServer();
+        }
     }
 
     @Override

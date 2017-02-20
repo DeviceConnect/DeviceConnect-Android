@@ -13,102 +13,90 @@ import java.util.Map;
  * 
  * @author NTT DOCOMO, INC.
  */
-public final class HttpRequest {
+public interface HttpRequest {
 
-    /** HTTPメソッド GET. */
-    public static final String HTTP_METHOD_GET = "GET";
+    /**
+     * Httpリクエストのメソッドを定義する.
+     *
+     * @author NTT DOCOMO, INC.
+     */
+    enum Method {
+        /**
+         * GETメソッドを定義する.
+         */
+        GET("GET"),
 
-    /** HTTPメソッド POST. */
-    public static final String HTTP_METHOD_POST = "POST";
+        /**
+         * POSTメソッドを定義する.
+         */
+        POST("POST"),
 
-    /** HTTPメソッド PUT. */
-    public static final String HTTP_METHOD_PUT = "PUT";
+        /**
+         * PUTメソッドを定義する.
+         */
+        PUT("PUT"),
 
-    /** HTTPメソッド DELETE. */
-    public static final String HTTP_METHOD_DELETE = "DELETE";
+        /**
+         * DELETEメソッドを定義する.
+         */
+        DELETE("DELETE");
 
-    /** HTTPメソッド. */
-    private String mMethod;
+        private String mValue;
 
-    /** リクエストURI. */
-    private String mUri;
+        Method(final String value) {
+            mValue = value;
+        }
 
-    /** ヘッダー群. */
-    private Map<String, String> mHeaders;
-
-    /** HTTPリクエストのBodyデータ. */
-    private byte[] mBody;
+        public static Method valueFrom(final String value) {
+            for (Method m : values()) {
+                if (m.mValue.equalsIgnoreCase(value)) {
+                    return m;
+                }
+            }
+            return null;
+        }
+    }
 
     /**
      * HTTPメソッドを取得する.
-     * 
+     *
      * @return HTTPメソッド名
      */
-    public String getMethod() {
-        return mMethod;
-    }
-
-    /**
-     * HTTPメソッド名を設定する.
-     * 
-     * @param method HTTPメソッド名
-     */
-    public void setMethod(final String method) {
-        this.mMethod = method;
-    }
+    Method getMethod();
 
     /**
      * リクエストURIを取得する.
-     * 
+     * <p>
+     *     以下のようなURIを取得できます。
+     *     <ul><li>/gotapi/serviceDiscovery</li></ul>
+     * </p>
      * @return uri リクエストURI
      */
-    public String getUri() {
-        return mUri;
-    }
-
-    /**
-     * リクエストURIを設定する.
-     * 
-     * @param uri 設定するURI
-     */
-    public void setUri(final String uri) {
-        this.mUri = uri;
-    }
+    String getUri();
 
     /**
      * ヘッダーを取得する.
-     * 
-     * @return ヘッダー
+     *
+     * @return ヘッダー一覧
      */
-    public Map<String, String> getHeaders() {
-        return mHeaders;
-    }
+    Map<String, String> getHeaders();
 
     /**
-     * ヘッダーを設定する.
-     * 
-     * @param headers 設定するヘッダーのデータ
+     * マルチパートで送られてきたファイルを取得する.
+     *
+     * @return ファイル一覧
      */
-    public void setHeaders(final Map<String, String> headers) {
-        this.mHeaders = headers;
-    }
+    Map<String, String> getFiles();
 
     /**
-     * HTTPリクエストのBodyデータを取得する.
-     * 
-     * @return HTTPリクエストのBodyデータ
+     * パラメータ引数一覧を取得する.
+     * @return パラメータ一覧
      */
-    public byte[] getBody() {
-        return mBody;
-    }
+    Map<String, String> getQueryParameters();
 
     /**
-     * HTTPリクエストのBodyデータを設定する.
-     * 
-     * @param body HTTPリクエストのBodyデータ
+     * パラメータの文字列を取得する.
+     * @return パラメータ
      */
-    public void setBody(final byte[] body) {
-        this.mBody = body;
-    }
-
+    String getQueryString();
 }

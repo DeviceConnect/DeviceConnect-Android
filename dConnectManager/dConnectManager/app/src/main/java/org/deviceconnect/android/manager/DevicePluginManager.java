@@ -139,15 +139,14 @@ public class DevicePluginManager {
      * @param component コンポーネント
      */
     public void checkAndAddDevicePlugin(final ComponentName component, final PackageInfo pkgInfo) {
-        ApplicationInfo appInfo;
         ActivityInfo receiverInfo;
         try {
             PackageManager pkgMgr = mApp.getPackageManager();
-            appInfo = pkgMgr.getApplicationInfo(component.getPackageName(), PackageManager.GET_META_DATA);
             receiverInfo = pkgMgr.getReceiverInfo(component, PackageManager.GET_META_DATA);
             if (receiverInfo.metaData != null) {
                 Object value = receiverInfo.metaData.get(PLUGIN_META_DATA);
                 if (value != null) {
+                    ApplicationInfo appInfo = pkgMgr.getApplicationInfo(component.getPackageName(), PackageManager.GET_META_DATA);
                     VersionName sdkVersionName = getPluginSDKVersion(appInfo);
                     String packageName = receiverInfo.packageName;
                     String className = receiverInfo.name;

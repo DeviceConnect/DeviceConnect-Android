@@ -8,19 +8,19 @@ package org.deviceconnect.android.profile.restful.test;
 
 import android.support.test.runner.AndroidJUnit4;
 
-import org.apache.http.client.methods.HttpDelete;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpPut;
-import org.apache.http.client.methods.HttpUriRequest;
 import org.deviceconnect.android.test.plugin.profile.TestMediaStreamRecordingProfileConstants;
+import org.deviceconnect.message.DConnectMessage;
+import org.deviceconnect.message.DConnectResponseMessage;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.deviceconnect.profile.DConnectProfileConstants;
 import org.deviceconnect.profile.MediaStreamRecordingProfileConstants;
 import org.json.JSONException;
-import org.json.JSONObject;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.core.Is.is;
+import static org.junit.Assert.assertThat;
 
 
 /**
@@ -35,21 +35,11 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /mediastream_recording/mediarecorder?serviceId=xxxx
+     * Path: /mediaStreamRecording/mediaRecorder?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・recordersに長さ1のBundle配列が格納されていること。
-     * ・recorder[0].idが"test_camera_0"であること。
-     * ・recorder[0].stateが"inactive"であること。
-     * ・recorder[0].imageWidthが1920であること。
-     * ・recorder[0].imageHeightが1080であること。
-     * ・recorder[0].previewWidthが640であること。
-     * ・recorder[0].previewHeightが480であること。
-     * ・recorder[0].previewMaxFrameRateが30.0であること。
-     * ・recorder[0].mimeTypeが"video/mp4"であること。
-     * ・recorder[0].configが"test_config"であること。
      * </pre>
      */
     @Test
@@ -62,13 +52,10 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.get(builder.toString());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
     }
 
     /**
@@ -76,12 +63,11 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /mediastream_recording/takephoto?serviceId=xxxx
+     * Path: /mediaStreamRecording/takePhoto?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・uriが"test.mp4"であること。
      * </pre>
      */
     @Test
@@ -94,13 +80,11 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
     }
 
     /**
@@ -108,12 +92,11 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /mediastream_recording/takephoto?serviceId=xxxx&target=xxxx
+     * Path: /mediaStreamRecording/takePhoto?serviceId=xxxx&target=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・uriが"test.mp4"であること。
      * </pre>
      */
     @Test
@@ -129,13 +112,10 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
                 + TestMediaStreamRecordingProfileConstants.ID);
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
     }
 
     /**
@@ -143,12 +123,11 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /mediastream_recording/record?serviceId=xxxx
+     * Path: /mediaStreamRecording/record?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・uriが"test.mp4"であること。
      * </pre>
      */
     @Test
@@ -161,13 +140,10 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
     }
 
     /**
@@ -175,12 +151,11 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /mediastream_recording/record?serviceId=xxxx&target=xxxx
+     * Path: /mediaStreamRecording/record?serviceId=xxxx&target=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・uriが"test.mp4"であること。
      * </pre>
      */
     @Test
@@ -196,13 +171,10 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
                 + TestMediaStreamRecordingProfileConstants.ID);
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
     }
 
     /**
@@ -210,12 +182,11 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /mediastream_recording/record?serviceId=xxxx&timeslice=xxxx
+     * Path: /mediaStreamRecording/record?serviceId=xxxx&timeslice=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・uriが"test.mp4"であること。
      * </pre>
      */
     @Test
@@ -230,13 +201,10 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
         builder.append(MediaStreamRecordingProfileConstants.PARAM_TIME_SLICE + "=3600");
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
     }
 
     /**
@@ -244,12 +212,11 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /mediastream_recording/record?serviceId=xxxx&target=xxxx&timeslice=xxxx
+     * Path: /mediaStreamRecording/record?serviceId=xxxx&target=xxxx&timeslice=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・uriが"test.mp4"であること。
      * </pre>
      */
     @Test
@@ -267,13 +234,10 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
         builder.append(MediaStreamRecordingProfileConstants.PARAM_TIME_SLICE + "=3600");
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPost(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.post(builder.toString(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
     }
 
     /**
@@ -281,7 +245,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /mediastream_recording/pause?serviceId=xxxx&mediaid=xxxx
+     * Path: /mediaStreamRecording/pause?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -298,13 +262,10 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.toString(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
     }
 
     /**
@@ -312,7 +273,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /mediastream_recording/resume?serviceId=xxxx&mediaid=xxxx
+     * Path: /mediaStreamRecording/resume?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -329,13 +290,10 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.toString(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
     }
 
     /**
@@ -343,7 +301,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /mediastream_recording/stop?serviceId=xxxx&mediaid=xxxx
+     * Path: /mediaStreamRecording/stop?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -360,13 +318,10 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.toString(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
     }
 
     /**
@@ -374,7 +329,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /mediastream_recording/mutetrack?serviceId=xxxx&mediaid=xxxx
+     * Path: /mediaStreamRecording/muteTrack?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -391,13 +346,10 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.toString(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
     }
 
     /**
@@ -405,7 +357,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /mediastream_recording/unmutetrack?serviceId=xxxx&mediaid=xxxx
+     * Path: /mediaStreamRecording/unmuteTrack?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -422,13 +374,10 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.toString(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
     }
 
     /**
@@ -436,7 +385,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /mediastream_recording/options?serviceId=xxxx
+     * Path: /mediaStreamRecording/options?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -453,13 +402,10 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.get(builder.toString());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
     }
 
     /**
@@ -467,7 +413,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /mediastream_recording/options?serviceId=xxxx&target=xxxx
+     * Path: /mediaStreamRecording/options?serviceId=xxxx&target=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -487,13 +433,10 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
                 + TestMediaStreamRecordingProfileConstants.ID);
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.get(builder.toString());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
     }
 
     /**
@@ -501,7 +444,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /mediastream_recording/options?serviceId=xxxx&target=xxxx&imageWidth=xxxx&imageHeight=xxxx&mimeType=xxxx
+     * Path: /mediaStreamRecording/options?serviceId=xxxx&target=xxxx&imageWidth=xxxx&imageHeight=xxxx&mimeType=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -544,13 +487,10 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
                 + TestMediaStreamRecordingProfileConstants.MIME_TYPE);
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.toString(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
     }
 
     /**
@@ -558,7 +498,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /mediastream_recording/onphoto?serviceId=xxxx&session_key=xxxx
+     * Path: /mediaStreamRecording/onphoto?serviceId=xxxx&session_key=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -580,7 +520,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /mediastream_recording/onphoto?serviceId=xxxx&session_key=xxxx
+     * Path: /mediaStreamRecording/onphoto?serviceId=xxxx&session_key=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -597,7 +537,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /mediastream_recording/onrecordingchange?serviceId=xxxx&session_key=xxxx
+     * Path: /mediaStreamRecording/onrecordingchange?serviceId=xxxx&session_key=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -619,7 +559,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /mediastream_recording/onrecordingchange?serviceId=xxxx&session_key=xxxx
+     * Path: /mediaStreamRecording/onrecordingchange?serviceId=xxxx&session_key=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -636,7 +576,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /mediastream_recording/preview?serviceId=xxxx
+     * Path: /mediaStreamRecording/preview?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -653,13 +593,10 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        try {
-            HttpUriRequest request = new HttpPut(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.toString(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
     }
 
     /**
@@ -667,7 +604,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /mediastream_recording/preview?serviceId=xxxx
+     * Path: /mediaStreamRecording/preview?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -684,13 +621,10 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.toString());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
     }
 
     /**
@@ -707,9 +641,11 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        HttpUriRequest request = new HttpPut(builder.toString());
-        JSONObject root = sendRequest(request);
-        assertResultOK(root);
+
+
+        DConnectResponseMessage response = mDConnectSDK.put(builder.toString(), null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
     }
 
     /**
@@ -725,21 +661,9 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        try {
-            HttpUriRequest request = new HttpDelete(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
-    }
 
-    /**
-     * メディアIDで指定したファイルのURIを取得する.
-     * @param mediaId メディアID
-     * @return ファイルのURI
-     */
-    private String getFileURI(final String mediaId) {
-        return DCONNECT_MANAGER_URI + "/files?uri=" + mediaId;
+        DConnectResponseMessage response = mDConnectSDK.delete(builder.toString());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
     }
 }

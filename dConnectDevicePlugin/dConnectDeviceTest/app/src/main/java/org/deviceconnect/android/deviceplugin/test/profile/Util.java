@@ -6,16 +6,17 @@
  */
 package org.deviceconnect.android.deviceplugin.test.profile;
 
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-
-import org.deviceconnect.message.intent.impl.client.DefaultIntentClient;
 
 /**
  * テスト用ユーティリティクラス.
  * @author NTT DOCOMO, INC.
  */
 public final class Util {
+    public static final ComponentName DEFAULT_MESSAGE_RECEIVER = new ComponentName("org.deviceconnect.android.manager",
+            "org.deviceconnect.android.manager.DConnectBroadcastReceiver");
 
     /**
      * ブロードキャストを何ミリ秒後に送信するか.
@@ -39,7 +40,7 @@ public final class Util {
             public void run() {
                 try {
                     Thread.sleep(delay);
-                    intent.setComponent(DefaultIntentClient.DEFAULT_MESSAGE_RECEIVER);
+                    intent.setComponent(DEFAULT_MESSAGE_RECEIVER);
                     context.sendBroadcast(intent);
                 } catch (InterruptedException e) {
                     // do nothing.

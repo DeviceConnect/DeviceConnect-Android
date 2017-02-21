@@ -31,6 +31,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.lang.reflect.Field;
 import java.net.Socket;
@@ -141,6 +142,11 @@ public class DConnectServerNanoHttpd extends DConnectServer {
      * WebSocketのKeepAlive処理のインターバル(ms).
      */
     private static final int WEBSOCKET_KEEP_ALIVE_INTERVAL = 3000;
+
+    /**
+     * application/jsonのContent-Typeを定義.
+     */
+    private static final String MIME_APPLICATION_JSON = "application/json; charset=UTF-8";
 
     /**
      * サーバーオブジェクト.
@@ -377,7 +383,8 @@ public class DConnectServerNanoHttpd extends DConnectServer {
             if (!checkHeaderSize(session)) {
                 // NanoHTTPDでは、バッファサイズを超えたHTTPヘッダーが送られてくると
                 // 挙動がおかしくなるのでここでエラーを返却して対応する。
-                Response response = newFixedLengthResponse(Status.BAD_REQUEST, NanoHTTPD.MIME_PLAINTEXT, "Request Entity Too Large");
+                Response response = newFixedLengthResponse(Status.NOT_IMPLEMENTED, MIME_APPLICATION_JSON,
+                        "{\"result\" : 1, \"errorCode\" : 1, \"errorMessage\" : \"Request Entity Too Large.\"}");
                 response.closeConnection(true);
                 return response;
             }
@@ -435,7 +442,8 @@ public class DConnectServerNanoHttpd extends DConnectServer {
             try {
                 HttpRequest.Method method = HttpRequest.Method.valueFrom(session.getMethod().name());
                 if (method == null) {
-                    return newFixedLengthResponse(Status.NOT_IMPLEMENTED, NanoHTTPD.MIME_PLAINTEXT, "Not allowed HTTP method.");
+                    return newFixedLengthResponse(Status.NOT_IMPLEMENTED, MIME_APPLICATION_JSON,
+                            "{\"result\" : 1, \"errorCode\" : 1, \"errorMessage\" : \"Not allowed HTTP method.\"}");
                 }
 
                 DConnectHttpRequest request = new DConnectHttpRequest();
@@ -451,13 +459,21 @@ public class DConnectServerNanoHttpd extends DConnectServer {
                 if (mListener != null && mListener.onReceivedHttpRequest(request, response)) {
                     return newFixedLengthResponse(response);
                 } else {
-                    return newFixedLengthResponse(Response.Status.NOT_FOUND, NanoHTTPD.MIME_PLAINTEXT, "Not Found");
+                    return newFixedLengthResponse(Response.Status.NOT_FOUND, MIME_APPLICATION_JSON,
+                            "{\"result\" : 1, \"errorCode\" : 1, \"errorMessage\" : \"Not found.\"}");
                 }
+            } catch (OutOfMemoryError e) {
+                return newFixedLengthResponse(Status.BAD_REQUEST, MIME_APPLICATION_JSON,
+                        "{\"result\" : 1, \"errorCode\" : 1, \"errorMessage\" : \"Too large request.\"}");
             } catch (IOException ioe) {
-                return newFixedLengthResponse(Response.Status.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT,
-                        "SERVER INTERNAL ERROR: IOException: " + ioe.getMessage());
+                return newFixedLengthResponse(Response.Status.INTERNAL_ERROR, MIME_APPLICATION_JSON,
+                        "{\"result\" : 1, \"errorCode\" : 1, \"errorMessage\" : \"INTERNAL ERROR: IOException. e=" + ioe.getMessage() + "\"}");
             } catch (ResponseException re) {
-                return newFixedLengthResponse(re.getStatus(), NanoHTTPD.MIME_PLAINTEXT, re.getMessage());
+                return newFixedLengthResponse(re.getStatus(), MIME_APPLICATION_JSON,
+                        "{\"result\" : 1, \"errorCode\" : 1, \"errorMessage\" : \"" + re.getMessage() + "\"}");
+            } catch (Exception e) {
+                return newFixedLengthResponse(Response.Status.INTERNAL_ERROR, MIME_APPLICATION_JSON,
+                        "{\"result\" : 1, \"errorCode\" : 1, \"errorMessage\" : \"INTERNAL ERROR: Exception. e=" + e.getMessage() + "\"}");
             }
         }
 
@@ -852,7 +868,7 @@ public class DConnectServerNanoHttpd extends DConnectServer {
             } catch (ResponseException re) {
                 throw re;
             } catch (Exception e) {
-                throw new ResponseException(Response.Status.INTERNAL_ERROR, e.toString());
+                throw new ResponseException(Response.Status.INTERNAL_ERROR, "INTERNAL ERROR: Exception. e=" + e.toString());
             }
         }
 
@@ -1306,6 +1322,7 @@ public class DConnectServerNanoHttpd extends DConnectServer {
          */
         NanoTempFileManager(final File cacheDir) {
             mCacheDir = cacheDir;
+
             if (!cacheDir.exists()) {
                 if (!cacheDir.mkdirs()) {
                     if (DEBUG) {
@@ -1329,9 +1346,62 @@ public class DConnectServerNanoHttpd extends DConnectServer {
 
         @Override
         public NanoHTTPD.TempFile createTempFile(final String filename_hint) throws Exception {
-            NanoHTTPD.DefaultTempFile tempFile = new NanoHTTPD.DefaultTempFile(mCacheDir);
+            NanoHTTPD.TempFile tempFile = new DConnectTempFile(mCacheDir);
             mTempFiles.add(tempFile);
             return tempFile;
+        }
+
+        /**
+         * 一時的なファイルを管理するクラス.
+         */
+        private class DConnectTempFile implements NanoHTTPD.TempFile {
+
+            /**
+             * ファイル.
+             */
+            private final File mFile;
+
+            /**
+             * ファイルへの書き込み用ストリーム.
+             */
+            private final OutputStream mOutputStream;
+
+            /**
+             * コンストラクタ.
+             * @param tempDir キャッシュ用フォルダ
+             * @throws IOException ファイルの作成に失敗した場合
+             */
+            private DConnectTempFile(final File tempDir) throws IOException {
+                mFile = File.createTempFile("DConnectHTTPD-", "", tempDir);
+                mOutputStream = new FileOutputStream(mFile);
+            }
+
+            @Override
+            public void delete() throws Exception {
+                if (mOutputStream != null) {
+                    mOutputStream.close();
+                }
+
+                Timer t = new Timer();
+                t.schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        if (!mFile.delete()) {
+                            mLogger.warning("Failed to delete file." + mFile.getName());
+                        }
+                    }
+                }, 30 * 1000);
+            }
+
+            @Override
+            public String getName() {
+                return mFile.getAbsolutePath();
+            }
+
+            @Override
+            public OutputStream open() throws Exception {
+                return mOutputStream;
+            }
         }
     }
 }

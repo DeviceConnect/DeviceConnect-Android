@@ -54,6 +54,8 @@ class DConnectServerEventListenerImpl implements DConnectServerEventListener {
     /** JSONレスポンス用のContent-Type. */
     private static final String CONTENT_TYPE_JSON = "application/json; charset=UTF-8";
 
+    /** HTTPリクエストのセグメント数(APIのみ) {@value}.  */
+    private static final int SEGMENT_API = 1;
     /** HTTPリクエストのセグメント数(Profileのみ) {@value}.  */
     private static final int SEGMENT_PROFILE = 2;
     /** HTTPリクエストのセグメント数(ProfilesとAttribute) {@value}. */
@@ -195,7 +197,7 @@ class DConnectServerEventListenerImpl implements DConnectServerEventListener {
                 eventKey = json.optString(DConnectMessage.EXTRA_SESSION_KEY);
                 // NOTE: 既存のイベントセッションを破棄する.
                 if (getWebSocketInfoManager().getWebSocketInfo(eventKey) != null) {
-                    ((DConnectService) mContext).sendDisconnectWebSocket(eventKey);
+                    ((DConnectService) mContext).disconnectWebSocketWithReceiverId(eventKey);
                 }
             }
             if (eventKey == null) {
@@ -223,10 +225,7 @@ class DConnectServerEventListenerImpl implements DConnectServerEventListener {
         String profile = null;
         String interfaces = null;
         String attribute = null;
-        boolean existMethod = false;
-        if (paths.length >= SEGMENT_ATTRIBUTE) {
-            existMethod = isMethod(paths[1]);
-        }
+        boolean existMethod = isHttpMethodIncluded(paths);
 
         long start = System.currentTimeMillis();
 
@@ -234,49 +233,62 @@ class DConnectServerEventListenerImpl implements DConnectServerEventListener {
             mLogger.info(String.format("@@@ Request URI: %s %s", method, request.getUri()));
         }
 
-        if (paths.length == SEGMENT_PROFILE) {
-            api = paths[0];
-            profile = paths[1];
-        } else if (paths.length == SEGMENT_ATTRIBUTE && !existMethod) {
-            // パスが3つあり、HTTPメソッドがパスに指定されていない
-            api = paths[0];
-            profile = paths[1];
-            attribute = paths[2];
-        } else if (paths.length == SEGMENT_ATTRIBUTE && existMethod) {
-            // パスが3つあり、HTTPメソッドがパスに指定される
-            api = paths[0];
-            httpMethod = paths[1];
-            profile = paths[2];
-        } else if (paths.length == SEGMENT_INTERFACES && !existMethod) {
-            // パスが4つあり、HTTPメソッドがパスに指定されていない
-            api = paths[0];
-            profile = paths[1];
-            interfaces = paths[2];
-            attribute = paths[3];
-        } else if (paths.length == SEGMENT_INTERFACES && existMethod) {
-            // パスが4つあり、HTTPメソッドがパスに指定される
-            api = paths[0];
-            httpMethod = paths[1];
-            profile = paths[2];
-            attribute = paths[3];
-        } else if (paths.length == (SEGMENT_INTERFACES + 1) && existMethod) {
-            // パスが5つあり、HTTPメソッドがパスに指定される
-            api = paths[0];
-            httpMethod = paths[1];
-            profile = paths[2];
-            interfaces = paths[3];
-            attribute = paths[4];
+        if (existMethod) {
+            // HTTPメソッドがパスに含まれている
+            if (paths.length == SEGMENT_API) {
+                api = paths[0];
+            } else if (paths.length == SEGMENT_PROFILE) {
+                api = paths[0];
+                profile = paths[1];
+            } else if (paths.length == SEGMENT_ATTRIBUTE) {
+                api = paths[0];
+                httpMethod = paths[1];
+                profile = paths[2];
+            } else if (paths.length == SEGMENT_INTERFACES) {
+                api = paths[0];
+                httpMethod = paths[1];
+                profile = paths[2];
+                attribute = paths[3];
+            } else if (paths.length == (SEGMENT_INTERFACES + 1)) {
+                api = paths[0];
+                httpMethod = paths[1];
+                profile = paths[2];
+                interfaces = paths[3];
+                attribute = paths[4];
+            }
+        } else {
+            // HTTPメソッドがパスに含まれていない
+            if (paths.length == SEGMENT_API) {
+                api = paths[0];
+            } else if (paths.length == SEGMENT_PROFILE) {
+                api = paths[0];
+                profile = paths[1];
+            } else if (paths.length == SEGMENT_ATTRIBUTE) {
+                api = paths[0];
+                profile = paths[1];
+                attribute = paths[2];
+            } else if (paths.length == SEGMENT_INTERFACES) {
+                api = paths[0];
+                profile = paths[1];
+                interfaces = paths[2];
+                attribute = paths[3];
+            }
         }
-        if (api == null || !api.equals("gotapi")) {
-            // ルートが存在しない、もしくはgotapiでない場合は404
-            response.setCode(StatusCode.NOT_FOUND);
+
+        if (api == null) {
+            // apiが存在しない場合はエラー
+            response.setCode(StatusCode.BAD_REQUEST);
+            setErrorResponse(response, 19, "api is empty.");
             return true;
         }
+
         // プロファイルが存在しない場合にはエラー
         if (profile == null) {
-            setEmptyProfile(response);
+            response.setCode(StatusCode.BAD_REQUEST);
+            setErrorResponse(response, 19, "profile is empty.");
             return true;
-        } else if (isMethod(profile)) { //Profile名がhttpMethodの場合
+        } else if (isMethod(profile)) { // Profile名がhttpMethodの場合
+            response.setCode(StatusCode.BAD_REQUEST);
             setInvalidProfile(response);
             return true;
         }
@@ -285,6 +297,7 @@ class DConnectServerEventListenerImpl implements DConnectServerEventListener {
         String action = DConnectUtil.convertHttpMethod2DConnectMethod(method);
         if (action == null) {
             response.setCode(StatusCode.NOT_IMPLEMENTED);
+            setErrorResponse(response, 1, "Not implements a http method.");
             return true;
         }
 
@@ -298,7 +311,8 @@ class DConnectServerEventListenerImpl implements DConnectServerEventListener {
                 return true;
             }
         }
-        // filesの時は、Device Connect Managerまでは渡さずに、ここで処理を行う
+
+        // files の時は、Device Connect Managerまでは渡さずに、ここで処理を行う
         if ("files".equalsIgnoreCase(profile)) {
             if (request.getMethod().equals(HttpRequest.Method.GET)) {
                 String uri = parameters.get("uri");
@@ -309,9 +323,11 @@ class DConnectServerEventListenerImpl implements DConnectServerEventListener {
                     response.setCode(StatusCode.OK);
                 } catch (Exception e) {
                     response.setCode(StatusCode.NOT_FOUND);
+                    setErrorResponse(response, 1, "Not found a resource.");
                 }
             } else {
                 response.setCode(StatusCode.BAD_REQUEST);
+                setErrorResponse(response, 1, "Not implements a method.");
            }
             return true;
         }
@@ -639,15 +655,24 @@ class DConnectServerEventListenerImpl implements DConnectServerEventListener {
     }
 
     /**
+     * セグメントの中にHttpメソッドが含まれているか確認する.
+     * @param paths セグメント
+     * @return Httpメソッドが含まれている場合はtrue、それ以外はfalse
+     */
+    private boolean isHttpMethodIncluded(final String[] paths) {
+        return paths != null && paths.length >= SEGMENT_ATTRIBUTE && isMethod(paths[1]);
+    }
+
+    /**
      * DeviceConnectがサポートしているOne ShotのHTTPメソッドかどうか.
      * @param method HTTPメソッド
      * @return true:DeviceConnectがサポートしているOne shotのHTTPメソッドである。<br>
      *         false:DeviceConnectがサポートしているOne shotのHTTPメソッドではない。
      */
     private boolean isMethod(final String method) {
-        return method.toUpperCase().equals(DConnectMessage.METHOD_GET)
-                || method.toUpperCase().equals(DConnectMessage.METHOD_POST)
-                || method.toUpperCase().equals(DConnectMessage.METHOD_PUT)
-                || method.toUpperCase().equals(DConnectMessage.METHOD_DELETE);
+        return method.equalsIgnoreCase(DConnectMessage.METHOD_GET)
+                || method.equalsIgnoreCase(DConnectMessage.METHOD_POST)
+                || method.equalsIgnoreCase(DConnectMessage.METHOD_PUT)
+                || method.equalsIgnoreCase(DConnectMessage.METHOD_DELETE);
     }
 }

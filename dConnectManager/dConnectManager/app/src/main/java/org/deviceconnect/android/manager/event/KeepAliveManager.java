@@ -15,6 +15,7 @@ import org.deviceconnect.android.manager.DConnectService;
 import org.deviceconnect.android.manager.DevicePlugin;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -214,7 +215,9 @@ public class KeepAliveManager {
     private synchronized void periodicProcess() {
         if (isEnableKeepAlive()) {
             mLogger.info("periodicProcess: plugins = " + mManagementList.size());
-            for (KeepAlive data : mManagementList) {
+            Iterator<KeepAlive> iterator = mManagementList.iterator();
+            while (iterator.hasNext()) {
+                KeepAlive data = iterator.next();
                 if (data.getResponseFlag()) {
                     mLogger.info("Plugin " + data.getPlugin().getPackageName() + " is alive.");
                     data.resetResponseFlag();
@@ -222,7 +225,12 @@ public class KeepAliveManager {
                 } else {
                     mLogger.info("Plugin " + data.getPlugin().getPackageName() + " is dead.");
                     DevicePlugin plugin = data.getPlugin();
-                    removeManagementTable(plugin);
+                    data.subtractionEventCounter();
+                    if (data.getEventCounter() <= 0) {
+                        sendKeepAlive(plugin, "STOP");
+                        iterator.remove();
+                    }
+
                     // 該当プラグインIDに紐付くWebSocketの切断処理
                     for (EventSession session : mEventSessionTable.findEventSessionsForPlugin(plugin)) {
                         mLogger.info("Disconnecting with receiver: id = " + session.getReceiverId());
@@ -230,6 +238,9 @@ public class KeepAliveManager {
                         mEventSessionTable.remove(session);
                     }
                 }
+            }
+            if (isEnableKeepAlive() && mManagementList.isEmpty() && mRunningPeriodicProcess) {
+                stopPeriodicProcess();
             }
         }
     }

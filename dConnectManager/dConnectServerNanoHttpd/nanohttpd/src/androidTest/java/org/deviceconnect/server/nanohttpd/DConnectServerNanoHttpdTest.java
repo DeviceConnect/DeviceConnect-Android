@@ -78,6 +78,11 @@ public class DConnectServerNanoHttpdTest {
      */
     private static final String HTTPS_LOCALHOST_4035 = "https://localhost:4035";
 
+    /**
+     * ポート番号.
+     */
+    private static final int PORT = 4035;
+    
     private Context getContext() {
         return InstrumentationRegistry.getTargetContext();
     }
@@ -103,7 +108,7 @@ public class DConnectServerNanoHttpdTest {
      */
     @Test(expected = IllegalArgumentException.class)
     public void DConnectServerNanoHttpd_context_null() {
-        DConnectServerConfig config = new DConnectServerConfig.Builder().port(4035).documentRootPath("").build();
+        DConnectServerConfig config = new DConnectServerConfig.Builder().port(PORT).documentRootPath("").build();
         new DConnectServerNanoHttpd(config, null);
     }
 
@@ -123,7 +128,7 @@ public class DConnectServerNanoHttpdTest {
         final String key = "key";
         final String value = "value";
         File file = getContext().getFilesDir();
-        DConnectServerConfig config = new DConnectServerConfig.Builder().port(4035).documentRootPath(file.getPath()).build();
+        DConnectServerConfig config = new DConnectServerConfig.Builder().port(PORT).documentRootPath(file.getPath()).build();
         DConnectServer server = new DConnectServerNanoHttpd(config, getContext());
         assertThat(server, is(notNullValue()));
 
@@ -205,7 +210,7 @@ public class DConnectServerNanoHttpdTest {
         final String value1 = "value1";
         final String value2 = "value2";
         File file = getContext().getFilesDir();
-        DConnectServerConfig config = new DConnectServerConfig.Builder().port(4035).documentRootPath(file.getPath()).build();
+        DConnectServerConfig config = new DConnectServerConfig.Builder().port(PORT).documentRootPath(file.getPath()).build();
         DConnectServer server = new DConnectServerNanoHttpd(config, getContext());
         assertThat(server, is(notNullValue()));
 
@@ -281,7 +286,7 @@ public class DConnectServerNanoHttpdTest {
     public void DConnectServerNanoHttpd_invalid_document_path() {
         final CountDownLatch latch = new CountDownLatch(1);
         final AtomicReference<DConnectServerError> result = new AtomicReference<>();
-        DConnectServerConfig config = new DConnectServerConfig.Builder().port(4035).documentRootPath("abc").build();
+        DConnectServerConfig config = new DConnectServerConfig.Builder().port(PORT).documentRootPath("abc").build();
         DConnectServer server = new DConnectServerNanoHttpd(config, getContext());
         assertThat(server, is(notNullValue()));
 
@@ -340,7 +345,7 @@ public class DConnectServerNanoHttpdTest {
         final CountDownLatch latch = new CountDownLatch(1);
         final String path = "/root/path";
         File file = getContext().getFilesDir();
-        DConnectServerConfig config = new DConnectServerConfig.Builder().port(4035).documentRootPath(file.getPath()).build();
+        DConnectServerConfig config = new DConnectServerConfig.Builder().port(PORT).documentRootPath(file.getPath()).build();
         DConnectServer server = new DConnectServerNanoHttpd(config, getContext());
         server.setServerEventListener(new DConnectServerEventListener() {
             @Override
@@ -410,7 +415,7 @@ public class DConnectServerNanoHttpdTest {
         final String value = "value";
 
         File file = getContext().getFilesDir();
-        DConnectServerConfig config = new DConnectServerConfig.Builder().port(4035).maxConnectionSize(8)
+        DConnectServerConfig config = new DConnectServerConfig.Builder().port(PORT).maxConnectionSize(8)
                 .documentRootPath(file.getPath()).build();
         DConnectServer server = new DConnectServerNanoHttpd(config, getContext());
         server.setServerEventListener(new DConnectServerEventListener() {
@@ -422,7 +427,6 @@ public class DConnectServerNanoHttpdTest {
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                latch.countDown();
                 return true;
             }
 
@@ -464,7 +468,10 @@ public class DConnectServerNanoHttpdTest {
                 @Override
                 public void run() {
                     HttpUtils.Response response = HttpUtils.get(HTTP_LOCALHOST_4035 + path + "?" + key + "=" + value);
-                    array.set(index, response);
+                    synchronized (array) {
+                        array.set(index, response);
+                    }
+                    latch.countDown();
                 }
             });
         }
@@ -501,7 +508,7 @@ public class DConnectServerNanoHttpdTest {
         whiteList.add("192.168.0.1");
 
         File file = getContext().getFilesDir();
-        DConnectServerConfig config = new DConnectServerConfig.Builder().port(4035).ipWhiteList(whiteList)
+        DConnectServerConfig config = new DConnectServerConfig.Builder().port(PORT).ipWhiteList(whiteList)
                 .documentRootPath(file.getPath()).build();
         DConnectServer server = new DConnectServerNanoHttpd(config, getContext());
         server.setServerEventListener(new DConnectServerEventListener() {
@@ -568,7 +575,7 @@ public class DConnectServerNanoHttpdTest {
         final String key = "key";
         final String value = v.toString();
         File file = getContext().getFilesDir();
-        DConnectServerConfig config = new DConnectServerConfig.Builder().port(4035).documentRootPath(file.getPath()).build();
+        DConnectServerConfig config = new DConnectServerConfig.Builder().port(PORT).documentRootPath(file.getPath()).build();
         DConnectServer server = new DConnectServerNanoHttpd(config, getContext());
         server.setServerEventListener(new DConnectServerEventListener() {
             @Override
@@ -650,7 +657,7 @@ public class DConnectServerNanoHttpdTest {
         final String key = "key";
         final String value = "value";
         File file = getContext().getFilesDir();
-        DConnectServerConfig config = new DConnectServerConfig.Builder().port(4035).documentRootPath(file.getPath()).build();
+        DConnectServerConfig config = new DConnectServerConfig.Builder().port(PORT).documentRootPath(file.getPath()).build();
         DConnectServer server = new DConnectServerNanoHttpd(config, getContext());
         server.setServerEventListener(new DConnectServerEventListener() {
             @Override
@@ -726,14 +733,14 @@ public class DConnectServerNanoHttpdTest {
         final String key = "key";
         final String value = "value";
         final String fileNameKey = "fileName";
-        final File writeFile = writeBigFile("bigData", ".dat", 1024);
+        final File writeFile = writeBigFile("bigData", ".dat", 1024 * 1024 * 1024);
 
         final Map<String, Object> data = new HashMap<>();
         data.put(key, value);
         data.put(fileNameKey, writeFile);
 
         File file = getContext().getFilesDir();
-        DConnectServerConfig config = new DConnectServerConfig.Builder().port(4035).documentRootPath(file.getPath()).build();
+        DConnectServerConfig config = new DConnectServerConfig.Builder().port(PORT).documentRootPath(file.getPath()).build();
         DConnectServer server = new DConnectServerNanoHttpd(config, getContext());
         server.setServerEventListener(new DConnectServerEventListener() {
             @Override
@@ -783,6 +790,7 @@ public class DConnectServerNanoHttpdTest {
         } catch (InterruptedException e) {
             fail("timeout");
         } finally {
+            writeFile.delete();
             server.shutdown();
         }
     }
@@ -809,7 +817,7 @@ public class DConnectServerNanoHttpdTest {
         data.put(fileNameKey, writeFile);
 
         File file = getContext().getFilesDir();
-        DConnectServerConfig config = new DConnectServerConfig.Builder().port(4035).documentRootPath(file.getPath()).build();
+        DConnectServerConfig config = new DConnectServerConfig.Builder().port(PORT).documentRootPath(file.getPath()).build();
         DConnectServer server = new DConnectServerNanoHttpd(config, getContext());
         server.setServerEventListener(new DConnectServerEventListener() {
             @Override
@@ -898,7 +906,7 @@ public class DConnectServerNanoHttpdTest {
         final File writeFile = writeBigFile("bigData", ".dat", fileSize);
 
         File file = getContext().getFilesDir();
-        DConnectServerConfig config = new DConnectServerConfig.Builder().port(4035).documentRootPath(file.getPath()).build();
+        DConnectServerConfig config = new DConnectServerConfig.Builder().port(PORT).documentRootPath(file.getPath()).build();
         DConnectServer server = new DConnectServerNanoHttpd(config, getContext());
         server.setServerEventListener(new DConnectServerEventListener() {
             @Override
@@ -958,6 +966,7 @@ public class DConnectServerNanoHttpdTest {
         } catch (InterruptedException e) {
             fail("timeout");
         } finally {
+            writeFile.delete();
             server.shutdown();
         }
     }
@@ -975,7 +984,7 @@ public class DConnectServerNanoHttpdTest {
         final String path = "/root/path";
 
         File file = getContext().getFilesDir();
-        DConnectServerConfig config = new DConnectServerConfig.Builder().port(4035).documentRootPath(file.getPath()).build();
+        DConnectServerConfig config = new DConnectServerConfig.Builder().port(PORT).documentRootPath(file.getPath()).build();
         DConnectServer server = new DConnectServerNanoHttpd(config, getContext());
         server.setServerEventListener(new DConnectServerEventListener() {
             @Override
@@ -1034,7 +1043,7 @@ public class DConnectServerNanoHttpdTest {
         final String key = "key";
         final String value = "value";
         File file = getContext().getFilesDir();
-        DConnectServerConfig config = new DConnectServerConfig.Builder().port(4035).isSsl(true).documentRootPath(file.getPath()).build();
+        DConnectServerConfig config = new DConnectServerConfig.Builder().port(PORT).isSsl(true).documentRootPath(file.getPath()).build();
         DConnectServer server = new DConnectServerNanoHttpd(config, getContext());
         server.setServerEventListener(new DConnectServerEventListener() {
             @Override
@@ -1110,7 +1119,7 @@ public class DConnectServerNanoHttpdTest {
         final String key = "key";
         final String value = "value";
         File file = getContext().getFilesDir();
-        DConnectServerConfig config = new DConnectServerConfig.Builder().isSsl(true).port(4035).documentRootPath(file.getPath()).build();
+        DConnectServerConfig config = new DConnectServerConfig.Builder().isSsl(true).port(PORT).documentRootPath(file.getPath()).build();
         DConnectServer server = new DConnectServerNanoHttpd(config, getContext());
         server.setServerEventListener(new DConnectServerEventListener() {
             @Override
@@ -1186,7 +1195,7 @@ public class DConnectServerNanoHttpdTest {
         final AtomicReference<String> result = new AtomicReference<>();
         final String msg = "test-message";
         File file = getContext().getFilesDir();
-        DConnectServerConfig config = new DConnectServerConfig.Builder().port(4035).documentRootPath(file.getPath()).build();
+        DConnectServerConfig config = new DConnectServerConfig.Builder().port(PORT).documentRootPath(file.getPath()).build();
         DConnectServer server = new DConnectServerNanoHttpd(config, getContext());
         server.setServerEventListener(new DConnectServerEventListener() {
             @Override
@@ -1274,7 +1283,7 @@ public class DConnectServerNanoHttpdTest {
         final AtomicReference<String> result = new AtomicReference<>();
         final String msg = "test-message";
         File file = getContext().getFilesDir();
-        DConnectServerConfig config = new DConnectServerConfig.Builder().isSsl(true).port(4035).documentRootPath(file.getPath()).build();
+        DConnectServerConfig config = new DConnectServerConfig.Builder().isSsl(true).port(PORT).documentRootPath(file.getPath()).build();
         DConnectServer server = new DConnectServerNanoHttpd(config, getContext());
         server.setServerEventListener(new DConnectServerEventListener() {
             @Override

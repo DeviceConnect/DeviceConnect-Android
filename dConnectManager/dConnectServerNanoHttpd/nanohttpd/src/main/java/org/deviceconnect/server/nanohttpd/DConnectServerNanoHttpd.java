@@ -347,6 +347,31 @@ public class DConnectServerNanoHttpd extends DConnectServer {
     }
 
     /**
+     * NanoHTTPDに定義されていないエラーコードを定義するクラス.
+     */
+    private enum DConnectStatus implements NanoHTTPD.Response.IStatus {
+        ENTITY_TOO_LARGE(413, "Request Entity Too Large");
+
+        private final int requestStatus;
+        private final String description;
+
+        DConnectStatus(int requestStatus, String description) {
+            this.requestStatus = requestStatus;
+            this.description = description;
+        }
+
+        @Override
+        public String getDescription() {
+            return "" + this.requestStatus + " " + this.description;
+        }
+
+        @Override
+        public int getRequestStatus() {
+            return this.requestStatus;
+        }
+    }
+
+    /**
      * NanoWSDの実継承クラス.
      *
      * @author NTT DOCOMO, INC.
@@ -383,7 +408,7 @@ public class DConnectServerNanoHttpd extends DConnectServer {
             if (!checkHeaderSize(session)) {
                 // NanoHTTPDでは、バッファサイズを超えたHTTPヘッダーが送られてくると
                 // 挙動がおかしくなるのでここでエラーを返却して対応する。
-                Response response = newFixedLengthResponse(Status.NOT_IMPLEMENTED, MIME_APPLICATION_JSON,
+                Response response = newFixedLengthResponse(DConnectStatus.ENTITY_TOO_LARGE, MIME_APPLICATION_JSON,
                         "{\"result\" : 1, \"errorCode\" : 1, \"errorMessage\" : \"Request Entity Too Large.\"}");
                 response.closeConnection(true);
                 return response;

@@ -91,6 +91,10 @@ public class HostDeviceService extends DConnectMessageService {
     public void onCreate() {
         super.onCreate();
 
+        // Manager同梱のため、LocalOAuthを無効化
+        setUseLocalOAuth(false);
+
+        // EventManagerの初期化
         EventManager.INSTANCE.setController(new MemoryCacheController());
 
         mFileMgr = new FileManager(this);

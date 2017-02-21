@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">Host (Device Connect Device Plug-in)</string>
+    <string name="app_name_host">Host (Device Connect Device Plug-in)</string>
 
     <string name="shutter">Shutter</string>
     <string name="zoomin">Zoomin</string>

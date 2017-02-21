@@ -23,11 +23,6 @@ public class NormalAvailabilityProfileTestCase extends IntentDConnectTestCase {
         return false;
     }
 
-    @Override
-    protected boolean isSearchServices() {
-        return false;
-    }
-
     /**
      * サーバ起動確認テストを行う.
      * <pre>

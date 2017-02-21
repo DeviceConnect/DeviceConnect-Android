@@ -31,11 +31,6 @@ public class FailAvailabilityProfileTestCase extends RESTfulDConnectTestCase {
         return false;
     }
 
-    @Override
-    protected boolean isSearchServices() {
-        return false;
-    }
-
     /**
      * メソッドにPOSTを指定してサーバ起動確認テストを行う.
      * <pre>

@@ -8,9 +8,17 @@ package org.deviceconnect.android.profile.restful.test;
 
 import android.support.test.runner.AndroidJUnit4;
 
+import org.deviceconnect.android.test.http.HttpUtil;
+import org.json.JSONObject;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.core.IsNull.notNullValue;
+import static org.junit.Assert.assertThat;
 
 /**
  * Availabilityプロファイルの正常系テスト.
@@ -21,11 +29,6 @@ public class NormalAvailabilityProfileTestCase extends RESTfulDConnectTestCase {
 
     @Override
     protected boolean isLocalOAuth() {
-        return false;
-    }
-
-    @Override
-    protected boolean isSearchServices() {
         return false;
     }
 
@@ -42,8 +45,17 @@ public class NormalAvailabilityProfileTestCase extends RESTfulDConnectTestCase {
      * </pre>
      */
     @Test
-    public void testGetAvailability() {
-        assertTrue(isManagerAvailable());
-    }
+    public void testGetAvailability() throws Exception {
+        String uri = "http://localhost:4035/gotapi/availability";
 
+        Map<String, String> headers = new HashMap<>();
+        headers.put("Origin", getContext().getPackageName());
+
+        HttpUtil.Response response = HttpUtil.get(uri, headers);
+        assertThat(response, is(notNullValue()));
+
+        JSONObject json = response.getJSONObject();
+        assertThat(json, is(notNullValue()));
+        assertThat(json.getInt("result"), is(0));
+    }
 }

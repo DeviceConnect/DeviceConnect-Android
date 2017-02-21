@@ -8,13 +8,19 @@ package org.deviceconnect.android.profile.restful.test;
 
 import android.support.test.runner.AndroidJUnit4;
 
+import org.deviceconnect.android.test.http.HttpUtil;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.DConnectMessage.ErrorCode;
 import org.deviceconnect.message.DConnectResponseMessage;
 import org.deviceconnect.message.DConnectSDK;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
+import org.hamcrest.core.IsNull;
+import org.json.JSONObject;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.core.Is.is;
@@ -34,11 +40,6 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
 
     @Override
     protected boolean isLocalOAuth() {
-        return false;
-    }
-
-    @Override
-    protected boolean isSearchServices() {
         return false;
     }
 
@@ -209,7 +210,7 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      * </pre>
      */
     @Test
-    public void testGetRequestAccessTokenNotRegisteredClientId() {
+    public void testGetRequestAccessTokenNotRegisteredClientId() throws Exception {
         final String clientId = "not_registered_client_id";
 
         DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
@@ -239,8 +240,8 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      * </pre>
      */
     @Test
-    public void testGetRequestAccessTokenNoScope() {
-        String clientId = createClient();
+    public void testGetRequestAccessTokenNoScope() throws Exception {
+        String clientId = createClientId();
 
         DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
@@ -269,8 +270,8 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      * </pre>
      */
     @Test
-    public void testGetRequestAccessTokenEmptyScope() {
-        String client = createClient();
+    public void testGetRequestAccessTokenEmptyScope() throws Exception {
+        String client = createClientId();
 
         DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
@@ -299,8 +300,8 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      * </pre>
      */
     @Test
-    public void testGetRequestAccessTokenNoApplicationName() {
-        String client = createClient();
+    public void testGetRequestAccessTokenNoApplicationName() throws Exception {
+        String client = createClientId();
 
         DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
@@ -328,8 +329,8 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      * </pre>
      */
     @Test
-    public void testGetRequestAccessTokenEmptyApplicationName() {
-        String client = createClient();
+    public void testGetRequestAccessTokenEmptyApplicationName() throws Exception {
+        String client = createClientId();
 
         DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
@@ -359,8 +360,8 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      * </pre>
      */
     @Test
-    public void testGetRequestAccessTokenUndefinedAttribute() {
-        String client = createClient();
+    public void testGetRequestAccessTokenUndefinedAttribute() throws Exception {
+        String client = createClientId();
 
         DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
@@ -390,8 +391,8 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      * </pre>
      */
     @Test
-    public void testGetRequestAccessTokenInvalidMethodPost() {
-        String client = createClient();
+    public void testGetRequestAccessTokenInvalidMethodPost() throws Exception {
+        String client = createClientId();
 
         DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
@@ -421,8 +422,8 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      * </pre>
      */
     @Test
-    public void testGetRequestAccessTokenInvalidMethodPut() {
-        String client = createClient();
+    public void testGetRequestAccessTokenInvalidMethodPut() throws Exception {
+        String client = createClientId();
 
         DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
@@ -452,8 +453,8 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      * </pre>
      */
     @Test
-    public void testGetRequestAccessTokenInvalidMethodDelete() {
-        String client = createClient();
+    public void testGetRequestAccessTokenInvalidMethodDelete() throws Exception {
+        String client = createClientId();
 
         DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
@@ -467,5 +468,27 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
         assertThat(response.getErrorCode(), is(ErrorCode.NOT_SUPPORT_ACTION.getCode()));
+    }
+
+    /**
+     * clientIdを作成する.
+     * @return clientId
+     * @throws Exception clientIdの作成に失敗した場合に発生
+     */
+    private String createClientId() throws Exception {
+        String uri = "http://localhost:4035/gotapi/authorization/grant";
+
+        Map<String, String> headers = new HashMap<>();
+        headers.put("Origin", "abc");
+
+        HttpUtil.Response response = HttpUtil.get(uri, headers);
+        assertThat(response, is(notNullValue()));
+
+        JSONObject json = response.getJSONObject();
+        assertThat(json, is(notNullValue()));
+        assertThat(json.getInt("result"), is(0));
+        assertThat(json.getString("clientId"), is(IsNull.notNullValue()));
+
+        return json.getString("clientId");
     }
 }

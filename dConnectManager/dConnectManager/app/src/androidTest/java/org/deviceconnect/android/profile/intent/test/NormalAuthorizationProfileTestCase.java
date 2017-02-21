@@ -28,11 +28,6 @@ public class NormalAuthorizationProfileTestCase extends IntentDConnectTestCase {
     }
 
     @Override
-    protected boolean isSearchServices() {
-        return false;
-    }
-
-    @Override
     protected String getOrigin() {
         return "abc";
     }
@@ -123,5 +118,9 @@ public class NormalAuthorizationProfileTestCase extends IntentDConnectTestCase {
                 DeviceOrientationProfileConstants.PROFILE_NAME,
         });
         assertNotNull(accessToken);
+    }
+
+    private String createClient() {
+        return null;
     }
 }

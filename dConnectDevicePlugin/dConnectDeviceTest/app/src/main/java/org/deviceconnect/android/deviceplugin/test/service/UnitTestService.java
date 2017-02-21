@@ -10,8 +10,9 @@ package org.deviceconnect.android.deviceplugin.test.service;
 import android.content.ComponentName;
 import android.content.Intent;
 
-import org.deviceconnect.android.deviceplugin.test.profile.unique.TestAllGetControlProfile;
 import org.deviceconnect.android.deviceplugin.test.profile.Util;
+import org.deviceconnect.android.deviceplugin.test.profile.unique.TestAllGetControlProfile;
+import org.deviceconnect.android.deviceplugin.test.profile.unique.TestDataProfile;
 import org.deviceconnect.android.deviceplugin.test.profile.unique.TestJSONConversionProfile;
 import org.deviceconnect.android.deviceplugin.test.profile.unique.TestUniqueProfile;
 import org.deviceconnect.android.message.MessageUtils;
@@ -108,6 +109,7 @@ public class UnitTestService extends DConnectService {
         addProfile(new TestUniqueProfile());
         addProfile(new TestJSONConversionProfile());
         addProfile(new TestAllGetControlProfile());
+        addProfile(new TestDataProfile());
     }
 
     /**

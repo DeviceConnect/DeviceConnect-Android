@@ -10,12 +10,6 @@
             android:enabled="true"
             android:exported="true" >
         </receiver>
-
-        <!-- テスト用ファイルを管理するProvider. -->
-        <provider
-            android:name="org.deviceconnect.android.test.TestFileProvider"
-            android:authorities="org.deviceconnect.android.test.file"
-            android:exported="true" />
     </application>
 
 </manifest>

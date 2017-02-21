@@ -20,6 +20,9 @@ var main = (function(parent, global) {
         'temperature' : 'images/icon14_temperature.png',
         'humidity' : 'images/icon15_humidity.png',
         'atmosphericpressure' : 'images/icon16_atmosphericPressure.png',
+        'geolocation' : 'images/icon26_geolocation.png',
+        'touch' : 'images/icon27_touch.png',
+        'connect' : 'images/icon33_connect6.png',
     };
 
     function init() {

@@ -8,11 +8,14 @@
         android:id="@+id/textViewNumber"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#00a0e9"
+        android:padding="@dimen/padding_title"
+        android:background="@color/title_background"
         android:gravity="center"
-        android:text="Host設定"
-        android:textColor="#ffffff"
-        android:textSize="20sp" />
+        android:text="@string/host_settings_title"
+        android:textColor="@color/title_text"
+        android:textSize="16sp" />
+
+    <View style="@style/horizontalLine" />
 
     <ScrollView
         android:layout_width="match_parent"

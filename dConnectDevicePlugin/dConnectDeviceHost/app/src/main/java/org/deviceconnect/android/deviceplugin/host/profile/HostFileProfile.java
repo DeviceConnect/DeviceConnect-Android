@@ -97,27 +97,43 @@ public class HostFileProfile extends FileProfile {
             final String oldPath = request.getStringExtra("oldPath");
             final String newPath = request.getStringExtra("newPath");
 
-            File mFile = null;
-            String filePath = "";
+            File oldFile, newFile;
+            final String[] oldFilePath = new String[1];
+            final String[] newFilePath = new String[1];
 
             // パス名の先頭に"/"が含まれている場合
             if (oldPath.indexOf("/") == 0) {
-                mFile = new File(getFileManager().getBasePath() + oldPath);
-                filePath = getFileManager().getContentUri() + oldPath;
+                oldFile = new File(getFileManager().getBasePath() + oldPath);
+                oldFilePath[0] = getFileManager().getContentUri() + "/" + oldFile.getName();
             } else {
-                mFile = new File(getFileManager().getBasePath() + "/" + oldPath);
-                filePath = getFileManager().getContentUri() + "/" + oldPath;
+                oldFile = new File(getFileManager().getBasePath() + "/" + oldPath);
+                oldFilePath[0] = getFileManager().getContentUri() + "/" + oldFile.getName();
             }
-
-            if (mFile.isFile()) {
+            if (newPath.indexOf("/") == 0) {
+                newFile = new File(getFileManager().getBasePath() + newPath);
+            } else {
+                newFile = new File(getFileManager().getBasePath() + "/" + newPath);
+            }
+            File newDirectory = new File(newFile.getParent());
+            if (!newDirectory.exists()) {
+                MessageUtils.setInvalidRequestParameterError(response, "not found:" + newDirectory.getPath());
+                return true;
+            }
+            if (getMIMEType(newFile.getPath()) == null) {
+                newFilePath[0] = newPath + "/" + oldFile.getName();
+            } else {
+                newFilePath[0] = newPath;
+            }
+            Log.d("HOST", "isFile:" + oldFile.isFile());
+            if (oldFile.isFile()) {
+                Log.d("HOST", "haixtutene?: " + oldFilePath[0]);
                 final boolean forceOverwrite = isForce(request, "forceOverwrite");
-                final String path = filePath;
                 mImageService.execute(new Runnable() {
                     @Override
                     public void run() {
-                        byte[] data = getContentData(path);
+                        byte[] data = getContentData(oldFilePath[0]);
                         if (data != null) {
-                            saveFile(response, newPath, getMIMEType(newPath), data, forceOverwrite, new OnSavedListener() {
+                            saveFile(response, newFilePath[0], getMIMEType(newPath), data, forceOverwrite, new OnSavedListener() {
 
                                 @Override
                                 public void onSavedListener() {
@@ -132,9 +148,12 @@ public class HostFileProfile extends FileProfile {
                     }
                 });
                 return false;
+            } else if (getMIMEType(oldFile.getPath()) == null) {
+                MessageUtils.setInvalidRequestParameterError(response, oldPath + " is directory.");
             } else {
                 MessageUtils.setInvalidRequestParameterError(response, "not found:" + oldPath);
             }
+
             return true;
         }
     };

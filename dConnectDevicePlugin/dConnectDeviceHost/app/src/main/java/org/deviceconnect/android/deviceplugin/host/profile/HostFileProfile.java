@@ -309,34 +309,38 @@ public class HostFileProfile extends FileProfile {
                 public void onSuccess() {
                     String oldPath = request.getStringExtra("oldPath");
                     String newPath = request.getStringExtra("newPath");
-                    File mBaseDir = mFileManager.getBasePath();
-                    File mOldDir = new File(mBaseDir, oldPath);
-                    File mNewDir = new File(mBaseDir, newPath);
-                    File tempNewDir = new File(mBaseDir, newPath + "/" + mOldDir.getName());
+                    File baseDir = mFileManager.getBasePath();
+                    File oldDir = new File(baseDir, oldPath);
+                    File newDir = new File(baseDir, newPath);
+                    File tempNewDir = new File(baseDir, newPath + "/" + oldDir.getName());
 
-                    if (!mOldDir.exists()) {
+                    if (!oldDir.exists()) {
                         setResult(response, DConnectMessage.RESULT_ERROR);
                         MessageUtils.setInvalidRequestParameterError(response,
-                                "Not exists, \"" + mOldDir + "\"");
+                                "Not exists, \"" + oldDir + "\"");
+                    } else if (!newDir.exists()) {
+                            setResult(response, DConnectMessage.RESULT_ERROR);
+                            MessageUtils.setInvalidRequestParameterError(response,
+                                    "Not exists, \"" + newDir + "\"");
                     } else if (tempNewDir.exists()) {
                         setResult(response, DConnectMessage.RESULT_ERROR);
                         MessageUtils.setInvalidRequestParameterError(response,
                                 "Already exists, \"" + tempNewDir + "\"");
-                    } else if (!mOldDir.isDirectory()) {
+                    } else if (!oldDir.isDirectory()) {
                             setResult(response, DConnectMessage.RESULT_ERROR);
                             MessageUtils.setInvalidRequestParameterError(response,
-                                    "Not directory, \"" + mOldDir + "\"");
-                    } else if (!mNewDir.isDirectory()) {
+                                    "Not directory, \"" + oldDir + "\"");
+                    } else if (!newDir.isDirectory()) {
                         setResult(response, DConnectMessage.RESULT_ERROR);
                         MessageUtils.setInvalidRequestParameterError(response,
-                                "Not directory, \"" + mNewDir + "\"");
+                                "Not directory, \"" + newDir + "\"");
                     } else {
-                        boolean isMoveDir = mOldDir.renameTo(tempNewDir);
+                        boolean isMoveDir = oldDir.renameTo(tempNewDir);
                         if (isMoveDir) {
                             setResult(response, DConnectMessage.RESULT_OK);
                         } else {
                             setResult(response, DConnectMessage.RESULT_ERROR);
-                            MessageUtils.setInvalidRequestParameterError(response, "can not move dir :" + mOldDir + " and " + mNewDir);
+                            MessageUtils.setInvalidRequestParameterError(response, "can not move dir :" + oldDir + " and " + newDir);
                         }
                     }
                     sendResponse(response);

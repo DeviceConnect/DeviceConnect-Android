@@ -423,7 +423,7 @@ public class HostFileProfile extends FileProfile {
             // /の場合はTopに指定
             tmpDir = getFileManager().getBasePath();
             currentTop = true;
-        } else if (path.endsWith("..")) {
+        } else if (path.contains("..")) {
             // ..の場合は、1つ上のフォルダを指定
             String[] mDirs = path.split("/", 0);
             mPath = "/";

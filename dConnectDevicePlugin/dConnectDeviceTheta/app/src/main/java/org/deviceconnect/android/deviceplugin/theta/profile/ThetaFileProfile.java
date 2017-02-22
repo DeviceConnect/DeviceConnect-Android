@@ -39,38 +39,49 @@ public class ThetaFileProfile extends FileProfile {
     private final DConnectApi mGetReceiveApi = new GetApi() {
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            String serviceId = getServiceID(request);
+            final String serviceId = getServiceID(request);
             String path = getPath(request);
 
             if (!path.startsWith("/")) {
-                MessageUtils.setInvalidRequestParameterError(response, "path must start with '/'.");
-                return true;
+                path = "/" + path;
             }
 
             String[] components = path.split("/");
             if (components.length == 2) {
                 final String fileName = components[1];
-                mClient.fetchObject(serviceId, fileName, new ThetaDeviceClient.DefaultListener() {
-
+                getFileManager().checkWritePermission(new FileManager.CheckPermissionCallback() {
                     @Override
-                    public void onObjectFetched(final byte[] data, final String mimeType) {
-                        try {
-                            setResult(response, DConnectMessage.RESULT_OK);
-                            setMIMEType(response, mimeType);
-                            setURI(response, fileName, data);
-                        } catch (IOException e) {
-                            MessageUtils.setUnknownError(response, e.getMessage());
-                        }
+                    public void onSuccess() {
 
+                        mClient.fetchObject(serviceId, fileName, new ThetaDeviceClient.DefaultListener() {
+
+                            @Override
+                            public void onObjectFetched(final byte[] data, final String mimeType) {
+                                try {
+                                    setResult(response, DConnectMessage.RESULT_OK);
+                                    setMIMEType(response, mimeType);
+                                    setURI(response, fileName, data);
+                                } catch (IOException e) {
+                                    MessageUtils.setUnknownError(response, e.getMessage());
+                                }
+
+                                sendResponse(response);
+                            }
+
+                            @Override
+                            public void onFailed(final ThetaDeviceException cause) {
+                                MessageUtils.setUnknownError(response, cause.getMessage());
+                                sendResponse(response);
+                            }
+
+                        });
+                    }
+                    @Override
+                    public void onFail() {
+                        MessageUtils.setIllegalServerStateError(response,
+                                "Permission WRITE_EXTERNAL_STORAGE not granted.");
                         sendResponse(response);
                     }
-
-                    @Override
-                    public void onFailed(final ThetaDeviceException cause) {
-                        MessageUtils.setUnknownError(response, cause.getMessage());
-                        sendResponse(response);
-                    }
-
                 });
                 return false;
             } else {
@@ -93,6 +104,11 @@ public class ThetaFileProfile extends FileProfile {
     };
 
     private final DConnectApi mGetDirectoryApi = new GetApi() {
+        @Override
+        public String getAttribute() {
+            return "directory";
+        }
+
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
             return getFileList(request, response);
@@ -189,41 +205,54 @@ public class ThetaFileProfile extends FileProfile {
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
             final String serviceId = getServiceID(request);
-            final String path = getPath(request);
+            String path = getPath(request);
 
             if (!path.startsWith("/")) {
-                MessageUtils.setInvalidRequestParameterError(response, "path must start with '/'.");
-                return true;
+                path = "/" + path;
             }
 
             String[] components = path.split("/");
             if (components.length == 2) {
-                String fileName = components[1];
-                mClient.removeObject(serviceId, fileName, new ThetaDeviceClient.DefaultListener() {
-
+                final String fileName = components[1];
+                final String removePath = path;
+                getFileManager().checkWritePermission(new FileManager.CheckPermissionCallback() {
                     @Override
-                    public void onObjectRemoved() {
-                        setResult(response, DConnectMessage.RESULT_OK);
+                    public void onSuccess() {
+
+                        mClient.removeObject(serviceId, fileName, new ThetaDeviceClient.DefaultListener() {
+
+                            @Override
+                            public void onObjectRemoved() {
+                                setResult(response, DConnectMessage.RESULT_OK);
+                                sendResponse(response);
+                            }
+
+                            @Override
+                            public void onFailed(final ThetaDeviceException cause) {
+                                switch (cause.getReason()) {
+                                    case ThetaDeviceException.NOT_FOUND_THETA:
+                                        MessageUtils.setNotFoundServiceError(response);
+                                        break;
+                                    case ThetaDeviceException.NOT_FOUND_OBJECT:
+                                        MessageUtils.setInvalidRequestParameterError(response, "File not found: " + removePath);
+                                        break;
+                                    default:
+                                        MessageUtils.setUnknownError(response, cause.getMessage());
+                                        break;
+                                }
+                                sendResponse(response);
+                            }
+
+                        });
+                    }
+                    @Override
+                    public void onFail() {
+                        MessageUtils.setIllegalServerStateError(response,
+                                "Permission WRITE_EXTERNAL_STORAGE not granted.");
                         sendResponse(response);
                     }
-
-                    @Override
-                    public void onFailed(final ThetaDeviceException cause) {
-                        switch (cause.getReason()) {
-                            case ThetaDeviceException.NOT_FOUND_THETA:
-                                MessageUtils.setNotFoundServiceError(response);
-                                break;
-                            case ThetaDeviceException.NOT_FOUND_OBJECT:
-                                MessageUtils.setInvalidRequestParameterError(response, "File not found: " + path);
-                                break;
-                            default:
-                                MessageUtils.setUnknownError(response, cause.getMessage());
-                                break;
-                        }
-                        sendResponse(response);
-                    }
-
                 });
+
                 return false;
             } else {
                 MessageUtils.setInvalidRequestParameterError(response, "File not found: " + path);

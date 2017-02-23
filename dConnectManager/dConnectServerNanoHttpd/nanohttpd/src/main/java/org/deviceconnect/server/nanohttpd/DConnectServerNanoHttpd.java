@@ -603,13 +603,18 @@ public class DConnectServerNanoHttpd extends DConnectServer {
                     }
                 }
 
-                ByteBuffer tmpBuf;
+                TempBuffer tmpBuf;
                 if (baos != null) {
-                    tmpBuf = ByteBuffer.wrap(baos.toByteArray(), 0, baos.size());
+                    tmpBuf = new TempByteBuffer(ByteBuffer.wrap(baos.toByteArray(), 0, baos.size()));
                 } else {
-                    tmpBuf = randomAccessFile.getChannel().map(FileChannel.MapMode.READ_ONLY, 0, randomAccessFile.length());
+                    try {
+                        tmpBuf = new TempByteBuffer(randomAccessFile.getChannel().map(FileChannel.MapMode.READ_ONLY, 0, randomAccessFile.length()));
+                    } catch (IOException e) {
+                        tmpBuf = new TempFileBuffer(randomAccessFile);
+                    }
                     randomAccessFile.seek(0);
                 }
+
 
                 if (Method.POST.equals(session.getMethod()) || Method.PUT.equals(session.getMethod())) {
                     ContentType contentType = new ContentType(session.getHeaders().get("content-type"));
@@ -708,7 +713,7 @@ public class DConnectServerNanoHttpd extends DConnectServer {
          * a large block at a time and uses a temporary buffer to optimize
          * (memory mapped) file access.
          */
-        private int[] getBoundaryPositions(final ByteBuffer b, final byte[] boundary) {
+        private int[] getBoundaryPositions(final TempBuffer b, final byte[] boundary) throws IOException {
             int[] res = new int[0];
             if (b.remaining() < boundary.length) {
                 return res;
@@ -794,7 +799,7 @@ public class DConnectServerNanoHttpd extends DConnectServer {
          * @param files multipartのファイルパスを格納するマップ
          * @throws ResponseException レスポンスの作成に失敗した場合
          */
-        private void decodeMultipartFormData(final IHTTPSession session, final ContentType contentType, final ByteBuffer fbuf,
+        private void decodeMultipartFormData(final IHTTPSession session, final ContentType contentType, final TempBuffer fbuf,
                                              final Map<String, String> parms, final Map<String, String> files) throws ResponseException {
             int pcount = 0;
             try {
@@ -902,7 +907,7 @@ public class DConnectServerNanoHttpd extends DConnectServer {
          * Retrieves the content of a sent file and saves it to a temporary
          * file. The full path to the saved file is returned.
          */
-        private String saveTmpFile(final IHTTPSession session, final ByteBuffer b, final int offset, final int len, final String filename_hint) {
+        private String saveTmpFile(final IHTTPSession session, final TempBuffer b, final int offset, final int len, final String filename_hint) {
             String path = "";
             if (len > 0) {
                 FileOutputStream fileOutputStream = null;
@@ -912,11 +917,8 @@ public class DConnectServerNanoHttpd extends DConnectServer {
                         throw new RuntimeException("Cannot get a TempFileManager.");
                     }
                     TempFile tempFile = mgr.createTempFile(filename_hint);
-                    ByteBuffer src = b.duplicate();
                     fileOutputStream = new FileOutputStream(tempFile.getName());
-                    FileChannel dest = fileOutputStream.getChannel();
-                    src.position(offset).limit(offset + len);
-                    dest.write(src.slice());
+                    b.write(fileOutputStream, offset, len);
                     path = tempFile.getName();
                 } catch (Exception e) { // Catch exception if any
                     throw new Error(e); // we won't recover, so throw an error
@@ -1428,6 +1430,109 @@ public class DConnectServerNanoHttpd extends DConnectServer {
             public OutputStream open() throws Exception {
                 return mOutputStream;
             }
+        }
+    }
+
+    private interface TempBuffer {
+        TempBuffer position(int position) throws IOException;
+        int remaining() throws IOException;
+        TempBuffer get(byte[] dst, int dstOffset, int byteCount) throws IOException;
+        TempBuffer get(byte[] dst) throws IOException;
+
+        void write(FileOutputStream out, int offset, int length) throws IOException;
+    }
+
+    private class TempFileBuffer implements TempBuffer {
+
+        private RandomAccessFile mRandomAccessFile;
+        private long mLimit;
+        private long mPosition;
+
+        TempFileBuffer(final RandomAccessFile file) throws IOException {
+            mRandomAccessFile = file;
+            mPosition = 0;
+            mLimit = file.length();
+        }
+
+        @Override
+        public TempBuffer position(final int position) throws IOException {
+            mPosition = position;
+            mRandomAccessFile.seek(position);
+            return this;
+        }
+
+        @Override
+        public int remaining() {
+            return (int) (mLimit - mPosition);
+        }
+
+        @Override
+        public TempBuffer get(final byte[] dst, final int dstOffset, final int byteCount) throws IOException {
+            mRandomAccessFile.seek(mPosition);
+            mRandomAccessFile.readFully(dst, dstOffset, byteCount);
+            mPosition += byteCount;
+            return this;
+        }
+
+        @Override
+        public TempBuffer get(final byte[] dst) throws IOException {
+            return get(dst, 0, dst.length);
+        }
+
+        @Override
+        public void write(final FileOutputStream out, final int offset, final int length) throws IOException {
+            mRandomAccessFile.seek(offset);
+            byte[] buf = new byte[4096];
+            int len = 4096;
+            int size = length;
+            while (size > 0) {
+                mRandomAccessFile.readFully(buf, 0, len);
+                out.write(buf, 0, len);
+                size -= len;
+                if (size < 4096) {
+                    len = size;
+                }
+            }
+        }
+    }
+
+    private class TempByteBuffer implements TempBuffer {
+
+        private ByteBuffer mByteBuffer;
+
+        TempByteBuffer(ByteBuffer buffer) {
+            mByteBuffer = buffer;
+        }
+
+        @Override
+        public TempBuffer position(final int position) {
+            mByteBuffer.position(position);
+            return this;
+        }
+
+        @Override
+        public int remaining() {
+            return mByteBuffer.remaining();
+        }
+
+        @Override
+        public TempBuffer get(final byte[] dst, final int dstOffset, final int byteCount) {
+            mByteBuffer.get(dst, dstOffset, byteCount);
+            return this;
+        }
+
+        @Override
+        public TempBuffer get(final byte[] dst) {
+            mByteBuffer.get(dst);
+            return this;
+        }
+
+        @Override
+        public void write(final FileOutputStream out, final int offset, final int len) throws IOException {
+            ByteBuffer src = mByteBuffer.duplicate();
+            FileChannel dest = out.getChannel();
+            src.position(offset).limit(offset + len);
+            dest.write(src.slice());
         }
     }
 }

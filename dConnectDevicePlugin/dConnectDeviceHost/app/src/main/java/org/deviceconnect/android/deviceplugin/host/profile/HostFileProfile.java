@@ -124,9 +124,7 @@ public class HostFileProfile extends FileProfile {
             } else {
                 newFilePath[0] = newPath;
             }
-            Log.d("HOST", "isFile:" + oldFile.isFile());
             if (oldFile.isFile()) {
-                Log.d("HOST", "haixtutene?: " + oldFilePath[0]);
                 final boolean forceOverwrite = isForce(request, "forceOverwrite");
                 mImageService.execute(new Runnable() {
                     @Override

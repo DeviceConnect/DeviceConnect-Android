@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest
     package="org.deviceconnect.android.deviceplugin.host"
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    android:versionCode="1"
-    android:versionName="2.0.0">
+    xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.BLUETOOTH"/>
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
@@ -32,14 +30,10 @@
     <uses-feature android:name="android.hardware.camera.flash"/>
 
     <application
-        android:name=".HostDeviceApplication"
-        android:allowBackup="true"
-        android:icon="@drawable/dconnect_icon"
-        android:label="@string/app_name"
-        android:theme="@style/AppTheme">
+        android:allowBackup="true">
         <activity
-            android:name=".setting.HostSettingActivity"
-            android:label="@string/app_name"
+            android:name="org.deviceconnect.android.deviceplugin.host.setting.HostSettingActivity"
+            android:label="@string/app_name_host"
             android:launchMode="singleTask"/>
 
         <!-- d-Connect Host Device Plugin Provider. -->
@@ -47,6 +41,14 @@
             <meta-data
                 android:name="org.deviceconnect.android.deviceplugin"
                 android:resource="@xml/org_deviceconnect_android_deviceplugin_host"/>
+
+            <meta-data
+                android:name="org.deviceconnect.android.deviceplugin.name"
+                android:value="@string/app_name_host"/>
+
+            <meta-data
+                android:name="org.deviceconnect.android.deviceplugin.icon"
+                android:resource="@drawable/dconnect_icon"/>
 
             <intent-filter>
                 <action android:name="org.deviceconnect.action.GET"/>
@@ -69,7 +71,7 @@
         </receiver>
 
         <!-- BroadcastReceiver for Host -->
-        <receiver android:name=".HostDeviceReceiver">
+        <receiver android:name="org.deviceconnect.android.deviceplugin.host.HostDeviceReceiver">
             <intent-filter>
                 <!-- Connection Profile -->
                 <action android:name="android.net.wifi.WIFI_STATE_CHANGED"/>
@@ -86,58 +88,53 @@
             </intent-filter>
         </receiver>
 
-        <provider
-            android:name="org.deviceconnect.android.provider.FileProvider"
-            android:authorities="org.deviceconnect.android.deviceplugin.host.provider"
-            android:exported="true"/>
-
         <service
             android:name="org.deviceconnect.android.deviceplugin.host.HostDeviceService"
             android:exported="false"/>
 
         <activity
-            android:name=".activity.BluetoothManageActivity"
+            android:name="org.deviceconnect.android.deviceplugin.host.activity.BluetoothManageActivity"
             android:excludeFromRecents="true"
             android:exported="false"
             android:theme="@android:style/Theme.Translucent.NoTitleBar"/>
 
         <activity
-            android:name=".recorder.video.VideoRecorderActivity"
+            android:name="org.deviceconnect.android.deviceplugin.host.recorder.video.VideoRecorderActivity"
             android:exported="false"
             android:screenOrientation="landscape"/>
 
         <activity
-            android:name=".mediaplayer.VideoPlayer"
+            android:name="org.deviceconnect.android.deviceplugin.host.mediaplayer.VideoPlayer"
             android:exported="false"
             android:launchMode="singleInstance"
             android:screenOrientation="landscape"/>
 
         <activity
-            android:name=".recorder.audio.AudioRecorderActivity"
+            android:name="org.deviceconnect.android.deviceplugin.host.recorder.audio.AudioRecorderActivity"
             android:exported="false"/>
 
         <activity
-            android:name=".activity.CanvasProfileActivity"
+            android:name="org.deviceconnect.android.deviceplugin.host.activity.CanvasProfileActivity"
             android:exported="false"
             android:launchMode="singleTask"/>
 
         <activity
-            android:name=".activity.TouchProfileActivity"
+            android:name="org.deviceconnect.android.deviceplugin.host.activity.TouchProfileActivity"
             android:exported="false"
-            android:label="@string/app_name"/>
+            android:label="@string/app_name_host"/>
 
         <activity
-            android:name=".activity.KeyEventProfileActivity"
+            android:name="org.deviceconnect.android.deviceplugin.host.activity.KeyEventProfileActivity"
             android:exported="false"
-            android:label="@string/app_name"/>
+            android:label="@string/app_name_host"/>
 
         <activity
-            android:name=".recorder.screen.PermissionReceiverActivity"
+            android:name="org.deviceconnect.android.deviceplugin.host.recorder.screen.PermissionReceiverActivity"
             android:exported="false"
-            android:label="@string/app_name"
+            android:label="@string/app_name_host"
             android:theme="@android:style/Theme.Translucent"/>
 
-        <activity android:name=".activity.GeolocationAlertDialogActivity"
+        <activity android:name="org.deviceconnect.android.deviceplugin.host.activity.GeolocationAlertDialogActivity"
             android:label="@string/gps_settings_body"
             android:theme="@android:style/Theme.Translucent.NoTitleBar"
             android:launchMode="singleInstance">

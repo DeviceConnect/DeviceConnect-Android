@@ -14,8 +14,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
-import android.content.pm.ApplicationInfo;
-import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
@@ -650,16 +648,13 @@ public class ServiceListActivity extends Activity implements AlertDialogFragment
 
             ImageView imageView = (ImageView) view.findViewById(R.id.item_icon);
             if (imageView != null) {
-                String packageName = getPackageName(service.getId());
-                if (packageName != null) {
-                    try {
-                        PackageManager pm = getPackageManager();
-                        ApplicationInfo app = pm.getApplicationInfo(packageName, 0);
-                        setIcon(imageView, service, pm.getApplicationIcon(app.packageName));
-                    } catch (PackageManager.NameNotFoundException e) {
-                        if (DEBUG) {
-                            Log.e(TAG, "", e);
-                        }
+                DConnectApplication app = (DConnectApplication) getApplication();
+                DevicePluginManager mgr = app.getDevicePluginManager();
+                List<DevicePlugin> plugins = mgr.getDevicePlugins();
+                for (DevicePlugin plugin : plugins) {
+                    if (service.getId().contains(plugin.getPluginId())) {
+                        setIcon(imageView, service, plugin.getPluginIcon());
+                        break;
                     }
                 }
             }

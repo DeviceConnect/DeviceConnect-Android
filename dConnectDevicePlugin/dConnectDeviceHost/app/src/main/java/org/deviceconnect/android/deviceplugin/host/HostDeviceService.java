@@ -15,6 +15,7 @@ import android.os.IBinder;
 
 import org.deviceconnect.android.deviceplugin.host.battery.HostBatteryManager;
 import org.deviceconnect.android.deviceplugin.host.file.FileDataManager;
+import org.deviceconnect.android.deviceplugin.host.file.HostFileProvider;
 import org.deviceconnect.android.deviceplugin.host.mediaplayer.HostMediaPlayerManager;
 import org.deviceconnect.android.deviceplugin.host.profile.HostBatteryProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostCanvasProfile;
@@ -97,7 +98,7 @@ public class HostDeviceService extends DConnectMessageService {
         // EventManagerの初期化
         EventManager.INSTANCE.setController(new MemoryCacheController());
 
-        mFileMgr = new FileManager(this);
+        mFileMgr = new FileManager(this, HostFileProvider.class.getName());
         mFileDataManager = new FileDataManager(mFileMgr);
 
         mHostBatteryManager = new HostBatteryManager(this);

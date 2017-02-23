@@ -50,6 +50,9 @@ public class FileManager {
     /** コンテキスト. */
     private Context mContext;
 
+    /** File Provider Class Name. */
+    private String mFileProviderClassName;
+
     /** authority. */
     private String mAuthority;
     /**
@@ -67,9 +70,11 @@ public class FileManager {
      * コンストラクタ.
      * 
      * @param context コンテキスト
+     * @param fileProvider FileProviderクラス名
      */
-    public FileManager(final Context context) {
+    public FileManager(final Context context, final String fileProvider) {
         mContext = context;
+        mFileProviderClassName = fileProvider;
         File dir = getBasePath();
         if (!dir.exists()) {
             if (!dir.mkdirs()) {
@@ -77,14 +82,13 @@ public class FileManager {
             }
         }
 
-        final String className = FileProvider.class.getName();
         PackageManager pkgMgr = context.getPackageManager();
         try {
             PackageInfo packageInfo = pkgMgr.getPackageInfo(context.getPackageName(), PackageManager.GET_PROVIDERS);
             ProviderInfo[] providers = packageInfo.providers;
             if (providers != null) {
                 for (ProviderInfo provider : providers) {
-                    if (className.equals(provider.name)) {
+                    if (mFileProviderClassName.equals(provider.name)) {
                         mAuthority = provider.authority;
                     }
                 }
@@ -164,7 +168,7 @@ public class FileManager {
      */
     public File getBasePath() {
         if (mLocation == null) {
-            mLocation = FileLocationParser.parse(getContext());
+            mLocation = FileLocationParser.parse(getContext(), mFileProviderClassName);
         }
         if (mLocation.getType() == FileLocationParser.TYPE_EXTERNAL_PATH) {
             return new File(Environment.getExternalStorageDirectory(), mLocation.getPath());

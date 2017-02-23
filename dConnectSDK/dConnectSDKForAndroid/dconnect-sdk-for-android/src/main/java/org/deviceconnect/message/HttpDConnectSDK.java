@@ -79,7 +79,7 @@ class HttpDConnectSDK extends DConnectSDK {
     /**
      * 読み込みのタイムアウト時間(ms).
      */
-    private static final int READ_TIMEOUT = 30 * 1000;
+    private static final int READ_TIMEOUT = 3 * 60 * 1000;
 
     /**
      * WebSocketと接続を行うクラス.
@@ -142,6 +142,19 @@ class HttpDConnectSDK extends DConnectSDK {
         connection.setSSLSocketFactory(sslcontext.getSocketFactory());
 
         return connection;
+    }
+
+    /**
+     * コンテンツのサイズを計算する.
+     * @param dataMap データ一覧
+     * @param boundary バウンダリ
+     * @return コンテンツサイズ
+     * @throws IOException サイズの計算に失敗した場合に発生
+     */
+    private int calcContentLength(final Map<String, Entity> dataMap, final String boundary) throws IOException {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        int size = writeMultipart(out, dataMap, boundary, false);
+        return out.size() + size;
     }
 
     /**
@@ -305,7 +318,9 @@ class HttpDConnectSDK extends DConnectSDK {
             // マルチパートのContentTypeを設定する
             if (body != null && body instanceof MultipartEntity) {
                 conn.setRequestProperty("Content-Type", String.format("multipart/form-data; boundary=%s", boundary));
+                conn.setFixedLengthStreamingMode(calcContentLength(((MultipartEntity) body).getContent(), boundary));
             }
+            conn.setUseCaches(false);
 
             conn.connect();
 

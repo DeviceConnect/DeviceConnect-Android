@@ -10,8 +10,6 @@ import android.support.test.runner.AndroidJUnit4;
 
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.DConnectResponseMessage;
-import org.deviceconnect.message.DConnectSDK;
-import org.deviceconnect.profile.AvailabilityProfileConstants;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -31,11 +29,6 @@ public class FailAvailabilityProfileTestCase extends RESTfulDConnectTestCase {
         return false;
     }
 
-    @Override
-    protected boolean isSearchServices() {
-        return false;
-    }
-
     /**
      * メソッドにPOSTを指定してサーバ起動確認テストを行う.
      * <pre>
@@ -50,10 +43,9 @@ public class FailAvailabilityProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testGetAvailabilityInvalidMethodPost() {
-        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
-        builder.setProfile(AvailabilityProfileConstants.PROFILE_NAME);
+        String uri = "http://localhost:4035/gotapi/availability";
 
-        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
+        DConnectResponseMessage response = mDConnectSDK.post(uri, null);
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
     }
@@ -72,10 +64,9 @@ public class FailAvailabilityProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testGetAvailabilityInvalidMethodPut() {
-        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
-        builder.setProfile(AvailabilityProfileConstants.PROFILE_NAME);
+        String uri = "http://localhost:4035/gotapi/availability";
 
-        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        DConnectResponseMessage response = mDConnectSDK.put(uri, null);
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
     }
@@ -94,10 +85,9 @@ public class FailAvailabilityProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testGetAvailabilityInvalidMethodDelete() {
-        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
-        builder.setProfile(AvailabilityProfileConstants.PROFILE_NAME);
+        String uri = "http://localhost:4035/gotapi/availability";
 
-        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        DConnectResponseMessage response = mDConnectSDK.delete(uri);
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
     }

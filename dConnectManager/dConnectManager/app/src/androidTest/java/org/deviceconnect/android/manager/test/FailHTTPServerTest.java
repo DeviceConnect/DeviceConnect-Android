@@ -78,15 +78,14 @@ public class FailHTTPServerTest extends RESTfulDConnectTestCase {
 
         StringBuilder builder = new StringBuilder();
         builder.append(MANAGER_URI);
-        builder.append("/battery");
-        builder.append("?");
-        builder.append("accessToken=");
+        builder.append("/battery?accessToken=");
         builder.append(getAccessToken());
 
         HashMap<String, String> headers = new HashMap<>();
+        headers.put("Origin", getOrigin());
         headers.put(DConnectProfileConstants.PARAM_SERVICE_ID, serviceId.toString());
 
-        HttpUtil.Response response = HttpUtil.connect("GET", builder.toString(), headers, null);
+        HttpUtil.Response response = HttpUtil.get(builder.toString(), headers);
         assertThat(response, is(notNullValue()));
         assertThat(response.getStatusCode(), is(413));
     }
@@ -107,8 +106,9 @@ public class FailHTTPServerTest extends RESTfulDConnectTestCase {
     @Test
     public void testEmptyAPI() throws Exception {
         Map<String, String> headers = new HashMap<>();
-        headers.put("Origin", getContext().getPackageName());
-        HttpUtil.Response response = HttpUtil.connect("GET", "http://localhost:4035/", headers, null);
+        headers.put("Origin", getOrigin());
+
+        HttpUtil.Response response = HttpUtil.get("http://localhost:4035/", headers);
         assertThat(response, is(notNullValue()));
         assertThat(response.getStatusCode(), is(400));
 
@@ -134,8 +134,9 @@ public class FailHTTPServerTest extends RESTfulDConnectTestCase {
     @Test
     public void testEmptyProfile() throws Exception {
         Map<String, String> headers = new HashMap<>();
-        headers.put("Origin", getContext().getPackageName());
-        HttpUtil.Response response = HttpUtil.connect("GET", "http://localhost:4035/gotapi", headers, null);
+        headers.put("Origin", getOrigin());
+
+        HttpUtil.Response response = HttpUtil.get(MANAGER_URI, headers);
         assertThat(response, is(notNullValue()));
         assertThat(response.getStatusCode(), is(400));
 
@@ -144,7 +145,6 @@ public class FailHTTPServerTest extends RESTfulDConnectTestCase {
         assertThat(json.getInt("errorCode"), is(19));
         assertThat(json.getString("errorMessage"), is(notNullValue()));
     }
-
 
     /**
      * Origin無しでHTTPサーバにアクセスする異常系テストを行う.
@@ -160,7 +160,7 @@ public class FailHTTPServerTest extends RESTfulDConnectTestCase {
      */
     @Test
     public void testEmptyOrigin() throws Exception {
-        HttpUtil.Response response = HttpUtil.connect("GET", "http://localhost:4035/gotapi/serviceDiscovery", null, null);
+        HttpUtil.Response response = HttpUtil.get(MANAGER_URI + "/serviceDiscovery");
         assertThat(response, is(notNullValue()));
         assertThat(response.getStatusCode(), is(200));
 

@@ -887,7 +887,8 @@ public class DConnectServerNanoHttpd extends DConnectServer {
                             }
                             files.put(partName + count, path);
                         }
-                        parms.put(partName, fileName);
+                        // MEMO: パラメータ名はクエリに追加しない
+//                        parms.put(partName, fileName);
                     }
                 }
             } catch (ResponseException re) {

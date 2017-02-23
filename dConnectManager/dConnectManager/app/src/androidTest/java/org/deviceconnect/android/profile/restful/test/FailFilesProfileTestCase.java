@@ -1,3 +1,9 @@
+/*
+ FailFilesProfileTestCase.java
+ Copyright (c) 2017 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.profile.restful.test;
 
 import android.support.test.runner.AndroidJUnit4;
@@ -51,7 +57,7 @@ public class FailFilesProfileTestCase extends RESTfulDConnectTestCase {
         uri += "?uri=" + URLEncoder.encode(TEST_URI, "UTF-8");
 
         Map<String, String> headers = new HashMap<>();
-        headers.put("Origin", getContext().getPackageName());
+        headers.put("Origin", getOrigin());
 
         HttpUtil.Response response = HttpUtil.put(uri, headers);
         assertThat(response, is(notNullValue()));
@@ -81,7 +87,7 @@ public class FailFilesProfileTestCase extends RESTfulDConnectTestCase {
         uri += "?uri=" + URLEncoder.encode(TEST_URI, "UTF-8");
 
         Map<String, String> headers = new HashMap<>();
-        headers.put("Origin", getContext().getPackageName());
+        headers.put("Origin", getOrigin());
 
         HttpUtil.Response response = HttpUtil.post(uri, headers);
         assertThat(response, is(notNullValue()));
@@ -111,7 +117,7 @@ public class FailFilesProfileTestCase extends RESTfulDConnectTestCase {
         uri += "?uri=" + URLEncoder.encode(TEST_URI, "UTF-8");
 
         Map<String, String> headers = new HashMap<>();
-        headers.put("Origin", getContext().getPackageName());
+        headers.put("Origin", getOrigin());
 
         HttpUtil.Response response = HttpUtil.delete(uri, headers);
         assertThat(response, is(notNullValue()));
@@ -141,7 +147,7 @@ public class FailFilesProfileTestCase extends RESTfulDConnectTestCase {
         uri += "?uri=abc";
 
         Map<String, String> headers = new HashMap<>();
-        headers.put("Origin", getContext().getPackageName());
+        headers.put("Origin", getOrigin());
 
         HttpUtil.Response response = HttpUtil.get(uri, headers);
         assertThat(response, is(notNullValue()));
@@ -170,7 +176,7 @@ public class FailFilesProfileTestCase extends RESTfulDConnectTestCase {
         String uri = "http://localhost:4035/gotapi/files";
 
         Map<String, String> headers = new HashMap<>();
-        headers.put("Origin", getContext().getPackageName());
+        headers.put("Origin", getOrigin());
 
         HttpUtil.Response response = HttpUtil.get(uri, headers);
         assertThat(response, is(notNullValue()));

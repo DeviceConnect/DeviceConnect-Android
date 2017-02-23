@@ -1,8 +1,15 @@
+/*
+ HttpUtil.java
+ Copyright (c) 2017 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.test.http;
 
 import android.os.Build;
 import android.util.Log;
 
+import org.deviceconnect.android.manager.test.BuildConfig;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -39,7 +46,7 @@ public final class HttpUtil {
     /**
      * デバック用フラグ.
      */
-    private static final boolean DEBUG = org.deviceconnect.server.nanohttpd.BuildConfig.DEBUG;
+    private static final boolean DEBUG = BuildConfig.DEBUG;
 
     /**
      * デバック用タグを定義します.

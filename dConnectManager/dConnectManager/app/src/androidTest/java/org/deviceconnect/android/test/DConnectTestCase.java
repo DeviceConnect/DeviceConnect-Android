@@ -53,6 +53,7 @@ public abstract class DConnectTestCase extends AndroidTestCase {
             ServiceDiscoveryProfileConstants.PROFILE_NAME,
             ServiceInformationProfileConstants.PROFILE_NAME,
             SystemProfileConstants.PROFILE_NAME,
+            "deviceOrientation",
             "files",
             "unique",
             "jsonTest",
@@ -93,11 +94,8 @@ public abstract class DConnectTestCase extends AndroidTestCase {
 
         long timeout = 30 * 1000;
         final long interval = 250;
-        while (true) {
+        while (!isManagerAvailable()) {
             Thread.sleep(interval);
-            if (isManagerAvailable()) {
-                break;
-            }
             timeout -= interval;
             if (timeout <= 0) {
                 fail("Manager launching timeout.");
@@ -113,7 +111,7 @@ public abstract class DConnectTestCase extends AndroidTestCase {
      * @param scopes スコープ指定
      * @return アクセストークン
      */
-    protected String requestAccessToken(final String[] scopes) {
+    private String requestAccessToken(final String[] scopes) {
         DConnectResponseMessage response = mDConnectSDK.authorization("JUnitTest", scopes);
         if (response.getResult() == DConnectMessage.RESULT_OK) {
             return response.getString(AuthorizationProfile.PARAM_ACCESS_TOKEN);
@@ -147,7 +145,7 @@ public abstract class DConnectTestCase extends AndroidTestCase {
      * Device Connect Managerが起動しているかどうかを確認する.
      * @return Device Connect Managerが起動している場合はtrue、そうでない場合はfalse
      */
-    protected boolean isManagerAvailable() {
+    private boolean isManagerAvailable() {
         DConnectResponseMessage response = mDConnectSDK.availability();
         return response.getResult() == DConnectMessage.RESULT_OK;
     }

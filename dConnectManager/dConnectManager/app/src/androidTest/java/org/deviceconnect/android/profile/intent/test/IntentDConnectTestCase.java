@@ -6,12 +6,14 @@
  */
 package org.deviceconnect.android.profile.intent.test;
 
-import android.support.test.InstrumentationRegistry;
+import android.content.Context;
 
 import org.deviceconnect.android.test.DConnectTestCase;
 import org.deviceconnect.message.DConnectSDKFactory;
 import org.junit.After;
 import org.junit.Before;
+
+import static android.support.test.InstrumentationRegistry.getInstrumentation;
 
 
 /**
@@ -20,9 +22,13 @@ import org.junit.Before;
  */
 public class IntentDConnectTestCase extends DConnectTestCase {
 
+    private Context getTargetContext() {
+        return getInstrumentation().getTargetContext().getApplicationContext();
+    }
+
     @Before
     public void setUp() throws Exception {
-        mDConnectSDK = DConnectSDKFactory.create(InstrumentationRegistry.getContext(), DConnectSDKFactory.Type.INTENT);
+        mDConnectSDK = DConnectSDKFactory.create(getTargetContext(), DConnectSDKFactory.Type.INTENT);
         super.setUp();
     }
 

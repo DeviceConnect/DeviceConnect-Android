@@ -8,9 +8,18 @@ package org.deviceconnect.android.profile.intent.test;
 
 import android.support.test.runner.AndroidJUnit4;
 
+import org.deviceconnect.message.DConnectMessage;
+import org.deviceconnect.message.DConnectResponseMessage;
+import org.hamcrest.CoreMatchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.List;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.core.IsNull.notNullValue;
+import static org.junit.Assert.assertThat;
 
 /**
  * Service Discoveryプロファイルの正常系テスト.
@@ -26,7 +35,7 @@ public class NormalServiceDiscoveryProfileTestCase extends IntentDConnectTestCas
      * 【Intent通信】
      * Method: GET
      * Extra:
-     *     profile=servicediscovery
+     *     profile=serviceDiscovery
      * </pre>
      * 
      * <pre>
@@ -38,10 +47,22 @@ public class NormalServiceDiscoveryProfileTestCase extends IntentDConnectTestCas
      */
     @Test
     public void testGetServices() {
-//        Intent request = new Intent(IntentDConnectMessage.ACTION_GET);
-//        request.putExtra(IntentDConnectMessage.EXTRA_SERVICE_ID, getServiceId());
-//        request.putExtra(IntentDConnectMessage.EXTRA_PROFILE, ServiceDiscoveryProfileConstants.PROFILE_NAME);
-//        Intent response = sendRequest(request);
-//        assertResultOK(response);
+        String uri = "http://localhost:4035/gotapi/serviceDiscovery";
+        uri += "?accessToken=" + getAccessToken();
+
+        DConnectResponseMessage response = mDConnectSDK.get(uri);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+
+        List<Object> services = response.getList("services");
+        assertThat(services, is(CoreMatchers.notNullValue()));
+        assertThat(services.size(), is(greaterThan(0)));
+        for (Object obj : services) {
+            DConnectMessage service = (DConnectMessage) obj;
+            String id = service.getString("id");
+            String name = service.getString("name");
+            assertThat(id, is(CoreMatchers.notNullValue()));
+            assertThat(name, is(CoreMatchers.notNullValue()));
+        }
     }
 }

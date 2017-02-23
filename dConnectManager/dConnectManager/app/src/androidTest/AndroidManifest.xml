@@ -4,12 +4,7 @@
     xmlns:android="http://schemas.android.com/apk/res/android">
 
     <application>
-        <!-- テスト用レスポンスを受け取るBroadcastReceiver. -->
-        <receiver
-            android:name="org.deviceconnect.android.test.TestCaseBroadcastReceiver"
-            android:enabled="true"
-            android:exported="true" >
-        </receiver>
+
     </application>
 
 </manifest>

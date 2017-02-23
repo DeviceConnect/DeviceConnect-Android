@@ -8,13 +8,10 @@ package org.deviceconnect.android.profile.restful.test;
 
 import android.support.test.runner.AndroidJUnit4;
 
-import org.deviceconnect.android.test.http.HttpUtil;
-import org.json.JSONObject;
+import org.deviceconnect.message.DConnectMessage;
+import org.deviceconnect.message.DConnectResponseMessage;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.util.HashMap;
-import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.core.IsNull.notNullValue;
@@ -48,14 +45,8 @@ public class NormalAvailabilityProfileTestCase extends RESTfulDConnectTestCase {
     public void testGetAvailability() throws Exception {
         String uri = "http://localhost:4035/gotapi/availability";
 
-        Map<String, String> headers = new HashMap<>();
-        headers.put("Origin", getContext().getPackageName());
-
-        HttpUtil.Response response = HttpUtil.get(uri, headers);
+        DConnectResponseMessage response = mDConnectSDK.get(uri);
         assertThat(response, is(notNullValue()));
-
-        JSONObject json = response.getJSONObject();
-        assertThat(json, is(notNullValue()));
-        assertThat(json.getInt("result"), is(0));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
     }
 }

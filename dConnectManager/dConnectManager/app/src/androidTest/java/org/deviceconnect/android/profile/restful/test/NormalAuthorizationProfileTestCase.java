@@ -8,15 +8,12 @@ package org.deviceconnect.android.profile.restful.test;
 
 import android.support.test.runner.AndroidJUnit4;
 
-import org.deviceconnect.android.test.http.HttpUtil;
-import org.hamcrest.CoreMatchers;
-import org.json.JSONObject;
+import org.deviceconnect.message.DConnectMessage;
+import org.deviceconnect.message.DConnectResponseMessage;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.net.URLEncoder;
-import java.util.HashMap;
-import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.core.Is.is;
@@ -37,7 +34,7 @@ public class NormalAuthorizationProfileTestCase extends RESTfulDConnectTestCase 
 
     @Override
     protected String getOrigin() {
-        return "abc";
+        return "normal.restful.junit";
     }
 
     /**
@@ -55,18 +52,12 @@ public class NormalAuthorizationProfileTestCase extends RESTfulDConnectTestCase 
      */
     @Test
     public void testCreateClient() throws Exception {
-        String uri = "http://localhost:4035/gotapi/authorization/grant";
+        String uri = "http://localhost:4035/gotapi/authorization/grant?def=def";
 
-        Map<String, String> headers = new HashMap<>();
-        headers.put("Origin", getOrigin());
-
-        HttpUtil.Response response = HttpUtil.get(uri, headers);
+        DConnectResponseMessage response = mDConnectSDK.get(uri);
         assertThat(response, is(notNullValue()));
-
-        JSONObject json = response.getJSONObject();
-        assertThat(json, is(notNullValue()));
-        assertThat(json.getInt("result"), is(0));
-        assertThat(json.getString("clientId"), is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getString("clientId"), is(notNullValue()));
     }
 
     /**
@@ -84,30 +75,8 @@ public class NormalAuthorizationProfileTestCase extends RESTfulDConnectTestCase 
      */
     @Test
     public void testCreateClientOverwrite() throws Exception {
-        String uri = "http://localhost:4035/gotapi/authorization/grant";
-
-        Map<String, String> headers = new HashMap<>();
-        headers.put("Origin", getOrigin());
-
-        HttpUtil.Response response1 = HttpUtil.get(uri, headers);
-        assertThat(response1, is(notNullValue()));
-
-        JSONObject json1 = response1.getJSONObject();
-        assertThat(json1, is(notNullValue()));
-        assertThat(json1.getInt("result"), is(0));
-        assertThat(json1.getString("clientId"), is(notNullValue()));
-
-
-        HttpUtil.Response response2 = HttpUtil.get(uri, headers);
-        assertThat(response2, is(notNullValue()));
-
-        JSONObject json2 = response2.getJSONObject();
-        assertThat(json2, is(notNullValue()));
-        assertThat(json2.getInt("result"), is(0));
-        assertThat(json2.getString("clientId"), is(notNullValue()));
-
-        String clientId1 = json1.getString("clientId");
-        String clientId2 = json2.getString("clientId");
+        String clientId1 = createClientId();
+        String clientId2 = createClientId();
         assertThat(clientId1, is(not(clientId2)));
     }
 
@@ -139,16 +108,10 @@ public class NormalAuthorizationProfileTestCase extends RESTfulDConnectTestCase 
         uri += "&scope=" + URLEncoder.encode(combineStr(scopes), "UTF-8");
         uri += "&applicationName=" + URLEncoder.encode(appName, "UTF-8");
 
-        Map<String, String> headers = new HashMap<>();
-        headers.put("Origin", getOrigin());
-
-        HttpUtil.Response response = HttpUtil.get(uri, headers);
+        DConnectResponseMessage response = mDConnectSDK.get(uri);
         assertThat(response, is(notNullValue()));
-
-        JSONObject json = response.getJSONObject();
-        assertThat(json, is(notNullValue()));
-        assertThat(json.getInt("result"), is(0));
-        assertThat(json.getString("accessToken"), is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getString("accessToken"), is(notNullValue()));
     }
 
     /**
@@ -181,16 +144,10 @@ public class NormalAuthorizationProfileTestCase extends RESTfulDConnectTestCase 
         uri += "&scope=" + URLEncoder.encode(combineStr(scopes), "UTF-8");
         uri += "&applicationName=" + URLEncoder.encode(appName, "UTF-8");
 
-        Map<String, String> headers = new HashMap<>();
-        headers.put("Origin", getOrigin());
-
-        HttpUtil.Response response = HttpUtil.get(uri, headers);
+        DConnectResponseMessage response = mDConnectSDK.get(uri);
         assertThat(response, is(notNullValue()));
-
-        JSONObject json = response.getJSONObject();
-        assertThat(json, is(notNullValue()));
-        assertThat(json.getInt("result"), is(0));
-        assertThat(json.getString("accessToken"), is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getString("accessToken"), is(notNullValue()));
     }
 
     /**
@@ -199,19 +156,13 @@ public class NormalAuthorizationProfileTestCase extends RESTfulDConnectTestCase 
      * @throws Exception clientIdの作成に失敗した場合に発生
      */
     private String createClientId() throws Exception {
-        String uri = "http://localhost:4035/gotapi/authorization/grant";
+        String uri = "http://localhost:4035/gotapi/authorization/grant?def=def";
 
-        Map<String, String> headers = new HashMap<>();
-        headers.put("Origin", getOrigin());
-
-        HttpUtil.Response response = HttpUtil.get(uri, headers);
+        DConnectResponseMessage response = mDConnectSDK.get(uri);
         assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getString("clientId"), is(notNullValue()));
 
-        JSONObject json = response.getJSONObject();
-        assertThat(json, CoreMatchers.is(notNullValue()));
-        assertThat(json.getInt("result"), is(0));
-        assertThat(json.getString("clientId"), is(notNullValue()));
-
-        return json.getString("clientId");
+        return response.getString("clientId");
     }
 }

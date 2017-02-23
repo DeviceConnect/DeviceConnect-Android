@@ -1,3 +1,9 @@
+/*
+ NormalFilesProfileTestCase.java
+ Copyright (c) 2017 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.profile.restful.test;
 
 import android.support.test.runner.AndroidJUnit4;
@@ -14,6 +20,10 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.core.IsNull.notNullValue;
 import static org.junit.Assert.assertThat;
 
+/**
+ * Filesプロファイルの正常系テスト.
+ * @author NTT DOCOMO, INC.
+ */
 @RunWith(AndroidJUnit4.class)
 public class NormalFilesProfileTestCase extends RESTfulDConnectTestCase {
 
@@ -27,13 +37,26 @@ public class NormalFilesProfileTestCase extends RESTfulDConnectTestCase {
         return false;
     }
 
+    /**
+     * デバイス一覧取得リクエストを送信するテスト.
+     * <pre>
+     * 【HTTP通信】
+     * Method: GET
+     * Path: /files?uri=TEST_URI
+     * </pre>
+     * <pre>
+     * 【期待する動作】
+     * ・HTTPステータスコードに200が返ってくること。
+     * ・プラグインで指定したデータサイズが取得できること。
+     * </pre>
+     */
     @Test
     public void testFiles() throws Exception {
         String uri = "http://localhost:4035/gotapi/files";
         uri += "?uri=" + URLEncoder.encode(TEST_URI, "UTF-8");
 
         Map<String, String> headers = new HashMap<>();
-        headers.put("Origin", getContext().getPackageName());
+        headers.put("Origin", getOrigin());
 
         HttpUtil.Response response = HttpUtil.get(uri, headers);
         assertThat(response, is(notNullValue()));

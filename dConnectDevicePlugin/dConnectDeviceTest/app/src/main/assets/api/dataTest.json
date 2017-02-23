@@ -23,8 +23,14 @@
                         "type": "string"
                     },
                     {
+                        "name": "data",
+                        "in": "formData",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
                         "name": "uri",
-                        "in": "query",
+                        "in": "formData",
                         "required": false,
                         "type": "string"
                     }
@@ -47,8 +53,14 @@
                         "type": "string"
                     },
                     {
+                        "name": "data",
+                        "in": "formData",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
                         "name": "uri",
-                        "in": "query",
+                        "in": "formData",
                         "required": false,
                         "type": "string"
                     }

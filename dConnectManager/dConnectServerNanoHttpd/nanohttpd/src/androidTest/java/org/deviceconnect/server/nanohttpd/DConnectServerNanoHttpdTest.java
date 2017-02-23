@@ -71,17 +71,17 @@ public class DConnectServerNanoHttpdTest {
     /**
      * HTTP通信用URIを定義.
      */
-    private static final String HTTP_LOCALHOST_4035 = "http://localhost:4035";
+    private static final String HTTP_LOCALHOST_PORT = "http://localhost:9999";
 
     /**
      * HTTPS通信用URIを定義.
      */
-    private static final String HTTPS_LOCALHOST_4035 = "https://localhost:4035";
+    private static final String HTTPS_LOCALHOST_PORT = "https://localhost:9999";
 
     /**
      * ポート番号.
      */
-    private static final int PORT = 4035;
+    private static final int PORT = 9999;
     
     private Context getContext() {
         return InstrumentationRegistry.getTargetContext();
@@ -181,7 +181,7 @@ public class DConnectServerNanoHttpdTest {
         try {
             latch.await(10, TimeUnit.SECONDS);
 
-            HttpUtils.Response response = HttpUtils.get(HTTP_LOCALHOST_4035 + path + "?" + key + "=" + value);
+            HttpUtils.Response response = HttpUtils.get(HTTP_LOCALHOST_PORT + path + "?" + key + "=" + value);
             assertThat(response, is(notNullValue()));
             assertThat(response.getStatusCode(), is(200));
             assertThat(response.getBody(), is(notNullValue()));
@@ -192,6 +192,82 @@ public class DConnectServerNanoHttpdTest {
         }
     }
 
+    /**
+     * ?が複数存在しているパラメータを送信しても問題ないことを確認する。
+     * <pre>
+     * 【期待する動作】
+     * ・DConnectServerNanoHttpdのインスタンスが作成できること。
+     * ・DConnectServerNanoHttpdのサーバ起動し、DConnectServerEventListener#onServerLaunchedに通知が来ること。
+     * ・DConnectServerNanoHttpdにHTTP通信して、レスポンスのステータスコードに200が返却されること。
+     * </pre>
+     */
+    @Test
+    public void DConnectServerNanoHttpd_multiple_question() {
+        final CountDownLatch latch = new CountDownLatch(1);
+        final String path = "/root/path";
+        final String key1 = "key1";
+        final String key2 = "key2";
+        final String value1 = "value1";
+        final String value2 = "value2";
+        File file = getContext().getFilesDir();
+        DConnectServerConfig config = new DConnectServerConfig.Builder().port(PORT).documentRootPath(file.getPath()).build();
+        DConnectServer server = new DConnectServerNanoHttpd(config, getContext());
+        assertThat(server, is(notNullValue()));
+
+        server.setServerEventListener(new DConnectServerEventListener() {
+            @Override
+            public boolean onReceivedHttpRequest(final HttpRequest req, final HttpResponse res) {
+                res.setCode(HttpResponse.StatusCode.OK);
+
+                HttpRequest.Method method = req.getMethod();
+                if (!HttpRequest.Method.GET.equals(method)) {
+                    res.setCode(HttpResponse.StatusCode.BAD_REQUEST);
+                }
+
+                String uri = req.getUri();
+                if (!path.equals(uri)) {
+                    res.setCode(HttpResponse.StatusCode.BAD_REQUEST);
+                }
+
+                return true;
+            }
+
+            @Override
+            public void onError(final DConnectServerError errorCode) {
+            }
+
+            @Override
+            public void onServerLaunched() {
+                latch.countDown();
+            }
+
+            @Override
+            public void onWebSocketConnected(final DConnectWebSocket webSocket) {
+            }
+
+            @Override
+            public void onWebSocketDisconnected(final DConnectWebSocket webSocket) {
+            }
+
+            @Override
+            public void onWebSocketMessage(final DConnectWebSocket webSocket, final String message) {
+            }
+        });
+        server.start();
+
+        try {
+            latch.await(10, TimeUnit.SECONDS);
+
+            HttpUtils.Response response = HttpUtils.get(HTTP_LOCALHOST_PORT + path + "?" + key1 + "=" + value1 + "?" + key2 + "=" + value2);
+            assertThat(response, is(notNullValue()));
+            assertThat(response.getStatusCode(), is(200));
+            assertThat(response.getBody(), is(notNullValue()));
+        } catch (InterruptedException e) {
+            fail("timeout");
+        } finally {
+            server.shutdown();
+        }
+    }
 
     /**
      * 同じkey=valueの値を送信しても問題ないことを確認する。
@@ -263,7 +339,7 @@ public class DConnectServerNanoHttpdTest {
         try {
             latch.await(10, TimeUnit.SECONDS);
 
-            HttpUtils.Response response = HttpUtils.get(HTTP_LOCALHOST_4035 + path + "?" + key + "=" + value1 + "&" + key + "=" + value2);
+            HttpUtils.Response response = HttpUtils.get(HTTP_LOCALHOST_PORT + path + "?" + key + "=" + value1 + "&" + key + "=" + value2);
             assertThat(response, is(notNullValue()));
             assertThat(response.getStatusCode(), is(200));
             assertThat(response.getBody(), is(notNullValue()));
@@ -380,7 +456,7 @@ public class DConnectServerNanoHttpdTest {
         try {
             latch.await(10, TimeUnit.SECONDS);
 
-            HttpUtils.Response response = HttpUtils.connect("PATCH", HTTP_LOCALHOST_4035 + path, null, null);
+            HttpUtils.Response response = HttpUtils.connect("PATCH", HTTP_LOCALHOST_PORT + path, null, null);
             assertThat(response, is(notNullValue()));
             assertThat(response.getStatusCode(), is(501));
 
@@ -467,7 +543,7 @@ public class DConnectServerNanoHttpdTest {
             es.submit(new Runnable() {
                 @Override
                 public void run() {
-                    HttpUtils.Response response = HttpUtils.get(HTTP_LOCALHOST_4035 + path + "?" + key + "=" + value);
+                    HttpUtils.Response response = HttpUtils.get(HTTP_LOCALHOST_PORT + path + "?" + key + "=" + value);
                     synchronized (array) {
                         array.set(index, response);
                     }
@@ -544,7 +620,7 @@ public class DConnectServerNanoHttpdTest {
         try {
             latch.await(10, TimeUnit.SECONDS);
 
-            HttpUtils.Response response = HttpUtils.get(HTTP_LOCALHOST_4035 + path + "?" + key + "=" + value);
+            HttpUtils.Response response = HttpUtils.get(HTTP_LOCALHOST_PORT + path + "?" + key + "=" + value);
             assertThat(response, is(notNullValue()));
             assertThat(response.getStatusCode(), is(not(200)));
         } catch (InterruptedException e) {
@@ -626,7 +702,7 @@ public class DConnectServerNanoHttpdTest {
         try {
             latch.await(10, TimeUnit.SECONDS);
 
-            HttpUtils.Response response = HttpUtils.get(HTTP_LOCALHOST_4035 + path + "?" + key + "=" + value);
+            HttpUtils.Response response = HttpUtils.get(HTTP_LOCALHOST_PORT + path + "?" + key + "=" + value);
             assertThat(response.getStatusCode(), is(not(200)));
 
             JSONObject json = response.getJSONObject();
@@ -708,7 +784,7 @@ public class DConnectServerNanoHttpdTest {
         try {
             latch.await(10, TimeUnit.SECONDS);
 
-            HttpUtils.Response response = HttpUtils.post(HTTP_LOCALHOST_4035 + path, key + "=" + value);
+            HttpUtils.Response response = HttpUtils.post(HTTP_LOCALHOST_PORT + path, key + "=" + value);
             assertThat(response, is(notNullValue()));
             assertThat(response.getStatusCode(), is(200));
             assertThat(response.getBody(), is(notNullValue()));
@@ -775,7 +851,7 @@ public class DConnectServerNanoHttpdTest {
         try {
             latch.await(10, TimeUnit.SECONDS);
 
-            HttpUtils.Response response = HttpUtils.post(HTTP_LOCALHOST_4035 + path, data);
+            HttpUtils.Response response = HttpUtils.post(HTTP_LOCALHOST_PORT + path, data);
             assertThat(response, is(notNullValue()));
             assertThat(response.getStatusCode(), is(400));
             assertThat(response.getBody(), is(notNullValue()));
@@ -873,7 +949,7 @@ public class DConnectServerNanoHttpdTest {
         try {
             latch.await(10, TimeUnit.SECONDS);
 
-            HttpUtils.Response response = HttpUtils.post(HTTP_LOCALHOST_4035 + path, data, true);
+            HttpUtils.Response response = HttpUtils.post(HTTP_LOCALHOST_PORT + path, data, true);
             assertThat(response, is(notNullValue()));
             assertThat(response.getStatusCode(), is(400));
             assertThat(response.getBody(), is(notNullValue()));
@@ -958,7 +1034,7 @@ public class DConnectServerNanoHttpdTest {
         try {
             latch.await(10, TimeUnit.SECONDS);
 
-            HttpUtils.Response response = HttpUtils.get(HTTP_LOCALHOST_4035 + path);
+            HttpUtils.Response response = HttpUtils.get(HTTP_LOCALHOST_PORT + path);
             assertThat(response, is(notNullValue()));
             assertThat(response.getStatusCode(), is(200));
             assertThat(response.getBody(), is(notNullValue()));
@@ -1018,7 +1094,7 @@ public class DConnectServerNanoHttpdTest {
         try {
             latch.await(10, TimeUnit.SECONDS);
 
-            HttpUtils.Response response = HttpUtils.get(HTTP_LOCALHOST_4035 + path);
+            HttpUtils.Response response = HttpUtils.get(HTTP_LOCALHOST_PORT + path);
             assertThat(response, is(notNullValue()));
             assertThat(response.getStatusCode(), is(500));
             assertThat(response.getBody(), is(notNullValue()));
@@ -1094,7 +1170,7 @@ public class DConnectServerNanoHttpdTest {
         try {
             latch.await(10, TimeUnit.SECONDS);
 
-            HttpUtils.Response response = HttpUtils.get(HTTPS_LOCALHOST_4035 + path + "?" + key + "=" + value);
+            HttpUtils.Response response = HttpUtils.get(HTTPS_LOCALHOST_PORT + path + "?" + key + "=" + value);
             assertThat(response, is(notNullValue()));
             assertThat(response.getStatusCode(), is(200));
             assertThat(response.getBody(), is(notNullValue()));
@@ -1170,7 +1246,7 @@ public class DConnectServerNanoHttpdTest {
         try {
             latch.await(10, TimeUnit.SECONDS);
 
-            HttpUtils.Response response = HttpUtils.post(HTTPS_LOCALHOST_4035 + path, key + "=" + value);
+            HttpUtils.Response response = HttpUtils.post(HTTPS_LOCALHOST_PORT + path, key + "=" + value);
             assertThat(response, is(notNullValue()));
             assertThat(response.getStatusCode(), is(200));
             assertThat(response.getBody(), is(notNullValue()));
@@ -1234,7 +1310,7 @@ public class DConnectServerNanoHttpdTest {
             fail("timeout");
         }
 
-        String uri = HTTP_LOCALHOST_4035;
+        String uri = HTTP_LOCALHOST_PORT;
         WebSocketClient client = new WebSocketClient(URI.create(uri), new Draft_17(), null, 10000) {
             @Override
             public void onOpen(final ServerHandshake handshakedata) {
@@ -1323,7 +1399,7 @@ public class DConnectServerNanoHttpdTest {
         }
 
         try {
-            String uri = HTTP_LOCALHOST_4035;
+            String uri = HTTP_LOCALHOST_PORT;
             WebSocketClient client = new WebSocketClient(URI.create(uri), new Draft_17(), null, 10000) {
                 @Override
                 public void onOpen(final ServerHandshake handshakedata) {

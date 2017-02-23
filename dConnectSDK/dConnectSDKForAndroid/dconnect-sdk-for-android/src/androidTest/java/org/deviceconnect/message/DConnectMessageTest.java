@@ -98,9 +98,6 @@ public class DConnectMessageTest {
         final String longArrayKey = "longArrayKey";
         final long[] longArrayValue = {0L, Long.MAX_VALUE, Long.MIN_VALUE};
 
-        final String floatArrayKey = "floatArrayKey";
-        final float[] floatArrayValue = {0f, Float.MAX_VALUE, Float.MIN_VALUE};
-
         final String doubleArrayKey = "doubleArrayKey";
         final double[] doubleArrayValue = {0d, Double.MAX_VALUE, Double.MIN_VALUE};
 
@@ -111,7 +108,6 @@ public class DConnectMessageTest {
                 "\"" + strArrayKey + "\" : [\"" + strArrayValue[0] + "\",\"" + strArrayValue[1] + "\",\"" + strArrayValue[2] + "\"]," +
                 "\"" + intArrayKey + "\" : [" + intArrayValue[0] + "," + intArrayValue[1] + "," + intArrayValue[2] + "]," +
                 "\"" + longArrayKey + "\" : [" + longArrayValue[0] + "," + longArrayValue[1] + "," + longArrayValue[2] + "]," +
-                "\"" + floatArrayKey + "\" : [" + floatArrayValue[0] + "," + floatArrayValue[1] + "," + floatArrayValue[2] + "]," +
                 "\"" + doubleArrayKey + "\" : [" + doubleArrayValue[0] + "," + doubleArrayValue[1] + "," + doubleArrayValue[2] + "]," +
                 "\"" + booleanArrayKey + "\" : [" + booleanArrayValue[0] + "," + booleanArrayValue[1] + "," + booleanArrayValue[2] + "]" +
                 "}";
@@ -119,16 +115,15 @@ public class DConnectMessageTest {
         DConnectMessage message = new BasicDConnectMessage(json);
         assertThat(message.getList(strArrayKey), is(asList(strArrayValue)));
         assertThat(message.getList(intArrayKey), is(asList(intArrayValue)));
-        assertThat(message.getList(longArrayKey), is(asList(longArrayValue)));
-        List floatList = message.getList(floatArrayKey);
-        for (int i = 0; i < floatList.size(); i++) {
-            Double a = (Double) floatList.get(i);
-            assertThat(a, closeTo(floatArrayValue[i], 0.001f));
+        List longList = message.getList(longArrayKey);
+        for (int i = 0; i < longList.size(); i++) {
+            Number a = (Number) longList.get(i);
+            assertThat(a.longValue(), is(longArrayValue[i]));
         }
         List doubleList = message.getList(doubleArrayKey);
         for (int i = 0; i < doubleList.size(); i++) {
             Double a = (Double) doubleList.get(i);
-            assertThat(a, closeTo(doubleArrayValue[i], 0.001f));
+            assertThat(a, closeTo(doubleArrayValue[i], 0.001d));
         }
         assertThat(message.getList(booleanArrayKey), is(asList(booleanArrayValue)));
     }
@@ -221,12 +216,12 @@ public class DConnectMessageTest {
         List floatList = message.getList(floatArrayKey);
         for (int i = 0; i < floatList.size(); i++) {
             Double a = (Double) floatList.get(i);
-            assertThat(a, closeTo(floatArrayValue[i], 0.001f));
+            assertThat(a, closeTo(floatArrayValue[i], 0.001d));
         }
         List doubleList = message.getList(doubleArrayKey);
         for (int i = 0; i < doubleList.size(); i++) {
             Double a = (Double) doubleList.get(i);
-            assertThat(a, closeTo(doubleArrayValue[i], 0.001f));
+            assertThat(a, closeTo(doubleArrayValue[i], 0.001));
         }
         assertThat(message.getList(booleanArrayKey), is(asList(booleanArrayValue)));
     }
@@ -331,12 +326,12 @@ public class DConnectMessageTest {
         List floatList = obj.getList(floatArrayKey);
         for (int i = 0; i < floatList.size(); i++) {
             Double a = (Double) floatList.get(i);
-            assertThat(a, closeTo(floatArrayValue[i], 0.001f));
+            assertThat(a, closeTo(floatArrayValue[i], 0.001));
         }
         List doubleList = obj.getList(doubleArrayKey);
         for (int i = 0; i < doubleList.size(); i++) {
             Double a = (Double) doubleList.get(i);
-            assertThat(a, closeTo(doubleArrayValue[i], 0.001f));
+            assertThat(a, closeTo(doubleArrayValue[i], 0.001d));
         }
         assertThat(obj.getList(booleanArrayKey), is(asList(booleanArrayValue)));
     }
@@ -399,12 +394,12 @@ public class DConnectMessageTest {
         List floatList = obj.getList(floatArrayKey);
         for (int i = 0; i < floatList.size(); i++) {
             Double a = (Double) floatList.get(i);
-            assertThat(a, closeTo(floatArrayValue[i], 0.001f));
+            assertThat(a, closeTo(floatArrayValue[i], 0.001d));
         }
         List doubleList = obj.getList(doubleArrayKey);
         for (int i = 0; i < doubleList.size(); i++) {
             Double a = (Double) doubleList.get(i);
-            assertThat(a, closeTo(doubleArrayValue[i], 0.001f));
+            assertThat(a, closeTo(doubleArrayValue[i], 0.001d));
         }
         assertThat(obj.getList(booleanArrayKey), equalTo(asList(booleanArrayValue)));
     }
@@ -498,12 +493,12 @@ public class DConnectMessageTest {
         List floatList = message.getList(floatArrayKey);
         for (int i = 0; i < floatList.size(); i++) {
             Float a = (Float) floatList.get(i);
-            assertThat(a.doubleValue(), closeTo(floatArrayValue[i], 0.001f));
+            assertThat(a.doubleValue(), closeTo(floatArrayValue[i], 0.001d));
         }
         List doubleList = message.getList(doubleArrayKey);
         for (int i = 0; i < doubleList.size(); i++) {
             Double a = (Double) doubleList.get(i);
-            assertThat(a, closeTo(doubleArrayValue[i], 0.001f));
+            assertThat(a, closeTo(doubleArrayValue[i], 0.001d));
         }
         assertThat(message.getList(booleanArrayKey), is(asList(booleanArrayValue)));
     }
@@ -608,12 +603,12 @@ public class DConnectMessageTest {
         List floatList = obj.getList(floatArrayKey);
         for (int i = 0; i < floatList.size(); i++) {
             Float a = (Float) floatList.get(i);
-            assertThat(a.doubleValue(), closeTo(floatArrayValue[i], 0.001f));
+            assertThat(a.doubleValue(), closeTo(floatArrayValue[i], 0.001d));
         }
         List doubleList = obj.getList(doubleArrayKey);
         for (int i = 0; i < doubleList.size(); i++) {
             Double a = (Double) doubleList.get(i);
-            assertThat(a, closeTo(doubleArrayValue[i], 0.001f));
+            assertThat(a, closeTo(doubleArrayValue[i], 0.001d));
         }
         assertThat(obj.getList(booleanArrayKey), is(asList(booleanArrayValue)));
     }

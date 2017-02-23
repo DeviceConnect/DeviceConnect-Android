@@ -119,10 +119,15 @@ div.send_request button {
     margin: 8px;
     padding: 10px 20px;
     color: #fff;
+    border-style: none;
     -moz-border-radius: 0.5em;
     -webkit-border-radius: 0.5em;
     -o-border-radius: 0.5em;
     -ms-border-radius: 0.5em;
+}
+
+div.send_request button:active {
+    background-color: #CCC;
 }
 
 div.request {

@@ -378,14 +378,14 @@ public class HostFileProfile extends FileProfile {
                     } else {
                         if (!forceRemove && existFileInDirectory(mDeleteDir)) {
                             setResult(response, DConnectMessage.RESULT_ERROR);
-                            MessageUtils.setUnknownError(response, "Exist file in directory:" + mDeleteDir);
+                            MessageUtils.setIllegalDeviceStateError(response, "Exist file in directory:" + mDeleteDir);
                         } else {
                             boolean isDelete = deleteDirectory(mDeleteDir);
                             if (isDelete) {
                                 setResult(response, DConnectMessage.RESULT_OK);
                             } else {
                                 setResult(response, DConnectMessage.RESULT_ERROR);
-                                MessageUtils.setUnknownError(response, "can not delete dir :" + mDeleteDir);
+                                MessageUtils.setIllegalDeviceStateError(response, "can not delete dir :" + mDeleteDir);
                             }
                         }
                     }
@@ -682,7 +682,7 @@ public class HostFileProfile extends FileProfile {
     }
     // ディレクトリ内に１つでもファイルが存在するか。true:存在する false:存在しない
     private boolean existFileInDirectory(final File directory) {
-        return directory.listFiles().length > 0;
+        return directory.listFiles() != null && directory.listFiles().length > 0;
     }
 
     // 強制フラグを取得する.

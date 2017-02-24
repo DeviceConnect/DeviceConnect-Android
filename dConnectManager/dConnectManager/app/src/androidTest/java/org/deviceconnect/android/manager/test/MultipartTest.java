@@ -15,11 +15,6 @@ import org.deviceconnect.message.DConnectSDK;
 import org.deviceconnect.message.entity.BinaryEntity;
 import org.deviceconnect.message.entity.MultipartEntity;
 import org.deviceconnect.message.entity.StringEntity;
-import org.deviceconnect.profile.AuthorizationProfileConstants;
-import org.deviceconnect.profile.DConnectProfileConstants;
-import org.deviceconnect.profile.DeviceOrientationProfileConstants;
-import org.deviceconnect.profile.FileProfileConstants;
-import org.deviceconnect.profile.NotificationProfileConstants;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -49,15 +44,13 @@ public class MultipartTest extends RESTfulDConnectTestCase {
     @Test
     public void testParsingMultipartAsRequestParametersMethodPost() {
         DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
-        builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
-        builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_NOTIFY);
+        builder.setProfile("dataTest");
 
         MultipartEntity body = new MultipartEntity();
-        body.add(DConnectProfileConstants.PARAM_SERVICE_ID, new StringEntity(getServiceId()));
-        body.add(NotificationProfileConstants.PARAM_TYPE, new StringEntity("0"));
-        body.add(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, new StringEntity(getAccessToken()));
+        body.add("serviceId", new StringEntity(getServiceId()));
+        body.add("accessToken", new StringEntity(getAccessToken()));
 
-        DConnectResponseMessage response = sendRequest("POST", builder.build().toString(), null, body);
+        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), body);
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
     }
@@ -77,15 +70,13 @@ public class MultipartTest extends RESTfulDConnectTestCase {
     @Test
     public void testParsingMultipartAsRequestParametersMethodPut() {
         DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
-        builder.setProfile(DeviceOrientationProfileConstants.PROFILE_NAME);
-        builder.setAttribute(DeviceOrientationProfileConstants.ATTRIBUTE_ON_DEVICE_ORIENTATION);
+        builder.setProfile("dataTest");
 
         MultipartEntity body = new MultipartEntity();
-        body.add(DConnectProfileConstants.PARAM_SERVICE_ID, new StringEntity(getServiceId()));
-        body.add(DConnectProfileConstants.PARAM_SESSION_KEY, new StringEntity("clientId"));
-        body.add(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, new StringEntity(getAccessToken()));
+        body.add("serviceId", new StringEntity(getServiceId()));
+        body.add("accessToken", new StringEntity(getAccessToken()));
 
-        DConnectResponseMessage response = sendRequest("PUT", builder.build().toString(), null, body);
+        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), body);
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
     }
@@ -104,19 +95,16 @@ public class MultipartTest extends RESTfulDConnectTestCase {
     @Test
     public void testSendZeroByteFile() {
         DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
-        builder.setProfile(FileProfileConstants.PROFILE_NAME);
-        builder.setAttribute(FileProfileConstants.ATTRIBUTE_SEND);
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-        builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(FileProfileConstants.PARAM_PATH, "/test/zero.dat");
-        builder.addParameter(FileProfileConstants.PARAM_FILE_TYPE,
-                String.valueOf(FileProfileConstants.FileType.FILE.getValue()));
+        builder.setProfile("dataTest");
+        builder.addParameter("serviceId", getServiceId());
+        builder.addParameter("accessToken", getAccessToken());
 
         MultipartEntity body = new MultipartEntity();
-        body.add(FileProfileConstants.PARAM_DATA, new BinaryEntity(new byte[0]));
+        body.add("data", new BinaryEntity(new byte[0]));
 
-        DConnectResponseMessage response = sendRequest("POST", builder.build().toString(), null, body);
+        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), body);
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getInt("fileSize"), is(0));
     }
 }

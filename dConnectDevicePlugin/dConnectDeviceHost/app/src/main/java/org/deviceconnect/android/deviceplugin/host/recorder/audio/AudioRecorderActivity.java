@@ -28,6 +28,7 @@ import android.view.Window;
 
 import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.host.R;
+import org.deviceconnect.android.deviceplugin.host.file.HostFileProvider;
 import org.deviceconnect.android.provider.FileManager;
 
 import java.io.File;
@@ -121,7 +122,7 @@ public class AudioRecorderActivity extends Activity {
     }
 
     private void initAudioContext() throws IOException {
-        FileManager fileMgr = new FileManager(this);
+        FileManager fileMgr = new FileManager(this, HostFileProvider.class.getName());
 
         mMediaRecorder = new MediaRecorder();
         mMediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);

@@ -62,7 +62,7 @@ public class ThetaFileProfile extends FileProfile {
                                     setMIMEType(response, mimeType);
                                     setURI(response, fileName, data);
                                 } catch (IOException e) {
-                                    MessageUtils.setUnknownError(response, e.getMessage());
+                                    MessageUtils.setIllegalDeviceStateError(response, e.getMessage());
                                 }
 
                                 sendResponse(response);
@@ -70,7 +70,7 @@ public class ThetaFileProfile extends FileProfile {
 
                             @Override
                             public void onFailed(final ThetaDeviceException cause) {
-                                MessageUtils.setUnknownError(response, cause.getMessage());
+                                MessageUtils.setIllegalDeviceStateError(response, cause.getMessage());
                                 sendResponse(response);
                             }
 
@@ -191,7 +191,7 @@ public class ThetaFileProfile extends FileProfile {
                         MessageUtils.setNotFoundServiceError(response);
                         break;
                     default:
-                        MessageUtils.setUnknownError(response, cause.getMessage());
+                        MessageUtils.setIllegalDeviceStateError(response, cause.getMessage());
                         break;
                 }
                 sendResponse(response);
@@ -237,7 +237,7 @@ public class ThetaFileProfile extends FileProfile {
                                         MessageUtils.setInvalidRequestParameterError(response, "File not found: " + removePath);
                                         break;
                                     default:
-                                        MessageUtils.setUnknownError(response, cause.getMessage());
+                                        MessageUtils.setIllegalDeviceStateError(response, cause.getMessage());
                                         break;
                                 }
                                 sendResponse(response);

@@ -82,14 +82,14 @@ public class HostGeolocationProfile extends GeolocationProfile implements Locati
                                     response.putExtra(GeolocationProfile.PARAM_POSITION, mLocationCache);
                                     sendResponse(response);
                                 } else {
-                                    getLocationManager();
+                                    getLocationManager(response);
                                     getGPS(getHighAccuracy(request), response);
                                 }
                             }
 
                             @Override
                             public void onFail(@NonNull String deniedPermission) {
-                                MessageUtils.setIllegalServerStateError(response,
+                                MessageUtils.setIllegalDeviceStateError(response,
                                         "ACCESS_FINE_LOCATION permission not granted.");
                                 sendResponse(response);
                             }
@@ -114,7 +114,7 @@ public class HostGeolocationProfile extends GeolocationProfile implements Locati
                         new PermissionUtility.PermissionRequestCallback() {
                             @Override
                             public void onSuccess() {
-                                getLocationManager();
+                                getLocationManager(response);
                                 String serviceId = getServiceID(request);
                                 // イベントの登録
                                 EventError error = EventManager.INSTANCE.addEvent(request);
@@ -132,7 +132,7 @@ public class HostGeolocationProfile extends GeolocationProfile implements Locati
 
                             @Override
                             public void onFail(@NonNull String deniedPermission) {
-                                MessageUtils.setIllegalServerStateError(response,
+                                MessageUtils.setIllegalDeviceStateError(response,
                                         "ACCESS_FINE_LOCATION permission not granted.");
                                 sendResponse(response);
                             }
@@ -157,7 +157,7 @@ public class HostGeolocationProfile extends GeolocationProfile implements Locati
                         new PermissionUtility.PermissionRequestCallback() {
                             @Override
                             public void onSuccess() {
-                                getLocationManager();
+                                getLocationManager(response);
                                 // イベントの解除
                                 EventError error = EventManager.INSTANCE.removeEvent(request);
                                 if (error == EventError.NONE) {
@@ -173,7 +173,7 @@ public class HostGeolocationProfile extends GeolocationProfile implements Locati
 
                             @Override
                             public void onFail(@NonNull String deniedPermission) {
-                                MessageUtils.setIllegalServerStateError(response,
+                                MessageUtils.setIllegalDeviceStateError(response,
                                         "ACCESS_FINE_LOCATION permission not granted.");
                                 sendResponse(response);
                             }
@@ -189,7 +189,7 @@ public class HostGeolocationProfile extends GeolocationProfile implements Locati
      * 位置情報管理クラスを取得する.
      * @return 位置情報管理クラス
      */
-    private LocationManager getLocationManager() {
+    private LocationManager getLocationManager(final Intent response) {
         if (mLocationManager == null) {
             mLocationManager = (LocationManager) getContext().getSystemService(Context.LOCATION_SERVICE);
         }
@@ -197,6 +197,9 @@ public class HostGeolocationProfile extends GeolocationProfile implements Locati
         if (!mLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
             Intent intent = new Intent(getContext(), GeolocationAlertDialogActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            Bundle bundle = new Bundle();
+            bundle.putParcelable("response", response);
+            intent.putExtra("Intent", bundle);
             getContext().startActivity(intent);
         }
         return mLocationManager;

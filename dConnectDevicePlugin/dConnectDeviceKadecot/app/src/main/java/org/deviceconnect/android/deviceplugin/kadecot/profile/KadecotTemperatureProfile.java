@@ -28,6 +28,9 @@ import static org.deviceconnect.android.deviceplugin.kadecot.service.KadecotServ
  */
 public class KadecotTemperatureProfile extends DConnectProfile {
 
+    private static final int TYPE_CELSIUS = 1;
+    private static final int TYPE_FAHRENHEIT = 2;
+
     public KadecotTemperatureProfile() {
 
         // GET /gotapi/temperature/
@@ -71,8 +74,13 @@ public class KadecotTemperatureProfile extends DConnectProfile {
             if (propertyName != null && propertyValue != null) {
                 if (propertyName.equals(KadecotHomeAirConditioner.PROP_SETTEMPERATUREVALUE)) {
                     setResult(response, DConnectMessage.RESULT_OK);
+                    // Kadecot is only celsius.
+                    int type = request.getIntExtra("type", TYPE_CELSIUS);
+                    if (type == TYPE_FAHRENHEIT) {
+                        propertyValue = "" + convertCelsiusToFahrenheit(new Integer(propertyValue));
+                    }
                     response.putExtra("temperature", propertyValue);
-                    response.putExtra("type", "1"); //摂氏固定
+                    response.putExtra("type", type);
                 } else if (result.getServerResult().equals(NO_RESULT)) {
                     MessageUtils.setNotSupportAttributeError(response, "This device not support 'get' procedure.");
                 } else {
@@ -92,7 +100,7 @@ public class KadecotTemperatureProfile extends DConnectProfile {
      * @param request Request.
      * @param response Response.
      */
-    protected void putTemperature(final Intent request, final Intent response) {
+    private void putTemperature(final Intent request, final Intent response) {
         int value = -1;
         String strValue = request.getStringExtra("temperature");
         try {
@@ -129,5 +137,15 @@ public class KadecotTemperatureProfile extends DConnectProfile {
             }
         }
         sendResponse(response);
+    }
+
+    // Convert Celsius to Fahrenheit.
+    private int convertCelsiusToFahrenheit(final int celsius) {
+        return (int) (1.8 * celsius + 32);
+    }
+
+    // Convert Fahrenheit to Celsius.
+    private int convertFahrenheitToCelsius(final int fahrenheit) {
+        return (int) ((0.56) * (fahrenheit - 32));
     }
 }

@@ -21,6 +21,12 @@
                         "in": "query",
                         "required": true,
                         "type": "string"
+                    },
+                    {
+                        "name": "type",
+                        "in": "formData",
+                        "required": false,
+                        "type": "integer"
                     }
                 ],
                 "responses": {
@@ -32,7 +38,7 @@
             "put": {
                 "x-type": "one-shot",
                 "summary": "スマートデバイスの温度設定値を設定する。",
-                "description": "",
+                "description": "摂氏の場合: 0以上50以下, 華氏の場合: 32以上122以下",
                 "parameters": [
                     {
                         "name": "serviceId",
@@ -44,9 +50,7 @@
                         "name": "temperature",
                         "in": "formData",
                         "required": true,
-                        "type": "integer",
-                        "minimum": 0,
-                        "maximum": 50
+                        "type": "integer"
                     },
                     {
                         "name": "type",

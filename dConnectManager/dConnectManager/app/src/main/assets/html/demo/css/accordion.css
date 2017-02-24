@@ -13,13 +13,13 @@ input[type="checkbox"].bellows {
     display: none;
 }
 
-img.show {
+img.minus {
     display: none;
     font-size: large;
     float: right;
 }
 
-img.hidden {
+img.plus {
     display: inline;
     font-size: large;
     float: right;
@@ -50,21 +50,4 @@ input[type="checkbox"].bellows + div.ac_content {
 
 input[type="checkbox"].bellows:checked + div.ac_content {
     height: auto;
-}
-
-
-input[type="checkbox"].bellows + label img.show {
-    display: none;
-}
-
-input[type="checkbox"].bellows:checked + label img.show {
-    display: inline;
-}
-
-input[type="checkbox"].bellows + label img.hidden {
-    display: inline;
-}
-
-input[type="checkbox"].bellows:checked + label img.hidden {
-    display: none;
 }

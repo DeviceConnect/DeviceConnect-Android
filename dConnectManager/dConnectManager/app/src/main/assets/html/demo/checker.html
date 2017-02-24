@@ -7,8 +7,10 @@
     <link rel="stylesheet" href="css/checker.css" type="text/css" />
 
     <script id="command" type="text/x-template">
-        <label for="{#nav}">
+        <label for="{#nav}" onclick="return onToggleIcon(this, '{#nav}')">
             {#title}
+            <img class="minus" src="images/icon_minus.png">
+            <img class="plus" src="images/icon_plus.png">
         </label>
         <input type="checkbox" id="{#nav}" class="bellows" />
         <div class="ac_content">

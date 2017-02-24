@@ -168,7 +168,7 @@
 
         <!-- Device Connectのファイルを管理するProvider. -->
         <provider
-            android:name="org.deviceconnect.android.manager.ManagerFileProvider"
+            android:name="org.deviceconnect.android.provider.FileProvider"
             android:authorities="org.deviceconnect.android.manager.provider"
             android:exported="true">
             <meta-data

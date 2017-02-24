@@ -13,7 +13,6 @@ import org.deviceconnect.android.deviceplugin.theta.core.ThetaDevice;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceClient;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceEventListener;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceManager;
-import org.deviceconnect.android.deviceplugin.theta.profile.ThetaFileProvider;
 import org.deviceconnect.android.deviceplugin.theta.profile.ThetaMediaStreamRecordingProfile;
 import org.deviceconnect.android.deviceplugin.theta.profile.ThetaOmnidirectionalImageProfile;
 import org.deviceconnect.android.deviceplugin.theta.profile.ThetaSystemProfile;
@@ -56,7 +55,7 @@ public class ThetaDeviceService extends DConnectMessageService
         mDeviceMgr.registerDeviceEventListener(this);
         mDeviceMgr.checkConnectedDevice();
         mClient = new ThetaDeviceClient(mDeviceMgr);
-        mFileMgr = new FileManager(this, ThetaFileProvider.class.getName());
+        mFileMgr = new FileManager(this);
 
         EventManager.INSTANCE.setController(new MemoryCacheController());
 

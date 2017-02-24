@@ -65,7 +65,7 @@
         </service>
 
         <provider
-            android:name="org.deviceconnect.android.deviceplugin.theta.profile.ThetaFileProvider"
+            android:name="org.deviceconnect.android.provider.FileProvider"
             android:authorities="org.deviceconnect.android.deviceplugin.theta.provider"
             android:exported="true" >
         </provider>

@@ -46,7 +46,6 @@ import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceException;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceManager;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaObject;
 import org.deviceconnect.android.deviceplugin.theta.data.ThetaObjectStorage;
-import org.deviceconnect.android.deviceplugin.theta.profile.ThetaFileProvider;
 import org.deviceconnect.android.deviceplugin.theta.utils.DownloadThetaDataTask;
 import org.deviceconnect.android.deviceplugin.theta.view.ThetaLoadingProgressView;
 import org.deviceconnect.android.provider.FileManager;
@@ -549,7 +548,7 @@ public class ThetaGalleryFragment extends Fragment implements ThetaDeviceEventLi
                             new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(final DialogInterface dialogInterface, final int pos) {
-                                    FileManager fileManager = new FileManager(getActivity(), ThetaFileProvider.class.getName());
+                                    FileManager fileManager = new FileManager(getActivity());
                                     fileManager.checkWritePermission(new FileManager.CheckPermissionCallback() {
                                         @Override
                                         public void onSuccess() {
@@ -593,7 +592,7 @@ public class ThetaGalleryFragment extends Fragment implements ThetaDeviceEventLi
                                 }
                             });
                 } else {
-                    FileManager fileManager = new FileManager(getActivity(), ThetaFileProvider.class.getName());
+                    FileManager fileManager = new FileManager(getActivity());
                     fileManager.checkWritePermission(new FileManager.CheckPermissionCallback() {
                         @Override
                         public void onSuccess() {

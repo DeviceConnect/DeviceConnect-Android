@@ -68,6 +68,15 @@ public class FileManager {
 
     /**
      * コンストラクタ.
+     *
+     * @param context コンテキスト
+     */
+    public FileManager(final Context context) {
+        this(context, FileProvider.class.getName());
+    }
+
+    /**
+     * コンストラクタ.
      * 
      * @param context コンテキスト
      * @param fileProvider FileProviderクラス名

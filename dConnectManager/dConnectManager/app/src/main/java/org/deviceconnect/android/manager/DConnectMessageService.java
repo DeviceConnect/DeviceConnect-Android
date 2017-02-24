@@ -144,7 +144,7 @@ public abstract class DConnectMessageService extends Service
         mSettings.load(this);
 
         // ファイル管理クラス
-        mFileMgr = new FileManager(this, ManagerFileProvider.class.getName());
+        mFileMgr = new FileManager(this);
 
         // デバイスプラグインとのLocal OAuth情報
         mLocalOAuth = new DConnectLocalOAuth(this);

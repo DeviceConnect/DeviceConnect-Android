@@ -7,21 +7,11 @@
 package org.deviceconnect.android.deviceplugin.test.profile.unique;
 
 import android.content.Intent;
-import android.os.Bundle;
 
-import org.deviceconnect.android.deviceplugin.test.UnitTestDeviceService;
-import org.deviceconnect.android.deviceplugin.test.profile.Util;
-import org.deviceconnect.android.event.Event;
-import org.deviceconnect.android.event.EventError;
-import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
-
-import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
 
 
 /**
@@ -54,10 +44,12 @@ public class TestAllGetControlProfile extends DConnectProfile {
      * テスト値: {@value}.
      */
     public static final String VALUE_KEY_PROFILE = "PROFILE_OK";
+
     /**
      * テスト値: {@value}.
      */
     public static final String VALUE_KEY_INTERFACE = "INTERFACE_OK";
+
     /**
      * テスト値: {@value}.
      */

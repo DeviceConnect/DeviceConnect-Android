@@ -38,6 +38,7 @@ import android.widget.Button;
 import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.R;
+import org.deviceconnect.android.deviceplugin.host.file.HostFileProvider;
 import org.deviceconnect.android.deviceplugin.host.mediaplayer.VideoConst;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
 import org.deviceconnect.android.provider.FileManager;
@@ -202,7 +203,7 @@ public class VideoRecorderActivity extends Activity implements SurfaceHolder.Cal
     }
 
     private void initVideoContext() {
-        mFileMgr = new FileManager(this);
+        mFileMgr = new FileManager(this, HostFileProvider.class.getName());
 
         mMediaRecorder = new MediaRecorder();
 

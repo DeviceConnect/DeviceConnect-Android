@@ -143,4 +143,10 @@
         <name lang="en">All Get Control(for test)</name>
         <description lang="en">DeviceConnectのURLをGETで操作する機能のテスト用プロファイル</description>
     </profile>
+    <profile name="dataTest" expireperiod="86400000">
+        <name lang="ja">データ送信テスト用プロファイル</name>
+        <description lang="ja">マルチパートなどのデータ送信のテスト用プロファイル</description>
+        <name lang="en">Test of send a data.</name>
+        <description lang="en">Profile of send a data.</description>
+    </profile>
 </deviceplugin-provider>

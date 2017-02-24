@@ -24,6 +24,7 @@ import android.support.annotation.NonNull;
 
 import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
+import org.deviceconnect.android.deviceplugin.host.file.HostFileProvider;
 import org.deviceconnect.android.deviceplugin.host.mediaplayer.HostMediaPlayerManager;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
@@ -202,7 +203,7 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
                     new PermissionUtility.PermissionRequestCallback() {
                         @Override
                         public void onSuccess() {
-                            FileManager mFileManager = new FileManager(getContext());
+                            FileManager mFileManager = new FileManager(getContext(), HostFileProvider.class.getName());
 
                             long newMediaId = mediaIdFromPath(getContext(), mFileManager.getBasePath() + mediaId);
                             if (newMediaId == -1) {

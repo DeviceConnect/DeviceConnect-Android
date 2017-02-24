@@ -71,7 +71,7 @@ table.excluded tr td div {
 }
 
 table.request tr td div input.text {
-    width: 99%;
+    width: 100%;
     margin 0px;
     padding: 10px 0px;
     border: none;

@@ -17,7 +17,6 @@ import org.deviceconnect.android.profile.api.GetApi;
 import org.deviceconnect.android.profile.api.PutApi;
 import org.deviceconnect.message.DConnectMessage;
 
-import static org.deviceconnect.android.deviceplugin.kadecot.profile.original.AirConditionerProfile.setTemperatureValue;
 import static org.deviceconnect.android.deviceplugin.kadecot.service.KadecotService.NO_RESULT;
 import static org.deviceconnect.android.deviceplugin.kadecot.service.KadecotService.createInvalidKadecotResponseError;
 
@@ -75,9 +74,15 @@ public class KadecotTemperatureProfile extends DConnectProfile {
                 if (propertyName.equals(KadecotHomeAirConditioner.PROP_SETTEMPERATUREVALUE)) {
                     setResult(response, DConnectMessage.RESULT_OK);
                     // Kadecot is only celsius.
-                    int type = request.getIntExtra("type", TYPE_CELSIUS);
+                    String typeString = request.getStringExtra("type");
+                    int type;
+                    try {
+                        type = Integer.valueOf(typeString);
+                    } catch(NumberFormatException e) {
+                        type = TYPE_CELSIUS;
+                    }
                     if (type == TYPE_FAHRENHEIT) {
-                        propertyValue = "" + convertCelsiusToFahrenheit(new Integer(propertyValue));
+                        propertyValue = "" + convertCelsiusToFahrenheit(Integer.valueOf(propertyValue));
                     }
                     response.putExtra("temperature", propertyValue);
                     response.putExtra("type", type);
@@ -101,19 +106,35 @@ public class KadecotTemperatureProfile extends DConnectProfile {
      * @param response Response.
      */
     private void putTemperature(final Intent request, final Intent response) {
-        int value = -1;
+        int value;
+        String typeString = request.getStringExtra("type");
+        int type;
+        try {
+            type = Integer.valueOf(typeString);
+        } catch(NumberFormatException e) {
+            type = TYPE_CELSIUS;
+        }
         String strValue = request.getStringExtra("temperature");
         try {
             value = Integer.parseInt(strValue);
         } catch (NumberFormatException e) {
             value = -1;
         }
-        if (value == -1 || value < 0 || value > 50) {
-            MessageUtils.setInvalidRequestParameterError(response);
-            sendResponse(response);
-            return;
+        if (type == TYPE_CELSIUS) {
+            if (value == -1 || value < 0 || value > 50) {
+                MessageUtils.setInvalidRequestParameterError(response);
+                sendResponse(response);
+                return;
+            }
+        } else {
+            if (value == -1 || value < 32 || value > 122) {
+                MessageUtils.setInvalidRequestParameterError(response);
+                sendResponse(response);
+                return;
+            } else {
+                value = convertFahrenheitToCelsius(value); //To Celsius.
+            }
         }
-
         KadecotResult result = KadecotService.requestKadecotServer(getContext(),
                 response, getServiceID(request),
                 KadecotHomeAirConditioner.TEMPERATUREVALUE_SET, value);

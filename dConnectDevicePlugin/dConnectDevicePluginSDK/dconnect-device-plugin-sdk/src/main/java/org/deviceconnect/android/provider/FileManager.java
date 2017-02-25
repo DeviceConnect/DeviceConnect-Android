@@ -238,7 +238,11 @@ public class FileManager {
         } else if (!contentUri.endsWith("/")) {
             contentUri = contentUri + "/";
         }
-        return contentUri + u.getLastPathSegment();
+        String lastPath = filename;
+        if (lastPath.indexOf("/") == 0) {
+            lastPath = lastPath.substring(1, lastPath.length());
+        }
+        return contentUri + lastPath;
     }
 
     /**
@@ -290,7 +294,11 @@ public class FileManager {
         } else if (!contentUri.endsWith("/")) {
             contentUri = contentUri + "/";
         }
-        return contentUri + u.getLastPathSegment();
+        String lastPath = filename;
+        if (lastPath.indexOf("/") == 0) {
+            lastPath = lastPath.substring(1, lastPath.length());
+        }
+        return contentUri + lastPath;
     }
 
     /**
@@ -349,7 +357,7 @@ public class FileManager {
                 } else if (!contentUri.endsWith("/")) {
                     contentUri = contentUri + "/";
                 }
-                String lastPath = u.getPath();
+                String lastPath = filename;
                 if (lastPath.indexOf("/") == 0) {
                     lastPath = lastPath.substring(1, lastPath.length());
                 }

@@ -349,7 +349,11 @@ public class FileManager {
                 } else if (!contentUri.endsWith("/")) {
                     contentUri = contentUri + "/";
                 }
-                callback.onSuccess(contentUri + u.getLastPathSegment());
+                String lastPath = u.getPath();
+                if (lastPath.indexOf("/") == 0) {
+                    lastPath = lastPath.substring(1, lastPath.length());
+                }
+                callback.onSuccess(contentUri + lastPath);
             }
 
             @Override

@@ -16,6 +16,8 @@ import android.webkit.MimeTypeMap;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 
 /**
  * Canvas Draw Utility.
@@ -66,7 +68,7 @@ public final class CanvasDrawUtils {
      * @param uri     uri
      * @return byte[] or null on error
      */
-    public static byte[] getContentData(final Context context, final String uri) {
+    public static byte[] getContentData(final Context context, final String uri) throws OutOfMemoryError {
         if (uri == null) {
             return null;
         }
@@ -81,6 +83,8 @@ public final class CanvasDrawUtils {
                 out.write(buf, 0, len);
             }
             return out.toByteArray();
+        } catch (OutOfMemoryError e) {
+            throw new OutOfMemoryError(e.getMessage());
         } catch (IOException e) {
             return null;
         } finally {
@@ -132,5 +136,48 @@ public final class CanvasDrawUtils {
             }
         }
         return false;
+    }
+
+    public static byte[] getData(String uri) throws OutOfMemoryError {
+        HttpURLConnection connection = null;
+        InputStream inputStream = null;
+        byte[] data = null;
+        try {
+            URL url = new URL(uri);
+            connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("GET");
+            connection.connect();
+            inputStream = connection.getInputStream();
+            data = readAll(inputStream);
+        } catch (OutOfMemoryError e) {
+            throw new OutOfMemoryError(e.getMessage());
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (connection != null) {
+                connection.disconnect();
+            }
+            try {
+                if (inputStream != null) {
+                    inputStream.close();
+                }
+            } catch (IOException exception) {
+                exception.printStackTrace();
+            }
+        }
+        return data;
+    }
+
+    private static byte[] readAll(InputStream inputStream) throws IOException {
+        ByteArrayOutputStream bout = new ByteArrayOutputStream();
+        byte[] buffer = new byte[1024];
+        while (true) {
+            int len = inputStream.read(buffer);
+            if (len < 0) {
+                break;
+            }
+            bout.write(buffer, 0, len);
+        }
+        return bout.toByteArray();
     }
 }

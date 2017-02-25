@@ -6,15 +6,6 @@
  */
 package org.deviceconnect.android.provider;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.logging.Logger;
-
-import org.deviceconnect.android.activity.PermissionUtility;
-import org.deviceconnect.android.provider.FileLocationParser.FileLocation;
-
 import android.Manifest;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -28,6 +19,15 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.support.annotation.NonNull;
+
+import org.deviceconnect.android.activity.PermissionUtility;
+import org.deviceconnect.android.provider.FileLocationParser.FileLocation;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.logging.Logger;
 
 /**
  * ファイルを管理するためのクラス.
@@ -358,7 +358,7 @@ public class FileManager {
                 } else if (!contentUri.endsWith("/")) {
                     contentUri = contentUri + "/";
                 }
-                callback.onSuccess(contentUri + u.getLastPathSegment());
+                callback.onSuccess(contentUri + filename);
             }
 
             @Override

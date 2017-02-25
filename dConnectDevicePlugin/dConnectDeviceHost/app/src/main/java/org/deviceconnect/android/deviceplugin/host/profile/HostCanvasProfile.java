@@ -10,18 +10,23 @@ package org.deviceconnect.android.deviceplugin.host.profile;
 import android.app.ActivityManager;
 import android.app.Service;
 import android.content.Intent;
+import android.support.annotation.NonNull;
 import android.support.v4.content.LocalBroadcastManager;
 
 import org.deviceconnect.android.deviceplugin.host.activity.CanvasProfileActivity;
 import org.deviceconnect.android.deviceplugin.host.canvas.CanvasDrawImageObject;
-import org.deviceconnect.android.deviceplugin.host.canvas.CanvasDrawUtils;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.CanvasProfile;
 import org.deviceconnect.android.profile.api.DConnectApi;
 import org.deviceconnect.android.profile.api.DeleteApi;
 import org.deviceconnect.android.profile.api.PostApi;
+import org.deviceconnect.android.provider.FileManager;
 import org.deviceconnect.message.DConnectMessage;
 
+import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -31,6 +36,15 @@ import java.util.concurrent.Executors;
  * @author NTT DOCOMO, INC.
  */
 public class HostCanvasProfile extends CanvasProfile {
+    /** ファイル管理クラス. */
+    private FileManager mFileMgr;
+    /** ファイル名に付けるプレフィックス. */
+    private static final String FILENAME_PREFIX = "android_canvas_";
+    /** ファイルの拡張子. */
+    private static final String FILE_EXTENSION = ".jpg";
+
+    /** 日付のフォーマット. */
+    private SimpleDateFormat mSimpleDateFormat = new SimpleDateFormat("yyyyMMdd_kkmmss", Locale.JAPAN);
 
     private ExecutorService mImageService = Executors.newSingleThreadExecutor();
 
@@ -43,6 +57,18 @@ public class HostCanvasProfile extends CanvasProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
+            // キャッシュの削除
+            mFileMgr.checkAndRemove("temp", new FileManager.RemoveFileCallback() {
+                @Override
+                public void onSuccess() {
+
+                }
+
+                @Override
+                public void onFail(@NonNull Throwable throwable) {
+
+                }
+            });
             String mode = getMode(request);
             String mimeType = getMIMEType(request);
             final CanvasDrawImageObject.Mode enumMode = CanvasDrawImageObject.convertMode(mode);
@@ -56,29 +82,43 @@ public class HostCanvasProfile extends CanvasProfile {
                     "Unsupported mimeType: " + mimeType);
                 return true;
             }
-
             final byte[] data = getData(request);
             final String uri = getURI(request);
             final double x = getX(request);
             final double y = getY(request);
             if (data == null) {
+                drawImage(response, uri, enumMode, x, y);
+                return true;
+            } else {
                 mImageService.execute(new Runnable() {
                     @Override
                     public void run() {
-                        byte[] result = getData(uri);
-                        if (result == null) {
-                            MessageUtils.setInvalidRequestParameterError(response, "could not get image from uri.");
-                            sendResponse(response);
-                            return;
+                        if (mFileMgr == null) {
+                            MessageUtils.setInvalidRequestParameterError(response, "FileManager is not implemented.");
                         }
-                        drawImage(response, result, enumMode, x, y);
-                        sendResponse(response);
+                        File mBaseDir = mFileMgr.getBasePath();
+                        File mMakeDir = new File(mBaseDir, "temp");
+
+                        if (!mMakeDir.isDirectory()) {
+                            mMakeDir.mkdirs();
+                        }
+                        mFileMgr.saveFile(createNewFileName(), data, new FileManager.SaveFileCallback() {
+                            @Override
+                            public void onSuccess(@NonNull String uri) {
+                                drawImage(response, uri, enumMode, x, y);
+                                sendResponse(response);
+
+                            }
+
+                            @Override
+                            public void onFail(@NonNull Throwable throwable) {
+                                MessageUtils.setInvalidRequestParameterError(response, throwable.getMessage());
+                                sendResponse(response);
+                            }
+                        });
                     }
                 });
                 return false;
-            } else {
-                drawImage(response, data, enumMode, x, y);
-                return true;
             }
         }
     };
@@ -108,19 +148,14 @@ public class HostCanvasProfile extends CanvasProfile {
     /**
      * コンストラクタ.
      */
-    public HostCanvasProfile() {
+    public HostCanvasProfile(final FileManager fm) {
+        mFileMgr = fm;
         addApi(mDrawImageApi);
         addApi(mDeleteImageApi);
     }
 
-    private void drawImage(Intent response, byte[] data, CanvasDrawImageObject.Mode enumMode, double x, double y) {
-        if (!CanvasDrawUtils.checkBitmap(data)) {
-            MessageUtils.setInvalidRequestParameterError(response,
-                    "The width and height of image must be less than 2048px.");
-            return;
-        }
-
-        CanvasDrawImageObject drawObj = new CanvasDrawImageObject(data, enumMode, x, y);
+    private void drawImage(Intent response, String uri, CanvasDrawImageObject.Mode enumMode, double x, double y) {
+        CanvasDrawImageObject drawObj = new CanvasDrawImageObject(uri, enumMode, x, y);
 
         String className = getClassnameOfTopActivity();
         if (CanvasProfileActivity.class.getName().equals(className)) {
@@ -146,5 +181,14 @@ public class HostCanvasProfile extends CanvasProfile {
     private String getClassnameOfTopActivity() {
         ActivityManager activityMgr = (ActivityManager) getContext().getSystemService(Service.ACTIVITY_SERVICE);
         return activityMgr.getRunningTasks(1).get(0).topActivity.getClassName();
+    }
+
+    /**
+     * 新規のファイル名を作成する.
+     *
+     * @return ファイル名
+     */
+    private String createNewFileName() {
+        return "temp/" + FILENAME_PREFIX + mSimpleDateFormat.format(new Date()) + FILE_EXTENSION;
     }
 }

@@ -29,7 +29,7 @@ var util = (function(parent, global) {
             'canvas',
             'health',
             'touch',
-            'humandetect',
+            'humandetection',
             'keyevent',
             'omnidirectionalimage',
             'tv',

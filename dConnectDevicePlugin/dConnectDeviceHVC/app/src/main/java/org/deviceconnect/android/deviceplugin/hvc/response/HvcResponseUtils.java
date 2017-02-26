@@ -7,6 +7,17 @@
 
 package org.deviceconnect.android.deviceplugin.hvc.response;
 
+import android.content.Intent;
+import android.os.Bundle;
+import android.util.Log;
+
+import org.deviceconnect.android.deviceplugin.hvc.comm.HvcConvertUtils;
+import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectKind;
+import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectRequestParams;
+import org.deviceconnect.android.deviceplugin.hvc.profile.HvcConstants;
+import org.deviceconnect.android.deviceplugin.hvc.request.HvcDetectRequestParams;
+import org.deviceconnect.android.profile.HumanDetectionProfile;
+
 import java.util.LinkedList;
 import java.util.List;
 
@@ -14,17 +25,6 @@ import omron.HVC.HVC;
 import omron.HVC.HVC_RES;
 import omron.HVC.HVC_RES.DetectionResult;
 import omron.HVC.HVC_RES.FaceResult;
-
-import org.deviceconnect.android.deviceplugin.hvc.comm.HvcConvertUtils;
-import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectKind;
-import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectRequestParams;
-import org.deviceconnect.android.deviceplugin.hvc.profile.HvcConstants;
-import org.deviceconnect.android.deviceplugin.hvc.request.HvcDetectRequestParams;
-import org.deviceconnect.android.profile.HumanDetectProfile;
-
-import android.content.Intent;
-import android.os.Bundle;
-import android.util.Log;
 
 /**
  * HVC response utility.
@@ -51,7 +51,6 @@ public final class HvcResponseUtils {
      */
     public static void setDetectResultResponse(final Intent response, final HumanDetectRequestParams requestParams,
             final HVC_RES result, final HumanDetectKind detectKind) {
-
         // body detects response.
         if (detectKind == HumanDetectKind.BODY && result.body.size() > 0) {
             setBodyDetectResultResponse(response, new HvcDetectRequestParams(requestParams), result);
@@ -66,6 +65,15 @@ public final class HvcResponseUtils {
         if (detectKind == HumanDetectKind.FACE && result.face.size() > 0) {
             setFaceDetectResultResponse(response, new HvcDetectRequestParams(requestParams), result);
         }
+
+        // Human Detect response.
+        if (detectKind == HumanDetectKind.HUMAN) {
+            if (result.body.size() > 0 || result.hand.size() > 0 || result.face.size() > 0) {
+                setHumanDetectResultResponse(response, true);
+            } else {
+                setHumanDetectResultResponse(response, false);
+            }
+        }
     }
 
     /**
@@ -75,7 +83,7 @@ public final class HvcResponseUtils {
      * @param requestParams request
      * @param result result
      */
-    public static void setBodyDetectResultResponse(final Intent response, final HvcDetectRequestParams requestParams,
+    private static void setBodyDetectResultResponse(final Intent response, final HvcDetectRequestParams requestParams,
             final HVC_RES result) {
 
         List<Bundle> bodyDetects = new LinkedList<Bundle>();
@@ -84,22 +92,22 @@ public final class HvcResponseUtils {
             // threshold check
             if (r.confidence >= requestParams.getBody().getHvcThreshold()) {
                 Bundle bodyDetect = new Bundle();
-                HumanDetectProfile.setParamX(bodyDetect,
+                HumanDetectionProfile.setParamX(bodyDetect,
                         HvcConvertUtils.convertToNormalize(r.posX, HvcConstants.HVC_C_CAMERA_WIDTH));
-                HumanDetectProfile.setParamY(bodyDetect,
+                HumanDetectionProfile.setParamY(bodyDetect,
                         HvcConvertUtils.convertToNormalize(r.posY, HvcConstants.HVC_C_CAMERA_HEIGHT));
-                HumanDetectProfile.setParamWidth(bodyDetect,
+                HumanDetectionProfile.setParamWidth(bodyDetect,
                         HvcConvertUtils.convertToNormalize(r.size, HvcConstants.HVC_C_CAMERA_WIDTH));
-                HumanDetectProfile.setParamHeight(bodyDetect,
+                HumanDetectionProfile.setParamHeight(bodyDetect,
                         HvcConvertUtils.convertToNormalize(r.size, HvcConstants.HVC_C_CAMERA_HEIGHT));
-                HumanDetectProfile.setParamConfidence(bodyDetect,
+                HumanDetectionProfile.setParamConfidence(bodyDetect,
                         HvcConvertUtils.convertToNormalize(r.confidence, HvcConstants.CONFIDENCE_MAX));
 
                 bodyDetects.add(bodyDetect);
             }
         }
         if (bodyDetects.size() > 0) {
-            HumanDetectProfile.setBodyDetects(response, bodyDetects.toArray(new Bundle[bodyDetects.size()]));
+            HumanDetectionProfile.setBodyDetects(response, bodyDetects.toArray(new Bundle[bodyDetects.size()]));
         }
     }
 
@@ -110,7 +118,7 @@ public final class HvcResponseUtils {
      * @param requestParams request
      * @param result result
      */
-    public static void setHandDetectResultResponse(final Intent response, final HvcDetectRequestParams requestParams,
+    private static void setHandDetectResultResponse(final Intent response, final HvcDetectRequestParams requestParams,
             final HVC_RES result) {
 
         List<Bundle> handDetects = new LinkedList<Bundle>();
@@ -119,22 +127,22 @@ public final class HvcResponseUtils {
             // threshold check
             if (r.confidence >= requestParams.getHand().getHvcThreshold()) {
                 Bundle handDetect = new Bundle();
-                HumanDetectProfile.setParamX(handDetect,
+                HumanDetectionProfile.setParamX(handDetect,
                         HvcConvertUtils.convertToNormalize(r.posX, HvcConstants.HVC_C_CAMERA_WIDTH));
-                HumanDetectProfile.setParamY(handDetect,
+                HumanDetectionProfile.setParamY(handDetect,
                         HvcConvertUtils.convertToNormalize(r.posY, HvcConstants.HVC_C_CAMERA_HEIGHT));
-                HumanDetectProfile.setParamWidth(handDetect,
+                HumanDetectionProfile.setParamWidth(handDetect,
                         HvcConvertUtils.convertToNormalize(r.size, HvcConstants.HVC_C_CAMERA_WIDTH));
-                HumanDetectProfile.setParamHeight(handDetect,
+                HumanDetectionProfile.setParamHeight(handDetect,
                         HvcConvertUtils.convertToNormalize(r.size, HvcConstants.HVC_C_CAMERA_HEIGHT));
-                HumanDetectProfile.setParamConfidence(handDetect,
+                HumanDetectionProfile.setParamConfidence(handDetect,
                         HvcConvertUtils.convertToNormalize(r.confidence, HvcConstants.CONFIDENCE_MAX));
 
                 handDetects.add(handDetect);
             }
         }
         if (handDetects.size() > 0) {
-            HumanDetectProfile.setHandDetects(response, handDetects.toArray(new Bundle[handDetects.size()]));
+            HumanDetectionProfile.setHandDetects(response, handDetects.toArray(new Bundle[handDetects.size()]));
         }
     }
 
@@ -145,7 +153,7 @@ public final class HvcResponseUtils {
      * @param requestParams request
      * @param result result
      */
-    public static void setFaceDetectResultResponse(final Intent response, final HvcDetectRequestParams requestParams,
+    private static void setFaceDetectResultResponse(final Intent response, final HvcDetectRequestParams requestParams,
             final HVC_RES result) {
 
         List<Bundle> faceDetects = new LinkedList<Bundle>();
@@ -154,15 +162,15 @@ public final class HvcResponseUtils {
             // threshold check
             if (r.confidence >= requestParams.getFace().getHvcThreshold()) {
                 Bundle faceDetect = new Bundle();
-                HumanDetectProfile.setParamX(faceDetect,
+                HumanDetectionProfile.setParamX(faceDetect,
                         HvcConvertUtils.convertToNormalize(r.posX, HvcConstants.HVC_C_CAMERA_WIDTH));
-                HumanDetectProfile.setParamY(faceDetect,
+                HumanDetectionProfile.setParamY(faceDetect,
                         HvcConvertUtils.convertToNormalize(r.posY, HvcConstants.HVC_C_CAMERA_HEIGHT));
-                HumanDetectProfile.setParamWidth(faceDetect,
+                HumanDetectionProfile.setParamWidth(faceDetect,
                         HvcConvertUtils.convertToNormalize(r.size, HvcConstants.HVC_C_CAMERA_WIDTH));
-                HumanDetectProfile.setParamHeight(faceDetect,
+                HumanDetectionProfile.setParamHeight(faceDetect,
                         HvcConvertUtils.convertToNormalize(r.size, HvcConstants.HVC_C_CAMERA_HEIGHT));
-                HumanDetectProfile.setParamConfidence(faceDetect,
+                HumanDetectionProfile.setParamConfidence(faceDetect,
                         HvcConvertUtils.convertToNormalize(r.confidence, HvcConstants.CONFIDENCE_MAX));
 
                 // face direction.
@@ -170,12 +178,12 @@ public final class HvcResponseUtils {
                     // threshold check
                     if (r.dir.confidence >= requestParams.getFace().getHvcFaceDirectionThreshold()) {
                         Bundle faceDirectionResult = new Bundle();
-                        HumanDetectProfile.setParamYaw(faceDirectionResult, r.dir.yaw);
-                        HumanDetectProfile.setParamPitch(faceDirectionResult, r.dir.pitch);
-                        HumanDetectProfile.setParamRoll(faceDirectionResult, r.dir.roll);
-                        HumanDetectProfile.setParamConfidence(faceDirectionResult,
+                        HumanDetectionProfile.setParamYaw(faceDirectionResult, r.dir.yaw);
+                        HumanDetectionProfile.setParamPitch(faceDirectionResult, r.dir.pitch);
+                        HumanDetectionProfile.setParamRoll(faceDirectionResult, r.dir.roll);
+                        HumanDetectionProfile.setParamConfidence(faceDirectionResult,
                                 HvcConvertUtils.convertToNormalizeConfidence(r.dir.confidence));
-                        HumanDetectProfile.setParamFaceDirectionResults(faceDetect, faceDirectionResult);
+                        HumanDetectionProfile.setParamFaceDirectionResults(faceDetect, faceDirectionResult);
                     }
                 }
                 // age.
@@ -183,10 +191,10 @@ public final class HvcResponseUtils {
                     // threshold check
                     if (r.age.confidence >= requestParams.getFace().getHvcAgeThreshold()) {
                         Bundle ageResult = new Bundle();
-                        HumanDetectProfile.setParamAge(ageResult, r.age.age);
-                        HumanDetectProfile.setParamConfidence(ageResult,
+                        HumanDetectionProfile.setParamAge(ageResult, r.age.age);
+                        HumanDetectionProfile.setParamConfidence(ageResult,
                                 HvcConvertUtils.convertToNormalizeConfidence(r.age.confidence));
-                        HumanDetectProfile.setParamAgeResults(faceDetect, ageResult);
+                        HumanDetectionProfile.setParamAgeResults(faceDetect, ageResult);
                     }
                 }
                 // gender.
@@ -194,33 +202,33 @@ public final class HvcResponseUtils {
                     // threshold check
                     if (r.gen.confidence >= requestParams.getFace().getHvcGenderThreshold()) {
                         Bundle genderResult = new Bundle();
-                        HumanDetectProfile.setParamGender(genderResult,
-                                (r.gen.gender == HVC.HVC_GEN_MALE ? HumanDetectProfile.VALUE_GENDER_MALE
-                                        : HumanDetectProfile.VALUE_GENDER_FEMALE));
-                        HumanDetectProfile.setParamConfidence(genderResult,
+                        HumanDetectionProfile.setParamGender(genderResult,
+                                (r.gen.gender == HVC.HVC_GEN_MALE ? HumanDetectionProfile.VALUE_GENDER_MALE
+                                        : HumanDetectionProfile.VALUE_GENDER_FEMALE));
+                        HumanDetectionProfile.setParamConfidence(genderResult,
                                 HvcConvertUtils.convertToNormalizeConfidence(r.gen.confidence));
-                        HumanDetectProfile.setParamGenderResults(faceDetect, genderResult);
+                        HumanDetectionProfile.setParamGenderResults(faceDetect, genderResult);
                     }
                 }
                 // gaze.
                 if ((result.executedFunc & HVC.HVC_ACTIV_GAZE_ESTIMATION) != 0) {
                     Bundle gazeResult = new Bundle();
-                    HumanDetectProfile.setParamGazeLR(gazeResult, r.gaze.gazeLR);
-                    HumanDetectProfile.setParamGazeUD(gazeResult, r.gaze.gazeUD);
-                    HumanDetectProfile.setParamConfidence(gazeResult,
+                    HumanDetectionProfile.setParamGazeLR(gazeResult, r.gaze.gazeLR);
+                    HumanDetectionProfile.setParamGazeUD(gazeResult, r.gaze.gazeUD);
+                    HumanDetectionProfile.setParamConfidence(gazeResult,
                             HvcConvertUtils.convertToNormalizeConfidence(HvcConstants.CONFIDENCE_MAX));
-                    HumanDetectProfile.setParamGazeResults(faceDetect, gazeResult);
+                    HumanDetectionProfile.setParamGazeResults(faceDetect, gazeResult);
                 }
                 // blink.
                 if ((result.executedFunc & HVC.HVC_ACTIV_BLINK_ESTIMATION) != 0) {
                     Bundle blinkResult = new Bundle();
-                    HumanDetectProfile.setParamLeftEye(blinkResult,
+                    HumanDetectionProfile.setParamLeftEye(blinkResult,
                             HvcConvertUtils.convertToNormalize(r.blink.ratioL, HvcConstants.BLINK_MAX));
-                    HumanDetectProfile.setParamRightEye(blinkResult,
+                    HumanDetectionProfile.setParamRightEye(blinkResult,
                             HvcConvertUtils.convertToNormalize(r.blink.ratioR, HvcConstants.BLINK_MAX));
-                    HumanDetectProfile.setParamConfidence(blinkResult,
+                    HumanDetectionProfile.setParamConfidence(blinkResult,
                             HvcConvertUtils.convertToNormalizeConfidence(HvcConstants.CONFIDENCE_MAX));
-                    HumanDetectProfile.setParamBlinkResults(faceDetect, blinkResult);
+                    HumanDetectionProfile.setParamBlinkResults(faceDetect, blinkResult);
                 }
                 // expression.
                 if ((result.executedFunc & HVC.HVC_ACTIV_EXPRESSION_ESTIMATION) != 0) {
@@ -229,10 +237,10 @@ public final class HvcResponseUtils {
                     HumanDetectRequestParams humanDetectRequestParams = requestParams.getHumanDetectRequestParams();
                     if (normalizeExpressionScore >= humanDetectRequestParams.getFace().getExpressionThreshold()) {
                         Bundle expressionResult = new Bundle();
-                        HumanDetectProfile.setParamExpression(expressionResult,
+                        HumanDetectionProfile.setParamExpression(expressionResult,
                                 HvcConvertUtils.convertToNormalizeExpression(r.exp.expression));
-                        HumanDetectProfile.setParamConfidence(expressionResult, normalizeExpressionScore);
-                        HumanDetectProfile.setParamExpressionResults(faceDetect, expressionResult);
+                        HumanDetectionProfile.setParamConfidence(expressionResult, normalizeExpressionScore);
+                        HumanDetectionProfile.setParamExpressionResults(faceDetect, expressionResult);
                     }
                 }
 
@@ -240,11 +248,20 @@ public final class HvcResponseUtils {
             }
         }
         if (faceDetects.size() > 0) {
-            HumanDetectProfile.setFaceDetects(response, faceDetects.toArray(new Bundle[faceDetects.size()]));
+            HumanDetectionProfile.setFaceDetects(response, faceDetects.toArray(new Bundle[faceDetects.size()]));
         }
     }
 
-
+    /**
+     * Set Human Detection.
+     * @param response response message
+     * @param exist Human exist
+     */
+    private static void setHumanDetectResultResponse(final Intent response, final boolean exist) {
+        Bundle humanDetect = new Bundle();
+        humanDetect.putBoolean("exist", exist);
+        response.putExtra("humanDetect", humanDetect);
+    }
     /**
      * debug log.
      * @param hvcRes HVC response

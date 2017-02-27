@@ -21,7 +21,6 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
-import android.os.RemoteException;
 import android.os.ResultReceiver;
 import android.preference.CheckBoxPreference;
 import android.preference.EditTextPreference;
@@ -31,11 +30,9 @@ import android.preference.PreferenceScreen;
 import android.preference.SwitchPreference;
 import android.view.MenuItem;
 
-import org.deviceconnect.android.manager.BuildConfig;
 import org.deviceconnect.android.manager.DConnectService;
 import org.deviceconnect.android.manager.DConnectSettings;
-import org.deviceconnect.android.manager.IDConnectService;
-import org.deviceconnect.android.manager.IDConnectWebService;
+import org.deviceconnect.android.manager.DConnectWebService;
 import org.deviceconnect.android.manager.R;
 import org.deviceconnect.android.manager.setting.OpenSourceLicenseFragment.OpenSourceSoftware;
 import org.deviceconnect.android.manager.util.DConnectUtil;
@@ -71,6 +68,10 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
      * Webサーバ起動確認ダイアログのタグを定義します.
      */
     private static final String TAG_WEB_SERVER = "WebServer";
+    /**
+     * Availabilityの表示のOn/OFF設定ダイアログのタグを定義します.
+     */
+    private static final String TAG_AVAILABILITY = "availability";
 
     /** SSL設定チェックボックス. */
     private CheckBoxPreference mCheckBoxSslPreferences;
@@ -86,6 +87,9 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
     private CheckBoxPreference mCheckBoxRequireOriginPreferences;
     /** Originブロック設定チェックボックス. */
     private CheckBoxPreference mCheckBoxOriginBlockingPreferences;
+    /** Manager名の表示オンオフのチェックボックス. */
+    private CheckBoxPreference mCheckBoxManagerNameVisiblePreferences;
+
     /** ポート監視設定チェックボックス。 */
     private CheckBoxPreference mObserverPreferences;
     /** Webサーバのポート設定テキストエディッタ. */
@@ -215,6 +219,9 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
         // ポート監視設定のON/OFF
         mObserverPreferences = (CheckBoxPreference) getPreferenceScreen()
                 .findPreference(getString(R.string.key_settings_dconn_observer_on_off));
+        /** Manager名の表示オンオフのチェックボックス. */
+        mCheckBoxManagerNameVisiblePreferences = (CheckBoxPreference) getPreferenceScreen()
+                .findPreference(getString(R.string.key_settings_dconn_availability_visible_name));
 
         // ドキュメントルートパス
         EditTextPreference editDocPreferences = (EditTextPreference)
@@ -253,13 +260,8 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
         getPreferenceScreen().setEnabled(false);
 
         // サービスとの接続
-        Intent intent = new Intent(IDConnectService.class.getName());
-        intent.setPackage(getActivity().getPackageName());
-        getActivity().bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
-
-        Intent intent2 = new Intent(IDConnectWebService.class.getName());
-        intent2.setPackage(getActivity().getPackageName());
-        getActivity().bindService(intent2, mWebServiceConnection, Context.BIND_AUTO_CREATE);
+        bindDConnectService();
+        bindDConnectWebService();
 
         // Dozeモード
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -334,6 +336,8 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
             } else if (getString(R.string.key_settings_dconn_local_oauth).equals(key)
                     || getString(R.string.key_settings_dconn_whitelist_origin_blocking).equals(key)) {
                 requiredOrigin((Boolean) newValue);
+            } else if (getString(R.string.key_settings_dconn_availability_visible_name).equals(key)) {
+                switchVisibleManagerName((Boolean) newValue);
             } else if (getString(R.string.key_settings_doze_mode).equals(key)) {
                 switchDozeMode((Boolean) newValue);
             } else if (getString(R.string.key_settings_wake_lock).equals(key)) {
@@ -385,16 +389,12 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
             mCheckBoxOauthPreferences.setChecked(false);
             mCheckBoxOriginBlockingPreferences.setChecked(false);
         } else if (TAG_WEB_SERVER.equals(tag)) {
-            try {
-                mWebService.start();
-                setWebUIEnabled(false);
-            } catch (RemoteException e) {
-                SwitchPreference webPreferences = (SwitchPreference) getPreferenceScreen()
-                        .findPreference(getString(R.string.key_settings_web_server_on_off));
-                webPreferences.setChecked(false);
-            }
+            mWebService.startWebServer();
+            setWebUIEnabled(false);
         } else if (TAG_REQUIRE_ORIGIN.equals(tag)) {
             mCheckBoxRequireOriginPreferences.setChecked(true);
+        } else if (TAG_AVAILABILITY.equals(tag)) {
+            mCheckBoxManagerNameVisiblePreferences.setChecked(true);
         }
     }
 
@@ -412,7 +412,25 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
         } else if (TAG_REQUIRE_ORIGIN.equals(tag)) {
             mCheckBoxOauthPreferences.setChecked(false);
             mCheckBoxOriginBlockingPreferences.setChecked(false);
+        } else if (TAG_AVAILABILITY.equals(tag)) {
+            mCheckBoxManagerNameVisiblePreferences.setChecked(false);
         }
+    }
+
+    /**
+     * DConnectServiceにバインドを行う.
+     */
+    private void bindDConnectService() {
+        Intent intent = new Intent(getActivity(), DConnectService.class);
+        getActivity().bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
+    }
+
+    /**
+     * DConnectWebServiceにバインドを行う.
+     */
+    private void bindDConnectWebService() {
+        Intent intent = new Intent(getActivity(), DConnectWebService.class);
+        getActivity().bindService(intent, mWebServiceConnection, Context.BIND_AUTO_CREATE);
     }
 
     /**
@@ -421,17 +439,10 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
      */
     private void switchDConnectServer(final boolean checked) {
         setUIEnabled(!checked);
-        try {
-            if (checked) {
-                mDConnectService.start();
-            } else {
-                mDConnectService.stop();
-                notifyManagerTerminate();
-            }
-        } catch (RemoteException e) {
-            if (BuildConfig.DEBUG) {
-                e.printStackTrace();
-            }
+        if (checked) {
+            mDConnectService.startInternal();
+        } else {
+            mDConnectService.stopInternal();
         }
     }
 
@@ -449,13 +460,7 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
                     title, message, positive, negative);
             dialog.show(getFragmentManager(), TAG_WEB_SERVER);
         } else {
-            try {
-                mWebService.stop();
-            } catch (RemoteException e) {
-                if (BuildConfig.DEBUG) {
-                    e.printStackTrace();
-                }
-            }
+            mWebService.stopWebServer();
             setWebUIEnabled(true);
         }
     }
@@ -538,6 +543,21 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
     }
 
     /**
+     * AvailabilityにManagerの名前を表示することを警告するダイアログを表示する.
+     * @param checked trueの場合は有効、falseの場合は無効
+     */
+    private void switchVisibleManagerName(final boolean checked) {
+        if (checked) {
+            String title = getString(R.string.activity_settings_warning);
+            String message = getString(R.string.activity_settings_availability_warning_message);
+            String positive = getString(R.string.activity_settings_yes);
+            String negative = getString(R.string.activity_settings_no);
+            AlertDialogFragment dialog = AlertDialogFragment.create(TAG_AVAILABILITY,
+                    title, message, positive, negative);
+            dialog.show(getFragmentManager(), TAG_AVAILABILITY);
+        }
+    }
+    /**
      * Dozeモードの切り替えを行います.
      * @param checked 有効にするの場合はtrue、無効にする場合はfalse
      */
@@ -560,24 +580,12 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
             if (checked) {
                 pref.setSummary(R.string.activity_settings_wake_lock_summary_on);
                 if (mDConnectService != null) {
-                    try {
-                        mDConnectService.acquireWakeLock();
-                    } catch (RemoteException e) {
-                        if (BuildConfig.DEBUG) {
-                            e.printStackTrace();
-                        }
-                    }
+                    mDConnectService.acquireWakeLock();
                 }
             } else {
                 pref.setSummary(R.string.activity_settings_wake_lock_summary_off);
                 if (mDConnectService != null) {
-                    try {
-                        mDConnectService.releaseWakeLock();
-                    } catch (RemoteException e) {
-                        if (BuildConfig.DEBUG) {
-                            e.printStackTrace();
-                        }
-                    }
+                    mDConnectService.releaseWakeLock();
                 }
             }
         }
@@ -662,13 +670,6 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
     }
 
     /**
-     * Manager termination notification to all device plug-ins.
-     */
-    private void notifyManagerTerminate() {
-        ManagerTerminationFragment.show(getActivity());
-    }
-
-    /**
      * Show IP Address.
      */
     private void showIPAddress() {
@@ -688,7 +689,7 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
     /**
      * DConnectServiceを操作するクラス.
      */
-    private IDConnectService mDConnectService;
+    private DConnectService mDConnectService;
 
     /**
      * DConnectServiceと接続するためのクラス.
@@ -696,25 +697,19 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
     private final ServiceConnection mServiceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(final ComponentName name, final IBinder service) {
-            mDConnectService = (IDConnectService) service;
+            mDConnectService = ((DConnectService.LocalBinder) service).getDConnectService();
             if (getActivity() != null) {
                 getActivity().runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        try {
-                            boolean running = mDConnectService.isRunning();
-                            setUIEnabled(!running);
+                        boolean running = mDConnectService.isRunning();
+                        setUIEnabled(!running);
 
-                            SwitchPreference serverPreferences = (SwitchPreference) getPreferenceScreen()
-                                    .findPreference(getString(R.string.key_settings_dconn_server_on_off));
-                            serverPreferences.setChecked(running);
+                        SwitchPreference serverPreferences = (SwitchPreference) getPreferenceScreen()
+                                .findPreference(getString(R.string.key_settings_dconn_server_on_off));
+                        serverPreferences.setChecked(running);
 
-                            checkServiceConnections();
-                        } catch (RemoteException e) {
-                            if (BuildConfig.DEBUG) {
-                                e.printStackTrace();
-                            }
-                        }
+                        checkServiceConnections();
                     }
                 });
             }
@@ -728,7 +723,7 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
     /**
      * DConnectWebServiceを操作するためのクラス.
      */
-    private IDConnectWebService mWebService;
+    private DConnectWebService mWebService;
 
     /**
      * DConnectWebServiceと接続するためのクラス.
@@ -736,24 +731,18 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
     private final ServiceConnection mWebServiceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(final ComponentName name, final IBinder service) {
-            mWebService = (IDConnectWebService) service;
+            mWebService = ((DConnectWebService.LocalBinder) service).getDConnectWebService();
             if (getActivity() != null) {
                 getActivity().runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        try {
-                            boolean running = mWebService.isRunning();
-                            setWebUIEnabled(!running);
-                            SwitchPreference webPreferences = (SwitchPreference) getPreferenceScreen()
-                                    .findPreference(getString(R.string.key_settings_web_server_on_off));
-                            webPreferences.setChecked(running);
+                        boolean running = mWebService.isRunning();
+                        setWebUIEnabled(!running);
+                        SwitchPreference webPreferences = (SwitchPreference) getPreferenceScreen()
+                                .findPreference(getString(R.string.key_settings_web_server_on_off));
+                        webPreferences.setChecked(running);
 
-                            checkServiceConnections();
-                        } catch (RemoteException e) {
-                            if (BuildConfig.DEBUG) {
-                                e.printStackTrace();
-                            }
-                        }
+                        checkServiceConnections();
                     }
                 });
             }
@@ -797,6 +786,7 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
         mCheckBoxExternalStartAndStartPreferences.setOnPreferenceChangeListener(this);
         mCheckBoxRequireOriginPreferences.setOnPreferenceChangeListener(this);
         mCheckBoxOriginBlockingPreferences.setOnPreferenceChangeListener(this);
+        mCheckBoxManagerNameVisiblePreferences.setOnPreferenceChangeListener(this);
         mObserverPreferences.setOnPreferenceChangeListener(this);
         mWebPortPreferences.setOnPreferenceChangeListener(this);
         SwitchPreference serverPreferences = (SwitchPreference) getPreferenceScreen()

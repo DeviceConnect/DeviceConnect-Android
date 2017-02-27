@@ -7,9 +7,9 @@
 package org.deviceconnect.message;
 
 import android.content.Intent;
-import android.util.Log;
+import android.os.Bundle;
+import android.os.Parcelable;
 
-import org.deviceconnect.utils.JSONUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -67,13 +67,12 @@ class BasicDConnectMessage extends HashMap<String, Object> implements DConnectMe
         convertJSONToMap(json, this);
     }
 
-
     /**
      * メッセージをIntentから生成する.
      * @param intent メッセージIntent
      */
     BasicDConnectMessage(final Intent intent) throws JSONException {
-        this(parseIntent(intent));
+        convertBundleToMap(intent.getExtras(), this);
     }
 
     /**
@@ -310,6 +309,156 @@ class BasicDConnectMessage extends HashMap<String, Object> implements DConnectMe
         return builder.toString();
     }
 
+    private static void convertBundleToMap(final Bundle bundle, final DConnectMessage message) throws JSONException {
+        if (bundle == null || message == null) {
+            return;
+        }
+
+        for (String key : bundle.keySet()) {
+            Object object = bundle.get(key);
+            if (object instanceof Bundle) {
+                DConnectMessage m = new BasicDConnectMessage();
+                convertBundleToMap((Bundle) object, m);
+                message.put(key, m);
+            } else if (object instanceof Integer[] || object instanceof Long[] || object instanceof Short[]
+                    || object instanceof Byte[] || object instanceof Character[] || object instanceof Float[]
+                    || object instanceof Double[] || object instanceof Boolean[] || object instanceof String[]) {
+                Object[] bb = (Object[]) object;
+                List array = new ArrayList();
+                for (int i = 0; i < bb.length; i++) {
+                    array.add(bb[i]);
+                }
+                message.put(key, array);
+            } else if (object instanceof Integer) {
+                message.put(key, ((Integer) object).intValue());
+            } else if (object instanceof int[]) {
+                int[] bb = (int[]) object;
+                List array = new ArrayList();
+                for (int i = 0; i < bb.length; i++) {
+                    array.add(bb[i]);
+                }
+                message.put(key, array);
+            } else if (object instanceof Short) {
+                message.put(key, ((Short) object).shortValue());
+            } else if (object instanceof short[]) {
+                short[] bb = (short[]) object;
+                List array = new ArrayList();
+                for (int i = 0; i < bb.length; i++) {
+                    array.add(bb[i]);
+                }
+                message.put(key, array);
+            } else if (object instanceof Character) {
+                message.put(key, ((Character) object).charValue());
+            } else if (object instanceof char[]) {
+                char[] bb = (char[]) object;
+                List array = new ArrayList();
+                for (int i = 0; i < bb.length; i++) {
+                    array.add(bb[i]);
+                }
+                message.put(key, array);
+            } else if (object instanceof Byte) {
+                message.put(key, ((Byte) object).byteValue());
+            } else if (object instanceof byte[]) {
+                byte[] bb = (byte[]) object;
+                List array = new ArrayList();
+                for (int i = 0; i < bb.length; i++) {
+                    array.add(bb[i]);
+                }
+                message.put(key, array);
+            } else if (object instanceof Long) {
+                message.put(key, ((Long) object).longValue());
+            } else if (object instanceof long[]) {
+                long[] bb = (long[]) object;
+                List array = new ArrayList();
+                for (int i = 0; i < bb.length; i++) {
+                    array.add(bb[i]);
+                }
+                message.put(key, array);
+            } else if (object instanceof Float) {
+                message.put(key, ((Float) object).floatValue());
+            } else if (object instanceof float[]) {
+                float[] bb = (float[]) object;
+                List array = new ArrayList();
+                for (int i = 0; i < bb.length; i++) {
+                    array.add(bb[i]);
+                }
+                message.put(key, array);
+            } else if (object instanceof Double) {
+                message.put(key, ((Double) object).doubleValue());
+            } else if (object instanceof double[]) {
+                double[] bb = (double[]) object;
+                List array = new ArrayList();
+                for (int i = 0; i < bb.length; i++) {
+                    array.add(bb[i]);
+                }
+                message.put(key, array);
+            } else if (object instanceof Boolean) {
+                message.put(key, ((Boolean) object).booleanValue());
+            } else if (object instanceof boolean[]) {
+                boolean[] bb = (boolean[]) object;
+                List array = new ArrayList();
+                for (int i = 0; i < bb.length; i++) {
+                    array.add(bb[i]);
+                }
+                message.put(key, array);
+            } else if (object instanceof String) {
+                message.put(key, (String) object);
+            } else if (object instanceof Bundle) {
+                DConnectMessage obj = new BasicDConnectMessage();
+                convertBundleToMap((Bundle) object, obj);
+                message.put(key, obj);
+            } else if (object instanceof Bundle[]) {
+                Bundle[] bb = (Bundle[]) object;
+                List array = new ArrayList();
+                for (int i = 0; i < bb.length; i++) {
+                    DConnectMessage obj = new BasicDConnectMessage();
+                    convertBundleToMap(bb[i], obj);
+                    array.add(obj);
+                }
+                message.put(key, array);
+            } else if (object instanceof Parcelable[]) {
+                Parcelable[] bb = (Parcelable[]) object;
+                List array = new ArrayList();
+                for (int i = 0; i < bb.length; i++) {
+                    DConnectMessage obj = new BasicDConnectMessage();
+                    if (bb[i] instanceof Bundle) {
+                        convertBundleToMap((Bundle) bb[i], obj);
+                    }
+                    array.add(obj);
+                }
+                message.put(key, array);
+            } else if (object instanceof Object[]) {
+                // プリミティブ型のラッパークラスの配列がObject[]として扱われる場合への対処
+                Object[] bb = (Object[]) object;
+                if (isPrimitiveWrapperArray(bb)) {
+                    List array = new ArrayList();
+                    for (int i = 0; i < bb.length; i++) {
+                        array.add(bb[i]);
+                    }
+                    message.put(key, array);
+                }
+            } else if (object instanceof List<?>) {
+                List<?> bb = (List<?>) object;
+                List array = new ArrayList();
+                for (int i = 0; i < bb.size(); i++) {
+                    Object v = bb.get(i);
+                    if (v instanceof Bundle) {
+                        DConnectMessage obj = new BasicDConnectMessage();
+                        convertBundleToMap((Bundle) v, obj);
+                        array.add(obj);
+                    } else if (v instanceof Parcelable) {
+                        DConnectMessage obj = new BasicDConnectMessage();
+                        convertBundleToMap((Bundle) v, obj);
+                        array.add(obj);
+                    } else {
+                        array.add(bb.get(i));
+                    }
+                }
+                message.put(key, array);
+            }
+        }
+    }
+
     private static void convertJSONToMap(final JSONObject root, final DConnectMessage message) throws JSONException {
         if (root == null || message == null) {
             return;
@@ -345,17 +494,52 @@ class BasicDConnectMessage extends HashMap<String, Object> implements DConnectMe
             }
         }
     }
-
-    private static JSONObject parseIntent(final Intent intent) {
-        JSONObject obj = new JSONObject();
-        try {
-            JSONUtils.convertBundleToJSON(obj, intent.getExtras());
-        } catch (JSONException e) {
-            e.printStackTrace();
+    /**
+     * 指定したObject[]がプリミティブ型のラッパークラスの配列であるかどうかをチェックする.
+     * <p>
+     * なお、配列のすべての要素の型が同一でない場合、falseを返す.
+     * 例えば、以下のような場合.
+     * </p>
+     * <pre>
+     * {new Integer(0), new Double(0.0d)} // falseを返す
+     * </pre>
+     * @param array チェックするオブジェクト配列
+     * @return プリミティブ型のラッパークラスの配列である場合はtrue、そうでない場合はfalse
+     */
+    private static boolean isPrimitiveWrapperArray(final Object[] array) {
+        String classNameCache = null;
+        for (int i = 0; i < array.length; i++) {
+            Object obj = array[i];
+            if (obj != null) {
+                if (isPrimitiveWrapper(obj)) {
+                    String className = obj.getClass().getName();
+                    if (classNameCache != null) {
+                        if (!classNameCache.equals(className)) {
+                            return false;
+                        }
+                    } else {
+                        classNameCache = className;
+                    }
+                } else {
+                    return false;
+                }
+            }
         }
-        return obj;
+        return true;
     }
 
+
+    /**
+     * 指定したObjectがプリミティブ型のラッパークラスであるかどうかをチェックする.
+     *
+     * @param obj チェックするオブジェクト
+     * @return プリミティブ型のラッパークラスである場合はtrue、そうでない場合はfalse
+     */
+    private static boolean isPrimitiveWrapper(final Object obj) {
+        return obj instanceof Byte || obj instanceof Short || obj instanceof Integer
+                || obj instanceof Long || obj instanceof Float || obj instanceof Double
+                || obj instanceof Character || obj instanceof Boolean;
+    }
     /**
      * List<Object>へキャストする.
      * @param list リスト

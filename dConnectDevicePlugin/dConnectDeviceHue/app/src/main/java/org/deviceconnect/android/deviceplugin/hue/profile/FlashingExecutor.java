@@ -40,7 +40,6 @@ public class FlashingExecutor {
 
     public synchronized void setLightControllable(LightControllable controllable) {
         mListener = controllable;
-        Object o = null;
     }
 
     public synchronized void start(long[] flashing) {
@@ -56,6 +55,9 @@ public class FlashingExecutor {
     }
 
     private synchronized void controlLight(final Runnable runnable) {
+        if (mFlashingQueue.isEmpty()) {
+            onFinish();
+        }
         mLastIdentifier++;
         final int identifier = mLastIdentifier;
         LightControllable listener = getLightControllable();
@@ -106,6 +108,7 @@ public class FlashingExecutor {
 
     private synchronized void updateQueue(long[] flashing) {
         mFlashingQueue.clear();
+        mFlashingQueue.add(0L);
         for (long value : flashing) {
             mFlashingQueue.add(value);
         }

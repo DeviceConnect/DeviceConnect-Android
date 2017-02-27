@@ -43,7 +43,8 @@ var util = (function(parent, global) {
             'poseEstimation',
             'stressEstimation',
             'walkState',
-            'gpio');
+            'gpio',
+            'geolocation');
 
     function init(callback) {
         dConnect.setHost(mHost);

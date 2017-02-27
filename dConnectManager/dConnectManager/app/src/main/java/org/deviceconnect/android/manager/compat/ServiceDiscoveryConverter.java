@@ -53,9 +53,10 @@ public class ServiceDiscoveryConverter implements MessageConverter,
                         supportsParam[i] = forward;
                     }
                 }
-                response.putExtra(PARAM_SCOPES, supportsParam);
+                serviceBundle.putStringArray(PARAM_SCOPES, supportsParam);
             }
         }
+        response.putExtra(PARAM_SERVICES, serviceBundles);
     }
 
     private Bundle[] getBundleExtra(final Intent intent, final String key) {

@@ -33,7 +33,7 @@ public interface VideoChatProfileConstants extends DConnectProfileConstants {
     /**
      * attribute : {@value} .
      */
-    String ATTR_INCOMING = "incoming";
+    String ATTR_ONINCOMING = "onIncoming";
 
     /**
      * attribute : {@value} .
@@ -43,7 +43,7 @@ public interface VideoChatProfileConstants extends DConnectProfileConstants {
     /**
      * attribute : {@value} .
      */
-    String ATTR_HANGUP = "hangup";
+    String ATTR_ONHANGUP = "onHangUp";
 
     /**
      * parameter : {@value} .

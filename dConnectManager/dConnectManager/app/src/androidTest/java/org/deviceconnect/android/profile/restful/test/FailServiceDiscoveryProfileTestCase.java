@@ -13,7 +13,6 @@ import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.DConnectMessage.ErrorCode;
 import org.deviceconnect.message.DConnectResponseMessage;
 import org.deviceconnect.message.DConnectSDK;
-import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.deviceconnect.profile.DConnectProfileConstants;
 import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 import org.junit.Test;
@@ -51,7 +50,6 @@ public class FailServiceDiscoveryProfileTestCase extends RESTfulDConnectTestCase
     public void testGetServices001() {
         DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(ServiceDiscoveryProfileConstants.PROFILE_NAME);
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
 
         DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
         assertThat(response, is(notNullValue()));
@@ -78,7 +76,6 @@ public class FailServiceDiscoveryProfileTestCase extends RESTfulDConnectTestCase
     public void testGetServices002() {
         DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(ServiceDiscoveryProfileConstants.PROFILE_NAME);
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
 
         DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
         assertThat(response, is(notNullValue()));
@@ -105,7 +102,6 @@ public class FailServiceDiscoveryProfileTestCase extends RESTfulDConnectTestCase
     public void testGetServices003() {
         DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(ServiceDiscoveryProfileConstants.PROFILE_NAME);
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
 
         DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
         assertThat(response, is(notNullValue()));
@@ -115,7 +111,7 @@ public class FailServiceDiscoveryProfileTestCase extends RESTfulDConnectTestCase
     }
 
     /**
-     * deviceidを指定してサービスの探索を行う.
+     * serviceIdを指定してサービスの探索を行う.
      * 
      * <pre>
      * 【HTTP通信】
@@ -127,7 +123,6 @@ public class FailServiceDiscoveryProfileTestCase extends RESTfulDConnectTestCase
      * 【期待する動作】
      * ・resultに0が返ってくること。
      * ・servicesに少なくとも1つ以上のサービスが発見されること。
-     * ・servicesの中に「Test Success Device」のnameを持ったサービスが存在すること。
      * </pre>
      */
     @Test
@@ -135,7 +130,6 @@ public class FailServiceDiscoveryProfileTestCase extends RESTfulDConnectTestCase
         DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(ServiceDiscoveryProfileConstants.PROFILE_NAME);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
 
         DConnectResponseMessage response = mDConnectSDK.get(builder.build());
         assertThat(response, is(notNullValue()));
@@ -144,15 +138,13 @@ public class FailServiceDiscoveryProfileTestCase extends RESTfulDConnectTestCase
         List services = response.getList(ServiceDiscoveryProfile.PARAM_SERVICES);
         assertThat(services, is(notNullValue()));
         assertThat(services.size(), is(greaterThan(0)));
-
-        boolean result = false;
         for (Object obj : services) {
             DConnectMessage service = (DConnectMessage) obj;
-            if ("Test Success Device".equals(service.getString(ServiceDiscoveryProfile.PARAM_NAME))) {
-                result = true;
-            }
+            String id = service.getString("id");
+            String name = service.getString("name");
+            assertThat(id, is(notNullValue()));
+            assertThat(name, is(notNullValue()));
         }
-        assertThat(result, is(true));
     }
 
     /**
@@ -174,7 +166,6 @@ public class FailServiceDiscoveryProfileTestCase extends RESTfulDConnectTestCase
         DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(ServiceDiscoveryProfileConstants.PROFILE_NAME);
         builder.setAttribute(ServiceDiscoveryProfileConstants.ATTRIBUTE_ON_SERVICE_CHANGE);
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
 
         DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
         assertThat(response, is(notNullValue()));

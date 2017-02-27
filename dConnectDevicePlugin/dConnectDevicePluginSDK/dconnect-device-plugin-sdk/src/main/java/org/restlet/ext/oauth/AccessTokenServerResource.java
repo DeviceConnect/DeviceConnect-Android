@@ -194,7 +194,7 @@ public class AccessTokenServerResource extends OAuthServerResource {
     // XXX [MEMO]追加。
     protected static String getApplicationName(Form params) throws OAuthException {
         String base64ApplicationName = params.getFirstValue(APPLICATION_NAME);
-        String applicationName = new String(Base64.decode(base64ApplicationName, Base64.DEFAULT));
+        String applicationName = new String(Base64.decode(base64ApplicationName, Base64.URL_SAFE|Base64.NO_WRAP));
         if (applicationName == null || applicationName.isEmpty()) {
             throw new OAuthException(OAuthError.invalid_request,
                     "Mandatory parameter application_name is missing", null);

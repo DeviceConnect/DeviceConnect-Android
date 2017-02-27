@@ -7,7 +7,9 @@
 package org.deviceconnect.android.manager.profile;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 
 import org.deviceconnect.android.event.EventManager;
@@ -15,6 +17,7 @@ import org.deviceconnect.android.manager.DConnectMessageService;
 import org.deviceconnect.android.manager.DConnectService;
 import org.deviceconnect.android.manager.DevicePlugin;
 import org.deviceconnect.android.manager.DevicePluginManager;
+import org.deviceconnect.android.manager.R;
 import org.deviceconnect.android.manager.request.DConnectRequest;
 import org.deviceconnect.android.manager.request.RemoveEventsRequest;
 import org.deviceconnect.android.manager.setting.KeywordDialogActivity;
@@ -72,7 +75,9 @@ public class DConnectSystemProfile extends SystemProfile {
         public boolean onRequest(final Intent request, final Intent response) {
             setResult(response, DConnectMessage.RESULT_OK);
             setVersion(response, DConnectUtil.getVersionName(getContext()));
-
+            SharedPreferences sp = getContext().getSharedPreferences(getContext().getPackageName() + "_preferences", Context.MODE_PRIVATE);
+            setName(response, sp.getString(getContext().getString(R.string.key_settings_dconn_name), null));
+            setUuid(response, sp.getString(getContext().getString(R.string.key_settings_dconn_uuid), null));
             // サポートしているプロファイル一覧設定
             List<String> supports = new ArrayList<String>();
             List<DConnectProfile> profiles = mProvider.getProfileList();
@@ -203,4 +208,7 @@ public class DConnectSystemProfile extends SystemProfile {
         String attribute = getAttribute(request);
         return PROFILE_NAME.equals(profile) && INTERFACE_DEVICE.equals(inter) && ATTRIBUTE_WAKEUP.equals(attribute);
     }
+
+
+
 }

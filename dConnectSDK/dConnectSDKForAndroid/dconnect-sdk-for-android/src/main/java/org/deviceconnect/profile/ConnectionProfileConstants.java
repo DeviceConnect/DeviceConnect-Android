@@ -10,6 +10,7 @@ package org.deviceconnect.profile;
  * Connection Profile API 定数群.<br>
  * Connection Profile API のパラメータ名、インタフェース名、属性名、プロファイル名を定義する。
  *
+ * @deprecated swagger定義ファイルで定数を管理することになったので、このクラスは使用しないこととする。
  * @author NTT DOCOMO, INC.
  */
 public interface ConnectionProfileConstants extends DConnectProfileConstants {

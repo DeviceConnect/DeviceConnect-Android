@@ -610,7 +610,7 @@ public class DConnectHelper {
      */
     private void registerEvent() {
         SettingData setting = SettingData.getInstance(mContext);
-        DConnectHelper.INSTANCE.registerEvent("messageHook", "message", setting.serviceId, false, new DConnectHelper.FinishCallback<Void>() {
+        DConnectHelper.INSTANCE.registerEvent("messageHook", "onmessage", setting.serviceId, false, new DConnectHelper.FinishCallback<Void>() {
             @Override
             public void onFinish(Void aVoid, Exception error) {
                 if (error != null) {
@@ -632,7 +632,7 @@ public class DConnectHelper {
      */
     private void unregisterEvent() {
         SettingData setting = SettingData.getInstance(mContext);
-        DConnectHelper.INSTANCE.registerEvent("messageHook", "message", setting.serviceId, true, new DConnectHelper.FinishCallback<Void>() {
+        DConnectHelper.INSTANCE.registerEvent("messageHook", "onmessage", setting.serviceId, true, new DConnectHelper.FinishCallback<Void>() {
             @Override
             public void onFinish(Void aVoid, Exception error) {
             }

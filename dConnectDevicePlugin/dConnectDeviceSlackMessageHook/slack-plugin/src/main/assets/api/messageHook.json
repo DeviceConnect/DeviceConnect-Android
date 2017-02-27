@@ -87,6 +87,26 @@
                         "description": ""
                     }
                 }
+            }
+        },
+        "/onMessage": {
+            "get": {
+                "x-type": "one-shot",
+                "summary": "Get Latest Message",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "query",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
             },
             "put": {
                 "x-type": "event",

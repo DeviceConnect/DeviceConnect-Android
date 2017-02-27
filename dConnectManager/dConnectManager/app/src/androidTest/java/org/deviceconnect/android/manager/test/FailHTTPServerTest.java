@@ -10,15 +10,16 @@ import android.support.test.runner.AndroidJUnit4;
 
 import org.deviceconnect.android.profile.restful.test.RESTfulDConnectTestCase;
 import org.deviceconnect.android.test.http.HttpUtil;
-import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.deviceconnect.profile.DConnectProfileConstants;
+import org.json.JSONObject;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Map;
 
-import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
 
@@ -48,8 +49,11 @@ public class FailHTTPServerTest extends RESTfulDConnectTestCase {
      */
     @Test
     public void testHttpMethodHead() throws IOException {
-        byte[] buf = HttpUtil.connect("HEAD", DCONNECT_MANAGER_URI, null, null);
-        assertThat(buf, is(nullValue()));
+        Map<String, String> headers = new HashMap<>();
+        headers.put("Origin", getOrigin());
+        HttpUtil.Response response = HttpUtil.connect("HEAD", MANAGER_URI, headers, null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getStatusCode(), is(501));
     }
 
     /**
@@ -65,7 +69,7 @@ public class FailHTTPServerTest extends RESTfulDConnectTestCase {
      * </pre>
      */
     @Test
-    public void testHTTPHeaderOver8KB() throws IOException {
+    public void testHTTPHeaderOver8KB() throws Exception {
         // HTTPヘッダのサイズを8KBにするために、8192文字のサービスIDを設定する
         StringBuilder serviceId = new StringBuilder();
         for (int i = 0; i < VERY_LONG_SERVICE_ID_LENGTH; i++) {
@@ -73,15 +77,94 @@ public class FailHTTPServerTest extends RESTfulDConnectTestCase {
         }
 
         StringBuilder builder = new StringBuilder();
-        builder.append(DCONNECT_MANAGER_URI);
-        builder.append("/battery");
-        builder.append("?");
-        builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
+        builder.append(MANAGER_URI);
+        builder.append("/battery?accessToken=");
+        builder.append(getAccessToken());
 
         HashMap<String, String> headers = new HashMap<>();
+        headers.put("Origin", getOrigin());
         headers.put(DConnectProfileConstants.PARAM_SERVICE_ID, serviceId.toString());
 
-        byte[] buf = HttpUtil.connect("GET", builder.toString(), headers, null);
-        assertThat(buf, is(nullValue()));
+        HttpUtil.Response response = HttpUtil.get(builder.toString(), headers);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getStatusCode(), is(413));
+    }
+
+    /**
+     * API無しでHTTPサーバにアクセスする異常系テストを行う.
+     * <pre>
+     * 【HTTP通信】
+     * Method: GET
+     * Path: /
+     * </pre>
+     * <pre>
+     * 【期待する動作】
+     * ・HTTP 400 Bad Requestが返ること。
+     * ・resultに1が返ること。
+     * </pre>
+     */
+    @Test
+    public void testEmptyAPI() throws Exception {
+        Map<String, String> headers = new HashMap<>();
+        headers.put("Origin", getOrigin());
+
+        HttpUtil.Response response = HttpUtil.get("http://localhost:4035/", headers);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getStatusCode(), is(400));
+
+        JSONObject json = response.getJSONObject();
+        assertThat(json.getInt("result"), is(1));
+        assertThat(json.getInt("errorCode"), is(19));
+        assertThat(json.getString("errorMessage"), is(notNullValue()));
+    }
+
+    /**
+     * Profile無しでHTTPサーバにアクセスする異常系テストを行う.
+     * <pre>
+     * 【HTTP通信】
+     * Method: GET
+     * Path: /gotapi
+     * </pre>
+     * <pre>
+     * 【期待する動作】
+     * ・HTTP 400 Bad Requestが返ること。
+     * ・resultに1が返ること。
+     * </pre>
+     */
+    @Test
+    public void testEmptyProfile() throws Exception {
+        Map<String, String> headers = new HashMap<>();
+        headers.put("Origin", getOrigin());
+
+        HttpUtil.Response response = HttpUtil.get(MANAGER_URI, headers);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getStatusCode(), is(400));
+
+        JSONObject json = response.getJSONObject();
+        assertThat(json.getInt("result"), is(1));
+        assertThat(json.getInt("errorCode"), is(19));
+        assertThat(json.getString("errorMessage"), is(notNullValue()));
+    }
+
+    /**
+     * Origin無しでHTTPサーバにアクセスする異常系テストを行う.
+     * <pre>
+     * 【HTTP通信】
+     * Method: GET
+     * Path: /gotapi/serviceDiscovery
+     * </pre>
+     * <pre>
+     * 【期待する動作】
+     * ・resultに1が返ること。
+     * </pre>
+     */
+    @Test
+    public void testEmptyOrigin() throws Exception {
+        HttpUtil.Response response = HttpUtil.get(MANAGER_URI + "/serviceDiscovery");
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getStatusCode(), is(200));
+
+        JSONObject json = response.getJSONObject();
+        assertThat(json.getInt("result"), is(1));
     }
 }

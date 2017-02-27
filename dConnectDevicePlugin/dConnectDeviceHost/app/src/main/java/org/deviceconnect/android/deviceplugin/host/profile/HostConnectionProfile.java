@@ -16,7 +16,6 @@ import android.nfc.NfcAdapter;
 import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
-import org.deviceconnect.android.deviceplugin.host.HostDeviceService;
 import org.deviceconnect.android.deviceplugin.host.activity.BluetoothManageActivity;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
@@ -211,7 +210,6 @@ public class HostConnectionProfile extends ConnectionProfile {
             EventError error = EventManager.INSTANCE.addEvent(request);
 
             if (error == EventError.NONE) {
-                ((HostDeviceService) getContext()).setServiceId(serviceId);
                 setResult(response, DConnectMessage.RESULT_OK);
                 return true;
             } else {
@@ -236,7 +234,6 @@ public class HostConnectionProfile extends ConnectionProfile {
             EventError error = EventManager.INSTANCE.addEvent(request);
 
             if (error == EventError.NONE) {
-                ((HostDeviceService) getContext()).setServiceId(serviceId);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
                 setResult(response, DConnectMessage.RESULT_ERROR);

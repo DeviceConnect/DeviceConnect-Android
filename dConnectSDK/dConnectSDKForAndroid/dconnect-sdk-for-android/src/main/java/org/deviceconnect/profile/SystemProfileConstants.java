@@ -93,5 +93,10 @@ public interface SystemProfileConstants extends DConnectProfileConstants {
      * パラメータ: {@value}.
      */
     String PARAM_PLUGIN_ID = "pluginId";
+    /**
+     * パラメータ: {@value}.
+     */
+    String PARAM_UUID = "uuid";
+
 
 }

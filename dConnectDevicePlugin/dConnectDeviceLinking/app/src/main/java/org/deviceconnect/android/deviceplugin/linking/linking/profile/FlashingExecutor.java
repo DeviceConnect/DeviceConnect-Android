@@ -55,6 +55,9 @@ final class FlashingExecutor {
     }
 
     private synchronized void controlLight(final Runnable runnable) {
+        if (mFlashingQueue.isEmpty()) {
+            onFinish();
+        }
         mLastIdentifier++;
         final int identifier = mLastIdentifier;
         LightControllable listener = getLightControllable();
@@ -105,6 +108,7 @@ final class FlashingExecutor {
 
     private synchronized void updateQueue(final long[] flashing) {
         mFlashingQueue.clear();
+        mFlashingQueue.add(0L);
         for (long value : flashing) {
             mFlashingQueue.add(value);
         }

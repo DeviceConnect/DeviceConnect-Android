@@ -6,7 +6,7 @@
  */
 package org.deviceconnect.android.manager;
 
-import android.app.Application;
+import org.deviceconnect.android.deviceplugin.host.HostDeviceApplication;
 import android.content.Context;
 import android.content.SharedPreferences;
 
@@ -22,7 +22,7 @@ import java.util.logging.SimpleFormatter;
  *
  * @author NTT DOCOMO, INC.
  */
-public class DConnectApplication extends Application {
+public class DConnectApplication  extends HostDeviceApplication {
     /** ドメイン名. */
     private static final String DCONNECT_DOMAIN = ".deviceconnect.org";
 

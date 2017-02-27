@@ -1,5 +1,15 @@
 package org.deviceconnect.android.deviceplugin.host.file;
 
+import android.Manifest;
+import android.content.Context;
+import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
+import android.support.annotation.NonNull;
+
+import org.deviceconnect.android.activity.PermissionUtility;
+import org.deviceconnect.android.provider.FileManager;
+
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -14,16 +24,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-
-import org.deviceconnect.android.activity.PermissionUtility;
-import org.deviceconnect.android.provider.FileManager;
-
-import android.Manifest;
-import android.content.Context;
-import android.os.Build;
-import android.os.Handler;
-import android.os.Looper;
-import android.support.annotation.NonNull;
 
 /**
  * ファイル操作を行うクラス.
@@ -76,6 +76,13 @@ public class FileDataManager {
      */
     public FileDataManager(final FileManager mgr) {
         mFileManager = mgr;
+    }
+
+    /**
+     * 後始末を行う.
+     */
+    public void clear() {
+
     }
 
     /**
@@ -204,10 +211,8 @@ public class FileDataManager {
                 callback.onSuccess(new String(baos.toByteArray()));
             } catch (FileNotFoundException e) {
                 callback.onFail();
-                return;
             } catch (IOException e) {
                 callback.onFail();
-                return;
             } finally {
                 if (fis != null) {
                     fis.close();

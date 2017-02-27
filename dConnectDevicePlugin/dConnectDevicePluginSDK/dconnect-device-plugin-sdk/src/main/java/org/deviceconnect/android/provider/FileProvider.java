@@ -111,7 +111,7 @@ public class FileProvider extends ContentProvider {
      */
     public File getBasePath() {
         if (mLocation == null) {
-            mLocation = FileLocationParser.parse(getContext());
+            mLocation = FileLocationParser.parse(getContext(), this.getClass().getName());
         }
         if (mLocation.getType() == FileLocationParser.TYPE_EXTERNAL_PATH) {
             return new File(Environment.getExternalStorageDirectory(), mLocation.getPath());

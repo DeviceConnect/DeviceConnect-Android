@@ -437,6 +437,11 @@ public enum HVCManager {
             case FACE:
                 camera.setFaceGet(l);
                 break;
+            case HUMAN:
+                camera.setBodyGet(l);
+                camera.setHandGet(l);
+                camera.setFaceGet(l);
+                break;
             default:
         }
         mType = CMD_OKAO_EXECUTE;

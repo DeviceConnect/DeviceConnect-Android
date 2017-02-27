@@ -29,10 +29,11 @@ import org.deviceconnect.android.event.cache.MemoryCacheController;
 import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.DConnectProfile;
-import org.deviceconnect.android.profile.HumanDetectProfile;
+import org.deviceconnect.android.profile.HumanDetectionProfile;
 import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.android.service.DConnectService;
 import org.deviceconnect.message.DConnectMessage;
+import org.deviceconnect.profile.HumanDetectionProfileConstants;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -175,31 +176,31 @@ public class HVCPDeviceService extends DConnectMessageService
     public void registerHumanDetectEvent(final Intent request, final Intent response, final String serviceId,
                                           final HumanDetectKind kind) {
         try {
-            final Double threshold = HumanDetectProfile.getThreshold(request);
-            final Double min = HumanDetectProfile.getMinWidth(request) != null
-                    ? HumanDetectProfile.getMinWidth(request)
-                    : HumanDetectProfile.getMinHeight(request);
-            final Double max = HumanDetectProfile.getMaxWidth(request) != null
-                    ? HumanDetectProfile.getMaxWidth(request)
-                    : HumanDetectProfile.getMaxHeight(request);
+            final Double threshold = HumanDetectionProfile.getThreshold(request);
+            final Double min = HumanDetectionProfile.getMinWidth(request) != null
+                    ? HumanDetectionProfile.getMinWidth(request)
+                    : HumanDetectionProfile.getMinHeight(request);
+            final Double max = HumanDetectionProfile.getMaxWidth(request) != null
+                    ? HumanDetectionProfile.getMaxWidth(request)
+                    : HumanDetectionProfile.getMaxHeight(request);
 
-            HumanDetectProfile.getEyeThreshold(request);
-            HumanDetectProfile.getNoseThreshold(request);
-            HumanDetectProfile.getMouthThreshold(request);
-            HumanDetectProfile.getBlinkThreshold(request);
-            HumanDetectProfile.getAgeThreshold(request);
-            HumanDetectProfile.getGenderThreshold(request);
-            HumanDetectProfile.getFaceDirectionThreshold(request);
-            HumanDetectProfile.getGazeThreshold(request);
-            HumanDetectProfile.getExpressionThreshold(request);
+            HumanDetectionProfile.getEyeThreshold(request);
+            HumanDetectionProfile.getNoseThreshold(request);
+            HumanDetectionProfile.getMouthThreshold(request);
+            HumanDetectionProfile.getBlinkThreshold(request);
+            HumanDetectionProfile.getAgeThreshold(request);
+            HumanDetectionProfile.getGenderThreshold(request);
+            HumanDetectionProfile.getFaceDirectionThreshold(request);
+            HumanDetectionProfile.getGazeThreshold(request);
+            HumanDetectionProfile.getExpressionThreshold(request);
             final Long[] inter = new Long[1];
-            inter[0] = HumanDetectProfile.getInterval(request, HVCManager.PARAM_INTERVAL_MIN,
+            inter[0] = HumanDetectionProfile.getInterval(request, HVCManager.PARAM_INTERVAL_MIN,
                     HVCManager.PARAM_INTERVAL_MAX);
 
             if (inter[0] == null) {
                 inter[0] = HVCManager.PARAM_INTERVAL_MIN;
             }
-            final List<String> options = HumanDetectProfile.getOptions(request);
+            final List<String> options = HumanDetectionProfile.getOptions(request);
             EventError error = EventManager.INSTANCE.addEvent(request);
 
             if (error == EventError.NONE) {
@@ -244,12 +245,18 @@ public class HVCPDeviceService extends DConnectMessageService
                                     public void onResponse(int resultCode) {
                                         HVCManager.INSTANCE.addFaceDetectEventListener(serviceId, HVCPDeviceService.this, options, inter[0]);
                                         DConnectProfile.setResult(response, DConnectMessage.RESULT_OK);
-
                                         sendResponse(response);
                                     }
                                 });
                             }
                         });
+                        break;
+                    case HUMAN:
+                        HVCManager.INSTANCE.addBodyDetectEventListener(serviceId, HVCPDeviceService.this, inter[0]);
+                        HVCManager.INSTANCE.addHandDetectEventListener(serviceId, HVCPDeviceService.this, inter[0]);
+                        HVCManager.INSTANCE.addFaceDetectEventListener(serviceId, HVCPDeviceService.this, options, inter[0]);
+                        DConnectProfile.setResult(response, DConnectMessage.RESULT_OK);
+                        sendResponse(response);
                         break;
                     default:
                         MessageUtils.setInvalidRequestParameterError(response);
@@ -282,7 +289,7 @@ public class HVCPDeviceService extends DConnectMessageService
      * @param serviceId Service ID
      * @param kind Detect type
      */
-    public void unregisterHumanDetectProfileEvent(final Intent request, final Intent response, final String serviceId,
+    public void unregisterHumanDetectionProfileEvent(final Intent request, final Intent response, final String serviceId,
                                                    final HumanDetectKind kind) {
         EventError error = EventManager.INSTANCE.removeEvent(request);
         if (error == EventError.NONE) {
@@ -296,8 +303,10 @@ public class HVCPDeviceService extends DConnectMessageService
                 case FACE:
                     HVCManager.INSTANCE.removeFaceDetectEventListener(serviceId);
                     break;
-                case RECOGNIZE:
-                    HVCManager.INSTANCE.removeFaceRecognizeEventListener(serviceId);
+                case HUMAN:
+                    HVCManager.INSTANCE.removeBodyDetectEventListener(serviceId);
+                    HVCManager.INSTANCE.removeHandDetectEventListener(serviceId);
+                    HVCManager.INSTANCE.removeFaceDetectEventListener(serviceId);
                     break;
                 default:
                     MessageUtils.setInvalidRequestParameterError(response);
@@ -317,28 +326,28 @@ public class HVCPDeviceService extends DConnectMessageService
      * @param kind Detect type
      * @param options FaceDetectOptions
      */
-    public void doGetHumanDetectProfile(final Intent request, final Intent response, final String serviceId,
+    public void doGetHumanDetectionProfile(final Intent request, final Intent response, final String serviceId,
                                         final HumanDetectKind kind, final List<String> options) {
         try {
-            final Double threshold = HumanDetectProfile.getThreshold(request);
-            final Double min = HumanDetectProfile.getMinWidth(request) != null
-                    ? HumanDetectProfile.getMinWidth(request)
-                    : HumanDetectProfile.getMinHeight(request);
-            final Double max = HumanDetectProfile.getMaxWidth(request) != null
-                    ? HumanDetectProfile.getMaxWidth(request)
-                    : HumanDetectProfile.getMaxHeight(request);
+            final Double threshold = HumanDetectionProfile.getThreshold(request);
+            final Double min = HumanDetectionProfile.getMinWidth(request) != null
+                    ? HumanDetectionProfile.getMinWidth(request)
+                    : HumanDetectionProfile.getMinHeight(request);
+            final Double max = HumanDetectionProfile.getMaxWidth(request) != null
+                    ? HumanDetectionProfile.getMaxWidth(request)
+                    : HumanDetectionProfile.getMaxHeight(request);
 
-            HumanDetectProfile.getEyeThreshold(request);
-            HumanDetectProfile.getNoseThreshold(request);
-            HumanDetectProfile.getMouthThreshold(request);
-            HumanDetectProfile.getBlinkThreshold(request);
-            HumanDetectProfile.getAgeThreshold(request);
-            HumanDetectProfile.getGenderThreshold(request);
-            HumanDetectProfile.getFaceDirectionThreshold(request);
-            HumanDetectProfile.getGazeThreshold(request);
-            HumanDetectProfile.getExpressionThreshold(request);
+            HumanDetectionProfile.getEyeThreshold(request);
+            HumanDetectionProfile.getNoseThreshold(request);
+            HumanDetectionProfile.getMouthThreshold(request);
+            HumanDetectionProfile.getBlinkThreshold(request);
+            HumanDetectionProfile.getAgeThreshold(request);
+            HumanDetectionProfile.getGenderThreshold(request);
+            HumanDetectionProfile.getFaceDirectionThreshold(request);
+            HumanDetectionProfile.getGazeThreshold(request);
+            HumanDetectionProfile.getExpressionThreshold(request);
 
-            HumanDetectProfile.getInterval(request, HVCManager.PARAM_INTERVAL_MIN,
+            HumanDetectionProfile.getInterval(request, HVCManager.PARAM_INTERVAL_MIN,
                     HVCManager.PARAM_INTERVAL_MAX);
 
 
@@ -406,6 +415,16 @@ public class HVCPDeviceService extends DConnectMessageService
                         }
                     });
                     break;
+                case HUMAN:
+                    HVCManager.INSTANCE.execute(serviceId, kind, new HVCCameraInfo.OneShotOkaoResultResoponseListener() {
+                        @Override
+                        public void onResponse(String serviceId, OkaoResult result) {
+                            makeHumanDetectResultResponse(response, result);
+                            DConnectProfile.setResult(response, DConnectMessage.RESULT_OK);
+                            sendResponse(response);
+                        }
+                    });
+                    break;
                 default:
                     MessageUtils.setInvalidRequestParameterError(response);
                     sendResponse(response);
@@ -429,13 +448,23 @@ public class HVCPDeviceService extends DConnectMessageService
     @Override
     public void onNotifyForBodyDetectResult(String serviceId, OkaoResult result) {
         List<Event> events = EventManager.INSTANCE.getEventList(serviceId,
-                HumanDetectProfile.PROFILE_NAME, null, HumanDetectProfile.ATTRIBUTE_ON_BODY_DETECTION);
+                HumanDetectionProfile.PROFILE_NAME, null, HumanDetectionProfile.ATTRIBUTE_ON_BODY_DETECTION);
         for (Event event : events) {
             Intent intent = EventManager.createEventMessage(event);
             makeBodyDetectResultResponse(intent, result);
             sendEvent(intent, event.getAccessToken());
             if (BuildConfig.DEBUG) {
-                Log.d("ABC", "<EVENT> send event. attribute:" + HumanDetectProfile.ATTRIBUTE_ON_BODY_DETECTION);
+                Log.d("ABC", "<EVENT> send event. attribute:" + HumanDetectionProfile.ATTRIBUTE_ON_BODY_DETECTION);
+            }
+        }
+        events = EventManager.INSTANCE.getEventList(serviceId,
+                HumanDetectionProfile.PROFILE_NAME, null, "onDetection");
+        for (Event event : events) {
+            Intent intent = EventManager.createEventMessage(event);
+            makeHumanDetectResultResponse(intent, result);
+            sendEvent(intent, event.getAccessToken());
+            if (BuildConfig.DEBUG) {
+                Log.d("ABC", "<EVENT> send event. attribute:onDetection");
             }
         }
     }
@@ -443,7 +472,7 @@ public class HVCPDeviceService extends DConnectMessageService
     @Override
     public void onNotifyForFaceDetectResult(String serviceId, OkaoResult result) {
         List<Event> events = EventManager.INSTANCE.getEventList(serviceId,
-                HumanDetectProfile.PROFILE_NAME, null, HumanDetectProfile.ATTRIBUTE_ON_FACE_DETECTION);
+                HumanDetectionProfile.PROFILE_NAME, null, HumanDetectionProfile.ATTRIBUTE_ON_FACE_DETECTION);
         HVCCameraInfo camera = HVCManager.INSTANCE.getHVCDevices().get(serviceId);
 
         for (Event event : events) {
@@ -451,7 +480,17 @@ public class HVCPDeviceService extends DConnectMessageService
             makeFaceDetectResultResponse(intent, result, camera.getOptions());
             sendEvent(intent, event.getAccessToken());
             if (BuildConfig.DEBUG) {
-                Log.d("ABC", "<EVENT> send event. attribute:" + HumanDetectProfile.ATTRIBUTE_ON_FACE_DETECTION);
+                Log.d("ABC", "<EVENT> send event. attribute:" + HumanDetectionProfile.ATTRIBUTE_ON_FACE_DETECTION);
+            }
+        }
+        events = EventManager.INSTANCE.getEventList(serviceId,
+                HumanDetectionProfile.PROFILE_NAME, null, "onDetection");
+        for (Event event : events) {
+            Intent intent = EventManager.createEventMessage(event);
+            makeHumanDetectResultResponse(intent, result);
+            sendEvent(intent, event.getAccessToken());
+            if (BuildConfig.DEBUG) {
+                Log.d("ABC", "<EVENT> send event. attribute:onDetection");
             }
         }
     }
@@ -461,14 +500,24 @@ public class HVCPDeviceService extends DConnectMessageService
     @Override
     public void onNotifyForHandDetectResult(String serviceId, OkaoResult result) {
         List<Event> events = EventManager.INSTANCE.getEventList(serviceId,
-                HumanDetectProfile.PROFILE_NAME, null, HumanDetectProfile.ATTRIBUTE_ON_HAND_DETECTION);
+                HumanDetectionProfile.PROFILE_NAME, null, HumanDetectionProfile.ATTRIBUTE_ON_HAND_DETECTION);
 
         for (Event event : events) {
             Intent intent = EventManager.createEventMessage(event);
             makeHandDetectResultResponse(intent, result);
             sendEvent(intent, event.getAccessToken());
             if (BuildConfig.DEBUG) {
-                Log.d("ABC", "<EVENT> send event. attribute:" + HumanDetectProfile.ATTRIBUTE_ON_HAND_DETECTION);
+                Log.d("ABC", "<EVENT> send event. attribute:" + HumanDetectionProfile.ATTRIBUTE_ON_HAND_DETECTION);
+            }
+        }
+        events = EventManager.INSTANCE.getEventList(serviceId,
+                HumanDetectionProfile.PROFILE_NAME, null, "onDetection");
+        for (Event event : events) {
+            Intent intent = EventManager.createEventMessage(event);
+            makeHumanDetectResultResponse(intent, result);
+            sendEvent(intent, event.getAccessToken());
+            if (BuildConfig.DEBUG) {
+                Log.d("ABC", "<EVENT> send event. attribute:onDetection");
             }
         }
     }
@@ -490,7 +539,24 @@ public class HVCPDeviceService extends DConnectMessageService
             service.setOnline(false);
         }
     }
+    /**
+     * Make Human Detect Response.
+     * @param response response
+     * @param result Okao Result
+     */
+    private void makeHumanDetectResultResponse(final Intent response, final OkaoResult result) {
 
+        Bundle humanDetect = new Bundle();
+        int count = result.getNumberOfBody() + result.getNumberOfFace() + result.getNumberOfHand();
+
+
+        if (count > 0) {
+            humanDetect.putBoolean("exist", true);
+        } else {
+            humanDetect.putBoolean("exist", false);
+        }
+        response.putExtra("humanDetect", humanDetect);
+    }
     /**
      * Make Body Detect Response.
      * @param response response
@@ -502,21 +568,21 @@ public class HVCPDeviceService extends DConnectMessageService
         int count = result.getNumberOfBody();
         for (int i = 0; i < count; i++) {
             Bundle bodyDetect = new Bundle();
-            HumanDetectProfile.setParamX(bodyDetect,
+            HumanDetectionProfile.setParamX(bodyDetect,
                     (double) result.getBodyX()[i] / (double) HVCManager.HVC_P_CAMERA_WIDTH);
-            HumanDetectProfile.setParamY(bodyDetect,
+            HumanDetectionProfile.setParamY(bodyDetect,
                     (double) result.getBodyY()[i] / (double) HVCManager.HVC_P_CAMERA_HEIGHT);
-            HumanDetectProfile.setParamWidth(bodyDetect,
+            HumanDetectionProfile.setParamWidth(bodyDetect,
                     (double) result.getBodySize()[i] / (double) HVCManager.HVC_P_CAMERA_WIDTH);
-            HumanDetectProfile.setParamHeight(bodyDetect,
+            HumanDetectionProfile.setParamHeight(bodyDetect,
                     (double) result.getBodySize()[i] / (double) HVCManager.HVC_P_CAMERA_HEIGHT);
-            HumanDetectProfile.setParamConfidence(bodyDetect,
+            HumanDetectionProfile.setParamConfidence(bodyDetect,
                     (double) result.getBodyDetectConfidence()[i] / (double) HVCManager.HVC_P_MAX_THRESHOLD);
 
             bodyDetects.add(bodyDetect);
         }
         if (bodyDetects.size() > 0) {
-            HumanDetectProfile.setBodyDetects(response, bodyDetects.toArray(new Bundle[bodyDetects.size()]));
+            HumanDetectionProfile.setBodyDetects(response, bodyDetects.toArray(new Bundle[bodyDetects.size()]));
         }
     }
 
@@ -532,21 +598,21 @@ public class HVCPDeviceService extends DConnectMessageService
 
         for (int i = 0; i < count; i++) {
             Bundle handDetect = new Bundle();
-            HumanDetectProfile.setParamX(handDetect,
+            HumanDetectionProfile.setParamX(handDetect,
                     (double) result.getHandX()[i] / (double) HVCManager.HVC_P_CAMERA_WIDTH);
-            HumanDetectProfile.setParamY(handDetect,
+            HumanDetectionProfile.setParamY(handDetect,
                     (double) result.getHandY()[i] / (double) HVCManager.HVC_P_CAMERA_HEIGHT);
-            HumanDetectProfile.setParamWidth(handDetect,
+            HumanDetectionProfile.setParamWidth(handDetect,
                     (double) result.getHandSize()[i] / (double) HVCManager.HVC_P_CAMERA_WIDTH);
-            HumanDetectProfile.setParamHeight(handDetect,
+            HumanDetectionProfile.setParamHeight(handDetect,
                     (double) result.getHandSize()[i] / (double) HVCManager.HVC_P_CAMERA_HEIGHT);
-            HumanDetectProfile.setParamConfidence(handDetect,
+            HumanDetectionProfile.setParamConfidence(handDetect,
                     (double) result.getHandDetectConfidence()[i] / (double) HVCManager.HVC_P_MAX_THRESHOLD);
 
             handDetects.add(handDetect);
         }
         if (handDetects.size() > 0) {
-            HumanDetectProfile.setHandDetects(response, handDetects.toArray(new Bundle[handDetects.size()]));
+            HumanDetectionProfile.setHandDetects(response, handDetects.toArray(new Bundle[handDetects.size()]));
         }
     }
 
@@ -562,62 +628,62 @@ public class HVCPDeviceService extends DConnectMessageService
 
         for (int i = 0; i < count; i++) {
             Bundle faceDetect = new Bundle();
-            HumanDetectProfile.setParamX(faceDetect,
+            HumanDetectionProfile.setParamX(faceDetect,
                     (double) result.getFaceX()[i] / (double) HVCManager.HVC_P_CAMERA_WIDTH);
-            HumanDetectProfile.setParamY(faceDetect,
+            HumanDetectionProfile.setParamY(faceDetect,
                     (double) result.getFaceY()[i] / (double) HVCManager.HVC_P_CAMERA_HEIGHT);
-            HumanDetectProfile.setParamWidth(faceDetect,
+            HumanDetectionProfile.setParamWidth(faceDetect,
                     (double) result.getFaceSize()[i] / (double) HVCManager.HVC_P_CAMERA_WIDTH);
-            HumanDetectProfile.setParamHeight(faceDetect,
+            HumanDetectionProfile.setParamHeight(faceDetect,
                     (double) result.getFaceSize()[i] / (double) HVCManager.HVC_P_CAMERA_HEIGHT);
-            HumanDetectProfile.setParamConfidence(faceDetect,
+            HumanDetectionProfile.setParamConfidence(faceDetect,
                     (double) result.getFaceDetectConfidence()[i] / (double) HVCManager.HVC_P_MAX_CONFIDENCE);
             if (existOption(HVCManager.PARAM_OPTIONS_FACE_DIRECTION, options)) {
                 // face direction.
                 Bundle faceDirectionResult = new Bundle();
-                HumanDetectProfile.setParamYaw(faceDirectionResult, result.getFaceDirectionLR()[i]);
-                HumanDetectProfile.setParamPitch(faceDirectionResult, result.getFaceDirectionUD()[i]);
-                HumanDetectProfile.setParamRoll(faceDirectionResult, result.getFaceDirectionSlope()[i]);
-                HumanDetectProfile.setParamConfidence(faceDirectionResult,
+                HumanDetectionProfile.setParamYaw(faceDirectionResult, result.getFaceDirectionLR()[i]);
+                HumanDetectionProfile.setParamPitch(faceDirectionResult, result.getFaceDirectionUD()[i]);
+                HumanDetectionProfile.setParamRoll(faceDirectionResult, result.getFaceDirectionSlope()[i]);
+                HumanDetectionProfile.setParamConfidence(faceDirectionResult,
                             (double) result.getFaceDirectionConfidence()[i] / (double) HVCManager.HVC_P_MAX_CONFIDENCE);
 
-                HumanDetectProfile.setParamFaceDirectionResults(faceDetect, faceDirectionResult);
+                HumanDetectionProfile.setParamFaceDirectionResults(faceDetect, faceDirectionResult);
             }
             if (existOption(HVCManager.PARAM_OPTIONS_AGE, options)) {
                 // age.
                 Bundle ageResult = new Bundle();
-                HumanDetectProfile.setParamAge(ageResult, (int) result.getAge()[i]);
-                HumanDetectProfile.setParamConfidence(ageResult,
+                HumanDetectionProfile.setParamAge(ageResult, (int) result.getAge()[i]);
+                HumanDetectionProfile.setParamConfidence(ageResult,
                         (double) result.getAgeConfidence()[i] / (double) HVCManager.HVC_P_MAX_CONFIDENCE);
-                HumanDetectProfile.setParamAgeResults(faceDetect, ageResult);
+                HumanDetectionProfile.setParamAgeResults(faceDetect, ageResult);
             }
             if (existOption(HVCManager.PARAM_OPTIONS_GENDER, options)) {
                 // gender.
                 Bundle genderResult = new Bundle();
-                HumanDetectProfile.setParamGender(genderResult,
-                        (result.getGender()[i] == HVCManager.HVC_GEN_MALE ? HumanDetectProfile.VALUE_GENDER_MALE
-                                : HumanDetectProfile.VALUE_GENDER_FEMALE));
-                HumanDetectProfile.setParamConfidence(genderResult,
+                HumanDetectionProfile.setParamGender(genderResult,
+                        (result.getGender()[i] == HVCManager.HVC_GEN_MALE ? HumanDetectionProfile.VALUE_GENDER_MALE
+                                : HumanDetectionProfile.VALUE_GENDER_FEMALE));
+                HumanDetectionProfile.setParamConfidence(genderResult,
                         (double) result.getGenderConfidence()[i] / (double) HVCManager.HVC_P_MAX_CONFIDENCE);
-                HumanDetectProfile.setParamGenderResults(faceDetect, genderResult);
+                HumanDetectionProfile.setParamGenderResults(faceDetect, genderResult);
             }
             if (existOption(HVCManager.PARAM_OPTIONS_GAZE, options)) {
                 // gaze.
                 Bundle gazeResult = new Bundle();
-                HumanDetectProfile.setParamGazeLR(gazeResult, result.getGazeLR()[i]);
-                HumanDetectProfile.setParamGazeUD(gazeResult, result.getGazeUD()[i]);
+                HumanDetectionProfile.setParamGazeLR(gazeResult, result.getGazeLR()[i]);
+                HumanDetectionProfile.setParamGazeUD(gazeResult, result.getGazeUD()[i]);
                 // Unsuppoted Face Direction's Confidence
-                HumanDetectProfile.setParamGazeResults(faceDetect, gazeResult);
+                HumanDetectionProfile.setParamGazeResults(faceDetect, gazeResult);
             }
             if (existOption(HVCManager.PARAM_OPTIONS_BLINK, options)) {
                 // blink.
                 Bundle blinkResult = new Bundle();
-                HumanDetectProfile.setParamLeftEye(blinkResult,
+                HumanDetectionProfile.setParamLeftEye(blinkResult,
                         (double) result.getBlinkLeft()[i] / (double) HVCManager.HVC_P_MAX_BLINK);
-                HumanDetectProfile.setParamRightEye(blinkResult,
+                HumanDetectionProfile.setParamRightEye(blinkResult,
                         (double) result.getBlinkRight()[i] / (double) HVCManager.HVC_P_MAX_BLINK);
                 // Unsuppoted Face Direction's Confidence
-                HumanDetectProfile.setParamBlinkResults(faceDetect, blinkResult);
+                HumanDetectionProfile.setParamBlinkResults(faceDetect, blinkResult);
             }
             if (existOption(HVCManager.PARAM_OPTIONS_EXPRESSION, options)) {
                 long score = -1;
@@ -636,18 +702,18 @@ public class HVCPDeviceService extends DConnectMessageService
                 }
                 // expression.
                 Bundle expressionResult = new Bundle();
-                HumanDetectProfile.setParamExpression(expressionResult,
+                HumanDetectionProfile.setParamExpression(expressionResult,
                         HVCManager.convertToNormalizeExpression(index));
-                HumanDetectProfile.setParamConfidence(expressionResult,
+                HumanDetectionProfile.setParamConfidence(expressionResult,
                         (double) score / (double) HVCManager.EXPRESSION_SCORE_MAX);
 
-                HumanDetectProfile.setParamExpressionResults(faceDetect, expressionResult);
+                HumanDetectionProfile.setParamExpressionResults(faceDetect, expressionResult);
            }
 
             faceDetects.add(faceDetect);
         }
         if (faceDetects.size() > 0) {
-            HumanDetectProfile.setFaceDetects(response, faceDetects.toArray(new Bundle[faceDetects.size()]));
+            HumanDetectionProfile.setFaceDetects(response, faceDetects.toArray(new Bundle[faceDetects.size()]));
         }
     }
 

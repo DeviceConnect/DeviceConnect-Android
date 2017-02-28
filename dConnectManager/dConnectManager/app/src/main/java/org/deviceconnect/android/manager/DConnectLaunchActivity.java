@@ -108,6 +108,7 @@ public class DConnectLaunchActivity extends Activity {
                                 if (!mDConnectService.isRunning()) {
                                     displayActivity();
                                 } else {
+                                    setResult(RESULT_OK);
                                     finish();
                                 }
                             } catch (RemoteException e) {
@@ -137,6 +138,7 @@ public class DConnectLaunchActivity extends Activity {
                                 if (mDConnectService.isRunning()) {
                                     displayActivity();
                                 } else {
+                                    setResult(RESULT_OK);
                                     finish();
                                 }
                             } catch (RemoteException e) {
@@ -267,7 +269,7 @@ public class DConnectLaunchActivity extends Activity {
         cancelButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View v) {
-                setResult(RESULT_OK);
+                setResult(RESULT_CANCELED);
                 finish();
             }
         });

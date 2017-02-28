@@ -457,16 +457,7 @@ public class HVCPDeviceService extends DConnectMessageService
                 Log.d("ABC", "<EVENT> send event. attribute:" + HumanDetectionProfile.ATTRIBUTE_ON_BODY_DETECTION);
             }
         }
-        events = EventManager.INSTANCE.getEventList(serviceId,
-                HumanDetectionProfile.PROFILE_NAME, null, "onDetection");
-        for (Event event : events) {
-            Intent intent = EventManager.createEventMessage(event);
-            makeHumanDetectResultResponse(intent, result);
-            sendEvent(intent, event.getAccessToken());
-            if (BuildConfig.DEBUG) {
-                Log.d("ABC", "<EVENT> send event. attribute:onDetection");
-            }
-        }
+        onNotifyForDetectResult(serviceId, result);
     }
 
     @Override
@@ -483,16 +474,7 @@ public class HVCPDeviceService extends DConnectMessageService
                 Log.d("ABC", "<EVENT> send event. attribute:" + HumanDetectionProfile.ATTRIBUTE_ON_FACE_DETECTION);
             }
         }
-        events = EventManager.INSTANCE.getEventList(serviceId,
-                HumanDetectionProfile.PROFILE_NAME, null, "onDetection");
-        for (Event event : events) {
-            Intent intent = EventManager.createEventMessage(event);
-            makeHumanDetectResultResponse(intent, result);
-            sendEvent(intent, event.getAccessToken());
-            if (BuildConfig.DEBUG) {
-                Log.d("ABC", "<EVENT> send event. attribute:onDetection");
-            }
-        }
+        onNotifyForDetectResult(serviceId, result);
     }
 
 
@@ -510,7 +492,15 @@ public class HVCPDeviceService extends DConnectMessageService
                 Log.d("ABC", "<EVENT> send event. attribute:" + HumanDetectionProfile.ATTRIBUTE_ON_HAND_DETECTION);
             }
         }
-        events = EventManager.INSTANCE.getEventList(serviceId,
+        onNotifyForDetectResult(serviceId, result);
+    }
+    /**
+     * Notify Default HumanDetection Result.
+     * @param serviceId ServiceId
+     * @param result Okao Result
+     */
+    private void onNotifyForDetectResult(String serviceId, OkaoResult result) {
+        List<Event> events = EventManager.INSTANCE.getEventList(serviceId,
                 HumanDetectionProfile.PROFILE_NAME, null, "onDetection");
         for (Event event : events) {
             Intent intent = EventManager.createEventMessage(event);
@@ -521,7 +511,6 @@ public class HVCPDeviceService extends DConnectMessageService
             }
         }
     }
-
     @Override
     public void onConnected(final HVCCameraInfo camera) {
         DConnectService service = getServiceProvider().getService(camera.getID());

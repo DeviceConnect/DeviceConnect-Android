@@ -16,24 +16,26 @@ import java.util.Map;
 public class DevicePluginXmlProfile {
     
     /** プロファイル. */
-    protected String mProfile;
+    private final String mProfile;
     
     /** 有効期限(秒). */
-    protected long mExpirePeriod;
+    private final long mExpirePeriod;
     
     /** ロケール別プロファイル情報. */
-    protected Map<String, DevicePluginXmlProfileLocale> mProfileLocales;
-    
+    private Map<String, DevicePluginXmlProfileLocale> mProfileLocales;
+
+    /** プロファイル定義ディレクトリのパス. nullの場合は assets/api と同じ扱いとする. */
+    private String mSpecPath;
     
     /**
      * コンストラクタ.
      * @param profile プロファイル名
      * @param expirePeriod 有効期限(秒)
      */
-    public DevicePluginXmlProfile(final String profile, final long expirePeriod) {
+    DevicePluginXmlProfile(final String profile, final long expirePeriod) {
         mProfile = profile;
         mExpirePeriod = expirePeriod;
-        mProfileLocales = new HashMap<String, DevicePluginXmlProfileLocale>(); 
+        mProfileLocales = new HashMap<String, DevicePluginXmlProfileLocale>();
     }
     
     /**
@@ -92,5 +94,19 @@ public class DevicePluginXmlProfile {
         return mProfileLocales;
     }
 
-    
+    /**
+     * プロファイル定義ディレクトリのパスを設定する.
+     * @param path プロファイル定義ディレクトリのパス
+     */
+    public void setSpecPath(final String path) {
+        mSpecPath = path;
+    }
+
+    /**
+     * プロファイル定義ディレクトリのパスを取得する.
+     * @return プロファイル定義ディレクトリのパス
+     */
+    public String getSpecPath() {
+        return mSpecPath;
+    }
 }

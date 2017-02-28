@@ -1,3 +1,5 @@
+Click [here](https://github.com/DeviceConnect/DeviceConnect-Android/blob/master/readme.en.md) for description of English. 
+ 
 # DeviceConnect-Android について
 DeviceConnect-AndroidはAndroid版のDevice Connectシステムのプラットフォームになります。
 

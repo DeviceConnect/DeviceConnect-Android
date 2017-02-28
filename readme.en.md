@@ -1,4 +1,4 @@
-日本語説明は[こちら](https://github.com/DeviceConnect/DeviceConnect-Android/blob/master/readme.ja.md)を参照してください。
+日本語説明は[こちら](https://github.com/DeviceConnect/DeviceConnect-Android/blob/master/README.md)を参照してください。
 
 # About DeviceConnect-Android
 Device Connect WebAPI in WebAPI which operates as a virtual server on the smartphone, it can be easy to use in a uniform description of various wearable devices and IoT devices from a Web browser and apps.

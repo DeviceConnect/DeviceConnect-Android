@@ -70,6 +70,8 @@ public class RestartingDialogFragment extends DialogFragment {
             @Override
             protected Void doInBackground(final Void... params) {
                 DConnectApplication app = (DConnectApplication) activity.getApplication();
+                app.updateDevicePluginList();
+
                 DevicePluginManager mgr = app.getDevicePluginManager();
                 List<DevicePlugin> plugins = mgr.getDevicePlugins();
                 for (DevicePlugin plugin : plugins) {

@@ -19,6 +19,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 
+import static org.deviceconnect.android.deviceplugin.sw.profile.SWTouchProfile.ATTRIBUTE_ON_TOUCH_CHANGE;
+
 /**
  * SonyWatchDevicePlugin_LoggerLevelSetting.
  */
@@ -62,7 +64,20 @@ public class SWApplication extends Application {
 
     /** Touch profile onTouchCancel cache time. */
     static long sOnTouchCancelCacheTime = 0;
-
+    /** Touch profile onTouchChange cache. */
+    static Bundle sOnTouchChangeCache = null;
+    /** Touch profile onTouchChange cache time. */
+    static long sOnTouchChangeCacheTime = 0;
+    /** Touch State start. */
+    public static final String STATE_START = "start";
+    /** Touch State end. */
+    public static final String STATE_END = "end";
+    /** Touch State double tap. */
+    public static final String STATE_DOUBLE_TAP = "doubletap";
+    /** Touch State move. */
+    public static final String STATE_MOVE = "move";
+    /** Touch State cancel. */
+    public static final String STATE_CANCEL = "cancel";
     /**
      * Get Touch cache data.
      * 
@@ -107,6 +122,12 @@ public class SWApplication extends Application {
             } else {
                 return null;
             }
+        } else if (attr.equalsIgnoreCase(ATTRIBUTE_ON_TOUCH_CHANGE)) {
+            if (lCurrentTime - sOnTouchChangeCacheTime <= CACHE_RETENTION_TIME) {
+                return sOnTouchChangeCache;
+            } else {
+                return null;
+            }
         } else {
             return null;
         }
@@ -138,6 +159,9 @@ public class SWApplication extends Application {
         } else if (attr.equalsIgnoreCase(TouchProfile.ATTRIBUTE_ON_TOUCH_CANCEL)) {
             sOnTouchCancelCache = touchData;
             sOnTouchCancelCacheTime = lCurrentTime;
+        } else if (attr.equalsIgnoreCase(ATTRIBUTE_ON_TOUCH_CHANGE)) {
+            sOnTouchChangeCache = touchData;
+            sOnTouchChangeCacheTime = lCurrentTime;
         }
     }
 

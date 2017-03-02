@@ -8,16 +8,17 @@ package org.deviceconnect.android.profile.restful.test;
 
 import android.support.test.runner.AndroidJUnit4;
 
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpUriRequest;
-import org.deviceconnect.profile.AuthorizationProfileConstants;
-import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
-import org.deviceconnect.utils.URIBuilder;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
+import org.deviceconnect.message.DConnectMessage;
+import org.deviceconnect.message.DConnectResponseMessage;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import java.util.List;
+
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.core.Is.is;
+import static org.junit.Assert.assertThat;
 
 
 /**
@@ -27,54 +28,37 @@ import org.junit.runner.RunWith;
 @RunWith(AndroidJUnit4.class)
 public class NormalServiceDiscoveryProfileTestCase extends RESTfulDConnectTestCase {
 
-    @Override
-    protected boolean isSearchDevices() {
-        return false;
-    }
-
     /**
      * デバイス一覧取得リクエストを送信するテスト.
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /servicediscovery
+     * Path: /serviceDiscovery
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
      * ・servicesに少なくとも1つ以上のサービスが発見されること。
-     * ・servicesの中に「Test Success Device」のnameを持ったサービスが存在すること。
      * </pre>
      */
     @Test
     public void testGetServices() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(ServiceDiscoveryProfileConstants.PROFILE_NAME);
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject response = sendRequest(request);
-            assertResultOK(response);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
-    }
+        String uri = "http://localhost:4035/gotapi/serviceDiscovery";
+        uri += "?accessToken=" + getAccessToken();
 
-    /**
-     * 指定した名前をもつサービスをJSON配列から検索する.
-     * 
-     * @param services サービス一覧
-     * @param name サービス名
-     * @return 見つかったサービス. 見つからなかった場合は<code>null</code>
-     * @throws JSONException JSONオブジェクトの解析に失敗した場合
-     */
-    private JSONObject getServiceByName(final JSONArray services, final String name) throws JSONException {
-        for (int i = 0; i < services.length(); i++) {
-            JSONObject service = services.getJSONObject(i);
-            if (name.equals(service.getString(ServiceDiscoveryProfileConstants.PARAM_NAME))) {
-                return service;
-            }
+        DConnectResponseMessage response = mDConnectSDK.get(uri);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+
+        List<Object> services = response.getList("services");
+        assertThat(services, is(notNullValue()));
+        assertThat(services.size(), is(greaterThan(0)));
+        for (Object obj : services) {
+            DConnectMessage service = (DConnectMessage) obj;
+            String id = service.getString("id");
+            String name = service.getString("name");
+            assertThat(id, is(notNullValue()));
+            assertThat(name, is(notNullValue()));
         }
-        return null;
     }
 }

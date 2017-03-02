@@ -10,6 +10,9 @@ package org.deviceconnect.android.deviceplugin.test.service;
 import android.content.ComponentName;
 import android.content.Intent;
 
+import org.deviceconnect.android.deviceplugin.test.profile.Util;
+import org.deviceconnect.android.deviceplugin.test.profile.unique.TestAllGetControlProfile;
+import org.deviceconnect.android.deviceplugin.test.profile.unique.TestDataProfile;
 import org.deviceconnect.android.deviceplugin.test.profile.unique.TestJSONConversionProfile;
 import org.deviceconnect.android.deviceplugin.test.profile.unique.TestUniqueProfile;
 import org.deviceconnect.android.message.MessageUtils;
@@ -24,7 +27,6 @@ import org.deviceconnect.android.profile.spec.DConnectPluginSpec;
 import org.deviceconnect.android.profile.spec.DConnectProfileSpec;
 import org.deviceconnect.android.service.DConnectService;
 import org.deviceconnect.message.DConnectMessage;
-import org.deviceconnect.message.intent.impl.client.DefaultIntentClient;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -106,6 +108,8 @@ public class UnitTestService extends DConnectService {
 
         addProfile(new TestUniqueProfile());
         addProfile(new TestJSONConversionProfile());
+        addProfile(new TestAllGetControlProfile());
+        addProfile(new TestDataProfile());
     }
 
     /**
@@ -120,7 +124,7 @@ public class UnitTestService extends DConnectService {
             public void run() {
                 try {
                     Thread.sleep(delay);
-                    intent.setComponent(DefaultIntentClient.DEFAULT_MESSAGE_RECEIVER);
+                    intent.setComponent(Util.DEFAULT_MESSAGE_RECEIVER);
                     getContext().sendBroadcast(intent);
                 } catch (InterruptedException e) {
                     // do nothing.
@@ -143,6 +147,10 @@ public class UnitTestService extends DConnectService {
         return mEventSenders.get(path);
     }
 
+    private EventSender removeEventSender(final String path) {
+        return mEventSenders.remove(path);
+    }
+
     private void putEventSender(final String path, final EventSender thread) {
         mEventSenders.put(path, thread);
     }
@@ -158,7 +166,7 @@ public class UnitTestService extends DConnectService {
     }
 
     private void stopEventSender(final Intent request) {
-        EventSender cache = getEventSender(createPath(request));
+        EventSender cache = removeEventSender(createPath(request));
         if (cache == null) {
             return;
         }
@@ -174,9 +182,10 @@ public class UnitTestService extends DConnectService {
     private class EventSender implements Runnable {
 
         private final String mPath;
+        private final String mAccessToken;
         private final Intent mEvent;
         private boolean mIsSending = true;
-        private int mCount = 100;
+        private int mCount = 10;
 
         EventSender(final Intent request) {
             String profileName = DConnectProfile.getProfile(request);
@@ -191,10 +200,11 @@ public class UnitTestService extends DConnectService {
             message.setComponent((ComponentName) request.getParcelableExtra(DConnectMessage.EXTRA_RECEIVER));
             mEvent = message;
             mPath = createPath(request);
+            mAccessToken = accessToken;
         }
 
         String getPath() {
-            return mPath;
+            return mPath + mAccessToken;
         }
 
         void stop() {
@@ -211,6 +221,8 @@ public class UnitTestService extends DConnectService {
                 }
             } catch (InterruptedException e) {
                 mIsSending = false;
+            } finally {
+                removeEventSender(getPath());
             }
         }
     }

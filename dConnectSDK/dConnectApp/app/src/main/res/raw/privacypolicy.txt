@@ -1,6 +1,6 @@
 Privacy Policy
 
-This Privacy Policy governs the manner in which d-Connect System Project Team collects, uses, maintains and discloses information collected from users (each, a "User") of the d-Connect Application ("App"). This privacy policy applies to the App and all products and services offered by d-Connect System Project Team.
+This Privacy Policy governs the manner in which Device Connect System Project Team collects, uses, maintains and discloses information collected from users (each, a "User") of the Device Connect Application ("App"). This privacy policy applies to the App and all products and services offered by Device Connect System Project Team.
 
 Personal identification information
 
@@ -16,7 +16,7 @@ Our App may use "cookies" to enhance User experience. User's web browser places 
 
 How we use collected information
 
-d-Connect System Project Team may collect and use Users personal information for the following purposes:
+Device Connect System Project Team may collect and use Users personal information for the following purposes:
 
 To improve customer service
 Information you provide helps us respond to your customer service requests and support needs more efficiently.
@@ -34,7 +34,7 @@ We do not sell, trade, or rent Users personal identification information to othe
 
 Changes to this privacy policy
 
-d-Connect System Project Team has the discretion to update this privacy policy at any time. When we do, we will revise the updated date at the bottom of this page. We encourage Users to frequently check this page for any changes to stay informed about how we are helping to protect the personal information we collect. You acknowledge and agree that it is your responsibility to review this privacy policy periodically and become aware of modifications.
+Device Connect System Project Team has the discretion to update this privacy policy at any time. When we do, we will revise the updated date at the bottom of this page. We encourage Users to frequently check this page for any changes to stay informed about how we are helping to protect the personal information we collect. You acknowledge and agree that it is your responsibility to review this privacy policy periodically and become aware of modifications.
 
 Your acceptance of these terms
 
@@ -44,6 +44,6 @@ Contacting us
 
 If you have any questions about this Privacy Policy, the practices of this App, or your dealings with this App, please contact us at:
 
-d-Connect System Project Team
+Device Connect System Project Team
 
 This document was last updated on Febrary 25, 2014

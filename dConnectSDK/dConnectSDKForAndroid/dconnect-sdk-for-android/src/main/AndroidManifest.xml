@@ -5,5 +5,17 @@
         android:minSdkVersion="14"
         android:targetSdkVersion="19" />
 
-    <application />
+    <uses-permission android:name="android.permission.INTERNET"/>
+
+    <application>
+
+        <receiver android:name="org.deviceconnect.message.DConnectMessageReceiver">
+            <intent-filter>
+                <action android:name="org.deviceconnect.action.RESPONSE"/>
+                <action android:name="org.deviceconnect.action.EVENT"/>
+            </intent-filter>
+        </receiver>
+
+    </application>
+
 </manifest>

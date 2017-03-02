@@ -43,7 +43,9 @@ public final class WearConst {
 
     /** Register Key Event (onup). */
     public static final String DEVICE_TO_WEAR_KEYEVENT_ONUP_REGISTER = "org.deviceconnect.wear.keyevent.onup.regist";
-
+    /** Register Key Event (onkeychange). */
+    public static final String DEVICE_TO_WEAR_KEYEVENT_ONKEYCHANGE_REGISTER
+            = "org.deviceconnect.wear.keyevent.onkeychange.regist";
     /** Remove Key Event (ondown). */
     public static final String DEVICE_TO_WEAR_KEYEVENT_ONDOWN_UNREGISTER
             = "org.deviceconnect.wear.keyevent.ondown.unregist";
@@ -51,6 +53,9 @@ public final class WearConst {
     /** Remove Key Event (onup). */
     public static final String DEVICE_TO_WEAR_KEYEVENT_ONUP_UNREGISTER
             = "org.deviceconnect.wear.keyevent.onup.unregist";
+    /** Remove Key Event (onkeychange). */
+    public static final String DEVICE_TO_WEAR_KEYEVENT_ONKEYCHANGE_UNREGISTER
+            = "org.deviceconnect.wear.keyevent.onkeychange.unregist";
 
     /** Wear to Android. */
     public static final String WEAR_TO_DEVICE_KEYEVENT_DATA = "org.deviceconnect.wear.keyevent.data";
@@ -111,6 +116,9 @@ public final class WearConst {
     /** Register Touch (ontouchcancel). */
     public static final String DEVICE_TO_WEAR_TOUCH_ONTOUCHCANCEL_REGISTER
             = "org.deviceconnect.wear.touch.ontouchcancel.regist";
+    /** Register Touch (ontouchchange). */
+    public static final String DEVICE_TO_WEAR_TOUCH_ONTOUCHCHANGE_REGISTER
+            = "org.deviceconnect.wear.touch.ontouchchange.regist";
 
     /** Remove Touch (ontouch). */
     public static final String DEVICE_TO_WEAR_TOUCH_ONTOUCH_UNREGISTER
@@ -135,6 +143,9 @@ public final class WearConst {
     /** Remove Touch (ontouchcancel). */
     public static final String DEVICE_TO_WEAR_TOUCH_ONTOUCHCANCEL_UNREGISTER
             = "org.deviceconnect.wear.touch.ontouchcancel.unregist";
+    /** Remove Touch (ontouchchange). */
+    public static final String DEVICE_TO_WEAR_TOUCH_ONTOUCHCHANGE_UNREGISTER
+            = "org.deviceconnect.wear.touch.ontouchchange.unregist";
 
     /** Broadcast Data Key (Regist). */
     public static final String PARAM_TOUCH_REGIST = "touchRegist";

@@ -11,12 +11,14 @@ import android.os.Bundle;
 
 import org.deviceconnect.android.deviceplugin.test.profile.TestSystemProfile;
 import org.deviceconnect.android.deviceplugin.test.service.UnitTestService;
-import org.deviceconnect.android.event.EventManager;
-import org.deviceconnect.android.event.cache.db.DBCacheController;
-import org.deviceconnect.android.localoauth.LocalOAuth2Main;
 import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.profile.SystemProfile;
+import org.deviceconnect.android.provider.FileManager;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.logging.Logger;
 
@@ -34,17 +36,28 @@ public class UnitTestDeviceService extends DConnectMessageService {
 
     /** ロガー. */
     private Logger mLogger = Logger.getLogger("dconnect.dplugin.test");
+    private FileManager mFileManager;
 
     @Override
     public void onCreate() {
         super.onCreate();
-        EventManager.INSTANCE.setController(new DBCacheController(this));
-        LocalOAuth2Main.initialize(getApplicationContext());
+
+        mFileManager = new FileManager(this);
+
+        // テスト用データ作成
+        createTestData();
 
         getServiceProvider().addService(new UnitTestService(SERVICE_ID,
             DEVICE_NAME, getPluginSpec()));
         getServiceProvider().addService(new UnitTestService(SERVICE_ID_SPECIAL_CHARACTERS,
             DEVICE_NAME_SPECIAL_CHARACTERS, getPluginSpec()));
+    }
+
+    @Override
+    public void onDestroy() {
+        File file = new File(mFileManager.getBasePath(), "test.dat");
+        file.delete();
+        super.onDestroy();
     }
 
     @Override
@@ -54,6 +67,11 @@ public class UnitTestDeviceService extends DConnectMessageService {
             mLogger.info("onStartCommand: extras=" + toString(intent.getExtras()));
         }
         return super.onStartCommand(intent, flags, startId);
+    }
+
+    @Override
+    protected SystemProfile getSystemProfile() {
+        return new TestSystemProfile();
     }
 
     /**
@@ -75,9 +93,29 @@ public class UnitTestDeviceService extends DConnectMessageService {
         return sb.toString();
     }
 
-    @Override
-    protected SystemProfile getSystemProfile() {
-        return new TestSystemProfile();
-    }
+    private void createTestData() {
+        byte[] buf = new byte[1024];
+        Arrays.fill(buf, (byte) 0x01);
 
+        FileOutputStream fos = null;
+        try {
+
+            File writeFile = new File(mFileManager.getBasePath(), "test.dat");
+            fos = new FileOutputStream(writeFile);
+            for (int i = 0;i < 1024; i++) {
+                fos.write(buf);
+            }
+            fos.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (fos != null) {
+                try {
+                    fos.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
 }

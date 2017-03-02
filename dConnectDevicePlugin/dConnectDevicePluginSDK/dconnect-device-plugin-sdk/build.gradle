@@ -47,7 +47,8 @@ project.androidVariants.all { variant ->
         source = variant.javaCompile.source
         ext.androidJar = "${android.sdkDirectory}/platforms/${android.compileSdkVersion}/android.jar"
         classpath = files(variant.javaCompile.classpath.files) + files(ext.androidJar)
-        System.out.println(variant)
+        destinationDir = new File("${project.getRootDir()}/DevicePluginSDK-Javadoc/")
+
         options {
             links("http://docs.oracle.com/javase/jp/8/docs/api/");
             linksOffline("http://d.android.com/reference", "${android.sdkDirectory}/docs/reference")
@@ -58,8 +59,9 @@ project.androidVariants.all { variant ->
         }
 
         exclude '**/org/deviceconnect/android/localoauth/**'
-        exclude '**/org/restlet/**'
+        exclude '**/org/deviceconnect/android/compat/**'
         exclude '**/org/deviceconnect/android/logger/**'
+        exclude '**/org/restlet/**'
         exclude '**/BuildConfig.java'
         exclude '**/R.java'
     }
@@ -74,6 +76,7 @@ repositories {
 dependencies {
     compile fileTree(include: '*.jar', dir: 'libs')
     compile project(':dconnect-sdk-for-android')
+    compile 'com.android.support:support-v4:23.1.0'
 }
 
 configurations {
@@ -96,9 +99,9 @@ uploadArchives {
 }
 
 if (JavaVersion.current().isJava8Compatible()) {
-  allprojects {
-    tasks.withType(Javadoc) {
-      options.addStringOption('Xdoclint:none', '-quiet')
+    allprojects {
+        tasks.withType(Javadoc) {
+            options.addStringOption('Xdoclint:none', '-quiet')
+        }
     }
-  }
 }

@@ -11,8 +11,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.ConnectivityManager;
+import android.os.Binder;
 import android.os.IBinder;
-import android.os.RemoteException;
+import android.os.PowerManager;
 
 import org.deviceconnect.android.compat.MessageConverter;
 import org.deviceconnect.android.manager.compat.CompatibleRequestConverter;
@@ -28,10 +29,10 @@ import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 import org.deviceconnect.server.DConnectServer;
 import org.deviceconnect.server.DConnectServerConfig;
 import org.deviceconnect.server.nanohttpd.DConnectServerNanoHttpd;
+import org.deviceconnect.server.websocket.DConnectWebSocket;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -41,6 +42,12 @@ import java.util.concurrent.Executors;
  * @author NTT DOCOMO, INC.
  */
 public class DConnectService extends DConnectMessageService {
+
+    /**
+     * WakeLockのタグを定義する.
+     */
+    private static final String TAG_WAKE_LOCK = "DeviceConnectManager";
+
     public static final String ACTION_DISCONNECT_WEB_SOCKET = "disconnect.WebSocket";
     public static final String ACTION_SETTINGS_KEEP_ALIVE = "settings.KeepAlive";
     public static final String EXTRA_WEBSOCKET_ID = "webSocketId";
@@ -69,12 +76,21 @@ public class DConnectService extends DConnectMessageService {
     /** イベントKeep Alive管理クラス. */
     private KeepAliveManager mKeepAliveManager;
 
+    /** リクエストのパスを変換するクラス群. */
     private MessageConverter[] mRequestConverters;
+
+    /** レスポンスのパスを変換するクラス群. */
     private MessageConverter[] mResponseConverters;
+
+    /** WakeLockのインスタンス. */
+    private PowerManager.WakeLock mWakeLock;
+
+    /** バインドするためのクラス. */
+    private final IBinder mLocalBinder = new LocalBinder();
 
     @Override
     public IBinder onBind(final Intent intent) {
-        return (IBinder) mBinder;
+        return mLocalBinder;
     }
 
     @Override
@@ -103,6 +119,10 @@ public class DConnectService extends DConnectMessageService {
                 new ServiceDiscoveryConverter(),
                 new ServiceInformationConverter()
         };
+
+        if (mSettings.isManagerStartFlag()) {
+            startInternal();
+        }
     }
 
     @Override
@@ -125,9 +145,7 @@ public class DConnectService extends DConnectMessageService {
 
         if (ACTION_DISCONNECT_WEB_SOCKET.equals(action)) {
             String webSocketId = intent.getStringExtra(EXTRA_WEBSOCKET_ID);
-            if (webSocketId != null) {
-                mRESTfulServer.disconnectWebSocket(webSocketId);
-            }
+            disconnectWebSocket(webSocketId);
             return START_STICKY;
         }
 
@@ -159,7 +177,7 @@ public class DConnectService extends DConnectMessageService {
         } else if (status.equals("DISCONNECT")) {
             String receiverId = intent.getStringExtra(DConnectService.EXTRA_EVENT_RECEIVER_ID);
             if (receiverId != null) {
-                sendDisconnectWebSocket(receiverId);
+                disconnectWebSocketWithReceiverId(receiverId);
             }
         }
     }
@@ -183,32 +201,33 @@ public class DConnectService extends DConnectMessageService {
     @Override
     public void sendEvent(final String receiver, final Intent event) {
         if (receiver == null || receiver.length() <= 0) {
-            final String key = event.getStringExtra(IntentDConnectMessage.EXTRA_SESSION_KEY);
             mEventSender.execute(new Runnable() {
                 @Override
                 public void run() {
+                    String key = event.getStringExtra(IntentDConnectMessage.EXTRA_SESSION_KEY);
                     if (key != null && mRESTfulServer != null && mRESTfulServer.isRunning()) {
                         WebSocketInfo info = getWebSocketInfo(key);
                         if (info == null) {
-                            mLogger.warning("sendEvent: webSocket is not found: key = " + key);
+                            mLogger.warning("sendMessage: webSocket is not found: key = " + key);
                             return;
                         }
 
                         try {
                             if (BuildConfig.DEBUG) {
-                                mLogger.info(String.format("sendEvent: %s extra: %s", key, event.getExtras()));
+                                mLogger.info(String.format("sendMessage: %s extra: %s", key, event.getExtras()));
                             }
                             JSONObject root = new JSONObject();
                             DConnectUtil.convertBundleToJSON(root, event.getExtras());
-
-                            mRESTfulServer.sendEvent(info.getRawId(), root.toString());
-                        } catch (JSONException e) {
-                            mLogger.warning("JSONException in sendEvent: " + e.toString());
-                        } catch (IOException e) {
-                            mLogger.warning("IOException in sendEvent: " + e.toString());
-                            if (mWebServerListener != null) {
-                                mWebServerListener.onWebSocketDisconnected(info.getRawId());
+                            DConnectWebSocket webSocket = mRESTfulServer.getWebSocket(info.getRawId());
+                            if (webSocket != null && mRESTfulServer.isRunning()) {
+                                webSocket.sendMessage(root.toString());
+                            } else {
+                                if (mWebServerListener != null) {
+                                    mWebServerListener.onWebSocketDisconnected(webSocket);
+                                }
                             }
+                        } catch (JSONException e) {
+                            mLogger.warning("JSONException in sendMessage: " + e.toString());
                         }
                     }
                 }
@@ -219,29 +238,56 @@ public class DConnectService extends DConnectMessageService {
     }
 
     /**
-     * 該当セッションキーを持つWebSocket切断要求を送る.
+     * 指定したイベントレシーバーIDに対応するWebSocketを切断する.
+     *
      * @param receiverId イベントレシーバーID.
      */
-    public void sendDisconnectWebSocket(final String receiverId) {
+    public void disconnectWebSocketWithReceiverId(final String receiverId) {
         if (receiverId != null) {
-            mEventSender.execute(new Runnable() {
-                @Override
-                public void run() {
-                    WebSocketInfo info = getWebSocketInfo(receiverId);
-                    if (info != null) {
-                        mRESTfulServer.disconnectWebSocket(info.getRawId());
-                    } else {
-                        mLogger.warning("sendDisconnectWebSocket: WebSocketInfo is not found: key = " + receiverId);
-                    }
-                }
-            });
+            WebSocketInfo info = getWebSocketInfo(receiverId);
+            if (info != null) {
+                disconnectWebSocket(info.getRawId());
+            } else {
+                mLogger.warning("disconnectWebSocketWithReceiverId: WebSocketInfo is not found: key = " + receiverId);
+            }
         }
     }
 
+    /**
+     * WebSocketを切断する.
+     *
+     * NOTE: Android 7以降ではメインスレッド上で切断すると例外が発生する場合があるため、
+     * 別スレッド上で実行している.
+     *
+     * @param webSocketId 内部的に発行したWebSocket ID
+     */
+    private void disconnectWebSocket(final String webSocketId) {
+        mEventSender.execute(new Runnable() {
+            @Override
+            public void run() {
+                if (webSocketId != null) {
+                    DConnectWebSocket webSocket = mRESTfulServer.getWebSocket(webSocketId);
+                    if (webSocket != null) {
+                        webSocket.disconnect();
+                    }
+                }
+            }
+        });
+    }
+
+    /**
+     * {@link EventBroker}を取得する.
+     * @return EventBrokerのインスタンス
+     */
     public EventBroker getEventBroker() {
         return mEventBroker;
     }
 
+    /**
+     * 指定されたreceiverIdのWebSocketの情報を取得する.
+     * @param receiverId WebSocketの識別子
+     * @return WebSocketの情報。指定された識別子のWebSocketが存在しない場合は{@code null}を返す。
+     */
     private WebSocketInfo getWebSocketInfo(final String receiverId) {
         return ((DConnectApplication) getApplication()).getWebSocketInfoManager().getWebSocketInfo(receiverId);
     }
@@ -253,6 +299,14 @@ public class DConnectService extends DConnectMessageService {
         mEventSender.execute(new Runnable() {
             @Override
             public void run() {
+                if (mRESTfulServer != null) {
+                    return;
+                }
+
+                if (mSettings.enableWakLock()) {
+                    acquireWakeLock();
+                }
+
                 mSettings.load(getApplicationContext());
 
                 mWebServerListener = new DConnectServerEventListenerImpl(DConnectService.this);
@@ -260,9 +314,11 @@ public class DConnectService extends DConnectMessageService {
 
                 DConnectServerConfig.Builder builder = new DConnectServerConfig.Builder();
                 builder.port(mSettings.getPort()).isSsl(mSettings.isSSL())
-                        .documentRootPath(getFilesDir().getAbsolutePath());
+                        .documentRootPath(getFilesDir().getAbsolutePath())
+                        .cachePath(mFileMgr.getBasePath().getAbsolutePath());
 
                 if (!mSettings.allowExternalIP()) {
+                    // ローカルからのアクセスは、デフォルトで許可する
                     ArrayList<String> list = new ArrayList<>();
                     list.add("127.0.0.1");
                     list.add("::1");
@@ -271,21 +327,16 @@ public class DConnectService extends DConnectMessageService {
 
                 if (BuildConfig.DEBUG) {
                     mLogger.info("RESTful Server was Started.");
-                    mLogger.info("Host: " + mSettings.getHost());
-                    mLogger.info("Port: " + mSettings.getPort());
-                    mLogger.info("SSL: " + mSettings.isSSL());
-                    mLogger.info("External IP: " + mSettings.allowExternalIP());
+                    mLogger.info("DConnectSettings: " + mSettings.toString());
                 }
 
-                if (mRESTfulServer == null) {
-                    mRESTfulServer = new DConnectServerNanoHttpd(builder.build(), getApplicationContext());
-                    mRESTfulServer.setServerEventListener(mWebServerListener);
-                    mRESTfulServer.start();
+                mRESTfulServer = new DConnectServerNanoHttpd(builder.build(), getApplicationContext());
+                mRESTfulServer.setServerEventListener(mWebServerListener);
+                mRESTfulServer.start();
 
-                    IntentFilter filter = new IntentFilter();
-                    filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
-                    registerReceiver(mWiFiReceiver, filter);
-                }
+                IntentFilter filter = new IntentFilter();
+                filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
+                registerReceiver(mWiFiReceiver, filter);
             }
         });
     }
@@ -297,6 +348,8 @@ public class DConnectService extends DConnectMessageService {
         mEventSender.execute(new Runnable() {
             @Override
             public void run() {
+                releaseWakeLock();
+
                 if (mRESTfulServer != null) {
                     unregisterReceiver(mWiFiReceiver);
                     mRESTfulServer.shutdown();
@@ -313,7 +366,7 @@ public class DConnectService extends DConnectMessageService {
     /**
      * DConnectManagerを起動する.
      */
-    private void startInternal() {
+    public synchronized void startInternal() {
         if (!mRunningFlag) {
             mRunningFlag = true;
             startDConnect();
@@ -324,7 +377,7 @@ public class DConnectService extends DConnectMessageService {
     /**
      * DConnectManagerを停止する.
      */
-    private void stopInternal() {
+    public synchronized void stopInternal() {
         if (mRunningFlag) {
             mRunningFlag = false;
             stopRESTfulServer();
@@ -333,29 +386,57 @@ public class DConnectService extends DConnectMessageService {
     }
 
     /**
-     * バインドするためのスタブクラス.
+     * WakeLockを登録にする.
+     * <p>
+     * {@link DConnectSettings#enableWakLock()}が{@code false}で、
+     * {@link #mWakeLock}が{@code null}の場合のみ新しいWakeLocをします。
+     * </p>
      */
-    private final IDConnectService mBinder = new IDConnectService.Stub()  {
-        @Override
-        public IBinder asBinder() {
-            return null;
+    public void acquireWakeLock() {
+        if (mWakeLock == null) {
+            if (BuildConfig.DEBUG) {
+                mLogger.info("DConnectService acquire WakeLock.");
+            }
+            PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
+            mWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG_WAKE_LOCK);
+            mWakeLock.acquire();
         }
+    }
 
-        @Override
-        public boolean isRunning() throws RemoteException {
-            return mRunningFlag;
+    /**
+     * WakeLockを解除する.
+     */
+    public void releaseWakeLock() {
+        if (mWakeLock != null) {
+            if (BuildConfig.DEBUG) {
+                mLogger.info("DConnectService release WakeLock.");
+            }
+            mWakeLock.release();
+            mWakeLock = null;
         }
+    }
 
-        @Override
-        public void start() throws RemoteException {
-            startInternal();
-        }
+    /**
+     * RESTfulサーバが動作しているかを確認する.
+     * @return 動作している場合にはtrue、それ以外はfalse
+     */
+    public boolean isRunning() {
+        return mRunningFlag;
+    }
 
-        @Override
-        public void stop() throws RemoteException {
-            stopInternal();
+    /**
+     * DConnectServiceとバインドするためのクラス.
+     */
+    public class LocalBinder extends Binder {
+        /**
+         * DConnectServiceのインスタンスを取得する.
+         *
+         * @return DConnectServiceのインスタンス
+         */
+        public DConnectService getDConnectService() {
+            return DConnectService.this;
         }
-    };
+    }
 
     /**
      * ネットワークの接続状態の変化を受け取るレシーバー.

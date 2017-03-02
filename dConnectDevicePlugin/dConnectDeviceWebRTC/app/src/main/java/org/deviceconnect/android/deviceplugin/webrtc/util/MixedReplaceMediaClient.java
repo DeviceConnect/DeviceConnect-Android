@@ -8,13 +8,11 @@ package org.deviceconnect.android.deviceplugin.webrtc.util;
 
 import android.util.Log;
 
-import org.apache.james.mime4j.MimeException;
-import org.apache.james.mime4j.parser.AbstractContentHandler;
-import org.apache.james.mime4j.parser.ContentHandler;
-import org.apache.james.mime4j.parser.MimeStreamParser;
-import org.apache.james.mime4j.stream.BodyDescriptor;
-import org.apache.james.mime4j.stream.MimeConfig;
 import org.deviceconnect.android.deviceplugin.webrtc.BuildConfig;
+import org.synchronoss.cloud.nio.multipart.BlockingIOAdapter;
+import org.synchronoss.cloud.nio.multipart.Multipart;
+import org.synchronoss.cloud.nio.multipart.MultipartContext;
+import org.synchronoss.cloud.nio.multipart.util.collect.CloseableIterator;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -23,6 +21,8 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -75,11 +75,6 @@ public class MixedReplaceMediaClient {
      * Thread to access the uri.
      */
     private Thread mThread;
-
-    /**
-     * Analyze a multipart data.
-     */
-    private MimeStreamParser mMimeStreamParser;
 
     /**
      * Stop flag.
@@ -208,11 +203,6 @@ public class MixedReplaceMediaClient {
             mThread = null;
         }
 
-        if (mMimeStreamParser != null) {
-            mMimeStreamParser.stop();
-            mMimeStreamParser = null;
-        }
-
         if (mConnection != null) {
             mConnection.disconnect();
             mConnection = null;
@@ -227,7 +217,7 @@ public class MixedReplaceMediaClient {
      */
     private void readImage(final InputStream in, final long length) throws IOException {
         if (mStopFlag) {
-            throw new IllegalStateException("");
+            throw new IllegalStateException("The server has already terminated.");
         }
 
         try {
@@ -260,7 +250,7 @@ public class MixedReplaceMediaClient {
      * @return buffer of image
      * @throws IOException IO error occurred
      */
-    private byte[] readBuffer(InputStream in) throws IOException {
+    private byte[] readBuffer(final InputStream in) throws IOException {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         int len;
         byte[] buf = new byte[4096];
@@ -274,47 +264,48 @@ public class MixedReplaceMediaClient {
      * Gets a multipart data from server.
      * @param in InputStream
      * @param contentType content type
-     * @throws MimeException occurs if data format is invalid
      * @throws IOException occurs if failed to get a data
      */
-    private void readMultiPart(final InputStream in, final String contentType) throws MimeException, IOException {
-        final ContentHandler contentHandler = new AbstractContentHandler() {
-            @Override
-            public void body(final BodyDescriptor bd, final InputStream is) throws MimeException, IOException {
-                super.body(bd, is);
-                if (bd.getContentLength() > 0) {
+    private void readMultiPart(final InputStream in, final String contentType) throws IOException {
+        MultipartContext context = new MultipartContext(contentType, -1, "UTF-8");
+        CloseableIterator<BlockingIOAdapter.PartItem> parts = Multipart.multipart(context).forBlockingIO(in);
+        while (parts.hasNext()) {
+            BlockingIOAdapter.PartItem partItem = parts.next();
+            BlockingIOAdapter.PartItem.Type partItemType = partItem.getType();
+            switch (partItemType) {
+                case ATTACHMENT: {
+                    BlockingIOAdapter.Attachment attachment = (BlockingIOAdapter.Attachment) partItem;
+                    final Map<String, List<String>> headers = attachment.getHeaders();
+                    final InputStream is = attachment.getPartBody();
+
+                    int contentLength = -1;
+                    List<String> contentLengthList = headers.get("content-length");
+                    if (contentLengthList != null && contentLengthList.size() > 0) {
+                        contentLength = Integer.parseInt(contentLengthList.get(0));
+                    } else {
+                        if (BuildConfig.DEBUG) {
+                            Log.w(TAG, "contentLength is not set.");
+                        }
+                    }
+
                     try {
-                        notifyData(is);
+                        if (contentLength > 0) {
+                            notifyData(is);
+                        }
                     } catch (OutOfMemoryError e) {
                         notifyError(MixedReplaceMediaError.OUT_OF_MEMORY_ERROR);
                     } catch (Throwable e) {
                         notifyError(MixedReplaceMediaError.UNKNOWN);
                     }
-                }
-            }
-        };
-
-        int fps = 20;
-        MimeConfig config = new MimeConfig();
-        config.setMaxHeaderCount(-1);
-        config.setMaxHeaderLen(-1);
-        config.setMaxLineLen(-1);
-        config.setHeadlessParsing(contentType);
-        mMimeStreamParser = new MimeStreamParser(config);
-        mMimeStreamParser.setContentHandler(contentHandler);
-        while (!mStopFlag) {
-            long oldTime = System.currentTimeMillis();
-            mMimeStreamParser.parse(in);
-            long newTime = System.currentTimeMillis();
-            long sleepTime = fps - (newTime - oldTime);
-            if (sleepTime > 0) {
-                try {
-                    Thread.sleep(sleepTime);
-                } catch (InterruptedException e) {
-                    return;
-                }
+                }   break;
+                case FORM:
+                case NESTED_START:
+                case NESTED_END:
+                default:
+                    break;
             }
         }
+        parts.close();
     }
 
     /**

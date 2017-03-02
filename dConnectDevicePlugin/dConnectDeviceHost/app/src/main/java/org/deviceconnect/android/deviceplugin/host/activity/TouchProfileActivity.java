@@ -24,11 +24,14 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
+import android.util.Log;
 import android.view.GestureDetector;
 import android.view.GestureDetector.SimpleOnGestureListener;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
+
+import static org.deviceconnect.android.deviceplugin.host.profile.HostTouchProfile.ATTRIBUTE_ON_TOUCH_CHANGE;
 
 /**
  * Touch Profile Activity.
@@ -103,15 +106,16 @@ public class TouchProfileActivity extends Activity {
     @Override
     public boolean onTouchEvent(final MotionEvent event) {
         List<Event> events;
-
+        String state = null;
         switch (event.getAction() & MotionEvent.ACTION_MASK) {
         case MotionEvent.ACTION_DOWN: // 1st touch only.
         case MotionEvent.ACTION_POINTER_DOWN: // Others touch.
+            state = HostDeviceApplication.STATE_START;
             // "ontouch" event processing.
             events = EventManager.INSTANCE.getEventList(mServiceId, TouchProfile.PROFILE_NAME, null,
                     TouchProfile.ATTRIBUTE_ON_TOUCH);
             if (events != null) {
-                sendEventData(event, events);
+                sendEventData(state, event, events);
             }
 
             // "ontouchstart" event processing.
@@ -120,16 +124,19 @@ public class TouchProfileActivity extends Activity {
             break;
         case MotionEvent.ACTION_UP: // Last touch remove only.
         case MotionEvent.ACTION_POINTER_UP: // Others touch move.
+            state = HostDeviceApplication.STATE_END;
             // "ontouchend" event processing.
             events = EventManager.INSTANCE.getEventList(mServiceId, TouchProfile.PROFILE_NAME, null,
                     TouchProfile.ATTRIBUTE_ON_TOUCH_END);
             break;
         case MotionEvent.ACTION_MOVE:
+            state = HostDeviceApplication.STATE_MOVE;
             // "ontouchmove" event processing.
             events = EventManager.INSTANCE.getEventList(mServiceId, TouchProfile.PROFILE_NAME, null,
                     TouchProfile.ATTRIBUTE_ON_TOUCH_MOVE);
             break;
         case MotionEvent.ACTION_CANCEL:
+            state = HostDeviceApplication.STATE_CANCEL;
             // "ontouchcancel" event processing.
             events = EventManager.INSTANCE.getEventList(mServiceId, TouchProfile.PROFILE_NAME, null,
                     TouchProfile.ATTRIBUTE_ON_TOUCH_CANCEL);
@@ -139,7 +146,7 @@ public class TouchProfileActivity extends Activity {
         }
 
         if (events != null) {
-            sendEventData(event, events);
+            sendEventData(state, event, events);
         }
         return mGestureDetector.onTouchEvent(event);
     }
@@ -154,31 +161,33 @@ public class TouchProfileActivity extends Activity {
             List<Event> events = EventManager.INSTANCE.getEventList(mServiceId, TouchProfile.PROFILE_NAME, null,
                     TouchProfile.ATTRIBUTE_ON_DOUBLE_TAP);
 
-            sendEventData(event, events);
+            sendEventData(HostDeviceApplication.STATE_DOUBLE_TAP, event, events);
             return super.onDoubleTap(event);
         }
     };
 
     /**
      * Send event data.
-     * 
+     *
+     * @param state MotionEvent state.
      * @param event MotionEvent.
      * @param events Event request list.
      */
-    private void sendEventData(final MotionEvent event, final List<Event> events) {
-
+    private void sendEventData(final String state, final MotionEvent event, final List<Event> events) {
+        List<Event> touchEvents = EventManager.INSTANCE.getEventList(mServiceId, TouchProfile.PROFILE_NAME, null,
+                ATTRIBUTE_ON_TOUCH_CHANGE);
+        Bundle touchdata = new Bundle();
+        List<Bundle> touchlist = new ArrayList<Bundle>();
+        Bundle touches = new Bundle();
+        for (int n = 0; n < event.getPointerCount(); n++) {
+            int pointerId = event.getPointerId(n);
+            touchdata.putInt(TouchProfile.PARAM_ID, pointerId);
+            touchdata.putFloat(TouchProfile.PARAM_X, event.getX(n));
+            touchdata.putFloat(TouchProfile.PARAM_Y, event.getY(n));
+            touchlist.add((Bundle) touchdata.clone());
+        }
+        touches.putParcelableArray(TouchProfile.PARAM_TOUCHES, touchlist.toArray(new Bundle[touchlist.size()]));
         for (int i = 0; i < events.size(); i++) {
-            Bundle touchdata = new Bundle();
-            List<Bundle> touchlist = new ArrayList<Bundle>();
-            Bundle touches = new Bundle();
-            for (int n = 0; n < event.getPointerCount(); n++) {
-                int pointerId = event.getPointerId(n);
-                touchdata.putInt(TouchProfile.PARAM_ID, pointerId);
-                touchdata.putFloat(TouchProfile.PARAM_X, event.getX(n));
-                touchdata.putFloat(TouchProfile.PARAM_Y, event.getY(n));
-                touchlist.add((Bundle) touchdata.clone());
-            }
-            touches.putParcelableArray(TouchProfile.PARAM_TOUCHES, touchlist.toArray(new Bundle[touchlist.size()]));
             Event eventdata = events.get(i);
             String attr = eventdata.getAttribute();
             Intent intent = EventManager.createEventMessage(eventdata);
@@ -186,6 +195,15 @@ public class TouchProfileActivity extends Activity {
             getBaseContext().sendBroadcast(intent);
             mApp.setTouchCache(attr, touches);
         }
-    }
+        for (int i = 0; i < touchEvents.size(); i++) {
+            Event eventdata = touchEvents.get(i);
+            String attr = eventdata.getAttribute();
+            touches.putString("state", state);
+            Intent intent = EventManager.createEventMessage(eventdata);
+            intent.putExtra(TouchProfile.PARAM_TOUCH, touches);
+            getBaseContext().sendBroadcast(intent);
+            mApp.setTouchCache(attr, touches);
+        }
 
+    }
 }

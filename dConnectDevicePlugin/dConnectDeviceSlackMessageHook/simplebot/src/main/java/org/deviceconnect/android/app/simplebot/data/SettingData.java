@@ -10,8 +10,13 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 
+import org.deviceconnect.profile.AuthorizationProfileConstants;
+import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
+import org.deviceconnect.profile.ServiceInformationProfileConstants;
+import org.deviceconnect.profile.SystemProfileConstants;
+
+import java.util.HashSet;
 import java.util.Set;
-import java.util.UUID;
 
 /**
  * 設定データ管理クラス.
@@ -27,7 +32,6 @@ public class SettingData {
     public String serviceId = null;
     public String serviceName = null;
     public Set<String> scopes = null;
-    public String sessionKey;
 
     /** Context */
     private Context context;
@@ -43,7 +47,22 @@ public class SettingData {
     private SettingData(Context context) {
         this.context = context;
         load();
+
+        if (scopes == null) {
+            scopes = new HashSet<>();
+            scopes.add(SystemProfileConstants.PROFILE_NAME);
+            scopes.add(AuthorizationProfileConstants.PROFILE_NAME);
+            scopes.add(ServiceDiscoveryProfileConstants.PROFILE_NAME);
+            scopes.add(ServiceInformationProfileConstants.PROFILE_NAME);
+            scopes.add("messageHook");
+            // TODO: debug用
+            scopes.add("battery");
+            scopes.add("mediaPlayer");
+            scopes.add("mediaStreamRecording");
+            save();
+        }
     }
+
     /**
      * 共通のインスタンスを返す.
      *
@@ -89,12 +108,9 @@ public class SettingData {
         serviceId = preferences.getString("serviceId", null);
         serviceName = preferences.getString("serviceName", null);
         scopes = preferences.getStringSet("scopes", null);
-        sessionKey = preferences.getString("sessionKey", null);
-        if (sessionKey == null) {
-            sessionKey = UUID.randomUUID().toString();
-            SharedPreferences.Editor editor = preferences.edit();
-            editor.putString("sessionKey", sessionKey);
-            editor.apply();
-        }
+    }
+
+    public String[] getScopes() {
+        return scopes.toArray(new String[scopes.size()]);
     }
 }

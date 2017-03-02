@@ -6,14 +6,15 @@
  */
 package org.deviceconnect.server.nanohttpd.security;
 
+import org.deviceconnect.server.nanohttpd.BuildConfig;
+import org.deviceconnect.server.nanohttpd.logger.AndroidHandler;
+
 import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
-
-import org.deviceconnect.server.nanohttpd.BuildConfig;
-import org.deviceconnect.server.nanohttpd.logger.AndroidHandler;
 
 /**
  * ファイアウォール.
@@ -26,7 +27,7 @@ public final class Firewall {
     private static final String TAG = "Firewall";
 
     /** IPのホワイトリスト. */
-    private ArrayList<String> mIPWhiteList;
+    private List<String> mIPWhiteList;
 
     /** ロガー. */
     private final Logger mLogger = Logger.getLogger("dconnect.server");
@@ -43,7 +44,7 @@ public final class Firewall {
      * 
      * @param ipList IPのホワイトリスト。
      */
-    public Firewall(final ArrayList<String> ipList) {
+    public Firewall(final List<String> ipList) {
         mIPWhiteList = ipList;
         if (BuildConfig.DEBUG) {
             Handler handler = new AndroidHandler(TAG);

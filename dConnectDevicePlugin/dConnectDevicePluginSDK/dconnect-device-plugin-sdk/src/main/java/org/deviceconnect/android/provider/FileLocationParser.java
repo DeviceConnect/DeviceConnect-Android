@@ -69,10 +69,10 @@ final class FileLocationParser {
      * </p>
      * 
      * @param context コンテキスト
+     * @param fileProvider FileProviderクラス名
      * @return ファイルの保存場所
      */
-    public static FileLocation parse(final Context context) {
-        final String className = FileProvider.class.getName();
+    public static FileLocation parse(final Context context, final String fileProvider) {
         PackageManager pkgMgr = context.getPackageManager();
         FileLocation location = null;
         try {
@@ -81,7 +81,7 @@ final class FileLocationParser {
             ProviderInfo[] providers = packageInfo.providers;
             if (providers != null) {
                 for (ProviderInfo provider : providers) {
-                    if (className.equals(provider.name)) {
+                    if (fileProvider.equals(provider.name)) {
                         location = parse(pkgMgr, provider);
                     }
                 }

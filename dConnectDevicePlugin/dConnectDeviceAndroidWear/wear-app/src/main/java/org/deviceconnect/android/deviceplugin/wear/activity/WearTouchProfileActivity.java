@@ -57,7 +57,8 @@ public class WearTouchProfileActivity extends Activity {
     private static final int REGIST_FLAG_TOUCH_TOUCHMOVE = 0x10;
     /** Event flag define (touchcancel). */
     private static final int REGIST_FLAG_TOUCH_TOUCHCANCEL = 0x20;
-
+    /** Touch profile event flag. (ontouchchange). */
+    private static final int REGIST_FLAG_TOUCH_TOUCHCHANGE = 0x0040;
     /**
      * Constructor.
      */
@@ -112,7 +113,8 @@ public class WearTouchProfileActivity extends Activity {
                 }
 
                 // "ontouchstart" event processing.
-                if ((mRegisterEvent & REGIST_FLAG_TOUCH_TOUCHSTART) != 0) {
+                if ((mRegisterEvent & REGIST_FLAG_TOUCH_TOUCHCHANGE) != 0
+                    || (mRegisterEvent & REGIST_FLAG_TOUCH_TOUCHSTART) != 0) {
                     strAction = WearConst.PARAM_TOUCH_TOUCHSTART;
                     execFlag = true;
                 }
@@ -120,21 +122,24 @@ public class WearTouchProfileActivity extends Activity {
             case MotionEvent.ACTION_UP: // Last touch remove only.
             case MotionEvent.ACTION_POINTER_UP: // Others touch move.
                 // "ontouchend" event processing.
-                if ((mRegisterEvent & REGIST_FLAG_TOUCH_TOUCHEND) != 0) {
+                if ((mRegisterEvent & REGIST_FLAG_TOUCH_TOUCHCHANGE) != 0
+                        || (mRegisterEvent & REGIST_FLAG_TOUCH_TOUCHEND) != 0) {
                     strAction = WearConst.PARAM_TOUCH_TOUCHEND;
                     execFlag = true;
                 }
                 break;
             case MotionEvent.ACTION_MOVE:
                 // "ontouchmove" event processing.
-                if ((mRegisterEvent & REGIST_FLAG_TOUCH_TOUCHMOVE) != 0) {
+                if ((mRegisterEvent & REGIST_FLAG_TOUCH_TOUCHCHANGE) != 0
+                        || (mRegisterEvent & REGIST_FLAG_TOUCH_TOUCHMOVE) != 0) {
                     strAction = WearConst.PARAM_TOUCH_TOUCHMOVE;
                     execFlag = true;
                 }
                 break;
             case MotionEvent.ACTION_CANCEL:
                 // "ontouchcancel" event processing.
-                if ((mRegisterEvent & REGIST_FLAG_TOUCH_TOUCHCANCEL) != 0) {
+                if ((mRegisterEvent & REGIST_FLAG_TOUCH_TOUCHCHANGE) != 0
+                        || (mRegisterEvent & REGIST_FLAG_TOUCH_TOUCHCANCEL) != 0) {
                     strAction = WearConst.PARAM_TOUCH_TOUCHCANCEL;
                     execFlag = true;
                 }
@@ -155,7 +160,8 @@ public class WearTouchProfileActivity extends Activity {
     private final SimpleOnGestureListener mSimpleOnGestureListener = new SimpleOnGestureListener() {
         @Override
         public boolean onDoubleTap(final MotionEvent event) {
-            if ((mRegisterEvent & REGIST_FLAG_TOUCH_DOUBLETAP) != 0) {
+            if ((mRegisterEvent & REGIST_FLAG_TOUCH_TOUCHCHANGE) != 0
+                    || (mRegisterEvent & REGIST_FLAG_TOUCH_DOUBLETAP) != 0) {
                 sendEventData(WearConst.PARAM_TOUCH_DOUBLETAP, event);
             }
             return super.onDoubleTap(event);
@@ -230,6 +236,11 @@ public class WearTouchProfileActivity extends Activity {
                 mIds.add(id);
             }
             mRegisterEvent |= REGIST_FLAG_TOUCH_TOUCHCANCEL;
+        } else if (WearConst.DEVICE_TO_WEAR_TOUCH_ONTOUCHCHANGE_REGISTER.equals(regist)) {
+            if (!mIds.contains(id)) {
+                mIds.add(id);
+            }
+            mRegisterEvent |= REGIST_FLAG_TOUCH_TOUCHCHANGE;
         } else if (WearConst.DEVICE_TO_WEAR_TOUCH_ONTOUCH_UNREGISTER.equals(regist)) {
             mIds.remove(id);
             mRegisterEvent &= ~(REGIST_FLAG_TOUCH_TOUCH);
@@ -263,6 +274,12 @@ public class WearTouchProfileActivity extends Activity {
         } else if (WearConst.DEVICE_TO_WEAR_TOUCH_ONTOUCHCANCEL_UNREGISTER.equals(regist)) {
             mIds.remove(id);
             mRegisterEvent &= ~(REGIST_FLAG_TOUCH_TOUCHCANCEL);
+            if (mRegisterEvent == 0) {
+                finish();
+            }
+        } else if (WearConst.DEVICE_TO_WEAR_TOUCH_ONTOUCHCHANGE_UNREGISTER.equals(regist)) {
+            mIds.remove(id);
+            mRegisterEvent &= ~(REGIST_FLAG_TOUCH_TOUCHCHANGE);
             if (mRegisterEvent == 0) {
                 finish();
             }

@@ -36,6 +36,16 @@ public class LinkingKeyEventProfile extends KeyEventProfile implements LinkingDe
     private static final int TIMEOUT = 30 * 1000;
     private static final String TAG = "LinkingPlugIn";
 
+    /**
+     * Attribute: {@value} .
+     */
+    public static final String ATTRIBUTE_ON_KEY_CHANGE = "onKeyChange";
+
+    /**
+     * Parameter: {@value} .
+     */
+    public static final String PARAM_STATE = "state";
+
     public LinkingKeyEventProfile(final DConnectMessageService service) {
         LinkingApplication app = (LinkingApplication) service.getApplication();
         LinkingBeaconManager mgr = app.getLinkingBeaconManager();
@@ -44,6 +54,9 @@ public class LinkingKeyEventProfile extends KeyEventProfile implements LinkingDe
         addApi(mGetOnDown);
         addApi(mPutOnDown);
         addApi(mDeleteOnDown);
+        addApi(mGetOnKeyChangeApi);
+        addApi(mPutOnKeyChangeApi);
+        addApi(mDeleteOnKeyChangeApi);
     }
 
     private final LinkingBeaconManager.OnBeaconButtonEventListener mListener = new LinkingBeaconManager.OnBeaconButtonEventListener() {
@@ -172,6 +185,130 @@ public class LinkingKeyEventProfile extends KeyEventProfile implements LinkingDe
         }
     };
 
+    private final DConnectApi mGetOnKeyChangeApi = new GetApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_KEY_CHANGE;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            LinkingBeaconManager mgr = getLinkingBeaconManager();
+            LinkingBeacon beacon = ((LinkingBeaconService) getService()).getLinkingBeacon();
+
+            ButtonData button = beacon.getButtonData();
+            if (button != null && System.currentTimeMillis() - button.getTimeStamp() < TIMEOUT) {
+                setKeyEvent(response, createKeyEvent(button.getKeyCode(), button.getTimeStamp()));
+                mgr.startBeaconScanWithTimeout(TIMEOUT);
+                return true;
+            }
+
+            mgr.addOnBeaconButtonEventListener(new OnBeaconButtonEventListenerImpl(mgr, beacon) {
+                @Override
+                public void onClickButton(final LinkingBeacon beacon, final int keyCode, final long timeStamp) {
+                    if (mCleanupFlag || !beacon.equals(mBeacon)) {
+                        return;
+                    }
+
+                    if (BuildConfig.DEBUG) {
+                        Log.i(TAG, "onClickButton: beacon=" + beacon.getDisplayName() + " button=" + keyCode);
+                    }
+
+                    Bundle keyEvent = createKeyEvent(keyCode, timeStamp);
+                    keyEvent.putString(PARAM_STATE, "down");
+                    setKeyEvent(response, keyEvent);
+                    sendResponse(response);
+                    cleanup();
+                }
+
+                @Override
+                public void onDisableScan(final String message) {
+                    if (mCleanupFlag) {
+                        return;
+                    }
+
+                    if (BuildConfig.DEBUG) {
+                        Log.i(TAG, "onClickButton: disable scan.");
+                    }
+
+                    MessageUtils.setIllegalDeviceStateError(response, message);
+                    sendResponse(response);
+                }
+
+                @Override
+                public void onCleanup() {
+                    mBeaconManager.removeOnBeaconButtonEventListener(this);
+                }
+
+                @Override
+                public void onTimeout() {
+                    if (mCleanupFlag) {
+                        return;
+                    }
+
+                    if (BuildConfig.DEBUG) {
+                        Log.i(TAG, "onClickButton: timeout");
+                    }
+
+                    MessageUtils.setTimeoutError(response);
+                    sendResponse(response);
+                }
+            });
+            mgr.startBeaconScanWithTimeout(10 * 1000);
+            return false;
+        }
+    };
+
+    private final DConnectApi mPutOnKeyChangeApi = new PutApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_KEY_CHANGE;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            EventError error = EventManager.INSTANCE.addEvent(request);
+            if (error == EventError.NONE) {
+                getLinkingBeaconManager().startBeaconScan();
+                setResult(response, DConnectMessage.RESULT_OK);
+            } else if (error == EventError.INVALID_PARAMETER) {
+                MessageUtils.setInvalidRequestParameterError(response);
+            } else {
+                MessageUtils.setUnknownError(response);
+            }
+            return true;
+        }
+    };
+
+    private final DConnectApi mDeleteOnKeyChangeApi = new DeleteApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_KEY_CHANGE;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            EventError error = EventManager.INSTANCE.removeEvent(request);
+            if (error == EventError.NONE) {
+                if (BeaconUtil.isEmptyEvent(getLinkingBeaconManager())) {
+                    if (BuildConfig.DEBUG) {
+                        Log.d(TAG, "Linking Beacon Event is empty.");
+                    }
+                    getLinkingBeaconManager().stopBeaconScan();
+                }
+                setResult(response, DConnectMessage.RESULT_OK);
+            } else if (error == EventError.INVALID_PARAMETER) {
+                MessageUtils.setInvalidRequestParameterError(response);
+            } else {
+                MessageUtils.setUnknownError(response);
+            }
+            return true;
+        }
+    };
+
     @Override
     public void onDestroy() {
         if (BuildConfig.DEBUG) {
@@ -202,12 +339,24 @@ public class LinkingKeyEventProfile extends KeyEventProfile implements LinkingDe
         }
 
         String serviceId = beacon.getServiceId();
-        List<Event> events = EventManager.INSTANCE.getEventList(serviceId,
+        List<Event> keyDownEvents = EventManager.INSTANCE.getEventList(serviceId,
                 PROFILE_NAME, null, ATTRIBUTE_ON_DOWN);
-        if (events != null && events.size() > 0) {
-            for (Event event : events) {
+        if (keyDownEvents != null && keyDownEvents.size() > 0) {
+            for (Event event : keyDownEvents) {
                 Intent intent = EventManager.createEventMessage(event);
                 setKeyEvent(intent, createKeyEvent(keyCode, timeStamp));
+                sendEvent(intent, event.getAccessToken());
+            }
+        }
+
+        List<Event> keyChangeEvents = EventManager.INSTANCE.getEventList(serviceId,
+                PROFILE_NAME, null, ATTRIBUTE_ON_KEY_CHANGE);
+        if (keyChangeEvents != null && keyChangeEvents.size() > 0) {
+            for (Event event : keyChangeEvents) {
+                Bundle keyEvent = createKeyEvent(keyCode, timeStamp);
+                keyEvent.putString(PARAM_STATE, "down");
+                Intent intent = EventManager.createEventMessage(event);
+                setKeyEvent(intent, keyEvent);
                 sendEvent(intent, event.getAccessToken());
             }
         }

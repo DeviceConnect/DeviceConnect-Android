@@ -52,9 +52,6 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
     /** Debug Tag. */
     private static final String TAG = "HOST";
 
-    /** Error. */
-    private static final int ERROR_VALUE_IS_NULL = 100;
-
     /** ミリ秒 - 秒オーダー変換用. */
     private static final int UNIT_SEC = 1000;
 
@@ -359,7 +356,7 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
             int pos = mHostMediaPlayerManager.getMediaPos();
             if (pos < 0) {
                 setPos(response, 0);
-                MessageUtils.setError(response, DConnectMessage.RESULT_ERROR, "Position acquisition failure.");
+                MessageUtils.setUnknownError(response, "Position acquisition failure.");
             } else if (pos == Integer.MAX_VALUE) {
                 mHostMediaPlayerManager.setVideoMediaPosRes(response);
                 return false;
@@ -439,7 +436,7 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
                 mHostMediaPlayerManager.registerOnStatusChange(response, serviceId);
                 return false;
             } else {
-                MessageUtils.setError(response, ERROR_VALUE_IS_NULL, "Can not register event.");
+                MessageUtils.setInvalidRequestParameterError(response, "Can not register event.");
                 return true;
             }
         }
@@ -460,7 +457,7 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
                 mHostMediaPlayerManager.unregisterOnStatusChange(response);
                 return false;
             } else {
-                MessageUtils.setError(response, ERROR_VALUE_IS_NULL, "Can not unregister event.");
+                MessageUtils.setInvalidRequestParameterError(response, "Can not unregister event.");
                 return true;
             }
         }

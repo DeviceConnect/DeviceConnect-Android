@@ -257,7 +257,7 @@ public class HostConnectProfile extends ConnectProfile {
                 setResult(response, DConnectMessage.RESULT_OK);
                 return true;
             } else {
-                MessageUtils.setError(response, 100, "Can not unregister event.");
+                MessageUtils.setInvalidRequestParameterError(response, "Can not unregister event.");
                 return true;
             }
         }
@@ -278,7 +278,7 @@ public class HostConnectProfile extends ConnectProfile {
                 setResult(response, DConnectMessage.RESULT_OK);
                 return true;
             } else {
-                MessageUtils.setError(response, 100, "Can not unregister event.");
+                MessageUtils.setInvalidRequestParameterError(response, "Can not unregister event.");
                 return true;
             }
         }

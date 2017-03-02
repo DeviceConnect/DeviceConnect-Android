@@ -33,9 +33,7 @@ import org.deviceconnect.message.intent.message.IntentDConnectMessage;
  */
 public class HostKeyEventProfile extends KeyEventProfile {
 
-    /** Error. */
-    private static final int ERROR_PROCESSING_ERROR = 100;
-
+ 
     /** Key Event profile event management flag. */
     private static int sFlagKeyEventEventManage = 0;
     /** Key Event profile event flag. (ondown) */
@@ -87,7 +85,7 @@ public class HostKeyEventProfile extends KeyEventProfile {
                 setKeyEventEventFlag(FLAG_ON_KEY_CHANGE);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
-                MessageUtils.setError(response, ERROR_PROCESSING_ERROR, "Can not register event.");
+                MessageUtils.setInvalidRequestParameterError(response,  "Can not register event.");
             }
             return true;
         }
@@ -108,7 +106,7 @@ public class HostKeyEventProfile extends KeyEventProfile {
                 resetKeyEventEventFlag(FLAG_ON_KEY_CHANGE);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
-                MessageUtils.setError(response, ERROR_PROCESSING_ERROR, "Can not unregister event.");
+                MessageUtils.setInvalidRequestParameterError(response, "Can not unregister event.");
             }
             return true;
         }
@@ -150,7 +148,7 @@ public class HostKeyEventProfile extends KeyEventProfile {
                 setKeyEventEventFlag(FLAG_ON_DOWN);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
-                MessageUtils.setError(response, ERROR_PROCESSING_ERROR, "Can not register event.");
+                MessageUtils.setInvalidRequestParameterError(response, "Can not register event.");
             }
             return true;
         }
@@ -171,7 +169,7 @@ public class HostKeyEventProfile extends KeyEventProfile {
                 resetKeyEventEventFlag(FLAG_ON_DOWN);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
-                MessageUtils.setError(response, ERROR_PROCESSING_ERROR, "Can not unregister event.");
+                MessageUtils.setInvalidRequestParameterError(response, "Can not unregister event.");
             }
             return true;
         }
@@ -214,7 +212,7 @@ public class HostKeyEventProfile extends KeyEventProfile {
                 setKeyEventEventFlag(FLAG_ON_UP);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
-                MessageUtils.setError(response, ERROR_PROCESSING_ERROR, "Can not register event.");
+                MessageUtils.setInvalidRequestParameterError(response, "Can not register event.");
             }
             return true;
         }
@@ -235,7 +233,7 @@ public class HostKeyEventProfile extends KeyEventProfile {
                 resetKeyEventEventFlag(FLAG_ON_UP);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
-                MessageUtils.setError(response, ERROR_PROCESSING_ERROR, "Can not unregister event.");
+                MessageUtils.setInvalidRequestParameterError(response, "Can not unregister event.");
             }
             return true;
         }

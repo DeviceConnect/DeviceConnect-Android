@@ -186,10 +186,11 @@ public class HostDeviceApplication extends Application {
     Bundle mOnKeyChangeCache = null;
     /** KeyEvent profile onKeyChange cache time. */
     static long sOnKeyChangeCacheTime = 0;
-    /** Touch State move. */
+    /** KeyEvent State move. */
     public static final String STATE_UP = "up";
-    /** Touch State cancel. */
-    public static final String STATE_DOWN = "down";    /**
+    /** KeyEvent State cancel. */
+    public static final String STATE_DOWN = "down";
+    /**
      * Get KeyEvent cache data.
      * 
      * @param attr Attribute.

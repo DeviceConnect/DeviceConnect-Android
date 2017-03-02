@@ -37,7 +37,30 @@ public class SWKeyEventProfile extends KeyEventProfile {
     private static final int FLAG_ON_DOWN = 0x0001;
     /** Key Event  profile event flag. (onup) */
     private static final int FLAG_ON_UP = 0x0002;
+    /** Key Event  profile event flag. (onkeychange) */
+    private static final int FLAG_ON_KEY_CHANGE = 0x0004;
+    /**
+     * Attribute: {@value} .
+     */
+    public static final String ATTRIBUTE_ON_KEY_CHANGE = "onKeyChange";
+    private final DConnectApi mGetOnKeyChangeApi = new GetApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_KEY_CHANGE;
+        }
 
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            Bundle keyevent = SWApplication.getKeyEventCache(ATTRIBUTE_ON_KEY_CHANGE);
+            if (keyevent == null) {
+                response.putExtra(KeyEventProfile.PARAM_KEYEVENT, "");
+            } else {
+                response.putExtra(KeyEventProfile.PARAM_KEYEVENT, keyevent);
+            }
+            setResult(response, DConnectMessage.RESULT_OK);
+            return true;
+        }
+    };
     private final DConnectApi mGetOnDownApi = new GetApi() {
         @Override
         public String getAttribute() {
@@ -75,7 +98,27 @@ public class SWKeyEventProfile extends KeyEventProfile {
             return true;
         }
     };
+    private final DConnectApi mPutOnKeyChangeApi = new PutApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_KEY_CHANGE;
+        }
 
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            EventError error = EventManager.INSTANCE.addEvent(request);
+            if (error == EventError.NONE) {
+                setResult(response, DConnectMessage.RESULT_OK);
+                displayKeyEventScreen();
+                setKeyEventEventFlag(FLAG_ON_KEY_CHANGE);
+            } else if (error == EventError.INVALID_PARAMETER) {
+                MessageUtils.setInvalidRequestParameterError(response);
+            } else {
+                MessageUtils.setUnknownError(response);
+            }
+            return true;
+        }
+    };
     private final DConnectApi mPutOnDownApi = new PutApi() {
         @Override
         public String getAttribute() {
@@ -119,7 +162,28 @@ public class SWKeyEventProfile extends KeyEventProfile {
             return true;
         }
     };
+    private final DConnectApi mDeleteOnKeyChangeApi = new DeleteApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_KEY_CHANGE;
+        }
 
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            EventError error = EventManager.INSTANCE.removeEvent(request);
+            if (error == EventError.NONE) {
+                setResult(response, DConnectMessage.RESULT_OK);
+                if (!(resetKeyEventEventFlag(FLAG_ON_KEY_CHANGE))) {
+                    clearKeyEventScreen();
+                }
+            } else if (error == EventError.INVALID_PARAMETER) {
+                MessageUtils.setInvalidRequestParameterError(response);
+            } else {
+                MessageUtils.setUnknownError(response);
+            }
+            return true;
+        }
+    };
     private final DConnectApi mDeleteOnDownApi = new DeleteApi() {
         @Override
         public String getAttribute() {
@@ -167,10 +231,13 @@ public class SWKeyEventProfile extends KeyEventProfile {
     };
 
     public SWKeyEventProfile() {
+        addApi(mGetOnKeyChangeApi);
         addApi(mGetOnDownApi);
         addApi(mGetOnUpApi);
+        addApi(mPutOnKeyChangeApi);
         addApi(mPutOnDownApi);
         addApi(mPutOnUpApi);
+        addApi(mDeleteOnKeyChangeApi);
         addApi(mDeleteOnDownApi);
         addApi(mDeleteOnUpApi);
     }
@@ -178,7 +245,7 @@ public class SWKeyEventProfile extends KeyEventProfile {
     /**
      * Display Key Event screen.
      */
-    protected void displayKeyEventScreen() {
+    private void displayKeyEventScreen() {
         Intent intent = new Intent(Control.Intents.CONTROL_PROCESS_LAYOUT_INTENT);
         if (((SWService) getService()).getWatchType() == SWService.WatchType.SW2) {
             intent.putExtra(Control.Intents.EXTRA_DATA_XML_LAYOUT, R.layout.keyevent_control);
@@ -191,15 +258,13 @@ public class SWKeyEventProfile extends KeyEventProfile {
     /**
      * Clear KeyEvent screen.
      */
-    protected void clearKeyEventScreen() {
+    private void clearKeyEventScreen() {
         if (((SWService) getService()).getWatchType() == SWService.WatchType.SW2) {
             Intent intent = new Intent(Control.Intents.CONTROL_CLEAR_DISPLAY_INTENT);
             sendToHostApp(intent);
             intent = new Intent(Control.Intents.CONTROL_PROCESS_LAYOUT_INTENT);
             intent.putExtra(Control.Intents.EXTRA_DATA_XML_LAYOUT, R.layout.touch_clear_control_sw2);
             sendToHostApp(intent);
-        } else  {
-            return; // This function not implemented. Because SW could not redraw xml layout data.
         }
     }
 
@@ -220,10 +285,7 @@ public class SWKeyEventProfile extends KeyEventProfile {
      */
     private boolean resetKeyEventEventFlag(final int flag) {
         sFlagKeyEventEventManage &= ~(flag);
-        if (sFlagKeyEventEventManage == 0) {
-            return false;
-        }
-        return true;
+        return sFlagKeyEventEventManage == 0;
     }
 
     private void sendToHostApp(final Intent request) {

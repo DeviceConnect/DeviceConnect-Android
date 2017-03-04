@@ -14,6 +14,9 @@ import android.net.Uri;
 import android.webkit.MimeTypeMap;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -35,6 +38,15 @@ public final class CanvasDrawUtils {
      * Defined a size of size.
      */
     private static final int MAX_SIZE = 2048;
+    /**
+     * 接続のタイムアウト.
+     */
+    private static final int CONNECT_TIMEOUT = 10 * 1000;
+
+    /**
+     * 読み込みのタイムアウト時間.
+     */
+    private static final int READ_TIMEOUT = 3 * 60 * 1000;
 
     /**
      * Constructor.
@@ -138,6 +150,40 @@ public final class CanvasDrawUtils {
         return false;
     }
 
+    /**
+     * Get Cache data.
+     * @param uri cache uri
+     * @return cache binary
+     */
+    public static byte[] getCacheData(final String uri) {
+        InputStream inputStream = null;
+        File f = new File(uri);
+        byte[] buf = new byte[(int) f.length()];
+        try {
+            inputStream = new FileInputStream(f);
+            buf = readAll(inputStream);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (inputStream != null) {
+                    inputStream.close();
+                }
+            } catch (IOException exception) {
+                exception.printStackTrace();
+            }
+        }
+        return buf;
+    }
+
+    /**
+     * Download Image.
+     * @param uri http uri
+     * @return binary
+     * @throws OutOfMemoryError
+     */
     public static byte[] getData(String uri) throws OutOfMemoryError {
         HttpURLConnection connection = null;
         InputStream inputStream = null;
@@ -146,6 +192,8 @@ public final class CanvasDrawUtils {
             URL url = new URL(uri);
             connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("GET");
+            connection.setConnectTimeout(CONNECT_TIMEOUT);
+            connection.setReadTimeout(READ_TIMEOUT);
             connection.connect();
             inputStream = connection.getInputStream();
             data = readAll(inputStream);

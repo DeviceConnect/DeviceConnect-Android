@@ -115,7 +115,7 @@ public class HostDeviceService extends DConnectMessageService {
         hostService.setName(SERVICE_NAME);
         hostService.setOnline(true);
         hostService.addProfile(new HostBatteryProfile(mHostBatteryManager));
-        hostService.addProfile(new HostCanvasProfile(mFileMgr));
+        hostService.addProfile(new HostCanvasProfile());
         hostService.addProfile(new HostConnectProfile(BluetoothAdapter.getDefaultAdapter()));
         hostService.addProfile(new HostDeviceOrientationProfile());
         hostService.addProfile(new HostFileDescriptorProfile(mFileDataManager));

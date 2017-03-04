@@ -27,9 +27,37 @@ import static org.deviceconnect.android.deviceplugin.kadecot.service.KadecotServ
  */
 public class KadecotTemperatureProfile extends DConnectProfile {
 
-    private static final int TYPE_CELSIUS = 1;
-    private static final int TYPE_FAHRENHEIT = 2;
+    /**
+     * Type of temperature.
+     */
+    public enum TemperatureType {
+        Celsius(1),
+        CelsiusFahrenheit(2);
 
+        /**
+         * type.
+         */
+        private int mValue;
+
+        /**
+         * Generate enum as specified value.
+         *
+         * @param value type
+         */
+        TemperatureType(final int value) {
+            mValue = value;
+        }
+
+        /**
+         * Get type
+         *
+         * @return type
+         */
+        public int getValue() {
+            return mValue;
+        }
+
+    }
     public KadecotTemperatureProfile() {
 
         // GET /gotapi/temperature/
@@ -79,9 +107,9 @@ public class KadecotTemperatureProfile extends DConnectProfile {
                     try {
                         type = Integer.valueOf(typeString);
                     } catch(NumberFormatException e) {
-                        type = TYPE_CELSIUS;
+                        type = TemperatureType.Celsius.getValue();
                     }
-                    if (type == TYPE_FAHRENHEIT) {
+                    if (type == TemperatureType.CelsiusFahrenheit.getValue()) {
                         propertyValue = "" + convertCelsiusToFahrenheit(Integer.valueOf(propertyValue));
                     }
                     response.putExtra("temperature", propertyValue);
@@ -112,7 +140,7 @@ public class KadecotTemperatureProfile extends DConnectProfile {
         try {
             type = Integer.valueOf(typeString);
         } catch(NumberFormatException e) {
-            type = TYPE_CELSIUS;
+            type = TemperatureType.Celsius.getValue();
         }
         String strValue = request.getStringExtra("temperature");
         try {
@@ -120,7 +148,7 @@ public class KadecotTemperatureProfile extends DConnectProfile {
         } catch (NumberFormatException e) {
             value = -1;
         }
-        if (type == TYPE_CELSIUS) {
+        if (type == TemperatureType.Celsius.getValue()) {
             if (value == -1 || value < 0 || value > 50) {
                 MessageUtils.setInvalidRequestParameterError(response);
                 sendResponse(response);

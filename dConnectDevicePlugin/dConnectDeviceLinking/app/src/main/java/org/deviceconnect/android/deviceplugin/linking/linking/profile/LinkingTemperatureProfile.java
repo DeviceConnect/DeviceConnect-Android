@@ -56,7 +56,7 @@ public class LinkingTemperatureProfile extends TemperatureProfile {
                         return;
                     }
 
-                    setTemperatureToResponse(response, temperature);
+                    setTemperatureToResponse(request, response, temperature);
                     sendResponse(response);
                     cleanup();
                 }
@@ -65,10 +65,17 @@ public class LinkingTemperatureProfile extends TemperatureProfile {
         }
     };
 
-    private void setTemperatureToResponse(final Intent response, final float temperature) {
+    private void setTemperatureToResponse(final Intent request, final Intent response, final float temperature) {
+        int type = TemperatureProfile.getType(request);
+        TemperatureType tType = TemperatureType.TYPE_CELSIUS;
+        float temp = temperature;
+        if (type == TemperatureType.TYPE_FAHRENHEIT.getValue()) {
+            temp = TemperatureProfile.convertCelsiusToFahrenheit((int) temp);
+            tType = TemperatureType.TYPE_FAHRENHEIT;
+        }
         setResult(response, DConnectMessage.RESULT_OK);
-        setTemperature(response, temperature);
-        setTemperatureType(response, TemperatureType.TYPE_CELSIUS);
+        setTemperature(response, temp);
+        setTemperatureType(response, tType);
         setTimeStamp(response, System.currentTimeMillis());
     }
 

@@ -66,7 +66,7 @@
                 }
             }
         },
-        "/operationPowerSaving": {
+        "/powerSaving": {
             "get": {
                 "x-type": "one-shot",
                 "summary": "",
@@ -97,7 +97,7 @@
                         "type": "string"
                     },
                     {
-                        "name": "operationpowersaving",
+                        "name": "powersaving",
                         "in": "formData",
                         "required": true,
                         "type": "string",
@@ -111,7 +111,7 @@
                 }
             }
         },
-        "/operationModeSetting": {
+        "/modeSetting": {
             "get": {
                 "x-type": "one-shot",
                 "summary": "",
@@ -142,7 +142,7 @@
                         "type": "string"
                     },
                     {
-                        "name": "operationmodesetting",
+                        "name": "modesetting",
                         "in": "formData",
                         "required": true,
                         "type": "string",
@@ -176,7 +176,7 @@
                 }
             }
         },
-        "/temperatureValue": {
+        "/temperature": {
             "get": {
                 "x-type": "one-shot",
                 "summary": "",
@@ -207,7 +207,7 @@
                         "type": "string"
                     },
                     {
-                        "name": "temperaturevalue",
+                        "name": "temperature",
                         "in": "formData",
                         "required": true,
                         "type": "integer",
@@ -222,7 +222,7 @@
                 }
             }
         },
-        "/airFlowValue": {
+        "/airFlow": {
             "get": {
                 "x-type": "one-shot",
                 "summary": "",
@@ -253,7 +253,7 @@
                         "type": "string"
                     },
                     {
-                        "name": "airflowvalue",
+                        "name": "airflow",
                         "in": "formData",
                         "required": false,
                         "type": "number",

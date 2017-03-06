@@ -8,5 +8,6 @@
     <profile name="light" />
     <profile name="echonetLite" />
     <profile name="temperature" />
+    <profile name="power" />
 
 </deviceplugin-provider>

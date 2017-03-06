@@ -65,7 +65,14 @@ public class HostCanvasProfile extends CanvasProfile {
                 mImageService.execute(new Runnable() {
                     @Override
                     public void run() {
-                        byte[] result = getData(uri);
+                        byte[] result;
+                        try {
+                            result = getData(uri);
+                        } catch (OutOfMemoryError e) {
+                            MessageUtils.setInvalidRequestParameterError(response, e.getMessage());
+                            sendResponse(response);
+                            return;
+                        }
                         if (result == null) {
                             MessageUtils.setInvalidRequestParameterError(response, "could not get image from uri.");
                             sendResponse(response);
@@ -114,9 +121,9 @@ public class HostCanvasProfile extends CanvasProfile {
     }
 
     private void drawImage(Intent response, byte[] data, CanvasDrawImageObject.Mode enumMode, double x, double y) {
-        if (!CanvasDrawUtils.checkBitmap(data)) {
+        if (!CanvasDrawUtils.checkBitmap(data) || data.length > 1024 * 1024) {
             MessageUtils.setInvalidRequestParameterError(response,
-                    "The width and height of image must be less than 2048px.");
+                    "The width and height of image must be less than 2048px, or under 1MB");
             return;
         }
 

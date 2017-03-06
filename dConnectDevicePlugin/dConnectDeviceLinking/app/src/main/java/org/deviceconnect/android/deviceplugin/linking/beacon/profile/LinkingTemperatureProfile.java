@@ -39,7 +39,7 @@ public class LinkingTemperatureProfile extends TemperatureProfile {
 
             TemperatureData temperature = beacon.getTemperatureData();
             if (temperature != null && System.currentTimeMillis() - temperature.getTimeStamp() < TIMEOUT) {
-                setTemperatureToResponse(response, temperature);
+                setTemperatureToResponse(request, response, temperature);
                 mgr.startBeaconScanWithTimeout(TIMEOUT);
                 return true;
             }
@@ -88,7 +88,7 @@ public class LinkingTemperatureProfile extends TemperatureProfile {
                         Log.i(TAG, "onTemperature: beacon=" + beacon.getDisplayName() + " temperature=" + temperature.getValue());
                     }
 
-                    setTemperatureToResponse(response, temperature);
+                    setTemperatureToResponse(request, response, temperature);
                     sendResponse(response);
                     cleanup();
                 }
@@ -98,11 +98,18 @@ public class LinkingTemperatureProfile extends TemperatureProfile {
         }
     };
 
-    private void setTemperatureToResponse(final Intent response, final TemperatureData temperatureData) {
+    private void setTemperatureToResponse(final Intent request, final Intent response, final TemperatureData temperatureData) {
+        int type = TemperatureProfile.getType(request);
+        TemperatureType tType = TemperatureType.TYPE_CELSIUS;
+        float temp = temperatureData.getValue();
+        if (type == TemperatureType.TYPE_FAHRENHEIT.getValue()) {
+            temp = TemperatureProfile.convertCelsiusToFahrenheit(temp);
+            tType = TemperatureType.TYPE_FAHRENHEIT;
+        }
         setResult(response, DConnectMessage.RESULT_OK);
-        setTemperature(response, temperatureData.getValue());
-        setTemperatureType(response, TemperatureType.TYPE_CELSIUS);
-        setTimeStamp(response, temperatureData.getTimeStamp());
+        setTemperature(response, temp);
+        setTemperatureType(response, tType);
+        setTimeStamp(response, System.currentTimeMillis());
     }
 
     private LinkingBeaconManager getLinkingBeaconManager() {

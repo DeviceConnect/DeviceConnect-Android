@@ -223,7 +223,8 @@ public class SlackMessageHookProfile extends MessageHookProfile {
         }
     };
     /**
-     * メッセージ取得API
+     * メッセージ取得API.
+     * メッセージ履歴の最新の一件を返却する.
      */
     private final DConnectApi mGetOnMessageApi = new GetApi() {
 
@@ -234,7 +235,32 @@ public class SlackMessageHookProfile extends MessageHookProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            return getMessage(request, response);
+            // ServiceIDチェック
+            String serviceId = getServiceID(request);
+            if (checkServiceId(serviceId, response)) {
+                return true;
+            }
+
+            // 接続チェック
+            if (!SlackManager.INSTANCE.isConnected()) {
+                MessageUtils.setUnknownError(response, "Not connected to the Slack server");
+                return true;
+            }
+
+            new Thread() {
+                @Override
+                public void run() {
+                    // 履歴を返す
+                    SlackMessageHookDeviceService service = (SlackMessageHookDeviceService) getContext();
+                    List<Bundle> history = service.getHistory();
+                    if (history.size() > 0) {
+                        response.putExtra(PARAM_MESSAGE, history.get(history.size() - 1));
+                    }
+                    setResult(response, DConnectMessage.RESULT_OK);
+                    service.sendResponse(response);
+                }
+            }.start();
+            return false;
         }
     };
     /**

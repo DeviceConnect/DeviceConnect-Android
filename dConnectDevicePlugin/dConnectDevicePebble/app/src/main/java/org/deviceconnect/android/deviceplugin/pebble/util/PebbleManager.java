@@ -28,7 +28,7 @@ import org.deviceconnect.profile.BatteryProfileConstants;
 import org.deviceconnect.profile.CanvasProfileConstants.Mode;
 import org.deviceconnect.profile.DeviceOrientationProfileConstants;
 import org.deviceconnect.profile.KeyEventProfileConstants;
-import org.deviceconnect.profile.SettingsProfileConstants;
+import org.deviceconnect.profile.SettingProfileConstants;
 import org.deviceconnect.profile.VibrationProfileConstants;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -825,7 +825,7 @@ public final class PebbleManager {
             return PROFILE_DEVICE_ORIENTATION;
         } else if (VibrationProfileConstants.PROFILE_NAME.equals(profile)) {
             return PROFILE_VIBRATION;
-        } else if (SettingsProfileConstants.PROFILE_NAME.equals(profile)) {
+        } else if (SettingProfileConstants.PROFILE_NAME.equals(profile)) {
             return PROFILE_SETTING;
         } else if (KeyEventProfileConstants.PROFILE_NAME.equals(profile)) {
             return PROFILE_KEY_EVENT;

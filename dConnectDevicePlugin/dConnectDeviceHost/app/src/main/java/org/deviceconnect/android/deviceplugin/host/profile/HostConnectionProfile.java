@@ -1,6 +1,6 @@
 /*
- HostConnectProfile.java
- Copyright (c) 2014 NTT DOCOMO,INC.
+ HostConnectionProfile.java
+ Copyright (c) 2017 NTT DOCOMO,INC.
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
  */
@@ -20,7 +20,7 @@ import org.deviceconnect.android.deviceplugin.host.activity.BluetoothManageActiv
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.MessageUtils;
-import org.deviceconnect.android.profile.ConnectProfile;
+import org.deviceconnect.android.profile.ConnectionProfile;
 import org.deviceconnect.android.profile.api.DConnectApi;
 import org.deviceconnect.android.profile.api.DeleteApi;
 import org.deviceconnect.android.profile.api.GetApi;
@@ -29,11 +29,11 @@ import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
 /**
- * Connect プロファイル.
+ * Connection プロファイル.
  * 
  * @author NTT DOCOMO, INC.
  */
-public class HostConnectProfile extends ConnectProfile {
+public class HostConnectionProfile extends ConnectionProfile {
 
     /** Debug Tag. */
     private static final String TAG = "HOST";
@@ -289,7 +289,7 @@ public class HostConnectProfile extends ConnectProfile {
      * 
      * @param bluetoothAdapter Bluetoothアダプタ.
      */
-    public HostConnectProfile(final BluetoothAdapter bluetoothAdapter) {
+    public HostConnectionProfile(final BluetoothAdapter bluetoothAdapter) {
         mBluetoothAdapter = bluetoothAdapter;
         addApi(mGetWifiApi);
         addApi(mGetBluetoothApi);

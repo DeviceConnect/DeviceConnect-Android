@@ -1,7 +1,7 @@
 {
     "swagger": "2.0",
     "info": {
-        "title": "Temperature Profile",
+        "title": "Power Profile",
         "version": "2.0.0",
         "description": ""
     },
@@ -13,21 +13,14 @@
         "/": {
             "get": {
                 "x-type": "one-shot",
-                "summary": "スマートデバイスの温度設定値を取得する。",
-                "description": "typeはそれぞれ、1:摂氏、2:華氏を表している。",
+                "summary": "機器の電源の状態を取得する。",
+                "description": "",
                 "parameters": [
                     {
                         "name": "serviceId",
                         "in": "query",
                         "required": true,
                         "type": "string"
-                    },
-                    {
-                        "name": "type",
-                        "in": "query",
-                        "required": false,
-                        "type": "integer",
-                        "enum": [1, 2]
                     }
                 ],
                 "responses": {
@@ -38,27 +31,32 @@
             },
             "put": {
                 "x-type": "one-shot",
-                "summary": "スマートデバイスの温度設定値を設定する。",
-                "description": "typeはそれぞれ、1:摂氏、2:華氏を表している。<br>摂氏の場合temperatureに設定できる値は 0以上50以下, 華氏の場合は32以上122以下。",
+                "summary": "機器の電源をONにする。",
+                "description": "",
                 "parameters": [
                     {
                         "name": "serviceId",
                         "in": "formData",
                         "required": true,
                         "type": "string"
-                    },
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            },
+            "delete": {
+                "x-type": "one-shot",
+                "summary": "機器の電源をOFFにする。",
+                "description": "",
+                "parameters": [
                     {
-                        "name": "temperature",
-                        "in": "formData",
+                        "name": "serviceId",
+                        "in": "query",
                         "required": true,
-                        "type": "integer"
-                    },
-                    {
-                        "name": "type",
-                        "in": "formData",
-                        "required": false,
-                        "type": "integer",
-                        "enum": [1, 2]
+                        "type": "string"
                     }
                 ],
                 "responses": {
@@ -68,6 +66,5 @@
                 }
             }
         }
-
     }
 }

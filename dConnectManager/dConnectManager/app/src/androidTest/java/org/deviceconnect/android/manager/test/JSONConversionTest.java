@@ -45,7 +45,7 @@ public class JSONConversionTest extends RESTfulDConnectTestCase {
     @Test
     public void testConversion() throws JSONException {
         StringBuilder builder = new StringBuilder();
-        builder.append(DCONNECT_MANAGER_URI);
+        builder.append(MANAGER_URI);
         builder.append("/jsonTest");
         builder.append("?");
         builder.append(DConnectMessage.EXTRA_SERVICE_ID + "=" + getServiceId());
@@ -79,9 +79,9 @@ public class JSONConversionTest extends RESTfulDConnectTestCase {
         Assert.assertEquals(1, root.getList(long[].class.getName()).size());
         Assert.assertEquals(0, root.getList(long[].class.getName()).get(0));
         Assert.assertEquals(1, root.getList(float[].class.getName()).size());
-        Assert.assertEquals(0.0f, (double)root.getList(float[].class.getName()).get(0), TEST_FLOATING_VALUE);
+        Assert.assertEquals(0.0f, ((Integer)root.getList(float[].class.getName()).get(0)).floatValue(), TEST_FLOATING_VALUE);
         Assert.assertEquals(1, root.getList(double[].class.getName()).size());
-        Assert.assertEquals(0.0d, (double)root.getList(double[].class.getName()).get(0), TEST_FLOATING_VALUE);
+        Assert.assertEquals(0.0d, ((Integer)root.getList(double[].class.getName()).get(0)).doubleValue(), TEST_FLOATING_VALUE);
         Assert.assertEquals(1, root.getList(boolean[].class.getName()).size());
         Assert.assertEquals(false, root.getList(boolean[].class.getName()).get(0));
         Assert.assertEquals(1, root.getList(Integer[].class.getName()).size());
@@ -89,9 +89,9 @@ public class JSONConversionTest extends RESTfulDConnectTestCase {
         Assert.assertEquals(1, root.getList(Long[].class.getName()).size());
         Assert.assertEquals(0, root.getList(Long[].class.getName()).get(0));
         Assert.assertEquals(1, root.getList(Float[].class.getName()).size());
-        Assert.assertEquals(0.0f, (double) root.getList(Float[].class.getName()).get(0), TEST_FLOATING_VALUE);
+        Assert.assertEquals(0.0f, ((Integer) root.getList(Float[].class.getName()).get(0)).floatValue(), TEST_FLOATING_VALUE);
         Assert.assertEquals(1, root.getList(Double[].class.getName()).size());
-        Assert.assertEquals(0.0d, (double)root.getList(Double[].class.getName()).get(0), TEST_FLOATING_VALUE);
+        Assert.assertEquals(0.0d, ((Integer)root.getList(Double[].class.getName()).get(0)).doubleValue(), TEST_FLOATING_VALUE);
         Assert.assertEquals(1, root.getList(Boolean[].class.getName()).size());
         Assert.assertEquals(false, root.getList(Boolean[].class.getName()).get(0));
         Assert.assertEquals(1, root.getList(String[].class.getName()).size());

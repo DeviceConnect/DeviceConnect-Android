@@ -22,6 +22,7 @@ import static org.junit.Assert.assertThat;
 /**
  * リクエストURLにmethodを指定した時に、
  * リクエストを全てGETで操作するための機能の異常系テスト.
+ *
  * @author NTT DOCOMO, INC.
  */
 @RunWith(AndroidJUnit4.class)
@@ -41,7 +42,8 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
      */
     private static final String ATTRIBUTE_PING = "ping";
 
-    /** Http Method post test. */
+    // Http Method post test.
+
     /**
      * HTTPメソッドがPOSTで、/profileのとき、methodにGETが指定されている時にエラー処理されること.
      * <pre>
@@ -54,12 +56,11 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * ・Invalid urlエラーが返って来ること。
      * </pre>
-     *
      */
     @Test
     public void testHttpMethodPostGetRequestProfile() {
         StringBuilder builder = new StringBuilder();
-        builder.append(DCONNECT_MANAGER_URI);
+        builder.append(MANAGER_URI);
         builder.append("/").append(DConnectMessage.METHOD_GET);
         builder.append("/").append(PROFILE_NAME);
         builder.append("?").append(DConnectProfileConstants.PARAM_SERVICE_ID).append("=").append(getServiceId());
@@ -81,12 +82,11 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * ・Invalid urlエラーが返って来ること。
      * </pre>
-     *
      */
     @Test
     public void testHttpMethodPostGetRequestProfileAttribute() {
         StringBuilder builder = new StringBuilder();
-        builder.append(DCONNECT_MANAGER_URI);
+        builder.append(MANAGER_URI);
         builder.append("/").append(DConnectMessage.METHOD_GET);
         builder.append("/").append(PROFILE_NAME);
         builder.append("/").append(ATTRIBUTE_PING);
@@ -96,6 +96,7 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
 
         postInvalidUrl(builder);
     }
+
     /**
      * HTTPメソッドがPOSTで、/profile/interface/attributeのとき、methodにGETが指定されている時にエラー処理されること.
      * <pre>
@@ -112,7 +113,7 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testHttpMethodPostGetRequestProfileInterfaceAttribute() {
         StringBuilder builder = new StringBuilder();
-        builder.append(DCONNECT_MANAGER_URI);
+        builder.append(MANAGER_URI);
         builder.append("/").append(DConnectMessage.METHOD_GET);
         builder.append("/").append(PROFILE_NAME);
         builder.append("/").append(INTERFACE_TEST);
@@ -123,6 +124,7 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
 
         postInvalidUrl(builder);
     }
+
     /**
      * HTTPメソッドがPOSTで、/profileのとき、methodにPOSTが指定されている時にエラー処理されること.
      * <pre>
@@ -135,12 +137,11 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * ・Invalid urlエラーが返って来ること。
      * </pre>
-     *
      */
     @Test
     public void testHttpMethodPostPostRequestProfile() {
         StringBuilder builder = new StringBuilder();
-        builder.append(DCONNECT_MANAGER_URI);
+        builder.append(MANAGER_URI);
         builder.append("/").append(DConnectMessage.METHOD_POST);
         builder.append("/").append(PROFILE_NAME);
         builder.append("?").append(DConnectProfileConstants.PARAM_SERVICE_ID).append("=").append(getServiceId());
@@ -162,12 +163,11 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * ・Invalid urlエラーが返って来ること。
      * </pre>
-     *
      */
     @Test
     public void testHttpMethodPostPostRequestProfileAttribute() {
         StringBuilder builder = new StringBuilder();
-        builder.append(DCONNECT_MANAGER_URI);
+        builder.append(MANAGER_URI);
         builder.append("/").append(DConnectMessage.METHOD_POST);
         builder.append("/").append(PROFILE_NAME);
         builder.append("/").append(ATTRIBUTE_PING);
@@ -177,6 +177,7 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
 
         postInvalidUrl(builder);
     }
+
     /**
      * HTTPメソッドがPOSTで、/profile/interface/attributeのとき、methodにPOSTが指定されている時にエラー処理されること.
      * <pre>
@@ -189,12 +190,11 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * ・Invalid urlエラーが返って来ること。
      * </pre>
-     *
      */
     @Test
     public void testHttpMethodPostPostRequestProfileInterfaceAttribute() {
         StringBuilder builder = new StringBuilder();
-        builder.append(DCONNECT_MANAGER_URI);
+        builder.append(MANAGER_URI);
         builder.append("/").append(DConnectMessage.METHOD_POST);
         builder.append("/").append(PROFILE_NAME);
         builder.append("/").append(INTERFACE_TEST);
@@ -205,6 +205,7 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
 
         postInvalidUrl(builder);
     }
+
     /**
      * HTTPメソッドがPOSTで、/profileのとき、methodにPUTが指定されている時にエラー処理されること.
      * <pre>
@@ -217,12 +218,11 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * ・Invalid urlエラーが返って来ること。
      * </pre>
-     *
      */
     @Test
     public void testHttpMethodPostPutRequestProfile() {
         StringBuilder builder = new StringBuilder();
-        builder.append(DCONNECT_MANAGER_URI);
+        builder.append(MANAGER_URI);
         builder.append("/").append(DConnectMessage.METHOD_PUT);
         builder.append("/").append(PROFILE_NAME);
         builder.append("?").append(DConnectProfileConstants.PARAM_SERVICE_ID).append("=").append(getServiceId());
@@ -245,12 +245,11 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * ・Invalid urlエラーが返って来ること。
      * </pre>
-     *
      */
     @Test
     public void testHttpMethodPostPutRequestProfileAttribute() {
         StringBuilder builder = new StringBuilder();
-        builder.append(DCONNECT_MANAGER_URI);
+        builder.append(MANAGER_URI);
         builder.append("/").append(DConnectMessage.METHOD_PUT);
         builder.append("/").append(PROFILE_NAME);
         builder.append("/").append(ATTRIBUTE_PING);
@@ -260,6 +259,7 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
 
         postInvalidUrl(builder);
     }
+
     /**
      * HTTPメソッドがPOSTで、 /profile/interface/attributeのとき、methodにGETが指定されている時にエラー処理されること.
      * <pre>
@@ -272,12 +272,11 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * ・Invalid urlエラーが返って来ること。
      * </pre>
-     *
      */
     @Test
     public void testHttpMethodPostPutRequestProfileInterfaceAttribute() {
         StringBuilder builder = new StringBuilder();
-        builder.append(DCONNECT_MANAGER_URI);
+        builder.append(MANAGER_URI);
         builder.append("/").append(DConnectMessage.METHOD_PUT);
         builder.append("/").append(PROFILE_NAME);
         builder.append("/").append(INTERFACE_TEST);
@@ -301,12 +300,11 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * ・Invalid urlエラーが返って来ること。
      * </pre>
-     *
      */
     @Test
     public void testHttpMethodPostDeleteRequestProfile() {
         StringBuilder builder = new StringBuilder();
-        builder.append(DCONNECT_MANAGER_URI);
+        builder.append(MANAGER_URI);
         builder.append("/").append(DConnectMessage.METHOD_DELETE);
         builder.append("/").append(PROFILE_NAME);
         builder.append("?").append(DConnectProfileConstants.PARAM_SERVICE_ID).append("=").append(getServiceId());
@@ -332,7 +330,7 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testHttpMethodPostDeleteRequestProfileAttribute() {
         StringBuilder builder = new StringBuilder();
-        builder.append(DCONNECT_MANAGER_URI);
+        builder.append(MANAGER_URI);
         builder.append("/").append(DConnectMessage.METHOD_DELETE);
         builder.append("/").append(PROFILE_NAME);
         builder.append("/").append(ATTRIBUTE_PING);
@@ -342,6 +340,7 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
 
         postInvalidUrl(builder);
     }
+
     /**
      * HTTPメソッドがPOSTで、/profile/interface/attributeのとき、methodにDELETEが指定されている時にエラー処理されること.
      * <pre>
@@ -354,12 +353,11 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * ・Invalid urlエラーが返って来ること。
      * </pre>
-     *
      */
     @Test
     public void testHttpMethodPostDeleteRequestProfileInterfaceAttribute() {
         StringBuilder builder = new StringBuilder();
-        builder.append(DCONNECT_MANAGER_URI);
+        builder.append(MANAGER_URI);
         builder.append("/").append(DConnectMessage.METHOD_DELETE);
         builder.append("/").append(PROFILE_NAME);
         builder.append("/").append(INTERFACE_TEST);
@@ -371,7 +369,8 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
         postInvalidUrl(builder);
     }
 
-    /** Http Method put test. */
+    // Http Method put test.
+
     /**
      * HTTPメソッドがPUTで、/profileのとき、methodにGETが指定されている時にエラー処理されること.
      * <pre>
@@ -384,12 +383,11 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * ・Invalid urlエラーが返って来ること。
      * </pre>
-     *
      */
     @Test
     public void testHttpMethodPutGetRequestProfile() {
         StringBuilder builder = new StringBuilder();
-        builder.append(DCONNECT_MANAGER_URI);
+        builder.append(MANAGER_URI);
         builder.append("/").append(DConnectMessage.METHOD_GET);
         builder.append("/").append(PROFILE_NAME);
         builder.append("?").append(DConnectProfileConstants.PARAM_SERVICE_ID).append("=").append(getServiceId());
@@ -411,12 +409,11 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * ・Invalid urlエラーが返って来ること。
      * </pre>
-     *
      */
     @Test
     public void testHttpMethodPutGetRequestProfileAttribute() {
         StringBuilder builder = new StringBuilder();
-        builder.append(DCONNECT_MANAGER_URI);
+        builder.append(MANAGER_URI);
         builder.append("/").append(DConnectMessage.METHOD_GET);
         builder.append("/").append(PROFILE_NAME);
         builder.append("/").append(ATTRIBUTE_PING);
@@ -426,6 +423,7 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
 
         putInvalidUrl(builder);
     }
+
     /**
      * HTTPメソッドがPUTで、/profile/interface/attributeのとき、methodにGETが指定されている時にエラー処理されること.
      * <pre>
@@ -442,7 +440,7 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testHttpMethodPutGetRequestProfileInterfaceAttribute() {
         StringBuilder builder = new StringBuilder();
-        builder.append(DCONNECT_MANAGER_URI);
+        builder.append(MANAGER_URI);
         builder.append("/").append(DConnectMessage.METHOD_GET);
         builder.append("/").append(PROFILE_NAME);
         builder.append("/").append(INTERFACE_TEST);
@@ -453,6 +451,7 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
 
         putInvalidUrl(builder);
     }
+
     /**
      * HTTPメソッドがPUTで、/profileのとき、methodにPOSTが指定されている時にエラー処理されること.
      * <pre>
@@ -465,12 +464,11 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * ・Invalid urlエラーが返って来ること。
      * </pre>
-     *
      */
     @Test
     public void testHttpMethodPutPostRequestProfile() {
         StringBuilder builder = new StringBuilder();
-        builder.append(DCONNECT_MANAGER_URI);
+        builder.append(MANAGER_URI);
         builder.append("/").append(DConnectMessage.METHOD_POST);
         builder.append("/").append(PROFILE_NAME);
         builder.append("?").append(DConnectProfileConstants.PARAM_SERVICE_ID).append("=").append(getServiceId());
@@ -492,12 +490,11 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * ・Invalid urlエラーが返って来ること。
      * </pre>
-     *
      */
     @Test
     public void testHttpMethodPutPostRequestProfileAttribute() {
         StringBuilder builder = new StringBuilder();
-        builder.append(DCONNECT_MANAGER_URI);
+        builder.append(MANAGER_URI);
         builder.append("/").append(DConnectMessage.METHOD_POST);
         builder.append("/").append(PROFILE_NAME);
         builder.append("/").append(ATTRIBUTE_PING);
@@ -507,6 +504,7 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
 
         putInvalidUrl(builder);
     }
+
     /**
      * HTTPメソッドがPUTで、/profile/interface/attributeのとき、methodにPOSTが指定されている時にエラー処理されること.
      * <pre>
@@ -519,12 +517,11 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * ・Invalid urlエラーが返って来ること。
      * </pre>
-     *
      */
     @Test
     public void testHttpMethodPutPostRequestProfileInterfaceAttribute() {
         StringBuilder builder = new StringBuilder();
-        builder.append(DCONNECT_MANAGER_URI);
+        builder.append(MANAGER_URI);
         builder.append("/").append(DConnectMessage.METHOD_POST);
         builder.append("/").append(PROFILE_NAME);
         builder.append("/").append(INTERFACE_TEST);
@@ -535,6 +532,7 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
 
         putInvalidUrl(builder);
     }
+
     /**
      * HTTPメソッドがPUTで、/profileのとき、methodにPUTが指定されている時にエラー処理されること.
      * <pre>
@@ -547,12 +545,11 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * ・Invalid urlエラーが返って来ること。
      * </pre>
-     *
      */
     @Test
     public void testHttpMethodPutPutRequestProfile() {
         StringBuilder builder = new StringBuilder();
-        builder.append(DCONNECT_MANAGER_URI);
+        builder.append(MANAGER_URI);
         builder.append("/").append(DConnectMessage.METHOD_PUT);
         builder.append("/").append(PROFILE_NAME);
         builder.append("?").append(DConnectProfileConstants.PARAM_SERVICE_ID).append("=").append(getServiceId());
@@ -561,7 +558,6 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
 
         putInvalidUrl(builder);
     }
-
 
     /**
      * HTTPメソッドがPUTで、/profile/attributeのとき、methodにPUTが指定されている時にエラー処理されること.
@@ -575,12 +571,11 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * ・Invalid urlエラーが返って来ること。
      * </pre>
-     *
      */
     @Test
     public void testHttpMethodPutPutRequestProfileAttribute() {
         StringBuilder builder = new StringBuilder();
-        builder.append(DCONNECT_MANAGER_URI);
+        builder.append(MANAGER_URI);
         builder.append("/").append(DConnectMessage.METHOD_PUT);
         builder.append("/").append(PROFILE_NAME);
         builder.append("/").append(ATTRIBUTE_PING);
@@ -590,6 +585,7 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
 
         putInvalidUrl(builder);
     }
+
     /**
      * HTTPメソッドがPUTで、 /profile/interface/attributeのとき、methodにGETが指定されている時にエラー処理されること.
      * <pre>
@@ -602,12 +598,11 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * ・Invalid urlエラーが返って来ること。
      * </pre>
-     *
      */
     @Test
     public void testHttpMethodPutPutRequestProfileInterfaceAttribute() {
         StringBuilder builder = new StringBuilder();
-        builder.append(DCONNECT_MANAGER_URI);
+        builder.append(MANAGER_URI);
         builder.append("/").append(DConnectMessage.METHOD_PUT);
         builder.append("/").append(PROFILE_NAME);
         builder.append("/").append(INTERFACE_TEST);
@@ -631,12 +626,11 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * ・Invalid urlエラーが返って来ること。
      * </pre>
-     *
      */
     @Test
     public void testHttpMethodPutDeleteRequestProfile() {
         StringBuilder builder = new StringBuilder();
-        builder.append(DCONNECT_MANAGER_URI);
+        builder.append(MANAGER_URI);
         builder.append("/").append(DConnectMessage.METHOD_DELETE);
         builder.append("/").append(PROFILE_NAME);
         builder.append("?").append(DConnectProfileConstants.PARAM_SERVICE_ID).append("=").append(getServiceId());
@@ -662,7 +656,7 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testHttpMethodPutDeleteRequestProfileAttribute() {
         StringBuilder builder = new StringBuilder();
-        builder.append(DCONNECT_MANAGER_URI);
+        builder.append(MANAGER_URI);
         builder.append("/").append(DConnectMessage.METHOD_DELETE);
         builder.append("/").append(PROFILE_NAME);
         builder.append("/").append(ATTRIBUTE_PING);
@@ -672,6 +666,7 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
 
         putInvalidUrl(builder);
     }
+
     /**
      * HTTPメソッドがPUTで、/profile/interface/attributeのとき、methodにDELETEが指定されている時にエラー処理されること.
      * <pre>
@@ -684,12 +679,11 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * ・Invalid urlエラーが返って来ること。
      * </pre>
-     *
      */
     @Test
     public void testHttpMethodPutDeleteRequestProfileInterfaceAttribute() {
         StringBuilder builder = new StringBuilder();
-        builder.append(DCONNECT_MANAGER_URI);
+        builder.append(MANAGER_URI);
         builder.append("/").append(DConnectMessage.METHOD_DELETE);
         builder.append("/").append(PROFILE_NAME);
         builder.append("/").append(INTERFACE_TEST);
@@ -701,7 +695,8 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
         postInvalidUrl(builder);
     }
 
-    /** Http Method delete test. */
+    // Http Method delete test.
+
     /**
      * HTTPメソッドがDELETEで、/profileのとき、methodにGETが指定されている時にエラー処理されること.
      * <pre>
@@ -714,12 +709,11 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * ・Invalid urlエラーが返って来ること。
      * </pre>
-     *
      */
     @Test
     public void testHttpMethodDeleteGetRequestProfile() {
         StringBuilder builder = new StringBuilder();
-        builder.append(DCONNECT_MANAGER_URI);
+        builder.append(MANAGER_URI);
         builder.append("/").append(DConnectMessage.METHOD_GET);
         builder.append("/").append(PROFILE_NAME);
         builder.append("?").append(DConnectProfileConstants.PARAM_SERVICE_ID).append("=").append(getServiceId());
@@ -741,12 +735,11 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * ・Invalid urlエラーが返って来ること。
      * </pre>
-     *
      */
     @Test
     public void testHttpMethodDeleteGetRequestProfileAttribute() {
         StringBuilder builder = new StringBuilder();
-        builder.append(DCONNECT_MANAGER_URI);
+        builder.append(MANAGER_URI);
         builder.append("/").append(DConnectMessage.METHOD_GET);
         builder.append("/").append(PROFILE_NAME);
         builder.append("/").append(ATTRIBUTE_PING);
@@ -756,6 +749,7 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
 
         deleteInvalidUrl(builder);
     }
+
     /**
      * HTTPメソッドがDELETEで、/profile/interface/attributeのとき、methodにGETが指定されている時にエラー処理されること.
      * <pre>
@@ -772,7 +766,7 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testHttpMethodDeleteGetRequestProfileInterfaceAttribute() {
         StringBuilder builder = new StringBuilder();
-        builder.append(DCONNECT_MANAGER_URI);
+        builder.append(MANAGER_URI);
         builder.append("/").append(DConnectMessage.METHOD_GET);
         builder.append("/").append(PROFILE_NAME);
         builder.append("/").append(INTERFACE_TEST);
@@ -783,6 +777,7 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
 
         deleteInvalidUrl(builder);
     }
+
     /**
      * HTTPメソッドがDELETEで、/profileのとき、methodにPOSTが指定されている時にエラー処理されること.
      * <pre>
@@ -795,12 +790,11 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * ・Invalid urlエラーが返って来ること。
      * </pre>
-     *
      */
     @Test
     public void testHttpMethodDeletePostRequestProfile() {
         StringBuilder builder = new StringBuilder();
-        builder.append(DCONNECT_MANAGER_URI);
+        builder.append(MANAGER_URI);
         builder.append("/").append(DConnectMessage.METHOD_POST);
         builder.append("/").append(PROFILE_NAME);
         builder.append("?").append(DConnectProfileConstants.PARAM_SERVICE_ID).append("=").append(getServiceId());
@@ -822,12 +816,11 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * ・Invalid urlエラーが返って来ること。
      * </pre>
-     *
      */
     @Test
     public void testHttpMethodDeletePostRequestProfileAttribute() {
         StringBuilder builder = new StringBuilder();
-        builder.append(DCONNECT_MANAGER_URI);
+        builder.append(MANAGER_URI);
         builder.append("/").append(DConnectMessage.METHOD_POST);
         builder.append("/").append(PROFILE_NAME);
         builder.append("/").append(ATTRIBUTE_PING);
@@ -837,6 +830,7 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
 
         deleteInvalidUrl(builder);
     }
+
     /**
      * HTTPメソッドがDELETEで、/profile/interface/attributeのとき、methodにPOSTが指定されている時にエラー処理されること.
      * <pre>
@@ -849,12 +843,11 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * ・Invalid urlエラーが返って来ること。
      * </pre>
-     *
      */
     @Test
     public void testHttpMethodDeletePostRequestProfileInterfaceAttribute() {
         StringBuilder builder = new StringBuilder();
-        builder.append(DCONNECT_MANAGER_URI);
+        builder.append(MANAGER_URI);
         builder.append("/").append(DConnectMessage.METHOD_POST);
         builder.append("/").append(PROFILE_NAME);
         builder.append("/").append(INTERFACE_TEST);
@@ -865,6 +858,7 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
 
         deleteInvalidUrl(builder);
     }
+
     /**
      * HTTPメソッドがDELETEで、/profileのとき、methodにPUTが指定されている時にエラー処理されること.
      * <pre>
@@ -877,12 +871,11 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * ・Invalid urlエラーが返って来ること。
      * </pre>
-     *
      */
     @Test
     public void testHttpMethodDeletePutRequestProfile() {
         StringBuilder builder = new StringBuilder();
-        builder.append(DCONNECT_MANAGER_URI);
+        builder.append(MANAGER_URI);
         builder.append("/").append(DConnectMessage.METHOD_PUT);
         builder.append("/").append(PROFILE_NAME);
         builder.append("?").append(DConnectProfileConstants.PARAM_SERVICE_ID).append("=").append(getServiceId());
@@ -905,12 +898,11 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * ・Invalid urlエラーが返って来ること。
      * </pre>
-     *
      */
     @Test
     public void testHttpMethodDeletePutRequestProfileAttribute() {
         StringBuilder builder = new StringBuilder();
-        builder.append(DCONNECT_MANAGER_URI);
+        builder.append(MANAGER_URI);
         builder.append("/").append(DConnectMessage.METHOD_PUT);
         builder.append("/").append(PROFILE_NAME);
         builder.append("/").append(ATTRIBUTE_PING);
@@ -920,6 +912,7 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
 
         deleteInvalidUrl(builder);
     }
+
     /**
      * HTTPメソッドがDELETEで、 /profile/interface/attributeのとき、methodにGETが指定されている時にエラー処理されること.
      * <pre>
@@ -932,12 +925,11 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * ・Invalid urlエラーが返って来ること。
      * </pre>
-     *
      */
     @Test
     public void testHttpMethodDeletePutRequestProfileInterfaceAttribute() {
         StringBuilder builder = new StringBuilder();
-        builder.append(DCONNECT_MANAGER_URI);
+        builder.append(MANAGER_URI);
         builder.append("/").append(DConnectMessage.METHOD_PUT);
         builder.append("/").append(PROFILE_NAME);
         builder.append("/").append(INTERFACE_TEST);
@@ -961,12 +953,11 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * ・Invalid urlエラーが返って来ること。
      * </pre>
-     *
      */
     @Test
     public void testHttpMethodDeleteDeleteRequestProfile() {
         StringBuilder builder = new StringBuilder();
-        builder.append(DCONNECT_MANAGER_URI);
+        builder.append(MANAGER_URI);
         builder.append("/").append(DConnectMessage.METHOD_DELETE);
         builder.append("/").append(PROFILE_NAME);
         builder.append("?").append(DConnectProfileConstants.PARAM_SERVICE_ID).append("=").append(getServiceId());
@@ -992,7 +983,7 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testHttpMethodDeleteDeleteRequestProfileAttribute() {
         StringBuilder builder = new StringBuilder();
-        builder.append(DCONNECT_MANAGER_URI);
+        builder.append(MANAGER_URI);
         builder.append("/").append(DConnectMessage.METHOD_DELETE);
         builder.append("/").append(PROFILE_NAME);
         builder.append("/").append(ATTRIBUTE_PING);
@@ -1002,6 +993,7 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
 
         deleteInvalidUrl(builder);
     }
+
     /**
      * HTTPメソッドがDELETEで、/profile/interface/attributeのとき、methodにDELETEが指定されている時にエラー処理されること.
      * <pre>
@@ -1014,12 +1006,11 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * ・Invalid urlエラーが返って来ること。
      * </pre>
-     *
      */
     @Test
     public void testHttpMethodDeleteDeleteRequestProfileInterfaceAttribute() {
         StringBuilder builder = new StringBuilder();
-        builder.append(DCONNECT_MANAGER_URI);
+        builder.append(MANAGER_URI);
         builder.append("/").append(DConnectMessage.METHOD_DELETE);
         builder.append("/").append(PROFILE_NAME);
         builder.append("/").append(INTERFACE_TEST);
@@ -1044,12 +1035,11 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * ・Invalid profileエラーが返って来ること。
      * </pre>
-     *
      */
     @Test
     public void testProfileHttpMethodGetByNormal() {
         StringBuilder builder = new StringBuilder();
-        builder.append(DCONNECT_MANAGER_URI);
+        builder.append(MANAGER_URI);
         builder.append("/").append(DConnectMessage.METHOD_GET);
         builder.append("?").append(DConnectProfileConstants.PARAM_SERVICE_ID).append("=").append(getServiceId());
         builder.append("&");
@@ -1057,6 +1047,7 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
 
         getInvalidProfile(builder);
     }
+
     /**
      * methodが指定されていない時、profile名にPOSTが指定されている場合はエラー処理する.
      * <pre>
@@ -1069,12 +1060,11 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * ・Invalid profileエラーが返って来ること。
      * </pre>
-     *
      */
     @Test
     public void testProfileHttpMethodPostByNormal() {
         StringBuilder builder = new StringBuilder();
-        builder.append(DCONNECT_MANAGER_URI);
+        builder.append(MANAGER_URI);
         builder.append("/").append(DConnectMessage.METHOD_POST);
         builder.append("?").append(DConnectProfileConstants.PARAM_SERVICE_ID).append("=").append(getServiceId());
         builder.append("&");
@@ -1095,12 +1085,11 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * ・Invalid profileエラーが返って来ること。
      * </pre>
-     *
      */
     @Test
     public void testProfileHttpMethodPutByNormal() {
         StringBuilder builder = new StringBuilder();
-        builder.append(DCONNECT_MANAGER_URI);
+        builder.append(MANAGER_URI);
         builder.append("/").append(DConnectMessage.METHOD_PUT);
         builder.append("?").append(DConnectProfileConstants.PARAM_SERVICE_ID).append("=").append(getServiceId());
         builder.append("&");
@@ -1108,6 +1097,7 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
 
         getInvalidProfile(builder);
     }
+
     /**
      * methodが指定されていない時、profile名にDELETEが指定されている場合はエラー処理する.
      * <pre>
@@ -1120,12 +1110,11 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * ・Invalid profileエラーが返って来ること。
      * </pre>
-     *
      */
     @Test
     public void testProfileHttpMethodDeleteByNormal() {
         StringBuilder builder = new StringBuilder();
-        builder.append(DCONNECT_MANAGER_URI);
+        builder.append(MANAGER_URI);
         builder.append("/").append(DConnectMessage.METHOD_DELETE);
         builder.append("?").append(DConnectProfileConstants.PARAM_SERVICE_ID).append("=").append(getServiceId());
         builder.append("&");
@@ -1133,7 +1122,9 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
 
         getInvalidProfile(builder);
     }
-    /** Method指定時にProfileにHttpメソッドが指定されている. */
+
+    // Method指定時にProfileにHttpメソッドが指定されている.
+
     /**
      * methodがGETで指定されている時、profile名にGETが指定されている場合はエラー処理する.
      * <pre>
@@ -1146,12 +1137,11 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * ・Invalid profileエラーが返って来ること。
      * </pre>
-     *
      */
     @Test
     public void testProfileHttpMethodGetGetByAllGetControl() {
         StringBuilder builder = new StringBuilder();
-        builder.append(DCONNECT_MANAGER_URI);
+        builder.append(MANAGER_URI);
         builder.append("/").append(DConnectMessage.METHOD_GET);
         builder.append("/").append(DConnectMessage.METHOD_GET);
         builder.append("?").append(DConnectProfileConstants.PARAM_SERVICE_ID).append("=").append(getServiceId());
@@ -1174,12 +1164,11 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * ・Invalid profileエラーが返って来ること。
      * </pre>
-     *
      */
     @Test
     public void testProfileHttpMethodGetPostByAllGetControl() {
         StringBuilder builder = new StringBuilder();
-        builder.append(DCONNECT_MANAGER_URI);
+        builder.append(MANAGER_URI);
         builder.append("/").append(DConnectMessage.METHOD_GET);
         builder.append("/").append(DConnectMessage.METHOD_POST);
         builder.append("?").append(DConnectProfileConstants.PARAM_SERVICE_ID).append("=").append(getServiceId());
@@ -1188,6 +1177,7 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
 
         getInvalidProfile(builder);
     }
+
     /**
      * methodがGETで指定されている時、profile名にGETが指定されている場合はエラー処理する.
      * <pre>
@@ -1200,12 +1190,11 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * ・Invalid profileエラーが返って来ること。
      * </pre>
-     *
      */
     @Test
     public void testProfileHttpMethodGetPutByAllGetControl() {
         StringBuilder builder = new StringBuilder();
-        builder.append(DCONNECT_MANAGER_URI);
+        builder.append(MANAGER_URI);
         builder.append("/").append(DConnectMessage.METHOD_GET);
         builder.append("/").append(DConnectMessage.METHOD_PUT);
         builder.append("?").append(DConnectProfileConstants.PARAM_SERVICE_ID).append("=").append(getServiceId());
@@ -1214,6 +1203,7 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
 
         getInvalidProfile(builder);
     }
+
     /**
      * methodがGETで指定されている時、profile名にGETが指定されている場合はエラー処理する.
      * <pre>
@@ -1226,12 +1216,11 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * ・Invalid profileエラーが返って来ること。
      * </pre>
-     *
      */
     @Test
     public void testProfileHttpMethodGetDeleteByAllGetControl() {
         StringBuilder builder = new StringBuilder();
-        builder.append(DCONNECT_MANAGER_URI);
+        builder.append(MANAGER_URI);
         builder.append("/").append(DConnectMessage.METHOD_GET);
         builder.append("/").append(DConnectMessage.METHOD_DELETE);
         builder.append("?").append(DConnectProfileConstants.PARAM_SERVICE_ID).append("=").append(getServiceId());
@@ -1253,12 +1242,11 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * ・Invalid profileエラーが返って来ること。
      * </pre>
-     *
      */
     @Test
     public void testProfileHttpMethodPostGetByAllGetControl() {
         StringBuilder builder = new StringBuilder();
-        builder.append(DCONNECT_MANAGER_URI);
+        builder.append(MANAGER_URI);
         builder.append("/").append(DConnectMessage.METHOD_POST);
         builder.append("/").append(DConnectMessage.METHOD_GET);
         builder.append("?").append(DConnectProfileConstants.PARAM_SERVICE_ID).append("=").append(getServiceId());
@@ -1267,6 +1255,7 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
 
         getInvalidProfile(builder);
     }
+
     /**
      * methodがGETで指定されている時、profile名にPOSTが指定されている場合はエラー処理する.
      * <pre>
@@ -1279,12 +1268,11 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * ・Invalid profileエラーが返って来ること。
      * </pre>
-     *
      */
     @Test
     public void testProfileHttpMethodPostPostByAllGetControl() {
         StringBuilder builder = new StringBuilder();
-        builder.append(DCONNECT_MANAGER_URI);
+        builder.append(MANAGER_URI);
         builder.append("/").append(DConnectMessage.METHOD_POST);
         builder.append("/").append(DConnectMessage.METHOD_POST);
         builder.append("?").append(DConnectProfileConstants.PARAM_SERVICE_ID).append("=").append(getServiceId());
@@ -1293,6 +1281,7 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
 
         getInvalidProfile(builder);
     }
+
     /**
      * methodがGETで指定されている時、profile名にPOSTが指定されている場合はエラー処理する.
      * <pre>
@@ -1305,12 +1294,11 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * ・Invalid profileエラーが返って来ること。
      * </pre>
-     *
      */
     @Test
     public void testProfileHttpMethodPostPutByAllGetControl() {
         StringBuilder builder = new StringBuilder();
-        builder.append(DCONNECT_MANAGER_URI);
+        builder.append(MANAGER_URI);
         builder.append("/").append(DConnectMessage.METHOD_POST);
         builder.append("/").append(DConnectMessage.METHOD_PUT);
         builder.append("?").append(DConnectProfileConstants.PARAM_SERVICE_ID).append("=").append(getServiceId());
@@ -1319,6 +1307,7 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
 
         getInvalidProfile(builder);
     }
+
     /**
      * methodがGETで指定されている時、profile名にPOSTが指定されている場合はエラー処理する.
      * <pre>
@@ -1331,12 +1320,11 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * ・Invalid profileエラーが返って来ること。
      * </pre>
-     *
      */
     @Test
     public void testProfileHttpMethodPostDeleteByAllGetControl() {
         StringBuilder builder = new StringBuilder();
-        builder.append(DCONNECT_MANAGER_URI);
+        builder.append(MANAGER_URI);
         builder.append("/").append(DConnectMessage.METHOD_POST);
         builder.append("/").append(DConnectMessage.METHOD_DELETE);
         builder.append("?").append(DConnectProfileConstants.PARAM_SERVICE_ID).append("=").append(getServiceId());
@@ -1358,12 +1346,11 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * ・Invalid profileエラーが返って来ること。
      * </pre>
-     *
      */
     @Test
     public void testProfileHttpMethodPutGetByAllGetControl() {
         StringBuilder builder = new StringBuilder();
-        builder.append(DCONNECT_MANAGER_URI);
+        builder.append(MANAGER_URI);
         builder.append("/").append(DConnectMessage.METHOD_PUT);
         builder.append("/").append(DConnectMessage.METHOD_GET);
         builder.append("?").append(DConnectProfileConstants.PARAM_SERVICE_ID).append("=").append(getServiceId());
@@ -1372,6 +1359,7 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
 
         getInvalidProfile(builder);
     }
+
     /**
      * methodがGETで指定されている時、profile名にPUTが指定されている場合はエラー処理する.
      * <pre>
@@ -1384,12 +1372,11 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * ・Invalid profileエラーが返って来ること。
      * </pre>
-     *
      */
     @Test
     public void testProfileHttpMethodPutPostByAllGetControl() {
         StringBuilder builder = new StringBuilder();
-        builder.append(DCONNECT_MANAGER_URI);
+        builder.append(MANAGER_URI);
         builder.append("/").append(DConnectMessage.METHOD_PUT);
         builder.append("/").append(DConnectMessage.METHOD_POST);
         builder.append("?").append(DConnectProfileConstants.PARAM_SERVICE_ID).append("=").append(getServiceId());
@@ -1398,6 +1385,7 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
 
         getInvalidProfile(builder);
     }
+
     /**
      * methodがGETで指定されている時、profile名にPUTが指定されている場合はエラー処理する.
      * <pre>
@@ -1410,12 +1398,11 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * ・Invalid profileエラーが返って来ること。
      * </pre>
-     *
      */
     @Test
     public void testProfileHttpMethodPutPutByAllGetControl() {
         StringBuilder builder = new StringBuilder();
-        builder.append(DCONNECT_MANAGER_URI);
+        builder.append(MANAGER_URI);
         builder.append("/").append(DConnectMessage.METHOD_PUT);
         builder.append("/").append(DConnectMessage.METHOD_PUT);
         builder.append("?").append(DConnectProfileConstants.PARAM_SERVICE_ID).append("=").append(getServiceId());
@@ -1424,6 +1411,7 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
 
         getInvalidProfile(builder);
     }
+
     /**
      * methodがGETで指定されている時、profile名にPUTが指定されている場合はエラー処理する.
      * <pre>
@@ -1436,12 +1424,11 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * ・Invalid profileエラーが返って来ること。
      * </pre>
-     *
      */
     @Test
     public void testProfileHttpMethodPutDeleteByAllGetControl() {
         StringBuilder builder = new StringBuilder();
-        builder.append(DCONNECT_MANAGER_URI);
+        builder.append(MANAGER_URI);
         builder.append("/").append(DConnectMessage.METHOD_PUT);
         builder.append("/").append(DConnectMessage.METHOD_DELETE);
         builder.append("?").append(DConnectProfileConstants.PARAM_SERVICE_ID).append("=").append(getServiceId());
@@ -1463,12 +1450,11 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * ・Invalid profileエラーが返って来ること。
      * </pre>
-     *
      */
     @Test
     public void testProfileHttpMethodDeleteGetByAllGetControl() {
         StringBuilder builder = new StringBuilder();
-        builder.append(DCONNECT_MANAGER_URI);
+        builder.append(MANAGER_URI);
         builder.append("/").append(DConnectMessage.METHOD_DELETE);
         builder.append("/").append(DConnectMessage.METHOD_GET);
         builder.append("?").append(DConnectProfileConstants.PARAM_SERVICE_ID).append("=").append(getServiceId());
@@ -1477,6 +1463,7 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
 
         getInvalidProfile(builder);
     }
+
     /**
      * methodがGETで指定されている時、profile名にDELETEが指定されている場合はエラー処理する.
      * <pre>
@@ -1489,12 +1476,11 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * ・Invalid profileエラーが返って来ること。
      * </pre>
-     *
      */
     @Test
     public void testProfileHttpMethodDeletePostByAllGetControl() {
         StringBuilder builder = new StringBuilder();
-        builder.append(DCONNECT_MANAGER_URI);
+        builder.append(MANAGER_URI);
         builder.append("/").append(DConnectMessage.METHOD_DELETE);
         builder.append("/").append(DConnectMessage.METHOD_POST);
         builder.append("?").append(DConnectProfileConstants.PARAM_SERVICE_ID).append("=").append(getServiceId());
@@ -1503,6 +1489,7 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
 
         getInvalidProfile(builder);
     }
+
     /**
      * methodがGETで指定されている時、profile名にDELETEが指定されている場合はエラー処理する.
      * <pre>
@@ -1515,12 +1502,11 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * ・Invalid profileエラーが返って来ること。
      * </pre>
-     *
      */
     @Test
     public void testProfileHttpMethodDeletePutByAllGetControl() {
         StringBuilder builder = new StringBuilder();
-        builder.append(DCONNECT_MANAGER_URI);
+        builder.append(MANAGER_URI);
         builder.append("/").append(DConnectMessage.METHOD_DELETE);
         builder.append("/").append(DConnectMessage.METHOD_PUT);
         builder.append("?").append(DConnectProfileConstants.PARAM_SERVICE_ID).append("=").append(getServiceId());
@@ -1529,6 +1515,7 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
 
         getInvalidProfile(builder);
     }
+
     /**
      * methodがGETで指定されている時、profile名にDELETEが指定されている場合はエラー処理する.
      * <pre>
@@ -1541,12 +1528,11 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * ・Invalid profileエラーが返って来ること。
      * </pre>
-     *
      */
     @Test
     public void testProfileHttpMethodDeleteByAllGetControl() {
         StringBuilder builder = new StringBuilder();
-        builder.append(DCONNECT_MANAGER_URI);
+        builder.append(MANAGER_URI);
         builder.append("/").append(DConnectMessage.METHOD_DELETE);
         builder.append("/").append(DConnectMessage.METHOD_DELETE);
         builder.append("?").append(DConnectProfileConstants.PARAM_SERVICE_ID).append("=").append(getServiceId());
@@ -1555,10 +1541,13 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
 
         getInvalidProfile(builder);
     }
-    /** private method **/
+
+    // private method
+
     /**
      * HttpMethodがPostの状態で全てGETで操作するときのメソッドを投げた場合,
      * Invalid Urlが返って来る時のテスト用メソッド.
+     *
      * @param builder URL
      */
     private void postInvalidUrl(StringBuilder builder) {
@@ -1568,9 +1557,11 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
         assertThat(response.getInt(DConnectMessage.EXTRA_ERROR_CODE),
                 is(DConnectMessage.ErrorCode.INVALID_URL.getCode()));
     }
+
     /**
      * HttpMethodがPutの状態で全てGETで操作するときのメソッドを投げた場合,
      * Invalid Urlが返って来る時のテスト用メソッド.
+     *
      * @param builder URL
      */
     private void putInvalidUrl(StringBuilder builder) {
@@ -1580,9 +1571,11 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
         assertThat(response.getInt(DConnectMessage.EXTRA_ERROR_CODE),
                 is(DConnectMessage.ErrorCode.INVALID_URL.getCode()));
     }
+
     /**
      * HttpMethodがDeleteの状態で全てGETで操作するときのメソッドを投げた場合,
      * Invalid Urlが返って来る時のテスト用メソッド.
+     *
      * @param builder URL
      */
     private void deleteInvalidUrl(StringBuilder builder) {
@@ -1596,6 +1589,7 @@ public class FailAllGetControlTestCase extends RESTfulDConnectTestCase {
     /**
      * HttpMethodがGetの状態で全てGETで操作するときのメソッドを投げた場合,
      * Invalid Profileが返って来る時のテスト用メソッド.
+     *
      * @param builder URL
      */
     private void getInvalidProfile(StringBuilder builder) {

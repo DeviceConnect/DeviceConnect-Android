@@ -24,9 +24,10 @@
                     },
                     {
                         "name": "type",
-                        "in": "formData",
+                        "in": "query",
                         "required": false,
-                        "type": "integer"
+                        "type": "integer",
+                        "enum": [1, 2]
                     }
                 ],
                 "responses": {

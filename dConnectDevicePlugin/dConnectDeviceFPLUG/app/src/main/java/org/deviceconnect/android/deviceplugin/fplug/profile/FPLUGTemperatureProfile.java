@@ -40,7 +40,7 @@ public class FPLUGTemperatureProfile extends TemperatureProfile {
             controller.requestTemperature(new FPLUGRequestCallback() {
                 @Override
                 public void onSuccess(FPLUGResponse fResponse) {
-                    String temp = "" + fResponse.getTemperature();
+                    double temp = fResponse.getTemperature();
                     String typeString = request.getStringExtra("type");
                     int type;
                     try {
@@ -49,10 +49,10 @@ public class FPLUGTemperatureProfile extends TemperatureProfile {
                         type = TemperatureType.Celsius.getValue();
                     }
                     if (type == TemperatureType.CelsiusFahrenheit.getValue()) {
-                        temp = "" + convertCelsiusToFahrenheit(Integer.valueOf(temp));
+                        temp = convertCelsiusToFahrenheit(temp);
                     }
-                    setTemperature(response, Integer.getInteger(temp));
-                    setType(response, TemperatureType.Celsius.getValue());
+                    setTemperature(response, temp);
+                    setType(response, type);
                     sendResultOK(response);
                 }
 
@@ -89,12 +89,12 @@ public class FPLUGTemperatureProfile extends TemperatureProfile {
         ((FPLUGDeviceService) getContext()).sendResponse(response);
     }
     // Convert Celsius to Fahrenheit.
-    private int convertCelsiusToFahrenheit(final int celsius) {
-        return (int) (1.8 * celsius + 32);
+    private double convertCelsiusToFahrenheit(final double celsius) {
+        return (1.8 * celsius + 32);
     }
 
     // Convert Fahrenheit to Celsius.
-    private int convertFahrenheitToCelsius(final int fahrenheit) {
-        return (int) ((0.56) * (fahrenheit - 32));
+    private double convertFahrenheitToCelsius(final double fahrenheit) {
+        return ((0.56) * (fahrenheit - 32));
     }
 }

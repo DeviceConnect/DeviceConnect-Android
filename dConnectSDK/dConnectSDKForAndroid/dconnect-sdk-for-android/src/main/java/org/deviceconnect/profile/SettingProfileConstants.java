@@ -1,5 +1,5 @@
 /*
- SettingsProfileConstants.java
+ SettingProfileConstants.java
  Copyright (c) 2014 NTT DOCOMO,INC.
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
@@ -8,17 +8,17 @@ package org.deviceconnect.profile;
 
 
 /**
- * Settings Profile API 定数群.<br>
- * Settings Profile API のパラメータ名、インタフェース名、属性名、プロファイル名を定義する。
+ * Setting Profile API 定数群.<br>
+ * Setting Profile API のパラメータ名、インタフェース名、属性名、プロファイル名を定義する。
  * @deprecated swagger定義ファイルで定数を管理することになったので、このクラスは使用しないこととする。
  * @author NTT DOCOMO, INC.
  */
-public interface SettingsProfileConstants extends DConnectProfileConstants {
+public interface SettingProfileConstants extends DConnectProfileConstants {
 
     /**
      * プロファイル名: {@value} .
      */
-    String PROFILE_NAME = "settings";
+    String PROFILE_NAME = "setting";
 
     /**
      * インターフェース: {@value} .
@@ -43,7 +43,7 @@ public interface SettingsProfileConstants extends DConnectProfileConstants {
     /**
      * 属性: {@value} .
      */
-    String ATTRIBUTE_LIGHT = "light";
+    String ATTRIBUTE_BRIGHTNESS = "brightness";
 
     /**
      * 属性: {@value} .
@@ -70,7 +70,7 @@ public interface SettingsProfileConstants extends DConnectProfileConstants {
      * パス: {@value} .
      */
     String PATH_LIGHT = PATH_PROFILE + SEPARATOR
-            + INTERFACE_DISPLAY + SEPARATOR + ATTRIBUTE_LIGHT;
+            + INTERFACE_DISPLAY + SEPARATOR + ATTRIBUTE_BRIGHTNESS;
 
     /**
      * パス: {@value} .

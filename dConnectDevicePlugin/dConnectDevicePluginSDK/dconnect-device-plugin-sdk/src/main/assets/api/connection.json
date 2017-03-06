@@ -1,7 +1,7 @@
 {
     "swagger": "2.0",
     "info": {
-        "title": "Connect Profile",
+        "title": "Connection Profile",
         "version": "2.0.0",
         "description": ""
     },

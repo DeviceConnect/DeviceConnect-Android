@@ -1,24 +1,24 @@
 /*
- ConnectProfileConstants.java
- Copyright (c) 2014 NTT DOCOMO,INC.
+ ConnectionProfileConstants.java
+ Copyright (c) 2017 NTT DOCOMO,INC.
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
  */
 package org.deviceconnect.profile;
 
 /**
- * Connect Profile API 定数群.<br>
- * Connect Profile API のパラメータ名、インタフェース名、属性名、プロファイル名を定義する。
+ * Connection Profile API 定数群.<br>
+ * Connection Profile API のパラメータ名、インタフェース名、属性名、プロファイル名を定義する。
  *
  * @deprecated swagger定義ファイルで定数を管理することになったので、このクラスは使用しないこととする。
  * @author NTT DOCOMO, INC.
  */
-public interface ConnectProfileConstants extends DConnectProfileConstants {
+public interface ConnectionProfileConstants extends DConnectProfileConstants {
 
     /**
      * プロファイル名: {@value} .
      */
-    String PROFILE_NAME = "connect";
+    String PROFILE_NAME = "connection";
 
     /**
      * 属性: {@value} .

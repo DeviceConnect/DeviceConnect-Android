@@ -16,7 +16,6 @@ import android.webkit.MimeTypeMap;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -155,24 +154,20 @@ public final class CanvasDrawUtils {
      * @param uri cache uri
      * @return cache binary
      */
-    public static byte[] getCacheData(final String uri) {
+    public static byte[] getCacheData(final String uri) throws IOException, OutOfMemoryError {
         InputStream inputStream = null;
         File f = new File(uri);
         byte[] buf = new byte[(int) f.length()];
         try {
             inputStream = new FileInputStream(f);
             buf = readAll(inputStream);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
         } finally {
             try {
                 if (inputStream != null) {
                     inputStream.close();
                 }
-            } catch (IOException exception) {
-                exception.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
         return buf;
@@ -184,7 +179,7 @@ public final class CanvasDrawUtils {
      * @return binary
      * @throws OutOfMemoryError
      */
-    public static byte[] getData(String uri) throws OutOfMemoryError {
+    public static byte[] getData(String uri) throws IOException, OutOfMemoryError {
         HttpURLConnection connection = null;
         InputStream inputStream = null;
         byte[] data = null;
@@ -197,10 +192,6 @@ public final class CanvasDrawUtils {
             connection.connect();
             inputStream = connection.getInputStream();
             data = readAll(inputStream);
-        } catch (OutOfMemoryError e) {
-            throw new OutOfMemoryError(e.getMessage());
-        } catch (IOException e) {
-            e.printStackTrace();
         } finally {
             if (connection != null) {
                 connection.disconnect();
@@ -209,8 +200,8 @@ public final class CanvasDrawUtils {
                 if (inputStream != null) {
                     inputStream.close();
                 }
-            } catch (IOException exception) {
-                exception.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
         return data;

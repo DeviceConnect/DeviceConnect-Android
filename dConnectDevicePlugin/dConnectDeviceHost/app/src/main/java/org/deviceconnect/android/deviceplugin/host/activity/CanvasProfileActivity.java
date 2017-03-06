@@ -21,6 +21,7 @@ import android.graphics.Bitmap;
 import android.graphics.Matrix;
 import android.graphics.Shader;
 import android.graphics.drawable.BitmapDrawable;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
 import android.view.View;
@@ -34,8 +35,6 @@ import org.deviceconnect.android.deviceplugin.host.R;
 import org.deviceconnect.android.deviceplugin.host.canvas.CanvasDrawImageObject;
 import org.deviceconnect.android.deviceplugin.host.canvas.CanvasDrawUtils;
 
-import java.io.File;
-
 /**
  * Canvas Profile Activity.
  *
@@ -47,14 +46,36 @@ public class CanvasProfileActivity extends Activity  {
      * Defined a parameter name.
      */
     private static final String PARAM_INTENT = "param_intent";
+
     /**
      *  Defined a dialog type:{@value}.
      */
     private static final String DIALOG_TYPE_OOM = "TYPE_OOM";
+
     /**
      *  Defined a dialog type:{@value}.
      */
     private static final String DIALOG_TYPE_NOT_FOUND = "TYPE_NOT_FOUND";
+
+    /**
+     * 画像リソース取得結果.
+     */
+    private enum ResourceResult {
+        /**
+         * リソースの取得に成功.
+         */
+        Success,
+
+        /**
+         * リソースの取得時にOut Of Memoryが発生.
+         */
+        OutOfMemory,
+
+        /**
+         * リソースの取得に失敗.
+         */
+        NotFoundFile
+    }
 
     /**
      * Canvas view object.
@@ -70,10 +91,17 @@ public class CanvasProfileActivity extends Activity  {
      * Bitmap that was sent from web application.
      */
     private Bitmap mBitmap;
-    /** Download start dialog. */
+
+    /**
+     * Download start dialog.
+     */
     private StartingDialogFragment mDialog;
-    /** Download flag. */
-    private boolean downloading = false;
+
+    /**
+     * Download flag.
+     */
+    private boolean mDownloadFlag = false;
+
     /**
      * Implementation of BroadcastReceiver.
      */
@@ -83,15 +111,7 @@ public class CanvasProfileActivity extends Activity  {
             String action = intent.getAction();
             if (CanvasDrawImageObject.ACTION_DRAW_CANVAS.equals(action)) {
                 setDrawingArgument(intent);
-                mDialog = new StartingDialogFragment();
-                mDialog.show(getFragmentManager(), "dialog");
-
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        refreshImage(intent);
-                    }
-                }).start();
+                refreshImage(intent);
             } else if (CanvasDrawImageObject.ACTION_DELETE_CANVAS.equals(action)) {
                 finish();
             }
@@ -131,15 +151,7 @@ public class CanvasProfileActivity extends Activity  {
         filter.addAction(CanvasDrawImageObject.ACTION_DRAW_CANVAS);
         filter.addAction(CanvasDrawImageObject.ACTION_DELETE_CANVAS);
         LocalBroadcastManager.getInstance(this).registerReceiver(mReceiver, filter);
-        mDialog = new StartingDialogFragment();
-        mDialog.show(getFragmentManager(), "dialog");
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                refreshImage(mIntent);
-            }
-        }).start();
-
+        refreshImage(mIntent);
     }
 
     @Override
@@ -167,95 +179,129 @@ public class CanvasProfileActivity extends Activity  {
     }
 
     /**
-     * Refresh image.
-     *
-     * @param intent Intent
+     * リソースが見つからない場合のエラーダイアログを表示します.
      */
-    private synchronized void refreshImage(final Intent intent) {
+    private void openNotFoundDrawImage() {
+        AlertDialogFragment oomDialog = AlertDialogFragment.create(DIALOG_TYPE_NOT_FOUND,
+                getString(R.string.host_canvas_error_title),
+                getString(R.string.host_canvas_error_not_found_message),
+                getString(R.string.host_ok));
+        oomDialog.show(getFragmentManager(), DIALOG_TYPE_NOT_FOUND);
+    }
+
+    /**
+     * メモリ不足エラーダイアログを表示します.
+     */
+    private void openOutOfMemory() {
+        AlertDialogFragment oomDialog = AlertDialogFragment.create(DIALOG_TYPE_OOM,
+                getString(R.string.host_canvas_error_title),
+                getString(R.string.host_canvas_error_oom_message),
+                getString(R.string.host_ok));
+        oomDialog.show(getFragmentManager(), DIALOG_TYPE_OOM);
+    }
+
+    /**
+     * 画面に表示する画像を更新します.
+     * @param intent 更新する画像データが入ったintent
+     */
+    private void refreshImage(final Intent intent) {
+        if (mDownloadFlag) {
+            return;
+        }
+        mDownloadFlag = true;
+
         final CanvasDrawImageObject drawObj = CanvasDrawImageObject.create(intent);
-        if (downloading) {
-            return;
-        }
-        downloading = true;
         if (drawObj == null) {
-            mDialog.dismiss();
-            AlertDialogFragment oomDialog = AlertDialogFragment.create(DIALOG_TYPE_NOT_FOUND, getString(R.string.host_canvas_error_title),
-                    getString(R.string.host_canvas_error_not_found_message), getString(R.string.host_ok));
-            oomDialog.show(getFragmentManager(), DIALOG_TYPE_NOT_FOUND);
+            openNotFoundDrawImage();
             return;
         }
 
-        if (mBitmap != null) {
-            mBitmap.recycle();
-            mBitmap = null;
-        }
-
-        String uri = drawObj.getData();
-        byte[] data;
-        try {
-            File cache = getCacheDir();
-            if (uri.startsWith(cache.getAbsolutePath())) {
-                data = CanvasDrawUtils.getCacheData(uri);
-            } else {
-                data = CanvasDrawUtils.getData(uri);
-            }
-        } catch (OutOfMemoryError e) {
-            mDialog.dismiss();
-            AlertDialogFragment oomDialog = AlertDialogFragment.create(DIALOG_TYPE_OOM, getString(R.string.host_canvas_error_title),
-                                                getString(R.string.host_canvas_error_oom_message), getString(R.string.host_ok));
-            oomDialog.show(getFragmentManager(), DIALOG_TYPE_OOM);
-            return;
-        }
-        if (data == null) {
-            // failed to load data.
-            mDialog.dismiss();
-            AlertDialogFragment oomDialog = AlertDialogFragment.create(DIALOG_TYPE_NOT_FOUND, getString(R.string.host_canvas_error_title),
-                    getString(R.string.host_canvas_error_not_found_message), getString(R.string.host_ok));
-            oomDialog.show(getFragmentManager(), DIALOG_TYPE_NOT_FOUND);
-            return;
-        }
-        mBitmap = CanvasDrawUtils.getBitmap(data);
-        if (mBitmap == null) {
-            // failed to load bitmap.
-            mDialog.dismiss();
-            AlertDialogFragment oomDialog = AlertDialogFragment.create(DIALOG_TYPE_NOT_FOUND, getString(R.string.host_canvas_error_title),
-                    getString(R.string.host_canvas_error_not_found_message), getString(R.string.host_ok));
-            oomDialog.show(getFragmentManager(), DIALOG_TYPE_NOT_FOUND);
-            return;
-        }
-        runOnUiThread(new Runnable() {
+        AsyncTask<Void, ResourceResult, ResourceResult> task = new AsyncTask<Void, ResourceResult, ResourceResult>() {
             @Override
-            public void run() {
-                switch (drawObj.getMode()) {
-                    default:
-                    case NONSCALE_MODE:
-                        Matrix matrix = new Matrix();
-                        matrix.postTranslate((float) drawObj.getX(), (float) drawObj.getY());
-                        mCanvasView.setImageBitmap(mBitmap);
-                        mCanvasView.setScaleType(ScaleType.MATRIX);
-                        mCanvasView.setImageMatrix(matrix);
+            protected void onPreExecute() {
+                mDialog = new StartingDialogFragment();
+                mDialog.show(getFragmentManager(), "dialog");
+            }
+
+            @Override
+            protected ResourceResult doInBackground(final Void... params) {
+                if (mBitmap != null) {
+                    mBitmap.recycle();
+                    mBitmap = null;
+                }
+
+                String uri = drawObj.getData();
+                byte[] data;
+                try {
+                    if (uri.startsWith("http")) {
+                        data = CanvasDrawUtils.getData(uri);
+                    } else {
+                        data = CanvasDrawUtils.getCacheData(uri);
+                    }
+                    mBitmap = CanvasDrawUtils.getBitmap(data);
+                    if (mBitmap == null) {
+                        return ResourceResult.NotFoundFile;
+                    }
+                } catch (OutOfMemoryError e) {
+                    return ResourceResult.OutOfMemory;
+                } catch (Exception e) {
+                    return ResourceResult.NotFoundFile;
+                }
+                return ResourceResult.Success;
+            }
+
+            @Override
+            protected void onPostExecute(final ResourceResult result) {
+                mDialog.dismiss();
+
+                switch (result) {
+                    case Success:
+                        showDrawObject(drawObj);
                         break;
-                    case SCALE_MODE:
-                        mCanvasView.setImageBitmap(mBitmap);
-                        mCanvasView.setScaleType(ScaleType.FIT_CENTER);
-                        mCanvasView.setTranslationX((int) drawObj.getX());
-                        mCanvasView.setTranslationY((int) drawObj.getY());
+                    case OutOfMemory:
+                        openOutOfMemory();
                         break;
-                    case FILL_MODE:
-                        BitmapDrawable bd = new BitmapDrawable(getResources(), mBitmap);
-                        bd.setTileModeX(Shader.TileMode.REPEAT);
-                        bd.setTileModeY(Shader.TileMode.REPEAT);
-                        mCanvasView.setImageDrawable(bd);
-                        mCanvasView.setScaleType(ScaleType.FIT_XY);
-                        mCanvasView.setTranslationX((int) drawObj.getX());
-                        mCanvasView.setTranslationY((int) drawObj.getY());
+                    case NotFoundFile:
+                        openNotFoundDrawImage();
                         break;
                 }
-                mDialog.dismiss();
-                downloading = false;
-            }
 
-        });
+                mDownloadFlag = false;
+            }
+        };
+        task.execute();
+    }
+
+    /**
+     * 画面を更新します.
+     * @param drawObj 更新する画像データ
+     */
+    private void showDrawObject(final CanvasDrawImageObject drawObj) {
+        switch (drawObj.getMode()) {
+            default:
+            case NONSCALE_MODE:
+                Matrix matrix = new Matrix();
+                matrix.postTranslate((float) drawObj.getX(), (float) drawObj.getY());
+                mCanvasView.setImageBitmap(mBitmap);
+                mCanvasView.setScaleType(ScaleType.MATRIX);
+                mCanvasView.setImageMatrix(matrix);
+                break;
+            case SCALE_MODE:
+                mCanvasView.setImageBitmap(mBitmap);
+                mCanvasView.setScaleType(ScaleType.FIT_CENTER);
+                mCanvasView.setTranslationX((int) drawObj.getX());
+                mCanvasView.setTranslationY((int) drawObj.getY());
+                break;
+            case FILL_MODE:
+                BitmapDrawable bd = new BitmapDrawable(getResources(), mBitmap);
+                bd.setTileModeX(Shader.TileMode.REPEAT);
+                bd.setTileModeY(Shader.TileMode.REPEAT);
+                mCanvasView.setImageDrawable(bd);
+                mCanvasView.setScaleType(ScaleType.FIT_XY);
+                mCanvasView.setTranslationX((int) drawObj.getX());
+                mCanvasView.setTranslationY((int) drawObj.getY());
+                break;
+        }
     }
 
     /**
@@ -281,6 +327,9 @@ public class CanvasProfileActivity extends Activity  {
         }
     }
 
+    /**
+     * エラーダイアログ.
+     */
     public static class AlertDialogFragment extends DialogFragment {
         /**
          * タグのキーを定義します.
@@ -340,7 +389,7 @@ public class CanvasProfileActivity extends Activity  {
          * @return AlertDialogFragmentのインスタンス
          */
         public static AlertDialogFragment create(final String tag, final String title, final String message,
-                                                                                                         final String positive, final String negative) {
+                                                 final String positive, final String negative) {
             Bundle args = new Bundle();
             args.putString(KEY_TAG, tag);
             args.putString(KEY_TITLE, title);

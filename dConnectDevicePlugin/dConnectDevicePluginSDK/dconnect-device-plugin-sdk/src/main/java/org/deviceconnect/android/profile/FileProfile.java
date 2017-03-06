@@ -283,20 +283,6 @@ public abstract class FileProfile extends DConnectProfile implements FileProfile
     public static Integer getLimit(final Intent request) {
         return parseInteger(request, PARAM_LIMIT);
     }
-    
-    /**
-     * リクエストから強制削除フラグを取得する.
-     * 
-     * @param request リクエストパラメータ
-     * @return 強制削除フラグ。省略された場合はfalseを返す。
-     */
-    public static boolean getForce(final Intent request) {
-        Boolean force = parseBoolean(request, PARAM_FORCE);
-        if (force == null) {
-            return false;
-        }
-        return force;
-    }
 
     /**
      * FileManagerのインスタンスを取得する.

@@ -9,7 +9,6 @@ var util = (function(parent, global) {
             'battery',
             'connection',
             'deviceorientation',
-            'filedescriptor',
             'file',
             'mediaplayer',
             'mediastreamrecording',

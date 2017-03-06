@@ -8,9 +8,14 @@ package org.deviceconnect.android.profile.restful.test;
 
 import android.support.test.runner.AndroidJUnit4;
 
+import org.deviceconnect.message.DConnectMessage;
+import org.deviceconnect.message.DConnectResponseMessage;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.core.IsNull.notNullValue;
+import static org.junit.Assert.assertThat;
 
 /**
  * Availabilityプロファイルの正常系テスト.
@@ -21,11 +26,6 @@ public class NormalAvailabilityProfileTestCase extends RESTfulDConnectTestCase {
 
     @Override
     protected boolean isLocalOAuth() {
-        return false;
-    }
-
-    @Override
-    protected boolean isSearchServices() {
         return false;
     }
 
@@ -42,8 +42,11 @@ public class NormalAvailabilityProfileTestCase extends RESTfulDConnectTestCase {
      * </pre>
      */
     @Test
-    public void testGetAvailability() {
-        assertTrue(isManagerAvailable());
-    }
+    public void testGetAvailability() throws Exception {
+        String uri = "http://localhost:4035/gotapi/availability";
 
+        DConnectResponseMessage response = mDConnectSDK.get(uri);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+    }
 }

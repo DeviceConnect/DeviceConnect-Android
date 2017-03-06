@@ -8,12 +8,8 @@ package org.deviceconnect.android.profile.restful.test;
 
 import android.support.test.runner.AndroidJUnit4;
 
-import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.DConnectResponseMessage;
-import org.deviceconnect.message.DConnectSDK;
-import org.deviceconnect.profile.AuthorizationProfileConstants;
-import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -32,11 +28,6 @@ import static org.junit.Assert.assertThat;
 @RunWith(AndroidJUnit4.class)
 public class NormalServiceDiscoveryProfileTestCase extends RESTfulDConnectTestCase {
 
-    @Override
-    protected boolean isSearchServices() {
-        return false;
-    }
-
     /**
      * デバイス一覧取得リクエストを送信するテスト.
      * <pre>
@@ -48,30 +39,26 @@ public class NormalServiceDiscoveryProfileTestCase extends RESTfulDConnectTestCa
      * 【期待する動作】
      * ・resultに0が返ってくること。
      * ・servicesに少なくとも1つ以上のサービスが発見されること。
-     * ・servicesの中に「Test Success Device」のnameを持ったサービスが存在すること。
      * </pre>
      */
     @Test
     public void testGetServices() {
-        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
-        builder.setProfile(ServiceDiscoveryProfileConstants.PROFILE_NAME);
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
+        String uri = "http://localhost:4035/gotapi/serviceDiscovery";
+        uri += "?accessToken=" + getAccessToken();
 
-        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
+        DConnectResponseMessage response = mDConnectSDK.get(uri);
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
 
-        List<Object> list = response.getList(ServiceDiscoveryProfile.PARAM_SERVICES);
-        assertThat(list, is(notNullValue()));
-        assertThat(list.size(), is(greaterThan(0)));
-        boolean result = false;
-        for (Object obj : list) {
+        List<Object> services = response.getList("services");
+        assertThat(services, is(notNullValue()));
+        assertThat(services.size(), is(greaterThan(0)));
+        for (Object obj : services) {
             DConnectMessage service = (DConnectMessage) obj;
-            String name = service.getString(ServiceDiscoveryProfile.PARAM_NAME);
-            if ("Test Success Device".equals(name)) {
-                result = true;
-            }
+            String id = service.getString("id");
+            String name = service.getString("name");
+            assertThat(id, is(notNullValue()));
+            assertThat(name, is(notNullValue()));
         }
-        assertThat(result, is(true));
     }
 }

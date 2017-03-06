@@ -24,16 +24,19 @@ public class HostSettingActivity extends DConnectSettingPageFragmentActivity {
     private String mServiceId;
 
     /** ページ数. */
-    private static final int PAGE_COUNT = 1;
+    private static final int PAGE_COUNT = 2;
 
     @Override
     public Fragment createPage(final int position) {
-        Bundle mBundle = new Bundle();
-        mBundle.putInt("position", position);
-        HostSettingFragment mFragment = new HostSettingFragment();
-        mFragment.setArguments(mBundle);
-
-        return mFragment;
+        if (position == 1) {
+            return new HostGpsSettingFragment();
+        } else {
+            Bundle mBundle = new Bundle();
+            mBundle.putInt("position", position);
+            HostSettingFragment mFragment = new HostSettingFragment();
+            mFragment.setArguments(mBundle);
+            return mFragment;
+        }
     }
 
     @Override

@@ -8,12 +8,17 @@ package org.deviceconnect.android.profile.intent.test;
 
 import android.support.test.runner.AndroidJUnit4;
 
-import org.deviceconnect.profile.BatteryProfileConstants;
-import org.deviceconnect.profile.ConnectProfileConstants;
-import org.deviceconnect.profile.DeviceOrientationProfileConstants;
-import org.deviceconnect.profile.NotificationProfileConstants;
+import org.deviceconnect.message.DConnectMessage;
+import org.deviceconnect.message.DConnectResponseMessage;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import java.net.URLEncoder;
+
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.core.Is.is;
+import static org.hamcrest.core.IsNull.notNullValue;
+import static org.junit.Assert.assertThat;
 
 /**
  * Authorizationプロファイルの正常系テスト.
@@ -28,19 +33,14 @@ public class NormalAuthorizationProfileTestCase extends IntentDConnectTestCase {
     }
 
     @Override
-    protected boolean isSearchServices() {
-        return false;
-    }
-
-    @Override
     protected String getOrigin() {
-        return "abc";
+        return "fail.intent.junit";
     }
 
     /**
      * クライアント作成テストを行う.
      * <pre>
-     * 【HTTP通信】
+     * 【Intent通信】
      * Method: GET
      * Path: /authorization/grant
      * </pre>
@@ -51,15 +51,19 @@ public class NormalAuthorizationProfileTestCase extends IntentDConnectTestCase {
      * </pre>
      */
     @Test
-    public void testCreateClient() {
-        String clientId = createClient();
-        assertNotNull(clientId);
+    public void testCreateClient() throws Exception {
+        String uri = "http://localhost:4035/gotapi/authorization/grant";
+
+        DConnectResponseMessage response = mDConnectSDK.get(uri);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getString("clientId"), is(notNullValue()));
     }
 
     /**
      * クライアント作成済みのパッケージについてクライアントを作成し直すテストを行う.
      * <pre>
-     * 【HTTP通信】
+     * 【Intent通信】
      * Method: GET
      * Path: /authorization/grant
      * </pre>
@@ -70,21 +74,19 @@ public class NormalAuthorizationProfileTestCase extends IntentDConnectTestCase {
      * </pre>
      */
     @Test
-    public void testCreateClientOverwrite() {
-        String clientId = createClient();
-        assertNotNull(clientId);
-        String newClientId = createClient();
-        assertNotNull(newClientId);
-        assertFalse(newClientId.equals(clientId));
+    public void testCreateClientOverwrite() throws Exception {
+        String clientId1 = createClientId();
+        String clientId2 = createClientId();
+        assertThat(clientId1, is(not(clientId2)));
     }
 
     /**
-     * 1つのスコープに対してアクセストークン取得テストを行う.
+     * アクセストークン取得テストを行う.
+     * 1つのスコープを指定する.
      * <pre>
-     * 【HTTP通信】
+     * 【Intent通信】
      * Method: GET
-     * Path: /authorization/accesstoken?
-     *           clientId=xxxx&scope=notification&applicationName=xxxx
+     * Path: /authorization/accessToken?clientId=xxxx&scope=xxxx&applicationName=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -94,19 +96,31 @@ public class NormalAuthorizationProfileTestCase extends IntentDConnectTestCase {
      * </pre>
      */
     @Test
-    public void testRequestAccessToken() {
-        String accessToken = requestAccessToken(
-                new String[] {NotificationProfileConstants.PROFILE_NAME});
-        assertNotNull(accessToken);
+    public void testRequestAccessToken() throws Exception {
+        String clientId = createClientId();
+        String appName = "JUnit Test";
+        String[] scopes = {
+                "battery"
+        };
+
+        String uri = "http://localhost:4035/gotapi/authorization/accessToken";
+        uri += "?clientId=" + URLEncoder.encode(clientId, "UTF-8");
+        uri += "&scope=" + URLEncoder.encode(combineStr(scopes), "UTF-8");
+        uri += "&applicationName=" + URLEncoder.encode(appName, "UTF-8");
+
+        DConnectResponseMessage response = mDConnectSDK.get(uri);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getString("accessToken"), is(notNullValue()));
     }
 
     /**
-     * 複数のスコープに対してアクセストークン取得テストを行う.
+     * アクセストークン取得テストを行う.
+     * 複数のスコープを指定する.
      * <pre>
-     * 【HTTP通信】
+     * 【Intent通信】
      * Method: GET
-     * Path: /authorization/accesstoken?
-     *           clientId=xxxx&scope=battery,connect,deviceorientation&applicationName=xxxx
+     * Path: /authorization/accessToken?clientId=xxxx&scope=xxxx&applicationName=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -116,12 +130,39 @@ public class NormalAuthorizationProfileTestCase extends IntentDConnectTestCase {
      * </pre>
      */
     @Test
-    public void testRequestAccessTokenMultiScope() {
-        String accessToken = requestAccessToken(new String[] {
-                BatteryProfileConstants.PROFILE_NAME,
-                ConnectProfileConstants.PROFILE_NAME,
-                DeviceOrientationProfileConstants.PROFILE_NAME,
-        });
-        assertNotNull(accessToken);
+    public void testRequestAccessTokenMultiScope() throws Exception {
+        String clientId = createClientId();
+        String appName = "JUnit Test";
+        String[] scopes = {
+                "battery",
+                "serviceDiscovery",
+                "serviceInformation"
+        };
+
+        String uri = "http://localhost:4035/gotapi/authorization/accessToken";
+        uri += "?clientId=" + URLEncoder.encode(clientId, "UTF-8");
+        uri += "&scope=" + URLEncoder.encode(combineStr(scopes), "UTF-8");
+        uri += "&applicationName=" + URLEncoder.encode(appName, "UTF-8");
+
+        DConnectResponseMessage response = mDConnectSDK.get(uri);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getString("accessToken"), is(notNullValue()));
+    }
+
+    /**
+     * clientIdを作成する.
+     * @return clientId
+     * @throws Exception clientIdの作成に失敗した場合に発生
+     */
+    private String createClientId() throws Exception {
+        String uri = "http://localhost:4035/gotapi/authorization/grant";
+
+        DConnectResponseMessage response = mDConnectSDK.get(uri);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getString("clientId"), is(notNullValue()));
+
+        return response.getString("clientId");
     }
 }

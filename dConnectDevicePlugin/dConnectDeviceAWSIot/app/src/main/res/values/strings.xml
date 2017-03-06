@@ -27,6 +27,8 @@
     <string name="webview_js_alert_negative_btn">いいえ</string>
     <string name="activity_help_title">AWS IoT Device Plug-in ヘルプ</string>
     <string name="setting_manager_off_warning">Device Connect ManagerがOFFです。ONにしてください。</string>
+    <string name="setting_manager_old_warning">Device Connect Managerの名前が取得できませんでした。Device Connect Managerを更新してください。</string>
+    <string name="setting_manager_auth_warning">Device Connect Managerの認証ができませんでした。認証してください。</string>
     <string name="setting_confirm_title">確認</string>
     <string-array name="region_array">
         <item>米国東部（バージニア北部）</item>

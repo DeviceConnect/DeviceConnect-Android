@@ -7,7 +7,7 @@ var util = (function(parent, global) {
             'serviceinformation',
             'system',
             'battery',
-            'connect',
+            'connection',
             'deviceorientation',
             'filedescriptor',
             'file',
@@ -16,7 +16,7 @@ var util = (function(parent, global) {
             'notification',
             'phone',
             'proximity',
-            'settings',
+            'setting',
             'vibration',
             'light',
             'remotecontroller',
@@ -29,7 +29,7 @@ var util = (function(parent, global) {
             'canvas',
             'health',
             'touch',
-            'humandetect',
+            'humandetection',
             'keyevent',
             'omnidirectionalimage',
             'tv',
@@ -44,6 +44,7 @@ var util = (function(parent, global) {
             'stressEstimation',
             'walkState',
             'gpio',
+            'geolocation',
             'echonetLite');
 
     function init(callback) {

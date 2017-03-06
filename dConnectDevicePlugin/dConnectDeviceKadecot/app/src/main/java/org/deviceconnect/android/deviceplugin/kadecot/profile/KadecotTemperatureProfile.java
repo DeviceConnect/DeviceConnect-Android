@@ -17,7 +17,6 @@ import org.deviceconnect.android.profile.api.GetApi;
 import org.deviceconnect.android.profile.api.PutApi;
 import org.deviceconnect.message.DConnectMessage;
 
-import static org.deviceconnect.android.deviceplugin.kadecot.profile.original.AirConditionerProfile.setTemperatureValue;
 import static org.deviceconnect.android.deviceplugin.kadecot.service.KadecotService.NO_RESULT;
 import static org.deviceconnect.android.deviceplugin.kadecot.service.KadecotService.createInvalidKadecotResponseError;
 
@@ -28,6 +27,37 @@ import static org.deviceconnect.android.deviceplugin.kadecot.service.KadecotServ
  */
 public class KadecotTemperatureProfile extends DConnectProfile {
 
+    /**
+     * Type of temperature.
+     */
+    public enum TemperatureType {
+        Celsius(1),
+        CelsiusFahrenheit(2);
+
+        /**
+         * type.
+         */
+        private int mValue;
+
+        /**
+         * Generate enum as specified value.
+         *
+         * @param value type
+         */
+        TemperatureType(final int value) {
+            mValue = value;
+        }
+
+        /**
+         * Get type
+         *
+         * @return type
+         */
+        public int getValue() {
+            return mValue;
+        }
+
+    }
     public KadecotTemperatureProfile() {
 
         // GET /gotapi/temperature/
@@ -71,8 +101,19 @@ public class KadecotTemperatureProfile extends DConnectProfile {
             if (propertyName != null && propertyValue != null) {
                 if (propertyName.equals(KadecotHomeAirConditioner.PROP_SETTEMPERATUREVALUE)) {
                     setResult(response, DConnectMessage.RESULT_OK);
+                    // Kadecot is only celsius.
+                    String typeString = request.getStringExtra("type");
+                    int type;
+                    try {
+                        type = Integer.valueOf(typeString);
+                    } catch(NumberFormatException e) {
+                        type = TemperatureType.Celsius.getValue();
+                    }
+                    if (type == TemperatureType.CelsiusFahrenheit.getValue()) {
+                        propertyValue = "" + convertCelsiusToFahrenheit(Integer.valueOf(propertyValue));
+                    }
                     response.putExtra("temperature", propertyValue);
-                    response.putExtra("type", "1"); //摂氏固定
+                    response.putExtra("type", type);
                 } else if (result.getServerResult().equals(NO_RESULT)) {
                     MessageUtils.setNotSupportAttributeError(response, "This device not support 'get' procedure.");
                 } else {
@@ -92,20 +133,36 @@ public class KadecotTemperatureProfile extends DConnectProfile {
      * @param request Request.
      * @param response Response.
      */
-    protected void putTemperature(final Intent request, final Intent response) {
-        int value = -1;
+    private void putTemperature(final Intent request, final Intent response) {
+        int value;
+        String typeString = request.getStringExtra("type");
+        int type;
+        try {
+            type = Integer.valueOf(typeString);
+        } catch(NumberFormatException e) {
+            type = TemperatureType.Celsius.getValue();
+        }
         String strValue = request.getStringExtra("temperature");
         try {
             value = Integer.parseInt(strValue);
         } catch (NumberFormatException e) {
             value = -1;
         }
-        if (value == -1 || value < 0 || value > 50) {
-            MessageUtils.setInvalidRequestParameterError(response);
-            sendResponse(response);
-            return;
+        if (type == TemperatureType.Celsius.getValue()) {
+            if (value == -1 || value < 0 || value > 50) {
+                MessageUtils.setInvalidRequestParameterError(response);
+                sendResponse(response);
+                return;
+            }
+        } else {
+            if (value == -1 || value < 32 || value > 122) {
+                MessageUtils.setInvalidRequestParameterError(response);
+                sendResponse(response);
+                return;
+            } else {
+                value = convertFahrenheitToCelsius(value); //To Celsius.
+            }
         }
-
         KadecotResult result = KadecotService.requestKadecotServer(getContext(),
                 response, getServiceID(request),
                 KadecotHomeAirConditioner.TEMPERATUREVALUE_SET, value);
@@ -129,5 +186,15 @@ public class KadecotTemperatureProfile extends DConnectProfile {
             }
         }
         sendResponse(response);
+    }
+
+    // Convert Celsius to Fahrenheit.
+    private int convertCelsiusToFahrenheit(final int celsius) {
+        return (int) (1.8 * celsius + 32);
+    }
+
+    // Convert Fahrenheit to Celsius.
+    private int convertFahrenheitToCelsius(final int fahrenheit) {
+        return (int) ((0.56) * (fahrenheit - 32));
     }
 }

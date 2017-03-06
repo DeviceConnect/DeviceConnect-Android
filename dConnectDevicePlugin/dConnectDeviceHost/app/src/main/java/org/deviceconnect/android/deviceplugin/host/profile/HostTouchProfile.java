@@ -12,6 +12,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
 
+import org.deviceconnect.android.deviceplugin.host.HostDeviceApplication;
 import org.deviceconnect.android.deviceplugin.host.HostDeviceService;
 import org.deviceconnect.android.deviceplugin.host.activity.TouchProfileActivity;
 import org.deviceconnect.android.event.EventError;
@@ -63,7 +64,7 @@ public class HostTouchProfile extends TouchProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            Bundle touches = ((HostDeviceService) getContext()).getTouchCache(TouchProfile.ATTRIBUTE_ON_TOUCH);
+            Bundle touches = getTouchCache(TouchProfile.ATTRIBUTE_ON_TOUCH);
             if (touches == null) {
                 response.putExtra(TouchProfile.PARAM_TOUCH, "");
             } else {
@@ -83,7 +84,7 @@ public class HostTouchProfile extends TouchProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            Bundle touches = ((HostDeviceService) getContext()).getTouchCache(TouchProfile.ATTRIBUTE_ON_TOUCH_START);
+            Bundle touches = getTouchCache(TouchProfile.ATTRIBUTE_ON_TOUCH_START);
             if (touches == null) {
                 response.putExtra(TouchProfile.PARAM_TOUCH, "");
             } else {
@@ -103,7 +104,7 @@ public class HostTouchProfile extends TouchProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            Bundle touches = ((HostDeviceService) getContext()).getTouchCache(TouchProfile.ATTRIBUTE_ON_TOUCH_END);
+            Bundle touches = getTouchCache(TouchProfile.ATTRIBUTE_ON_TOUCH_END);
             if (touches == null) {
                 response.putExtra(TouchProfile.PARAM_TOUCH, "");
             } else {
@@ -123,7 +124,7 @@ public class HostTouchProfile extends TouchProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            Bundle touches = ((HostDeviceService) getContext()).getTouchCache(TouchProfile.ATTRIBUTE_ON_DOUBLE_TAP);
+            Bundle touches = getTouchCache(TouchProfile.ATTRIBUTE_ON_DOUBLE_TAP);
             if (touches == null) {
                 response.putExtra(TouchProfile.PARAM_TOUCH, "");
             } else {
@@ -143,7 +144,7 @@ public class HostTouchProfile extends TouchProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            Bundle touches = ((HostDeviceService) getContext()).getTouchCache(TouchProfile.ATTRIBUTE_ON_TOUCH_MOVE);
+            Bundle touches = getTouchCache(TouchProfile.ATTRIBUTE_ON_TOUCH_MOVE);
             if (touches == null) {
                 response.putExtra(TouchProfile.PARAM_TOUCH, "");
             } else {
@@ -163,7 +164,7 @@ public class HostTouchProfile extends TouchProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            Bundle touches = ((HostDeviceService) getContext()).getTouchCache(TouchProfile.ATTRIBUTE_ON_TOUCH_CANCEL);
+            Bundle touches = getTouchCache(TouchProfile.ATTRIBUTE_ON_TOUCH_CANCEL);
             if (touches == null) {
                 response.putExtra(TouchProfile.PARAM_TOUCH, "");
             } else {
@@ -541,5 +542,29 @@ public class HostTouchProfile extends TouchProfile {
             resetTouchEventFlag(FLAG_ON_TOUCH | FLAG_ON_TOUCH_START | FLAG_ON_TOUCH_END
                     | FLAG_ON_DOUBLE_TAP | FLAG_ON_TOUCH_MOVE | FLAG_ON_TOUCH_CANCEL);
         }
+    }
+
+    /**
+     * Get touch cache.
+     *
+     * @param attr Attribute.
+     * @return Touch cache data.
+     */
+    public Bundle getTouchCache(final String attr) {
+        return getApp().getTouchCache(attr);
+    }
+
+    /**
+     * Get keyevent cache.
+     *
+     * @param attr Attribute.
+     * @return KeyEvent cache data.
+     */
+    public Bundle getKeyEventCache(final String attr) {
+        return getApp().getKeyEventCache(attr);
+    }
+
+    public HostDeviceApplication getApp() {
+        return (HostDeviceApplication) ((HostDeviceService)getContext()).getApplication();
     }
 }

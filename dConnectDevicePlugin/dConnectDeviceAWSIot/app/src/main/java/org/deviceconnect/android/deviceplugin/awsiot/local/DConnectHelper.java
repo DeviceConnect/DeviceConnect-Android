@@ -245,7 +245,14 @@ public class DConnectHelper {
     public void availability(final FinishCallback callback) {
         sendRequest("GET", "http://localhost:4035/gotapi/availability", callback);
     }
-
+    public void getSystem(final FinishCallback callback) {
+        Map<String, String> param = new HashMap<>();
+        if (mAuthInfo != null) {
+            String accessToken = mAuthInfo.getAccessToken();
+            param.put("accessToken", accessToken);
+        }
+        sendRequest("GET", "http://localhost:4035/gotapi/system", param, callback);
+    }
     public void serviceDiscovery(final FinishCallback callback) {
         sendRequest("GET", "http://localhost:4035/gotapi/servicediscovery", callback);
     }
@@ -382,6 +389,8 @@ public class DConnectHelper {
                 int result = jsonObject.getInt("result");
                 if (result == 0) {
                     String accessToken = jsonObject.getString("accessToken");
+                    mPrefUtil.setAuthAccessToken(accessToken);
+                    mPrefUtil.setAuthClientId(clientId);
                     mAuthInfo = new AuthInfo(clientId, accessToken);
                     mBody.put("accessToken", accessToken);
                     mPrefUtil.setAuthAccessToken(accessToken);

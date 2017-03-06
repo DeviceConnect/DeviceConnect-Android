@@ -113,7 +113,7 @@ public final class RawDataParseUtils {
      * @return timestamp string
      */
     private static String nowTimeStampString(final long now) {
-        DateFormat df = new SimpleDateFormat("yyyyMMddHHmmdss.SSSZZZ");
+        DateFormat df = new SimpleDateFormat("yyyyMMddHHmmss.SSSZZZ");
         df.setTimeZone(TimeZone.getDefault());
         return df.format(new Date(System.currentTimeMillis()));
     }

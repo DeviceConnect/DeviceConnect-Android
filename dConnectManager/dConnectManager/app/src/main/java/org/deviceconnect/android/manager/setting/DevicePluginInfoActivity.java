@@ -23,8 +23,8 @@ import org.deviceconnect.android.manager.R;
  */
 public class DevicePluginInfoActivity extends Activity {
 
-    /** デバイスプラグインのパッケージ名のキー. */
-    static final String PACKAGE_NAME = "packageName";
+    /** デバイスプラグインのプラグインIDのキー. */
+    static final String PLUGIN_ID = "pluginId";
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -42,7 +42,7 @@ public class DevicePluginInfoActivity extends Activity {
             return;
         }
 
-        String packageName = intent.getStringExtra(PACKAGE_NAME);
+        String packageName = intent.getStringExtra(PLUGIN_ID);
         if (packageName == null) {
             finish();
             return;
@@ -51,7 +51,7 @@ public class DevicePluginInfoActivity extends Activity {
         if (savedInstanceState == null) {
             Fragment f = new DevicePluginInfoFragment();
             Bundle args = new Bundle();
-            args.putString(PACKAGE_NAME, packageName);
+            args.putString(PLUGIN_ID, packageName);
             f.setArguments(args);
 
             FragmentManager fm = getFragmentManager();

@@ -89,8 +89,11 @@ import java.util.Locale;
 import java.util.Set;
 
 import static org.deviceconnect.android.deviceplugin.sw.SWApplication.STATE_DOUBLE_TAP;
+import static org.deviceconnect.android.deviceplugin.sw.SWApplication.STATE_DOWN;
 import static org.deviceconnect.android.deviceplugin.sw.SWApplication.STATE_END;
 import static org.deviceconnect.android.deviceplugin.sw.SWApplication.STATE_START;
+import static org.deviceconnect.android.deviceplugin.sw.SWApplication.STATE_UP;
+import static org.deviceconnect.android.deviceplugin.sw.profile.SWKeyEventProfile.ATTRIBUTE_ON_KEY_CHANGE;
 import static org.deviceconnect.android.deviceplugin.sw.profile.SWTouchProfile.ATTRIBUTE_ON_TOUCH_CHANGE;
 
 /**
@@ -598,11 +601,22 @@ class SWControlExtension extends ControlExtension {
 
         List<Event> events = EventManager.INSTANCE.getEventList(serviceId, KeyEventProfileConstants.PROFILE_NAME, null,
                 KeyEventProfile.ATTRIBUTE_ON_DOWN);
+
+        Bundle keyevent = new Bundle();
+        setKeyEventData(keyevent, keyCode + mKeyType, config);
         for (Event event : events) {
-            Bundle keyevent = new Bundle();
             String eventAttr = event.getAttribute();
             Intent message = EventManager.createEventMessage(event);
-            setKeyEventData(keyevent, keyCode + mKeyType, config);
+            message.putExtra(KeyEventProfile.PARAM_KEYEVENT, keyevent);
+            sendEvent(message, event.getAccessToken());
+            SWApplication.setKeyEventCache(eventAttr, keyevent);
+        }
+        List<Event> changeEvents = EventManager.INSTANCE.getEventList(serviceId, KeyEventProfileConstants.PROFILE_NAME, null,
+                ATTRIBUTE_ON_KEY_CHANGE);
+        for (Event event : changeEvents) {
+            String eventAttr = event.getAttribute();
+            Intent message = EventManager.createEventMessage(event);
+            keyevent.putString("state", STATE_DOWN);
             message.putExtra(KeyEventProfile.PARAM_KEYEVENT, keyevent);
             sendEvent(message, event.getAccessToken());
             SWApplication.setKeyEventCache(eventAttr, keyevent);
@@ -706,16 +720,16 @@ class SWControlExtension extends ControlExtension {
         if (serviceId == null) {
             return;
         }
-
+        Bundle keyevent = new Bundle();
+        setKeyEventData(keyevent, keyCode, config);
+        String state = null;
         if (action == Control.Intents.KEY_ACTION_PRESS) {
             List<Event> events = EventManager.INSTANCE.getEventList(serviceId, KeyEventProfileConstants.PROFILE_NAME,
                     null, KeyEventProfile.ATTRIBUTE_ON_DOWN);
-
+            state = STATE_DOWN;
             for (Event event : events) {
-                Bundle keyevent = new Bundle();
                 String eventAttr = event.getAttribute();
                 Intent message = EventManager.createEventMessage(event);
-                setKeyEventData(keyevent, keyCode, config);
                 message.putExtra(KeyEventProfile.PARAM_KEYEVENT, keyevent);
                 sendEvent(message, event.getAccessToken());
                 SWApplication.setKeyEventCache(eventAttr, keyevent);
@@ -723,16 +737,24 @@ class SWControlExtension extends ControlExtension {
         } else if (action == Control.Intents.KEY_ACTION_RELEASE) {
             List<Event> events = EventManager.INSTANCE.getEventList(serviceId, KeyEventProfileConstants.PROFILE_NAME,
                     null, KeyEventProfile.ATTRIBUTE_ON_UP);
-
+            state = STATE_UP;
             for (Event event : events) {
-                Bundle keyevent = new Bundle();
                 String eventAttr = event.getAttribute();
                 Intent message = EventManager.createEventMessage(event);
-                setKeyEventData(keyevent, keyCode, config);
                 message.putExtra(KeyEventProfile.PARAM_KEYEVENT, keyevent);
                 sendEvent(message, event.getAccessToken());
                 SWApplication.setKeyEventCache(eventAttr, keyevent);
             }
+        }
+        List<Event> changeEvents = EventManager.INSTANCE.getEventList(serviceId, KeyEventProfileConstants.PROFILE_NAME, null,
+                ATTRIBUTE_ON_KEY_CHANGE);
+        for (Event event : changeEvents) {
+            String eventAttr = event.getAttribute();
+            Intent message = EventManager.createEventMessage(event);
+            keyevent.putString("state", state);
+            message.putExtra(KeyEventProfile.PARAM_KEYEVENT, keyevent);
+            sendEvent(message, event.getAccessToken());
+            SWApplication.setKeyEventCache(eventAttr, keyevent);
         }
 
         if (action == Control.Intents.KEY_ACTION_RELEASE && keyCode == Control.KeyCodes.KEYCODE_OPTIONS) {

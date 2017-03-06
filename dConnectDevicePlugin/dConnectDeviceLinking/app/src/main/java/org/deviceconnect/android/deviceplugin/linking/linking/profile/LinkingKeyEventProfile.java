@@ -24,6 +24,7 @@ import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.KeyEventProfile;
 import org.deviceconnect.android.profile.api.DConnectApi;
 import org.deviceconnect.android.profile.api.DeleteApi;
+import org.deviceconnect.android.profile.api.GetApi;
 import org.deviceconnect.android.profile.api.PutApi;
 import org.deviceconnect.message.DConnectMessage;
 
@@ -33,15 +34,74 @@ public class LinkingKeyEventProfile extends KeyEventProfile implements LinkingDe
 
     private static final String TAG = "LinkingPlugIn";
 
+    /**
+     * Attribute: {@value} .
+     */
+    public static final String ATTRIBUTE_ON_KEY_CHANGE = "onKeyChange";
+
+    /**
+     * Parameter: {@value} .
+     */
+    public static final String PARAM_STATE = "state";
+
     public LinkingKeyEventProfile() {
+        addApi(mGetOnDown);
         addApi(mPutOnDown);
         addApi(mDeleteOnDown);
+        addApi(mGetOnKeyChangeApi);
+        addApi(mPutOnKeyChangeApi);
+        addApi(mDeleteOnKeyChangeApi);
     }
 
     private final LinkingDeviceManager.OnButtonEventListener mListener = new LinkingDeviceManager.OnButtonEventListener() {
         @Override
         public void onButtonEvent(final LinkingDevice device, final int keyCode) {
             notifyKeyEvent(device, keyCode);
+        }
+    };
+
+    private final DConnectApi mGetOnDown = new GetApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_DOWN;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            final LinkingDevice device = getDevice(response);
+            if (device == null) {
+                return true;
+            }
+
+            final LinkingDeviceManager deviceManager = getLinkingDeviceManager();
+            deviceManager.enableListenButtonEvent(device, new OnKeyEventListenerImpl(device) {
+                @Override
+                public void onCleanup() {
+                    deviceManager.disableListenButtonEvent(mDevice, this);
+                }
+
+                @Override
+                public void onTimeout() {
+                    if (mCleanupFlag) {
+                        return;
+                    }
+
+                    MessageUtils.setTimeoutError(response);
+                    sendResponse(response);
+                }
+
+                @Override
+                public void onButtonEvent(final LinkingDevice device, final int keyCode) {
+                    if (mCleanupFlag || !mDevice.equals(device)) {
+                        return;
+                    }
+
+                    setKeyEvent(response, createKeyEvent(keyCode, System.currentTimeMillis()));
+                    sendResponse(response);
+                    cleanup();
+                }
+            });
+            return false;
         }
     };
 
@@ -99,6 +159,110 @@ public class LinkingKeyEventProfile extends KeyEventProfile implements LinkingDe
         }
     };
 
+    private final DConnectApi mGetOnKeyChangeApi = new GetApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_KEY_CHANGE;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            final LinkingDevice device = getDevice(response);
+            if (device == null) {
+                return true;
+            }
+
+            final LinkingDeviceManager deviceManager = getLinkingDeviceManager();
+            deviceManager.enableListenButtonEvent(device, new OnKeyEventListenerImpl(device) {
+                @Override
+                public void onCleanup() {
+                    deviceManager.disableListenButtonEvent(mDevice, this);
+                }
+
+                @Override
+                public void onTimeout() {
+                    if (mCleanupFlag) {
+                        return;
+                    }
+
+                    MessageUtils.setTimeoutError(response);
+                    sendResponse(response);
+                }
+
+                @Override
+                public void onButtonEvent(final LinkingDevice device, final int keyCode) {
+                    if (mCleanupFlag || !mDevice.equals(device)) {
+                        return;
+                    }
+
+                    Bundle keyEvent = createKeyEvent(keyCode, System.currentTimeMillis());
+                    keyEvent.putString(PARAM_STATE, "down");
+                    setKeyEvent(response, keyEvent);
+                    sendResponse(response);
+                    cleanup();
+                }
+            });
+            return false;
+        }
+    };
+
+    private final DConnectApi mPutOnKeyChangeApi = new PutApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_KEY_CHANGE;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            LinkingDevice device = getDevice(response);
+            if (device == null) {
+                return true;
+            }
+
+            EventError error = EventManager.INSTANCE.addEvent(request);
+            if (error == EventError.NONE) {
+                getLinkingDeviceManager().enableListenButtonEvent(device, mListener);
+                setResult(response, DConnectMessage.RESULT_OK);
+            } else if (error == EventError.INVALID_PARAMETER) {
+                MessageUtils.setInvalidRequestParameterError(response);
+            } else {
+                MessageUtils.setUnknownError(response);
+            }
+            return true;
+        }
+    };
+
+    private final DConnectApi mDeleteOnKeyChangeApi = new DeleteApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_KEY_CHANGE;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            LinkingDevice device = getDevice(response);
+            if (device == null) {
+                return true;
+            }
+
+            EventError error = EventManager.INSTANCE.removeEvent(request);
+            if (error == EventError.NONE) {
+                if (isEmptyEventList(device)) {
+                    getLinkingDeviceManager().disableListenButtonEvent(device, mListener);
+                }
+                setResult(response, DConnectMessage.RESULT_OK);
+            } else if (error == EventError.INVALID_PARAMETER) {
+                MessageUtils.setInvalidRequestParameterError(response);
+            } else {
+                MessageUtils.setUnknownError(response);
+            }
+            return true;
+        }
+    };
+
     @Override
     public void onDestroy() {
         if (BuildConfig.DEBUG) {
@@ -108,9 +272,11 @@ public class LinkingKeyEventProfile extends KeyEventProfile implements LinkingDe
     }
 
     private boolean isEmptyEventList(final LinkingDevice device) {
-        List<Event> events = EventManager.INSTANCE.getEventList(
+        List<Event> keyDownEvents = EventManager.INSTANCE.getEventList(
                 device.getBdAddress(), PROFILE_NAME, null, ATTRIBUTE_ON_DOWN);
-        return events.isEmpty();
+        List<Event> keyChangeEvents = EventManager.INSTANCE.getEventList(
+                device.getBdAddress(), PROFILE_NAME, null, ATTRIBUTE_ON_KEY_CHANGE);
+        return keyDownEvents.isEmpty() && keyChangeEvents.isEmpty();
     }
 
     private LinkingDevice getDevice() {
@@ -127,9 +293,16 @@ public class LinkingKeyEventProfile extends KeyEventProfile implements LinkingDe
 
         return device;
     }
+
     private Bundle createKeyEvent(final int keyCode) {
         Bundle keyEvent = new Bundle();
         keyEvent.putString(PARAM_ID, String.valueOf(KeyEventProfile.KEYTYPE_STD_KEY + keyCode));
+        return keyEvent;
+    }
+
+    private Bundle createKeyEvent(final int keyCode, final long timeStamp) {
+        Bundle keyEvent = createKeyEvent(keyCode);
+        keyEvent.putString(PARAM_CONFIG, "" + timeStamp);
         return keyEvent;
     }
 
@@ -143,12 +316,24 @@ public class LinkingKeyEventProfile extends KeyEventProfile implements LinkingDe
         }
 
         String serviceId = device.getBdAddress();
-        List<Event> events = EventManager.INSTANCE.getEventList(serviceId,
+        List<Event> keyDownEvents = EventManager.INSTANCE.getEventList(serviceId,
                 PROFILE_NAME, null, ATTRIBUTE_ON_DOWN);
-        if (events != null && events.size() > 0) {
-            for (Event event : events) {
+        if (keyDownEvents != null && keyDownEvents.size() > 0) {
+            for (Event event : keyDownEvents) {
                 Intent intent = EventManager.createEventMessage(event);
                 setKeyEvent(intent, createKeyEvent(keyCode));
+                sendEvent(intent, event.getAccessToken());
+            }
+        }
+
+        List<Event> keyChangeEvents = EventManager.INSTANCE.getEventList(serviceId,
+                PROFILE_NAME, null, ATTRIBUTE_ON_KEY_CHANGE);
+        if (keyChangeEvents != null) {
+            for (Event event : keyChangeEvents) {
+                Bundle keyEvent = createKeyEvent(keyCode);
+                keyEvent.putString(PARAM_STATE, "down");
+                Intent intent = EventManager.createEventMessage(event);
+                setKeyEvent(intent, keyEvent);
                 sendEvent(intent, event.getAccessToken());
             }
         }
@@ -162,5 +347,11 @@ public class LinkingKeyEventProfile extends KeyEventProfile implements LinkingDe
     private LinkingApplication getLinkingApplication() {
         LinkingDevicePluginService service = (LinkingDevicePluginService) getContext();
         return (LinkingApplication) service.getApplication();
+    }
+
+    private abstract class OnKeyEventListenerImpl extends TimeoutSchedule implements LinkingDeviceManager.OnButtonEventListener {
+        OnKeyEventListenerImpl(final LinkingDevice device) {
+            super(device);
+        }
     }
 }

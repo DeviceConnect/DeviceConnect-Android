@@ -21,6 +21,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 
+import static org.deviceconnect.android.deviceplugin.host.profile.HostKeyEventProfile.ATTRIBUTE_ON_KEY_CHANGE;
 import static org.deviceconnect.android.deviceplugin.host.profile.HostTouchProfile.ATTRIBUTE_ON_TOUCH_CHANGE;
 
 /**
@@ -181,7 +182,14 @@ public class HostDeviceApplication extends Application {
 
     /** KeyEvent profile onUp cache time. */
     static long sOnUpCacheTime = 0;
-
+    /** KeyEvent profile onKeyChange cache. */
+    Bundle mOnKeyChangeCache = null;
+    /** KeyEvent profile onKeyChange cache time. */
+    static long sOnKeyChangeCacheTime = 0;
+    /** KeyEvent State move. */
+    public static final String STATE_UP = "up";
+    /** KeyEvent State cancel. */
+    public static final String STATE_DOWN = "down";
     /**
      * Get KeyEvent cache data.
      * 
@@ -199,6 +207,12 @@ public class HostDeviceApplication extends Application {
         } else if (attr.equalsIgnoreCase(KeyEventProfile.ATTRIBUTE_ON_UP)) {
             if (lCurrentTime - sOnUpCacheTime <= CACHE_RETENTION_TIME) {
                 return mOnUpCache;
+            } else {
+                return null;
+            }
+        } else if (attr.equalsIgnoreCase(ATTRIBUTE_ON_KEY_CHANGE)) {
+            if (lCurrentTime - sOnKeyChangeCacheTime <= CACHE_RETENTION_TIME) {
+                return mOnKeyChangeCache;
             } else {
                 return null;
             }
@@ -221,6 +235,9 @@ public class HostDeviceApplication extends Application {
         } else if (attr.equalsIgnoreCase(KeyEventProfile.ATTRIBUTE_ON_UP)) {
             mOnUpCache = keyEventData;
             sOnUpCacheTime = lCurrentTime;
+        } else if (attr.equalsIgnoreCase(ATTRIBUTE_ON_KEY_CHANGE)) {
+            mOnKeyChangeCache = keyEventData;
+            sOnKeyChangeCacheTime = lCurrentTime;
         }
     }
 

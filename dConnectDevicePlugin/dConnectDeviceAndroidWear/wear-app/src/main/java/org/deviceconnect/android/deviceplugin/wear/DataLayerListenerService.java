@@ -116,6 +116,10 @@ public class DataLayerListenerService extends WearableListenerService {
             startKeyEventActivity(WearConst.DEVICE_TO_WEAR_KEYEVENT_ONUP_REGISTER, id);
         } else if (action.equals(WearConst.DEVICE_TO_WEAR_KEYEVENT_ONUP_UNREGISTER)) {
             startKeyEventActivity(WearConst.DEVICE_TO_WEAR_KEYEVENT_ONUP_UNREGISTER, id);
+        } else if (action.equals(WearConst.DEVICE_TO_WEAR_KEYEVENT_ONKEYCHANGE_REGISTER)) {
+            startKeyEventActivity(WearConst.DEVICE_TO_WEAR_KEYEVENT_ONKEYCHANGE_REGISTER, id);
+        } else if (action.equals(WearConst.DEVICE_TO_WEAR_KEYEVENT_ONKEYCHANGE_UNREGISTER)) {
+            startKeyEventActivity(WearConst.DEVICE_TO_WEAR_KEYEVENT_ONKEYCHANGE_UNREGISTER, id);
         } else if (action.equals(WearConst.DEVICE_TO_WEAR_TOUCH_ONTOUCH_REGISTER)) {
             startTouchActivity(WearConst.DEVICE_TO_WEAR_TOUCH_ONTOUCH_REGISTER, id);
         } else if (action.equals(WearConst.DEVICE_TO_WEAR_TOUCH_ONTOUCHSTART_REGISTER)) {

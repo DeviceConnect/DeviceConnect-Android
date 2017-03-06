@@ -869,20 +869,20 @@ public class WearTouchProfile extends TouchProfile {
                     nodeId, PROFILE_NAME, null, attr);
             List<Event> commonEvents = EventManager.INSTANCE.getEventList(
                     nodeId, PROFILE_NAME, null, ATTRIBUTE_ON_TOUCH_CHANGE);
+            Bundle touchdata = new Bundle();
+            List<Bundle> touchlist = new ArrayList<Bundle>();
+            Bundle touches = new Bundle();
+            int count = Integer.parseInt(mDataArray[0]);
+            int index = 2;
+            for (int n = 0; n < count; n++) {
+                touchdata.putInt(TouchProfile.PARAM_ID, Integer.parseInt(mDataArray[index++]));
+                touchdata.putFloat(TouchProfile.PARAM_X, Float.parseFloat(mDataArray[index++]));
+                touchdata.putFloat(TouchProfile.PARAM_Y, Float.parseFloat(mDataArray[index++]));
+                touchlist.add((Bundle) touchdata.clone());
+            }
+            touches.putParcelableArray(TouchProfile.PARAM_TOUCHES,
+                    touchlist.toArray(new Bundle[touchlist.size()]));
             synchronized (events) {
-                Bundle touchdata = new Bundle();
-                List<Bundle> touchlist = new ArrayList<Bundle>();
-                Bundle touches = new Bundle();
-                int count = Integer.parseInt(mDataArray[0]);
-                int index = 2;
-                for (int n = 0; n < count; n++) {
-                    touchdata.putInt(TouchProfile.PARAM_ID, Integer.parseInt(mDataArray[index++]));
-                    touchdata.putFloat(TouchProfile.PARAM_X, Float.parseFloat(mDataArray[index++]));
-                    touchdata.putFloat(TouchProfile.PARAM_Y, Float.parseFloat(mDataArray[index++]));
-                    touchlist.add((Bundle) touchdata.clone());
-                }
-                touches.putParcelableArray(TouchProfile.PARAM_TOUCHES,
-                        touchlist.toArray(new Bundle[touchlist.size()]));
                 for (Event event : events) {
                     String eventAttr = event.getAttribute();
                     Intent intent = EventManager.createEventMessage(event);
@@ -895,6 +895,8 @@ public class WearTouchProfile extends TouchProfile {
                         Log.i(TAG, "intent: " + intent);
                     }
                 }
+            }
+            synchronized (commonEvents) {
                 for (Event event : commonEvents) {
                     String eventAttr = event.getAttribute();
                     Intent intent = EventManager.createEventMessage(event);

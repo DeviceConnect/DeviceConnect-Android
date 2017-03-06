@@ -57,15 +57,15 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
                 if (attr == null) {
                     getAirConditioner(request, response);
                 } else {
-                    if (isEqual(KadecotHomeAirConditionerProfile.ATTRIBUTE_OPERATION_POWER_SAVING, attr)) {
+                    if (isEqual(KadecotHomeAirConditionerProfile.ATTRIBUTE_POWER_SAVING, attr)) {
                         getAirConditionerOperationPowerSaving(request, response);
-                    } else if (isEqual(KadecotHomeAirConditionerProfile.ATTRIBUTE_OPERATION_MODE_SETTING, attr)) {
+                    } else if (isEqual(KadecotHomeAirConditionerProfile.ATTRIBUTE_MODE_SETTING, attr)) {
                         getAirConditionerOperationModeSetting(request, response);
                     } else if (isEqual(KadecotHomeAirConditionerProfile.ATTRIBUTE_ROOM_TEMPERATURE, attr)) {
                         getAirConditionerRoomTemperature(request, response);
-                    } else if (isEqual(KadecotHomeAirConditionerProfile.ATTRIBUTE_TEMPERATURE_VALUE, attr)) {
+                    } else if (isEqual(KadecotHomeAirConditionerProfile.ATTRIBUTE_TEMPERATURE, attr)) {
                         getAirConditionerTemperatureValue(request, response);
-                    } else if (isEqual(KadecotHomeAirConditionerProfile.ATTRIBUTE_AIR_FLOW_VALUE, attr)) {
+                    } else if (isEqual(KadecotHomeAirConditionerProfile.ATTRIBUTE_AIR_FLOW, attr)) {
                         getAirConditionerAirFlowValue(request, response);
                     } else if (isEqual(KadecotHomeAirConditionerProfile.ATTRIBUTE_ENL_PROPERTY, attr)) {
                         getAirConditionerECHONETLiteProperty(request, response);
@@ -81,13 +81,13 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
                 if (attr == null) {
                     putAirConditioner(request, response);
                 } else {
-                    if (isEqual(KadecotHomeAirConditionerProfile.ATTRIBUTE_OPERATION_POWER_SAVING, attr)) {
+                    if (isEqual(KadecotHomeAirConditionerProfile.ATTRIBUTE_POWER_SAVING, attr)) {
                         putAirConditionerOperationPowerSaving(request, response);
-                    } else if (isEqual(KadecotHomeAirConditionerProfile.ATTRIBUTE_OPERATION_MODE_SETTING, attr)) {
+                    } else if (isEqual(KadecotHomeAirConditionerProfile.ATTRIBUTE_MODE_SETTING, attr)) {
                         putAirConditionerOperationModeSetting(request, response);
-                    } else if (isEqual(KadecotHomeAirConditionerProfile.ATTRIBUTE_TEMPERATURE_VALUE, attr)) {
+                    } else if (isEqual(KadecotHomeAirConditionerProfile.ATTRIBUTE_TEMPERATURE, attr)) {
                         putAirConditionerTemperatureValue(request, response);
-                    } else if (isEqual(KadecotHomeAirConditionerProfile.ATTRIBUTE_AIR_FLOW_VALUE, attr)) {
+                    } else if (isEqual(KadecotHomeAirConditionerProfile.ATTRIBUTE_AIR_FLOW, attr)) {
                         putAirConditionerAirFlowValue(request, response);
                     } else if (isEqual(KadecotHomeAirConditionerProfile.ATTRIBUTE_ENL_PROPERTY, attr)) {
                         putAirConditionerECHONETLiteProperty(request, response);
@@ -168,7 +168,7 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
     private final DConnectApi mGetOperationPowerSavingApi = new GetApi() {
         @Override
         public String getAttribute() {
-            return ATTRIBUTE_OPERATION_POWER_SAVING;
+            return ATTRIBUTE_POWER_SAVING;
         }
 
         @Override
@@ -194,9 +194,9 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
                 if (propertyName.equals(KadecotHomeAirConditioner.PROP_POWERSAVINGOPERATIONSETTING)) {
                     setResult(response, DConnectMessage.RESULT_OK);
                     switch (propertyValue) {
-                        case "65":  setOperationPowerSaving(response, "PowerSaving");   break;
-                        case "66":  setOperationPowerSaving(response, "Normal");        break;
-                        default:    setOperationPowerSaving(response, "UNKNOWN");       break;
+                        case "65":  setPowerSaving(response, "PowerSaving");   break;
+                        case "66":  setPowerSaving(response, "Normal");        break;
+                        default:    setPowerSaving(response, "UNKNOWN");       break;
                     }
                 } else if (result.getServerResult().equals(NO_RESULT)) {
                     MessageUtils.setNotSupportAttributeError(response, "This device not support 'get' procedure.");
@@ -213,7 +213,7 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
     private final DConnectApi mGetOperationModeSettingApi = new GetApi() {
         @Override
         public String getAttribute() {
-            return ATTRIBUTE_OPERATION_MODE_SETTING;
+            return ATTRIBUTE_MODE_SETTING;
         }
 
         @Override
@@ -239,13 +239,13 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
                 if (propertyName.equals(KadecotHomeAirConditioner.PROP_OPERATIONMODESETTING)) {
                     setResult(response, DConnectMessage.RESULT_OK);
                     switch (propertyValue) {
-                        case "64":  setOperationModeSetting(response, "Other");             break;
-                        case "65":  setOperationModeSetting(response, "Automatic");         break;
-                        case "66":  setOperationModeSetting(response, "Cooling");           break;
-                        case "67":  setOperationModeSetting(response, "Heating");           break;
-                        case "68":  setOperationModeSetting(response, "Dehumidification");  break;
-                        case "69":  setOperationModeSetting(response, "AirCirculator");     break;
-                        default:    setOperationModeSetting(response, "UNKNOWN");           break;
+                        case "64":  setModeSetting(response, "Other");             break;
+                        case "65":  setModeSetting(response, "Automatic");         break;
+                        case "66":  setModeSetting(response, "Cooling");           break;
+                        case "67":  setModeSetting(response, "Heating");           break;
+                        case "68":  setModeSetting(response, "Dehumidification");  break;
+                        case "69":  setModeSetting(response, "AirCirculator");     break;
+                        default:    setModeSetting(response, "UNKNOWN");           break;
                     }
                 } else if (result.getServerResult().equals(NO_RESULT)) {
                     MessageUtils.setNotSupportAttributeError(response, "This device not support 'get' procedure.");
@@ -307,7 +307,7 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
     private final DConnectApi mGetTemperatureValueApi = new GetApi() {
         @Override
         public String getAttribute() {
-            return ATTRIBUTE_TEMPERATURE_VALUE;
+            return ATTRIBUTE_TEMPERATURE;
         }
 
         @Override
@@ -332,7 +332,7 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
             if (propertyName != null && propertyValue != null) {
                 if (propertyName.equals(KadecotHomeAirConditioner.PROP_SETTEMPERATUREVALUE)) {
                     setResult(response, DConnectMessage.RESULT_OK);
-                    setTemperatureValue(response, propertyValue);
+                    setTemperature(response, propertyValue);
                 } else if (result.getServerResult().equals(NO_RESULT)) {
                     MessageUtils.setNotSupportAttributeError(response, "This device not support 'get' procedure.");
                 } else {
@@ -348,7 +348,7 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
     private final DConnectApi mGetAirFlowValueApi = new GetApi() {
         @Override
         public String getAttribute() {
-            return ATTRIBUTE_AIR_FLOW_VALUE;
+            return ATTRIBUTE_AIR_FLOW;
         }
 
         @Override
@@ -375,19 +375,19 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
                     setResult(response, DConnectMessage.RESULT_OK);
                     setAirFlowAuto(response, "false");
                     switch (propertyValue) {
-                        case "49":  setAirFlowValue(response, "0.11");  break;
-                        case "50":  setAirFlowValue(response, "0.24");  break;
-                        case "51":  setAirFlowValue(response, "0.37");  break;
-                        case "52":  setAirFlowValue(response, "0.50");  break;
-                        case "53":  setAirFlowValue(response, "0.63");  break;
-                        case "54":  setAirFlowValue(response, "0.76");  break;
-                        case "55":  setAirFlowValue(response, "0.89");  break;
-                        case "56":  setAirFlowValue(response, "1.0");   break;
+                        case "49":  setAirFlow(response, "0.11");  break;
+                        case "50":  setAirFlow(response, "0.24");  break;
+                        case "51":  setAirFlow(response, "0.37");  break;
+                        case "52":  setAirFlow(response, "0.50");  break;
+                        case "53":  setAirFlow(response, "0.63");  break;
+                        case "54":  setAirFlow(response, "0.76");  break;
+                        case "55":  setAirFlow(response, "0.89");  break;
+                        case "56":  setAirFlow(response, "1.0");   break;
                         case "65":
-                            setAirFlowValue(response, "0.0");
+                            setAirFlow(response, "0.0");
                             setAirFlowAuto(response, "true");
                             break;
-                        default:    setAirFlowValue(response, "-1.0");  break;
+                        default:    setAirFlow(response, "-1.0");  break;
                     }
                 } else if (result.getServerResult().equals(NO_RESULT)) {
                     MessageUtils.setNotSupportAttributeError(response, "This device not support 'get' procedure.");
@@ -539,7 +539,7 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
     private final DConnectApi mPutOperationPowerSavingApi = new PutApi() {
         @Override
         public String getAttribute() {
-            return ATTRIBUTE_OPERATION_POWER_SAVING;
+            return ATTRIBUTE_POWER_SAVING;
         }
 
         @Override
@@ -600,7 +600,7 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
     private final DConnectApi mPutOperationModeSettingApi = new PutApi() {
         @Override
         public String getAttribute() {
-            return ATTRIBUTE_OPERATION_MODE_SETTING;
+            return ATTRIBUTE_MODE_SETTING;
         }
 
         @Override
@@ -618,14 +618,14 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
      */
     protected void putAirConditionerOperationModeSetting(final Intent request, final Intent response) {
         int index;
-        String status = getOperationModeSetting(request);
+        String status = getModeSetting(request);
         if (status == null) {
             MessageUtils.setInvalidRequestParameterError(response);
             sendResponse(response);
             return;
         }
 
-        switch (getOperationModeSetting(request)) {
+        switch (getModeSetting(request)) {
             case "Other":               index = KadecotHomeAirConditioner.OPERATIONMODE_OTHER; break;
             case "Automatic":           index = KadecotHomeAirConditioner.OPERATIONMODE_AUTO;  break;
             case "Cooling":             index = KadecotHomeAirConditioner.OPERATIONMODE_COOL;  break;
@@ -644,7 +644,7 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
             String propertyValue = result.getPropertyValue();
             if (propertyName != null && propertyValue != null) {
                 if (propertyName.equals(KadecotHomeAirConditioner.PROP_OPERATIONMODESETTING)) {
-                    String mode = getOperationModeSetting(request);
+                    String mode = getModeSetting(request);
                     switch (propertyValue) {
                         case "64":  checkResult(response, mode, "Other");               break;
                         case "65":  checkResult(response, mode, "Automatic");           break;
@@ -669,7 +669,7 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
     private final DConnectApi mPutTemperatureValueApi = new PutApi() {
         @Override
         public String getAttribute() {
-            return ATTRIBUTE_TEMPERATURE_VALUE;
+            return ATTRIBUTE_TEMPERATURE;
         }
 
         @Override
@@ -686,7 +686,7 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
      * @param response Response.
      */
     protected void putAirConditionerTemperatureValue(final Intent request, final Intent response) {
-        int value = getTemperatureValue(request);
+        int value = getTemperature(request);
         if (value == -1 || value < 0 || value > 50) {
             MessageUtils.setInvalidRequestParameterError(response);
             sendResponse(response);
@@ -721,7 +721,7 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
     private final DConnectApi mPutAirFlowValueApi = new PutApi() {
         @Override
         public String getAttribute() {
-            return ATTRIBUTE_AIR_FLOW_VALUE;
+            return ATTRIBUTE_AIR_FLOW;
         }
 
         @Override
@@ -738,7 +738,7 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
      * @param response Response.
      */
     protected void putAirConditionerAirFlowValue(final Intent request, final Intent response) {
-        if (isNullAirFlowValue(request) && isNullAirFlowAuto(request)) {
+        if (isNullAirFlow(request) && isNullAirFlowAuto(request)) {
             MessageUtils.setInvalidRequestParameterError(response);
             sendResponse(response);
             return;
@@ -750,7 +750,7 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
         if (auto) {
             param = KadecotHomeAirConditioner.AIRFLOW_AUTO;
         } else {
-            int value = (int) (getAirFlowValue(request) * 100);
+            int value = (int) (getAirFlow(request) * 100);
             if (value >= 0 && value < 12) {
                 param = KadecotHomeAirConditioner.AIRFLOW_LV1;
             } else if (value >= 12 && value < 25) {

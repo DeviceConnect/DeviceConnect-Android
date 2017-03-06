@@ -12,6 +12,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
 
+import org.deviceconnect.android.deviceplugin.host.HostDeviceApplication;
 import org.deviceconnect.android.deviceplugin.host.HostDeviceService;
 import org.deviceconnect.android.deviceplugin.host.activity.KeyEventProfileActivity;
 import org.deviceconnect.android.event.EventError;
@@ -55,7 +56,7 @@ public class HostKeyEventProfile extends KeyEventProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            Bundle keyEvent = ((HostDeviceService) getContext()).getKeyEventCache(KeyEventProfile.ATTRIBUTE_ON_DOWN);
+            Bundle keyEvent = getApp().getKeyEventCache(KeyEventProfile.ATTRIBUTE_ON_DOWN);
             if (keyEvent == null) {
                 response.putExtra(KeyEventProfile.PARAM_KEYEVENT, "");
             } else {
@@ -119,7 +120,7 @@ public class HostKeyEventProfile extends KeyEventProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            Bundle keyEvent = ((HostDeviceService) getContext()).getKeyEventCache(KeyEventProfile.ATTRIBUTE_ON_UP);
+            Bundle keyEvent = getApp().getKeyEventCache(KeyEventProfile.ATTRIBUTE_ON_UP);
             if (keyEvent == null) {
                 response.putExtra(KeyEventProfile.PARAM_KEYEVENT, "");
             } else {
@@ -264,5 +265,9 @@ public class HostKeyEventProfile extends KeyEventProfile {
         if (isSetKeyEventManageFlag()) {
             resetKeyEventEventFlag(FLAG_ON_DOWN | FLAG_ON_UP);
         }
+    }
+
+    private HostDeviceApplication getApp() {
+        return (HostDeviceApplication) ((HostDeviceService) getContext()).getApplication();
     }
 }

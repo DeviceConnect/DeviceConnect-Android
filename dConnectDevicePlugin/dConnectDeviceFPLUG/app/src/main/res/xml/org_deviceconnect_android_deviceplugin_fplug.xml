@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<deviceplugin-provider>
+
+    <profile name="servicediscovery" />
+    <profile name="serviceinformation" />
+    <profile name="system" />
+    <profile name="setting" />
+
+    <profile name="light">
+        <name lang="ja-JP">ライト</name>
+        <description lang="ja-JP">ライト用のプロファイルです。</description>
+        <name lang="en-US">Light</name>
+        <description lang="en-US">Profile for Light</description>
+    </profile>
+
+    <profile name="temperature">
+        <name lang="ja-JP">温度</name>
+        <description lang="ja-JP">温度用のプロファイルです。</description>
+        <name lang="en-US">Temperature</name>
+        <description lang="en-US">Profile for Temperature</description>
+    </profile>
+
+    <profile name="humidity">
+        <name lang="ja-JP">湿度</name>
+        <description lang="ja-JP">湿度用のプロファイルです。</description>
+        <name lang="en-US">Humidity</name>
+        <description lang="en-US">Profile for Humidity</description>
+    </profile>
+
+    <profile name="illuminance">
+        <name lang="ja-JP">照度</name>
+        <description lang="ja-JP">照度用のプロファイルです。</description>
+        <name lang="en-US">Illuminance</name>
+        <description lang="en-US">Profile for Illuminance</description>
+    </profile>
+
+    <profile name="powermeter">
+        <name lang="ja-JP">電力計</name>
+        <description lang="ja-JP">電力計用のプロファイルです。</description>
+        <name lang="en-US">Power Meter</name>
+        <description lang="en-US">Profile for Power Meter</description>
+    </profile>
+
+</deviceplugin-provider>

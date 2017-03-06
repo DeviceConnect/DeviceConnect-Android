@@ -186,15 +186,15 @@ public class HostDeviceApplication extends Application {
      * Set KeyEvent data to cache.
      * 
      * @param attr Attribute.
-     * @param keyeventData Touch data.
+     * @param keyEventData Touch data.
      */
-    public void setKeyEventCache(final String attr, final Bundle keyeventData) {
+    public void setKeyEventCache(final String attr, final Bundle keyEventData) {
         long lCurrentTime = System.currentTimeMillis();
         if (attr.equalsIgnoreCase(KeyEventProfile.ATTRIBUTE_ON_DOWN)) {
-            mOnDownCache = keyeventData;
+            mOnDownCache = keyEventData;
             sOnDownCacheTime = lCurrentTime;
         } else if (attr.equalsIgnoreCase(KeyEventProfile.ATTRIBUTE_ON_UP)) {
-            mOnUpCache = keyeventData;
+            mOnUpCache = keyEventData;
             sOnUpCacheTime = lCurrentTime;
         }
     }
@@ -220,5 +220,4 @@ public class HostDeviceApplication extends Application {
         request.putExtra(DConnectMessage.EXTRA_PROFILE, BatteryProfile.PROFILE_NAME);
         sendBroadcast(request);
     }
-
 }

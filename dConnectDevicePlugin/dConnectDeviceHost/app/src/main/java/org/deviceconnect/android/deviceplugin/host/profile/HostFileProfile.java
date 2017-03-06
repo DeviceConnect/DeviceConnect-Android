@@ -618,11 +618,18 @@ public class HostFileProfile extends FileProfile {
     public String getMIMEType(final String path) {
 
         // 拡張子を取得
-        String ext = MimeTypeMap.getFileExtensionFromUrl(path);
-        // 小文字に変換
-        ext = ext.toLowerCase(Locale.getDefault());
-        // MIME Typeを返す
-        return MimeTypeMap.getSingleton().getMimeTypeFromExtension(ext);
+        File file = new File(path);
+        String fileName = file.getName();
+        int pos = fileName.lastIndexOf(".");
+        String ext = (pos >= 0) ? fileName.substring(pos + 1) : null;
+        if (ext != null) {
+            // 小文字に変換
+            ext = ext.toLowerCase(Locale.getDefault());
+            // MIME Typeを返す
+            return MimeTypeMap.getSingleton().getMimeTypeFromExtension(ext);
+        } else {
+            return null;
+        }
     }
 
     /**

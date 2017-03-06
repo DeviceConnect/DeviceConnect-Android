@@ -1,0 +1,116 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Geolocation Profile",
+    "version": "2.0.0",
+    "description": ""
+  },
+  "consumes": [
+    "application/x-www-form-urlencoded",
+    "multipart/form-data"
+  ],
+  "paths": {
+    "/currentPosition": {
+      "get": {
+        "x-type": "one-shot",
+        "summary": "",
+        "description": "",
+        "parameters": [
+          {
+            "name": "serviceId",
+            "in": "query",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "highAccuracy",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "maximumAge",
+            "in": "query",
+            "required": false,
+            "type": "number",
+            "format": "double"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/onWatchPosition": {
+      "get": {
+        "x-type": "one-shot",
+        "summary": "",
+        "description": "",
+        "parameters": [
+          {
+            "name": "serviceId",
+            "in": "query",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      },
+      "put": {
+        "x-type": "event",
+        "summary": "",
+        "description": "",
+        "parameters": [
+          {
+            "name": "serviceId",
+            "in": "formData",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "highAccuracy",
+            "in": "formData",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "interval",
+            "in": "formData",
+            "required": false,
+            "type": "number",
+            "format": "double"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      },
+      "delete": {
+        "x-type": "event",
+        "summary": "",
+        "description": "",
+        "parameters": [
+          {
+            "name": "serviceId",
+            "in": "query",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    }
+  }
+}

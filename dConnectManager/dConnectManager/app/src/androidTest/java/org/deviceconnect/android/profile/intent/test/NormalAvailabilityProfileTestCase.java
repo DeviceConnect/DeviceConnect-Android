@@ -8,8 +8,15 @@ package org.deviceconnect.android.profile.intent.test;
 
 import android.support.test.runner.AndroidJUnit4;
 
+import org.deviceconnect.message.DConnectMessage;
+import org.deviceconnect.message.DConnectResponseMessage;
+import org.json.JSONException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.core.IsNull.notNullValue;
+import static org.junit.Assert.assertThat;
 
 
 /**
@@ -20,11 +27,6 @@ import org.junit.runner.RunWith;
 public class NormalAvailabilityProfileTestCase extends IntentDConnectTestCase {
     @Override
     protected boolean isLocalOAuth() {
-        return false;
-    }
-
-    @Override
-    protected boolean isSearchServices() {
         return false;
     }
 
@@ -43,8 +45,11 @@ public class NormalAvailabilityProfileTestCase extends IntentDConnectTestCase {
      * </pre>
      */
     @Test
-    public void testGetAvailability() {
-        assertTrue(isManagerAvailable());
-    }
+    public void testGetAvailability() throws JSONException {
+        String uri = "http://localhost:4035/gotapi/availability";
 
+        DConnectResponseMessage response = mDConnectSDK.get(uri);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+    }
 }

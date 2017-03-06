@@ -3,6 +3,9 @@ package org.deviceconnect.server.nanohttpd;
 import android.os.Build;
 import android.util.Log;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -251,8 +254,16 @@ public final class HttpUtils {
         }
     }
 
-
-    public static void connect(final Response response, final String method, final String uri, final Map<String, String> headers, final Object body) {
+    /**
+     * 指定されたサーバと通信を行い結果をresponseに格納する.
+     * @param response レスポンスを格納するクラス
+     * @param method HTTPメソッド
+     * @param uri 接続先のURI
+     * @param headers HTTPヘッダー
+     * @param body HTTPボディ
+     * @param invalidDataFlag 不正なデータを作成するフラグ
+     */
+    private static void connect(final Response response, final String method, final String uri, final Map<String, String> headers, final Object body, final boolean invalidDataFlag) {
         if (DEBUG) {
             Log.d(TAG, "connect: method=" + method + " uri=" + uri);
             if (headers != null) {
@@ -292,8 +303,14 @@ public final class HttpUtils {
 
             // マルチパートのContentTypeを設定する
             if (body != null && body instanceof Map) {
-                conn.setRequestProperty("Content-Type", String.format("multipart/form-data; boundary=%s", boundary));
-                conn.setFixedLengthStreamingMode(calcContentLength((Map) body, boundary));
+                if (invalidDataFlag) {
+                    // invalidDataがtrueの場合にはmultipartのデータの一部を不正なデータにする
+                    conn.setRequestProperty("Content-Type", String.format("multipart/form-data"));
+                    conn.setFixedLengthStreamingMode(calcContentLength((Map) body, boundary));
+                } else {
+                    conn.setRequestProperty("Content-Type", String.format("multipart/form-data; boundary=%s", boundary));
+                    conn.setFixedLengthStreamingMode(calcContentLength((Map) body, boundary));
+                }
             }
 
             // キャッシュをOFF
@@ -301,7 +318,6 @@ public final class HttpUtils {
 
             // オリジンの設定
             conn.setRequestProperty("Origin", "http://localhost");
-
             conn.connect();
 
             if (body != null && (METHOD_POST.equals(method) || METHOD_PUT.equals(method))) {
@@ -328,7 +344,6 @@ public final class HttpUtils {
             }
 
             if (statusCode < ERROR_RESPONSE_CODE) {
-
                 File tempFile = File.createTempFile("temp", ".dat");
                 FileOutputStream out = new FileOutputStream(tempFile);
 
@@ -345,6 +360,19 @@ public final class HttpUtils {
                 if (DEBUG) {
                     Log.w(TAG, "Failed to connect the server. response=" + statusCode);
                 }
+
+                File tempFile = File.createTempFile("temp", ".dat");
+                FileOutputStream out = new FileOutputStream(tempFile);
+
+                InputStream in = conn.getErrorStream();
+                int len;
+                byte[] buf = new byte[BUF_SIZE];
+                while ((len = in.read(buf)) > 0) {
+                    out.write(buf, 0, len);
+                }
+                in.close();
+
+                response.setBody(tempFile);
             }
         } catch (IOException e) {
             if (DEBUG) {
@@ -365,6 +393,17 @@ public final class HttpUtils {
         }
     }
 
+    /**
+     * HTTP接続を行う.
+     * @param method HTTPメソッド(GET, POST, PUT, DELETE)
+     * @param uri 接続先のURI
+     * @param headers ヘッダー
+     * @param body ボディ
+     * @return レスポンス
+     */
+    public static Response connect(final String method, final String uri, final Map<String, String> headers, final Object body) {
+        return connect(method, uri, headers, body, false);
+    }
 
     /**
      * HTTP接続を行う.
@@ -372,44 +411,134 @@ public final class HttpUtils {
      * @param uri 接続先のURI
      * @param headers ヘッダー
      * @param body ボディ
-     * @return
+     * @param invalidDataFlag 不正なデータ作成フラグ
+     * @return レスポンス
      */
-    public static Response connect(final String method, final String uri, final Map<String, String> headers, final Object body) {
+    public static Response connect(final String method, final String uri, final Map<String, String> headers, final Object body, final boolean invalidDataFlag) {
         Response response = new Response();
-        connect(response, method, uri, headers, body);
+        connect(response, method, uri, headers, body, invalidDataFlag);
         return response;
     }
 
+    /**
+     * GETメソッドで通信を行いレスポンスを取得する.
+     * @param uri 接続先のURI
+     * @return レスポンス
+     */
     public static Response get(final String uri) {
-        return connect(METHOD_GET, uri, null, null);
+        return connect(METHOD_GET, uri, null, null, false);
     }
 
+    /**
+     * POSTメソッドで通信を行いレスポンスを取得する.
+     * @param uri 接続先のURI
+     * @param body 送信するHTTPボディ
+     * @return レスポンス
+     */
     public static Response post(final String uri, final Object body) {
-        return connect(METHOD_POST, uri, null, body);
+        return connect(METHOD_POST, uri, null, body, false);
     }
 
+    /**
+     * POSTメソッドで通信を行いレスポンスを取得する.
+     * @param uri 接続先のURI
+     * @param body 送信するHTTPボディ
+     * @param invalidDataFlag 不正なデータ作成フラグ
+     * @return レスポンス
+     */
+    public static Response post(final String uri, final Object body, final boolean invalidDataFlag) {
+        return connect(METHOD_POST, uri, null, body, invalidDataFlag);
+    }
+
+    /**
+     * DELETEメソッドで通信を行いレスポンスを取得する.
+     * @param uri 接続先のURI
+     * @return レスポンス
+     */
     public static Response delete(final String uri) {
-        return connect(METHOD_DELETE, uri, null, null);
+        return connect(METHOD_DELETE, uri, null, null, false);
     }
 
+    /**
+     * HTTPレスポンスを格納するクラス.
+     */
     public static class Response {
+        /**
+         * ステータスコード.
+         */
         private int mStatusCode;
+
+        /**
+         * レスポンスのボディを保存するファイル.
+         */
         private File mBody;
 
+        /**
+         * ステータスコードを取得する.
+         * @return ステータスコード
+         */
         public int getStatusCode() {
             return mStatusCode;
         }
 
-        public void setStatusCode(int statusCode) {
+        /**
+         * ステータスコードを設定する.
+         * @param statusCode ステータスコード
+         */
+        void setStatusCode(final int statusCode) {
             mStatusCode = statusCode;
         }
 
+        /**
+         * レスポンスのボディへのファイルを取得する.
+         * @return レスポンスのボディへのファイル
+         */
         public File getBody() {
             return mBody;
         }
 
-        public void setBody(File body) {
+        /**
+         * レスポンスのボディへのファイルを設定する.
+         * @param body レスポンスのボディへのファイル
+         */
+        void setBody(final File body) {
             mBody = body;
+        }
+
+        public JSONObject getJSONObject() {
+            if (mBody == null) {
+                return null;
+            }
+            return getResponse(mBody);
+        }
+
+        private JSONObject getResponse(final File file) {
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            int len;
+            byte[] buf = new byte[4096];
+
+            InputStream in = null;
+            try {
+                in = new FileInputStream(file);
+                while ((len = in.read(buf)) > 0) {
+                    out.write(buf, 0, len);
+                }
+                String json = new String(out.toByteArray());
+                return new JSONObject(json);
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (JSONException e) {
+                e.printStackTrace();
+            } finally {
+                if (in != null) {
+                    try {
+                        in.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+            return null;
         }
     }
 }

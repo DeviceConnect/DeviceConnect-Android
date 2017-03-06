@@ -50,14 +50,17 @@ public class NormalAllGetControlTestCase extends RESTfulDConnectTestCase {
      * テスト値: {@value}.
      */
     private static final String VALUE_KEY_PROFILE = "PROFILE_OK";
+
     /**
      * テスト値: {@value}.
      */
     private static final String VALUE_KEY_INTERFACE = "INTERFACE_OK";
+
     /**
      * テスト値: {@value}.
      */
     private static final String VALUE_KEY_ATTRIBUTE = "ATTRIBUTE_OK";
+
     /**
      * /profileのとき、methodにGETが指定されている時でも、正常にリクエストが処理されること.
      * <pre>
@@ -75,7 +78,7 @@ public class NormalAllGetControlTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testGetRequestProfile() {
         StringBuilder builder = new StringBuilder();
-        builder.append(DCONNECT_MANAGER_URI);
+        builder.append(MANAGER_URI);
         builder.append("/").append(DConnectMessage.METHOD_GET);
         builder.append("/").append(PROFILE_NAME);
         builder.append("?").append(DConnectProfileConstants.PARAM_SERVICE_ID).append("=").append(getServiceId());
@@ -105,7 +108,7 @@ public class NormalAllGetControlTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testGetRequestProfileAttribute() {
         StringBuilder builder = new StringBuilder();
-        builder.append(DCONNECT_MANAGER_URI);
+        builder.append(MANAGER_URI);
         builder.append("/").append(DConnectMessage.METHOD_GET);
         builder.append("/").append(PROFILE_NAME);
         builder.append("/").append(ATTRIBUTE_PING);
@@ -134,7 +137,7 @@ public class NormalAllGetControlTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testGetRequestProfileInterfaceAttribute() {
         StringBuilder builder = new StringBuilder();
-        builder.append(DCONNECT_MANAGER_URI);
+        builder.append(MANAGER_URI);
         builder.append("/").append(DConnectMessage.METHOD_GET);
         builder.append("/").append(PROFILE_NAME);
         builder.append("/").append(INTERFACE_TEST);
@@ -165,7 +168,7 @@ public class NormalAllGetControlTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testPostRequestProfile() {
         StringBuilder builder = new StringBuilder();
-        builder.append(DCONNECT_MANAGER_URI);
+        builder.append(MANAGER_URI);
         builder.append("/").append(DConnectMessage.METHOD_POST);
         builder.append("/").append(PROFILE_NAME);
         builder.append("?").append(DConnectProfileConstants.PARAM_SERVICE_ID).append("=").append(getServiceId());
@@ -195,7 +198,7 @@ public class NormalAllGetControlTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testPostRequestProfileAttribute() {
         StringBuilder builder = new StringBuilder();
-        builder.append(DCONNECT_MANAGER_URI);
+        builder.append(MANAGER_URI);
         builder.append("/").append(DConnectMessage.METHOD_POST);
         builder.append("/").append(PROFILE_NAME);
         builder.append("/").append(ATTRIBUTE_PING);
@@ -225,7 +228,7 @@ public class NormalAllGetControlTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testPostRequestProfileInterfaceAttribute() {
         StringBuilder builder = new StringBuilder();
-        builder.append(DCONNECT_MANAGER_URI);
+        builder.append(MANAGER_URI);
         builder.append("/").append(DConnectMessage.METHOD_POST);
         builder.append("/").append(PROFILE_NAME);
         builder.append("/").append(INTERFACE_TEST);
@@ -256,7 +259,7 @@ public class NormalAllGetControlTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testPutRequestProfile() {
         StringBuilder builder = new StringBuilder();
-        builder.append(DCONNECT_MANAGER_URI);
+        builder.append(MANAGER_URI);
         builder.append("/").append(DConnectMessage.METHOD_PUT);
         builder.append("/").append(PROFILE_NAME);
         builder.append("?").append(DConnectProfileConstants.PARAM_SERVICE_ID).append("=").append(getServiceId());
@@ -286,7 +289,7 @@ public class NormalAllGetControlTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testPutRequestProfileAttribute() {
         StringBuilder builder = new StringBuilder();
-        builder.append(DCONNECT_MANAGER_URI);
+        builder.append(MANAGER_URI);
         builder.append("/").append(DConnectMessage.METHOD_PUT);
         builder.append("/").append(PROFILE_NAME);
         builder.append("/").append(ATTRIBUTE_PING);
@@ -316,7 +319,7 @@ public class NormalAllGetControlTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testPutRequestProfileInterfaceAttribute() {
         StringBuilder builder = new StringBuilder();
-        builder.append(DCONNECT_MANAGER_URI);
+        builder.append(MANAGER_URI);
         builder.append("/").append(DConnectMessage.METHOD_PUT);
         builder.append("/").append(PROFILE_NAME);
         builder.append("/").append(INTERFACE_TEST);
@@ -348,7 +351,7 @@ public class NormalAllGetControlTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testDeleteRequestProfile() {
         StringBuilder builder = new StringBuilder();
-        builder.append(DCONNECT_MANAGER_URI);
+        builder.append(MANAGER_URI);
         builder.append("/").append(DConnectMessage.METHOD_DELETE);
         builder.append("/").append(PROFILE_NAME);
         builder.append("?").append(DConnectProfileConstants.PARAM_SERVICE_ID).append("=").append(getServiceId());
@@ -378,7 +381,7 @@ public class NormalAllGetControlTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testDeleteRequestProfileAttribute() {
         StringBuilder builder = new StringBuilder();
-        builder.append(DCONNECT_MANAGER_URI);
+        builder.append(MANAGER_URI);
         builder.append("/").append(DConnectMessage.METHOD_DELETE);
         builder.append("/").append(PROFILE_NAME);
         builder.append("/").append(ATTRIBUTE_PING);
@@ -408,7 +411,7 @@ public class NormalAllGetControlTestCase extends RESTfulDConnectTestCase {
     @Test
     public void testDeleteRequestProfileInterfaceAttribute() {
         StringBuilder builder = new StringBuilder();
-        builder.append(DCONNECT_MANAGER_URI);
+        builder.append(MANAGER_URI);
         builder.append("/").append(DConnectMessage.METHOD_DELETE);
         builder.append("/").append(PROFILE_NAME);
         builder.append("/").append(INTERFACE_TEST);

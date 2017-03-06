@@ -18,9 +18,10 @@ import java.util.ArrayList;
  * <p>
  * スマートデバイスのバイブレーション操作機能を提供するAPI.<br>
  * スマートデバイスのバイブレーション操作機能を提供するデバイスプラグインは当クラスを継承し、対応APIを実装すること。 <br>
- * AndridManifest.xmlにてVIBRATEパーミッションの指定が必要。
+ * AndroidManifest.xmlにてVIBRATEパーミッションの指定が必要。
  * </p>
  *
+ * @deprecated swagger定義ファイルで定数を管理することになったので、このクラスは使用しないこととする。
  * @author NTT DOCOMO, INC.
  */
 public abstract class VibrationProfile extends DConnectProfile implements VibrationProfileConstants {

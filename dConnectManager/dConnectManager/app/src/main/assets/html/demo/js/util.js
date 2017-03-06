@@ -7,7 +7,7 @@ var util = (function(parent, global) {
             'serviceinformation',
             'system',
             'battery',
-            'connect',
+            'connection',
             'deviceorientation',
             'filedescriptor',
             'file',
@@ -16,7 +16,7 @@ var util = (function(parent, global) {
             'notification',
             'phone',
             'proximity',
-            'settings',
+            'setting',
             'vibration',
             'light',
             'remotecontroller',
@@ -43,7 +43,8 @@ var util = (function(parent, global) {
             'poseEstimation',
             'stressEstimation',
             'walkState',
-            'gpio');
+            'gpio',
+            'geolocation');
 
     function init(callback) {
         dConnect.setHost(mHost);

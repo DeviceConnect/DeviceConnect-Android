@@ -25,6 +25,7 @@ import java.util.Locale;
  * equivalent class, and implements the corresponding API thing. <br>
  * </p>
  *
+ * @deprecated swagger定義ファイルで定数を管理することになったので、このクラスは使用しないこととする。
  * @author NTT DOCOMO, INC.
  */
 public abstract class HumanDetectProfile extends DConnectProfile implements HumanDetectProfileConstants {

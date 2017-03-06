@@ -8,13 +8,18 @@ package org.deviceconnect.android.profile.restful.test;
 
 import android.support.test.runner.AndroidJUnit4;
 
+import org.deviceconnect.android.test.http.HttpUtil;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.DConnectMessage.ErrorCode;
 import org.deviceconnect.message.DConnectResponseMessage;
-import org.deviceconnect.message.DConnectSDK;
-import org.deviceconnect.profile.AuthorizationProfileConstants;
+import org.hamcrest.core.IsNull;
+import org.json.JSONObject;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import java.net.URLEncoder;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.core.Is.is;
@@ -27,24 +32,14 @@ import static org.junit.Assert.assertThat;
 @RunWith(AndroidJUnit4.class)
 public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
 
-    /**
-     * アプリケーション名: {@value}.
-     */
-    private static final String TEST_APPLICATION_NAME = "dConnectManagerTest";
-
     @Override
     protected boolean isLocalOAuth() {
         return false;
     }
 
     @Override
-    protected boolean isSearchServices() {
-        return false;
-    }
-
-    @Override
     protected String getOrigin() {
-        return "abc";
+        return "fail.restful.junit";
     }
 
     /**
@@ -62,12 +57,9 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testGetCreateClientUndefinedAttribute() {
-        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
-        builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
-        builder.setAttribute(AuthorizationProfileConstants.ATTRIBUTE_GRANT);
-        builder.addParameter("def", "def");
+        String uri = "http://localhost:4035/gotapi/authorization/grant?def=def";
 
-        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
+        DConnectResponseMessage response = mDConnectSDK.get(uri);
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
     }
@@ -86,11 +78,9 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testGetCreateClientInvalidMethodPost() {
-        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
-        builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
-        builder.setAttribute(AuthorizationProfileConstants.ATTRIBUTE_GRANT);
+        String uri = "http://localhost:4035/gotapi/authorization/grant";
 
-        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
+        DConnectResponseMessage response = mDConnectSDK.post(uri, null);
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
     }
@@ -109,11 +99,9 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testGetCreateClientInvalidMethodPut() {
-        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
-        builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
-        builder.setAttribute(AuthorizationProfileConstants.ATTRIBUTE_GRANT);
+        String uri = "http://localhost:4035/gotapi/authorization/grant";
 
-        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        DConnectResponseMessage response = mDConnectSDK.put(uri, null);
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
     }
@@ -132,11 +120,9 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testGetCreateClientInvalidMethodDelete() {
-        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
-        builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
-        builder.setAttribute(AuthorizationProfileConstants.ATTRIBUTE_GRANT);
+        String uri = "http://localhost:4035/gotapi/authorization/grant";
 
-        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        DConnectResponseMessage response = mDConnectSDK.delete(uri);
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
     }
@@ -154,15 +140,17 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      * </pre>
      */
     @Test
-    public void testGetRequestAccessTokenNoClientId() {
-        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
-        builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
-        builder.setAttribute(AuthorizationProfileConstants.ATTRIBUTE_ACCESS_TOKEN);
-        builder.addParameter(AuthorizationProfileConstants.PARAM_SCOPE, "battery");
-        builder.addParameter(AuthorizationProfileConstants.PARAM_APPLICATION_NAME,
-                TEST_APPLICATION_NAME);
+    public void testGetRequestAccessTokenNoClientId() throws Exception {
+        String appName = "JUnit Test";
+        String[] scopes = {
+                "battery"
+        };
 
-        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
+        String uri = "http://localhost:4035/gotapi/authorization/accessToken";
+        uri += "?scope=" + URLEncoder.encode(combineStr(scopes), "UTF-8");
+        uri += "&applicationName=" + URLEncoder.encode(appName, "UTF-8");
+
+        DConnectResponseMessage response = mDConnectSDK.get(uri);
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
         assertThat(response.getErrorCode(), is(ErrorCode.INVALID_REQUEST_PARAMETER.getCode()));
@@ -181,16 +169,18 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      * </pre>
      */
     @Test
-    public void testGetRequestAccessTokenEmptyClientId() {
-        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
-        builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
-        builder.setAttribute(AuthorizationProfileConstants.ATTRIBUTE_ACCESS_TOKEN);
-        builder.addParameter(AuthorizationProfileConstants.PARAM_CLIENT_ID, "");
-        builder.addParameter(AuthorizationProfileConstants.PARAM_SCOPE, "battery");
-        builder.addParameter(AuthorizationProfileConstants.PARAM_APPLICATION_NAME,
-                TEST_APPLICATION_NAME);
+    public void testGetRequestAccessTokenEmptyClientId() throws Exception {
+        String appName = "JUnit Test";
+        String[] scopes = {
+                "battery"
+        };
 
-        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
+        String uri = "http://localhost:4035/gotapi/authorization/accessToken";
+        uri += "?clientId=" + URLEncoder.encode("", "UTF-8");
+        uri += "&scope=" + URLEncoder.encode(combineStr(scopes), "UTF-8");
+        uri += "&applicationName=" + URLEncoder.encode(appName, "UTF-8");
+
+        DConnectResponseMessage response = mDConnectSDK.get(uri);
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
         assertThat(response.getErrorCode(), is(ErrorCode.INVALID_REQUEST_PARAMETER.getCode()));
@@ -209,18 +199,19 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      * </pre>
      */
     @Test
-    public void testGetRequestAccessTokenNotRegisteredClientId() {
-        final String clientId = "not_registered_client_id";
+    public void testGetRequestAccessTokenNotRegisteredClientId() throws Exception {
+        String clientId = "not_registered_client_id";
+        String appName = "JUnit Test";
+        String[] scopes = {
+                "battery"
+        };
 
-        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
-        builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
-        builder.setAttribute(AuthorizationProfileConstants.ATTRIBUTE_ACCESS_TOKEN);
-        builder.addParameter(AuthorizationProfileConstants.PARAM_CLIENT_ID, clientId);
-        builder.addParameter(AuthorizationProfileConstants.PARAM_SCOPE, "battery");
-        builder.addParameter(AuthorizationProfileConstants.PARAM_APPLICATION_NAME,
-                TEST_APPLICATION_NAME);
+        String uri = "http://localhost:4035/gotapi/authorization/accessToken";
+        uri += "?clientId=" + URLEncoder.encode(clientId, "UTF-8");
+        uri += "&scope=" + URLEncoder.encode(combineStr(scopes), "UTF-8");
+        uri += "&applicationName=" + URLEncoder.encode(appName, "UTF-8");
 
-        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
+        DConnectResponseMessage response = mDConnectSDK.get(uri);
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
         assertThat(response.getErrorCode(), is(ErrorCode.AUTHORIZATION.getCode()));
@@ -239,17 +230,18 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      * </pre>
      */
     @Test
-    public void testGetRequestAccessTokenNoScope() {
-        String clientId = createClient();
+    public void testGetRequestAccessTokenNoScope() throws Exception {
+        String clientId = createClientId();
+        String appName = "JUnit Test";
+        String[] scopes = {
+                "battery"
+        };
 
-        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
-        builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
-        builder.setAttribute(AuthorizationProfileConstants.ATTRIBUTE_ACCESS_TOKEN);
-        builder.addParameter(AuthorizationProfileConstants.PARAM_CLIENT_ID, clientId);
-        builder.addParameter(AuthorizationProfileConstants.PARAM_APPLICATION_NAME,
-                TEST_APPLICATION_NAME);
+        String uri = "http://localhost:4035/gotapi/authorization/accessToken";
+        uri += "?clientId=" + URLEncoder.encode(clientId, "UTF-8");
+        uri += "&applicationName=" + URLEncoder.encode(appName, "UTF-8");
 
-        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
+        DConnectResponseMessage response = mDConnectSDK.get(uri);
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
         assertThat(response.getErrorCode(), is(ErrorCode.INVALID_REQUEST_PARAMETER.getCode()));
@@ -269,18 +261,16 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      * </pre>
      */
     @Test
-    public void testGetRequestAccessTokenEmptyScope() {
-        String client = createClient();
+    public void testGetRequestAccessTokenEmptyScope() throws Exception {
+        String clientId = createClientId();
+        String appName = "JUnit Test";
 
-        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
-        builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
-        builder.setAttribute(AuthorizationProfileConstants.ATTRIBUTE_ACCESS_TOKEN);
-        builder.addParameter(AuthorizationProfileConstants.PARAM_CLIENT_ID, client);
-        builder.addParameter(AuthorizationProfileConstants.PARAM_SCOPE, "");
-        builder.addParameter(AuthorizationProfileConstants.PARAM_APPLICATION_NAME,
-                TEST_APPLICATION_NAME);
+        String uri = "http://localhost:4035/gotapi/authorization/accessToken";
+        uri += "?clientId=" + URLEncoder.encode(clientId, "UTF-8");
+        uri += "&scope=" + URLEncoder.encode("", "UTF-8");
+        uri += "&applicationName=" + URLEncoder.encode(appName, "UTF-8");
 
-        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
+        DConnectResponseMessage response = mDConnectSDK.get(uri);
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
         assertThat(response.getErrorCode(), is(ErrorCode.INVALID_REQUEST_PARAMETER.getCode()));
@@ -299,16 +289,18 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      * </pre>
      */
     @Test
-    public void testGetRequestAccessTokenNoApplicationName() {
-        String client = createClient();
+    public void testGetRequestAccessTokenNoApplicationName() throws Exception {
+        String clientId = createClientId();
+        String appName = "JUnit Test";
+        String[] scopes = {
+                "battery"
+        };
 
-        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
-        builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
-        builder.setAttribute(AuthorizationProfileConstants.ATTRIBUTE_ACCESS_TOKEN);
-        builder.addParameter(AuthorizationProfileConstants.PARAM_CLIENT_ID, client);
-        builder.addParameter(AuthorizationProfileConstants.PARAM_SCOPE, "battery");
+        String uri = "http://localhost:4035/gotapi/authorization/accessToken";
+        uri += "?clientId=" + URLEncoder.encode(clientId, "UTF-8");
+        uri += "&scope=" + URLEncoder.encode(combineStr(scopes), "UTF-8");
 
-        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
+        DConnectResponseMessage response = mDConnectSDK.get(uri);
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
         assertThat(response.getErrorCode(), is(ErrorCode.INVALID_REQUEST_PARAMETER.getCode()));
@@ -328,17 +320,19 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      * </pre>
      */
     @Test
-    public void testGetRequestAccessTokenEmptyApplicationName() {
-        String client = createClient();
+    public void testGetRequestAccessTokenEmptyApplicationName() throws Exception {
+        String clientId = createClientId();
+        String appName = "JUnit Test";
+        String[] scopes = {
+                "battery"
+        };
 
-        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
-        builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
-        builder.setAttribute(AuthorizationProfileConstants.ATTRIBUTE_ACCESS_TOKEN);
-        builder.addParameter(AuthorizationProfileConstants.PARAM_CLIENT_ID, client);
-        builder.addParameter(AuthorizationProfileConstants.PARAM_SCOPE, "battery");
-        builder.addParameter(AuthorizationProfileConstants.PARAM_APPLICATION_NAME, "");
+        String uri = "http://localhost:4035/gotapi/authorization/accessToken";
+        uri += "?clientId=" + URLEncoder.encode(clientId, "UTF-8");
+        uri += "&scope=" + URLEncoder.encode(combineStr(scopes), "UTF-8");
+        uri += "&applicationName=" + URLEncoder.encode("", "UTF-8");
 
-        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
+        DConnectResponseMessage response = mDConnectSDK.get(uri);
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
         assertThat(response.getErrorCode(), is(ErrorCode.INVALID_REQUEST_PARAMETER.getCode()));
@@ -359,19 +353,20 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      * </pre>
      */
     @Test
-    public void testGetRequestAccessTokenUndefinedAttribute() {
-        String client = createClient();
+    public void testGetRequestAccessTokenUndefinedAttribute() throws Exception {
+        String clientId = createClientId();
+        String appName = "JUnit Test";
+        String[] scopes = {
+                "battery"
+        };
 
-        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
-        builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
-        builder.setAttribute(AuthorizationProfileConstants.ATTRIBUTE_ACCESS_TOKEN);
-        builder.addParameter(AuthorizationProfileConstants.PARAM_CLIENT_ID, client);
-        builder.addParameter(AuthorizationProfileConstants.PARAM_SCOPE, "battery");
-        builder.addParameter(AuthorizationProfileConstants.PARAM_APPLICATION_NAME,
-                TEST_APPLICATION_NAME);
-        builder.addParameter("abc", "abc");
+        String uri = "http://localhost:4035/gotapi/authorization/accessToken";
+        uri += "?clientId=" + URLEncoder.encode(clientId, "UTF-8");
+        uri += "&scope=" + URLEncoder.encode(combineStr(scopes), "UTF-8");
+        uri += "&applicationName=" + URLEncoder.encode(appName, "UTF-8");
+        uri += "&adb=" + URLEncoder.encode("abc", "UTF-8");
 
-        DConnectResponseMessage response = mDConnectSDK.get(builder.build());
+        DConnectResponseMessage response = mDConnectSDK.get(uri);
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
     }
@@ -390,18 +385,19 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      * </pre>
      */
     @Test
-    public void testGetRequestAccessTokenInvalidMethodPost() {
-        String client = createClient();
+    public void testGetRequestAccessTokenInvalidMethodPost() throws Exception {
+        String clientId = createClientId();
+        String appName = "JUnit Test";
+        String[] scopes = {
+                "battery"
+        };
 
-        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
-        builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
-        builder.setAttribute(AuthorizationProfileConstants.ATTRIBUTE_ACCESS_TOKEN);
-        builder.addParameter(AuthorizationProfileConstants.PARAM_CLIENT_ID, client);
-        builder.addParameter(AuthorizationProfileConstants.PARAM_SCOPE, "battery");
-        builder.addParameter(AuthorizationProfileConstants.PARAM_APPLICATION_NAME,
-                TEST_APPLICATION_NAME);
+        String uri = "http://localhost:4035/gotapi/authorization/accessToken";
+        uri += "?clientId=" + URLEncoder.encode(clientId, "UTF-8");
+        uri += "&scope=" + URLEncoder.encode(combineStr(scopes), "UTF-8");
+        uri += "&applicationName=" + URLEncoder.encode(appName, "UTF-8");
 
-        DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
+        DConnectResponseMessage response = mDConnectSDK.post(uri, null);
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
         assertThat(response.getErrorCode(), is(ErrorCode.NOT_SUPPORT_ACTION.getCode()));
@@ -421,18 +417,19 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      * </pre>
      */
     @Test
-    public void testGetRequestAccessTokenInvalidMethodPut() {
-        String client = createClient();
+    public void testGetRequestAccessTokenInvalidMethodPut() throws Exception {
+        String clientId = createClientId();
+        String appName = "JUnit Test";
+        String[] scopes = {
+                "battery"
+        };
 
-        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
-        builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
-        builder.setAttribute(AuthorizationProfileConstants.ATTRIBUTE_ACCESS_TOKEN);
-        builder.addParameter(AuthorizationProfileConstants.PARAM_CLIENT_ID, client);
-        builder.addParameter(AuthorizationProfileConstants.PARAM_SCOPE, "battery");
-        builder.addParameter(AuthorizationProfileConstants.PARAM_APPLICATION_NAME,
-                TEST_APPLICATION_NAME);
+        String uri = "http://localhost:4035/gotapi/authorization/accessToken";
+        uri += "?clientId=" + URLEncoder.encode(clientId, "UTF-8");
+        uri += "&scope=" + URLEncoder.encode(combineStr(scopes), "UTF-8");
+        uri += "&applicationName=" + URLEncoder.encode(appName, "UTF-8");
 
-        DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
+        DConnectResponseMessage response = mDConnectSDK.put(uri, null);
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
         assertThat(response.getErrorCode(), is(ErrorCode.NOT_SUPPORT_ACTION.getCode()));
@@ -452,20 +449,43 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      * </pre>
      */
     @Test
-    public void testGetRequestAccessTokenInvalidMethodDelete() {
-        String client = createClient();
+    public void testGetRequestAccessTokenInvalidMethodDelete() throws Exception {
+        String clientId = createClientId();
+        String appName = "JUnit Test";
+        String[] scopes = {
+                "battery"
+        };
 
-        DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
-        builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
-        builder.setAttribute(AuthorizationProfileConstants.ATTRIBUTE_ACCESS_TOKEN);
-        builder.addParameter(AuthorizationProfileConstants.PARAM_CLIENT_ID, client);
-        builder.addParameter(AuthorizationProfileConstants.PARAM_SCOPE, "battery");
-        builder.addParameter(AuthorizationProfileConstants.PARAM_APPLICATION_NAME,
-                TEST_APPLICATION_NAME);
+        String uri = "http://localhost:4035/gotapi/authorization/accessToken";
+        uri += "?clientId=" + URLEncoder.encode(clientId, "UTF-8");
+        uri += "&scope=" + URLEncoder.encode(combineStr(scopes), "UTF-8");
+        uri += "&applicationName=" + URLEncoder.encode(appName, "UTF-8");
 
-        DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
+        DConnectResponseMessage response = mDConnectSDK.delete(uri);
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
         assertThat(response.getErrorCode(), is(ErrorCode.NOT_SUPPORT_ACTION.getCode()));
+    }
+
+    /**
+     * clientIdを作成する.
+     * @return clientId
+     * @throws Exception clientIdの作成に失敗した場合に発生
+     */
+    private String createClientId() throws Exception {
+        String uri = "http://localhost:4035/gotapi/authorization/grant";
+
+        Map<String, String> headers = new HashMap<>();
+        headers.put("Origin", getOrigin());
+
+        HttpUtil.Response response = HttpUtil.get(uri, headers);
+        assertThat(response, is(notNullValue()));
+
+        JSONObject json = response.getJSONObject();
+        assertThat(json, is(notNullValue()));
+        assertThat(json.getInt("result"), is(0));
+        assertThat(json.getString("clientId"), is(IsNull.notNullValue()));
+
+        return json.getString("clientId");
     }
 }

@@ -13,31 +13,11 @@ package org.deviceconnect.profile;
  * @deprecated swagger定義ファイルで定数を管理することになったので、このクラスは使用しないこととする。
  * @author NTT DOCOMO, INC.
  */
-public interface HumanDetectProfileConstants extends DConnectProfileConstants {
+public interface HumanDetectionProfileConstants extends DConnectProfileConstants {
     /**
      * profile name: {@value} .
      */
-    public static final String PROFILE_NAME = "humanDetect";
-
-    /**
-     * interface: {@value} .
-     */
-    public static final String INTERFACE_DETECTION = "detection";
-
-    /**
-     * attribute: {@value} .
-     */
-    public static final String ATTRIBUTE_BODY_DETECTION = "body";
-
-    /**
-     * attribute: {@value} .
-     */
-    public static final String ATTRIBUTE_HAND_DETECTION = "hand";
-
-    /**
-     * attribute: {@value} .
-     */
-    public static final String ATTRIBUTE_FACE_DETECTION = "face";
+    public static final String PROFILE_NAME = "humanDetection";
 
     /**
      * attribute: {@value} .
@@ -58,24 +38,6 @@ public interface HumanDetectProfileConstants extends DConnectProfileConstants {
      * path: {@value}.
      */
     public static final String PATH_PROFILE = PATH_ROOT + SEPARATOR + PROFILE_NAME;
-
-    /**
-     * path: {@value} .
-     */
-    public static final String PATH_BODY_DETECTION = PATH_PROFILE + SEPARATOR + INTERFACE_DETECTION
-            + SEPARATOR + ATTRIBUTE_BODY_DETECTION;
-
-    /**
-     * path: {@value} .
-     */
-    public static final String PATH_HAND_DETECTION = PATH_PROFILE + SEPARATOR + INTERFACE_DETECTION
-            + SEPARATOR + ATTRIBUTE_HAND_DETECTION;
-
-    /**
-     * path: {@value} .
-     */
-    public static final String PATH_FACE_DETECTION = PATH_PROFILE + SEPARATOR + INTERFACE_DETECTION
-            + SEPARATOR + ATTRIBUTE_FACE_DETECTION;
 
     /**
      * path: {@value} .

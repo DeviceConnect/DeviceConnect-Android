@@ -88,6 +88,11 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
+import static org.deviceconnect.android.deviceplugin.sw.SWApplication.STATE_DOUBLE_TAP;
+import static org.deviceconnect.android.deviceplugin.sw.SWApplication.STATE_END;
+import static org.deviceconnect.android.deviceplugin.sw.SWApplication.STATE_START;
+import static org.deviceconnect.android.deviceplugin.sw.profile.SWTouchProfile.ATTRIBUTE_ON_TOUCH_CHANGE;
+
 /**
  * Sony SmartWatch Control Extension.
  */
@@ -347,21 +352,25 @@ class SWControlExtension extends ControlExtension {
     @Override
     public void onTouch(final ControlTouchEvent touchEvent) {
         String[] attr = new String[2];
+        String state = null;
         switch (touchEvent.getAction()) {
         case Control.Intents.TOUCH_ACTION_PRESS:
             long pressTime = touchEvent.getTimeStamp();
             if (pressTime - sLastPressTime < THRESHOLD_DOUBLE_TAP_TIME) {
                 attr[0] = TouchProfile.ATTRIBUTE_ON_DOUBLE_TAP;
                 attr[1] = null;
+                state = STATE_DOUBLE_TAP;
             } else {
                 attr[0] = TouchProfile.ATTRIBUTE_ON_TOUCH;
                 attr[1] = TouchProfile.ATTRIBUTE_ON_TOUCH_START;
+                state = STATE_START;
             }
             sLastPressTime = pressTime;
             break;
         case Control.Intents.TOUCH_ACTION_RELEASE:
             attr[0] = TouchProfile.ATTRIBUTE_ON_TOUCH_END;
             attr[1] = null;
+            state = STATE_END;
             break;
         default:
             super.onTouch(touchEvent);
@@ -378,25 +387,33 @@ class SWControlExtension extends ControlExtension {
             if (attr[i] == null) {
                 break;
             }
-
+            Bundle touchdata = new Bundle();
+            List<Bundle> touchlist = new ArrayList<Bundle>();
+            Bundle touches = new Bundle();
+            touchdata.putInt(TouchProfile.PARAM_ID, 0);
+            touchdata.putFloat(TouchProfile.PARAM_X, touchEvent.getX());
+            touchdata.putFloat(TouchProfile.PARAM_Y, touchEvent.getY());
+            touchlist.add((Bundle) touchdata.clone());
+            touches.putParcelableArray(TouchProfile.PARAM_TOUCHES, touchlist.toArray(new Bundle[touchlist.size()]));
             List<Event> events = EventManager.INSTANCE.getEventList(serviceId, TouchProfileConstants.PROFILE_NAME,
                     null, attr[i]);
+            List<Event> touchEvents = EventManager.INSTANCE.getEventList(serviceId, TouchProfileConstants.PROFILE_NAME,
+                    null, ATTRIBUTE_ON_TOUCH_CHANGE);
 
             for (Event event : events) {
-                Bundle touchdata = new Bundle();
-                List<Bundle> touchlist = new ArrayList<Bundle>();
-                Bundle touches = new Bundle();
-                touchdata.putInt(TouchProfile.PARAM_ID, 0);
-                touchdata.putFloat(TouchProfile.PARAM_X, touchEvent.getX());
-                touchdata.putFloat(TouchProfile.PARAM_Y, touchEvent.getY());
-                touchlist.add((Bundle) touchdata.clone());
-                touches.putParcelableArray(TouchProfile.PARAM_TOUCHES, touchlist.toArray(new Bundle[touchlist.size()]));
 
                 String eventAttr = event.getAttribute();
                 Intent message = EventManager.createEventMessage(event);
                 message.putExtra(TouchProfile.PARAM_TOUCH, touches);
                 sendEvent(message, event.getAccessToken());
                 SWApplication.setTouchCache(eventAttr, touches);
+            }
+            for (Event e : touchEvents) {
+                Intent message = EventManager.createEventMessage(e);
+                touches.putString("state", state);
+                message.putExtra(TouchProfile.PARAM_TOUCH, touches);
+                sendEvent(message, e.getAccessToken());
+                SWApplication.setTouchCache(ATTRIBUTE_ON_TOUCH_CHANGE, touches);
             }
         }
 

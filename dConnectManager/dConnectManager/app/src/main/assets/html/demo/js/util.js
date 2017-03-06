@@ -44,7 +44,8 @@ var util = (function(parent, global) {
             'stressEstimation',
             'walkState',
             'gpio',
-            'geolocation');
+            'geolocation',
+            'echonetLite');
 
     function init(callback) {
         dConnect.setHost(mHost);

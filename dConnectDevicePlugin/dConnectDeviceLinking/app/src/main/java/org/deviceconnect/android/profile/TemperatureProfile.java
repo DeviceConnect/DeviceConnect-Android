@@ -27,12 +27,12 @@ public class TemperatureProfile extends DConnectProfile implements TemperaturePr
         response.putExtra(PARAM_TYPE, type.getValue());
     }
     // Convert Celsius to Fahrenheit.
-    public static float convertCelsiusToFahrenheit(final int celsius) {
+    public static float convertCelsiusToFahrenheit(final float celsius) {
         return (float) (1.8 * celsius + 32);
     }
 
     // Convert Fahrenheit to Celsius.
-    public static float convertFahrenheitToCelsius(final int fahrenheit) {
+    public static float convertFahrenheitToCelsius(final float fahrenheit) {
         return (float) ((0.56) * (fahrenheit - 32));
     }
     public static int getType(final Intent request) {

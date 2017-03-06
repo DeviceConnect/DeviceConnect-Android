@@ -103,7 +103,7 @@ public class LinkingTemperatureProfile extends TemperatureProfile {
         TemperatureType tType = TemperatureType.TYPE_CELSIUS;
         float temp = temperatureData.getValue();
         if (type == TemperatureType.TYPE_FAHRENHEIT.getValue()) {
-            temp = TemperatureProfile.convertCelsiusToFahrenheit((int) temp);
+            temp = TemperatureProfile.convertCelsiusToFahrenheit(temp);
             tType = TemperatureType.TYPE_FAHRENHEIT;
         }
         setResult(response, DConnectMessage.RESULT_OK);

@@ -219,13 +219,11 @@ var util = (function(parent, global) {
         elm.href = uri;
 
         var p = elm.pathname.split('/');
-        for (var i = 0; i < p.length; i++) {
-            if (p[i] != '' && p[i] != 'gotapi') {
-                if (!containsScope(p[i])) {
-                    mScopes.push(p[i]);
-                }
-                break;
-            }
+        if (p.length < 3) {
+            return;
+        }
+        if (!containsScope(p[2])) {
+            mScopes.push(p[2]);
         }
     }
 

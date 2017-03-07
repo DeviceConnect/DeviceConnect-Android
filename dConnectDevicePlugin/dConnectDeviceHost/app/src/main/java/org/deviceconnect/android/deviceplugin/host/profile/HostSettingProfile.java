@@ -1,5 +1,5 @@
 /*
- HostSettingsProfile.java
+ HostSettingProfile.java
  Copyright (c) 2014 NTT DOCOMO,INC.
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
@@ -9,12 +9,10 @@ package org.deviceconnect.android.deviceplugin.host.profile;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.deviceconnect.android.activity.IntentHandlerActivity;
 import org.deviceconnect.android.message.MessageUtils;
-import org.deviceconnect.android.profile.SettingsProfile;
+import org.deviceconnect.android.profile.SettingProfile;
 import org.deviceconnect.android.profile.api.DConnectApi;
 import org.deviceconnect.android.profile.api.GetApi;
 import org.deviceconnect.android.profile.api.PutApi;
@@ -36,7 +34,7 @@ import android.provider.Settings;
  * 
  * @author NTT DOCOMO, INC.
  */
-public class HostSettingsProfile extends SettingsProfile {
+public class HostSettingProfile extends SettingProfile {
 
     /** Light Levelの最大値. */
     private static final int MAX_LIGHT_LEVEL = 255;
@@ -116,7 +114,7 @@ public class HostSettingsProfile extends SettingsProfile {
         }
     };
 
-    private final DConnectApi mGetDisplayLightApi = new GetApi() {
+    private final DConnectApi mGetDisplayBrightnessApi = new GetApi() {
 
         @Override
         public String getInterface() {
@@ -125,7 +123,7 @@ public class HostSettingsProfile extends SettingsProfile {
 
         @Override
         public String getAttribute() {
-            return ATTRIBUTE_LIGHT;
+            return ATTRIBUTE_BRIGHTNESS;
         }
 
         @Override
@@ -211,7 +209,7 @@ public class HostSettingsProfile extends SettingsProfile {
         }
     };
 
-    private final DConnectApi mPutDisplayLightApi = new PutApi() {
+    private final DConnectApi mPutDisplayBrightnessApi = new PutApi() {
 
         @Override
         public String getInterface() {
@@ -220,7 +218,7 @@ public class HostSettingsProfile extends SettingsProfile {
 
         @Override
         public String getAttribute() {
-            return ATTRIBUTE_LIGHT;
+            return ATTRIBUTE_BRIGHTNESS;
         }
 
         @Override
@@ -290,13 +288,13 @@ public class HostSettingsProfile extends SettingsProfile {
         }
     };
 
-    public HostSettingsProfile() {
+    public HostSettingProfile() {
         addApi(mGetSoundVolumeApi);
         addApi(mGetDateApi);
-        addApi(mGetDisplayLightApi);
+        addApi(mGetDisplayBrightnessApi);
         addApi(mGetDisplaySleepApi);
         addApi(mPutSoundVolumeApi);
-        addApi(mPutDisplayLightApi);
+        addApi(mPutDisplayBrightnessApi);
         addApi(mPutDisplaySleepApi);
     }
 

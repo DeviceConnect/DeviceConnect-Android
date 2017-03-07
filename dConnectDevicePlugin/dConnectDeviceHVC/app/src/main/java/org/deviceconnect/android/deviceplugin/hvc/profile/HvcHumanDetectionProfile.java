@@ -17,7 +17,7 @@ import org.deviceconnect.android.deviceplugin.hvc.request.HvcDetectRequestUtils;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.MessageUtils;
-import org.deviceconnect.android.profile.HumanDetectProfile;
+import org.deviceconnect.android.profile.HumanDetectionProfile;
 import org.deviceconnect.android.profile.api.DConnectApi;
 import org.deviceconnect.android.profile.api.DeleteApi;
 import org.deviceconnect.android.profile.api.GetApi;
@@ -29,12 +29,12 @@ import org.deviceconnect.android.profile.api.PutApi;
  * 
  * @author NTT DOCOMO, INC.
  */
-public class HvcHumanDetectProfile extends HumanDetectProfile {
+public class HvcHumanDetectionProfile extends HumanDetectionProfile {
 
     /**
      * log tag.
      */
-    private static final String TAG = HvcHumanDetectProfile.class.getSimpleName();
+    private static final String TAG = HvcHumanDetectionProfile.class.getSimpleName();
 
     /**
      * Debug.
@@ -49,16 +49,23 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
     //
     // Get Detection API
     //
-
-    private final DConnectApi mGetBodyDetectionApi = new GetApi() {
+    private final DConnectApi mGetHumanDetectionApi = new GetApi() {
         @Override
-        public String getInterface() {
-            return INTERFACE_DETECTION;
+        public String getAttribute() {
+            return "onDetection";
         }
 
         @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            return doGetDetectionProc(request, response, getServiceID(request),
+                    HumanDetectKind.HUMAN);
+        }
+    };
+
+    private final DConnectApi mGetBodyDetectionApi = new GetApi() {
+        @Override
         public String getAttribute() {
-            return ATTRIBUTE_BODY_DETECTION;
+            return ATTRIBUTE_ON_BODY_DETECTION;
         }
 
         @Override
@@ -69,14 +76,10 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
     };
 
     private final DConnectApi mGetHandDetectionApi = new GetApi() {
-        @Override
-        public String getInterface() {
-            return INTERFACE_DETECTION;
-        }
 
         @Override
         public String getAttribute() {
-            return ATTRIBUTE_HAND_DETECTION;
+            return ATTRIBUTE_ON_HAND_DETECTION;
         }
 
         @Override
@@ -88,13 +91,8 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
 
     private final DConnectApi mGetFaceDetectionApi = new GetApi() {
         @Override
-        public String getInterface() {
-            return INTERFACE_DETECTION;
-        }
-
-        @Override
         public String getAttribute() {
-            return ATTRIBUTE_FACE_DETECTION;
+            return ATTRIBUTE_ON_FACE_DETECTION;
         }
 
         @Override
@@ -107,6 +105,18 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
     //
     // Put Detection API
     //
+    private final DConnectApi mPutHumanDetectionApi = new PutApi() {
+        @Override
+        public String getAttribute() {
+            return "onDetection";
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            return doPutDetectionProc(request, response, getServiceID(request),
+                    getOrigin(request), HumanDetectKind.HUMAN);
+        }
+    };
 
     private final DConnectApi mPutBodyDetectionApi = new PutApi() {
         @Override
@@ -150,7 +160,18 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
     //
     // Delete Detection API
     //
+    private final DConnectApi mDeleteHumanDetectionApi = new DeleteApi() {
+        @Override
+        public String getAttribute() {
+            return "onDetection";
+        }
 
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            return doDeleteDetectionProc(request, response, getServiceID(request),
+                    getOrigin(request), HumanDetectKind.HUMAN);
+        }
+    };
     private final DConnectApi mDeleteBodyDetectionApi = new DeleteApi() {
         @Override
         public String getAttribute() {
@@ -193,13 +214,16 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
     /**
      * Constructor.
      */
-    public HvcHumanDetectProfile() {
+    public HvcHumanDetectionProfile() {
+        addApi(mGetHumanDetectionApi);
         addApi(mGetBodyDetectionApi);
         addApi(mGetHandDetectionApi);
         addApi(mGetFaceDetectionApi);
+        addApi(mPutHumanDetectionApi);
         addApi(mPutBodyDetectionApi);
         addApi(mPutHandDetectionApi);
         addApi(mPutFaceDetectionApi);
+        addApi(mDeleteHumanDetectionApi);
         addApi(mDeleteBodyDetectionApi);
         addApi(mDeleteHandDetectionApi);
         addApi(mDeleteFaceDetectionApi);
@@ -215,7 +239,7 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
      * @return send response flag.(true:sent / false: unsent (Send after the
      *         thread has been completed))
      */
-    protected boolean doGetDetectionProc(final Intent request, final Intent response,
+    private boolean doGetDetectionProc(final Intent request, final Intent response,
             final String serviceId, final HumanDetectKind detectKind) {
         
         if (!getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
@@ -263,7 +287,7 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
      * @return send response flag.(true:sent / false: unsent (Send after the
      *         thread has been completed))
      */
-    protected boolean doPutDetectionProc(final Intent request, final Intent response,
+    private boolean doPutDetectionProc(final Intent request, final Intent response,
             final String serviceId, final String origin, final HumanDetectKind detectKind) {
         
         if (!getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {

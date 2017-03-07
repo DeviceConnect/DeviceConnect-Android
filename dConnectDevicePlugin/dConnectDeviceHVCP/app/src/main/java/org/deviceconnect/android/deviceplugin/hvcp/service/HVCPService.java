@@ -2,7 +2,7 @@ package org.deviceconnect.android.deviceplugin.hvcp.service;
 
 
 import org.deviceconnect.android.deviceplugin.hvcp.manager.data.HVCCameraInfo;
-import org.deviceconnect.android.deviceplugin.hvcp.profile.HVCPHumanDetectProfile;
+import org.deviceconnect.android.deviceplugin.hvcp.profile.HVCPHumanDetectionProfile;
 import org.deviceconnect.android.service.DConnectService;
 
 public class HVCPService extends DConnectService {
@@ -14,7 +14,7 @@ public class HVCPService extends DConnectService {
         setName(cameraInfo.getName());
         setNetworkType(NETWORK_TYPE_USB);
 
-        addProfile(new HVCPHumanDetectProfile());
+        addProfile(new HVCPHumanDetectionProfile());
     }
 
 }

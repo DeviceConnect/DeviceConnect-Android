@@ -10,7 +10,31 @@
         "multipart/form-data"
     ],
     "paths": {
-        "/send": {
+        "/": {
+            "get": {
+                "x-type": "one-shot",
+                "summary": "",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "query",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "path",
+                        "in": "query",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            },
             "post": {
                 "x-type": "one-shot",
                 "summary": "",
@@ -45,6 +69,12 @@
                         "in": "formData",
                         "required": false,
                         "type": "file"
+                    },
+                    {
+                        "name": "forceOverwrite",
+                        "in": "formData",
+                        "required": false,
+                        "type": "boolean"
                     }
                 ],
                 "responses": {
@@ -52,10 +82,44 @@
                         "description": ""
                     }
                 }
-            }
-        },
-        "/receive": {
-            "get": {
+            },
+            "put": {
+                "x-type": "one-shot",
+                "summary": "",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "formData",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "oldPath",
+                        "in": "formData",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "newPath",
+                        "in": "formData",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "forceOverwrite",
+                        "in": "formData",
+                        "required": false,
+                        "type": "boolean"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            },
+            "delete": {
                 "x-type": "one-shot",
                 "summary": "",
                 "description": "",
@@ -79,6 +143,7 @@
                     }
                 }
             }
+
         },
         "/list": {
             "get": {
@@ -135,8 +200,8 @@
                 }
             }
         },
-        "/remove": {
-            "delete": {
+        "/directory": {
+            "get": {
                 "x-type": "one-shot",
                 "summary": "",
                 "description": "",
@@ -150,8 +215,37 @@
                     {
                         "name": "path",
                         "in": "query",
-                        "required": true,
+                        "required": false,
                         "type": "string"
+                    },
+                    {
+                        "name": "mimeType",
+                        "in": "query",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "order",
+                        "in": "query",
+                        "required": false,
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "offset",
+                        "in": "query",
+                        "required": false,
+                        "type": "integer",
+                        "minimum": 0
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "required": false,
+                        "type": "integer",
+                        "minimum": 0
                     }
                 ],
                 "responses": {
@@ -159,9 +253,7 @@
                         "description": ""
                     }
                 }
-            }
-        },
-        "/mkdir": {
+            },
             "post": {
                 "x-type": "one-shot",
                 "summary": "",
@@ -185,9 +277,37 @@
                         "description": ""
                     }
                 }
-            }
-        },
-        "/rmdir": {
+            },
+            "put": {
+                "x-type": "one-shot",
+                "summary": "",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "formData",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "oldPath",
+                        "in": "formData",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "newPath",
+                        "in": "formData",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            },
             "delete": {
                 "x-type": "one-shot",
                 "summary": "",
@@ -206,7 +326,7 @@
                         "type": "string"
                     },
                     {
-                        "name": "force",
+                        "name": "forceRemove",
                         "in": "query",
                         "required": false,
                         "type": "boolean"
@@ -218,6 +338,7 @@
                     }
                 }
             }
+
         }
     }
 }

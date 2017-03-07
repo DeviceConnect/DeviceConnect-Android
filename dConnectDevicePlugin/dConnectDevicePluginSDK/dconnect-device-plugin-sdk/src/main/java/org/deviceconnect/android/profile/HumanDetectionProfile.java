@@ -9,14 +9,14 @@ package org.deviceconnect.android.profile;
 import android.content.Intent;
 import android.os.Bundle;
 
-import org.deviceconnect.profile.HumanDetectProfileConstants;
+import org.deviceconnect.profile.HumanDetectionProfileConstants;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
 /**
- * Human Detect Profile.
+ * Human Detection Profile.
  * 
  * <p>
  * API that provides Setting, the Detection feature for Human Detect Device.<br>
@@ -28,12 +28,12 @@ import java.util.Locale;
  * @deprecated swagger定義ファイルで定数を管理することになったので、このクラスは使用しないこととする。
  * @author NTT DOCOMO, INC.
  */
-public abstract class HumanDetectProfile extends DConnectProfile implements HumanDetectProfileConstants {
+public abstract class HumanDetectionProfile extends DConnectProfile implements HumanDetectionProfileConstants {
 
     /**
      * Constructor.
      */
-    public HumanDetectProfile() {
+    public HumanDetectionProfile() {
     }
 
     @Override

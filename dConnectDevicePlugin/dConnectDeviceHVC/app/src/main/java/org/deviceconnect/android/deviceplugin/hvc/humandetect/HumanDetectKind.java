@@ -24,7 +24,11 @@ public enum HumanDetectKind {
     /**
      * Face Detection.
      */
-    FACE("FACE");
+    FACE("FACE"),
+    /**
+     * Human Detection.
+     */
+    HUMAN("HUMAN");
     
     
     /**

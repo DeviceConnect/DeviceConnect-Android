@@ -12,6 +12,7 @@
     "paths": {
         "/open": {
             "get": {
+                "deprecated": true,
                 "x-type": "one-shot",
                 "summary": "",
                 "description": "",
@@ -45,6 +46,7 @@
         },
         "/close": {
             "put": {
+                "deprecated": true,
                 "x-type": "one-shot",
                 "summary": "",
                 "description": "",
@@ -71,6 +73,7 @@
         },
         "/read": {
             "get": {
+                "deprecated": true,
                 "x-type": "one-shot",
                 "summary": "",
                 "description": "",
@@ -114,6 +117,7 @@
         },
         "/write": {
             "put": {
+                "deprecated": true,
                 "x-type": "one-shot",
                 "summary": "",
                 "description": "",
@@ -160,6 +164,7 @@
         },
         "/onWatchFile": {
             "get": {
+                "deprecated": true,
                 "x-type": "one-shot",
                 "summary": "",
                 "description": "",
@@ -178,6 +183,7 @@
                 }
             },
             "put": {
+                "deprecated": true,
                 "x-type": "event",
                 "summary": "",
                 "description": "",
@@ -196,6 +202,7 @@
                 }
             },
             "delete": {
+                "deprecated": true,
                 "x-type": "event",
                 "summary": "",
                 "description": "",

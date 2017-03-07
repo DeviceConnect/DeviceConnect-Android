@@ -6,10 +6,6 @@
  */
 package org.deviceconnect.android.deviceplugin.hvc.request;
 
-import java.util.ArrayList;
-
-import omron.HVC.HVC_PRM;
-
 import org.deviceconnect.android.deviceplugin.hvc.comm.HvcConvertUtils;
 import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectBodyRequestParams;
 import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectEventRequestParams;
@@ -18,6 +14,10 @@ import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectHandReq
 import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectKind;
 import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectRequestParams;
 import org.deviceconnect.android.deviceplugin.hvc.profile.HvcConstants;
+
+import java.util.ArrayList;
+
+import omron.HVC.HVC_PRM;
 
 
 /**

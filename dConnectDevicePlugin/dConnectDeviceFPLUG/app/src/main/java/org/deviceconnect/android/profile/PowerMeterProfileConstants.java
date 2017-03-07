@@ -23,13 +23,13 @@ public interface PowerMeterProfileConstants extends DConnectProfileConstants {
     /**
      * attribute : {@value} .
      */
-    String ATTR_INTEGRATEDPOWERVALUE = "integratedPowerValue";
+    String ATTR_INTEGRATEDPOWER = "integratedPower";
 
 
     /**
      * attribute : {@value} .
      */
-    String ATTR_INSTANTANEOUSPOWERVALUE = "instantaneousPowerValue";
+    String ATTR_INSTANTANEOUSPOWER = "instantaneousPower";
 
     /**
      * parameter : {@value} .
@@ -44,11 +44,11 @@ public interface PowerMeterProfileConstants extends DConnectProfileConstants {
     /**
      * parameter : {@value} .
      */
-    String PARAM_INTEGRATEDPOWERVALUE = "integratedpowervalue";
+    String PARAM_INTEGRATEDPOWER = "integratedpower";
 
     /**
      * parameter : {@value} .
      */
-    String PARAM_INSTANTANEOUSPOWERVALUE = "instantaneouspowervalue";
+    String PARAM_INSTANTANEOUSPOWER = "instantaneouspower";
 
 }

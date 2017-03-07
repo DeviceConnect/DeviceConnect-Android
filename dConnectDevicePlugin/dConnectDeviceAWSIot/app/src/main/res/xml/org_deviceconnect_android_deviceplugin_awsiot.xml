@@ -77,11 +77,11 @@
         <description lang="en">Receives proximity events.</description>
     </profile>
 
-    <profile name="connect" expireperiod="86400000">
+    <profile name="connection" expireperiod="86400000">
         <name lang="ja">接続</name>
         <description lang="ja">デバイスとの接続機能にアクセスする</description>
-        <name lang="en">Connect</name>
-        <description lang="en">Connects smart phone to devices.</description>
+        <name lang="en">Connection</name>
+        <description lang="en">Connections smart phone to devices.</description>
     </profile>
 
     <profile name="mediaStreamRecording" expireperiod="86400000">

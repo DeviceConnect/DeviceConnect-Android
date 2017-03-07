@@ -152,16 +152,16 @@ public abstract class DConnectTestCase extends AndroidTestCase {
 
     /**
      * Originを取得する.
-     * 
+     *
      * @return Origin
      */
     protected String getOrigin() {
-        return getContext().getPackageName();
+        return InstrumentationRegistry.getContext().getPackageName();
     }
 
     /**
      * アクセストークンのオンメモリ上のキャッシュを取得する.
-     * 
+     *
      * @return アクセストークンのオンメモリ上のキャッシュ
      */
     protected String getAccessToken() {

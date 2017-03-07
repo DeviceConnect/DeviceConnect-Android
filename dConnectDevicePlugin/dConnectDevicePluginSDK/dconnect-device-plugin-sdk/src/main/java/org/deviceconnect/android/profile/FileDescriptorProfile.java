@@ -19,6 +19,7 @@ import org.deviceconnect.profile.FileDescriptorProfileConstants;
  * ファイルディスクリプタ操作機能を提供するデバイスプラグインは当クラスを継承し、対応APIを実装すること。 <br>
  * </p>
  *
+ * @deprecated swagger定義ファイルで定数を管理することになったので、このクラスは使用しないこととする。
  * @author NTT DOCOMO, INC.
  */
 public abstract class FileDescriptorProfile extends DConnectProfile implements FileDescriptorProfileConstants {

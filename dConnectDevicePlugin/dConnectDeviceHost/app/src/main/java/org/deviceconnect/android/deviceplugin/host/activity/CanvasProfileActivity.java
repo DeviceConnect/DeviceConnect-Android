@@ -8,19 +8,24 @@
 package org.deviceconnect.android.deviceplugin.host.activity;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.app.DialogFragment;
+import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.Matrix;
 import android.graphics.Shader;
 import android.graphics.drawable.BitmapDrawable;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.ViewTreeObserver;
 import android.view.Window;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -35,12 +40,42 @@ import org.deviceconnect.android.deviceplugin.host.canvas.CanvasDrawUtils;
  *
  * @author NTT DOCOMO, INC.
  */
-public class CanvasProfileActivity extends Activity {
+public class CanvasProfileActivity extends Activity  {
 
     /**
      * Defined a parameter name.
      */
     private static final String PARAM_INTENT = "param_intent";
+
+    /**
+     *  Defined a dialog type:{@value}.
+     */
+    private static final String DIALOG_TYPE_OOM = "TYPE_OOM";
+
+    /**
+     *  Defined a dialog type:{@value}.
+     */
+    private static final String DIALOG_TYPE_NOT_FOUND = "TYPE_NOT_FOUND";
+
+    /**
+     * 画像リソース取得結果.
+     */
+    private enum ResourceResult {
+        /**
+         * リソースの取得に成功.
+         */
+        Success,
+
+        /**
+         * リソースの取得時にOut Of Memoryが発生.
+         */
+        OutOfMemory,
+
+        /**
+         * リソースの取得に失敗.
+         */
+        NotFoundFile
+    }
 
     /**
      * Canvas view object.
@@ -56,6 +91,16 @@ public class CanvasProfileActivity extends Activity {
      * Bitmap that was sent from web application.
      */
     private Bitmap mBitmap;
+
+    /**
+     * Download start dialog.
+     */
+    private StartingDialogFragment mDialog;
+
+    /**
+     * Download flag.
+     */
+    private boolean mDownloadFlag = false;
 
     /**
      * Implementation of BroadcastReceiver.
@@ -80,13 +125,6 @@ public class CanvasProfileActivity extends Activity {
         setContentView(R.layout.activity_canvas_profile);
 
         mCanvasView = (ImageView) findViewById(R.id.canvasProfileView);
-        ViewTreeObserver viewTreeObserver = mCanvasView.getViewTreeObserver();
-        viewTreeObserver.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-            @Override
-            public void onGlobalLayout() {
-                refreshImage(mIntent);
-            }
-        });
 
         Button btn = (Button) findViewById(R.id.buttonClose);
         btn.setOnClickListener(new OnClickListener() {
@@ -113,6 +151,7 @@ public class CanvasProfileActivity extends Activity {
         filter.addAction(CanvasDrawImageObject.ACTION_DRAW_CANVAS);
         filter.addAction(CanvasDrawImageObject.ACTION_DELETE_CANVAS);
         LocalBroadcastManager.getInstance(this).registerReceiver(mReceiver, filter);
+        refreshImage(mIntent);
     }
 
     @Override
@@ -140,29 +179,104 @@ public class CanvasProfileActivity extends Activity {
     }
 
     /**
-     * Refresh image.
-     *
-     * @param intent Intent
+     * リソースが見つからない場合のエラーダイアログを表示します.
      */
-    private synchronized void refreshImage(final Intent intent) {
-        CanvasDrawImageObject drawObj = CanvasDrawImageObject.create(intent);
+    private void openNotFoundDrawImage() {
+        AlertDialogFragment oomDialog = AlertDialogFragment.create(DIALOG_TYPE_NOT_FOUND,
+                getString(R.string.host_canvas_error_title),
+                getString(R.string.host_canvas_error_not_found_message),
+                getString(R.string.host_ok));
+        oomDialog.show(getFragmentManager(), DIALOG_TYPE_NOT_FOUND);
+    }
+
+    /**
+     * メモリ不足エラーダイアログを表示します.
+     */
+    private void openOutOfMemory() {
+        AlertDialogFragment oomDialog = AlertDialogFragment.create(DIALOG_TYPE_OOM,
+                getString(R.string.host_canvas_error_title),
+                getString(R.string.host_canvas_error_oom_message),
+                getString(R.string.host_ok));
+        oomDialog.show(getFragmentManager(), DIALOG_TYPE_OOM);
+    }
+
+    /**
+     * 画面に表示する画像を更新します.
+     * @param intent 更新する画像データが入ったintent
+     */
+    private void refreshImage(final Intent intent) {
+        if (mDownloadFlag) {
+            return;
+        }
+        mDownloadFlag = true;
+
+        final CanvasDrawImageObject drawObj = CanvasDrawImageObject.create(intent);
         if (drawObj == null) {
-            finish();
+            openNotFoundDrawImage();
             return;
         }
 
-        if (mBitmap != null) {
-            mBitmap.recycle();
-            mBitmap = null;
-        }
+        AsyncTask<Void, ResourceResult, ResourceResult> task = new AsyncTask<Void, ResourceResult, ResourceResult>() {
+            @Override
+            protected void onPreExecute() {
+                mDialog = new StartingDialogFragment();
+                mDialog.show(getFragmentManager(), "dialog");
+            }
 
-        byte[] data = drawObj.getData();
-        mBitmap = CanvasDrawUtils.getBitmap(data);
-        if (mBitmap == null) {
-            // failed to load bitmap.
-            return;
-        }
+            @Override
+            protected ResourceResult doInBackground(final Void... params) {
+                if (mBitmap != null) {
+                    mBitmap.recycle();
+                    mBitmap = null;
+                }
 
+                String uri = drawObj.getData();
+                byte[] data;
+                try {
+                    if (uri.startsWith("http")) {
+                        data = CanvasDrawUtils.getData(uri);
+                    } else {
+                        data = CanvasDrawUtils.getCacheData(uri);
+                    }
+                    mBitmap = CanvasDrawUtils.getBitmap(data);
+                    if (mBitmap == null) {
+                        return ResourceResult.NotFoundFile;
+                    }
+                } catch (OutOfMemoryError e) {
+                    return ResourceResult.OutOfMemory;
+                } catch (Exception e) {
+                    return ResourceResult.NotFoundFile;
+                }
+                return ResourceResult.Success;
+            }
+
+            @Override
+            protected void onPostExecute(final ResourceResult result) {
+                mDialog.dismiss();
+
+                switch (result) {
+                    case Success:
+                        showDrawObject(drawObj);
+                        break;
+                    case OutOfMemory:
+                        openOutOfMemory();
+                        break;
+                    case NotFoundFile:
+                        openNotFoundDrawImage();
+                        break;
+                }
+
+                mDownloadFlag = false;
+            }
+        };
+        task.execute();
+    }
+
+    /**
+     * 画面を更新します.
+     * @param drawObj 更新する画像データ
+     */
+    private void showDrawObject(final CanvasDrawImageObject drawObj) {
         switch (drawObj.getMode()) {
             default:
             case NONSCALE_MODE:
@@ -189,4 +303,142 @@ public class CanvasProfileActivity extends Activity {
                 break;
         }
     }
+
+    /**
+     * Show a dialog of dwnload image.
+     */
+    public static class StartingDialogFragment extends DialogFragment {
+        @Override
+        public Dialog onCreateDialog(final Bundle savedInstanceState) {
+            String title = getString(R.string.host_canvas_download_title);
+            String msg = getString(R.string.host_canvas_download_message);
+            ProgressDialog progressDialog = new ProgressDialog(getActivity());
+            progressDialog.setTitle(title);
+            progressDialog.setMessage(msg);
+            progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+            setCancelable(false);
+            return progressDialog;
+        }
+
+        @Override
+        public void onPause() {
+            dismiss();
+            super.onPause();
+        }
+    }
+
+    /**
+     * エラーダイアログ.
+     */
+    public static class AlertDialogFragment extends DialogFragment {
+        /**
+         * タグのキーを定義します.
+         */
+        private static final String KEY_TAG = "tag";
+
+        /**
+         * タイトルのキーを定義します.
+         */
+        private static final String KEY_TITLE = "title";
+
+        /**
+         * メッセージのキーを定義します.
+         */
+        private static final String KEY_MESSAGE = "message";
+
+        /**
+         * Positiveボタンのキーを定義します.
+         */
+        private static final String KEY_POSITIVE = "yes";
+
+        /**
+         * Negativeボタンのキーを定義します.
+         */
+        private static final String KEY_NEGATIVE = "no";
+
+        /**
+         * ボタン無しでAlertDialogを作成します.
+         * @param tag タグ
+         * @param title タイトル
+         * @param message メッセージ
+         * @return AlertDialogFragmentのインスタンス
+         */
+        public static AlertDialogFragment create(final String tag, final String title, final String message) {
+            return create(tag, title, message, null, null);
+        }
+
+        /**
+         * PositiveボタンのみでAlertDialogを作成します.
+         * @param tag タグ
+         * @param title タイトル
+         * @param message メッセージ
+         * @param positive positiveボタン名
+         * @return AlertDialogFragmentのインスタンス
+         */
+        public static AlertDialogFragment create(final String tag, final String title, final String message, final String positive) {
+            return create(tag, title, message, positive, null);
+        }
+
+        /**
+         * ボタン有りでAlertDialogを作成します.
+         * @param tag タグ
+         * @param title タイトル
+         * @param message メッセージ
+         * @param positive positiveボタン名
+         * @param negative negativeボタン名
+         * @return AlertDialogFragmentのインスタンス
+         */
+        public static AlertDialogFragment create(final String tag, final String title, final String message,
+                                                 final String positive, final String negative) {
+            Bundle args = new Bundle();
+            args.putString(KEY_TAG, tag);
+            args.putString(KEY_TITLE, title);
+            args.putString(KEY_MESSAGE, message);
+            if (positive != null) {
+                args.putString(KEY_POSITIVE, positive);
+            }
+            if (negative != null) {
+                args.putString(KEY_NEGATIVE, negative);
+            }
+
+            AlertDialogFragment dialog = new AlertDialogFragment();
+            dialog.setArguments(args);
+            return dialog;
+        }
+
+        @Override
+        public Dialog onCreateDialog(final Bundle savedInstanceState) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+            builder.setTitle(getArguments().getString(KEY_TITLE));
+            builder.setMessage(getArguments().getString(KEY_MESSAGE));
+            if (getArguments().getString(KEY_POSITIVE) != null) {
+                builder.setPositiveButton(getArguments().getString(KEY_POSITIVE),
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(final DialogInterface dialog, final int which) {
+                                Activity activity = getActivity();
+                                if (activity != null) {
+                                    activity.finish();
+                                }
+                            }
+                        });
+            }
+            if (getArguments().getString(KEY_NEGATIVE) != null) {
+                builder.setNegativeButton(getArguments().getString(KEY_NEGATIVE),
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(final DialogInterface dialog, final int which) {
+                            }
+                        });
+            }
+            return builder.create();
+        }
+
+        @Override
+        public void onCancel(final DialogInterface dialog) {
+
+        }
+
+    }
+
 }

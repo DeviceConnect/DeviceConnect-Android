@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory android:title="@string/activity_settings_about" >
+        <PreferenceScreen
+            android:key="@string/key_settings_open_source_licenses"
+            android:summary="@string/activity_settings_open_source_licenses_summary"
+            android:title="@string/activity_settings_open_source_licenses" />
+        <PreferenceScreen
+            android:key="@string/key_settings_about_tos"
+            android:title="@string/activity_settings_terms_of_service" />
+        <PreferenceScreen
+            android:key="@string/key_settings_about_privacypolicy"
+            android:title="@string/activity_settings_privacy_policy" />
+        <PreferenceScreen
+            android:key="@string/key_settings_about_appinfo"
+            android:summary="@string/activity_settings_app_infomation_summary"
+            android:title="@string/activity_settings_app_infomation_summary" />
+        <PreferenceScreen
+            android:key="@string/key_settings_dconn_uuid"
+            android:summary="@string/activity_settings_default_keyword"
+            android:title="@string/activity_settings_uuid" />
+        <EditTextPreference
+            android:defaultValue="@string/activity_settings_default_keyword"
+            android:key="@string/key_settings_dconn_name"
+            android:summary="@string/activity_settings_default_keyword"
+            android:title="@string/activity_settings_name" />
+    </PreferenceCategory>
+</PreferenceScreen>

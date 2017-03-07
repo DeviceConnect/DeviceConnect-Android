@@ -29,10 +29,22 @@
                         "required": false
                     },
                     {
+                        "name": "uri",
+                        "in": "formData",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
                         "name": "data",
                         "in": "formData",
                         "type": "file",
                         "required": false
+                    },
+                    {
+                        "name": "uri",
+                        "in": "formData",
+                        "required": false,
+                        "type": "string"
                     },
                     {
                         "name": "x",

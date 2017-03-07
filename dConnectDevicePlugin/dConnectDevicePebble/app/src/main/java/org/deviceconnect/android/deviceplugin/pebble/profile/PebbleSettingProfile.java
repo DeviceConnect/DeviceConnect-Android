@@ -14,7 +14,7 @@ import org.deviceconnect.android.deviceplugin.pebble.PebbleDeviceService;
 import org.deviceconnect.android.deviceplugin.pebble.util.PebbleManager;
 import org.deviceconnect.android.deviceplugin.pebble.util.PebbleManager.OnSendCommandListener;
 import org.deviceconnect.android.message.MessageUtils;
-import org.deviceconnect.android.profile.SettingsProfile;
+import org.deviceconnect.android.profile.SettingProfile;
 import org.deviceconnect.android.profile.api.DConnectApi;
 import org.deviceconnect.android.profile.api.GetApi;
 import org.deviceconnect.message.DConnectMessage;
@@ -23,7 +23,7 @@ import org.deviceconnect.message.DConnectMessage;
  * Pebble端末内時間情報取得プロファイル.
  * @author NTT DOCOMO, INC.
  */
-public class PebbleSettingProfile extends SettingsProfile {
+public class PebbleSettingProfile extends SettingProfile {
 
     private final DConnectApi mGetDateApi = new GetApi() {
 

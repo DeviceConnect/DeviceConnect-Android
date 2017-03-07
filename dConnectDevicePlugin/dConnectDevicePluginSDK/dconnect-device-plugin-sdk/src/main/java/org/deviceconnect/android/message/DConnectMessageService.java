@@ -60,8 +60,10 @@ import java.util.logging.SimpleFormatter;
  * Device Connectメッセージサービス.
  * 
  * <p>
- * Device Connectリクエストメッセージを受信し、Device Connectレスポンスメッセージを送信するサービスである。
+ * Device Connectリクエストメッセージを受信し、Device Connectレスポンスメッセージを送信するサービスである。<br>
  * {@link DConnectMessageServiceProvider}から呼び出されるサービスとし、UIレイヤーから明示的な呼び出しは行わない。
+ * </p>
+ *
  * @author NTT DOCOMO, INC.
  */
 public abstract class DConnectMessageService extends Service implements DConnectProfileProvider {
@@ -90,52 +92,29 @@ public abstract class DConnectMessageService extends Service implements DConnect
 
     /**
      * Local OAuth使用フラグ.
+     * <p>
      * デフォルトではtrueにしておくこと。
+     * </p>
      */
     private boolean mUseLocalOAuth = true;
 
+    /**
+     * サービスを管理するクラス.
+     */
     private DConnectServiceProvider mServiceProvider;
 
+    /**
+     * リクエストを変換するコンバータクラス.
+     */
     private final MessageConverter[] mRequestConverters = {
         new ServiceDiscoveryRequestConverter(),
         new AuthorizationRequestConverter(),
         new LowerCaseConverter()
     };
-    /**
-     * SystemProfileを取得する.
-     * SystemProfileは必須実装となるため、本メソッドでSystemProfileのインスタンスを渡すこと。
-     * このメソッドで返却したSystemProfileは自動で登録される。
-     * 
-     * @return SystemProfileのインスタンス
-     */
-    protected abstract SystemProfile getSystemProfile();
 
     /**
-     * EventCacheControllerのインスタンスを返す.
-     *
-     * <p>
-     * デフォルトではMemoryCacheControllerを使用する.
-     * 変更したい場合は本メソッドをオーバーライドすること.
-     * </p>
-     *
-     * @return EventCacheControllerのインスタンス
+     * プラグインのスペック.
      */
-    protected EventCacheController getEventCacheController() {
-        return new MemoryCacheController();
-    }
-
-    public final DConnectServiceProvider getServiceProvider() {
-        return mServiceProvider;
-    }
-
-    protected final void setServiceProvider(final DConnectServiceProvider provider) {
-        mServiceProvider = provider;
-    }
-
-    protected final DConnectPluginSpec getPluginSpec() {
-        return mPluginSpec;
-    }
-
     private DConnectPluginSpec mPluginSpec;
 
     private final IBinder mLocalBinder = new LocalBinder();
@@ -161,58 +140,6 @@ public abstract class DConnectMessageService extends Service implements DConnect
         // 必須プロファイルの追加
         addProfile(new ServiceDiscoveryProfile(mServiceProvider));
         addProfile(getSystemProfile());
-    }
-
-    private void setLogLevel() {
-        if (BuildConfig.DEBUG) {
-            AndroidHandler handler = new AndroidHandler(mLogger.getName());
-            handler.setFormatter(new SimpleFormatter());
-            handler.setLevel(Level.ALL);
-            mLogger.addHandler(handler);
-            mLogger.setLevel(Level.ALL);
-        } else {
-            mLogger.setLevel(Level.OFF);
-        }
-    }
-
-    private DConnectPluginSpec loadPluginSpec() {
-        final Map<String, DevicePluginXmlProfile> supportedProfiles = DevicePluginXmlUtil.getSupportProfiles(this, getPackageName());
-        final Set<String> profileNames = supportedProfiles.keySet();
-
-        final DConnectPluginSpec pluginSpec = new DConnectPluginSpec();
-        for (String profileName : profileNames) {
-            String key = profileName.toLowerCase();
-            try {
-                AssetManager assets = getAssets();
-                String path = findProfileSpecPath(assets, profileName);
-                pluginSpec.addProfileSpec(key, getAssets().open(path));
-                mLogger.info("Loaded a profile spec: " + profileName);
-            } catch (IOException e) {
-                throw new RuntimeException("Failed to load a profile spec: " + profileName, e);
-            } catch (JSONException e) {
-                throw new RuntimeException("Failed to load a profile spec: " + profileName, e);
-            }
-        }
-        return pluginSpec;
-    }
-
-    private static String findProfileSpecPath(final AssetManager assets, final String profileName)
-        throws IOException {
-        String[] fileNames = assets.list("api");
-        if (fileNames == null) {
-            return null;
-        }
-        for (String fileFullName : fileNames) {
-            if (!fileFullName.endsWith(SPEC_FILE_EXTENSION)) {
-                continue;
-            }
-            String fileName = fileFullName.substring(0,
-                fileFullName.length() - SPEC_FILE_EXTENSION.length());
-            if (fileName.equalsIgnoreCase(profileName)) {
-                return "api/" + fileFullName;
-            }
-        }
-        throw new FileNotFoundException("A spec file is not found: " + profileName);
     }
 
     @Override
@@ -266,6 +193,82 @@ public abstract class DConnectMessageService extends Service implements DConnect
     }
 
     /**
+     * デバッグログの出力レベルを設定する.
+     * <p>
+     * デバッグフラグがfalseの場合には、ログを出力しないようにすること。
+     * </p>
+     */
+    private void setLogLevel() {
+        if (BuildConfig.DEBUG) {
+            AndroidHandler handler = new AndroidHandler(mLogger.getName());
+            handler.setFormatter(new SimpleFormatter());
+            handler.setLevel(Level.ALL);
+            mLogger.addHandler(handler);
+            mLogger.setLevel(Level.ALL);
+            mLogger.setUseParentHandlers(false);
+        } else {
+            mLogger.setLevel(Level.OFF);
+        }
+    }
+
+    /**
+     * サービスを管理するクラスを取得する.
+     *
+     * @return サービス管理クラス
+     */
+    public final DConnectServiceProvider getServiceProvider() {
+        return mServiceProvider;
+    }
+
+    protected final void setServiceProvider(final DConnectServiceProvider provider) {
+        mServiceProvider = provider;
+    }
+
+    protected final DConnectPluginSpec getPluginSpec() {
+        return mPluginSpec;
+    }
+
+    private DConnectPluginSpec loadPluginSpec() {
+        final Map<String, DevicePluginXmlProfile> supportedProfiles = DevicePluginXmlUtil.getSupportProfiles(this, getPackageName());
+        final Set<String> profileNames = supportedProfiles.keySet();
+
+        final DConnectPluginSpec pluginSpec = new DConnectPluginSpec();
+        for (String profileName : profileNames) {
+            String key = profileName.toLowerCase();
+            try {
+                AssetManager assets = getAssets();
+                String path = findProfileSpecPath(assets, profileName);
+                pluginSpec.addProfileSpec(key, getAssets().open(path));
+                mLogger.info("Loaded a profile spec: " + profileName);
+            } catch (IOException e) {
+                throw new RuntimeException("Failed to load a profile spec: " + profileName, e);
+            } catch (JSONException e) {
+                throw new RuntimeException("Failed to load a profile spec: " + profileName, e);
+            }
+        }
+        return pluginSpec;
+    }
+
+    private static String findProfileSpecPath(final AssetManager assets, final String profileName)
+            throws IOException {
+        String[] fileNames = assets.list("api");
+        if (fileNames == null) {
+            return null;
+        }
+        for (String fileFullName : fileNames) {
+            if (!fileFullName.endsWith(SPEC_FILE_EXTENSION)) {
+                continue;
+            }
+            String fileName = fileFullName.substring(0,
+                    fileFullName.length() - SPEC_FILE_EXTENSION.length());
+            if (fileName.equalsIgnoreCase(profileName)) {
+                return "api/" + fileFullName;
+            }
+        }
+        throw new FileNotFoundException("A spec file is not found: " + profileName);
+    }
+
+    /**
      * 指定されたアクションがDevice Connectのアクションかチェックします.
      * @param action チェックするアクション
      * @return Device Connectのアクションの場合はtrue、それ以外はfalse
@@ -277,6 +280,11 @@ public abstract class DConnectMessageService extends Service implements DConnect
                 || IntentDConnectMessage.ACTION_DELETE.equals(action);
     }
 
+    /**
+     * リクエストのプロファイル名などを変換する.
+     *
+     * @param request 変換処理を行うリクエスト
+     */
     private void convertRequest(final Intent request) {
         for (MessageConverter converter : mRequestConverters) {
             converter.convert(request);
@@ -375,6 +383,14 @@ public abstract class DConnectMessageService extends Service implements DConnect
         }
     }
 
+    /**
+     * リクエストを実行する.
+     *
+     * @param profileName プロファイル名
+     * @param request リクエスト
+     * @param response レスポンス
+     * @return trueの場合には即座にレスポンスを返却する、それ以外の場合にはレスポンスを返却しない
+     */
     protected boolean executeRequest(final String profileName, final Intent request,
                                    final Intent response) {
         DConnectProfile profile = getProfile(profileName);
@@ -392,17 +408,11 @@ public abstract class DConnectMessageService extends Service implements DConnect
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public List<DConnectProfile> getProfileList() {
         return new ArrayList<>(mProfileMap.values());
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public DConnectProfile getProfile(final String name) {
         if (name == null) {
@@ -412,9 +422,6 @@ public abstract class DConnectMessageService extends Service implements DConnect
         return mProfileMap.get(name.toLowerCase());
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void addProfile(final DConnectProfile profile) {
         if (profile == null) {
@@ -431,9 +438,6 @@ public abstract class DConnectMessageService extends Service implements DConnect
         mProfileMap.put(profileName, profile);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void removeProfile(final DConnectProfile profile) {
         if (profile == null) {
@@ -519,10 +523,10 @@ public abstract class DConnectMessageService extends Service implements DConnect
 
     /**
      * Local OAuth使用フラグを設定する.
-     * 
-     * このフラグをfalseに設定することで、LocalOAuthの機能をOFFにすることができる。
+     * <p>
+     * このフラグをfalseに設定することで、LocalOAuthの機能をOFFにすることができる。<br>
      * デフォルトでは、trueになっているので、LocalOAuthが有効になっている。
-     * 
+     * </p>
      * @param use フラグ
      */
     protected void setUseLocalOAuth(final boolean use) {
@@ -538,6 +542,12 @@ public abstract class DConnectMessageService extends Service implements DConnect
         return mUseLocalOAuth;
     }
 
+    /**
+     * 指定されたプロファイルはLocal OAuth認証を無視して良いかを確認する.
+     *
+     * @param profileName プロファイル名
+     * @return 無視して良い場合はtrue、それ以外はfalse
+     */
     public boolean isIgnoredProfile(final String profileName) {
         for (String name : IGNORE_PROFILES) {
             if (name.equalsIgnoreCase(profileName)) { // MEMO パスの大文字小文字を無視
@@ -548,7 +558,35 @@ public abstract class DConnectMessageService extends Service implements DConnect
     }
 
     /**
+     * SystemProfileを取得する.
+     * <p>
+     * SystemProfileは必須実装となるため、本メソッドでSystemProfileのインスタンスを渡すこと。<br>
+     * このメソッドで返却したSystemProfileは自動で登録される。
+     * </p>
+     * @return SystemProfileのインスタンス
+     */
+    protected abstract SystemProfile getSystemProfile();
+
+    /**
+     * EventCacheControllerのインスタンスを返す.
+     *
+     * <p>
+     * デフォルトではMemoryCacheControllerを使用する.<br>
+     * 変更したい場合は本メソッドをオーバーライドすること.
+     * </p>
+     *
+     * @return EventCacheControllerのインスタンス
+     */
+    protected EventCacheController getEventCacheController() {
+        return new MemoryCacheController();
+    }
+
+    /**
      * Device Connect Managerがアンインストールされた時に呼ばれる処理部.
+     * <p>
+     * Device Connect Managerがアンインストールされた場合に処理を行いたい場合には、
+     * このメソッドをオーバーライドして実装を行うこと。
+     * </p>
      */
     protected void onManagerUninstalled() {
         mLogger.info("SDK : onManagerUninstalled");
@@ -556,6 +594,9 @@ public abstract class DConnectMessageService extends Service implements DConnect
 
     /**
      * Device Connect Managerの正常終了通知を受信した時に呼ばれる処理部.
+     * <p>
+     * Device Connect Managerが終了された場合に処理を行い場合には、このメソッドをオーバーライドして実装を行うこと。
+     * </p>
      */
     protected void onManagerTerminated() {
         mLogger.info("SDK : on ManagerTerminated");
@@ -563,24 +604,41 @@ public abstract class DConnectMessageService extends Service implements DConnect
 
     /**
      * Device Connect ManagerのEvent送信経路切断通知を受信した時に呼ばれる処理部.
-     * @param origin オリジン
+     * <p>
+     * Device Connect ManagerでWebSocketなどが切断され、イベント停止要求が送られてきた場合には、
+     * このメソッドをオーバーライドして、イベントの停止処理や後始末の処理を行うこと。
+     * </p>
+     * @param origin イベント停止が要求されたオリジン
      */
     protected void onManagerEventTransmitDisconnected(final String origin) {
-        mLogger.info("SDK : onManagerEventTransmitDisconnected");
+        mLogger.info("SDK : onManagerEventTransmitDisconnected: " + origin);
     }
 
     /**
      * Device Plug-inへのReset要求を受信した時に呼ばれる処理部.
+     * <p>
+     * Device Connect Managerからデバイスプラグインのリセット要求が送られてきた場合には、
+     * このメソッドをオーバーライドして、再起動処理を行うこと。
+     * </p>
      */
     protected void onDevicePluginReset() {
         mLogger.info("SDK : onDevicePluginReset");
     }
 
+    /**
+     * Serviceをバインドするためのクラス.
+     * <p>
+     * {@link org.deviceconnect.android.ui.activity.DConnectServiceListActivity}で、
+     * サービス一覧をを取得するためにバインドされる。
+     * </p>
+     */
     public class LocalBinder extends Binder {
-
+        /**
+         * DConnectMessageServiceのインスタンスを取得する.
+         * @return DConnectMessageServiceのインスタンス
+         */
         public DConnectMessageService getMessageService() {
             return DConnectMessageService.this;
         }
-
     }
 }

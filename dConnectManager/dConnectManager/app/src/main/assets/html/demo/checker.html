@@ -121,6 +121,24 @@
         </table>
     </script>
 
+    <script id="param_boolean" type="text/x-template">
+        <table name="table-{#name}" class="request {#included}">
+            <tr>
+                <td width="5%" class="left include">
+                    <input type="checkbox" name="include-{#name}" onchange="main.switchParam(this,'{#name}')" {#checkbox} />
+                </td>
+                <td width="20%"><span>{#name}</span></td>
+                <td width="75%">
+                    <div>
+                        <select name="{#name}" {#inputable}>
+                            <OPTION value="true">true</OPTION>
+                            <OPTION value="false">false</OPTION>
+                        </select>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </script>
     <script id="request" type="text/x-template">
         <div class="request">
             <span>リクエスト</span>
@@ -142,7 +160,7 @@
         </div>
     </script>
 
-    <script type="text/javascript" src="js/dconnectsdk-2.1.0.js"></script>
+    <script type="text/javascript" src="js/dconnectsdk-2.2.0.js"></script>
     <script type="text/javascript" src="js/util.js"></script>
     <script type="text/javascript" src="js/checker.js"></script>
     <title>デバイス確認画面</title>

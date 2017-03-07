@@ -28,6 +28,12 @@ import org.deviceconnect.message.DConnectMessage;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.deviceconnect.android.deviceplugin.kadecot.service.KadecotService.IDX_DEVICEID;
+import static org.deviceconnect.android.deviceplugin.kadecot.service.KadecotService.IDX_PREFIX;
+import static org.deviceconnect.android.deviceplugin.kadecot.service.KadecotService.IDX_PROFILENAME;
+import static org.deviceconnect.android.deviceplugin.kadecot.service.KadecotService.NO_RESULT;
+import static org.deviceconnect.android.deviceplugin.kadecot.service.KadecotService.PREFIX_KADECOT;
+
 /**
  * Light Profile.
  *
@@ -35,20 +41,6 @@ import java.util.List;
  */
 public class KadecotLightProfile extends LightProfile {
 
-    /** Kadecot prefix. */
-    static final String PREFIX_KADECOT = "kadecot";
-
-    /** "No result" string. */
-    static final String NO_RESULT = "{}";
-
-    /** Index of prefix. */
-    static final int IDX_PREFIX = 0;
-
-    /** Index of kadecot deviceId. */
-    static final int IDX_DEVICEID = 1;
-
-    /** Index of profile name. */
-    static final int IDX_PROFILENAME = 2;
 
     public KadecotLightProfile() {
         addApi(mGetLightApi);

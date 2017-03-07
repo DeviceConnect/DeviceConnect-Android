@@ -866,6 +866,8 @@ public abstract class DConnectProfile implements DConnectProfileConstants,
                 out.write(buf, 0, len);
             }
             return out.toByteArray();
+        } catch (OutOfMemoryError e) {
+            return null;
         } catch (IOException e) {
             return null;
         } finally {
@@ -879,7 +881,7 @@ public abstract class DConnectProfile implements DConnectProfileConstants,
         }
     }
 
-    protected byte[] getData(String uri) {
+    protected byte[] getData(String uri) throws OutOfMemoryError {
         HttpURLConnection connection = null;
         InputStream inputStream = null;
         byte[] data = null;
@@ -890,6 +892,8 @@ public abstract class DConnectProfile implements DConnectProfileConstants,
             connection.connect();
             inputStream = connection.getInputStream();
             data = readAll(inputStream);
+        } catch (OutOfMemoryError e) {
+            throw new OutOfMemoryError(e.getMessage());
         } catch (IOException e) {
             e.printStackTrace();
         } finally {

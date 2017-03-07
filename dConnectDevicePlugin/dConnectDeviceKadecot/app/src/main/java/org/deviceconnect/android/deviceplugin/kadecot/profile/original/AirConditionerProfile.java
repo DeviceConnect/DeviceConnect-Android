@@ -52,8 +52,8 @@ public class AirConditionerProfile extends DConnectProfile implements AirConditi
      * @param response response message.
      * @param operationpowersaving operation power saving information.
      */
-    public static void setOperationPowerSaving(final Intent response, final String operationpowersaving) {
-        response.putExtra(PARAM_OPERATIONPOWERSAVING, operationpowersaving);
+    public static void setPowerSaving(final Intent response, final String operationpowersaving) {
+        response.putExtra(PARAM_POWERSAVING, operationpowersaving);
     }
 
     /**
@@ -62,8 +62,8 @@ public class AirConditionerProfile extends DConnectProfile implements AirConditi
      * @param response response message.
      * @param operationmodesetting operation mode setting information.
      */
-    public static void setOperationModeSetting(final Intent response, final String operationmodesetting) {
-        response.putExtra(PARAM_OPERATIONMODESETTING, operationmodesetting);
+    public static void setModeSetting(final Intent response, final String operationmodesetting) {
+        response.putExtra(PARAM_MODESETTING, operationmodesetting);
     }
 
     /**
@@ -82,8 +82,8 @@ public class AirConditionerProfile extends DConnectProfile implements AirConditi
      * @param response response message.
      * @param temperaturevalue temperature value.
      */
-    public static void setTemperatureValue(final Intent response, final String temperaturevalue) {
-        response.putExtra(PARAM_TEMPERATUREVALUE, temperaturevalue);
+    public static void setTemperature(final Intent response, final String temperaturevalue) {
+        response.putExtra(PARAM_TEMPERATURE, temperaturevalue);
     }
 
     /**
@@ -92,8 +92,8 @@ public class AirConditionerProfile extends DConnectProfile implements AirConditi
      * @param response response message.
      * @param airflowvalue air flow value.
      */
-    public static void setAirFlowValue(final Intent response, final String airflowvalue) {
-        response.putExtra(PARAM_AIRFLOWVALUE, airflowvalue);
+    public static void setAirFlow(final Intent response, final String airflowvalue) {
+        response.putExtra(PARAM_AIRFLOW, airflowvalue);
     }
 
     /**
@@ -147,7 +147,7 @@ public class AirConditionerProfile extends DConnectProfile implements AirConditi
      * @return Power saving parameter.
      */
     public static String getPowerSaving(final Intent request) {
-        return request.getStringExtra(PARAM_OPERATIONPOWERSAVING);
+        return request.getStringExtra(PARAM_POWERSAVING);
     }
 
     /**
@@ -156,8 +156,8 @@ public class AirConditionerProfile extends DConnectProfile implements AirConditi
      * @param request Request.
      * @return Operation mode setting parameter.
      */
-    public static String getOperationModeSetting(final Intent request) {
-        return request.getStringExtra(PARAM_OPERATIONMODESETTING);
+    public static String getModeSetting(final Intent request) {
+        return request.getStringExtra(PARAM_MODESETTING);
     }
 
     /**
@@ -166,8 +166,8 @@ public class AirConditionerProfile extends DConnectProfile implements AirConditi
      * @param request Request.
      * @return Temperature value parameter.
      */
-    public static int getTemperatureValue(final Intent request) {
-        String strValue = request.getStringExtra(PARAM_TEMPERATUREVALUE);
+    public static int getTemperature(final Intent request) {
+        String strValue = request.getStringExtra(PARAM_TEMPERATURE);
         try {
             return Integer.parseInt(strValue);
         } catch (NumberFormatException e) {
@@ -181,8 +181,8 @@ public class AirConditionerProfile extends DConnectProfile implements AirConditi
      * @param request Request.
      * @return true : Not found. / false : Found parameter.
      */
-    public static boolean isNullAirFlowValue(final Intent request) {
-        return request.getStringExtra(PARAM_AIRFLOWVALUE) == null;
+    public static boolean isNullAirFlow(final Intent request) {
+        return request.getStringExtra(PARAM_AIRFLOW) == null;
     }
 
     /**
@@ -191,8 +191,8 @@ public class AirConditionerProfile extends DConnectProfile implements AirConditi
      * @param request Request.
      * @return Air flow value parameter.
      */
-    public static float getAirFlowValue(final Intent request) {
-        String strValue = request.getStringExtra(PARAM_AIRFLOWVALUE);
+    public static float getAirFlow(final Intent request) {
+        String strValue = request.getStringExtra(PARAM_AIRFLOW);
         if (strValue == null) {
             return -1;
         }

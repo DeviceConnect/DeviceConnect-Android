@@ -12,6 +12,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
 
+import org.deviceconnect.android.deviceplugin.host.HostDeviceApplication;
 import org.deviceconnect.android.deviceplugin.host.HostDeviceService;
 import org.deviceconnect.android.deviceplugin.host.activity.KeyEventProfileActivity;
 import org.deviceconnect.android.event.EventError;
@@ -32,20 +33,84 @@ import org.deviceconnect.message.intent.message.IntentDConnectMessage;
  */
 public class HostKeyEventProfile extends KeyEventProfile {
 
-    /** Error. */
-    private static final int ERROR_PROCESSING_ERROR = 100;
-
+ 
     /** Key Event profile event management flag. */
     private static int sFlagKeyEventEventManage = 0;
     /** Key Event profile event flag. (ondown) */
     private static final int FLAG_ON_DOWN = 0x0001;
     /** Key Event  profile event flag. (onup) */
     private static final int FLAG_ON_UP = 0x0002;
-
+    /** Key Event  profile event flag. (onkeychange) */
+    private static final int FLAG_ON_KEY_CHANGE = 0x0004;
     /** Finish key event profile activity action. */
     public static final String ACTION_FINISH_KEYEVENT_ACTIVITY =
             "org.deviceconnect.android.deviceplugin.host.keyevent.FINISH";
+    /**
+     * Attribute: {@value} .
+     */
+    public static final String ATTRIBUTE_ON_KEY_CHANGE = "onKeyChange";
+    private final DConnectApi mGetOnKeyChangeApi = new GetApi() {
 
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_KEY_CHANGE;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            Bundle keyEvent = getApp().getKeyEventCache(ATTRIBUTE_ON_KEY_CHANGE);
+            if (keyEvent == null) {
+                response.putExtra(KeyEventProfile.PARAM_KEYEVENT, "");
+            } else {
+                response.putExtra(KeyEventProfile.PARAM_KEYEVENT, keyEvent);
+            }
+            setResult(response, IntentDConnectMessage.RESULT_OK);
+            return true;
+        }
+    };
+    private final DConnectApi mPutOnKeyChangeApi = new PutApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_KEY_CHANGE;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String serviceId = getServiceID(request);
+            // Event registration.
+            EventError error = EventManager.INSTANCE.addEvent(request);
+            if (error == EventError.NONE) {
+                execKeyEventActivity(serviceId);
+                setKeyEventEventFlag(FLAG_ON_KEY_CHANGE);
+                setResult(response, DConnectMessage.RESULT_OK);
+            } else {
+                MessageUtils.setInvalidRequestParameterError(response,  "Can not register event.");
+            }
+            return true;
+        }
+    };
+
+    private final DConnectApi mDeleteOnKeyChangeApi = new DeleteApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_KEY_CHANGE;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            // Event release.
+            EventError error = EventManager.INSTANCE.removeEvent(request);
+            if (error == EventError.NONE) {
+                resetKeyEventEventFlag(FLAG_ON_KEY_CHANGE);
+                setResult(response, DConnectMessage.RESULT_OK);
+            } else {
+                MessageUtils.setInvalidRequestParameterError(response, "Can not unregister event.");
+            }
+            return true;
+        }
+    };
     private final DConnectApi mGetOnDownApi = new GetApi() {
 
         @Override
@@ -55,7 +120,7 @@ public class HostKeyEventProfile extends KeyEventProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            Bundle keyEvent = ((HostDeviceService) getContext()).getKeyEventCache(KeyEventProfile.ATTRIBUTE_ON_DOWN);
+            Bundle keyEvent = getApp().getKeyEventCache(KeyEventProfile.ATTRIBUTE_ON_DOWN);
             if (keyEvent == null) {
                 response.putExtra(KeyEventProfile.PARAM_KEYEVENT, "");
             } else {
@@ -83,7 +148,7 @@ public class HostKeyEventProfile extends KeyEventProfile {
                 setKeyEventEventFlag(FLAG_ON_DOWN);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
-                MessageUtils.setError(response, ERROR_PROCESSING_ERROR, "Can not register event.");
+                MessageUtils.setInvalidRequestParameterError(response, "Can not register event.");
             }
             return true;
         }
@@ -104,7 +169,7 @@ public class HostKeyEventProfile extends KeyEventProfile {
                 resetKeyEventEventFlag(FLAG_ON_DOWN);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
-                MessageUtils.setError(response, ERROR_PROCESSING_ERROR, "Can not unregister event.");
+                MessageUtils.setInvalidRequestParameterError(response, "Can not unregister event.");
             }
             return true;
         }
@@ -119,7 +184,7 @@ public class HostKeyEventProfile extends KeyEventProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            Bundle keyEvent = ((HostDeviceService) getContext()).getKeyEventCache(KeyEventProfile.ATTRIBUTE_ON_UP);
+            Bundle keyEvent = getApp().getKeyEventCache(KeyEventProfile.ATTRIBUTE_ON_UP);
             if (keyEvent == null) {
                 response.putExtra(KeyEventProfile.PARAM_KEYEVENT, "");
             } else {
@@ -147,7 +212,7 @@ public class HostKeyEventProfile extends KeyEventProfile {
                 setKeyEventEventFlag(FLAG_ON_UP);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
-                MessageUtils.setError(response, ERROR_PROCESSING_ERROR, "Can not register event.");
+                MessageUtils.setInvalidRequestParameterError(response, "Can not register event.");
             }
             return true;
         }
@@ -168,13 +233,16 @@ public class HostKeyEventProfile extends KeyEventProfile {
                 resetKeyEventEventFlag(FLAG_ON_UP);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
-                MessageUtils.setError(response, ERROR_PROCESSING_ERROR, "Can not unregister event.");
+                MessageUtils.setInvalidRequestParameterError(response, "Can not unregister event.");
             }
             return true;
         }
     };
 
     public HostKeyEventProfile() {
+        addApi(mGetOnKeyChangeApi);
+        addApi(mPutOnKeyChangeApi);
+        addApi(mDeleteOnKeyChangeApi);
         addApi(mGetOnDownApi);
         addApi(mPutOnDownApi);
         addApi(mDeleteOnDownApi);
@@ -262,7 +330,11 @@ public class HostKeyEventProfile extends KeyEventProfile {
      */
     public void resetKeyEventProfile() {
         if (isSetKeyEventManageFlag()) {
-            resetKeyEventEventFlag(FLAG_ON_DOWN | FLAG_ON_UP);
+            resetKeyEventEventFlag(FLAG_ON_DOWN | FLAG_ON_UP | FLAG_ON_KEY_CHANGE);
         }
+    }
+
+    private HostDeviceApplication getApp() {
+        return (HostDeviceApplication) ((HostDeviceService) getContext()).getApplication();
     }
 }

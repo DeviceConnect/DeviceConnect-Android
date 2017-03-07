@@ -8,46 +8,26 @@
     <script type="text/javascript" src="js/util.js"></script>
     <script type="text/javascript" src="js/index.js"></script>
 
-    <script id="service" type="text/x-template">
-        <div>
-            <span class="serviceName">{#name}</span>
-        </div>
-        <div>
-            <span class="serviceId">{#id}</span>
-        </div>
-    </script>
-
     <script id="profileTable" type="text/x-template">
-        <table class="profileTable">
-            <tbody>
-                {#content}
-            </tbody>
-        </table>
-    </script>
-
-    <script id="profileRow" type="text/x-template">
-        <tr>
+        <section class="gridsDisplay">
             {#content}
-        </tr>
+        </section>
     </script>
 
     <script id="profileCell" type="text/x-template">
-        <td>
-            <a href="{#url}">
-                <div class="no">
+        <a href="{#url}">
+            <div class="grid">
+                <div>
                     <img class="icon" src="{#icon}"><br>
                     <div class="profileName">{#content}</div>
-                    <div class="line"></div>
                 </div>
-            </a>
-        </td>
+            </div>
+        </a>
     </script>
 
     <title>デバイス確認画面</title>
 </head>
 <body onload="main.init()">
-    <div id="serviceInfo"></div>
-    <hr>
     <div id="profileList"></div>
 </body>
 </html>

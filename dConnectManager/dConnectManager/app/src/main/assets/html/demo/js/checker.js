@@ -377,3 +377,17 @@ var main = (function(parent, global) {
 
     return parent;
 })(main || {}, this.self || global);
+
+
+function onToggleIcon(obj, id) {
+    var minus = obj.getElementsByClassName('minus')[0];
+    var plus = obj.getElementsByClassName('plus')[0];
+    var elem = document.getElementById(id);
+    if (elem.checked) {
+        minus.style.display = 'none';
+        plus.style.display = 'inline';
+    } else {
+        minus.style.display = 'inline';
+        plus.style.display = 'none';
+    }
+}

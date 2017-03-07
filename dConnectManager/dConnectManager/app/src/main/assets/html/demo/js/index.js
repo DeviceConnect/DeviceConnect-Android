@@ -27,30 +27,21 @@ var main = (function(parent, global) {
 
     function init() {
         util.init(function(name, json) {
-            setServiceInfo(name, util.getServiceId());
             createProfileList(json.supports);
         });
     }
     parent.init = init;
 
-    function setServiceInfo(name, serviceId) {
-        document.getElementById('serviceInfo').innerHTML = createServiceInfo(name, serviceId);
-    }
-
     function createProfileCell(url, content, icon) {
+        if (content.length > 15) {
+            content = content.slice(0, 12) + "...";
+        }
         var data = {
             'url' : url,
             'content' : content,
             'icon' : icon
         };
         return util.createTemplate('profileCell', data);
-    }
-
-    function createProfileRow(content) {
-        var data = {
-            'content' : content
-        };
-        return util.createTemplate('profileRow', data);
     }
 
     function createProfileTable(content) {
@@ -77,8 +68,17 @@ var main = (function(parent, global) {
         return createProfileCell(url, profile, icon);
     }
 
+    function resize() {
+        var profileDiv = document.getElementById('profileList');
+        var width = profileDiv.clientWidth / 3;
+        var profiles = document.getElementsByClassName('grid');
+        for (var i = 0; i < profiles.length; i++) {
+            profiles[i].style.width = width + 'px';
+        }
+    }
+
     function createProfileList(profileList) {
-        var rowSize = 2;
+        var rowSize = 3;
         var contentHTML = '';
         var countRow = profileList.length / rowSize;
         for (var i = 0; i < countRow; i++) {
@@ -88,10 +88,16 @@ var main = (function(parent, global) {
                     content += createProfile(profileList[i * rowSize + j]);
                 }
             }
-            contentHTML += createProfileRow(content);
+            contentHTML += content;
         }
 
         document.getElementById('profileList').innerHTML = createProfileTable(contentHTML);
+
+        resize();
+
+        window.addEventListener('resize', function() {
+            resize();
+        }, false);
     }
 
     return parent;

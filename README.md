@@ -182,5 +182,5 @@ Device Connect Managerや各デバイスプラグインを開発したい人は�
 * [UVC](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/UVC-Build)
 * [AndroidWear](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/AndroidWear-Build)
 * [WebRTC](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/WebRTC-Build)
-* [AWSIoT](https://github.com/TakayukiHoshi1984/DeviceConnect-Android/wiki/AWSIoT-Build)
-* [SlackMessageHook](https://github.com/TakayukiHoshi1984/DeviceConnect-Android/wiki/SlackBot-Build)
+* [AWSIoT](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/AWSIoT-Build)
+* [SlackMessageHook](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/SlackBot-Build)

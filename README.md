@@ -1,71 +1,163 @@
-# DeviceConnect-Android
-* 日本語説明はこちら
-https://github.com/DeviceConnect/DeviceConnect-Android/blob/master/readme.ja.md
+Click [here](https://github.com/DeviceConnect/DeviceConnect-Android/blob/master/readme.en.md) for description of English. 
+ 
+# DeviceConnect-Android について
+DeviceConnect-AndroidはAndroid版のDevice Connectシステムのプラットフォームになります。
 
-# About DeviceConnect WebAPI
-"DeviceConnect WebAPI" is WebAPI which operates as a virtual server on a smart phone. It can use easily various wearable devices and an IoT device by unific description from a web browser or an application.
+ここでは、以下のことについて解説していきます。
 
-# About DeviceConnect Android
+* クイックスタート
+* プロジェクトの説明
+* Device Connectアプリケーションの開発
 
-Device Connect WebAPI in WebAPI which operates as a virtual server on the smartphone, it can be easy to use in a uniform description of various wearable devices and IoT devices from a Web browser and apps.
-Device Connect Android will be the platform of DeviceConnect of Android version.
+Device Connect システムについての詳細な説明は、[こちら](https://github.com/DeviceConnect/DeviceConnect-Docs/wiki)を参照してください。
 
-In this guide I will continue to discuss the following.
+# クイックスタート
+Device Connect Managerをビルドして、簡単に動作させるまでを解説します。
 
-* [Project description](#section1)
-* [Installation of project](#section2)
-* [Start of DeviceConnectManager](#section3)
-* [Operation check](#section4)
-* [Starting the Web server](#section5)
-* [Development of DeviceConnect app](#section6)
+ここでは、以下のコマンドがインストールされていることを前提としています。
 
-# <a name="section1">Project description</a>
-## dConnectDevicePlugin
-| Project Name|Content  |
+* cURL
+* gradle
+* adb
+* Android SDK
+
+## Device Connect Managerのビルド
+DeviceConnect-Androidのソースコードをダウンロードし、解凍します。
+
+```
+$ curl -LkO https://github.com/DeviceConnect/DeviceConnect-Android/archive/master.zip
+$ unzip master.zip
+```
+
+Device Connect Managerをビルドしてapkを作成します。
+
+```
+$ cd DeviceConnect-Android-master/dConnectManager/dConnectManager
+$ gradle assembleDebug
+```
+
+Device Connect Managerを端末にインストールします。
+
+```
+$ adb install app/build/outputs/apk/app-debug.apk
+```
+
+## Device Connect Managerの起動
+Android端末のアプリケーション一覧画面から、Device Connect Managerのアイコンをタップして、起動します。
+<div>
+    <a href="./assets/icon.png" target="_blank">
+        <img src="./assets/icon.png" border="0" width="80" alt="" />
+    </a>
+</div>
+
+Device Connect Managerの画面が開いたら、メニューバーに存在するスイッチをONに変更し、Device Connect Managerを起動します。
+<div>
+    <a href="./assets/manager_setting_ja.png" target="_blank">
+        <img src="./assets/manager_setting_ja.png" border="0" width="200" alt="" />
+    </a>
+</div>
+
+画面にHostが表示されれば、起動したことが確認できます。<br>
+Hostが表示されない場合には、`サービスを検索`ボタンを押下してください。
+
+<div>
+    <a href="./assets/manager_setting_ja.png" target="_blank">
+        <img src="./assets/manager_device_list.png" border="0" width="200" alt="" />
+    </a>
+</div>
+
+外部のPCからアクセスしたい場合には、Device Connect Managerの設定画面で`外部IPを許可`を有効にしてからDevice Connect Managerを再起動します。
+
+IPアドレスをDevice Connect Managerの設定画面で表示されているHostの値に設定して、以下のCURLコマンドを実行します。
+
+```
+curl  -X GET \
+      -H 'Origin: localhost' \
+      http://192.168.xxx.xxx:4035/gotapi/availability
+```
+
+以下のようなレスポンスが返却されれば、Device Connect Managerが起動していることを確認することができます。
+
+```
+{
+    "result" : 0,
+    "product" : "Device Connect Manager",
+    "version":"v2.1.0
+}
+```
+
+# プロジェクトの説明
+## デバイスプラグイン
+| プロジェクト名|内容  |
 |:-----------|:---------|
-|dConnectDeviceAllJoyn|Device Plug-in for AllJoyn.|
-|dConnectDeviceAWSIoT|Plug-in for AWSIoT.|
-|dConnectDeviceChromeCast|Device Plug-in for ChromeCast.|
-|dConnectDeviceFPLUG|Device Plug-in for F-PLUG.|
-|dConnectDeviceFaBo|Device Plug-in for FaBo.|
-|dConnectDeviceHeartRate|Device Plug-in for HeartRate such as Mio Alpha.|
-|dConnectDeviceHitoe|Device Plug-in for Hitoe.|
-|dConnectDeviceHost|Device Plug-in for Android.|
-|dConnectDeviceHue|Device Plug-in for Hue.|
-|dConnectDeviceHVC|Device Plug-in for HVC-C.|
-|dConnectDeviceHVCC2W|Device Plug-in for HVC-C2W.|
-|dConnectDeviceHVCP|Device Plug-in for HVC-P.|
-|dConnectDeviceIRKit|Device Plug-in for IRKit.|
-|dConnectDeviceKadecot|Device Plug-in for Kadecot.|
-|dConnectDeviceLinking|Device Plug-in for Linking.|
-|dConnectDevicePebble|Device Plug-in for Pebble.|
-|dConnectDeviceSonyCamera|Device Plug-in for SonyCamera such as QX10.|
-|dConnectDeviceSonySW|Device Plug-in for SonySmartWatch<br>※SmartWatch3 is not supported.|
-|dConnectDeviceSlackMessageHook|Plug-in for Slack.|
-|dConnectDeviceSphero|Device Plug-in for Sphero.|
-|dConnectDeviceTheta|Device Plug-in for THETA.|
-|dConnectDeviceUVC|Device Plug-in for UVC Camera.|
-|dConnectDeviceAndroidWear|Device Plug-in for AndroidWear.|
-|dConnectDeviceWebRTC|Device Plug-in for WebRTC.|
-|dConnectDeviceTest|Device Plug-in for test of DeviceConnect.|
-|dConnectDevicePluginSDK|SDK for creating DevicePlugin. dConnectSDKForAndroid necessary.|
+|dConnectDeviceAllJoyn|AllJoynのデバイスプラグイン。|
+|dConnectDeviceAWSIoT|AWSIoTのプラグイン。|
+|dConnectDeviceChromeCast|Chromecastのデバイスプラグイン。 |
+|dConnectDeviceFPLUG|F-PLUGのデバイスプラグイン。|
+|dConnectDeviceFaBo|FaBoのデバイスプラグイン。|
+|dConnectDeviceHeartRate|Mio AlphaなどのHeartRateのデバイスプラグイン。|
+|dConnectDeviceHitoe|Hitoeのデバイスプラグイン。|
+|dConnectDeviceHost|Androidのデバイスプラグイン。|
+|dConnectDeviceHue|Hueのデバイスプラグイン。|
+|dConnectDeviceHVC|HVC-Cのデバイスプラグイン。|
+|dConnectDeviceHVCC2W|HVC-C2Wのデバイスプラグイン。|
+|dConnectDeviceHVCP|HVC-Pのデバイスプラグイン。|
+|dConnectDeviceIRKit|IRKitのデバイスプラグイン。|
+|dConnectDeviceKadecot|Kadecotのデバイスプラグイン。|
+|dConnectDeviceLinking|Linkingのデバイスプラグイン。|
+|dConnectDevicePebble|Pebbleのデバイスプラグイン。|
+|dConnectDeviceSonyCamera|QX10などのSonyCameraのデバイスプラグイン。|
+|dConnectDeviceSonySW|SonySmartWatchデバイスプラグイン。<br>※SmartWatch3は未対応。|
+|dConnectDeviceSlackMessageHook|Slackのプラグイン。|
+|dConnectDeviceSphero|Spheroのデバイスプラグイン。|
+|dConnectDeviceTheta|THETAのデバイスプラグイン。|
+|dConnectDeviceUVC|UVCカメラのデバイスプラグイン。|
+|dConnectDeviceAndroidWear|AndroidWearのデバイスプラグイン。|
+|dConnectDeviceWebRTC|WebRTCのデバイスプラグイン。|
+|dConnectDeviceTest|DeviceConnectのテスト用のデバイスプラグイン。|
+|dConnectDevicePluginSDK|DevicePluginを作成するためのSDK。<br>dConnectSDKForAndroidが必要。|
 
-## dConnectManager
-| Project Name | Content  |
+## Device Connect Manager
+| プロジェクト名|内容  |
 |:-----------|:---------|
-|dConnectManager|Platform body of DeviceConnect.|
-|dConnectManagerTest|Test of DeviceConnectManager.|
-|dConnectServer|Server interface library of DeviceConnect.|
-|dConnectServerNanoHttpd|Server of the body of the DeviceConnect.|
+|dConnectManager| DeviceConnectのプラットフォーム本体。|
+|dConnectServer|DeviceConnectのWebサーバのインターフェースを定義したライブラリ。|
+|dConnectServerNanoHttpd|dConnectServerのインターフェースを実装したWebサーバのライブラリ。|
 
-## dConnectSDK
-| Project Name | Content |
+## Device Connect SDK
+| プロジェクト名|内容  |
 |:-----------|:---------|
-|dConnectApp|DeviceConnect operation check for app.|
-|dConnectSDKForAndroid|SDK of DeviceConnect. DevicePlugin development and SDK to be used for application development.|
+|dConnectApp| DeviceConnectの動作確認用アプリ。|
+|dConnectSDKForAndroid| DeviceConnectのSDK。DevicePlugin開発とアプリ開発用に使用するSDK。|
 
-# <a name="section2"> Installation of the application</a>
-People who want to develop the DeviceConnectManager and device Plug-ins, please build in accordance with this build instructions.
+
+# Device Connectアプリケーションの開発
+Android版Device Connectを使用したアプリケーション開発および、デバイスプラグイン開発に関しましては、以下のページを参考にしてください。
+
+* [アプリケーション開発マニュアル](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Application-Manual-for-Android-Studio)<br>
+Device Connect Managerを使用したアプリケーション開を開発したい場合には、こちらのアプリケーション開発マニュアルをご参照ください。
+
+* [デバイスプラグイン開発マニュアル](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/DevicePlugin-Manual-for-Android-Studio-200)<br>
+Device Connect Managerに対応したデバイスプラグインを開発したい場合には、こちらのデバイスプラグイン開発マニュアルをご参照ください。
+
+## Device Connect SDKのJavadoc出力
+
+```
+$ cd DeviceConnect-Android-master/dConnectManager/dConnectManager
+$ gradle generateJavadocForSDK
+```
+
+gradleを実行したディレクトリに`DeviceConnectSDK-Javadoc`が作成され、Device Connect SDKのJavadocが出力されます。
+
+```
+$ cd DeviceConnect-Android-master/dConnectManager/dConnectManager
+$ gradle generateJavadocForPlugin
+```
+
+gradleを実行したディレクトリに`DevicePluginSDK-Javadoc`が作成され、Device Plugin SDKのJavadocが出力されます。
+
+## ビルドマニュアル
+Device Connect Managerや各デバイスプラグインを開発したい人は、こちらのビルド手順書に従ってビルドしてください。
 
 * [DeviceConnectManager](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/DeviceConnectManager-Build)
 * [AllJoyn](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/AllJoyn-Build)
@@ -90,87 +182,5 @@ People who want to develop the DeviceConnectManager and device Plug-ins, please 
 * [UVC](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/UVC-Build)
 * [AndroidWear](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/AndroidWear-Build)
 * [WebRTC](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/WebRTC-Build)
-* [AWSIoT](https://github.com/TakayukiHoshi1984/DeviceConnect-Android/wiki/AWSIoT-Build)
-* [SlackMessageHook](https://github.com/TakayukiHoshi1984/DeviceConnect-Android/wiki/SlackBot-Build)
-
-　In addition, you can get the apk from [here] (https://github.com/DeviceConnect/DeviceConnect-Docs/tree/master/Bin/Android).
-　With regard to the installation method, you can run from the command line of the command as follows.<br>
-　Here, I will install only the Device Manager body and HOST device plug-ins.
-　Because there are other devices plug-in, please install it if necessary.
-
-```
-　adb install dConnectManager.apk
-　adb install dConnectDeviceHost.apk
-```
-
-With regard to the adb command, please make sure the Android SDK.
-
-# <a name="section3">Start of DeviceConnectManager</a>
- Please tap the DeviceConnectManager icon.
- <center><a href="./assets/icon.png" target="_blank">
-<img src="./assets/icon.png" border="0"
-  width="200" height="200" alt="" /></a><br></center>
-
-By making it ON the field of DeviceConnectManager, you can start.
-
-<center><a href="./assets/manager_setting_ja.png" target="_blank">
-<img src="./assets/manager_setting_en.png" border="0"
- width="320" height="550" alt="" /></a></center>
-
-# <a name="section4">Operation check</a>
-
-The address of the Chrome browser, "http://localhost:4035/gotapi/availability" Please enter.
-If Kore response is returned in the following, such as JSON, I can confirm that DeviceConnect is running.<br>
-<br>
-
-<center><a href="./assets/availability.png" target="_blank">
-<img src="./assets/availability.png" border="0"
- width="320" height="550" alt="" /></a></center>
-
- Request
-
- ```
- GET http://localhost:4035/gotapi/availability
- ```
-
- Response
-
- ```
- {
-     "product":"Device Connect Manager",
-     "version":"x.x",
-     "name":"Manager-0702",
-     "uuid":"xxxx-yyyyy-zzz-aaaa",
-     "result":0,
-}
- ```
-
-The API of the non-availability, basically you will not be able to check easily is the address of the chrome browser in order to access token is required.
-Regard specific use of Device Connect, please refer to us the Wiki of [here] (https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Application-Manual).
-
-# <a name="section5">Starting the Web server</a>
-Place the [DeviceConnect-JSのdConnectJavascriptApp](https://github.com/DeviceConnect/DeviceConnect-JS/tree/master/dConnectJavascriptApp) to the SD card of the Android device, you can access.
-You can start the Web server by turning ON the following items of the setting screen of dConnectManager.<br>
-Document root at that time, will be directly under org.deviceconnect.android.manager of SD card.<br>
-
-<center><a href="./assets/webserver_setting_en.png" target="_blank">
-<img src="./assets/webserver_setting_en.png" border="0"
- width="320" height="550" alt="" /></a></center><br>
-If you place the HTML file to the `/storage/emulated/0/org.deviceconnect.android.manager/index.html`, in the browser, it can be accessed by entering the URL as `http://localhost:8080/index.html`.<br>
-<br>
-At that time, this function because there is a possibility that a security hole, looks like confirmation dialog is displayed as follows.<br>
-<br>
-
-<center><a href="./assets/webserver_en.png" target="_blank">
-<img src="./assets/webserver_en.png" border="0"
- width="320" height="550" alt="" /></a></center><br>
-
-# <a name="section6">Development of DeviceConnect app</a>
-Application and using the DeviceConnect, regard the development of the application, please refer to the following pages.
-
-* [Application Development Manual(AndroidStudio)](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Application-Manual-for-Android-Studio)
-
-<br>
-If you want to develop a device plug-ins using the Device Connect Manager, please see this Application Development Manual.
-
-* [Device Plug-in development manual(AndroidStudio)](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/DevicePlugin-Manual-for-Android-Studio)
+* [AWSIoT](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/AWSIoT-Build)
+* [SlackMessageHook](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/SlackBot-Build)

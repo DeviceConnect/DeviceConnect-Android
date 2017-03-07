@@ -95,8 +95,8 @@ public class AllJoynLightProfile extends LightProfile {
         }
     };
 
-    private void onGetLightForSingleLamp(@NonNull Intent request, @NonNull final Intent response
-            , @NonNull final AllJoynServiceEntity service) {
+    private void onGetLightForSingleLamp(@NonNull final Intent request, @NonNull final Intent response,
+                                         @NonNull final AllJoynServiceEntity service) {
         final AllJoynDeviceApplication app = getApplication();
 
         OneShotSessionHandler.SessionJoinCallback callback = new OneShotSessionHandler.SessionJoinCallback() {
@@ -138,8 +138,8 @@ public class AllJoynLightProfile extends LightProfile {
         OneShotSessionHandler.run(getContext(), service.busName, service.port, callback);
     }
 
-    private void onGetLightForLampController(@NonNull Intent request, @NonNull final Intent response
-            , @NonNull final AllJoynServiceEntity service) {
+    private void onGetLightForLampController(@NonNull final Intent request, @NonNull final Intent response,
+                                             @NonNull final AllJoynServiceEntity service) {
         final AllJoynDeviceApplication app = getApplication();
 
         OneShotSessionHandler.SessionJoinCallback callback = new OneShotSessionHandler.SessionJoinCallback() {
@@ -232,7 +232,6 @@ public class AllJoynLightProfile extends LightProfile {
 
             final AllJoynServiceEntity service = ((AllJoynService) getService()).getEntity();
 
-
             int[] colors = new int[3];
             String colorParam = getColorString(request);
             if (colorParam != null) {
@@ -312,7 +311,8 @@ public class AllJoynLightProfile extends LightProfile {
                     }
 
                     if (flashing != null) {
-                        flashing(serviceId, lightId, newStates, proxyState, flashing);//do not check result of flashing
+                        //do not check result of flashing
+                        flashing(serviceId, LIGHT_ID_SELF, newStates, proxyState, flashing);
                     } else {
                         int responseCode = proxyState.transitionLampState(0, newStates, TRANSITION_PERIOD);
                         if (responseCode != ResponseCode.OK.getValue()) {
@@ -345,6 +345,7 @@ public class AllJoynLightProfile extends LightProfile {
                                               final AllJoynServiceEntity service, final String serviceId, final String lightId,
                                               final Double brightness, final int[] color, final long[] flashing) {
         final AllJoynDeviceApplication app = getApplication();
+
         OneShotSessionHandler.SessionJoinCallback callback = new OneShotSessionHandler.SessionJoinCallback() {
             @Override
             public void onSessionJoined(final String busName, final short port, final int sessionId) {
@@ -371,14 +372,17 @@ public class AllJoynLightProfile extends LightProfile {
                         return;
                     }
 
-                    if (lightId != null && !Arrays.asList(getAllLampIDsResponse.lampIDs).contains(lightId)) {
+                    String _lightId = lightId;
+                    if (_lightId == null) {
+                        _lightId = getAllLampIDsResponse.lampIDs[0];
+                    } else if (!Arrays.asList(getAllLampIDsResponse.lampIDs).contains(_lightId)) {
                         MessageUtils.setInvalidRequestParameterError(response,
                                 "A light with ID specified by 'lightId' not found.");
                         sendResponse(response);
                         return;
                     }
 
-                    Lamp.GetLampDetails_return_value_usa_sv lampDetailsResponse = proxy.getLampDetails(lightId);
+                    Lamp.GetLampDetails_return_value_usa_sv lampDetailsResponse = proxy.getLampDetails(_lightId);
                     if (lampDetailsResponse == null) {
                         MessageUtils.setUnknownError(response,
                                 "Failed to obtain lamp details.");
@@ -431,10 +435,10 @@ public class AllJoynLightProfile extends LightProfile {
                     }
 
                     if (flashing != null) {
-                        flashingForController(newStates, proxy, lightId, flashing);//do not check result of flashing
+                        flashingForController(serviceId, _lightId, newStates, proxy, flashing);//do not check result of flashing
                     } else {
                         Lamp.TransitionLampState_return_value_us transLampStateResponse =
-                                proxy.transitionLampState(lightId, newStates, TRANSITION_PERIOD);
+                                proxy.transitionLampState(_lightId, newStates, TRANSITION_PERIOD);
                         if (transLampStateResponse == null ||
                                 transLampStateResponse.responseCode != ResponseCode.OK.getValue()) {
                             MessageUtils.setUnknownError(response,
@@ -497,11 +501,11 @@ public class AllJoynLightProfile extends LightProfile {
         }
     };
 
-    private void onDeleteLightForSingleLamp(@NonNull Intent request, @NonNull final Intent response
-            , @NonNull final AllJoynServiceEntity service, @NonNull String lightId) {
+    private void onDeleteLightForSingleLamp(@NonNull final Intent request, @NonNull final Intent response,
+                                            @NonNull final AllJoynServiceEntity service, final String lightId) {
         final AllJoynDeviceApplication app = getApplication();
 
-        if (!lightId.equals(LIGHT_ID_SELF)) {
+        if (lightId != null && !lightId.equals(LIGHT_ID_SELF)) {
             MessageUtils.setInvalidRequestParameterError(response,
                     "A light with ID specified by 'lightId' not found.");
             sendResponse(response);
@@ -541,9 +545,8 @@ public class AllJoynLightProfile extends LightProfile {
         OneShotSessionHandler.run(getContext(), service.busName, service.port, callback);
     }
 
-    private void onDeleteLightForLampController(@NonNull Intent request
-            , @NonNull final Intent response, @NonNull final AllJoynServiceEntity service
-            , @NonNull final String lightId) {
+    private void onDeleteLightForLampController(@NonNull final Intent request, @NonNull final Intent response,
+                                                @NonNull final AllJoynServiceEntity service, @NonNull final String lightId) {
         final AllJoynDeviceApplication app = getApplication();
 
         OneShotSessionHandler.SessionJoinCallback callback = new OneShotSessionHandler.SessionJoinCallback() {
@@ -669,24 +672,24 @@ public class AllJoynLightProfile extends LightProfile {
     };
 
     // TODO: Implement name change functionality using AllJoyn Config service.
-    private void onPutLightForSingleLamp(@NonNull Intent request, @NonNull final Intent response
-            , @NonNull AllJoynServiceEntity service, final String serviceId, @NonNull final String lightId, String name
-            , final Double brightness, final int[] color, final long[] flashing) {
-        if (!lightId.equals(LIGHT_ID_SELF)) {
+    private void onPutLightForSingleLamp(@NonNull final Intent request, @NonNull final Intent response,
+                                         @NonNull final AllJoynServiceEntity service, final String serviceId,
+                                         final String lightId, final String name, final Double brightness,
+                                         final int[] color, final long[] flashing) {
+        if (lightId != null && !lightId.equals(LIGHT_ID_SELF)) {
             MessageUtils.setInvalidRequestParameterError(response,
                     "A light with ID specified by 'lightId' not found.");
             sendResponse(response);
             return;
         }
-        if (name == null) {
 
-        }
         if (brightness != null && (brightness < 0 || brightness > 1)) {
             MessageUtils.setInvalidRequestParameterError(response,
                     "Parameter 'brightness' must be within range [0, 1].");
             sendResponse(response);
             return;
         }
+
         if (color != null && color.length != 3) {
             MessageUtils.setInvalidRequestParameterError(response,
                     "Parameter 'color' must be a string representing " +
@@ -699,7 +702,7 @@ public class AllJoynLightProfile extends LightProfile {
 
         OneShotSessionHandler.SessionJoinCallback callback = new OneShotSessionHandler.SessionJoinCallback() {
             @Override
-            public void onSessionJoined(@NonNull String busName, short port, int sessionId) {
+            public void onSessionJoined(@NonNull final String busName, final short port, final int sessionId) {
                 LampState proxyState = app.getInterface(busName, sessionId, LampState.class);
                 LampDetails proxyDetails = app.getInterface(busName, sessionId, LampDetails.class);
 
@@ -738,13 +741,12 @@ public class AllJoynLightProfile extends LightProfile {
                     }
 
                     if (flashing != null) {
-                        flashing(serviceId, lightId, newStates, proxyState, flashing);//do not check result of flashing
+                        flashing(serviceId, LIGHT_ID_SELF, newStates, proxyState, flashing);//do not check result of flashing
                     } else {
                         int responseCode = proxyState.transitionLampState(0, newStates, TRANSITION_PERIOD);
                         if (responseCode != ResponseCode.OK.getValue()) {
                             MessageUtils.setUnknownError(response,
-                                    "Failed to change lamp states (code: "
-                                            + responseCode + ").");
+                                    "Failed to change lamp states (code: " + responseCode + ").");
                             sendResponse(response);
                             return;
                         }
@@ -768,15 +770,17 @@ public class AllJoynLightProfile extends LightProfile {
         OneShotSessionHandler.run(getContext(), service.busName, service.port, callback);
     }
 
-    private void onPutLightForLampController(@NonNull Intent request, @NonNull final Intent response
-            , @NonNull final AllJoynServiceEntity service, String serviceId, @NonNull final String lightId
-            , final String name, final Double brightness, final int[] color, final long[] flashing) {
+    private void onPutLightForLampController(@NonNull final Intent request, @NonNull final Intent response,
+                                             @NonNull final AllJoynServiceEntity service, final String serviceId,
+                                             final String lightId, final String name, final Double brightness,
+                                             final int[] color, final long[] flashing) {
         if (brightness != null && (brightness < 0 || brightness > 1)) {
             MessageUtils.setInvalidRequestParameterError(response,
                     "Parameter 'brightness' must be within range [0, 1].");
             sendResponse(response);
             return;
         }
+
         if (color != null && color.length != 3) {
             MessageUtils.setInvalidRequestParameterError(response,
                     "Parameter 'color' must be a string representing " +
@@ -789,7 +793,7 @@ public class AllJoynLightProfile extends LightProfile {
 
         OneShotSessionHandler.SessionJoinCallback callback = new OneShotSessionHandler.SessionJoinCallback() {
             @Override
-            public void onSessionJoined(@NonNull String busName, short port, int sessionId) {
+            public void onSessionJoined(@NonNull final String busName, final short port, final int sessionId) {
                 Lamp proxy = app.getInterface(busName, sessionId, Lamp.class);
 
                 if (proxy == null) {
@@ -813,7 +817,11 @@ public class AllJoynLightProfile extends LightProfile {
                         sendResponse(response);
                         return;
                     }
-                    if (!Arrays.asList(getAllLampIDsResponse.lampIDs).contains(lightId)) {
+
+                    String _lightId = lightId;
+                    if (_lightId == null) {
+                        _lightId = getAllLampIDsResponse.lampIDs[0];
+                    } else if (!Arrays.asList(getAllLampIDsResponse.lampIDs).contains(_lightId)) {
                         MessageUtils.setInvalidRequestParameterError(response,
                                 "A light with ID specified by 'lightId' not found.");
                         sendResponse(response);
@@ -826,7 +834,7 @@ public class AllJoynLightProfile extends LightProfile {
                     // overflow. To retain precision, BigDecimal objects are used.
 
                     Lamp.GetLampDetails_return_value_usa_sv lampDetailsResponse =
-                            proxy.getLampDetails(lightId);
+                            proxy.getLampDetails(_lightId);
                     if (lampDetailsResponse.responseCode != ResponseCode.OK.getValue()) {
                         MessageUtils.setUnknownError(response,
                                 "Failed to obtain lamp details (code: " + lampDetailsResponse.responseCode + ").");
@@ -843,6 +851,7 @@ public class AllJoynLightProfile extends LightProfile {
                             newStates.put("Saturation", new Variant(hsb[1], "u"));
                         }
                     }
+
                     if (lampDetailsResponse.lampDetails.containsKey("Dimmable")) {
                         if (lampDetailsResponse.lampDetails.get("Dimmable").getObject(boolean.class)
                                 && brightness != null) {
@@ -856,10 +865,10 @@ public class AllJoynLightProfile extends LightProfile {
                     }
 
                     if (flashing != null) {
-                        flashingForController(newStates, proxy, lightId, flashing);//do not check result of flashing
+                        flashingForController(serviceId, _lightId, newStates, proxy, flashing);//do not check result of flashing
                     } else {
                         Lamp.TransitionLampState_return_value_us transLampStateResponse =
-                                proxy.transitionLampState(lightId, newStates, TRANSITION_PERIOD);
+                                proxy.transitionLampState(_lightId, newStates, TRANSITION_PERIOD);
 
                         if (transLampStateResponse.responseCode != ResponseCode.OK.getValue()) {
                             MessageUtils.setUnknownError(response,
@@ -871,7 +880,7 @@ public class AllJoynLightProfile extends LightProfile {
 
                     if (name != null) {
                         Lamp.SetLampName_return_value_uss lampNameResponse =
-                                proxy.setLampName(lightId, name, service.defaultLanguage);
+                                proxy.setLampName(_lightId, name, service.defaultLanguage);
                         if (lampNameResponse.responseCode != ResponseCode.OK.getValue()) {
                             MessageUtils.setUnknownError(response,
                                     "Failed to change name (code: " + lampNameResponse.responseCode + ").");
@@ -899,11 +908,12 @@ public class AllJoynLightProfile extends LightProfile {
     }
 
 
-    private void flashing(String serviceId, String lightId, final HashMap<String, Variant> newStates, final LampState proxyState, long[] flashing) {
-        FlashingExecutor exe = mFlashingMap.get(lightId);
+    private void flashing(final String serviceId, final String lightId, final HashMap<String, Variant> newStates,
+                          final LampState proxyState, long[] flashing) {
+        FlashingExecutor exe = mFlashingMap.get(serviceId + lightId);
         if (exe == null) {
             exe = new FlashingExecutor();
-            mFlashingMap.put(lightId, exe);
+            mFlashingMap.put(serviceId + lightId, exe);
         }
         exe.setLightControllable(new FlashingExecutor.LightControllable() {
             @Override
@@ -920,11 +930,13 @@ public class AllJoynLightProfile extends LightProfile {
         exe.start(flashing);
     }
 
-    private void flashingForController(final HashMap<String, Variant> newStates, final Lamp proxy, final String lightId, long[] flashing) {
-        FlashingExecutor exe = mFlashingMap.get(lightId);
+    private void flashingForController(final String serviceId, final String lightId,
+                                       final HashMap<String, Variant> newStates, final Lamp proxy,
+                                       final long[] flashing) {
+        FlashingExecutor exe = mFlashingMap.get(serviceId + lightId);
         if (exe == null) {
             exe = new FlashingExecutor();
-            mFlashingMap.put(lightId, exe);
+            mFlashingMap.put(serviceId + lightId, exe);
         }
         exe.setLightControllable(new FlashingExecutor.LightControllable() {
             @Override
@@ -950,10 +962,8 @@ public class AllJoynLightProfile extends LightProfile {
         setResult(response, DConnectMessage.RESULT_OK);
     }
 
-    private boolean isSupportingInterfaces(final AllJoynServiceEntity service,
-                                           final String... interfaces) {
-        if (interfaces == null || interfaces.length == 0
-                || service.proxyObjects == null) {
+    private boolean isSupportingInterfaces(final AllJoynServiceEntity service, final String... interfaces) {
+        if (interfaces == null || interfaces.length == 0 || service.proxyObjects == null) {
             return false;
         }
 
@@ -972,7 +982,7 @@ public class AllJoynLightProfile extends LightProfile {
         return true;
     }
 
-    private LampServiceType getLampServiceType(@NonNull AllJoynServiceEntity service) {
+    private LampServiceType getLampServiceType(@NonNull final AllJoynServiceEntity service) {
         if (isSupportingInterfaces(service, "org.allseen.LSF.ControllerService.Lamp")) {
             // Can manage and control multiple lamps.
             return LampServiceType.TYPE_LAMP_CONTROLLER;
@@ -1002,13 +1012,10 @@ public class AllJoynLightProfile extends LightProfile {
      */
     private static boolean parseColorParam(final String colorParam, final int[] color) {
         try {
-            String rr = colorParam.substring(0, 2);
-            String gg = colorParam.substring(2, 4);
-            String bb = colorParam.substring(4, 6);
             if (colorParam.length() == RGB_LENGTH) {
-                if (rr == null || gg == null || bb == null) {
-                    return false;
-                }
+                String rr = colorParam.substring(0, 2);
+                String gg = colorParam.substring(2, 4);
+                String bb = colorParam.substring(4, 6);
                 color[0] = Integer.parseInt(rr, 16);
                 color[1] = Integer.parseInt(gg, 16);
                 color[2] = Integer.parseInt(bb, 16);
@@ -1022,5 +1029,4 @@ public class AllJoynLightProfile extends LightProfile {
         }
         return true;
     }
-
 }

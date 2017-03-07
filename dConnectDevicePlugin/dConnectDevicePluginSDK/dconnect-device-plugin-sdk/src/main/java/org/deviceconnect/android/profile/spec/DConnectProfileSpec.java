@@ -9,6 +9,8 @@ package org.deviceconnect.android.profile.spec;
 
 import android.os.Bundle;
 
+import org.deviceconnect.message.DConnectMessage;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -24,6 +26,8 @@ import java.util.Map;
 public class DConnectProfileSpec implements DConnectSpecConstants {
 
     private Bundle mBundle;
+    String mApiName;
+    String mProfileName;
 
     private Map<String, Map<Method, DConnectApiSpec>> mAllApiSpecs;
 
@@ -36,6 +40,38 @@ public class DConnectProfileSpec implements DConnectSpecConstants {
      */
     void setBundle(final Bundle bundle) {
         mBundle = bundle;
+    }
+
+    /**
+     * API仕様定義ファイルから取得したAPI名を設定する.
+     * @param apiName API名
+     */
+    void setApiName(final String apiName) {
+        mApiName = apiName;
+    }
+
+    /**
+     * API名を取得する.
+     * @return API名
+     */
+    public String getApiName() {
+        return mApiName;
+    }
+
+    /**
+     * API仕様定義ファイルから取得したプロファイル名を設定する.
+     * @param profileName プロファイル名
+     */
+    void setProfileName(final String profileName) {
+        mProfileName = profileName;
+    }
+
+    /**
+     * プロファイル名を取得する.
+     * @return プロファイル名
+     */
+    public String getProfileName() {
+        return mProfileName;
     }
 
     /**
@@ -114,6 +150,10 @@ public class DConnectProfileSpec implements DConnectSpecConstants {
 
         private Bundle mBundle;
 
+        private String mApiName;
+
+        private String mProfileName;
+
         /**
          * APIの仕様定義を追加する.
          *
@@ -156,12 +196,32 @@ public class DConnectProfileSpec implements DConnectSpecConstants {
         }
 
         /**
+         * API仕様定義ファイルから取得したAPI名を設定する.
+         * @param apiName API名
+         */
+        public Builder setApiName(final String apiName) {
+            mApiName = apiName;
+            return this;
+        }
+
+        /**
+         * API仕様定義ファイルから取得したプロファイル名を設定する.
+         * @param profileName プロファイル名
+         */
+        public Builder setProfileName(final String profileName) {
+            mProfileName = profileName;
+            return this;
+        }
+
+        /**
          * {@link DConnectProfileSpec}のインスタンスを生成する.
          *
          * @return {@link DConnectProfileSpec}のインスタンス
          */
         public DConnectProfileSpec build() {
             DConnectProfileSpec profileSpec = new DConnectProfileSpec();
+            profileSpec.setApiName(mApiName != null ? mApiName : DConnectMessage.DEFAULT_API);
+            profileSpec.setProfileName(mProfileName);
             profileSpec.setApiSpecs(mAllApiSpecs);
             profileSpec.setBundle(mBundle);
             return profileSpec;

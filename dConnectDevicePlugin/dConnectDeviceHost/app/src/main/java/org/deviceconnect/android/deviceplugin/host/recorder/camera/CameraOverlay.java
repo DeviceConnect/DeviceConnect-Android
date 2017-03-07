@@ -497,7 +497,8 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
                     byte[] jpeg = baos.toByteArray();
                     rotated.recycle();
 
-                    mFileMgr.saveFile(createNewFileName(), jpeg, new FileManager.SaveFileCallback() {
+                    // 常に違うファイル名になるためforceOverwriteはtrue
+                    mFileMgr.saveFile(createNewFileName(), jpeg, true, new FileManager.SaveFileCallback() {
                         @Override
                         public void onSuccess(@NonNull final String uri) {
                             String filePath = mFileMgr.getBasePath().getAbsolutePath() + "/" + uri;

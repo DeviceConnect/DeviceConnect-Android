@@ -1,7 +1,7 @@
 {
     "swagger": "2.0",
     "info": {
-        "title": "Settings Profile",
+        "title": "Setting Profile",
         "version": "2.0.0",
         "description": ""
     },
@@ -117,7 +117,7 @@
                 }
             }
         },
-        "/display/light": {
+        "/display/brightness": {
             "get": {
                 "x-type": "one-shot",
                 "summary": "",

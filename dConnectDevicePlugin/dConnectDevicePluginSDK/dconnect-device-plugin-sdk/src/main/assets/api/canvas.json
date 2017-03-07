@@ -41,6 +41,12 @@
                         "required": false
                     },
                     {
+                        "name": "uri",
+                        "in": "formData",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
                         "name": "x",
                         "in": "formData",
                         "type": "integer",

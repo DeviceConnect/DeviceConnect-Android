@@ -6,7 +6,7 @@
  */
 package org.deviceconnect.android.deviceplugin.hvc.request;
 
-import java.util.List;
+import android.content.Intent;
 
 import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectBodyRequestParams;
 import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectEventRequestParams;
@@ -15,9 +15,9 @@ import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectHandReq
 import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectKind;
 import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectRequestParams;
 import org.deviceconnect.android.deviceplugin.hvc.profile.HvcConstants;
-import org.deviceconnect.android.profile.HumanDetectProfile;
+import org.deviceconnect.android.profile.HumanDetectionProfile;
 
-import android.content.Intent;
+import java.util.List;
 
 /**
  * HVC detect request utility.
@@ -72,18 +72,18 @@ public final class HvcDetectRequestUtils {
         requestParams.setEvent(HvcDetectRequestParams.getDefaultEventRequestParameter());
 
         // get options parameter.
-        List<String> options = HumanDetectProfile.getOptions(request);
+        List<String> options = HumanDetectionProfile.getOptions(request);
 
         // get parameters.(different type error, throw
         // NumberFormatException)
-        Double threshold = HumanDetectProfile.getThreshold(request);
-        Double minWidth = HumanDetectProfile.getMinWidth(request);
-        Double minHeight = HumanDetectProfile.getMinHeight(request);
-        Double maxWidth = HumanDetectProfile.getMaxWidth(request);
-        Double maxHeight = HumanDetectProfile.getMaxHeight(request);
+        Double threshold = HumanDetectionProfile.getThreshold(request);
+        Double minWidth = HumanDetectionProfile.getMinWidth(request);
+        Double minHeight = HumanDetectionProfile.getMinHeight(request);
+        Double maxWidth = HumanDetectionProfile.getMaxWidth(request);
+        Double maxHeight = HumanDetectionProfile.getMaxHeight(request);
 
         // get event interval.
-        Long eventInterval = HumanDetectProfile.getInterval(request, HvcConstants.PARAM_INTERVAL_MIN,
+        Long eventInterval = HumanDetectionProfile.getInterval(request, HvcConstants.PARAM_INTERVAL_MIN,
                 HvcConstants.PARAM_INTERVAL_MAX);
 
         // store parameter.(if data exist, to set. if data not exist, use default value.)
@@ -123,15 +123,15 @@ public final class HvcDetectRequestUtils {
 
             // get parameters.(different type error, throw
             // NumberFormatException)
-            Double eyeThreshold = HumanDetectProfile.getEyeThreshold(request);
-            Double noseThreshold = HumanDetectProfile.getNoseThreshold(request);
-            Double mouthThreshold = HumanDetectProfile.getMouthThreshold(request);
-            Double blinkThreshold = HumanDetectProfile.getBlinkThreshold(request);
-            Double ageThreshold = HumanDetectProfile.getAgeThreshold(request);
-            Double genderThreshold = HumanDetectProfile.getGenderThreshold(request);
-            Double faceDirectionThreshold = HumanDetectProfile.getFaceDirectionThreshold(request);
-            Double gazeThreshold = HumanDetectProfile.getGazeThreshold(request);
-            Double expressionThreshold = HumanDetectProfile.getExpressionThreshold(request);
+            Double eyeThreshold = HumanDetectionProfile.getEyeThreshold(request);
+            Double noseThreshold = HumanDetectionProfile.getNoseThreshold(request);
+            Double mouthThreshold = HumanDetectionProfile.getMouthThreshold(request);
+            Double blinkThreshold = HumanDetectionProfile.getBlinkThreshold(request);
+            Double ageThreshold = HumanDetectionProfile.getAgeThreshold(request);
+            Double genderThreshold = HumanDetectionProfile.getGenderThreshold(request);
+            Double faceDirectionThreshold = HumanDetectionProfile.getFaceDirectionThreshold(request);
+            Double gazeThreshold = HumanDetectionProfile.getGazeThreshold(request);
+            Double expressionThreshold = HumanDetectionProfile.getExpressionThreshold(request);
 
             if (eyeThreshold != null) {
                 faceRequestParams.setEyeThreshold(eyeThreshold);
@@ -162,6 +162,15 @@ public final class HvcDetectRequestUtils {
             }
 
             // store.
+            requestParams.setFace(faceRequestParams);
+        } else if (detectKind == HumanDetectKind.HUMAN) {
+            HumanDetectBodyRequestParams bodyRequestParams = getBodyRequestParams(options,
+                    threshold, minWidth, minHeight, maxWidth, maxHeight);
+            requestParams.setBody(bodyRequestParams);
+            HumanDetectHandRequestParams handRequestParams = getHandRequestParams(options,
+                    threshold, minWidth, minHeight, maxWidth, maxHeight);
+            requestParams.setHand(handRequestParams);
+            HumanDetectFaceRequestParams faceRequestParams = HvcDetectRequestParams.getDefaultFaceRequestParameter();
             requestParams.setFace(faceRequestParams);
 
         } else {

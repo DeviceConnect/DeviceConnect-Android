@@ -9,7 +9,6 @@ import android.support.annotation.NonNull;
 
 import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.provider.FileManager;
-import org.deviceconnect.profile.FileDescriptorProfileConstants.Flag;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -110,7 +109,7 @@ public class FileDataManager {
      * @return FileDataオブジェクト
      * @throws IOException ファイルのオープンに失敗した場合に発生
      */
-    public FileData openFileData(final String path, final Flag flag) throws IOException {
+    public FileData openFileData(final String path, final FileData.Flag flag) throws IOException {
         if (mFiles.containsKey(path)) {
             throw new IllegalStateException("file is already open.");
         }
@@ -296,7 +295,7 @@ public class FileDataManager {
      * @return FileDataオブジェクト
      * @throws FileNotFoundException ファイルが見つからない場合に発生する
      */
-    private FileData openReadFileData(final String path, final Flag flag) throws FileNotFoundException {
+    private FileData openReadFileData(final String path, final FileData.Flag flag) throws FileNotFoundException {
         File mBaseDir = mFileManager.getBasePath();
         String tmpPath = path;
         if (!tmpPath.startsWith("/")) {
@@ -318,7 +317,7 @@ public class FileDataManager {
      * @return FileDataオブジェクト
      * @throws FileNotFoundException ファイルが見つからない場合に発生する
      */
-    private FileData openReadWriteFileData(final String path, final Flag flag) throws FileNotFoundException {
+    private FileData openReadWriteFileData(final String path, final FileData.Flag flag) throws FileNotFoundException {
         File mBaseDir = mFileManager.getBasePath();
         String tmpPath = path;
         if (!tmpPath.startsWith("/")) {

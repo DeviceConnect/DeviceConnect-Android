@@ -33,8 +33,6 @@ import org.deviceconnect.message.intent.message.IntentDConnectMessage;
  */
 public class HostTouchProfile extends TouchProfile {
 
-    /** Error. */
-    private static final int ERROR_PROCESSING_ERROR = 100;
 
     /** Touch profile event management flag. */
     private static int sFlagTouchEventManage = 0;
@@ -50,11 +48,35 @@ public class HostTouchProfile extends TouchProfile {
     private static final int FLAG_ON_TOUCH_MOVE = 0x0010;
     /** Touch profile event flag. (ontouchcancel) */
     private static final int FLAG_ON_TOUCH_CANCEL = 0x0020;
+    /** Touch profile event flag. (ontouchchange). */
+    private static final int FLAG_ON_TOUCH_CHANGE = 0x0040;
 
     /** Finish touch profile activity action. */
     public static final String ACTION_FINISH_TOUCH_ACTIVITY =
             "org.deviceconnect.android.deviceplugin.host.touch.FINISH";
+    /**
+     * Attribute: {@value} .
+     */
+    public static final String ATTRIBUTE_ON_TOUCH_CHANGE = "onTouchChange";
+    private final DConnectApi mGetOnTouchChangeApi = new GetApi() {
 
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_TOUCH_CHANGE;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            Bundle touches = getTouchCache(ATTRIBUTE_ON_TOUCH_CHANGE);
+            if (touches == null) {
+                response.putExtra(TouchProfile.PARAM_TOUCH, "");
+            } else {
+                response.putExtra(TouchProfile.PARAM_TOUCH, touches);
+            }
+            setResult(response, IntentDConnectMessage.RESULT_OK);
+            return true;
+        }
+    };
     private final DConnectApi mGetOnTouchApi = new GetApi() {
 
         @Override
@@ -174,7 +196,28 @@ public class HostTouchProfile extends TouchProfile {
             return true;
         }
     };
+    private final DConnectApi mPutOnTouchChangeApi = new PutApi() {
 
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_TOUCH_CHANGE;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String serviceId = getServiceID(request);
+            // Event registration.
+            EventError error = EventManager.INSTANCE.addEvent(request);
+            if (error == EventError.NONE) {
+                execTouchProfileActivity(serviceId);
+                setTouchEventFlag(FLAG_ON_TOUCH_CHANGE);
+                setResult(response, DConnectMessage.RESULT_OK);
+            } else {
+                MessageUtils.setInvalidRequestParameterError(response,"Can not register event.");
+            }
+            return true;
+        }
+    };
     private final DConnectApi mPutOnTouchApi = new PutApi() {
 
         @Override
@@ -192,7 +235,7 @@ public class HostTouchProfile extends TouchProfile {
                 setTouchEventFlag(FLAG_ON_TOUCH);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
-                MessageUtils.setError(response, ERROR_PROCESSING_ERROR, "Can not register event.");
+                MessageUtils.setInvalidRequestParameterError(response,"Can not register event.");
             }
             return true;
         }
@@ -215,7 +258,7 @@ public class HostTouchProfile extends TouchProfile {
                 setTouchEventFlag(FLAG_ON_TOUCH_START);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
-                MessageUtils.setError(response, ERROR_PROCESSING_ERROR, "Can not register event.");
+                MessageUtils.setInvalidRequestParameterError(response,"Can not register event.");
             }
             return true;
         }
@@ -238,7 +281,7 @@ public class HostTouchProfile extends TouchProfile {
                 setTouchEventFlag(FLAG_ON_TOUCH_END);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
-                MessageUtils.setError(response, ERROR_PROCESSING_ERROR, "Can not register event.");
+                MessageUtils.setInvalidRequestParameterError(response,"Can not register event.");
             }
             return true;
         }
@@ -261,7 +304,7 @@ public class HostTouchProfile extends TouchProfile {
                 setTouchEventFlag(FLAG_ON_DOUBLE_TAP);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
-                MessageUtils.setError(response, ERROR_PROCESSING_ERROR, "Can not register event.");
+                MessageUtils.setInvalidRequestParameterError(response,"Can not register event.");
             }
             return true;
         }
@@ -284,7 +327,7 @@ public class HostTouchProfile extends TouchProfile {
                 setTouchEventFlag(FLAG_ON_TOUCH_MOVE);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
-                MessageUtils.setError(response, ERROR_PROCESSING_ERROR, "Can not register event.");
+                MessageUtils.setInvalidRequestParameterError(response,"Can not register event.");
             }
             return true;
         }
@@ -307,12 +350,31 @@ public class HostTouchProfile extends TouchProfile {
                 setTouchEventFlag(FLAG_ON_TOUCH_CANCEL);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
-                MessageUtils.setError(response, ERROR_PROCESSING_ERROR, "Can not register event.");
+                MessageUtils.setInvalidRequestParameterError(response,"Can not register event.");
             }
             return true;
         }
     };
+    private final DConnectApi mDeleteOnTouchChangeApi = new DeleteApi() {
 
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_TOUCH_CHANGE;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            // Event release.
+            EventError error = EventManager.INSTANCE.removeEvent(request);
+            if (error == EventError.NONE) {
+                resetTouchEventFlag(FLAG_ON_TOUCH_CHANGE);
+                setResult(response, DConnectMessage.RESULT_OK);
+            } else {
+                MessageUtils.setInvalidRequestParameterError(response,"Can not unregister event.");
+            }
+            return true;
+        }
+    };
     private final DConnectApi mDeleteOnTouchApi = new DeleteApi() {
 
         @Override
@@ -328,7 +390,7 @@ public class HostTouchProfile extends TouchProfile {
                 resetTouchEventFlag(FLAG_ON_TOUCH);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
-                MessageUtils.setError(response, ERROR_PROCESSING_ERROR, "Can not unregister event.");
+                MessageUtils.setInvalidRequestParameterError(response,"Can not unregister event.");
             }
             return true;
         }
@@ -349,7 +411,7 @@ public class HostTouchProfile extends TouchProfile {
                 resetTouchEventFlag(FLAG_ON_TOUCH_START);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
-                MessageUtils.setError(response, ERROR_PROCESSING_ERROR, "Can not unregister event.");
+                MessageUtils.setInvalidRequestParameterError(response,"Can not unregister event.");
             }
             return true;
         }
@@ -370,7 +432,7 @@ public class HostTouchProfile extends TouchProfile {
                 resetTouchEventFlag(FLAG_ON_TOUCH_END);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
-                MessageUtils.setError(response, ERROR_PROCESSING_ERROR, "Can not unregister event.");
+                MessageUtils.setInvalidRequestParameterError(response,"Can not unregister event.");
             }
             return true;
         }
@@ -391,7 +453,7 @@ public class HostTouchProfile extends TouchProfile {
                 resetTouchEventFlag(FLAG_ON_DOUBLE_TAP);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
-                MessageUtils.setError(response, ERROR_PROCESSING_ERROR, "Can not unregister event.");
+                MessageUtils.setInvalidRequestParameterError(response,"Can not unregister event.");
             }
             return true;
         }
@@ -412,7 +474,7 @@ public class HostTouchProfile extends TouchProfile {
                 resetTouchEventFlag(FLAG_ON_TOUCH_MOVE);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
-                MessageUtils.setError(response, ERROR_PROCESSING_ERROR, "Can not unregister event.");
+                MessageUtils.setInvalidRequestParameterError(response,"Can not unregister event.");
             }
             return true;
         }
@@ -433,25 +495,28 @@ public class HostTouchProfile extends TouchProfile {
                 resetTouchEventFlag(FLAG_ON_TOUCH_CANCEL);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
-                MessageUtils.setError(response, ERROR_PROCESSING_ERROR, "Can not unregister event.");
+                MessageUtils.setInvalidRequestParameterError(response,"Can not unregister event.");
             }
             return true;
         }
     };
 
     public HostTouchProfile() {
+        addApi(mGetOnTouchChangeApi);
         addApi(mGetOnTouchApi);
         addApi(mGetOnTouchStartApi);
         addApi(mGetOnTouchEndApi);
         addApi(mGetOnDoubleTapApi);
         addApi(mGetOnTouchMoveApi);
         addApi(mGetOnTouchCancelApi);
+        addApi(mPutOnTouchChangeApi);
         addApi(mPutOnTouchApi);
         addApi(mPutOnTouchStartApi);
         addApi(mPutOnTouchEndApi);
         addApi(mPutOnDoubleTapApi);
         addApi(mPutOnTouchMoveApi);
         addApi(mPutOnTouchCancelApi);
+        addApi(mDeleteOnTouchChangeApi);
         addApi(mDeleteOnTouchApi);
         addApi(mDeleteOnTouchStartApi);
         addApi(mDeleteOnTouchEndApi);
@@ -540,7 +605,8 @@ public class HostTouchProfile extends TouchProfile {
     public void resetTouchProfile() {
         if (isSetTouchEventManageFlag()) {
             resetTouchEventFlag(FLAG_ON_TOUCH | FLAG_ON_TOUCH_START | FLAG_ON_TOUCH_END
-                    | FLAG_ON_DOUBLE_TAP | FLAG_ON_TOUCH_MOVE | FLAG_ON_TOUCH_CANCEL);
+                    | FLAG_ON_DOUBLE_TAP | FLAG_ON_TOUCH_MOVE | FLAG_ON_TOUCH_CANCEL
+                    | FLAG_ON_TOUCH_CHANGE);
         }
     }
 

@@ -31,12 +31,12 @@ public interface AirConditionerProfileConstants extends DConnectProfileConstants
     /**
      * Attribute: {@value} .
      */
-    String ATTRIBUTE_OPERATION_POWER_SAVING = "operationPowerSaving";
+    String ATTRIBUTE_POWER_SAVING = "powerSaving";
 
     /**
      * Attribute: {@value} .
      */
-    String ATTRIBUTE_OPERATION_MODE_SETTING = "operationModeSetting";
+    String ATTRIBUTE_MODE_SETTING = "modeSetting";
 
     /**
      * Attribute: {@value} .
@@ -46,12 +46,12 @@ public interface AirConditionerProfileConstants extends DConnectProfileConstants
     /**
      * Attribute: {@value} .
      */
-    String ATTRIBUTE_TEMPERATURE_VALUE = "temperatureValue";
+    String ATTRIBUTE_TEMPERATURE = "temperature";
 
     /**
      * Attribute: {@value} .
      */
-    String ATTRIBUTE_AIR_FLOW_VALUE = "airFlowValue";
+    String ATTRIBUTE_AIR_FLOW = "airFlow";
 
     /**
      * Attribute: {@value} .
@@ -66,12 +66,12 @@ public interface AirConditionerProfileConstants extends DConnectProfileConstants
     /**
      * Path: {@value} .
      */
-    String PATH_OPERATION_POWER_SAVING = PATH_PROFILE + SEPARATOR + ATTRIBUTE_OPERATION_POWER_SAVING;
+    String PATH_OPERATION_POWER_SAVING = PATH_PROFILE + SEPARATOR + ATTRIBUTE_POWER_SAVING;
 
     /**
      * Path: {@value} .
      */
-    String PATH_OPERATION_MODE_SETTING = PATH_PROFILE + SEPARATOR + ATTRIBUTE_OPERATION_MODE_SETTING;
+    String PATH_OPERATION_MODE_SETTING = PATH_PROFILE + SEPARATOR + ATTRIBUTE_MODE_SETTING;
 
     /**
      * Path: {@value} .
@@ -81,12 +81,12 @@ public interface AirConditionerProfileConstants extends DConnectProfileConstants
     /**
      * Path: {@value} .
      */
-    String PATH_TEMPERATURE_VALUE = PATH_PROFILE + SEPARATOR + ATTRIBUTE_TEMPERATURE_VALUE;
+    String PATH_TEMPERATURE = PATH_PROFILE + SEPARATOR + ATTRIBUTE_TEMPERATURE;
 
     /**
      * Path: {@value} .
      */
-    String PATH_AIR_FLOW_VALUE = PATH_PROFILE + SEPARATOR + ATTRIBUTE_AIR_FLOW_VALUE;
+    String PATH_AIR_FLOW = PATH_PROFILE + SEPARATOR + ATTRIBUTE_AIR_FLOW;
 
     /**
      * Path: {@value} .
@@ -101,12 +101,12 @@ public interface AirConditionerProfileConstants extends DConnectProfileConstants
     /**
      * Parameter: {@value} .
      */
-    String PARAM_OPERATIONPOWERSAVING = "operationpowersaving";
+    String PARAM_POWERSAVING = "powersaving";
 
     /**
      * Parameter: {@value} .
      */
-    String PARAM_OPERATIONMODESETTING = "operationmodesetting";
+    String PARAM_MODESETTING = "modesetting";
 
     /**
      * Parameter: {@value} .
@@ -116,12 +116,12 @@ public interface AirConditionerProfileConstants extends DConnectProfileConstants
     /**
      * Parameter: {@value} .
      */
-    String PARAM_TEMPERATUREVALUE = "temperaturevalue";
+    String PARAM_TEMPERATURE = "temperature";
 
     /**
      * Parameter: {@value} .
      */
-    String PARAM_AIRFLOWVALUE = "airflowvalue";
+    String PARAM_AIRFLOW = "airflow";
 
     /**
      * Parameter: {@value} .

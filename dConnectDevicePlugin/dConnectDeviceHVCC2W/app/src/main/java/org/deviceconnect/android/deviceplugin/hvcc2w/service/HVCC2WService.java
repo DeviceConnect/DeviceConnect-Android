@@ -2,7 +2,7 @@ package org.deviceconnect.android.deviceplugin.hvcc2w.service;
 
 
 import org.deviceconnect.android.deviceplugin.hvcc2w.manager.data.HVCCameraInfo;
-import org.deviceconnect.android.deviceplugin.hvcc2w.profile.HVCC2WHumanDetectProfile;
+import org.deviceconnect.android.deviceplugin.hvcc2w.profile.HVCC2WHumanDetectionProfile;
 import org.deviceconnect.android.service.DConnectService;
 
 public class HVCC2WService extends DConnectService {
@@ -12,6 +12,6 @@ public class HVCC2WService extends DConnectService {
         setName(camera.getName());
         setNetworkType(NetworkType.WIFI);
 
-        addProfile(new HVCC2WHumanDetectProfile());
+        addProfile(new HVCC2WHumanDetectionProfile());
     }
 }

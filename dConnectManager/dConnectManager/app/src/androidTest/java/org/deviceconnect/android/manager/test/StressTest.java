@@ -1,5 +1,6 @@
 package org.deviceconnect.android.manager.test;
 
+import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.deviceconnect.android.profile.restful.test.RESTfulDConnectTestCase;
@@ -123,7 +124,7 @@ public class StressTest extends RESTfulDConnectTestCase {
     }
 
     private File writeBigFile(final String prefix, final String suffix, final long size) throws IOException {
-        File file = getContext().getFilesDir();
+        File file = InstrumentationRegistry.getTargetContext().getCacheDir();
         FileOutputStream out = null;
         File dstFile = File.createTempFile(prefix, suffix, file);
         try {

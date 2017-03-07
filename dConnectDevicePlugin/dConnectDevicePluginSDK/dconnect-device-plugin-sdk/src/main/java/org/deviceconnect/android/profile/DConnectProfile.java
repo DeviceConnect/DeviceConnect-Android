@@ -881,6 +881,8 @@ public abstract class DConnectProfile implements DConnectProfileConstants,
                 out.write(buf, 0, len);
             }
             return out.toByteArray();
+        } catch (OutOfMemoryError e) {
+            return null;
         } catch (IOException e) {
             return null;
         } finally {

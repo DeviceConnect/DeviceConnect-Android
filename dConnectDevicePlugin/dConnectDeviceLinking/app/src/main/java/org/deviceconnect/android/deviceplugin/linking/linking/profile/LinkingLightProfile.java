@@ -105,7 +105,7 @@ public class LinkingLightProfile extends LightProfile {
 
             String lightId = getLightId(request);
 
-            if (!device.getBdAddress().equals(lightId)) {
+            if (lightId != null && !device.getBdAddress().equals(lightId)) {
                 MessageUtils.setInvalidRequestParameterError(response, "lightId is invalid.");
                 return true;
             }

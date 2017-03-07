@@ -78,7 +78,7 @@ public class CanvasDrawImageObject {
     /**
      * data.
      */
-    private byte[] mData;
+    private String mData;
 
     /**
      * mode.
@@ -113,7 +113,7 @@ public class CanvasDrawImageObject {
      * @param x    x
      * @param y    y
      */
-    public CanvasDrawImageObject(final byte[] data, final Mode mode,
+    public CanvasDrawImageObject(final String data, final Mode mode,
                                  final double x, final double y) {
         mData = data;
         mMode = mode;
@@ -126,7 +126,7 @@ public class CanvasDrawImageObject {
      *
      * @return data
      */
-    public byte[] getData() {
+    public String getData() {
         return mData;
     }
 
@@ -187,7 +187,7 @@ public class CanvasDrawImageObject {
         }
 
         CanvasDrawImageObject obj = new CanvasDrawImageObject();
-        obj.mData = intent.getByteArrayExtra(EXTRA_DATA);
+        obj.mData = intent.getStringExtra(EXTRA_DATA);
         int modeOrdinal = intent.getIntExtra(EXTRA_MODE, Mode.NONSCALE_MODE.ordinal());
         if (0 <= modeOrdinal && modeOrdinal < Mode.values().length) {
             obj.mMode = Mode.values()[modeOrdinal];

@@ -10,11 +10,12 @@ package org.deviceconnect.android.deviceplugin.host.profile;
 import android.app.ActivityManager;
 import android.app.Service;
 import android.content.Intent;
+import android.support.annotation.NonNull;
 import android.support.v4.content.LocalBroadcastManager;
+import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.host.activity.CanvasProfileActivity;
 import org.deviceconnect.android.deviceplugin.host.canvas.CanvasDrawImageObject;
-import org.deviceconnect.android.deviceplugin.host.canvas.CanvasDrawUtils;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.CanvasProfile;
 import org.deviceconnect.android.profile.api.DConnectApi;
@@ -22,6 +23,9 @@ import org.deviceconnect.android.profile.api.DeleteApi;
 import org.deviceconnect.android.profile.api.PostApi;
 import org.deviceconnect.message.DConnectMessage;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -31,7 +35,16 @@ import java.util.concurrent.Executors;
  * @author NTT DOCOMO, INC.
  */
 public class HostCanvasProfile extends CanvasProfile {
+    /** ファイルが生存できる有効時間を定義する. */
+    private static final long DEFAULT_EXPIRE = 1000 * 60 * 5;
 
+    /** Canvasプロファイルのファイル名プレフィックス。 */
+    private static final String CANVAS_PREFIX = "host_canvas";
+
+    /** ファイルが生存できる有効時間. */
+    private long mExpire = DEFAULT_EXPIRE;
+
+    /** Edit Image Thread. */
     private ExecutorService mImageService = Executors.newSingleThreadExecutor();
 
     private final DConnectApi mDrawImageApi = new PostApi() {
@@ -62,30 +75,24 @@ public class HostCanvasProfile extends CanvasProfile {
             final double x = getX(request);
             final double y = getY(request);
             if (data == null) {
+                if (uri != null) {
+                    if (uri.startsWith("http")) {
+                        drawImage(response, uri, enumMode, x, y);
+                    } else {
+                        MessageUtils.setInvalidRequestParameterError(response, "Invalid uri.");
+                    }
+                } else {
+                    MessageUtils.setInvalidRequestParameterError(response, "Uri and data is null.");
+                }
+                return true;
+            } else {
                 mImageService.execute(new Runnable() {
                     @Override
                     public void run() {
-                        byte[] result;
-                        try {
-                            result = getData(uri);
-                        } catch (OutOfMemoryError e) {
-                            MessageUtils.setInvalidRequestParameterError(response, e.getMessage());
-                            sendResponse(response);
-                            return;
-                        }
-                        if (result == null) {
-                            MessageUtils.setInvalidRequestParameterError(response, "could not get image from uri.");
-                            sendResponse(response);
-                            return;
-                        }
-                        drawImage(response, result, enumMode, x, y);
-                        sendResponse(response);
+                        sendImage(data, response, enumMode, x, y);
                     }
                 });
                 return false;
-            } else {
-                drawImage(response, data, enumMode, x, y);
-                return true;
             }
         }
     };
@@ -120,14 +127,35 @@ public class HostCanvasProfile extends CanvasProfile {
         addApi(mDeleteImageApi);
     }
 
-    private void drawImage(Intent response, byte[] data, CanvasDrawImageObject.Mode enumMode, double x, double y) {
-        if (!CanvasDrawUtils.checkBitmap(data) || data.length > 1024 * 1024) {
-            MessageUtils.setInvalidRequestParameterError(response,
-                    "The width and height of image must be less than 2048px, or under 1MB");
-            return;
+    /**
+     * Send Image.
+     * @param data binary
+     * @param response response message
+     * @param enumMode image mode
+     * @param x position
+     * @param y position
+     */
+    private void sendImage(byte[] data, Intent response, CanvasDrawImageObject.Mode enumMode, double x, double y) {
+        try {
+            drawImage(response, writeForImage(data), enumMode, x, y);
+        } catch (OutOfMemoryError e) {
+            MessageUtils.setIllegalDeviceStateError(response, e.getMessage());
+        } catch (IOException e) {
+            MessageUtils.setIllegalDeviceStateError(response, e.getMessage());
         }
+        sendResponse(response);
+    }
 
-        CanvasDrawImageObject drawObj = new CanvasDrawImageObject(data, enumMode, x, y);
+    /**
+     * Start Canvas Activity.
+     * @param response response message
+     * @param uri image url
+     * @param enumMode image mode
+     * @param x position
+     * @param y position
+     */
+    private void drawImage(Intent response, String uri, CanvasDrawImageObject.Mode enumMode, double x, double y) {
+        CanvasDrawImageObject drawObj = new CanvasDrawImageObject(uri, enumMode, x, y);
 
         String className = getClassnameOfTopActivity();
         if (CanvasProfileActivity.class.getName().equals(className)) {
@@ -153,5 +181,51 @@ public class HostCanvasProfile extends CanvasProfile {
     private String getClassnameOfTopActivity() {
         ActivityManager activityMgr = (ActivityManager) getContext().getSystemService(Service.ACTIVITY_SERVICE);
         return activityMgr.getRunningTasks(1).get(0).topActivity.getClassName();
+    }
+
+    /**
+     * 画像の保存
+     * @param data binary
+     * @return URI
+     * @throws IOException
+     * @throws OutOfMemoryError
+     */
+    private String writeForImage(final byte[] data) throws IOException, OutOfMemoryError {
+        File file = getContext().getCacheDir();
+        FileOutputStream out = null;
+        checkAndRemove(file);
+        File dstFile = File.createTempFile(CANVAS_PREFIX, ".tmp", file);
+        try {
+            out = new FileOutputStream(dstFile);
+            out.write(data);
+            out.close();
+        } finally {
+            if (out != null) {
+                try {
+                    out.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return dstFile.getAbsolutePath();
+    }
+
+    /**
+     * ファイルをチェックして、中身を削除する.
+     *
+     * @param file 削除するファイル
+     */
+    private void checkAndRemove(@NonNull final File file) {
+        if (file.isDirectory()) {
+            for (File childFile : file.listFiles()) {
+                checkAndRemove(childFile);
+            }
+        } else if (file.isFile() && file.getName().startsWith(CANVAS_PREFIX)) {
+            long modified = file.lastModified();
+            if (System.currentTimeMillis() - modified > mExpire) {
+                file.delete();
+            }
+        }
     }
 }

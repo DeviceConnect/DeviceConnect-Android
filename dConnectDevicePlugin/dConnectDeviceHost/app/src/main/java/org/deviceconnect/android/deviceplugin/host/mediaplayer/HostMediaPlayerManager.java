@@ -39,6 +39,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
+import static org.deviceconnect.android.profile.DConnectProfile.setResult;
+
 public class HostMediaPlayerManager {
     /**
      * Mediaのステータス.
@@ -213,6 +215,13 @@ public class HostMediaPlayerManager {
             filePath = getPathFromUri(mUri);
         }
 
+        // ファイル存在チェック
+        if (filePath == null) {
+            MessageUtils.setInvalidRequestParameterError(response, "The specified mediaId does not exist.");
+            sendResponse(response);
+            return;
+        }
+
         String mMineType = getMIMEType(filePath);
 
         // パス指定の場合
@@ -248,14 +257,13 @@ public class HostMediaPlayerManager {
 
                 if (response != null) {
                     response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
-                    response.putExtra(DConnectMessage.EXTRA_VALUE, "regist:" + filePath);
                     sendOnStatusChangeEvent("media");
                     sendResponse(response);
                 }
             } catch (IOException e) {
                 if (response != null) {
                     response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.EXTRA_ERROR_CODE);
-                    response.putExtra(DConnectMessage.EXTRA_VALUE, "can't not mount:" + filePath);
+                    response.putExtra(DConnectMessage.EXTRA_ERROR_MESSAGE, "can't not mount:" + filePath);
                     sendResponse(response);
                 }
             }
@@ -285,21 +293,20 @@ public class HostMediaPlayerManager {
 
                 if (response != null) {
                     response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
-                    response.putExtra(DConnectMessage.EXTRA_VALUE, "regist:" + filePath);
                     sendOnStatusChangeEvent("media");
                     sendResponse(response);
                 }
             } catch (IllegalArgumentException | IllegalStateException | IOException e) {
                 if (response != null) {
                     response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.EXTRA_ERROR_CODE);
-                    response.putExtra(DConnectMessage.EXTRA_VALUE, "can't not mount:" + filePath);
+                    response.putExtra(DConnectMessage.EXTRA_ERROR_MESSAGE, "can't not mount:" + filePath);
                     sendResponse(response);
                 }
             }
         } else {
             if (response != null) {
                 response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.EXTRA_ERROR_CODE);
-                response.putExtra(DConnectMessage.EXTRA_VALUE, "can't not open:" + filePath);
+                response.putExtra(DConnectMessage.EXTRA_ERROR_MESSAGE, "can't not open:" + filePath);
                 sendResponse(response);
             }
         }
@@ -314,7 +321,6 @@ public class HostMediaPlayerManager {
     public void registerOnStatusChange(final Intent response, final String serviceId) {
         mOnStatusChangeEventFlag = true;
         response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
-        response.putExtra(DConnectMessage.EXTRA_VALUE, "Register OnStatusChange event");
         sendResponse(response);
     }
 
@@ -326,7 +332,6 @@ public class HostMediaPlayerManager {
     public void unregisterOnStatusChange(final Intent response) {
         mOnStatusChangeEventFlag = false;
         response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
-        response.putExtra(DConnectMessage.EXTRA_VALUE, "Unregister OnStatusChange event");
         sendResponse(response);
     }
 
@@ -367,9 +372,10 @@ public class HostMediaPlayerManager {
     /**
      * Mediaの再再生.
      *
+     * @param response レスポンス
      * @return SessionID
      */
-    public int resumeMedia() {
+    public int resumeMedia(final Intent response) {
         if (mSetMediaType == MEDIA_TYPE_MUSIC) {
             try {
                 mMediaStatus = MEDIA_PLAYER_PLAY;
@@ -380,6 +386,10 @@ public class HostMediaPlayerManager {
                 }
             }
             sendOnStatusChangeEvent("play");
+            if (response != null) {
+                setResult(response, DConnectMessage.RESULT_OK);
+                sendResponse(response);
+            }
             return mMediaPlayer.getAudioSessionId();
         } else if (mSetMediaType == MEDIA_TYPE_VIDEO) {
             mMediaStatus = MEDIA_PLAYER_PLAY;
@@ -387,7 +397,21 @@ public class HostMediaPlayerManager {
             mIntent.putExtra(VideoConst.EXTRA_NAME, VideoConst.EXTRA_VALUE_VIDEO_PLAYER_RESUME);
             getContext().sendBroadcast(mIntent);
             sendOnStatusChangeEvent("play");
-            return 0;
+            if (response != null) {
+                setResult(response, DConnectMessage.RESULT_OK);
+            }
+        } else if (mSetMediaType == 0) {
+            if (response != null) {
+                MessageUtils.setIllegalDeviceStateError(response, "Media is not set.");
+            }
+        } else {
+            if (response != null) {
+                MessageUtils.setUnknownError(response, "Unsupported media type is set.");
+            }
+        }
+
+        if (response != null) {
+            sendResponse(response);
         }
         return 0;
     }
@@ -395,10 +419,14 @@ public class HostMediaPlayerManager {
     /**
      * メディアの再生.
      *
+     * @param response レスポンス
      * @return セッションID
      */
-    public int playMedia() {
+    public int playMedia(final Intent response) {
         if (mSetMediaType == MEDIA_TYPE_MUSIC) {
+            if (response != null) {
+                setResult(response, DConnectMessage.RESULT_OK);
+            }
             try {
                 if (mMediaStatus == MEDIA_PLAYER_STOP) {
                     mMediaPlayer.prepare();
@@ -408,6 +436,9 @@ public class HostMediaPlayerManager {
                     mMediaPlayer.seekTo(0);
                     mMyCurrentMediaPosition = 0;
                     if (mMediaStatus == MEDIA_PLAYER_PLAY) {
+                        if (response != null) {
+                            sendResponse(response);
+                        }
                         return mMediaPlayer.getAudioSessionId();
                     }
                 }
@@ -419,6 +450,9 @@ public class HostMediaPlayerManager {
                 }
             }
             sendOnStatusChangeEvent("play");
+            if (response != null) {
+                sendResponse(response);
+            }
             return mMediaPlayer.getAudioSessionId();
         } else if (mSetMediaType == MEDIA_TYPE_VIDEO) {
             mHostDeviceService.registerReceiver(mMediaPlayerVideoBR, mIfMediaPlayerVideo);
@@ -443,41 +477,76 @@ public class HostMediaPlayerManager {
                 sendOnStatusChangeEvent("play");
             }
 
-            return 0;
+            if (response != null) {
+                setResult(response, DConnectMessage.RESULT_OK);
+            }
+        } else if (mSetMediaType == 0) {
+            if (response != null) {
+                MessageUtils.setIllegalDeviceStateError(response, "Media is not set.");
+            }
         } else {
-            return 0;
+            if (response != null) {
+                MessageUtils.setUnknownError(response, "Unsupported media type is set.");
+            }
         }
+
+        if (response != null) {
+            sendResponse(response);
+        }
+        return 0;
     }
 
     /**
      * メディアの一時停止.
      *
+     * @param response レスポンス
      * @return セッションID
      */
-    public int pauseMedia() {
-        if (mSetMediaType == MEDIA_TYPE_MUSIC && mMediaStatus != MEDIA_PLAYER_STOP
-                && mMediaStatus != MEDIA_PLAYER_SET) {
-            try {
-                mMediaStatus = MEDIA_PLAYER_PAUSE;
-                mMediaPlayer.pause();
-            } catch (IllegalStateException e) {
-                if (BuildConfig.DEBUG) {
-                    e.printStackTrace();
+    public int pauseMedia(final Intent response) {
+        if (mSetMediaType == MEDIA_TYPE_MUSIC) {
+            if (mMediaStatus != MEDIA_PLAYER_STOP && mMediaStatus != MEDIA_PLAYER_SET) {
+                try {
+                    mMediaStatus = MEDIA_PLAYER_PAUSE;
+                    mMediaPlayer.pause();
+                } catch (IllegalStateException e) {
+                    if (BuildConfig.DEBUG) {
+                        e.printStackTrace();
+                    }
+                }
+                sendOnStatusChangeEvent("pause");
+                if (response != null) {
+                    setResult(response, DConnectMessage.RESULT_OK);
+                    sendResponse(response);
+                }
+                return mMediaPlayer.getAudioSessionId();
+            } else {
+                if (response != null) {
+                    setResult(response, DConnectMessage.RESULT_OK);
                 }
             }
-            sendOnStatusChangeEvent("pause");
-            return mMediaPlayer.getAudioSessionId();
-
         } else if (mSetMediaType == MEDIA_TYPE_VIDEO) {
             mMediaStatus = MEDIA_PLAYER_PAUSE;
             Intent mIntent = new Intent(VideoConst.SEND_HOSTDP_TO_VIDEOPLAYER);
             mIntent.putExtra(VideoConst.EXTRA_NAME, VideoConst.EXTRA_VALUE_VIDEO_PLAYER_PAUSE);
             getContext().sendBroadcast(mIntent);
             sendOnStatusChangeEvent("pause");
-            return 0;
+            if (response != null) {
+                setResult(response, DConnectMessage.RESULT_OK);
+            }
+        } else if (mSetMediaType == 0) {
+            if (response != null) {
+                MessageUtils.setIllegalDeviceStateError(response, "Media is not set.");
+            }
         } else {
-            return 0;
+            if (response != null) {
+                MessageUtils.setUnknownError(response, "Unsupported media type is set.");
+            }
         }
+
+        if (response != null) {
+            sendResponse(response);
+        }
+        return 0;
     }
 
     /**
@@ -496,10 +565,12 @@ public class HostMediaPlayerManager {
                 getContext().sendBroadcast(mIntent);
                 return Integer.MAX_VALUE;
             } else {
-                return -1;
+                return -10;
             }
-        } else {
+        } else if (mSetMediaType == 0) {
             return -1;
+        } else {
+            return -10;
         }
     }
 
@@ -550,6 +621,18 @@ public class HostMediaPlayerManager {
      * @param pos ポジション
      */
     public void setMediaPos(final Intent response, final int pos) {
+        if (mSetMediaType == 0) {
+            MessageUtils.setIllegalDeviceStateError(response, "Media is not set.");
+            sendResponse(response);
+            return;
+        }
+
+        if (mSetMediaType != MEDIA_TYPE_MUSIC && mSetMediaType != MEDIA_TYPE_VIDEO) {
+            MessageUtils.setUnknownError(response, "Unsupported media type is set.");
+            sendResponse(response);
+            return;
+        }
+
         if (pos > mMyCurrentMediaDuration) {
             MessageUtils.setInvalidRequestParameterError(response);
             sendResponse(response);
@@ -593,7 +676,6 @@ public class HostMediaPlayerManager {
             }
             if (response != null) {
                 response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
-                sendResponse(response);
             }
         } else if (mSetMediaType == MEDIA_TYPE_VIDEO) {
             mMediaStatus = MEDIA_PLAYER_STOP;
@@ -603,8 +685,19 @@ public class HostMediaPlayerManager {
             sendOnStatusChangeEvent("stop");
             if (response != null) {
                 response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
-                sendResponse(response);
             }
+        } else if (mSetMediaType == 0) {
+            if (response != null) {
+                MessageUtils.setIllegalDeviceStateError(response, "Media is not set.");
+            }
+        } else {
+            if (response != null) {
+                MessageUtils.setUnknownError(response, "Unsupported media type is set.");
+            }
+        }
+
+        if (response != null) {
+            sendResponse(response);
         }
     }
 

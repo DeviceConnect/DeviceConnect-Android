@@ -117,9 +117,8 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            mHostMediaPlayerManager.playMedia();
-            setResult(response, DConnectMessage.RESULT_OK);
-            return true;
+            mHostMediaPlayerManager.playMedia(response);
+            return false;
         }
     };
 
@@ -146,9 +145,8 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            mHostMediaPlayerManager.pauseMedia();
-            setResult(response, DConnectMessage.RESULT_OK);
-            return true;
+            mHostMediaPlayerManager.pauseMedia(response);
+            return false;
         }
     };
 
@@ -161,9 +159,8 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            mHostMediaPlayerManager.resumeMedia();
-            setResult(response, DConnectMessage.RESULT_OK);
-            return true;
+            mHostMediaPlayerManager.resumeMedia(response);
+            return false;
         }
     };
 
@@ -356,7 +353,15 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
             int pos = mHostMediaPlayerManager.getMediaPos();
             if (pos < 0) {
                 setPos(response, 0);
-                MessageUtils.setUnknownError(response, "Position acquisition failure.");
+                switch (pos) {
+                    case -1:
+                        MessageUtils.setIllegalDeviceStateError(response, "Media is not set.");
+                        break;
+                    case -10:
+                    default:
+                        MessageUtils.setUnknownError(response, "Position acquisition failure.");
+                        break;
+                }
             } else if (pos == Integer.MAX_VALUE) {
                 mHostMediaPlayerManager.setVideoMediaPosRes(response);
                 return false;

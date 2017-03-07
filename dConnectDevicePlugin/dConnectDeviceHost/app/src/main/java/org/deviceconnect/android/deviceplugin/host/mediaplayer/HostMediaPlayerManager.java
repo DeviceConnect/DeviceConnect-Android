@@ -135,9 +135,9 @@ public class HostMediaPlayerManager {
     private int mMyCurrentMediaPosition = 0;
 
     /**
-     * Backup MediaId. (Used in KITKAT more).
+     * MediaId.
      */
-    private String mBackupMediaId;
+    private String mMyCurrentMediaId;
 
     /**
      * Media duration.
@@ -200,9 +200,7 @@ public class HostMediaPlayerManager {
         }
 
         // Backup MediaId.
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            mBackupMediaId = mediaId;
-        }
+        mMyCurrentMediaId = mediaId;
 
         // Videoとしてパスを取得
         Uri mUri = ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, Long.valueOf(mediaId));
@@ -356,7 +354,7 @@ public class HostMediaPlayerManager {
                 MediaPlayerProfile.setAttribute(intent, MediaPlayerProfile.ATTRIBUTE_ON_STATUS_CHANGE);
                 Bundle mediaPlayer = new Bundle();
                 MediaPlayerProfile.setStatus(mediaPlayer, status);
-                MediaPlayerProfile.setMediaId(mediaPlayer, mMyCurrentFilePath);
+                MediaPlayerProfile.setMediaId(mediaPlayer, mMyCurrentMediaId);
                 MediaPlayerProfile.setMIMEType(mediaPlayer, mMyCurrentFileMIMEType);
                 MediaPlayerProfile.setPos(mediaPlayer, mMyCurrentMediaPosition / UNIT_SEC);
                 MediaPlayerProfile.setVolume(mediaPlayer, mVolumeValue);
@@ -586,7 +584,7 @@ public class HostMediaPlayerManager {
                 sendOnStatusChangeEvent("stop");
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
                     mMediaPlayer.reset();
-                    putMediaId(null, mBackupMediaId);
+                    putMediaId(null, mMyCurrentMediaId);
                 }
             } catch (IllegalStateException e) {
                 if (BuildConfig.DEBUG) {

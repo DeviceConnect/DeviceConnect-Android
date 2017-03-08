@@ -3,6 +3,8 @@
 
     <string name="app_name">Host (Device Web API device plug-in)</string>
     <string name="app_name_for_device_web_api">Host (Device Web API device plug-in)</string>
+    <string name="host_ok">OK</string>
+    <string name="app_name_host">Host (Device Web API device plug-in)</string>
 
     <string name="shutter">シャッター</string>
     <string name="zoomin">ズームイン</string>

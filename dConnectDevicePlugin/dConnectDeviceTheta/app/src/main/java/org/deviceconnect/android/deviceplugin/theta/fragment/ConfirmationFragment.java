@@ -37,14 +37,10 @@ import org.deviceconnect.android.deviceplugin.theta.ThetaDeviceApplication;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaDevice;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceEventListener;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceManager;
-import org.deviceconnect.android.deviceplugin.theta.utils.DConnectMessageHandler;
 import org.deviceconnect.android.deviceplugin.theta.utils.UserSettings;
 import org.deviceconnect.android.deviceplugin.theta.utils.WiFiUtil;
-import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
-import org.deviceconnect.message.DConnectMessage;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -62,8 +58,6 @@ public class ConfirmationFragment extends SettingsFragment implements ThetaDevic
 
     /** View to display the service ID. */
     private TextView mServiceIdView;
-    /** Theta's service Id. */
-    private String mServiceId;
     /** Wifi management class. */
     private WifiManager mWifiMgr;
     /** Class that holds the configuration. */
@@ -175,7 +169,6 @@ public class ConfirmationFragment extends SettingsFragment implements ThetaDevic
         }
     }
 
-
     /**
      * Explore the WiFi that exist around.
      * <p>
@@ -183,41 +176,13 @@ public class ConfirmationFragment extends SettingsFragment implements ThetaDevic
      * </p>
      */
     private void searchTheta() {
-
-
-        WiFiUtil.asyncSearchDevice(new DConnectMessageHandler() {
-            @Override
-            public void handleMessage(final DConnectMessage message) {
-
-                if (message == null) {
-                    return;
-                }
-
-                int result = message.getInt(DConnectMessage.EXTRA_RESULT);
-                if (result == DConnectMessage.RESULT_OK) {
-                    List<Object> services = message.getList(ServiceDiscoveryProfile.PARAM_SERVICES);
-                    if (services.size() == 0) {
-                        searchTheta();
-                    } else {
-                        for (int i = 0; i < services.size(); i++) {
-                            HashMap<?, ?> service = (HashMap<?, ?>) services.get(i);
-                            String name = (String) service.get(ServiceDiscoveryProfile.PARAM_NAME);
-                            if (name != null && name.indexOf("THETA") > 0) {
-                                String id = (String) service.get(ServiceDiscoveryProfile.PARAM_ID);
-                                if (mServiceIdView != null) {
-                                    mServiceIdView.setText(getThetaName());
-                                    mServiceId = id;
-                                }
-                            }
-                        }
-                    }
-                } else {
-                    mServiceIdView.setText(R.string.camera_search_message_not_found);
-                }
-            }
-        });
+        WifiInfo info = mWifiMgr.getConnectionInfo();
+        if (info != null && WiFiUtil.checkSSID(info.getSSID())) {
+            mServiceIdView.setText(getThetaName());
+        } else {
+            mServiceIdView.setText(R.string.camera_search_message_not_found);
+        }
     }
-
 
     /**
      * Connection to the Theta device.
@@ -408,7 +373,7 @@ public class ConfirmationFragment extends SettingsFragment implements ThetaDevic
                     public void onClick(final DialogInterface dialog, final int whichButton) {
                         String password = "\"" + editView.getText() + "\"";
                         if (listener != null) {
-                            listener.onIntputPassword(password);
+                            listener.onInputPassword(password);
                         }
                     }
                 },
@@ -436,7 +401,7 @@ public class ConfirmationFragment extends SettingsFragment implements ThetaDevic
             String password = mSettings.getSSIDPassword(ssid);
             showPasswordDialog(password, new PasswordListener() {
                 @Override
-                public void onIntputPassword(final String password) {
+                public void onInputPassword(final String password) {
                     wc.SSID = "\"" + result.SSID + "\"";
                     wc.preSharedKey = password;
                     wc.hiddenSSID = true;
@@ -463,7 +428,7 @@ public class ConfirmationFragment extends SettingsFragment implements ThetaDevic
             String password = mSettings.getSSIDPassword(ssid);
             showPasswordDialog(password, new PasswordListener() {
                 @Override
-                public void onIntputPassword(final String password) {
+                public void onInputPassword(final String password) {
                     wc.SSID = "\"" + result.SSID + "\"";
                     wc.wepKeys[0] = password;
                     wc.wepTxKeyIndex = 0;
@@ -616,7 +581,7 @@ public class ConfirmationFragment extends SettingsFragment implements ThetaDevic
          *
          * @param password Entered password
          */
-        void onIntputPassword(final String password);
+        void onInputPassword(final String password);
 
         /**
          * Notify the input has been canceled.

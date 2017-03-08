@@ -59,7 +59,6 @@ public class SpheroLightProfile extends LightProfile {
 
     private Map<String, FlashingExecutor> mFlashingMap = new HashMap<String, FlashingExecutor>();
 
-
     public SpheroLightProfile() {
         addApi(mGetLightApi);
         addApi(mPostLightApi);
@@ -190,11 +189,11 @@ public class SpheroLightProfile extends LightProfile {
             return true;
         }
 
-        if (COLOR_LED_LIGHT_ID.equals(lightId) || lightId == null) {
-            changeFrontLight(serviceId, lightId, info, color, brightness, flashing);
+        if (lightId == null || COLOR_LED_LIGHT_ID.equals(lightId)) {
+            changeFrontLight(serviceId, COLOR_LED_LIGHT_ID, info, color, brightness, flashing);
             setResult(response, DConnectMessage.RESULT_OK);
         } else if (BACK_LED_LIGHT_ID.equals(lightId)) {
-            changeBackLight(serviceId, lightId, info, brightness, flashing);
+            changeBackLight(serviceId, BACK_LED_LIGHT_ID, info, brightness, flashing);
             setResult(response, DConnectMessage.RESULT_OK);
         } else {
             MessageUtils.setInvalidRequestParameterError(response, "lightId is invalid.");
@@ -203,7 +202,17 @@ public class SpheroLightProfile extends LightProfile {
         return true;
     }
 
-    private void changeFrontLight(String serviceId, String lightId, DeviceInfo info, Integer color, Double brightness, long[] flashing) {
+    /**
+     * フロントのライトを変更します.
+     * @param serviceId サービスID
+     * @param lightId ライトID
+     * @param info Shperoデバイス情報
+     * @param color 変更後の色
+     * @param brightness ブライトネス
+     * @param flashing フラッシングのパターン
+     */
+    private void changeFrontLight(final String serviceId, final String lightId, final DeviceInfo info,
+                                  final Integer color, final Double brightness, final long[] flashing) {
         int[] colors = convertColor(color, brightness);
         if (flashing != null) {
             flashing(serviceId, lightId, info, colors, 0, flashing);
@@ -212,7 +221,16 @@ public class SpheroLightProfile extends LightProfile {
         }
     }
 
-    private void changeBackLight(String serviceId, String lightId, DeviceInfo info, Double brightness, long[] flashing) {
+    /**
+     * バックのライトを変更します.
+     * @param serviceId サービスID
+     * @param lightId ライトID
+     * @param info Spheroデバイス情報
+     * @param brightness ブライトネス
+     * @param flashing フラッシングのパターン
+     */
+    private void changeBackLight(final String serviceId, final String lightId, final DeviceInfo info,
+                                 final Double brightness, final long[] flashing) {
         int brightnessRaw = MAX_BRIGHTNESS;
         if (brightness != null) {
             brightnessRaw = (int) (MAX_BRIGHTNESS * brightness);
@@ -220,21 +238,31 @@ public class SpheroLightProfile extends LightProfile {
         if (flashing != null) {
             flashing(serviceId, lightId, info, null, brightnessRaw, flashing);
         } else {
-            float bf = brightnessRaw / (float) MAX_BRIGHTNESS;
-            info.setBackBrightness(bf);
+            info.setBackBrightness(convertBrightness(brightnessRaw));
         }
     }
 
-    private void flashing(String serviceId, final String lightId, final DeviceInfo info, final int[] colors, final int brightnessRaw, long[] flashing) {
+    /**
+     * ライトをフラッシングさせます.
+     * @param serviceId サービスID
+     * @param lightId ライトID
+     * @param info Spheroデバイス情報
+     * @param colors 色
+     * @param brightnessRaw ブライトネス
+     * @param flashing フラッシングのパターン
+     */
+    private void flashing(final String serviceId, final String lightId, final DeviceInfo info,
+                          final int[] colors, final int brightnessRaw, long[] flashing) {
         FlashingExecutor exe = mFlashingMap.get(serviceId + lightId);
         if (exe == null) {
             exe = new FlashingExecutor();
             mFlashingMap.put(serviceId + lightId, exe);
         }
+
         exe.setLightControllable(new FlashingExecutor.LightControllable() {
             @Override
-            public void changeLight(boolean isOn, final FlashingExecutor.CompleteListener listener) {
-                if (COLOR_LED_LIGHT_ID.equals(lightId) || lightId == null) {
+            public void changeLight(final boolean isOn, final FlashingExecutor.CompleteListener listener) {
+                if (lightId == null || COLOR_LED_LIGHT_ID.equals(lightId)) {
                     if (isOn) {
                         info.setColor(colors[0], colors[1], colors[2]);
                     } else {
@@ -242,8 +270,7 @@ public class SpheroLightProfile extends LightProfile {
                     }
                 } else if (BACK_LED_LIGHT_ID.equals(lightId)) {
                     if (isOn) {
-                        float bf = brightnessRaw / (float) MAX_BRIGHTNESS;
-                        info.setBackBrightness(bf);
+                        info.setBackBrightness(convertBrightness(brightnessRaw));
                     } else {
                         info.setBackBrightness(0.0f);
                     }
@@ -252,6 +279,15 @@ public class SpheroLightProfile extends LightProfile {
             }
         });
         exe.start(flashing);
+    }
+
+    /**
+     * ブライトネスの値をパーセンテージに変換します.
+     * @param brightnessRaw ブライトネス
+     * @return ブライトネス値のパーセンテージ
+     */
+    private float convertBrightness(final int brightnessRaw) {
+        return brightnessRaw / (float) MAX_BRIGHTNESS;
     }
 
     /**

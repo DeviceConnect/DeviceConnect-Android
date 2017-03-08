@@ -384,6 +384,86 @@ public enum HVCManager {
             mEventList.remove(camera.getID());
         }
     }
+
+    /**
+     * Start Face Detection Timer.
+     * @param interval Timer's interval
+     */
+    private void startFaceTimer(final Long interval) {
+        mFaceTimer.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                for (String key : mServices.keySet()) {
+                    HVCCameraInfo camera = mServices.get(key);
+                    if (camera == null) {
+                        return;
+                    }
+                    OkaoResult result = HVCManager.INSTANCE.execute();
+
+                    if (camera.getFaceEvent() != null) {
+                        camera.getFaceEvent().onNotifyForFaceDetectResult(key, result);
+                    }
+                }
+                if (mEventList.size() > 0) {
+                    mFaceTimer.postDelayed(this, interval);
+                }
+            }
+        }, interval);
+    }
+
+    /**
+     * Start Hand Detection Timer.
+     * @param interval Timer's interval
+     */
+    private void startHandTimer(final Long interval) {
+        mHandTimer.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                for (String key : mServices.keySet()) {
+                    HVCCameraInfo camera = mServices.get(key);
+                    if (camera == null) {
+                        return;
+                    }
+                    OkaoResult result = HVCManager.INSTANCE.execute();
+
+                    if (camera.getHandEvent() != null) {
+                        camera.getHandEvent().onNotifyForHandDetectResult(key, result);
+                    }
+                }
+                if (mEventList.size() > 0) {
+                    mHandTimer.postDelayed(this, interval);
+                }
+            }
+        }, interval);
+    }
+
+    /**
+     * Start Body Detection Timer.
+     * @param interval Timer's interval
+     */
+    private void startBodyTimer(final Long interval) {
+        mBodyTimer.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                for (String key : mServices.keySet()) {
+                    HVCCameraInfo camera = mServices.get(key);
+                    if (camera == null) {
+                        return;
+                    }
+                    OkaoResult result = HVCManager.INSTANCE.execute();
+
+                    if (camera.getBodyEvent() != null) {
+                        camera.getBodyEvent().onNotifyForBodyDetectResult(key, result);
+                    }
+
+                }
+                if (mEventList.size() > 0) {
+                    mBodyTimer.postDelayed(this, interval);
+                }
+            }
+        }, interval);
+    }
+
     /**
      * Remove Body Detect Event Listener.
      * @param serviceId serviceId
@@ -456,74 +536,26 @@ public enum HVCManager {
     public void startEventTimer(final HumanDetectKind kind, final Long interval) {
         switch (kind) {
             case BODY:
-                mBodyTimer.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        for (String key : mServices.keySet()) {
-                            HVCCameraInfo camera = mServices.get(key);
-                            if (camera == null) {
-                                return;
-                            }
-                            OkaoResult result = HVCManager.INSTANCE.execute();
-
-                            if (camera.getBodyEvent() != null) {
-                                camera.getBodyEvent().onNotifyForBodyDetectResult(key, result);
-                            }
-
-                        }
-                        if (mEventList.size() > 0) {
-                            mBodyTimer.postDelayed(this, interval);
-                        }
-                    }
-                }, interval);
+                startBodyTimer(interval);
                 break;
             case HAND:
-                mHandTimer.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        for (String key : mServices.keySet()) {
-                            HVCCameraInfo camera = mServices.get(key);
-                            if (camera == null) {
-                                return;
-                            }
-                            OkaoResult result = HVCManager.INSTANCE.execute();
-
-                            if (camera.getHandEvent() != null) {
-                                camera.getHandEvent().onNotifyForHandDetectResult(key, result);
-                            }
-                        }
-                        if (mEventList.size() > 0) {
-                            mHandTimer.postDelayed(this, interval);
-                        }
-                    }
-                }, interval);
+                startHandTimer(interval);
                 break;
             case FACE:
-                mFaceTimer.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        for (String key : mServices.keySet()) {
-                            HVCCameraInfo camera = mServices.get(key);
-                            if (camera == null) {
-                                return;
-                            }
-                            OkaoResult result = HVCManager.INSTANCE.execute();
-
-                            if (camera.getFaceEvent() != null) {
-                                camera.getFaceEvent().onNotifyForFaceDetectResult(key, result);
-                            }
-                        }
-                        if (mEventList.size() > 0) {
-                            mFaceTimer.postDelayed(this, interval);
-                        }
-                    }
-                }, interval);
+                startFaceTimer(interval);
+                break;
+            case HUMAN:
+                startBodyTimer(interval);
+                startHandTimer(interval);
+                startFaceTimer(interval);
                 break;
             default:
 
         }
 
     }
+
+
 
 
     /**
@@ -540,10 +572,11 @@ public enum HVCManager {
             case FACE:
                 mFaceTimer.removeCallbacksAndMessages(null);
                 break;
-            default:
+            case HUMAN:
                 mBodyTimer.removeCallbacksAndMessages(null);
                 mHandTimer.removeCallbacksAndMessages(null);
                 mFaceTimer.removeCallbacksAndMessages(null);
+            default:
         }
     }
 

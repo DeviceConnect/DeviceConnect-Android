@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory android:title="@string/activity_settings_web_server_settings" >
+        <org.deviceconnect.android.manager.setting.SwitchPreference
+            android:key="@string/key_settings_web_server_on_off"
+            android:summaryOff="@string/activity_settings_dconnect_disabled"
+            android:summaryOn="@string/activity_settings_dconnect_enabled"
+            android:title="@string/activity_settings_web_server" />
+        <EditTextPreference
+            android:key="@string/key_settings_web_server_host"
+            android:summary="@string/activity_settings_web_server_default_host"
+            android:title="@string/activity_settings_host" />
+        <EditTextPreference
+            android:defaultValue="@string/activity_settings_web_server_default_port"
+            android:inputType="number"
+            android:key="@string/key_settings_web_server_port"
+            android:title="@string/activity_settings_port" />
+        <EditTextPreference
+            android:key="@string/key_settings_web_server_document_root_path"
+            android:title="@string/activity_settings_web_server_document_root" />
+    </PreferenceCategory>
+</PreferenceScreen>

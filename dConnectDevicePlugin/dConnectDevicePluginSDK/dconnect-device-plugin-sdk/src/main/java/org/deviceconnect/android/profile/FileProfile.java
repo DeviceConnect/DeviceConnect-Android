@@ -22,6 +22,7 @@ import java.util.List;
  * スマートデバイスに対してのファイル操作機能を提供するAPI.<br>
  * スマートデバイスに対してのファイル操作機能を提供するデバイスプラグインは当クラスを継承し、対応APIを実装すること。 <br>
  * </p>
+ * @deprecated swagger定義ファイルで定数を管理することになったので、このクラスは使用しないこととする。
  * @author NTT DOCOMO, INC.
  */
 public abstract class FileProfile extends DConnectProfile implements FileProfileConstants {
@@ -281,20 +282,6 @@ public abstract class FileProfile extends DConnectProfile implements FileProfile
      */
     public static Integer getLimit(final Intent request) {
         return parseInteger(request, PARAM_LIMIT);
-    }
-    
-    /**
-     * リクエストから強制削除フラグを取得する.
-     * 
-     * @param request リクエストパラメータ
-     * @return 強制削除フラグ。省略された場合はfalseを返す。
-     */
-    public static boolean getForce(final Intent request) {
-        Boolean force = parseBoolean(request, PARAM_FORCE);
-        if (force == null) {
-            return false;
-        }
-        return force;
     }
 
     /**

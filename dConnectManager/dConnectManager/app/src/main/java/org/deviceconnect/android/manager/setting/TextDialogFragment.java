@@ -1,3 +1,9 @@
+/*
+ TextDialogFragment.java
+ Copyright (c) 2016 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.manager.setting;
 
 import android.app.AlertDialog;
@@ -14,10 +20,11 @@ import org.deviceconnect.android.manager.R;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.logging.Logger;
 
 /**
- * プライバシーポリシーフラグメント.
+ * テキストを表示するためのダイアログ.
+ *
+ * @author NTT DOCOMO, INC.
  */
 public class TextDialogFragment extends DialogFragment {
 
@@ -25,11 +32,6 @@ public class TextDialogFragment extends DialogFragment {
      * バッファサイズ.
      */
     private static final int BUFFER_SIZE = 1024;
-
-    /**
-     * ロガー.
-     */
-    private Logger mLogger = Logger.getLogger("dconnect.uiapp");
 
     @Override
     public Dialog onCreateDialog(final Bundle savedInstanceState) {
@@ -50,13 +52,13 @@ public class TextDialogFragment extends DialogFragment {
             }
             text.setText(new String(os.toByteArray(), "UTF-8"));
         } catch (IOException e) {
-            mLogger.warning(e.toString());
+            // do-thing
         } finally {
             if (is != null) {
                 try {
                     is.close();
                 } catch (IOException e) {
-                    mLogger.warning(e.toString());
+                    // do-thing
                 }
             }
         }
@@ -70,8 +72,6 @@ public class TextDialogFragment extends DialogFragment {
                 dialog.dismiss();
             }
         });
-
         return builder.create();
     }
-
 }

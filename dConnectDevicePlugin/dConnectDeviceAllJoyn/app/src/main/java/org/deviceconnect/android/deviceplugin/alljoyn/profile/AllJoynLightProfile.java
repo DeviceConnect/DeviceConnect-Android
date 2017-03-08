@@ -233,14 +233,10 @@ public class AllJoynLightProfile extends LightProfile {
             final AllJoynServiceEntity service = ((AllJoynService) getService()).getEntity();
 
 
-            int[] colors = new int[3];
-            String colorParam = getColorString(request);
-            if (colorParam != null) {
-                if (!parseColorParam(colorParam, colors)) {
-                    MessageUtils.setInvalidRequestParameterError(response,
-                        "Parameter 'color' is invalid.");
-                    return true;
-                }
+            int[] colors = getColors(request);
+            if (colors == null) {
+                MessageUtils.setInvalidRequestParameterError(response, "Parameter 'color' is invalid.");
+                return true;
             }
             switch (getLampServiceType(service)) {
                 case TYPE_SINGLE_LAMP: {
@@ -263,57 +259,53 @@ public class AllJoynLightProfile extends LightProfile {
     private void onPostLightForSingleLamp(final Intent request, final Intent response, final AllJoynServiceEntity service,
                                           final String serviceId, final String lightId, final Double brightness, final int[] color, final long[] flashing) {
         final AllJoynDeviceApplication app = getApplication();
-        if (lightId != null && !lightId.equals(LIGHT_ID_SELF)) {
-            MessageUtils.setInvalidRequestParameterError(response,
-                    "A light with ID specified by 'lightId' not found.");
+
+        if (flashing != null) {
+            flashing(brightness, color, lightId, flashing); //do not check result of flashing
+            setResultOK(response);
             sendResponse(response);
-            return;
-        }
+        }else {
+            OneShotSessionHandler.SessionJoinCallback callback = new OneShotSessionHandler.SessionJoinCallback() {
+                @Override
+                public void onSessionJoined(final String busName, final short port, final int sessionId) {
+                    final LampState proxyState = app.getInterface(busName, sessionId, LampState.class);
+                    final LampDetails proxyDetails = app.getInterface(busName, sessionId, LampDetails.class);
 
-        OneShotSessionHandler.SessionJoinCallback callback = new OneShotSessionHandler.SessionJoinCallback() {
-            @Override
-            public void onSessionJoined(final String busName, final short port, final int sessionId) {
-                final LampState proxyState = app.getInterface(busName, sessionId, LampState.class);
-                final LampDetails proxyDetails = app.getInterface(busName, sessionId, LampDetails.class);
-
-                if (proxyState == null) {
-                    MessageUtils.setUnknownError(response,
-                            "Failed to obtain a proxy object for org.allseen.LSF.LampState .");
-                    sendResponse(response);
-                    return;
-                }
-                if (proxyDetails == null) {
-                    MessageUtils.setUnknownError(response,
-                            "Failed to obtain a proxy object for org.allseen.LSF.LampDetails .");
-                    sendResponse(response);
-                    return;
-                }
-
-                try {
-                    final HashMap<String, Variant> newStates = new HashMap<>();
-
-                    // NOTE: Arithmetic operations in primitive types may lead to arithmetic
-                    // overflow. To retain precision, BigDecimal objects are used.
-
-                    newStates.put("OnOff", new Variant(true, "b"));
-                    if (proxyDetails.getColor() && color != null) {
-                        int[] hsb = ColorUtil.convertRGB_8_8_8_To_HSB_32_32_32(color);
-
-                        newStates.put("Hue", new Variant(hsb[0], "u"));
-                        newStates.put("Saturation", new Variant(hsb[1], "u"));
+                    if (proxyState == null) {
+                        MessageUtils.setUnknownError(response,
+                                "Failed to obtain a proxy object for org.allseen.LSF.LampState .");
+                        sendResponse(response);
+                        return;
                     }
-                    if (proxyDetails.getDimmable() && brightness != null) {
-                        // [0, 1] -> [0, 0xffffffff]
-                        BigDecimal tmp = BigDecimal.valueOf(0xffffffffl);
-                        tmp = tmp.multiply(BigDecimal.valueOf(brightness));
-                        long scaledVal = tmp.longValue();
-                        int intScaledVal = ByteBuffer.allocate(8).putLong(scaledVal).getInt(4);
-                        newStates.put("Brightness", new Variant(intScaledVal, "u"));
+                    if (proxyDetails == null) {
+                        MessageUtils.setUnknownError(response,
+                                "Failed to obtain a proxy object for org.allseen.LSF.LampDetails .");
+                        sendResponse(response);
+                        return;
                     }
 
-                    if (flashing != null) {
-                        flashing(serviceId, lightId, newStates, proxyState, flashing);//do not check result of flashing
-                    } else {
+                    try {
+                        final HashMap<String, Variant> newStates = new HashMap<>();
+
+                        // NOTE: Arithmetic operations in primitive types may lead to arithmetic
+                        // overflow. To retain precision, BigDecimal objects are used.
+
+                        newStates.put("OnOff", new Variant(true, "b"));
+                        if (proxyDetails.getColor() && color != null) {
+                            int[] hsb = ColorUtil.convertRGB_8_8_8_To_HSB_32_32_32(color);
+
+                            newStates.put("Hue", new Variant(hsb[0], "u"));
+                            newStates.put("Saturation", new Variant(hsb[1], "u"));
+                        }
+                        if (proxyDetails.getDimmable() && brightness != null) {
+                            // [0, 1] -> [0, 0xffffffff]
+                            BigDecimal tmp = BigDecimal.valueOf(0xffffffffL);
+                            tmp = tmp.multiply(BigDecimal.valueOf(brightness));
+                            long scaledVal = tmp.longValue();
+                            int intScaledVal = ByteBuffer.allocate(8).putLong(scaledVal).getInt(4);
+                            newStates.put("Brightness", new Variant(intScaledVal, "u"));
+                        }
+
                         int responseCode = proxyState.transitionLampState(0, newStates, TRANSITION_PERIOD);
                         if (responseCode != ResponseCode.OK.getValue()) {
                             MessageUtils.setUnknownError(response,
@@ -321,145 +313,154 @@ public class AllJoynLightProfile extends LightProfile {
                             sendResponse(response);
                             return;
                         }
+                    } catch (BusException e) {
+                        MessageUtils.setUnknownError(response, e.getLocalizedMessage());
+                        sendResponse(response);
+                        return;
                     }
-                } catch (BusException e) {
-                    MessageUtils.setUnknownError(response, e.getLocalizedMessage());
+
+                    setResultOK(response);
                     sendResponse(response);
-                    return;
                 }
 
-                setResultOK(response);
-                sendResponse(response);
-            }
-
-            @Override
-            public void onSessionFailed(final String busName, final short port) {
-                MessageUtils.setUnknownError(response, "Failed to join session.");
-                sendResponse(response);
-            }
-        };
-        OneShotSessionHandler.run(getContext(), service.busName, service.port, callback);
+                @Override
+                public void onSessionFailed(final String busName, final short port) {
+                    MessageUtils.setUnknownError(response, "Failed to join session.");
+                    sendResponse(response);
+                }
+            };
+            OneShotSessionHandler.run(getContext(), service.busName, service.port, callback);
+        }
     }
 
     private void onPostLightForLampController(final Intent request, final Intent response,
                                               final AllJoynServiceEntity service, final String serviceId, final String lightId,
                                               final Double brightness, final int[] color, final long[] flashing) {
-        final AllJoynDeviceApplication app = getApplication();
-        OneShotSessionHandler.SessionJoinCallback callback = new OneShotSessionHandler.SessionJoinCallback() {
-            @Override
-            public void onSessionJoined(final String busName, final short port, final int sessionId) {
-                Lamp proxy = app.getInterface(busName, sessionId, Lamp.class);
+        if (flashing != null) {
+            flashingForController(response, brightness, color, lightId, flashing); //do not check result of flashing
+            setResultOK(response);
+            sendResponse(response);
+        } else {
+            final AllJoynDeviceApplication app = getApplication();
+            OneShotSessionHandler.SessionJoinCallback callback = new OneShotSessionHandler.SessionJoinCallback() {
+                @Override
+                public void onSessionJoined(final String busName, final short port, final int sessionId) {
+                    Lamp proxy = app.getInterface(busName, sessionId, Lamp.class);
 
-                if (proxy == null) {
-                    MessageUtils.setUnknownError(response,
-                            "Failed to obtain a proxy object for org.allseen.LSF.ControllerService.Lamp .");
-                    sendResponse(response);
-                    return;
-                }
-
-                try {
-                    Lamp.GetAllLampIDs_return_value_uas getAllLampIDsResponse = proxy.getAllLampIDs();
-                    if (getAllLampIDsResponse == null) {
-                        MessageUtils.setUnknownError(response, "Failed to obtain lamp IDs.");
-                        sendResponse(response);
-                        return;
-                    } else if (getAllLampIDsResponse.responseCode != ResponseCode.OK.getValue()) {
+                    if (proxy == null) {
                         MessageUtils.setUnknownError(response,
-                                "Failed to obtain lamp IDs (code: "
-                                        + getAllLampIDsResponse.responseCode + ").");
+                                "Failed to obtain a proxy object for org.allseen.LSF.ControllerService.Lamp .");
                         sendResponse(response);
                         return;
                     }
 
-                    if (lightId != null && !Arrays.asList(getAllLampIDsResponse.lampIDs).contains(lightId)) {
-                        MessageUtils.setInvalidRequestParameterError(response,
-                                "A light with ID specified by 'lightId' not found.");
-                        sendResponse(response);
-                        return;
-                    }
-
-                    Lamp.GetLampDetails_return_value_usa_sv lampDetailsResponse = proxy.getLampDetails(lightId);
-                    if (lampDetailsResponse == null) {
-                        MessageUtils.setUnknownError(response,
-                                "Failed to obtain lamp details.");
-                        sendResponse(response);
-                        return;
-                    } else if (lampDetailsResponse.responseCode != ResponseCode.OK.getValue()) {
-                        MessageUtils.setUnknownError(response,
-                                "Failed to obtain lamp details (code: " + lampDetailsResponse.responseCode + ").");
-                        sendResponse(response);
-                        return;
-                    }
-
-                    HashMap<String, Variant> newStates = new HashMap<>();
-
-                    // NOTE: Arithmetic operations in primitive types may lead to arithmetic
-                    // overflow. To retain precision, BigDecimal objects are used.
-
-                    newStates.put("OnOff", new Variant(true, "b"));
-                    if (lampDetailsResponse.lampDetails.containsKey("Color")) {
-                        if (lampDetailsResponse.lampDetails.get("Color").getObject(boolean.class)
-                                && color != null) {
-                            int[] hsb = ColorUtil.convertRGB_8_8_8_To_HSB_32_32_32(color);
-
-                            newStates.put("Hue", new Variant(hsb[0], "u"));
-                            newStates.put("Saturation", new Variant(hsb[1], "u"));
+                    try {
+                        Lamp.GetAllLampIDs_return_value_uas getAllLampIDsResponse = proxy.getAllLampIDs();
+                        if (getAllLampIDsResponse == null) {
+                            MessageUtils.setUnknownError(response, "Failed to obtain lamp IDs.");
+                            sendResponse(response);
+                            return;
+                        } else if (getAllLampIDsResponse.responseCode != ResponseCode.OK.getValue()) {
+                            MessageUtils.setUnknownError(response,
+                                    "Failed to obtain lamp IDs (code: "
+                                            + getAllLampIDsResponse.responseCode + ").");
+                            sendResponse(response);
+                            return;
                         }
-                    } else {
-                        if (BuildConfig.DEBUG) {
-                            Log.w(AllJoynLightProfile.this.getClass().getSimpleName(),
-                                    "Color support is not described in the lamp details. " +
-                                            "Assuming it is not supported...");
-                        }
-                    }
-                    if (lampDetailsResponse.lampDetails.containsKey("Dimmable")) {
-                        if (lampDetailsResponse.lampDetails.get("Dimmable").getObject(boolean.class)
-                                && brightness != null) {
-                            // [0, 1] -> [0, 0xffffffff]
-                            BigDecimal tmp = BigDecimal.valueOf(0xffffffffl);
-                            tmp = tmp.multiply(BigDecimal.valueOf(brightness));
-                            long scaledVal = tmp.longValue();
-                            int intScaledVal = ByteBuffer.allocate(8).putLong(scaledVal).getInt(4);
-                            newStates.put("Brightness", new Variant(intScaledVal, "u"));
-                        }
-                    } else {
-                        if (BuildConfig.DEBUG) {
-                            Log.w(AllJoynLightProfile.this.getClass().getSimpleName(),
-                                    "Dim support is not described in the lamp details. " +
-                                            "Assuming it is not supported...");
-                        }
-                    }
 
-                    if (flashing != null) {
-                        flashingForController(newStates, proxy, lightId, flashing);//do not check result of flashing
-                    } else {
+                        String _lightId = lightId;
+                        if (_lightId == null) {
+                            _lightId = getAllLampIDsResponse.lampIDs[0];
+                        } else if (!Arrays.asList(getAllLampIDsResponse.lampIDs).contains(_lightId)) {
+                            MessageUtils.setInvalidRequestParameterError(response,
+                                    "A light with ID specified by 'lightId' not found.");
+                            sendResponse(response);
+                            return;
+                        }
+
+                        Lamp.GetLampDetails_return_value_usa_sv lampDetailsResponse = proxy.getLampDetails(_lightId);
+                        if (lampDetailsResponse == null) {
+                            MessageUtils.setUnknownError(response,
+                                    "Failed to obtain lamp details.");
+                            sendResponse(response);
+                            return;
+                        } else if (lampDetailsResponse.responseCode != ResponseCode.OK.getValue()) {
+                            MessageUtils.setUnknownError(response,
+                                    "Failed to obtain lamp details (code: " + lampDetailsResponse.responseCode + ").");
+                            sendResponse(response);
+                            return;
+                        }
+
+                        HashMap<String, Variant> newStates = new HashMap<>();
+
+                        // NOTE: Arithmetic operations in primitive types may lead to arithmetic
+                        // overflow. To retain precision, BigDecimal objects are used.
+
+                        newStates.put("OnOff", new Variant(true, "b"));
+                        if (lampDetailsResponse.lampDetails.containsKey("Color")) {
+                            if (lampDetailsResponse.lampDetails.get("Color").getObject(boolean.class)
+                                    && color != null) {
+                                int[] hsb = ColorUtil.convertRGB_8_8_8_To_HSB_32_32_32(color);
+
+                                newStates.put("Hue", new Variant(hsb[0], "u"));
+                                newStates.put("Saturation", new Variant(hsb[1], "u"));
+                            }
+                        } else {
+                            if (BuildConfig.DEBUG) {
+                                Log.w(AllJoynLightProfile.this.getClass().getSimpleName(),
+                                        "Color support is not described in the lamp details. " +
+                                                "Assuming it is not supported...");
+                            }
+                        }
+                        if (lampDetailsResponse.lampDetails.containsKey("Dimmable")) {
+                            if (lampDetailsResponse.lampDetails.get("Dimmable").getObject(boolean.class)
+                                    && brightness != null) {
+                                // [0, 1] -> [0, 0xffffffff]
+                                BigDecimal tmp = BigDecimal.valueOf(0xffffffffL);
+                                tmp = tmp.multiply(BigDecimal.valueOf(brightness));
+                                long scaledVal = tmp.longValue();
+                                int intScaledVal = ByteBuffer.allocate(8).putLong(scaledVal).getInt(4);
+                                newStates.put("Brightness", new Variant(intScaledVal, "u"));
+                            }
+                        } else {
+                            if (BuildConfig.DEBUG) {
+                                Log.w(AllJoynLightProfile.this.getClass().getSimpleName(),
+                                        "Dim support is not described in the lamp details. " +
+                                                "Assuming it is not supported...");
+                            }
+                        }
+
                         Lamp.TransitionLampState_return_value_us transLampStateResponse =
                                 proxy.transitionLampState(lightId, newStates, TRANSITION_PERIOD);
-                        if (transLampStateResponse == null ||
-                                transLampStateResponse.responseCode != ResponseCode.OK.getValue()) {
+                        if (transLampStateResponse == null) {
+                            MessageUtils.setUnknownError(response,
+                                    "Failed to change lamp states (not get transitionLampState).");
+                            sendResponse(response);
+                            return;
+                        } else if (transLampStateResponse.responseCode != ResponseCode.OK.getValue()) {
                             MessageUtils.setUnknownError(response,
                                     "Failed to change lamp states (code: " + transLampStateResponse.responseCode + ").");
                             sendResponse(response);
                             return;
                         }
+                    } catch (BusException e) {
+                        MessageUtils.setUnknownError(response, e.getLocalizedMessage());
+                        sendResponse(response);
+                        return;
                     }
-                } catch (BusException e) {
-                    MessageUtils.setUnknownError(response, e.getLocalizedMessage());
+
+                    setResultOK(response);
                     sendResponse(response);
-                    return;
                 }
 
-                setResultOK(response);
-                sendResponse(response);
-            }
-
-            @Override
-            public void onSessionFailed(@NonNull String busName, short port) {
-                MessageUtils.setUnknownError(response, "Failed to join session.");
-                sendResponse(response);
-            }
-        };
-        OneShotSessionHandler.run(getContext(), service.busName, service.port, callback);
+                @Override
+                public void onSessionFailed(@NonNull String busName, short port) {
+                    MessageUtils.setUnknownError(response, "Failed to join session.");
+                    sendResponse(response);
+                }
+            };
+            OneShotSessionHandler.run(getContext(), service.busName, service.port, callback);
+        }
     }
 
     private final DConnectApi mDeleteLightApi = new DConnectApi() {
@@ -472,12 +473,6 @@ public class AllJoynLightProfile extends LightProfile {
         public boolean onRequest(final Intent request, final Intent response) {
             final String lightId = getLightId(request);
             final AllJoynServiceEntity service = ((AllJoynService) getService()).getEntity();
-
-            if (lightId == null) {
-                MessageUtils.setInvalidRequestParameterError(response,
-                    "Parameter 'lightId' must be specified.");
-                return true;
-            }
 
             switch (getLampServiceType(service)) {
                 case TYPE_SINGLE_LAMP: {
@@ -500,13 +495,6 @@ public class AllJoynLightProfile extends LightProfile {
     private void onDeleteLightForSingleLamp(@NonNull Intent request, @NonNull final Intent response
             , @NonNull final AllJoynServiceEntity service, @NonNull String lightId) {
         final AllJoynDeviceApplication app = getApplication();
-
-        if (!lightId.equals(LIGHT_ID_SELF)) {
-            MessageUtils.setInvalidRequestParameterError(response,
-                    "A light with ID specified by 'lightId' not found.");
-            sendResponse(response);
-            return;
-        }
 
         OneShotSessionHandler.SessionJoinCallback callback = new OneShotSessionHandler.SessionJoinCallback() {
             @Override
@@ -572,7 +560,10 @@ public class AllJoynLightProfile extends LightProfile {
                         sendResponse(response);
                         return;
                     }
-                    if (!Arrays.asList(getAllLampIDsResponse.lampIDs).contains(lightId)) {
+                    String _lightId = lightId;
+                    if (_lightId == null) {
+                        _lightId = getAllLampIDsResponse.lampIDs[0];
+                    } else if (!Arrays.asList(getAllLampIDsResponse.lampIDs).contains(_lightId)) {
                         MessageUtils.setInvalidRequestParameterError(response,
                                 "A light with ID specified by 'lightId' not found.");
                         sendResponse(response);
@@ -582,7 +573,7 @@ public class AllJoynLightProfile extends LightProfile {
                     Map<String, Variant> newStates = new HashMap<>();
                     newStates.put("OnOff", new Variant(false, "b"));
                     Lamp.TransitionLampState_return_value_us transLampStateResponse =
-                            proxy.transitionLampState(lightId, newStates, TRANSITION_PERIOD);
+                            proxy.transitionLampState(_lightId, newStates, TRANSITION_PERIOD);
                     if (transLampStateResponse.responseCode != ResponseCode.OK.getValue()) {
                         MessageUtils.setUnknownError(response,
                                 "Failed to turn off the light (code: " + transLampStateResponse.responseCode + ").");
@@ -608,7 +599,7 @@ public class AllJoynLightProfile extends LightProfile {
         OneShotSessionHandler.run(getContext(), service.busName, service.port, callback);
     }
 
-    public final DConnectApi mPutLightApi = new DConnectApi() {
+    private final DConnectApi mPutLightApi = new DConnectApi() {
         @Override
         public Method getMethod() {
             return Method.PUT;
@@ -629,26 +620,16 @@ public class AllJoynLightProfile extends LightProfile {
                 return true;
             }
 
-            if (lightId == null) {
-                MessageUtils.setInvalidRequestParameterError(response,
-                    "Parameter 'lightId' must be specified.");
-                return true;
-            }
-
             if (name == null || name.length() == 0) {
                 MessageUtils.setInvalidRequestParameterError(response,
                         "name is invalid.");
                 return true;
             }
 
-            int[] colors = new int[3];
-            String colorParam = getColorString(request);
-            if (colorParam != null) {
-                if (!parseColorParam(colorParam, colors)) {
-                    MessageUtils.setInvalidRequestParameterError(response,
-                        "Parameter 'color' is invalid.");
-                    return true;
-                }
+            int[] colors = getColors(request);
+            if (colors == null) {
+                MessageUtils.setInvalidRequestParameterError(response, "Parameter 'color' is invalid.");
+                return true;
             }
             switch (getLampServiceType(service)) {
                 case TYPE_SINGLE_LAMP: {
@@ -672,15 +653,8 @@ public class AllJoynLightProfile extends LightProfile {
     private void onPutLightForSingleLamp(@NonNull Intent request, @NonNull final Intent response
             , @NonNull AllJoynServiceEntity service, final String serviceId, @NonNull final String lightId, String name
             , final Double brightness, final int[] color, final long[] flashing) {
-        if (!lightId.equals(LIGHT_ID_SELF)) {
-            MessageUtils.setInvalidRequestParameterError(response,
-                    "A light with ID specified by 'lightId' not found.");
-            sendResponse(response);
-            return;
-        }
-        if (name == null) {
 
-        }
+
         if (brightness != null && (brightness < 0 || brightness > 1)) {
             MessageUtils.setInvalidRequestParameterError(response,
                     "Parameter 'brightness' must be within range [0, 1].");
@@ -695,51 +669,53 @@ public class AllJoynLightProfile extends LightProfile {
             return;
         }
 
-        final AllJoynDeviceApplication app = getApplication();
+        if (flashing != null) {
+            flashing(brightness, color, lightId, flashing); //do not check result of flashing
+            setResultOK(response);
+            sendResponse(response);
+        } else {
+            final AllJoynDeviceApplication app = getApplication();
 
-        OneShotSessionHandler.SessionJoinCallback callback = new OneShotSessionHandler.SessionJoinCallback() {
-            @Override
-            public void onSessionJoined(@NonNull String busName, short port, int sessionId) {
-                LampState proxyState = app.getInterface(busName, sessionId, LampState.class);
-                LampDetails proxyDetails = app.getInterface(busName, sessionId, LampDetails.class);
+            OneShotSessionHandler.SessionJoinCallback callback = new OneShotSessionHandler.SessionJoinCallback() {
+                @Override
+                public void onSessionJoined(@NonNull String busName, short port, int sessionId) {
+                    LampState proxyState = app.getInterface(busName, sessionId, LampState.class);
+                    LampDetails proxyDetails = app.getInterface(busName, sessionId, LampDetails.class);
 
-                if (proxyState == null) {
-                    MessageUtils.setUnknownError(response,
-                            "Failed to obtain a proxy object for org.allseen.LSF.LampState .");
-                    sendResponse(response);
-                    return;
-                }
-                if (proxyDetails == null) {
-                    MessageUtils.setUnknownError(response,
-                            "Failed to obtain a proxy object for org.allseen.LSF.LampDetails .");
-                    sendResponse(response);
-                    return;
-                }
-
-                try {
-                    HashMap<String, Variant> newStates = new HashMap<>();
-
-                    // NOTE: Arithmetic operations in primitive types may lead to arithmetic
-                    // overflow. To retain precision, BigDecimal objects are used.
-
-                    if (proxyDetails.getColor() && color != null) {
-                        int[] hsb = ColorUtil.convertRGB_8_8_8_To_HSB_32_32_32(color);
-
-                        newStates.put("Hue", new Variant(hsb[0], "u"));
-                        newStates.put("Saturation", new Variant(hsb[1], "u"));
+                    if (proxyState == null) {
+                        MessageUtils.setUnknownError(response,
+                                "Failed to obtain a proxy object for org.allseen.LSF.LampState .");
+                        sendResponse(response);
+                        return;
                     }
-                    if (proxyDetails.getDimmable() && brightness != null) {
-                        // [0, 1] -> [0, 0xffffffff]
-                        BigDecimal tmp = BigDecimal.valueOf(0xffffffffl);
-                        tmp = tmp.multiply(BigDecimal.valueOf(brightness));
-                        long scaledVal = tmp.longValue();
-                        int intScaledVal = ByteBuffer.allocate(8).putLong(scaledVal).getInt(4);
-                        newStates.put("Brightness", new Variant(intScaledVal, "u"));
+                    if (proxyDetails == null) {
+                        MessageUtils.setUnknownError(response,
+                                "Failed to obtain a proxy object for org.allseen.LSF.LampDetails .");
+                        sendResponse(response);
+                        return;
                     }
 
-                    if (flashing != null) {
-                        flashing(serviceId, lightId, newStates, proxyState, flashing);//do not check result of flashing
-                    } else {
+                    try {
+                        HashMap<String, Variant> newStates = new HashMap<>();
+
+                        // NOTE: Arithmetic operations in primitive types may lead to arithmetic
+                        // overflow. To retain precision, BigDecimal objects are used.
+
+                        if (proxyDetails.getColor() && color != null) {
+                            int[] hsb = ColorUtil.convertRGB_8_8_8_To_HSB_32_32_32(color);
+
+                            newStates.put("Hue", new Variant(hsb[0], "u"));
+                            newStates.put("Saturation", new Variant(hsb[1], "u"));
+                        }
+                        if (proxyDetails.getDimmable() && brightness != null) {
+                            // [0, 1] -> [0, 0xffffffff]
+                            BigDecimal tmp = BigDecimal.valueOf(0xffffffffL);
+                            tmp = tmp.multiply(BigDecimal.valueOf(brightness));
+                            long scaledVal = tmp.longValue();
+                            int intScaledVal = ByteBuffer.allocate(8).putLong(scaledVal).getInt(4);
+                            newStates.put("Brightness", new Variant(intScaledVal, "u"));
+                        }
+
                         int responseCode = proxyState.transitionLampState(0, newStates, TRANSITION_PERIOD);
                         if (responseCode != ResponseCode.OK.getValue()) {
                             MessageUtils.setUnknownError(response,
@@ -748,24 +724,24 @@ public class AllJoynLightProfile extends LightProfile {
                             sendResponse(response);
                             return;
                         }
+                    } catch (BusException e) {
+                        MessageUtils.setUnknownError(response, e.getLocalizedMessage());
+                        sendResponse(response);
+                        return;
                     }
-                } catch (BusException e) {
-                    MessageUtils.setUnknownError(response, e.getLocalizedMessage());
+
+                    setResultOK(response);
                     sendResponse(response);
-                    return;
                 }
 
-                setResultOK(response);
-                sendResponse(response);
-            }
-
-            @Override
-            public void onSessionFailed(@NonNull String busName, short port) {
-                MessageUtils.setUnknownError(response, "Failed to join session.");
-                sendResponse(response);
-            }
-        };
-        OneShotSessionHandler.run(getContext(), service.busName, service.port, callback);
+                @Override
+                public void onSessionFailed(@NonNull String busName, short port) {
+                    MessageUtils.setUnknownError(response, "Failed to join session.");
+                    sendResponse(response);
+                }
+            };
+            OneShotSessionHandler.run(getContext(), service.busName, service.port, callback);
+        }
     }
 
     private void onPutLightForLampController(@NonNull Intent request, @NonNull final Intent response
@@ -785,55 +761,288 @@ public class AllJoynLightProfile extends LightProfile {
             return;
         }
 
+        if (flashing != null) {
+            flashingForController(response, brightness, color, lightId, flashing); //do not check result of flashing
+        } else {
+            final AllJoynDeviceApplication app = getApplication();
+
+            OneShotSessionHandler.SessionJoinCallback callback = new OneShotSessionHandler.SessionJoinCallback() {
+                @Override
+                public void onSessionJoined(@NonNull String busName, short port, int sessionId) {
+                    Lamp proxy = app.getInterface(busName, sessionId, Lamp.class);
+
+                    if (proxy == null) {
+                        MessageUtils.setUnknownError(response,
+                                "Failed to obtain a proxy object for org.allseen.LSF.ControllerService.Lamp .");
+                        sendResponse(response);
+                        return;
+                    }
+
+                    try {
+                        Lamp.GetAllLampIDs_return_value_uas getAllLampIDsResponse =
+                                proxy.getAllLampIDs();
+                        if (getAllLampIDsResponse == null) {
+                            MessageUtils.setUnknownError(response, "Failed to obtain lamp IDs.");
+                            sendResponse(response);
+                            return;
+                        } else if (getAllLampIDsResponse.responseCode != ResponseCode.OK.getValue()) {
+                            MessageUtils.setUnknownError(response,
+                                    "Failed to obtain lamp IDs (code: "
+                                            + getAllLampIDsResponse.responseCode + ").");
+                            sendResponse(response);
+                            return;
+                        }
+                        String _lightId = lightId;
+                        if (_lightId == null) {
+                            _lightId = getAllLampIDsResponse.lampIDs[0];
+                        } else if (!Arrays.asList(getAllLampIDsResponse.lampIDs).contains(_lightId)) {
+                            MessageUtils.setInvalidRequestParameterError(response,
+                                    "A light with ID specified by 'lightId' not found.");
+                            sendResponse(response);
+                            return;
+                        }
+
+                        HashMap<String, Variant> newStates = new HashMap<>();
+
+                        // NOTE: Arithmetic operations in primitive types may lead to arithmetic
+                        // overflow. To retain precision, BigDecimal objects are used.
+
+                        Lamp.GetLampDetails_return_value_usa_sv lampDetailsResponse =
+                                proxy.getLampDetails(_lightId);
+                        if (lampDetailsResponse.responseCode != ResponseCode.OK.getValue()) {
+                            MessageUtils.setUnknownError(response,
+                                    "Failed to obtain lamp details (code: " + lampDetailsResponse.responseCode + ").");
+                            sendResponse(response);
+                            return;
+                        }
+
+                        if (lampDetailsResponse.lampDetails.containsKey("Color")) {
+                            if (lampDetailsResponse.lampDetails.get("Color").getObject(boolean.class)
+                                    && color != null) {
+                                int[] hsb = ColorUtil.convertRGB_8_8_8_To_HSB_32_32_32(color);
+
+                                newStates.put("Hue", new Variant(hsb[0], "u"));
+                                newStates.put("Saturation", new Variant(hsb[1], "u"));
+                            }
+                        }
+                        if (lampDetailsResponse.lampDetails.containsKey("Dimmable")) {
+                            if (lampDetailsResponse.lampDetails.get("Dimmable").getObject(boolean.class)
+                                    && brightness != null) {
+                                // [0, 1] -> [0, 0xffffffff]
+                                BigDecimal tmp = BigDecimal.valueOf(0xffffffffL);
+                                tmp = tmp.multiply(BigDecimal.valueOf(brightness));
+                                long scaledVal = tmp.longValue();
+                                int intScaledVal = ByteBuffer.allocate(8).putLong(scaledVal).getInt(4);
+                                newStates.put("Brightness", new Variant(intScaledVal, "u"));
+                            }
+                        }
+
+                        Lamp.TransitionLampState_return_value_us transLampStateResponse =
+                                proxy.transitionLampState(_lightId, newStates, TRANSITION_PERIOD);
+
+                        if (transLampStateResponse.responseCode != ResponseCode.OK.getValue()) {
+                            MessageUtils.setUnknownError(response,
+                                    "Failed to change lamp states (code: " + transLampStateResponse.responseCode + ").");
+                            sendResponse(response);
+                            return;
+                        }
+
+                        if (name != null) {
+                            Lamp.SetLampName_return_value_uss lampNameResponse =
+                                    proxy.setLampName(_lightId, name, service.defaultLanguage);
+                            if (lampNameResponse.responseCode != ResponseCode.OK.getValue()) {
+                                MessageUtils.setUnknownError(response,
+                                        "Failed to change name (code: " + lampNameResponse.responseCode + ").");
+                                sendResponse(response);
+                                return;
+                            }
+                        }
+                    } catch (BusException e) {
+                        MessageUtils.setUnknownError(response, e.getLocalizedMessage());
+                        sendResponse(response);
+                        return;
+                    }
+
+                    setResultOK(response);
+                    sendResponse(response);
+                }
+
+                @Override
+                public void onSessionFailed(@NonNull String busName, short port) {
+                    MessageUtils.setUnknownError(response, "Failed to join session.");
+                    sendResponse(response);
+                }
+            };
+            OneShotSessionHandler.run(getContext(), service.busName, service.port, callback);
+        }
+    }
+
+    private void flashing(final Double brightness, final int[] color, String lightId, long[] flashing) {
+        FlashingExecutor exe = mFlashingMap.get(lightId);
+        if (exe == null) {
+            exe = new FlashingExecutor();
+            mFlashingMap.put(lightId, exe);
+        }
+        exe.setLightControllable(new FlashingExecutor.LightControllable() {
+            @Override
+            public void changeLight(boolean isOn, final FlashingExecutor.CompleteListener listener) {
+                changeLightForSingleLamp(isOn, brightness, color);
+                listener.onComplete();
+            }
+        });
+        exe.start(flashing);
+    }
+
+    private void flashingForController(final Intent response, final Double brightness, final int[] color, final String lightId, long[] flashing) {
+        FlashingExecutor exe = mFlashingMap.get(lightId);
+        if (exe == null) {
+            exe = new FlashingExecutor();
+            mFlashingMap.put(lightId, exe);
+        }
+        exe.setLightControllable(new FlashingExecutor.LightControllable() {
+            @Override
+            public void changeLight(boolean isOn, final FlashingExecutor.CompleteListener listener) {
+                changeLightForController(isOn, brightness, color, lightId);
+                listener.onComplete();
+            }
+        });
+        exe.start(flashing);
+    }
+
+    private void changeLightForSingleLamp(final boolean isOn, final Double brightness, final int[] color) {
         final AllJoynDeviceApplication app = getApplication();
+        final AllJoynServiceEntity service = ((AllJoynService) getService()).getEntity();
 
         OneShotSessionHandler.SessionJoinCallback callback = new OneShotSessionHandler.SessionJoinCallback() {
             @Override
-            public void onSessionJoined(@NonNull String busName, short port, int sessionId) {
-                Lamp proxy = app.getInterface(busName, sessionId, Lamp.class);
+            public void onSessionJoined(final String busName, final short port, final int sessionId) {
+                final LampState proxyState = app.getInterface(busName, sessionId, LampState.class);
+                final LampDetails proxyDetails = app.getInterface(busName, sessionId, LampDetails.class);
 
-                if (proxy == null) {
-                    MessageUtils.setUnknownError(response,
-                            "Failed to obtain a proxy object for org.allseen.LSF.ControllerService.Lamp .");
-                    sendResponse(response);
+                if (proxyState == null) {
+                    if (BuildConfig.DEBUG) {
+                        Log.w(AllJoynLightProfile.this.getClass().getSimpleName(),
+                                "Failed to obtain a proxy object for org.allseen.LSF.LampState .");
+                    }
+                    return;
+                }
+                if (proxyDetails == null) {
+                    if (BuildConfig.DEBUG) {
+                        Log.w(AllJoynLightProfile.this.getClass().getSimpleName(),
+                                "Failed to obtain a proxy object for org.allseen.LSF.LampDetails .");
+                    }
                     return;
                 }
 
                 try {
-                    Lamp.GetAllLampIDs_return_value_uas getAllLampIDsResponse =
-                            proxy.getAllLampIDs();
-                    if (getAllLampIDsResponse == null) {
-                        MessageUtils.setUnknownError(response, "Failed to obtain lamp IDs.");
-                        sendResponse(response);
-                        return;
-                    } else if (getAllLampIDsResponse.responseCode != ResponseCode.OK.getValue()) {
-                        MessageUtils.setUnknownError(response,
-                                "Failed to obtain lamp IDs (code: "
-                                        + getAllLampIDsResponse.responseCode + ").");
-                        sendResponse(response);
-                        return;
-                    }
-                    if (!Arrays.asList(getAllLampIDsResponse.lampIDs).contains(lightId)) {
-                        MessageUtils.setInvalidRequestParameterError(response,
-                                "A light with ID specified by 'lightId' not found.");
-                        sendResponse(response);
-                        return;
-                    }
-
-                    HashMap<String, Variant> newStates = new HashMap<>();
+                    final HashMap<String, Variant> newStates = new HashMap<>();
 
                     // NOTE: Arithmetic operations in primitive types may lead to arithmetic
                     // overflow. To retain precision, BigDecimal objects are used.
 
-                    Lamp.GetLampDetails_return_value_usa_sv lampDetailsResponse =
-                            proxy.getLampDetails(lightId);
-                    if (lampDetailsResponse.responseCode != ResponseCode.OK.getValue()) {
-                        MessageUtils.setUnknownError(response,
-                                "Failed to obtain lamp details (code: " + lampDetailsResponse.responseCode + ").");
-                        sendResponse(response);
+                    newStates.put("OnOff", new Variant(isOn, "b"));
+
+                    if (proxyDetails.getColor() && color != null) {
+                        int[] hsb = ColorUtil.convertRGB_8_8_8_To_HSB_32_32_32(color);
+
+                        newStates.put("Hue", new Variant(hsb[0], "u"));
+                        newStates.put("Saturation", new Variant(hsb[1], "u"));
+                    }
+                    if (proxyDetails.getDimmable() && brightness != null) {
+                        // [0, 1] -> [0, 0xffffffff]
+                        BigDecimal tmp = BigDecimal.valueOf(0xffffffffL);
+                        tmp = tmp.multiply(BigDecimal.valueOf(brightness));
+                        long scaledVal = tmp.longValue();
+                        int intScaledVal = ByteBuffer.allocate(8).putLong(scaledVal).getInt(4);
+                        newStates.put("Brightness", new Variant(intScaledVal, "u"));
+                    }
+
+                    int responseCode = proxyState.transitionLampState(0, newStates, TRANSITION_PERIOD);
+                    if (responseCode != ResponseCode.OK.getValue()) {
+                        if (BuildConfig.DEBUG) {
+                            Log.w(AllJoynLightProfile.this.getClass().getSimpleName(),
+                                    "Failed to change lamp states (code: "
+                                            + responseCode + ").");
+                        }
+                    }
+                } catch (BusException e) {
+                    if (BuildConfig.DEBUG) {
+                        Log.w(AllJoynLightProfile.this.getClass().getSimpleName(),
+                                e.getLocalizedMessage());
+                    }
+                }
+            }
+
+            @Override
+            public void onSessionFailed(final String busName, final short port) {
+            }
+        };
+        OneShotSessionHandler.run(getContext(), service.busName, service.port, callback);
+    }
+
+    private void changeLightForController(final boolean isOn, final Double brightness, final int[] color, final String lightId) {
+        final AllJoynDeviceApplication app = getApplication();
+        final AllJoynServiceEntity service = ((AllJoynService) getService()).getEntity();
+
+        OneShotSessionHandler.SessionJoinCallback callback = new OneShotSessionHandler.SessionJoinCallback() {
+            @Override
+            public void onSessionJoined(final String busName, final short port, final int sessionId) {
+                Lamp proxy = app.getInterface(busName, sessionId, Lamp.class);
+
+                if (proxy == null) {
+                    if (BuildConfig.DEBUG) {
+                        Log.w(AllJoynLightProfile.this.getClass().getSimpleName(),
+                                "Failed to obtain a proxy object for org.allseen.LSF.ControllerService.Lamp .");
+                    }
+                    return;
+                }
+
+                try {
+                    Lamp.GetAllLampIDs_return_value_uas getAllLampIDsResponse = proxy.getAllLampIDs();
+                    if (getAllLampIDsResponse == null) {
+                        if (BuildConfig.DEBUG) {
+                            Log.w(AllJoynLightProfile.this.getClass().getSimpleName(),
+                                    "Failed to obtain lamp IDs.");
+                        }
+                        return;
+                    } else if (getAllLampIDsResponse.responseCode != ResponseCode.OK.getValue()) {
+                        if (BuildConfig.DEBUG) {
+                            Log.w(AllJoynLightProfile.this.getClass().getSimpleName(),
+                                    "Failed to obtain lamp IDs (code: "
+                                            + getAllLampIDsResponse.responseCode + ").");
+                        }
                         return;
                     }
 
+                    String _lightId = lightId;
+                    if (_lightId == null) {
+                        _lightId = getAllLampIDsResponse.lampIDs[0];
+                    } else if (!Arrays.asList(getAllLampIDsResponse.lampIDs).contains(_lightId)) {
+
+                        return;
+                    }
+
+                    Lamp.GetLampDetails_return_value_usa_sv lampDetailsResponse = proxy.getLampDetails(_lightId);
+                    if (lampDetailsResponse == null) {
+                        if (BuildConfig.DEBUG) {
+                            Log.w(AllJoynLightProfile.this.getClass().getSimpleName(),
+                                    "Failed to obtain lamp details.");
+                        }
+                        return;
+                    } else if (lampDetailsResponse.responseCode != ResponseCode.OK.getValue()) {
+                        if (BuildConfig.DEBUG) {
+                            Log.w(AllJoynLightProfile.this.getClass().getSimpleName(),
+                                    "Failed to obtain lamp details (code: " + lampDetailsResponse.responseCode + ").");
+                        }
+                        return;
+                    }
+
+                    final HashMap<String, Variant> newStates = new HashMap<>();
+
+                    // NOTE: Arithmetic operations in primitive types may lead to arithmetic
+                    // overflow. To retain precision, BigDecimal objects are used.
+
+                    newStates.put("OnOff", new Variant(isOn, "b"));
                     if (lampDetailsResponse.lampDetails.containsKey("Color")) {
                         if (lampDetailsResponse.lampDetails.get("Color").getObject(boolean.class)
                                 && color != null) {
@@ -842,103 +1051,56 @@ public class AllJoynLightProfile extends LightProfile {
                             newStates.put("Hue", new Variant(hsb[0], "u"));
                             newStates.put("Saturation", new Variant(hsb[1], "u"));
                         }
+                    } else {
+                        if (BuildConfig.DEBUG) {
+                            Log.w(AllJoynLightProfile.this.getClass().getSimpleName(),
+                                    "Color support is not described in the lamp details. " +
+                                            "Assuming it is not supported...");
+                        }
                     }
                     if (lampDetailsResponse.lampDetails.containsKey("Dimmable")) {
                         if (lampDetailsResponse.lampDetails.get("Dimmable").getObject(boolean.class)
                                 && brightness != null) {
                             // [0, 1] -> [0, 0xffffffff]
-                            BigDecimal tmp = BigDecimal.valueOf(0xffffffffl);
+                            BigDecimal tmp = BigDecimal.valueOf(0xffffffffL);
                             tmp = tmp.multiply(BigDecimal.valueOf(brightness));
                             long scaledVal = tmp.longValue();
                             int intScaledVal = ByteBuffer.allocate(8).putLong(scaledVal).getInt(4);
                             newStates.put("Brightness", new Variant(intScaledVal, "u"));
                         }
-                    }
-
-                    if (flashing != null) {
-                        flashingForController(newStates, proxy, lightId, flashing);//do not check result of flashing
                     } else {
-                        Lamp.TransitionLampState_return_value_us transLampStateResponse =
-                                proxy.transitionLampState(lightId, newStates, TRANSITION_PERIOD);
-
-                        if (transLampStateResponse.responseCode != ResponseCode.OK.getValue()) {
-                            MessageUtils.setUnknownError(response,
-                                    "Failed to change lamp states (code: " + transLampStateResponse.responseCode + ").");
-                            sendResponse(response);
-                            return;
+                        if (BuildConfig.DEBUG) {
+                            Log.w(AllJoynLightProfile.this.getClass().getSimpleName(),
+                                    "Dim support is not described in the lamp details. " +
+                                            "Assuming it is not supported...");
                         }
                     }
-
-                    if (name != null) {
-                        Lamp.SetLampName_return_value_uss lampNameResponse =
-                                proxy.setLampName(lightId, name, service.defaultLanguage);
-                        if (lampNameResponse.responseCode != ResponseCode.OK.getValue()) {
-                            MessageUtils.setUnknownError(response,
-                                    "Failed to change name (code: " + lampNameResponse.responseCode + ").");
-                            sendResponse(response);
-                            return;
+                    Lamp.TransitionLampState_return_value_us transLampStateResponse =
+                            proxy.transitionLampState(_lightId, newStates, TRANSITION_PERIOD);
+                    if (transLampStateResponse == null) {
+                        if (BuildConfig.DEBUG) {
+                            Log.w(AllJoynLightProfile.this.getClass().getSimpleName(),
+                                    "Failed to change lamp states (not get transitionLampStatecode).");
+                        }
+                    } else if (transLampStateResponse.responseCode != ResponseCode.OK.getValue()) {
+                        if (BuildConfig.DEBUG) {
+                            Log.w(AllJoynLightProfile.this.getClass().getSimpleName(),
+                                    "Failed to change lamp states (code: " + transLampStateResponse.responseCode + ").");
                         }
                     }
                 } catch (BusException e) {
-                    MessageUtils.setUnknownError(response, e.getLocalizedMessage());
-                    sendResponse(response);
-                    return;
+                    if (BuildConfig.DEBUG) {
+                        Log.w(AllJoynLightProfile.this.getClass().getSimpleName(),
+                                e.getLocalizedMessage());
+                    }
                 }
-
-                setResultOK(response);
-                sendResponse(response);
             }
 
             @Override
-            public void onSessionFailed(@NonNull String busName, short port) {
-                MessageUtils.setUnknownError(response, "Failed to join session.");
-                sendResponse(response);
+            public void onSessionFailed(final String busName, final short port) {
             }
         };
         OneShotSessionHandler.run(getContext(), service.busName, service.port, callback);
-    }
-
-
-    private void flashing(String serviceId, String lightId, final HashMap<String, Variant> newStates, final LampState proxyState, long[] flashing) {
-        FlashingExecutor exe = mFlashingMap.get(lightId);
-        if (exe == null) {
-            exe = new FlashingExecutor();
-            mFlashingMap.put(lightId, exe);
-        }
-        exe.setLightControllable(new FlashingExecutor.LightControllable() {
-            @Override
-            public void changeLight(boolean isOn, final FlashingExecutor.CompleteListener listener) {
-                newStates.put("OnOff", new Variant(isOn, "b"));
-                try {
-                    proxyState.transitionLampState(0, newStates, 0);
-                } catch (BusException e) {
-                    e.printStackTrace();
-                }
-                listener.onComplete();
-            }
-        });
-        exe.start(flashing);
-    }
-
-    private void flashingForController(final HashMap<String, Variant> newStates, final Lamp proxy, final String lightId, long[] flashing) {
-        FlashingExecutor exe = mFlashingMap.get(lightId);
-        if (exe == null) {
-            exe = new FlashingExecutor();
-            mFlashingMap.put(lightId, exe);
-        }
-        exe.setLightControllable(new FlashingExecutor.LightControllable() {
-            @Override
-            public void changeLight(boolean isOn, final FlashingExecutor.CompleteListener listener) {
-                newStates.put("OnOff", new Variant(isOn, "b"));
-                try {
-                    proxy.transitionLampState(lightId, newStates, 0);
-                } catch (BusException e) {
-                    e.printStackTrace();
-                }
-                listener.onComplete();
-            }
-        });
-        exe.start(flashing);
     }
 
     /**
@@ -1022,5 +1184,12 @@ public class AllJoynLightProfile extends LightProfile {
         }
         return true;
     }
-
+    private int[] getColors(final Intent request) {
+        int[] colors = new int[3];
+        String colorParam = getColorString(request);
+        if (colorParam != null && !parseColorParam(colorParam, colors)) {
+            return null;
+        }
+        return colors;
+    }
 }

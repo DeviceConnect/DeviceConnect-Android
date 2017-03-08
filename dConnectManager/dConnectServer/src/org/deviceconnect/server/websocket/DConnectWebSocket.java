@@ -16,14 +16,21 @@ public interface DConnectWebSocket {
     /**
      * クライアントにイベントメッセージを送信します.
      *
-     * @param event イベントメッセージ
+     * @param message イベントメッセージ
      */
-    void sendEvent(String event);
+    void sendMessage(String message);
 
     /**
-     * WebSocketを切断させます.
+     * クライアントにバイナリーを送信します.
+     *
+     * @param buffer バイナリー
      */
-    void disconnectWebSocket();
+    void sendMessage(byte[] buffer);
+
+    /**
+     * WebSocketを切断します.
+     */
+    void disconnect();
 
     /**
      * WebSocket IDを取得します.
@@ -39,7 +46,13 @@ public interface DConnectWebSocket {
 
     /**
      * 接続要求元のオリジンを取得します.
-     * @return
+     * @return オリジン
      */
     String getClientOrigin();
+
+    /**
+     * WebSocketが接続されているかを取得します.
+     * @return 接続中の場合はtrue、それ以外はfalse
+     */
+    boolean isOpen();
 }

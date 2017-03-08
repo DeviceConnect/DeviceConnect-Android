@@ -6,15 +6,6 @@
  */
 package org.deviceconnect.android.provider;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.logging.Logger;
-
-import org.deviceconnect.android.activity.PermissionUtility;
-import org.deviceconnect.android.provider.FileLocationParser.FileLocation;
-
 import android.Manifest;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -28,6 +19,15 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.support.annotation.NonNull;
+
+import org.deviceconnect.android.activity.PermissionUtility;
+import org.deviceconnect.android.provider.FileLocationParser.FileLocation;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.logging.Logger;
 
 /**
  * ファイルを管理するためのクラス.
@@ -50,6 +50,9 @@ public class FileManager {
     /** コンテキスト. */
     private Context mContext;
 
+    /** File Provider Class Name. */
+    private String mFileProviderClassName;
+
     /** authority. */
     private String mAuthority;
     /**
@@ -65,11 +68,22 @@ public class FileManager {
 
     /**
      * コンストラクタ.
-     * 
+     *
      * @param context コンテキスト
      */
     public FileManager(final Context context) {
+        this(context, FileProvider.class.getName());
+    }
+
+    /**
+     * コンストラクタ.
+     * 
+     * @param context コンテキスト
+     * @param fileProvider FileProviderクラス名
+     */
+    public FileManager(final Context context, final String fileProvider) {
         mContext = context;
+        mFileProviderClassName = fileProvider;
         File dir = getBasePath();
         if (!dir.exists()) {
             if (!dir.mkdirs()) {
@@ -77,14 +91,13 @@ public class FileManager {
             }
         }
 
-        final String className = FileProvider.class.getName();
         PackageManager pkgMgr = context.getPackageManager();
         try {
             PackageInfo packageInfo = pkgMgr.getPackageInfo(context.getPackageName(), PackageManager.GET_PROVIDERS);
             ProviderInfo[] providers = packageInfo.providers;
             if (providers != null) {
                 for (ProviderInfo provider : providers) {
-                    if (className.equals(provider.name)) {
+                    if (mFileProviderClassName.equals(provider.name)) {
                         mAuthority = provider.authority;
                     }
                 }
@@ -164,7 +177,7 @@ public class FileManager {
      */
     public File getBasePath() {
         if (mLocation == null) {
-            mLocation = FileLocationParser.parse(getContext());
+            mLocation = FileLocationParser.parse(getContext(), mFileProviderClassName);
         }
         if (mLocation.getType() == FileLocationParser.TYPE_EXTERNAL_PATH) {
             return new File(Environment.getExternalStorageDirectory(), mLocation.getPath());
@@ -238,7 +251,11 @@ public class FileManager {
         } else if (!contentUri.endsWith("/")) {
             contentUri = contentUri + "/";
         }
-        return contentUri + u.getLastPathSegment();
+        String lastPath = filename;
+        if (lastPath.indexOf("/") == 0) {
+            lastPath = lastPath.substring(1, lastPath.length());
+        }
+        return contentUri + lastPath;
     }
 
     /**
@@ -290,7 +307,11 @@ public class FileManager {
         } else if (!contentUri.endsWith("/")) {
             contentUri = contentUri + "/";
         }
-        return contentUri + u.getLastPathSegment();
+        String lastPath = filename;
+        if (lastPath.indexOf("/") == 0) {
+            lastPath = lastPath.substring(1, lastPath.length());
+        }
+        return contentUri + lastPath;
     }
 
     /**
@@ -299,13 +320,12 @@ public class FileManager {
      * ここで、保存すると返り値にURIが返ってくる。 このURIをFile Profileのuriの値としてDevice Connect
      * Managerに 渡す事で、ファイルのやり取りができるようになる。
      *
-     * TODO 既に同じ名前のファイルが存在する場合の処理を考慮すること。
-     *
      * @param filename ファイル名
      * @param data ファイルデータ
+     * @param forceOverwrite 強制上書きフラグ
      * @param callback コールバック
      */
-    public final void saveFile(@NonNull final String filename, @NonNull final byte[] data,
+    public final void saveFile(@NonNull final String filename, @NonNull final byte[] data, final boolean forceOverwrite,
             @NonNull final SaveFileCallback callback) {
         checkWritePermission(new CheckPermissionCallback() {
             @Override
@@ -319,6 +339,11 @@ public class FileManager {
                 }
                 Uri u = Uri.parse("file://" + new File(tmpPath, filename).getAbsolutePath());
                 ContentResolver contentResolver = mContext.getContentResolver();
+                File existCheck = new File(u.getPath());
+                if (existCheck.exists() && !forceOverwrite) {
+                    callback.onFail(new IOException(filename + " already exists"));
+                    return;
+                }
                 OutputStream out = null;
                 try {
                     out = contentResolver.openOutputStream(u, "w");
@@ -345,7 +370,11 @@ public class FileManager {
                 } else if (!contentUri.endsWith("/")) {
                     contentUri = contentUri + "/";
                 }
-                callback.onSuccess(contentUri + u.getLastPathSegment());
+                String lastPath = filename;
+                if (lastPath.indexOf("/") == 0) {
+                    lastPath = lastPath.substring(1, lastPath.length());
+                }
+                callback.onSuccess(contentUri + lastPath);
             }
 
             @Override

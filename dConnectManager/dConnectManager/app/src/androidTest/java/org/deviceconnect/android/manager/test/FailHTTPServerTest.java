@@ -8,20 +8,20 @@ package org.deviceconnect.android.manager.test;
 
 import android.support.test.runner.AndroidJUnit4;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpHead;
-import org.apache.http.client.methods.HttpUriRequest;
 import org.deviceconnect.android.profile.restful.test.RESTfulDConnectTestCase;
-import org.deviceconnect.android.profile.restful.test.TestURIBuilder;
-import org.deviceconnect.profile.AuthorizationProfileConstants;
+import org.deviceconnect.android.test.http.HttpUtil;
 import org.deviceconnect.profile.DConnectProfileConstants;
-import org.deviceconnect.utils.URIBuilder;
+import org.json.JSONObject;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.core.Is.is;
+import static org.junit.Assert.assertThat;
 
 
 /**
@@ -34,7 +34,7 @@ public class FailHTTPServerTest extends RESTfulDConnectTestCase {
     /**
      * {@link #testHTTPHeaderOver8KB()}のサービスID.
      */
-    private static final int VERY_LONG_SERVICE_ID_LENGTH = 10000;
+    private static final int VERY_LONG_SERVICE_ID_LENGTH = 8 * 1024;
 
     /**
      * HEADメソッドでHTTPサーバにアクセスする異常系テストを行う.
@@ -49,10 +49,11 @@ public class FailHTTPServerTest extends RESTfulDConnectTestCase {
      */
     @Test
     public void testHttpMethodHead() throws IOException {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
-        HttpUriRequest request = new HttpHead(builder.toString());
-        HttpResponse response = requestHttpResponse(request);
-        assertEquals(HttpStatus.SC_NOT_IMPLEMENTED, response.getStatusLine().getStatusCode());
+        Map<String, String> headers = new HashMap<>();
+        headers.put("Origin", getOrigin());
+        HttpUtil.Response response = HttpUtil.connect("HEAD", MANAGER_URI, headers, null);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getStatusCode(), is(501));
     }
 
     /**
@@ -68,22 +69,102 @@ public class FailHTTPServerTest extends RESTfulDConnectTestCase {
      * </pre>
      */
     @Test
-    public void testHTTPHeaderOver8KB() throws IOException {
-        // HTTPヘッダのサイズを8KBにするために、10000文字のサービスIDを設定する
+    public void testHTTPHeaderOver8KB() throws Exception {
+        // HTTPヘッダのサイズを8KBにするために、8192文字のサービスIDを設定する
         StringBuilder serviceId = new StringBuilder();
         for (int i = 0; i < VERY_LONG_SERVICE_ID_LENGTH; i++) {
             serviceId.append("0");
         }
+
         StringBuilder builder = new StringBuilder();
-        builder.append(DCONNECT_MANAGER_URI);
-        builder.append("/battery");
-        builder.append("?");
-        builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        builder.append("&");
-        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + serviceId.toString());
-        HttpUriRequest request = new HttpGet(builder.toString());
-        HttpResponse response = requestHttpResponse(request);
-        assertEquals(HttpStatus.SC_REQUEST_TOO_LONG, response.getStatusLine().getStatusCode());
+        builder.append(MANAGER_URI);
+        builder.append("/battery?accessToken=");
+        builder.append(getAccessToken());
+
+        HashMap<String, String> headers = new HashMap<>();
+        headers.put("Origin", getOrigin());
+        headers.put(DConnectProfileConstants.PARAM_SERVICE_ID, serviceId.toString());
+
+        HttpUtil.Response response = HttpUtil.get(builder.toString(), headers);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getStatusCode(), is(413));
     }
 
+    /**
+     * API無しでHTTPサーバにアクセスする異常系テストを行う.
+     * <pre>
+     * 【HTTP通信】
+     * Method: GET
+     * Path: /
+     * </pre>
+     * <pre>
+     * 【期待する動作】
+     * ・HTTP 400 Bad Requestが返ること。
+     * ・resultに1が返ること。
+     * </pre>
+     */
+    @Test
+    public void testEmptyAPI() throws Exception {
+        Map<String, String> headers = new HashMap<>();
+        headers.put("Origin", getOrigin());
+
+        HttpUtil.Response response = HttpUtil.get("http://localhost:4035/", headers);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getStatusCode(), is(400));
+
+        JSONObject json = response.getJSONObject();
+        assertThat(json.getInt("result"), is(1));
+        assertThat(json.getInt("errorCode"), is(19));
+        assertThat(json.getString("errorMessage"), is(notNullValue()));
+    }
+
+    /**
+     * Profile無しでHTTPサーバにアクセスする異常系テストを行う.
+     * <pre>
+     * 【HTTP通信】
+     * Method: GET
+     * Path: /gotapi
+     * </pre>
+     * <pre>
+     * 【期待する動作】
+     * ・HTTP 400 Bad Requestが返ること。
+     * ・resultに1が返ること。
+     * </pre>
+     */
+    @Test
+    public void testEmptyProfile() throws Exception {
+        Map<String, String> headers = new HashMap<>();
+        headers.put("Origin", getOrigin());
+
+        HttpUtil.Response response = HttpUtil.get(MANAGER_URI, headers);
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getStatusCode(), is(400));
+
+        JSONObject json = response.getJSONObject();
+        assertThat(json.getInt("result"), is(1));
+        assertThat(json.getInt("errorCode"), is(19));
+        assertThat(json.getString("errorMessage"), is(notNullValue()));
+    }
+
+    /**
+     * Origin無しでHTTPサーバにアクセスする異常系テストを行う.
+     * <pre>
+     * 【HTTP通信】
+     * Method: GET
+     * Path: /gotapi/serviceDiscovery
+     * </pre>
+     * <pre>
+     * 【期待する動作】
+     * ・resultに1が返ること。
+     * </pre>
+     */
+    @Test
+    public void testEmptyOrigin() throws Exception {
+        HttpUtil.Response response = HttpUtil.get(MANAGER_URI + "/serviceDiscovery");
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getStatusCode(), is(200));
+
+        JSONObject json = response.getJSONObject();
+        assertThat(json.getInt("result"), is(1));
+    }
 }

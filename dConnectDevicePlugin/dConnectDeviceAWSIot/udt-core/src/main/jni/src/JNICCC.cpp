@@ -47,7 +47,7 @@ JNIEnv* AttachToJVM(JavaVM* vm)
 	jint result = vm->GetEnv(reinterpret_cast<void**>(&env),JNI_VERSION_1_4);
 
 	if(result == JNI_EDETACHED)
-		vm->AttachCurrentThread(reinterpret_cast<void**>(&env),NULL);
+		vm->AttachCurrentThread(&env,NULL);
 
 	return env;
 }

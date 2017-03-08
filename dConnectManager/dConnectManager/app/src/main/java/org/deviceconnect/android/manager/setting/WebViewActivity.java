@@ -1,3 +1,9 @@
+/*
+ WebViewActivity.java
+ Copyright (c) 2016 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.manager.setting;
 
 import android.app.ActionBar;
@@ -33,22 +39,64 @@ import org.deviceconnect.android.manager.R;
 
 import java.io.ByteArrayOutputStream;
 
+/**
+ * サービス確認用のWebページを開くためのActivity.
+ *
+ * @author NTT DOCOMO, INC.
+ */
 public class WebViewActivity extends Activity {
     private static final boolean DEBUG = BuildConfig.DEBUG;
     private static final String TAG = "Manager";
 
+    /**
+     * 表示するHTMLへのURLを格納するExtraのキーを定義する.
+     */
     public static final String EXTRA_URL = "url";
+
+    /**
+     * 表示するタイトルを格納するExtraのキーを定義する.
+     */
     public static final String EXTRA_TITLE = "title";
 
+    /**
+     * ファイル選択できるMimeTypeを定義する.
+     */
     private static final String TYPE_IMAGE = "image/*";
+
+    /**
+     * ファイル選択が行われた時にリクエストコードを定義する.
+     */
     private static final int INPUT_FILE_REQUEST_CODE = 1;
+
+    /**
+     * Javascriptファイルからファイル選択が行われた時のリクエストコードを定義する.
+     */
     private static final int REQUEST_CODE_FROM_JS = 2;
 
+    /**
+     * ファイル洗濯用のコールバック.
+     * <p>
+     * Android OS 5.0未満の端末では、こちらを使う。
+     * </p>
+     */
     private ValueCallback<Uri> mUploadMessage;
+
+    /**
+     * ファイル洗濯用のコールバック.
+     * <p>
+     * Android OS 5.0以上の端末では、こちらを使う。
+     * </p>
+     */
     private ValueCallback<Uri[]> mFilePathCallback;
 
+    /**
+     * Webページを開くためのWebView.
+     */
     private WebView mWebView;
 
+    /**
+     * 一時中断フラグ.
+     */
     private boolean mPauseFlag;
 
     @Override
@@ -96,6 +144,8 @@ public class WebViewActivity extends Activity {
             webSettings.setAppCacheEnabled(false);
             webSettings.setCacheMode(WebSettings.LOAD_NO_CACHE);
 
+            // Android 4.0以上では、chromeからデバッグするための機能が存在する
+            // ここでは、DEBUGビルドの場合のみ使えるように設定している。
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
                 if (DEBUG) {
                     if (0 != (getApplicationInfo().flags &= ApplicationInfo.FLAG_DEBUGGABLE)) {
@@ -227,11 +277,29 @@ public class WebViewActivity extends Activity {
     }
 
     private final WebViewClient mWebViewClient = new WebViewClient() {
+        /**
+         * 画面のスケール計算を行うインターバルを定義する.
+         */
         private static final long STABLE_SCALE_CALCULATION_DURATION = 1000;
+
+        /**
+         * 画面スケール計算を行った時間.
+         */
         private long mStableScaleCalculationStart = System.currentTimeMillis();
+
+        /**
+         * 画面スケール.
+         */
         private String mStableScale;
+
+        /**
+         * 画面スケールを戻す時の開始時間.
+         */
         private long mRestoringScaleStart;
 
+        // 画面のスケールがユーザによって変えられた時に、元のスケールに戻す処理を行う.
+        // Webページの方で、スケールが切り替えられないようにしているが、一部の端末(OS)で、
+        // その設定が無視されることがあるので、この処理を入れる。
         @Override
         public boolean shouldOverrideUrlLoading(final WebView view, final String url) {
             if (url.startsWith("market://")) {
@@ -388,7 +456,13 @@ public class WebViewActivity extends Activity {
         }
     };
 
+    /**
+     * Javascriptと連携するためのクラス.
+     */
     private class JavaScriptInterface {
+        /**
+         * cookie保存用クラス.
+         */
         private SharedPreferences mPref;
 
         JavaScriptInterface() {

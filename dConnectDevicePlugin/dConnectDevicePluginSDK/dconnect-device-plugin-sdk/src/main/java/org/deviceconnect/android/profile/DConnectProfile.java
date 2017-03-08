@@ -110,7 +110,13 @@ public abstract class DConnectProfile implements DConnectProfileConstants,
         if (method == null) {
             return null;
         }
-        String path = getApiPath(getInterface(request), getAttribute(request));
+        if (mProfileSpec != null && mProfileSpec.getApiName() != null) {
+            // XXXX パスの大文字小文字を無視
+            if (!mProfileSpec.getApiName().equalsIgnoreCase(getApi(request))) {
+                return null;
+            }
+        }
+        String path = getApiPath(request);
         return findApi(path, method);
     }
 
@@ -155,7 +161,16 @@ public abstract class DConnectProfile implements DConnectProfileConstants,
     }
 
     /**
-     * プロファイル名、インターフェース名、アトリビュート名からパスを作成する.
+     * リクエストで指定されたパスを返す.
+     * @param request リクエスト
+     * @return パス
+     */
+    private String getApiPath(final Intent request) {
+        return getApiPath(getInterface(request), getAttribute(request));
+    }
+
+    /**
+     * インターフェース名、アトリビュート名からパスを作成する.
      * @param interfaceName インターフェース名
      * @param attributeName アトリビュート名
      * @return パス
@@ -174,7 +189,7 @@ public abstract class DConnectProfile implements DConnectProfileConstants,
     }
 
     private boolean isKnownPath(final Intent request) {
-        String path = getApiPath(getInterface(request), getAttribute(request));
+        String path = getApiPath(request);
         if (mProfileSpec == null) {
             return false;
         }
@@ -187,7 +202,7 @@ public abstract class DConnectProfile implements DConnectProfileConstants,
         if (method == null) {
             return false;
         }
-        String path = getApiPath(getInterface(request), getAttribute(request));
+        String path = getApiPath(request);
         if (mProfileSpec == null) {
             return false;
         }
@@ -866,6 +881,8 @@ public abstract class DConnectProfile implements DConnectProfileConstants,
                 out.write(buf, 0, len);
             }
             return out.toByteArray();
+        } catch (OutOfMemoryError e) {
+            return null;
         } catch (IOException e) {
             return null;
         } finally {
@@ -879,7 +896,7 @@ public abstract class DConnectProfile implements DConnectProfileConstants,
         }
     }
 
-    protected byte[] getData(String uri) {
+    protected byte[] getData(String uri) throws OutOfMemoryError {
         HttpURLConnection connection = null;
         InputStream inputStream = null;
         byte[] data = null;
@@ -890,6 +907,8 @@ public abstract class DConnectProfile implements DConnectProfileConstants,
             connection.connect();
             inputStream = connection.getInputStream();
             data = readAll(inputStream);
+        } catch (OutOfMemoryError e) {
+            throw new OutOfMemoryError(e.getMessage());
         } catch (IOException e) {
             e.printStackTrace();
         } finally {

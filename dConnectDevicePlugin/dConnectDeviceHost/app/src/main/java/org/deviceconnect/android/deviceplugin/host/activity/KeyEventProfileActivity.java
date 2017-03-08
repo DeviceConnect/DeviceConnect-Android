@@ -32,6 +32,9 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.RadioGroup.OnCheckedChangeListener;
 
+import static org.deviceconnect.android.deviceplugin.host.HostDeviceApplication.STATE_DOWN;
+import static org.deviceconnect.android.deviceplugin.host.HostDeviceApplication.STATE_UP;
+
 /**
  * Key Event Profile Activity.
  * 
@@ -124,48 +127,33 @@ public class KeyEventProfileActivity extends Activity implements OnTouchListener
         case MotionEvent.ACTION_DOWN:
         case MotionEvent.ACTION_UP:
             KeyEvent keyevent = null;
-            switch (v.getId()) {
-            case R.id.button_0:
+            int i = v.getId();
+            if (i == R.id.button_0) {
                 keyevent = new KeyEvent(action, KeyEvent.KEYCODE_NUMPAD_0);
-                break;
-            case R.id.button_1:
+            } else if (i == R.id.button_1) {
                 keyevent = new KeyEvent(action, KeyEvent.KEYCODE_NUMPAD_1);
-                break;
-            case R.id.button_2:
+            } else if (i == R.id.button_2) {
                 keyevent = new KeyEvent(action, KeyEvent.KEYCODE_NUMPAD_2);
-                break;
-            case R.id.button_3:
+            } else if (i == R.id.button_3) {
                 keyevent = new KeyEvent(action, KeyEvent.KEYCODE_NUMPAD_3);
-                break;
-            case R.id.button_4:
+            } else if (i == R.id.button_4) {
                 keyevent = new KeyEvent(action, KeyEvent.KEYCODE_NUMPAD_4);
-                break;
-            case R.id.button_5:
+            } else if (i == R.id.button_5) {
                 keyevent = new KeyEvent(action, KeyEvent.KEYCODE_NUMPAD_5);
-                break;
-            case R.id.button_6:
+            } else if (i == R.id.button_6) {
                 keyevent = new KeyEvent(action, KeyEvent.KEYCODE_NUMPAD_6);
-                break;
-            case R.id.button_7:
+            } else if (i == R.id.button_7) {
                 keyevent = new KeyEvent(action, KeyEvent.KEYCODE_NUMPAD_7);
-                break;
-            case R.id.button_8:
+            } else if (i == R.id.button_8) {
                 keyevent = new KeyEvent(action, KeyEvent.KEYCODE_NUMPAD_8);
-                break;
-            case R.id.button_9:
+            } else if (i == R.id.button_9) {
                 keyevent = new KeyEvent(action, KeyEvent.KEYCODE_NUMPAD_9);
-                break;
-            case R.id.button_dot:
+            } else if (i == R.id.button_dot) {
                 keyevent = new KeyEvent(action, KeyEvent.KEYCODE_NUMPAD_DOT);
-                break;
-            case R.id.button_enter:
+            } else if (i == R.id.button_enter) {
                 keyevent = new KeyEvent(action, KeyEvent.KEYCODE_NUMPAD_ENTER);
-                break;
-            case R.id.button_keyevent_close:
+            } else if (i == R.id.button_keyevent_close) {
                 finish();
-                break;
-            default:
-                break;
             }
             if (keyevent != null) {
                 dispatchKeyEvent(keyevent);
@@ -183,21 +171,15 @@ public class KeyEventProfileActivity extends Activity implements OnTouchListener
         RadioButton radioButton = (RadioButton) findViewById(checkedId);
 
         // Change key mode.
-        switch (radioButton.getId()) {
-        case R.id.radioButton1:
+        int i = radioButton.getId();
+        if (i == R.id.radioButton1) {
             mKeyMode = KeyMode.STD_KEY;
-            break;
-        case R.id.radioButton2:
+        } else if (i == R.id.radioButton2) {
             mKeyMode = KeyMode.MEDIA_CTRL;
-            break;
-        case R.id.radioButton3:
+        } else if (i == R.id.radioButton3) {
             mKeyMode = KeyMode.DPAD_BUTTON;
-            break;
-        case R.id.radioButton4:
+        } else if (i == R.id.radioButton4) {
             mKeyMode = KeyMode.USER;
-            break;
-        default:
-            break;
         }
     }
 
@@ -230,7 +212,7 @@ public class KeyEventProfileActivity extends Activity implements OnTouchListener
         // "ondown" event processing.
         List<Event> events = EventManager.INSTANCE.getEventList(mServiceId, KeyEventProfile.PROFILE_NAME, null,
                 KeyEventProfile.ATTRIBUTE_ON_DOWN);
-        sendEventData(keyCode, events);
+        sendEventData(STATE_DOWN, keyCode, events);
         return super.onKeyDown(keyCode, event);
     }
 
@@ -239,28 +221,29 @@ public class KeyEventProfileActivity extends Activity implements OnTouchListener
         // "onup" event processing.
         List<Event> events = EventManager.INSTANCE.getEventList(mServiceId, KeyEventProfile.PROFILE_NAME, null,
                 KeyEventProfile.ATTRIBUTE_ON_UP);
-        sendEventData(keyCode, events);
+        sendEventData(STATE_UP, keyCode, events);
         return super.onKeyUp(keyCode, event);
     }
 
     /**
      * Send event data.
-     * 
+     *
+     * @param state Key state.
      * @param keycode key Code.
      * @param events Event request list.
      */
-    private void sendEventData(final int keycode, final List<Event> events) {
+    private void sendEventData(final String state, final int keycode, final List<Event> events) {
+        List<Event> changeEvents = EventManager.INSTANCE.getEventList(mServiceId, KeyEventProfile.PROFILE_NAME, null,
+                HostKeyEventProfile.ATTRIBUTE_ON_KEY_CHANGE);
+        Bundle keyevent = new Bundle();
+        int keyId = keycode;
+        String keyConfig = "";
 
-        for (int i = 0; i < events.size(); i++) {
-            Bundle keyevent = new Bundle();
-            int keyId = keycode;
-            String keyConfig = "";
+        // Get configure string.
+        keyConfig = getConfig(mKeyMode, keyId);
 
-            // Get configure string.
-            keyConfig = getConfig(mKeyMode, keyId);
-
-            // Set key type.
-            switch (mKeyMode) {
+        // Set key type.
+        switch (mKeyMode) {
             case MEDIA_CTRL:
                 keyId += KeyEventProfileConstants.KEYTYPE_MEDIA_CTRL;
                 break;
@@ -274,10 +257,12 @@ public class KeyEventProfileActivity extends Activity implements OnTouchListener
             default:
                 keyId += KeyEventProfileConstants.KEYTYPE_STD_KEY;
                 break;
-            }
+        }
 
-            keyevent.putInt(KeyEventProfile.PARAM_ID, keyId);
-            keyevent.putString(KeyEventProfile.PARAM_CONFIG, keyConfig);
+        keyevent.putInt(KeyEventProfile.PARAM_ID, keyId);
+        keyevent.putString(KeyEventProfile.PARAM_CONFIG, keyConfig);
+
+        for (int i = 0; i < events.size(); i++) {
 
             Event eventdata = events.get(i);
             String attr = eventdata.getAttribute();
@@ -286,6 +271,16 @@ public class KeyEventProfileActivity extends Activity implements OnTouchListener
             getBaseContext().sendBroadcast(intent);
             mApp.setKeyEventCache(attr, keyevent);
         }
+        for (int i = 0; i < changeEvents.size(); i++) {
+            Event eventdata = changeEvents.get(i);
+            String attr = eventdata.getAttribute();
+            Intent intent = EventManager.createEventMessage(eventdata);
+            keyevent.putString("state", state);
+            intent.putExtra(KeyEventProfile.PARAM_KEYEVENT, keyevent);
+            getBaseContext().sendBroadcast(intent);
+            mApp.setKeyEventCache(attr, keyevent);
+        }
+
     }
 
     /**

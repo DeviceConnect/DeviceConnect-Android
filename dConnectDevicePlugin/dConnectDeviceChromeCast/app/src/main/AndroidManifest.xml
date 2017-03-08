@@ -35,7 +35,7 @@
         <receiver android:name="org.deviceconnect.android.deviceplugin.chromecast.ChromeCastProvider">
             <meta-data
                 android:name="org.deviceconnect.android.deviceplugin"
-                android:resource="@xml/deviceplugin"/>
+                android:resource="@xml/org_deviceconnect_android_deviceplugin_chromecast"/>
 
             <intent-filter>
                 <action android:name="org.deviceconnect.action.GET"/>

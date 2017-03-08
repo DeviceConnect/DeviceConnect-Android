@@ -6,21 +6,6 @@
  */
 package org.deviceconnect.android.deviceplugin.host.profile;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import org.deviceconnect.android.activity.PermissionUtility;
-import org.deviceconnect.android.deviceplugin.host.HostDeviceService;
-import org.deviceconnect.android.event.EventError;
-import org.deviceconnect.android.event.EventManager;
-import org.deviceconnect.android.message.MessageUtils;
-import org.deviceconnect.android.profile.PhoneProfile;
-import org.deviceconnect.android.profile.api.DConnectApi;
-import org.deviceconnect.android.profile.api.DeleteApi;
-import org.deviceconnect.android.profile.api.PostApi;
-import org.deviceconnect.android.profile.api.PutApi;
-import org.deviceconnect.message.DConnectMessage;
-
 import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
@@ -30,6 +15,17 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.NonNull;
+
+import org.deviceconnect.android.activity.PermissionUtility;
+import org.deviceconnect.android.event.EventError;
+import org.deviceconnect.android.event.EventManager;
+import org.deviceconnect.android.message.MessageUtils;
+import org.deviceconnect.android.profile.PhoneProfile;
+import org.deviceconnect.android.profile.api.DConnectApi;
+import org.deviceconnect.android.profile.api.DeleteApi;
+import org.deviceconnect.android.profile.api.PostApi;
+import org.deviceconnect.android.profile.api.PutApi;
+import org.deviceconnect.message.DConnectMessage;
 
 /**
  * Phoneプロファイル.
@@ -120,10 +116,8 @@ public class HostPhoneProfile extends PhoneProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            String serviceId = getServiceID(request);
             EventError error = EventManager.INSTANCE.addEvent(request);
             if (error == EventError.NONE) {
-                ((HostDeviceService) getContext()).setServiceId(serviceId);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
                 switch (error) {
@@ -193,9 +187,7 @@ public class HostPhoneProfile extends PhoneProfile {
 
             Uri uri = Uri.parse("tel:" + phoneNumber);
             if (uri != null) {
-                Intent intent = new Intent(Intent.ACTION_CALL, uri);
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                getContext().startActivity(intent);
+                call(uri);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
                 MessageUtils.setInvalidRequestParameterError(response, "phoneNumber is invalid.");
@@ -220,5 +212,11 @@ public class HostPhoneProfile extends PhoneProfile {
         }
         String pattern = "[0-9+]+";
         return phoneNumber.matches(pattern);
+    }
+
+    private void call(final Uri uri) {
+        Intent intent = new Intent(Intent.ACTION_CALL, uri);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        getContext().startActivity(intent);
     }
 }

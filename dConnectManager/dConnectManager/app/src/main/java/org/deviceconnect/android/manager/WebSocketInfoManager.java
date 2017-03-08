@@ -22,51 +22,99 @@ import java.util.Map;
  * @author NTT DOCOMO, INC.
  */
 public class WebSocketInfoManager {
-
+    /**
+     * WebSocketを格納しておくMap.
+     */
     private Map<String, WebSocketInfo> mWebSocketInfoMap = new HashMap<>();
 
+    /**
+     * コンテキスト.
+     */
     private Context mContext;
+
+    /**
+     * プラグイン管理クラス.
+     */
     private DevicePluginManager mDevicePluginManager;
 
+    /**
+     * WebSocketのイベントリスナー.
+     */
     private OnWebSocketEventListener mOnWebSocketEventListener;
 
+    /**
+     * コンストラクタ.
+     * @param context コンテキスト
+     */
     public WebSocketInfoManager(final Context context) {
         mContext = context;
         mDevicePluginManager = ((DConnectApplication) mContext).getDevicePluginManager();
     }
 
+    /**
+     * WebSocketのイベントを通知するリスナーを設定する.
+     *
+     * @param onWebSocketEventListener リスナー
+     */
     public void setOnWebSocketEventListener(final OnWebSocketEventListener onWebSocketEventListener) {
         mOnWebSocketEventListener = onWebSocketEventListener;
     }
 
-    public void addWebSocketInfo(final String receiverId, final String uri, final String webSocketId) {
+    /**
+     * WebSocketを追加する.
+     *
+     * @param origin WebSocketのオリジン、もしくはセッションキー
+     * @param uri URI
+     * @param webSocketId WebSocketの識別子.
+     */
+    public void addWebSocketInfo(final String origin, final String uri, final String webSocketId) {
         WebSocketInfo info = new WebSocketInfo();
         info.setRawId(webSocketId);
         info.setUri(uri);
-        info.setReceiverId(receiverId);
+        info.setOrigin(origin);
         info.setConnectTime(System.currentTimeMillis());
-        mWebSocketInfoMap.put(receiverId, info);
+        mWebSocketInfoMap.put(origin, info);
     }
 
-    public void removeWebSocketInfo(final String eventKey) {
-        WebSocketInfo info = mWebSocketInfoMap.remove(eventKey);
+    /**
+     * WebSocketを削除する.
+     *
+     * @param origin WebSocketのオリジン、もしくはセッションキー
+     */
+    public void removeWebSocketInfo(final String origin) {
+        WebSocketInfo info = mWebSocketInfoMap.remove(origin);
         if (info != null) {
-            notifyDisconnectWebSocket(info.getReceiverId());
+            notifyDisconnectWebSocket(info.getOrigin());
 
             if (mOnWebSocketEventListener != null) {
-                mOnWebSocketEventListener.onDisconnect(eventKey);
+                mOnWebSocketEventListener.onDisconnect(origin);
             }
         }
     }
 
-    public WebSocketInfo getWebSocketInfo(final String receiverId) {
-        return mWebSocketInfoMap.get(receiverId);
+    /**
+     * 指定されたオリジン、もしくはセッションキーに対応するWebSocketを取得する.
+     *
+     * @param origin WebSocketのオリジン、もしくはセッションキー
+     * @return WebSocketの情報
+     */
+    public WebSocketInfo getWebSocketInfo(final String origin) {
+        return mWebSocketInfoMap.get(origin);
     }
 
+    /**
+     * 登録されているWebSocketの一覧を取得する.
+     *
+     * @return WebSocketの一覧
+     */
     public List<WebSocketInfo> getWebSocketInfos() {
         return new ArrayList<>(mWebSocketInfoMap.values());
     }
 
+    /**
+     * 全プラグインにWebSocketが切断されたことを通知する.
+     * @param origin オリジン
+     */
     private void notifyDisconnectWebSocket(final String origin) {
         List<DevicePlugin> plugins = mDevicePluginManager.getDevicePlugins();
         for (DevicePlugin plugin : plugins) {
@@ -80,7 +128,16 @@ public class WebSocketInfoManager {
         }
     }
 
+    /**
+     * WebSocketのイベントを通知するリスナー.
+     *
+     * @author NTT DOCOMO, INC.
+     */
     public interface OnWebSocketEventListener {
-        void onDisconnect(String sessionKey);
+        /**
+         * WebSocketが切断されたことを通知する.
+         * @param origin WebSocketのオリジン、もしくはセッションキー
+         */
+        void onDisconnect(String origin);
     }
 }

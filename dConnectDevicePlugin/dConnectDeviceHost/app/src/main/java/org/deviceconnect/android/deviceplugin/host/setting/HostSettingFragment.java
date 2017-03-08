@@ -25,7 +25,7 @@ import static android.content.Context.WIFI_SERVICE;
  */
 public class HostSettingFragment extends Fragment {
     @SuppressLint("DefaultLocale")
-	@Override
+    @Override
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
             final Bundle savedInstanceState) {
         // Positionを取得

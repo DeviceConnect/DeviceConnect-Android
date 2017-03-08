@@ -70,11 +70,6 @@ repositories {
     maven { url "https://oss.sonatype.org/content/groups/public/" }
 }
 
-configurations {
-    // to avoid double inclusion of support libraries
-    all*.exclude group: 'com.getpebble', module: 'pebblekit'
-}
-
 dependencies {
     compile fileTree(include: '*.jar', dir: 'libs')
     compile project(':dconnect-device-plugin-sdk')

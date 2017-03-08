@@ -1,174 +1,174 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="linking_app_name">Linking (Device Connect Device Plug-in)</string>
+    <string name="linking_app_name" translatable="false">Linking (Device Connect Device Plug-in)</string>
 
     <string name="activity_linking_ok">OK</string>
     <string name="activity_linking_cancel">Cancel</string>
 
-    <string name="activity_linking_confirm_title">ConfirmActivity</string>
-    <string name="activity_linking_confirm_message">Linkingアプリに接続しています...</string>
+    <string name="activity_linking_confirm_title" translatable="false">ConfirmActivity</string>
+    <string name="activity_linking_confirm_message" translatable="false">Linkingアプリに接続しています...</string>
 
-    <string name="activity_setting_tab_paring">ペアリング</string>
-    <string name="activity_setting_tab_beacon">ビーコン</string>
-    <string name="activity_setting_menu">Linkingアプリ誘導</string>
-    <string name="activity_setting_menu_app_inform">アプリ情報</string>
-    <string name="activity_setting_refresh_devices">Linkingデバイスの更新</string>
+    <string name="activity_setting_tab_paring" translatable="false">ペアリング</string>
+    <string name="activity_setting_tab_beacon" translatable="false">ビーコン</string>
+    <string name="activity_setting_menu" translatable="false">Linkingアプリ誘導</string>
+    <string name="activity_setting_menu_app_inform" translatable="false">アプリ情報</string>
+    <string name="activity_setting_refresh_devices" translatable="false">Linkingデバイスの更新</string>
 
-    <string name="activity_setting_update_dialog_title">情報</string>
-    <string name="activity_setting_update_dialog_message">Google PlayにLinkingアプリの更新があります。\nLinkingアプリをアップデートしてください。</string>
-    <string name="activity_setting_update_dialog_positive">Google Playを開く</string>
-    <string name="activity_setting_update_dialog_negative">閉じる</string>
+    <string name="activity_setting_update_dialog_title" translatable="false">情報</string>
+    <string name="activity_setting_update_dialog_message" translatable="false">Google PlayにLinkingアプリの更新があります。\nLinkingアプリをアップデートしてください。</string>
+    <string name="activity_setting_update_dialog_positive" translatable="false">Google Playを開く</string>
+    <string name="activity_setting_update_dialog_negative" translatable="false">閉じる</string>
 
-    <string name="fragment_beacon_list_scan_title">ビーコンスキャン</string>
-    <string name="fragment_beacon_list_scan_start">開始</string>
-    <string name="fragment_beacon_list_scan_stop">停止</string>
-    <string name="fragment_beacon_list_warning">ペアリング済みかつ接続済みのLinkingデバイスは、ビーコンとして利用できません。</string>
-    <string name="fragment_beacon_error_title">エラー</string>
-    <string name="fragment_beacon_error_message">近くに%1$sが存在しないか、Linkingアプリでペアリング設定されている可能性があります。</string>
-    <string name="fragment_beacon_error_message_not_start_beacon_scan">ビーコンスキャンが開始されていません。\nビーコンスキャンの開始ボタンを押下してください。</string>
-    <string name="fragment_beacon_error_positive">Linkingアプリ誘導</string>
-    <string name="fragment_beacon_error_negative">閉じる</string>
+    <string name="fragment_beacon_list_scan_title" translatable="false">ビーコンスキャン</string>
+    <string name="fragment_beacon_list_scan_start" translatable="false">開始</string>
+    <string name="fragment_beacon_list_scan_stop" translatable="false">停止</string>
+    <string name="fragment_beacon_list_warning" translatable="false">ペアリング済みかつ接続済みのLinkingデバイスは、ビーコンとして利用できません。</string>
+    <string name="fragment_beacon_error_title" translatable="false">エラー</string>
+    <string name="fragment_beacon_error_message" translatable="false">近くに%1$sが存在しないか、Linkingアプリでペアリング設定されている可能性があります。</string>
+    <string name="fragment_beacon_error_message_not_start_beacon_scan" translatable="false">ビーコンスキャンが開始されていません。\nビーコンスキャンの開始ボタンを押下してください。</string>
+    <string name="fragment_beacon_error_positive" translatable="false">Linkingアプリ誘導</string>
+    <string name="fragment_beacon_error_negative" translatable="false">閉じる</string>
 
-    <string name="fragment_device_guidance">Linkingデバイスの設定がされていません。\nこのアプリを使用するには、Linkingアプリの設定が必要になります。</string>
-    <string name="fragment_device_discovery">デバイスを更新しています</string>
-    <string name="fragment_device_linking_app">Linkingアプリ誘導</string>
-    <string name="fragment_device_status_online">Status: Online</string>
-    <string name="fragment_device_status_offline">Status: Offline</string>
-    <string name="fragment_device_error_title">エラー</string>
-    <string name="fragment_device_error_message">%1$sが接続されていません。\nLinkingアプリのペアリング設定を確認してください。</string>
-    <string name="fragment_device_error_disconnect">%1$sの接続が切れました。</string>
-    <string name="fragment_device_error_positive">Linkingアプリ誘導</string>
-    <string name="fragment_device_error_negative">閉じる</string>
+    <string name="fragment_device_guidance" translatable="false">Linkingデバイスの設定がされていません。\nこのアプリを使用するには、Linkingアプリの設定が必要になります。</string>
+    <string name="fragment_device_discovery" translatable="false">デバイスを更新しています</string>
+    <string name="fragment_device_linking_app" translatable="false">Linkingアプリ誘導</string>
+    <string name="fragment_device_status_online" translatable="false">Status: Online</string>
+    <string name="fragment_device_status_offline" translatable="false">Status: Offline</string>
+    <string name="fragment_device_error_title" translatable="false">エラー</string>
+    <string name="fragment_device_error_message" translatable="false">%1$sが接続されていません。\nLinkingアプリのペアリング設定を確認してください。</string>
+    <string name="fragment_device_error_disconnect" translatable="false">%1$sの接続が切れました。</string>
+    <string name="fragment_device_error_positive" translatable="false">Linkingアプリ誘導</string>
+    <string name="fragment_device_error_negative" translatable="false">閉じる</string>
 
-    <string name="fragment_help_linking_app">Linkingアプリを起動</string>
-    <string name="fragment_help_1_text1">デバイスの検索ボタンを押下して、本アプリで使用したいLinkingデバイスを接続します。\n\n※Android 6 以上対象\nパーミッションの許可を求められる場合がありますので、指定に従い設定を行ってください。</string>
-    <string name="fragment_help_1_text2">このボタンを押下して、デバイスの検索を行います。</string>
-    <string name="fragment_help_2_text1">デバイスの検索で発見したLinkingデバイスを選択して、接続を行います。\nLinkingデバイスを選択すると利用許諾のダイアログが表示されますので、問題がなければOKを押下して接続を進めてください。\n\n接続したいLinkingデバイスが発見できない場合には、Linkingデバイスの電源などが入っているか確認してください。</string>
-    <string name="fragment_help_2_text2">接続したいLinkingデバイスを選択します。</string>
-    <string name="fragment_help_3_text1">デバイスに接続が完了した時に、完了ダイアログが表示されますので、OKを押下して、デバイス詳細画面を開いてください。</string>
-    <string name="fragment_help_3_text2">OKを押下して、デバイス詳細画面を開きます。</string>
-    <string name="fragment_help_4_text1">本アプリで利用したいLinkingデバイスの設定画面にてLinking(Device Connect Device Plug-in)の通知設定をONにしてください。\n\nこの設定をONにしないと本アプリでLinkingデバイスからの通知を受けることができません。\n\nLinking(Device Connect Device Plug-in)を押下することで詳細設定画面へ遷移します。</string>
-    <string name="fragment_help_4_text2">Linking(Device Connect Device Plug-in)の通知設定をONにします。</string>
-    <string name="fragment_help_5_text1">詳細では、LEDやバイブレーションなどのLinkingデバイスのデフォルト設定を行います。\nここで設定した値がデフォルトとしてLinkingデバイスプラグインでは使用されます。</string>
-    <string name="fragment_help_5_text2">LEDやバイブレーションなどの設定を行います。</string>
-    <string name="fragment_help_6_text1">ビーコンモードとして使用する場合には、Linkingアプリでビーコンを受信をONにしてください。\n\nまた、ペアリングされたデバイスの利用設定に登録されているLinkingデバイスは、設定がONになっているとビーコンモードとしては使用することができませんので、ご注意ください。</string>
-    <string name="fragment_help_6_text2">ONになっているとビーコンを受信することができません。</string>
-    <string name="fragment_help_7_text1">ペアリングされたデバイスの利用設定の中から設定したいLinkingデバイスを押下して、デバイス詳細設定画面に遷移します。\n\nLinkingデバイスがONになっていないとデバイス詳細設定画面に遷移できませんので、ご注意ください。</string>
-    <string name="fragment_help_7_text2">設定したいLinkingデバイスがONになっていることを確認します。</string>
+    <string name="fragment_help_linking_app" translatable="false">Linkingアプリを起動</string>
+    <string name="fragment_help_1_text1" translatable="false">デバイスの検索ボタンを押下して、本アプリで使用したいLinkingデバイスを接続します。\n\n※Android 6 以上対象\nパーミッションの許可を求められる場合がありますので、指定に従い設定を行ってください。</string>
+    <string name="fragment_help_1_text2" translatable="false">このボタンを押下して、デバイスの検索を行います。</string>
+    <string name="fragment_help_2_text1" translatable="false">デバイスの検索で発見したLinkingデバイスを選択して、接続を行います。\nLinkingデバイスを選択すると利用許諾のダイアログが表示されますので、問題がなければOKを押下して接続を進めてください。\n\n接続したいLinkingデバイスが発見できない場合には、Linkingデバイスの電源などが入っているか確認してください。</string>
+    <string name="fragment_help_2_text2" translatable="false">接続したいLinkingデバイスを選択します。</string>
+    <string name="fragment_help_3_text1" translatable="false">デバイスに接続が完了した時に、完了ダイアログが表示されますので、OKを押下して、デバイス詳細画面を開いてください。</string>
+    <string name="fragment_help_3_text2" translatable="false">OKを押下して、デバイス詳細画面を開きます。</string>
+    <string name="fragment_help_4_text1" translatable="false">本アプリで利用したいLinkingデバイスの設定画面にてLinking(Device Connect Device Plug-in)の通知設定をONにしてください。\n\nこの設定をONにしないと本アプリでLinkingデバイスからの通知を受けることができません。\n\nLinking(Device Connect Device Plug-in)を押下することで詳細設定画面へ遷移します。</string>
+    <string name="fragment_help_4_text2" translatable="false">Linking(Device Connect Device Plug-in)の通知設定をONにします。</string>
+    <string name="fragment_help_5_text1" translatable="false">詳細では、LEDやバイブレーションなどのLinkingデバイスのデフォルト設定を行います。\nここで設定した値がデフォルトとしてLinkingデバイスプラグインでは使用されます。</string>
+    <string name="fragment_help_5_text2" translatable="false">LEDやバイブレーションなどの設定を行います。</string>
+    <string name="fragment_help_6_text1" translatable="false">ビーコンモードとして使用する場合には、Linkingアプリでビーコンを受信をONにしてください。\n\nまた、ペアリングされたデバイスの利用設定に登録されているLinkingデバイスは、設定がONになっているとビーコンモードとしては使用することができませんので、ご注意ください。</string>
+    <string name="fragment_help_6_text2" translatable="false">ONになっているとビーコンを受信することができません。</string>
+    <string name="fragment_help_7_text1" translatable="false">ペアリングされたデバイスの利用設定の中から設定したいLinkingデバイスを押下して、デバイス詳細設定画面に遷移します。\n\nLinkingデバイスがONになっていないとデバイス詳細設定画面に遷移できませんので、ご注意ください。</string>
+    <string name="fragment_help_7_text2" translatable="false">設定したいLinkingデバイスがONになっていることを確認します。</string>
 
-    <string name="activity_linking_induction_text_1">本アプリで、Linkingデバイスを操作するためには、Linkingアプリで設定を行う必要があります。\n\nLinkingデバイスに接続されていない場合には、以下の説明を参照してください。</string>
-    <string name="activity_linking_induction_connect">Linkingデバイスの接続</string>
-    <string name="activity_linking_induction_text_2">すでにLinkingデバイスと接続されている場合には、以下の説明を参照してください。</string>
-    <string name="activity_linking_induction_help">Linkingデバイスの設定</string>
-    <string name="activity_linking_induction_text_not_install">本アプリで、Linkingデバイスを操作するためには、Linkingアプリが必要になります。\n\nGoogle PlayからLinkingアプリをインストールして、アプリの指示に従い対応デバイスと端末を接続してください。</string>
-    <string name="activity_linking_induction_1">1)</string>
-    <string name="activity_linking_induction_2">2)</string>
-    <string name="activity_linking_induction_3">3)</string>
-    <string name="activity_linking_induction_4">4)</string>
-    <string name="activity_linking_induction_text_update">本アプリで、Linkingデバイスを操作するためには、最新版のLinkingアプリが必要になります。\n\nGoogle Playから最新版のLinkingアプリにアップデートしてください。</string>
-    <string name="activity_linking_induction_text">本アプリで、Linkingデバイスを操作するためには、Linkingアプリで以下の設定を行う必要があります。</string>
-    <string name="activity_linking_induction_text1">Linkingアプリを起動し、アプリの指示に従い対応デバイスと端末を接続してください。</string>
-    <string name="activity_linking_induction_text2">Device Connectで利用したいLinkingデバイスの設定画面にて、Linking(Device Connect Device Plug-in)の通知設定をONにしてください。</string>
-    <string name="activity_linking_induction_text3">設定のLEDのパターンは、点灯するいずれかのものを選択してください。Light ON APIにてそのパターンで点灯します。</string>
-    <string name="activity_linking_induction_text4">設定のバイブレーションのパターンは、振動するいずれかのものを選択してください。Vibration APIにてそのパターンで振動します。</string>
+    <string name="activity_linking_induction_text_1" translatable="false">本アプリで、Linkingデバイスを操作するためには、Linkingアプリで設定を行う必要があります。\n\nLinkingデバイスに接続されていない場合には、以下の説明を参照してください。</string>
+    <string name="activity_linking_induction_connect" translatable="false">Linkingデバイスの接続</string>
+    <string name="activity_linking_induction_text_2" translatable="false">すでにLinkingデバイスと接続されている場合には、以下の説明を参照してください。</string>
+    <string name="activity_linking_induction_help" translatable="false">Linkingデバイスの設定</string>
+    <string name="activity_linking_induction_text_not_install" translatable="false">本アプリで、Linkingデバイスを操作するためには、Linkingアプリが必要になります。\n\nGoogle PlayからLinkingアプリをインストールして、アプリの指示に従い対応デバイスと端末を接続してください。</string>
+    <string name="activity_linking_induction_1" translatable="false">1)</string>
+    <string name="activity_linking_induction_2" translatable="false">2)</string>
+    <string name="activity_linking_induction_3" translatable="false">3)</string>
+    <string name="activity_linking_induction_4" translatable="false">4)</string>
+    <string name="activity_linking_induction_text_update" translatable="false">本アプリで、Linkingデバイスを操作するためには、最新版のLinkingアプリが必要になります。\n\nGoogle Playから最新版のLinkingアプリにアップデートしてください。</string>
+    <string name="activity_linking_induction_text" translatable="false">本アプリで、Linkingデバイスを操作するためには、Linkingアプリで以下の設定を行う必要があります。</string>
+    <string name="activity_linking_induction_text1" translatable="false">Linkingアプリを起動し、アプリの指示に従い対応デバイスと端末を接続してください。</string>
+    <string name="activity_linking_induction_text2" translatable="false">Device Connectで利用したいLinkingデバイスの設定画面にて、Linking(Device Connect Device Plug-in)の通知設定をONにしてください。</string>
+    <string name="activity_linking_induction_text3" translatable="false">設定のLEDのパターンは、点灯するいずれかのものを選択してください。Light ON APIにてそのパターンで点灯します。</string>
+    <string name="activity_linking_induction_text4" translatable="false">設定のバイブレーションのパターンは、振動するいずれかのものを選択してください。Vibration APIにてそのパターンで振動します。</string>
 
-    <string name="activity_device_title">Linkingデバイス確認</string>
-    <string name="activity_device_name">Linkingデバイス名 : </string>
-    <string name="activity_device_setting">設定</string>
-    <string name="activity_device_operation_check">動作確認</string>
-    <string name="activity_device_light_setting">LED設定</string>
-    <string name="activity_device_light_on_setting">点灯設定</string>
-    <string name="activity_device_light_on_description">点灯時の色とパターンを選択してください。</string>
-    <string name="activity_device_light_off_setting">消灯設定</string>
-    <string name="activity_device_light_off_description">消灯時のパターンを選択してください。</string>
-    <string name="activity_device_vibration_setting">Vibration設定</string>
-    <string name="activity_device_vibration_on_pattern">振動設定</string>
-    <string name="activity_device_vibration_on_description">バイブレーションが振動するパターンを設定してください。</string>
-    <string name="activity_device_vibration_off_pattern">停止設定</string>
-    <string name="activity_device_vibration_off_description">バイブレーションが停止するパターンを設定してください。</string>
-    <string name="activity_device_not_selected">未選択</string>
-    <string name="activity_device_led">LED</string>
-    <string name="activity_device_led_on">点灯</string>
-    <string name="activity_device_led_off">消灯</string>
-    <string name="activity_device_vibration_on">振動</string>
-    <string name="activity_device_vibration_off">停止</string>
-    <string name="activity_device_vibration">バイブレーション</string>
-    <string name="activity_device_sensor">センサー</string>
-    <string name="activity_device_gyro">ジャイロ</string>
-    <string name="activity_device_acceleration">加速度</string>
-    <string name="activity_device_orientation">方位</string>
-    <string name="activity_device_battery">バッテリー</string>
-    <string name="activity_device_battery_level">残量</string>
-    <string name="activity_device_temperature">気温</string>
-    <string name="activity_device_temperature_value">温度</string>
-    <string name="activity_device_temperature_value_default">-</string>
-    <string name="activity_device_humidity">湿度</string>
-    <string name="activity_device_humidity_value">湿度</string>
-    <string name="activity_device_button_id">ボタンID</string>
-    <string name="activity_device_register_sensor">登録</string>
-    <string name="activity_device_unregister_sensor">解除</string>
-    <string name="activity_device_proximity">Proximity</string>
-    <string name="activity_device_proximity_range">Range</string>
-    <string name="activity_device_proximity_immediate">近く</string>
-    <string name="activity_device_proximity_near">やや近く</string>
-    <string name="activity_device_proximity_far">遠く</string>
-    <string name="activity_device_proximity_unknown">不明</string>
-    <string name="activity_device_color_list">カラーリスト</string>
-    <string name="activity_device_pattern_list">パターンリスト</string>
-    <string name="activity_device_not_support_led">このデバイスはLEDをサポートしていません。</string>
-    <string name="activity_device_not_support_vibration">このデバイスはバイブレーションをサポートしていません。</string>
-    <string name="activity_device_not_support_sensor">このデバイスはセンサーをサポートしていません。</string>
-    <string name="activity_device_not_support_battery">このデバイスはバッテリーをサポートしていません。</string>
-    <string name="activity_device_not_support_temperature">このデバイスは気温センサーをサポートしていません。</string>
-    <string name="activity_device_not_support_humidity">このデバイスは湿度センサーをサポートしていません。</string>
-    <string name="activity_device_not_support_button">このデバイスはボタンをサポートしていません。</string>
-    <string name="activity_device_sensor_value">x:%1$f\ny:%2$f\nz:%3$f\ntime:%4$d</string>
-    <string name="activity_device_unit_c">%1$.2f℃</string>
-    <string name="activity_device_unit_percent">%1$.2f%%</string>
+    <string name="activity_device_title" translatable="false">Linkingデバイス確認</string>
+    <string name="activity_device_name" translatable="false">Linkingデバイス名 : </string>
+    <string name="activity_device_setting" translatable="false">設定</string>
+    <string name="activity_device_operation_check" translatable="false">動作確認</string>
+    <string name="activity_device_light_setting" translatable="false">LED設定</string>
+    <string name="activity_device_light_on_setting" translatable="false">点灯設定</string>
+    <string name="activity_device_light_on_description" translatable="false">点灯時の色とパターンを選択してください。</string>
+    <string name="activity_device_light_off_setting" translatable="false">消灯設定</string>
+    <string name="activity_device_light_off_description" translatable="false">消灯時のパターンを選択してください。</string>
+    <string name="activity_device_vibration_setting" translatable="false">Vibration設定</string>
+    <string name="activity_device_vibration_on_pattern" translatable="false">振動設定</string>
+    <string name="activity_device_vibration_on_description" translatable="false">バイブレーションが振動するパターンを設定してください。</string>
+    <string name="activity_device_vibration_off_pattern" translatable="false">停止設定</string>
+    <string name="activity_device_vibration_off_description" translatable="false">バイブレーションが停止するパターンを設定してください。</string>
+    <string name="activity_device_not_selected" translatable="false">未選択</string>
+    <string name="activity_device_led" translatable="false">LED</string>
+    <string name="activity_device_led_on" translatable="false">点灯</string>
+    <string name="activity_device_led_off" translatable="false">消灯</string>
+    <string name="activity_device_vibration_on" translatable="false">振動</string>
+    <string name="activity_device_vibration_off" translatable="false">停止</string>
+    <string name="activity_device_vibration" translatable="false">バイブレーション</string>
+    <string name="activity_device_sensor" translatable="false">センサー</string>
+    <string name="activity_device_gyro" translatable="false">ジャイロ</string>
+    <string name="activity_device_acceleration" translatable="false">加速度</string>
+    <string name="activity_device_orientation" translatable="false">方位</string>
+    <string name="activity_device_battery" translatable="false">バッテリー</string>
+    <string name="activity_device_battery_level" translatable="false">残量</string>
+    <string name="activity_device_temperature" translatable="false">気温</string>
+    <string name="activity_device_temperature_value" translatable="false">温度</string>
+    <string name="activity_device_temperature_value_default" translatable="false">-</string>
+    <string name="activity_device_humidity" translatable="false">湿度</string>
+    <string name="activity_device_humidity_value" translatable="false">湿度</string>
+    <string name="activity_device_button_id" translatable="false">ボタンID</string>
+    <string name="activity_device_register_sensor" translatable="false">登録</string>
+    <string name="activity_device_unregister_sensor" translatable="false">解除</string>
+    <string name="activity_device_proximity" translatable="false">Proximity</string>
+    <string name="activity_device_proximity_range" translatable="false">Range</string>
+    <string name="activity_device_proximity_immediate" translatable="false">近く</string>
+    <string name="activity_device_proximity_near" translatable="false">やや近く</string>
+    <string name="activity_device_proximity_far" translatable="false">遠く</string>
+    <string name="activity_device_proximity_unknown" translatable="false">不明</string>
+    <string name="activity_device_color_list" translatable="false">カラーリスト</string>
+    <string name="activity_device_pattern_list" translatable="false">パターンリスト</string>
+    <string name="activity_device_not_support_led" translatable="false">このデバイスはLEDをサポートしていません。</string>
+    <string name="activity_device_not_support_vibration" translatable="false">このデバイスはバイブレーションをサポートしていません。</string>
+    <string name="activity_device_not_support_sensor" translatable="false">このデバイスはセンサーをサポートしていません。</string>
+    <string name="activity_device_not_support_battery" translatable="false">このデバイスはバッテリーをサポートしていません。</string>
+    <string name="activity_device_not_support_temperature" translatable="false">このデバイスは気温センサーをサポートしていません。</string>
+    <string name="activity_device_not_support_humidity" translatable="false">このデバイスは湿度センサーをサポートしていません。</string>
+    <string name="activity_device_not_support_button" translatable="false">このデバイスはボタンをサポートしていません。</string>
+    <string name="activity_device_sensor_value" translatable="false">x:%1$f\ny:%2$f\nz:%3$f\ntime:%4$d</string>
+    <string name="activity_device_unit_c" translatable="false">%1$.2f℃</string>
+    <string name="activity_device_unit_percent" translatable="false">%1$.2f%%</string>
 
-    <string name="activity_beacon_title">Linkingビーコン確認</string>
-    <string name="activity_beacon_vendor_id">VendorID</string>
-    <string name="activity_beacon_extra_id">ExtraID</string>
-    <string name="activity_beacon_version">Version</string>
-    <string name="activity_beacon_status">Status</string>
-    <string name="activity_beacon_time_stamp">タイムスタンプ</string>
-    <string name="activity_beacon_battery_low">ロウバッテリー</string>
-    <string name="activity_beacon_battery_level">バッテリーレベル</string>
-    <string name="activity_beacon_atmospheric_pressure">気圧</string>
-    <string name="activity_beacon_temperature">気温</string>
-    <string name="activity_beacon_humidity">湿度</string>
-    <string name="activity_beacon_distance">距離</string>
-    <string name="activity_beacon_raw_data">RawData</string>
-    <string name="activity_beacon_button">ボタン</string>
-    <string name="activity_beacon_menu">削除</string>
-    <string name="activity_beacon_clear_button">クリア</string>
-    <string name="activity_beacon_unit_percent">%1$.2f%%</string>
-    <string name="activity_beacon_unit_hectopascal">%1$.2fhPa</string>
-    <string name="activity_beacon_unit_c">%1$.2f℃</string>
-    <string name="activity_beacon_unit_centimeter">cm</string>
-    <string name="activity_beacon_distance_close">近い</string>
-    <string name="activity_beacon_distance_little_close">やや近い</string>
-    <string name="activity_beacon_distance_far">遠い</string>
-    <string name="activity_beacon_delete_dialog_title">ビーコンの削除</string>
-    <string name="activity_beacon_delete_dialog_message">%1$sを削除しても良いでしょうか？</string>
-    <string name="activity_beacon_delete_dialog_positive">はい</string>
-    <string name="activity_beacon_delete_dialog_negative">いいえ</string>
+    <string name="activity_beacon_title" translatable="false">Linkingビーコン確認</string>
+    <string name="activity_beacon_vendor_id" translatable="false">VendorID</string>
+    <string name="activity_beacon_extra_id" translatable="false">ExtraID</string>
+    <string name="activity_beacon_version" translatable="false">Version</string>
+    <string name="activity_beacon_status" translatable="false">Status</string>
+    <string name="activity_beacon_time_stamp" translatable="false">タイムスタンプ</string>
+    <string name="activity_beacon_battery_low" translatable="false">ロウバッテリー</string>
+    <string name="activity_beacon_battery_level" translatable="false">バッテリーレベル</string>
+    <string name="activity_beacon_atmospheric_pressure" translatable="false">気圧</string>
+    <string name="activity_beacon_temperature" translatable="false">気温</string>
+    <string name="activity_beacon_humidity" translatable="false">湿度</string>
+    <string name="activity_beacon_distance" translatable="false">距離</string>
+    <string name="activity_beacon_raw_data" translatable="false">RawData</string>
+    <string name="activity_beacon_button" translatable="false">ボタン</string>
+    <string name="activity_beacon_menu" translatable="false">削除</string>
+    <string name="activity_beacon_clear_button" translatable="false">クリア</string>
+    <string name="activity_beacon_unit_percent" translatable="false">%1$.2f%%</string>
+    <string name="activity_beacon_unit_hectopascal" translatable="false">%1$.2fhPa</string>
+    <string name="activity_beacon_unit_c" translatable="false">%1$.2f℃</string>
+    <string name="activity_beacon_unit_centimeter" translatable="false">cm</string>
+    <string name="activity_beacon_distance_close" translatable="false">近い</string>
+    <string name="activity_beacon_distance_little_close" translatable="false">やや近い</string>
+    <string name="activity_beacon_distance_far" translatable="false">遠い</string>
+    <string name="activity_beacon_delete_dialog_title" translatable="false">ビーコンの削除</string>
+    <string name="activity_beacon_delete_dialog_message" translatable="false">%1$sを削除しても良いでしょうか？</string>
+    <string name="activity_beacon_delete_dialog_positive" translatable="false">はい</string>
+    <string name="activity_beacon_delete_dialog_negative" translatable="false">いいえ</string>
 
-    <string name="activity_app_info_name">アプリケーション名</string>
-    <string name="activity_app_info_version">バージョン</string>
+    <string name="activity_app_info_name" translatable="false">アプリケーション名</string>
+    <string name="activity_app_info_version" translatable="false">バージョン</string>
 
-    <string name="linking_beacon_display_name">Linking:ビーコン(%1$d)</string>
+    <string name="linking_beacon_display_name" translatable="false">Linking:ビーコン(%1$d)</string>
 
-    <string name="linking_notification_profile_type_default">通知</string>
-    <string name="linking_notification_profile_type_phone">着信通知</string>
-    <string name="linking_notification_profile_type_mail">メール通知</string>
-    <string name="linking_notification_profile_type_sms">SMS通知</string>
-    <string name="linking_notification_profile_type_event">イベント通知</string>
-    <string name="linking_notification_profile_body">通知が来ています。</string>
+    <string name="linking_notification_profile_type_default" translatable="false">通知</string>
+    <string name="linking_notification_profile_type_phone" translatable="false">着信通知</string>
+    <string name="linking_notification_profile_type_mail" translatable="false">メール通知</string>
+    <string name="linking_notification_profile_type_sms" translatable="false">SMS通知</string>
+    <string name="linking_notification_profile_type_event" translatable="false">イベント通知</string>
+    <string name="linking_notification_profile_body" translatable="false">通知が来ています。</string>
 
-    <string name="linking_beacon_scan_detail_timeout">ビーコンスキャン要求のタイムアウト</string>
-    <string name="linking_beacon_scan_detail_meta_data_none">呼び出し元アプリにて、機器通知対応の宣言が定義されていない</string>
-    <string name="linking_beacon_scan_detail_bt_disabled">端末のBluetooth設定がOFF</string>
-    <string name="linking_beacon_scan_detail_sda_disabled">Linkingアプリのビーコン設定がOFF</string>
-    <string name="linking_beacon_scan_detail_permission_denied">Linkingアプリにてビーコンスキャンに必要なPermissionが未許諾</string>
+    <string name="linking_beacon_scan_detail_timeout" translatable="false">ビーコンスキャン要求のタイムアウト</string>
+    <string name="linking_beacon_scan_detail_meta_data_none" translatable="false">呼び出し元アプリにて、機器通知対応の宣言が定義されていない</string>
+    <string name="linking_beacon_scan_detail_bt_disabled" translatable="false">端末のBluetooth設定がOFF</string>
+    <string name="linking_beacon_scan_detail_sda_disabled" translatable="false">Linkingアプリのビーコン設定がOFF</string>
+    <string name="linking_beacon_scan_detail_permission_denied" translatable="false">Linkingアプリにてビーコンスキャンに必要なPermissionが未許諾</string>
 </resources>

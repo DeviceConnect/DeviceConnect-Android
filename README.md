@@ -1,4 +1,4 @@
-Click [here](https://github.com/DeviceConnect/DeviceConnect-Android/blob/master/readme.en.md) for description of English. 
+Click [here](readme.en.md) for description of English. 
  
 # DeviceConnect-Android について
 DeviceConnect-AndroidはAndroid版のDevice Connectシステムのプラットフォームになります。
@@ -8,6 +8,8 @@ DeviceConnect-AndroidはAndroid版のDevice Connectシステムのプラット�
 * クイックスタート
 * プロジェクトの説明
 * Device Connectアプリケーションの開発
+* Device Connect SDKのJavadoc出力
+* ビルドマニュアル
 
 Device Connect システムについての詳細な説明は、[こちら](https://github.com/DeviceConnect/DeviceConnect-Docs/wiki)を参照してください。
 
@@ -140,7 +142,7 @@ Device Connect Managerを使用したアプリケーション開を開発した�
 * [デバイスプラグイン開発マニュアル](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/DevicePlugin-Manual-for-Android-Studio-200)<br>
 Device Connect Managerに対応したデバイスプラグインを開発したい場合には、こちらのデバイスプラグイン開発マニュアルをご参照ください。
 
-## Device Connect SDKのJavadoc出力
+# Device Connect SDKのJavadoc出力
 
 ```
 $ cd DeviceConnect-Android-master/dConnectManager/dConnectManager
@@ -156,7 +158,7 @@ $ gradle generateJavadocForPlugin
 
 gradleを実行したディレクトリに`DevicePluginSDK-Javadoc`が作成され、Device Plugin SDKのJavadocが出力されます。
 
-## ビルドマニュアル
+# ビルドマニュアル
 Device Connect Managerや各デバイスプラグインを開発したい人は、こちらのビルド手順書に従ってビルドしてください。
 
 * [DeviceConnectManager](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/DeviceConnectManager-Build)

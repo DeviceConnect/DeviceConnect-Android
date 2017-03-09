@@ -1,4 +1,4 @@
-日本語説明は[こちら](https://github.com/DeviceConnect/DeviceConnect-Android/blob/master/README.md)を参照してください。
+日本語説明は[こちら](README.md)を参照してください。
 
 # About DeviceConnect-Android
 Device Connect WebAPI in WebAPI which operates as a virtual server on the smartphone, it can be easy to use in a uniform description of various wearable devices and IoT devices from a Web browser and apps.
@@ -9,6 +9,8 @@ In this guide I will continue to discuss the following.
 * Quick Start
 * Project description
 * Development of DeviceConnect app
+* Generate a Javadoc of Device Connect SDK
+* Build Manuals
 
 Click [here](https://github.com/DeviceConnect/DeviceConnect-Docs/wiki)
  about DeviceConnect System.
@@ -64,9 +66,9 @@ If Host's icon cannot be displayed, please click the 'Search Service' button.
     </a>
 </div>
 
-外部のPCからアクセスしたい場合には、Device Connect Managerの設定画面で`外部IPを許可`を有効にしてからDevice Connect Managerを再起動します。
+If you want to access from an external PC, enable `enable external IP` on the Device Connect Manager setting screen and restart Device Connect Manager.
 
-IPアドレスをDevice Connect Managerの設定画面で表示されているHostの値に設定して、以下のCURLコマンドを実行します。
+Set the IP address to the value of Host displayed on the Device Connect Manager setting screen and execute the following CURL command.
 
 ```
 curl  -X GET \
@@ -74,7 +76,7 @@ curl  -X GET \
       http://192.168.xxx.xxx:4035/gotapi/availability
 ```
 
-以下のようなレスポンスが返却されれば、Device Connect Managerが起動していることを確認することができます。
+If the following response is returned, you can check that Device Connect Manager is running.
 
 ```
 {
@@ -139,23 +141,23 @@ If you want to develop a device plug-ins using the Device Connect Manager, pleas
 
 * [Device Plug-in Development Manual](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/DevicePlugin-Manual-for-Android-Studio-200)
 
-## Generate a Javadoc of Device Connect SDK
+# Generate a Javadoc of Device Connect SDK
 
 ```
 $ cd DeviceConnect-Android-master/dConnectManager/dConnectManager
 $ gradle generateJavadocForSDK
 ```
 
-gradleを実行したディレクトリに`DeviceConnectSDK-Javadoc`が作成され、Device Connect SDKのJavadocが出力されます。
+`DeviceConnectSDK-Javadoc` is created in the directory where gradle is executed and Javadoc of Device Connect SDK is output.
 
 ```
 $ cd DeviceConnect-Android-master/dConnectManager/dConnectManager
 $ gradle generateJavadocForPlugin
 ```
 
-gradleを実行したディレクトリに`DevicePluginSDK-Javadoc`が作成され、Device Plugin SDKのJavadocが出力されます。
+`DevicePluginSDK-Javadoc` is created in the directory where gradle was executed and Javadoc of Device Plugin SDK is output.
 
-## Build Manual
+# Build Manuals
 People who want to develop the DeviceConnectManager and device Plug-ins, please build in accordance with this build instructions.
 
 * [DeviceConnectManager](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/DeviceConnectManager-Build)

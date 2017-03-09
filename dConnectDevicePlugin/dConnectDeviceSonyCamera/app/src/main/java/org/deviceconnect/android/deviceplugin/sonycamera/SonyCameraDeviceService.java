@@ -179,7 +179,7 @@ public class SonyCameraDeviceService extends DConnectMessageService {
         // ファイル管理クラスの作成
         mFileMgr = new FileManager(this);
 
-        WifiManager wifiMgr = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+        WifiManager wifiMgr = getWifiManager();
         WifiInfo wifiInfo = wifiMgr.getConnectionInfo();
         if (DConnectUtil.checkSSID(wifiInfo.getSSID())) {
             connectSonyCamera();
@@ -289,7 +289,7 @@ public class SonyCameraDeviceService extends DConnectMessageService {
             mLogger.info("Received: WIFI_STATE_CHANGED_ACTION");
             int state = intent.getIntExtra(WifiManager.EXTRA_WIFI_STATE, WifiManager.WIFI_STATE_UNKNOWN);
             if (state == WifiManager.WIFI_STATE_ENABLED) {
-                WifiManager wifiMgr = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+                WifiManager wifiMgr = getWifiManager();
                 WifiInfo wifiInfo = wifiMgr.getConnectionInfo();
                 if (DConnectUtil.checkSSID(wifiInfo.getSSID())) {
                     connectSonyCamera();
@@ -328,6 +328,14 @@ public class SonyCameraDeviceService extends DConnectMessageService {
             return START_STICKY;
         }
         return super.onStartCommand(intent, flags, startId);
+    }
+
+    /**
+     * WifiManagerを取得する.
+     * @return WifiManagerのインスタンス
+     */
+    private WifiManager getWifiManager() {
+        return (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
     }
 
     /**
@@ -900,7 +908,7 @@ public class SonyCameraDeviceService extends DConnectMessageService {
                 createSonyCameraSDK(device);
                 
                 // 接続したwifiのSSIDを保持
-                WifiManager wifiMgr = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+                WifiManager wifiMgr = getWifiManager();
                 WifiInfo wifiInfo = wifiMgr.getConnectionInfo();
                 mSSID = wifiInfo.getSSID();
 

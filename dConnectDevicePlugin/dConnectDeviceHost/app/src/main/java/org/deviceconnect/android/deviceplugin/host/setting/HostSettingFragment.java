@@ -38,7 +38,7 @@ public class HostSettingFragment extends Fragment {
         View mView = inflater.inflate(mPageLayoutId, container, false);
 
         if (mPagePosition == 0) {
-            WifiManager wifiManager = (WifiManager) this.getActivity().getSystemService(WIFI_SERVICE);
+            WifiManager wifiManager = getWifiManager();
             int ipAddress = wifiManager.getConnectionInfo().getIpAddress();
             final String formatedIpAddress = String.format("%d.%d.%d.%d", (ipAddress & 0xff), (ipAddress >> 8 & 0xff),
                     (ipAddress >> 16 & 0xff), (ipAddress >> 24 & 0xff));
@@ -54,5 +54,9 @@ public class HostSettingFragment extends Fragment {
     @Override
     public void onStop() {
         super.onStop();
+    }
+
+    private WifiManager getWifiManager() {
+        return (WifiManager) getActivity().getApplicationContext().getSystemService(WIFI_SERVICE);
     }
 }

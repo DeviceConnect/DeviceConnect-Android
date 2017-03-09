@@ -28,10 +28,8 @@ import android.os.Looper;
 import android.os.ResultReceiver;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
@@ -51,8 +49,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
-
-import static android.content.Context.WIFI_SERVICE;
 
 /**
  * Sony Camera 接続処理用フラグメント.
@@ -104,17 +100,17 @@ public class SonyCameraConnectingFragment extends SonyCameraBaseFragment {
     };
 
     @Override
-    public View onCreateView(final LayoutInflater inflater, 
-            final ViewGroup container, final Bundle savedInstanceState) {
+    public View onCreateView(final LayoutInflater inflater,
+                             final ViewGroup container, final Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_connecting_camera, container, false);
 
         mSettings = new UserSettings(getActivity());
-        mWifiMgr = (WifiManager) getActivity().getSystemService(WIFI_SERVICE);
+        mWifiMgr = getWifiManager();
 
         mServiceIdView = (TextView) view.findViewById(R.id.camera_id);
 
         final Button searchBtn = (Button) view.findViewById(R.id.search_and_connect_button);
-        searchBtn.setOnClickListener(new OnClickListener() {
+        searchBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View v) {
                 if (DConnectUtil.checkSSID(mWifiMgr.getConnectionInfo().getSSID())) {
@@ -142,6 +138,10 @@ public class SonyCameraConnectingFragment extends SonyCameraBaseFragment {
         IntentFilter filter = new IntentFilter();
         filter.addAction(WifiManager.NETWORK_STATE_CHANGED_ACTION);
         getActivity().registerReceiver(mReceiver, filter);
+    }
+
+    private WifiManager getWifiManager() {
+        return (WifiManager) getActivity().getApplicationContext().getSystemService(Context.WIFI_SERVICE);
     }
 
     /**

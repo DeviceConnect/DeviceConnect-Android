@@ -317,7 +317,7 @@ public class HostConnectionProfile extends ConnectionProfile {
 
         setResult(response, IntentDConnectMessage.RESULT_OK);
 
-        WifiManager mWifiManager = (WifiManager) getContext().getSystemService(Context.WIFI_SERVICE);
+        WifiManager mWifiManager = getWifiManager();
         if (BuildConfig.DEBUG) {
             Log.i(TAG, "WifiManager:" + mWifiManager.isWifiEnabled());
         }
@@ -332,7 +332,7 @@ public class HostConnectionProfile extends ConnectionProfile {
      * @param enabled WiFi接続状態
      */
     protected void setEnabledOfWiFi(final Intent request, final Intent response, final boolean enabled) {
-        WifiManager wifiMgr = (WifiManager) getContext().getSystemService(Context.WIFI_SERVICE);
+        WifiManager wifiMgr = getWifiManager();
         if (wifiMgr.setWifiEnabled(enabled)) {
             setResult(response, IntentDConnectMessage.RESULT_OK);
         } else {
@@ -412,4 +412,7 @@ public class HostConnectionProfile extends ConnectionProfile {
         }
     }
 
+    private WifiManager getWifiManager() {
+        return (WifiManager) getContext().getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+    }
 }

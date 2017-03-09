@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="alljoyn_settings_master_textViewDesc_text">AllJoyn製品には初回設定が必要なものがあります。\n下記から当該製品の初回設定チュートリアルを選択してください。</string>
+    <string name="alljoyn_settings_master_textViewTopBar_text">AllJoyn設定</string>
+    <string name="alljoyn_settings_lifx_01_textViewDesc1_text">Google PlayからLIFXアプリをインストールしてください。\n\nアプリ起動後、指示に従いLIFX製品のWiFi設定を行ってください。LIFX製品の接続先ネットワークにはこのAndroid端末が接続しているのと同一のものを選択してください。</string>
+    <string name="alljoyn_settings_lifx_01_textViewDesc2_text">LIFX製品のWiFi設定の後、AllJoynデバイスプラグインからLIFX製品にアクセスすることが可能となります。</string>
+</resources>

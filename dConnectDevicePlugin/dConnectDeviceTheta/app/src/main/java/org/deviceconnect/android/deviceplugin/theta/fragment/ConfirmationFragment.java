@@ -98,7 +98,7 @@ public class ConfirmationFragment extends SettingsFragment implements ThetaDevic
         final View rootView = inflater.inflate(R.layout.fragment_confirmation, null);
         mServiceIdView = (TextView) rootView.findViewById(R.id.camera_search_message);
         mSettings = new UserSettings(getActivity());
-        mWifiMgr = (WifiManager) getActivity().getSystemService(Context.WIFI_SERVICE);
+        mWifiMgr = getWifiManager();
 
         Button btnCameraSearch = (Button) rootView.findViewById(R.id.btn_camera_search);
         btnCameraSearch.setOnClickListener(new View.OnClickListener() {
@@ -115,6 +115,10 @@ public class ConfirmationFragment extends SettingsFragment implements ThetaDevic
         });
 
         return rootView;
+    }
+
+    private WifiManager getWifiManager() {
+        return (WifiManager) getActivity().getApplicationContext().getSystemService(Context.WIFI_SERVICE);
     }
 
     /* Get connected Theta device's info. */

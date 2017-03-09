@@ -243,7 +243,7 @@ public class HostDeviceService extends DConnectMessageService {
             Intent mIntent = EventManager.createEventMessage(event);
             HostConnectionProfile.setAttribute(mIntent, HostConnectionProfile.ATTRIBUTE_ON_WIFI_CHANGE);
             Bundle wifiConnecting = new Bundle();
-            WifiManager wifiMgr = (WifiManager) getContext().getSystemService(Context.WIFI_SERVICE);
+            WifiManager wifiMgr = getWifiManager();
             HostConnectionProfile.setEnable(wifiConnecting, wifiMgr.isWifiEnabled());
             HostConnectionProfile.setConnectStatus(mIntent, wifiConnecting);
             sendEvent(mIntent, event.getAccessToken());
@@ -266,6 +266,10 @@ public class HostDeviceService extends DConnectMessageService {
             sendEvent(mIntent, event.getAccessToken());
         }
         return START_STICKY;
+    }
+
+    private WifiManager getWifiManager() {
+        return (WifiManager) getContext().getApplicationContext().getSystemService(Context.WIFI_SERVICE);
     }
 
     /**

@@ -796,6 +796,188 @@ public class DConnectServerNanoHttpdTest {
     }
 
     /**
+     * HTTPボディに複数のKeyValueを指定して、HTTP通信を行う。
+     * <pre>
+     * 【期待する動作】
+     * ・DConnectServerNanoHttpdにHTTP通信して、レスポンスのステータスコードに200が返却されること。
+     * </pre>
+     */
+    @Test
+    public void DConnectServerNanoHttpd_body_multiple_key_value() {
+        final CountDownLatch latch = new CountDownLatch(1);
+        final String path = "/root/path";
+        final Map<String, String> keyValue = new HashMap<>();
+        keyValue.put("key", "value");
+        keyValue.put("key1", "バリュー");
+        keyValue.put("キー", "バリュー2");
+        keyValue.put("キー2", "value2");
+
+        File file = getContext().getFilesDir();
+        DConnectServerConfig config = new DConnectServerConfig.Builder().port(PORT).documentRootPath(file.getPath()).build();
+        DConnectServer server = new DConnectServerNanoHttpd(config, getContext());
+        server.setServerEventListener(new DConnectServerEventListener() {
+            @Override
+            public boolean onReceivedHttpRequest(final HttpRequest req, final HttpResponse res) {
+                res.setCode(HttpResponse.StatusCode.OK);
+
+                HttpRequest.Method method = req.getMethod();
+                if (!HttpRequest.Method.POST.equals(method)) {
+                    res.setCode(HttpResponse.StatusCode.BAD_REQUEST);
+                }
+
+                String uri = req.getUri();
+                if (!path.equals(uri)) {
+                    res.setCode(HttpResponse.StatusCode.BAD_REQUEST);
+                }
+
+                for (String key : keyValue.keySet()) {
+                    String v1 = req.getQueryParameters().get(key);
+                    String v2 = keyValue.get(key);
+                    if (!v1.equals(v2)) {
+                        res.setCode(HttpResponse.StatusCode.BAD_REQUEST);
+                    }
+                }
+
+                return true;
+            }
+
+            @Override
+            public void onError(final DConnectServerError errorCode) {
+            }
+
+            @Override
+            public void onServerLaunched() {
+                latch.countDown();
+            }
+
+            @Override
+            public void onWebSocketConnected(final DConnectWebSocket webSocket) {
+            }
+
+            @Override
+            public void onWebSocketDisconnected(final DConnectWebSocket webSocket) {
+            }
+
+            @Override
+            public void onWebSocketMessage(final DConnectWebSocket webSocket, final String message) {
+            }
+        });
+        server.start();
+
+        try {
+            latch.await(10, TimeUnit.SECONDS);
+
+            String data = "";
+            for (String key : keyValue.keySet()) {
+                if (!data.isEmpty()) {
+                    data += "&";
+                }
+                data += key + "=" + keyValue.get(key);
+            }
+
+            HttpUtils.Response response = HttpUtils.post(HTTP_LOCALHOST_PORT + path, data);
+            assertThat(response, is(notNullValue()));
+            assertThat(response.getStatusCode(), is(200));
+            assertThat(response.getBody(), is(notNullValue()));
+        } catch (InterruptedException e) {
+            fail("timeout");
+        } finally {
+            server.shutdown();
+        }
+    }
+
+    /**
+     * HTTPボディに長いのKeyValueを指定して、HTTP通信を行う。
+     * <pre>
+     * 【期待する動作】
+     * ・DConnectServerNanoHttpdにHTTP通信して、レスポンスのステータスコードに200が返却されること。
+     * </pre>
+     */
+    @Test
+    public void DConnectServerNanoHttpd_body_long_key_value() {
+        final CountDownLatch latch = new CountDownLatch(1);
+        final String path = "/root/path";
+        final Map<String, String> keyValue = new HashMap<>();
+        keyValue.put("01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789",
+                "01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789");
+        keyValue.put("あいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえお",
+                "あいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえお");
+
+        File file = getContext().getFilesDir();
+        DConnectServerConfig config = new DConnectServerConfig.Builder().port(PORT).documentRootPath(file.getPath()).build();
+        DConnectServer server = new DConnectServerNanoHttpd(config, getContext());
+        server.setServerEventListener(new DConnectServerEventListener() {
+            @Override
+            public boolean onReceivedHttpRequest(final HttpRequest req, final HttpResponse res) {
+                res.setCode(HttpResponse.StatusCode.OK);
+
+                HttpRequest.Method method = req.getMethod();
+                if (!HttpRequest.Method.POST.equals(method)) {
+                    res.setCode(HttpResponse.StatusCode.BAD_REQUEST);
+                }
+
+                String uri = req.getUri();
+                if (!path.equals(uri)) {
+                    res.setCode(HttpResponse.StatusCode.BAD_REQUEST);
+                }
+
+                for (String key : keyValue.keySet()) {
+                    String v1 = req.getQueryParameters().get(key);
+                    String v2 = keyValue.get(key);
+                    if (!v1.equals(v2)) {
+                        res.setCode(HttpResponse.StatusCode.BAD_REQUEST);
+                    }
+                }
+
+                return true;
+            }
+
+            @Override
+            public void onError(final DConnectServerError errorCode) {
+            }
+
+            @Override
+            public void onServerLaunched() {
+                latch.countDown();
+            }
+
+            @Override
+            public void onWebSocketConnected(final DConnectWebSocket webSocket) {
+            }
+
+            @Override
+            public void onWebSocketDisconnected(final DConnectWebSocket webSocket) {
+            }
+
+            @Override
+            public void onWebSocketMessage(final DConnectWebSocket webSocket, final String message) {
+            }
+        });
+        server.start();
+
+        try {
+            latch.await(10, TimeUnit.SECONDS);
+
+            String data = "";
+            for (String key : keyValue.keySet()) {
+                if (!data.isEmpty()) {
+                    data += "&";
+                }
+                data += key + "=" + keyValue.get(key);
+            }
+
+            HttpUtils.Response response = HttpUtils.post(HTTP_LOCALHOST_PORT + path, data);
+            assertThat(response, is(notNullValue()));
+            assertThat(response.getStatusCode(), is(200));
+            assertThat(response.getBody(), is(notNullValue()));
+        } catch (InterruptedException e) {
+            fail("timeout");
+        } finally {
+            server.shutdown();
+        }
+    }
+
+    /**
      * HTTPボディに1GBのデータを指定して、HTTP通信を行う。
      * <pre>
      * 【期待する動作】

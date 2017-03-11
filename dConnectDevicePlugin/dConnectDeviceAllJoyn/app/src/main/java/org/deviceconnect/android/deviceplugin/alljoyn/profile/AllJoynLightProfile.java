@@ -377,7 +377,6 @@ public class AllJoynLightProfile extends LightProfile {
                             sendResponse(response);
                             return;
                         }
-
                         Lamp.GetLampDetails_return_value_usa_sv lampDetailsResponse = proxy.getLampDetails(_lightId);
                         if (lampDetailsResponse == null) {
                             MessageUtils.setUnknownError(response,
@@ -390,12 +389,10 @@ public class AllJoynLightProfile extends LightProfile {
                             sendResponse(response);
                             return;
                         }
-
                         HashMap<String, Variant> newStates = new HashMap<>();
 
                         // NOTE: Arithmetic operations in primitive types may lead to arithmetic
                         // overflow. To retain precision, BigDecimal objects are used.
-
                         newStates.put("OnOff", new Variant(true, "b"));
                         if (lampDetailsResponse.lampDetails.containsKey("Color")) {
                             if (lampDetailsResponse.lampDetails.get("Color").getObject(boolean.class)
@@ -431,7 +428,8 @@ public class AllJoynLightProfile extends LightProfile {
                         }
 
                         Lamp.TransitionLampState_return_value_us transLampStateResponse =
-                                proxy.transitionLampState(lightId, newStates, TRANSITION_PERIOD);
+                                proxy.transitionLampState(_lightId, newStates, TRANSITION_PERIOD);
+
                         if (transLampStateResponse == null) {
                             MessageUtils.setUnknownError(response,
                                     "Failed to change lamp states (not get transitionLampState).");
@@ -443,6 +441,7 @@ public class AllJoynLightProfile extends LightProfile {
                             sendResponse(response);
                             return;
                         }
+
                     } catch (BusException e) {
                         MessageUtils.setUnknownError(response, e.getLocalizedMessage());
                         sendResponse(response);
@@ -763,6 +762,8 @@ public class AllJoynLightProfile extends LightProfile {
 
         if (flashing != null) {
             flashingForController(response, brightness, color, lightId, flashing); //do not check result of flashing
+            setResultOK(response);
+            sendResponse(response);
         } else {
             final AllJoynDeviceApplication app = getApplication();
 
@@ -801,7 +802,6 @@ public class AllJoynLightProfile extends LightProfile {
                             sendResponse(response);
                             return;
                         }
-
                         HashMap<String, Variant> newStates = new HashMap<>();
 
                         // NOTE: Arithmetic operations in primitive types may lead to arithmetic

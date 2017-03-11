@@ -95,7 +95,6 @@ public class HostBatteryManager {
      * バッテリーのIntentから情報を取得.
      */
     public void getBatteryInfo() {
-
         IntentFilter filter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
         Intent batteryStatus;
         int i = 0;
@@ -146,6 +145,10 @@ public class HostBatteryManager {
             break;
         }
 
+        // チャージングフラグ
+        mChargingFlag = (plugged != 0);
+
+        // バッテリー残量
         mValueLevel = batteryStatus.getIntExtra("level", 0);
         mValueScale = batteryStatus.getIntExtra("scale", 0);
     }

@@ -42,6 +42,7 @@ public class HostBatteryProfile extends BatteryProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
+            getBatteryManager().getBatteryInfo();
             int mLevel = getBatteryManager().getBatteryLevel();
             int mScale = getBatteryManager().getBatteryScale();
             if (mScale <= 0) {
@@ -65,6 +66,7 @@ public class HostBatteryProfile extends BatteryProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
+            getBatteryManager().getBatteryInfo();
             setResult(response, IntentDConnectMessage.RESULT_OK);
             setCharging(response, getBatteryManager().isChargingFlag());
             return true;
@@ -74,6 +76,7 @@ public class HostBatteryProfile extends BatteryProfile {
     private final DConnectApi mBatteryAllApi = new GetApi() {
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
+            getBatteryManager().getBatteryInfo();
             int mLevel = getBatteryManager().getBatteryLevel();
             int mScale = getBatteryManager().getBatteryScale();
             if (mScale <= 0) {

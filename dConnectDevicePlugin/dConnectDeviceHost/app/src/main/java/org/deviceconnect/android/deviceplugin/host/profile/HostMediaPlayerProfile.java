@@ -502,10 +502,26 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
         Cursor cursor = null;
 
         // Get media path.
-        Uri uri = ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, Long.valueOf(mediaId));
+        Uri uri;
+        if (mediaId.length() != 0) {
+            if (!(isMediaId(mediaId))) {
+                uri = Uri.parse(mediaId);
+            } else {
+                uri = ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, Long.valueOf(mediaId));
+            }
+        } else {
+            MessageUtils.setInvalidRequestParameterError(response);
+            sendResponse(response);
+            return;
+        }
+
         String fileName = getDisplayNameFromUri(uri);
         if (fileName == null) {
-            uri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, Long.valueOf(mediaId));
+            if (!(isMediaId(mediaId))) {
+                uri = Uri.parse(mediaId);
+            } else {
+                uri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, Long.valueOf(mediaId));
+            }
             fileName = getDisplayNameFromUri(uri);
             if (fileName == null) {
                 MessageUtils.setInvalidRequestParameterError(response);
@@ -1385,6 +1401,20 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
             return SortOrder.TITLE_DESC;
         } else {
             return SortOrder.TITLE_ASC;
+        }
+    }
+
+    /**
+     * Check mediaId exchange Long value.
+     * @param mediaId media ID
+     * @return true:OK, false:NG
+     */
+    private boolean isMediaId(final String mediaId) {
+        try {
+            Long.valueOf(mediaId);
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
         }
     }
 }

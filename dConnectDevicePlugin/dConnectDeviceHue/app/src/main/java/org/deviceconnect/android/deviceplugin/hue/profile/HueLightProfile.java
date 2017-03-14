@@ -20,15 +20,14 @@ import com.philips.lighting.model.PHLight;
 import com.philips.lighting.model.PHLight.PHLightColorMode;
 import com.philips.lighting.model.PHLightState;
 
-import org.deviceconnect.android.deviceplugin.hue.HueDeviceService;
 import org.deviceconnect.android.deviceplugin.hue.R;
-import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.LightProfile;
 import org.deviceconnect.android.profile.api.DeleteApi;
 import org.deviceconnect.android.profile.api.GetApi;
 import org.deviceconnect.android.profile.api.PostApi;
 import org.deviceconnect.android.profile.api.PutApi;
+import org.deviceconnect.android.service.DConnectService;
 import org.deviceconnect.message.DConnectMessage;
 
 import java.util.ArrayList;
@@ -60,6 +59,9 @@ public class HueLightProfile extends LightProfile {
      */
     private static final int HUE_BRIGHTNESS_TUNED_MAX_VALUE = 254;
 
+    /**
+     * ライトフラッシング管理マップ.
+     */
     private final Map<String, FlashingExecutor> mFlashingMap = new HashMap<String, FlashingExecutor>();
 
     public HueLightProfile() {
@@ -89,6 +91,7 @@ public class HueLightProfile extends LightProfile {
                 return true;
             }
         });
+
         addApi(new PostApi() {
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
@@ -112,7 +115,6 @@ public class HueLightProfile extends LightProfile {
 
                 final PHLightState lightState = makeLightState(color, brightness, flashing);
                 if (flashing != null) {
-
                     flashing(lightId, lightState, bridge, light, flashing);
                     sendResultOK(response);//do not check result of flashing
                     return true;
@@ -125,6 +127,10 @@ public class HueLightProfile extends LightProfile {
 
                         @Override
                         public void onError(final int code, final String message) {
+                            if (code == PHHueError.AUTHENTICATION_FAILED) {
+                                disconnectHueBridge(bridge);
+                            }
+
                             MessageUtils.setUnknownError(response, code + ": " + message);
                             sendResultERR(response);
                         }
@@ -133,13 +139,14 @@ public class HueLightProfile extends LightProfile {
                 }
             }
         });
+
         addApi(new DeleteApi() {
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
                 String serviceId = getServiceID(request);
                 String lightId = getLightId(request);
 
-                PHBridge bridge = findBridge(serviceId);
+                final PHBridge bridge = findBridge(serviceId);
                 if (bridge == null) {
                     MessageUtils.setNotFoundServiceError(response, "Not found bridge: " + serviceId);
                     return true;
@@ -163,6 +170,10 @@ public class HueLightProfile extends LightProfile {
 
                     @Override
                     public void onError(final int code, final String message) {
+                        if (code == PHHueError.AUTHENTICATION_FAILED) {
+                            disconnectHueBridge(bridge);
+                        }
+
                         String errMsg = getContext().getString(
                             R.string.error_message_failed_to_update_light,
                             code, message);
@@ -173,6 +184,7 @@ public class HueLightProfile extends LightProfile {
                 return false;
             }
         });
+
         addApi(new PutApi() {
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
@@ -216,7 +228,7 @@ public class HueLightProfile extends LightProfile {
                     }
 
                     @Override
-                    public void onError(int code, String message) {
+                    public void onError(final int code, final String message) {
                         super.onError(code, message);
                         String errMsg = getContext().getString(
                             R.string.error_message_failed_to_update_light,
@@ -232,7 +244,6 @@ public class HueLightProfile extends LightProfile {
                         }
                         countDownLatch.countDown();
                     }
-
                 });
 
                 final PHLightState lightState = makeLightState(color, brightness, flashing);
@@ -244,12 +255,16 @@ public class HueLightProfile extends LightProfile {
                         private boolean mErrorFlag = false;
 
                         @Override
-                        public void onStateUpdate(Map<String, String> successAttribute, List<PHHueError> errorAttribute) {
+                        public void onStateUpdate(final Map<String, String> successAttribute, final List<PHHueError> errorAttribute) {
                             countDown();
                         }
 
                         @Override
-                        public void onError(int code, String message) {
+                        public void onError(final int code, final String message) {
+                            if (code == PHHueError.AUTHENTICATION_FAILED) {
+                                disconnectHueBridge(bridge);
+                            }
+
                             String errMsg = getContext().getString(
                                 R.string.error_message_failed_to_update_light,
                                 code, message);
@@ -302,16 +317,16 @@ public class HueLightProfile extends LightProfile {
         }
         exe.setLightControllable(new FlashingExecutor.LightControllable() {
             @Override
-            public void changeLight(boolean isOn, final FlashingExecutor.CompleteListener listener) {
+            public void changeLight(final boolean isOn, final FlashingExecutor.CompleteListener listener) {
                 lightState.setOn(isOn);
                 bridge.updateLightState(light, lightState, new PHLightAdapter() {
                     @Override
-                    public void onStateUpdate(Map<String, String> successAttribute, List<PHHueError> errorAttribute) {
+                    public void onStateUpdate(final Map<String, String> successAttribute, final List<PHHueError> errorAttribute) {
                         listener.onComplete();
                     }
 
                     @Override
-                    public void onError(int code, String message) {
+                    public void onError(final int code, final String message) {
                         listener.onComplete();
                     }
                 });
@@ -331,7 +346,7 @@ public class HueLightProfile extends LightProfile {
                 } catch (InterruptedException e) {
                     MessageUtils.setTimeoutError(response);
                 }
-                ((DConnectMessageService) getContext()).sendResponse(response);
+                sendResponse(response);
             }
         }).start();
     }
@@ -363,8 +378,8 @@ public class HueLightProfile extends LightProfile {
      * @return Hueのブリッジを管理するオブジェクト
      */
     private PHBridge findBridge(final String serviceId) {
-        PHBridge bridge = PHHueSDK.getInstance().getSelectedBridge();
-        if (bridge != null) {
+        List<PHBridge> bridges = PHHueSDK.getInstance().getAllBridges();
+        for (PHBridge bridge : bridges) {
             PHBridgeResourcesCache cache = bridge.getResourceCache();
             String ipAddress = cache.getBridgeConfiguration().getIpAddress();
             if (serviceId.equals(ipAddress)) {
@@ -398,14 +413,29 @@ public class HueLightProfile extends LightProfile {
     }
 
     /**
+     * 認証が失敗した場合にブリッジを切断します.
+     * @param bridge 切断するブリッジ
+     */
+    private void disconnectHueBridge(final PHBridge bridge) {
+        if (bridge == null) {
+            return;
+        }
+
+        PHHueSDK hueSDK = PHHueSDK.getInstance();
+        hueSDK.disconnect(bridge);
+
+        DConnectService service = getService();
+        service.setOnline(false);
+    }
+
+    /**
      * 成功レスポンス送信.
      *
      * @param response response
      */
     private void sendResultOK(final Intent response) {
         setResult(response, DConnectMessage.RESULT_OK);
-        HueDeviceService service = (HueDeviceService) getContext();
-        service.sendResponse(response);
+        sendResponse(response);
     }
 
     /**
@@ -415,8 +445,7 @@ public class HueLightProfile extends LightProfile {
      */
     private void sendResultERR(final Intent response) {
         setResult(response, DConnectMessage.RESULT_ERROR);
-        HueDeviceService service = (HueDeviceService) getContext();
-        service.sendResponse(response);
+        sendResponse(response);
     }
 
     /**
@@ -460,22 +489,27 @@ public class HueLightProfile extends LightProfile {
          * モデル.
          */
         private static final String MODEL = "LCT001";
+
         /**
          * R.
          */
         final int mR;
+
         /**
          * G.
          */
         final int mG;
+
         /**
          * B.
          */
         final int mB;
+
         /**
          * 色相のX座標.
          */
         final float mX;
+
         /**
          * 色相のY座標.
          */

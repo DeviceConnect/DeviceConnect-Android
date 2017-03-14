@@ -453,33 +453,27 @@ public class ChromeCastService extends DConnectMessageService implements
         }
 
         if (app.getDiscovery().getSelectedDevice() != null) {
-            if (app.getController().getGoogleApiClient() == null) {
-                // Request in connection queuing
-                callback.onResponse();
-                return;
-            }
-            if (app.getDiscovery().getSelectedDevice().getDeviceId().equals(serviceId)
-                    && !app.getController().getGoogleApiClient().isConnecting()) {
-                app.getController().connect();
-                // Whether application that had been started before whether other apps
-                try {
-                    String status = Cast.CastApi.getApplicationStatus(app.getController().getGoogleApiClient());
+            // Whether application that had been started before whether other apps
+            try {
+                if (app.getController().getGoogleApiClient() == null) {
+                    // Request in connection queuing
+                    callback.onResponse();
+                    return;
+                }
+                if (app.getDiscovery().getSelectedDevice().getDeviceId().equals(serviceId)
+                        && !app.getController().getGoogleApiClient().isConnecting()) {
+                    app.getController().connect();
+                        String status = Cast.CastApi.getApplicationStatus(app.getController().getGoogleApiClient());
                     if (status != null) {
                         for (int i = 0; i < mAsyncResponse.size(); i++) {
                             Callback call = mAsyncResponse.remove(i);
                             call.onResponse();
                         }
                         callback.onResponse();
-                    } else {
-                        mAsyncResponse.add(callback);
                     }
-                } catch (IllegalStateException e) {
-                    callback.onResponse();
                 }
-                return;
-            } else {
-                // Request in connection queuing
-                mAsyncResponse.add(callback);
+            } catch (IllegalStateException e) {
+                callback.onResponse();
                 return;
             }
         }

@@ -89,12 +89,9 @@ android.testVariants.all { variant ->
 
         exclude '**/org/deviceconnect/android/logger/**'
         exclude '**/org/deviceconnect/android/test/**'
+        exclude '**/org/deviceconnect/android/test/http/**'
         exclude '**/IntentDConnectTestCase.java'
         exclude '**/RESTfulDConnectTestCase.java'
-        exclude '**/TestURIBuilder.java'
-        exclude '**/*Constants.java'
-        exclude '**/Util.java'
-        exclude '**/HttpUtil.java'
         exclude '**/BuildConfig.java'
         exclude '**/R.java'
     }

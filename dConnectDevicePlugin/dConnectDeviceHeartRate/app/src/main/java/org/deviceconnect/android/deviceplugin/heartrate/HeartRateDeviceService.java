@@ -73,13 +73,13 @@ public class HeartRateDeviceService extends DConnectMessageService
             @Override
             public void onDiscovery(final List<BluetoothDevice> devices) {
                 for (BluetoothDevice device : devices) {
-                    getService(device);
+                    retrieveService(device);
                 }
             }
 
             @Override
             public void onConnected(final HeartRateDevice device) {
-                DConnectService service = getService(device);
+                DConnectService service = retrieveService(device);
                 if (service != null) {
                     service.setOnline(true);
                 }
@@ -92,7 +92,7 @@ public class HeartRateDeviceService extends DConnectMessageService
 
             @Override
             public void onDisconnected(final HeartRateDevice device) {
-                DConnectService service = getService(device);
+                DConnectService service = retrieveService(device);
                 if (service != null) {
                     service.setOnline(false);
                 }
@@ -127,16 +127,15 @@ public class HeartRateDeviceService extends DConnectMessageService
         }
 
         mHeartRateManager = new HeartRateManager(getApplicationContext());
-
-        List<HeartRateDevice> devices = getManager().getRegisterDevices();
-        for (HeartRateDevice device : devices) {
-            getService(device);
-        }
-
-        getManager().addOnHeartRateDiscoveryListener(mOnDiscoveryListener);
+        mHeartRateManager.addOnHeartRateDiscoveryListener(mOnDiscoveryListener);
 
         addProfile(new HeartRateServiceDiscoveryProfile(getServiceProvider()));
         mHeartRateProfile = new HeartRateHealthProfile(mHeartRateManager);
+
+        List<HeartRateDevice> devices = mHeartRateManager.getRegisterDevices();
+        for (HeartRateDevice device : devices) {
+            retrieveService(device);
+        }
 
         getServiceProvider().addServiceListener(this);
 
@@ -148,8 +147,8 @@ public class HeartRateDeviceService extends DConnectMessageService
         super.onDestroy();
         unregisterBluetoothFilter();
         getServiceProvider().removeServiceListener(this);
-        getManager().removeOnHeartRateDiscoveryListener(mOnDiscoveryListener);
-        getManager().stop();
+        mHeartRateManager.removeOnHeartRateDiscoveryListener(mOnDiscoveryListener);
+        mHeartRateManager.stop();
         mLogger.fine("HeartRateDeviceService end.");
     }
 
@@ -233,7 +232,7 @@ public class HeartRateDeviceService extends DConnectMessageService
      * @param device HeartRateDevice
      * @return DConnectService
      */
-    private DConnectService getService(final HeartRateDevice device) {
+    private DConnectService retrieveService(final HeartRateDevice device) {
         DConnectService service = getServiceProvider().getService(device.getAddress());
         if (service == null) {
             service = new HeartRateService(device);
@@ -248,7 +247,7 @@ public class HeartRateDeviceService extends DConnectMessageService
      * @param device BluetoothDevice
      * @return DConnectService
      */
-    private DConnectService getService(final BluetoothDevice device) {
+    private DConnectService retrieveService(final BluetoothDevice device) {
         DConnectService service = getServiceProvider().getService(device.getAddress());
         if (service == null) {
             service = new HeartRateService(device);

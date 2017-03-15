@@ -98,7 +98,9 @@ public class HueDeviceService extends DConnectMessageService {
         hueSDK.getNotificationManager().registerSDKListener(mPhListener);
 
         if (DEBUG) {
-            Log.i(TAG, "@@@@@@ PHHueSDK version:" + hueSDK.getSDKVersion());
+            Log.i(TAG, "@@@@@@ PHHueSDK version: " + hueSDK.getSDKVersion());
+            Log.i(TAG, "@@@@@@ PHHueSDK App Name: " + hueSDK.getAppName());
+            Log.i(TAG, "@@@@@@ PHHueSDK Device Name: " + hueSDK.getDeviceName());
         }
 
         // ブリッジの検索

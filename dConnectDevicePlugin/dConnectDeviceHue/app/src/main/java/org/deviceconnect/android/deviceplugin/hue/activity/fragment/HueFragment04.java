@@ -6,6 +6,7 @@ http://opensource.org/licenses/mit-license.php
  */
 package org.deviceconnect.android.deviceplugin.hue.activity.fragment;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
@@ -76,7 +77,7 @@ public class HueFragment04 extends Fragment {
 
     /**
      * Set PHAccessPoint.
-     * 
+     *
      * @param accessPoint Access point.
      */
     private void setPHAccessPoint(final PHAccessPoint accessPoint) {
@@ -243,40 +244,48 @@ public class HueFragment04 extends Fragment {
     }
 
     /**
+     * UIスレッド上で指定されたRunnableを実行します.
+     * @param run 実行するRunnable
+     */
+    private void runOnUiThread(final Runnable run) {
+        final Activity activity = getActivity();
+        if (activity != null) {
+            activity.runOnUiThread(run);
+        }
+    }
+
+    /**
      * Open progress bar. 
      */
     private void openProgressBar() {
-        final Activity activity = getActivity();
-        if (activity != null) {
-            activity.runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Activity activity = getActivity();
+                if (activity != null) {
                     mProgressBar = new ProgressDialog(activity);
                     mProgressBar.setProgressStyle(ProgressDialog.STYLE_SPINNER);
                     mProgressBar.setMessage(getString(R.string.frag04_serial_search));
                     mProgressBar.setCancelable(false);
                     mProgressBar.show();
                 }
-            });
-        }
+            }
+        });
     }
 
     /**
      * Close progress bar. 
      */
     private void closeProgressBar() {
-        Activity activity = getActivity();
-        if (activity != null) {
-            activity.runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    if (mProgressBar != null) {
-                        mProgressBar.dismiss();
-                        mProgressBar = null;
-                    }
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (mProgressBar != null) {
+                    mProgressBar.dismiss();
+                    mProgressBar = null;
                 }
-            });
-        }
+            }
+        });
     }
 
     /**
@@ -285,15 +294,15 @@ public class HueFragment04 extends Fragment {
      * @param message Show message.
      */
     private void showToast(final String message) {
-        final Activity activity = getActivity();
-        if (activity != null) {
-            activity.runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Activity activity = getActivity();
+                if (activity != null) {
                     Toast.makeText(activity, message, Toast.LENGTH_LONG).show();
                 }
-            });
-        }
+            }
+        });
     }
 
     /**
@@ -303,25 +312,27 @@ public class HueFragment04 extends Fragment {
      * </p>
      */
     private void showAuthenticationFailed() {
-        final Activity activity = getActivity();
-        if (activity != null) {
-            activity.runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    new AlertDialog.Builder(getActivity())
-                            .setTitle(R.string.frag02_failed)
-                            .setMessage(R.string.frag04_unauthorized_bridge)
-                            .setPositiveButton(R.string.hue_dialog_ok, new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(final DialogInterface dialog, final int which) {
-                                    moveFirstFragment();
-                                }
-                            })
-                            .setCancelable(false)
-                            .show();
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Activity activity = getActivity();
+                if (activity == null) {
+                    return;
                 }
-            });
-        }
+
+                new AlertDialog.Builder(activity)
+                        .setTitle(R.string.frag02_failed)
+                        .setMessage(R.string.frag04_unauthorized_bridge)
+                        .setPositiveButton(R.string.hue_dialog_ok, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(final DialogInterface dialog, final int which) {
+                                moveFirstFragment();
+                            }
+                        })
+                        .setCancelable(false)
+                        .show();
+            }
+        });
     }
 
     /**
@@ -372,11 +383,12 @@ public class HueFragment04 extends Fragment {
             return position;
         }
 
+        @SuppressLint("ViewHolder")
         @Override
         public View getView(final int position, final View convertView, final ViewGroup parent) {
             View view = convertView;
             if (view == null) {
-                view = mInflater.inflate(R.layout.hue_access_point, null);
+                view = mInflater.inflate(R.layout.hue_access_point, parent, false);
             }
 
             PHLight light = mLights.get(position);

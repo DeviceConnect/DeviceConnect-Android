@@ -85,7 +85,7 @@ public class HueFragment02 extends Fragment implements OnClickListener {
         AUTHENTICATE_FAILED,
         /** 認証済み. */
         AUTHENTICATE_SUCCESS
-    };
+    }
 
     /**
      * hueブリッジのNotificationを受け取るためのリスナー.

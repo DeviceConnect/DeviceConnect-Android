@@ -17,5 +17,8 @@
     <string name="setting_step3_ble_permission">位置情報の許可</string>
     <string name="setting_step3_ble_permission_on">取得済み</string>
     <string name="setting_step3_ble_permission_off">取得</string>
+    <string name="location_settings_title">位置情報設定</string>
+    <string name="setting_dialog_disable_location">位置情報が無効になっているために検索できません。\n位置情報設定画面から位置情報を有効に設定してください。</string>
+    <string name="setting_location_dialog_cancel">キャンセル</string>
 
 </resources>

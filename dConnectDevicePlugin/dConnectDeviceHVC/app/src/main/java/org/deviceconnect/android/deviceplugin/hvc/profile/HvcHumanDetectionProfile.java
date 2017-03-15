@@ -6,11 +6,15 @@
  */
 package org.deviceconnect.android.deviceplugin.hvc.profile;
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.location.LocationManager;
 
 import org.deviceconnect.android.deviceplugin.hvc.BuildConfig;
+import org.deviceconnect.android.deviceplugin.hvc.HvcDeviceApplication;
 import org.deviceconnect.android.deviceplugin.hvc.HvcDeviceService;
+import org.deviceconnect.android.deviceplugin.hvc.R;
 import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectKind;
 import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectRequestParams;
 import org.deviceconnect.android.deviceplugin.hvc.request.HvcDetectRequestUtils;
@@ -241,7 +245,9 @@ public class HvcHumanDetectionProfile extends HumanDetectionProfile {
      */
     private boolean doGetDetectionProc(final Intent request, final Intent response,
             final String serviceId, final HumanDetectKind detectKind) {
-        
+
+        HvcDeviceApplication.getInstance().checkLocationEnable();
+
         if (!getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
             // ble not available.
             MessageUtils.setNotSupportProfileError(response, ERROR_BLE_NOT_AVAILABLE);
@@ -289,7 +295,9 @@ public class HvcHumanDetectionProfile extends HumanDetectionProfile {
      */
     private boolean doPutDetectionProc(final Intent request, final Intent response,
             final String serviceId, final String origin, final HumanDetectKind detectKind) {
-        
+
+        HvcDeviceApplication.getInstance().checkLocationEnable();
+
         if (!getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
             // ble not available.
             MessageUtils.setNotSupportProfileError(response, ERROR_BLE_NOT_AVAILABLE);

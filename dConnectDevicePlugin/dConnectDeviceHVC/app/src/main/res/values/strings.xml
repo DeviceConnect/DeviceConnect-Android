@@ -18,5 +18,8 @@ In order to use this plug-in , please allow the following permissions.</string>
     <string name="setting_step3_ble_permission">Location Permission</string>
     <string name="setting_step3_ble_permission_on">Get</string>
     <string name="setting_step3_ble_permission_off">Acquired</string>
+    <string name="location_settings_title">Location information setting</string>
+    <string name="setting_dialog_disable_location">Can not search because the location information is disabled.\nPlease enable location information by location information setting screen.</string>
+    <string name="setting_location_dialog_cancel">Cancel</string>
 
 </resources>

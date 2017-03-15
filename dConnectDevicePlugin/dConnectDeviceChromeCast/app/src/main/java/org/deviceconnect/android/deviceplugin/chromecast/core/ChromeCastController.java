@@ -97,6 +97,9 @@ public class ChromeCastController implements
     
     @Override
     public void onConnected(final Bundle connectionHint) {
+        synchronized (mLockObj) {
+            mLockObj.notifyAll();
+        }
         if (BuildConfig.DEBUG) {
             Log.d(TAG, "onConnected:");
         }
@@ -108,9 +111,7 @@ public class ChromeCastController implements
         } else {
             launchApplication();
         }
-        synchronized (mLockObj) {
-            mLockObj.notifyAll();
-        }
+
     }
 
     @Override
@@ -138,6 +139,7 @@ public class ChromeCastController implements
             // 一度切断する
             mApiClient.disconnect();
             mApiClient.connect();
+            reconnect();
             waitForResponse();
         }
         return mApiClient;

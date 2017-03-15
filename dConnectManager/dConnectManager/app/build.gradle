@@ -70,12 +70,13 @@ dependencies {
 }
 
 android.testVariants.all { variant ->
-    task("generateJavadocForJUnit", type: Javadoc, overwrite: true) {
+    task("generateJavadocForManagerJUnit", type: Javadoc, overwrite: true) {
         title = "Android Device Connect Manager Unit Test"
         description = "Generates Javadoc for JUnit"
         source = variant.javaCompile.source
         ext.androidJar = "${android.sdkDirectory}/platforms/${android.compileSdkVersion}/android.jar"
         classpath = files(variant.javaCompile.classpath.files) + files(ext.androidJar)
+        destinationDir = new File("${project.getRootDir()}/DeviceConnectManager-JUnit-Javadoc/")
 
         options {
             links("http://docs.oracle.com/javase/jp/8/docs/api/");

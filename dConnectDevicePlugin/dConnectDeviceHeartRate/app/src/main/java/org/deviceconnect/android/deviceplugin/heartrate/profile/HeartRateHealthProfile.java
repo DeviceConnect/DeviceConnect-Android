@@ -9,7 +9,6 @@ package org.deviceconnect.android.deviceplugin.heartrate.profile;
 import android.content.Intent;
 import android.os.Bundle;
 
-import org.deviceconnect.android.deviceplugin.heartrate.HeartRateApplication;
 import org.deviceconnect.android.deviceplugin.heartrate.HeartRateDeviceService;
 import org.deviceconnect.android.deviceplugin.heartrate.HeartRateManager;
 import org.deviceconnect.android.deviceplugin.heartrate.data.HeartRateData;
@@ -427,10 +426,6 @@ public class HeartRateHealthProfile extends HealthProfile {
         if (service == null) {
             return null;
         }
-        HeartRateApplication app = (HeartRateApplication) service.getApplication();
-        if (app == null) {
-            return null;
-        }
-        return app.getHeartRateManager();
+        return service.getManager();
     }
 }

@@ -389,12 +389,6 @@ public class ChromeCastService extends DConnectMessageService implements
                 app.getController().connect();
             }
         } else {
-            DConnectService castService = getServiceProvider().getService(selectedDevice.getDeviceId());
-            if (castService == null) {
-                castService = new ChromeCastDeviceService(selectedDevice);
-                getServiceProvider().addService(castService);
-            }
-            castService.setOnline(true);
             app.getController().setSelectedDevice(selectedDevice);
             app.getController().connect();
         }
@@ -431,6 +425,16 @@ public class ChromeCastService extends DConnectMessageService implements
 
     @Override
     public synchronized void onChromeCastConnected() {
+        ChromeCastApplication app = (ChromeCastApplication) getApplication();
+        if (app != null) {
+            CastDevice currentDevice = app.getController().getSelectedDevice();
+            DConnectService castService = getServiceProvider().getService(currentDevice.getDeviceId());
+            if (castService == null) {
+                castService = new ChromeCastDeviceService(currentDevice);
+                getServiceProvider().addService(castService);
+            }
+            castService.setOnline(true);
+        }
         for (int i = 0; i < mAsyncResponse.size(); i++) {
             Callback callback = mAsyncResponse.remove(i);
             callback.onResponse();

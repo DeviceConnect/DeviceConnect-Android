@@ -74,7 +74,7 @@ public class CanvasProfileActivity extends Activity  {
         /**
          * リソースの取得に失敗.
          */
-        NotFoundFile
+        NotFoundResource
     }
 
     /**
@@ -101,6 +101,16 @@ public class CanvasProfileActivity extends Activity  {
      * Download flag.
      */
     private boolean mDownloadFlag = false;
+
+    /**
+     * フォアグラウンドフラグ.
+     */
+    private boolean mForegroundFlag = false;
+
+    /**
+     * 表示用オブジェクト.
+     */
+    private CanvasDrawImageObject mDrawImageObject;
 
     /**
      * Implementation of BroadcastReceiver.
@@ -134,7 +144,7 @@ public class CanvasProfileActivity extends Activity  {
             }
         });
 
-        Intent intent = mIntent;
+        Intent intent = null;
         if (savedInstanceState != null) {
             intent = (Intent) savedInstanceState.get(PARAM_INTENT);
         }
@@ -147,17 +157,25 @@ public class CanvasProfileActivity extends Activity  {
     @Override
     protected void onResume() {
         super.onResume();
+
+        mForegroundFlag = true;
+
         IntentFilter filter = new IntentFilter();
         filter.addAction(CanvasDrawImageObject.ACTION_DRAW_CANVAS);
         filter.addAction(CanvasDrawImageObject.ACTION_DELETE_CANVAS);
         LocalBroadcastManager.getInstance(this).registerReceiver(mReceiver, filter);
+
         refreshImage(mIntent);
     }
 
     @Override
     protected void onPause() {
-        super.onPause();
+        mForegroundFlag = false;
+
+        dismissDownloadDialog();
         LocalBroadcastManager.getInstance(this).unregisterReceiver(mReceiver);
+
+        super.onPause();
     }
 
     @Override
@@ -201,69 +219,101 @@ public class CanvasProfileActivity extends Activity  {
     }
 
     /**
+     * ダウンロードダイアログを表示します.
+     */
+    private synchronized void showDownloadDialog() {
+        if (mDialog != null) {
+            mDialog.dismiss();
+        }
+        mDialog = new StartingDialogFragment();
+        mDialog.show(getFragmentManager(), "dialog");
+    }
+
+    /**
+     * ダウンロードダイアログを非表示にします.
+     */
+    private synchronized void dismissDownloadDialog() {
+        if (mDialog != null) {
+            mDialog.dismiss();
+            mDialog = null;
+        }
+    }
+
+    /**
      * 画面に表示する画像を更新します.
      * @param intent 更新する画像データが入ったintent
      */
     private void refreshImage(final Intent intent) {
+        final CanvasDrawImageObject drawImageObject = CanvasDrawImageObject.create(intent);
+        if (drawImageObject == null) {
+            openNotFoundDrawImage();
+            return;
+        }
+
         if (mDownloadFlag) {
             return;
         }
         mDownloadFlag = true;
 
-        final CanvasDrawImageObject drawObj = CanvasDrawImageObject.create(intent);
-        if (drawObj == null) {
-            openNotFoundDrawImage();
-            return;
-        }
-
         AsyncTask<Void, ResourceResult, ResourceResult> task = new AsyncTask<Void, ResourceResult, ResourceResult>() {
             @Override
             protected void onPreExecute() {
-                mDialog = new StartingDialogFragment();
-                mDialog.show(getFragmentManager(), "dialog");
+                showDownloadDialog();
             }
 
             @Override
             protected ResourceResult doInBackground(final Void... params) {
+
                 if (mBitmap != null) {
-                    mBitmap.recycle();
-                    mBitmap = null;
+                    // 同じデータへのURIならば、すでに画像を読み込んでいるの表示する
+                    if (mDrawImageObject != null && drawImageObject.getData().equals(mDrawImageObject.getData())) {
+                        return ResourceResult.Success;
+                    } else {
+                        mBitmap.recycle();
+                        mBitmap = null;
+                    }
                 }
 
-                String uri = drawObj.getData();
+                String uri = drawImageObject.getData();
                 byte[] data;
                 try {
                     if (uri.startsWith("http")) {
                         data = CanvasDrawUtils.getData(uri);
+                    } else if (uri.startsWith("content")) {
+                        data = CanvasDrawUtils.getContentData(CanvasProfileActivity.this, uri);
                     } else {
                         data = CanvasDrawUtils.getCacheData(uri);
                     }
                     mBitmap = CanvasDrawUtils.getBitmap(data);
                     if (mBitmap == null) {
-                        return ResourceResult.NotFoundFile;
+                        return ResourceResult.NotFoundResource;
                     }
                 } catch (OutOfMemoryError e) {
                     return ResourceResult.OutOfMemory;
                 } catch (Exception e) {
-                    return ResourceResult.NotFoundFile;
+                    return ResourceResult.NotFoundResource;
                 }
                 return ResourceResult.Success;
             }
 
             @Override
             protected void onPostExecute(final ResourceResult result) {
-                mDialog.dismiss();
+                mDrawImageObject = drawImageObject;
 
-                switch (result) {
-                    case Success:
-                        showDrawObject(drawObj);
-                        break;
-                    case OutOfMemory:
-                        openOutOfMemory();
-                        break;
-                    case NotFoundFile:
-                        openNotFoundDrawImage();
-                        break;
+                dismissDownloadDialog();
+
+                if (mForegroundFlag) {
+                    switch (result) {
+                        case Success:
+                            showDrawObject(mDrawImageObject);
+                            break;
+                        case OutOfMemory:
+                            openOutOfMemory();
+                            break;
+                        case NotFoundResource:
+                            openNotFoundDrawImage();
+                            break;
+                    }
                 }
 
                 mDownloadFlag = false;
@@ -279,7 +329,7 @@ public class CanvasProfileActivity extends Activity  {
     private void showDrawObject(final CanvasDrawImageObject drawObj) {
         switch (drawObj.getMode()) {
             default:
-            case NONSCALE_MODE:
+            case NON_SCALE_MODE:
                 Matrix matrix = new Matrix();
                 matrix.postTranslate((float) drawObj.getX(), (float) drawObj.getY());
                 mCanvasView.setImageBitmap(mBitmap);
@@ -424,12 +474,7 @@ public class CanvasProfileActivity extends Activity  {
                         });
             }
             if (getArguments().getString(KEY_NEGATIVE) != null) {
-                builder.setNegativeButton(getArguments().getString(KEY_NEGATIVE),
-                        new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(final DialogInterface dialog, final int which) {
-                            }
-                        });
+                builder.setNegativeButton(getArguments().getString(KEY_NEGATIVE), null);
             }
             return builder.create();
         }
@@ -438,7 +483,5 @@ public class CanvasProfileActivity extends Activity  {
         public void onCancel(final DialogInterface dialog) {
 
         }
-
     }
-
 }

@@ -11,6 +11,7 @@ import android.os.Bundle;
 
 import org.deviceconnect.android.deviceplugin.heartrate.HeartRateDeviceService;
 import org.deviceconnect.android.deviceplugin.heartrate.HeartRateManager;
+import org.deviceconnect.android.deviceplugin.heartrate.ble.BleUtils;
 import org.deviceconnect.android.deviceplugin.heartrate.data.HeartRateData;
 import org.deviceconnect.android.deviceplugin.heartrate.data.HeartRateDevice;
 import org.deviceconnect.android.deviceplugin.heartrate.data.health.TargetDeviceData;
@@ -121,6 +122,7 @@ public class HeartRateHealthProfile extends HealthProfile {
             return true;
         }
     };
+
     /**
      * Get Heart rate.
      */
@@ -136,10 +138,8 @@ public class HeartRateHealthProfile extends HealthProfile {
         }
     };
 
-
-
     /**
-     * Register event heartrate.
+     * Register event heart rate.
      */
     private final DConnectApi mPutHeart = new PutApi() {
         @Override
@@ -154,10 +154,8 @@ public class HeartRateHealthProfile extends HealthProfile {
         }
     };
 
-
-
     /**
-     * Unregister event heartrate.
+     * Unregister event heart rate.
      */
     private final DConnectApi mDeleteHeart = new DeleteApi() {
         @Override
@@ -187,10 +185,8 @@ public class HeartRateHealthProfile extends HealthProfile {
         }
     };
 
-
-
     /**
-     * Register event heartrate.
+     * Register event heart rate.
      */
     private final DConnectApi mPutOnHeart = new PutApi() {
         @Override
@@ -205,10 +201,8 @@ public class HeartRateHealthProfile extends HealthProfile {
         }
     };
 
-
-
     /**
-     * Unregister event heartrate.
+     * Unregister event heart rate.
      */
     private final DConnectApi mDeleteOnHeart = new DeleteApi() {
         @Override
@@ -223,10 +217,9 @@ public class HeartRateHealthProfile extends HealthProfile {
         }
     };
 
-
     /**
-     * Get Heartrate bundle object.
-     * @param data heartrate data
+     * Get Heart Rate bundle object.
+     * @param data heart rate data
      * @return bundle object
      */
     private Bundle getHeartRateBundle(final HeartRateDevice device, final HeartRateData data) {
@@ -272,7 +265,34 @@ public class HeartRateHealthProfile extends HealthProfile {
     }
 
     /**
-     * Register Heartrate Event.
+     * Bluetoothの有効設定やパーミッション設定を確認します.
+     * @param callback 確認した結果を通知するリスナー
+     */
+    private void checkBleSettings(final BleUtils.BleRequestCallback callback) {
+        HeartRateManager mgr = getManager();
+        if (mgr == null) {
+            callback.onFail("Failed to initialize a HeartRateManager.");
+            return;
+        }
+
+        if (!mgr.isEnabledBle()) {
+            BleUtils.requestBluetoothEnabled(getContext(), new BleUtils.BleRequestCallback() {
+                @Override
+                public void onSuccess() {
+                    BleUtils.requestBLEPermission(getContext(), callback);
+                }
+                @Override
+                public void onFail(final String deniedPermission) {
+                    callback.onFail(deniedPermission);
+                }
+            });
+        } else {
+            BleUtils.requestBLEPermission(getContext(), callback);
+        }
+    }
+
+    /**
+     * Register HeartRate Event.
      * @param request Request Message
      * @param response Response Message
      */
@@ -319,7 +339,7 @@ public class HeartRateHealthProfile extends HealthProfile {
     }
 
     /**
-     * Unregister Heartrate Event.
+     * Unregister Heart rate Event.
      * @param request Request Message
      * @param response Response Message
      */
@@ -352,12 +372,10 @@ public class HeartRateHealthProfile extends HealthProfile {
         HeartRateDeviceService service = (HeartRateDeviceService) getContext();
         List<Event> events = EventManager.INSTANCE.getEventList(device.getAddress(),
                 getProfileName(), null, ATTRIBUTE_HEART_RATE);
-        synchronized (events) {
-            for (Event event : events) {
-                Intent intent = EventManager.createEventMessage(event);
-                setHeartRate(intent, data.getHeartRate());
-                service.sendEvent(intent, event.getAccessToken());
-            }
+        for (Event event : events) {
+            Intent intent = EventManager.createEventMessage(event);
+            setHeartRate(intent, data.getHeartRate());
+            service.sendEvent(intent, event.getAccessToken());
         }
     }
     /**
@@ -368,33 +386,30 @@ public class HeartRateHealthProfile extends HealthProfile {
     private void notifyHeartRateData(final HeartRateDevice device, final HeartRateData data) {
         List<Event> events = EventManager.INSTANCE.getEventList(device.getAddress(),
                 getProfileName(), null, ATTRIBUTE_HEART);
-        synchronized (events) {
-            for (Event event : events) {
-                if (data == null) {
-                    break;
-                }
-
-                Intent intent = EventManager.createEventMessage(event);
-
-                setHeart(intent, getHeartRateBundle(device, data));
-                // The interval's supported is new health profile only.
-                mDispatcherManager.sendEvent(event, intent);
+        for (Event event : events) {
+            if (data == null) {
+                break;
             }
+
+            Intent intent = EventManager.createEventMessage(event);
+
+            setHeart(intent, getHeartRateBundle(device, data));
+            // The interval's supported is new health profile only.
+            mDispatcherManager.sendEvent(event, intent);
         }
+
         events = EventManager.INSTANCE.getEventList(device.getAddress(),
                 getProfileName(), null, ATTRIBUTE_ONHEART);
-        synchronized (events) {
-            for (Event event : events) {
-                if (data == null) {
-                    break;
-                }
-
-                Intent intent = EventManager.createEventMessage(event);
-
-                setHeart(intent, getHeartRateBundle(device, data));
-                // The interval's supported is new health profile only.
-                mDispatcherManager.sendEvent(event, intent);
+        for (Event event : events) {
+            if (data == null) {
+                break;
             }
+
+            Intent intent = EventManager.createEventMessage(event);
+
+            setHeart(intent, getHeartRateBundle(device, data));
+            // The interval's supported is new health profile only.
+            mDispatcherManager.sendEvent(event, intent);
         }
     }
     /**

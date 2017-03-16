@@ -123,7 +123,7 @@ public final class BleUtils {
                 if (resultCode == Activity.RESULT_OK) {
                     callback.onSuccess();
                 } else {
-                    callback.onFail(null);
+                    callback.onFail("Denied to enable a bluetooth settings.");
                 }
             }
         });

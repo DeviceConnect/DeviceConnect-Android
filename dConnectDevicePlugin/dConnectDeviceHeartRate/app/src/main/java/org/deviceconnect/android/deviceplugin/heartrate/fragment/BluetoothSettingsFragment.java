@@ -42,9 +42,7 @@ public class BluetoothSettingsFragment extends Fragment {
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View v) {
-                Intent intent = new Intent();
-                intent.setAction(Settings.ACTION_BLUETOOTH_SETTINGS);
-                startActivity(intent);
+                openBluetoothSettings();
             }
         });
 
@@ -81,6 +79,12 @@ public class BluetoothSettingsFragment extends Fragment {
                 mBlePermissionBtn.setBackgroundResource(R.drawable.button_blue);
             }
         }
+    }
+
+    private void openBluetoothSettings() {
+        Intent intent = new Intent();
+        intent.setAction(Settings.ACTION_BLUETOOTH_SETTINGS);
+        startActivity(intent);
     }
 
     private void openAndroidSettings() {

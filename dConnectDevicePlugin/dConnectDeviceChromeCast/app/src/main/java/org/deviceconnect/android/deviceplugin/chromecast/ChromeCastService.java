@@ -16,6 +16,7 @@ import com.google.android.gms.cast.CastDevice;
 import com.google.android.gms.cast.MediaInfo;
 import com.google.android.gms.cast.MediaStatus;
 import com.google.android.gms.cast.RemoteMediaPlayer.MediaChannelResult;
+import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.Status;
 
 import org.deviceconnect.android.deviceplugin.chromecast.core.ChromeCastController;
@@ -69,14 +70,6 @@ public class ChromeCastService extends DConnectMessageService implements
     private String mServiceIdOnStatusChange = null;
     /** MediaPlayerのステータスアップデートフラグ. */
     private boolean mEnableCastMediaPlayerStatusUpdate = false;
-
-    /** Async Response Array List. */
-    private ArrayList<Callback> mAsyncResponse = new ArrayList<Callback>();
-    /**
-     * レシーバー.
-     */
-    private BroadcastReceiver mReceiver;
-
     /**
      * ChromeCastが接続完了してからレスポンスを返すためのCallbackを返す.
      * @author NTT DOCOMO, INC.
@@ -84,8 +77,9 @@ public class ChromeCastService extends DConnectMessageService implements
     public interface Callback {
         /**
          * レスポンス.
+         * @param connected true : 接続されている, false : 接続されていない
          */
-        void onResponse();
+        void onResponse(final boolean connected);
     }
 
     @Override
@@ -435,10 +429,6 @@ public class ChromeCastService extends DConnectMessageService implements
             }
             castService.setOnline(true);
         }
-        for (int i = 0; i < mAsyncResponse.size(); i++) {
-            Callback callback = mAsyncResponse.remove(i);
-            callback.onResponse();
-        }
     }
 
 
@@ -452,35 +442,24 @@ public class ChromeCastService extends DConnectMessageService implements
                                                final Callback callback) {
         ChromeCastApplication app = (ChromeCastApplication) getApplication();
         if (app == null) {
-            callback.onResponse();
+            callback.onResponse(false);
             return;
         }
 
         if (app.getDiscovery().getSelectedDevice() != null) {
             // Whether application that had been started before whether other apps
             try {
-                if (app.getController().getGoogleApiClient() == null) {
+                GoogleApiClient client = app.getController().getGoogleApiClient();
+                if (client == null || (client != null && !client.isConnected())) {
                     // Request in connection queuing
-                    callback.onResponse();
+                    callback.onResponse(false);
                     return;
                 }
-                if (app.getDiscovery().getSelectedDevice().getDeviceId().equals(serviceId)
-                        && !app.getController().getGoogleApiClient().isConnecting()) {
-                    app.getController().connect();
-                        String status = Cast.CastApi.getApplicationStatus(app.getController().getGoogleApiClient());
-                    if (status != null) {
-                        for (int i = 0; i < mAsyncResponse.size(); i++) {
-                            Callback call = mAsyncResponse.remove(i);
-                            call.onResponse();
-                        }
-                        callback.onResponse();
-                    }
-                }
+                callback.onResponse(true);
             } catch (IllegalStateException e) {
-                callback.onResponse();
+                callback.onResponse(false);
                 return;
             }
         }
-        mAsyncResponse.add(callback);
     }
 }

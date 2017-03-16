@@ -145,6 +145,7 @@ public class ChromeCastController implements
         return mApiClient;
     }
 
+
     /**
      * コールバックを登録する.
      * 
@@ -314,7 +315,7 @@ public class ChromeCastController implements
     private void waitForResponse() {
         synchronized (mLockObj) {
             try {
-                mLockObj.wait(30000);
+                mLockObj.wait(5000);
             } catch (InterruptedException e) {
                 Log.e(TAG, "InterruptedException occurred in waitForResponse.");
             }

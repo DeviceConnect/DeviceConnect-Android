@@ -95,6 +95,7 @@ public class HueDeviceService extends DConnectMessageService {
         // hue SDKの初期化
         PHHueSDK hueSDK = PHHueSDK.getInstance();
         hueSDK.setAppName(HueConstants.APNAME);
+        hueSDK.setDeviceName(HueConstants.APNAME);
         hueSDK.getNotificationManager().registerSDKListener(mPhListener);
 
         if (DEBUG) {
@@ -141,6 +142,8 @@ public class HueDeviceService extends DConnectMessageService {
                 hueSDK.getAccessPointsFound().addAll(accessPoints);
 
                 for (PHAccessPoint accessPoint : accessPoints) {
+                    accessPoint.setUsername(HueConstants.USERNAME);
+
                     HueService service = (HueService) getServiceProvider().getService(accessPoint.getIpAddress());
                     if (service == null) {
                         service = new HueService(accessPoint);

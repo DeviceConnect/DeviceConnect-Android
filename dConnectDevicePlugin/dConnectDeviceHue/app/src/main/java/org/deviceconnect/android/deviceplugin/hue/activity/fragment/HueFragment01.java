@@ -161,8 +161,6 @@ public class HueFragment01 extends Fragment implements OnClickListener, OnItemCl
 
         // Hueのインスタンスの取得.
         PHHueSDK phHueSDK = PHHueSDK.getInstance();
-        // アプリ名の登録.
-        phHueSDK.setDeviceName(HueConstants.APNAME);
         // HueブリッジからのCallbackを受け取るためのリスナーを登録.
         phHueSDK.getNotificationManager().registerSDKListener(mListener);
 

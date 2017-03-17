@@ -31,7 +31,6 @@ import com.philips.lighting.model.PHBridge;
 import com.philips.lighting.model.PHHueError;
 import com.philips.lighting.model.PHHueParsingError;
 
-import org.deviceconnect.android.deviceplugin.hue.HueConstants;
 import org.deviceconnect.android.deviceplugin.hue.R;
 
 import java.util.List;
@@ -191,9 +190,6 @@ public class HueFragment02 extends Fragment implements OnClickListener {
         PHHueSDK hueSDK = PHHueSDK.getInstance();
         // HueブリッジからのCallbackを受け取るためのリスナーを登録.
         hueSDK.getNotificationManager().registerSDKListener(mListener);
-
-        // User名を追加.
-        mAccessPoint.setUsername(HueConstants.USERNAME);
 
         // Hueブリッジへの認証開始
         startAuthenticate();

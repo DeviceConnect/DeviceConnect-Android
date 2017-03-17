@@ -36,7 +36,6 @@ import com.philips.lighting.hue.sdk.PHSDKListener;
 import com.philips.lighting.model.PHBridge;
 import com.philips.lighting.model.PHHueParsingError;
 
-import org.deviceconnect.android.deviceplugin.hue.HueConstants;
 import org.deviceconnect.android.deviceplugin.hue.R;
 
 import java.util.List;
@@ -66,25 +65,15 @@ public class HueFragment01 extends Fragment implements OnClickListener, OnItemCl
 
         @Override
         public void onAccessPointsFound(final List<PHAccessPoint> accessPoint) {
-
-            if (accessPoint != null && accessPoint.size() > 0) {
-                PHHueSDK hueSDK = PHHueSDK.getInstance();
-                hueSDK.getAccessPointsFound().clear();
-                hueSDK.getAccessPointsFound().addAll(accessPoint);
-            }
-
-            final Activity activity = getActivity();
-            if (activity != null) {
-                activity.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        PHHueSDK hueSDK = PHHueSDK.getInstance();
-                        mAdapter.updateData(hueSDK.getAccessPointsFound());
-                        mProgressView.setVisibility(View.GONE);
-                        mSearchButton.setVisibility(View.VISIBLE);
-                    }
-                });
-            }
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    PHHueSDK hueSDK = PHHueSDK.getInstance();
+                    mAdapter.updateData(hueSDK.getAccessPointsFound());
+                    mProgressView.setVisibility(View.GONE);
+                    mSearchButton.setVisibility(View.VISIBLE);
+                }
+            });
         }
 
         @Override
@@ -92,7 +81,7 @@ public class HueFragment01 extends Fragment implements OnClickListener, OnItemCl
         }
 
         @Override
-        public void onBridgeConnected(PHBridge phBridge, String s) {
+        public void onBridgeConnected(final PHBridge phBridge, final String userName) {
         }
 
         @Override
@@ -106,16 +95,13 @@ public class HueFragment01 extends Fragment implements OnClickListener, OnItemCl
         @Override
         public void onError(final int code, final String message) {
             if (code == PHMessageType.BRIDGE_NOT_FOUND) {
-                final Activity activity = getActivity();
-                if (activity != null) {
-                    activity.runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            mProgressView.setVisibility(View.GONE);
-                            mSearchButton.setVisibility(View.VISIBLE);
-                        }
-                    });
-                }
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        mProgressView.setVisibility(View.GONE);
+                        mSearchButton.setVisibility(View.VISIBLE);
+                    }
+                });
             }
         }
 
@@ -197,6 +183,13 @@ public class HueFragment01 extends Fragment implements OnClickListener, OnItemCl
         moveNextFragment((PHAccessPoint) mAdapter.getItem(position));
     }
 
+    private void runOnUiThread(final Runnable run) {
+        final Activity activity = getActivity();
+        if (activity != null) {
+            activity.runOnUiThread(run);
+        }
+    }
+
     /**
      * ローカルBridgeのUPNP Searchを開始する.
      */
@@ -210,16 +203,13 @@ public class HueFragment01 extends Fragment implements OnClickListener, OnItemCl
         PHBridgeSearchManager sm = (PHBridgeSearchManager) hueSDK.getSDKService(PHHueSDK.SEARCH_BRIDGE);
         sm.search(true, true);
 
-        final Activity activity = getActivity();
-        if (activity != null) {
-            activity.runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    mProgressView.setVisibility(View.VISIBLE);
-                    mSearchButton.setVisibility(View.GONE);
-                }
-            });
-        }
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mProgressView.setVisibility(View.VISIBLE);
+                mSearchButton.setVisibility(View.GONE);
+            }
+        });
     }
 
     /**
@@ -250,7 +240,7 @@ public class HueFragment01 extends Fragment implements OnClickListener, OnItemCl
      * 指定されたアクセスポイントを指定して、次のフラグメントを開く.
      * @param accessPoint アクセスポイント
      */
-    private void moveNextFragment(final PHAccessPoint accessPoint ) {
+    private void moveNextFragment(final PHAccessPoint accessPoint) {
         FragmentManager manager = getFragmentManager();
         FragmentTransaction transaction = manager.beginTransaction();
         transaction.setCustomAnimations(R.anim.fragment_slide_right_enter, R.anim.fragment_slide_left_exit,

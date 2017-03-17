@@ -10,9 +10,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
 import android.provider.Settings;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -20,7 +18,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 
-import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.heartrate.R;
 import org.deviceconnect.android.deviceplugin.heartrate.ble.BleUtils;
 
@@ -30,7 +27,6 @@ import org.deviceconnect.android.deviceplugin.heartrate.ble.BleUtils;
  * @author NTT DOCOMO, INC.
  */
 public class BluetoothSettingsFragment extends Fragment {
-    private final Handler mHandler = new Handler();
     private Button mBlePermissionBtn;
 
     @Override
@@ -42,9 +38,7 @@ public class BluetoothSettingsFragment extends Fragment {
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View v) {
-                Intent intent = new Intent();
-                intent.setAction(Settings.ACTION_BLUETOOTH_SETTINGS);
-                startActivity(intent);
+                openBluetoothSettings();
             }
         });
 
@@ -83,6 +77,12 @@ public class BluetoothSettingsFragment extends Fragment {
         }
     }
 
+    private void openBluetoothSettings() {
+        Intent intent = new Intent();
+        intent.setAction(Settings.ACTION_BLUETOOTH_SETTINGS);
+        startActivity(intent);
+    }
+
     private void openAndroidSettings() {
         Intent intent = new Intent();
         intent.setAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
@@ -91,17 +91,13 @@ public class BluetoothSettingsFragment extends Fragment {
     }
 
     private void requestPermissions() {
-        PermissionUtility.requestPermissions(getActivity(), mHandler,
-                BleUtils.BLE_PERMISSIONS,
-                new PermissionUtility.PermissionRequestCallback() {
-                    @Override
-                    public void onSuccess() {
-                    }
-
-                    @NonNull
-                    @Override
-                    public void onFail(final String deniedPermission) {
-                    }
-                });
+        BleUtils.requestBLEPermission(getActivity(), new BleUtils.BleRequestCallback() {
+            @Override
+            public void onSuccess() {
+            }
+            @Override
+            public void onFail(final String deniedPermission) {
+            }
+        });
     }
 }

@@ -52,5 +52,4 @@ public class ChromeCastApplication extends Application {
         return mDiscovery;
     }
 
-
 }

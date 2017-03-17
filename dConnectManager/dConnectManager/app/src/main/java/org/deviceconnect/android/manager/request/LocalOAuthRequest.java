@@ -155,6 +155,7 @@ public abstract class LocalOAuthRequest extends DConnectRequest {
         request.setComponent(mDevicePlugin.getComponentName());
         request.putExtra(IntentDConnectMessage.EXTRA_REQUEST_CODE, mRequestCode);
         request.putExtra(DConnectMessage.EXTRA_PROFILE, AuthorizationProfileConstants.PROFILE_NAME);
+        request.putExtra(DConnectMessage.EXTRA_INTERFACE, (String) null);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, ATTRIBUTE_CREATE_CLIENT);
         request.putExtra(DConnectProfileConstants.PARAM_SERVICE_ID, serviceId);
         String origin = getRequestOrigin(mRequest);
@@ -222,6 +223,7 @@ public abstract class LocalOAuthRequest extends DConnectRequest {
         request.setComponent(mDevicePlugin.getComponentName());
         request.putExtra(IntentDConnectMessage.EXTRA_REQUEST_CODE, mRequestCode);
         request.putExtra(DConnectMessage.EXTRA_PROFILE, AuthorizationProfileConstants.PROFILE_NAME);
+        request.putExtra(DConnectMessage.EXTRA_INTERFACE, (String) null);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, ATTRIBUTE_REQUEST_ACCESS_TOKEN);
         request.putExtra(AuthorizationProfileConstants.PARAM_CLIENT_ID, clientId);
         request.putExtra(AuthorizationProfileConstants.PARAM_APPLICATION_NAME, mContext.getString(R.string.app_name));

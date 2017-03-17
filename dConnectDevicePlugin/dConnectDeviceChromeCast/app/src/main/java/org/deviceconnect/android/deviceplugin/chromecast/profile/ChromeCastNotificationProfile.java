@@ -69,7 +69,12 @@ public class ChromeCastNotificationProfile extends NotificationProfile implement
             ((ChromeCastService) getContext()).connectChromeCast(serviceId, new ChromeCastService.Callback() {
 
                 @Override
-                public void onResponse() {
+                public void onResponse(final boolean connected) {
+                    if (!connected) {
+                        MessageUtils.setIllegalDeviceStateError(response, "The chromecast is not in local network.");
+                        sendResponse(response);
+                        return;
+                    }
                     ChromeCastMessage app = ((ChromeCastService) getContext()).getChromeCastMessage();
                     if (body == null) {
                         MessageUtils.setInvalidRequestParameterError(response, "body is null");
@@ -126,7 +131,12 @@ public class ChromeCastNotificationProfile extends NotificationProfile implement
             ((ChromeCastService) getContext()).connectChromeCast(serviceId, new ChromeCastService.Callback() {
 
                 @Override
-                public void onResponse() {
+                public void onResponse(final boolean connected) {
+                    if (!connected) {
+                        MessageUtils.setIllegalDeviceStateError(response, "The chromecast is not in local network.");
+                        sendResponse(response);
+                        return;
+                    }
                     if (notificationId == null || !COMMON_ID.equals(notificationId)) {
                         MessageUtils.setInvalidRequestParameterError(response, "notificationId is invalid.");
                         sendResponse(response);

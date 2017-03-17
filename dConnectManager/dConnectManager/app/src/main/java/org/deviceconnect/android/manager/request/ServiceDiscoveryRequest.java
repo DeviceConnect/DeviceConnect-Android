@@ -110,6 +110,7 @@ public class ServiceDiscoveryRequest extends DConnectRequest {
 
         // プラグイン側のI/Fに変換
         request.putExtra(DConnectMessage.EXTRA_PROFILE, PROFILE_NETWORK_SERVICE_DISCOVERY);
+        request.putExtra(DConnectMessage.EXTRA_INTERFACE, (String) null);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, ATTRIBUTE_GET_NETWORK_SERVICES);
 
         mCountDownLatch = new CountDownLatch(plugins.size());

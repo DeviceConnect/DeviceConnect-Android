@@ -7,10 +7,18 @@
 package org.deviceconnect.android.deviceplugin.heartrate.ble;
 
 import android.Manifest;
+import android.app.Activity;
 import android.bluetooth.BluetoothManager;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.Build;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.ResultReceiver;
+
+import org.deviceconnect.android.activity.PermissionUtility;
+import org.deviceconnect.android.deviceplugin.heartrate.ble.activity.BleEnableActivity;
 
 /**
  * A class containing utility methods related to BLE.
@@ -105,5 +113,59 @@ public final class BleUtils {
             }
             return result;
         }
+    }
+
+    public static void requestBluetoothEnabled(final Context context, final BleRequestCallback callback) {
+        Handler handler = new Handler(Looper.getMainLooper());
+        BleEnableActivity.requestEnableBluetooth(context, new ResultReceiver(handler) {
+            @Override
+            protected void onReceiveResult(final int resultCode, final Bundle resultData) {
+                if (resultCode == Activity.RESULT_OK) {
+                    callback.onSuccess();
+                } else {
+                    callback.onFail("Denied to enable a bluetooth settings.");
+                }
+            }
+        });
+    }
+
+    /**
+     * BLEパーミッションの許可を要求します.
+     * @param context コンテキスト
+     * @param callback BLEパーミッション許可要求結果を通知するコールバック
+     */
+    public static void requestBLEPermission(final Context context, final BleRequestCallback callback) {
+        if (isBLEPermission(context)) {
+            callback.onSuccess();
+        } else {
+            PermissionUtility.requestPermissions(context, new Handler(Looper.getMainLooper()),
+                    BLE_PERMISSIONS,
+                    new PermissionUtility.PermissionRequestCallback() {
+                        @Override
+                        public void onSuccess() {
+                            callback.onSuccess();
+                        }
+                        @Override
+                        public void onFail(final String deniedPermission) {
+                            callback.onFail(deniedPermission);
+                        }
+                    });
+        }
+    }
+
+    /**
+     * BLEパーミッションの許可結果を通知するコールバック.
+     */
+    public interface BleRequestCallback {
+        /**
+         * 許可が降りた場合に呼び出されるメソッド.
+         */
+        void onSuccess();
+
+        /**
+         * 許可が降りなかった場合に呼び出されるメソッド.
+         * @param deniedPermission 拒否内容
+         */
+        void onFail(final String deniedPermission);
     }
 }

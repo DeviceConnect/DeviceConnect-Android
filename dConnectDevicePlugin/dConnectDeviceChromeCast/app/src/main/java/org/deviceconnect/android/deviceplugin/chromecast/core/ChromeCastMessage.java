@@ -117,15 +117,25 @@ public class ChromeCastMessage implements ChromeCastController.Callbacks {
      * @return  デバイスが有効か否か（有効: true, 無効: false）
      */
     public boolean isDeviceEnable() {
-        return (mApplication.getGoogleApiClient() != null);
+        try {
+            return (mApplication.getGoogleApiClient() != null);
+        } catch (IllegalStateException e) {
+            if (BuildConfig.DEBUG) {
+                e.printStackTrace();
+            }
+            return false;
+        }
     }
-
     @Override
     public void onAttach() {
         mMessageChannel = new MessageChannel(this.mUrn);
         try {
             Cast.CastApi.setMessageReceivedCallbacks(mApplication.getGoogleApiClient(),
                     mMessageChannel.getNamespace(), mMessageChannel);
+        } catch (IllegalStateException e) {
+            if (BuildConfig.DEBUG) {
+                e.printStackTrace();
+            }
         } catch (IOException e) {
             if (BuildConfig.DEBUG) {
                 e.printStackTrace();
@@ -139,6 +149,10 @@ public class ChromeCastMessage implements ChromeCastController.Callbacks {
             try {
                 Cast.CastApi.removeMessageReceivedCallbacks(mApplication.getGoogleApiClient(),
                         mMessageChannel.getNamespace());
+            } catch (IllegalStateException e) {
+                if (BuildConfig.DEBUG) {
+                    e.printStackTrace();
+                }
             } catch (IOException e) {
                 if (BuildConfig.DEBUG) {
                     e.printStackTrace();
@@ -155,19 +169,19 @@ public class ChromeCastMessage implements ChromeCastController.Callbacks {
      * @param   message     メッセージ
      */
     public void sendMessage(final Intent response, final String message) {
-        if (mApplication.getGoogleApiClient() != null && mMessageChannel != null) {
-            try {
-            Cast.CastApi.sendMessage(mApplication.getGoogleApiClient(),
-                    mMessageChannel.getNamespace(), message)
-                    .setResultCallback(new ResultCallback<Status>() {
-                        @Override
-                        public void onResult(final Status result) {
-                            mCallbacks.onChromeCastMessageResult(response, result, null);
-                        }
-                    });
-            } catch (IllegalStateException e) {
-                mCallbacks.onChromeCastMessageResult(response, null, null);
+        try {
+            if (mApplication.getGoogleApiClient() != null && mMessageChannel != null) {
+                Cast.CastApi.sendMessage(mApplication.getGoogleApiClient(),
+                        mMessageChannel.getNamespace(), message)
+                        .setResultCallback(new ResultCallback<Status>() {
+                            @Override
+                            public void onResult(final Status result) {
+                                mCallbacks.onChromeCastMessageResult(response, result, null);
+                            }
+                        });
             }
+        } catch (IllegalStateException e) {
+            mCallbacks.onChromeCastMessageResult(response, null, null);
         }
     }
 

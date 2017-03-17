@@ -609,6 +609,7 @@ public class HvcDeviceService extends DConnectMessageService {
         if (mDetector == null) {
             initDetector();
         }
+        HvcDeviceApplication.getInstance().checkLocationEnable();
         if (mDetector.isEnabled()) {
             mDetector.startScan();
         }

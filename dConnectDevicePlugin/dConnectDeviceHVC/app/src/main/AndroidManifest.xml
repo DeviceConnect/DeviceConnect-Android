@@ -32,6 +32,9 @@
             android:name=".setting.HvcSettingStepsActivity"
             android:exported="false"/>
 
+        <activity android:name=".profile.HvcLocationAlertDialog"
+            android:exported="false"/>
+
         <!-- Device Connect HVC Device Plugin Provider. -->
         <receiver android:name="org.deviceconnect.android.deviceplugin.hvc.HvcDeviceProvider">
             <meta-data

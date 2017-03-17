@@ -13,7 +13,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 import com.google.android.gms.cast.framework.CastButtonFactory;
-import com.google.android.gms.cast.framework.CastContext;
 import com.google.android.gms.cast.framework.IntroductoryOverlay;
 
 import org.deviceconnect.android.deviceplugin.chromecast.R;
@@ -46,8 +45,6 @@ public class ChromeCastSettingFragmentActivity extends DConnectSettingCompatPage
     @Override
     public void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        CastContext castContext = CastContext.getSharedInstance(this);
-        castContext.registerLifecycleCallbacksBeforeIceCreamSandwich(this, savedInstanceState);
     }
     @Override
     public int getPageCount() {

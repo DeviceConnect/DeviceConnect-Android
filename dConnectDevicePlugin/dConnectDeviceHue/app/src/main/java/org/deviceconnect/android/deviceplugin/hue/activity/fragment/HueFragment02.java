@@ -8,6 +8,8 @@ http://opensource.org/licenses/mit-license.php
 package org.deviceconnect.android.deviceplugin.hue.activity.fragment;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -22,14 +24,13 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.philips.lighting.hue.sdk.PHAccessPoint;
-import com.philips.lighting.hue.sdk.PHBridgeSearchManager;
 import com.philips.lighting.hue.sdk.PHHueSDK;
 import com.philips.lighting.hue.sdk.PHMessageType;
 import com.philips.lighting.hue.sdk.PHSDKListener;
 import com.philips.lighting.model.PHBridge;
+import com.philips.lighting.model.PHHueError;
 import com.philips.lighting.model.PHHueParsingError;
 
-import org.deviceconnect.android.deviceplugin.hue.HueConstants;
 import org.deviceconnect.android.deviceplugin.hue.R;
 
 import java.util.List;
@@ -47,14 +48,11 @@ public class HueFragment02 extends Fragment implements OnClickListener {
     /** アクセスポイント. */
     private PHAccessPoint mAccessPoint;
 
-    /** HueSDKオブジェクト. */
-    private PHHueSDK mPhHueSDK;
-
     /** ステータスを表示するTextView. */
     private TextView mTextViewStatus;
 
     /** Howtoを表示するTextView. */
-    private TextView mTextViewHowto;
+    private TextView mTextViewHowTo;
 
     /** Button. */
     private Button mButton;
@@ -62,16 +60,15 @@ public class HueFragment02 extends Fragment implements OnClickListener {
     /** ImageView. */
     private ImageView mImageView;
 
-    /** 前回IPアドレスがスキャンできたかのフラグ. */
-    private boolean mLastSearchWasIPScan = false;
-
     /** ハンドラー用のCounter. */
     private int mCount = 0;
+
     /** ステータス. */
     private HueState mHueStatus = HueState.INIT;
 
     /** アニメーション用スレッド. */
     private final ScheduledExecutorService mExecutor = Executors.newSingleThreadScheduledExecutor();
+
     /** スレッドキャンセル用オブジェクト. */
     private ScheduledFuture<?> mFuture;
 
@@ -82,26 +79,26 @@ public class HueFragment02 extends Fragment implements OnClickListener {
         /** 未認証. */
         INIT,
         /** 未接続. */
-        NOCONNECT,
+        NO_CONNECT,
         /** 認証失敗. */
         AUTHENTICATE_FAILED,
         /** 認証済み. */
         AUTHENTICATE_SUCCESS
-    };
+    }
 
     /**
      * hueブリッジのNotificationを受け取るためのリスナー.
      */
     private PHSDKListener mListener = new PHSDKListener() {
 
-
         @Override
         public void onAuthenticationRequired(final PHAccessPoint accessPoint) {
             mHueStatus = HueState.INIT;
-            failAuthorization();
 
-            // 認証を実施.
-            mPhHueSDK.startPushlinkAuthentication(accessPoint);
+            PHHueSDK hueSDK = PHHueSDK.getInstance();
+            hueSDK.startPushlinkAuthentication(accessPoint);
+
+            authenticateHueBridge();
         }
 
         @Override
@@ -113,45 +110,25 @@ public class HueFragment02 extends Fragment implements OnClickListener {
         }
 
         @Override
-        public void onBridgeConnected(PHBridge phBridge, String s) {
+        public void onBridgeConnected(final PHBridge phBridge, final String s) {
             mHueStatus = HueState.AUTHENTICATE_SUCCESS;
             successAuthorization();
-
-            // 接続.
-            mPhHueSDK.setSelectedBridge(phBridge);
-            mPhHueSDK.enableHeartbeat(phBridge, PHHueSDK.HB_INTERVAL);
-            mPhHueSDK.getLastHeartbeat().put(phBridge.getResourceCache().getBridgeConfiguration().getIpAddress(),
-                    System.currentTimeMillis());
         }
 
         @Override
         public void onConnectionLost(final PHAccessPoint accessPoint) {
-            if (!mPhHueSDK.getDisconnectedAccessPoint().contains(accessPoint)) {
-                mPhHueSDK.getDisconnectedAccessPoint().add(accessPoint);
-            }
         }
 
         @Override
         public void onConnectionResumed(final PHBridge bridge) {
-            mPhHueSDK.getLastHeartbeat().put(bridge.getResourceCache().getBridgeConfiguration().getIpAddress(),
-                    System.currentTimeMillis());
-            for (int i = 0; i < mPhHueSDK.getDisconnectedAccessPoint().size(); i++) {
-                if (mPhHueSDK.getDisconnectedAccessPoint().get(i).getIpAddress()
-                        .equals(bridge.getResourceCache().getBridgeConfiguration().getIpAddress())) {
-                    mPhHueSDK.getDisconnectedAccessPoint().remove(i);
-                }
-            }
         }
 
         @Override
         public void onError(final int code, final String message) {
-            if (code == PHMessageType.BRIDGE_NOT_FOUND) {
-                if (!mLastSearchWasIPScan) {
-                    mPhHueSDK = PHHueSDK.getInstance();
-                    PHBridgeSearchManager sm = (PHBridgeSearchManager) mPhHueSDK.getSDKService(PHHueSDK.SEARCH_BRIDGE);
-                    sm.search(false, false, true);
-                    mLastSearchWasIPScan = true;
-                }
+            if (code == PHMessageType.PUSHLINK_AUTHENTICATION_FAILED) {
+                failAuthorization();
+            } else if (code == PHHueError.NO_CONNECTION || code == PHHueError.BRIDGE_NOT_RESPONDING) {
+                showNotConnection();
             }
         }
 
@@ -189,7 +166,7 @@ public class HueFragment02 extends Fragment implements OnClickListener {
         mTextViewStatus = (TextView) rootView.findViewById(R.id.textStatus);
 
         // 作業方法を表示.
-        mTextViewHowto = (TextView) rootView.findViewById(R.id.textHowto);
+        mTextViewHowTo = (TextView) rootView.findViewById(R.id.textHowto);
 
         // ボタン.
         mButton = (Button) rootView.findViewById(R.id.btnBridgeTouroku);
@@ -208,35 +185,25 @@ public class HueFragment02 extends Fragment implements OnClickListener {
 
         // ステータスを初期状態(INIT)に設定.
         mHueStatus = HueState.INIT;
-        mTextViewStatus.setText(R.string.frag02_init);
-        mTextViewHowto.setText(R.string.frag02_init_howto);
 
         // Hueのインスタンスを取得.
-        mPhHueSDK = PHHueSDK.getInstance();
+        PHHueSDK hueSDK = PHHueSDK.getInstance();
         // HueブリッジからのCallbackを受け取るためのリスナーを登録.
-        mPhHueSDK.getNotificationManager().registerSDKListener(mListener);
+        hueSDK.getNotificationManager().registerSDKListener(mListener);
 
-        // User名を追加.
-        mAccessPoint.setUsername(HueConstants.USERNAME);
-
-        // アクセスポイントに接続.
-        if (!mPhHueSDK.isAccessPointConnected(mAccessPoint)) {
-            mPhHueSDK.connect(mAccessPoint);
-            startAnimation();
-        } else {
-            mHueStatus = HueState.AUTHENTICATE_SUCCESS;
-            successAuthorization();
-        }
+        // Hueブリッジへの認証開始
+        startAuthenticate();
     }
 
     @Override
-    public void onDestroy() {
-        mPhHueSDK.getNotificationManager().unregisterSDKListener(mListener);
-        mPhHueSDK.disableAllHeartbeat();
+    public void onPause() {
+        PHHueSDK hueSDK = PHHueSDK.getInstance();
+        hueSDK.stopPushlinkAuthentication();
+        hueSDK.getNotificationManager().unregisterSDKListener(mListener);
 
         stopAnimation();
 
-        super.onDestroy();
+        super.onPause();
     }
 
     @Override
@@ -250,16 +217,7 @@ public class HueFragment02 extends Fragment implements OnClickListener {
             transaction.commit();
         } else {
             mButton.setVisibility(View.INVISIBLE);
-
-            // アクセスポイントに接続.
-            if (!mPhHueSDK.isAccessPointConnected(mAccessPoint)) {
-                mPhHueSDK.connect(mAccessPoint);
-            } else {
-                mHueStatus = HueState.AUTHENTICATE_SUCCESS;
-            }
-
-            // アニメーションの開始.
-            startAnimation();
+            startAuthenticate();
         }
     }
 
@@ -267,7 +225,14 @@ public class HueFragment02 extends Fragment implements OnClickListener {
         mAccessPoint = accessPoint;
     }
 
+    /**
+     * Hueブリッジのボタン押下アニメーションを開始します.
+     */
     private synchronized void startAnimation() {
+        if (mFuture != null) {
+            mFuture.cancel(false);
+        }
+
         mFuture = mExecutor.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
@@ -276,7 +241,7 @@ public class HueFragment02 extends Fragment implements OnClickListener {
                         nextImage();
                         break;
                     default:
-                    case NOCONNECT:
+                    case NO_CONNECT:
                     case AUTHENTICATE_FAILED:
                     case AUTHENTICATE_SUCCESS:
                         stopAnimation();
@@ -286,6 +251,9 @@ public class HueFragment02 extends Fragment implements OnClickListener {
         }, 1, 1, TimeUnit.SECONDS);
     }
 
+    /**
+     * Hueブリッジのボタン押下アニメーションを停止します.
+     */
     private synchronized void stopAnimation() {
         if (mFuture != null) {
             mFuture.cancel(false);
@@ -293,56 +261,137 @@ public class HueFragment02 extends Fragment implements OnClickListener {
         }
     }
 
+    /**
+     * 指定されたRunnableをUIスレッド上で実行します.
+     * @param run 実行するRunnable
+     */
+    private void runOnUiThread(final Runnable run) {
+        final Activity activity = getActivity();
+        if (activity != null) {
+            activity.runOnUiThread(run);
+        }
+    }
+
+    /**
+     * 次の画像を表示します.
+     */
     private void nextImage() {
-        final Activity activity = getActivity();
-        if (activity != null) {
-            activity.runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    if (mCount == 0) {
-                        mImageView.setImageResource(R.drawable.img01);
-                    } else {
-                        mImageView.setImageResource(R.drawable.img02);
-                    }
-                    mCount++;
-                    mCount %= 2;
-                }
-            });
-        }
-    }
-
-    private void successAuthorization() {
-        final Activity activity = getActivity();
-        if (activity != null) {
-            activity.runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    mTextViewStatus.setText(R.string.frag02_authsuccess);
-                    mTextViewHowto.setText(R.string.frag02_authsuccess_howto);
-                    mImageView.setImageResource(R.drawable.img05);
-                    mButton.setText(R.string.frag02_authsuccess_btn);
-                    mButton.setVisibility(View.VISIBLE);
-
-                    String message = getString(R.string.frag02_connected);
-                    Toast.makeText(getActivity(), message, Toast.LENGTH_LONG).show();
-                }
-            });
-        }
-    }
-
-    private void failAuthorization() {
-        final Activity activity = getActivity();
-        if (activity != null) {
-            activity.runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    mTextViewStatus.setText(R.string.frag02_failed);
-                    mTextViewHowto.setText("");
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (mCount == 0) {
                     mImageView.setImageResource(R.drawable.img01);
-                    mButton.setText(R.string.frag02_retry_btn);
-                    mButton.setVisibility(View.VISIBLE);
+                } else {
+                    mImageView.setImageResource(R.drawable.img02);
                 }
-            });
+                mCount++;
+                mCount %= 2;
+            }
+        });
+    }
+
+    /**
+     * 認証成功を表示します.
+     */
+    private void successAuthorization() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mTextViewStatus.setText(R.string.frag02_authsuccess);
+                mTextViewHowTo.setText(R.string.frag02_authsuccess_howto);
+                mImageView.setImageResource(R.drawable.img05);
+                mButton.setText(R.string.frag02_authsuccess_btn);
+                mButton.setVisibility(View.VISIBLE);
+
+                String message = getString(R.string.frag02_connected);
+                Toast.makeText(getActivity(), message, Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
+    /**
+     * 認証失敗を表示します.
+     */
+    private void failAuthorization() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                stopAnimation();
+
+                mTextViewStatus.setText(R.string.frag02_failed);
+                mTextViewHowTo.setText("");
+                mImageView.setImageResource(R.drawable.img01);
+                mButton.setText(R.string.frag02_retry_btn);
+                mButton.setVisibility(View.VISIBLE);
+            }
+        });
+    }
+
+    /**
+     * Hueブリッジの認証を行います.
+     * <p>
+     * ユーザにHueブリッジのボタンを押下してもらう必要があります。
+     * </p>
+     */
+    private void startAuthenticate() {
+        PHHueSDK hueSDK = PHHueSDK.getInstance();
+
+        if (!hueSDK.isAccessPointConnected(mAccessPoint)) {
+            hueSDK.connect(mAccessPoint);
+            authenticateHueBridge();
+        } else {
+            mHueStatus = HueState.AUTHENTICATE_SUCCESS;
+            successAuthorization();
         }
+    }
+
+    /**
+     * Hueブリッジへの誘導を行う文言を表示します.
+     */
+    private void authenticateHueBridge() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mTextViewStatus.setText(R.string.frag02_init);
+                mTextViewHowTo.setText(R.string.frag02_init_howto);
+                mButton.setText(R.string.frag02_retry_btn);
+                mButton.setVisibility(View.INVISIBLE);
+                startAnimation();
+            }
+        });
+    }
+
+    /**
+     * Hueブリッジからレスポンスがなかった場合のエラーダイアログを表示します.
+     */
+    private void showNotConnection() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                new AlertDialog.Builder(getActivity())
+                        .setTitle(R.string.frag02_failed)
+                        .setMessage(R.string.hue_dialog_no_connect)
+                        .setPositiveButton(R.string.hue_dialog_ok, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(final DialogInterface dialog, final int which) {
+                                moveFirstFragment();
+                            }
+                        })
+                        .setCancelable(false)
+                        .show();
+            }
+        });
+    }
+
+    /**
+     * 最初のフラグメントに移動します.
+     */
+    private void moveFirstFragment() {
+        FragmentManager manager = getFragmentManager();
+        FragmentTransaction transaction = manager.beginTransaction();
+        transaction.setCustomAnimations(R.anim.fragment_slide_right_enter, R.anim.fragment_slide_left_exit,
+                R.anim.fragment_slide_left_enter, R.anim.fragment_slide_right_exit);
+        transaction.replace(R.id.fragment_frame, new HueFragment01());
+        transaction.commit();
     }
 }

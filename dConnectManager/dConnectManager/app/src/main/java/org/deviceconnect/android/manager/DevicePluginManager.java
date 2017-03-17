@@ -15,6 +15,9 @@ import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.pm.ServiceInfo;
 import android.content.res.XmlResourceParser;
+import android.graphics.drawable.Drawable;
+import android.support.v4.content.res.ResourcesCompat;
+import android.util.Log;
 
 import org.deviceconnect.android.manager.util.DConnectUtil;
 import org.deviceconnect.android.manager.util.VersionName;
@@ -37,6 +40,10 @@ import java.util.logging.Logger;
  * @author NTT DOCOMO, INC.
  */
 public class DevicePluginManager {
+    /** デバイスプラグインに格納されるプラグイン名称のメタタグ名. */
+    private static final String PLUGIN_META_PLUGIN_NAME = "org.deviceconnect.android.deviceplugin.name";
+    /** デバイスプラグインに格納されるアイコンのメタタグ名. */
+    private static final String PLUGIN_META_PLUGIN_ICON = "org.deviceconnect.android.deviceplugin.icon";
     /** ロガー. */
     private final Logger mLogger = Logger.getLogger("dconnect.manager");
     /** デバイスプラグインSDKに格納されるメタタグ名. */
@@ -148,6 +155,11 @@ public class DevicePluginManager {
             if (receiverInfo.metaData != null) {
                 Object value = receiverInfo.metaData.get(PLUGIN_META_DATA);
                 if (value != null) {
+                    String pluginName = (String) receiverInfo.metaData.getString(PLUGIN_META_PLUGIN_NAME);
+                    if (pluginName == null) {
+                        pluginName = receiverInfo.applicationInfo.loadLabel(pkgMgr).toString();
+                    }
+
                     VersionName sdkVersionName = getPluginSDKVersion(appInfo);
                     String packageName = receiverInfo.packageName;
                     String className = receiverInfo.name;
@@ -157,6 +169,22 @@ public class DevicePluginManager {
                     if (hash == null) {
                         throw new RuntimeException("Can't generate md5.");
                     }
+                    Drawable icon;
+                    Object iconId = receiverInfo.metaData.get(PLUGIN_META_PLUGIN_ICON);
+                    if (iconId != null) {
+                        icon = ResourcesCompat.getDrawable(mApp.getResources(), (int)iconId, null);
+                    } else {
+                        try {
+                            ApplicationInfo info = pkgMgr.getApplicationInfo(packageName, 0);
+                            icon = pkgMgr.getApplicationIcon(info.packageName);
+                        } catch (PackageManager.NameNotFoundException e) {
+                            icon = null;
+                            if (BuildConfig.DEBUG) {
+                                Log.d("Manager", "Icon is not found.");
+                            }
+                        }
+                    }
+
                     mLogger.info("Added DevicePlugin: [" + hash + "]");
                     mLogger.info("    PackageName: " + packageName);
                     mLogger.info("    className: " + className);
@@ -173,10 +201,11 @@ public class DevicePluginManager {
                     plugin.setPackageName(packageName);
                     plugin.setVersionName(versionName);
                     plugin.setPluginId(hash);
-                    plugin.setDeviceName(receiverInfo.applicationInfo.loadLabel(pkgMgr).toString());
+                    plugin.setDeviceName(pluginName);
                     plugin.setStartServiceClassName(startClassName);
                     plugin.setSupportProfiles(checkDevicePluginXML(receiverInfo));
                     plugin.setPluginSdkVersionName(sdkVersionName);
+                    plugin.setPluginIcon(icon);
                     mPlugins.put(hash, plugin);
                     if (mEventListener != null) {
                         mEventListener.onDeviceFound(plugin);

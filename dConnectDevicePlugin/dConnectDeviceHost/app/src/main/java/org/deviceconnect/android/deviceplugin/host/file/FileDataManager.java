@@ -1,5 +1,15 @@
 package org.deviceconnect.android.deviceplugin.host.file;
 
+import android.Manifest;
+import android.content.Context;
+import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
+import android.support.annotation.NonNull;
+
+import org.deviceconnect.android.activity.PermissionUtility;
+import org.deviceconnect.android.provider.FileManager;
+
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -14,17 +24,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-
-import org.deviceconnect.android.activity.PermissionUtility;
-import org.deviceconnect.android.provider.FileManager;
-import org.deviceconnect.profile.FileDescriptorProfileConstants.Flag;
-
-import android.Manifest;
-import android.content.Context;
-import android.os.Build;
-import android.os.Handler;
-import android.os.Looper;
-import android.support.annotation.NonNull;
 
 /**
  * ファイル操作を行うクラス.
@@ -80,6 +79,13 @@ public class FileDataManager {
     }
 
     /**
+     * 後始末を行う.
+     */
+    public void clear() {
+
+    }
+
+    /**
      * パスを変換する.
      * 
      * @param file パス変換するファイル
@@ -103,7 +109,7 @@ public class FileDataManager {
      * @return FileDataオブジェクト
      * @throws IOException ファイルのオープンに失敗した場合に発生
      */
-    public FileData openFileData(final String path, final Flag flag) throws IOException {
+    public FileData openFileData(final String path, final FileData.Flag flag) throws IOException {
         if (mFiles.containsKey(path)) {
             throw new IllegalStateException("file is already open.");
         }
@@ -205,10 +211,8 @@ public class FileDataManager {
                 callback.onSuccess(new String(baos.toByteArray()));
             } catch (FileNotFoundException e) {
                 callback.onFail();
-                return;
             } catch (IOException e) {
                 callback.onFail();
-                return;
             } finally {
                 if (fis != null) {
                     fis.close();
@@ -291,7 +295,7 @@ public class FileDataManager {
      * @return FileDataオブジェクト
      * @throws FileNotFoundException ファイルが見つからない場合に発生する
      */
-    private FileData openReadFileData(final String path, final Flag flag) throws FileNotFoundException {
+    private FileData openReadFileData(final String path, final FileData.Flag flag) throws FileNotFoundException {
         File mBaseDir = mFileManager.getBasePath();
         String tmpPath = path;
         if (!tmpPath.startsWith("/")) {
@@ -313,7 +317,7 @@ public class FileDataManager {
      * @return FileDataオブジェクト
      * @throws FileNotFoundException ファイルが見つからない場合に発生する
      */
-    private FileData openReadWriteFileData(final String path, final Flag flag) throws FileNotFoundException {
+    private FileData openReadWriteFileData(final String path, final FileData.Flag flag) throws FileNotFoundException {
         File mBaseDir = mFileManager.getBasePath();
         String tmpPath = path;
         if (!tmpPath.startsWith("/")) {

@@ -12,6 +12,7 @@ import android.os.Bundle;
 import android.os.PowerManager;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.wearable.view.WatchViewStub;
+
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
@@ -40,7 +41,8 @@ public class WearKeyEventProfileActivity extends Activity {
     private static final int REGIST_FLAG_KEYEVENT_DOWN = 0x01;
     /** Event flag define (up). */
     private static final int REGIST_FLAG_KEYEVENT_UP = 0x02;
-
+    /** Event flag define (keyChange). */
+    private static final int REGIST_FLAG_KEYEVENT_KEYCHANGE = 0x04;
     /** Button define. */
     private Button mBtnKeyMode, mBtnCancel, mBtnOk;
     /** Key mode. */
@@ -236,14 +238,15 @@ public class WearKeyEventProfileActivity extends Activity {
         int keycode = keyId;
         String keyConfig = getConfig(mKeyMode, keycode);
         String keyAction;
-
         if (action == MotionEvent.ACTION_DOWN) {
-            if ((mRegisterEvent & REGIST_FLAG_KEYEVENT_DOWN) == 0) {
+            if ((mRegisterEvent & REGIST_FLAG_KEYEVENT_KEYCHANGE) == 0
+                    && (mRegisterEvent & REGIST_FLAG_KEYEVENT_DOWN) == 0) {
                 return;
             }
             keyAction = WearConst.PARAM_KEYEVENT_DOWN;
         } else {
-            if ((mRegisterEvent & REGIST_FLAG_KEYEVENT_UP) == 0) {
+            if ((mRegisterEvent & REGIST_FLAG_KEYEVENT_KEYCHANGE) == 0
+                    && (mRegisterEvent & REGIST_FLAG_KEYEVENT_UP) == 0) {
                 return;
             }
             keyAction = WearConst.PARAM_KEYEVENT_UP;
@@ -299,6 +302,11 @@ public class WearKeyEventProfileActivity extends Activity {
                 mIds.add(id);
             }
             mRegisterEvent |= REGIST_FLAG_KEYEVENT_UP;
+        } else if (WearConst.DEVICE_TO_WEAR_KEYEVENT_ONKEYCHANGE_REGISTER.equals(regist)) {
+            if (!mIds.contains(id)) {
+                mIds.add(id);
+            }
+            mRegisterEvent |= REGIST_FLAG_KEYEVENT_KEYCHANGE;
         } else if (WearConst.DEVICE_TO_WEAR_KEYEVENT_ONDOWN_UNREGISTER.equals(regist)) {
             mIds.remove(id);
             mRegisterEvent &= ~(REGIST_FLAG_KEYEVENT_DOWN);
@@ -308,6 +316,12 @@ public class WearKeyEventProfileActivity extends Activity {
         } else if (WearConst.DEVICE_TO_WEAR_KEYEVENT_ONUP_UNREGISTER.equals(regist)) {
             mIds.remove(id);
             mRegisterEvent &= ~(REGIST_FLAG_KEYEVENT_UP);
+            if (mRegisterEvent == 0) {
+                finish();
+            }
+        } else if (WearConst.DEVICE_TO_WEAR_KEYEVENT_ONKEYCHANGE_UNREGISTER.equals(regist)) {
+            mIds.remove(id);
+            mRegisterEvent &= ~(REGIST_FLAG_KEYEVENT_KEYCHANGE);
             if (mRegisterEvent == 0) {
                 finish();
             }

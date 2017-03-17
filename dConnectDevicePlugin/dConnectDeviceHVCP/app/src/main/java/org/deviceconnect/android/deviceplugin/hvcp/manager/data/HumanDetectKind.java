@@ -26,6 +26,10 @@ public enum HumanDetectKind {
      */
     FACE("FACE"),
     /**
+     * Human Detection.
+     */
+    HUMAN("HUMAN"),
+    /**
      * Face Recognition.
      */
     RECOGNIZE("RECOGNIZE");

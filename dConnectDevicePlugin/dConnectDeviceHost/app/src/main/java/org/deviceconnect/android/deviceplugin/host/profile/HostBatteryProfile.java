@@ -8,9 +8,11 @@
 package org.deviceconnect.android.deviceplugin.host.profile;
 
 import android.content.Intent;
+import android.os.Bundle;
 
 import org.deviceconnect.android.deviceplugin.host.HostDeviceService;
-import org.deviceconnect.android.deviceplugin.host.manager.HostBatteryManager;
+import org.deviceconnect.android.deviceplugin.host.battery.HostBatteryManager;
+import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.MessageUtils;
@@ -22,14 +24,14 @@ import org.deviceconnect.android.profile.api.PutApi;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
+import java.util.List;
+
 /**
  * Battery Profile.
  * 
  * @author NTT DOCOMO, INC.
  */
 public class HostBatteryProfile extends BatteryProfile {
-    /** エラーコード. */
-    private static final int ERROR_CODE = 100;
 
     private final DConnectApi mBatteryLevelApi = new GetApi() {
 
@@ -40,8 +42,9 @@ public class HostBatteryProfile extends BatteryProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            int mLevel = ((HostDeviceService) getContext()).getBatteryLevel();
-            int mScale = ((HostDeviceService) getContext()).getBatteryScale();
+            getBatteryManager().getBatteryInfo();
+            int mLevel = getBatteryManager().getBatteryLevel();
+            int mScale = getBatteryManager().getBatteryScale();
             if (mScale <= 0) {
                 MessageUtils.setUnknownError(response, "Scale of battery level is unknown.");
             } else if (mLevel < 0) {
@@ -63,9 +66,9 @@ public class HostBatteryProfile extends BatteryProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            int mStatus = ((HostDeviceService) getContext()).getBatteryStatus();
+            getBatteryManager().getBatteryInfo();
             setResult(response, IntentDConnectMessage.RESULT_OK);
-            setCharging(response, getBatteryChargingStatus(mStatus));
+            setCharging(response, getBatteryManager().isChargingFlag());
             return true;
         }
     };
@@ -73,17 +76,16 @@ public class HostBatteryProfile extends BatteryProfile {
     private final DConnectApi mBatteryAllApi = new GetApi() {
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            int mLevel = ((HostDeviceService) getContext()).getBatteryLevel();
-            int mScale = ((HostDeviceService) getContext()).getBatteryScale();
+            getBatteryManager().getBatteryInfo();
+            int mLevel = getBatteryManager().getBatteryLevel();
+            int mScale = getBatteryManager().getBatteryScale();
             if (mScale <= 0) {
                 MessageUtils.setUnknownError(response, "Scale of battery level is unknown.");
             } else if (mLevel < 0) {
                 MessageUtils.setUnknownError(response, "Battery level is unknown.");
             } else {
                 setLevel(response, mLevel / (float) mScale);
-                int mStatus = ((HostDeviceService) getContext()).getBatteryStatus();
-                setCharging(response, getBatteryChargingStatus(mStatus));
-
+                setCharging(response, getBatteryManager().isChargingFlag());
                 setResult(response, IntentDConnectMessage.RESULT_OK);
             }
             return true;
@@ -99,13 +101,9 @@ public class HostBatteryProfile extends BatteryProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            String serviceId = getServiceID(request);
-
-            // Add event
             EventError error = EventManager.INSTANCE.addEvent(request);
             if (error == EventError.NONE) {
-                ((HostDeviceService) getContext()).setServiceId(serviceId);
-                ((HostDeviceService) getContext()).registerBatteryConnectBroadcastReceiver();
+                getBatteryManager().registerBatteryConnectBroadcastReceiver();
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
                 setResult(response, DConnectMessage.RESULT_ERROR);
@@ -123,13 +121,12 @@ public class HostBatteryProfile extends BatteryProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            ((HostDeviceService) getContext()).unregisterBatteryConnectBroadcastReceiver();
-            // イベントの解除
+            getBatteryManager().unregisterBatteryConnectBroadcastReceiver();
             EventError error = EventManager.INSTANCE.removeEvent(request);
             if (error == EventError.NONE) {
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
-                MessageUtils.setError(response, ERROR_CODE, "Can not unregister event.");
+                MessageUtils.setUnknownError(response, "Can not unregister event.");
             }
             return true;
         }
@@ -144,13 +141,9 @@ public class HostBatteryProfile extends BatteryProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            String serviceId = getServiceID(request);
-
-            // Add event
             EventError error = EventManager.INSTANCE.addEvent(request);
             if (error == EventError.NONE) {
-                ((HostDeviceService) getContext()).setServiceId(serviceId);
-                ((HostDeviceService) getContext()).registerBatteryChargeBroadcastReceiver();
+                getBatteryManager().registerBatteryChargeBroadcastReceiver();
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
                 setResult(response, DConnectMessage.RESULT_ERROR);
@@ -168,19 +161,24 @@ public class HostBatteryProfile extends BatteryProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            // イベントの解除
-            ((HostDeviceService) getContext()).unregisterBatteryChargeBroadcastReceiver();
+            getBatteryManager().unregisterBatteryChargeBroadcastReceiver();
             EventError error = EventManager.INSTANCE.removeEvent(request);
             if (error == EventError.NONE) {
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
-                MessageUtils.setError(response, ERROR_CODE, "Can not unregister event.");
+                MessageUtils.setUnknownError(response, "Can not unregister event.");
             }
             return true;
         }
     };
 
-    public HostBatteryProfile() {
+    private HostBatteryManager mHostBatteryManager;
+
+    public HostBatteryProfile(final HostBatteryManager manager) {
+        mHostBatteryManager = manager;
+        mHostBatteryManager.setBatteryChargingEventListener(mBatteryChargingEventListener);
+        mHostBatteryManager.setBatteryStatusEventListener(mBatteryStatusEventListener);
+
         addApi(mBatteryLevelApi);
         addApi(mBatteryChargingApi);
         addApi(mBatteryAllApi);
@@ -190,22 +188,45 @@ public class HostBatteryProfile extends BatteryProfile {
         addApi(mDeleteOnBatteryChangeApi);
     }
 
-    /**
-     * Get status of charging.
-     * 
-     * @param mStatus BatteryStatus
-     * @return true:charging false:not charging
-     */
-    private boolean getBatteryChargingStatus(final int mStatus) {
-        switch (mStatus) {
-        case HostBatteryManager.BATTERY_STATUS_CHARGING:
-        case HostBatteryManager.BATTERY_STATUS_FULL:
-            return true;
-        case HostBatteryManager.BATTERY_STATUS_UNKNOWN:
-        case HostBatteryManager.BATTERY_STATUS_DISCHARGING:
-        case HostBatteryManager.BATTERY_STATUS_NOT_CHARGING:
-        default:
-            return false;
-        }
+    private HostBatteryManager getBatteryManager() {
+        return mHostBatteryManager;
     }
+
+    private double getLevel() {
+        return ((double) (getBatteryManager().getBatteryLevel())) / ((double) getBatteryManager().getBatteryScale());
+    }
+
+    private final HostBatteryManager.BatteryChargingEventListener mBatteryChargingEventListener = new HostBatteryManager.BatteryChargingEventListener() {
+        @Override
+        public void onChangeCharging() {
+            List<Event> events = EventManager.INSTANCE.getEventList(HostDeviceService.SERVICE_ID, HostBatteryProfile.PROFILE_NAME,
+                    null, HostBatteryProfile.ATTRIBUTE_ON_BATTERY_CHANGE);
+
+            for (int i = 0; i < events.size(); i++) {
+                Event event = events.get(i);
+                Intent intent = EventManager.createEventMessage(event);
+                Bundle battery = new Bundle();
+                HostBatteryProfile.setLevel(battery, getLevel());
+                HostBatteryProfile.setBattery(intent, battery);
+                sendEvent(intent, event.getAccessToken());
+            }
+        }
+    };
+
+    private final HostBatteryManager.BatteryStatusEventListener mBatteryStatusEventListener = new HostBatteryManager.BatteryStatusEventListener() {
+        @Override
+        public void onChangeStatus() {
+            List<Event> events = EventManager.INSTANCE.getEventList(HostDeviceService.SERVICE_ID, HostBatteryProfile.PROFILE_NAME,
+                    null, HostBatteryProfile.ATTRIBUTE_ON_CHARGING_CHANGE);
+
+            for (int i = 0; i < events.size(); i++) {
+                Event event = events.get(i);
+                Intent intent = EventManager.createEventMessage(event);
+                Bundle charging = new Bundle();
+                HostBatteryProfile.setCharging(charging, getBatteryManager().isChargingFlag());
+                HostBatteryProfile.setBattery(intent, charging);
+                sendEvent(intent, event.getAccessToken());
+            }
+        }
+    };
 }

@@ -7,21 +7,19 @@
 
 package org.deviceconnect.android.deviceplugin.host.profile;
 
-import android.Manifest;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.annotation.NonNull;
 
 import org.deviceconnect.android.activity.PermissionUtility;
-import org.deviceconnect.android.deviceplugin.host.HostDevicePreviewServer;
-import org.deviceconnect.android.deviceplugin.host.HostDeviceRecorder;
-import org.deviceconnect.android.deviceplugin.host.HostDeviceRecorderManager;
 import org.deviceconnect.android.deviceplugin.host.HostDeviceService;
-import org.deviceconnect.android.deviceplugin.host.HostDeviceStreamRecorder;
-import org.deviceconnect.android.deviceplugin.host.camera.CameraOverlay;
-import org.deviceconnect.android.deviceplugin.host.camera.HostDeviceCameraRecorder;
-import org.deviceconnect.android.deviceplugin.host.camera.HostDevicePhotoRecorder;
+import org.deviceconnect.android.deviceplugin.host.recorder.HostDevicePhotoRecorder;
+import org.deviceconnect.android.deviceplugin.host.recorder.HostDevicePreviewServer;
+import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
+import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorderManager;
+import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceStreamRecorder;
+import org.deviceconnect.android.deviceplugin.host.recorder.util.CapabilityUtil;
+import org.deviceconnect.android.deviceplugin.host.recorder.video.HostDeviceVideoRecorder;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
@@ -37,10 +35,6 @@ import org.deviceconnect.message.DConnectMessage;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 /**
  * MediaStream Recording Profile.
@@ -52,12 +46,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
 
     private final HostDeviceRecorderManager mRecorderMgr;
 
-    private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
-
-    private final Handler mHandler;
-
     private final DConnectApi mGetMediaRecorderApi = new GetApi() {
-
         @Override
         public String getAttribute() {
             return ATTRIBUTE_MEDIARECORDER;
@@ -65,15 +54,13 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            mExecutor.execute(new Runnable() {
+            init(new PermissionUtility.PermissionRequestCallback() {
                 @Override
-                public void run() {
-                    if (!initRecorders(response)) {
-                        sendResponse(response);
-                        return;
-                    }
+                public void onSuccess() {
+                    // ライト点灯中なら消灯処理を実施.
+                    checkCameraLightState();
 
-                    List<Bundle> recorders = new LinkedList<Bundle>();
+                    List<Bundle> recorders = new LinkedList<>();
                     for (HostDeviceRecorder recorder : mRecorderMgr.getRecorders()) {
                         Bundle info = new Bundle();
                         setRecorderId(info, recorder.getId());
@@ -87,17 +74,16 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                                 setRecorderState(info, RecorderState.INACTIVE);
                                 break;
                         }
-                        if (recorder instanceof HostDeviceCameraRecorder) {
-                            HostDeviceRecorder.PictureSize size = ((HostDeviceCameraRecorder) recorder).getPictureSize();
+                        if (recorder instanceof HostDevicePhotoRecorder || recorder instanceof HostDeviceVideoRecorder) {
+                            HostDeviceRecorder.PictureSize size = recorder.getPictureSize();
                             setRecorderImageWidth(info, size.getWidth());
                             setRecorderImageHeight(info, size.getHeight());
                         }
                         if (recorder instanceof HostDevicePreviewServer) {
-                            HostDevicePreviewServer server = (HostDevicePreviewServer) recorder;
-                            HostDeviceRecorder.PictureSize size = server.getPreviewSize();
+                            HostDeviceRecorder.PictureSize size = recorder.getPreviewSize();
                             setRecorderPreviewWidth(info, size.getWidth());
                             setRecorderPreviewHeight(info, size.getHeight());
-                            setRecorderPreviewMaxFrameRate(info, server.getPreviewMaxFrameRate());
+                            setRecorderPreviewMaxFrameRate(info, recorder.getMaxFrameRate());
                         }
                         setRecorderConfig(info, "");
                         recorders.add(info);
@@ -106,13 +92,18 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                     setResult(response, DConnectMessage.RESULT_OK);
                     sendResponse(response);
                 }
+
+                @Override
+                public void onFail(final String deniedPermission) {
+                    MessageUtils.setUnknownError(response, "Permission for camera is not granted.");
+                    sendResponse(response);
+                }
             });
             return false;
         }
     };
 
     private final DConnectApi mGetOptionsApi = new GetApi() {
-
         @Override
         public String getAttribute() {
             return ATTRIBUTE_OPTIONS;
@@ -121,35 +112,42 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
             String target = getTarget(request);
-            HostDeviceRecorder recorder = mRecorderMgr.getRecorder(target);
+
+            final HostDeviceRecorder recorder = mRecorderMgr.getRecorder(target);
             if (recorder == null) {
                 MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
                 return true;
             }
 
-            setMIMEType(response, recorder.getSupportedMimeTypes());
-            if (recorder instanceof HostDeviceCameraRecorder) {
-                HostDeviceCameraRecorder camera = (HostDeviceCameraRecorder) recorder;
-                setSupportedImageSizes(response, camera.getSupportedPictureSizes());
-            }
-            if (recorder instanceof HostDevicePreviewServer) {
-                HostDevicePreviewServer server = (HostDevicePreviewServer) recorder;
-                setSupportedPreviewSizes(response, server.getSupportedPreviewSizes());
-            }
-            setResult(response, DConnectMessage.RESULT_OK);
-            return true;
+            init(new PermissionUtility.PermissionRequestCallback() {
+                @Override
+                public void onSuccess() {
+                    // ライト点灯中なら消灯処理を実施.
+                    checkCameraLightState();
+
+                    setResult(response, DConnectMessage.RESULT_OK);
+                    setMIMEType(response, recorder.getSupportedMimeTypes());
+                    if (recorder instanceof HostDevicePhotoRecorder) {
+                        setSupportedImageSizes(response, recorder.getSupportedPictureSizes());
+                    }
+                    if (recorder instanceof HostDevicePreviewServer) {
+                        setSupportedPreviewSizes(response, recorder.getSupportedPreviewSizes());
+                    }
+                    sendResponse(response);
+                }
+
+                @Override
+                public void onFail(final String deniedPermission) {
+                    MessageUtils.setUnknownError(response, "Permission for camera is not granted.");
+                    sendResponse(response);
+                }
+            });
+            return false;
         }
     };
 
     private final DConnectApi mPutOptionsApi = new PutApi() {
-
-        @Override
-        public String getAttribute() {
-            return ATTRIBUTE_OPTIONS;
-        }
-
-        @Override
-        public boolean onRequest(final Intent request, final Intent response) {
+        private void setOptions(final Intent request, final Intent response) {
             String target = getTarget(request);
             String mimeType = getMIMEType(request);
             Integer imageWidth = getImageWidth(request);
@@ -161,53 +159,73 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             HostDeviceRecorder recorder = mRecorderMgr.getRecorder(target);
             if (recorder == null) {
                 MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
-                return true;
+                return;
             }
 
             if (!supportsMimeType(recorder, mimeType)) {
-                MessageUtils.setInvalidRequestParameterError(response,
-                    "MIME-Type " + mimeType + " is unsupported.");
-                return true;
+                MessageUtils.setInvalidRequestParameterError(response, "MIME-Type " + mimeType + " is unsupported.");
+                return;
             }
+
             if (recorder.getState() != HostDeviceRecorder.RecorderState.INACTTIVE) {
                 MessageUtils.setInvalidRequestParameterError(response, "settings of active target cannot be changed.");
-                return true;
+                return;
             }
 
             if (imageWidth != null && imageHeight != null) {
-                if (!recorder.supportsPictureSize(imageWidth, imageHeight)) {
+                if (!recorder.isSupportedPictureSize(imageWidth, imageHeight)) {
                     MessageUtils.setInvalidRequestParameterError(response, "Unsupported image size: imageWidth = "
-                        + imageWidth + ", imageHeight = " + imageHeight);
-                    return true;
+                            + imageWidth + ", imageHeight = " + imageHeight);
+                    return;
                 }
                 HostDeviceRecorder.PictureSize newSize = new HostDeviceRecorder.PictureSize(imageWidth, imageHeight);
                 recorder.setPictureSize(newSize);
             }
+
             if (previewWidth != null && previewHeight != null) {
-                if (!(recorder instanceof HostDevicePreviewServer)) {
-                    MessageUtils.setInvalidRequestParameterError(response, "preview is unsupported.");
-                    return true;
-                }
-                HostDevicePreviewServer server = (HostDevicePreviewServer) recorder;
-                if (!server.supportsPreviewSize(previewWidth, previewHeight)) {
+                if (!recorder.isSupportedPreviewSize(previewWidth, previewHeight)) {
                     MessageUtils.setInvalidRequestParameterError(response, "Unsupported preview size: previewWidth = "
-                        + previewWidth + ", previewHeight = " + previewHeight);
-                    return true;
+                            + previewWidth + ", previewHeight = " + previewHeight);
+                    return;
                 }
                 HostDeviceRecorder.PictureSize newSize = new HostDeviceRecorder.PictureSize(previewWidth, previewHeight);
-                server.setPreviewSize(newSize);
+                recorder.setPreviewSize(newSize);
             }
+
             if (previewMaxFrameRate != null) {
                 if (!(recorder instanceof HostDevicePreviewServer)) {
                     MessageUtils.setInvalidRequestParameterError(response, "preview is unsupported.");
-                    return true;
+                    return;
                 }
-                HostDevicePreviewServer server = (HostDevicePreviewServer) recorder;
-                server.setPreviewFrameRate(previewMaxFrameRate);
+                recorder.setMaxFrameRate(previewMaxFrameRate);
             }
-
             setResult(response, DConnectMessage.RESULT_OK);
-            return true;
+        }
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_OPTIONS;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            init(new PermissionUtility.PermissionRequestCallback() {
+                @Override
+                public void onSuccess() {
+                    // ライト点灯中なら消灯処理を実施.
+                    checkCameraLightState();
+
+                    setOptions(request, response);
+                    sendResponse(response);
+                }
+
+                @Override
+                public void onFail(final String deniedPermission) {
+                    MessageUtils.setUnknownError(response, "Permission for camera is not granted.");
+                    sendResponse(response);
+                }
+            });
+            return false;
         }
     };
 
@@ -261,38 +279,60 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             final String target = getTarget(request);
             final String serviceId = getServiceID(request);
 
-            HostDevicePhotoRecorder recorder = mRecorderMgr.getPhotoRecorder(target);
+            // ライト点灯中なら消灯処理を実施.
+            checkCameraLightState();
+
+            final HostDevicePhotoRecorder recorder = mRecorderMgr.getCameraRecorder(target);
             if (recorder == null) {
                 MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
                 return true;
             }
 
-            recorder.takePhoto(new CameraOverlay.OnTakePhotoListener() {
+            HostDeviceRecorder r = (HostDeviceRecorder) recorder;
+            if (r.getState() != HostDeviceRecorder.RecorderState.INACTTIVE) {
+                MessageUtils.setIllegalDeviceStateError(response, r.getName()
+                        + " is already running.");
+                return true;
+            }
+
+            init(new PermissionUtility.PermissionRequestCallback() {
                 @Override
-                public void onTakenPhoto(final String uri, final String filePath) {
-                    setResult(response, DConnectMessage.RESULT_OK);
-                    setUri(response, uri);
-                    sendResponse(response);
+                public void onSuccess() {
+                    recorder.takePhoto(new HostDevicePhotoRecorder.OnPhotoEventListener() {
+                        @Override
+                        public void onTakePhoto(final String uri, final String filePath) {
+                            setResult(response, DConnectMessage.RESULT_OK);
+                            setUri(response, uri);
+                            setPath(response, filePath);
+                            sendResponse(response);
 
-                    List<Event> evts = EventManager.INSTANCE.getEventList(serviceId,
-                        MediaStreamRecordingProfile.PROFILE_NAME, null,
-                        MediaStreamRecordingProfile.ATTRIBUTE_ON_PHOTO);
+                            List<Event> evts = EventManager.INSTANCE.getEventList(serviceId,
+                                    MediaStreamRecordingProfile.PROFILE_NAME, null,
+                                    MediaStreamRecordingProfile.ATTRIBUTE_ON_PHOTO);
 
-                    Bundle photo = new Bundle();
-                    photo.putString(MediaStreamRecordingProfile.PARAM_URI, uri);
-                    photo.putString(MediaStreamRecordingProfile.PARAM_PATH, filePath);
-                    photo.putString(MediaStreamRecordingProfile.PARAM_MIME_TYPE, "image/png");
+                            Bundle photo = new Bundle();
+                            photo.putString(MediaStreamRecordingProfile.PARAM_URI, uri);
+                            photo.putString(MediaStreamRecordingProfile.PARAM_PATH, filePath);
+                            photo.putString(MediaStreamRecordingProfile.PARAM_MIME_TYPE, "image/png");
 
-                    for (Event evt : evts) {
-                        Intent intent = EventManager.createEventMessage(evt);
-                        intent.putExtra(MediaStreamRecordingProfile.PARAM_PHOTO, photo);
-                        sendEvent(intent, evt.getAccessToken());
-                    }
+                            for (Event evt : evts) {
+                                Intent intent = EventManager.createEventMessage(evt);
+                                intent.putExtra(MediaStreamRecordingProfile.PARAM_PHOTO, photo);
+                                sendEvent(intent, evt.getAccessToken());
+                            }
+                        }
+
+                        @Override
+                        public void onFailedTakePhoto() {
+                            MessageUtils.setUnknownError(response, "Failed to take a photo");
+                            sendResponse(response);
+                        }
+                    });
                 }
 
                 @Override
-                public void onFailedTakePhoto() {
-                    MessageUtils.setUnknownError(response, "Failed to take a photo");
+                public void onFail(final String deniedPermission) {
+                    MessageUtils.setUnknownError(response, "Permission for camera is not granted.");
                     sendResponse(response);
                 }
             });
@@ -310,26 +350,43 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
             String target = getTarget(request);
-            HostDevicePreviewServer server = mRecorderMgr.getPreviewServer(target);
+
+            final HostDevicePreviewServer server = mRecorderMgr.getPreviewServer(target);
+
             if (server == null) {
                 MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
                 return true;
             }
 
-            server.startWebServer(new HostDevicePhotoRecorder.OnWebServerStartCallback() {
+            init(new PermissionUtility.PermissionRequestCallback() {
                 @Override
-                public void onStart(@NonNull String uri) {
-                    setResult(response, DConnectMessage.RESULT_OK);
-                    setUri(response, uri);
-                    sendResponse(response);
+                public void onSuccess() {
+                    // ライト点灯中なら消灯処理を実施.
+                    checkCameraLightState();
+
+                    server.startWebServer(new HostDevicePreviewServer.OnWebServerStartCallback() {
+                        @Override
+                        public void onStart(@NonNull String uri) {
+                            setResult(response, DConnectMessage.RESULT_OK);
+                            setUri(response, uri);
+                            sendResponse(response);
+                        }
+
+                        @Override
+                        public void onFail() {
+                            MessageUtils.setIllegalServerStateError(response, "Failed to start web server.");
+                            sendResponse(response);
+                        }
+                    });
                 }
 
                 @Override
-                public void onFail() {
-                    MessageUtils.setIllegalServerStateError(response, "Failed to start web server.");
+                public void onFail(final String deniedPermission) {
+                    MessageUtils.setUnknownError(response, "Permission for camera is not granted.");
                     sendResponse(response);
                 }
             });
+
             return false;
         }
     };
@@ -344,15 +401,28 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
             String target = getTarget(request);
-            HostDevicePreviewServer server = mRecorderMgr.getPreviewServer(target);
+
+            final HostDevicePreviewServer server = mRecorderMgr.getPreviewServer(target);
             if (server == null) {
                 MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
                 return true;
             }
 
-            server.stopWebServer();
-            setResult(response, DConnectMessage.RESULT_OK);
-            return true;
+            init(new PermissionUtility.PermissionRequestCallback() {
+                @Override
+                public void onSuccess() {
+                    server.stopWebServer();
+                    setResult(response, DConnectMessage.RESULT_OK);
+                    sendResponse(response);
+                }
+
+                @Override
+                public void onFail(final String deniedPermission) {
+                    MessageUtils.setUnknownError(response, "Permission for camera is not granted.");
+                    sendResponse(response);
+                }
+            });
+            return false;
         }
     };
 
@@ -366,35 +436,51 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
             String target = getTarget(request);
+
+            // ライト点灯中なら消灯処理を実施.
+            checkCameraLightState();
+
             if (mRecorderMgr.getRecorder(target) == null) {
                 MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
                 return true;
             }
-            HostDeviceStreamRecorder recorder = mRecorderMgr.getStreamRecorder(target);
+
+            final HostDeviceStreamRecorder recorder = mRecorderMgr.getStreamRecorder(target);
             if (recorder == null) {
                 MessageUtils.setNotSupportAttributeError(response,
-                    "target does not support stream recording.");
+                        "target does not support stream recording.");
                 return true;
             }
 
             if (recorder.getState() != HostDeviceRecorder.RecorderState.INACTTIVE) {
                 MessageUtils.setIllegalDeviceStateError(response, recorder.getName()
-                    + " is already running.");
+                        + " is already running.");
                 return true;
             }
-            recorder.start(new HostDeviceStreamRecorder.RecordingListener() {
+
+            init(new PermissionUtility.PermissionRequestCallback() {
                 @Override
-                public void onRecorded(final HostDeviceRecorder recorder, final String fileName) {
-                    FileManager mgr = ((HostDeviceService) getContext()).getFileManager();
-                    setResult(response, DConnectMessage.RESULT_OK);
-                    setPath(response, "/" + fileName);
-                    setUri(response, mgr.getContentUri() + "/" + fileName);
-                    sendResponse(response);
-                }
+                public void onSuccess() {
+                    recorder.startRecording(new HostDeviceStreamRecorder.RecordingListener() {
+                        @Override
+                        public void onRecorded(final HostDeviceStreamRecorder recorder, final String fileName) {
+                            FileManager mgr = ((HostDeviceService) getContext()).getFileManager();
+                            setResult(response, DConnectMessage.RESULT_OK);
+                            setPath(response, "/" + fileName);
+                            setUri(response, mgr.getContentUri() + "/" + fileName);
+                            sendResponse(response);
+                        }
+
+                        @Override
+                        public void onFailed(final HostDeviceStreamRecorder recorder, final String errorMesage) {
+                            MessageUtils.setIllegalServerStateError(response, errorMesage);
+                            sendResponse(response);
+                        }
+                    });                }
 
                 @Override
-                public void onFailed(final HostDeviceRecorder recorder, final String errorMesage) {
-                    MessageUtils.setIllegalServerStateError(response, errorMesage);
+                public void onFail(@NonNull String deniedPermission) {
+                    MessageUtils.setUnknownError(response, "Permission for camera is not granted.");
                     sendResponse(response);
                 }
             });
@@ -412,14 +498,16 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
             String target = getTarget(request);
+
             if (mRecorderMgr.getRecorder(target) == null) {
                 MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
                 return true;
             }
-            HostDeviceStreamRecorder recorder = mRecorderMgr.getStreamRecorder(target);
+
+            final HostDeviceStreamRecorder recorder = mRecorderMgr.getStreamRecorder(target);
             if (recorder == null) {
                 MessageUtils.setNotSupportAttributeError(response,
-                    "target does not support stream recording.");
+                        "target does not support stream recording.");
                 return true;
             }
             if (recorder.getState() == HostDeviceRecorder.RecorderState.INACTTIVE) {
@@ -427,9 +515,23 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                 return true;
             }
 
-            recorder.stop();
-            setResult(response, DConnectMessage.RESULT_OK);
-            return true;
+            init(new PermissionUtility.PermissionRequestCallback() {
+                @Override
+                public void onSuccess() {
+
+                    recorder.stopRecording();
+
+                    setResult(response, DConnectMessage.RESULT_OK);
+                    sendResponse(response);
+                }
+
+                @Override
+                public void onFail(@NonNull String deniedPermission) {
+                    MessageUtils.setUnknownError(response, "Permission for camera is not granted.");
+                    sendResponse(response);
+                }
+            });
+            return false;
         }
     };
 
@@ -443,28 +545,45 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
             String target = getTarget(request);
+
             if (mRecorderMgr.getRecorder(target) == null) {
                 MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
                 return true;
             }
-            HostDeviceStreamRecorder recorder = mRecorderMgr.getStreamRecorder(target);
+
+            final HostDeviceStreamRecorder recorder = mRecorderMgr.getStreamRecorder(target);
             if (recorder == null) {
                 MessageUtils.setNotSupportAttributeError(response,
-                    "target does not support stream recording.");
+                        "target does not support stream recording.");
                 return true;
             }
 
-            if (!recorder.canPause()) {
+            if (!recorder.canPauseRecording()) {
                 MessageUtils.setNotSupportAttributeError(response);
                 return true;
             }
+
             if (recorder.getState() != HostDeviceRecorder.RecorderState.RECORDING) {
                 MessageUtils.setIllegalDeviceStateError(response);
                 return true;
             }
-            recorder.pause();
-            setResult(response, DConnectMessage.RESULT_OK);
-            return true;
+
+            init(new PermissionUtility.PermissionRequestCallback() {
+                @Override
+                public void onSuccess() {
+                    recorder.pauseRecording();
+
+                    setResult(response, DConnectMessage.RESULT_OK);
+                    sendResponse(response);
+                }
+
+                @Override
+                public void onFail(@NonNull String deniedPermission) {
+                    MessageUtils.setUnknownError(response, "Permission for camera is not granted.");
+                    sendResponse(response);
+                }
+            });
+            return false;
         }
     };
 
@@ -482,26 +601,39 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                 MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
                 return true;
             }
-            HostDeviceStreamRecorder recorder = mRecorderMgr.getStreamRecorder(target);
+
+            final HostDeviceStreamRecorder recorder = mRecorderMgr.getStreamRecorder(target);
             if (recorder == null) {
                 MessageUtils.setNotSupportAttributeError(response,
                     "target does not support stream recording.");
                 return true;
             }
 
-            if (!recorder.canPause()) {
+            if (!recorder.canPauseRecording()) {
                 MessageUtils.setNotSupportAttributeError(response);
                 return true;
             }
-            recorder.resume();
-            setResult(response, DConnectMessage.RESULT_OK);
-            return true;
+
+            init(new PermissionUtility.PermissionRequestCallback() {
+                @Override
+                public void onSuccess() {
+                    recorder.resumeRecording();
+                    setResult(response, DConnectMessage.RESULT_OK);
+                    sendResponse(response);
+                }
+
+                @Override
+                public void onFail(@NonNull String deniedPermission) {
+                    MessageUtils.setUnknownError(response, "Permission for camera is not granted.");
+                    sendResponse(response);
+                }
+            });
+            return false;
         }
     };
 
     public HostMediaStreamingRecordingProfile(final HostDeviceRecorderManager mgr) {
         mRecorderMgr = mgr;
-        mHandler = new Handler();
 
         addApi(mGetMediaRecorderApi);
         addApi(mGetOptionsApi);
@@ -517,44 +649,19 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         addApi(mPutResumeApi);
     }
 
-    private boolean initRecorders(final Intent response) {
-        try {
-            if (!requestPermission()) {
-                MessageUtils.setUnknownError(response, "Permission for camera is not granted.");
-                return false;
+    private void init(final PermissionUtility.PermissionRequestCallback callback) {
+        CapabilityUtil.requestPermissions(getContext(), new PermissionUtility.PermissionRequestCallback() {
+            @Override
+            public void onSuccess() {
+                mRecorderMgr.initialize();
+                callback.onSuccess();
             }
-        } catch (InterruptedException e) {
-            MessageUtils.setUnknownError(response, "Permission for camera is not granted.");
-            return false;
-        }
 
-        for (HostDeviceRecorder recorder : mRecorderMgr.getRecorders()) {
-            recorder.initialize();
-        }
-        return true;
-    }
-
-    private boolean requestPermission() throws InterruptedException {
-        final Boolean[] isPermitted = new Boolean[1];
-        final CountDownLatch lockObj = new CountDownLatch(1);
-        PermissionUtility.requestPermissions(getContext(), mHandler, new String[]{Manifest.permission.CAMERA},
-            new PermissionUtility.PermissionRequestCallback() {
-                @Override
-                public void onSuccess() {
-                    isPermitted[0] = true;
-                    lockObj.countDown();
-                }
-
-                @Override
-                public void onFail(@NonNull String deniedPermission) {
-                    isPermitted[0] = false;
-                    lockObj.countDown();
-                }
-            });
-        while (isPermitted[0] == null) {
-            lockObj.await(100, TimeUnit.MILLISECONDS);
-        }
-        return isPermitted[0];
+            @Override
+            public void onFail(final String deniedPermission) {
+                callback.onFail(deniedPermission);
+            }
+        });
     }
 
     private static void setSupportedImageSizes(final Intent response,
@@ -593,23 +700,23 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
     }
 
     /**
-     * 記録強制停止.
+     * MIMEタイプを設定する.
+     *
+     * @param response レスポンス
+     * @param mimeType MIMEタイプ
      */
-    public void forcedStopRecording() {
-        for (HostDeviceRecorder hostRecorder : mRecorderMgr.getRecorders()) {
-            HostDeviceStreamRecorder movie = mRecorderMgr.getStreamRecorder(hostRecorder.getId());
-            if (movie != null && movie.getState() != HostDeviceRecorder.RecorderState.INACTTIVE) {
-                movie.stop();
-            }
+    public static void setMIMEType(final Intent response, final List<String> mimeType) {
+        response.putExtra(PARAM_MIME_TYPE, mimeType.toArray(new String[mimeType.size()]));
+    }
+
+    /**
+     * カメラライト点灯状態確認.
+     */
+    public void checkCameraLightState() {
+        // ライト点灯中なら消灯処理を実施.
+        if (mRecorderMgr.getCameraRecorder(null).isUseFlashLight()) {
+            mRecorderMgr.getCameraRecorder(null).turnOffFlashLight();
         }
     }
 
-    public void forcedStopPreview() {
-        for (HostDeviceRecorder hostRecorder : mRecorderMgr.getRecorders()) {
-            HostDevicePreviewServer server = mRecorderMgr.getPreviewServer(hostRecorder.getId());
-            if (server != null) {
-                server.stopWebServer();
-            }
-        }
-    }
 }

@@ -147,12 +147,12 @@ public class FaBoGPIOProfile extends GPIOProfile {
                     if(mode != null) {
                         try {
                             modeValue = Integer.parseInt(mode);
-                            if (modeValue != 1 && modeValue != 2 && modeValue != 3) {
-                                MessageUtils.setInvalidRequestParameterError(response, "The value of mode must be defined 1-3.");
+                            if (modeValue < 0 || modeValue > 3) {
+                                MessageUtils.setInvalidRequestParameterError(response, "The value of mode must be defined 0-3.");
                                 return true;
                             }
                         } catch (Exception e) {
-                            MessageUtils.setInvalidRequestParameterError(response, "The value of mode must be defined 1-3.");
+                            MessageUtils.setInvalidRequestParameterError(response, "The value of mode must be defined 0-3.");
                             return true;
                         }
                     } else {

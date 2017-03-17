@@ -19,10 +19,6 @@ import android.widget.EditText;
 import org.deviceconnect.android.app.simplebot.R;
 import org.deviceconnect.android.app.simplebot.data.SettingData;
 import org.deviceconnect.message.DConnectMessage;
-import org.deviceconnect.profile.AuthorizationProfileConstants;
-import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
-import org.deviceconnect.profile.ServiceInformationProfileConstants;
-import org.deviceconnect.profile.SystemProfileConstants;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -68,23 +64,11 @@ public class Utils {
     }
 
     /**
-     * MapからJsonへ変換する
-     * @param map Map
-     * @return Json
-     */
-    public static String mapToJson(Map map) {
-        if (map == null) {
-            return null;
-        }
-        return new JSONObject(map).toString();
-    }
-
-    /**
      * JsonからMapへ変換する
      * @param json Json
      * @return Map
      */
-    public static Map<String, String> jsonToMap(String json) {
+    public static Map<String, Object> jsonToMap(String json) {
         if (json == null) {
             return null;
         }
@@ -92,7 +76,7 @@ public class Utils {
             JSONObject jsonObj = new JSONObject(json);
             Iterator<String> keys = jsonObj.keys();
             // 今回は文字列限定
-            Map<String, String> params = new HashMap<>();
+            Map<String, Object> params = new HashMap<>();
             while (keys.hasNext()) {
                 String key = keys.next();
                 String val = jsonObj.getString(key);
@@ -324,43 +308,27 @@ public class Utils {
     //region Connection
 
     /**
-     * 接続処理
+     * 接続処理を行う.
+     *
      * @param context context
      * @param callback 終了コールバック
      */
     public static void connect(final Context context, final DConnectHelper.FinishCallback<DConnectHelper.AuthInfo> callback) {
-        final String origin = context.getPackageName();
         String appName = context.getString(R.string.app_name);
         final SettingData setting = SettingData.getInstance(context);
-        if (setting.scopes == null) {
-            // 初期スコープ
-            setting.scopes = new HashSet<>();
-            setting.scopes.add(SystemProfileConstants.PROFILE_NAME);
-            setting.scopes.add(AuthorizationProfileConstants.PROFILE_NAME);
-            setting.scopes.add(ServiceDiscoveryProfileConstants.PROFILE_NAME);
-            setting.scopes.add(ServiceInformationProfileConstants.PROFILE_NAME);
-            setting.scopes.add("messageHook");
-            // TODO: debug用
-            setting.scopes.add("battery");
-            setting.scopes.add("mediaPlayer");
-            setting.scopes.add("mediaStreamRecording");
-
-            setting.save();
-        }
-        String scopes[] = setting.scopes.toArray(new String[setting.scopes.size()]);
+        String scopes[] = setting.getScopes();
 
         // 接続先設定
         DConnectHelper.INSTANCE.setHostInfo(
                 setting.ssl,
                 setting.host,
-                setting.port,
-                origin
+                setting.port
         );
 
         if (setting.accessToken == null) {
             // 新規接続
             // 認証
-            DConnectHelper.INSTANCE.auth(appName, setting.clientId, scopes, new DConnectHelper.FinishCallback<DConnectHelper.AuthInfo>() {
+            DConnectHelper.INSTANCE.auth(appName, scopes, new DConnectHelper.FinishCallback<DConnectHelper.AuthInfo>() {
                 @Override
                 public void onFinish(DConnectHelper.AuthInfo authInfo, Exception error) {
                     Exception outError = error;
@@ -393,7 +361,8 @@ public class Utils {
     }
 
     /**
-     * サービス一覧を取得
+     * サービス一覧を取得する.
+     *
      * @param context context
      * @param callback 終了コールバック
      */
@@ -403,7 +372,7 @@ public class Utils {
             public void onFinish(DConnectHelper.AuthInfo authInfo, Exception error) {
                 if (error == null) {
                     // サービス検索
-                    DConnectHelper.INSTANCE.serviceDiscovery(authInfo.accessToken, new DConnectHelper.FinishCallback<List<DConnectHelper.ServiceInfo>>() {
+                    DConnectHelper.INSTANCE.serviceDiscovery(new DConnectHelper.FinishCallback<List<DConnectHelper.ServiceInfo>>() {
                         @Override
                         public void onFinish(List<DConnectHelper.ServiceInfo> serviceInfos, Exception error) {
                             if (retryCheck(context, error)) {
@@ -422,7 +391,8 @@ public class Utils {
     }
 
     /**
-     * サービス情報を取得
+     * サービス情報を取得する.
+     *
      * @param context context
      * @param callback 終了コールバック
      */
@@ -432,7 +402,7 @@ public class Utils {
             public void onFinish(DConnectHelper.AuthInfo authInfo, Exception error) {
                 if (error == null) {
                     // サービス検索
-                    DConnectHelper.INSTANCE.serviceInformation(authInfo.accessToken, serviceId, new DConnectHelper.FinishCallback<Map<String, List<DConnectHelper.APIInfo>>>() {
+                    DConnectHelper.INSTANCE.serviceInformation(serviceId, new DConnectHelper.FinishCallback<Map<String, List<DConnectHelper.APIInfo>>>() {
                         @Override
                         public void onFinish(Map<String, List<DConnectHelper.APIInfo>> apiInfos, Exception error) {
                             if (retryCheck(context, error)) {
@@ -451,38 +421,49 @@ public class Utils {
     }
 
     /**
-     * イベントを登録
+     * Device Connect Managerの生存確認を行う.
+     * @param context コンテキスト
+     * @param callback 生存確認結果を通知するコールバック
+     */
+    public static void availability(final Context context, final DConnectHelper.FinishCallback<Void> callback) {
+        DConnectHelper.INSTANCE.availability(new DConnectHelper.FinishCallback<Void>() {
+            @Override
+            public void onFinish(final Void object, final Exception error) {
+                callback.onFinish(null, error);
+            }
+        });
+    }
+
+    /**
+     * イベントを登録する.
      * @param context context
      * @param callback 終了コールバック
      */
-    public static void registEvent(final Context context, final boolean unregist, final DConnectHelper.FinishCallback<Void> callback) {
+    public static void registerEvent(final Context context, final DConnectHelper.FinishCallback<Void> callback) {
         DConnectHelper.FinishCallback<DConnectHelper.AuthInfo> finishCallback = new DConnectHelper.FinishCallback<DConnectHelper.AuthInfo>() {
             @Override
             public void onFinish(final DConnectHelper.AuthInfo authInfo, Exception error) {
                 if (error == null) {
-                    // 登録
-                    final SettingData setting = SettingData.getInstance(context);
-                    DConnectHelper.INSTANCE.registerEvent("messageHook", "message", setting.serviceId, setting.accessToken, setting.sessionKey, unregist, new DConnectHelper.FinishCallback<Void>() {
-                        @Override
-                        public void onFinish(Void aVoid, Exception error) {
-                            if (error == null) {
-                                if (unregist) {
-                                    DConnectHelper.INSTANCE.closeWebsocket();
-                                } else {
-                                    DConnectHelper.INSTANCE.openWebsocket(setting.sessionKey);
-                                }
-                                callback.onFinish(null, null);
-                            } else {
-                                if (retryCheck(context, error)) {
-                                    registEvent(context, unregist, callback);
-                                } else {
-                                    callback.onFinish(null, error);
-                                }
-                            }
-                        }
-                    });
+                    DConnectHelper.INSTANCE.openWebSocket();
+                    callback.onFinish(null, null);
                 } else {
                     callback.onFinish(null, error);
+                }
+            }
+        };
+        Utils.connect(context, finishCallback);
+    }
+
+    /**
+     * イベントを解除する.
+     * @param context context
+     */
+    public static void unregisterEvent(Context context) {
+        DConnectHelper.FinishCallback<DConnectHelper.AuthInfo> finishCallback = new DConnectHelper.FinishCallback<DConnectHelper.AuthInfo>() {
+            @Override
+            public void onFinish(final DConnectHelper.AuthInfo authInfo, Exception error) {
+                if (error == null) {
+                    DConnectHelper.INSTANCE.closeWebSocket();
                 }
             }
         };
@@ -501,7 +482,7 @@ public class Utils {
                 if (error == null) {
                     // メッセージ送信
                     SettingData setting = SettingData.getInstance(context);
-                    DConnectHelper.INSTANCE.sendMessage(setting.serviceId, setting.accessToken, channel, text, resource, new DConnectHelper.FinishCallback<Void>() {
+                    DConnectHelper.INSTANCE.sendMessage(setting.serviceId, channel, text, resource, new DConnectHelper.FinishCallback<Void>() {
                         @Override
                         public void onFinish(Void aVoid, Exception error) {
                             callback.onFinish(null, error);
@@ -523,13 +504,13 @@ public class Utils {
      * @param params パラメータ
      * @param callback 終了コールバック
      */
-    public static void sendRequest(final Context context, final String method, final String path, final String serviceId, final Map<String, String> params, final DConnectHelper.FinishCallback<Map<String, Object>> callback) {
+    public static void sendRequest(final Context context, final String method, final String path, final String serviceId, final Map<String, Object> params, final DConnectHelper.FinishCallback<Map<String, Object>> callback) {
         final DConnectHelper.FinishCallback<DConnectHelper.AuthInfo> finishCallback = new DConnectHelper.FinishCallback<DConnectHelper.AuthInfo>() {
             @Override
             public void onFinish(DConnectHelper.AuthInfo authInfo, Exception error) {
                 if (error == null) {
                     // リクエスト送信
-                    DConnectHelper.INSTANCE.sendRequest(method, path, serviceId, authInfo.accessToken, params, new DConnectHelper.FinishCallback<Map<String, Object>>() {
+                    DConnectHelper.INSTANCE.sendRequest(method, path, serviceId, params, new DConnectHelper.FinishCallback<Map<String, Object>>() {
                         @Override
                         public void onFinish(Map<String, Object> stringObjectMap, Exception error) {
                             callback.onFinish(stringObjectMap, error);
@@ -555,8 +536,7 @@ public class Utils {
     public static boolean retryCheck(Context context, Exception error) {
         if (error instanceof DConnectHelper.DConnectInvalidResultException) {
             // "clientId was not found"の場合はclientIdを消して再接続
-            int errorCode = ((DConnectHelper.DConnectInvalidResultException) error).errorCode;
-            if (errorCode == 15 || errorCode == 11 || errorCode == 12 || errorCode == 13) {
+            if (((DConnectHelper.DConnectInvalidResultException) error).errorCode == 15) {
                 if (retryCount++ > 3) {
                     retryCount = 0;
                     return false;

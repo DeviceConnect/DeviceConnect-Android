@@ -42,7 +42,7 @@ public class FPLUGPowerMeterProfile extends PowerMeterProfile {
 
         @Override
         public String getAttribute() {
-            return ATTR_INTEGRATEDPOWERVALUE;
+            return ATTR_INTEGRATEDPOWER;
         }
 
         @Override
@@ -75,7 +75,7 @@ public class FPLUGPowerMeterProfile extends PowerMeterProfile {
                     for (int i = 0; i < wattHourList.size(); i++) {
                         wattList[i] = wattHourList.get(i).getWatt();
                     }
-                    response.putExtra(PowerMeterProfileConstants.PARAM_INTEGRATEDPOWERVALUE, wattList);
+                    response.putExtra(PowerMeterProfileConstants.PARAM_INTEGRATEDPOWER, wattList);
                     sendResultOK(response);
                 }
 
@@ -98,7 +98,7 @@ public class FPLUGPowerMeterProfile extends PowerMeterProfile {
 
         @Override
         public String getAttribute() {
-            return ATTR_INSTANTANEOUSPOWERVALUE;
+            return ATTR_INSTANTANEOUSPOWER;
         }
 
         @Override
@@ -114,7 +114,7 @@ public class FPLUGPowerMeterProfile extends PowerMeterProfile {
             controller.requestRealtimeWatt(new FPLUGRequestCallback() {
                 @Override
                 public void onSuccess(FPLUGResponse fResponse) {
-                    response.putExtra(PowerMeterProfileConstants.PARAM_INSTANTANEOUSPOWERVALUE, fResponse.getRealtimeWatt());
+                    response.putExtra(PowerMeterProfileConstants.PARAM_INSTANTANEOUSPOWER, fResponse.getRealtimeWatt());
                     sendResultOK(response);
                 }
 

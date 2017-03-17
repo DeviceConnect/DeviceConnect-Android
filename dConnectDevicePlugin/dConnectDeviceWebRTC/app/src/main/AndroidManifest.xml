@@ -40,7 +40,7 @@
             </intent-filter>
             <meta-data
                 android:name="org.deviceconnect.android.deviceplugin"
-                android:resource="@xml/deviceplugin"/>
+                android:resource="@xml/org_deviceconnect_android_deviceplugin_webrtc"/>
         </receiver>
 
         <service

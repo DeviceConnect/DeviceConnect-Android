@@ -22,6 +22,7 @@ public class DConnectApiSpec implements DConnectSpecConstants {
 
     private Type mType;
     private Method mMethod;
+    private String mApiName;
     private String mProfileName;
     private String mInterfaceName;
     private String mAttributeName;
@@ -61,6 +62,10 @@ public class DConnectApiSpec implements DConnectSpecConstants {
         return mMethod;
     }
 
+    void setApiName(final String apiName) {
+        mApiName = apiName;
+    }
+
     void setProfileName(final String profileName) {
         mProfileName = profileName;
     }
@@ -71,6 +76,14 @@ public class DConnectApiSpec implements DConnectSpecConstants {
 
     void setAttributeName(final String attributeName) {
         mAttributeName = attributeName;
+    }
+
+    /**
+     * API名を取得する.
+     * @return API名
+     */
+    public String getApiName() {
+        return mApiName;
     }
 
     /**

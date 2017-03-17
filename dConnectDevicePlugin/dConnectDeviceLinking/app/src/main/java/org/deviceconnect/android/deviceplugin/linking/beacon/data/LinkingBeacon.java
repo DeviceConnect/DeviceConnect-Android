@@ -24,6 +24,7 @@ public class LinkingBeacon {
     private BatteryData mBatteryData;
     private AtmosphericPressureData mAtmosphericPressureData;
     private RawData mRawData;
+    private ButtonData mButtonData;
 
     public String getServiceId() {
         return LinkingBeaconUtil.createServiceIdFromLinkingBeacon(this);
@@ -122,6 +123,14 @@ public class LinkingBeacon {
 
     public void setRawData(final RawData rawData) {
         mRawData = rawData;
+    }
+
+    public ButtonData getButtonData() {
+        return mButtonData;
+    }
+
+    public void setButtonData(ButtonData buttonData) {
+        mButtonData = buttonData;
     }
 
     @Override

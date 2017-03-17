@@ -36,6 +36,7 @@ import java.util.List;
 
 class SwaggerJsonParser implements DConnectProfileSpecJsonParser, DConnectSpecConstants {
 
+    private static final String KEY_BASE_PATH = "basePath";
     private static final String KEY_PATHS = "paths";
 
     private static final OperationObjectParser OPERATION_OBJECT_PARSER = new OperationObjectParser() {
@@ -79,6 +80,15 @@ class SwaggerJsonParser implements DConnectProfileSpecJsonParser, DConnectSpecCo
         DConnectProfileSpec.Builder builder = new DConnectProfileSpec.Builder();
         builder.setBundle(toBundle(json));
 
+        String basePath = json.optString(KEY_BASE_PATH, null);
+        if (basePath != null) {
+            String[] parts = basePath.split("/");
+            if (parts.length != 3) {
+                throw new JSONException("basePath is invalid: " + basePath);
+            }
+            builder.setApiName(parts[1]);
+            builder.setProfileName(parts[2]);
+        }
         JSONObject pathsObj = json.getJSONObject(KEY_PATHS);
         for (Iterator<String> it = pathsObj.keys(); it.hasNext(); ) {
             String path = it.next();

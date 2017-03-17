@@ -14,7 +14,6 @@ import android.content.ServiceConnection;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.os.RemoteException;
 import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -63,7 +62,7 @@ public class DConnectLaunchActivity extends Activity {
     /**
      * DConnectServiceを操作するクラス.
      */
-    private IDConnectService mDConnectService;
+    private DConnectService mDConnectService;
 
     /**
      * The logger.
@@ -100,17 +99,18 @@ public class DConnectLaunchActivity extends Activity {
             String host = uri.getHost();
             String path = uri.getPath();
             if (HOST_START.equals(host)) {
+                preventAutoStop();
                 if (!allowExternalStartAndStop() || PATH_ROOT.equals(path) || PATH_ACTIVITY.equals(path)) {
                     mBehavior = new Runnable() {
                         @Override
                         public void run() {
-                            try {
+                            if (mDConnectService != null) {
                                 if (!mDConnectService.isRunning()) {
                                     displayActivity();
                                 } else {
                                     finish();
                                 }
-                            } catch (RemoteException e) {
+                            } else {
                                 finish();
                             }
                         }
@@ -120,7 +120,7 @@ public class DConnectLaunchActivity extends Activity {
                         @Override
                         public void run() {
                             startManager();
-                            onActivityResult(0, RESULT_OK, null);
+                            setResult(RESULT_OK);
                             finish();
                         }
                     };
@@ -133,13 +133,13 @@ public class DConnectLaunchActivity extends Activity {
                     mBehavior = new Runnable() {
                         @Override
                         public void run() {
-                            try {
+                            if (mDConnectService != null) {
                                 if (mDConnectService.isRunning()) {
                                     displayActivity();
                                 } else {
                                     finish();
                                 }
-                            } catch (RemoteException e) {
+                            } else {
                                 finish();
                             }
                         }
@@ -157,7 +157,7 @@ public class DConnectLaunchActivity extends Activity {
                                 mLogger.warning("Cannot stop Device Connect Manager automatically.");
                                 result = RESULT_ERROR;
                             }
-                            onActivityResult(0, result, null);
+                            setResult(result);
                             finish();
                         }
                     };
@@ -180,7 +180,6 @@ public class DConnectLaunchActivity extends Activity {
     @Override
     protected void onPause() {
         super.onPause();
-        onActivityResult(0, RESULT_CANCELED, null);
         if (mIsBind) {
             unbindService(mServiceConnection);
             mIsBind = false;
@@ -230,30 +229,45 @@ public class DConnectLaunchActivity extends Activity {
     }
 
     private synchronized void bindManagerService() {
-        Intent bindIntent = new Intent(IDConnectService.class.getName());
-        bindIntent.setPackage(getPackageName());
+        Intent bindIntent = new Intent(getApplicationContext(), DConnectService.class);
         mIsBind = bindService(bindIntent, mServiceConnection, Context.BIND_AUTO_CREATE);
+    }
+
+    /**
+     * DConnectServiceとのバインド解除時に、OSによってDConnectServiceが破棄されてしまうことを防ぐ.
+     */
+    private void preventAutoStop() {
+        Intent targetIntent = new Intent();
+        targetIntent.setClass(getApplicationContext(), DConnectService.class);
+        startService(targetIntent);
+
+        // NOTE: 上記の処理でstartServiceを実行している理由
+        //
+        //     AndroidフレームワークのServiceは、内部的に下記の2つのフラグを持つ.
+        //
+        //         (1) startServiceされたことを示すフラグ
+        //         (2) bindServiceされたことを示すフラグ
+        //
+        //     上記のフラグをもとに、Android OSはServiceを破棄すべきかどうかを下記のように判断する.
+        //
+        //     (1) のフラグのみがONの状態でstopServiceすると、そのServiceを破棄する.
+        //     (2) のフラグのみがONの状態でunbindServiceすると、そのServiceを破棄する.
+        //     (1)(2)両方がONの状態では、stopServiceとbindServiceの両方を実行した場合に限り、破棄する.
+        //
+        //     本画面の場合、画面が閉じられたタイミングでunbindServiceするため、bindServiceするだけでは
+        //     画面を閉じられたタイミングでManagerのサービスが終了してしまう.
+        //     よって、startServiceも実行しておくことで、終了されてしまうことを回避する.
     }
 
     private void startManager() {
         if (mDConnectService != null) {
-            try {
-                mDConnectService.start();
-            } catch (RemoteException e) {
-                // do nothing
-                mLogger.warning("Failed to start service");
-            }
+            mDConnectService.startInternal();
         }
     }
 
     private void stopManager() {
         if (mDConnectService != null) {
-            try {
-                mDConnectService.stop();
-            } catch (RemoteException e) {
-                // do nothing
-                mLogger.warning("Failed to stop service");
-            }
+            mDConnectService.stopInternal();
         }
     }
 
@@ -268,15 +282,13 @@ public class DConnectLaunchActivity extends Activity {
         cancelButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View v) {
-                onActivityResult(0, RESULT_OK, null);
+                setResult(RESULT_OK);
                 finish();
             }
         });
 
-        try {
+        if (mDConnectService != null) {
             toggleButton(mDConnectService.isRunning());
-        } catch (RemoteException e) {
-            mLogger.warning("Failed to get service");
         }
     }
 
@@ -303,7 +315,7 @@ public class DConnectLaunchActivity extends Activity {
                 @Override
                 public void onClick(final View v) {
                     stopManager();
-                    onActivityResult(0, RESULT_OK, null);
+                    setResult(RESULT_OK);
                     finish();
                 }
             });
@@ -314,7 +326,7 @@ public class DConnectLaunchActivity extends Activity {
                 @Override
                 public void onClick(final View v) {
                     startManager();
-                    onActivityResult(0, RESULT_OK, null);
+                    setResult(RESULT_OK);
                     finish();
                 }
             });
@@ -345,7 +357,7 @@ public class DConnectLaunchActivity extends Activity {
     private final ServiceConnection mServiceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(final ComponentName name, final IBinder service) {
-            mDConnectService = (IDConnectService) service;
+            mDConnectService = ((DConnectService.LocalBinder) service).getDConnectService();
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {

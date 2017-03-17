@@ -21,6 +21,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 
+import static org.deviceconnect.android.deviceplugin.host.profile.HostKeyEventProfile.ATTRIBUTE_ON_KEY_CHANGE;
+import static org.deviceconnect.android.deviceplugin.host.profile.HostTouchProfile.ATTRIBUTE_ON_TOUCH_CHANGE;
+
 /**
  * Host Device Plugin Application.
  * 
@@ -66,6 +69,20 @@ public class HostDeviceApplication extends Application {
 
     /** Touch profile onTouchCancel cache time. */
     long mOnTouchCancelCacheTime = 0;
+    /** Touch profile onTouchChange cache. */
+    Bundle mOnTouchChangeCache = null;
+    /** Touch profile onTouchChange cache time. */
+    long mOnTouchChangeCacheTime = 0;
+    /** Touch State start. */
+    public static final String STATE_START = "start";
+    /** Touch State end. */
+    public static final String STATE_END = "end";
+    /** Touch State double tap. */
+    public static final String STATE_DOUBLE_TAP = "doubletap";
+    /** Touch State move. */
+    public static final String STATE_MOVE = "move";
+    /** Touch State cancel. */
+    public static final String STATE_CANCEL = "cancel";
 
     /**
      * Get Touch cache data.
@@ -111,6 +128,12 @@ public class HostDeviceApplication extends Application {
             } else {
                 return null;
             }
+        } else if (attr.equalsIgnoreCase(ATTRIBUTE_ON_TOUCH_CHANGE)) {
+            if (lCurrentTime - mOnTouchChangeCacheTime <= CACHE_RETENTION_TIME) {
+                return mOnTouchChangeCache;
+            } else {
+                return null;
+            }
         } else {
             return null;
         }
@@ -142,6 +165,9 @@ public class HostDeviceApplication extends Application {
         } else if (attr.equalsIgnoreCase(TouchProfile.ATTRIBUTE_ON_TOUCH_CANCEL)) {
             mOnTouchCancelCache = touchData;
             mOnTouchCancelCacheTime = lCurrentTime;
+        } else if (attr.equalsIgnoreCase(ATTRIBUTE_ON_TOUCH_CHANGE)) {
+            mOnTouchChangeCache = touchData;
+            mOnTouchChangeCacheTime = lCurrentTime;
         }
     }
 
@@ -156,7 +182,14 @@ public class HostDeviceApplication extends Application {
 
     /** KeyEvent profile onUp cache time. */
     static long sOnUpCacheTime = 0;
-
+    /** KeyEvent profile onKeyChange cache. */
+    Bundle mOnKeyChangeCache = null;
+    /** KeyEvent profile onKeyChange cache time. */
+    static long sOnKeyChangeCacheTime = 0;
+    /** KeyEvent State move. */
+    public static final String STATE_UP = "up";
+    /** KeyEvent State cancel. */
+    public static final String STATE_DOWN = "down";
     /**
      * Get KeyEvent cache data.
      * 
@@ -177,6 +210,12 @@ public class HostDeviceApplication extends Application {
             } else {
                 return null;
             }
+        } else if (attr.equalsIgnoreCase(ATTRIBUTE_ON_KEY_CHANGE)) {
+            if (lCurrentTime - sOnKeyChangeCacheTime <= CACHE_RETENTION_TIME) {
+                return mOnKeyChangeCache;
+            } else {
+                return null;
+            }
         } else {
             return null;
         }
@@ -186,16 +225,19 @@ public class HostDeviceApplication extends Application {
      * Set KeyEvent data to cache.
      * 
      * @param attr Attribute.
-     * @param keyeventData Touch data.
+     * @param keyEventData Touch data.
      */
-    public void setKeyEventCache(final String attr, final Bundle keyeventData) {
+    public void setKeyEventCache(final String attr, final Bundle keyEventData) {
         long lCurrentTime = System.currentTimeMillis();
         if (attr.equalsIgnoreCase(KeyEventProfile.ATTRIBUTE_ON_DOWN)) {
-            mOnDownCache = keyeventData;
+            mOnDownCache = keyEventData;
             sOnDownCacheTime = lCurrentTime;
         } else if (attr.equalsIgnoreCase(KeyEventProfile.ATTRIBUTE_ON_UP)) {
-            mOnUpCache = keyeventData;
+            mOnUpCache = keyEventData;
             sOnUpCacheTime = lCurrentTime;
+        } else if (attr.equalsIgnoreCase(ATTRIBUTE_ON_KEY_CHANGE)) {
+            mOnKeyChangeCache = keyEventData;
+            sOnKeyChangeCacheTime = lCurrentTime;
         }
     }
 
@@ -220,5 +262,4 @@ public class HostDeviceApplication extends Application {
         request.putExtra(DConnectMessage.EXTRA_PROFILE, BatteryProfile.PROFILE_NAME);
         sendBroadcast(request);
     }
-
 }

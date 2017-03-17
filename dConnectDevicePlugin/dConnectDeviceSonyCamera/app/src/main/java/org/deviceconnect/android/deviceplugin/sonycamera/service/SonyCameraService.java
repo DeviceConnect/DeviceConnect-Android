@@ -19,9 +19,6 @@ public class SonyCameraService extends DConnectService {
 
         addProfile(new SonyCameraMediaStreamRecordingProfile());
         addProfile(new SonyCameraZoomProfile());
-
-        // SonyCameraデバイスプラグインではSettingsプロファイルは非サポート.
-        //addProfile(new SonyCameraSettingsProfile());
     }
 
 }

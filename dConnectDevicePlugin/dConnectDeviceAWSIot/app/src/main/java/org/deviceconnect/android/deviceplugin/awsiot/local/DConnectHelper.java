@@ -53,7 +53,7 @@ public class DConnectHelper {
             add("serviceinformation");
             add("system");
             add("battery");
-            add("connect");
+            add("connection");
             add("deviceorientation");
             add("filedescriptor");
             add("file");
@@ -62,7 +62,7 @@ public class DConnectHelper {
             add("notification");
             add("phone");
             add("proximity");
-            add("settings");
+            add("setting");
             add("vibration");
             add("light");
             add("remotecontroller");
@@ -75,7 +75,7 @@ public class DConnectHelper {
             add("canvas");
             add("health");
             add("touch");
-            add("humandetect");
+            add("humandetection");
             add("keyevent");
             add("omnidirectionalimage");
             add("tv");
@@ -86,6 +86,7 @@ public class DConnectHelper {
             add("airconditioner");
             add("atmosphericpressure");
             add("gpio");
+            add("geolocation");
         }
     };
 

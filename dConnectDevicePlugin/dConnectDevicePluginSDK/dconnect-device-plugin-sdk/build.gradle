@@ -91,7 +91,7 @@ def specZipFile = ''
 def apiDir = new File(specOutputDir, 'api')
 
 task downloadZip(type: SpecDownload) {
-    sourceUrl = 'https://github.com/TakayukiHoshi1984/DeviceConnect-Spec/archive/feature_plugin_sdk_2.0.0.zip'
+    sourceUrl = 'https://github.com/TakayukiHoshi1984/DeviceConnect-Spec/archive/v2.2.1-release-20170324.zip'
     target = file("${projectDir}/DeviceConnect-Spec.zip")
     specZipFile = target
 }

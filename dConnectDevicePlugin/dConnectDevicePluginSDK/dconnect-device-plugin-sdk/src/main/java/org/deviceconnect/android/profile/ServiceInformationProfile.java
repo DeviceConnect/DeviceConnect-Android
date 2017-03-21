@@ -40,6 +40,13 @@ public class ServiceInformationProfile extends DConnectProfile implements Servic
     public static final String SETTING_PAGE_PARAMS = "org.deviceconnect.profile.system.setting_params";
 
     private static final String KEY_PATHS = "paths";
+    private static final String KEY_INFO = "info";
+    private static final String KEY_DEFINITIONS = "definitions";
+    private static final String KEY_RESPONSES = "responses";
+    private static final String KEY_PARAMETERS = "parameters";
+    private static final String KEY_X_EVENT = "x-event";
+    private static final String KEY_SUMMARY = "summary";
+    private static final String KEY_DESCRIPTION = "description";
 
     /**
      * Service Information API.
@@ -208,6 +215,10 @@ public class ServiceInformationProfile extends DConnectProfile implements Servic
             DConnectProfileSpec profileSpec = profile.getProfileSpec();
             if (profileSpec != null) {
                 Bundle bundle = createSupportApisBundle(profileSpec, profile);
+
+                // 送信しない情報はここで削除.
+                reduceInformation(bundle);
+
                 supportApisBundle.putBundle(profile.getProfileName(), bundle);
             }
         }
@@ -243,6 +254,43 @@ public class ServiceInformationProfile extends DConnectProfile implements Servic
         }
         return tmpBundle;
     }
+
+    private static void reduceInformation(final Bundle supportApi) {
+        Bundle infoObj = supportApi.getBundle(KEY_INFO);
+        if (infoObj != null) {
+            infoObj.remove(KEY_DESCRIPTION);
+        }
+        Bundle pathsObj = supportApi.getBundle(KEY_PATHS);
+        if (pathsObj != null) {
+            List<String> pathNames = new ArrayList<String>(pathsObj.keySet());
+            for (String pathName : pathNames) {
+                Bundle pathObj = pathsObj.getBundle(pathName);
+                if (pathObj == null) {
+                    continue;
+                }
+                for (DConnectSpecConstants.Method method : DConnectSpecConstants.Method.values()) {
+                    String methodName = method.getName().toLowerCase();
+                    Bundle methodObj = pathObj.getBundle(methodName);
+                    if (methodObj == null) {
+                        continue;
+                    }
+                    methodObj.remove(KEY_RESPONSES);
+                    methodObj.remove(KEY_X_EVENT);
+                    methodObj.remove(KEY_SUMMARY);
+                    methodObj.remove(KEY_DESCRIPTION);
+
+                    Bundle[] parameters = (Bundle[]) methodObj.getParcelableArray(KEY_PARAMETERS);
+                    if (parameters != null) {
+                        for (Bundle parameter : parameters) {
+                            parameter.remove(KEY_DESCRIPTION);
+                        }
+                    }
+                }
+            }
+        }
+        supportApi.remove(KEY_DEFINITIONS);
+    }
+
     /**
      * レスポンスにデバイスの接続状態を設定する.
      * 

@@ -33,5 +33,6 @@
     <string name="sonycamera_cancel" translatable="false">キャンセル</string>
     <string name="sonycamera_password_dialog" translatable="false">パスワード入力ダイアログ</string>
     <string name="sonycamera_not_connected" translatable="false">Wi-Fiがつながりません</string>
+    <string name="sonycamera_request_permission_error" translatable="false">パーミッションの許可が取れませんでした。</string>
 
 </resources>

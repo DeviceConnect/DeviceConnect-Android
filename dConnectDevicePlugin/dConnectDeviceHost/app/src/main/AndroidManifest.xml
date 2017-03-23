@@ -95,18 +95,18 @@
             android:theme="@android:style/Theme.Translucent.NoTitleBar"/>
 
         <activity
-            android:name="org.deviceconnect.android.deviceplugin.host.video.VideoRecorderActivity"
+            android:name="org.deviceconnect.android.deviceplugin.host.recorder.video.VideoRecorderActivity"
             android:exported="false"
             android:screenOrientation="landscape"/>
 
         <activity
-            android:name="org.deviceconnect.android.deviceplugin.host.video.VideoPlayer"
+            android:name="org.deviceconnect.android.deviceplugin.host.mediaplayer.VideoPlayer"
             android:exported="false"
             android:launchMode="singleInstance"
             android:screenOrientation="landscape"/>
 
         <activity
-            android:name="org.deviceconnect.android.deviceplugin.host.audio.AudioRecorderActivity"
+            android:name="org.deviceconnect.android.deviceplugin.host.recorder.audio.AudioRecorderActivity"
             android:exported="false"/>
 
         <activity
@@ -126,10 +126,16 @@
             android:label="@string/app_name"/>
 
         <activity
-            android:name="org.deviceconnect.android.deviceplugin.host.screen.PermissionReceiverActivity"
+            android:name="org.deviceconnect.android.deviceplugin.host.recorder.screen.PermissionReceiverActivity"
             android:exported="false"
             android:label="@string/app_name"
             android:theme="@android:style/Theme.Translucent"/>
+
+        <provider
+            android:name="org.deviceconnect.android.deviceplugin.host.file.HostFileProvider"
+            android:authorities="org.deviceconnect.android.deviceplugin.host.provider"
+            android:exported="true" >
+        </provider>
     </application>
 
 </manifest>

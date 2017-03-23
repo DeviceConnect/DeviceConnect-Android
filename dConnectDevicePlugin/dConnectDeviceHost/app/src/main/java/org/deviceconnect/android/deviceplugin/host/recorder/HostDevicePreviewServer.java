@@ -104,7 +104,7 @@ public abstract class HostDevicePreviewServer implements HostDeviceRecorder {
         NotificationCompat.Builder builder = new NotificationCompat.Builder(mContext.getApplicationContext());
         builder.setContentIntent(pendingIntent);
         builder.setTicker(mContext.getString(R.string.overlay_preview_ticker));
-        builder.setSmallIcon(R.drawable.dconnect_icon);
+        builder.setSmallIcon(R.drawable.ic_launcher);
         builder.setContentTitle(mContext.getString(R.string.overlay_preview_content_title) + " (" + getName() + ")");
         builder.setContentText(mContext.getString(R.string.overlay_preview_content_message));
         builder.setWhen(System.currentTimeMillis());

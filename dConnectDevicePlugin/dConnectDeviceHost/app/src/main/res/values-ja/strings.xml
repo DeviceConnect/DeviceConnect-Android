@@ -21,4 +21,25 @@
     <string name="overlay_preview_ticker">カメラを起動します</string>
     <string name="overlay_preview_content_title">カメラ撮影中</string>
     <string name="overlay_preview_content_message">タップして撮影を停止します。</string>
+
+    <string name="host_settings_title">Host設定</string>
+
+    <string name="gps_settings_title">GPS設定</string>
+    <string name="gps_settings_body">このデバイスプラグインでは、GPS機能を使用しますので、端末のGPS設定画面より設定をONにしてください。</string>
+    <string name="gps_settings_button">設定画面を開く</string>
+    <string name="gps_settings_gps_detail">Android 6.0からGPSを使用するには、位置情報のパーミッションが必要になりました。\nこのプラグインを使用するためには、以下のパーミッションを許可してください。\n許可を取り消すには、アプリの設定画面から行うことができます。</string>
+    <string name="gps_settings_gps_permission">位置情報の許可</string>
+    <string name="gps_settings_gps_permission_on">取得済み</string>
+    <string name="gps_settings_gps_permission_off">取得</string>
+
+    <string name="host_setting_dialog_error_permission">GPSを使用するためのパーミッションが許可されていないために検索できません。\nGPS設定画面から位置情報の許可を取得してください。</string>
+    <string name="host_setting_dialog_disable_gps">GPSが無効になっているために検索できません。\nGPS設定画面からGPSを有効に設定してください。</string>
+    <string name="host_setting_gps_dialog_cancel">キャンセル</string>
+
+    <string name="host_canvas_download_title">ダウンロード</string>
+    <string name="host_canvas_download_message">ダウンロード中...</string>
+
+    <string name="host_canvas_error_title">画像読み込み失敗</string>
+    <string name="host_canvas_error_oom_message">メモリーが足りません。</string>
+    <string name="host_canvas_error_not_found_message">画像が存在しません。</string>
 </resources>

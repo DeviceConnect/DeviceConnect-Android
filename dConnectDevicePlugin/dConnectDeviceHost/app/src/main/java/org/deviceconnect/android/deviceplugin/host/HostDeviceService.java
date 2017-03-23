@@ -95,9 +95,6 @@ public class HostDeviceService extends DConnectMessageService {
         // Manager同梱のため、LocalOAuthを無効化
         setUseLocalOAuth(false);
 
-        // Get application class instance.
-        mApp = (HostDeviceApplication) this.getApplication();
-
         // EventManagerの初期化
         EventManager.INSTANCE.setController(new MemoryCacheController());
 

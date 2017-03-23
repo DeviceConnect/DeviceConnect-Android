@@ -79,4 +79,5 @@
     <string name="theta_error_usb_live_streaming">Cannot shoot during live streaming.</string>
     <string name="theta_error_wrong_password">Connection timed out. Please confirm the entered password.</string>
     <string name="theta_error_import">Failed to import the THETA data.</string>
+    <string name="theta_error_request_permission">Failed to get a permission</string>
 </resources>

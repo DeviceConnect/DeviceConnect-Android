@@ -38,7 +38,7 @@ import android.widget.TextView;
 import org.deviceconnect.android.activity.IntentHandlerActivity;
 import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.sonycamera.R;
-import org.deviceconnect.android.deviceplugin.sonycamera.utils.DConnectUtil;
+import org.deviceconnect.android.deviceplugin.sonycamera.utils.SonyCameraUtil;
 import org.deviceconnect.android.deviceplugin.sonycamera.utils.UserSettings;
 
 import java.util.ArrayList;
@@ -89,7 +89,7 @@ public class SonyCameraConnectingFragment extends SonyCameraBaseFragment {
                     if (state == NetworkInfo.State.CONNECTED
                             && type == ConnectivityManager.TYPE_WIFI) {
                         WifiInfo wifiInfo = mWifiMgr.getConnectionInfo();
-                        if (DConnectUtil.checkSSID(wifiInfo.getSSID())) {
+                        if (SonyCameraUtil.checkSSID(wifiInfo.getSSID())) {
                             mServiceIdView.setText(R.string.sonycamera_connect);
                         }
                     }
@@ -112,7 +112,7 @@ public class SonyCameraConnectingFragment extends SonyCameraBaseFragment {
         searchBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View v) {
-                if (DConnectUtil.checkSSID(mWifiMgr.getConnectionInfo().getSSID())) {
+                if (SonyCameraUtil.checkSSID(mWifiMgr.getConnectionInfo().getSSID())) {
                     showErrorDialog(getString(R.string.sonycamera_already_connect));
                     mServiceIdView.setText(R.string.sonycamera_already_connect);
                 } else {
@@ -152,7 +152,7 @@ public class SonyCameraConnectingFragment extends SonyCameraBaseFragment {
         } else {
             WifiInfo wifiInfo = mWifiMgr.getConnectionInfo();
             mServiceIdView.setText(R.string.sonycamera_connecting);
-            if (DConnectUtil.checkSSID(wifiInfo.getSSID())) {
+            if (SonyCameraUtil.checkSSID(wifiInfo.getSSID())) {
                 mServiceIdView.setText(R.string.sonycamera_already_connect);
             } else {
                 searchSonyCameraWifi();
@@ -231,7 +231,7 @@ public class SonyCameraConnectingFragment extends SonyCameraBaseFragment {
             public void onReceive(Context context, Intent intent) {
                 List<ScanResult> results = mWifiMgr.getScanResults();
                 for (ScanResult result : results) {
-                    if (DConnectUtil.checkSSID(result.SSID)) {
+                    if (SonyCameraUtil.checkSSID(result.SSID)) {
                         scanList.add(result);
                         mLogger.fine("Found SonyCamera Wifi. SSID=" + result.SSID);
                     }

@@ -26,13 +26,12 @@ import com.example.sony.cameraremote.utils.SimpleLiveviewSlicer.Payload;
 import org.deviceconnect.android.deviceplugin.sonycamera.profile.SonyCameraSystemProfile;
 import org.deviceconnect.android.deviceplugin.sonycamera.profile.SonyCameraZoomProfile;
 import org.deviceconnect.android.deviceplugin.sonycamera.service.SonyCameraService;
-import org.deviceconnect.android.deviceplugin.sonycamera.utils.DConnectUtil;
+import org.deviceconnect.android.deviceplugin.sonycamera.utils.SonyCameraUtil;
 import org.deviceconnect.android.deviceplugin.sonycamera.utils.MixedReplaceMediaServer;
 import org.deviceconnect.android.deviceplugin.sonycamera.utils.MixedReplaceMediaServer.ServerEventListener;
 import org.deviceconnect.android.deviceplugin.sonycamera.utils.UserSettings;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
-import org.deviceconnect.android.event.cache.MemoryCacheController;
 import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.DConnectProfile;
@@ -171,8 +170,6 @@ public class SonyCameraDeviceService extends DConnectMessageService {
         mLogger.entering(this.getClass().getName(), "onCreate");
         super.onCreate();
 
-        EventManager.INSTANCE.setController(new MemoryCacheController());
-
         mSettings = new UserSettings(this);
         mSsdpClient = new SimpleSsdpClient();
 
@@ -181,7 +178,7 @@ public class SonyCameraDeviceService extends DConnectMessageService {
 
         WifiManager wifiMgr = getWifiManager();
         WifiInfo wifiInfo = wifiMgr.getConnectionInfo();
-        if (DConnectUtil.checkSSID(wifiInfo.getSSID())) {
+        if (SonyCameraUtil.checkSSID(wifiInfo.getSSID())) {
             connectSonyCamera();
         } else {
             deleteSonyCameraSDK();
@@ -291,7 +288,7 @@ public class SonyCameraDeviceService extends DConnectMessageService {
             if (state == WifiManager.WIFI_STATE_ENABLED) {
                 WifiManager wifiMgr = getWifiManager();
                 WifiInfo wifiInfo = wifiMgr.getConnectionInfo();
-                if (DConnectUtil.checkSSID(wifiInfo.getSSID())) {
+                if (SonyCameraUtil.checkSSID(wifiInfo.getSSID())) {
                     connectSonyCamera();
                 } else {
                     deleteSonyCameraSDK();
@@ -314,7 +311,7 @@ public class SonyCameraDeviceService extends DConnectMessageService {
                     WifiInfo wifiInfo = intent.getParcelableExtra(WifiManager.EXTRA_WIFI_INFO);
                     mLogger.info("Active Wi-Fi: SSID = " + wifiInfo.getSSID()
                         + ", supplicantState = " + wifiInfo.getSupplicantState());
-                    if (DConnectUtil.checkSSID(wifiInfo.getSSID())) {
+                    if (SonyCameraUtil.checkSSID(wifiInfo.getSSID())) {
                         if (!wifiInfo.getSSID().equals(mSSID)) {
                             connectSonyCamera();
                         }

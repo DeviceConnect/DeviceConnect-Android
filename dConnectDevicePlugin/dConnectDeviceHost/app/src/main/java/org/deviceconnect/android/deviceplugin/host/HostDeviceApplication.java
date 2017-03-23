@@ -10,6 +10,7 @@ import android.app.Application;
 import android.content.Intent;
 import android.os.Bundle;
 
+import org.deviceconnect.android.deviceplugin.linking.LinkingApplication;
 import org.deviceconnect.android.logger.AndroidHandler;
 import org.deviceconnect.android.profile.BatteryProfile;
 import org.deviceconnect.android.profile.KeyEventProfile;
@@ -29,7 +30,7 @@ import static org.deviceconnect.android.deviceplugin.host.profile.HostTouchProfi
  * 
  * @author NTT DOCOMO, INC.
  */
-public class HostDeviceApplication extends Application {
+public class HostDeviceApplication extends LinkingApplication {
 
     /** Cache retention time (mSec). */
     static final long CACHE_RETENTION_TIME = 10000;

@@ -9,3 +9,5 @@ include 'dconnect-server-nano-httpd'
 project(':dconnect-server-nano-httpd').projectDir = new File('../dConnectServerNanoHttpd/nanohttpd')
 include 'dconnect-device-plugin-linking'
 project(':dconnect-device-plugin-linking').projectDir = new File('../../dConnectDevicePlugin/dConnectDeviceLinking/app')
+include 'dconnect-device-plugin-host'
+project(':dconnect-device-plugin-host').projectDir = new File('../../dConnectDevicePlugin/dConnectDeviceHost/app')

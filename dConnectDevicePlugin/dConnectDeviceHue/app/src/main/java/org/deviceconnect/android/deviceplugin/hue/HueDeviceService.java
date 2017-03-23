@@ -20,6 +20,7 @@ import com.philips.lighting.hue.sdk.PHBridgeSearchManager;
 import com.philips.lighting.hue.sdk.PHHueSDK;
 import com.philips.lighting.hue.sdk.PHSDKListener;
 import com.philips.lighting.model.PHBridge;
+import com.philips.lighting.model.PHHueError;
 import com.philips.lighting.model.PHHueParsingError;
 
 import org.deviceconnect.android.deviceplugin.hue.profile.HueSystemProfile;
@@ -313,6 +314,18 @@ public class HueDeviceService extends DConnectMessageService {
         public void onError(final int code, final String message) {
             if (DEBUG) {
                 Log.e(TAG, "PHSDKListener:#onError: code=" + code + ", message=" + message);
+            }
+
+            if (code == PHHueError.AUTHENTICATION_FAILED) {
+                PHHueSDK hueSDK = PHHueSDK.getInstance();
+                List<PHBridge> bridges = hueSDK.getAllBridges();
+                synchronized (bridges) {
+                    for (PHBridge bridge : bridges) {
+                        hueSDK.disableHeartbeat(bridge);
+                        hueSDK.disconnect(bridge);
+                    }
+                }
+                reconnectAccessPoints();
             }
         }
 

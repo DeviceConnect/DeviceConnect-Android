@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">dConnectWearWatch</string>
-    <string name="title_activity_wear_keyevent_profile">WearKeyEventProfileActivity</string>
-    <string name="action_settings">Settings</string>
-    <string name="key_mode_std_key">Standard Key</string>
-    <string name="key_mode_media_ctrl">Media Control</string>
-    <string name="key_mode_dpad_button">DPAD / Button</string>
-    <string name="key_mode_user">User define</string>
-    <string name="cancel">Cancel</string>
-    <string name="ok">OK</string>
-    <string name="key_mode"> </string>
-    <string name="title_activity_wear_touch_profile">Touch Profile</string>
+    <string name="app_name" translatable="false">dConnectWearWatch</string>
+    <string name="title_activity_wear_keyevent_profile" translatable="false">WearKeyEventProfileActivity</string>
+    <string name="action_settings" translatable="false">Settings</string>
+    <string name="key_mode_std_key" translatable="false">Standard Key</string>
+    <string name="key_mode_media_ctrl" translatable="false">Media Control</string>
+    <string name="key_mode_dpad_button" translatable="false">DPAD / Button</string>
+    <string name="key_mode_user" translatable="false">User define</string>
+    <string name="cancel" translatable="false">Cancel</string>
+    <string name="ok" translatable="false">OK</string>
+    <string name="key_mode" translatable="false"> </string>
+    <string name="title_activity_wear_touch_profile" translatable="false">Touch Profile</string>
 
 </resources>

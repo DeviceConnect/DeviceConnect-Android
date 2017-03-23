@@ -117,7 +117,7 @@ public interface GeolocationProfileConstants extends DConnectProfileConstants {
     String PARAM_TIME_STAMP_STRING = "timeStampString";
 
     /**
-     * Parameter: {@value} .
+     * Parameter: false.
      */
     Boolean DEFAULT_HIGH_ACCURACY = false;
 

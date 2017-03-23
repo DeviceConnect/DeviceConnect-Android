@@ -615,7 +615,6 @@ public class DConnectServerNanoHttpd extends DConnectServer {
                     randomAccessFile.seek(0);
                 }
 
-
                 if (Method.POST.equals(session.getMethod()) || Method.PUT.equals(session.getMethod())) {
                     ContentType contentType = new ContentType(session.getHeaders().get("content-type"));
                     if (contentType.isMultipart()) {
@@ -628,7 +627,9 @@ public class DConnectServerNanoHttpd extends DConnectServer {
                     } else {
                         byte[] postBytes = new byte[tmpBuf.remaining()];
                         tmpBuf.get(postBytes);
-                        String postLine = new String(postBytes, contentType.getEncoding()).trim();
+                        // MEMO: contentTypeの文字コードを設定するとデフォルトでASCIIになり文字化けを起こす
+//                      String postLine = new String(postBytes, contentType.getEncoding()).trim();
+                        String postLine = new String(postBytes, mConfig.getCharset()).trim();
                         if ("application/x-www-form-urlencoded".equalsIgnoreCase(contentType.getContentType())) {
                             decodeParms(postLine, request.getQueryParameters());
                         } else if (postLine.length() != 0) {

@@ -17,6 +17,7 @@ import android.content.Context;
 
 import org.deviceconnect.android.deviceplugin.heartrate.ble.BleDeviceDetector;
 import org.deviceconnect.android.deviceplugin.heartrate.ble.BleUtils;
+import org.deviceconnect.android.deviceplugin.heartrate.data.HeartRateDevice;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -48,12 +49,12 @@ public class HeartRateConnector {
     private final Logger mLogger = Logger.getLogger("heartrate.dplugin");
 
     /**
-     * Define the time to delay first execution.
+     * Define the time to delay first execution.(ms)
      */
-    private static final int CHK_FIRST_WAIT_PERIOD = 10 * 1000;
+    private static final int CHK_FIRST_WAIT_PERIOD = 1000;
 
     /**
-     * Define the period between successive executions.
+     * Define the period between successive executions.(ms)
      */
     private static final int CHK_WAIT_PERIOD = 20 * 1000;
 
@@ -97,9 +98,14 @@ public class HeartRateConnector {
      * Constructor.
      *
      * @param context application context
+     * @param devices HeartRateDevice list
      */
-    public HeartRateConnector(final Context context) {
+    public HeartRateConnector(final Context context, final List<HeartRateDevice> devices) {
         mContext = context;
+
+        for (HeartRateDevice device : devices) {
+            mRegisterDevices.add(device.getAddress());
+        }
     }
 
     /**
@@ -165,7 +171,7 @@ public class HeartRateConnector {
      * @param address address
      * @return Instance of BluetoothDevice, null if not found address
      */
-    private BluetoothDevice getBluetootDeviceFromDeviceList(
+    private BluetoothDevice getBluetoothDeviceFromDeviceList(
             final List<BluetoothDevice> list, final String address) {
         for (BluetoothDevice device : list) {
             if (address.equalsIgnoreCase(device.getAddress())) {
@@ -197,6 +203,8 @@ public class HeartRateConnector {
         mAutoConnectTimerFuture = mExecutor.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
+                mLogger.info("AutoConnect ");
+
                 boolean foundOfflineDevice = false;
                 for (String address : mRegisterDevices) {
                     if (!containGattMap(address)) {
@@ -205,13 +213,15 @@ public class HeartRateConnector {
                     }
                 }
                 if (foundOfflineDevice) {
+                    mLogger.info("Found an offline device.");
+
                     mBleDeviceDetector.scanLeDeviceOnce(new BleDeviceDetector.BleDeviceDiscoveryListener() {
                         @Override
                         public void onDiscovery(final List<BluetoothDevice> devices) {
                             synchronized (mRegisterDevices) {
                                 for (String address : mRegisterDevices) {
                                     if (!containGattMap(address)) {
-                                        BluetoothDevice device = getBluetootDeviceFromDeviceList(devices, address);
+                                        BluetoothDevice device = getBluetoothDeviceFromDeviceList(devices, address);
                                         if (device != null) {
                                             connectDevice(device);
                                         }
@@ -237,7 +247,6 @@ public class HeartRateConnector {
             gatt.close();
         }
         mHRDevices.clear();
-        mRegisterDevices.clear();
     }
 
     /**
@@ -528,11 +537,8 @@ public class HeartRateConnector {
      */
     public static interface HeartRateConnectEventListener {
         void onConnected(BluetoothDevice device);
-
         void onDisconnected(BluetoothDevice device);
-
         void onConnectFailed(BluetoothDevice device);
-
         void onReadSensorLocation(BluetoothDevice device, int location);
         void onReceivedData(BluetoothDevice device, int heartRate,
                             int energyExpended, double rrInterval);

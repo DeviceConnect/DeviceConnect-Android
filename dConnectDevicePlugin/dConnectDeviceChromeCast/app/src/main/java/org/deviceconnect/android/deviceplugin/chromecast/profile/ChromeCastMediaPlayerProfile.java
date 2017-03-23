@@ -228,8 +228,13 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
             ((ChromeCastService) getContext()).connectChromeCast(serviceId,
                     new ChromeCastService.Callback() {
 
-                        @Override
-                        public void onResponse() {
+                @Override
+                public void onResponse(final boolean connected) {
+                    if (!connected) {
+                        MessageUtils.setIllegalDeviceStateError(response, "The chromecast is not in local network.");
+                        sendResponse(response);
+                        return;
+                    }
                             ChromeCastMediaPlayer app = getChromeCastMediaPlayer();
                             if (!isDeviceEnable(response, app)) {
                                 sendResponse(response);
@@ -271,8 +276,12 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
             ((ChromeCastService) getContext()).connectChromeCast(serviceId, new ChromeCastService.Callback() {
 
                 @Override
-                public void onResponse() {
-                    ChromeCastMediaPlayer app = getChromeCastMediaPlayer();
+                public void onResponse(final boolean connected) {
+                    if (!connected) {
+                        MessageUtils.setIllegalDeviceStateError(response, "The chromecast is not in local network.");
+                        sendResponse(response);
+                        return;
+                    }                    ChromeCastMediaPlayer app = getChromeCastMediaPlayer();
                     if (!isDeviceEnable(response, app)) {
                         sendResponse(response);
                         return;
@@ -312,8 +321,12 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
             ((ChromeCastService) getContext()).connectChromeCast(serviceId, new ChromeCastService.Callback() {
 
                 @Override
-                public void onResponse() {
-                    ChromeCastMediaPlayer app = getChromeCastMediaPlayer();
+                public void onResponse(final boolean connected) {
+                    if (!connected) {
+                        MessageUtils.setIllegalDeviceStateError(response, "The chromecast is not in local network.");
+                        sendResponse(response);
+                        return;
+                    }                    ChromeCastMediaPlayer app = getChromeCastMediaPlayer();
                     if (!isDeviceEnable(response, app)) {
                         sendResponse(response);
                         return;
@@ -354,8 +367,12 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
             ((ChromeCastService) getContext()).connectChromeCast(serviceId, new ChromeCastService.Callback() {
 
                 @Override
-                public void onResponse() {
-                    ChromeCastMediaPlayer app = getChromeCastMediaPlayer();
+                public void onResponse(final boolean connected) {
+                    if (!connected) {
+                        MessageUtils.setIllegalDeviceStateError(response, "The chromecast is not in local network.");
+                        sendResponse(response);
+                        return;
+                    }                    ChromeCastMediaPlayer app = getChromeCastMediaPlayer();
                     if (!isDeviceEnable(response, app)) {
                         sendResponse(response);
                         return;
@@ -392,7 +409,12 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
         ((ChromeCastService) getContext()).connectChromeCast(serviceId, new ChromeCastService.Callback() {
 
             @Override
-            public void onResponse() {
+            public void onResponse(final boolean connected) {
+                if (!connected) {
+                    MessageUtils.setIllegalDeviceStateError(response, "The chromecast is not in local network.");
+                    sendResponse(response);
+                    return;
+                }
                 ChromeCastMediaPlayer app = getChromeCastMediaPlayer();
                 if (!isDeviceEnable(response, app))	{
                     sendResponse(response);
@@ -444,7 +466,12 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
             ((ChromeCastService) getContext()).connectChromeCast(serviceId, new ChromeCastService.Callback() {
 
                 @Override
-                public void onResponse() {
+                public void onResponse(final boolean connected) {
+                    if (!connected) {
+                        MessageUtils.setIllegalDeviceStateError(response, "The chromecast is not in local network.");
+                        sendResponse(response);
+                        return;
+                    }
                     ChromeCastMediaPlayer app = getChromeCastMediaPlayer();
                     if (!isDeviceEnable(response, app)) {
                         sendResponse(response);
@@ -484,8 +511,13 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
             ((ChromeCastService) getContext()).connectChromeCast(serviceId,
                     new ChromeCastService.Callback() {
 
-                        @Override
-                        public void onResponse() {
+                @Override
+                public void onResponse(final boolean connected) {
+                            if (!connected) {
+                                MessageUtils.setIllegalDeviceStateError(response, "The chromecast is not in local network.");
+                                sendResponse(response);
+                                return;
+                            }
                             ChromeCastMediaPlayer app = getChromeCastMediaPlayer();
                             if (!isDeviceEnable(response, app)) {
                                 sendResponse(response);
@@ -523,8 +555,13 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
             ((ChromeCastService) getContext()).connectChromeCast(serviceId,
                     new ChromeCastService.Callback() {
 
-                        @Override
-                        public void onResponse() {
+                @Override
+                public void onResponse(final boolean connected) {
+                            if (!connected) {
+                                MessageUtils.setIllegalDeviceStateError(response, "The chromecast is not in local network.");
+                                sendResponse(response);
+                                return;
+                            }
                             ChromeCastMediaPlayer app = getChromeCastMediaPlayer();
                             if (!isDeviceEnable(response, app)) {
                                 sendResponse(response);
@@ -563,7 +600,12 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
             ((ChromeCastService) getContext()).connectChromeCast(serviceId, new ChromeCastService.Callback() {
 
                 @Override
-                public void onResponse() {
+                public void onResponse(final boolean connected) {
+                    if (!connected) {
+                        MessageUtils.setIllegalDeviceStateError(response, "The chromecast is not in local network.");
+                        sendResponse(response);
+                        return;
+                    }
                     ChromeCastMediaPlayer app = getChromeCastMediaPlayer();
                     if (!isDeviceEnable(response, app)) {
                         sendResponse(response);
@@ -606,8 +648,13 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
             ((ChromeCastService) getContext()).connectChromeCast(serviceId,
                     new ChromeCastService.Callback() {
 
-                        @Override
-                        public void onResponse() {
+                @Override
+                public void onResponse(final boolean connected) {
+                            if (!connected) {
+                                MessageUtils.setIllegalDeviceStateError(response, "The chromecast is not in local network.");
+                                sendResponse(response);
+                                return;
+                            }
                             ChromeCastMediaPlayer app = getChromeCastMediaPlayer();
                             if (!isDeviceEnable(response, app)) {
                                 sendResponse(response);
@@ -648,8 +695,13 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
             ((ChromeCastService) getContext()).connectChromeCast(serviceId,
                     new ChromeCastService.Callback() {
 
-                        @Override
-                        public void onResponse() {
+                @Override
+                public void onResponse(final boolean connected) {
+                            if (!connected) {
+                                MessageUtils.setIllegalDeviceStateError(response, "The chromecast is not in local network.");
+                                sendResponse(response);
+                                return;
+                            }
                             ChromeCastMediaPlayer app = getChromeCastMediaPlayer();
                             if (!isDeviceEnable(response, app)) {
                                 sendResponse(response);
@@ -685,8 +737,13 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
             ((ChromeCastService) getContext()).connectChromeCast(serviceId,
                     new ChromeCastService.Callback() {
 
-                        @Override
-                        public void onResponse() {
+                @Override
+                public void onResponse(final boolean connected) {
+                            if (!connected) {
+                                MessageUtils.setIllegalDeviceStateError(response, "The chromecast is not in local network.");
+                                sendResponse(response);
+                                return;
+                            }
                             if (mediaId == null) {
                                 MessageUtils.setInvalidRequestParameterError(response, "mediaId is null.");
                                 sendResponse(response);
@@ -775,8 +832,13 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
             ((ChromeCastService) getContext()).connectChromeCast(serviceId,
                     new ChromeCastService.Callback() {
 
-                        @Override
-                        public void onResponse() {
+                @Override
+                public void onResponse(final boolean connected) {
+                            if (!connected) {
+                                MessageUtils.setIllegalDeviceStateError(response, "The chromecast is not in local network.");
+                                sendResponse(response);
+                                return;
+                            }
                             if (mediaId == null) {
                                 MessageUtils.setInvalidRequestParameterError(response, "mediaId is null.");
                                 sendResponse(response);
@@ -1097,8 +1159,13 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
             ((ChromeCastService) getContext()).connectChromeCast(serviceId,
                     new ChromeCastService.Callback() {
 
-                        @Override
-                        public void onResponse() {
+                @Override
+                public void onResponse(final boolean connected) {
+                    if (!connected) {
+                        MessageUtils.setIllegalDeviceStateError(response, "The chromecast is not in local network.");
+                        sendResponse(response);
+                        return;
+                    }
                             // パラメータの型チェック
                             Bundle b = request.getExtras();
                             if (b.getString(PARAM_LIMIT) != null) {
@@ -1181,7 +1248,6 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
                             setMedia(response, result.toArray(new Bundle[result.size()]));
                             setResult(response, DConnectMessage.RESULT_OK);
                             sendResponse(response);
-                            return;
                         }
                     });
             return false;
@@ -1200,8 +1266,13 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
             ((ChromeCastService) getContext()).connectChromeCast(serviceId,
                     new ChromeCastService.Callback() {
 
-                        @Override
-                        public void onResponse() {
+                @Override
+                public void onResponse(final boolean connected) {
+                    if (!connected) {
+                        MessageUtils.setIllegalDeviceStateError(response, "The chromecast is not in local network.");
+                        sendResponse(response);
+                        return;
+                    }
                             EventError error = EventManager.INSTANCE.addEvent(request);
                             if (error == EventError.NONE) {
                                 ((ChromeCastService) getContext()).registerOnStatusChange(response,
@@ -1227,8 +1298,13 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
             final String serviceId = getServiceID(request);
             ((ChromeCastService) getContext()).connectChromeCast(serviceId,
                     new ChromeCastService.Callback() {
-                        @Override
-                        public void onResponse() {
+                @Override
+                public void onResponse(final boolean connected) {
+                    if (!connected) {
+                        MessageUtils.setIllegalDeviceStateError(response, "The chromecast is not in local network.");
+                        sendResponse(response);
+                        return;
+                    }
                             EventError error = EventManager.INSTANCE.removeEvent(request);
                             if (error == EventError.NONE) {
                                 ((ChromeCastService) getContext()).unregisterOnStatusChange(response);

@@ -97,6 +97,13 @@
                         android:paddingLeft="24dp"
                         android:paddingRight="24dp"/>
             </LinearLayout>
+
+            <TextView
+                android:id="@+id/textView2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/awsiot_login_caution"
+                android:textColor="@color/text_black"/>
         </LinearLayout>
     </LinearLayout>
     <android.support.design.widget.FloatingActionButton

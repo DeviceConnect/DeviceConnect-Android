@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">Android Wear (Device Connect Device Plug-in)</string>
-    <string name="app_name_for_device_web_api">Android Wear (Device Web API Plug-in)</string>
+    <string name="app_name" translatable="false">Android Wear (Device Connect Device Plug-in)</string>
+    <string name="app_name_for_device_web_api" translatable="false">Android Wear (Device Web API Plug-in)</string>
 
 </resources>

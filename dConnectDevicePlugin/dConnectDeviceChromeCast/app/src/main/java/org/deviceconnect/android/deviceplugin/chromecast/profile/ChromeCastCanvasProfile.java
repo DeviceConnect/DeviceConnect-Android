@@ -91,7 +91,12 @@ public class ChromeCastCanvasProfile extends CanvasProfile implements ChromeCast
             ((ChromeCastService) getContext()).connectChromeCast(serviceId, new ChromeCastService.Callback() {
 
                 @Override
-                public void onResponse() {
+                public void onResponse(final boolean connected) {
+                    if (!connected) {
+                        MessageUtils.setIllegalDeviceStateError(response, "The chromecast is not in local network.");
+                        sendResponse(response);
+                        return;
+                    }
                     if (data == null && uri == null) {
                         MessageUtils.setInvalidRequestParameterError(response, "data is not specified.");
                         sendResponse(response);
@@ -213,7 +218,12 @@ public class ChromeCastCanvasProfile extends CanvasProfile implements ChromeCast
             ((ChromeCastService) getContext()).connectChromeCast(serviceId, new ChromeCastService.Callback() {
 
                 @Override
-                public void onResponse() {
+                public void onResponse(final boolean connected) {
+                    if (!connected) {
+                        MessageUtils.setIllegalDeviceStateError(response, "The chromecast is not in local network.");
+                        sendResponse(response);
+                        return;
+                    }
                     ChromeCastMessage app = ((ChromeCastService) getContext()).getChromeCastMessage();
                     if (!isDeviceEnable(response, app)) {
                         sendResponse(response);

@@ -16,8 +16,8 @@
     <string name="frag02_connected">Hueブリッジと接続しました。</string>
     <string name="frag02_authsuccess">認証済み</string>
     <string name="frag02_failed">認証失敗</string>
-    <string name="frag02_init_howto">ブリッジのボタンを押してください。ボタンを押すと、本アプリが登録されます。</string>
-    <string name="frag02_authsuccess_howto">ブリッジの設定が完了しています。ライトの設定を行ってください。</string>
+    <string name="frag02_init_howto">ブリッジのボタンを押してください。\nボタンを押すと、本アプリが登録されます。</string>
+    <string name="frag02_authsuccess_howto">ブリッジの設定が完了しています。\nライトの設定を行ってください。</string>
     <string name="frag02_authsuccess_btn">ライト設定画面へ移動</string>
     <string name="frag02_retry_btn">Hueブリッジへの再接続</string>
     <string name="frag03_light_howto">新しいライトを追加したい場合は、以下のボタンを押下してください。\nライトの追加がない場合はHueの設定は完了です。</string>
@@ -34,6 +34,10 @@
     <string name="frag04_serial_ok">OK</string>
     <string name="frag04_serial_cancel">キャンセル</string>
     <string name="frag04_serial_search">ライトを検索しています</string>
-    <string name="frag04_unauthorized_bridge">ブリッジ認証が無効になっています。ブリッジのボタンを押して下さい。</string>
+    <string name="frag04_unauthorized_bridge">ブリッジ認証が無効になっています。\n最初から再設定してください</string>
     <string name="error_message_failed_to_update_light">ライトの状態更新に失敗しました hue:code = %1$d message = %2$s</string>
+    <string name="hue_dialog_ok">はい</string>
+    <string name="hue_dialog_no_connect">ネットワーク接続に失敗しました。</string>
+    <string name="hue_dialog_network_error">ネットワークエラー</string>
+    <string name="hue_dialog_not_connect_wifi">Wi-Fiに接続されていません。</string>
 </resources>

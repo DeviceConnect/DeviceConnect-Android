@@ -37,6 +37,7 @@ import org.deviceconnect.android.profile.api.PutApi;
 import org.deviceconnect.android.provider.FileManager;
 import org.deviceconnect.message.DConnectMessage;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -117,9 +118,8 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            mHostMediaPlayerManager.playMedia();
-            setResult(response, DConnectMessage.RESULT_OK);
-            return true;
+            mHostMediaPlayerManager.playMedia(response);
+            return false;
         }
     };
 
@@ -146,9 +146,8 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            mHostMediaPlayerManager.pauseMedia();
-            setResult(response, DConnectMessage.RESULT_OK);
-            return true;
+            mHostMediaPlayerManager.pauseMedia(response);
+            return false;
         }
     };
 
@@ -161,9 +160,8 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            mHostMediaPlayerManager.resumeMedia();
-            setResult(response, DConnectMessage.RESULT_OK);
-            return true;
+            mHostMediaPlayerManager.resumeMedia(response);
+            return false;
         }
     };
 
@@ -356,7 +354,15 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
             int pos = mHostMediaPlayerManager.getMediaPos();
             if (pos < 0) {
                 setPos(response, 0);
-                MessageUtils.setUnknownError(response, "Position acquisition failure.");
+                switch (pos) {
+                    case -1:
+                        MessageUtils.setIllegalDeviceStateError(response, "Media is not set.");
+                        break;
+                    case -10:
+                    default:
+                        MessageUtils.setUnknownError(response, "Position acquisition failure.");
+                        break;
+                }
             } else if (pos == Integer.MAX_VALUE) {
                 mHostMediaPlayerManager.setVideoMediaPosRes(response);
                 return false;
@@ -496,37 +502,96 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
         // Query cursor.
         Cursor cursor = null;
 
+        if (mediaId.length() == 0) {
+            MessageUtils.setInvalidRequestParameterError(response);
+            sendResponse(response);
+            return;
+        }
+
         // Get media path.
-        Uri uri = ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, Long.valueOf(mediaId));
-        String fileName = getDisplayNameFromUri(uri);
-        if (fileName == null) {
-            uri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, Long.valueOf(mediaId));
+        String fileName = null;
+        Uri uri = getMediaUri(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, mediaId);
+        if (uri != null) {
             fileName = getDisplayNameFromUri(uri);
             if (fileName == null) {
-                MessageUtils.setInvalidRequestParameterError(response);
-                sendResponse(response);
-                return;
+                uri = getMediaUri(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, mediaId);
+                if (uri != null) {
+                    fileName = getDisplayNameFromUri(uri);
+                    if (fileName != null) {
+                        param = AUDIO_TABLE_KEYS;
+                        uriType = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
+                    }
+                }
+            } else {
+                param = VIDEO_TABLE_KEYS;
+                uriType = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
             }
-            param = AUDIO_TABLE_KEYS;
-            uriType = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
-        } else {
-            param = VIDEO_TABLE_KEYS;
-            uriType = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
+        }
+
+        if (fileName == null) {
+            FileManager mFileManager = new FileManager(getContext(), HostFileProvider.class.getName());
+            File basePath = mFileManager.getBasePath();
+            String absolutePath = basePath.getAbsolutePath();
+
+            uri = getMediaUri(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, absolutePath + mediaId);
+            if (uri != null) {
+                fileName = getDisplayNameFromUri(uri);
+                if (fileName == null) {
+                    uri = getMediaUri(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, absolutePath + mediaId);
+                    if (uri != null) {
+                        fileName = getDisplayNameFromUri(uri);
+                        if (fileName != null) {
+                            param = AUDIO_TABLE_KEYS;
+                            uriType = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
+                        }
+                    }
+                } else {
+                    param = VIDEO_TABLE_KEYS;
+                    uriType = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
+                }
+            }
+        }
+
+        if (fileName == null) {
+            MessageUtils.setInvalidRequestParameterError(response);
+            sendResponse(response);
+            return;
         }
 
         ContentResolver cresolver = getContext().getApplicationContext().getContentResolver();
         try {
             cursor = cresolver.query(uriType, param, filter, new String[] { fileName }, null);
-            if (cursor.moveToFirst()) {
+            if (cursor == null) {
+                MessageUtils.setInvalidRequestParameterError(response);
+            } else if (cursor.moveToFirst()) {
                 loadMediaData(uriType, cursor, response);
+                setResult(response, DConnectMessage.RESULT_OK);
             }
-            setResult(response, DConnectMessage.RESULT_OK);
         } finally {
             if (cursor != null) {
                 cursor.close();
             }
         }
         sendResponse(response);
+    }
+
+    /**
+     * Get Media Uri.
+     * @param typeUri type Uri.
+     * @param mediaId media ID.
+     * @return uri.
+     */
+    private Uri getMediaUri(final Uri typeUri, final String mediaId) {
+        if (!(isMediaId(mediaId))) {
+            long newMediaId = mediaIdFromPath(getContext(), mediaId);
+            if (newMediaId != -1) {
+                return ContentUris.withAppendedId(typeUri, newMediaId);
+            } else {
+                return null;
+            }
+        } else {
+            return ContentUris.withAppendedId(typeUri, Long.valueOf(mediaId));
+        }
     }
 
     /**
@@ -1380,6 +1445,20 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
             return SortOrder.TITLE_DESC;
         } else {
             return SortOrder.TITLE_ASC;
+        }
+    }
+
+    /**
+     * Check mediaId exchange Long value.
+     * @param mediaId media ID
+     * @return true:OK, false:NG
+     */
+    private boolean isMediaId(final String mediaId) {
+        try {
+            Long.valueOf(mediaId);
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
         }
     }
 }

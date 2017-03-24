@@ -20,6 +20,7 @@ import com.philips.lighting.hue.sdk.PHBridgeSearchManager;
 import com.philips.lighting.hue.sdk.PHHueSDK;
 import com.philips.lighting.hue.sdk.PHSDKListener;
 import com.philips.lighting.model.PHBridge;
+import com.philips.lighting.model.PHBridgeResourcesCache;
 import com.philips.lighting.model.PHHueError;
 import com.philips.lighting.model.PHHueParsingError;
 
@@ -198,6 +199,29 @@ public class HueDeviceService extends DConnectMessageService {
     }
 
     /**
+     * 接続されている全てのブリッジを切断します。
+     *
+     * @param flag serviceのonline状態を変更フラグ(trueの時は変更する)
+     */
+    private void disconnectAllBridges(final boolean flag) {
+        PHHueSDK hueSDK = PHHueSDK.getInstance();
+        List<PHBridge> bridges = new ArrayList<PHBridge>(hueSDK.getAllBridges());
+        for (PHBridge bridge : bridges) {
+            hueSDK.disableHeartbeat(bridge);
+            hueSDK.disconnect(bridge);
+
+            if (flag) {
+                PHBridgeResourcesCache cache = bridge.getResourceCache();
+                String ipAddress = cache.getBridgeConfiguration().getIpAddress();
+                DConnectService service = getServiceProvider().getService(ipAddress);
+                if (service != null) {
+                    service.setOnline(false);
+                }
+            }
+        }
+    }
+
+    /**
      * Hueのブリッジとの通信を管理するリスナー.
      */
     private final PHSDKListener mPhListener = new PHSDKListener() {
@@ -318,12 +342,7 @@ public class HueDeviceService extends DConnectMessageService {
             }
 
             if (code == PHHueError.AUTHENTICATION_FAILED) {
-                PHHueSDK hueSDK = PHHueSDK.getInstance();
-                List<PHBridge> bridges = new ArrayList<PHBridge>(hueSDK.getAllBridges());
-                for (PHBridge bridge : bridges) {
-                    hueSDK.disableHeartbeat(bridge);
-                    hueSDK.disconnect(bridge);
-                }
+                disconnectAllBridges(false);
                 reconnectAccessPoints();
             }
         }
@@ -357,6 +376,8 @@ public class HueDeviceService extends DConnectMessageService {
                 NetworkInfo networkInfo = conn.getActiveNetworkInfo();
                 if (networkInfo != null && networkInfo.getType() == ConnectivityManager.TYPE_WIFI) {
                     reconnectAccessPoints();
+                } else {
+                    disconnectAllBridges(true);
                 }
             }
         }

@@ -6,12 +6,14 @@ http://opensource.org/licenses/mit-license.php
 */
 package org.deviceconnect.android.deviceplugin.sonycamera.profile;
 
+import android.content.ComponentName;
 import android.content.Intent;
 import android.os.Bundle;
 
 import org.deviceconnect.android.deviceplugin.sonycamera.SonyCameraDeviceService;
 import org.deviceconnect.android.deviceplugin.sonycamera.SonyCameraManager;
 import org.deviceconnect.android.deviceplugin.sonycamera.utils.SonyCameraPreview;
+import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.MessageUtils;
@@ -22,6 +24,8 @@ import org.deviceconnect.android.profile.api.GetApi;
 import org.deviceconnect.android.profile.api.PostApi;
 import org.deviceconnect.android.profile.api.PutApi;
 import org.deviceconnect.message.DConnectMessage;
+import org.deviceconnect.message.intent.message.IntentDConnectMessage;
+import org.deviceconnect.profile.MediaStreamRecordingProfileConstants;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -268,7 +272,7 @@ public class SonyCameraMediaStreamRecordingProfile extends MediaStreamRecordingP
         }
 
         if (!manager.isPreview()) {
-            MessageUtils.setIllegalDeviceStateError(response, "Sony's camera is not preview.");
+            MessageUtils.setIllegalDeviceStateError(response, "Sony's camera is not running a preview.");
             return true;
         }
 
@@ -286,8 +290,8 @@ public class SonyCameraMediaStreamRecordingProfile extends MediaStreamRecordingP
      * @return 即座にレスポンスを返す場合はtrue、それ以外はfalse
      */
     private boolean onPostTakePhoto(final Intent request, final Intent response) {
-        String serviceId = getServiceID(request);
-        String target = getTarget(request);
+        final String serviceId = getServiceID(request);
+        final String target = getTarget(request);
 
         if (serviceId == null) {
             MessageUtils.setEmptyServiceIdError(response);
@@ -317,6 +321,9 @@ public class SonyCameraMediaStreamRecordingProfile extends MediaStreamRecordingP
                 response.putExtra("uri", postImageUrl);
                 setResult(response, DConnectMessage.RESULT_OK);
                 sendResponse(response);
+
+                // イベント通知
+                notifyTakePhoto(serviceId, "", postImageUrl);
             }
 
             @Override
@@ -327,6 +334,42 @@ public class SonyCameraMediaStreamRecordingProfile extends MediaStreamRecordingP
         });
 
         return false;
+    }
+
+    /**
+     * 写真撮影を通知する.
+     *
+     * @param serviceId サービスID
+     * @param path 写真へのパス
+     * @param uri 写真へのURI
+     */
+    private void notifyTakePhoto(final String serviceId, final String path, final String uri) {
+        if (serviceId == null) {
+            return;
+        }
+
+        List<Event> eventList = EventManager.INSTANCE.getEventList(serviceId,
+                MediaStreamRecordingProfileConstants.PROFILE_NAME, null,
+                MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_PHOTO);
+
+        // TODO パスを検討
+        String photoPath = "";//mFileMgr.getBasePath().getPath() + "/" + path;
+        for (Event evt : eventList) {
+            Bundle photo = new Bundle();
+            photo.putString(MediaStreamRecordingProfile.PARAM_URI, uri);
+            photo.putString(MediaStreamRecordingProfile.PARAM_PATH, photoPath);
+            photo.putString(MediaStreamRecordingProfile.PARAM_MIME_TYPE, "image/png");
+
+            Intent intent = new Intent(IntentDConnectMessage.ACTION_EVENT);
+            intent.setComponent(ComponentName.unflattenFromString(evt.getReceiverName()));
+            intent.putExtra(DConnectMessage.EXTRA_SERVICE_ID, serviceId);
+            intent.putExtra(DConnectMessage.EXTRA_PROFILE, MediaStreamRecordingProfile.PROFILE_NAME);
+            intent.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, MediaStreamRecordingProfile.ATTRIBUTE_ON_PHOTO);
+            intent.putExtra(DConnectMessage.EXTRA_ACCESS_TOKEN, evt.getAccessToken());
+            intent.putExtra(MediaStreamRecordingProfile.PARAM_PHOTO, photo);
+
+            sendEvent(intent, evt.getAccessToken());
+        }
     }
 
     private SonyCameraManager getSonyCameraManager() {

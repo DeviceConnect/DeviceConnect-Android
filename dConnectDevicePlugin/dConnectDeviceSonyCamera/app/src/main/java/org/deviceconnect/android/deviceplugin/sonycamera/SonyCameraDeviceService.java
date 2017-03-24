@@ -6,21 +6,29 @@ http://opensource.org/licenses/mit-license.php
  */
 package org.deviceconnect.android.deviceplugin.sonycamera;
 
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
+import android.os.Bundle;
 
 import org.deviceconnect.android.deviceplugin.sonycamera.profile.SonyCameraSystemProfile;
 import org.deviceconnect.android.deviceplugin.sonycamera.service.SonyCameraService;
 import org.deviceconnect.android.deviceplugin.sonycamera.utils.SonyCameraUtil;
+import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.DConnectMessageService;
+import org.deviceconnect.android.profile.MediaStreamRecordingProfile;
 import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.android.provider.FileManager;
+import org.deviceconnect.message.DConnectMessage;
+import org.deviceconnect.message.intent.message.IntentDConnectMessage;
+import org.deviceconnect.profile.MediaStreamRecordingProfileConstants;
 
+import java.util.List;
 import java.util.logging.Logger;
 
 /**
@@ -54,6 +62,7 @@ public class SonyCameraDeviceService extends DConnectMessageService {
         mSonyCameraManager.setOnSonyCamera2Listener(new SonyCameraManager.OnSonyCamera2Listener() {
             @Override
             public void onTakePicture(final String postImageUrl) {
+                notifyTakePhoto(mSonyCameraManager.getServiceId(), "", postImageUrl);
             }
 
             @Override
@@ -192,5 +201,41 @@ public class SonyCameraDeviceService extends DConnectMessageService {
      */
     private WifiManager getWifiManager() {
         return (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+    }
+
+    /**
+     * 写真撮影を通知する.
+     *
+     * @param serviceId サービスID
+     * @param path 写真へのパス
+     * @param uri 写真へのURI
+     */
+    private void notifyTakePhoto(final String serviceId, final String path, final String uri) {
+        if (serviceId == null) {
+            return;
+        }
+
+        List<Event> eventList = EventManager.INSTANCE.getEventList(serviceId,
+                MediaStreamRecordingProfileConstants.PROFILE_NAME, null,
+                MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_PHOTO);
+
+        // TODO パスを検討
+        String photoPath = mFileMgr.getBasePath().getPath() + "/" + path;
+        for (Event evt : eventList) {
+            Bundle photo = new Bundle();
+            photo.putString(MediaStreamRecordingProfile.PARAM_URI, uri);
+            photo.putString(MediaStreamRecordingProfile.PARAM_PATH, photoPath);
+            photo.putString(MediaStreamRecordingProfile.PARAM_MIME_TYPE, "image/png");
+
+            Intent intent = new Intent(IntentDConnectMessage.ACTION_EVENT);
+            intent.setComponent(ComponentName.unflattenFromString(evt.getReceiverName()));
+            intent.putExtra(DConnectMessage.EXTRA_SERVICE_ID, serviceId);
+            intent.putExtra(DConnectMessage.EXTRA_PROFILE, MediaStreamRecordingProfile.PROFILE_NAME);
+            intent.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, MediaStreamRecordingProfile.ATTRIBUTE_ON_PHOTO);
+            intent.putExtra(DConnectMessage.EXTRA_ACCESS_TOKEN, evt.getAccessToken());
+            intent.putExtra(MediaStreamRecordingProfile.PARAM_PHOTO, photo);
+
+            sendEvent(intent, evt.getAccessToken());
+        }
     }
 }

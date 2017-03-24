@@ -134,6 +134,14 @@ public class SonyCameraManager {
     }
 
     /**
+     * 接続中のSonyCameraのサービスIDを取得します.
+     * @return サービスID
+     */
+    String getServiceId() {
+        return mSSID;
+    }
+
+    /**
      * 指定されたサービスIDに接続されているか確認を行う.
      * @param serviceId サービスID
      * @return 接続されている場合はtrue、それ以外はfalse

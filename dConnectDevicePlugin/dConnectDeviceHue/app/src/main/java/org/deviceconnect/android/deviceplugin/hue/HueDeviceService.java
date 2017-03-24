@@ -30,6 +30,7 @@ import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.android.service.DConnectService;
 import org.json.hue.JSONObject;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -318,12 +319,10 @@ public class HueDeviceService extends DConnectMessageService {
 
             if (code == PHHueError.AUTHENTICATION_FAILED) {
                 PHHueSDK hueSDK = PHHueSDK.getInstance();
-                List<PHBridge> bridges = hueSDK.getAllBridges();
-                synchronized (bridges) {
-                    for (PHBridge bridge : bridges) {
-                        hueSDK.disableHeartbeat(bridge);
-                        hueSDK.disconnect(bridge);
-                    }
+                List<PHBridge> bridges = new ArrayList<PHBridge>(hueSDK.getAllBridges());
+                for (PHBridge bridge : bridges) {
+                    hueSDK.disableHeartbeat(bridge);
+                    hueSDK.disconnect(bridge);
                 }
                 reconnectAccessPoints();
             }

@@ -544,6 +544,7 @@ public class SonyCameraManager {
                             listener.onError();
                         } else {
                             listener.onSuccess(postImageUrl);
+                            mOnSonyCamera2Listener.onTakePicture(postImageUrl);
                         }
                     }
                 } catch (Exception e) {

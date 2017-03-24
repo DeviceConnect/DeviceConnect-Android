@@ -6,7 +6,6 @@ http://opensource.org/licenses/mit-license.php
  */
 package org.deviceconnect.android.deviceplugin.sonycamera;
 
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
@@ -24,8 +23,6 @@ import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.profile.MediaStreamRecordingProfile;
 import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.android.provider.FileManager;
-import org.deviceconnect.message.DConnectMessage;
-import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 import org.deviceconnect.profile.MediaStreamRecordingProfileConstants;
 
 import java.util.List;
@@ -227,12 +224,7 @@ public class SonyCameraDeviceService extends DConnectMessageService {
             photo.putString(MediaStreamRecordingProfile.PARAM_PATH, photoPath);
             photo.putString(MediaStreamRecordingProfile.PARAM_MIME_TYPE, "image/png");
 
-            Intent intent = new Intent(IntentDConnectMessage.ACTION_EVENT);
-            intent.setComponent(ComponentName.unflattenFromString(evt.getReceiverName()));
-            intent.putExtra(DConnectMessage.EXTRA_SERVICE_ID, serviceId);
-            intent.putExtra(DConnectMessage.EXTRA_PROFILE, MediaStreamRecordingProfile.PROFILE_NAME);
-            intent.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, MediaStreamRecordingProfile.ATTRIBUTE_ON_PHOTO);
-            intent.putExtra(DConnectMessage.EXTRA_ACCESS_TOKEN, evt.getAccessToken());
+            Intent intent = EventManager.createEventMessage(evt);
             intent.putExtra(MediaStreamRecordingProfile.PARAM_PHOTO, photo);
 
             sendEvent(intent, evt.getAccessToken());

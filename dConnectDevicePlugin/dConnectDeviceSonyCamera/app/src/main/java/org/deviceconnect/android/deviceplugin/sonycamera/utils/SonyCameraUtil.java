@@ -7,14 +7,21 @@ http://opensource.org/licenses/mit-license.php
 
 package org.deviceconnect.android.deviceplugin.sonycamera.utils;
 
+import android.content.Context;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
+
 import org.json.JSONObject;
 
 /**
  * ユーティリティクラス.
+ *
  * @author NTT DOCOMO, INC.
  */
 public final class SonyCameraUtil {
-    /** SonyCameraのWiFiのプレフィックス. */
+    /**
+     * SonyCameraのWiFiのプレフィックス.
+     */
     private static final String WIFI_PREFIX = "DIRECT-";
 
     /**
@@ -22,37 +29,73 @@ public final class SonyCameraUtil {
      */
     private static final String[] CAMERA_SUFFIX = {"HDR-AS100", "ILCE-6000", "DSC-HC60V", "DSC-HX400", "ILCE-5000",
             "DSC-QX10", "DSC-QX100", "HDR-AS15", "HDR-AS30", "HDR-MV1", "NEX-5R", "NEX-5T", "NEX-6", "ILCE-7R/B",
-            "ILCE-7/B" };
+            "ILCE-7/B"};
 
-    /** 撮影画像サイズ20Mの場合のピクセル数. */
+    /**
+     * 撮影画像サイズ20Mの場合のピクセル数.
+     */
     private static final int PIXELS_20_M = 20000000;
-    /** 撮影画像サイズ18Mの場合のピクセル数. */
+
+    /**
+     * 撮影画像サイズ18Mの場合のピクセル数.
+     */
     private static final int PIXELS_18_M = 18000000;
-    /** 撮影画像サイズ17Mの場合のピクセル数. */
+
+    /**
+     * 撮影画像サイズ17Mの場合のピクセル数.
+     */
     private static final int PIXELS_17_M = 17000000;
-    /** 撮影画像サイズ13Mの場合のピクセル数. */
+
+    /**
+     * 撮影画像サイズ13Mの場合のピクセル数.
+     */
     private static final int PIXELS_13_M = 13000000;
-    /** 撮影画像サイズ7.5Mの場合のピクセル数. */
+
+    /**
+     * 撮影画像サイズ7.5Mの場合のピクセル数.
+     */
     private static final int PIXELS_7_5_M = 7500000;
-    /** 撮影画像サイズ25Mの場合のピクセル数. */
+
+    /**
+     * 撮影画像サイズ25Mの場合のピクセル数.
+     */
     private static final int PIXELS_5_M = 5000000;
-    /** 撮影画像サイズ4.2Mの場合のピクセル数. */
+
+    /**
+     * 撮影画像サイズ4.2Mの場合のピクセル数.
+     */
     private static final int PIXELS_4_2_M = 4200000;
-    /** 撮影画像サイズ3.7Mの場合のピクセル数. */
+
+    /**
+     * 撮影画像サイズ3.7Mの場合のピクセル数.
+     */
     private static final int PIXELS_3_7_M = 3700000;
 
-    /** 動画撮影モード. */
+    /**
+     * 動画撮影モード.
+     */
     private static final String SONY_CAMERA_SHOOT_MODE_MOVIE = "movie";
-    /** 静止画撮影モード. */
+
+    /**
+     * 静止画撮影モード.
+     */
     private static final String SONY_CAMERA_SHOOT_MODE_PIC = "still";
 
-    /** 撮影中. */
+    /**
+     * 撮影中.
+     */
     private static final String SONY_CAMERA_STATUS_RECORDING = "MovieRecording";
-    /** 停止中. */
+
+    /**
+     * 停止中.
+     */
     private static final String SONY_CAMERA_STATUS_IDLE = "IDLE";
 
-
+    /**
+     * Sonyカメラの状態を定義します.
+     */
     public enum SonyCameraStatus {
+        None(""),
         Recording(SONY_CAMERA_STATUS_RECORDING),
         Idle(SONY_CAMERA_STATUS_IDLE);
 
@@ -62,13 +105,45 @@ public final class SonyCameraUtil {
             mValue = value;
         }
 
+        public String getValue() {
+            return mValue;
+        }
+
         public static SonyCameraStatus getStatus(final String status) {
             for (SonyCameraStatus s : values()) {
                 if (s.mValue.equals(status)) {
                     return s;
                 }
             }
-            return null;
+            return None;
+        }
+    }
+
+    /**
+     * Sonyカメラの撮影モードを定義します.
+     */
+    public enum SonyCameraMode {
+        None(""),
+        Movie(SONY_CAMERA_SHOOT_MODE_MOVIE),
+        Picture(SONY_CAMERA_SHOOT_MODE_PIC);
+
+        private String mValue;
+
+        SonyCameraMode(final String value) {
+            mValue = value;
+        }
+
+        public String getValue() {
+            return mValue;
+        }
+
+        public static SonyCameraMode getMode(final String mode) {
+            for (SonyCameraMode s : values()) {
+                if (s.mValue.equals(mode)) {
+                    return s;
+                }
+            }
+            return None;
         }
     }
 
@@ -81,7 +156,7 @@ public final class SonyCameraUtil {
 
     /**
      * 指定されたSSIDがSonyCameraデバイスのWifiのSSIDかチェックする.
-     * 
+     *
      * @param ssid SSID
      * @return SonyCameraデバイスのSSIDの場合はtrue、それ以外はfalse
      */
@@ -100,13 +175,12 @@ public final class SonyCameraUtil {
         return false;
     }
 
-
     /**
      * ピクセル数計算用メソッド.
      *
-     * @param widthVal width
+     * @param widthVal  width
      * @param heightVal height
-     * @param size aspect
+     * @param size      aspect
      * @return stillSize
      */
     public static double pixelValueCalculate(final int widthVal, final int heightVal, final String size) {
@@ -153,6 +227,7 @@ public final class SonyCameraUtil {
 
     /**
      * カメラの状態をDeviceConnectの状態に変換する.
+     *
      * @param cameraState カメラの状態
      * @return DeviceConnectの状態
      */
@@ -186,4 +261,38 @@ public final class SonyCameraUtil {
         return (replyJson != null && replyJson.has("error"));
     }
 
+    /**
+     * SSIDに付いている、"を削除します.
+     * @param ssid WiFiのSSID
+     * @return "を省いたSSID
+     */
+    public static String ssid(final String ssid) {
+        String a = ssid;
+        if (a.startsWith("\"")) {
+            a = a.substring(1);
+        }
+        if (a.endsWith("\"")) {
+            a = a.substring(0, a.length() - 1);
+        }
+        return a;
+    }
+
+    /**
+     * WifiManagerを取得する.
+     *
+     * @return WifiManagerのインスタンス
+     */
+    private static WifiManager getWifiManager(final Context context) {
+        return (WifiManager) context.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+    }
+
+    /**
+     * 接続中のWiFiのSSIDを取得します.
+     * @return SSID
+     */
+    public static String getSSID(final Context context) {
+        WifiManager wifiMgr = getWifiManager(context);
+        WifiInfo wifiInfo = wifiMgr.getConnectionInfo();
+        return ssid(wifiInfo.getSSID());
+    }
 }

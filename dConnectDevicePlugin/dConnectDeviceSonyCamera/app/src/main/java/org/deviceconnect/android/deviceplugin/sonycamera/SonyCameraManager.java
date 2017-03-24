@@ -1,3 +1,9 @@
+/*
+SonyCameraManager
+Copyright (c) 2017 NTT DOCOMO,INC.
+Released under the MIT license
+http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.deviceplugin.sonycamera;
 
 import android.content.Context;
@@ -11,6 +17,7 @@ import com.example.sony.cameraremote.SimpleSsdpClient;
 
 import org.deviceconnect.android.deviceplugin.sonycamera.service.SonyCameraService;
 import org.deviceconnect.android.deviceplugin.sonycamera.utils.SonyCameraPreview;
+import org.deviceconnect.android.deviceplugin.sonycamera.utils.SonyCameraUtil;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -26,6 +33,10 @@ import static org.deviceconnect.android.deviceplugin.sonycamera.utils.SonyCamera
 import static org.deviceconnect.android.deviceplugin.sonycamera.utils.SonyCameraUtil.isErrorReply;
 import static org.deviceconnect.android.deviceplugin.sonycamera.utils.SonyCameraUtil.pixelValueCalculate;
 
+/**
+ * Sonyカメラを制御するためのクラス.
+ * @author NTT DOCOMO, INC.
+ */
 public class SonyCameraManager {
 
     /**
@@ -69,6 +80,11 @@ public class SonyCameraManager {
     private SimpleCameraEventObserver mEventObserver;
 
     /**
+     * 接続中カメラが利用できるRemote API一覧.
+     */
+    private String mAvailableApiList = "";
+
+    /**
      * SonyCameraデバイス一覧.
      */
     private final List<SonyCameraService> mSonyCameraServices;
@@ -89,10 +105,20 @@ public class SonyCameraManager {
     private ExecutorService mExecutor = Executors.newSingleThreadExecutor();
 
     /**
+     * 写真撮影監視リスナー.
+     */
+    private OnSonyCamera2Listener mOnSonyCamera2Listener;
+
+    /**
+     * 現在接続中のWiFiのSSIDを保持します.
+     */
+    private String mSSID;
+
+    /**
      * コンストラクタ.
      * @param context コンテキスト
      */
-    public SonyCameraManager(final Context context) {
+    SonyCameraManager(final Context context) {
         mContext = context;
         mDBHelper = new SonyCameraDBHelper(context);
         mSonyCameraServices = mDBHelper.getSonyCameraServices();
@@ -100,23 +126,82 @@ public class SonyCameraManager {
     }
 
     /**
-     * WifiManagerを取得する.
-     *
-     * @return WifiManagerのインスタンス
+     * 撮影イベントリスナーを設定します.
+     * @param listener リスナー
      */
-    private WifiManager getWifiManager() {
-        return (WifiManager) mContext.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+    void setOnSonyCamera2Listener(final OnSonyCamera2Listener listener) {
+        mOnSonyCamera2Listener = listener;
     }
 
-    public void connectSonyCamera() {
+    /**
+     * 指定されたサービスIDに接続されているか確認を行う.
+     * @param serviceId サービスID
+     * @return 接続されている場合はtrue、それ以外はfalse
+     */
+    public boolean isConnectedService(final String serviceId) {
+        String ssid = getSSID();
+        return mRemoteApi != null && ssid != null && ssid.equals(serviceId);
+    }
+
+    /**
+     * Sonyカメラの撮影中か確認を行う.
+     * @return 撮影中の場合はtrue、それ以外がはfalse
+     */
+    public boolean isRecording() {
+        if (mEventObserver != null) {
+            SonyCameraUtil.SonyCameraStatus status = SonyCameraUtil.SonyCameraStatus.getStatus(mEventObserver.getCameraStatus());
+            SonyCameraUtil.SonyCameraMode mode = SonyCameraUtil.SonyCameraMode.getMode(mEventObserver.getShootMode());
+            if (status == SonyCameraUtil.SonyCameraStatus.Recording && mode == SonyCameraUtil.SonyCameraMode.Movie) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * ズームに対応しているか確認を行います.
+     * @return 対応している場合はtrue、それ以外はfalse
+     */
+    public boolean isSupportedZoom() {
+        return mAvailableApiList != null && mAvailableApiList.contains("actZoom");
+    }
+
+    /**
+     * プレビューを撮影中か確認を行う.
+     * @return 撮影中の場合はtrue、それ以外はfalse
+     */
+    public boolean isPreview() {
+        return mCameraPreview != null && mCameraPreview.isPreview();
+    }
+
+    /**
+     * Sonyカメラサービスのリストを取得します.
+     * @return Sonyカメラサービスのリスト
+     */
+    List<SonyCameraService> getSonyCameraServices() {
+        return mSonyCameraServices;
+    }
+
+    /**
+     * Sonyカメラに接続を行います.
+     */
+    void connectSonyCamera() {
         final AtomicBoolean found = new AtomicBoolean();
+
+        if (mSSID != null && mRemoteApi != null && mSSID.equals(getSSID())) {
+            // すでに同じSonyカメラに接続されていた場合
+            return;
+        }
 
         mSsdpClient.search(new SimpleSsdpClient.SearchResultHandler() {
             @Override
             public void onDeviceFound(final ServerDevice device) {
                 found.set(true);
 
-                foundSonyCamera();
+                SonyCameraService s = foundSonyCamera();
+                if (s != null) {
+                    s.setOnline(true);
+                }
 
                 createSonyCameraSDK(device);
             }
@@ -150,10 +235,60 @@ public class SonyCameraManager {
         });
     }
 
-    public void disconnectSonyCamera() {
+    /**
+     * Sonyカメラから切断します.
+     */
+    void disconnectSonyCamera() {
         deleteSonyCameraSDK();
     }
 
+    /**
+     * Sonyカメラサービスを管理から削除します.
+     * @param service 削除するSonyカメラサービス
+     */
+    public void removeSonyCameraService(final SonyCameraService service) {
+        mDBHelper.removeSonyCameraService(service);
+    }
+
+    /**
+     * Sonyカメラで動作しているプレビューやレコーディングを停止します.
+     */
+    void resetSonyCamera() {
+        if (mEventObserver != null) {
+            // レコーディングの停止
+            if (isRecording()) {
+                stopMovieRec(new OnSonyCameraListener() {
+                    @Override
+                    public void onSuccess() {
+                    }
+
+                    @Override
+                    public void onError() {
+                    }
+                });
+            }
+
+            // プレビューの停止
+            mExecutor.execute(new Runnable() {
+                @Override
+                public void run() {
+                    while (isRecording()) {
+                        try {
+                            Thread.sleep(100);
+                        } catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
+                        }
+                    }
+                    stopPreview();
+                }
+            });
+        }
+    }
+
+    /**
+     * Sonyカメラの状態を取得します.
+     * @param listener Sonyカメラの状態を通知するリスナー
+     */
     public void getCameraState(final OnCameraStateListener listener) {
         mExecutor.execute(new Runnable() {
             @Override
@@ -174,7 +309,7 @@ public class SonyCameraManager {
                             listener.onError();
                         }
                     }
-                } catch (IOException | JSONException e) {
+                } catch (Exception e) {
                     listener.onError();
                 }
             }
@@ -187,31 +322,23 @@ public class SonyCameraManager {
      * @param listener 写真撮影の結果を通知するリスナー
      */
     public void takePicture(final OnTakePictureListener listener) {
-        mExecutor.execute(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    JSONObject replyJson = mRemoteApi.actTakePicture();
-                    if (isErrorReply(replyJson)) {
-                        listener.onError();
-                    } else {
-                        JSONArray resultsObj = replyJson.getJSONArray("result");
-                        JSONArray imageUrlsObj = resultsObj.getJSONArray(0);
-                        String postImageUrl = null;
-                        if (1 <= imageUrlsObj.length()) {
-                            postImageUrl = imageUrlsObj.getString(0);
-                        }
-                        if (postImageUrl == null) {
-                            listener.onError();
-                        } else {
-                            listener.onSuccess(postImageUrl);
-                        }
-                    }
-                } catch (IOException | JSONException e) {
+        SonyCameraUtil.SonyCameraMode mode = SonyCameraUtil.SonyCameraMode.getMode(mEventObserver.getShootMode());
+
+        if (mode == SonyCameraUtil.SonyCameraMode.Picture) {
+            takePictureInternal(listener);
+        } else {
+            setShootMode(SonyCameraUtil.SonyCameraMode.Picture, new OnSonyCameraListener() {
+                @Override
+                public void onSuccess() {
+                    takePictureInternal(listener);
+                }
+
+                @Override
+                public void onError() {
                     listener.onError();
                 }
-            }
-        });
+            });
+        }
     }
 
     /**
@@ -220,26 +347,40 @@ public class SonyCameraManager {
      * @param listener プレビュー開始の結果を通知するリスナー
      */
     public void startPreview(final SonyCameraPreview.OnPreviewListener listener) {
+        startPreview(100, listener);
+    }
+
+    /**
+     * 接続されているSonyCameraにプレビュー開始を要求します.
+     *
+     * @param timeSlice タイムスライス(ms)
+     * @param listener プレビュー開始の結果を通知するリスナー
+     */
+    public void startPreview(final int timeSlice, final SonyCameraPreview.OnPreviewListener listener) {
         mExecutor.execute(new Runnable() {
             @Override
             public void run() {
-                if (mCameraPreview != null) {
-                    mCameraPreview.stopPreview();
-                }
+                if (isPreview()) {
+                    listener.onPreviewServer(mCameraPreview.getPreviewUrl());
+                } else {
+                    if (mCameraPreview != null) {
+                        mCameraPreview.stopPreview();
+                        mCameraPreview = null;
+                    }
 
-                mCameraPreview = new SonyCameraPreview(mRemoteApi);
-                mCameraPreview.setOnPreviewListener(listener);
-                mCameraPreview.startPreview();
+                    mCameraPreview = new SonyCameraPreview(mRemoteApi);
+                    mCameraPreview.setOnPreviewListener(listener);
+                    mCameraPreview.setTimeSlice(timeSlice);
+                    mCameraPreview.startPreview();
+                }
             }
         });
     }
 
     /**
      * 接続されているSonyCameraにプレビュー停止を要求します.
-     *
-     * @param listener プレビュー停止の結果を通知するリスナー
      */
-    public void stopPreview(final OnSonyCameraListener listener) {
+    public void stopPreview() {
         mExecutor.execute(new Runnable() {
             @Override
             public void run() {
@@ -257,27 +398,23 @@ public class SonyCameraManager {
      * @param listener 動画撮影開始の結果を通知するリスナー
      */
     public void startMovieRec(final OnSonyCameraListener listener) {
-        mExecutor.execute(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    JSONObject replyJson = mRemoteApi.startMovieRec();
-                    if (isErrorReply(replyJson)) {
-                        listener.onError();
-                    } else {
-                        JSONArray resultsObj = replyJson.getJSONArray("result");
-                        int resultCode = resultsObj.getInt(0);
-                        if (resultCode == 0) {
-                            listener.onSuccess();
-                        } else {
-                            listener.onError();
-                        }
-                    }
-                } catch (IOException | JSONException e) {
+        SonyCameraUtil.SonyCameraMode mode = SonyCameraUtil.SonyCameraMode.getMode(mEventObserver.getShootMode());
+
+        if (mode == SonyCameraUtil.SonyCameraMode.Movie) {
+            startMovieRecInternal(listener);
+        } else {
+            setShootMode(SonyCameraUtil.SonyCameraMode.Movie, new OnSonyCameraListener() {
+                @Override
+                public void onSuccess() {
+                    startMovieRecInternal(listener);
+                }
+
+                @Override
+                public void onError() {
                     listener.onError();
                 }
-            }
-        });
+            });
+        }
     }
 
     /**
@@ -302,9 +439,7 @@ public class SonyCameraManager {
                             listener.onError();
                         }
                     }
-                } catch (IOException e) {
-                    listener.onError();
-                } catch (JSONException e) {
+                } catch (Exception e) {
                     listener.onError();
                 }
             }
@@ -317,7 +452,7 @@ public class SonyCameraManager {
      * @param movement ズームする単位
      * @param listener ズーム結果を通知するリスナー
      */
-    public void zoom(final String direction, final String movement, final OnSonyCameraListener listener) {
+    public void setZoom(final String direction, final String movement, final OnSonyCameraListener listener) {
         mExecutor.execute(new Runnable() {
             @Override
             public void run() {
@@ -339,7 +474,7 @@ public class SonyCameraManager {
                             listener.onError();
                         }
                     }
-                } catch (IOException | JSONException e) {
+                } catch (Exception e) {
                     listener.onError();
                 }
             }
@@ -370,11 +505,121 @@ public class SonyCameraManager {
                         listener.onZoom(zoomDiameterParam);
 
                     }
-                } catch (IOException | JSONException e) {
+                } catch (Exception e) {
                     listener.onError();
                 }
             }
         });
+    }
+
+    /**
+     * 接続されているSonyCameraに写真撮影を要求します.
+     *
+     * @param listener 写真撮影の結果を通知するリスナー
+     */
+    private void takePictureInternal(final OnTakePictureListener listener) {
+        mExecutor.execute(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    JSONObject replyJson = mRemoteApi.actTakePicture();
+                    if (isErrorReply(replyJson)) {
+                        listener.onError();
+                    } else {
+                        JSONArray resultsObj = replyJson.getJSONArray("result");
+                        JSONArray imageUrlsObj = resultsObj.getJSONArray(0);
+                        String postImageUrl = null;
+                        if (1 <= imageUrlsObj.length()) {
+                            postImageUrl = imageUrlsObj.getString(0);
+                        }
+                        if (postImageUrl == null) {
+                            listener.onError();
+                        } else {
+                            listener.onSuccess(postImageUrl);
+                        }
+                    }
+                } catch (Exception e) {
+                    listener.onError();
+                }
+            }
+        });
+    }
+
+    /**
+     * 接続されているSonyCameraに動画撮影開始を要求します.
+     *
+     * @param listener 動画撮影開始の結果を通知するリスナー
+     */
+    private void startMovieRecInternal(final OnSonyCameraListener listener) {
+        mExecutor.execute(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    JSONObject replyJson = mRemoteApi.startMovieRec();
+                    if (isErrorReply(replyJson)) {
+                        listener.onError();
+                    } else {
+                        JSONArray resultsObj = replyJson.getJSONArray("result");
+                        int resultCode = resultsObj.getInt(0);
+                        if (resultCode == 0) {
+                            listener.onSuccess();
+                        } else {
+                            listener.onError();
+                        }
+                    }
+                } catch (Exception e) {
+                    listener.onError();
+                }
+            }
+        });
+    }
+
+    /**
+     * SonyCameraの撮影モードを切り替えます.
+     *
+     * @param mode モード
+     */
+    private void setShootMode(final SonyCameraUtil.SonyCameraMode mode, final OnSonyCameraListener listener) {
+        mExecutor.execute(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    JSONObject replyJson = mRemoteApi.setShootMode(mode.getValue());
+                    if (isErrorReply(replyJson)) {
+                        listener.onError();
+                    } else {
+                        JSONArray resultsObj = replyJson.getJSONArray("result");
+                        int resultCode = resultsObj.getInt(0);
+                        if (resultCode == 0) {
+                            listener.onSuccess();
+                        } else {
+                            listener.onError();
+                        }
+                    }
+                } catch (Exception e) {
+                    listener.onError();
+                }
+            }
+        });
+    }
+
+    /**
+     * WifiManagerを取得する.
+     *
+     * @return WifiManagerのインスタンス
+     */
+    private WifiManager getWifiManager() {
+        return (WifiManager) mContext.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+    }
+
+    /**
+     * 全てのSonyCameraのサービスの状態をWiFiのssidに合わせて変更します.
+     */
+    private void setOnlineStatus() {
+        String ssid = getSSID();
+        for (SonyCameraService service : mSonyCameraServices) {
+            service.setOnline(service.getId().equals(ssid));
+        }
     }
 
     /**
@@ -387,20 +632,25 @@ public class SonyCameraManager {
             deleteSonyCameraSDK();
         }
         mRemoteApi = new SimpleRemoteApi(device);
+        mAvailableApiList = getAvailableApi();
+        startEventObserver();
     }
 
     /**
      * SonyCameraデバイスSDKを破棄する.
      */
     private void deleteSonyCameraSDK() {
-        if (mEventObserver != null) {
-            mEventObserver.stop();
-            mEventObserver = null;
-        }
+        setOnlineStatus();
+
+        stopPreview();
+        stopEventObserver();
+
         if (mRemoteApi != null) {
             mRemoteApi = null;
         }
         mRetryCount = 0;
+
+        mSSID = null;
     }
 
     /**
@@ -432,6 +682,9 @@ public class SonyCameraManager {
 
                 @Override
                 public void onTakePicture(final String postImageUrl) {
+                    if (mOnSonyCamera2Listener != null) {
+                        mOnSonyCamera2Listener.onTakePicture(postImageUrl);
+                    }
                 }
             });
             mEventObserver.start();
@@ -449,35 +702,6 @@ public class SonyCameraManager {
     }
 
     /**
-     * SonyCameraの撮影モードを切り替える.
-     *
-     * @param mode モード
-     */
-    private void setShootMode(final String mode, final OnSonyCameraListener listener) {
-        mExecutor.execute(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    JSONObject replyJson = mRemoteApi.setShootMode(mode);
-                    if (isErrorReply(replyJson)) {
-                        listener.onError();
-                    } else {
-                        JSONArray resultsObj = replyJson.getJSONArray("result");
-                        int resultCode = resultsObj.getInt(0);
-                        if (resultCode == 0) {
-                            listener.onSuccess();
-                        } else {
-                            listener.onError();
-                        }
-                    }
-                } catch (IOException | JSONException e) {
-                    listener.onError();
-                }
-            }
-        });
-    }
-
-    /**
      * 接続中のカメラの利用可能Remote APIリストをStringで入手.
      *
      * @return result Available API List
@@ -490,9 +714,7 @@ public class SonyCameraManager {
                 JSONArray resultsObj = replyJson.getJSONArray("result");
                 result = resultsObj.toString();
             }
-        } catch (IOException e) {
-            // do nothing
-        } catch (JSONException e) {
+        } catch (Exception e) {
             // do nothing
         }
         return result;
@@ -554,44 +776,83 @@ public class SonyCameraManager {
         return null;
     }
 
+    /**
+     * Sonyカメラに対応するサービスを取得します.
+     * @return SonyCameraサービス
+     */
     private SonyCameraService foundSonyCamera() {
-        WifiManager wifiMgr = getWifiManager();
-        WifiInfo wifiInfo = wifiMgr.getConnectionInfo();
-        String ssid = wifiInfo.getSSID();
+        mSSID = getSSID();
+        if (mSSID == null) {
+            return null;
+        }
 
         for (SonyCameraService service : mSonyCameraServices) {
-            if (ssid.equals(service.getId())) {
+            if (service.getId().equals(mSSID)) {
                 return service;
             }
         }
 
         // リストにない場合には、新規のデバイスなので登録
-        SonyCameraService service = new SonyCameraService(ssid);
-        service.setName(ssid);
+        SonyCameraService service = new SonyCameraService(mSSID);
+        service.setName(mSSID);
 
         mSonyCameraServices.add(service);
         mDBHelper.addSonyCameraService(service);
 
+        mOnSonyCamera2Listener.onAdded(service);
+
         return service;
     }
 
+    /**
+     * 接続中のWiFiのSSIDを取得します.
+     * @return SSID
+     */
+    private String getSSID() {
+        WifiManager wifiMgr = getWifiManager();
+        WifiInfo wifiInfo = wifiMgr.getConnectionInfo();
+        return SonyCameraUtil.ssid(wifiInfo.getSSID());
+    }
+
+    /**
+     * Sonyカメラからの撮影結果を通知するためのリスナー.
+     */
+    public interface OnSonyCamera2Listener {
+        void onTakePicture(final String postImageUrl);
+        void onAdded(final SonyCameraService service);
+        void onError();
+    }
+
+    /**
+     * Sonyカメラからの撮影結果を通知するためのリスナー.
+     */
     public interface OnTakePictureListener {
-        void onSuccess(final String url);
+        void onSuccess(final String postImageUrl);
 
         void onError();
     }
 
+    /**
+     * Sonyカメラからの操作結果を通知するためのリスナー.
+     */
     public interface OnSonyCameraListener {
         void onSuccess();
 
         void onError();
     }
 
+    /**
+     * Sonyカメラの状態を通知するためのリスナー.
+     */
     public interface OnCameraStateListener {
         void onState(String state, int[] size);
 
         void onError();
     }
+
+    /**
+     * Sonyカメラのズームを通知するためのリスナー.
+     */
     public interface OnZoomListener {
         void onZoom(double zoom);
 

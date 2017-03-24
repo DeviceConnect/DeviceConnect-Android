@@ -1,3 +1,9 @@
+/*
+SonyCameraDBHelper
+Copyright (c) 2017 NTT DOCOMO,INC.
+Released under the MIT license
+http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.deviceplugin.sonycamera;
 
 import android.content.ContentValues;
@@ -12,7 +18,11 @@ import org.deviceconnect.android.deviceplugin.sonycamera.service.SonyCameraServi
 import java.util.ArrayList;
 import java.util.List;
 
-public class SonyCameraDBHelper {
+/**
+ * Sonyカメラを管理するDBヘルパークラス.
+ * @author NTT DOCOMO, INC.
+ */
+class SonyCameraDBHelper {
 
     /**
      * Define the name of the database.
@@ -117,7 +127,7 @@ public class SonyCameraDBHelper {
         private void createDB(final SQLiteDatabase db) {
             String sql = "CREATE TABLE " + TBL_NAME + " ("
                     + BaseColumns._ID + " INTEGER PRIMARY KEY, "
-                    + COL_WIFI_SSID + " TEXT NOT NULL "
+                    + COL_WIFI_SSID + " TEXT NOT NULL, "
                     + COL_DEVICE_NAME + " TEXT NOT NULL "
                     + ");";
             db.execSQL(sql);

@@ -99,7 +99,8 @@ public class FileProvider extends ContentProvider {
         if (!checkAccessToken(accessToken)) {
             throw new IllegalArgumentException("accessToken is invalid.");
         }
-        File file = new File(getBasePath(), uri.getLastPathSegment());
+
+        File file = new File(getBasePath(), uri.getPath());
         ParcelFileDescriptor parcel = ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY);
         return parcel;
     }

@@ -1,18 +1,33 @@
 
 label {
-    padding :8px;
     display: block;
-    margin: 8px 0px 0px 0px;
+    padding :16px 10px 16px 10px;
+    margin: 0px 0px 0px 0px;
     color :#fff;
-    background :#74A6F6;
+    background :#5B9CFC;
+    font-size: small;
+    font-weight: bold;
 }
 
 input[type="checkbox"].bellows {
     display: none;
 }
 
+img.minus {
+    display: none;
+    font-size: large;
+    float: right;
+}
+
+img.plus {
+    display: inline;
+    font-size: large;
+    float: right;
+}
+
 .ac_menu div.ac_content {
-    border: thin solid #74A6F6;
+    box-shadow:0px 1px 5px #AAA inset;
+    border-bottom: thin solid #558BCA;
     background :#f4f4f4;
     -webkit-transition: all 0.5s;
     -moz-transition: all 0.5s;

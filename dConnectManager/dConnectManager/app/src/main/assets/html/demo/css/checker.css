@@ -1,19 +1,28 @@
 
+body {
+    margin: 0px;
+    padding: 0px;
+}
+
 div.request_param {
-    margin: 8px;
+    padding: 12px 8px 8px 8px;
+}
+
+div.request_param span {
+    font-size: small;
 }
 
 table.request {
-    width: 98%;
-    margin: 8px;
+    margin: 8px 0px 8px 0px;
     padding: 0px;
     border-collapse: collapse;
     border-spacing: 0;
     border-radius: 6px;
+    width: 100%;
 }
 
 table.request tr {
-    margin: 10px;
+    margin: 0px;
     padding: 0px;
 }
 
@@ -23,15 +32,14 @@ table.request tr td {
 }
 
 table.request tr td.left {
-    border-radius: 10px 0 0 10px;
-}
-
-table.request tr td.include {
-    padding-left: 10px;
+    border-radius: 0.5em 0 0 0.5em;
+    font-size: xx-small;
+    color: #FFF;
+    font-weight: bold;
 }
 
 table.included tr td {
-    background-color: #9ECDF9;
+    background-color: #5B9CFC;
 }
 
 table.excluded tr td {
@@ -42,6 +50,7 @@ table.request tr td span {
     margin: 8px;
     padding: 0px;
     font-size: xx-small;
+    color: #FFF;
 }
 
 table.request tr td div {
@@ -50,12 +59,11 @@ table.request tr td div {
     width: 100%;
     margin: 0px;
     padding: 0px;
-
     text-align: center;
 }
 
 table.included tr td div {
-    border: solid 2px #9ECDF9;
+    border: solid 2px #5B9CFC;
 }
 
 table.excluded tr td div {
@@ -63,7 +71,7 @@ table.excluded tr td div {
 }
 
 table.request tr td div input.text {
-    width: 99%;
+    width: 100%;
     margin 0px;
     padding: 10px 0px;
     border: none;
@@ -103,49 +111,92 @@ table.request tr td div span.max {
 
 div.send_request {
     text-align: right;
+    font-size: small;
 }
 
 div.send_request button {
-    background-color: #E589D5;
+    background-color: #5B9CFC;
     margin: 8px;
     padding: 10px 20px;
+    color: #fff;
+    border-style: none;
+    -moz-border-radius: 0.5em;
+    -webkit-border-radius: 0.5em;
+    -o-border-radius: 0.5em;
+    -ms-border-radius: 0.5em;
+}
+
+div.send_request button:active {
+    background-color: #CCC;
 }
 
 div.request {
     margin: 8px;
 }
 
+div.request span {
+    font-size: small;
+}
+
 div.request div {
-    background-color: #FFFFCC;
-    margin: 0px 8px 8px 8px;
-    padding: 4px;
+    background-color: #FFF;
+    margin: 4px 0px 0px 0px;
+    padding: 8px;
+    border: solid 2px #5B9CFC;
     font-size: xx-small;
-    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
     word-break: break-all;
+    -moz-border-radius: 0.5em;
+    -webkit-border-radius: 0.5em;
+    -o-border-radius: 0.5em;
+    -ms-border-radius: 0.5em;
 }
 
 div.response {
     margin: 8px;
 }
 
+div.response span {
+    font-size: small;
+}
+
 div.response div {
-    background-color: #FFFFCC;
-    margin: 0px 8px 8px 8px;
-    padding: 4px;
+    background-color: #FFF;
+    margin: 4px 0px 0px 0px;
+    padding: 8px;
+    border: solid 2px #5B9CFC;
     font-size: xx-small;
-    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
     word-break: break-all;
+    -moz-border-radius: 0.5em;
+    -webkit-border-radius: 0.5em;
+    -o-border-radius: 0.5em;
+    -ms-border-radius: 0.5em;
 }
 
 div.event {
     margin: 8px;
 }
 
+div.event span {
+    font-size: small;
+}
+
 div.event div {
-    background-color: #FFFFCC;
-    margin: 0px 8px 8px 8px;
-    padding: 4px;
+    background-color: #FFF;
+    margin: 4px 0px 0px 0px;
+    padding: 8px;
+    border: solid 2px #5B9CFC;
     font-size: xx-small;
-    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
     word-break: break-all;
+    -moz-border-radius: 0.5em;
+    -webkit-border-radius: 0.5em;
+    -o-border-radius: 0.5em;
+    -ms-border-radius: 0.5em;
+}
+
+div.test {
+    padding: 4px;
+}
+
+input, select {
+    vertical-align: middle;
 }

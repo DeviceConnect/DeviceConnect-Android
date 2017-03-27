@@ -60,7 +60,7 @@ android {
     productFlavors {
         DeviceConnect {
             versionCode 1
-            versionName "2.0.0"
+            versionName "2.0.1"
             manifestPlaceholders = [
                     appIcon: "@drawable/dconnect_icon",
                     appName: "@string/app_name"

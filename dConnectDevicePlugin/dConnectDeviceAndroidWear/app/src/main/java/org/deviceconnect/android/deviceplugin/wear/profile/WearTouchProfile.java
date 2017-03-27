@@ -32,6 +32,13 @@ import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.deviceconnect.android.deviceplugin.wear.profile.WearConst.ATTRIBUTE_ON_TOUCH_CHANGE;
+import static org.deviceconnect.android.deviceplugin.wear.profile.WearConst.STATE_CANCEL;
+import static org.deviceconnect.android.deviceplugin.wear.profile.WearConst.STATE_DOUBLE_TAP;
+import static org.deviceconnect.android.deviceplugin.wear.profile.WearConst.STATE_END;
+import static org.deviceconnect.android.deviceplugin.wear.profile.WearConst.STATE_MOVE;
+import static org.deviceconnect.android.deviceplugin.wear.profile.WearConst.STATE_START;
+
 /**
  * Touch Profile.
  * 
@@ -77,7 +84,11 @@ public class WearTouchProfile extends TouchProfile {
     
     /** Touch profile onTouchCancel cache time. */
     long mOnTouchCancelCacheTime = 0;
-    
+    /** Touch profile onTouchChange cache. */
+    Bundle mOnTouchChangeCache = null;
+
+    /** Touch profile onTouchChange cache time. */
+    long mOnTouchChangeCacheTime = 0;
     /** Touch profile cache retention time (mSec). */
     static final long CACHE_RETENTION_TIME = 10000;
 
@@ -125,6 +136,12 @@ public class WearTouchProfile extends TouchProfile {
             } else {
                 return null;
             }
+        } else if (attr.equalsIgnoreCase(ATTRIBUTE_ON_TOUCH_CHANGE)) {
+            if (lCurrentTime - mOnTouchChangeCacheTime <= CACHE_RETENTION_TIME) {
+                return mOnTouchChangeCache;
+            } else {
+                return null;
+            }
         } else {
             return null;
         }
@@ -156,6 +173,9 @@ public class WearTouchProfile extends TouchProfile {
         } else if (attr.equalsIgnoreCase(ATTRIBUTE_ON_TOUCH_CANCEL)) {
             mOnTouchCancelCache = touchData;
             mOnTouchCancelCacheTime = lCurrentTime;
+        } else if (attr.equalsIgnoreCase(ATTRIBUTE_ON_TOUCH_CHANGE)) {
+            mOnTouchChangeCache = touchData;
+            mOnTouchChangeCacheTime = lCurrentTime;
         }
     }
 
@@ -181,20 +201,40 @@ public class WearTouchProfile extends TouchProfile {
         addApi(mGetOnDoubleTap);
         addApi(mGetOnTouchMove);
         addApi(mGetOnTouchCancel);
+        addApi(mGetOnTouchChange);
         addApi(mPutOnTouch);
         addApi(mPutOnTouchStart);
         addApi(mPutOnTouchEnd);
         addApi(mPutOnDoubleTap);
         addApi(mPutOnTouchMove);
         addApi(mPutOnTouchCancel);
+        addApi(mPutOnTouchChange);
         addApi(mDeleteOnTouch);
         addApi(mDeleteOnTouchStart);
         addApi(mDeleteOnTouchEnd);
         addApi(mDeleteOnDoubleTap);
         addApi(mDeleteOnTouchMove);
         addApi(mDeleteOnTouchCancel);
+        addApi(mDeleteOnTouchChange);
     }
+    private final DConnectApi mGetOnTouchChange = new GetApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_TOUCH_CHANGE;
+        }
 
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            Bundle touches = getTouchCache(ATTRIBUTE_ON_TOUCH_CHANGE);
+            if (touches == null) {
+                response.putExtra(TouchProfile.PARAM_TOUCH, "");
+            } else {
+                response.putExtra(TouchProfile.PARAM_TOUCH, touches);
+            }
+            setResult(response, IntentDConnectMessage.RESULT_OK);
+            return true;
+        }
+    };
     private final DConnectApi mGetOnTouch = new GetApi() {
         @Override
         public String getAttribute() {
@@ -308,7 +348,43 @@ public class WearTouchProfile extends TouchProfile {
             return true;
         }
     };
+    private final DConnectApi mPutOnTouchChange = new PutApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_TOUCH_CHANGE;
+        }
 
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String nodeId = WearUtils.getNodeId(getServiceID(request));
+
+            getManager().sendMessageToWear(nodeId,
+                    WearConst.DEVICE_TO_WEAR_TOUCH_ONTOUCHCHANGE_REGISTER,
+                    "", new OnMessageResultListener() {
+                        @Override
+                        public void onResult(final SendMessageResult result) {
+                            if (result.getStatus().isSuccess()) {
+                                // Event registration.
+                                EventError error = EventManager.INSTANCE.addEvent(request);
+                                if (error == EventError.NONE) {
+                                    setResult(response, DConnectMessage.RESULT_OK);
+                                } else {
+                                    setResult(response, DConnectMessage.RESULT_ERROR);
+                                }
+                            } else {
+                                MessageUtils.setIllegalDeviceStateError(response);
+                            }
+                            sendResponse(response);
+                        }
+                        @Override
+                        public void onError() {
+                            MessageUtils.setIllegalDeviceStateError(response);
+                            sendResponse(response);
+                        }
+                    });
+            return false;
+        }
+    };
     private final DConnectApi mPutOnTouch = new PutApi() {
         @Override
         public String getAttribute() {
@@ -531,7 +607,36 @@ public class WearTouchProfile extends TouchProfile {
             return false;
         }
     };
+    private final DConnectApi mDeleteOnTouchChange = new DeleteApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_TOUCH_CHANGE;
+        }
 
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            String nodeId = WearUtils.getNodeId(getServiceID(request));
+            getManager().sendMessageToWear(nodeId,
+                    WearConst.DEVICE_TO_WEAR_TOUCH_ONTOUCHCHANGE_UNREGISTER,
+                    "", new OnMessageResultListener() {
+                        @Override
+                        public void onResult(final SendMessageResult result) {
+                        }
+                        @Override
+                        public void onError() {
+                        }
+                    });
+
+            // Event release.
+            EventError error = EventManager.INSTANCE.removeEvent(request);
+            if (error == EventError.NONE) {
+                setResult(response, DConnectMessage.RESULT_OK);
+            } else {
+                setResult(response, DConnectMessage.RESULT_ERROR);
+            }
+            return true;
+        }
+    };
     private final DConnectApi mDeleteOnTouch = new DeleteApi() {
         @Override
         public String getAttribute() {
@@ -730,23 +835,29 @@ public class WearTouchProfile extends TouchProfile {
         }
 
         String[] mDataArray = data.split(",", 0);
-        String attr = null;
+        String attr;
         String action = mDataArray[1];
-
+        String state = null;
         if (action.equals(WearConst.PARAM_TOUCH_TOUCH)) {
             attr = ATTRIBUTE_ON_TOUCH;
         } else if (action.equals(WearConst.PARAM_TOUCH_TOUCHSTART)) {
             attr = ATTRIBUTE_ON_TOUCH_START;
+            state = STATE_START;
         } else if (action.equals(WearConst.PARAM_TOUCH_TOUCHEND)) {
             attr = ATTRIBUTE_ON_TOUCH_END;
+            state = STATE_END;
         } else if (action.equals(WearConst.PARAM_TOUCH_TOUCHMOVE)) {
             attr = ATTRIBUTE_ON_TOUCH_MOVE;
+            state = STATE_MOVE;
         } else if (action.equals(WearConst.PARAM_TOUCH_TOUCHCANCEL)) {
             attr = ATTRIBUTE_ON_TOUCH_CANCEL;
+            state = STATE_CANCEL;
         } else if (action.equals(WearConst.PARAM_TOUCH_DOUBLETAP)) {
             attr = ATTRIBUTE_ON_DOUBLE_TAP;
+            state = STATE_DOUBLE_TAP;
         } else {
             attr = null;
+            state = null;
         }
 
         if (BuildConfig.DEBUG) {
@@ -756,23 +867,40 @@ public class WearTouchProfile extends TouchProfile {
         if (attr != null) {
             List<Event> events = EventManager.INSTANCE.getEventList(
                     nodeId, PROFILE_NAME, null, attr);
+            List<Event> commonEvents = EventManager.INSTANCE.getEventList(
+                    nodeId, PROFILE_NAME, null, ATTRIBUTE_ON_TOUCH_CHANGE);
             synchronized (events) {
+                Bundle touchdata = new Bundle();
+                List<Bundle> touchlist = new ArrayList<Bundle>();
+                Bundle touches = new Bundle();
+                int count = Integer.parseInt(mDataArray[0]);
+                int index = 2;
+                for (int n = 0; n < count; n++) {
+                    touchdata.putInt(TouchProfile.PARAM_ID, Integer.parseInt(mDataArray[index++]));
+                    touchdata.putFloat(TouchProfile.PARAM_X, Float.parseFloat(mDataArray[index++]));
+                    touchdata.putFloat(TouchProfile.PARAM_Y, Float.parseFloat(mDataArray[index++]));
+                    touchlist.add((Bundle) touchdata.clone());
+                }
+                touches.putParcelableArray(TouchProfile.PARAM_TOUCHES,
+                        touchlist.toArray(new Bundle[touchlist.size()]));
                 for (Event event : events) {
-                    Bundle touchdata = new Bundle();
-                    List<Bundle> touchlist = new ArrayList<Bundle>();
-                    Bundle touches = new Bundle();
-                    int count = Integer.parseInt(mDataArray[0]);
-                    int index = 2;
-                    for (int n = 0; n < count; n++) {
-                        touchdata.putInt(TouchProfile.PARAM_ID, Integer.parseInt(mDataArray[index++]));
-                        touchdata.putFloat(TouchProfile.PARAM_X, Float.parseFloat(mDataArray[index++]));
-                        touchdata.putFloat(TouchProfile.PARAM_Y, Float.parseFloat(mDataArray[index++]));
-                        touchlist.add((Bundle) touchdata.clone());
-                    }
-                    touches.putParcelableArray(TouchProfile.PARAM_TOUCHES,
-                            touchlist.toArray(new Bundle[touchlist.size()]));
                     String eventAttr = event.getAttribute();
                     Intent intent = EventManager.createEventMessage(event);
+                    intent.putExtra(TouchProfile.PARAM_TOUCH, touches);
+                    ((WearDeviceService) getContext()).sendEvent(intent, event.getAccessToken());
+                    setTouchCache(eventAttr, touches);
+                    if (BuildConfig.DEBUG) {
+                        Log.i(TAG, "event: " + event);
+                        Log.i(TAG, "touches: " + touches);
+                        Log.i(TAG, "intent: " + intent);
+                    }
+                }
+                for (Event event : commonEvents) {
+                    String eventAttr = event.getAttribute();
+                    Intent intent = EventManager.createEventMessage(event);
+                    if (state != null) {
+                        touches.putString("state", state);
+                    }
                     intent.putExtra(TouchProfile.PARAM_TOUCH, touches);
                     ((WearDeviceService) getContext()).sendEvent(intent, event.getAccessToken());
                     setTouchCache(eventAttr, touches);

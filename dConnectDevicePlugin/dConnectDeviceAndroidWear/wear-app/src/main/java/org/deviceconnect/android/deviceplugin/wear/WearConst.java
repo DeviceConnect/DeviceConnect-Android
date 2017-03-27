@@ -111,6 +111,9 @@ public final class WearConst {
     /** Register Touch (ontouchcancel). */
     public static final String DEVICE_TO_WEAR_TOUCH_ONTOUCHCANCEL_REGISTER
             = "org.deviceconnect.wear.touch.ontouchcancel.regist";
+    /** Register Touch (ontouchchange). */
+    public static final String DEVICE_TO_WEAR_TOUCH_ONTOUCHCHANGE_REGISTER
+            = "org.deviceconnect.wear.touch.ontouchchange.regist";
 
     /** Remove Touch (ontouch). */
     public static final String DEVICE_TO_WEAR_TOUCH_ONTOUCH_UNREGISTER
@@ -135,6 +138,9 @@ public final class WearConst {
     /** Remove Touch (ontouchcancel). */
     public static final String DEVICE_TO_WEAR_TOUCH_ONTOUCHCANCEL_UNREGISTER
             = "org.deviceconnect.wear.touch.ontouchcancel.unregist";
+    /** Remove Touch (ontouchchange). */
+    public static final String DEVICE_TO_WEAR_TOUCH_ONTOUCHCHANGE_UNREGISTER
+            = "org.deviceconnect.wear.touch.ontouchchange.unregist";
 
     /** Broadcast Data Key (Regist). */
     public static final String PARAM_TOUCH_REGIST = "touchRegist";

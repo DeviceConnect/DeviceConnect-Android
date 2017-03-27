@@ -128,6 +128,8 @@ public class DataLayerListenerService extends WearableListenerService {
             startTouchActivity(WearConst.DEVICE_TO_WEAR_TOUCH_ONTOUCHMOVE_REGISTER, id);
         } else if (action.equals(WearConst.DEVICE_TO_WEAR_TOUCH_ONTOUCHCANCEL_REGISTER)) {
             startTouchActivity(WearConst.DEVICE_TO_WEAR_TOUCH_ONTOUCHCANCEL_REGISTER, id);
+        } else if (action.equals(WearConst.DEVICE_TO_WEAR_TOUCH_ONTOUCHCHANGE_REGISTER)) {
+            startTouchActivity(WearConst.DEVICE_TO_WEAR_TOUCH_ONTOUCHCHANGE_REGISTER, id);
         } else if (action.equals(WearConst.DEVICE_TO_WEAR_TOUCH_ONTOUCH_UNREGISTER)) {
             startTouchActivity(WearConst.DEVICE_TO_WEAR_TOUCH_ONTOUCH_UNREGISTER, id);
         } else if (action.equals(WearConst.DEVICE_TO_WEAR_TOUCH_ONTOUCHSTART_UNREGISTER)) {
@@ -140,6 +142,8 @@ public class DataLayerListenerService extends WearableListenerService {
             startTouchActivity(WearConst.DEVICE_TO_WEAR_TOUCH_ONTOUCHMOVE_UNREGISTER, id);
         } else if (action.equals(WearConst.DEVICE_TO_WEAR_TOUCH_ONTOUCHCANCEL_UNREGISTER)) {
             startTouchActivity(WearConst.DEVICE_TO_WEAR_TOUCH_ONTOUCHCANCEL_UNREGISTER, id);
+        } else if (action.equals(WearConst.DEVICE_TO_WEAR_TOUCH_ONTOUCHCHANGE_UNREGISTER)) {
+            startTouchActivity(WearConst.DEVICE_TO_WEAR_TOUCH_ONTOUCHCHANGE_UNREGISTER, id);
         } else {
             if (BuildConfig.DEBUG) {
                 Log.e("Wear", "unknown event");

@@ -6,20 +6,20 @@
  */
 package org.deviceconnect.android.deviceplugin.hvc.comm;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import omron.HVC.HVC;
+import android.util.Log;
+import android.util.SparseArray;
 
 import org.deviceconnect.android.deviceplugin.hvc.BuildConfig;
 import org.deviceconnect.android.deviceplugin.hvc.HvcDeviceApplication;
 import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectKind;
 import org.deviceconnect.android.deviceplugin.hvc.profile.HvcConstants;
-import org.deviceconnect.android.profile.HumanDetectProfile;
+import org.deviceconnect.android.profile.HumanDetectionProfile;
 
-import android.util.Log;
-import android.util.SparseArray;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import omron.HVC.HVC;
 
 
 /**
@@ -135,9 +135,10 @@ public final class HvcConvertUtils {
     public static String convertToEventAttribute(final HumanDetectKind detectKind) {
         
         Map<HumanDetectKind, String> map = new HashMap<>();
-        map.put(HumanDetectKind.BODY, HumanDetectProfile.ATTRIBUTE_ON_BODY_DETECTION);
-        map.put(HumanDetectKind.HAND, HumanDetectProfile.ATTRIBUTE_ON_HAND_DETECTION);
-        map.put(HumanDetectKind.FACE, HumanDetectProfile.ATTRIBUTE_ON_FACE_DETECTION);
+        map.put(HumanDetectKind.BODY, HumanDetectionProfile.ATTRIBUTE_ON_BODY_DETECTION);
+        map.put(HumanDetectKind.HAND, HumanDetectionProfile.ATTRIBUTE_ON_HAND_DETECTION);
+        map.put(HumanDetectKind.FACE, HumanDetectionProfile.ATTRIBUTE_ON_FACE_DETECTION);
+        map.put(HumanDetectKind.HUMAN, "onDetection");
         
         String attribute = map.get(detectKind);
         if (attribute != null) {
@@ -169,12 +170,12 @@ public final class HvcConvertUtils {
         }
         
         HashMap<String, Integer> convertOptions = new HashMap<>();
-        convertOptions.put(HumanDetectProfile.VALUE_OPTION_FACE_DIRECTION, HVC.HVC_ACTIV_FACE_DIRECTION);
-        convertOptions.put(HumanDetectProfile.VALUE_OPTION_AGE, HVC.HVC_ACTIV_AGE_ESTIMATION);
-        convertOptions.put(HumanDetectProfile.VALUE_OPTION_GENDER, HVC.HVC_ACTIV_GENDER_ESTIMATION);
-        convertOptions.put(HumanDetectProfile.VALUE_OPTION_GAZE, HVC.HVC_ACTIV_GAZE_ESTIMATION);
-        convertOptions.put(HumanDetectProfile.VALUE_OPTION_BLINK, HVC.HVC_ACTIV_BLINK_ESTIMATION);
-        convertOptions.put(HumanDetectProfile.VALUE_OPTION_EXPRESSION, HVC.HVC_ACTIV_EXPRESSION_ESTIMATION);
+        convertOptions.put(HumanDetectionProfile.VALUE_OPTION_FACE_DIRECTION, HVC.HVC_ACTIV_FACE_DIRECTION);
+        convertOptions.put(HumanDetectionProfile.VALUE_OPTION_AGE, HVC.HVC_ACTIV_AGE_ESTIMATION);
+        convertOptions.put(HumanDetectionProfile.VALUE_OPTION_GENDER, HVC.HVC_ACTIV_GENDER_ESTIMATION);
+        convertOptions.put(HumanDetectionProfile.VALUE_OPTION_GAZE, HVC.HVC_ACTIV_GAZE_ESTIMATION);
+        convertOptions.put(HumanDetectionProfile.VALUE_OPTION_BLINK, HVC.HVC_ACTIV_BLINK_ESTIMATION);
+        convertOptions.put(HumanDetectionProfile.VALUE_OPTION_EXPRESSION, HVC.HVC_ACTIV_EXPRESSION_ESTIMATION);
 
         int optionBitFlag = 0;
         if (options != null) {

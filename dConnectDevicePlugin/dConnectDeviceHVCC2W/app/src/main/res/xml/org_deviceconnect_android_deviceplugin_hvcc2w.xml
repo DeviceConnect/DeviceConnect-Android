@@ -19,10 +19,10 @@
         <name lang="en">System </name>
         <description lang="en">Obtains system information. </description>
     </profile>
-    <profile name="humanDetect" expireperiod="86400000">
+    <profile name="humanDetection" expireperiod="86400000">
         <name lang="ja">人体検出</name>
         <description lang="ja">人体検出する。</description>
-        <name lang="en">Human Detect</name>
-        <description lang="en">Human Detect. </description>
+        <name lang="en">Human Detection</name>
+        <description lang="en">Human Detection. </description>
     </profile>
 </deviceplugin-provider>

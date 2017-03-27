@@ -33,8 +33,6 @@ import org.deviceconnect.message.intent.message.IntentDConnectMessage;
  */
 public class HostTouchProfile extends TouchProfile {
 
-    /** Error. */
-    private static final int ERROR_PROCESSING_ERROR = 100;
 
     /** Touch profile event management flag. */
     private static int sFlagTouchEventManage = 0;
@@ -215,7 +213,7 @@ public class HostTouchProfile extends TouchProfile {
                 setTouchEventFlag(FLAG_ON_TOUCH_CHANGE);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
-                MessageUtils.setError(response, ERROR_PROCESSING_ERROR, "Can not register event.");
+                MessageUtils.setInvalidRequestParameterError(response,"Can not register event.");
             }
             return true;
         }
@@ -237,7 +235,7 @@ public class HostTouchProfile extends TouchProfile {
                 setTouchEventFlag(FLAG_ON_TOUCH);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
-                MessageUtils.setError(response, ERROR_PROCESSING_ERROR, "Can not register event.");
+                MessageUtils.setInvalidRequestParameterError(response,"Can not register event.");
             }
             return true;
         }
@@ -260,7 +258,7 @@ public class HostTouchProfile extends TouchProfile {
                 setTouchEventFlag(FLAG_ON_TOUCH_START);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
-                MessageUtils.setError(response, ERROR_PROCESSING_ERROR, "Can not register event.");
+                MessageUtils.setInvalidRequestParameterError(response,"Can not register event.");
             }
             return true;
         }
@@ -283,7 +281,7 @@ public class HostTouchProfile extends TouchProfile {
                 setTouchEventFlag(FLAG_ON_TOUCH_END);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
-                MessageUtils.setError(response, ERROR_PROCESSING_ERROR, "Can not register event.");
+                MessageUtils.setInvalidRequestParameterError(response,"Can not register event.");
             }
             return true;
         }
@@ -306,7 +304,7 @@ public class HostTouchProfile extends TouchProfile {
                 setTouchEventFlag(FLAG_ON_DOUBLE_TAP);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
-                MessageUtils.setError(response, ERROR_PROCESSING_ERROR, "Can not register event.");
+                MessageUtils.setInvalidRequestParameterError(response,"Can not register event.");
             }
             return true;
         }
@@ -329,7 +327,7 @@ public class HostTouchProfile extends TouchProfile {
                 setTouchEventFlag(FLAG_ON_TOUCH_MOVE);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
-                MessageUtils.setError(response, ERROR_PROCESSING_ERROR, "Can not register event.");
+                MessageUtils.setInvalidRequestParameterError(response,"Can not register event.");
             }
             return true;
         }
@@ -352,7 +350,7 @@ public class HostTouchProfile extends TouchProfile {
                 setTouchEventFlag(FLAG_ON_TOUCH_CANCEL);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
-                MessageUtils.setError(response, ERROR_PROCESSING_ERROR, "Can not register event.");
+                MessageUtils.setInvalidRequestParameterError(response,"Can not register event.");
             }
             return true;
         }
@@ -372,7 +370,7 @@ public class HostTouchProfile extends TouchProfile {
                 resetTouchEventFlag(FLAG_ON_TOUCH_CHANGE);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
-                MessageUtils.setError(response, ERROR_PROCESSING_ERROR, "Can not unregister event.");
+                MessageUtils.setInvalidRequestParameterError(response,"Can not unregister event.");
             }
             return true;
         }
@@ -392,7 +390,7 @@ public class HostTouchProfile extends TouchProfile {
                 resetTouchEventFlag(FLAG_ON_TOUCH);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
-                MessageUtils.setError(response, ERROR_PROCESSING_ERROR, "Can not unregister event.");
+                MessageUtils.setInvalidRequestParameterError(response,"Can not unregister event.");
             }
             return true;
         }
@@ -413,7 +411,7 @@ public class HostTouchProfile extends TouchProfile {
                 resetTouchEventFlag(FLAG_ON_TOUCH_START);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
-                MessageUtils.setError(response, ERROR_PROCESSING_ERROR, "Can not unregister event.");
+                MessageUtils.setInvalidRequestParameterError(response,"Can not unregister event.");
             }
             return true;
         }
@@ -434,7 +432,7 @@ public class HostTouchProfile extends TouchProfile {
                 resetTouchEventFlag(FLAG_ON_TOUCH_END);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
-                MessageUtils.setError(response, ERROR_PROCESSING_ERROR, "Can not unregister event.");
+                MessageUtils.setInvalidRequestParameterError(response,"Can not unregister event.");
             }
             return true;
         }
@@ -455,7 +453,7 @@ public class HostTouchProfile extends TouchProfile {
                 resetTouchEventFlag(FLAG_ON_DOUBLE_TAP);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
-                MessageUtils.setError(response, ERROR_PROCESSING_ERROR, "Can not unregister event.");
+                MessageUtils.setInvalidRequestParameterError(response,"Can not unregister event.");
             }
             return true;
         }
@@ -476,7 +474,7 @@ public class HostTouchProfile extends TouchProfile {
                 resetTouchEventFlag(FLAG_ON_TOUCH_MOVE);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
-                MessageUtils.setError(response, ERROR_PROCESSING_ERROR, "Can not unregister event.");
+                MessageUtils.setInvalidRequestParameterError(response,"Can not unregister event.");
             }
             return true;
         }
@@ -497,7 +495,7 @@ public class HostTouchProfile extends TouchProfile {
                 resetTouchEventFlag(FLAG_ON_TOUCH_CANCEL);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
-                MessageUtils.setError(response, ERROR_PROCESSING_ERROR, "Can not unregister event.");
+                MessageUtils.setInvalidRequestParameterError(response,"Can not unregister event.");
             }
             return true;
         }

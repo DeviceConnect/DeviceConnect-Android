@@ -147,8 +147,6 @@ public class TouchProfileActivity extends Activity {
 
         if (events != null) {
             sendEventData(state, event, events);
-            sendEventData(state, event, EventManager.INSTANCE.getEventList(mServiceId, TouchProfile.PROFILE_NAME, null,
-                    ATTRIBUTE_ON_TOUCH_CHANGE));
         }
         return mGestureDetector.onTouchEvent(event);
     }
@@ -164,10 +162,6 @@ public class TouchProfileActivity extends Activity {
                     TouchProfile.ATTRIBUTE_ON_DOUBLE_TAP);
 
             sendEventData(HostDeviceApplication.STATE_DOUBLE_TAP, event, events);
-            events = EventManager.INSTANCE.getEventList(mServiceId, TouchProfile.PROFILE_NAME, null,
-                    ATTRIBUTE_ON_TOUCH_CHANGE);
-
-            sendEventData(HostDeviceApplication.STATE_DOUBLE_TAP, event, events);
             return super.onDoubleTap(event);
         }
     };
@@ -180,29 +174,36 @@ public class TouchProfileActivity extends Activity {
      * @param events Event request list.
      */
     private void sendEventData(final String state, final MotionEvent event, final List<Event> events) {
-
+        List<Event> touchEvents = EventManager.INSTANCE.getEventList(mServiceId, TouchProfile.PROFILE_NAME, null,
+                ATTRIBUTE_ON_TOUCH_CHANGE);
+        Bundle touchdata = new Bundle();
+        List<Bundle> touchlist = new ArrayList<Bundle>();
+        Bundle touches = new Bundle();
+        for (int n = 0; n < event.getPointerCount(); n++) {
+            int pointerId = event.getPointerId(n);
+            touchdata.putInt(TouchProfile.PARAM_ID, pointerId);
+            touchdata.putFloat(TouchProfile.PARAM_X, event.getX(n));
+            touchdata.putFloat(TouchProfile.PARAM_Y, event.getY(n));
+            touchlist.add((Bundle) touchdata.clone());
+        }
+        touches.putParcelableArray(TouchProfile.PARAM_TOUCHES, touchlist.toArray(new Bundle[touchlist.size()]));
         for (int i = 0; i < events.size(); i++) {
-            Bundle touchdata = new Bundle();
-            List<Bundle> touchlist = new ArrayList<Bundle>();
-            Bundle touches = new Bundle();
-            for (int n = 0; n < event.getPointerCount(); n++) {
-                int pointerId = event.getPointerId(n);
-                touchdata.putInt(TouchProfile.PARAM_ID, pointerId);
-                touchdata.putFloat(TouchProfile.PARAM_X, event.getX(n));
-                touchdata.putFloat(TouchProfile.PARAM_Y, event.getY(n));
-                touchlist.add((Bundle) touchdata.clone());
-            }
-            touches.putParcelableArray(TouchProfile.PARAM_TOUCHES, touchlist.toArray(new Bundle[touchlist.size()]));
             Event eventdata = events.get(i);
             String attr = eventdata.getAttribute();
-
-            if (state != null && ATTRIBUTE_ON_TOUCH_CHANGE.toLowerCase().equals(attr.toLowerCase())) {
-                touches.putString("state", state);
-            }
             Intent intent = EventManager.createEventMessage(eventdata);
             intent.putExtra(TouchProfile.PARAM_TOUCH, touches);
             getBaseContext().sendBroadcast(intent);
             mApp.setTouchCache(attr, touches);
         }
+        for (int i = 0; i < touchEvents.size(); i++) {
+            Event eventdata = touchEvents.get(i);
+            String attr = eventdata.getAttribute();
+            touches.putString("state", state);
+            Intent intent = EventManager.createEventMessage(eventdata);
+            intent.putExtra(TouchProfile.PARAM_TOUCH, touches);
+            getBaseContext().sendBroadcast(intent);
+            mApp.setTouchCache(attr, touches);
+        }
+
     }
 }

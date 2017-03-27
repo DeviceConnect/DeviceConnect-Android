@@ -34,6 +34,14 @@ public final class BeaconUtil {
 
             events = EventManager.INSTANCE.getEventList(
                     beacon.getServiceId(),
+                    KeyEventProfile.PROFILE_NAME, null,
+                    LinkingKeyEventProfile.ATTRIBUTE_ON_KEY_CHANGE);
+            if (!events.isEmpty()) {
+                return false;
+            }
+
+            events = EventManager.INSTANCE.getEventList(
+                    beacon.getServiceId(),
                     ProximityProfile.PROFILE_NAME, null,
                     ProximityProfile.ATTRIBUTE_ON_DEVICE_PROXIMITY);
             if (!events.isEmpty()) {

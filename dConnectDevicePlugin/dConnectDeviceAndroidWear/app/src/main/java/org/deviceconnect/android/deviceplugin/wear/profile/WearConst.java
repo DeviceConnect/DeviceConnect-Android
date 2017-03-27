@@ -51,6 +51,9 @@ public final class WearConst {
 
     /** Register Key Event (onup). */
     public static final String DEVICE_TO_WEAR_KEYEVENT_ONUP_REGISTER = "org.deviceconnect.wear.keyevent.onup.regist";
+    /** Register Key Event (onkeychange). */
+    public static final String DEVICE_TO_WEAR_KEYEVENT_ONKEYCHANGE_REGISTER
+            = "org.deviceconnect.wear.keyevent.onkeychange.regist";
 
     /** Remove Key Event (ondown). */
     public static final String DEVICE_TO_WEAR_KEYEVENT_ONDOWN_UNREGISTER
@@ -59,7 +62,9 @@ public final class WearConst {
     /** Remove Key Event (onup). */
     public static final String DEVICE_TO_WEAR_KEYEVENT_ONUP_UNREGISTER
             = "org.deviceconnect.wear.keyevent.onup.unregist";
-
+    /** Remove Key Event (onkeychange). */
+    public static final String DEVICE_TO_WEAR_KEYEVENT_ONKEYCHANGE_UNREGISTER
+            = "org.deviceconnect.wear.keyevent.onkeychange.unregist";
     /** Wear to Android. */
     public static final String WEAR_TO_DEVICE_KEYEVENT_DATA = "org.deviceconnect.wear.keyevent.data";
 
@@ -240,6 +245,10 @@ public final class WearConst {
     public static final String STATE_MOVE = "move";
     /** Touch State cancel. */
     public static final String STATE_CANCEL = "cancel";
+    /** KeyEvent State move. */
+    public static final String STATE_UP = "up";
+    /** KeyEvent State cancel. */
+    public static final String STATE_DOWN = "down";
     /**
      * Constructor.
      */

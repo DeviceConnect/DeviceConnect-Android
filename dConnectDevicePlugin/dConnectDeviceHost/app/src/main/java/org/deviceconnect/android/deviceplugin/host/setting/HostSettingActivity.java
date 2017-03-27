@@ -8,7 +8,6 @@ package org.deviceconnect.android.deviceplugin.host.setting;
 
 import org.deviceconnect.android.ui.activity.DConnectSettingPageFragmentActivity;
 
-import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.ViewPager;
 import android.support.v4.view.ViewPager.OnPageChangeListener;
@@ -24,19 +23,11 @@ public class HostSettingActivity extends DConnectSettingPageFragmentActivity {
     private String mServiceId;
 
     /** ページ数. */
-    private static final int PAGE_COUNT = 2;
+    private static final int PAGE_COUNT = 1;
 
     @Override
     public Fragment createPage(final int position) {
-        if (position == 1) {
-            return new HostGpsSettingFragment();
-        } else {
-            Bundle mBundle = new Bundle();
-            mBundle.putInt("position", position);
-            HostSettingFragment mFragment = new HostSettingFragment();
-            mFragment.setArguments(mBundle);
-            return mFragment;
-        }
+        return new HostGpsSettingFragment();
     }
 
     @Override

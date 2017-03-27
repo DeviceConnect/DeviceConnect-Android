@@ -1,6 +1,7 @@
 package org.deviceconnect.android.deviceplugin.chromecast.setting;
 
 import android.app.Activity;
+import android.content.res.TypedArray;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
@@ -37,7 +38,9 @@ public class ChromeCastServiceListActivity extends DConnectServiceListActivity {
             }
         });
         LinearLayout layout = (LinearLayout) findViewById(R.id.fragment_container);
-        layout.setPadding(0, 200, 0, 0);
+        final TypedArray styledAttributes = getTheme().obtainStyledAttributes(new int[]{android.R.attr.actionBarSize});
+        int actionBarSize = (int) styledAttributes.getDimension(0, 0);
+        layout.setPadding(0, actionBarSize, 0, 0);
     }
 
     @Override

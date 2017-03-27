@@ -10,6 +10,7 @@ package org.deviceconnect.android.deviceplugin.kadecot.service;
 import org.deviceconnect.android.deviceplugin.kadecot.KadecotDeviceService;
 import org.deviceconnect.android.deviceplugin.kadecot.kadecotdevice.ENLObject;
 import org.deviceconnect.android.deviceplugin.kadecot.kadecotdevice.KadecotDevice;
+import org.deviceconnect.android.deviceplugin.kadecot.profile.KadecotEchonetliteProfile;
 import org.deviceconnect.android.deviceplugin.kadecot.profile.KadecotHomeAirConditionerProfile;
 import org.deviceconnect.android.deviceplugin.kadecot.profile.KadecotLightProfile;
 import org.deviceconnect.android.deviceplugin.kadecot.profile.original.AirConditionerProfile;
@@ -18,14 +19,21 @@ import org.deviceconnect.android.service.DConnectService;
 
 public class KadecotService extends DConnectService {
 
+    /** Kadecot prefix. */
+    public static final String PREFIX_KADECOT = "kadecot";
+
+    /** "No result" string. */
+    public static final String NO_RESULT = "{}";
+
     /** Index of prefix. */
-    private static final int IDX_PREFIX = 0;
+    public static final int IDX_PREFIX = 0;
 
     /** Index of kadecot deviceId. */
-    private static final int IDX_DEVICEID = 1;
+    public static final int IDX_DEVICEID = 1;
 
     /** Index of profile name. */
-    private static final int IDX_PROFILENAME = 2;
+    public static final int IDX_PROFILENAME = 2;
+
 
     private final KadecotDevice mDevice;
 
@@ -47,6 +55,7 @@ public class KadecotService extends DConnectService {
         } else if (isSupported(AirConditionerProfile.PROFILE_NAME, serviceId)) {
             addProfile(new KadecotHomeAirConditionerProfile());
         }
+        addProfile(new KadecotEchonetliteProfile());
     }
 
     private static boolean isSupported(final String profileName, final String serviceId) {

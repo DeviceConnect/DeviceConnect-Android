@@ -23,7 +23,7 @@ import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.message.MessageUtils;
-import org.deviceconnect.android.profile.HumanDetectProfile;
+import org.deviceconnect.android.profile.HumanDetectionProfile;
 import org.deviceconnect.message.DConnectMessage;
 
 import java.util.ArrayList;
@@ -375,14 +375,14 @@ public class HvcCommManager {
                     if (humanDetectEvent.getRequestParams().getEvent().getInterval() == requestParams
                             .getEvent().getInterval()) {
                         List<Event> events = EventManager.INSTANCE.getEventList(mServiceId,
-                                HumanDetectProfile.PROFILE_NAME, null, attribute);
+                                HumanDetectionProfile.PROFILE_NAME, null, attribute);
                         for (Event event : events) {
                             Intent intent = EventManager.createEventMessage(event);
                             HvcResponseUtils.setDetectResultResponse(intent, requestParams, hvcRes, detectKind);
                             if (!checkDetectResult(detectKind, intent)) {
                                 continue;
                             }
-                            mContext.sendResponse(intent);
+                            mContext.sendEvent(intent, event.getAccessToken());
                             if (DEBUG) {
                                 Log.d(TAG, "<EVENT> send event. attribute:" + attribute);
                             }
@@ -427,11 +427,13 @@ public class HvcCommManager {
     private boolean checkDetectResult(final HumanDetectKind detectKind, final Intent intent) {
         switch (detectKind) {
         case BODY:
-            return intent.hasExtra(HumanDetectProfile.PARAM_BODYDETECTS);
+            return intent.hasExtra(HumanDetectionProfile.PARAM_BODYDETECTS);
         case HAND:
-            return intent.hasExtra(HumanDetectProfile.PARAM_HANDDETECTS);
+            return intent.hasExtra(HumanDetectionProfile.PARAM_HANDDETECTS);
         case FACE:
-            return intent.hasExtra(HumanDetectProfile.PARAM_FACEDETECTS);
+            return intent.hasExtra(HumanDetectionProfile.PARAM_FACEDETECTS);
+        case HUMAN:
+            return intent.hasExtra("humanDetect");
         default:
             return false;
         }
@@ -472,11 +474,16 @@ public class HvcCommManager {
                     requestParams.setHand(event.getRequestParams().getHand());
                 } else if (event.getKind() == HumanDetectKind.FACE) {
                     requestParams.setFace(event.getRequestParams().getFace());
+                } else if (event.getKind() == HumanDetectKind.HUMAN) {
+                    requestParams.setBody(event.getRequestParams().getBody());
+                    requestParams.setHand(event.getRequestParams().getHand());
+                    requestParams.setFace(event.getRequestParams().getFace());
                 } else {
                     if (DEBUG) {
                         Log.d(TAG, "invalid event.getKind()" + event.getKind().ordinal());
                     }
                 }
+                requestParams.setEvent(event.getRequestParams().getEvent());
             }
         }
         
@@ -488,7 +495,7 @@ public class HvcCommManager {
      * @param requestParams request parameters
      * @param listener callback listener
      */
-    public void commRequestProc(final HumanDetectRequestParams requestParams, final HvcDetectListener listener) {
+    private void commRequestProc(final HumanDetectRequestParams requestParams, final HvcDetectListener listener) {
         
         if (checkCommBusy()) {
             if (DEBUG) {

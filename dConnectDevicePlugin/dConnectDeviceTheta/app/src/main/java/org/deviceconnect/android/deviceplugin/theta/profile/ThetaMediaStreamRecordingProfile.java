@@ -146,7 +146,7 @@ public abstract class ThetaMediaStreamRecordingProfile extends MediaStreamRecord
                         byte[] data = picture.getMainData();
                         picture.clear(ThetaObject.DataType.MAIN);
 
-                        mFileMgr.saveFile(picture.getFileName(), data, new FileManager.SaveFileCallback() {
+                        mFileMgr.saveFile(picture.getFileName(), data, true, new FileManager.SaveFileCallback() {
 
                             @Override
                             public void onSuccess(final String uri) {

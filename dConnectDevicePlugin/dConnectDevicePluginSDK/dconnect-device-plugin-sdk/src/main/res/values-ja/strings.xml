@@ -35,6 +35,7 @@
     <string name="column_application_name">アプリ名</string>
     <string name="column_destination_package_name">アクセス先</string>
     <string name="column_keyword">キーワード</string>
+    <string name="column_border">:</string>
     <string name="guidance_comfirm">このアプリは以下の機能にアクセスします</string>
     <string name="access_authority">アクセス権限</string>
     <string name="delete">削除</string>

@@ -3,7 +3,7 @@ package org.deviceconnect.android.deviceplugin.hvc.service;
 
 import android.bluetooth.BluetoothDevice;
 
-import org.deviceconnect.android.deviceplugin.hvc.profile.HvcHumanDetectProfile;
+import org.deviceconnect.android.deviceplugin.hvc.profile.HvcHumanDetectionProfile;
 import org.deviceconnect.android.deviceplugin.hvc.profile.HvcServiceInformationProfile;
 import org.deviceconnect.android.service.DConnectService;
 
@@ -16,7 +16,7 @@ public class HvcService extends DConnectService {
         setName(foundDevice.getName());
         setNetworkType(NetworkType.BLE);
         addProfile(new HvcServiceInformationProfile());
-        addProfile(new HvcHumanDetectProfile());
+        addProfile(new HvcHumanDetectionProfile());
     }
 
     public static String createServiceId(final BluetoothDevice foundDevice) {

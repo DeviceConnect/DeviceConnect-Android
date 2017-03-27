@@ -211,7 +211,9 @@ public class BleDeviceDetector {
                 new BleDeviceAdapter.BleDeviceScanCallback() {
                     @Override
                     public void onLeScan(final BluetoothDevice device, final int rssi) {
-                        devices.add(device);
+                        if (!devices.contains(device)) {
+                            devices.add(device);
+                        }
                     }
 
                     @Override

@@ -13,7 +13,7 @@ dependencies {
 
 android {
     compileSdkVersion 23
-    buildToolsVersion '23.0.0'
+    buildToolsVersion '25.0.0'
 
     defaultConfig {
         minSdkVersion 14
@@ -69,6 +69,31 @@ project.androidVariants.all { variant ->
     }
 }
 
+
+android.testVariants.all { variant ->
+    task("generateJavadocForSDKJUnit", type: Javadoc, overwrite: true) {
+        title = "Android Device Connect SDK Unit Test"
+        description = "Generates Javadoc for JUnit"
+        source = variant.javaCompile.source
+        ext.androidJar = "${android.sdkDirectory}/platforms/${android.compileSdkVersion}/android.jar"
+        classpath = files(variant.javaCompile.classpath.files) + files(ext.androidJar)
+        destinationDir = new File("${project.getRootDir()}/DeviceConnectSDK-JUnit-Javadoc/")
+
+        options {
+            links("http://docs.oracle.com/javase/jp/8/docs/api/");
+            linksOffline("http://d.android.com/reference", "${android.sdkDirectory}/docs/reference")
+            setMemberLevel(JavadocMemberLevel.PUBLIC)
+            docEncoding = 'UTF-8'
+            encoding = 'UTF-8'
+            charSet = 'UTF-8'
+        }
+
+        exclude '**/org/deviceconnect/message/server/**'
+        exclude '**/BuildConfig.java'
+        exclude '**/R.java'
+    }
+}
+
 def repo = new File(rootDir, "repository")
 
 apply plugin: 'maven'
@@ -77,7 +102,7 @@ uploadArchives {
     repositories {
         mavenDeployer {
             repository url: "file://${repo.absolutePath}"
-            pom.version = '1.1.0'
+            pom.version = '2.2.1'
             pom.groupId = 'org.deviceconnect'
             pom.artifactId = 'dconnect-sdk-for-android'
         }

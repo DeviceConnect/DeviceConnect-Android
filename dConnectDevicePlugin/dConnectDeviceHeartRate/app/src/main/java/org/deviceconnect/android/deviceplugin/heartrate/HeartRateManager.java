@@ -9,6 +9,7 @@ package org.deviceconnect.android.deviceplugin.heartrate;
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.os.Handler;
+import android.util.Log;
 import android.widget.Toast;
 
 import org.deviceconnect.android.deviceplugin.heartrate.ble.BleDeviceDetector;
@@ -81,15 +82,8 @@ public class HeartRateManager {
      *
      * @param context application context
      */
-    public HeartRateManager(final Context context) {
+    HeartRateManager(final Context context) {
         mContext = context;
-        mHRDiscoveryListener = new ArrayList<>();
-        mDetector = new BleDeviceDetector(context);
-        mDetector.setListener(mDiscoveryListener);
-
-        mConnector = new HeartRateConnector(context);
-        mConnector.setListener(mHRConnectListener);
-        mConnector.setBleDeviceDetector(mDetector);
 
         mDBHelper = new HeartRateDBHelper(context);
 
@@ -99,6 +93,14 @@ public class HeartRateManager {
                 mRegisterDevices.add(device);
             }
         }
+
+        mHRDiscoveryListener = new ArrayList<>();
+        mDetector = new BleDeviceDetector(context);
+        mDetector.setListener(mDiscoveryListener);
+
+        mConnector = new HeartRateConnector(context, list);
+        mConnector.setListener(mHRConnectListener);
+        mConnector.setBleDeviceDetector(mDetector);
 
         if (mDetector.isEnabled()) {
             start();
@@ -110,7 +112,7 @@ public class HeartRateManager {
      *
      * @param listener The listener to be told when found device or connected device
      */
-    public void addOnHeartRateDiscoveryListener(OnHeartRateDiscoveryListener listener) {
+    public void addOnHeartRateDiscoveryListener(final OnHeartRateDiscoveryListener listener) {
         mHRDiscoveryListener.add(listener);
     }
 
@@ -118,7 +120,7 @@ public class HeartRateManager {
      * Remove the OnHeartRateDiscoveryListener.
      * @param listener The listener to be told when found device or connected device
      */
-    public void removeOnHeartRateDiscoveryListener(OnHeartRateDiscoveryListener listener) {
+    public void removeOnHeartRateDiscoveryListener(final OnHeartRateDiscoveryListener listener) {
         mHRDiscoveryListener.remove(listener);
     }
 
@@ -127,7 +129,7 @@ public class HeartRateManager {
      *
      * @param listener The listener to be told when get a data of heart rate
      */
-    public void setOnHeartRateEventListener(OnHeartRateEventListener listener) {
+    public void setOnHeartRateEventListener(final OnHeartRateEventListener listener) {
         mHREvtListener = listener;
     }
 
@@ -151,15 +153,18 @@ public class HeartRateManager {
      * Stops the HeartRateManager.
      */
     public void stop() {
+        mDetector.stopScan();
         mConnectedDevices.clear();
         mConnector.stop();
     }
 
+    /**
+     * Return true if BLE is currently enabled and ready for use.
+     *
+     * @return true if the local adapter is turned on
+     */
     public boolean isEnabledBle() {
-        if (mDetector == null) {
-            return false;
-        }
-        return mDetector.isEnabled();
+        return mDetector != null && mDetector.isEnabled();
     }
 
     /**
@@ -270,6 +275,7 @@ public class HeartRateManager {
         }
         return getHeartRateData(device);
     }
+
     /**
      * Gets the {@link HeartRateDevice} from address.
      *
@@ -284,6 +290,7 @@ public class HeartRateManager {
         }
         return null;
     }
+
     /**
      * Gets the {@link HeartRateData} from {@link HeartRateDevice}.
      *
@@ -369,6 +376,7 @@ public class HeartRateManager {
         @Override
         public void onDiscovery(final List<BluetoothDevice> devices) {
             mLogger.fine("BleDeviceDiscoveryListener#onDiscovery: " + devices.size());
+
             if (mHRDiscoveryListener != null) {
                 for (OnHeartRateDiscoveryListener l : mHRDiscoveryListener) {
                     l.onDiscovery(devices);
@@ -384,16 +392,19 @@ public class HeartRateManager {
         @Override
         public void onConnected(final BluetoothDevice device) {
             mLogger.fine("HeartRateConnectEventListener#onConnected: [" + device + "]");
+
             HeartRateDevice hr = findRegisteredHeartRateDeviceByAddress(device.getAddress());
             if (hr == null) {
                 hr = registerHeartRateDevice(device);
             }
+
             if (!mConnectedDevices.contains(hr)) {
                 mConnectedDevices.add(hr);
             }
+
             if (mHRDiscoveryListener != null) {
                 for (OnHeartRateDiscoveryListener l : mHRDiscoveryListener) {
-                    l.onConnected(device);
+                    l.onConnected(hr);
                 }
             }
 
@@ -418,6 +429,7 @@ public class HeartRateManager {
         @Override
         public void onDisconnected(final BluetoothDevice device) {
             mLogger.fine("HeartRateConnectEventListener#onDisconnected: [" + device + "]");
+
             HeartRateDevice hr = findConnectedHeartRateDeviceByAddress(device.getAddress());
             if (hr != null) {
                 mConnectedDevices.remove(hr);
@@ -432,7 +444,7 @@ public class HeartRateManager {
             } else {
                 if (mHRDiscoveryListener != null) {
                     for (OnHeartRateDiscoveryListener l : mHRDiscoveryListener) {
-                        l.onDisconnected(device);
+                        l.onDisconnected(hr);
                     }
                 }
 
@@ -458,6 +470,7 @@ public class HeartRateManager {
         @Override
         public void onConnectFailed(final BluetoothDevice device) {
             mLogger.fine("HeartRateConnectEventListener#onConnectFailed: [" + device + "]");
+
             if (mHRDiscoveryListener != null) {
                 for (OnHeartRateDiscoveryListener l : mHRDiscoveryListener) {
                     l.onConnectFailed(device);
@@ -469,6 +482,7 @@ public class HeartRateManager {
         public void onReadSensorLocation(final BluetoothDevice device, final int location) {
             mLogger.fine("HeartRateConnectEventListener#onReadSensorLocation: ["
                     + device + "]: " + location);
+
             HeartRateDevice hr = findConnectedHeartRateDeviceByAddress(device.getAddress());
             if (hr != null) {
                 hr.setSensorLocation(location);
@@ -480,6 +494,7 @@ public class HeartRateManager {
         public void onReceivedData(final BluetoothDevice device, final int heartRate,
                                    final int energyExpended, final double rrInterval) {
             mLogger.fine("HeartRateConnectEventListener#onReceivedData: [" + device + "]");
+
             HeartRateDevice hr = findRegisteredHeartRateDeviceByAddress(device.getAddress());
             if (hr == null) {
                 mLogger.warning("device not found. device:[" + device + "]");
@@ -504,11 +519,9 @@ public class HeartRateManager {
      */
     public interface OnHeartRateDiscoveryListener {
         void onDiscovery(List<BluetoothDevice> devices);
-
-        void onConnected(BluetoothDevice device);
-
+        void onConnected(HeartRateDevice device);
         void onConnectFailed(BluetoothDevice device);
-        void onDisconnected(BluetoothDevice device);
+        void onDisconnected(HeartRateDevice device);
     }
 
     /**

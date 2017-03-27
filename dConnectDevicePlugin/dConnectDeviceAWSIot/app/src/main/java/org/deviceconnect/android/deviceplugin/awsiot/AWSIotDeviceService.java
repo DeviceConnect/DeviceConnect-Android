@@ -33,6 +33,8 @@ public class AWSIotDeviceService extends DConnectMessageService {
     public void onCreate() {
         super.onCreate();
 
+        setUseLocalOAuth(false);
+
         EventManager.INSTANCE.setController(new MemoryCacheController());
         startRemoteAWSIot();
         addProfile(new AWSIotServiceDiscoveryProfile(this, getServiceProvider()));

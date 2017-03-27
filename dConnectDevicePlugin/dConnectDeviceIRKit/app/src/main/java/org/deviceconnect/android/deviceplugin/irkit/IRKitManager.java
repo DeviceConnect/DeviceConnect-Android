@@ -11,6 +11,7 @@ import android.content.ContextWrapper;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.net.wifi.WifiManager.MulticastLock;
+import android.support.v4.BuildConfig;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 
@@ -521,7 +522,7 @@ public enum IRKitManager {
     public void init(final ContextWrapper context) {
         mAPIKey = context.getString(R.string.apikey);
 
-        TelephonyManager tm = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
+        TelephonyManager tm = getTelephonyManager(context);
         mCountryCode = tm.getSimCountryIso().toUpperCase(Locale.ENGLISH);
     }
 
@@ -557,7 +558,7 @@ public enum IRKitManager {
         mIsDetecting = true;
         init(context);
         
-        WifiManager wifi = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+        WifiManager wifi = getWifiManager(context);
         mMultiLock = wifi.createMulticastLock(MULTI_CAST_LOCK_TAG);
         mMultiLock.setReferenceCounted(true);
         mMultiLock.acquire();
@@ -974,6 +975,14 @@ public enum IRKitManager {
                 callback.onConnectedToInternet(hostName != null);
             }
         }).start();
+    }
+
+    private TelephonyManager getTelephonyManager(final Context context) {
+        return (TelephonyManager) context.getApplicationContext().getSystemService(Context.TELEPHONY_SERVICE);
+    }
+
+    private WifiManager getWifiManager(final Context context) {
+        return (WifiManager) context.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
     }
 
     /**

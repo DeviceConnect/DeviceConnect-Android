@@ -14,8 +14,12 @@ import android.net.Uri;
 import android.webkit.MimeTypeMap;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 
 /**
  * Canvas Draw Utility.
@@ -33,6 +37,15 @@ public final class CanvasDrawUtils {
      * Defined a size of size.
      */
     private static final int MAX_SIZE = 2048;
+    /**
+     * 接続のタイムアウト.
+     */
+    private static final int CONNECT_TIMEOUT = 10 * 1000;
+
+    /**
+     * 読み込みのタイムアウト時間.
+     */
+    private static final int READ_TIMEOUT = 3 * 60 * 1000;
 
     /**
      * Constructor.
@@ -66,7 +79,7 @@ public final class CanvasDrawUtils {
      * @param uri     uri
      * @return byte[] or null on error
      */
-    public static byte[] getContentData(final Context context, final String uri) {
+    public static byte[] getContentData(final Context context, final String uri) throws OutOfMemoryError {
         if (uri == null) {
             return null;
         }
@@ -81,6 +94,8 @@ public final class CanvasDrawUtils {
                 out.write(buf, 0, len);
             }
             return out.toByteArray();
+        } catch (OutOfMemoryError e) {
+            throw new OutOfMemoryError(e.getMessage());
         } catch (IOException e) {
             return null;
         } finally {
@@ -132,5 +147,76 @@ public final class CanvasDrawUtils {
             }
         }
         return false;
+    }
+
+    /**
+     * Get Cache data.
+     * @param uri cache uri
+     * @return cache binary
+     */
+    public static byte[] getCacheData(final String uri) throws IOException, OutOfMemoryError {
+        InputStream inputStream = null;
+        File f = new File(uri);
+        byte[] buf = new byte[(int) f.length()];
+        try {
+            inputStream = new FileInputStream(f);
+            buf = readAll(inputStream);
+        } finally {
+            try {
+                if (inputStream != null) {
+                    inputStream.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return buf;
+    }
+
+    /**
+     * Download Image.
+     * @param uri http uri
+     * @return binary
+     * @throws OutOfMemoryError
+     */
+    public static byte[] getData(String uri) throws IOException, OutOfMemoryError {
+        HttpURLConnection connection = null;
+        InputStream inputStream = null;
+        byte[] data = null;
+        try {
+            URL url = new URL(uri);
+            connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("GET");
+            connection.setConnectTimeout(CONNECT_TIMEOUT);
+            connection.setReadTimeout(READ_TIMEOUT);
+            connection.connect();
+            inputStream = connection.getInputStream();
+            data = readAll(inputStream);
+        } finally {
+            if (connection != null) {
+                connection.disconnect();
+            }
+            try {
+                if (inputStream != null) {
+                    inputStream.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return data;
+    }
+
+    private static byte[] readAll(InputStream inputStream) throws IOException {
+        ByteArrayOutputStream bout = new ByteArrayOutputStream();
+        byte[] buffer = new byte[1024];
+        while (true) {
+            int len = inputStream.read(buffer);
+            if (len < 0) {
+                break;
+            }
+            bout.write(buffer, 0, len);
+        }
+        return bout.toByteArray();
     }
 }

@@ -19,7 +19,7 @@ import org.deviceconnect.android.deviceplugin.hvc.comm.HvcCommManagerUtils;
 import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectKind;
 import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectRequestParams;
 import org.deviceconnect.android.deviceplugin.hvc.profile.HvcConstants;
-import org.deviceconnect.android.deviceplugin.hvc.profile.HvcHumanDetectProfile;
+import org.deviceconnect.android.deviceplugin.hvc.profile.HvcHumanDetectionProfile;
 import org.deviceconnect.android.deviceplugin.hvc.profile.HvcServiceDiscoveryProfile;
 import org.deviceconnect.android.deviceplugin.hvc.profile.HvcSystemProfile;
 import org.deviceconnect.android.deviceplugin.hvc.service.HvcService;
@@ -84,7 +84,7 @@ public class HvcDeviceService extends DConnectMessageService {
 
         // add supported profiles
         addProfile(new HvcServiceDiscoveryProfile(getServiceProvider()));
-        addProfile(new HvcHumanDetectProfile());
+        addProfile(new HvcHumanDetectionProfile());
         
         // start timeout judge timer.
         startTimeoutJudgeTimer();
@@ -609,6 +609,7 @@ public class HvcDeviceService extends DConnectMessageService {
         if (mDetector == null) {
             initDetector();
         }
+        HvcDeviceApplication.getInstance().checkLocationEnable();
         if (mDetector.isEnabled()) {
             mDetector.startScan();
         }
@@ -768,17 +769,17 @@ public class HvcDeviceService extends DConnectMessageService {
         /**
          * start timer.
          * 
-         * @param intervalTimerTtask interval timer task
+         * @param intervalTimerTask interval timer task
          */
-        public void startTimer(final TimerTask intervalTimerTtask) {
+        public void startTimer(final TimerTask intervalTimerTask) {
             if (!mIsTimerRunning) {
                 // add timertask.
-                mTimer.scheduleAtFixedRate(intervalTimerTtask, 0, mInterval);
+                mTimer.scheduleAtFixedRate(intervalTimerTask, 0, mInterval);
                 mIsTimerRunning = true;
             } else {
                 // change timertask.
                 mTimer.cancel();
-                mTimer.scheduleAtFixedRate(intervalTimerTtask, 0, mInterval);
+                mTimer.scheduleAtFixedRate(intervalTimerTask, 0, mInterval);
             }
         }
 

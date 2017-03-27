@@ -26,4 +26,23 @@ public class TemperatureProfile extends DConnectProfile implements TemperaturePr
     public static void setTemperatureType(final Intent response, final TemperatureType type) {
         response.putExtra(PARAM_TYPE, type.getValue());
     }
+    // Convert Celsius to Fahrenheit.
+    public static float convertCelsiusToFahrenheit(final float celsius) {
+        return (float) (1.8 * celsius + 32);
+    }
+
+    // Convert Fahrenheit to Celsius.
+    public static float convertFahrenheitToCelsius(final float fahrenheit) {
+        return (float) ((0.56) * (fahrenheit - 32));
+    }
+    public static int getType(final Intent request) {
+        String typeString = request.getStringExtra("type");
+        int type;
+        try {
+            type = Integer.valueOf(typeString);
+        } catch(NumberFormatException e) {
+            type = TemperatureType.TYPE_CELSIUS.getValue();
+        }
+        return type;
+    }
 }

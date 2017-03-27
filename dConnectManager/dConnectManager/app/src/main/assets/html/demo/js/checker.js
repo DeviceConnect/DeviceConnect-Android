@@ -5,10 +5,14 @@ var main = (function(parent, global) {
         util.init(function(name, json) {
             createSupportApis(json);
         });
+            
     }
     parent.init = init;
 
-
+    function back() {
+            location.href = "./index.html?serviceId=" + util.getServiceId();
+    }
+    parent.back = back;
     function onChangeValue(nav, name) {
         var elem = document.forms[nav];
         elem['t_' + name].value = elem[name].value;
@@ -120,7 +124,7 @@ var main = (function(parent, global) {
             setRequestText(nav, createRequest(method + " " + path));
 
             if (method == 'PUT') {
-                dConnect.addEventListener(uri, function(json) {
+                util.addEventListener(uri, function(json) {
                     setEventText(nav, createEvent(util.formatJSON(json)));
                 }, function(json) {
                     setResponseText(nav, createResponse(util.formatJSON(JSON.stringify(json))));
@@ -128,7 +132,7 @@ var main = (function(parent, global) {
                     setResponseText(nav, createResponse("errorCode=" + errorCode + " errorMessage=" + errorMessage));
                 });
             } else {
-                dConnect.removeEventListener(uri, function(json) {
+                util.removeEventListener(uri, function(json) {
                     setResponseText(nav, createResponse(util.formatJSON(JSON.stringify(json))));
                 }, function(errorCode, errorMessage) {
                     setResponseText(nav, createResponse("errorCode=" + errorCode + " errorMessage=" + errorMessage));
@@ -174,7 +178,10 @@ var main = (function(parent, global) {
         document.getElementById(nav + '_event').innerHTML = "";
     }
 
-    function createDConnectPath(path) {
+    function createDConnectPath(basePath, path) {
+        if (basePath !== undefined) {
+            return basePath + path;
+        }
         return '/gotapi/' + util.getProfile() + path;
     }
 
@@ -239,7 +246,6 @@ var main = (function(parent, global) {
         };
         return util.createTemplate('param_slider', data);
     }
-
     function createBooleanParam(name, value, on) {
         var data = {
             'name' : name,
@@ -249,6 +255,7 @@ var main = (function(parent, global) {
         };
         return util.createTemplate('param_boolean', data);
     }
+            
 
     function createRequest(body) {
         var data = {
@@ -323,49 +330,51 @@ var main = (function(parent, global) {
         return contentHtml;
     }
 
-    function createParameter(method, path, xType, params) {
+    function createParameter(method, basePath, path, xType, params) {
         var nav = method + '_' + path;
         var data = {
             'nav' : nav,
             'method' : method.toUpperCase(),
-            'path' : createDConnectPath(path),
+            'path' : createDConnectPath(basePath, path),
             'xtype' : xType,
             'content' : createParams(nav, params)
         };
         return util.createTemplate('param', data);
     }
 
-    function createCommand(method, path, param) {
+    function createCommand(method, basePath, path, param) {
         var data = {
-            'title': method.toUpperCase() + ' ' + createDConnectPath(path),
+            'title': method.toUpperCase() + ' ' + createDConnectPath(basePath, path),
             'nav' : method + '_' + path,
-            'content' : createParameter(method, path, param['x-type'], param.parameters)
+            'content' : createParameter(method, basePath, path, param['x-type'], param.parameters)
         };
         return util.createTemplate('command', data);
     }
 
-    function createSupportMethod(path, data) {
+    function createSupportMethod(basePath, path, data) {
         var contentHtml = "";
         for (var method in data) {
-            contentHtml += createCommand(method, path, data[method]);
+            contentHtml += createCommand(method, basePath, path, data[method]);
         }
         return contentHtml;
     }
 
-    function createSupportPath(paths) {
+    function createSupportPath(basePath, paths) {
         var contentHtml = "";
         for (var path in paths) {
-            contentHtml += createSupportMethod(path, paths[path]);
+            contentHtml += createSupportMethod(basePath, path, paths[path]);
         }
         return contentHtml;
     }
 
     function createSupportApis(json) {
         var profile = util.getProfile().toLowerCase();
+        var supportApi;
         if (json.supportApis) {
             for (var p in json.supportApis) {
                 if (profile == p.toLowerCase()) {
-                    document.getElementById('main').innerHTML = createSupportPath(json.supportApis[p].paths);
+                    supportApi = json.supportApis[p];
+                    document.getElementById('main').innerHTML = createSupportPath(supportApi.basePath, supportApi.paths);
                     return;
                 }
             }
@@ -377,3 +386,17 @@ var main = (function(parent, global) {
 
     return parent;
 })(main || {}, this.self || global);
+
+
+function onToggleIcon(obj, id) {
+    var minus = obj.getElementsByClassName('minus')[0];
+    var plus = obj.getElementsByClassName('plus')[0];
+    var elem = document.getElementById(id);
+    if (elem.checked) {
+        minus.style.display = 'none';
+        plus.style.display = 'inline';
+    } else {
+        minus.style.display = 'inline';
+        plus.style.display = 'none';
+    }
+}

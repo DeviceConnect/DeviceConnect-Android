@@ -432,8 +432,8 @@ public class HostDeviceScreenCast extends HostDevicePreviewServer implements Hos
             listener.onFailedTakePhoto();
             return;
         }
-
-        mFileMgr.saveFile(createNewFileName(), media, new FileManager.SaveFileCallback() {
+        // 常に新しいファイル名になるため重複はない。そのため、Overwriteフラグをtrueにする。
+        mFileMgr.saveFile(createNewFileName(), media, true, new FileManager.SaveFileCallback() {
             @Override
             public void onSuccess(@NonNull final String uri) {
                 mState = RecorderState.INACTTIVE;

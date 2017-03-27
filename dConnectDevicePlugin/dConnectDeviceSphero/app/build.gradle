@@ -69,7 +69,7 @@ android {
 
         DeviceWebApi {
             versionCode 3
-            versionName "2.0.0"
+            versionName "2.0.1"
             manifestPlaceholders = [
                     appIcon: "@drawable/ic_launcher",
                     appName: "@string/app_name_device_web_api"

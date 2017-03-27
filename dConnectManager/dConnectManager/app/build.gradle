@@ -55,7 +55,7 @@ android {
     productFlavors {
         DeviceWebApi {
             versionCode 16
-            versionName "2.0.6"
+            versionName "2.1.0"
             buildConfigField "String", "URL_HELP_HTML", "\"file:///android_asset/html/help-dwa/index.html\""
             buildConfigField "String", "URL_DEMO_HTML", "\"file:///android_asset/html/demo/index.html\""
         }

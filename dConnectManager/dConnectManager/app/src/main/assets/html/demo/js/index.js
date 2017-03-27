@@ -6,7 +6,7 @@ var main = (function(parent, global) {
         'mediastreamrecording' : 'images/icon02_mediaStreamRecording.png',
         'deviceorientation' : 'images/icon03_deviceOrientation.png',
         'vibration' : 'images/icon04_vibration.png',
-        'settings' : 'images/icon05_settings.png',
+        'setting' : 'images/icon05_settings.png',
         'serviceinformation' : 'images/icon05_settings.png',
         'canvas' : 'images/icon06_canvas.png',
         'mediaplayer' : 'images/icon07_mediaPlayer.png',
@@ -22,7 +22,7 @@ var main = (function(parent, global) {
         'atmosphericpressure' : 'images/icon16_atmosphericPressure.png',
         'geolocation' : 'images/icon26_geolocation.png',
         'touch' : 'images/icon27_touch.png',
-        'connect' : 'images/icon33_connect6.png',
+        'connection' : 'images/icon33_connect6.png',
     };
 
     function init() {

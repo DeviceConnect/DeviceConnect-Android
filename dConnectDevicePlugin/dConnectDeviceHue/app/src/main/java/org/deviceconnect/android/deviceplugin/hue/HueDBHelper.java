@@ -27,7 +27,7 @@ class HueDBHelper {
     /**
      * Define the name of the database.
      */
-    private static final String DB_NAME = "heart_rate.db";
+    private static final String DB_NAME = "hue_bridge.db";
 
     /**
      * Define the version of the database.

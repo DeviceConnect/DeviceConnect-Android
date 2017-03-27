@@ -769,17 +769,17 @@ public class HvcDeviceService extends DConnectMessageService {
         /**
          * start timer.
          * 
-         * @param intervalTimerTtask interval timer task
+         * @param intervalTimerTask interval timer task
          */
-        public void startTimer(final TimerTask intervalTimerTtask) {
+        public void startTimer(final TimerTask intervalTimerTask) {
             if (!mIsTimerRunning) {
                 // add timertask.
-                mTimer.scheduleAtFixedRate(intervalTimerTtask, 0, mInterval);
+                mTimer.scheduleAtFixedRate(intervalTimerTask, 0, mInterval);
                 mIsTimerRunning = true;
             } else {
                 // change timertask.
                 mTimer.cancel();
-                mTimer.scheduleAtFixedRate(intervalTimerTtask, 0, mInterval);
+                mTimer.scheduleAtFixedRate(intervalTimerTask, 0, mInterval);
             }
         }
 

@@ -483,6 +483,7 @@ public class HvcCommManager {
                         Log.d(TAG, "invalid event.getKind()" + event.getKind().ordinal());
                     }
                 }
+                requestParams.setEvent(event.getRequestParams().getEvent());
             }
         }
         

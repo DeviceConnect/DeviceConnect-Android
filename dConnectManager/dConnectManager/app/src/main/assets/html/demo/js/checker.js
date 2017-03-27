@@ -124,7 +124,7 @@ var main = (function(parent, global) {
             setRequestText(nav, createRequest(method + " " + path));
 
             if (method == 'PUT') {
-                dConnect.addEventListener(uri, function(json) {
+                util.addEventListener(uri, function(json) {
                     setEventText(nav, createEvent(util.formatJSON(json)));
                 }, function(json) {
                     setResponseText(nav, createResponse(util.formatJSON(JSON.stringify(json))));
@@ -132,7 +132,7 @@ var main = (function(parent, global) {
                     setResponseText(nav, createResponse("errorCode=" + errorCode + " errorMessage=" + errorMessage));
                 });
             } else {
-                dConnect.removeEventListener(uri, function(json) {
+                util.removeEventListener(uri, function(json) {
                     setResponseText(nav, createResponse(util.formatJSON(JSON.stringify(json))));
                 }, function(errorCode, errorMessage) {
                     setResponseText(nav, createResponse("errorCode=" + errorCode + " errorMessage=" + errorMessage));

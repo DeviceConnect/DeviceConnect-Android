@@ -28,6 +28,7 @@ import static org.deviceconnect.android.deviceplugin.kadecot.service.KadecotServ
 import static org.deviceconnect.android.deviceplugin.kadecot.service.KadecotService.IDX_PREFIX;
 import static org.deviceconnect.android.deviceplugin.kadecot.service.KadecotService.NO_RESULT;
 import static org.deviceconnect.android.deviceplugin.kadecot.service.KadecotService.PREFIX_KADECOT;
+import static org.deviceconnect.android.deviceplugin.kadecot.service.KadecotService.createInvalidKadecotResponseError;
 
 public class KadecotEchonetliteProfile extends DConnectProfile {
 
@@ -238,12 +239,4 @@ public class KadecotEchonetliteProfile extends DConnectProfile {
         sendResponse(response);
     }
 
-    /**
-     * Creates an error of "unknown error" for Kadecot server response.
-     *
-     * @param response Intent to store the response.
-     */
-    private void createInvalidKadecotResponseError(final Intent response) {
-        MessageUtils.setIllegalDeviceStateError(response, "There is a problem with the response from the Kadecot server.");
-    }
 }

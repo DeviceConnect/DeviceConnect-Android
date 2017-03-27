@@ -7,13 +7,23 @@
 package org.deviceconnect.android.deviceplugin.kadecot.service;
 
 
+import android.content.Context;
+import android.content.Intent;
+import android.database.Cursor;
+import android.net.Uri;
+
 import org.deviceconnect.android.deviceplugin.kadecot.KadecotDeviceService;
 import org.deviceconnect.android.deviceplugin.kadecot.kadecotdevice.ENLObject;
 import org.deviceconnect.android.deviceplugin.kadecot.kadecotdevice.KadecotDevice;
+import org.deviceconnect.android.deviceplugin.kadecot.kadecotdevice.KadecotHomeAirConditioner;
+import org.deviceconnect.android.deviceplugin.kadecot.kadecotdevice.KadecotResult;
 import org.deviceconnect.android.deviceplugin.kadecot.profile.KadecotEchonetliteProfile;
 import org.deviceconnect.android.deviceplugin.kadecot.profile.KadecotHomeAirConditionerProfile;
 import org.deviceconnect.android.deviceplugin.kadecot.profile.KadecotLightProfile;
+import org.deviceconnect.android.deviceplugin.kadecot.profile.KadecotTemperatureProfile;
 import org.deviceconnect.android.deviceplugin.kadecot.profile.original.AirConditionerProfile;
+import org.deviceconnect.android.deviceplugin.kadecot.profile.original.AirConditionerProfileConstants;
+import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.LightProfile;
 import org.deviceconnect.android.service.DConnectService;
 
@@ -54,6 +64,7 @@ public class KadecotService extends DConnectService {
             addProfile(new KadecotLightProfile());
         } else if (isSupported(AirConditionerProfile.PROFILE_NAME, serviceId)) {
             addProfile(new KadecotHomeAirConditionerProfile());
+            addProfile(new KadecotTemperatureProfile());
         }
         addProfile(new KadecotEchonetliteProfile());
     }
@@ -61,6 +72,86 @@ public class KadecotService extends DConnectService {
     private static boolean isSupported(final String profileName, final String serviceId) {
         String[] element = KadecotDeviceService.getElementFromServiceId(serviceId);
         return profileName.equals(element[IDX_PROFILENAME]);
+    }
+
+    /**
+     * Creates an error of "unknown error" for Kadecot server response.
+     *
+     * @param response Intent to store the response.
+     */
+    public static void createInvalidKadecotResponseError(final Intent response) {
+        MessageUtils.setUnknownError(response, "There is a problem with the response from the Kadecot server.");
+    }
+
+    /**
+     * Request Kadecot server.
+     *
+     * @param response Response.
+     * @param serviceId Service ID.
+     * @param property Request property.
+     * @param value Set property value.
+     * @return Request result. (Processing error is null.)
+     */
+     public static KadecotResult requestKadecotServer(final Context context, final Intent response, final String serviceId, final int property,
+                                                      final int value) {
+        String[] element = KadecotDeviceService.getElementFromServiceId(serviceId);
+        if (element[IDX_PREFIX].equals(PREFIX_KADECOT) && element[IDX_DEVICEID] != null
+                && element[IDX_PROFILENAME].equals(AirConditionerProfileConstants.PROFILE_NAME)) {
+            KadecotHomeAirConditioner khac = new KadecotHomeAirConditioner();
+            String urlstr = khac.exchangeJsonString(element[IDX_DEVICEID], property, value);
+            Cursor cursor = context.getContentResolver().query(Uri.parse(urlstr), null, null, null, null);
+            if (cursor != null) {
+                cursor.moveToFirst();
+                KadecotResult result = new KadecotResult();
+                String strResult = cursor.getString(0);
+                result.setServerResult(strResult);
+                result.setPropertyName(KadecotDeviceService.getPropertyName(strResult));
+                result.setPropertyValue(KadecotDeviceService.getPropertyValue(strResult));
+                cursor.close();
+                return result;
+            } else {
+                createInvalidKadecotResponseError(response);
+                return null;
+            }
+        } else {
+            createInvalidKadecotResponseError(response);
+            return null;
+        }
+    }
+
+    /**
+     * Request Kadecot server.
+     *
+     * @param context Context.
+     * @param response Response.
+     * @param serviceId Service ID.
+     * @param property Request property.
+     * @return Request result. (Processing error is null.)
+     */
+    public static KadecotResult requestKadecotServer(final Context context, final Intent response, final String serviceId, final int property) {
+        String[] element = KadecotDeviceService.getElementFromServiceId(serviceId);
+        if (element[IDX_PREFIX].equals(PREFIX_KADECOT) && element[IDX_DEVICEID] != null
+                && element[IDX_PROFILENAME].equals(AirConditionerProfileConstants.PROFILE_NAME)) {
+            KadecotHomeAirConditioner khac = new KadecotHomeAirConditioner();
+            String urlstr = khac.exchangeJsonString(element[IDX_DEVICEID], property);
+            Cursor cursor = context.getContentResolver().query(Uri.parse(urlstr), null, null, null, null);
+            if (cursor != null) {
+                cursor.moveToFirst();
+                KadecotResult result = new KadecotResult();
+                String strResult = cursor.getString(0);
+                result.setServerResult(strResult);
+                result.setPropertyName(KadecotDeviceService.getPropertyName(strResult));
+                result.setPropertyValue(KadecotDeviceService.getPropertyValue(strResult));
+                cursor.close();
+                return result;
+            } else {
+                createInvalidKadecotResponseError(response);
+                return null;
+            }
+        } else {
+            createInvalidKadecotResponseError(response);
+            return null;
+        }
     }
 
     public boolean hasDeviceId(final String deviceId) {

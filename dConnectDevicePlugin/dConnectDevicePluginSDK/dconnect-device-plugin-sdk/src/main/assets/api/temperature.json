@@ -13,14 +13,52 @@
         "/": {
             "get": {
                 "x-type": "one-shot",
-                "summary": "",
-                "description": "",
+                "summary": "スマートデバイスの温度設定値を取得する。",
+                "description": "typeはそれぞれ、1:摂氏、2:華氏を表している。",
                 "parameters": [
                     {
                         "name": "serviceId",
                         "in": "query",
                         "required": true,
                         "type": "string"
+                    },
+                    {
+                        "name": "type",
+                        "in": "query",
+                        "required": false,
+                        "type": "integer",
+                        "enum": [1, 2]
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            },
+            "put": {
+                "x-type": "one-shot",
+                "summary": "スマートデバイスの温度設定値を設定する。",
+                "description": "typeはそれぞれ、1:摂氏、2:華氏を表している。<br>摂氏の場合temperatureに設定できる値は 0以上50以下, 華氏の場合は32以上122以下。",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "formData",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "temperature",
+                        "in": "formData",
+                        "required": true,
+                        "type": "integer"
+                    },
+                    {
+                        "name": "type",
+                        "in": "formData",
+                        "required": false,
+                        "type": "integer",
+                        "enum": [1, 2]
                     }
                 ],
                 "responses": {
@@ -30,5 +68,6 @@
                 }
             }
         }
+
     }
 }

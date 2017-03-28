@@ -29,7 +29,6 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.theta.R;
@@ -259,10 +258,10 @@ public class ConfirmationFragment extends SettingsFragment implements ThetaDevic
 
                             @Override
                             public void onFail(@NonNull String deniedPermission) {
-                                Toast.makeText(getContext(), "WiFi scan aborted.", Toast.LENGTH_LONG).show();
+                                ThetaDialogFragment.showAlert(getActivity(), getString(R.string.theta_confirm_wifi),
+                                        getString(R.string.theta_error_request_permission), null);
                             }
                         });
-                Toast.makeText(getContext(), "WiFi scan requires Location permission.", Toast.LENGTH_LONG).show();
             }
         }
     }

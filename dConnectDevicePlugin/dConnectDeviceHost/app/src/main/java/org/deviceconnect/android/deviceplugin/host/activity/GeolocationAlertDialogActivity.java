@@ -13,6 +13,8 @@ import android.content.Intent;
 import android.os.Bundle;
 
 import org.deviceconnect.android.deviceplugin.host.R;
+import org.deviceconnect.android.message.DConnectMessageService;
+import org.deviceconnect.android.message.MessageUtils;
 
 /**
  * Geolocation Alert Dialog Activity.
@@ -21,11 +23,17 @@ import org.deviceconnect.android.deviceplugin.host.R;
  */
 public class GeolocationAlertDialogActivity extends Activity {
     private Activity mActivity;
+    private Intent mResponse;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mActivity = this;
+        Intent intent = getIntent();
+        Bundle bundle = intent.getBundleExtra("Intent");
+        if (bundle != null) {
+            mResponse = bundle.getParcelable("response");
+        }
 
         setContentView(R.layout.geolocation_alert_dialog);
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
@@ -46,6 +54,11 @@ public class GeolocationAlertDialogActivity extends Activity {
         alertDialogBuilder.setNegativeButton(R.string.host_setting_gps_dialog_cancel,
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
+                        if (mResponse != null) {
+                            MessageUtils.setIllegalDeviceStateError(mResponse,
+                                    "GPS setting is not enabled.");
+                            getBaseContext().sendBroadcast(mResponse);
+                        }
                         dialog.cancel();
                         mActivity.finish();
                     }

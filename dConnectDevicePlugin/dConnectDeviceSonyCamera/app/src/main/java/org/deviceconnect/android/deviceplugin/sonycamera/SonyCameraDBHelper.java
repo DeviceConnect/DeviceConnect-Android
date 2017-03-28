@@ -58,7 +58,7 @@ class SonyCameraDBHelper {
         mDBHelper = new DBHelper(context);
     }
 
-    public long addSonyCameraService(final SonyCameraService service) {
+    long addSonyCameraService(final SonyCameraService service) {
         ContentValues values = new ContentValues();
         values.put(COL_WIFI_SSID, service.getId());
         values.put(COL_DEVICE_NAME, service.getName());
@@ -71,7 +71,7 @@ class SonyCameraDBHelper {
         }
     }
 
-    public long removeSonyCameraService(final SonyCameraService service) {
+    long removeSonyCameraService(final SonyCameraService service) {
         String whereClause = COL_WIFI_SSID + "=?";
         String[] whereArgs = {
                 service.getId()
@@ -85,7 +85,7 @@ class SonyCameraDBHelper {
         }
     }
 
-    public List<SonyCameraService> getSonyCameraServices() {
+    List<SonyCameraService> getSonyCameraServices() {
         String sql = "SELECT * FROM " + TBL_NAME;
         String[] selectionArgs = {};
 

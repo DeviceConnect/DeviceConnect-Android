@@ -183,7 +183,7 @@ public class SonyCameraPreview extends Thread {
      * </p>
      * @param timeSlice タイムスライス(ms)
      */
-    public void setTimeSlice(int timeSlice) {
+    public void setTimeSlice(final int timeSlice) {
         mTimeSlice = timeSlice;
     }
 

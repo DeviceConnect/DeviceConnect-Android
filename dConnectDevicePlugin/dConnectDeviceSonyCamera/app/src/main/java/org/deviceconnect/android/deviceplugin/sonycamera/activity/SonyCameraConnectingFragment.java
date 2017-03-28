@@ -34,7 +34,6 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import org.deviceconnect.android.activity.IntentHandlerActivity;
 import org.deviceconnect.android.activity.PermissionUtility;
@@ -186,11 +185,10 @@ public class SonyCameraConnectingFragment extends SonyCameraBaseFragment {
                             if (manager.isProviderEnabled( LocationManager.GPS_PROVIDER )) {
                                 permissionCheck();
                             } else {
-                                Toast.makeText(getContext(), "WiFi scan aborted.", Toast.LENGTH_LONG).show();
+                                showErrorDialog(getString(R.string.sonycamera_request_permission_error));
                             }
                         }
                     });
-            Toast.makeText(getContext(), "WiFi scan requires Location Service.", Toast.LENGTH_LONG).show();
         } else {
             permissionCheck();
         }
@@ -216,10 +214,9 @@ public class SonyCameraConnectingFragment extends SonyCameraBaseFragment {
 
                             @Override
                             public void onFail(@NonNull String deniedPermission) {
-                                Toast.makeText(getContext(), "WiFi scan aborted.", Toast.LENGTH_LONG).show();
+                                showErrorDialog(getString(R.string.sonycamera_request_permission_error));
                             }
                         });
-                Toast.makeText(getContext(), "WiFi scan requires Location permission.", Toast.LENGTH_LONG).show();
             }
         }
     }
@@ -336,9 +333,18 @@ public class SonyCameraConnectingFragment extends SonyCameraBaseFragment {
      * @param message エラーメッセージ
      */
     private void showErrorDialog(final String message) {
+        showErrorDialog(getString(R.string.sonycamera_confirm_wifi), message);
+    }
+
+    /**
+     * エラーダイアログを表示する.
+     *
+     * @param message エラーメッセージ
+     */
+    private void showErrorDialog(final String title, final String message) {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         builder.setIcon(android.R.drawable.ic_dialog_alert);
-        builder.setTitle(R.string.sonycamera_confirm_wifi);
+        builder.setTitle(title);
         builder.setMessage(message);
         builder.setPositiveButton(R.string.sonycamera_ok, new DialogInterface.OnClickListener() {
             @Override
@@ -349,6 +355,7 @@ public class SonyCameraConnectingFragment extends SonyCameraBaseFragment {
         builder.show();
         mServiceIdView.setText(R.string.sonycamera_no_device);
     }
+
 
     /**
      * パスワードを入力するダイアログを表示する.

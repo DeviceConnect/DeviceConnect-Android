@@ -79,4 +79,5 @@
     <string name="theta_error_usb_live_streaming">ライブストリーミング中は撮影できません。</string>
     <string name="theta_error_wrong_password">接続がタイムアウトしました。入力されたパスワードが不正でないかをご確認ください。</string>
     <string name="theta_error_import">THETAデータの取り込みに失敗しました。</string>
+    <string name="theta_error_request_permission">パーミッションの許可が取得できませんでした。</string>
 </resources>

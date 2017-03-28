@@ -420,13 +420,7 @@ public class HueFragment04 extends Fragment {
         public void onError(final int code, final String message) {
             closeProgressBar();
 
-            if (code == PHHueError.AUTHENTICATION_FAILED) { // unauthorized user
-                // 認証に失敗したので、一度ブリッジを切断しておく
-                PHHueSDK hueSDK = PHHueSDK.getInstance();
-                PHBridge bridge = hueSDK.getSelectedBridge();
-                if (bridge != null) {
-                    hueSDK.disconnect(bridge);
-                }
+            if (code == PHHueError.AUTHENTICATION_FAILED) {
                 showAuthenticationFailed();
             } else {
                 showToast(message);

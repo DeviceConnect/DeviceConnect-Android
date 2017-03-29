@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="linking_app_name" translatable="false">Linking (Device Connect Device Plug-in)</string>
+    <string name="linking_app_name" translatable="false">Linking (Device Web API device plug-in)</string>
 
     <string name="activity_linking_ok">OK</string>
     <string name="activity_linking_cancel">Cancel</string>

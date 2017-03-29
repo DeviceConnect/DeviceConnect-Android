@@ -94,7 +94,8 @@
     <string name="activity_settings_web_server_warning_message">Start the web server.\n\nIf you enable this feature you can access from the outside to the file in the SD card.\n\nDo you may be enabled?</string>
     <string name="activity_settings_web_server_warning_positive">OK</string>
     <string name="activity_settings_web_server_warning_negative">Cancel</string>
-    <string name="activity_settings_event_keep_alive_settings">Setting of Event Keep Alive</string>
+    <string name="activity_settings_event_keep_alive_settings">Event Keep Alive</string>
+    <string name="activity_settings_web_server_error_message">Failed to start the web server, because cannot get a permission.</string>
 
     <!-- ================= SharedPreferences ================= -->
     <string name="key_settings_demo_link">settings_demo_link</string>

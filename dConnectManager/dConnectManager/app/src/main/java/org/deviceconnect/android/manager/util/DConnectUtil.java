@@ -19,9 +19,11 @@ import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.PowerManager;
 import android.provider.Settings;
 
+import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.manager.DConnectSettings;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
@@ -242,6 +244,15 @@ public final class DConnectUtil {
             }
             return result;
         }
+    }
+
+    /**
+     * ストレージのパーミッションを要求します.
+     * @param context コンテキスト
+     * @param callback パーミッションの許諾を通知するコールバック
+     */
+    public static void requestPermission(final Context context, final Handler handler, final PermissionUtility.PermissionRequestCallback callback) {
+        PermissionUtility.requestPermissions(context, handler, PERMISSIONS, callback);
     }
 
     /**

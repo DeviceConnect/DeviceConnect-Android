@@ -21,6 +21,7 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
+import android.os.Message;
 import android.os.ResultReceiver;
 import android.preference.CheckBoxPreference;
 import android.preference.EditTextPreference;
@@ -28,14 +29,17 @@ import android.preference.Preference;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceScreen;
 import android.preference.SwitchPreference;
+import android.support.annotation.NonNull;
 import android.view.MenuItem;
 
+import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.manager.DConnectService;
 import org.deviceconnect.android.manager.DConnectSettings;
 import org.deviceconnect.android.manager.DConnectWebService;
 import org.deviceconnect.android.manager.R;
 import org.deviceconnect.android.manager.setting.OpenSourceLicenseFragment.OpenSourceSoftware;
 import org.deviceconnect.android.manager.util.DConnectUtil;
+import org.deviceconnect.android.manager.util.PauseHandler;
 import org.deviceconnect.android.observer.DConnectObservationService;
 import org.deviceconnect.android.observer.receiver.ObserverReceiver;
 
@@ -68,10 +72,21 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
      * Webサーバ起動確認ダイアログのタグを定義します.
      */
     private static final String TAG_WEB_SERVER = "WebServer";
+
     /**
      * Availabilityの表示のOn/OFF設定ダイアログのタグを定義します.
      */
     private static final String TAG_AVAILABILITY = "availability";
+
+    /**
+     * Webサーバの起動に失敗ダイアログのタグを定義します.
+     */
+    private static final String TAG_ERROR_WEB_SERVER = "error_web_server";
+
+    /**
+     * Webサーバ起動失敗エラーを表示するためのメッセージを定義します.
+     */
+    private static final int MSG_SHOW_ERROR_DIALOG = 1;
 
     /** SSL設定チェックボックス. */
     private CheckBoxPreference mCheckBoxSslPreferences;
@@ -94,6 +109,16 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
     private CheckBoxPreference mObserverPreferences;
     /** Webサーバのポート設定テキストエディッタ. */
     private EditTextPreference mWebPortPreferences;
+
+    /**
+     * 一時中断用ハンドラー.
+     * <p>
+     * パーミッションのリクエストを行うと一時中断が発生しますので、
+     * 画面が戻ってきた時に即時にダイアログを表示すると例外が発生してしまう
+     * のを防ぐためのハンドラー.
+     * </p>
+     */
+    private PauseHandlerImpl mPauseHandler;
 
     @Override
     public void onCreate(final Bundle savedInstanceState) {
@@ -219,7 +244,8 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
         // ポート監視設定のON/OFF
         mObserverPreferences = (CheckBoxPreference) getPreferenceScreen()
                 .findPreference(getString(R.string.key_settings_dconn_observer_on_off));
-        /** Manager名の表示オンオフのチェックボックス. */
+
+        // Manager名の表示オンオフのチェックボックス.
         mCheckBoxManagerNameVisiblePreferences = (CheckBoxPreference) getPreferenceScreen()
                 .findPreference(getString(R.string.key_settings_dconn_availability_visible_name));
 
@@ -240,10 +266,13 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
         editWebHostPreferences.setEnabled(false);
 
         setUIEnabled(power);
+
+        mPauseHandler = new PauseHandlerImpl();
     }
 
     @Override
     public void onPause() {
+        mPauseHandler.pause();
         getActivity().unbindService(mServiceConnection);
         getActivity().unbindService(mWebServiceConnection);
         super.onPause();
@@ -252,6 +281,7 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
     @Override
     public void onResume() {
         super.onResume();
+
         // 監視サービスの起動チェック
         mObserverPreferences.setChecked(isObservationServices());
         showIPAddress();
@@ -289,6 +319,16 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
             }
             wakeLockPreference.setOnPreferenceChangeListener(this);
         }
+
+        mPauseHandler.setFragment(this);
+        mPauseHandler.resume();
+    }
+
+    @Override
+    public void onDestroy() {
+        // メモリリークしないようにフラグメントを削除しておく
+        mPauseHandler.setFragment(null);
+        super.onDestroy();
     }
 
     @Override
@@ -389,8 +429,7 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
             mCheckBoxOauthPreferences.setChecked(false);
             mCheckBoxOriginBlockingPreferences.setChecked(false);
         } else if (TAG_WEB_SERVER.equals(tag)) {
-            mWebService.startWebServer();
-            setWebUIEnabled(false);
+            startWebServer();
         } else if (TAG_REQUIRE_ORIGIN.equals(tag)) {
             mCheckBoxRequireOriginPreferences.setChecked(true);
         } else if (TAG_AVAILABILITY.equals(tag)) {
@@ -406,15 +445,24 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
         if (TAG_ORIGIN.equals(tag)) {
             mCheckBoxRequireOriginPreferences.setChecked(true);
         } else if (TAG_WEB_SERVER.equals(tag)) {
-            SwitchPreference webPreferences = (SwitchPreference) getPreferenceScreen()
-                    .findPreference(getString(R.string.key_settings_web_server_on_off));
-            webPreferences.setChecked(false);
+            setWebServerSwitchUI(false);
         } else if (TAG_REQUIRE_ORIGIN.equals(tag)) {
             mCheckBoxOauthPreferences.setChecked(false);
             mCheckBoxOriginBlockingPreferences.setChecked(false);
         } else if (TAG_AVAILABILITY.equals(tag)) {
             mCheckBoxManagerNameVisiblePreferences.setChecked(false);
         }
+    }
+
+    /**
+     * WebサーバのトグルスイッチのOn/Offを切り替えます.
+     *
+     * @param checked trueの場合はON、それ以外の場合はOff
+     */
+    private void setWebServerSwitchUI(final boolean checked) {
+        SwitchPreference webPreferences = (SwitchPreference) getPreferenceScreen()
+                .findPreference(getString(R.string.key_settings_web_server_on_off));
+        webPreferences.setChecked(checked);
     }
 
     /**
@@ -463,6 +511,44 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
             mWebService.stopWebServer();
             setWebUIEnabled(true);
         }
+    }
+
+    /**
+     * Webサーバを起動します.
+     */
+    private void startWebServer() {
+        if (DConnectUtil.isPermission(getActivity().getApplicationContext())) {
+            mWebService.startWebServer();
+            setWebUIEnabled(false);
+        } else {
+            DConnectUtil.requestPermission(getActivity().getApplicationContext(),
+                    mPauseHandler,
+                    new PermissionUtility.PermissionRequestCallback() {
+                        @Override
+                        public void onSuccess() {
+                            mWebService.startWebServer();
+                            setWebUIEnabled(false);
+                        }
+
+                        @Override
+                        public void onFail(@NonNull final String deniedPermission) {
+                            setWebServerSwitchUI(false);
+                            mPauseHandler.sendMessage(mPauseHandler.obtainMessage(MSG_SHOW_ERROR_DIALOG));
+                        }
+                    });
+        }
+    }
+
+    /**
+     * Webサーバの起動に失敗したことを通知するダイアログを表示します.
+     */
+    private void showErrorWebServer() {
+        String title = getString(R.string.activity_settings_web_server_warning_title);
+        String message = getString(R.string.activity_settings_web_server_error_message);
+        String positive = getString(R.string.activity_settings_web_server_warning_positive);
+        AlertDialogFragment dialog = AlertDialogFragment.create(TAG_ERROR_WEB_SERVER,
+                title, message, positive);
+        dialog.show(getFragmentManager(), TAG_ERROR_WEB_SERVER);
     }
 
     /**
@@ -738,10 +824,7 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
                     public void run() {
                         boolean running = mWebService.isRunning();
                         setWebUIEnabled(!running);
-                        SwitchPreference webPreferences = (SwitchPreference) getPreferenceScreen()
-                                .findPreference(getString(R.string.key_settings_web_server_on_off));
-                        webPreferences.setChecked(running);
-
+                        setWebServerSwitchUI(running);
                         checkServiceConnections();
                     }
                 });
@@ -798,5 +881,39 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
         SwitchPreference eventKeepAlive = (SwitchPreference) getPreferenceScreen()
                 .findPreference(getString(R.string.key_settings_event_keep_alive_on_off));
         eventKeepAlive.setOnPreferenceChangeListener(this);
+    }
+
+    /**
+     * 一時中断用ハンドラ.
+     */
+    private static class PauseHandlerImpl extends PauseHandler {
+        /**
+         * 処理を行うフラグメント.
+         */
+        private SettingsFragment mFragment;
+
+        /**
+         * フラグメントを設定します.
+         * @param fragment フラグメント
+         */
+        public void setFragment(final SettingsFragment fragment) {
+            mFragment = fragment;
+        }
+
+        @Override
+        protected boolean storeMessage(final Message message) {
+            return true;
+        }
+
+        @Override
+        protected void processMessage(final Message message) {
+            switch (message.what) {
+                case MSG_SHOW_ERROR_DIALOG:
+                    if (mFragment != null) {
+                        mFragment.showErrorWebServer();
+                    }
+                    break;
+            }
+        }
     }
 }

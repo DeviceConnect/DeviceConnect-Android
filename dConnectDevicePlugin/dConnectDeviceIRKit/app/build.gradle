@@ -53,7 +53,7 @@ android {
 
     productFlavors {
         DeviceConnect {
-            versionCode 1
+            versionCode 4
             versionName "2.1.0"
             manifestPlaceholders = [
                     appIcon: "@drawable/dconnect_icon",
@@ -62,7 +62,7 @@ android {
         }
 
         DeviceWebApi {
-            versionCode 3
+            versionCode 4
             versionName "2.1.0"
             manifestPlaceholders = [
                     appIcon: "@drawable/ic_launcher",

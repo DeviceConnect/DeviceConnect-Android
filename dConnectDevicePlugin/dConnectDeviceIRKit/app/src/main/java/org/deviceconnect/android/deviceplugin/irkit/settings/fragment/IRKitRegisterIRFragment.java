@@ -7,9 +7,12 @@
 package org.deviceconnect.android.deviceplugin.irkit.settings.fragment;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.app.Fragment;
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.content.LocalBroadcastManager;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -21,6 +24,7 @@ import android.widget.TextView;
 
 import org.deviceconnect.android.deviceplugin.irkit.IRKitApplication;
 import org.deviceconnect.android.deviceplugin.irkit.IRKitDevice;
+import org.deviceconnect.android.deviceplugin.irkit.IRKitDeviceService;
 import org.deviceconnect.android.deviceplugin.irkit.IRKitManager;
 import org.deviceconnect.android.deviceplugin.irkit.R;
 import org.deviceconnect.android.deviceplugin.irkit.data.IRKitDBHelper;
@@ -66,7 +70,7 @@ public class IRKitRegisterIRFragment extends Fragment  {
                 mDevice = null;
                 if (devices != null) {
                     for (IRKitDevice d : devices) {
-                        if (mProfile.getServiceId().indexOf(d.getName()) != -1) {
+                        if (mProfile.getServiceId().contains(d.getName())) {
                             mDevice = d;
                             registerIR.getHandler().postDelayed(new Runnable() {
                                 @Override
@@ -88,8 +92,9 @@ public class IRKitRegisterIRFragment extends Fragment  {
                                                                 showFailureDialog();
                                                             } else {
                                                                 mProfile.setIr(message);
-                                                                int i = mDBHelper.updateVirtualProfile(mProfile);
+                                                                mDBHelper.updateVirtualProfile(mProfile);
                                                                 showSuccessDialog();
+                                                                sendEventOnUpdate(mProfile.getServiceId());
                                                             }
                                                             dismissProgress();
                                                         }
@@ -105,7 +110,6 @@ public class IRKitRegisterIRFragment extends Fragment  {
                 if (mDevice == null) {
                     showFailureDialog();
                     dismissProgress();
-                    return;
                 }
 
             }
@@ -113,6 +117,19 @@ public class IRKitRegisterIRFragment extends Fragment  {
         return rootView;
     }
 
+    /**
+     * 仮想デバイスの状態を更新する.
+     * @param serviceId 仮想デバイスのサービスID
+     */
+    private void sendEventOnUpdate(final String serviceId) {
+        Activity activity = getActivity();
+        if (activity == null) {
+            return;
+        }
+        Intent intent = new Intent(IRKitDeviceService.ACTION_VIRTUAL_DEVICE_UPDATED);
+        intent.putExtra(IRKitDeviceService.EXTRA_VIRTUAL_DEVICE_ID, serviceId);
+        LocalBroadcastManager.getInstance(activity).sendBroadcast(intent);
+    }
     @Override
     public void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

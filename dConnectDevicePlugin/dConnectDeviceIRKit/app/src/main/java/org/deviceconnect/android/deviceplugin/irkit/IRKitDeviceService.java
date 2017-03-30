@@ -13,6 +13,7 @@ import android.content.IntentFilter;
 import android.net.wifi.WifiManager;
 import android.support.v4.content.LocalBroadcastManager;
 
+
 import org.deviceconnect.android.deviceplugin.irkit.IRKitManager.DetectionListener;
 import org.deviceconnect.android.deviceplugin.irkit.data.IRKitDBHelper;
 import org.deviceconnect.android.deviceplugin.irkit.data.VirtualDeviceData;
@@ -51,12 +52,14 @@ public class IRKitDeviceService extends DConnectMessageService implements Detect
      * 仮想デバイスの削除を通知するアクションを定義.
      */
     public static final String ACTION_VIRTUAL_DEVICE_REMOVED = "action.ACTION_VIRTUAL_DEVICE_REMOVED";
-
+    /**
+     * 仮想デバイスのステータス更新を通知するアクションを定義.
+     */
+    public static final String ACTION_VIRTUAL_DEVICE_UPDATED = "action.ACTION_VIRTUAL_DEVICE_UPDATED";
     /**
      * 仮想デバイスのIDを取得するためのキー.
      */
     public static final String EXTRA_VIRTUAL_DEVICE_ID = "extra.EXTRA_VIRTUAL_DEVICE_ID";
-
     /**
      * 検知したデバイス群.
      */
@@ -102,6 +105,15 @@ public class IRKitDeviceService extends DConnectMessageService implements Detect
                         }
                     }
                 }
+            } else if (ACTION_VIRTUAL_DEVICE_UPDATED.equals(action)) {
+                String id = intent.getStringExtra(EXTRA_VIRTUAL_DEVICE_ID);
+                if (id != null) {
+                    DConnectService service = getServiceProvider().getService(id);
+                    if (service != null) {
+                        VirtualService virtualService = (VirtualService) service;
+                        service.setOnline(virtualService.isOnline());
+                    }
+                }
             } else if (ACTION_VIRTUAL_DEVICE_REMOVED.equals(action)) {
                 String id = intent.getStringExtra(EXTRA_VIRTUAL_DEVICE_ID);
                 if (id != null) {
@@ -121,8 +133,10 @@ public class IRKitDeviceService extends DConnectMessageService implements Detect
 
         mDBHelper = new IRKitDBHelper(getContext());
         for (VirtualDeviceData device : mDBHelper.getVirtualDevices(null)) {
-            getServiceProvider().addService(new VirtualService(device, mDBHelper,
-                getServiceProvider()));
+            VirtualService vDevice = new VirtualService(device, mDBHelper,
+                    getServiceProvider());
+            vDevice.setOnline(vDevice.isOnline());
+            getServiceProvider().addService(vDevice);
         }
 
         IRKitApplication app = (IRKitApplication) getApplication();
@@ -139,6 +153,7 @@ public class IRKitDeviceService extends DConnectMessageService implements Detect
         localFilter.addAction(ACTION_RESTART_DETECTION_IRKIT);
         localFilter.addAction(ACTION_VIRTUAL_DEVICE_ADDED);
         localFilter.addAction(ACTION_VIRTUAL_DEVICE_REMOVED);
+        localFilter.addAction(ACTION_VIRTUAL_DEVICE_UPDATED);
         LocalBroadcastManager.getInstance(this).registerReceiver(mLocalBroadcastReceiver, localFilter);
     }
 

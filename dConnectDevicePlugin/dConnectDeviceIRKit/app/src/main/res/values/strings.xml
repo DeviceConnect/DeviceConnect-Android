@@ -91,6 +91,10 @@
     <string name="receive_failure_title" translatable="false">赤外線取得失敗</string>
     <string name="receive_failure_message" translatable="false">赤外線の取得に失敗しました。</string>
 
+
+    <string name="not_open_virtual_device_title" translatable="false">仮想デバイス</string>
+    <string name="not_open_virtual_device_message" translatable="false">このデバイスは仮想デバイスのため、さらに仮想デバイスを作ることはできません。</string>
+
     <!--
     IRKit Parameters.
     IRKitから取得したAPI KEYを記載してください。

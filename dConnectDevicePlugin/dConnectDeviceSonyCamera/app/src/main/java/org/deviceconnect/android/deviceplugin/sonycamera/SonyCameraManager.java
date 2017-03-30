@@ -107,7 +107,7 @@ public class SonyCameraManager {
     /**
      * 写真撮影監視リスナー.
      */
-    private OnSonyCamera2Listener mOnSonyCamera2Listener;
+    private OnSonyCameraManagerListener mOnSonyCameraManagerListener;
 
     /**
      * 現在接続中のWiFiのSSIDを保持します.
@@ -129,8 +129,8 @@ public class SonyCameraManager {
      * 撮影イベントリスナーを設定します.
      * @param listener リスナー
      */
-    void setOnSonyCamera2Listener(final OnSonyCamera2Listener listener) {
-        mOnSonyCamera2Listener = listener;
+    void setOnSonyCameraManagerListener(final OnSonyCameraManagerListener listener) {
+        mOnSonyCameraManagerListener = listener;
     }
 
     /**
@@ -544,7 +544,7 @@ public class SonyCameraManager {
                             listener.onError();
                         } else {
                             listener.onSuccess(postImageUrl);
-                            mOnSonyCamera2Listener.onTakePicture(postImageUrl);
+                            mOnSonyCameraManagerListener.onTakePicture(postImageUrl);
                         }
                     }
                 } catch (Exception e) {
@@ -691,8 +691,8 @@ public class SonyCameraManager {
 
                 @Override
                 public void onTakePicture(final String postImageUrl) {
-                    if (mOnSonyCamera2Listener != null) {
-                        mOnSonyCamera2Listener.onTakePicture(postImageUrl);
+                    if (mOnSonyCameraManagerListener != null) {
+                        mOnSonyCameraManagerListener.onTakePicture(postImageUrl);
                     }
                 }
             });
@@ -808,7 +808,7 @@ public class SonyCameraManager {
         mSonyCameraServices.add(service);
         mDBHelper.addSonyCameraService(service);
 
-        mOnSonyCamera2Listener.onAdded(service);
+        mOnSonyCameraManagerListener.onAdded(service);
 
         return service;
     }
@@ -826,7 +826,7 @@ public class SonyCameraManager {
     /**
      * Sonyカメラからの撮影結果を通知するためのリスナー.
      */
-    public interface OnSonyCamera2Listener {
+    public interface OnSonyCameraManagerListener {
         void onTakePicture(final String postImageUrl);
         void onAdded(final SonyCameraService service);
         void onError();

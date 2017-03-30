@@ -56,7 +56,7 @@ public class SonyCameraDeviceService extends DConnectMessageService {
         mFileMgr = new FileManager(this);
 
         mSonyCameraManager = new SonyCameraManager(this);
-        mSonyCameraManager.setOnSonyCamera2Listener(new SonyCameraManager.OnSonyCamera2Listener() {
+        mSonyCameraManager.setOnSonyCameraManagerListener(new SonyCameraManager.OnSonyCameraManagerListener() {
             @Override
             public void onTakePicture(final String postImageUrl) {
                 notifyTakePhoto(mSonyCameraManager.getServiceId(), "", postImageUrl);

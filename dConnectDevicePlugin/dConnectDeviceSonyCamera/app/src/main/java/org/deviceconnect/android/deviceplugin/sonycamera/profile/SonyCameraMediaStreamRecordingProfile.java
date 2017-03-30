@@ -64,8 +64,6 @@ public class SonyCameraMediaStreamRecordingProfile extends MediaStreamRecordingP
             } else {
                 MessageUtils.setUnknownError(response);
             }
-
-            mLogger.exiting(this.getClass().getName(), "onPutOnPhoto");
             return true;
         }
     };
@@ -104,8 +102,6 @@ public class SonyCameraMediaStreamRecordingProfile extends MediaStreamRecordingP
             } else {
                 MessageUtils.setUnknownError(response);
             }
-
-            mLogger.exiting(this.getClass().getName(), "onDeleteOnPhoto");
             return true;
         }
     };
@@ -213,14 +209,14 @@ public class SonyCameraMediaStreamRecordingProfile extends MediaStreamRecordingP
             timeSlice = 100L;
         }
 
-        if (target != null && !target.equals(TARGET_ID)) {
-            MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
-            return true;
-        }
-
         SonyCameraManager manager = getSonyCameraManager();
         if (!manager.isConnectedService(serviceId)) {
             MessageUtils.setIllegalDeviceStateError(response, "Sony's camera is not ready.");
+            return true;
+        }
+
+        if (target != null && !target.equals(TARGET_ID)) {
+            MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
             return true;
         }
 
@@ -256,14 +252,14 @@ public class SonyCameraMediaStreamRecordingProfile extends MediaStreamRecordingP
         String serviceId = getServiceID(request);
         String target = getTarget(request);
 
-        if (target != null && !target.equals(TARGET_ID)) {
-            MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
-            return true;
-        }
-
         SonyCameraManager manager = getSonyCameraManager();
         if (!manager.isConnectedService(serviceId)) {
             MessageUtils.setIllegalDeviceStateError(response, "Sony's camera is not ready.");
+            return true;
+        }
+
+        if (target != null && !target.equals(TARGET_ID)) {
+            MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
             return true;
         }
 
@@ -289,19 +285,14 @@ public class SonyCameraMediaStreamRecordingProfile extends MediaStreamRecordingP
         final String serviceId = getServiceID(request);
         final String target = getTarget(request);
 
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
+        SonyCameraManager manager = getSonyCameraManager();
+        if (!manager.isConnectedService(serviceId)) {
+            MessageUtils.setIllegalDeviceStateError(response, "Sony's camera is not ready.");
             return true;
         }
 
         if (target != null && !target.equals(TARGET_ID)) {
             MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
-            return true;
-        }
-
-        SonyCameraManager manager = getSonyCameraManager();
-        if (!manager.isConnectedService(serviceId)) {
-            MessageUtils.setIllegalDeviceStateError(response, "Sony's camera is not ready.");
             return true;
         }
 

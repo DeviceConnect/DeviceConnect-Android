@@ -309,12 +309,16 @@ public final class SonyCameraUtil {
      * @return SSID
      */
     public static String getSSID(final Context context) {
-        ConnectivityManager cm = getConnectivityManager(context);
-        NetworkInfo info = cm.getActiveNetworkInfo();
-        if (info.getTypeName().equalsIgnoreCase("WIFI")) {
+        ConnectivityManager connMgr = getConnectivityManager(context);
+        NetworkInfo info = connMgr.getActiveNetworkInfo();
+        if (info != null && info.getType() == ConnectivityManager.TYPE_WIFI) {
             WifiManager wifiMgr = getWifiManager(context);
             WifiInfo wifiInfo = wifiMgr.getConnectionInfo();
-            return ssid(wifiInfo.getSSID());
+            if (wifiInfo == null) {
+                return null;
+            } else {
+                return ssid(wifiInfo.getSSID());
+            }
         } else {
             return null;
         }

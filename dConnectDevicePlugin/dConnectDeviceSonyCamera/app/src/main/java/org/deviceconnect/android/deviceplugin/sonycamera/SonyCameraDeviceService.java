@@ -20,10 +20,7 @@ import org.deviceconnect.android.deviceplugin.sonycamera.utils.SonyCameraUtil;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.DConnectMessageService;
-import org.deviceconnect.android.profile.MediaStreamRecordingProfile;
 import org.deviceconnect.android.profile.SystemProfile;
-import org.deviceconnect.android.provider.FileManager;
-import org.deviceconnect.profile.MediaStreamRecordingProfileConstants;
 
 import java.util.List;
 import java.util.logging.Logger;
@@ -40,11 +37,6 @@ public class SonyCameraDeviceService extends DConnectMessageService {
     private Logger mLogger = Logger.getLogger("sonycamera.dplugin");
 
     /**
-     * ファイル管理クラス.
-     */
-    private FileManager mFileMgr;
-
-    /**
      * SonyCamera管理クラス.
      */
     private SonyCameraManager mSonyCameraManager;
@@ -53,13 +45,11 @@ public class SonyCameraDeviceService extends DConnectMessageService {
     public void onCreate() {
         super.onCreate();
 
-        mFileMgr = new FileManager(this);
-
         mSonyCameraManager = new SonyCameraManager(this);
         mSonyCameraManager.setOnSonyCameraManagerListener(new SonyCameraManager.OnSonyCameraManagerListener() {
             @Override
             public void onTakePicture(final String postImageUrl) {
-                notifyTakePhoto(mSonyCameraManager.getServiceId(), "", postImageUrl);
+                notifyTakePhoto(mSonyCameraManager.getServiceId(), postImageUrl);
             }
 
             @Override
@@ -204,28 +194,23 @@ public class SonyCameraDeviceService extends DConnectMessageService {
      * 写真撮影を通知する.
      *
      * @param serviceId サービスID
-     * @param path 写真へのパス
      * @param uri 写真へのURI
      */
-    private void notifyTakePhoto(final String serviceId, final String path, final String uri) {
+    private void notifyTakePhoto(final String serviceId, final String uri) {
         if (serviceId == null) {
             return;
         }
 
         List<Event> eventList = EventManager.INSTANCE.getEventList(serviceId,
-                MediaStreamRecordingProfileConstants.PROFILE_NAME, null,
-                MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_PHOTO);
+                "mediaStreamRecording", null, "onPhoto");
 
-        // TODO パスを検討
-        String photoPath = mFileMgr.getBasePath().getPath() + "/" + path;
         for (Event evt : eventList) {
             Bundle photo = new Bundle();
-            photo.putString(MediaStreamRecordingProfile.PARAM_URI, uri);
-            photo.putString(MediaStreamRecordingProfile.PARAM_PATH, photoPath);
-            photo.putString(MediaStreamRecordingProfile.PARAM_MIME_TYPE, "image/png");
+            photo.putString("uri", uri);
+            photo.putString("mimeType", "image/jpg");
 
             Intent intent = EventManager.createEventMessage(evt);
-            intent.putExtra(MediaStreamRecordingProfile.PARAM_PHOTO, photo);
+            intent.putExtra("photo", photo);
 
             sendEvent(intent, evt.getAccessToken());
         }

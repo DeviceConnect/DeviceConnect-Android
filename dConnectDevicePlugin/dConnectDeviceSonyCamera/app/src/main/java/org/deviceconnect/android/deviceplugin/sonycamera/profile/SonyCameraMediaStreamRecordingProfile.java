@@ -151,11 +151,6 @@ public class SonyCameraMediaStreamRecordingProfile extends MediaStreamRecordingP
     private boolean onGetMediaRecorder(final Intent request, final Intent response) {
         String serviceId = getServiceID(request);
 
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-            return true;
-        }
-
         SonyCameraManager manager = getSonyCameraManager();
         if (!manager.isConnectedService(serviceId)) {
             MessageUtils.setIllegalDeviceStateError(response, "Sony's camera is not ready.");
@@ -171,7 +166,7 @@ public class SonyCameraMediaStreamRecordingProfile extends MediaStreamRecordingP
                 recorder.putString("id", TARGET_ID);
                 recorder.putString("name", DEVICE_NAME);
                 recorder.putString("state", state);
-                recorder.putString("mimeType", "image/png");
+                recorder.putString("mimeType", "image/jpg");
                 if (size != null) {
                     recorder.putInt("imageWidth", size[0]);
                     recorder.putInt("imageHeight", size[1]);
